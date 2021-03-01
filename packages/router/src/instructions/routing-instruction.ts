@@ -38,7 +38,6 @@ export class RoutingInstruction {
    */
   public parameters: InstructionParameters;
 
-
   /**
    * Whether the routing instruction owns its scope.
    */
@@ -443,8 +442,9 @@ export class RoutingInstruction {
    *
    * @param keepInstances - Whether actual instances should be transfered
    * @param scopeModifier - Whether the scope modifier should be transfered
+   * @param shallow - Whether it should be a shallow clone only
    */
-  public clone(keepInstances: boolean = false, scopeModifier: boolean = false): RoutingInstruction {
+  public clone(keepInstances: boolean = false, scopeModifier: boolean = false, shallow: boolean = false): RoutingInstruction {
     // Create a clone without instances...
     const clone = RoutingInstruction.create(
       this.component.promise ?? this.component.type ?? this.component.name!,
@@ -466,7 +466,7 @@ export class RoutingInstruction {
     }
     clone.scope = keepInstances ? this.scope : null;
     // Clone all next scope/child instructions
-    if (this.hasNextScopeInstructions) {
+    if (this.hasNextScopeInstructions && !shallow) {
       clone.nextScopeInstructions = RoutingInstruction.clone(this.nextScopeInstructions!, keepInstances, scopeModifier);
     }
     return clone;

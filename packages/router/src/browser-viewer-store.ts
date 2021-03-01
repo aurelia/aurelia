@@ -160,7 +160,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
    * @param state - The state to push
    */
   public async pushNavigatorState(state: INavigatorState): Promise<boolean | void> {
-    const { title, path } = state.lastNavigation;
+    const { title, path } = state.navigations[state.navigationIndex];
     const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
     return this.pendingCalls.enqueue(
@@ -190,8 +190,9 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
    */
   public async replaceNavigatorState(state: INavigatorState, title?: string, path?: string): Promise<boolean | void> {
     // const { title, path } = state.currentEntry;
-    title ??= state.lastNavigation?.title;
-    path ??= state.lastNavigation?.path;
+    const lastNavigation = state.navigations[state.navigationIndex];
+    title ??= lastNavigation.title;
+    path ??= lastNavigation.path;
     const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
     return this.pendingCalls.enqueue(
@@ -285,7 +286,8 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     await this.go(-1, true);
     const state = this.history.state as INavigatorState;
     // TODO: Fix browser forward bug after pop on first entry
-    if (state && state.lastNavigation && !state.lastNavigation.firstEntry) {
+    const lastNavigation = state?.navigations?.[state?.navigationIndex ?? 0];
+    if (lastNavigation != null && !lastNavigation.firstEntry) {
       await this.go(-1, true);
       await this.pushNavigatorState(state);
     }

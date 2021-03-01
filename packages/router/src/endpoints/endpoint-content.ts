@@ -1,6 +1,6 @@
 import { Endpoint } from './endpoint';
 import { IRouter } from '../router';
-import { RoutingInstruction, RoutingScope } from '../index.js';
+import { Navigation, RoutingInstruction, RoutingScope } from '../index.js';
 
 /**
  * The endpoint content encapsulates the content of an endpoint.
@@ -14,6 +14,11 @@ export class EndpointContent {
    * The routing scope that's connected to the endpoint content
    */
   public connectedScope: RoutingScope;
+
+  /**
+   * Whether the content has completed its navigation
+   */
+  public completed: boolean = false;
 
   public constructor(
     public readonly router: IRouter,
@@ -34,6 +39,14 @@ export class EndpointContent {
      * The routing instruction that has created the content
      */
     public instruction: RoutingInstruction = RoutingInstruction.create('') as RoutingInstruction,
+
+    /**
+     * The navigation that created the endpoint content
+     */
+    public navigation = Navigation.create({
+      instruction: '',
+      fullStateInstruction: '',
+    }),
   ) {
     this.connectedScope = new RoutingScope(router, hasScope, owningScope, this);
     // Skip if no root scope (meaning we ARE the root scope!)

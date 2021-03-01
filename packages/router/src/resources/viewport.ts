@@ -137,7 +137,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
         }
       },
       () => {
-        if (this.viewport !== null && this.viewport.nextContent === null) {
+        if (this.viewport !== null && this.viewport.getNextContent() === null) {
           return (this.viewport.activate(null, initiator, this.controller, flags, /* true, */ void 0) as Step<void>)?.asValue as void | Promise<void>;
           // TODO: Restore scroll state (in attaching/attached)
         }
@@ -149,7 +149,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     if (this.viewport !== null) {
       // TODO: Save scroll state before detach
       this.isBound = false;
-      return this.viewport.deactivate(initiator, parent, flags);
+      return this.viewport.deactivate(null, initiator, parent, flags);
     }
   }
 

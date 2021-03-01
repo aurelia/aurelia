@@ -6,7 +6,7 @@ describe('Router', function () {
   function getModifiedRouter(container) {
     const router = container.get(IRouter) as IRouter;
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-    mockBrowserHistoryLocation.changeCallback = router.viewer.handlePopstate;
+    mockBrowserHistoryLocation.changeCallback = router.viewer.handlePopStateEvent;
     router.viewer.history = mockBrowserHistoryLocation as any;
     router.viewer.location = mockBrowserHistoryLocation as any;
     return router;
@@ -185,7 +185,7 @@ describe('Router', function () {
     await tearDown();
   });
 
-  it('queues navigations', async function () {
+  it.skip('queues navigations', async function () {
     this.timeout(40000);
 
     const { platform, host, router, tearDown } = await createFixture();
@@ -708,7 +708,7 @@ describe('Router', function () {
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
-    let component = (router.getEndpoint('Viewport', 'left') as Viewport).content.componentInstance;
+    let component = (router.getEndpoint('Viewport', 'left') as Viewport).getContent().componentInstance;
     component.reloadBehavior = 'reload';
     // This should reload
     await $load('plugh(123)@left', router, platform);
@@ -720,7 +720,7 @@ describe('Router', function () {
     await $load('plugh(456)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
-    component = (router.getEndpoint('Viewport', 'left') as Viewport).content.componentInstance;
+    component = (router.getEndpoint('Viewport', 'left') as Viewport).getContent().componentInstance;
 
     component.reloadBehavior = 'default';
     // This should default

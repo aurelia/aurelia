@@ -2,6 +2,7 @@ import { IRouter } from './router.js';
 import { Navigation } from './navigation.js';
 import { IEndpoint } from './endpoints/endpoint.js';
 import { OpenPromise } from './utilities/open-promise.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 
 /**
  * The navigation coordinator coordinates navigation between endpoints/entities
@@ -98,6 +99,11 @@ export class NavigationCoordinator {
   public running = false;
 
   /**
+   * Whether the coordinator's run is completed.
+   */
+  public completed = false;
+
+  /**
    * Whether the coordinator's run is cancelled.
    */
   public cancelled = false;
@@ -106,6 +112,11 @@ export class NavigationCoordinator {
    * Whether the coordinator has got all endpoints added.
    */
   public hasAllEndpoints = false;
+
+  /**
+   * Instructions that should be appended to the navigation
+   */
+  public appendedInstructions: RoutingInstruction[] = [];
 
   /**
    * The entities the coordinator is coordinating.
@@ -128,7 +139,7 @@ export class NavigationCoordinator {
     /**
      * The navigation that created the coordinator.
      */
-    private readonly navigation: Navigation,
+    public readonly navigation: Navigation,
   ) { }
 
   /**
@@ -181,7 +192,14 @@ export class NavigationCoordinator {
    * @param endpoint - The endpoint to add
    */
   public addEndpoint(endpoint: IEndpoint): Entity {
-    const entity = new Entity(endpoint);
+    // If the endpoint already have an entity...
+    let entity = this.entities.find(e => e.endpoint === endpoint);
+    if (entity !== void 0) {
+      // ...use that.
+      return entity;
+    }
+
+    entity = new Entity(endpoint);
     this.entities.push(entity);
     // A new entity might invalidate earlier reached states, so reset
     this.recheckSyncStates();
@@ -312,28 +330,33 @@ export class NavigationCoordinator {
    * Finalize the navigation, calling finalizeContentChange in all endpoints.
    */
   public finalize(): void {
-    this.entities.forEach(entity => entity.endpoint.finalizeContentChange());
+    this.entities.forEach(entity => entity.endpoint.finalizeContentChange(this));
+    this.completed = true;
+    this.navigation.completed = true;
   }
 
   /**
-   * Cancel the navigation, calling abortContentChange in all endpoints and
+   * Cancel the navigation, calling cancelContentChange in all endpoints and
    * cancelling the navigation itself.
    */
   public cancel(): void {
     this.cancelled = true;
     // TODO: Take care of disabling viewports when cancelling and stateful!
     this.entities.forEach(entity => {
-      const abort = entity.endpoint.abortContentChange(null);
+      const abort = entity.endpoint.cancelContentChange(this, null);
       if (abort instanceof Promise) {
         abort.catch(error => { throw error; });
       }
     });
+    // TODO: Review this since it probably should happen in turn
     this.router.navigator.cancel(this.navigation).then(() => {
       this.router.processingNavigation = null;
       if (this.navigation.resolve != null) {
         this.navigation.resolve(false);
       }
     }).catch(error => { throw error; });
+    this.completed = true;
+    // this.navigation.completed = true;
   }
 
   // TODO: A new navigation should cancel replaced instructions

@@ -61,7 +61,8 @@ export class ViewportScope extends Endpoint {
     },
   ) {
     super(router, name, connectedCE);
-    this.content = new ViewportScopeContent(router, this, owningScope, scope);
+    // this.content = new ViewportScopeContent(router, this, owningScope, scope);
+    this.contents.push(new ViewportScopeContent(router, this, owningScope, scope));
     if (this.catches.length > 0) {
       this.instruction = RoutingInstruction.create(this.catches[0], this.name) as RoutingInstruction;
     }
@@ -105,11 +106,11 @@ export class ViewportScope extends Endpoint {
 
   public toString(): string {
     const contentName = this.instruction?.component.name ?? '';
-    const nextContentName = this.nextContent?.instruction.component.name ?? '';
+    const nextContentName = this.getNextContent()?.instruction.component.name ?? '';
     return `vs:${this.name}[${contentName}->${nextContentName}]`;
   }
 
-  public setNextContent(instruction: RoutingInstruction, _navigation: Navigation): TransitionAction {
+  public setNextContent(instruction: RoutingInstruction, navigation: Navigation): TransitionAction {
     instruction.endpoint.set(this);
 
     this.remove = instruction.isClear || instruction.isClearAll;
@@ -123,7 +124,8 @@ export class ViewportScope extends Endpoint {
       instruction.component.name = this.default;
     }
 
-    this.nextContent = new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope, instruction);
+    // this.nextContent = new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope, instruction);
+    this.contents.push(new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope, instruction, navigation));
 
     return 'swap';
   }
@@ -138,20 +140,27 @@ export class ViewportScope extends Endpoint {
       () => coordinator.addEndpointState(this, 'routed'),
       () => coordinator.addEndpointState(this, 'swapped'),
       () => {
-        this.content = !this.remove ? this.nextContent! : new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope);
-        this.nextContent = null;
+        // this.content = !this.remove ? this.nextContent! : new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope);
+        if (this.remove) {
+          this.contents.push(new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope));
+        }
+        // this.nextContent = null;
+        //Y: this.contents.shift();
+        this.getNextContent()!.completed = true;
         coordinator.addEndpointState(this, 'completed');
       }
     );
   }
 
-  public finalizeContentChange(): void {
+  public finalizeContentChange(_coordinator: NavigationCoordinator): void {
     if (this.remove && Array.isArray(this.source)) {
       this.removeSourceItem();
     }
   }
-  public abortContentChange(_step: Step<void> | null): void | Step<void> {
-    this.nextContent = null;
+  public cancelContentChange(_coordinator: NavigationCoordinator, _step: Step<void> | null): void | Step<void> {
+    // this.nextContent = null;
+    // this.contents.pop();
+    this.contents.splice(this.contents.indexOf(this.getNextContent()!), 1);
     if (this.add) {
       const index = this.source!.indexOf(this.sourceItem);
       this.source!.splice(index, 1);

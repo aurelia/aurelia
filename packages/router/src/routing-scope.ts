@@ -12,6 +12,7 @@ import { Endpoint, IConnectedCustomElement } from './endpoints/endpoint.js';
 import { EndpointMatcher, IMatchEndpointsResult } from './endpoint-matcher.js';
 import { EndpointContent, Router, RouterConfiguration } from './index.js';
 import { IContainer, Metadata } from '@aurelia/kernel';
+import { arrayUnique } from './utilities/utils.js';
 
 export type TransitionAction = 'skip' | 'reload' | 'swap' | '';
 
@@ -87,6 +88,7 @@ export class RoutingScope {
   ) {
     this.id = ++RoutingScope.lastId;
     this.owningScope = owningScope ?? this;
+    // console.log('Created RoutingScope', this.id, this);
   }
 
   public static for(origin: Element | ICustomElementViewModel | Viewport | ViewportScope | RoutingScope | ICustomElementController | IContainer | null): RoutingScope | null {
@@ -162,6 +164,12 @@ export class RoutingScope {
       `${recurse ? `\n` + this.children.map(child => child.toString(true)).join('') : ''}`;
   }
 
+  public toStringOwning(recurse = false): string {
+    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${!this.enabled ? '(' : ''}${this.endpoint!.toString()}#${this.id}${!this.enabled ? ')' : ''}` +
+      // eslint-disable-next-line prefer-template
+      `${recurse ? `\n` + this.ownedScopes.map(child => child.toStringOwning(true)).join('') : ''}`;
+  }
+
   public get enabledChildren(): RoutingScope[] {
     return this.children.filter(scope => scope.enabled);
   }
@@ -177,13 +185,28 @@ export class RoutingScope {
     }
     return scopes;
   }
+  public get ownedScopes(): RoutingScope[] {
+    return this.getOwnedScopes();
+  }
 
   public get routingInstruction(): RoutingInstruction | null {
     if (this.endpoint.isViewportScope) {
       return (this.endpoint as ViewportScope).instruction;
     }
     if (this.isViewport) {
-      return (this.endpoint as Viewport).content.instruction;
+      return (this.endpoint as Viewport).activeContent.instruction;
+    }
+    return null;
+  }
+
+  public getRoutingInstruction(index?: number): RoutingInstruction | null {
+    if (this.endpoint.isViewportScope) {
+      return (this.endpoint as ViewportScope).instruction;
+    }
+    if (this.isViewport) {
+      return index !== void 0
+        ? ((this.endpoint as Viewport).getTimeContent(index)?.instruction ?? null)
+        : (this.endpoint as Viewport).getContent().instruction;
     }
     return null;
   }
@@ -313,6 +336,68 @@ export class RoutingScope {
     return scopes.map(scope => scope.routingInstruction!);
   }
 
+  public getChildren(index: number): RoutingScope[] {
+    const contents = this.children
+      .map(scope => scope.endpoint.getTimeContent(index))
+      .filter(content => content !== null) as EndpointContent[];
+    return contents.map(content => content.connectedScope);
+  }
+
+  public getAllRoutingScopes(index: number): RoutingScope[] {
+    const scopes = this.getChildren(index);
+    for (const scope of scopes.slice()) {
+      scopes.push(...scope.getAllRoutingScopes(index));
+    }
+    return scopes;
+  }
+
+  public getOwnedRoutingScopes(index: number): RoutingScope[] {
+    const scopes = this.getAllRoutingScopes(index)
+      .filter(scope => scope.owningScope === this);
+    // Hoist children to pass through scopes
+    for (const scope of scopes.slice()) {
+      if (scope.passThroughScope) {
+        const passThrough = scopes.indexOf(scope);
+        scopes.splice(passThrough, 1, ...scope.getOwnedRoutingScopes(index));
+      }
+    }
+    return scopes;
+  }
+
+  public getRoutingInstructions(index: number): RoutingInstruction[] | null {
+    const contents = arrayUnique(
+      this.getOwnedRoutingScopes(index) // hoistedChildren
+        .map(scope => scope.endpoint)
+    )
+      .map(endpoint => endpoint.getTimeContent(index))
+      .filter(content => content !== null) as EndpointContent[];
+    const instructions = [];
+
+    for (const content of contents) {
+      const instruction = content.instruction.clone(true, false, false);
+      if ((instruction.component.name ?? '') !== '') {
+        instruction.nextScopeInstructions = content.connectedScope.getRoutingInstructions(index);
+        instructions.push(instruction);
+      }
+    }
+    // instructions = instructions.filter(instr => (instr.component.name ?? '') !== '');
+    return instructions; // .length > 0 ? instructions : null;
+  }
+
+  public getRoutingScopes(index: number): RoutingScope[] | null {
+    const contents = this.ownedScopes
+      .map(scope => scope.endpoint.getTimeContent(index))
+      .filter(content => content !== null) as EndpointContent[];
+    const scopes = contents.map(content => content.connectedScope);
+
+    // for (const content of contents) {
+    //   const instruction = content.instruction.clone(true, false, false);
+    //   instruction.nextScopeInstructions = content.connectedScope.getRoutingInstructions(index);
+    //   scopes.push(instruction);
+    // }
+    return scopes;
+  }
+
   public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
     return Runner.run(step,
       (stepParallel: Step<boolean>) => {
@@ -325,7 +410,7 @@ export class RoutingScope {
       (step: Step<boolean>) => (step.previousValue as boolean[]).every(result => result)) as boolean | Promise<boolean>;
   }
 
-  public unload(step: Step<void> | null/*, recurse: boolean, transitionId: number*/): Step<void> {
+  public unload(step: Step<void> | null): Step<void> {
     return Runner.runParallel(step,
       ...this.children.map(child => child.endpoint !== null
         ? (childStep: Step<void>) => child.endpoint.unload(childStep)

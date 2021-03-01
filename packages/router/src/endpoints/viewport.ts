@@ -81,13 +81,20 @@ import { IViewportOptions, ViewportOptions } from './viewport-options';
 
 export class Viewport extends Endpoint {
   /**
-   * The current content of the viewport.
+   * The contents of the viewport. New contents are pushed to this, making
+   * the last one the active one. It always holds at least one content, so
+   * that there's always a current content.
    */
-  public content: ViewportContent;
-  /**
-   * The next, to be transitioned in, content of the viewport.
-   */
-  public nextContent: ViewportContent | null = null;
+  public contents: ViewportContent[] = [];
+
+  // /**
+  //  * The current content of the viewport.
+  //  */
+  // public content: ViewportContent;
+  // /**
+  //  * The next, to be transitioned in, content of the viewport.
+  //  */
+  // public nextContent: ViewportContent | null = null;
 
   /**
    * Whether the viewport content should be cleared and removed,
@@ -117,6 +124,12 @@ export class Viewport extends Endpoint {
    */
   private clear: boolean = false;
 
+  /**
+   * The coordinators that have transitions on the viewport.
+   */
+  private readonly coordinators: NavigationCoordinator[] = [];
+  private contentUnloading: ViewportContent | null = null;
+  private lastPromise: Promise<unknown> | null = null;
   /**
    * Stores the current state before navigation starts so that it can be restored
    * if navigation is cancelled/interrupted.
@@ -164,10 +177,61 @@ export class Viewport extends Endpoint {
     options?: IViewportOptions,
   ) {
     super(router, name, connectedCE);
-    this.content = new ViewportContent(router, this, owningScope, hasScope);
+    // this.content = new ViewportContent(router, this, owningScope, hasScope);
+    this.contents.push(new ViewportContent(router, this, owningScope, hasScope));
+    this.contents[0].completed = true;
+
     if (options !== void 0) {
       this.options.apply(options);
     }
+  }
+
+  /**
+   * The current content of the endpoint
+   */
+  public getContent(): ViewportContent {
+    // If there's only one content, it's always content
+    if (this.contents.length === 1) {
+      return this.contents[0];
+    }
+    let content!: ViewportContent;
+    // Go through all contents looking for last completed
+    for (let i = 0, ii = this.contents.length; i < ii; i++) {
+      if (this.contents[i].completed ?? false) {
+        content = this.contents[i];
+      } else {
+        break;
+      }
+    }
+    return content;
+  }
+
+  /**
+   * The next, to be transitioned in, content of the endpoint
+   */
+  public getNextContent(): ViewportContent | null {
+    // If there's only one content, it's always content
+    if (this.contents.length === 1) {
+      return null;
+    }
+    const lastCompleted = this.contents.indexOf(this.getContent());
+    return this.contents.length > lastCompleted ? this.contents[lastCompleted + 1] : null;
+  }
+
+  /**
+   * The content of the viewport from a specific time (index)
+   */
+  public getTimeContent(index: number): ViewportContent | null {
+    let content: ViewportContent | null = null;
+    // Go through all contents looking for last completed
+    for (let i = 0, ii = this.contents.length; i < ii; i++) {
+      // if ((this.contents[i].navigation.index ?? 0) > index) {
+      if (this.contents[i].navigation.timestamp > index) {
+        break;
+      }
+      content = this.contents[i];
+    }
+    return content;
   }
 
   /**
@@ -188,7 +252,7 @@ export class Viewport extends Endpoint {
    * Whether the viewport (content) is empty.
    */
   public get isEmpty(): boolean {
-    return this.content.componentInstance === null;
+    return this.getContent().componentInstance === null;
   }
 
   /**
@@ -207,12 +271,16 @@ export class Viewport extends Endpoint {
     return false;
   }
 
+  public isActiveNavigation(coordinator: NavigationCoordinator): boolean {
+    return this.coordinators[this.coordinators.length - 1] === coordinator;
+  }
+
   /**
    * For debug purposes.
    */
   public toString(): string {
-    const contentName = this.content?.instruction.component.name ?? '';
-    const nextContentName = this.nextContent?.instruction.component.name ?? '';
+    const contentName = this.getContent()?.instruction.component.name ?? '';
+    const nextContentName = this.getNextContent()?.instruction.component.name ?? '';
     return `v:${this.name}[${contentName}->${nextContentName}]`;
   }
 
@@ -238,33 +306,43 @@ export class Viewport extends Endpoint {
     this.clear = instruction.isClear;
 
     // Can have a (resolved) type or a string (to be resolved later)
-    this.nextContent = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, !this.clear ? instruction : void 0, navigation, this.connectedCE ?? null);
+    // this.nextContent = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, !this.clear ? instruction : void 0, navigation, this.connectedCE ?? null);
 
-    this.nextContent.fromHistory = this.nextContent.componentInstance !== null && navigation.navigation
+    const content = this.contents[this.contents.length - 1];
+    const nextContent = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, !this.clear ? instruction : void 0, navigation, this.connectedCE ?? null);
+    this.contents.push(nextContent);
+    // const content = this.getContent();
+
+    nextContent.fromHistory = nextContent.componentInstance !== null && navigation.navigation
       ? !!navigation.navigation.back || !!navigation.navigation.forward
       : false;
 
     if (this.options.stateful) {
       // TODO: Add a parameter here to decide required equality
-      const cached = this.cache.find((item) => this.nextContent!.isCacheEqual(item));
+      const cached = this.cache.find((item) => nextContent.isCacheEqual(item));
       if (cached !== void 0) {
-        this.nextContent = cached;
-        this.nextContent.fromCache = true;
+        // this.nextContent = cached;
+        this.contents.splice(this.contents.indexOf(nextContent), 1, cached);
+        // this.contents.pop(); if (this.contents.length < 1) { throw new Error('no content!'); }
+        // this.contents.push(cached);
+        nextContent.fromCache = true;
       } else {
-        this.cache.push(this.nextContent);
+        this.cache.push(nextContent);
       }
     }
 
     // If we get the same _instance_, don't do anything (happens with cached and history)
-    if (this.nextContent.componentInstance !== null && this.content.componentInstance === this.nextContent.componentInstance) {
-      this.nextContent.delete();
-      this.nextContent = null;
+    if (nextContent.componentInstance !== null && content.componentInstance === nextContent.componentInstance) {
+      nextContent.delete();
+      // this.nextContent = null;
+      this.contents.splice(this.contents.indexOf(nextContent), 1);
+      // this.contents.pop(); if (this.contents.length < 1) { throw new Error('no content!'); }
       return this.transitionAction = 'skip'; // false;
     }
 
-    if (!this.content.equalComponent(this.nextContent) ||
+    if (!content.equalComponent(nextContent) ||
       navigation.navigation.refresh || // Navigation 'refresh' performed
-      this.content.reloadBehavior === ReloadBehavior.refresh // ReloadBehavior 'refresh' takes precedence
+      content.reloadBehavior === ReloadBehavior.refresh // ReloadBehavior 'refresh' takes precedence
     ) {
       return this.transitionAction = 'swap';
     }
@@ -272,20 +350,22 @@ export class Viewport extends Endpoint {
     // Component is the same name/type
 
     // Explicitly don't allow navigation back to the same component again
-    if (this.content.reloadBehavior === ReloadBehavior.disallow) {
-      this.nextContent.delete();
-      this.nextContent = null;
+    if (content.reloadBehavior === ReloadBehavior.disallow) {
+      nextContent.delete();
+      // this.nextContent = null;
+      // this.contents.pop(); if (this.contents.length < 1) { throw new Error('no content!'); }
+      this.contents.splice(this.contents.indexOf(nextContent), 1);
       return this.transitionAction = 'skip';
     }
 
     // Explicitly re-load same component again
     // TODO(alpha): NEED TO CHECK THIS TOWARDS activeContent REGARDING scope
-    if (this.content.reloadBehavior === ReloadBehavior.reload) {
-      this.content.reload = true;
+    if (content.reloadBehavior === ReloadBehavior.reload) {
+      content.reload = true;
 
-      this.nextContent.instruction.component.set(this.content.componentInstance);
-      this.nextContent.contentStates = this.content.contentStates.clone();
-      this.nextContent.reload = this.content.reload;
+      nextContent.instruction.component.set(content.componentInstance);
+      nextContent.contentStates = content.contentStates.clone();
+      nextContent.reload = content.reload;
       return this.transitionAction = 'reload'; // true;
     }
 
@@ -293,20 +373,22 @@ export class Viewport extends Endpoint {
 
     // Requires updated parameters if viewport stateful
     if (this.options.stateful &&
-      this.content.equalParameters(this.nextContent)) {
-      this.nextContent.delete();
-      this.nextContent = null;
+      content.equalParameters(nextContent)) {
+      nextContent.delete();
+      // this.nextContent = null;
+      // this.contents.pop(); if (this.contents.length < 1) { throw new Error('no content!'); }
+      this.contents.splice(this.contents.indexOf(nextContent), 1);
       return this.transitionAction = 'skip';
     }
 
-    if (!this.content.equalParameters(this.nextContent)) {
+    if (!content.equalParameters(nextContent)) {
       // TODO: Fix a config option for this
       // eslint-disable-next-line no-constant-condition
       if (false) { // Re-use component, only reload with new parameters
-        this.content.reload = true;
-        this.nextContent!.instruction.component.set(this.content.componentInstance);
-        this.nextContent!.contentStates = this.content.contentStates.clone();
-        this.nextContent!.reload = this.content.reload;
+        content.reload = true;
+        nextContent.instruction.component.set(content.componentInstance);
+        nextContent.contentStates = content.contentStates.clone();
+        nextContent.reload = content.reload;
         return this.transitionAction = 'reload';
       } else { // Perform a full swap
         return this.transitionAction = 'swap';
@@ -314,8 +396,10 @@ export class Viewport extends Endpoint {
     }
 
     // Default is to do nothing
-    this.nextContent.delete();
-    this.nextContent = null;
+    nextContent.delete();
+    // this.nextContent = null;
+    // this.contents.pop(); if (this.contents.length < 1) { throw new Error('no content!'); }
+    this.contents.splice(this.contents.indexOf(nextContent), 1);
     return this.transitionAction = 'skip';
   }
 
@@ -334,33 +418,13 @@ export class Viewport extends Endpoint {
       this.clearState();
       this.connectedCE = connectedCE;
       this.options.apply(options);
-      // if (options.usedBy !== void 0) {
-      //   this.options.usedBy = options.usedBy;
-      // }
-      // if (options.default) {
-      //   this.options.default = options.default;
-      // }
-      // if (options.fallback) {
-      //   this.options.fallback = options.fallback;
-      // }
-      // if (options.noLink) {
-      //   this.options.noLink = options.noLink;
-      // }
-      // if (options.noTitle) {
-      //   this.options.noTitle = options.noTitle;
-      // }
-      // if (options.noHistory) {
-      //   this.options.noHistory = options.noHistory;
-      // }
-      // if (options.stateful) {
-      //   this.options.stateful = options.stateful;
-      // }
       if (this.connectionResolve != null) {
         this.connectionResolve();
       }
     }
 
-    if (this.content.componentInstance === null && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
+    // if (this.getContent().componentInstance === null && (!this.getNextContent() || !this.getNextContent().componentInstance) && this.options.default) {
+    if (this.getContent().componentInstance === null && this.getNextContent()?.componentInstance == null && this.options.default) {
       const instructions = RoutingInstruction.parse(this.options.default);
       for (const instruction of instructions) {
         // Set to name to be delayed one turn (refactor: not sure why, so changed it)
@@ -378,11 +442,11 @@ export class Viewport extends Endpoint {
     if (this.connectedCE === connectedCE) {
       return Runner.run(step,
         (innerStep: Step<void>) => {
-          if (this.content.componentInstance !== null) {
-            return this.content.freeContent(
+          if (this.getContent().componentInstance !== null) {
+            return this.getContent().freeContent(
               innerStep,
               this.connectedCE,
-              (this.nextContent?.navigation ?? null),
+              (this.getNextContent()?.navigation ?? null),
               this.historyCache,
               this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
             ); // .catch(error => { throw error; });
@@ -417,8 +481,26 @@ export class Viewport extends Endpoint {
    *
    * @param coordinator - The coordinator of the navigation
    */
-  public transition(coordinator: NavigationCoordinator): void {
+  public async transition(coordinator: NavigationCoordinator): Promise<void> {
     // console.log('Viewport transition', this.toString());
+
+    // if (this.contentUnloading !== null) {
+    this.coordinators.push(coordinator);
+    if (this.coordinators[0] !== coordinator) {
+      // console.log('========= already unloading', this.coordinators[0]);
+      // Runner.step(this.lastPromise)?.cancel();
+      // coordinator.addEndpointState(this, 'guardedUnload')
+      // coordinator.addEndpointState(this, 'guardedLoad')
+      // coordinator.addEndpointState(this, 'guarded')
+      // coordinator.addEndpointState(this, 'loaded')
+      // coordinator.addEndpointState(this, 'unloaded')
+      // coordinator.addEndpointState(this, 'routed')
+      // coordinator.addEndpointState(this, 'swapped')
+      await this.coordinators[0].waitForSyncState('completed');
+      // console.log('========= coordinator completed navigation');
+      // await this.abortContentChange(null);
+    }
+    this.contentUnloading = this.contents[this.contents.length - 2];
 
     // Get the parent viewport...
     let actingParentViewport = this.parentViewport;
@@ -442,14 +524,21 @@ export class Viewport extends Endpoint {
     // The transition guard hooks, canUnload and canLoad, both of which
     // can cancel the entire navigation
     const guardSteps = [
-      (step: Step<boolean>) => this.canUnload(step),
       (step: Step<boolean>) => {
-        if (!(step.previousValue as boolean)) { // canUnloadResult: boolean
-          step.cancel();
-          coordinator.cancel();
-        } else {
-          if (this.router.isRestrictedNavigation) { // Create the component early if restricted navigation
-            this.nextContent!.createComponent(this.connectedCE!, this.options.fallback);
+        if (this.isActiveNavigation(coordinator)) {
+          return this.canUnload(step);
+        }
+      },
+
+      (step: Step<boolean>) => {
+        if (this.isActiveNavigation(coordinator)) {
+          if (!(step.previousValue as boolean)) { // canUnloadResult: boolean
+            step.cancel();
+            coordinator.cancel();
+          } else {
+            if (this.router.isRestrictedNavigation) { // Create the component early if restricted navigation
+              this.getNextContent()!.createComponent(this.connectedCE!, this.options.fallback);
+            }
           }
         }
         coordinator.addEndpointState(this, 'guardedUnload');
@@ -457,35 +546,52 @@ export class Viewport extends Endpoint {
       () => coordinator.waitForSyncState('guardedUnload', this), // Awaits all `canUnload` hooks
       () => actingParentViewport !== null ? coordinator.waitForEndpointState(actingParentViewport, 'guardedLoad') : void 0, // Awaits parent `canLoad`
 
-      (step: Step<boolean>) => this.canLoad(step) as boolean | LoadInstruction | LoadInstruction[],
-      (step: Step) => {
-        const canLoadResult = step.previousValue as boolean | LoadInstruction | LoadInstruction[];
-        if (typeof canLoadResult === 'boolean') { // canLoadResult: boolean | LoadInstruction | LoadInstruction[],
-          if (!canLoadResult) {
-            step.cancel();
-            coordinator.cancel();
-            return;
-          }
-          coordinator.addEndpointState(this, 'guardedLoad');
-          coordinator.addEndpointState(this, 'guarded');
-        } else { // Denied and (probably) redirected
-          return Runner.run(step,
-            () => this.router.load(canLoadResult, { append: true }),
-            (innerStep: Step<void>) => this.abortContentChange(innerStep),
-          );
+      (step: Step<boolean>) => {
+        if (this.isActiveNavigation(coordinator)) {
+          return this.canLoad(step) as boolean | LoadInstruction | LoadInstruction[];
         }
+      },
+
+      (step: Step) => {
+        if (this.isActiveNavigation(coordinator)) {
+          const canLoadResult = step.previousValue as boolean | LoadInstruction | LoadInstruction[];
+          if (typeof canLoadResult === 'boolean') { // canLoadResult: boolean | LoadInstruction | LoadInstruction[],
+            if (!canLoadResult) {
+              step.cancel();
+              coordinator.cancel();
+              return;
+            }
+            // coordinator.addEndpointState(this, 'guardedLoad');
+            // coordinator.addEndpointState(this, 'guarded');
+          } else { // Denied and (probably) redirected
+            return Runner.run(step,
+              () => this.router.load(canLoadResult, { append: true }),
+              (innerStep: Step<void>) => this.cancelContentChange(coordinator, innerStep),
+            );
+          }
+        }
+        coordinator.addEndpointState(this, 'guardedLoad');
+        coordinator.addEndpointState(this, 'guarded');
       },
     ];
 
     // The transition routing hooks, unload and load
     const routingSteps = [
       () => coordinator.waitForSyncState('guarded', this),
-      (step: Step<void>) => this.unload(step),
+      (step: Step<void>) => {
+        if (this.isActiveNavigation(coordinator)) {
+          return this.unload(step);
+        }
+      },
       () => coordinator.addEndpointState(this, 'unloaded'),
 
       () => coordinator.waitForSyncState('unloaded', this),
       () => actingParentViewport !== null ? coordinator.waitForEndpointState(actingParentViewport, 'loaded') : void 0,
-      (step: Step<void>) => this.load(step),
+      (step: Step<void>) => {
+        if (this.isActiveNavigation(coordinator)) {
+          return this.load(step);
+        }
+      },
       () => coordinator.addEndpointState(this, 'loaded'),
       () => coordinator.addEndpointState(this, 'routed'),
     ];
@@ -500,29 +606,29 @@ export class Viewport extends Endpoint {
     switch (swapOrder) {
       case 'detach-current-attach-next':
         lifecycleSteps.push(
-          (step: Step<void | void[]>) => this.removeContent(step as Step<void>, coordinator),
-          (step: Step<void | void[]>) => this.addContent(step as Step<void>, coordinator),
+          (step) => { if (this.isActiveNavigation(coordinator)) { return this.removeContent(step as Step<void>, coordinator); } },
+          (step) => { if (this.isActiveNavigation(coordinator)) { return this.addContent(step as Step<void>, coordinator); } },
         );
         break;
       case 'attach-next-detach-current':
         lifecycleSteps.push(
-          (step: Step<void | void[]>) => this.addContent(step as Step<void>, coordinator),
-          (step: Step<void | void[]>) => this.removeContent(step as Step<void>, coordinator),
+          (step) => { if (this.isActiveNavigation(coordinator)) { return this.addContent(step as Step<void>, coordinator); } },
+          (step) => { if (this.isActiveNavigation(coordinator)) { return this.removeContent(step as Step<void>, coordinator); } },
         );
         break;
       case 'detach-attach-simultaneously':
-        lifecycleSteps.push((step: Step<void | void[]>): Step<void> =>
-          Runner.runParallel(step as Step<void>,
-            (innerStep: Step<void>) => this.removeContent(innerStep, coordinator),
-            (innerStep: Step<void>) => this.addContent(innerStep, coordinator),
+        lifecycleSteps.push((step): Step<void> =>
+          Runner.runParallel(step,
+            (innerStep: Step<void>) => { if (this.isActiveNavigation(coordinator)) { return this.removeContent(innerStep, coordinator); } },
+            (innerStep: Step<void>) => { if (this.isActiveNavigation(coordinator)) { return this.addContent(innerStep, coordinator); } },
           ) as Step<void>,
         );
         break;
       case 'attach-detach-simultaneously':
-        lifecycleSteps.push((step: Step<void | void[]>): Step<void> =>
-          Runner.runParallel(step as Step<void>,
-            (innerStep: Step<void>) => this.addContent(innerStep, coordinator),
-            (innerStep: Step<void>) => this.removeContent(innerStep, coordinator),
+        lifecycleSteps.push((step): Step<void> =>
+          Runner.runParallel(step,
+            (innerStep: Step<void>) => { if (this.isActiveNavigation(coordinator)) { return this.addContent(innerStep, coordinator); } },
+            (innerStep: Step<void>) => { if (this.isActiveNavigation(coordinator)) { return this.removeContent(innerStep, coordinator); } },
           ) as Step<void>,
         );
         break;
@@ -542,6 +648,8 @@ export class Viewport extends Endpoint {
       () => coordinator.waitForSyncState('bound'),
       () => this.connectedCE?.setActive?.(false),
     );
+    this.lastPromise = result != null ? result as Promise<unknown> : null;
+
     if (result instanceof Promise) {
       result.catch(_err => { /* Happens when unload or load is prevented. TODO: React? */ });
     }
@@ -555,13 +663,13 @@ export class Viewport extends Endpoint {
   public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
     return Runner.run(step,
       (innerStep: Step<boolean>) => {
-        return this.content.connectedScope.canUnload(innerStep);
+        return this.getContent().connectedScope.canUnload(innerStep);
       },
       (innerStep: Step<boolean>) => {
         if (!(innerStep.previousValue as boolean)) { // canUnloadChildren
           return false;
         }
-        return this.content.canUnload(this.nextContent?.navigation ?? null);
+        return this.getContent().canUnload(this.getNextContent()?.navigation ?? null);
       },
     ) as boolean | Promise<boolean>;
   }
@@ -579,9 +687,9 @@ export class Viewport extends Endpoint {
     return Runner.run(step,
       () => this.waitForConnected(),
       () => {
-        this.nextContent!.createComponent(this.connectedCE!, this.options.fallback);
+        this.getNextContent()!.createComponent(this.connectedCE!, this.options.fallback);
 
-        return this.nextContent!.canLoad();
+        return this.getNextContent()!.canLoad();
       },
     ) as boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
   }
@@ -596,7 +704,7 @@ export class Viewport extends Endpoint {
       return;
     }
 
-    return this.nextContent!.load(step);
+    return this.getNextContent()!.load(step);
   }
 
   /**
@@ -624,7 +732,8 @@ export class Viewport extends Endpoint {
     return Runner.run(step,
       () => coordinator.addEndpointState(this, 'bound'),
       () => coordinator.waitForSyncState('bound'),
-      () => this.deactivate(
+      (innerStep: Step<void>) => this.deactivate(
+        innerStep,
         null,
         this.connectedController,
         manualDispose ? LifecycleFlags.none : LifecycleFlags.dispose
@@ -670,18 +779,19 @@ export class Viewport extends Endpoint {
    * @param parent - The parent controller
    * @param flags - The lifecycle flags for `deactivate`
    */
-  public deactivate(initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
-    if (this.content.componentInstance !== null &&
-      !this.content.reload &&
-      this.content.componentInstance !== this.nextContent?.componentInstance) {
+  public deactivate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
+    if (this.getContent().componentInstance !== null &&
+      !this.getContent().reload &&
+      this.getContent().componentInstance !== this.getNextContent()?.componentInstance) {
 
-      return this.content?.deactivateComponent(
+      return this.getContent()?.deactivateComponent(
+        step,
         initiator,
         parent as ICustomElementController,
         flags,
         this.connectedCE!,
         this.router.statefulHistory || this.options.stateful
-      );
+      ) as Promise<void>;
     }
   }
 
@@ -692,8 +802,8 @@ export class Viewport extends Endpoint {
    */
   public unload(step: Step<void> | null): void | Step<void> {
     return Runner.run(step,
-      (unloadStep: Step<void>) => this.content.connectedScope.unload(unloadStep),
-      () => this.content.componentInstance != null ? this.content.unload(this.nextContent?.navigation ?? null) : void 0,
+      (unloadStep: Step<void>) => this.getContent().connectedScope.unload(unloadStep),
+      () => this.getContent().componentInstance != null ? this.getContent().unload(this.getNextContent()?.navigation ?? null) : void 0,
     ) as Step<void>;
   }
 
@@ -701,10 +811,10 @@ export class Viewport extends Endpoint {
    * Dispose the current content.
    */
   public dispose(): void {
-    if (this.content.componentInstance !== null &&
-      !this.content.reload &&
-      this.content.componentInstance !== this.nextContent?.componentInstance) {
-      this.content.disposeComponent(
+    if (this.getContent().componentInstance !== null &&
+      !this.getContent().reload &&
+      this.getContent().componentInstance !== this.getNextContent()?.componentInstance) {
+      this.getContent().disposeComponent(
         this.connectedCE!,
         this.historyCache,
         this.router.statefulHistory || this.options.stateful
@@ -716,43 +826,127 @@ export class Viewport extends Endpoint {
    * Finalize the change of content by making the next content the current
    * content. The previously current content is deleted.
    */
-  public finalizeContentChange(): void {
-    const previousContent = this.content;
-    if (this.nextContent!.componentInstance !== null) {
-      this.content = this.nextContent!;
-      this.content.reload = false;
+  public finalizeContentChange(coordinator: NavigationCoordinator): void {
+    const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
+    let nextContent = this.contents[nextContentIndex];
+    const previousContent = this.contents[nextContentIndex - 1];
+    // const previousContent = this.getContent();
+    // const nextContent = this.getNextContent()!;
+    if (nextContent.componentInstance !== null && this.clear) {
+      console.log('====== BOTH?!');
     }
 
     if (this.clear) {
-      this.content = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, void 0, this.nextContent!.navigation);
-      this.nextContent?.delete();
+      // this.content = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, void 0, this.nextContent!.navigation);
+      // this.nextContent?.delete();
+      // this.contents.pop();
+      // this.contents.push(new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, void 0, nextContent.navigation));
+      // this.contents.splice(this.contents.indexOf(this.getNextContent()!), 1,
+      const emptyContent = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, void 0, nextContent.navigation);
+      this.contents.splice(nextContentIndex, 1, emptyContent);
+      nextContent.delete();
+      nextContent = emptyContent;
+    } else {
+      // this.content = this.nextContent!;
+      // this.content.reload = false;
+      nextContent.reload = false;
+      // this.getNextContent()!.reload = false;
     }
+
     previousContent.delete();
 
-    this.nextContent = null;
+    // this.nextContent = null;
+    // if (this.getNextContent() !== null) {
+    if (nextContent !== null) {
+      //Y: this.contents.shift();
+      // this.getNextContent()!.completed = true;
+      nextContent.completed = true;
+      //   this.contents.pop(); if (this.contents.length < 1) { throw new Error('no content!'); }
+    }
     this.transitionAction = '';
 
-    this.content.contentStates.delete('checkedUnload');
-    this.content.contentStates.delete('checkedLoad');
+    // this.getContent().contentStates.delete('checkedUnload');
+    // this.getContent().contentStates.delete('checkedLoad');
+    nextContent.contentStates.delete('checkedUnload');
+    nextContent.contentStates.delete('checkedLoad');
 
     this.previousViewportState = null;
 
     this.connectedCE?.setActive?.(false);
+
+    let removeable = 0;
+    for (let i = 0, ii = nextContentIndex; i < ii; i++) {
+      if (!(this.contents[0].navigation.completed ?? false)) {
+        break;
+      }
+      removeable++;
+    }
+    this.contents.splice(0, removeable);
+    // while (this.contents.length > 1) {
+    //   if (!(this.contents[0].navigation.completed ?? false)) {
+    //     break;
+    //   }
+    //   this.contents.shift();
+    // }
+    // for (let content of this.contents) {
+    //   console.log('Content', this.toString(), content.navigation.completed, content);
+    // }
+    this.contentUnloading = null;
+    this.lastPromise = null;
+    arrayRemove(this.coordinators, (coord => coord === coordinator));
   }
+  // public finalizeContentChange(): void {
+  //   const previousContent = this.content;
+  //   if (this.nextContent!.componentInstance !== null && this.clear) {
+  //     console.log('====== BOTH?!');
+  //   }
+
+  //   if (this.nextContent!.componentInstance !== null) {
+  //     // this.content = this.nextContent!;
+  //     // this.content.reload = false;
+  //     const nextContent = this.nextContent!;
+  //     this.contents.shift();
+  //     this.contents.unshift(nextContent);
+  //     this.content.reload = false;
+  //   }
+
+  //   if (this.clear) {
+  //     // this.content = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, void 0, this.nextContent!.navigation);
+  //     // this.nextContent?.delete();
+  //     const nextContent = this.nextContent!;
+  //     this.contents.shift();
+  //     this.contents.unshift(new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, void 0, nextContent.navigation));
+  //     this.nextContent?.delete();
+  //   }
+  //   previousContent.delete();
+
+  //   // this.nextContent = null;
+  //   if (this.nextContent !== null) {
+  //     this.contents.pop(); if (this.contents.length < 1) { throw new Error('no content!'); }
+  //   }
+  //   this.transitionAction = '';
+
+  //   this.content.contentStates.delete('checkedUnload');
+  //   this.content.contentStates.delete('checkedLoad');
+
+  //   this.previousViewportState = null;
+
+  //   this.connectedCE?.setActive?.(false);
+  // }
 
   /**
-   * Abort the change of content. The next content is freed/discarded.
+   * Cancel the change of content. The next content is freed/discarded.
    *
    * @param step - The previous step in this transition Run
    */
-  public abortContentChange(step: Step<void> | null): void | Step<void> {
+  public cancelContentChange(coordinator: NavigationCoordinator, step: Step<void> | null): void | Step<void> {
     return Runner.run(step,
       (innerStep: Step<void>) => {
-        if (this.nextContent != null) {
-          return this.nextContent.freeContent(
+        if (this.getNextContent() !== null) {
+          return this.getNextContent()!.freeContent(
             innerStep,
             this.connectedCE,
-            this.nextContent.navigation,
+            this.getNextContent()!.navigation,
             this.historyCache,
             this.router.statefulHistory || this.options.stateful);
         }
@@ -761,14 +955,87 @@ export class Viewport extends Endpoint {
         if (this.previousViewportState) {
           Object.assign(this, this.previousViewportState);
         }
-        this.nextContent?.delete();
-        this.nextContent = null;
+        this.getNextContent()?.delete();
+        // this.nextContent = null;
+        if (this.getNextContent() !== null) {
+          // this.contents.pop(); if (this.contents.length < 1) { throw new Error('no content!'); }
+          this.contents.splice(this.contents.indexOf(this.getNextContent()!), 1);
+        }
         this.transitionAction = '';
 
-        this.content.contentStates.delete('checkedUnload');
-        this.content.contentStates.delete('checkedLoad');
+        this.getContent().contentStates.delete('checkedUnload');
+        this.getContent().contentStates.delete('checkedLoad');
 
         this.connectedCE?.setActive?.(false);
+
+        this.contentUnloading = null;
+        this.lastPromise = null;
+        arrayRemove(this.coordinators, (coord => coord === coordinator));
+      }) as Step<void>;
+  }
+
+  /**
+   * Abort the change of content. The next content is freed/discarded.
+   *
+   * @param step - The previous step in this transition Run
+   */
+  public abortContentChange(step: Step<void> | null): void | Step<void> | Promise<void> {
+    const nextContent = this.getNextContent();
+    if (nextContent === null) {
+      return;
+    }
+    // nextContent.completed = true;
+
+    // this.transitionAction = '';
+
+    // nextContent.contentStates.delete('checkedUnload');
+    // nextContent.contentStates.delete('checkedLoad');
+
+    // this.connectedCE?.setActive?.(false);
+
+    // this.contentUnloading = null;
+    // this.lastPromise = null;
+
+    return Runner.run(step,
+      (innerStep: Step<void>) => {
+        return nextContent.freeContent(
+          innerStep,
+          this.connectedCE,
+          nextContent.navigation,
+          this.historyCache,
+          this.router.statefulHistory || this.options.stateful);
+      },
+      () => {
+        nextContent.completed = true;
+
+        this.transitionAction = '';
+
+        nextContent.contentStates.delete('checkedUnload');
+        nextContent.contentStates.delete('checkedLoad');
+
+        this.connectedCE?.setActive?.(false);
+
+        this.contentUnloading = null;
+        this.lastPromise = null;
+
+        // if (this.previousViewportState) {
+        //   Object.assign(this, this.previousViewportState);
+        // }
+        // nextContent.delete();
+        // // this.nextContent = null;
+        // if (this.getNextContent() !== null) {
+        //   // this.contents.pop(); if (this.contents.length < 1) { throw new Error('no content!'); }
+        //   this.contents.splice(this.contents.indexOf(nextContent), 1);
+        // }
+        // this.transitionAction = '';
+
+        // this.getContent().contentStates.delete('checkedUnload');
+        // this.getContent().contentStates.delete('checkedLoad');
+
+        // this.connectedCE?.setActive?.(false);
+
+        // this.contentUnloading = null;
+        // this.lastPromise = null;
       }) as Step<void>;
   }
 
@@ -801,7 +1068,7 @@ export class Viewport extends Endpoint {
     if (component === '-' || component === null) {
       return true;
     }
-    let usedBy = this.options.usedBy; // ?? [];
+    const usedBy = this.options.usedBy; // ?? [];
     if (usedBy.length === 0) {
       return true;
     }
@@ -923,7 +1190,7 @@ export class Viewport extends Endpoint {
    * Get routing instruction of the relevant, current or next, content.
    */
   private getContentInstruction(): RoutingInstruction | null {
-    return this.nextContent?.instruction ?? this.content.instruction ?? null;
+    return this.getNextContent()?.instruction ?? this.getContent().instruction ?? null;
   }
 
   /**
@@ -936,8 +1203,13 @@ export class Viewport extends Endpoint {
 
     const owningScope = this.owningScope;
     const hasScope = this.scope.hasScope;
-    this.content.delete();
-    this.content = new ViewportContent(this.router, this, owningScope, hasScope);
+    this.getContent().delete();
+    // this.content = new ViewportContent(this.router, this, owningScope, hasScope);
+    //Y: See next line
+    this.contents.shift(); if (this.contents.length < 1) { throw new Error('no content!'); }
+    // this.getNextContent()!.navigation.completed = true;
+    // this.contents.push()
+    this.contents.push(new ViewportContent(this.router, this, owningScope, hasScope));
     this.cache = [];
   }
 

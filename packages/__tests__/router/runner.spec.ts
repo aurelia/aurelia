@@ -115,6 +115,34 @@ describe('Runner', function () {
     });
   }
 
+  // it(`allows waiting for cancel`, function () {
+  //   const stepsPromise = Runner.run(null,
+  //     () => { console.log('one'); },
+  //     (step) => {
+  //       return new Promise<void>(res => {
+  //         setTimeout(() => {
+  //           console.log(`two (${step.previousValue})`);
+  //           res();
+  //         }, 2000);
+  //       })
+  //     },
+  //     (step) => { console.log(`three (${step.previousValue})`); },
+  //   ) as Promise<unknown>;
+  //   setTimeout(() => {
+  //     Runner.cancel(stepsPromise);
+  //   }, 1500);
+  //   stepsPromise.then(_result => {
+  //     console.log('fulfilled');
+  //     assert.strictEqual('fulfilled', 'cancelled', ``);
+  //   }).catch(err => {
+  //     if (err instanceof Error) {
+  //       throw err;
+  //     }
+  //     console.log('cancelled');
+  //     assert.strictEqual('cancelled', 'cancelled', ``);
+  //   });
+  // });
+
   for (let i = 0; i < tests.length; i++) {
     const test = tests[i];
     it(`runs all ${test.steps} => ${test.results}`, function () {

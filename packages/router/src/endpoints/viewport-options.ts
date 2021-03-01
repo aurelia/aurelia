@@ -14,8 +14,8 @@ export class ViewportOptions implements IEndpointOptions {
 
   public constructor(
     /**
-   * Whether the viewport has its own scope (owns other endpoints)
-   */
+     * Whether the viewport has its own scope (owns other endpoints)
+     */
     public scope: boolean = true,
 
     /**

@@ -51,7 +51,9 @@ export class EndpointMatcher {
     let remainingInstructions: RoutingInstruction[] = [];
 
     // Get all the routing scopes owned by this scope
-    const ownedScopes = routingScope.getOwnedScopes();
+    // const oldOwnedScopes = routingScope.getOwnedScopes();
+    const ownedScopes = routingScope.getOwnedRoutingScopes(Infinity);
+    // console.log('matchEndpoints', oldOwnedScopes, ownedScopes);
 
     // Get a shallow copy of all available endpoints
     const endpoints = ownedScopes.map(scope => scope.endpoint);

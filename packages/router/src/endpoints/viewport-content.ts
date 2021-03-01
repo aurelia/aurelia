@@ -29,7 +29,7 @@ import { FoundRoute } from './../found-route.js';
 /**
  * The content states for the viewport content content.
  */
-export type ContentState = 'created' | 'checkedUnload' | 'checkedLoad' | 'loaded' | 'activated';
+export type ContentState = 'created' | 'checkedUnload' | 'checkedLoad' | 'loaded' | 'activating' | 'activated';
 
 /**
  * @internal
@@ -54,6 +54,11 @@ export class ViewportContent extends EndpointContent {
    * Whether content is currently being reloaded
    */
   public reload: boolean = false;
+
+  /**
+   * Resolved when content is activated (and can be deactivated)
+   */
+  public activatedResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
 
   public constructor(
     public readonly router: IRouter,
@@ -92,7 +97,7 @@ export class ViewportContent extends EndpointContent {
      */
     connectedCE: IConnectedCustomElement | null = null
   ) {
-    super(router, viewport, owningScope, hasScope, instruction);
+    super(router, viewport, owningScope, hasScope, instruction, navigation);
     // If we've got a container, we're good to resolve type
     if (!this.instruction.component.isType() && connectedCE?.container != null) {
       this.instruction.component.type = this.toComponentType(connectedCE!.container!);
@@ -361,14 +366,27 @@ export class ViewportContent extends EndpointContent {
       () => this.contentStates.await('loaded'),
       () => this.waitForParent(parent), // TODO: It might be possible to refactor this away
       () => {
-        if (this.contentStates.has('activated')) {
+        if (this.contentStates.has('activating') || this.contentStates.has('activated')) {
           return;
         }
-        this.contentStates.set('activated', void 0);
+        this.contentStates.set('activating', void 0);
 
         const contentController = this.contentController(connectedCE);
-        return contentController.activate(initiator ?? contentController, parent, flags, void 0, void 0, boundCallback, this.instruction.topInstruction ? attachPromise : void 0);
+        const promise = (contentController.activate(initiator ?? contentController, parent, flags, void 0, void 0, boundCallback, this.instruction.topInstruction ? attachPromise : void 0) as Promise<void>);
+        if (promise instanceof Promise) {
+          promise.then(() => {
+            // console.log('!!!! activated');
+            this.contentStates.set('activated', void 0);
+          });
+        } else {
+          // console.log('!!!! activated');
+          this.contentStates.set('activated', void 0);
+        }
+        return promise;
       },
+      // () => {
+      //   this.contentStates.set('activated', void 0);
+      // },
       /* TODO: This should be added back in somehow/somewhere
       () => {
         if (this.fromCache || this.fromHistory) {
@@ -390,29 +408,49 @@ export class ViewportContent extends EndpointContent {
   /**
    * Deactivate (detach and unbind) the content's component.
    *
+   * @param step - The previous step in this transition Run
    * @param initiator - The controller initiating the activation
    * @param parent - The parent controller for the content's component controller
    * @param flags - The lifecycle flags
    * @param connectedCE - The viewport's connectd custom element
    * @param stateful - Whether the content's component is stateful and shouldn't be disposed
    */
-  public deactivateComponent(initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, stateful: boolean = false): void | Promise<void> {
-    if (!this.contentStates.has('activated')) {
+  public deactivateComponent(step: Step<void> | null, initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, stateful: boolean = false): void | Promise<void> | Step<void> {
+    if (!this.contentStates.has('activated') && !this.contentStates.has('activating')) {
       return;
     }
-    this.contentStates.delete('activated');
-
-    if (stateful && connectedCE.element !== null) {
-      const elements = Array.from(connectedCE.element.getElementsByTagName('*'));
-      for (const el of elements) {
-        if (el.scrollTop > 0 || el.scrollLeft) {
-          el.setAttribute('au-element-scroll', `${el.scrollTop},${el.scrollLeft}`);
+    return Runner.run(step,
+      // () => {
+      //   if (!this.contentStates.has('activated')) {
+      //     console.log('>>>>', (this.contentController(connectedCE) as any).isActivated, this.contentController(connectedCE));
+      //     const elements = Array.from(connectedCE.element.children);
+      //     for (const el of elements) {
+      //       (el as HTMLElement).style.display = 'none';
+      //     }
+      //     return this.contentStates.await('activated');
+      //   }
+      // },
+      // // () => {
+      // //   return new Promise((resolve) => { setTimeout(resolve, 1000); });
+      // // },
+      // () => this.waitForActivated(this.contentController(connectedCE), connectedCE),
+      () => {
+        // console.log('=====', (this.contentController(connectedCE) as any).isActivated, this.contentController(connectedCE));
+        if (stateful && connectedCE.element !== null) {
+          const elements = Array.from(connectedCE.element.getElementsByTagName('*'));
+          for (const el of elements) {
+            if (el.scrollTop > 0 || el.scrollLeft) {
+              el.setAttribute('au-element-scroll', `${el.scrollTop},${el.scrollLeft}`);
+            }
+          }
         }
-      }
-    }
 
-    const contentController = this.contentController(connectedCE);
-    return contentController.deactivate(initiator ?? contentController, parent, flags);
+        this.contentStates.delete('activated');
+        this.contentStates.delete('activating');
+        const contentController = this.contentController(connectedCE);
+        return contentController.deactivate(initiator ?? contentController, parent, flags);
+      }
+    ) as Step<void>;
   }
 
   /**
@@ -450,7 +488,7 @@ export class ViewportContent extends EndpointContent {
   public freeContent(step: Step<void>, connectedCE: IConnectedCustomElement | null, navigation: Navigation | null, cache: ViewportContent[], stateful: boolean = false): Step<void> {
     return Runner.run(step,
       () => this.unload(navigation),
-      () => this.deactivateComponent(null, connectedCE!.controller, LifecycleFlags.none, connectedCE!, stateful),
+      (innerStep: Step<void>) => this.deactivateComponent(innerStep, null, connectedCE!.controller, LifecycleFlags.none, connectedCE!, stateful),
       () => this.disposeComponent(connectedCE!, cache, stateful),
     ) as Step<void>;
   }
@@ -496,5 +534,34 @@ export class ViewportContent extends EndpointContent {
         (this.endpoint as Viewport).activeResolve = resolve;
       });
     }
+  }
+
+  /**
+   * Wait for the viewport's content to be activated. Should be removed once
+   * controller activation can be aborted.
+   *
+   * @param controller - The controller to the viewport's content
+   */
+  private waitForActivated(controller: ICustomElementController, connectedCE: IConnectedCustomElement): void | Promise<void> {
+    if (!controller.isActivated) {
+      return new Promise((resolve) => {
+        this.activatedResolve = resolve;
+        this.checkActivated(controller, connectedCE);
+      });
+    }
+  }
+  private checkActivated(controller: ICustomElementController, connectedCE: IConnectedCustomElement): void {
+    setTimeout(() => {
+      console.log('#### checking activated', controller.isActivated);
+      const elements = Array.from(connectedCE.element.children);
+      for (const el of elements) {
+        (el as HTMLElement).style.display = 'none';
+      }
+      if (controller.isActivated) {
+        this.activatedResolve!();
+      } else {
+        this.checkActivated(controller, connectedCE);
+      }
+    }, 50);
   }
 }

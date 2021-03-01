@@ -123,7 +123,7 @@ export class StoredNavigation {
   }
 }
 
-export interface INavigation extends Omit<Navigation, 'navigation' | 'toStoredNavigation' | 'useFullStateInstruction'> { }
+export interface INavigation extends Omit<Navigation, 'navigation' | 'toStoredNavigation' | 'useFullStateInstruction' | 'timestamp'> { }
 
 /**
  * The navigation
@@ -174,6 +174,17 @@ export class Navigation extends StoredNavigation {
    */
   public reject?: ((value?: boolean | PromiseLike<boolean>) => void);
 
+  /**
+   * When the navigation is created. Only used within session so no need to
+   * persist it.
+   */
+  public timestamp: number;
+
+  /**
+   * Whether the navigation is completed
+   */
+  public completed?: boolean = true;
+
   public constructor(entry: INavigation = {
     instruction: '',
     fullStateInstruction: '',
@@ -188,6 +199,8 @@ export class Navigation extends StoredNavigation {
     this.historyMovement = entry.historyMovement;
     this.resolve = entry.resolve;
     this.reject = entry.reject;
+
+    this.timestamp = Date.now();
   }
 
   public get useFullStateInstruction(): boolean {

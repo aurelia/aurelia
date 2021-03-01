@@ -57,7 +57,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
       }
     }
     // TODO: Use router configuration for class name and update target
-    if (this.router.checkActive(instructions)) {
+    if (this.router.checkActive(instructions, { context: controller })) {
       this.element.classList.add(this.activeClass);
     } else {
       this.element.classList.remove(this.activeClass);

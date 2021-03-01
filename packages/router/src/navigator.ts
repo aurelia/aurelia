@@ -102,7 +102,7 @@ export interface INavigationFlags {
 export interface IStoredNavigatorState {
   state?: Record<string, unknown>;
   navigations: IStoredNavigation[];
-  lastNavigation: IStoredNavigation;
+  navigationIndex: number;
 }
 
 /**
@@ -111,7 +111,7 @@ export interface IStoredNavigatorState {
 export interface INavigatorState {
   state?: Record<string, unknown>;
   navigations: Navigation[];
-  lastNavigation: Navigation;
+  navigationIndex: number;
 }
 
 /**
@@ -119,9 +119,9 @@ export interface INavigatorState {
  */
 export class Navigator {
   /**
-   * The last _finished_ navigation.
+   * The index of the last _finished_ navigation.
    */
-  public lastNavigation: Navigation;
+  public lastNavigationIndex: number = -1;
 
   /**
    * All navigations, historical and current/last
@@ -161,8 +161,9 @@ export class Navigator {
       instruction: 'NAVIGATOR UNINITIALIZED',
       fullStateInstruction: '',
       index: 0,
+      completed: true,
     });
-    this.lastNavigation = this.uninitializedNavigation;
+    this.lastNavigationIndex = -1;
 
     this.pendingNavigations = new Queue<Navigation>(this.processNavigations);
   }
@@ -197,7 +198,19 @@ export class Navigator {
    * @param navigation - The navigation to enqueue
    */
   public async navigate(navigation: Navigation): Promise<boolean | void> {
-    return this.pendingNavigations.enqueue(navigation);
+    // return this.pendingNavigations.enqueue(navigation);
+    const qNavigation: QueueItem<Navigation> = { ...navigation };
+    // qNavigation.cost = 1;
+    const promise = new Promise<boolean>((resolve, reject) => {
+      qNavigation.resolve = (value: boolean | PromiseLike<boolean>) => {
+        resolve(value);
+      };
+      qNavigation.reject = (reason: unknown) => {
+        reject(reason);
+      };
+    });
+    this.processNavigations(qNavigation);
+    return promise;
   }
 
   /**
@@ -207,7 +220,8 @@ export class Navigator {
    * @param qNavigation - The dequeued navigation to process
    */
   public processNavigations: (qNavigation: QueueItem<Navigation>) => void = (qNavigation: QueueItem<Navigation>): void => {
-    const navigation = qNavigation as Navigation;
+    const navigation = qNavigation instanceof Navigation
+      ? qNavigation : Navigation.create(qNavigation as INavigation);
     const navigationFlags: INavigationFlags = {
       first: false,
       new: false,
@@ -219,31 +233,32 @@ export class Navigator {
 
     // If no proper last navigation, no navigation has been processed this session, meaning
     // that this one is either a first navigation or a refresh (repeat navigation).
-    if (this.lastNavigation === this.uninitializedNavigation) {
-      // Load the navigation state and set appropriate flags...
+    if (this.lastNavigationIndex === -1) {
+      // Load the navigation state from the store (mutating `navigations` and
+      // `lastNavigationIndex`) and then set appropriate flags...
       this.loadState();
-      if (this.lastNavigation !== this.uninitializedNavigation) {
+      if (this.lastNavigationIndex !== -1) {
         navigationFlags.refresh = true;
       } else {
         navigationFlags.first = true;
         navigationFlags.new = true;
         // ...and create the first navigation.
         // TODO: Should this really be created here? Shouldn't it be in the viewer?
-        this.lastNavigation = Navigation.create({
+        this.lastNavigationIndex = 0;
+        this.navigations = [Navigation.create({
           index: 0,
           instruction: '',
           fullStateInstruction: '',
           // path: this.options.viewer.getPath(true),
           // fromBrowser: null,
-        });
-        this.navigations = [];
+        })];
       }
     }
     // If navigation has an index and isn't replacing or refreshing, it's a historical
     // navigation...
     if (navigation.index !== void 0 && !(navigation.replacing ?? false) && !(navigation.refreshing ?? false)) {
       // ...set the movement size...
-      navigation.historyMovement = navigation.index - (this.lastNavigation.index ?? 0);
+      navigation.historyMovement = navigation.index - Math.max(this.lastNavigationIndex, 0);
       // ...and set the navigation instruction.
       navigation.instruction = this.navigations[navigation.index] != null ? this.navigations[navigation.index].fullStateInstruction : navigation.fullStateInstruction;
       // Set appropriate navigation flags.
@@ -255,36 +270,117 @@ export class Navigator {
       }
     } else if ((navigation.refreshing ?? false) || navigationFlags.refresh) { // If the navigation is a refresh...
       // ...just reuse last index.
-      navigation.index = this.lastNavigation.index;
+      navigation.index = this.lastNavigationIndex;
     } else if (navigation.replacing ?? false) {  // If the navigation is replacing...
       // ...set appropriate flags...
       navigationFlags.replace = true;
       navigationFlags.new = true;
       // ...and reuse last index.
-      navigation.index = this.lastNavigation.index;
+      navigation.index = this.lastNavigationIndex;
     } else { // If the navigation is a new navigation...
       // ...set navigation flag...
       navigationFlags.new = true;
       // ...and create a new index.
-      navigation.index = this.lastNavigation.index !== void 0 ? this.lastNavigation.index + 1 : this.navigations.length;
+      // navigation.index = this.lastNavigationIndex > -1 ? this.lastNavigationIndex + 1 : this.navigations.length;
+      navigation.index = this.lastNavigationIndex + 1;
+      this.navigations[navigation.index] = navigation;
     }
-    this.notifySubscribers(navigation, navigationFlags, this.lastNavigation);
+
+    // Set the appropriate flags.
+    navigation.navigation = navigationFlags;
+    // Set the previous navigation.
+    navigation.previous = this.navigations[Math.max(this.lastNavigationIndex, 0)];
+
+    // Set the last navigated index to the navigation index
+    this.lastNavigationIndex = navigation.index;
+
+    // this.notifySubscribers(navigation, navigationFlags, this.navigations[Math.max(this.lastNavigationIndex, 0)]);
+    this.notifySubscribers(navigation);
   };
 
   /**
-   * Refresh (reload) the last navigation.
+   * Finalize a navigation and make it the last navigation.
+   *
+   * @param navigation - The navigation to finalize
    */
-  public async refresh(): Promise<boolean | void> {
-    const navigation = this.lastNavigation;
-    // Don't refresh if there's been no navigation before
-    if (navigation === this.uninitializedNavigation) {
-      return Promise.reject();
+  public async finalize(navigation: Navigation, isLast: boolean): Promise<void> {
+    //x: const previousLastNavigationIndex = this.lastNavigationIndex;
+    //x: this.lastNavigationIndex = navigation.index ?? 0;
+    //x: let index = navigation.index as number;
+    // console.log('Finalize', index, navigation.previous?.index);
+    // If this navigation shouldn't be added to history...
+    if (navigation.untracked ?? false) {
+      // ...and it's a navigation from the browser (back, forward, url)...
+      if ((navigation.fromBrowser ?? false) && this.options.store != null) {
+        // ...pop it from browser's history and...
+        await this.options.store.popNavigatorState();
+      }
+      // ...restore the previous last navigation (and no need to save).
+      //x: this.lastNavigationIndex = previousLastNavigationIndex;
+      //x: index = previousLastNavigationIndex ?? 0;
+    } else if (navigation.replacing ?? false) { // If this isn't creating a new navigation...
+      if ((navigation.historyMovement ?? 0) === 0) { // ...and it's not a navigation in the history...
+        // ...use last navigation index.
+        //x: this.lastNavigationIndex = previousLastNavigationIndex;
+        // this.navigations[previousLastNavigationIndex] = navigation;
+        this.navigations[navigation.previous!.index!] = navigation;
+      }
+      await this.saveState(navigation.index!, false);
+    } else { // New navigation
+      const index = navigation.index as number;
+      // Discard anything after the new navigation so that it becomes the last.
+      if (isLast) {
+        this.navigations = this.navigations.slice(0, index);
+      }
+      // this.navigations.push(navigation);
+      this.navigations[index] = navigation;
+      // Need to make sure components in discarded routing instructions are
+      // disposed if stateful history is used...
+      if ((this.options.statefulHistoryLength ?? 0) > 0) {
+        // ...but not the ones that should be preserved, so keep...
+        const indexPreserve = this.navigations.length - (this.options.statefulHistoryLength ?? 0);
+        // ...the last ones as is.
+        for (const navig of this.navigations.slice(index)) {
+          // Only non-string instructions has components to dispose.
+          if (typeof navig.instruction !== 'string' || typeof navig.fullStateInstruction !== 'string') {
+            // Use serialize to dispose routing instruction components
+            // since the end result is the same. Pass the navigations
+            // that should be preserved so that components in them aren't
+            // disposed if they also exist in discarded routing instructions.
+            await this.serializeNavigation(navig, this.navigations.slice(indexPreserve, index));
+          }
+        }
+      }
+      // If it's a navigation from the browser (back, forward, url) we replace the state
+      await this.saveState(navigation.index!, !(navigation.fromBrowser ?? false));
     }
-    // Set navigation flags...
-    navigation.replacing = true;
-    navigation.refreshing = true;
-    // ...and enqueue the navigation again.
-    return this.navigate(navigation);
+    // Resolve the navigation. Very important!
+    // Now done from the outside
+    // navigation.resolve?.(true);
+  }
+
+  /**
+   * Cancel a navigation and move to last finalized navigation.
+   *
+   * @param navigation - The navigation to cancel
+   */
+  public async cancel(navigation: Navigation): Promise<void> {
+    if (this.options.store != null) {
+      // If it's a new navigation...
+      if (navigation.navigation?.new) {
+        // ...from the browser (url)...
+        if (navigation.fromBrowser ?? false) {
+          // ...pop it from the browser's History.
+          await this.options.store.popNavigatorState();
+        }
+        // Undo the history movement back to previous last navigation
+      } else if ((navigation.historyMovement ?? 0) !== 0) {
+        await this.options.store.go(-navigation.historyMovement!, true);
+      }
+    }
+    // Resolve the navigation. Very important!
+    // Now done from the outside
+    // navigation.resolve?.(false);
   }
 
   /**
@@ -293,10 +389,14 @@ export class Navigator {
    * @param movement - Amount of steps to move, positive or negative
    */
   public async go(movement: number): Promise<boolean | void> {
-    let newIndex = (this.lastNavigation.index ?? 0) + movement;
+    let newIndex = this.lastNavigationIndex + movement;
 
     // Stop going past last navigation
     newIndex = Math.min(newIndex, this.navigations.length - 1);
+
+    // Move the store's history (but suppress the event so it's
+    // a noop as far as the router is concerned)
+    await this.options.store!.go(movement, true);
 
     // Get the appropriate navigation...
     const navigation = this.navigations[newIndex];
@@ -310,12 +410,12 @@ export class Navigator {
    */
   public getState(): IStoredNavigatorState {
     // Get the stored state and...
-    const state = this.options.store != null ? { ...this.options.store.state } : {};
+    const state: Partial<IStoredNavigatorState> = this.options.store != null ? { ...this.options.store.state } : {};
     // ...separate the historical navigations...
-    const navigations = (state.navigations ?? []) as IStoredNavigation[];
+    const navigations = (state?.navigations ?? []);
     // ...and the last state.
-    const lastNavigation = (state.lastNavigation ?? null) as IStoredNavigation;
-    return { navigations, lastNavigation };
+    const navigationIndex = state?.navigationIndex as number ?? -1;
+    return { navigations, navigationIndex };
   }
 
   /**
@@ -324,30 +424,35 @@ export class Navigator {
    */
   public loadState(): void {
     // Get the stored navigations (json)...
-    const { navigations, lastNavigation } = this.getState();
+    const { navigations, navigationIndex } = this.getState();
     // ...and create the historical Navigations...
     this.navigations = navigations.map(navigation => Navigation.create(navigation));
-    // ...and the last Navigation.
-    this.lastNavigation = lastNavigation !== null
-      ? Navigation.create(lastNavigation)
-      : this.uninitializedNavigation;
+    // ...and the last navigation index.
+    this.lastNavigationIndex = navigationIndex;
   }
 
   /**
    * Save the last state to history and save the history to the store,
    * converting to json when necessary.
    *
+   * @param index - The index of the last navigation
    * @param push - Whether the last state should be pushed as a new entry
    * in the history or replace the last position.
    */
-  public async saveState(push: boolean = false): Promise<boolean | void> {
-    if (this.lastNavigation === this.uninitializedNavigation) {
-      return;
+  public async saveState(index: number, push: boolean): Promise<boolean | void> {
+    // if (this.lastNavigationIndex === -1) {
+    //   console.log('====== No lastNavigationIndex in saveState!');
+    //   return;
+    // }
+    // // Get a storeable navigation...
+    // const storedNavigation = this.navigations[this.lastNavigationIndex].toStoredNavigation();
+    // // ...and create a Navigation from it.
+    // this.navigations[storedNavigation.index ?? 0] = Navigation.create(storedNavigation);
+
+    // Make sure all navigations are clean of non-persisting data
+    for (let i = 0; i < this.navigations.length; i++) {
+      this.navigations[i] = Navigation.create(this.navigations[i].toStoredNavigation());
     }
-    // Get a storeable navigation...
-    const storedNavigation = this.lastNavigation.toStoredNavigation();
-    // ...and create a Navigation from it.
-    this.navigations[storedNavigation.index ?? 0] = Navigation.create(storedNavigation);
 
     // If preserving history, serialize navigations that aren't preserved:
     // Should preserve...
@@ -372,9 +477,10 @@ export class Navigator {
     // ...prepare the state...
     const state: IStoredNavigatorState = {
       navigations: (this.navigations ?? []).map((navigation: Navigation) => this.toStoreableNavigation(navigation)),
-      lastNavigation: this.toStoreableNavigation(storedNavigation),
+      // navigationIndex: this.lastNavigationIndex,
+      navigationIndex: index,
     };
-
+    // console.log('Storing', state);
     // ...and save it in the right place.
     if (push) {
       return this.options?.store?.pushNavigatorState(state);
@@ -384,94 +490,43 @@ export class Navigator {
   }
 
   /**
-   * Finalize a navigation and make it the last navigation.
-   *
-   * @param navigation - The navigation to finalize
+   * Refresh (reload) the last navigation.
    */
-  public async finalize(navigation: Navigation): Promise<void> {
-    const previousLastNavigation = this.lastNavigation;
-    this.lastNavigation = navigation;
-    let index = navigation.index;
-    // If this navigation shouldn't be added to history...
-    if (navigation.untracked ?? false) {
-      // ...and it's a navigation from the browser (back, forward, url)...
-      if ((navigation.fromBrowser ?? false) && this.options.store != null) {
-        // ...pop it from browser's history and...
-        await this.options.store.popNavigatorState();
-      }
-      // ...restore the previous last navigation (and no need to save).
-      this.lastNavigation = previousLastNavigation;
-      index = previousLastNavigation.index ?? 0;
-    } else if (navigation.replacing ?? false) { // If this isn't creating a new navigation...
-      if ((navigation.historyMovement ?? 0) === 0) { // ...and it's not a navigation in the history...
-        // ...use last navigation index.
-        this.lastNavigation.index = previousLastNavigation.index ?? 0;
-        this.navigations[previousLastNavigation.index ?? 0] = navigation;
-      }
-      await this.saveState();
-    } else { // New navigation
-      // Discard anything after the new navigation so that it becomes the last.
-      this.navigations = this.navigations.slice(0, index);
-      this.navigations.push(navigation);
-      // Need to make sure components in discarded routing instructions are
-      // disposed if stateful history is used...
-      if ((this.options.statefulHistoryLength ?? 0) > 0) {
-        // ...but not the ones that should be preserved, so keep...
-        const indexPreserve = this.navigations.length - (this.options.statefulHistoryLength ?? 0);
-        // ...the last ones as is.
-        for (const navig of this.navigations.slice(index)) {
-          // Only non-string instructions has components to dispose.
-          if (typeof navig.instruction !== 'string' || typeof navig.fullStateInstruction !== 'string') {
-            // Use serialize to dispose routing instruction components
-            // since the end result is the same. Pass the navigations
-            // that should be preserved so that components in them aren't
-            // disposed if they also exist in discarded routing instructions.
-            await this.serializeNavigation(navig, this.navigations.slice(indexPreserve, index));
-          }
-        }
-      }
-      // If it's a navigation from the browser (back, forward, url) we replace the state
-      await this.saveState(!(navigation.fromBrowser ?? false));
+  public async refresh(): Promise<boolean | void> {
+    // Don't refresh if there's been no navigation before
+    if (this.lastNavigationIndex === -1) {
+      return Promise.reject();
     }
-    // Resolve the navigation. Very important!
-    navigation.resolve?.(true);
+    const navigation = this.navigations[this.lastNavigationIndex];
+
+    // Set navigation flags...
+    navigation.replacing = true;
+    navigation.refreshing = true;
+    // ...and enqueue the navigation again.
+    return this.navigate(navigation);
   }
 
-  /**
-   * Cancel a navigation and move to last finalized navigation.
-   *
-   * @param navigation - The navigation to cancel
-   */
-  public async cancel(navigation: Navigation): Promise<void> {
-    if (this.options.store != null) {
-      // If it's a new navigation...
-      if (navigation.navigation?.new) {
-        // ...from the browser (url)...
-        if (navigation.fromBrowser ?? false) {
-          // ...pop it from the browser's History.
-          await this.options.store.popNavigatorState();
-        }
-        // Undo the history movement back to previous last navigation
-      } else if ((navigation.historyMovement ?? 0) !== 0) {
-        await this.options.store.go(-navigation.historyMovement!, true);
-      }
-    }
-    // Resolve the navigation. Very important!
-    navigation.resolve?.(false);
-  }
+  // /**
+  //  * Notifies subscribers that a navigation has been dequeued for processing.
+  //  *
+  //  * @param navigation - The INavigation to process
+  //  * @param navigationFlags - Flags describing the navigations historical movement
+  //  * @param previousNavigation - The previous navigation to be processed
+  //  */
+  // private notifySubscribers(navigation: INavigation, navigationFlags: INavigationFlags, previousNavigation: Navigation): void {
+  //   navigation = navigation instanceof Navigation ? navigation : Navigation.create({ ...navigation });
+  //   (navigation as Navigation).navigation = navigationFlags;
+  //   (navigation as Navigation).previous = previousNavigation;
+
+  //   this.ea.publish(NavigatorNavigateEvent.eventName, NavigatorNavigateEvent.create(navigation));
+  // }
 
   /**
    * Notifies subscribers that a navigation has been dequeued for processing.
    *
-   * @param navigation - The INavigation to process
-   * @param navigationFlags - Flags describing the navigations historical movement
-   * @param previousNavigation - The previous navigation to be processed
+   * @param navigation - The Navigation to process
    */
-  private notifySubscribers(navigation: INavigation, navigationFlags: INavigationFlags, previousNavigation: Navigation): void {
-    navigation = navigation instanceof Navigation ? navigation : Navigation.create({ ...navigation });
-    (navigation as Navigation).navigation = navigationFlags;
-    (navigation as Navigation).previous = previousNavigation;
-
+  private notifySubscribers(navigation: Navigation): void {
     this.ea.publish(NavigatorNavigateEvent.eventName, NavigatorNavigateEvent.create(navigation));
   }
 

@@ -145,13 +145,19 @@ export class Router implements IRouter {
   public rootScope: ViewportScope | null = null;
 
   /**
+   * The active navigation.
+   */
+  public activeNavigation!: Navigation;
+
+  /**
    * The active routing instructions.
    */
   public activeComponents: RoutingInstruction[] = [];
 
   /**
-   * Instructions that should be appended to current navigation
-   * @internal
+   * Instructions that are appended between navigations and should be appended
+   * to next navigation. (This occurs during startup, when there's no navigation
+   * to append viewport default instructions to.)
    */
   public appendedInstructions: RoutingInstruction[] = [];
 
@@ -165,6 +171,11 @@ export class Router implements IRouter {
    */
   public isActive: boolean = false;
   // public pendingConnects: Map<IConnectedCustomElement, OpenPromise> = new Map<IConnectedCustomElement, OpenPromise>();
+
+  /**
+   * The currently active coordinators (navigations)
+   */
+  private readonly coordinators: NavigationCoordinator[] = [];
 
   /**
    * Whether the first load has happened
@@ -302,8 +313,6 @@ export class Router implements IRouter {
    *
    * @internal
    */
-  // TODO: use @bound (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
   public handleNavigatorNavigateEvent = (event: NavigatorNavigateEvent): void => {
     // Instructions extracted from queue, one at a time
     this.processNavigation(event.navigation).catch(error => {
@@ -319,14 +328,12 @@ export class Router implements IRouter {
    *
    * @internal
    */
-  // TODO: use @bound (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
   public handleNavigatorStateChangeEvent = (event: NavigatorStateChangeEvent): void => {
-    console.log('handleNavigatorStateChangeEvent', event, event.state?.lastNavigation instanceof Navigation);
+    console.log('handleNavigatorStateChangeEvent', event, event.state?.navigations?.[event.state?.navigationIndex] instanceof Navigation);
     // It's already a proper navigation (browser history or cache), go
     // directly to navigate
-    if (event.state != null) {
-      const entry = Navigation.create(event.state?.lastNavigation);
+    if (event.state?.navigationIndex != null) {
+      const entry = Navigation.create(event.state.navigations[event.state.navigationIndex]);
       entry.instruction = event.viewerState.instruction;
       // entry.instruction = event.instruction;
       entry.fromBrowser = true;
@@ -347,13 +354,9 @@ export class Router implements IRouter {
    *
    * @internal
    */
-  // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
   public processNavigation = async (navigation: Navigation): Promise<void> => {
     // const navigation = this.processingNavigation = evNavigation as Navigation;
     this.processingNavigation = navigation;
-
-    this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.create(navigation));
 
     // // TODO: This can now probably be removed. Investigate!
     // this.pendingConnects.clear();
@@ -362,6 +365,16 @@ export class Router implements IRouter {
     // and make sure they're in sync when they are supposed to be (no `canLoad` before all `canUnload`
     // and so on).
     const coordinator = NavigationCoordinator.create(this, navigation, { syncStates: RouterConfiguration.options.navigationSyncStates }) as NavigationCoordinator;
+    this.coordinators.push(coordinator);
+
+    // If there are instructions appended between/before any navigation,
+    // append them to this navigation. (This happens with viewport defaults
+    // during startup.)
+    coordinator.appendedInstructions.push(
+      ...this.appendedInstructions.splice(0, this.appendedInstructions.length)
+    );
+
+    this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.create(navigation));
 
     // Invoke the transformFromUrl hook if it exists
     let transformedInstruction = typeof navigation.instruction === 'string' && !navigation.useFullStateInstruction
@@ -494,7 +507,7 @@ export class Router implements IRouter {
           const dontClear = [endpoint];
           if (action === 'swap') {
             // ...and none of it's _current_ children if we're swapping them out.
-            dontClear.push(...endpoint.content.connectedScope.allScopes(true).map(scope => scope.endpoint));
+            dontClear.push(...endpoint.getContent().connectedScope.allScopes(true).map(scope => scope.endpoint));
           }
           // Exclude the endpoints to not clear from the ones to be cleared...
           arrayRemove(clearEndpoints, clear => dontClear.includes(clear));
@@ -636,11 +649,11 @@ export class Router implements IRouter {
 
       // Don't add defaults when it's a full state navigation (since it's complete state)
       if (navigation.useFullStateInstruction) {
-        this.appendedInstructions = this.appendedInstructions.filter(instr => !instr.default);
+        coordinator.appendedInstructions = coordinator.appendedInstructions.filter(instr => !instr.default);
       }
 
       // If there are any unresolved components (promises) to be appended, resolve them
-      const unresolved = this.appendedInstructions.filter(instr => instr.component.isPromise());
+      const unresolved = coordinator.appendedInstructions.filter(instr => instr.component.isPromise());
       if (unresolved.length > 0) {
         // TODO(alpha): Fix type here
         await Promise.all(unresolved.map(instr => instr.component.resolve() as Promise<any>));
@@ -648,10 +661,10 @@ export class Router implements IRouter {
 
       // Add appended instructions to either matched or remaining except default instructions
       // where there's a non-default already in the lists.
-      if (this.appendInstructions.length > 0) {
+      if (coordinator.appendedInstructions.length > 0) {
         ({ matchedInstructions, earlierMatchedInstructions, remainingInstructions } =
-          this.addAppendedInstructions(matchedInstructions, earlierMatchedInstructions, remainingInstructions, this.appendedInstructions));
-        this.appendedInstructions = [];
+          this.addAppendedInstructions(matchedInstructions, earlierMatchedInstructions, remainingInstructions, coordinator.appendedInstructions));
+        coordinator.appendedInstructions = [];
       }
 
       // Once done with all explicit instructions...
@@ -680,12 +693,21 @@ export class Router implements IRouter {
         // if (this.lastNavigation?.repeating ?? false) {
         //   this.lastNavigation!.repeating = false;
         // }
-        this.processingNavigation = null;
-        return this.navigator.finalize(navigation);
+        // return this.navigator.finalize(navigation, this.coordinators.length === 1);
       },
-      () => {
-        this.ea.publish(RouterNavigationCompleteEvent.eventName, RouterNavigationCompleteEvent.create(navigation));
-        this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.create(navigation));
+      async () => {
+        this.processingNavigation = null;
+        while (this.coordinators.length > 0 && this.coordinators[0].completed) {
+          const coord = this.coordinators.shift() as NavigationCoordinator;
+
+          // await this.updateNavigation(coord.navigation);
+          await this.navigator.finalize(coord.navigation, false /* this.coordinators.length === 0 */);
+
+          this.ea.publish(RouterNavigationCompleteEvent.eventName, RouterNavigationCompleteEvent.create(coord.navigation));
+          this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.create(coord.navigation));
+
+          coord.navigation.resolve?.(true);
+        }
       },
 
     ) as void | Promise<void>;
@@ -795,6 +817,7 @@ export class Router implements IRouter {
       repeating: options.append,
       fromBrowser: options.fromBrowser ?? false,
       origin: options.origin,
+      completed: false,
     });
     return this.navigator.navigate(entry);
   }
@@ -943,7 +966,24 @@ export class Router implements IRouter {
         instruction.scope = scope;
       }
     }
-    this.appendedInstructions.push(...instructions);
+    let coordinator: NavigationCoordinator | null = null;
+    for (let i = this.coordinators.length - 1; i >= 0; i--) {
+      if (!this.coordinators[i].completed) {
+        coordinator = this.coordinators[i];
+        break;
+      }
+    }
+    if (coordinator === null) {
+      // If we haven't loaded the first instruction, the append is from
+      // viewport defaults so we add them to router's appendInstructions
+      // so they are added to the first navigation.
+      if (!this.loadedFirst) {
+        this.appendedInstructions.push(...instructions);
+      } else {
+        throw Error('Failed to append routing instructions to coordinator');
+      }
+    }
+    coordinator?.appendedInstructions.push(...instructions);
   }
 
   /**
@@ -1137,12 +1177,25 @@ export class Router implements IRouter {
    * @param navigation - The navigation to update
    */
   private async updateNavigation(navigation: Navigation): Promise<void> {
+    // for (let i = 0, ii = (navigation.index ?? 0); i <= ii; i++) {
+    //   const instrs = (this.rootScope as ViewportScope).scope.getRoutingInstructions(i);
+    //   console.log('Instructions', i, RoutingInstruction.stringify(instrs!), instrs?.map(instr => instr.component.name));
+    //   const scps = (this.rootScope as ViewportScope).scope.getRoutingScopes(i);
+    //   console.log('Scopes', i, scps?.map(scp => scp.toStringOwning(true)));
+    // }
+    // TODO: Investigate if this can be removed
     (this.rootScope as ViewportScope).scope.reparentRoutingInstructions();
-    let instructions: RoutingInstruction[] = (this.rootScope as ViewportScope).scope.hoistedChildren
-      .filter(scope => scope.routingInstruction !== null && !scope.routingInstruction.component.none)
-      .map(scope => scope.routingInstruction) as RoutingInstruction[];
-    instructions = RoutingInstruction.clone(instructions, true);
+    // let instructions: RoutingInstruction[] = (this.rootScope as ViewportScope).scope.hoistedChildren
+    //   .filter(scope => scope.routingInstruction !== null && !scope.routingInstruction.component.none)
+    //   .map(scope => scope.routingInstruction) as RoutingInstruction[];
+    // instructions = RoutingInstruction.clone(instructions, true);
 
+    // const timeInstructions = (this.rootScope as ViewportScope).scope.getRoutingInstructions(navigation.index ?? 0) as RoutingInstruction[];
+    // instructions = (this.rootScope as ViewportScope).scope.getRoutingInstructions(navigation.index ?? 0) as RoutingInstruction[];
+    const instructions = (this.rootScope as ViewportScope).scope.getRoutingInstructions(navigation.timestamp) as RoutingInstruction[];
+    // console.log('timeInstructions', navigation.index, RoutingInstruction.stringify(timeInstructions));
+
+    // console.log('updateNavigation', RoutingInstruction.stringify(instructions), navigation.index);
     // The following makes sure right viewport/viewport scopes are set and update
     // whether viewport name is necessary or not
     const alreadyFound: RoutingInstruction[] = [];
@@ -1157,8 +1210,11 @@ export class Router implements IRouter {
       ({ matchedInstructions: found, remainingInstructions: remaining } = this.matchEndpoints(remaining, alreadyFound, true));
     }
 
-    this.activeComponents = instructions;
-    // this.activeRoute = navigation.route;
+    if (navigation.timestamp >= (this.activeNavigation?.timestamp ?? 0)) {
+      this.activeNavigation = navigation;
+      this.activeComponents = instructions;
+      // this.activeRoute = navigation.route;
+    }
 
     // First invoke with viewport instructions (should it perhaps get full state?)
     let state = await RoutingHook.invokeTransformToUrl(instructions, navigation);

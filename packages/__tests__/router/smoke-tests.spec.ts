@@ -220,7 +220,7 @@ describe('router (smoke tests)', function () {
       assertComponentsVisible(host, [Root1, A11]);
       assertIsActive(router, A11, {}, true, 1);
 
-      const loadOptions = { origin: router.allEndpoints('Viewport')[0].content.componentInstance }; // A11 view model
+      const loadOptions = { origin: router.allEndpoints('Viewport')[0].getContent().componentInstance }; // A11 view model
 
       await router.load(A02, loadOptions);
       assertComponentsVisible(host, [Root1, A11, A02]);
@@ -237,7 +237,7 @@ describe('router (smoke tests)', function () {
       await router.load({ component: A11, children: [A01] });
       assertComponentsVisible(host, [Root1, A11, A01]);
 
-      const loadOptions = { origin: router.allEndpoints('Viewport')[0].content.componentInstance }; // A11 view model
+      const loadOptions = { origin: router.allEndpoints('Viewport')[0].getContent().componentInstance }; // A11 view model
 
       await router.load(A02, loadOptions);
       assertComponentsVisible(host, [Root1, A11, A02]);
@@ -417,12 +417,12 @@ describe('router (smoke tests)', function () {
       await router.load(`${name(A11)}@$0/${name(A12)}/${name(A01)}+${name(A12)}@$1/${name(A01)}`);
       assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A01]]], '#1');
 
-      let loadOptions = { origin: router.allEndpoints('Viewport')[1].content.componentInstance }; // Top A12 view model
+      let loadOptions = { origin: router.allEndpoints('Viewport')[1].getContent().componentInstance }; // Top A12 view model
 
       await router.load(`${name(A11)}@$0/${name(A01)}`, loadOptions);
       assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A11, [A01]]]], '#2');
 
-      loadOptions = { origin: router.allEndpoints('Viewport')[2].content.componentInstance }; // Second level A12 view model
+      loadOptions = { origin: router.allEndpoints('Viewport')[2].getContent().componentInstance }; // Second level A12 view model
 
       await router.load(`${name(A02)}`, loadOptions);
       assertComponentsVisible(host, [Root2, [A11, [A12, [A02]]], [A12, [A11, [A01]]]], '#3');

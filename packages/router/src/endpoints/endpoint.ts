@@ -46,13 +46,19 @@ export interface IEndpoint extends Endpoint { }
 
 export class Endpoint {
   /**
-   * The current content of the endpoint
+   * The contents of the endpoint. New contents are pushed to this, making
+   * the last one the active one.
    */
-  public content!: EndpointContent;
-  /**
-   * The next, to be transitioned in, content of the endpoint
-   */
-  public nextContent: EndpointContent | null = null;
+  public contents: EndpointContent[] = [];
+
+  // /**
+  //  * The current content of the endpoint
+  //  */
+  // public content!: EndpointContent;
+  // /**
+  //  * The next, to be transitioned in, content of the endpoint
+  //  */
+  // public nextContent: EndpointContent | null = null;
 
   /**
    * The action (to be) performed by the transition
@@ -78,10 +84,31 @@ export class Endpoint {
   ) { }
 
   /**
+   * The current content of the endpoint
+   */
+  public getContent(): EndpointContent {
+    return this.contents[0];
+  }
+
+  /**
+   * The next, to be transitioned in, content of the endpoint
+   */
+  public getNextContent(): EndpointContent | null {
+    return this.contents.length > 1 ? this.contents[this.contents.length - 1] : null;
+  }
+
+  /**
+   * The content of the endpoint from a specific time (index)
+   */
+  public getTimeContent(_index: number = Infinity): EndpointContent | null {
+    return this.getContent();
+  }
+
+  /**
    * The active content, next or current.
    */
   public get activeContent(): EndpointContent {
-    return this.nextContent ?? this.content;
+    return this.getNextContent() ?? this.getContent();
   }
 
   /**
@@ -184,7 +211,7 @@ export class Endpoint {
    * Finalize the change of content by making the next content the current
    * content. The previously current content is deleted.
    */
-  public finalizeContentChange(): void {
+  public finalizeContentChange(_coordinator: NavigationCoordinator): void {
     throw new Error(`Method 'finalizeContentChange' needs to be implemented in all endpoints!`);
   }
 
@@ -193,8 +220,8 @@ export class Endpoint {
    *
    * @param _step - The previous step in this transition Run
    */
-  public abortContentChange(_step: Step<void> | null): void | Step<void> {
-    throw new Error(`Method 'abortContentChange' needs to be implemented in all endpoints!`);
+  public cancelContentChange(_coordinator: NavigationCoordinator, _step: Step<void> | null): void | Step<void> {
+    throw new Error(`Method 'cancelContentChange' needs to be implemented in all endpoints!`);
   }
 
   /**
@@ -220,8 +247,8 @@ export class Endpoint {
    * @param _connectedCE - The custom element that's being removed
    */
   public removeEndpoint(_step: Step | null, _connectedCE: IConnectedCustomElement | null): boolean | Promise<boolean> {
-    this.content.delete();
-    this.nextContent?.delete();
+    this.getContent().delete();
+    this.getNextContent()?.delete();
     return true;
   }
 

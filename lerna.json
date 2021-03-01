@@ -55,7 +55,8 @@
     "test/router-wizard",
     "test/benchmarking-apps/shared",
     "test/benchmarking-apps/aurelia2",
-    "test/benchmarking-apps/runner"
+    "test/benchmarking-apps/runner",
+    "test/routing-tutorial-part-3"
   ],
   "version": "0.8.0"
 }

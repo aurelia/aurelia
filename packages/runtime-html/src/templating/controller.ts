@@ -91,6 +91,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public get isActive(): boolean {
     return (this.state & (State.activating | State.activated)) > 0 && (this.state & State.deactivating) === 0;
   }
+  public get isActivated(): boolean {
+    return (this.state & State.activated) > 0 && (this.state & State.deactivating) === 0;
+  }
 
   private get name(): string {
     if (this.parent === null) {
@@ -414,6 +417,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     flags: LifecycleFlags,
     scope?: Scope | null,
     hostScope?: Scope | null,
+    boundCallback?: any,
+    attachPromise?: any,
   ): void | Promise<void> {
     switch (this.state) {
       case State.none:
@@ -483,7 +488,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       if (ret instanceof Promise) {
         this.ensurePromise();
         ret.then(() => {
-          this.bind();
+          this.bind(boundCallback, attachPromise);
         }).catch(err => {
           this.reject(err);
         });
@@ -491,11 +496,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    this.bind();
+    this.bind(boundCallback, attachPromise);
     return this.$promise;
   }
 
-  private bind(): void {
+  private bind(
+    boundCallback?: any,
+    attachPromise?: any,
+  ): void {
     if (this.debug) { this.logger!.trace(`bind()`); }
 
     if (this.bindings !== null) {
@@ -511,7 +519,23 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       if (ret instanceof Promise) {
         this.ensurePromise();
         ret.then(() => {
-          this.attach();
+          // // attaching() and child activation run in parallel, and attached() is called when both are finished
+          // if (this.children !== null) {
+          //   for (let i = 0; i < this.children.length; ++i) {
+          //     // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
+          //     void this.children[i].activate(this.$initiator, this as IHydratedController, this.$flags, this.scope, this.hostScope);
+          //   }
+          // }
+          boundCallback?.();
+          if (attachPromise instanceof Promise) {
+            console.log('Has attach promise.');
+            attachPromise.then(() => {
+              console.log('Now ready to attach!');
+              this.attach();
+            });
+          } else {
+            this.attach();
+          }
         }).catch(err => {
           this.reject(err);
         });
@@ -519,7 +543,23 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    this.attach();
+    // // attaching() and child activation run in parallel, and attached() is called when both are finished
+    // if (this.children !== null) {
+    //   for (let i = 0; i < this.children.length; ++i) {
+    //     // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
+    //     void this.children[i].activate(this.$initiator, this as IHydratedController, this.$flags, this.scope, this.hostScope);
+    //   }
+    // }
+    boundCallback?.();
+    if (attachPromise instanceof Promise) {
+      console.log('Has attach promise.');
+      attachPromise.then(() => {
+        console.log('Now ready to attach!');
+        this.attach();
+      });
+    } else {
+      this.attach();
+    }
   }
 
   private append(...nodes: Node[]): void {
@@ -719,7 +759,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
         if (
           (this.state & State.released) === State.released &&
-          !this.viewFactory!.tryReturnToCache(this as ISyntheticView)
+          !this.viewFactory!.tryReturnToCache(this as ISyntheticView) &&
+          this.$initiator === this
         ) {
           this.dispose();
         }
@@ -729,7 +770,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
     }
 
-    if ((flags & LifecycleFlags.dispose) === LifecycleFlags.dispose) {
+    if ((flags & LifecycleFlags.dispose) === LifecycleFlags.dispose && this.$initiator === this) {
       this.dispose();
     }
     this.state = (this.state & State.disposed) | State.deactivated;
@@ -1250,6 +1291,7 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
   readonly host: HTMLElement | null;
   readonly state: State;
   readonly isActive: boolean;
+  readonly isActivated: boolean;
   readonly parent: IHydratedController | null;
 
   /** @internal */head: IHydratedController | null;
@@ -1519,6 +1561,8 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
     flags: LifecycleFlags,
     scope?: Scope,
     hostScope?: Scope | null,
+    boundCallback?: any,
+    attachPromise?: any,
   ): void | Promise<void>;
   deactivate(
     initiator: IHydratedController,

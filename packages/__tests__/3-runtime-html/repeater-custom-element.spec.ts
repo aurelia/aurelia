@@ -85,8 +85,10 @@ describe.only(spec, function () {
     }, setup);
   }
   {
-    @customElement({ name: 'foo', template: '${prop}', bindables: ['prop'] })
-    class Foo { }
+    @customElement({ name: 'foo', template: '${prop}' })
+    class Foo {
+      @bindable public prop: unknown;
+    }
     class App { }
     const setup: Partial<TestSetupContext<App>> = {
       app: App,
@@ -106,8 +108,10 @@ describe.only(spec, function () {
     }, setup);
   }
   {
-    @customElement({ name: 'foo', template: '${prop}', bindables: ['prop'] })
-    class Foo { }
+    @customElement({ name: 'foo', template: '${prop}' })
+    class Foo {
+      @bindable public prop: unknown;
+    }
     class App { }
     const setup: Partial<TestSetupContext<App>> = {
       app: App,
@@ -123,6 +127,35 @@ describe.only(spec, function () {
       await q.yield();
 
       assert.html.innerEqual(host, '<foo prop.bind="item.p" class="au">1</foo> <foo prop.bind="item.p" class="au">2</foo> <foo prop.bind="item.p" class="au">3</foo>', `host.textContent`);
+    }, setup);
+  }
+  {
+    @customElement({ name: 'bar', template: 'bar' })
+    class Bar {
+      private static id: number = 1;
+      @bindable public id: number = Bar.id++;
+    }
+    @customElement({ name: 'foo', template: '${prop}' })
+    class Foo {
+      @bindable public prop: unknown;
+    }
+    class App { }
+    const setup: Partial<TestSetupContext<App>> = {
+      app: App,
+      registrations: [Bar, Foo],
+      template:
+        `<template>
+          <template repeat.for="i of 2">
+            <bar id.from-view="id"></bar>
+            <foo prop.bind="id"></foo>
+          </template>
+        </template>`,
+    };
+    $it('from-view integration', async function ({ platform, host }: TestExecutionContext<App>) {
+      const q = platform.domWriteQueue;
+      await q.yield();
+
+      assert.html.innerEqual(host, '<bar id.from-view="id">bar</bar> <foo prop.bind="id" class="au">1</foo> <bar id.from-view="id">bar</bar> <foo prop.bind="id" class="au">2</foo>', `host.textContent`);
     }, setup);
   }
 

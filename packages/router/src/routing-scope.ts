@@ -109,7 +109,6 @@ export class RoutingScope {
       } else if ('$controller' in origin) {
         container = origin.$controller!.context;
       } else {
-        // const controller = RoutingScope.CustomElementFor(origin as Node);
         const controller = CustomElement.for(origin as Node, { searchParents: true });
         container = controller?.context;
       }
@@ -275,8 +274,6 @@ export class RoutingScope {
           scope.endpoint.name === name &&
           scope.endpoint.connectedCE === connectedCE)?.endpoint
         ?? null;
-      if (endpoint != null) {
-      }
     }
     if (endpoint == null) {
       endpoint = type === 'Viewport'
@@ -381,8 +378,7 @@ export class RoutingScope {
         instructions.push(instruction);
       }
     }
-    // instructions = instructions.filter(instr => (instr.component.name ?? '') !== '');
-    return instructions; // .length > 0 ? instructions : null;
+    return instructions;
   }
 
   public getRoutingScopes(index: number): RoutingScope[] | null {
@@ -390,12 +386,6 @@ export class RoutingScope {
       .map(scope => scope.endpoint.getTimeContent(index))
       .filter(content => content !== null) as EndpointContent[];
     const scopes = contents.map(content => content.connectedScope);
-
-    // for (const content of contents) {
-    //   const instruction = content.instruction.clone(true, false, false);
-    //   instruction.nextScopeInstructions = content.connectedScope.getRoutingInstructions(index);
-    //   scopes.push(instruction);
-    // }
     return scopes;
   }
 
@@ -404,7 +394,7 @@ export class RoutingScope {
       (stepParallel: Step<boolean>) => {
         return Runner.runParallel(stepParallel,
           ...this.children.map(child => child.endpoint !== null
-            ? (childStep: Step<boolean>) => child.endpoint!.canUnload(childStep)
+            ? (childStep: Step<boolean>) => child.endpoint.canUnload(childStep)
             : (childStep: Step<boolean>) => child.canUnload(childStep)
           ));
       },
@@ -530,24 +520,5 @@ export class RoutingScope {
       route.instructions = RoutingInstruction.from(route.instructions!);
     }
     return route as Route;
-  }
-
-  // TODO: This is probably wrong since it caused test fails when in CustomElement.for
-  // Fred probably knows and will need to look at it
-  // This can most likely also be changed so that the node traversal isn't necessary
-  private static CustomElementFor(node: INode): ICustomElementController | undefined {
-    // return CustomElement.for(node, { searchParents: true });
-    let cur: INode | null = node;
-    while (cur !== null) {
-      const nodeResourceName: string = (cur as Element).nodeName.toLowerCase();
-      // const controller: ICustomElementController = Metadata.getOwn(CustomElement.name + ":" + nodeResourceName, cur)
-      //  ?? Metadata.getOwn(CustomElement.name, cur);
-      const controller: ICustomElementController | undefined = cur.$au?.[`${CustomElement.name}:${nodeResourceName}`] as ICustomElementController | undefined;
-      if (controller !== void 0) {
-        return controller;
-      }
-      cur = getEffectiveParentNode(cur);
-    }
-    return (void 0);
   }
 }

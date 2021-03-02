@@ -372,21 +372,11 @@ export class ViewportContent extends EndpointContent {
         this.contentStates.set('activating', void 0);
 
         const contentController = this.contentController(connectedCE);
-        const promise = (contentController.activate(initiator ?? contentController, parent, flags, void 0, void 0, boundCallback, this.instruction.topInstruction ? attachPromise : void 0) as Promise<void>);
-        if (promise instanceof Promise) {
-          promise.then(() => {
-            // console.log('!!!! activated');
-            this.contentStates.set('activated', void 0);
-          });
-        } else {
-          // console.log('!!!! activated');
-          this.contentStates.set('activated', void 0);
-        }
-        return promise;
+        return contentController.activate(initiator ?? contentController, parent, flags, void 0, void 0, boundCallback, this.instruction.topInstruction ? attachPromise : void 0) as Promise<void>;
       },
-      // () => {
-      //   this.contentStates.set('activated', void 0);
-      // },
+      () => {
+        this.contentStates.set('activated', void 0);
+      },
       /* TODO: This should be added back in somehow/somewhere
       () => {
         if (this.fromCache || this.fromHistory) {
@@ -420,9 +410,9 @@ export class ViewportContent extends EndpointContent {
       return;
     }
     return Runner.run(step,
+      // TODO: Revisit once it's possible to abort within lifecycle hooks
       // () => {
       //   if (!this.contentStates.has('activated')) {
-      //     console.log('>>>>', (this.contentController(connectedCE) as any).isActivated, this.contentController(connectedCE));
       //     const elements = Array.from(connectedCE.element.children);
       //     for (const el of elements) {
       //       (el as HTMLElement).style.display = 'none';
@@ -430,12 +420,8 @@ export class ViewportContent extends EndpointContent {
       //     return this.contentStates.await('activated');
       //   }
       // },
-      // // () => {
-      // //   return new Promise((resolve) => { setTimeout(resolve, 1000); });
-      // // },
       // () => this.waitForActivated(this.contentController(connectedCE), connectedCE),
       () => {
-        // console.log('=====', (this.contentController(connectedCE) as any).isActivated, this.contentController(connectedCE));
         if (stateful && connectedCE.element !== null) {
           const elements = Array.from(connectedCE.element.getElementsByTagName('*'));
           for (const el of elements) {
@@ -536,32 +522,31 @@ export class ViewportContent extends EndpointContent {
     }
   }
 
-  /**
-   * Wait for the viewport's content to be activated. Should be removed once
-   * controller activation can be aborted.
-   *
-   * @param controller - The controller to the viewport's content
-   */
-  private waitForActivated(controller: ICustomElementController, connectedCE: IConnectedCustomElement): void | Promise<void> {
-    if (!controller.isActivated) {
-      return new Promise((resolve) => {
-        this.activatedResolve = resolve;
-        this.checkActivated(controller, connectedCE);
-      });
-    }
-  }
-  private checkActivated(controller: ICustomElementController, connectedCE: IConnectedCustomElement): void {
-    setTimeout(() => {
-      console.log('#### checking activated', controller.isActivated);
-      const elements = Array.from(connectedCE.element.children);
-      for (const el of elements) {
-        (el as HTMLElement).style.display = 'none';
-      }
-      if (controller.isActivated) {
-        this.activatedResolve!();
-      } else {
-        this.checkActivated(controller, connectedCE);
-      }
-    }, 50);
-  }
+  // /**
+  //  * Wait for the viewport's content to be activated. Should be removed once
+  //  * controller activation can be aborted.
+  //  *
+  //  * @param controller - The controller to the viewport's content
+  //  */
+  // private waitForActivated(controller: ICustomElementController, connectedCE: IConnectedCustomElement): void | Promise<void> {
+  //   if (!controller.isActivated) {
+  //     return new Promise((resolve) => {
+  //       this.activatedResolve = resolve;
+  //       this.checkActivated(controller, connectedCE);
+  //     });
+  //   }
+  // }
+  // private checkActivated(controller: ICustomElementController, connectedCE: IConnectedCustomElement): void {
+  //   setTimeout(() => {
+  //     const elements = Array.from(connectedCE.element.children);
+  //     for (const el of elements) {
+  //       (el as HTMLElement).style.display = 'none';
+  //     }
+  //     if (controller.isActivated) {
+  //       this.activatedResolve!();
+  //     } else {
+  //       this.checkActivated(controller, connectedCE);
+  //     }
+  //   }, 50);
+  // }
 }

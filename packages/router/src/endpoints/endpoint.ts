@@ -51,15 +51,6 @@ export class Endpoint {
    */
   public contents: EndpointContent[] = [];
 
-  // /**
-  //  * The current content of the endpoint
-  //  */
-  // public content!: EndpointContent;
-  // /**
-  //  * The next, to be transitioned in, content of the endpoint
-  //  */
-  // public nextContent: EndpointContent | null = null;
-
   /**
    * The action (to be) performed by the transition
    */

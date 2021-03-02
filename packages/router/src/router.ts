@@ -170,7 +170,6 @@ export class Router implements IRouter {
    * Whether the router is active/started
    */
   public isActive: boolean = false;
-  // public pendingConnects: Map<IConnectedCustomElement, OpenPromise> = new Map<IConnectedCustomElement, OpenPromise>();
 
   /**
    * The currently active coordinators (navigations)
@@ -329,19 +328,16 @@ export class Router implements IRouter {
    * @internal
    */
   public handleNavigatorStateChangeEvent = (event: NavigatorStateChangeEvent): void => {
-    console.log('handleNavigatorStateChangeEvent', event, event.state?.navigations?.[event.state?.navigationIndex] instanceof Navigation);
     // It's already a proper navigation (browser history or cache), go
     // directly to navigate
     if (event.state?.navigationIndex != null) {
       const entry = Navigation.create(event.state.navigations[event.state.navigationIndex]);
       entry.instruction = event.viewerState.instruction;
-      // entry.instruction = event.instruction;
       entry.fromBrowser = true;
       this.navigator.navigate(entry).catch(error => { throw error; });
     } else {
       this.load(
         event.viewerState.instruction,
-        // event.instruction,
         { fromBrowser: true }
       ).catch(error => { throw error; });
     }
@@ -453,7 +449,7 @@ export class Router implements IRouter {
     let guard = 100;
     do {
       if (!guard--) { // Guard against endless loop
-        // TODO(alpha): Improve error message
+        // TODO(alpha): Improve error message!!!
         const err = new Error(remainingInstructions.length + ' remaining instructions after 100 iterations; there is likely an infinite loop.');
         (err as Error & IIndexable)['remainingInstructions'] = remainingInstructions;
         console.log('remainingInstructions', remainingInstructions);
@@ -1177,25 +1173,11 @@ export class Router implements IRouter {
    * @param navigation - The navigation to update
    */
   private async updateNavigation(navigation: Navigation): Promise<void> {
-    // for (let i = 0, ii = (navigation.index ?? 0); i <= ii; i++) {
-    //   const instrs = (this.rootScope as ViewportScope).scope.getRoutingInstructions(i);
-    //   console.log('Instructions', i, RoutingInstruction.stringify(instrs!), instrs?.map(instr => instr.component.name));
-    //   const scps = (this.rootScope as ViewportScope).scope.getRoutingScopes(i);
-    //   console.log('Scopes', i, scps?.map(scp => scp.toStringOwning(true)));
-    // }
     // TODO: Investigate if this can be removed
     (this.rootScope as ViewportScope).scope.reparentRoutingInstructions();
-    // let instructions: RoutingInstruction[] = (this.rootScope as ViewportScope).scope.hoistedChildren
-    //   .filter(scope => scope.routingInstruction !== null && !scope.routingInstruction.component.none)
-    //   .map(scope => scope.routingInstruction) as RoutingInstruction[];
-    // instructions = RoutingInstruction.clone(instructions, true);
 
-    // const timeInstructions = (this.rootScope as ViewportScope).scope.getRoutingInstructions(navigation.index ?? 0) as RoutingInstruction[];
-    // instructions = (this.rootScope as ViewportScope).scope.getRoutingInstructions(navigation.index ?? 0) as RoutingInstruction[];
     const instructions = (this.rootScope as ViewportScope).scope.getRoutingInstructions(navigation.timestamp) as RoutingInstruction[];
-    // console.log('timeInstructions', navigation.index, RoutingInstruction.stringify(timeInstructions));
 
-    // console.log('updateNavigation', RoutingInstruction.stringify(instructions), navigation.index);
     // The following makes sure right viewport/viewport scopes are set and update
     // whether viewport name is necessary or not
     const alreadyFound: RoutingInstruction[] = [];

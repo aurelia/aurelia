@@ -51,9 +51,8 @@ export class EndpointMatcher {
     let remainingInstructions: RoutingInstruction[] = [];
 
     // Get all the routing scopes owned by this scope
-    // const oldOwnedScopes = routingScope.getOwnedScopes();
+    // TODO: Investigate if Infinity needs to be a timestamp
     const ownedScopes = routingScope.getOwnedRoutingScopes(Infinity);
-    // console.log('matchEndpoints', oldOwnedScopes, ownedScopes);
 
     // Get a shallow copy of all available endpoints
     const endpoints = ownedScopes.map(scope => scope.endpoint);

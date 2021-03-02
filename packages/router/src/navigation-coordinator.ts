@@ -356,12 +356,8 @@ export class NavigationCoordinator {
       }
     }).catch(error => { throw error; });
     this.completed = true;
-    // this.navigation.completed = true;
+    this.navigation.completed = true;
   }
-
-  // TODO: A new navigation should cancel replaced instructions
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  public cancelReplaced(navigation: Navigation): void { }
 
   /**
    * Check if a navigation state has been reached, notifying waiting

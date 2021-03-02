@@ -61,7 +61,6 @@ export class ViewportScope extends Endpoint {
     },
   ) {
     super(router, name, connectedCE);
-    // this.content = new ViewportScopeContent(router, this, owningScope, scope);
     this.contents.push(new ViewportScopeContent(router, this, owningScope, scope));
     if (this.catches.length > 0) {
       this.instruction = RoutingInstruction.create(this.catches[0], this.name) as RoutingInstruction;
@@ -124,7 +123,6 @@ export class ViewportScope extends Endpoint {
       instruction.component.name = this.default;
     }
 
-    // this.nextContent = new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope, instruction);
     this.contents.push(new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope, instruction, navigation));
 
     return 'swap';
@@ -140,27 +138,46 @@ export class ViewportScope extends Endpoint {
       () => coordinator.addEndpointState(this, 'routed'),
       () => coordinator.addEndpointState(this, 'swapped'),
       () => {
-        // this.content = !this.remove ? this.nextContent! : new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope);
-        if (this.remove) {
-          this.contents.push(new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope));
-        }
-        // this.nextContent = null;
-        //Y: this.contents.shift();
-        this.getNextContent()!.completed = true;
+        // // this.content = !this.remove ? this.nextContent! : new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope);
+        // if (this.remove) {
+        //   this.contents.push(new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope));
+        // }
+        // // this.nextContent = null;
+        // //Y: this.contents.shift();
+        // this.getNextContent()!.completed = true;
         coordinator.addEndpointState(this, 'completed');
       }
     );
   }
 
-  public finalizeContentChange(_coordinator: NavigationCoordinator): void {
+  public finalizeContentChange(coordinator: NavigationCoordinator): void {
+    const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
+    let nextContent = this.contents[nextContentIndex];
+
+    if (this.remove) {
+      const emptyContent = new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope);
+      this.contents.splice(nextContentIndex, 1, emptyContent);
+      nextContent.delete();
+      nextContent = emptyContent;
+    }
+    nextContent.completed = true;
+
+    let removeable = 0;
+    for (let i = 0, ii = nextContentIndex; i < ii; i++) {
+      if (!(this.contents[0].navigation.completed ?? false)) {
+        break;
+      }
+      removeable++;
+    }
+    this.contents.splice(0, removeable);
+
     if (this.remove && Array.isArray(this.source)) {
       this.removeSourceItem();
     }
   }
-  public cancelContentChange(_coordinator: NavigationCoordinator, _step: Step<void> | null): void | Step<void> {
-    // this.nextContent = null;
-    // this.contents.pop();
-    this.contents.splice(this.contents.indexOf(this.getNextContent()!), 1);
+  public cancelContentChange(coordinator: NavigationCoordinator, _step: Step<void> | null): void | Step<void> {
+    const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
+    this.contents.splice(nextContentIndex, 1);
     if (this.add) {
       const index = this.source!.indexOf(this.sourceItem);
       this.source!.splice(index, 1);

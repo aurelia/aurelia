@@ -12,7 +12,7 @@ import { Routes } from '../decorators/routes.js';
 import { Route } from '../route.js';
 import { Endpoint, IConnectedCustomElement } from './endpoint.js';
 import { RouterConfiguration } from '../index.js';
-import { IViewportOptions, ViewportOptions } from './viewport-options';
+import { IViewportOptions, ViewportOptions } from './viewport-options.js';
 
 /**
  * The viewport is an endpoint that encapsulates an au-viewport custom element

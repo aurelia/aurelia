@@ -1,4 +1,4 @@
-import { customElement, IDisposable, IRouter, IRouterEvents, ISignaler, shadowCSS } from 'aurelia';
+import { customElement, IDisposable, IEventAggregator, ISignaler, RouterNavigationEndEvent, shadowCSS } from 'aurelia';
 import template from './left-sidebar.html';
 import css from './left-sidebar.css';
 
@@ -12,11 +12,10 @@ export class LeftSidebar {
   private subscription: IDisposable;
 
   public constructor(
-    @IRouter private readonly router: IRouter,
-    @IRouterEvents events: IRouterEvents,
+    @IEventAggregator ea: IEventAggregator,
     @ISignaler signaler: ISignaler,
   ) {
-    this.subscription = events.subscribe('au:router:navigation-end', (_) => {
+    this.subscription = ea.subscribe(RouterNavigationEndEvent.eventName, (_) => {
       signaler.dispatchSignal('navigated');
     });
   }

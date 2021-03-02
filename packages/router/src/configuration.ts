@@ -1,15 +1,14 @@
-import { IContainer, IRegistry, isObject } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
-
-import { RouteContext } from './route-context.js';
-import { IRouterOptions, IRouter } from './router.js';
-
+import { NavCustomElement } from './resources/nav.js';
 import { ViewportCustomElement } from './resources/viewport.js';
+import { ViewportScopeCustomElement } from './resources/viewport-scope.js';
+import { GotoCustomAttribute } from './resources/goto.js';
 import { LoadCustomAttribute } from './resources/load.js';
 import { HrefCustomAttribute } from './resources/href.js';
 import { IRouter } from './router.js';
 import { IRouterOptions, RouterOptions } from './router-options.js';
-import { BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction } from './routing-hook';
+import { BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction } from './routing-hook.js';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 
@@ -23,21 +22,30 @@ export const DefaultComponents = [
 
 export {
   ViewportCustomElement,
+  ViewportScopeCustomElement,
+  NavCustomElement,
+  GotoCustomAttribute,
   LoadCustomAttribute,
   HrefCustomAttribute,
 };
 
 export const ViewportCustomElementRegistration = ViewportCustomElement as unknown as IRegistry;
+export const ViewportScopeCustomElementRegistration = ViewportScopeCustomElement as unknown as IRegistry;
+export const NavCustomElementRegistration = NavCustomElement as unknown as IRegistry;
+export const GotoCustomAttributeRegistration = GotoCustomAttribute as unknown as IRegistry;
 export const LoadCustomAttributeRegistration = LoadCustomAttribute as unknown as IRegistry;
 export const HrefCustomAttributeRegistration = HrefCustomAttribute as unknown as IRegistry;
 
 /**
  * Default router resources:
- * - Custom Elements: `au-viewport`
- * - Custom Attributes: `load`, `href`
+ * - Custom Elements: `au-viewport`, `au-nav`
+ * - Custom Attributes: `goto`, `load`, `href`
  */
 export const DefaultResources: IRegistry[] = [
   ViewportCustomElement as unknown as IRegistry,
+  ViewportScopeCustomElement as unknown as IRegistry,
+  NavCustomElement as unknown as IRegistry,
+  GotoCustomAttribute as unknown as IRegistry,
   LoadCustomAttribute as unknown as IRegistry,
   HrefCustomAttribute as unknown as IRegistry,
 ];

@@ -1,11 +1,10 @@
 /* eslint-disable sonarjs/no-duplicated-branches */
 /* eslint-disable sonarjs/no-all-duplicated-branches */
-import { DeferralJuncture } from './create-fixture';
 import { assert } from '@aurelia/testing';
-import { HookName } from './hook-invocation-tracker';
-import { TransitionComponent } from './component';
-import { Transition } from './transition';
-import { TransitionViewport } from './transition-viewport';
+import { HookName } from './hook-invocation-tracker.js';
+import { TransitionComponent } from './component.js';
+import { Transition } from './transition.js';
+import { TransitionViewport } from './transition-viewport.js';
 
 export const routingHooks: HookName[] = ['canUnload', 'canLoad', 'unload', 'load'];
 export const addHooks: HookName[] = ['binding', 'bound', 'attaching', 'attached'];

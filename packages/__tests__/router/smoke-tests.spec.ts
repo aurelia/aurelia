@@ -11,6 +11,8 @@ import {
   Router,
   IRouter,
   LoadInstruction,
+  Parameters,
+  RoutingInstruction,
   Navigation,
   IRouterOptions,
 } from '@aurelia/router';
@@ -19,8 +21,8 @@ import {
   CustomElement,
 } from '@aurelia/runtime-html';
 
-import { createFixture, translateOptions } from './_shared/create-fixture';
-import { IHIAConfig } from './_shared/hook-invocation-tracker';
+import { createFixture, translateOptions } from './_shared/create-fixture.js';
+import { IHIAConfig } from './_shared/hook-invocation-tracker.js';
 
 function vp(count: number, name = ''): string {
   if (count === 1) {
@@ -31,6 +33,9 @@ function vp(count: number, name = ''): string {
     template = `${template}<au-viewport name="${name}$${i}"></au-viewport>`;
   }
   return template;
+}
+function name(type: Constructable): string {
+  return kebabCase(type.name);
 }
 
 function getDefaultHIAConfig(): IHIAConfig {
@@ -96,8 +101,9 @@ describe('router (smoke tests)', function () {
     @customElement({ name: 'b01', template: `b01${vp(0)}` })
     class B01 {
       public async canUnload(
-        next: RouteNode | null,
-        current: RouteNode,
+        _params: Parameters,
+        _instruction: RoutingInstruction,
+        _navigation: Navigation,
       ): Promise<true> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return true;
@@ -106,8 +112,9 @@ describe('router (smoke tests)', function () {
     @customElement({ name: 'b02', template: `b02${vp(0)}` })
     class B02 {
       public async canUnload(
-        next: RouteNode | null,
-        current: RouteNode,
+        _params: Parameters,
+        _instruction: RoutingInstruction,
+        _navigation: Navigation,
       ): Promise<false> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return false;
@@ -118,8 +125,9 @@ describe('router (smoke tests)', function () {
     @customElement({ name: 'b11', template: `b11${vp(1)}` })
     class B11 {
       public async canUnload(
-        next: RouteNode | null,
-        current: RouteNode,
+        _params: Parameters,
+        _instruction: RoutingInstruction,
+        _navigation: Navigation,
       ): Promise<true> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return true;
@@ -128,8 +136,9 @@ describe('router (smoke tests)', function () {
     @customElement({ name: 'b12', template: `b12${vp(1)}` })
     class B12 {
       public async canUnload(
-        next: RouteNode | null,
-        current: RouteNode,
+        _params: Parameters,
+        _instruction: RoutingInstruction,
+        _navigation: Navigation,
       ): Promise<false> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return false;

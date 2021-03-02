@@ -1,7 +1,7 @@
-import { DeferralJuncture, SwapStrategy } from './create-fixture';
-import { Component } from './component';
-import { HookName, MaybeHookName } from './hook-invocation-tracker';
-import { Transition } from './transition';
+import { DeferralJuncture, SwapStrategy } from './create-fixture.js';
+import { Component } from './component.js';
+import { HookName, MaybeHookName } from './hook-invocation-tracker.js';
+import { Transition } from './transition.js';
 
 export class TransitionViewport {
   public hooks: string[] = [];

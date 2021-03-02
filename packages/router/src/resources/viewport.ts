@@ -216,14 +216,3 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     }
   }
 }
-
-const props = [
-  'name',
-  'usedBy',
-  'default',
-  'fallback',
-  'noScope',
-  'noLink',
-  'noHistory',
-  'stateful',
-] as const;

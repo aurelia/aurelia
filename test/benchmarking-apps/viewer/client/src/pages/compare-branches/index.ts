@@ -1,7 +1,7 @@
 import { IPlatform, newInstanceForScope } from '@aurelia/kernel';
 import { IValidationRules } from '@aurelia/validation';
 import { IValidationController } from '@aurelia/validation-html';
-import { customElement, ILogger, Params, RouteNode, shadowCSS } from 'aurelia';
+import { customElement, ILogger, Parameters, shadowCSS } from 'aurelia';
 import { ByBrowsers } from '../../components/by-browsers';
 import { ErrorInfo } from '../../components/error-info';
 import { BenchmarkContext, DenormalizedMeasurement, IApi } from '../../shared/data';
@@ -31,12 +31,11 @@ export class CompareBranches {
     this.applyValidationRules();
   }
 
-  public async load(_: Params, node: RouteNode): Promise<void> {
-    const query = node.queryParams;
+  public async load(params: Parameters): Promise<void> {
     const candidate1 = this.candidate1;
     const candidate2 = this.candidate2;
-    const [b1, b2] = ([candidate1.branch, candidate2.branch] = query.getAll('branch'));
-    [candidate1.commit, candidate2.commit] = query.getAll('commit');
+    const [b1, b2] = ([candidate1.branch, candidate2.branch] = params.branch as string[]);
+    [candidate1.commit, candidate2.commit] = params.commit as string[];
     // coercion intended
     if (b1 && b2) {
       return this.fetchData();

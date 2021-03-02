@@ -1,5 +1,5 @@
 import { BenchmarkMeasurements } from '@benchmarking-apps/test-result';
-import { customElement, ILogger, Params, RouteNode, shadowCSS, valueConverter } from 'aurelia';
+import { customElement, ILogger, Parameters, shadowCSS, valueConverter } from 'aurelia';
 import { ByBrowsers } from '../../components/by-browsers';
 import { BenchmarkContext, IApi } from '../../shared/data';
 import template from './index.html';
@@ -44,11 +44,10 @@ export class LatestMeasurements {
     this.logger = logger.scopeTo('LatestMeasurements');
   }
 
-  public async load(_: Params, node: RouteNode): Promise<void> {
-    const query = node.queryParams;
+  public async load(params: Parameters): Promise<void> {
     const context = this.context;
-    context.branch = query.get('branch') ?? undefined;
-    context.commit = query.get('commit') ?? undefined;
+    context.branch = params.branch as string ?? undefined;
+    context.commit = params.commit as string ?? undefined;
     this.data = await context.fetchData();
   }
 }

@@ -2,7 +2,7 @@ import { Viewport, RouterConfiguration, IRouter } from '@aurelia/router';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
-import { createFixture } from './_shared/create-fixture';
+import { createFixture } from './_shared/create-fixture.js';
 
 describe('Viewport', function () {
 //   async function createFixture(config?, App?) {

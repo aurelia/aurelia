@@ -1,5 +1,5 @@
 import { RouterConfiguration } from '../index.js';
-import { RoutingInstruction } from './routing-instruction';
+import { RoutingInstruction } from './routing-instruction.js';
 
 export class InstructionParser {
   // public static separators = RouterConfiguration.options.separators;

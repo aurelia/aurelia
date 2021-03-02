@@ -1,4 +1,4 @@
-import { InstructionParser } from './instruction-parser';
+import { InstructionParser } from './instruction-parser.js';
 import { InstructionParameters } from './instruction-parameters.js';
 import { InstructionComponent } from './instruction-component.js';
 import { ComponentAppellation, ComponentParameters, LoadInstruction } from '../interfaces.js';
@@ -6,10 +6,10 @@ import { RoutingScope } from '../routing-scope.js';
 import { ViewportScope } from '../endpoints/viewport-scope.js';
 import { FoundRoute } from '../found-route.js';
 import { Endpoint, EndpointType } from '../endpoints/endpoint';
-import { Viewport } from '../endpoints/viewport';
+import { Viewport } from '../endpoints/viewport.js';
 import { CustomElement } from '@aurelia/runtime-html';
 import { Navigation, RouterConfiguration } from '../index.js';
-import { EndpointHandle, InstructionEndpoint } from './instruction-endpoint';
+import { EndpointHandle, InstructionEndpoint } from './instruction-endpoint.js';
 
 /**
  * The routing instructions are the core of the router's navigations. All

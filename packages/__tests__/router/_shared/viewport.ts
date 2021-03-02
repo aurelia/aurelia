@@ -1,5 +1,4 @@
-import { Component } from './component';
-import { SwapStrategy } from './create-fixture';
+import { Component } from './component.js';
 
 export class Viewport {
   public from: Component;

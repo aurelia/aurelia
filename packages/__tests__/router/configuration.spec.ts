@@ -14,7 +14,7 @@ describe('Configuration', function () {
 
   async function createFixture(config?) {
     const ctx = TestContext.create();
-    const { container, lifecycle } = ctx;
+    const { container } = ctx;
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
     const host = ctx.doc.createElement('div');
@@ -37,7 +37,7 @@ describe('Configuration', function () {
       au.dispose();
     }
 
-    return { au, container, lifecycle, host, router, ctx, tearDown };
+    return { au, container, host, router, ctx, tearDown };
   }
 
   it('can be started with defaults', async function () {

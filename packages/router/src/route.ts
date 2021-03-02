@@ -44,6 +44,7 @@ export class Route {
      * (TODO: decide on, and provide more details about, whether this can be specified without specifying path, and what happens in different combinations of situations)
      */
     public readonly id: string | null,
+
     /**
      * The path to which to redirect when the url matches the path in this config.
      *

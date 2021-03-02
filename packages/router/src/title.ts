@@ -2,7 +2,7 @@ import { RouterConfiguration } from './index.js';
 import { RoutingInstruction } from './instructions/routing-instruction';
 import { Navigation } from './navigation';
 import { IRouter } from './router';
-import { RoutingHook } from './routing-hook';
+import { RoutingHook } from './routing-hook.js';
 
 export class Title {
   public static async getTitle(router: IRouter, instructions: RoutingInstruction[], navigation: Navigation): Promise<string | null> {

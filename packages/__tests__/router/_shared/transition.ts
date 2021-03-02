@@ -1,5 +1,4 @@
-import { SwapStrategy } from './create-fixture';
-import { Component, TransitionComponent } from './component';
+import { Component, TransitionComponent } from './component.js';
 
 export class Transition {
   public from: Component;

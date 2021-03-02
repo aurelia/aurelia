@@ -1,5 +1,5 @@
-import { HookName, MaybeHookName } from './hook-invocation-tracker';
-import { TransitionViewport } from './transition-viewport';
+import { HookName, MaybeHookName } from './hook-invocation-tracker.js';
+import { TransitionViewport } from './transition-viewport.js';
 
 export type ComponentTimings = Map<HookName, number>;
 

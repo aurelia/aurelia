@@ -109,7 +109,8 @@ export class RoutingScope {
       } else if ('$controller' in origin) {
         container = origin.$controller!.context;
       } else {
-        const controller = RoutingScope.CustomElementFor(origin as Node);
+        // const controller = RoutingScope.CustomElementFor(origin as Node);
+        const controller = CustomElement.for(origin as Node, { searchParents: true });
         container = controller?.context;
       }
     }
@@ -535,11 +536,13 @@ export class RoutingScope {
   // Fred probably knows and will need to look at it
   // This can most likely also be changed so that the node traversal isn't necessary
   private static CustomElementFor(node: INode): ICustomElementController | undefined {
+    // return CustomElement.for(node, { searchParents: true });
     let cur: INode | null = node;
     while (cur !== null) {
       const nodeResourceName: string = (cur as Element).nodeName.toLowerCase();
-      const controller: ICustomElementController = Metadata.getOwn(CustomElement.name + ":" + nodeResourceName, cur)
-        || Metadata.getOwn(CustomElement.name, cur);
+      // const controller: ICustomElementController = Metadata.getOwn(CustomElement.name + ":" + nodeResourceName, cur)
+      //  ?? Metadata.getOwn(CustomElement.name, cur);
+      const controller: ICustomElementController | undefined = cur.$au?.[`${CustomElement.name}:${nodeResourceName}`] as ICustomElementController | undefined;
       if (controller !== void 0) {
         return controller;
       }

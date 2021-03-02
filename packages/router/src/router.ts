@@ -132,7 +132,7 @@ export interface ILoadOptions {
   replacing?: boolean;
 }
 
-export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
+export const IRouter = DI.createInterface<IRouter>('IRouter', x => x.singleton(Router));
 export interface IRouter extends Router { }
 
 export class Router implements IRouter {
@@ -190,10 +190,7 @@ export class Router implements IRouter {
   private navigatorStateChangeEventSubscription!: IDisposable;
   private navigatorNavigateEventSubscription!: IDisposable;
 
-  protected constructor(
-    public readonly useUrlFragmentHash: boolean,
-    public readonly useHref: boolean,
-    public readonly statefulHistoryLength: number,
+  public constructor(
     /**
      * @internal
      */
@@ -245,7 +242,6 @@ export class Router implements IRouter {
   public get statefulHistory(): boolean {
     return RouterConfiguration.options.statefulHistoryLength !== void 0 && RouterConfiguration.options.statefulHistoryLength > 0;
   }
-}
 
   /**
    * Start the router, activing the event listeners.
@@ -746,7 +742,6 @@ export class Router implements IRouter {
   public addEndpoint(_type: EndpointTypeName, ..._args: unknown[]): unknown {
     throw new Error('Not implemented');
   }
-}
 
   /**
    * Connect an endpoint custom element to an endpoint. Called from the custom
@@ -824,6 +819,8 @@ export class Router implements IRouter {
       origin: options.origin,
       completed: false,
     });
+    return this.navigator.navigate(entry);
+  }
 
   /**
    * Apply the load options on the instructions.
@@ -1005,34 +1002,10 @@ export class Router implements IRouter {
       // TODO: Add missing/unknown route handling
       throw new Error("No matching configured route found for '" + route + "'");
     } else {
-      // Ensure that `await router.load` only resolves when the transition truly finished, so chain forward on top of
-      // any previously failed transition that caused a recovering backwards navigation.
-      this.logger.debug(`Reusing promise/resolve/reject from the previously failed transition %s`, failedTr);
-      promise = failedTr.promise!;
-      resolve = failedTr.resolve!;
-      reject = failedTr.reject!;
+      // TODO: Add missing/unknown route handling
+      throw new Error("No matching route/component found for '" + route + "'");
     }
-
-    // This is an intentional overwrite: if a new transition is scheduled while the currently scheduled transition hasn't even started yet,
-    // then the currently scheduled transition is effectively canceled/ignored.
-    // This is consistent with the runtime's controller behavior, where if you rapidly call async activate -> deactivate -> activate (for example), then the deactivate is canceled.
-    const nextTr = this.nextTr = Transition.create({
-      id: ++this.navigationId,
-      trigger,
-      managedState: state,
-      prevInstructions: lastTr.finalInstructions,
-      finalInstructions: instructions,
-      instructionsChanged: !lastTr.finalInstructions.equals(instructions),
-      instructions,
-      options: instructions.options,
-      promise,
-      resolve,
-      reject,
-      previousRouteTree: this.routeTree,
-      routeTree: this._routeTree = this.routeTree.clone(),
-      guardsResult: true,
-      error: void 0,
-    });
+  }
 
   /**
    * Ensure that there's a clear all instruction present in instructions.
@@ -1082,12 +1055,9 @@ export class Router implements IRouter {
     const allMatchedInstructions: RoutingInstruction[] = [];
     const allRemainingInstructions: RoutingInstruction[] = [];
 
-    if (this.activeNavigation === null) {
-      // Catch any errors that might be thrown by `run` and reject the original promise which is awaited down below
-      try {
-        this.run(nextTr);
-      } catch (err) {
-        nextTr.handleError(err);
+    while (instructions.length) {
+      if (instructions[0].scope === null) {
+        instructions[0].scope = this.rootScope!.scope;
       }
       const scope: RoutingScope = instructions[0].scope;
       const { matchedInstructions, remainingInstructions } = scope.matchEndpoints(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
@@ -1285,8 +1255,8 @@ export class Router implements IRouter {
       }
     }
 
-    if (!shouldProcessRoute) {
-      this.logger.trace(`run(tr:%s) - NOT processing route`, tr);
+    return Promise.resolve();
+  }
 
   /**
    * Extract and setup the query and parameters from instructions or options.

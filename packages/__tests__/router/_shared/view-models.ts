@@ -4,7 +4,7 @@ import { Parameters, IRouteableComponent, LoadInstruction, Navigation, Viewport,
 import { IHookInvocationAggregator } from './hook-invocation-tracker.js';
 import { IHookSpec, hookSpecsMap } from './hook-spec.js';
 
-export interface ITestRouteViewModel extends IRouteViewModel {
+export interface ITestRouteViewModel extends IRouteableComponent {
   readonly $controller: ICustomElementController<this>;
   readonly name: string;
   viewport: Viewport;

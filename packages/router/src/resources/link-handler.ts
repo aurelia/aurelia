@@ -5,7 +5,7 @@ import { GotoCustomAttribute } from './goto.js';
 import { LoadCustomAttribute } from './load.js';
 import { IRouter } from '../router.js';
 
-export const ILinkHandler = DI.createInterface<ILinkHandler>('ILinkHandler').withDefault(x => x.singleton(LinkHandler));
+export const ILinkHandler = DI.createInterface<ILinkHandler>('ILinkHandler', x => x.singleton(LinkHandler));
 
 export interface ILinkHandler extends LinkHandler { }
 

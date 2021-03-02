@@ -1,4 +1,4 @@
-import { Constructable, LogLevel, Registration, ILogConfig, LoggerConfiguration, DI, IPlatform } from '@aurelia/kernel';
+import { Constructable, LogLevel, Registration, ILogConfig, LoggerConfiguration, DI, IPlatform, ConsoleSink } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime-html';
 import { RouterConfiguration, IRouter, IRouterOptions, NavigationState } from '@aurelia/router';
 import { TestContext } from '@aurelia/testing';
@@ -68,7 +68,7 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
   };
 }
 
-export const IActivityTracker = DI.createInterface<IActivityTracker>('IActivityTracker').withDefault(x => x.singleton(ActivityTracker));
+export const IActivityTracker = DI.createInterface<IActivityTracker>('IActivityTracker', x => x.singleton(ActivityTracker));
 export interface IActivityTracker extends ActivityTracker { }
 export class ActivityTracker {
   public readonly activeVMs: string[] = [];

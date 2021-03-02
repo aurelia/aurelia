@@ -197,9 +197,7 @@ export {
 
 export {
   RouterOptions,
-  IRouterStartOptions,
   IRouter,
-  IRouterEvents,
   Router,
 
   // IViewportOptions,
@@ -212,6 +210,16 @@ export {
   RouterRegistration,
 
   RoutingInstruction,
+
+  RouterStartEvent,
+  RouterStopEvent,
+  RouterNavigationStartEvent,
+  RouterNavigationEndEvent,
+  RouterNavigationCancelEvent,
+  RouterNavigationCompleteEvent,
+  RouterNavigationErrorEvent,
+
+  Parameters,
 
   // DefaultComponents as RouterDefaultComponents,
   // DefaultResources as RouterDefaultResources,

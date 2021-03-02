@@ -1,6 +1,6 @@
 import { Constructable, DI, IDisposable, IEventAggregator } from '@aurelia/kernel';
 
-export const IEventManager = DI.createInterface<IEventManager>('IEventManager').withDefault(x => x.singleton(EventManager));
+export const IEventManager = DI.createInterface<IEventManager>('IEventManager', x => x.singleton(EventManager));
 export interface IEventManager extends EventManager { }
 
 /**
@@ -75,7 +75,7 @@ export class EventManager {
       this.unsubscribe(subscriber, channelOrType as string); // Not only string, but this works
     }
     const disposable = this.ea.subscribe(channelOrType as string, callback); // Not only string, but this works
-    console.log('Subscribe', subscriber, channelOrType);
+    // console.log('Subscribe', subscriber, channelOrType);
     let subscriptions = this.subscriptions.get(subscriber);
     if (subscriptions === void 0) {
       subscriptions = new Map<Constructable, IDisposable>();
@@ -117,7 +117,7 @@ export class EventManager {
     }
     const disposable = subscriptions.get(channelOrType as string); // Not only string, but this works
     disposable!.dispose();
-    console.log('Unsubscribe', subscriber, channelOrType);
+    // console.log('Unsubscribe', subscriber, channelOrType);
     subscriptions.delete(channelOrType as string); // Not only string, but this works
     this.subscriptions.set(subscriber, subscriptions);
   }

@@ -1,9 +1,6 @@
-import { SwapStrategy } from './create-fixture';
-import { HookName } from './hook-invocation-tracker';
-import { verifyInvocationsEqual } from './hook-spec';
-import { Transition } from './transition';
-import { TransitionViewport } from './transition-viewport';
-import { Viewport } from './viewport';
+import { SwapStrategy } from './create-fixture.js';
+import { HookName } from './hook-invocation-tracker.js';
+import { Viewport } from './viewport.js';
 
 export const routingHooks: HookName[] = ['canUnload', 'canLoad', 'unload', 'load'];
 export const addHooks: HookName[] = ['binding', 'bound', 'attaching', 'attached'];

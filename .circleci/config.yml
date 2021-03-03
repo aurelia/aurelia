@@ -41,7 +41,7 @@ map-5: &filter_only_tag
     branches:
       ignore: /.*/
     tags:
-      only: /^v[0-9]+(\.[0-9]+)*$/
+      only: /^v[0-9]+(\.[0-9]+)*/
 
 map-6: &filter_only_topic
   filters:

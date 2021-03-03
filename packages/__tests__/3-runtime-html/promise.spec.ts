@@ -464,6 +464,50 @@ describe('promise template-controller', function () {
           {
             let resolve: (value: unknown) => void;
             yield new TestData(
+              'shows content as per promise status - non-template promise-host - fulfilled',
+              Object.assign(new Promise((r) => resolve = r), { id: 0 }),
+              { delayPromise, template: templateDiv, },
+              config(),
+              `<div> ${wrap('pending0', 'p')} </div>`,
+              getActivationSequenceFor(`${phost}-1`),
+              getDeactivationSequenceFor(`${fhost}-1`),
+              async (ctx) => {
+                ctx.clear();
+                resolve(42);
+                const p = ctx.platform;
+                // one tick to call back the fulfill delegate, and queue task
+                await p.domWriteQueue.yield();
+                // on the next tick wait the queued task
+                await p.domWriteQueue.yield();
+                assert.html.innerEqual(ctx.host, `<div> ${wrap('resolved with 42', 'f')} </div>`);
+                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+              }
+            );
+          }
+          {
+            let reject: (value: unknown) => void;
+            yield new TestData(
+              'shows content as per promise status #1 - rejected',
+              Object.assign(new Promise((_, r) => reject = r), { id: 0 }),
+              { delayPromise, template: templateDiv },
+              config(),
+              `<div> ${wrap('pending0', 'p')} </div>`,
+              getActivationSequenceFor(`${phost}-1`),
+              getDeactivationSequenceFor(`${rhost}-1`),
+              async (ctx) => {
+                ctx.clear();
+                reject(new Error('foo-bar'));
+                const p = ctx.platform;
+                await p.domWriteQueue.yield();
+                await p.domWriteQueue.yield();
+                assert.html.innerEqual(ctx.host, `<div> ${wrap('rejected with foo-bar', 'r')} </div>`);
+                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+              }
+            );
+          }
+          {
+            let resolve: (value: unknown) => void;
+            yield new TestData(
               'shows content as per promise status #1 - fulfilled',
               Object.assign(new Promise((r) => resolve = r), { id: 0 }),
               { delayPromise, template: template1, },

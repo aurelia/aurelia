@@ -411,17 +411,17 @@ The `promise.resolve` template controller enables us to render different content
 The most basic example looks like as follows.
 
 ```markup
-<template promise.resolve="promise">
+<div promise.resolve="promise">
  <template pending>The promise is not yet settled.</template>
  <template then="data">The promise is resolved with ${data}.</template>
  <template catch="err">This promise is rejected with ${err.message}.</template>
-</template>
+</div>
 
-<template promise.resolve="promise">
+<div promise.resolve="promise">
  <template pending>The promise is not yet settled.</template>
  <template then>The promise is resolved.</template>
  <template catch>This promise is rejected.</template>
-</template>
+</div>
 ```
 
 As it can be seen in the example above, then are three more companion template controllers: `pending`, `then`, and `catch`.

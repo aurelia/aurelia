@@ -59,7 +59,7 @@ function parseArgs(): {tag: string; suffix: string} {
 
 (async function (): Promise<void> {
   const { tag, suffix } = parseArgs();
-  if (Boolean(tag)) {
+  if (Boolean(tag) && !tag.includes('.')) {
     const { major, minor, patch } = getCurrentVersion();
     const bump = await getRecommendedVersionBump();
     const newVersion = getNewVersion(major, minor, patch, tag, bump, suffix);

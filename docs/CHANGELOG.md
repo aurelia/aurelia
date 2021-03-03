@@ -3,6 +3,97 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.1"></a>
+# 2.0.0-alpha.1 (2021-03-03)
+
+**Note:** Version bump only for package undefined
+
+<a name="2.0.0-alpha.0"></a>
+# 2.0.0-alpha.0 (2021-03-02)
+
+### Features:
+
+* ***:** benchmark viz app ([3a21977](https://github.com/aurelia/aurelia/commit/3a21977))
+* ***:** input[type=number/date] value as number binding ([d7bc69d](https://github.com/aurelia/aurelia/commit/d7bc69d))
+* ***:** ability to teach attr-prop mapping ([55c8ca7](https://github.com/aurelia/aurelia/commit/55c8ca7))
+* **r:** interpolation with HTML nodes/elements ([fd14933](https://github.com/aurelia/aurelia/commit/fd14933))
+* **text-interpolation:** basic tests, with VC tests ([3d0d9c4](https://github.com/aurelia/aurelia/commit/3d0d9c4))
+* **text-interpolation:** basic implementation ([67f5735](https://github.com/aurelia/aurelia/commit/67f5735))
+* ***:** track read on observable & bindable ([011804f](https://github.com/aurelia/aurelia/commit/011804f))
+* **effect:** add IEffectRunner & Effect ([4a357c6](https://github.com/aurelia/aurelia/commit/4a357c6))
+
+
+### Bug Fixes:
+
+* **template-binder:** check if as-element was used ([35284f2](https://github.com/aurelia/aurelia/commit/35284f2))
+* **template-binder:** check if as-element was used ([6bc5d40](https://github.com/aurelia/aurelia/commit/6bc5d40))
+* **syntax-transformer:** don't transform attr of .class & .style commands ([c07b9d0](https://github.com/aurelia/aurelia/commit/c07b9d0))
+* **syntax-transformer): ?? vs ? vs () :dizz:**  ([af12ed7](https://github.com/aurelia/aurelia/commit/af12ed7))
+* ***:** binder ignore attr correctly ([311fe1e](https://github.com/aurelia/aurelia/commit/311fe1e))
+* ***:** tweak compilation tests to match camelization of prop ([c6449ca](https://github.com/aurelia/aurelia/commit/c6449ca))
+* **binder-test:** adjust the expected output as interpolation is removed ([2684446](https://github.com/aurelia/aurelia/commit/2684446))
+* **binder:** only remove attr when there's an interpolation ([51bb404](https://github.com/aurelia/aurelia/commit/51bb404))
+* ***:** remove attr with interpolation ([a0a1df9](https://github.com/aurelia/aurelia/commit/a0a1df9))
+* **translation-binding:** properly queue per target/attribute pair ([9ac40a6](https://github.com/aurelia/aurelia/commit/9ac40a6))
+* **i18n:** also queue param updates, fix tests ([ea5875a](https://github.com/aurelia/aurelia/commit/ea5875a))
+* ***:** Update packages/__tests__/i18n/t/translation-integration.spec.ts ([7e66afe](https://github.com/aurelia/aurelia/commit/7e66afe))
+* **di:** cached callback always returns same ([eb69711](https://github.com/aurelia/aurelia/commit/eb69711))
+* **ci:** master branch commit ([a66e993](https://github.com/aurelia/aurelia/commit/a66e993))
+* **i18n-tests:** fix null/undefined + default value test ([26b900c](https://github.com/aurelia/aurelia/commit/26b900c))
+* **translation-binding:** align update behavior during bind, tweak tests ([d189000](https://github.com/aurelia/aurelia/commit/d189000))
+* **i18n-tests:** tweak assertion to match fixtures ([effaf50](https://github.com/aurelia/aurelia/commit/effaf50))
+* **benchmakr-viz:** linting errors ([728a8f5](https://github.com/aurelia/aurelia/commit/728a8f5))
+* **testing:** instantiate app root with ctx container ([d43365d](https://github.com/aurelia/aurelia/commit/d43365d))
+* **setter-obs:** dont notify if incoming val is the same ([8bf519a](https://github.com/aurelia/aurelia/commit/8bf519a))
+* **content-interpolation:** cancel task if any when latest value is update ([6784103](https://github.com/aurelia/aurelia/commit/6784103))
+* **content-interpolation:** bogus null assignment ([815469e](https://github.com/aurelia/aurelia/commit/815469e))
+* **content-interpolation:** queue in both normal & collection change ([b8b6bbc](https://github.com/aurelia/aurelia/commit/b8b6bbc))
+* **interpolation-binding:** cleanup old value in unbind ([bdc394c](https://github.com/aurelia/aurelia/commit/bdc394c))
+* **binder:** dont remove the physical text node ([6beab31](https://github.com/aurelia/aurelia/commit/6beab31))
+* **missing:** resource.d.ts exposing incorrect ([2d71ce5](https://github.com/aurelia/aurelia/commit/2d71ce5))
+* **bindings:** remove redundant return and ensure .updateSource flag ([4d975f7](https://github.com/aurelia/aurelia/commit/4d975f7))
+* **interpolation:** release task in unbind ([08933e4](https://github.com/aurelia/aurelia/commit/08933e4))
+* **router:** querystring ([044bfde](https://github.com/aurelia/aurelia/commit/044bfde))
+* ***:** minor benchmark issues ([4113ab0](https://github.com/aurelia/aurelia/commit/4113ab0))
+* **tests:** fix translation tests ([8db92a0](https://github.com/aurelia/aurelia/commit/8db92a0))
+* **param-renderer:** resolve platform once only ([3ad49fe](https://github.com/aurelia/aurelia/commit/3ad49fe))
+* **circleci:** try fixing build ([d489bcf](https://github.com/aurelia/aurelia/commit/d489bcf))
+* **missing:** resource.d.ts exposing incorrect ([142b31f](https://github.com/aurelia/aurelia/commit/142b31f))
+* **debounce/throttle:** override queue when source changes ([3c366fd](https://github.com/aurelia/aurelia/commit/3c366fd))
+* **di:** cached callback always returns same ([3ba5343](https://github.com/aurelia/aurelia/commit/3ba5343))
+
+
+### Refactorings:
+
+* ***:** remove left over unused ids ([97fc845](https://github.com/aurelia/aurelia/commit/97fc845))
+* **template-binder:** handle binding plain attr differently ([a0a1df9](https://github.com/aurelia/aurelia/commit/a0a1df9))
+* **all:** remove .update flags ([3fc1632](https://github.com/aurelia/aurelia/commit/3fc1632))
+* **bindable:** use controller for determining bound state & change handler ([f4acedd](https://github.com/aurelia/aurelia/commit/f4acedd))
+* **benchmark-viz:** set history state on successful comparison ([df85530](https://github.com/aurelia/aurelia/commit/df85530))
+* **benchmark-viz:** ci correction ([e607b6f](https://github.com/aurelia/aurelia/commit/e607b6f))
+* **benchmark-viz:** enhanced error information ([dc96927](https://github.com/aurelia/aurelia/commit/dc96927))
+* **content-interpolation:** put text node next to the original one ([b78a210](https://github.com/aurelia/aurelia/commit/b78a210))
+* **content-binding:** dont remove on unbind, add assertion for post tearDown ([343f790](https://github.com/aurelia/aurelia/commit/343f790))
+* **interpolation:** rename interpolation part binding, remove redundant code ([8a1a21e](https://github.com/aurelia/aurelia/commit/8a1a21e))
+* **bindable:** use controller for determining bound state & change handler ([043c679](https://github.com/aurelia/aurelia/commit/043c679))
+* **benchmark-viz:** basic support to compare branches ([f098b74](https://github.com/aurelia/aurelia/commit/f098b74))
+* **benchmark:** measurement consolidation ([b318675](https://github.com/aurelia/aurelia/commit/b318675))
+* **benchmark:** result query support ([3e87a4b](https://github.com/aurelia/aurelia/commit/3e87a4b))
+* **benchmark/dataviz:** grouped measurements ([9d1328d](https://github.com/aurelia/aurelia/commit/9d1328d))
+* **i18n:** batch updates in changes ([f838be2](https://github.com/aurelia/aurelia/commit/f838be2))
+* ***:** dataviz stacked bars ([60e6617](https://github.com/aurelia/aurelia/commit/60e6617))
+* **benchmark-dataviz:** changed legend layout ([4161b02](https://github.com/aurelia/aurelia/commit/4161b02))
+* **benchmark/dataviz:** stacked bars ([b8a6756](https://github.com/aurelia/aurelia/commit/b8a6756))
+* **bench-dataviz:** avg measurements ([37b48ef](https://github.com/aurelia/aurelia/commit/37b48ef))
+* ***:** dataviz ([81b0bc6](https://github.com/aurelia/aurelia/commit/81b0bc6))
+* **bench/dataviz:** result via data service ([c05de23](https://github.com/aurelia/aurelia/commit/c05de23))
+* **benchmark:** storage API to fetch result ([a65b6da](https://github.com/aurelia/aurelia/commit/a65b6da))
+* **benchmark:** data-service ([f3b0c58](https://github.com/aurelia/aurelia/commit/f3b0c58))
+* ***:** update attr binding, throttle/debounce, add tests ([cab73f4](https://github.com/aurelia/aurelia/commit/cab73f4))
+* **prop-binding:** remove necessity for id stamping infra ([409d977](https://github.com/aurelia/aurelia/commit/409d977))
+* **effect:** rename IEffectRunner -> IObservation r ([de5d272](https://github.com/aurelia/aurelia/commit/de5d272))
+* **connectable:** clearer interface for connectable to receive changes ([bec6ed0](https://github.com/aurelia/aurelia/commit/bec6ed0))
+
 <a name="0.9.0"></a>
 # 0.9.0 (2021-01-31)
 

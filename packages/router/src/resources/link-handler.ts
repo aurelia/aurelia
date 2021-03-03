@@ -18,13 +18,11 @@ export class LinkHandler implements EventListenerObject {
     @IRouter private readonly router: IRouter,
   ) { }
 
-  public handleEvent(e: Event) {
+  public handleEvent(e: Event): void {
     this.handleClick(e as MouseEvent);
   }
 
-  private handleClick(ev: MouseEvent) {
-    const event = ev as MouseEvent;
-
+  private handleClick(event: MouseEvent): void {
     // Only process clean left click
     if (event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
       return;
@@ -59,7 +57,7 @@ export class LinkHandler implements EventListenerObject {
     }
 
     // This link is for us, so prevent default behaviour
-    ev.preventDefault();
+    event.preventDefault();
 
     let instruction = load ?? goto ?? href ?? '';
     if (typeof instruction === 'string' && instruction.startsWith('#')) {

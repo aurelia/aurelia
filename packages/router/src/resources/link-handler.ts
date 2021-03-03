@@ -12,13 +12,17 @@ export interface ILinkHandler extends LinkHandler { }
 /**
  * Class responsible for handling interactions that should trigger navigation.
  */
-export class LinkHandler {
+export class LinkHandler implements EventListenerObject {
   public constructor(
     @IWindow private readonly window: IWindow,
     @IRouter private readonly router: IRouter,
   ) { }
 
-  public readonly handler: EventListener = (ev: Event) => {
+  public handleEvent(e: Event) {
+    this.handleClick(e as MouseEvent);
+  }
+
+  private handleClick(ev: MouseEvent) {
     const event = ev as MouseEvent;
 
     // Only process clean left click
@@ -67,5 +71,5 @@ export class LinkHandler {
       }
     }
     this.router.load(instruction, { origin: target }).catch(error => { throw error; });
-  };
+  }
 }

@@ -99,12 +99,12 @@ export class InstructionComponent {
     let promise: Promise<ComponentAppellation> | null = null;
     if (component instanceof Promise) {
       promise = component;
-    } else if (InstructionComponent.isName(component)) {
+    } else if (InstructionComponent.isName(component!)) {
       name = InstructionComponent.getName(component);
-    } else if (InstructionComponent.isType(component)) {
+    } else if (InstructionComponent.isType(component!)) {
       name = this.getNewName(component);
       type = InstructionComponent.getType(component);
-    } else if (InstructionComponent.isInstance(component)) {
+    } else if (InstructionComponent.isInstance(component!)) {
       name = this.getNewName(InstructionComponent.getType(component)!);
       type = InstructionComponent.getType(component);
       instance = InstructionComponent.getInstance(component);

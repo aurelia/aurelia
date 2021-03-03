@@ -91,7 +91,7 @@ export class Endpoint {
   /**
    * The content of the endpoint from a specific time (index)
    */
-  public getTimeContent(_index: number = Infinity): EndpointContent | null {
+  public getTimeContent(_timestamp: number = Infinity): EndpointContent | null {
     return this.getContent();
   }
 

@@ -334,56 +334,56 @@ export class RoutingScope {
     return scopes.map(scope => scope.routingInstruction!);
   }
 
-  public getChildren(index: number): RoutingScope[] {
+  public getChildren(timestamp: number): RoutingScope[] {
     const contents = this.children
-      .map(scope => scope.endpoint.getTimeContent(index))
+      .map(scope => scope.endpoint.getTimeContent(timestamp))
       .filter(content => content !== null) as EndpointContent[];
     return contents.map(content => content.connectedScope);
   }
 
-  public getAllRoutingScopes(index: number): RoutingScope[] {
-    const scopes = this.getChildren(index);
+  public getAllRoutingScopes(timestamp: number): RoutingScope[] {
+    const scopes = this.getChildren(timestamp);
     for (const scope of scopes.slice()) {
-      scopes.push(...scope.getAllRoutingScopes(index));
+      scopes.push(...scope.getAllRoutingScopes(timestamp));
     }
     return scopes;
   }
 
-  public getOwnedRoutingScopes(index: number): RoutingScope[] {
-    const scopes = this.getAllRoutingScopes(index)
+  public getOwnedRoutingScopes(timestamp: number): RoutingScope[] {
+    const scopes = this.getAllRoutingScopes(timestamp)
       .filter(scope => scope.owningScope === this);
     // Hoist children to pass through scopes
     for (const scope of scopes.slice()) {
       if (scope.passThroughScope) {
         const passThrough = scopes.indexOf(scope);
-        scopes.splice(passThrough, 1, ...scope.getOwnedRoutingScopes(index));
+        scopes.splice(passThrough, 1, ...scope.getOwnedRoutingScopes(timestamp));
       }
     }
     return scopes;
   }
 
-  public getRoutingInstructions(index: number): RoutingInstruction[] | null {
+  public getRoutingInstructions(timestamp: number): RoutingInstruction[] | null {
     const contents = arrayUnique(
-      this.getOwnedRoutingScopes(index) // hoistedChildren
+      this.getOwnedRoutingScopes(timestamp) // hoistedChildren
         .map(scope => scope.endpoint)
     )
-      .map(endpoint => endpoint.getTimeContent(index))
+      .map(endpoint => endpoint.getTimeContent(timestamp))
       .filter(content => content !== null) as EndpointContent[];
     const instructions = [];
 
     for (const content of contents) {
       const instruction = content.instruction.clone(true, false, false);
       if ((instruction.component.name ?? '') !== '') {
-        instruction.nextScopeInstructions = content.connectedScope.getRoutingInstructions(index);
+        instruction.nextScopeInstructions = content.connectedScope.getRoutingInstructions(timestamp);
         instructions.push(instruction);
       }
     }
     return instructions;
   }
 
-  public getRoutingScopes(index: number): RoutingScope[] | null {
+  public getRoutingScopes(timestamp: number): RoutingScope[] | null {
     const contents = this.ownedScopes
-      .map(scope => scope.endpoint.getTimeContent(index))
+      .map(scope => scope.endpoint.getTimeContent(timestamp))
       .filter(content => content !== null) as EndpointContent[];
     const scopes = contents.map(content => content.connectedScope);
     return scopes;

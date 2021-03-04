@@ -79,10 +79,10 @@ To access parameters from the route, we can get those from the router lifecycle 
 
 {% tab title="test-component.ts" %}
 ```typescript
-import { IRouteableComponent } from '@aurelia/router';
+import { IRouteViewModel } from 'aurelia';
 
-export class TestComponent implements IRouteableComponent {
-    public load(parameters) {
+export class TestComponent implements IRouteViewModel {
+    load(parameters) {
         console.log(parameters); // Should display {0: "hello"} in the browser developer tools console
     }
 }
@@ -117,10 +117,10 @@ You can name your route parameters inline by specifying the name inside of the `
 
 {% tab title="test-component.ts" %}
 ```typescript
-import { IRouteableComponent } from '@aurelia/router';
+import { IRouteViewModel } from 'aurelia';
 
-export class TestComponent implements IRouteableComponent {
-    public load(parameters) {
+export class TestComponent implements IRouteViewModel {
+    load(parameters) {
         console.log(parameters); // Should display {named: "hello"} in the browser developer tools console
     }
 }
@@ -155,12 +155,12 @@ While you can name them inline, specifying them inside of your component makes i
 
 {% tab title="test-component.ts" %}
 ```typescript
-import { IRouteableComponent } from '@aurelia/router';
+import { IRouteViewModel } from 'aurelia';
 
-export class TestComponent implements IRouteableComponent {
-    public static parameters = ['id'];
+export class TestComponent implements IRouteViewModel {
+    static parameters = ['id'];
 
-    public load(parameters) {
+    load(parameters) {
         console.log(parameters); // Should display {id: "hello"} in the browser developer tools console
     }
 }

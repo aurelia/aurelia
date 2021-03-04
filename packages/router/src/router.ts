@@ -702,7 +702,7 @@ export class Router implements IRouter {
           this.ea.publish(RouterNavigationCompleteEvent.eventName, RouterNavigationCompleteEvent.create(coord.navigation));
           this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.create(coord.navigation));
 
-          coord.navigation.resolve?.(true);
+          coord.navigation.process?.resolve(true);
         }
       },
 

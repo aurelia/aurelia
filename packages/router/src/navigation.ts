@@ -2,6 +2,7 @@ import { ICustomElementViewModel } from '@aurelia/runtime-html';
 import { INavigationFlags } from './navigator.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { RoutingScope } from './routing-scope.js';
+import { OpenPromise } from './utilities/open-promise.js';
 
 export interface IStoredNavigation extends Omit<StoredNavigation, 'navigation' | 'toStoredNavigation'> {
   navigation?: INavigationFlags;
@@ -166,13 +167,9 @@ export class Navigation extends StoredNavigation {
   public historyMovement?: number;
 
   /**
-   * Called when the navigation is resolved
+   * The process of the navigation, to be resolved or rejected
    */
-  public resolve?: ((value?: boolean | PromiseLike<boolean>) => void);
-  /**
-   * Called when the navigation is rejected
-   */
-  public reject?: ((value?: boolean | PromiseLike<boolean>) => void);
+  public process?: OpenPromise<boolean>;
 
   /**
    * When the navigation is created. Only used within session so no need to
@@ -197,8 +194,7 @@ export class Navigation extends StoredNavigation {
     this.refreshing = entry.refreshing;
     this.untracked = entry.untracked;
     this.historyMovement = entry.historyMovement;
-    this.resolve = entry.resolve;
-    this.reject = entry.reject;
+    this.process = entry.process;
 
     this.timestamp = Date.now();
   }

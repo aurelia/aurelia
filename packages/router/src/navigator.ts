@@ -1,11 +1,11 @@
 import { EventAggregator, IEventAggregator } from '@aurelia/kernel';
 import { IRouteableComponent } from './interfaces.js';
-import { Queue, QueueItem } from './utilities/queue.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation, IStoredNavigation, INavigation } from './navigation.js';
 import { Runner, Step } from './utilities/runner.js';
 import { arrayUnique } from './utilities/utils.js';
 import { Viewport } from './endpoints/viewport.js';
+import { OpenPromise } from './utilities/open-promise.js';
 
 /**
  * The navigator is responsible for managing (queueing) navigations and
@@ -129,11 +129,6 @@ export class Navigator {
   public navigations: Navigation[] = [];
 
   /**
-   * Queued navigations that have not yet been dequeued for processing.
-   */
-  private readonly pendingNavigations: Queue<Navigation>;
-
-  /**
    * Navigator options
    */
   private options: INavigatorOptions = {
@@ -164,15 +159,6 @@ export class Navigator {
       completed: true,
     });
     this.lastNavigationIndex = -1;
-
-    this.pendingNavigations = new Queue<Navigation>(this.processNavigations);
-  }
-
-  /**
-   * The amount of queued navigations.
-   */
-  public get queued(): number {
-    return this.pendingNavigations.length;
   }
 
   public start(options?: INavigatorOptions): void {
@@ -188,40 +174,21 @@ export class Navigator {
     if (!this.isActive) {
       throw new Error('Navigator has not been started');
     }
-    this.pendingNavigations.clear();
     this.isActive = false;
   }
 
   /**
-   * Enqueue a navigation for processing.
+   * Perform a navigation. The navigation is enriched with historical
+   * navigation data and passed to the router.
    *
-   * @param navigation - The navigation to enqueue
+   * @param navigation - The navigation to perform
    */
-  public async navigate(navigation: Navigation): Promise<boolean | void> {
-    // return this.pendingNavigations.enqueue(navigation);
-    const qNavigation: QueueItem<Navigation> = { ...navigation };
-    // qNavigation.cost = 1;
-    const promise = new Promise<boolean>((resolve, reject) => {
-      qNavigation.resolve = (value: boolean | PromiseLike<boolean>) => {
-        resolve(value);
-      };
-      qNavigation.reject = (reason: unknown) => {
-        reject(reason);
-      };
-    });
-    this.processNavigations(qNavigation);
-    return promise;
-  }
+  public navigate(navigation: INavigation | Navigation): Promise<boolean> {
+    if (!(navigation instanceof Navigation)) {
+      navigation = Navigation.create(navigation);
+    }
+    navigation.process = new OpenPromise();
 
-  /**
-   * Process a dequeued navigation. The method is called by the
-   * pending navigations queue.
-   *
-   * @param qNavigation - The dequeued navigation to process
-   */
-  public processNavigations: (qNavigation: QueueItem<Navigation>) => void = (qNavigation: QueueItem<Navigation>): void => {
-    const navigation = qNavigation instanceof Navigation
-      ? qNavigation : Navigation.create(qNavigation as INavigation);
     const navigationFlags: INavigationFlags = {
       first: false,
       new: false,
@@ -282,19 +249,21 @@ export class Navigator {
       navigationFlags.new = true;
       // ...and create a new index.
       navigation.index = this.lastNavigationIndex + 1;
-      this.navigations[navigation.index] = navigation;
+      this.navigations[navigation.index] = navigation as Navigation;
     }
 
     // Set the appropriate flags.
-    navigation.navigation = navigationFlags;
+    (navigation as Navigation).navigation = navigationFlags;
     // Set the previous navigation.
     navigation.previous = this.navigations[Math.max(this.lastNavigationIndex, 0)];
 
     // Set the last navigated index to the navigation index
     this.lastNavigationIndex = navigation.index;
 
-    this.notifySubscribers(navigation);
-  };
+    this.notifySubscribers(navigation as Navigation);
+
+    return navigation.process.promise;
+  }
 
   /**
    * Finalize a navigation and make it the last navigation.

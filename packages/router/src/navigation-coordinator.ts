@@ -351,9 +351,7 @@ export class NavigationCoordinator {
     // TODO: Review this since it probably should happen in turn
     this.router.navigator.cancel(this.navigation).then(() => {
       this.router.processingNavigation = null;
-      if (this.navigation.resolve != null) {
-        this.navigation.resolve(false);
-      }
+      this.navigation.process?.resolve(false);
     }).catch(error => { throw error; });
     this.completed = true;
     this.navigation.completed = true;

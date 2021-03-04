@@ -427,7 +427,7 @@ export class Viewport extends Endpoint {
 
     this.coordinators.push(coordinator);
     // If this isn't the first coordinator, a navigation is already in process...
-    if (this.coordinators[0] !== coordinator) {
+    while (this.coordinators[0] !== coordinator) {
       // ...so first wait for it to finish.
       await this.coordinators[0].waitForSyncState('completed');
     }

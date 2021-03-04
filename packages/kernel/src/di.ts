@@ -35,7 +35,7 @@ export type Transformer<K> = (instance: Resolved<K>) => Resolved<K>;
 export interface IFactory<T extends Constructable = any> {
   readonly Type: T;
   registerTransformer(transformer: Transformer<T>): void;
-  construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T>;
+  construct(container: IContainer, dynamicDependencies?: unknown[]): Resolved<T>;
 }
 
 export interface IServiceLocator {
@@ -59,6 +59,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
   registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
+  invoke<T, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T;
   getFactory<T extends Constructable>(key: T): IFactory<T>;
   createChild(config?: IContainerConfiguration): IContainer;
   disposeResolvers(): void;
@@ -730,7 +731,7 @@ export class Factory<T extends Constructable = any> implements IFactory<T> {
     private readonly dependencies: Key[],
   ) {}
 
-  public construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T> {
+  public construct(container: IContainer, dynamicDependencies?: unknown[]): Resolved<T> {
     let instance: Resolved<T>;
     if (dynamicDependencies === void 0) {
       instance = new this.Type(...this.dependencies.map(containerGetKey, container)) as Resolved<T>;
@@ -1103,11 +1104,18 @@ export class Container implements IContainer {
     return emptyArray;
   }
 
+  public invoke<T, TDeps extends unknown[] = unknown[]>(Type: Constructable<T>, dynamicDependencies?: TDeps): T {
+    if (isNativeFunction(Type)) {
+      throw createNativeInvocationError(Type);
+    }
+    return new Factory<Constructable<T>>(Type, DI.getDependencies(Type)).construct(this, dynamicDependencies) as T;
+  }
+
   public getFactory<K extends Constructable>(Type: K): IFactory<K> {
     let factory = this.factories.get(Type);
     if (factory === void 0) {
       if (isNativeFunction(Type)) {
-        throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
+        throw createNativeInvocationError(Type);
       }
       this.factories.set(Type, factory = new Factory<K>(Type, DI.getDependencies(Type)));
     }
@@ -1428,4 +1436,8 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
   }
 
   return [resolver.resolve(handler, requestor)];
+}
+
+function createNativeInvocationError(Type: Constructable): Error {
+  return new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
 }

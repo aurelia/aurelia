@@ -1,12 +1,9 @@
 import { ICustomElementViewModel } from '@aurelia/runtime-html';
-import { INavigationFlags } from './navigator.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { RoutingScope } from './routing-scope.js';
 import { OpenPromise } from './utilities/open-promise.js';
 
-export interface IStoredNavigation extends Omit<StoredNavigation, 'navigation' | 'toStoredNavigation'> {
-  navigation?: INavigationFlags;
-}
+export interface IStoredNavigation extends Omit<StoredNavigation, 'toStoredNavigation'> { }
 
 /**
  * The stored navigation holds the part of a navigation that's stored
@@ -14,16 +11,6 @@ export interface IStoredNavigation extends Omit<StoredNavigation, 'navigation' |
  * therefore might not be able to be stored as-is.
  */
 export class StoredNavigation {
-  /**
-   * The navigation in a historical context (back, forward, etc)
-   */
-  public navigation: INavigationFlags;
-
-  /**
-   * Whether this is a repeating navigation, in other words the same navigation run again
-   */
-  public repeating?: boolean;
-
   /**
    * The routing instruction for the navigation
    */
@@ -81,16 +68,6 @@ export class StoredNavigation {
     instruction: '',
     fullStateInstruction: '',
   }) {
-    this.navigation = entry.navigation ?? {
-      first: false,
-      new: false,
-      refresh: false,
-      forward: false,
-      back: false,
-      replace: false,
-    };
-    this.repeating = entry.repeating;
-
     this.instruction = entry.instruction;
     this.fullStateInstruction = entry.fullStateInstruction;
     this.scope = entry.scope;
@@ -106,9 +83,6 @@ export class StoredNavigation {
 
   public toStoredNavigation(): IStoredNavigation {
     return {
-      navigation: this.navigation,
-      repeating: this.repeating,
-
       instruction: this.instruction,
       fullStateInstruction: this.fullStateInstruction,
       scope: this.scope,
@@ -124,7 +98,19 @@ export class StoredNavigation {
   }
 }
 
-export interface INavigation extends Omit<Navigation, 'navigation' | 'toStoredNavigation' | 'useFullStateInstruction' | 'timestamp'> { }
+export class NavigationFlags {
+  public first: boolean = false;
+  public new: boolean = false;
+  public refresh: boolean = false;
+  public forward: boolean = false;
+  public back: boolean = false;
+  public replace: boolean = false;
+}
+
+export interface INavigation extends Partial<Omit<Navigation, 'instruction' | 'fullStateInstruction' | 'navigation' | 'toStoredNavigation' | 'useFullStateInstruction' | 'process' | 'timestamp'>> {
+  instruction: string | RoutingInstruction[];
+  fullStateInstruction: string | RoutingInstruction[];
+}
 
 /**
  * The navigation
@@ -132,34 +118,44 @@ export interface INavigation extends Omit<Navigation, 'navigation' | 'toStoredNa
 
 export class Navigation extends StoredNavigation {
   /**
+   * The navigation in a historical context (back, forward, etc)
+   */
+  public navigation: NavigationFlags = new NavigationFlags();
+
+  /**
+   * Whether this is a repeating navigation, in other words the same navigation run again
+   */
+  public repeating: boolean = false;
+
+  /**
    * The previous navigation
    */
-  public previous?: Navigation;
+  public previous: Navigation | null = null;
 
   /**
    * Whether the navigation originates from a browser action (back, forward)
    */
-  public fromBrowser?: boolean;
+  public fromBrowser: boolean = false;
 
   /**
    * The origin of the navigation, a view model or element
    */
-  public origin?: ICustomElementViewModel | Element;
+  public origin: ICustomElementViewModel | Element | null = null;
 
   /**
    * Whether this navigation is fully replacing a previous one
    */
-  public replacing?: boolean;
+  public replacing: boolean = false;
 
   /**
    * Whether this navigation is a refresh/reload with the same parameters
    */
-  public refreshing?: boolean;
+  public refreshing: boolean = false;
 
   /**
    * Whether this navigation is untracked and shouldn't be added to history
    */
-  public untracked?: boolean;
+  public untracked: boolean = false;
 
   /**
    * How the navigation has moved in history compared to previous navigation
@@ -169,7 +165,7 @@ export class Navigation extends StoredNavigation {
   /**
    * The process of the navigation, to be resolved or rejected
    */
-  public process?: OpenPromise<boolean>;
+  public process: OpenPromise<boolean> | null = null;
 
   /**
    * When the navigation is created. Only used within session so no need to
@@ -182,19 +178,19 @@ export class Navigation extends StoredNavigation {
    */
   public completed?: boolean = true;
 
-  public constructor(entry: INavigation = {
+  public constructor(entry: INavigation | Navigation = {
     instruction: '',
     fullStateInstruction: '',
   }) {
     super(entry);
 
-    this.fromBrowser = entry.fromBrowser;
-    this.origin = entry.origin;
-    this.replacing = entry.replacing;
-    this.refreshing = entry.refreshing;
-    this.untracked = entry.untracked;
-    this.historyMovement = entry.historyMovement;
-    this.process = entry.process;
+    this.fromBrowser = entry.fromBrowser ?? this.fromBrowser;
+    this.origin = entry.origin ?? this.origin;
+    this.replacing = entry.replacing ?? this.replacing;
+    this.refreshing = entry.refreshing ?? this.refreshing;
+    this.untracked = entry.untracked ?? this.untracked;
+    this.historyMovement = entry.historyMovement ?? this.historyMovement;
+    this.process = null;
 
     this.timestamp = Date.now();
   }

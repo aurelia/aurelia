@@ -1,7 +1,7 @@
 import { EventAggregator, IEventAggregator } from '@aurelia/kernel';
 import { IRouteableComponent } from './interfaces.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { Navigation, IStoredNavigation, INavigation } from './navigation.js';
+import { Navigation, IStoredNavigation, INavigation, NavigationFlags } from './navigation.js';
 import { Runner, Step } from './utilities/runner.js';
 import { arrayUnique } from './utilities/utils.js';
 import { Viewport } from './endpoints/viewport.js';
@@ -82,18 +82,6 @@ export interface INavigatorOptions {
   viewer?: INavigatorViewer;
   store?: INavigatorStore;
   statefulHistoryLength?: number;
-}
-
-/**
- * Public API - part of Navigation
- */
-export interface INavigationFlags {
-  first: boolean;
-  new: boolean;
-  refresh: boolean;
-  forward: boolean;
-  back: boolean;
-  replace: boolean;
 }
 
 /**
@@ -187,16 +175,9 @@ export class Navigator {
     if (!(navigation instanceof Navigation)) {
       navigation = Navigation.create(navigation);
     }
-    navigation.process = new OpenPromise();
+    (navigation as Navigation).process = new OpenPromise();
 
-    const navigationFlags: INavigationFlags = {
-      first: false,
-      new: false,
-      refresh: false,
-      forward: false,
-      back: false,
-      replace: false,
-    };
+    const navigationFlags = new NavigationFlags();
 
     // If no proper last navigation, no navigation has been processed this session, meaning
     // that this one is either a first navigation or a refresh (repeat navigation).
@@ -262,7 +243,7 @@ export class Navigator {
 
     this.notifySubscribers(navigation as Navigation);
 
-    return navigation.process.promise;
+    return (navigation as Navigation).process!.promise;
   }
 
   /**

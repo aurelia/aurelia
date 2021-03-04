@@ -52,6 +52,7 @@ export {
 
 export {
   Navigation,
+  NavigationFlags,
 } from './navigation.js';
 
 export {
@@ -63,7 +64,6 @@ export {
   // IStoredNavigatorEntry,
   // INavigatorEntry,
   INavigatorOptions,
-  INavigationFlags,
   INavigatorState,
   INavigatorStore,
   INavigatorViewer,

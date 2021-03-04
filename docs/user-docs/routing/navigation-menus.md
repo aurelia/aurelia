@@ -10,110 +10,63 @@ description: The Aurelia Router comes with support for easily creating navigatio
 
 ## Creating Navigation Menus
 
-Injecting the router into your application and calling the `addNav` method, you can create navigation menus without needing to manually create the HTML yourself. Furthermore, navigation is highly configurable and allows you to work with strings, component instances and specify the target viewport.
+As the number of \(nested\) routes in an application grows, so does the maintenance burden with manually keeping the navigation menu template in sync with the route configuration.
 
-Inside of our `my-app` file we inject the router instance and then create our navigation menu.
+Using `RouteConfig`, you can easily traverse the route configuration tree to recursively build a navigation menu with full control over styling, layout and behavior.
+
+{% hint style="info" %}
+In order for `RouteConfig.getConfig` to work as demonstrated, the `routes` property must be an array of imported component types \(rather than strings\).
+{% endhint %}
 
 {% tabs %}
 {% tab title="my-app.ts" %}
 ```typescript
 import { IRouter, IViewModel } from 'aurelia';
 
-export class MyApp implements IViewModel {
-    constructor(@IRouter private router: IRouter) {
+export class MyApp {
+    static routes = [ProductsPage];
 
-    }
-
-    afterBind() {
-        this.router.addNav('main-nav', [
-            { 
-                title: 'Baz', 
-                route: Baz, 
-                children: [
-                    { 
-                        title: 'Bar', 
-                        route: ['bar', Baz] 
-                    }
-                ]
-            },
-            {
-                title: 'Bar',
-                route: 'bar'
-            },
-            {
-                title: 'Foo', 
-                route: { 
-                    component: Foo, 
-                    viewport: 'main-viewport' 
-                } 
-            }
-        ]);
-    }
+    config = RouteConfig.getConfig(MyApp);
+    routes = (this.config.routes as Constructable[]).map(RouteConfig.getConfig);
 }
 ```
 {% endtab %}
 
 {% tab title="my-app.html" %}
 ```markup
-<au-nav name="main-nav"></au-nav>
+<ul>
+    <li repeat.for="route of routes">
+        <nav-item config.bind="route"></nav-item>
+    </li>
+</ul>
 <au-viewport></au-viewport>
 ```
 {% endtab %}
+
+{% tab title="nav-item.ts" %}
+```typescript
+import { RouteConfig, Constructable } from 'aurelia';
+
+export class NavItem {
+    @bindable config: RouteConfig;
+    routes: RouteConfig[] = [];
+
+    binding() {
+        this.routes = (this.config.routes as Constructable[]).map(RouteConfig.getConfig);
+    }
+}
+```
+{% endtab %}
+
+{% tab title="nav-item.html" %}
+```markup
+<a load.bind="config.path">${config.title}</a>
+<ul if.bind="routes.length">
+    <li repeat.for="route of routes">
+        <nav-item config.bind="route"></nav-item>
+    </li>
+</ul>
+```
+{% endtab %}
 {% endtabs %}
-
-As you can see, we can create a navigation menu by specifying the name of the menu as the first argument and then the second argument, passing an array of routes which can be a mixture of components or objects specifying the component instance as well as the viewport name itself.
-
-There are a few things to unpack here. The `route` property as you can see can accept components, objects or strings with the name of the component as the value. This level of flexibility allows you to work with routes the way you want too.
-
-The `<au-nav>` custom element allows us to add in custom router navigation menus with ease. Similar to the `<au-viewport>` element, the `<au-nav>` element accepts a name property so we can reference it from within our code when creating navigation menus.
-
-## Updating Navigation Menus
-
-In some instances, you will want to update your menu with new routes. The `updateNav` method allows you to dynamically add in new routes from anywhere in your application. The syntax is basically the same as `addNav`, routes are passed the same way and you reference the name of your nav as the first argument.
-
-```typescript
-import { IRouter, IViewModel } from 'aurelia';
-
-export class MyComponent implements IViewModel {
-    constructor(@IRouter private router: IRouter) {
-
-    }
-
-    afterBind() {
-        this.router.updateNav('main-nav', [
-            {
-                title: 'New Route',
-                route: 'new-route'
-            }
-        ]);
-    }
-}
-```
-
-In our code example, we are updating our nav `main-nav` with a new route called `new-route` which dynamically gets updated in the view.
-
-## Replacing Navigation Menus
-
-We can add new navigation menus, update them and we can also entirely replace them using `setNav`. Once again, the API is largely the same and works similar to that of `addNav` except it will not add new routes, it will replace any existing routes and add your new ones instead.
-
-```typescript
-import { IRouter, IViewModel } from 'aurelia';
-
-export class MyComponent implements IViewModel {
-    constructor(@IRouter private router: IRouter) {
-
-    }
-
-    afterBind() {
-        this.router.setNav('main-nav', [
-            {
-                title: 'New Route',
-                route: 'new-route'
-            }
-        ]);
-    }
-}
-```
-
-In our code example, we are calling `setNav` which will replace any existing routes we have with our one newly supplied route. It is convenient if you navigate to a section of your application and want to reuse your existing `<au-nav>` element.
 

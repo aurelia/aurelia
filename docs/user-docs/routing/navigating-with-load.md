@@ -17,7 +17,7 @@ To use the `load` method, you have to first inject the router into your componen
 ```typescript
 import { IRouter } from 'aurelia';
 
-export class MyComponent implements IRouteableComponent {
+export class MyComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
@@ -31,13 +31,13 @@ The `load` method can accept a simple string value allowing you to navigate to a
 ```typescript
 import { IRouter } from 'aurelia';
 
-export class MyComponent implements IRouteableComponent {
+export class MyComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
 
-    viewProducts() {
-        this.router.load('products');
+    async viewProducts() {
+        await this.router.load('products');
     }
 }
 ```
@@ -49,13 +49,13 @@ In this example, we are navigating to a component called `product` and passing a
 ```typescript
 import { IRouter } from 'aurelia';
 
-export class MyComponent implements IRouteableComponent {
+export class MyComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
 
-    viewProduct() {
-        this.router.load('product(12)');
+    async viewProduct() {
+        await this.router.load('product(12)');
     }
 }
 ```
@@ -67,13 +67,13 @@ The `load` method can accept an object which contains the component we want to r
 ```typescript
 import { IRouter } from 'aurelia';
 
-export class MyComponent implements IRouteableComponent {
+export class MyComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
 
-    viewProduct() {
-        this.router.load({ component: Product, parameters: { id: '12' } });
+    async viewProduct() {
+        await this.router.load({ component: Product, parameters: { id: '12' } });
     }
 }
 ```
@@ -85,13 +85,13 @@ In instances where you have more than one viewport in your application, you can 
 ```typescript
 import { IRouter } from 'aurelia';
 
-export class MyComponent implements IRouteableComponent {
+export class MyComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
 
-    viewProduct() {
-        this.router.load({ component: 'product', parameters: { id: '12' }, viewport: 'main' });
+    async viewProduct() {
+        await this.router.load({ component: 'product', parameters: { id: '12' }, viewport: 'main' });
     }
 }
 ```

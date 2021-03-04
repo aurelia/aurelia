@@ -4,74 +4,179 @@ description: >-
   direct access.
 ---
 
-# Router Hooks
+# Shared Lifecycle Hooks
 
 {% hint style="info" %}
 `Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
 {% endhint %}
 
-As the name implies, route hooks allow you to guard specific routes and redirect the user or cancel navigation entirely. In most cases, you will want to use route hooks to protect certain areas of your application from people who do not have the required permission.
+The lifecycle hooks sharing API can be used to define reusable hook logic. In principle there is nothing new that needs to be learned: their behavior is the same as described in [Lifecycle Hooks](lifecycle-hooks.md) with the only difference that the view model instance is added as the first parameter.
 
 {% hint style="success" %}
 **What you will learn in this section**
 
-* How to create router hooks
-* How to allow and deny certain routable components from within hooks
-* How to implement authentication using route hooks
-* How to redirect from within a route hook
-{% endhint %}
-
-{% hint style="info" %}
-If you want to protect specific routes in your application behind authentication checks such as "Only allow user to view this part of my app if they are logged in and have permission", this is the section for you.
+* How to define shared hook logic
+* How to specify which components use the shared hook logic
+* How to implement authentication using shared hooks
 {% endhint %}
 
 ## A Basic Example
 
 ```typescript
-import { IRouter, IViewModel } from 'aurelia';
+import Aurelia, { RouterConfiguration, lifecycleHooks } from 'aurelia';
 
-export class MyApp implements IViewModel {
-    constructor(@IRouter private router: IRouter) {
-
-    }
-
-    afterBind() {
-        this.router.addHook(async (instructions: ViewportInstruction[]) => {
-            return true;
-        });
-    }
+@lifecycleHooks()
+class NoopAuthHandler {
+    canLoad(vm, params, next, current) { return true; }
 }
+
+Aurelia
+    .register(RouterConfiguration, NoopAuthHandler)
+    .app(component)
+    .start();
 ```
 
-A router hook allows you to run middleware in the routing process. Which you can then use to redirect a user, perform additional checks \(token, permission calls\) and other application scenarios.
+Shared lifecycle hook logic can be defined by implementing a router lifecycle hook on a class with the `@lifecycleHooks()` decorator. This hook will be invoked for each component where this class is available as a dependency. This can be either via a global registration or via one or more component-local registrations, similar to how e.g. custom elements and value converters are registered.
 
-Returning `true` will allow the instruction to be processed, and returning `false` will disallow it. This will apply to every processed component, which for many purposes, is a little heavy-handed and not what you want to do. You'll want to be specific when using a router hook so you know when it runs and what it will apply to.
+In the example above we register `NoopAuthHandler` globally which means it will be invoked for each routed component and return `true` each time, effectively changing nothing.
 
-Running the above code will allow all route instructions to proceed, so nothing will change.
+## The viewModel parameter
 
-## Using The Include and Exclude Properties
-
-As we mentioned previously, our hook will apply to every component in our application. You might only have a couple of areas of your app you want to protect behind hook checks. There is two properties `include` which is a allow list property and `exclude` which is a deny list property.
+This is the contract for ordinary route lifecycle hooks for components:
 
 ```typescript
-import { IRouter, IViewModel } from 'aurelia';
-
-export class App implements IViewModel {
-    constructor(@IRouter private router: IRouter) {
-
-    }
-
-    afterBind() {
-        this.router.addHook(async (instructions: ViewportInstruction[]) => {
-
-        }, {
-            include: ['admin']
-        });
-    }
+class MyComponent {
+  canLoad(params, next, current);
+  load(params, next, current);
+  canUnload(next, current);
+  unload(next, current);
 }
 ```
 
-In this example, we are telling the router we only want to apply the hook to a component called admin, all other routed components will be ignored when this hook is run. It is recommended that you use the allow list approach using `include` where only a few components need to use a hook and `exclude` when mostly all components need to be run through the hook.
+And this is the contract for shared lifecycle hooks
+
+```typescript
+class MySharedHooks {
+  canLoad(viewModel, params, next, current);
+  load(viewModel, params, next, current);
+  canUnload(viewModel, next, current);
+  unload(viewModel, next, current);
+}
+```
+
+The only difference is the addition of the first `viewModel` parameter. This comes in handy when you need the component instance, since the `this` keyword won't give you access to the component instance like it would in ordinary component methods.
+
+## Specifying the applicable components
+
+A simple way to narrow down which components a hook should be applied to, is via conditionals inside the hook itself:
+
+```typescript
+import Aurelia, { RouterConfiguration, lifecycleHooks } from 'aurelia';
+
+@lifecycleHooks()
+class AuthHandler {
+    canLoad(vm, params, next, current) {
+        switch (next.component.name) {
+            case 'home':
+            case 'login':
+                return true;
+            default:
+                return this.isAuthenticated();
+            
+        }
+    }
+    
+    isAuthenticated() {
+        return true; // auth magic here
+    }
+}
+
+Aurelia
+    .register(RouterConfiguration, AuthHandler)
+    .app(component)
+    .start();
+```
+
+While this works fine for many common scenarios, it makes certain types of static analysis impossible, for example:
+
+* Webpack won't be able to tree-shake or extract common chunks properly
+* The IDE can't resolve component references via strings - you lose a degree of type-safety as well as various auto-refactoring capabilities
+
+In short, this approach does not scale very well in larger scale projects with potentially dozens of these shared classes. A more scalable approach is to import the shared lifecycle hooks classes where you need them, and add them to the `dependencies` of the dependent components, like so:
+
+```typescript
+import { AuthHandler } from './auth';
+
+export class SettingsPage {
+    static dependencies = [AuthHandler];
+}
+```
+
+Now the `AuthHandler`'s `canLoad` method will only be invoked for the `SettingsPage` component.
+
+## Multiple hooks per component / class
+
+Shared lifecycle hooks run in parallel with \(but are started _before_\) component instance hooks, and multiple of the same kind can be applied per component. When multiple hooks are registered per component they are invoked in registration order.
+
+```typescript
+import { lifecycleHooks } from 'aurelia';
+
+@lifecycleHooks()
+class Log1 {
+    async load() {
+        console.log('1.start');
+        await Promise.resolve();
+        console.log('1.end');
+    }
+}
+
+@lifecycleHooks()
+class Log2 {
+    async load() {
+        console.log('2.start');
+        await Promise.resolve();
+        console.log('2.end');
+    }
+}
+
+export class MyComponent {
+    static dependencies = [Log1, Log2];
+    
+    async load() {
+        console.log('3.start');
+        await Promise.resolve();
+        console.log('3.end');
+    }
+}
+
+// Will log, in order:
+// 1.start
+// 2.start
+// 3.start
+// 1.end
+// 2.end
+// 3.end
+```
+
+It is also permitted to define more than one hook per shared hook class:
+
+```typescript
+@lifecycleHooks()
+export class LifecycleLogger {
+    canLoad(viewModel, params, next, current) {
+        console.log(`invoking canLoad on ${next.component.name}`);
+    }
+    load(viewModel, params, next, current) {
+        console.log(`invoking load on ${next.component.name}`);
+    }
+    canUnload(viewModel, next, current) {
+        console.log(`invoking canUnload on ${current.component.name}`);
+    }
+    unload(viewModel, next, current) {
+        console.log(`invoking unload on ${current.component.name}`);
+    }
+}
+```
 
 ## Authentication
 
@@ -88,17 +193,22 @@ This is only an example. It is by no means any officially recommended way in how
 {% tabs %}
 {% tab title="src/services/auth-service.ts" %}
 ```typescript
-import { IRouter } from 'aurelia';
+import { IRouter, lifecycleHooks } from 'aurelia';
 
+@lifecycleHooks()
 export class AuthService {
-    public isLoggedIn = false;
+    isLoggedIn = false;
     private _user = null;
 
     constructor(@IRouter private router: IRouter) {
 
     }
+    
+    canLoad(vm, params, next, current) {
+        return !next.data.isAuth || this.isLoggedIn;
+    }
 
-    public async login(username: string, password: string): Promise<void> {
+    async login(username: string, password: string): Promise<void> {
         if (username === 'user' && password === 'password') {
             this.isLoggedIn = true;
 
@@ -111,7 +221,7 @@ export class AuthService {
         }
     }
 
-    public logout(redirect = null): void {
+    logout(redirect = null): void {
         this.isLoggedIn = false;
         this._user = null;
 
@@ -120,34 +230,29 @@ export class AuthService {
             }
     }
 
-    public getCurrentUser() {
+    getCurrentUser() {
         return this._user;
     }
 }
 ```
 {% endtab %}
 
-{% tab title="my-app.ts" %}
-```text
-import { IRouter, IViewModel, ViewportInstruction } from 'aurelia';
-import { AuthService } from './services/auth-service';
-
-export class MyApp implements IViewModel {
-    constructor(@IRouter private router: IRouter, private auth: AuthService) {
-
-    }
-
-    afterBind() {
-        this.router.addHook((instructions: ViewportInstruction[]) => {
-            return this.auth.isLoggedIn;
-        });
-    }
+{% tab title="settings-page.ts" %}
+```typescript
+export class SettingsPage {
+    static data = { isAuth: true };
 }
+```
+{% endtab %}
+
+{% tab title="login-page.ts" %}
+```typescript
+export class LoginPage {}
 ```
 {% endtab %}
 {% endtabs %}
 
-This code will run for all routed components and if the `isLoggedIn` property is not truthy, then the route will not be allowed to load. However, this is probably not the expected outcome. In a real application, you would probably redirect the user to a different route.
+This code will run for all routed components and if the component has an `isAuth` data property and the `isLoggedIn` property is not truthy, then the route will not be allowed to load. However, this is probably not the expected outcome. In a real application, you would probably redirect the user to a different route.
 
 ## Redirecting
 
@@ -156,57 +261,28 @@ More often than not, you will probably want to redirect users who do not have pe
 {% tabs %}
 {% tab title="my-app.ts" %}
 ```typescript
-import { IRouter, IViewModel, ViewportInstruction } from 'aurelia';
-import { AuthService } from './services/auth-service';
+import { lifecycleHooks } from 'aurelia';
+import { LoginPage } from './login-page';
 
-export class MyApp implements IViewModel {
-    constructor(@IRouter private router: IRouter, private auth: AuthService) {
 
+@lifecycleHooks()
+export class AuthService {
+    isLoggedIn = false;
+    
+    // ...
+    
+    canLoad(vm, params, next, current) {
+        if (!next.data.isAuth || this.isLoggedIn) {
+            return true;
+        }
+        return LoginPage; // redirect to the login page
     }
-
-    afterBind() {
-        this.router.addHook(async (instructions: ViewportInstruction[]) => {
-            if (this.auth.isLoggedIn) {
-                return true;
-            }
-
-            // User is not logged in, so redirect them back to login page
-            return [this.router.createViewportInstruction('login', instructions[0].viewport)];
-        });
-    }
+    
+    // ...
 }
 ```
 {% endtab %}
 {% endtabs %}
 
-In our code, we return true if our `isLoggedIn` property is truthy. Otherwise, we return an array containing a viewport instruction. The first argument is the component and the second is the viewport. We reference the first instruction and its viewport here. If you have multiple viewports, your code will look a bit different.
-
-## Setting The Title From Within Router Hooks
-
-You can specify a router hook is to change the title of your application that gets called every time a route is triggered. By specifying the type of hook in our router hook configuration, passing in `HookTypes.SetTitleHookFunction` denotes this hook is for setting titles.
-
-{% tabs %}
-{% tab title="my-app.ts" %}
-```typescript
-import { IRouter, IViewModel, ViewportInstruction } from 'aurelia';
-import { HookTypes, INavigatorInstruction } from '@aurelia/router';
-
-export class MyApp implements IViewModel {
-    constructor(@IRouter private router: IRouter) {
-
-    }
-
-    afterBind() {
-        this.router.addHook(async (title: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction) => {
-            return 'My Title';
-        }, {
-            type: HookTypes.SetTitleHookFunction
-        });
-    }
-}
-```
-{% endtab %}
-{% endtabs %}
-
-In this example we return a string, but in a real application you will probably want to check the component being rendered and then selectively set the title based on what is being rendered.
+In our code, we return true if our `isLoggedIn` property is truthy or if the component does not require authentication. Otherwise, we return an instruction to which to redirect \(can be a component name, a component type, a viewport instruction or an array thereof\).
 

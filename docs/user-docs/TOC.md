@@ -56,7 +56,7 @@
 * [Navigation Menus](routing/navigation-menus.md)
 * [Navigating With Load](routing/navigating-with-load.md)
 * [Lifecycle Hooks](routing/lifecycle-hooks.md)
-* [Router Hooks](routing/router-hooks.md)
+* [Shared Lifecycle Hooks](routing/router-hooks.md)
 * [Differences From V1](routing/differences-from-v1.md)
 
 ## Validation

@@ -10,7 +10,7 @@ description: >-
 `Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
 {% endhint %}
 
-Inside of your routeable components which implement the `IRouteableComponent` interface, there are certain methods which are called at different points of the routing lifecycle. These lifecycle hooks allow you to run code inside of your components such as fetch data or change the UI itself.
+Inside of your routeable components which implement the `IRouteViewModel` interface, there are certain methods which are called at different points of the routing lifecycle. These lifecycle hooks allow you to run code inside of your components such as fetch data or change the UI itself.
 
 {% hint style="success" %}
 **What you will learn in this section**
@@ -47,14 +47,14 @@ The `canUnload` method is called when a user attempts to leave a routed view. Th
 
 The `unload` method is called if the user is allowed to leave and in the process of leaving. The first argument of this callback is a `INavigatorInstruction` which provides information about the next route.
 
-If you are working with components you are rendering, implementing `IRouteableComponent` will ensure that your code editor provides you with intellisense to make working with these lifecycle hooks in the appropriate way a lot easier.
+If you are working with components you are rendering, implementing `IRouteViewModel` will ensure that your code editor provides you with intellisense to make working with these lifecycle hooks in the appropriate way a lot easier.
 
 ```typescript
-export class MyComponent implements IRouteableComponent {
-    public canLoad(parameters) {}
-    public load(parameters) {}
-    public canUnload() {}
-    public unload() {}
+export class MyComponent implements IRouteViewModel {
+    canLoad(params, next, current);
+    load(params, next, current);
+    canUnload(next, current);
+    unload(next, current);
 }
 ```
 

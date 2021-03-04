@@ -102,7 +102,7 @@ While this works fine for many common scenarios, it makes certain types of stati
 * Webpack won't be able to tree-shake or extract common chunks properly
 * The IDE can't resolve component references via strings - you lose a degree of type-safety as well as various auto-refactoring capabilities
 
-In short, this approach does not scale very well in larger scale projects with potentially dozens of these shared classes. A more scalable approach is to import the shared lifecycle hooks classes where you need them, and add them to the `dependencies` of the dependent components, like so:
+In short, this approach does not scale very well in larger-scale projects with potentially dozens of these shared classes. A more scalable approach is to import the shared lifecycle hooks classes where you need them and add them to the `dependencies` of the dependent components, like so:
 
 ```typescript
 import { AuthHandler } from './auth';
@@ -114,7 +114,7 @@ export class SettingsPage {
 
 Now the `AuthHandler`'s `canLoad` method will only be invoked for the `SettingsPage` component.
 
-## Multiple hooks per component / class
+## Multiple hooks per component/class
 
 Shared lifecycle hooks run in parallel with \(but are started _before_\) component instance hooks, and multiple of the same kind can be applied per component. When multiple hooks are registered per component they are invoked in registration order.
 
@@ -180,14 +180,14 @@ export class LifecycleLogger {
 
 ## Authentication
 
-One of the most common scenarios you will use router hooks for is adding in authentication to your applications. Whether you use a third-party service such as Auth0 or Firebase Auth or your own authentication implementation, the process is mostly the same.
+One of the most common scenarios you will use router hooks for is adding authentication to your applications. Whether you use a third-party service such as Auth0 or Firebase Auth, or your own authentication implementation, the process is mostly the same.
 
-In this example, we will create a service class which will contain our methods for logging in and out.
+In this example, we will create a service class that will contain our methods for logging in and out.
 
-In a real application, your login and logout methods would obtain a token and authentication data, and check. For the purposes of this example, we have an if statement which checks for a specific username and password being supplied.
+In a real application, your login and logout methods would obtain a token and authentication data and check. For the purposes of this example, we have an if statement which checks for a specific username and password being supplied.
 
 {% hint style="warning" %}
-This is only an example. It is by no means any officially recommended way in how you should handle authentication using router hooks. Please use this code as a guide for creating your own solutions.
+This is only an example. It is by no means an officially recommended way in how you should handle authentication using router hooks. Please use this code as a guide for creating your own solutions.
 {% endhint %}
 
 {% tabs %}
@@ -252,11 +252,11 @@ export class LoginPage {}
 {% endtab %}
 {% endtabs %}
 
-This code will run for all routed components and if the component has an `isAuth` data property and the `isLoggedIn` property is not truthy, then the route will not be allowed to load. However, this is probably not the expected outcome. In a real application, you would probably redirect the user to a different route.
+This code will run for all routed components and if the component has a `isAuth` data property and the `isLoggedIn` property is not truthy, then the route will not be allowed to load. However, this is probably not the expected outcome. In a real application, you would probably redirect the user to a different route.
 
 ## Redirecting
 
-More often than not, you will probably want to redirect users who do not have permission to access a particular area to a permission denied screen or a login screen. We do can do this by return an array containing a viewport instruction to tell the router what to do.
+More often than not, you will probably want to redirect users who do not have permission to access a particular area to a permission denied screen or a login screen. We can do this by return an array containing a viewport instruction to tell the router what to do.
 
 {% tabs %}
 {% tab title="my-app.ts" %}

@@ -31,38 +31,42 @@ Aurelia
 
 ## Changing The Router Mode \(hash and pushState routing\)
 
-If you do not provide any configuration value, the default as we saw above is hash style routing. In most cases, you will probably prefer to use pushState style routing which uses cleaner URL's for routing instead of the hashes added into your route.
+If you do not provide any configuration value, the default as we saw above is pushState routing. If you prefer the hash to be used, you can enable this like so:
 
 ```typescript
 import Aurelia, { RouterConfiguration } from 'aurelia';
 
 Aurelia
-  .register(RouterConfiguration.customize({ useUrlFragmentHash: false }))
+  .register(RouterConfiguration.customize({ useUrlFragmentHash: true }))
   .app(component)
   .start();
 ```
 
-By calling the `customize` method, you can supply a configuration object containing the property `useUrlFragmentHash` and supplying a boolean value. If you supply `false` this will enable pushState style routing and `true` will enable hash mode, which is the default setting.
+By calling the `customize` method, you can supply a configuration object containing the property `useUrlFragmentHash` and supplying a boolean value. If you supply `true` this will enable hash mode. The default is `false`.
 
 {% hint style="warning" %}
-Enabling pushState routing setting `useUrlFragmentHash` to false will require a server that can handle pushState style routing.
+pushState routing requires the server to be configured to redirect client-side routes to the entry html file. In webpack-dev-server this is enabled via the `historyApiFallback` option.
 {% endhint %}
 
 ## Styling Active Router Links
 
-A common scenario is styling an active router link with styling to signify that the link is active, such as making the text bold. By default, any link with a `load` attribute that is routed to, will receive the class `load-active` if it is currently active.
-
-{% hint style="info" %}
-A future update to the router package will allow this class to be user-configurable. For now, the class name cannot be changed.
-{% endhint %}
-
-If you were to make all of your active route links bold, all you would need to do is write the following CSS and put it somewhere global in your application.
+A common scenario is styling an active router link with styling to signify that the link is active, such as making the text bold. The `load` attribute has a bindable property named `active` which you can bind to a property on your view-model to use for conditionally applying a class:
 
 ```css
-.load-active {
+.active {
     font-weight: bold;
 }
 ```
+
+```markup
+<a active.class="_settings" load="route:settings; active.bind:_settings">
+    Settings
+</a>
+```
+
+{% hint style="info" %}
+You do not need to explicitly declare this property in your view-model since it is a from-view binding. The underscore prefix of \_settings has no special meaning to the framework, it is just a common convention for private properties which can make sense for properties that are not explicitly declared in the view-model.
+{% endhint %}
 
 ## Setting The Title
 
@@ -74,34 +78,42 @@ The router supports setting the application title a few different ways. You can 
 import Aurelia, { RouterConfiguration } from 'aurelia';
 
 Aurelia
-  .register(RouterConfiguration.customize({ useUrlFragmentHash: false, title: 'My Application' }))
+  .register(RouterConfiguration.customize({ title: 'My Application' }))
   .app(component)
   .start();
 ```
 
-If you are working with direct routing, then supplying a `title` property on your component will allow you to set the title. This can either be a string or a function.
+If no title is configured, the router by default combines the names of the active components separated by a bar \(`|`\).
+
+You can override the separator via the `RouterConfiguration`:
+
+```typescript
+RouterConfiguration.customize({ titleSeparator: ' - ' })
+```
 
 ### Passing a String To Title
 
 ```typescript
-import { IRouteableComponent } from '@aurelia/router';
-
-export class Product implements IRouteableComponent {
-    public static title = 'My Product';
+export class Product {
+  static title = 'My Product';
 }
 ```
 
 ### Using a Function
 
-When passing a function into the `title` property, the first argument is the view-model of the component itself. This allows you to get information from the view-model such as loaded details like a product name or username. the function must return a string.
+When passing a function into the `title` property, the first argument is the `RouteNode` which contains information like parameters, route configuration, the route context \(which contains the component and viewport\) and more. The function must return a string, or `null` if that node should not contribute to the title.
 
 ```typescript
-import { IRouteableComponent } from '@aurelia/router';
+import { RouteNode } from 'aurelia';
 
-export class Product implements IRouteableComponent {
-    public static title = (viewModel: Product) => `${viewModel.productName}`;
+export class Product {
+  static title = (node: RouteNode) => node.params.slug.replace('-', ' ');
 }
 ```
 
-For configured routing, you can specify the title on the route itself. But, you can also dynamically set the title from within a router hook or within the routable component itself. Please see the [Router Hooks](router-hooks.md#setting-the-title-from-within-router-hooks) section for specifics around using a hook to change the title.
+Like the `title` function you can provide on the component, you can also do this on a global level and take full control over the title that is generated. You are always given the root `RouteNode` in this case, from which you can then traverse the entire route tree. Since this can be quite involved, only use this when you have no other option.
+
+```typescript
+RouterConfiguration.customize({ title: (root: RouteNode) => root.context.component.name })
+```
 

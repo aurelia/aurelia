@@ -45,7 +45,7 @@ import {
   TestFunction,
 } from '../util.js';
 
-describe('promise template-controller', function () {
+describe.only('promise template-controller', function () {
 
   const phost = 'pending-host';
   const fhost = 'fulfilled-host';
@@ -451,6 +451,12 @@ describe('promise template-controller', function () {
       ['promise.bind', 'then.from-view', 'catch.from-view'],
       ['promise.resolve', 'then', 'catch']
     ]) {
+      const templateDiv = `
+      <div ${pattribute}="promise">
+        <pending-host pending p.bind="promise"></pending-host>
+        <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+        <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
+      </div>`;
       const template1 = `
     <template>
       <template ${pattribute}="promise">

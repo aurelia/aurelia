@@ -165,6 +165,7 @@ export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
     if (!Object.is(value, this.v)) {
       this.oV = this.v;
       this.v = value;
+      this.f = flags;
       this.cb?.call(this.obj, this.v, this.oV, flags);
       this.queue.add(this);
     }

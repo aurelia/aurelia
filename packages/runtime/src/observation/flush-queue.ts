@@ -29,7 +29,7 @@ export class FlushQueue {
   public static readonly instance: FlushQueue = new FlushQueue();
 
   private flushing: boolean = false;
-  private items: Set<IFlushable> = new Set();
+  private readonly items: Set<IFlushable> = new Set();
 
   public add(callable: IFlushable): void {
     this.items.add(callable);
@@ -38,7 +38,7 @@ export class FlushQueue {
     }
     this.flushing = true;
     const items = this.items;
-    let item: IFlushable
+    let item: IFlushable;
     for (item of items) {
       items.delete(item);
       item.flush();

@@ -27,8 +27,7 @@ export class ComputedObserver implements
   ICollectionSubscriber,
   ISubscriberCollection,
   IWithFlushQueue,
-  IFlushable
-{
+  IFlushable {
   public static create(
     obj: object,
     key: PropertyKey,

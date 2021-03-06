@@ -4,6 +4,7 @@ import { subscriberCollection } from './subscriber-collection.js';
 
 import type { IIndexable, ITask, QueueTaskOptions } from '@aurelia/kernel';
 import type { IObservable, ISubscriber } from '../observation';
+import { FlushQueue, IFlushable } from './flush-queue.js';
 
 export interface IDirtyChecker extends DirtyChecker {}
 export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker', x => x.singleton(DirtyChecker));
@@ -97,7 +98,7 @@ export class DirtyChecker {
     for (; i < len; ++i) {
       current = tracked[i];
       if (current.isDirty()) {
-        current.flush(LifecycleFlags.none);
+        FlushQueue.instance.add(current);
       }
     }
   };
@@ -105,9 +106,13 @@ export class DirtyChecker {
 
 export interface DirtyCheckProperty extends IObserver, ISubscriberCollection { }
 
-export class DirtyCheckProperty implements DirtyCheckProperty {
-  public oldValue: unknown;
+export class DirtyCheckProperty implements DirtyCheckProperty, IFlushable {
+  public oldValue: unknown = void 0;
   public type: AccessorType = AccessorType.None;
+
+  public get queue(): FlushQueue {
+    return FlushQueue.instance;
+  }
 
   public constructor(
     private readonly dirtyChecker: IDirtyChecker,
@@ -129,12 +134,11 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     return this.oldValue !== this.obj[this.propertyKey];
   }
 
-  public flush(flags: LifecycleFlags): void {
+  public flush(): void {
     const oldValue = this.oldValue;
     const newValue = this.getValue();
 
-    this.subs.notify(newValue, oldValue, flags);
-
+    this.subs.notify(newValue, oldValue, LifecycleFlags.none);
     this.oldValue = newValue;
   }
 

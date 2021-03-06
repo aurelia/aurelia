@@ -9,6 +9,7 @@ import type {
   ISubscriber,
   ISubscriberCollection,
 } from '../observation.js';
+import { FlushQueue, IFlushable, IWithFlushQueue, withFlushQueue } from './flush-queue.js';
 
 export interface SetterObserver extends IAccessor, ISubscriberCollection {}
 
@@ -16,14 +17,16 @@ export interface SetterObserver extends IAccessor, ISubscriberCollection {}
  * Observer for the mutation of object property value employing getter-setter strategy.
  * This is used for observing object properties that has no decorator.
  */
-export class SetterObserver {
+export class SetterObserver implements IWithFlushQueue, IFlushable {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
-  public inBatch: boolean = false;
   public observing: boolean = false;
   // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
   public type: AccessorType = AccessorType.Observer;
+  public readonly queue!: FlushQueue;
+
+  private f: LifecycleFlags = LifecycleFlags.none;
 
   public constructor(
     public readonly obj: IIndexable,
@@ -42,7 +45,10 @@ export class SetterObserver {
         return;
       }
       this.currentValue = newValue;
-      this.subs.notify(newValue, currentValue, flags);
+      this.oldValue = currentValue;
+      this.f = flags;
+      this.queue.add(this);
+      // this.subs.notify(newValue, currentValue, flags);
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
       // so calling obj[propertyKey] will actually return this.currentValue.
@@ -60,6 +66,11 @@ export class SetterObserver {
     }
 
     this.subs.add(subscriber);
+  }
+
+  public flush(): void {
+    this.subs.notify(this.currentValue, this.oldValue, this.f);
+    this.oldValue = this.currentValue;
   }
 
   public start(): this {
@@ -101,13 +112,22 @@ type ChangeHandlerCallback = (this: object, value: unknown, oldValue: unknown, f
 
 export interface SetterNotifier extends IAccessor, ISubscriberCollection {}
 
-export class SetterNotifier implements IAccessor {
+export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
   public readonly type: AccessorType = AccessorType.Observer;
+  public readonly queue!: FlushQueue;
 
   /**
    * @internal
    */
   private v: unknown = void 0;
+  /**
+   * @internal
+   */
+  private oV: unknown = void 0;
+  /**
+   * @internal
+   */
+  private f: LifecycleFlags = LifecycleFlags.none;
   /**
    * @internal
    */
@@ -142,19 +162,21 @@ export class SetterNotifier implements IAccessor {
     if (typeof this.s === 'function') {
       value = this.s(value);
     }
-    const oldValue = this.v;
-    if (!Object.is(value, oldValue)) {
+    if (!Object.is(value, this.v)) {
+      this.oV = this.v;
       this.v = value;
-      this.cb?.call(this.obj, value, oldValue, flags);
-      // there's a chance that cb.call(...)
-      // changes the latest value of this observer
-      // and thus making `value` stale
-      // so for now, call with this.v
-      // todo: should oldValue be treated the same way?
-      this.subs.notify(this.v, oldValue, flags);
+      this.cb?.call(this.obj, this.v, this.oV, flags);
+      this.queue.add(this);
     }
+  }
+
+  public flush(): void {
+    this.subs.notify(this.v, this.oV, this.f);
+    this.oV = this.v;
   }
 }
 
 subscriberCollection(SetterObserver);
 subscriberCollection(SetterNotifier);
+withFlushQueue(SetterObserver);
+withFlushQueue(SetterNotifier);

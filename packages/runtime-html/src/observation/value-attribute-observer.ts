@@ -1,15 +1,22 @@
-import { LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
+import { LifecycleFlags, subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
 
 import type { EventSubscriber } from './event-delegator.js';
 import type { INode } from '../dom.js';
 import type { IIndexable } from '@aurelia/kernel';
-import type { ISubscriberCollection, ISubscriber, IObserver } from '@aurelia/runtime';
+import type {
+  ISubscriberCollection,
+  ISubscriber,
+  IObserver,
+  IFlushable,
+  IWithFlushQueue,
+  FlushQueue,
+} from '@aurelia/runtime';
 
 export interface ValueAttributeObserver extends ISubscriberCollection {}
 /**
  * Observer for non-radio, non-checkbox input.
  */
-export class ValueAttributeObserver implements IObserver {
+export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlushable {
   public readonly obj: INode & IIndexable;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
@@ -18,6 +25,7 @@ export class ValueAttributeObserver implements IObserver {
   // ObserverType.Layout is not always true, it depends on the element & property combo
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
+  public readonly queue!: FlushQueue;
 
   public constructor(
     obj: INode,
@@ -76,6 +84,11 @@ export class ValueAttributeObserver implements IObserver {
       this.handler.dispose();
     }
   }
+
+  public flush(): void {
+    this.subs.notify(this.currentValue, this.oldValue, LifecycleFlags.none);
+  }
 }
 
 subscriberCollection(ValueAttributeObserver);
+withFlushQueue(ValueAttributeObserver);

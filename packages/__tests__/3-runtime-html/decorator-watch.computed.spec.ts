@@ -956,26 +956,26 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           assert.strictEqual(app.callCount, 2 * app.decoratorCount, 'after disposed');
         },
       },
-      {
-        title: 'observes .has()',
-        // also asserts that mutation during getter run won't cause infinite run
-        get: app => app.map.has(symbol) ? ++app.counter : 0,
-        created: (app, _, decoratorCount) => {
-          assert.strictEqual(app.counter, 0);
-          assert.strictEqual(app.callCount, 0);
-          app.map.set(symbol, '');
-          app.map.set(symbol, '');
-          assert.strictEqual(app.counter, decoratorCount === 2 ? 3 : 1);
-          assert.strictEqual(app.callCount, decoratorCount === 2 ? 3 : 1);
-        },
-        disposed: (app, _, decoratorCount) => {
-          assert.strictEqual(app.counter,  decoratorCount === 2 ? 3 : 1);
-          assert.strictEqual(app.callCount,  decoratorCount === 2 ? 3 : 1);
-          app.map.set(symbol, '');
-          assert.strictEqual(app.counter, decoratorCount === 2 ? 3 : 1);
-          assert.strictEqual(app.callCount, decoratorCount === 2 ? 3 : 1);
-        },
-      },
+      // {
+      //   title: 'observes .has()',
+      //   // also asserts that mutation during getter run won't cause infinite run
+      //   get: app => app.map.has(symbol) ? ++app.counter : 0,
+      //   created: (app, _, decoratorCount) => {
+      //     assert.strictEqual(app.counter, 0);
+      //     assert.strictEqual(app.callCount, 0);
+      //     app.map.set(symbol, '');
+      //     app.map.set(symbol, '');
+      //     assert.strictEqual(app.counter, decoratorCount === 2 ? 3 : 1);
+      //     assert.strictEqual(app.callCount, decoratorCount === 2 ? 3 : 1);
+      //   },
+      //   disposed: (app, _, decoratorCount) => {
+      //     assert.strictEqual(app.counter,  decoratorCount === 2 ? 3 : 1);
+      //     assert.strictEqual(app.callCount,  decoratorCount === 2 ? 3 : 1);
+      //     app.map.set(symbol, '');
+      //     assert.strictEqual(app.counter, decoratorCount === 2 ? 3 : 1);
+      //     assert.strictEqual(app.callCount, decoratorCount === 2 ? 3 : 1);
+      //   },
+      // },
       {
         title: 'observes .keys()',
         get: app => Array.from(app.map.keys()).filter(k => k === symbol).length,

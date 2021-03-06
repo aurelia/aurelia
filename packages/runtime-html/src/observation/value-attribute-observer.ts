@@ -42,8 +42,12 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
+    if (Object.is(newValue, this.currentValue)) {
+      return;
+    }
+    this.oldValue = this.currentValue;
     this.currentValue = newValue;
-    this.hasChanges = newValue !== this.oldValue;
+    this.hasChanges = true;
     if (!this.handler.config.readonly && (flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
@@ -52,13 +56,13 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const currentValue = this.currentValue;
-      const oldValue = this.oldValue;
-      this.oldValue = currentValue;
-      this.obj[this.propertyKey as string] = currentValue ?? this.handler.config.default;
+      // const currentValue = this.currentValue;
+      // const oldValue = this.oldValue;
+      // this.oldValue = currentValue;
+      this.obj[this.propertyKey as string] = this.currentValue ?? this.handler.config.default;
 
       if ((flags & LifecycleFlags.fromBind) === 0) {
-        this.subs.notify(currentValue, oldValue, flags);
+        this.queue.add(this);
       }
     }
   }
@@ -67,8 +71,9 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
     const oldValue = this.oldValue = this.currentValue;
     const currentValue = this.currentValue = this.obj[this.propertyKey as string];
     if (oldValue !== currentValue) {
-      this.oldValue = currentValue;
-      this.subs.notify(currentValue, oldValue, LifecycleFlags.none);
+      this.hasChanges = false;
+      this.queue.add(this);
+      // this.subs.notify(currentValue, oldValue, LifecycleFlags.none);
     }
   }
 
@@ -87,6 +92,7 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
 
   public flush(): void {
     this.subs.notify(this.currentValue, this.oldValue, LifecycleFlags.none);
+    this.oldValue = this.currentValue;
   }
 }
 

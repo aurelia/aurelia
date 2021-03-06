@@ -127,7 +127,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.hostScope = hostScope;
     this.isInterpolation = this.expr instanceof Interpolation;
 
-    this.keyExpression = this.expr.evaluate(flags, scope, hostScope, this.locator, this) as string;
+    this.keyExpression = this.expr.evaluate(flags, scope, hostScope, this.locator, this, null) as string;
     this.ensureKeyExpression();
     this.parameter?.$bind(flags, scope, hostScope);
 
@@ -158,7 +158,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
     this.obs.version++;
     this.keyExpression = this.isInterpolation
-        ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this) as string
+        ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this, null) as string
         : newValue as string;
     this.obs.clear(false);
     this.ensureKeyExpression();
@@ -351,7 +351,7 @@ class ParameterBinding {
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
     this.obs.version++;
-    this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this) as i18next.TOptions;
+    this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this, null) as i18next.TOptions;
     this.obs.clear(false);
     this.updater(flags);
   }
@@ -367,7 +367,7 @@ class ParameterBinding {
       this.expr.bind(flags, scope, hostScope, this);
     }
 
-    this.value = this.expr.evaluate(flags, scope, hostScope, this.locator, this) as i18next.TOptions;
+    this.value = this.expr.evaluate(flags, scope, hostScope, this.locator, this, null) as i18next.TOptions;
     this.isBound = true;
   }
 

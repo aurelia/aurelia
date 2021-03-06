@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { LifecycleFlags } from '../observation.js';
+import { BindingMode, LifecycleFlags } from '../observation.js';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type { IBinding, IBindingContext, IOverrideContext } from '../observation.js';
@@ -49,7 +49,14 @@ export class BindingContext implements IBindingContext {
     return new BindingContext(keyOrObj, value);
   }
 
-  public static get(scope: Scope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: Scope | null): IBindingContext | IOverrideContext | IBinding | undefined | null {
+  public static get(
+    scope: Scope,
+    name: string,
+    ancestor: number,
+    flags: LifecycleFlags,
+    mode: BindingMode | null,
+    hostScope?: Scope | null,
+  ): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (scope == null && hostScope == null) {
       throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
     }
@@ -67,14 +74,14 @@ export class BindingContext implements IBindingContext {
      * This artifact raises the need for this fallback.
      */
     /* eslint-enable jsdoc/check-indentation */
-    let context = chooseContext(scope, name, ancestor);
+    let context = chooseContext(scope, name, ancestor, mode);
     if (
       context !== null
       && ((context == null ? false : name in context)
         || !hasOtherScope)
     ) { return context; }
     if (hasOtherScope) {
-      context = chooseContext(hostScope!, name, ancestor);
+      context = chooseContext(hostScope!, name, ancestor, mode);
       if (context !== null && (context !== undefined && name in context)) { return context; }
     }
 
@@ -88,7 +95,12 @@ export class BindingContext implements IBindingContext {
   }
 }
 
-function chooseContext(scope: Scope, name: string, ancestor: number): IBindingContext | undefined | null {
+function chooseContext(
+  scope: Scope,
+  name: string,
+  ancestor: number,
+  mode: BindingMode | null,
+): IBindingContext | undefined | null {
   let overrideContext: IOverrideContext | null = scope.overrideContext;
   let currentScope: Scope | null = scope;
 
@@ -106,11 +118,13 @@ function chooseContext(scope: Scope, name: string, ancestor: number): IBindingCo
     return name in overrideContext ? overrideContext : overrideContext.bindingContext;
   }
 
+  const fromView = mode != null && (mode & BindingMode.fromView) > 0;
   // traverse the context and it's ancestors, searching for a context that has the name.
   while (
     !currentScope?.isComponentBoundary
     && overrideContext
     && !(name in overrideContext)
+    && !fromView
     && !(
       overrideContext.bindingContext
       && name in overrideContext.bindingContext
@@ -121,7 +135,7 @@ function chooseContext(scope: Scope, name: string, ancestor: number): IBindingCo
   }
 
   if (overrideContext) {
-    return name in overrideContext ? overrideContext : overrideContext.bindingContext;
+    return (name in overrideContext || fromView) ? overrideContext : overrideContext.bindingContext;
   }
 
   return null;

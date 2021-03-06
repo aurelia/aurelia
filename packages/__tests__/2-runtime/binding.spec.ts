@@ -163,7 +163,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange -
         const { sut, container, observerLocator } = createFixture(expr, target, prop, BindingMode.oneTime);
-        const srcVal = expr.evaluate(LF.none, scope, null, container, null);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null, null);
         const targetObserver = observerLocator.getAccessor(target, prop);
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
         // $stub.withArgs(LF.none, target, prop);
@@ -235,7 +235,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange - Part 1
         const { sut, container, observerLocator } = createFixture(expr, target, prop, BindingMode.toView);
-        const srcVal = expr.evaluate(LF.none, scope, null, container, null);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null, null);
         const targetObserver = observerLocator.getAccessor(target, prop);
 
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
@@ -325,7 +325,7 @@ describe('PropertyBinding', function () {
         const newValue = {};
 
         // - Act - Part 2
-        expr.assign(flags, scope, null, container, newValue);
+        expr.assign(flags, scope, null, container, null, newValue);
 
         // - Assert - Part 2
         // verify that no observers were added/removed/changed (redundant)
@@ -582,7 +582,7 @@ describe('PropertyBinding', function () {
         const originalScope = JSON.parse(JSON.stringify(scope));
         // - Arrange - Part 1
         const { sut, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
-        const srcVal = expr.evaluate(LF.none, scope, null, container, null);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null, null);
         const targetObserver = observerLocator.getObserver(target, prop) as IObserver & ISubscriberCollection;
 
         // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
@@ -687,7 +687,7 @@ describe('PropertyBinding', function () {
         }
 
         // - Act - Part 2
-        expr.assign(flags, scope, null, container, newValue1);
+        expr.assign(flags, scope, null, container, null, newValue1);
 
         // - Assert - Part 2
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #37`);

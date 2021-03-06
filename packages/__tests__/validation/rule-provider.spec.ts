@@ -693,7 +693,7 @@ describe('ValidationMessageProvider', function () {
       const $rule = getRule();
       sut.setMessage($rule, message);
       const scope = Scope.create({});
-      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, null, container, null);
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, null, container, null, null);
       assert.equal(actual, message);
     });
 
@@ -701,7 +701,7 @@ describe('ValidationMessageProvider', function () {
       const { sut, container } = setup();
       const $rule = getRule();
       const scope = Scope.create({ $displayName: 'FooBar', $rule });
-      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, null, container, null);
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, null, container, null, null);
       assert.equal(actual, messages[i]);
     });
 
@@ -710,7 +710,7 @@ describe('ValidationMessageProvider', function () {
       const $rule = getRule();
       $rule.messageKey = 'foobar';
       const scope = Scope.create({ $displayName: 'FooBar', $rule });
-      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, null, container, null);
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, null, container, null, null);
       assert.equal(actual, 'FooBar is invalid.');
     });
   }
@@ -765,10 +765,10 @@ describe('ValidationMessageProvider', function () {
     for (const { getRule } of rules) {
       const $rule = getRule();
       const scope = Scope.create({ $displayName: 'FooBar', $rule });
-      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, null, container, null);
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, null, container, null, null);
       const aliases = customMessages.find((item) => $rule instanceof item.rule).aliases;
       const template = aliases.length === 1 ? aliases[0].defaultMessage : aliases.find(({ name }) => name === $rule.messageKey)?.defaultMessage;
-      const expected = sut.parseMessage(template).evaluate(LifecycleFlags.none, scope, null, null!, null);
+      const expected = sut.parseMessage(template).evaluate(LifecycleFlags.none, scope, null, null!, null, null);
       assert.equal(actual, expected);
     }
     // reset the messages
@@ -800,8 +800,8 @@ describe('ValidationMessageProvider', function () {
     const scope1 = Scope.create({ $displayName, $rule: $rule1 });
     const scope2 = Scope.create({ $displayName, $rule: $rule2 });
 
-    const actual1 = sut.getMessage($rule1).evaluate(LifecycleFlags.none, scope1, null, container, null);
-    const actual2 = sut.getMessage($rule2).evaluate(LifecycleFlags.none, scope2, null, container, null);
+    const actual1 = sut.getMessage($rule1).evaluate(LifecycleFlags.none, scope1, null, container, null, null);
+    const actual2 = sut.getMessage($rule2).evaluate(LifecycleFlags.none, scope2, null, container, null, null);
 
     assert.equal(actual1, 'FooBar is required.');
     assert.equal(actual2, 'FooBar foobar fizbaz');

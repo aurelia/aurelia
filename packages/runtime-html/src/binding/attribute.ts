@@ -89,7 +89,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags, this.$scope, this.$hostScope, this.locator, value);
+    this.sourceExpression.assign!(flags, this.$scope, this.$hostScope, this.locator, this.mode, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -116,7 +116,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       if (shouldConnect) {
         this.obs.version++;
       }
-      newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
+      newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor, this.mode);
       if (shouldConnect) {
         this.obs.clear(false);
       }
@@ -179,7 +179,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     if ($mode & toViewOrOneTime) {
       const shouldConnect = ($mode & toView) > 0;
       interceptor.updateTarget(
-        this.value = sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null),
+        this.value = sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null, $mode),
         flags
       );
     }

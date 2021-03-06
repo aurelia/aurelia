@@ -58,7 +58,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags, this.$scope!, this.$hostScope, this.locator, value);
+    this.sourceExpression.assign!(flags, this.$scope!, this.$hostScope, this.locator, this.mode, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -88,7 +88,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator, interceptor);
+      newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator, interceptor, this.mode);
       if (shouldConnect) {
         obsRecord.clear(false);
       }
@@ -149,7 +149,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const shouldConnect = ($mode & toView) > 0;
     if ($mode & toViewOrOneTime) {
       interceptor.updateTarget(
-        sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null),
+        sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null, $mode),
         flags,
       );
     }

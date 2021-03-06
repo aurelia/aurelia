@@ -22,7 +22,7 @@ export class BindingTargetSubscriber implements ISubscriber {
   // deepscan-disable-next-line
   public handleChange(value: unknown, _: unknown, flags: LifecycleFlags): void {
     const b = this.b;
-    if (value !== b.sourceExpression.evaluate(flags, b.$scope!, b.$hostScope, b.locator, null)) {
+    if (value !== b.sourceExpression.evaluate(flags, b.$scope!, b.$hostScope, b.locator, null, null)) {
       b.updateSource(value, flags);
     }
   }

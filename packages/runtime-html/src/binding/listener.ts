@@ -43,7 +43,7 @@ export class Listener implements IBinding {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.$hostScope, this.locator, null);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.$hostScope, this.locator, null, null);
 
     Reflect.deleteProperty(overrideContext, '$event');
 

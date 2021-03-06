@@ -166,7 +166,7 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
+      newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null, null);
       if (shouldConnect) {
         obsRecord.clear(false);
       }
@@ -206,6 +206,7 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
       hostScope,
       this.locator,
       (this.mode & toView) > 0 ?  this.interceptor : null,
+      null,
     );
     if (v instanceof Array) {
       this.observeCollection(v);
@@ -285,7 +286,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
+      newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null, null);
       if (shouldConnect) {
         obsRecord.clear(false);
       }
@@ -336,6 +337,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       hostScope,
       this.locator,
       (this.mode & toView) > 0 ?  this.interceptor : null,
+      null,
     );
     if (v instanceof Array) {
       this.observeCollection(v);

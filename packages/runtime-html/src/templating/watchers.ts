@@ -128,7 +128,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.obs.count === 1;
     if (!canOptimize) {
       this.obs.version++;
-      value = expr.evaluate(0, this.scope, null, this.locator, this);
+      value = expr.evaluate(0, this.scope, null, this.locator, this, null);
       this.obs.clear(false);
     }
     if (!Object.is(value, oldValue)) {
@@ -144,7 +144,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     }
     this.isBound = true;
     this.obs.version++;
-    this.value = this.expression.evaluate(LifecycleFlags.none, this.scope, null, this.locator, this);
+    this.value = this.expression.evaluate(LifecycleFlags.none, this.scope, null, this.locator, this, null);
     this.obs.clear(false);
   }
 

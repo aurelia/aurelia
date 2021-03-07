@@ -57,19 +57,11 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     return this.value;
   }
 
-  public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    if (this.value !== newValue) {
-      // not notifying subscribers from setValue
-      // because only mutation observer can trigger a subscriber notification,
-      // but still keeping track of the value/old value/f update
-      // to keep the code consistent
-      this.oldValue = this.value;
-      this.value = newValue;
-      this.f = flags;
-
-      if ((flags & LifecycleFlags.noFlush) === 0) {
-        this.flushChanges(flags);
-      }
+  public setValue(value: unknown, flags: LifecycleFlags): void {
+    this.value = value;
+    this.hasChanges = value !== this.oldValue;
+    if ((flags & LifecycleFlags.noFlush) === 0) {
+      this.flushChanges(flags);
     }
   }
 
@@ -91,13 +83,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
           // this also comes from syntax, where it would typically be my-class.class="someProperty"
           //
           // so there is no need for separating class by space and add all of them like class accessor
-          //
-          // note: not using .toggle API so that environment with broken impl (IE11) won't need to polfyfill by default
-          if (!!currentValue) {
-            this.obj.classList.add(this.propertyKey);
-          } else {
-            this.obj.classList.remove(this.propertyKey);
-          }
+          this.obj.classList.toggle(this.propertyKey, !!currentValue);
           break;
         }
         case 'style': {

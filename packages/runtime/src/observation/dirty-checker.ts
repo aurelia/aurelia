@@ -4,7 +4,7 @@ import { subscriberCollection } from './subscriber-collection.js';
 
 import type { IIndexable, ITask, QueueTaskOptions } from '@aurelia/kernel';
 import type { IObservable, ISubscriber } from '../observation';
-import { FlushQueue, IFlushable } from './flush-queue.js';
+import { FlushQueue, IFlushable, IWithFlushQueue, withFlushQueue } from './flush-queue.js';
 
 export interface IDirtyChecker extends DirtyChecker {}
 export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker', x => x.singleton(DirtyChecker));
@@ -46,11 +46,12 @@ const queueTaskOpts: QueueTaskOptions = {
   persistent: true,
 };
 
-export class DirtyChecker {
+export class DirtyChecker implements IWithFlushQueue {
   /**
    * @internal
    */
   public static inject = [IPlatform];
+  public readonly queue!: FlushQueue;
   private readonly tracked: DirtyCheckProperty[] = [];
 
   private task: ITask | null = null;
@@ -98,21 +99,19 @@ export class DirtyChecker {
     for (; i < len; ++i) {
       current = tracked[i];
       if (current.isDirty()) {
-        FlushQueue.instance.add(current);
+        this.queue.add(current);
       }
     }
   };
 }
+
+withFlushQueue(DirtyChecker);
 
 export interface DirtyCheckProperty extends IObserver, ISubscriberCollection { }
 
 export class DirtyCheckProperty implements DirtyCheckProperty, IFlushable {
   public oldValue: unknown = void 0;
   public type: AccessorType = AccessorType.None;
-
-  public get queue(): FlushQueue {
-    return FlushQueue.instance;
-  }
 
   public constructor(
     private readonly dirtyChecker: IDirtyChecker,

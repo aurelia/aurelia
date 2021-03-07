@@ -228,6 +228,10 @@ export function getRenderContext(
 const emptyNodeCache = new WeakMap<IPlatform, FragmentNodeSequence>();
 
 export class RenderContext implements IComponentFactory {
+  public get id(): number {
+    return this.container.id;
+  }
+
   public readonly root: IContainer;
   private readonly container: IContainer;
 

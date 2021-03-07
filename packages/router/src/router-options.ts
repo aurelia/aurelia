@@ -162,21 +162,6 @@ export class RouterOptions implements INavigatorOptions {
    * The separators used in the direct routing syntax
    */
   public separators: Separators = new Separators();
-  // public separators: ISeparators = {
-  //   viewport: '@', // ':',
-  //   sibling: '+', // '/',
-  //   scope: '/', // '+',
-  //   groupStart: '(', // ''
-  //   groupEnd: ')', // ''
-  //   noScope: '!',
-  //   parameters: '(', // '='
-  //   parametersEnd: ')', // ''
-  //   parameterSeparator: ',', // '&'
-  //   parameterKeySeparator: '=',
-  //   add: '+',
-  //   clear: '-',
-  //   action: '.',
-  // };
 
   /**
    * Whether the fragment should be used for the url/path

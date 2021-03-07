@@ -192,8 +192,7 @@ export class RoutingInstruction {
       instructions = instructions.slice(scopeModifier.length);
     }
     // Parse the instructions...
-    // const parsedInstructions: RoutingInstruction[] = InstructionParser.parse(instructions, true, true, false).instructions;
-    const parsedInstructions: RoutingInstruction[] = InstructionParser.parse(instructions, true, true, false).instructions;
+    const parsedInstructions: RoutingInstruction[] = InstructionParser.parse(instructions, true, true).instructions;
     for (const instruction of parsedInstructions) {
       // ...and set the scope modifier on each of them.
       instruction.scopeModifier = scopeModifier;

@@ -4,80 +4,7 @@ import { RoutingInstruction } from './routing-instruction.js';
 export class InstructionParser {
   // public static separators = RouterConfiguration.options.separators;
 
-  // public static parse(instructions: string, grouped: boolean, topScope: boolean, superfluousScope: boolean): { instructions: RoutingInstruction[]; remaining: string } {
-  //   const seps = RouterConfiguration.options.separators;
-  //   if (!instructions) {
-  //     return { instructions: [], remaining: '' };
-  //   }
-  //   if (instructions.startsWith(seps.sibling) && !InstructionParser.isAdd(instructions)) {
-  //     throw new Error(`Instruction parser error: Unnecessary siblings separator ${seps.sibling} in beginning of instruction part "${instructions}".`);
-  //   }
-  //   // if (instructions.startsWith(seps.groupStart)) {
-  //   //   instructions = `${seps.scope}${instructions}`;
-  //   // }
-  //   const routingInstructions: RoutingInstruction[] = [];
-  //   let firstSibling = true;
-  //   let guard = 1000;
-  //   while (instructions.length && guard) {
-  //     guard--;
-  //     if (instructions.startsWith(seps.scope)) {
-  //       topScope = false;
-  //       // if (instructions.startsWith(seps.scope) || instructions.startsWith(seps.groupStart)) {
-  //       // if (instructions.startsWith(seps.scope)) {
-  //       instructions = instructions.slice(seps.scope.length);
-  //       // }
-  //       const groupStart = instructions.startsWith(seps.groupStart);
-  //       if (groupStart) {
-  //         instructions = instructions.slice(seps.groupStart.length);
-  //       }
-  //       const { instructions: found, remaining } = InstructionParser.parse(instructions, groupStart, false, superfluousScope);
-  //       // if (groupStart && found.length < 2 && (!found[0]?.hasNextScopeInstructions ?? false)) {
-  //       if (groupStart && found.length < 2 && remaining === '' && firstSibling) {
-  //         throw new Error(`Instruction parser error: Unnecessary scopes ${seps.groupStart}${seps.groupEnd} in instruction part "(${instructions}" is not allowed.`);
-  //       }
-  //       if (routingInstructions.length) {
-  //         routingInstructions[routingInstructions.length - 1].nextScopeInstructions = found;
-  //       } else {
-  //         routingInstructions.push(...found);
-  //       }
-  //       instructions = remaining;
-  //     } else if (instructions.startsWith(seps.groupStart)) {
-  //       instructions = instructions.slice(seps.groupStart.length);
-  //       const { instructions: found, remaining } = InstructionParser.parse(instructions, true, topScope, superfluousScope);
-  //       if (firstSibling && remaining === '') {
-  //         throw new Error(`Instruction parser error: Unnecessary scopes ${seps.groupStart}${seps.groupEnd} in instruction part "(${instructions}" is not allowed.`);
-  //       }
-  //       if (remaining.startsWith(seps.scope)) {
-  //         throw new Error(`Instruction parser error: Children below scope ${seps.groupStart}${seps.groupEnd} in instruction part "(${instructions}" is not allowed.`);
-  //       }
-  //       routingInstructions.push(...found);
-  //       instructions = remaining;
-  //     } else if (instructions.startsWith(seps.groupEnd)) {
-  //       if (grouped) {
-  //         instructions = instructions.slice(seps.groupEnd.length);
-  //       }
-  //       return { instructions: routingInstructions, remaining: instructions };
-
-  //     } else if (instructions.startsWith(seps.sibling) && !InstructionParser.isAdd(instructions)) {
-  //       firstSibling = false;
-  //       if (!grouped) {
-  //         return { instructions: routingInstructions, remaining: instructions };
-  //       }
-  //       instructions = instructions.slice(seps.sibling.length);
-
-  //     } else {
-  //       let routingInstruction: RoutingInstruction;
-  //       let remaining: string;
-  //       ({ instruction: routingInstruction, remaining, superfluousScope } = InstructionParser.parseOne(instructions, superfluousScope));
-  //       routingInstructions.push(routingInstruction);
-  //       instructions = remaining;
-  //     }
-  //   }
-
-  //   return { instructions: routingInstructions, remaining: instructions };
-  // }
-
-  public static parse(instructions: string, grouped: boolean, topScope: boolean, superfluousScope: boolean): { instructions: RoutingInstruction[]; remaining: string } {
+  public static parse(instructions: string, grouped: boolean, topScope: boolean): { instructions: RoutingInstruction[]; remaining: string } {
     const seps = RouterConfiguration.options.separators;
     if (!instructions) {
       return { instructions: [], remaining: '' };
@@ -100,12 +27,12 @@ export class InstructionParser {
           instructions = instructions.slice(seps.groupStart.length);
           grouped = true;
         }
-        const { instructions: found, remaining } = InstructionParser.parse(instructions, groupStart, false, superfluousScope);
-          routingInstructions[routingInstructions.length - 1].nextScopeInstructions = found;
+        const { instructions: found, remaining } = InstructionParser.parse(instructions, groupStart, false);
+        routingInstructions[routingInstructions.length - 1].nextScopeInstructions = found;
         instructions = remaining;
       } else if (instructions.startsWith(seps.groupStart)) {
         instructions = instructions.slice(seps.groupStart.length);
-        const { instructions: found, remaining } = InstructionParser.parse(instructions, true, topScope, superfluousScope);
+        const { instructions: found, remaining } = InstructionParser.parse(instructions, true, topScope);
         routingInstructions.push(...found);
         instructions = remaining;
       } else if (instructions.startsWith(seps.groupEnd)) {
@@ -137,9 +64,7 @@ export class InstructionParser {
         instructions = instructions.slice(seps.sibling.length);
 
       } else {
-        let routingInstruction: RoutingInstruction;
-        let remaining: string;
-        ({ instruction: routingInstruction, remaining, superfluousScope } = InstructionParser.parseOne(instructions, superfluousScope));
+        const { instruction: routingInstruction, remaining } = InstructionParser.parseOne(instructions);
         routingInstructions.push(routingInstruction);
         instructions = remaining;
       }
@@ -153,10 +78,9 @@ export class InstructionParser {
       instruction.startsWith(`${RouterConfiguration.options.separators.add}${RouterConfiguration.options.separators.viewport}`));
   }
 
-  private static parseOne(instruction: string, superfluousScope: boolean): {
+  private static parseOne(instruction: string): {
     instruction: RoutingInstruction;
     remaining: string;
-    superfluousScope: boolean;
   } {
     const seps = RouterConfiguration.options.separators;
     const tokens = [seps.parameters, seps.viewport, seps.noScope, seps.groupEnd, seps.scope, seps.sibling];
@@ -167,14 +91,6 @@ export class InstructionParser {
     let token!: string;
     let pos: number;
 
-    // This allows superfluous scopes (using () where it's not needed)
-    // if (instruction.startsWith(seps.groupStart)) {
-    //   instruction = instruction.slice(seps.groupStart.length);
-    //   superfluousScope = true;
-    // }
-    // if (instruction.startsWith(seps.groupStart)) {
-    //   throw new Error(`Instruction parser error: Unnecessary scopes ${seps.groupStart}${seps.groupEnd} in instruction part "${instruction}" is not allowed.`);
-    // }
     const specials = [seps.add, seps.clear];
     for (const special of specials) {
       if (instruction === special) {
@@ -233,18 +149,13 @@ export class InstructionParser {
       instruction = `${token}${instruction}`;
     }
 
-    // This allows superfluous scopes (using () where it's not needed)
-    // if (superfluousScope && instruction.startsWith(seps.groupEnd)) {
-    //   instruction = instruction.slice(seps.groupEnd.length);
-    //   superfluousScope = false;
-    // }
     if ((component ?? '') === '') {
       throw new Error(`Instruction parser error: No component specified in instruction part "${instruction}".`);
     }
 
     const routingInstruction: RoutingInstruction = RoutingInstruction.create(component, viewport, parametersString, scope) as RoutingInstruction;
 
-    return { instruction: routingInstruction, remaining: instruction, superfluousScope };
+    return { instruction: routingInstruction, remaining: instruction };
   }
 
   private static findNextToken(instruction: string, tokens: string[]): { token: string; pos: number } {

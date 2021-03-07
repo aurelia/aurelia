@@ -322,12 +322,10 @@ describe('RoutingInstruction parsing', function () {
           error = err;
         }
         if (error === '') {
-          // assert.notEqual(parsed, null, `null:${instruction}`);
-          // assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
           const newInstruction = RoutingInstruction.stringify(routingInstructions);
-          if (parsed == null) {
-            console.log(`{ instruction: '${instruction}', parsed: ${JSON.stringify(routingInstructions)}, clean: '${newInstruction}' },`);
-          }
+          // if (parsed == null) {
+          //   console.log(`{ instruction: '${instruction}', parsed: ${JSON.stringify(routingInstructions)}, clean: '${newInstruction}' },`);
+          // }
           assert.strictEqual(newInstruction, clean ?? routingInstruction, `newInstruction`);
         } else {
           // console.log(error);

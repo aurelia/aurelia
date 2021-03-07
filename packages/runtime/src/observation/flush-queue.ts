@@ -31,6 +31,10 @@ export class FlushQueue {
   private flushing: boolean = false;
   private readonly items: Set<IFlushable> = new Set();
 
+  public get count(): number {
+    return this.items.size;
+  }
+
   public add(callable: IFlushable): void {
     this.items.add(callable);
     if (this.flushing) {
@@ -39,10 +43,18 @@ export class FlushQueue {
     this.flushing = true;
     const items = this.items;
     let item: IFlushable;
-    for (item of items) {
-      items.delete(item);
-      item.flush();
+    try {
+      for (item of items) {
+        items.delete(item);
+        item.flush();
+      }
+    } finally {
+      this.flushing = false;
     }
+  }
+
+  public clear(): void {
+    this.items.clear();
     this.flushing = false;
   }
 }

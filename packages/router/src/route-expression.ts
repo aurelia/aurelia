@@ -634,7 +634,11 @@ export class ParameterListExpression {
   }
 
   public toObject(): Params {
-    return {}; // TODO
+    const params: Params = {};
+    for (const expr of this.expressions) {
+      params[expr.key] = expr.value;
+    }
+    return params;
   }
 
   public toString(): string {

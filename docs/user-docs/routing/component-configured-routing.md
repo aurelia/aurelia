@@ -10,9 +10,9 @@ description: >-
 `Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
 {% endhint %}
 
-If direct routing isn't verbose enough for you and configured routing is too verbose, component configured routing is a mix between the two and falls somewhere in the middle. Using decorators to configure your components and router options, it still requires very little code.
+If direct routing isn't verbose enough for you and configured routing is too verbose, component configured routing is a mix between the two and falls somewhere in the middle. Using decorators to configure your components and router options, still requires very little code.
 
-This approach works wonders for situations where you want a section inside your application with its own viewport and subset of routes. For example, a profile page with child routes for pages within that section, a section for the user's profile information, and view their items.
+This approach works wonders for situations where you want a section inside your application with its own viewport and subset of routes. For example, a profile page with child routes for pages within that section, a section for the user's profile information, and a view for their items.
 
 **Your view-model might look like the following:**
 

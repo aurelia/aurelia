@@ -138,8 +138,8 @@ export class DirtyCheckProperty implements DirtyCheckProperty, IFlushable {
     const oldValue = this.oldValue;
     const newValue = this.getValue();
 
-    this.subs.notify(newValue, oldValue, LifecycleFlags.none);
     this.oldValue = newValue;
+    this.subs.notify(newValue, oldValue, LifecycleFlags.none);
   }
 
   public subscribe(subscriber: ISubscriber): void {

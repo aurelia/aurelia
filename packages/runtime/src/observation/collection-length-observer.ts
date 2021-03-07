@@ -50,7 +50,6 @@ export class CollectionLengthObserver implements IWithFlushQueue, ICollectionSub
       this.oldvalue = currentValue;
       this.f = flags;
       this.queue.add(this);
-      // this.subs.notify(newValue, currentValue, flags);
     }
   }
 
@@ -61,13 +60,13 @@ export class CollectionLengthObserver implements IWithFlushQueue, ICollectionSub
       this.oldvalue = oldValue;
       this.f = flags;
       this.queue.add(this);
-      // this.subs.notify(value, oldValue, flags);
     }
   }
 
   public flush(): void {
-    this.subs.notify(this.value, this.oldvalue, this.f);
+    oV = this.oldvalue;
     this.oldvalue = this.value;
+    this.subs.notify(this.value, oV, this.f);
   }
 }
 
@@ -104,13 +103,13 @@ export class CollectionSizeObserver implements ICollectionSubscriber, IFlushable
       this.oldvalue = oldValue;
       this.f = flags;
       this.queue.add(this);
-      // this.subs.notify(value, oldValue, flags);
     }
   }
 
   public flush(): void {
-    this.subs.notify(this.value, this.oldvalue, this.f);
+    oV = this.oldvalue;
     this.oldvalue = this.value;
+    this.subs.notify(this.value, oV, this.f);
   }
 }
 
@@ -140,3 +139,7 @@ function unsubscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber
 
 implementLengthObserver(CollectionLengthObserver);
 implementLengthObserver(CollectionSizeObserver);
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

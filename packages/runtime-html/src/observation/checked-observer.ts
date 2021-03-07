@@ -77,7 +77,6 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     this.observe();
     this.synchronizeElement();
     this.queue.add(this);
-    // this.subs.notify(newValue, currentValue, flags);
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
@@ -231,7 +230,6 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     }
     this.value = currentValue;
     this.queue.add(this);
-    // this.subs.notify(this.value, this.oldValue, LifecycleFlags.none);
   }
 
   public start() {
@@ -259,9 +257,10 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     }
   }
 
-  public flush() {
-    this.subs.notify(this.value, this.oldValue, this.f);
+  public flush(): void {
+    oV = this.oldValue;
     this.oldValue = this.value;
+    this.subs.notify(this.value, oV, this.f);
   }
 
   private observe() {
@@ -280,3 +279,7 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
 
 subscriberCollection(CheckedObserver);
 withFlushQueue(CheckedObserver);
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

@@ -120,8 +120,9 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
   }
 
   public flush(): void {
-    this.subs.notify(this.currentValue, this.oldValue, this.f);
+    oV = this.oldValue;
     this.oldValue = this.currentValue;
+    this.subs.notify(this.currentValue, oV, this.f);
   }
 
   private createGetterSetter(): void {
@@ -142,3 +143,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
 
 subscriberCollection(BindableObserver);
 withFlushQueue(BindableObserver);
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

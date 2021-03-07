@@ -136,8 +136,9 @@ export class ComputedObserver implements
   }
 
   public flush(): void {
-    this.subs.notify(this.value, this.oldValue, LifecycleFlags.none);
+    oV = this.oldValue;
     this.oldValue = this.value;
+    this.subs.notify(this.value, oV, LifecycleFlags.none);
   }
 
   private run(): void {
@@ -150,10 +151,8 @@ export class ComputedObserver implements
     this.isDirty = false;
 
     if (!Object.is(newValue, oldValue)) {
-      // should optionally queue
       this.oldValue = oldValue;
       this.queue.add(this);
-      // this.subs.notify(newValue, oldValue, LifecycleFlags.none);
     }
   }
 
@@ -174,3 +173,7 @@ export class ComputedObserver implements
 connectable(ComputedObserver);
 subscriberCollection(ComputedObserver);
 withFlushQueue(ComputedObserver);
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

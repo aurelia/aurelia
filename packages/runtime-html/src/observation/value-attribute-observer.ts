@@ -56,9 +56,6 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      // const currentValue = this.currentValue;
-      // const oldValue = this.oldValue;
-      // this.oldValue = currentValue;
       this.obj[this.propertyKey as string] = this.currentValue ?? this.handler.config.default;
 
       if ((flags & LifecycleFlags.fromBind) === 0) {
@@ -73,7 +70,6 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
     if (oldValue !== currentValue) {
       this.hasChanges = false;
       this.queue.add(this);
-      // this.subs.notify(currentValue, oldValue, LifecycleFlags.none);
     }
   }
 
@@ -91,10 +87,15 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   }
 
   public flush(): void {
-    this.subs.notify(this.currentValue, this.oldValue, LifecycleFlags.none);
+    oV = this.oldValue;
     this.oldValue = this.currentValue;
+    this.subs.notify(this.currentValue, oV, LifecycleFlags.none);
   }
 }
 
 subscriberCollection(ValueAttributeObserver);
 withFlushQueue(ValueAttributeObserver);
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

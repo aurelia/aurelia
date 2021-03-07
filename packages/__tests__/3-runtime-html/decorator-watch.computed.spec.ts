@@ -1073,6 +1073,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         title: 'watcher callback is not invoked when getter throws error',
         get: app => {
           // track
+          // eslint-disable-next-line
           app.counter;
           if (ProxyObservable.getRaw(app).started) {
             throw new Error('err');
@@ -1342,6 +1343,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         title: 'watcher callback is not invoked when getter throws error',
         get: app => {
           // track
+          // eslint-disable-next-line
           app.counter;
           if (ProxyObservable.getRaw(app).started) {
             throw new Error('err');

@@ -142,7 +142,6 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
         this.hasChanges = false;
         this.f = LifecycleFlags.none;
         this.queue.add(this);
-        // this.subs.notify(newValue, currentValue, LifecycleFlags.none);
       }
     }
   }
@@ -161,8 +160,9 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   }
 
   public flush(): void {
-    this.subs.notify(this.value, this.oldValue, this.f);
+    oV = this.oldValue;
     this.oldValue = this.value;
+    this.subs.notify(this.value, oV, this.f);
   }
 }
 
@@ -198,3 +198,7 @@ const handleMutation = (mutationRecords: MutationRecord[]): void => {
 function invokeHandleMutation(this: MutationRecord[], s: ElementMutationSubscription): void {
   s.handleMutation(this);
 }
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

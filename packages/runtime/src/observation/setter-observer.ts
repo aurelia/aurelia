@@ -11,6 +11,10 @@ import type {
 } from '../observation.js';
 import { FlushQueue, IFlushable, IWithFlushQueue, withFlushQueue } from './flush-queue.js';
 
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;
+
 export interface SetterObserver extends IAccessor, ISubscriberCollection {}
 
 /**
@@ -48,7 +52,6 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
       this.oldValue = currentValue;
       this.f = flags;
       this.queue.add(this);
-      // this.subs.notify(newValue, currentValue, flags);
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
       // so calling obj[propertyKey] will actually return this.currentValue.
@@ -69,8 +72,9 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
   }
 
   public flush(): void {
-    this.subs.notify(this.currentValue, this.oldValue, this.f);
+    oV = this.oldValue;
     this.oldValue = this.currentValue;
+    this.subs.notify(this.currentValue, oV, this.f);
   }
 
   public start(): this {
@@ -172,8 +176,9 @@ export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
   }
 
   public flush(): void {
-    this.subs.notify(this.v, this.oV, this.f);
+    oV = this.oV;
     this.oV = this.v;
+    this.subs.notify(this.v, oV, this.f);
   }
 }
 

@@ -225,6 +225,16 @@ describe('3-runtime-html/effect.spec.ts', function () {
     const observation = ctx.container.get(IObservation);
     const mouseTracker = new MouseTracker();
     try {
+      // stack:
+      // --------
+      // effect.run()
+      //   effect_fn() <--- IEffect starts running here
+      //     mutate(.coord)
+      //        Flushqueue.queue
+      //          SetterNotifier(.coord).flush
+      //            effect.handleChange <--- IEffect queues new run here and bails
+      //   effect is still [queued]
+      //     effect.run() <-- repeats the line above and this for the run, until max recursion exceeded
       observation.run(() => {
         runCount++;
         div.textContent = mouseTracker.coord.join(', ');
@@ -239,6 +249,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
     }
 
     assert.instanceOf(errorCaught, Error);
+    // 11 because effect only run recursively 10 items max
     assert.strictEqual(runCount, 11);
     assert.strictEqual(div.textContent, '10, 10');
 
@@ -250,16 +261,31 @@ describe('3-runtime-html/effect.spec.ts', function () {
       errorCaught = ex;
     }
 
-    assert.instanceOf(errorCaught, Error);
-    assert.strictEqual(runCount, 11);
-    assert.strictEqual(div.textContent, '10, 10');
+    // different with the initial run above
+    // effect is not already running during the mutation with "pretendMouseMove"
+    // so that it will immediately complete a run
+    // and thus, never throws an error on maximum recursion exceeded
+    // stack:
+    // --------
+    // mutate(.coord)
+    //    Flushqueue.queue
+    //      SetterNotifier(.coord).flush
+    //        IEffect.handleChange
+    //          effect_fn()
+    //            mutate(.coord)
+    //              flush_queue.queue <--- IEffect stops running here
+    //      SetterNotifier(.coord).flush
+    //        IEffect.handleChange    <--- IEffect starts running again, no recursion
+    assert.strictEqual(errorCaught, null);
+    assert.strictEqual(runCount, 0);
+    assert.strictEqual(div.textContent, '19, 19');
 
     await tearDown();
 
     // effect are independent of application
     // so even after app torn down, it still runs
     // can only stop it via `effect.stop()`
-    runCount = 0;
+    runCount = 10;
     errorCaught = null;
     try {
       mouseTracker.pretendMouseMove(1, 2);
@@ -267,8 +293,8 @@ describe('3-runtime-html/effect.spec.ts', function () {
       errorCaught = ex;
     }
 
-    assert.instanceOf(errorCaught, Error);
-    assert.strictEqual(runCount, 11);
-    assert.strictEqual(div.textContent, '10, 10');
+    assert.strictEqual(errorCaught, null);
+    assert.strictEqual(runCount, 0);
+    assert.strictEqual(div.textContent, '19, 19');
   });
 });

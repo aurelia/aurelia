@@ -28,6 +28,10 @@ const RESIDUE = 'au$residue' as const;
  * - Different components (with different `RenderContext`s) reference the same component via a child route config
  */
 export class RouteContext implements IContainer {
+  public get id(): number {
+    return this.container.id;
+  }
+
   private readonly childViewportAgents: ViewportAgent[] = [];
   public readonly root: IRouteContext;
   public get isRoot(): boolean {
@@ -310,6 +314,10 @@ export class RouteContext implements IContainer {
     return this.container.getResolver(key, autoRegister);
   }
 
+  public invoke<T, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T {
+    return this.container.invoke(key, dynamicDependencies);
+  }
+
   public getFactory<T extends Constructable>(key: T): IFactory<T> {
     // this.logger.trace(`getFactory(key:${String(key)})`);
     return this.container.getFactory(key);
@@ -359,6 +367,10 @@ export class RouteContext implements IContainer {
 
   public getAvailableViewportAgents(resolution: ResolutionMode): readonly ViewportAgent[] {
     return this.childViewportAgents.filter(x => x.isAvailable(resolution));
+  }
+
+  public getFallbackViewportAgent(resolution: ResolutionMode, name: string): ViewportAgent | null {
+    return this.childViewportAgents.find(x => x.isAvailable(resolution) && x.viewport.name === name && x.viewport.fallback.length > 0) ?? null;
   }
 
   /**

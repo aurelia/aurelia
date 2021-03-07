@@ -228,6 +228,10 @@ export function getRenderContext(
 const emptyNodeCache = new WeakMap<IPlatform, FragmentNodeSequence>();
 
 export class RenderContext implements IComponentFactory {
+  public get id(): number {
+    return this.container.id;
+  }
+
   public readonly root: IContainer;
   private readonly container: IContainer;
 
@@ -331,6 +335,10 @@ export class RenderContext implements IComponentFactory {
 
   public getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null {
     return this.container.getResolver(key, autoRegister);
+  }
+
+  public invoke<T, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T {
+    return this.container.invoke(key, dynamicDependencies);
   }
 
   public getFactory<T extends Constructable>(key: T): IFactory<T> {

@@ -15,6 +15,7 @@ import {
   optional,
   Task,
   TaskStatus,
+  Class,
 } from '@aurelia/kernel';
 import {
   bindingBehavior,
@@ -155,22 +156,23 @@ describe('promise template-controller', function () {
     }
   }
 
-  interface TestSetupContext {
+  interface TestSetupContext<TApp> {
     template: string;
     registrations: any[];
     expectedStopLog: string[];
     verifyStopCallsAsSet: boolean;
     promise: Promise<unknown> | (() => Promise<unknown>) | null;
     delayPromise: DelayPromise | null;
+    appType: Class<TApp>;
   }
-  class PromiseTestExecutionContext implements TestExecutionContext<any> {
+  class PromiseTestExecutionContext<TApp = App> implements TestExecutionContext<TApp> {
     private _scheduler: IPlatform;
     private readonly _log: DebugLog;
     public constructor(
       public ctx: TestContext,
       public container: IContainer,
       public host: HTMLElement,
-      public app: App | null,
+      public app: TApp,
       public controller: Controller,
       public error: Error | null,
     ) {
@@ -201,16 +203,17 @@ describe('promise template-controller', function () {
 
   const seedPromise = DI.createInterface<Promise<unknown>>();
   const delaySeedPromise = DI.createInterface<DelayPromise>();
-  async function testPromise(
-    testFunction: TestFunction<PromiseTestExecutionContext>,
+  async function testPromise<TApp>(
+    testFunction: TestFunction<PromiseTestExecutionContext<TApp>>,
     {
       template,
       registrations = [],
       expectedStopLog,
       verifyStopCallsAsSet = false,
       promise,
-      delayPromise = null
-    }: Partial<TestSetupContext> = {}
+      delayPromise = null,
+      appType,
+    }: Partial<TestSetupContext<TApp>> = {}
   ) {
     nameIdMap = new Map<string, number>();
     const ctx = TestContext.create();
@@ -222,7 +225,7 @@ describe('promise template-controller', function () {
 
     const au = new Aurelia(container);
     let error: Error | null = null;
-    let app: App | null = null;
+    let app: TApp | null = null;
     let controller: Controller = null!;
     try {
       await au
@@ -239,10 +242,10 @@ describe('promise template-controller', function () {
         )
         .app({
           host,
-          component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
+          component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, appType ?? App)
         })
         .start();
-      app = au.root.controller.viewModel as App;
+      app = au.root.controller.viewModel as TApp;
       controller = au.root.controller! as unknown as Controller;
     } catch (e) {
       error = e;
@@ -335,12 +338,13 @@ describe('promise template-controller', function () {
       : ['detaching', 'unbinding'].flatMap(x => name.map(n => `${n}.${x}`));
   }
 
-  class TestData implements TestSetupContext {
+  class TestData<TApp> implements TestSetupContext<TApp> {
     public readonly template: string;
     public readonly registrations: any[];
     public readonly verifyStopCallsAsSet: boolean;
     public readonly name: string;
     public readonly delayPromise: DelayPromise | null;
+    public readonly appType: Class<TApp>;
     public constructor(
       name: string,
       public promise: Promise<unknown> | (() => Promise<unknown>) | null,
@@ -349,7 +353,8 @@ describe('promise template-controller', function () {
         template,
         verifyStopCallsAsSet = false,
         delayPromise = null,
-      }: Partial<TestSetupContext>,
+        appType,
+      }: Partial<TestSetupContext<TApp>>,
       public readonly config: Config,
       public readonly expectedInnerHtml: string,
       public readonly expectedStartLog: string[],
@@ -368,6 +373,7 @@ describe('promise template-controller', function () {
       this.template = template;
       this.verifyStopCallsAsSet = verifyStopCallsAsSet;
       this.delayPromise = delayPromise;
+      this.appType = appType as unknown as Class<TApp>;
     }
   }
 
@@ -1272,7 +1278,7 @@ describe('promise template-controller', function () {
                   <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
                   <rejected-host ${rattribute}="err" err.bind="updateError(err)"></rejected-host>
                 </template>
-                <rejected-host ${rattribute}="err1" err.bind="err1"></rejected-host>
+                <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
               </template>
             </template>`
             },
@@ -1289,7 +1295,7 @@ describe('promise template-controller', function () {
             <template>
               <template ${pattribute}="promise">
                 <pending-host pending p.bind="promise"></pending-host>
-                <fulfilled-host ${fattribute}="data1" data.bind="data1"></fulfilled-host>
+                <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
                 <template ${rattribute}="response" ${pattribute}="response.json()">
                   <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
                   <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
@@ -1310,7 +1316,7 @@ describe('promise template-controller', function () {
             <template>
               <template ${pattribute}="promise">
                 <pending-host pending p.bind="promise"></pending-host>
-                <fulfilled-host ${fattribute}="data1" data.bind="data1"></fulfilled-host>
+                <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
                 <template ${rattribute}="response" ${pattribute}="response.json()">
                   <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
                   <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
@@ -1512,10 +1518,10 @@ describe('promise template-controller', function () {
             `[repeat.for] > [${pattribute}] works`,
             null,
             {
-              // , ['forty-two', true], ['fizz-bazz', false]
+              delayPromise,
               template: `
           <template>
-            <let items.bind="[[42, true], ['foo-bar', false]]"></let>
+            <let items.bind="[[42, true], ['foo-bar', false], ['forty-two', true], ['fizz-bazz', false]]"></let>
             <template repeat.for="item of items">
               <template ${pattribute}="item[0] | promisify:item[1]">
                 <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
@@ -1525,19 +1531,19 @@ describe('promise template-controller', function () {
           </template>`,
             },
             config(),
-            `${wrap('resolved with 42', 'f')} ${wrap('rejected with foo-bar', 'r')}`, //  ${wrap('resolved with forty-two', 'f')} ${wrap('rejected with fizz-bazz', 'r')}
-            getActivationSequenceFor([`${fhost}-1`, `${rhost}-2`/* , `${fhost}-3`, `${rhost}-4` */]),
-            getDeactivationSequenceFor([`${fhost}-1`, `${rhost}-2`/* , `${fhost}-3`, `${rhost}-4` */]),
+            `${wrap('resolved with 42', 'f')} ${wrap('rejected with foo-bar', 'r')} ${wrap('resolved with forty-two', 'f')} ${wrap('rejected with fizz-bazz', 'r')}`, //
+            getActivationSequenceFor([`${fhost}-1`, `${rhost}-2`, `${fhost}-3`, `${rhost}-4`]),
+            getDeactivationSequenceFor([`${fhost}-1`, `${rhost}-2`, `${fhost}-3`, `${rhost}-4`]),
           );
 
           yield new TestData(
             `[repeat.for,${pattribute}] works`,
             null,
             {
-              // , ['forty-two', true], ['fizz-bazz', false]
+              delayPromise,
               template: `
           <template>
-            <let items.bind="[[42, true], ['foo-bar', false]]"></let>
+            <let items.bind="[[42, true], ['foo-bar', false], ['forty-two', true], ['fizz-bazz', false]]"></let>
               <template repeat.for="item of items" ${pattribute}="item[0] | promisify:item[1]">
                 <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
                 <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
@@ -1545,9 +1551,9 @@ describe('promise template-controller', function () {
           </template>`,
             },
             config(),
-            `${wrap('resolved with 42', 'f')} ${wrap('rejected with foo-bar', 'r')}`, //  ${wrap('resolved with forty-two', 'f')} ${wrap('rejected with fizz-bazz', 'r')}
-            getActivationSequenceFor([`${fhost}-1`, `${rhost}-2`/* , `${fhost}-3`), `${rhost}-4` */]),
-            getDeactivationSequenceFor([`${fhost}-1`, `${rhost}-2`/* , `${fhost}-3`), `${rhost}-4` */]),
+            `${wrap('resolved with 42', 'f')} ${wrap('rejected with foo-bar', 'r')} ${wrap('resolved with forty-two', 'f')} ${wrap('rejected with fizz-bazz', 'r')}`,
+            getActivationSequenceFor([`${fhost}-1`, `${rhost}-2`, `${fhost}-3`, `${rhost}-4`]),
+            getDeactivationSequenceFor([`${fhost}-1`, `${rhost}-2`, `${fhost}-3`, `${rhost}-4`]),
           );
 
           yield new TestData(
@@ -1646,16 +1652,16 @@ describe('promise template-controller', function () {
               delayPromise, template: `
           <let flag.bind="false"></let>
           <template if.bind="flag" ${pattribute}="42 | promisify:true">
-            <fulfilled-host ${fattribute}="data1" data.bind="data1"></fulfilled-host>
-            <rejected-host ${rattribute}="err1" err.bind="err1"></rejected-host>
+            <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+            <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
           </template>
           <template else ${pattribute}="'forty-two' | promisify:false">
-            <fulfilled-host ${fattribute}="data2" data.bind="data2"></fulfilled-host>
-            <rejected-host ${rattribute}="err2" err.bind="err2"></rejected-host>
+            <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+            <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
           </template>`,
             },
             config(),
-            '<rejected-host err.bind="err2" class="au">rejected with forty-two</rejected-host>',
+            wrap('rejected with forty-two', 'r'),
             getActivationSequenceFor(`${rhost}-1`),
             getDeactivationSequenceFor(`${fhost}-2`),
             async (ctx) => {
@@ -1675,7 +1681,7 @@ describe('promise template-controller', function () {
               }
               await q.yield();
 
-              assert.html.innerEqual(ctx.host, '<fulfilled-host data.bind="data1" class="au">resolved with 42</fulfilled-host>');
+              assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-1`), ...getActivationSequenceFor(`${fhost}-2`)]);
             },
           );
@@ -2683,11 +2689,101 @@ describe('promise template-controller', function () {
         }
         // #endregion
       }
+
+      // #region scope
+      // eslint-disable-next-line require-atomic-updates
+      for (const $resolve of [true, false]) {
+        {
+          class App1 {
+            public readonly promise: Promise<number>;
+            public data: number;
+            public err: Error;
+            public constructor() {
+              this.promise = $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar'));
+            }
+            public async binding(): Promise<void> {
+              try {
+                this.data = (await this.promise) ** 2;
+              } catch (e) {
+                this.err = new Error(`modified ${e.message}`);
+              }
+            }
+          }
+
+          yield new TestData<App1>(
+            `shows scoped content correctly #1 - ${$resolve ? 'fulfilled' : 'rejected'}`,
+            null,
+            {
+              template: `
+              <div ${pattribute}="promise">
+                <div ${fattribute}="data">\${data} \${$parent.data}</div>
+                <div ${rattribute}="err">'\${err.message}' '\${$parent.err.message}'</div>
+              </div>`,
+              appType: App1,
+            },
+            null,
+            $resolve
+              ? `<div> <div>42 1764</div> </div>`
+              : `<div> <div>'foo-bar' 'modified foo-bar'</div> </div>`,
+            [],
+            [],
+          );
+          yield new TestData<App1>(
+            `shows scoped content correctly #2 - ${$resolve ? 'fulfilled' : 'rejected'}`,
+            null,
+            {
+              template: `
+              <div ${pattribute}="promise">
+                <div ${fattribute}>\${data}</div>
+                <div ${rattribute}>\${err.message}</div>
+              </div>`,
+              appType: App1,
+            },
+            null,
+            $resolve
+              ? `<div> <div>1764</div> </div>`
+              : `<div> <div>modified foo-bar</div> </div>`,
+            [],
+            [],
+          );
+        }
+        {
+          class App1 {
+            public readonly promise: Promise<number>;
+            public data: number;
+            public err: Error;
+            public constructor() {
+              this.promise = $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar'));
+            }
+          }
+
+          yield new TestData<App1>(
+            `shows scoped content correctly #3 - ${$resolve ? 'fulfilled' : 'rejected'}`,
+            null,
+            {
+              template: `
+              <div ${pattribute}="promise">
+                <div ${fattribute}="$parent.data">\${data} \${$parent.data}</div>
+                <div ${rattribute}="$parent.err">'\${err.message}' '\${$parent.err.message}'</div>
+              </div>
+              \${data} \${err.message}`,
+              appType: App1,
+            },
+            null,
+            $resolve
+              ? `<div> <div>42 42</div> </div> 42 undefined`
+              : `<div> <div>'foo-bar' 'foo-bar'</div> </div> undefined foo-bar`,
+            [],
+            [],
+          );
+        }
+      }
+      // #endregion
     }
   }
   for (const data of getTestData()) {
     (data.only ? $it.only : $it)(data.name,
-      async function (ctx) {
+      async function (ctx: PromiseTestExecutionContext) {
 
         assert.strictEqual(ctx.error, null);
         const expectedContent = data.expectedInnerHtml;
@@ -2709,12 +2805,13 @@ describe('promise template-controller', function () {
       data);
   }
 
-  class NegativeTestData implements TestSetupContext {
+  class NegativeTestData implements TestSetupContext<App> {
     public readonly registrations: any[] = [];
     public readonly expectedStopLog: string[] = [];
     public readonly verifyStopCallsAsSet: boolean = false;
     public readonly promise: Promise<unknown> = Promise.resolve(42);
     public readonly delayPromise: DelayPromise = null;
+    public readonly appType: Class<App> = App;
     public constructor(
       public readonly name: string,
       public readonly template: string,
@@ -2773,7 +2870,7 @@ describe('promise template-controller', function () {
   }
 
   for (const data of getNegativeTestData()) {
-    $it(data.name, async function (ctx) {
+    $it(data.name, async function (ctx: PromiseTestExecutionContext) {
       assert.match(ctx.error.message, /The parent promise\.resolve not found; only `\*\[promise\.resolve\] > \*\[pending\|then\|catch\]` relation is supported\./);
     }, data);
   }

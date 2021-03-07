@@ -1,4 +1,4 @@
-import { nextId, onResolve, resolveAll, Task, TaskStatus } from '@aurelia/kernel';
+import { ILogger, nextId, onResolve, resolveAll, Task, TaskStatus } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable.js';
 import { INode, IRenderLocation } from '../../dom.js';
@@ -30,15 +30,21 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   public fulfilled?: FulfilledTemplateController;
   public rejected?: RejectedTemplateController;
 
+  private viewScope!: Scope;
   private preSettledTask: Task<void | Promise<void>> | null = null;
   private postSettledTask: Task<void | Promise<void>> | null = null;
   private postSettlePromise!: Promise<void>;
+
+  private readonly logger: ILogger;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
     @IRenderLocation private readonly location: IRenderLocation,
     @IPlatform private readonly platform: IPlatform,
-  ) { }
+    @ILogger logger: ILogger,
+  ) {
+    this.logger = logger.scopeTo('promise.resolve');
+  }
 
   public link(
     flags: LifecycleFlags,
@@ -56,7 +62,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     const $controller = this.$controller;
 
     return onResolve(
-      view.activate(initiator, $controller, flags, $controller.scope, $controller.hostScope),
+      view.activate(initiator, $controller, flags, this.viewScope = Scope.fromParent($controller.scope, {}), $controller.hostScope),
       () => this.swap(initiator, flags)
     );
   }
@@ -68,13 +74,16 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
 
   private swap(initiator: IHydratedController | null, flags: LifecycleFlags): void {
     const value = this.value;
-    if (!(value instanceof Promise)) { return; }
+    if (!(value instanceof Promise)) {
+      this.logger.warn(`The value '${String(value)}' is not a promise. No change will be done.`);
+      return;
+    }
     const q = this.platform.domWriteQueue;
     const fulfilled = this.fulfilled;
     const rejected = this.rejected;
     const pending = this.pending;
     const $controller = this.$controller;
-    const s = $controller.scope;
+    const s = this.viewScope;
     const hs = $controller.hostScope;
 
     let preSettlePromise: Promise<void>;

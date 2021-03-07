@@ -1,3 +1,4 @@
+import { ProxyObservable } from '@aurelia/runtime';
 import {
   bindable,
   ComputedWatcher,
@@ -956,26 +957,24 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           assert.strictEqual(app.callCount, 2 * app.decoratorCount, 'after disposed');
         },
       },
-      // {
-      //   title: 'observes .has()',
-      //   // also asserts that mutation during getter run won't cause infinite run
-      //   get: app => app.map.has(symbol) ? ++app.counter : 0,
-      //   created: (app, _, decoratorCount) => {
-      //     assert.strictEqual(app.counter, 0);
-      //     assert.strictEqual(app.callCount, 0);
-      //     app.map.set(symbol, '');
-      //     app.map.set(symbol, '');
-      //     assert.strictEqual(app.counter, decoratorCount === 2 ? 3 : 1);
-      //     assert.strictEqual(app.callCount, decoratorCount === 2 ? 3 : 1);
-      //   },
-      //   disposed: (app, _, decoratorCount) => {
-      //     assert.strictEqual(app.counter,  decoratorCount === 2 ? 3 : 1);
-      //     assert.strictEqual(app.callCount,  decoratorCount === 2 ? 3 : 1);
-      //     app.map.set(symbol, '');
-      //     assert.strictEqual(app.counter, decoratorCount === 2 ? 3 : 1);
-      //     assert.strictEqual(app.callCount, decoratorCount === 2 ? 3 : 1);
-      //   },
-      // },
+      {
+        title: 'observes .has()',
+        get: app => app.map.has(symbol) ? ++ProxyObservable.getRaw(app).counter : 0,
+        created: (app) => {
+          assert.strictEqual(app.counter, 0);
+          assert.strictEqual(app.callCount, 0);
+          app.map.set(symbol, '');
+          assert.strictEqual(app.counter, app.decoratorCount);
+          assert.strictEqual(app.callCount, app.decoratorCount);
+        },
+        disposed: (app) => {
+          assert.strictEqual(app.counter,  app.decoratorCount);
+          assert.strictEqual(app.callCount,  app.decoratorCount);
+          app.map.set(symbol, '');
+          assert.strictEqual(app.counter, app.decoratorCount);
+          assert.strictEqual(app.callCount, app.decoratorCount);
+        },
+      },
       {
         title: 'observes .keys()',
         get: app => Array.from(app.map.keys()).filter(k => k === symbol).length,
@@ -1073,26 +1072,18 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       {
         title: 'watcher callback is not invoked when getter throws error',
         get: app => {
-          if (app.decoratorCount === 2) {
-            if (app.counter++ <= 2) {
-              return 0;
-            }
-          } else {
-            if (app.counter++ === 0) {
-              return 0;
-            }
+          // track
+          app.counter;
+          if (ProxyObservable.getRaw(app).started) {
+            throw new Error('err');
           }
-          throw new Error('err');
         },
         created: app => {
+          app.started = true;
           assert.strictEqual(app.callCount, 0);
           let ex: Error;
           try {
-            if (app.decoratorCount === 2) {
-              app.counter = 0;
-            } else {
-              app.counter++;
-            }
+            app.counter++;
           } catch (e) {
             ex = e;
           }
@@ -1113,13 +1104,13 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           return has;
         },
         created: app => {
-          assert.strictEqual(app.callCount, 0);
+          assert.strictEqual(app.callCount, 0, '=== #1');
           const item1 = {};
           const item2 = {};
           app.map = new Map([[1, item1], [2, item2]]);
-          assert.strictEqual(app.callCount, 0);
+          assert.strictEqual(app.callCount, 0, '=== #2');
           app.selectedItem = item1;
-          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+          assert.strictEqual(app.callCount, 1 * app.decoratorCount, '=== #3');
         },
       },
       {
@@ -1149,6 +1140,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       const $it = only ? it.only : it;
       $it(`${title} on method`, async function () {
         class App implements IApp {
+          public started: boolean = false;
           public decoratorCount: number = 1;
           public map: Map<unknown, unknown> = new Map();
           public selectedItem: unknown = void 0;
@@ -1171,6 +1163,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       $it(`${title} on class`, async function () {
         @watch(get, (v, o, a) => a.log())
         class App implements IApp {
+          public started: boolean = false;
           public decoratorCount: number = 1;
           public map: Map<unknown, unknown> = new Map();
           public selectedItem: unknown;
@@ -1192,6 +1185,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       $it(`${title} on both class and method`, async function () {
         @watch(get, (v, o, a) => a.log())
         class App implements IApp {
+          public started: boolean = false;
           public decoratorCount: number = 2;
           public map: Map<unknown, unknown> = new Map();
           public selectedItem: unknown;
@@ -1213,6 +1207,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     }
 
     interface IApp {
+      started: boolean;
       decoratorCount: number;
       map: Map<unknown, unknown>;
       selectedItem: unknown;
@@ -1346,26 +1341,19 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       {
         title: 'watcher callback is not invoked when getter throws error',
         get: app => {
-          if (app.decoratorCount === 2) {
-            if (app.counter++ <= 2) {
-              return 0;
-            }
-          } else {
-            if (app.counter++ === 0) {
-              return 0;
-            }
+          // track
+          app.counter;
+          if (ProxyObservable.getRaw(app).started) {
+            throw new Error('err');
           }
-          throw new Error('err');
+          return 0;
         },
         created: app => {
+          app.started = true;
           assert.strictEqual(app.callCount, 0);
           let ex: Error;
           try {
-            if (app.decoratorCount === 2) {
-              app.counter = 0;
-            } else {
-              app.counter++;
-            }
+            app.counter++;
           } catch (e) {
             ex = e;
           }
@@ -1386,13 +1374,14 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           return has;
         },
         created: app => {
-          assert.strictEqual(app.callCount, 0);
+          app.started = true;
+          assert.strictEqual(app.callCount, 0, 'Set === #1');
           const item1 = {};
           const item2 = {};
           app.set = new Set([item1, item2]);
-          assert.strictEqual(app.callCount, 0);
+          assert.strictEqual(app.callCount, 0, 'Set === #2');
           app.selectedItem = item1;
-          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+          assert.strictEqual(app.callCount, 1 * app.decoratorCount, 'Set === #3');
         },
       },
       {
@@ -1422,6 +1411,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       const $it = only ? it.only : it;
       $it(`${title} on method`, async function () {
         class App implements IApp {
+          public started: boolean = false;
           public decoratorCount: number = 1;
           public set: Set<unknown> = new Set();
           public selectedItem: unknown = void 0;
@@ -1435,15 +1425,19 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         }
 
         const { ctx, component, startPromise, tearDown } = createFixture('', App);
-        await startPromise;
-        created(component, ctx, 1);
-        await tearDown();
-        disposed?.(component, ctx, 1);
+        try {
+          await startPromise;
+          created(component, ctx, 1);
+        } finally {
+          await tearDown();
+          disposed?.(component, ctx, 1);
+        }
       });
 
       $it(`${title} on class`, async function () {
         @watch(get, (v, o, a) => a.log())
         class App implements IApp {
+          public started: boolean = false;
           public decoratorCount: number = 1;
           public set: Set<unknown> = new Set();
           public selectedItem: unknown;
@@ -1456,15 +1450,19 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         }
 
         const { ctx, component, tearDown, startPromise } = createFixture('', App);
-        await startPromise;
-        created(component, ctx, 1);
-        await tearDown();
-        disposed?.(component, ctx, 1);
+        try {
+          await startPromise;
+          created(component, ctx, 1);
+        } finally {
+          await tearDown();
+          disposed?.(component, ctx, 1);
+        }
       });
 
       $it(`${title} on both class and method`, async function () {
         @watch(get, (v, o, a) => a.log())
         class App implements IApp {
+          public started: boolean = false;
           public decoratorCount: number = 2;
           public set: Set<unknown> = new Set();
           public selectedItem: unknown;
@@ -1478,14 +1476,18 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         }
 
         const { ctx, component, startPromise, tearDown } = createFixture('', App);
-        await startPromise;
-        created(component, ctx, 2);
-        await tearDown();
-        disposed?.(component, ctx, 2);
+        try {
+          await startPromise;
+          created(component, ctx, 2);
+        } finally {
+          await tearDown();
+          disposed?.(component, ctx, 2);
+        }
       });
     }
 
     interface IApp {
+      started: boolean;
       decoratorCount: number;
       set: Set<unknown>;
       selectedItem: unknown;

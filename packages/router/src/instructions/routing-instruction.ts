@@ -192,7 +192,8 @@ export class RoutingInstruction {
       instructions = instructions.slice(scopeModifier.length);
     }
     // Parse the instructions...
-    const parsedInstructions: RoutingInstruction[] = InstructionParser.parse(instructions, true).instructions;
+    // const parsedInstructions: RoutingInstruction[] = InstructionParser.parse(instructions, true, true, false).instructions;
+    const parsedInstructions: RoutingInstruction[] = InstructionParser.parse(instructions, true, true, false).instructions;
     for (const instruction of parsedInstructions) {
       // ...and set the scope modifier on each of them.
       instruction.scopeModifier = scopeModifier;
@@ -431,7 +432,7 @@ export class RoutingInstruction {
           // only one child, add as-is
           ? nextStringified
           // more than one child, add within scope (between () )
-          : `${seps.scopeStart}${nextStringified}${seps.scopeEnd}`;
+          : `${seps.groupStart}${nextStringified}${seps.groupEnd}`;
       }
     }
     return stringified;
@@ -533,6 +534,16 @@ export class RoutingInstruction {
     return this.endpoint.instance!.getTitle(navigation);
   }
 
+  public toJSON(): unknown {
+    return {
+      component: this.component.name ?? undefined,
+      viewport: this.endpoint.name ?? undefined,
+      parameters: this.parameters.parametersRecord ?? undefined,
+      children: this.hasNextScopeInstructions
+        ? this.nextScopeInstructions
+        : undefined,
+    };
+  }
   /**
    * Stringify the routing instruction shallowly, NOT recursively down next scope/child instructions.
    *

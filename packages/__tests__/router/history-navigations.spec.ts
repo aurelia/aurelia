@@ -1,4 +1,4 @@
-import { RouterConfiguration, IRouter, IRouterOptions, IEventManager, INavigationFlags, RouterNavigationEndEvent } from '@aurelia/router';
+import { RouterConfiguration, IRouter, IRouterOptions, IEventManager, NavigationFlags, RouterNavigationEndEvent } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 
@@ -55,7 +55,7 @@ describe('History navigations', function () {
     // { load: ':forward', url: 'foo(4)?q=four', navigation: {}, parameters: { id: '4', q: 'four' } },
   ];
 
-  const result: { url: string; navigation: INavigationFlags; parameters: Record<string, unknown> } = {
+  const result: { url: string; navigation: NavigationFlags; parameters: Record<string, unknown> } = {
     url: '',
     navigation: { first: false, new: false, refresh: false, back: false, forward: false, replace: false },
     parameters: {},

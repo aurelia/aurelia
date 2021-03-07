@@ -64,80 +64,80 @@ export interface ITitleConfiguration {
   transformTitle?: (title: string, instruction: RoutingInstruction, navigation: Navigation) => string;
 }
 
-export interface IRouteSeparators extends Partial<ISeparators> { }
+export interface ISeparators extends Partial<Separators> { }
 
 /**
  * The separators used in the direct routing syntax
  */
-export interface ISeparators {
+export class Separators {
   /**
    * The character(s) that denotes the start of viewport name
    */
-  viewport: string;
+  public viewport: string = '@'; // ':';
 
   /**
    * The character(s) that separates siblings
    */
-  sibling: string;
+  public sibling: string = '+'; // '/';
 
   /**
    * The character(s) that denotes the start of a new scope
    */
-  scope: string;
+  public scope: string = '/'; // '+';
 
   /**
-   * The character(s) to indicate the start of a grouped scope
+   * The character(s) to indicate the start of a grou
    */
-  scopeStart: string;
+  public groupStart: string = '('; // ''
 
   /**
-   * The character(s) to indicate the end of a grouped scope
+   * The character(s) to indicate the end of a group
    */
-  scopeEnd: string;
+  public groupEnd: string = ')'; // ''
 
   /**
    * The character(s) to indicate that the viewport doesn't have
    * a routing scope
    */
-  noScope: string;
+  public noScope: string = '!';
 
   /**
    * The character(s) that denotes the start of component parameters
    */
-  parameters: string;
+  public parameters: string = '('; // '='
 
   /**
    * The character(s) that denotes the end of component parameters
    */
-  parametersEnd: string;
+  public parametersEnd: string = ')'; // ''
 
   /**
    * The character(s) that separates component parameters
    */
-  parameterSeparator: string;
+  public parameterSeparator: string = ','; // '&'
 
   /**
    * The character(s) that separates a component parameter's key and value
    */
-  parameterKeySeparator: string;
+  public parameterKeySeparator: string = '=';
 
   /**
    * The character(s) that denotes that the instructions are additive/not
    * full viewport state
    */
-  add: string;
+  public add: string = '+';
 
   /**
    * The character(s) that denotes that a viewport or routing scope should
    * be cleared/emptied
    */
-  clear: string;
+  public clear: string = '-';
 
   /**
    * The character(s) that denotes the start of a component method (not yet
    * implemented)
    */
-  action: string;
+  public action: string = '.';
 }
 
 export interface IRouterOptions extends Omit<Partial<RouterOptions>, 'separators' | 'title'> {
@@ -149,7 +149,7 @@ export interface IRouterOptions extends Omit<Partial<RouterOptions>, 'separators
   /**
    * The separators used in the direct routing syntax
    */
-  separators?: Partial<ISeparators>;
+  separators?: ISeparators;
 
   /**
    * Global routing hooks that should be added (primarily from start)
@@ -161,21 +161,22 @@ export class RouterOptions implements INavigatorOptions {
   /**
    * The separators used in the direct routing syntax
    */
-  public separators: ISeparators = {
-    viewport: '@', // ':',
-    sibling: '+', // '/',
-    scope: '/', // '+',
-    scopeStart: '(', // ''
-    scopeEnd: ')', // ''
-    noScope: '!',
-    parameters: '(', // '='
-    parametersEnd: ')', // ''
-    parameterSeparator: ',', // '&'
-    parameterKeySeparator: '=',
-    add: '+',
-    clear: '-',
-    action: '.',
-  };
+  public separators: Separators = new Separators();
+  // public separators: ISeparators = {
+  //   viewport: '@', // ':',
+  //   sibling: '+', // '/',
+  //   scope: '/', // '+',
+  //   groupStart: '(', // ''
+  //   groupEnd: ')', // ''
+  //   noScope: '!',
+  //   parameters: '(', // '='
+  //   parametersEnd: ')', // ''
+  //   parameterSeparator: ',', // '&'
+  //   parameterKeySeparator: '=',
+  //   add: '+',
+  //   clear: '-',
+  //   action: '.',
+  // };
 
   /**
    * Whether the fragment should be used for the url/path
@@ -252,6 +253,7 @@ export class RouterOptions implements INavigatorOptions {
     };
     options.title = titleOptions;
 
+    // RouterConfiguration.options.separators.apply(options.separators);
     const separatorOptions: ISeparators = {
       ...RouterConfiguration.options.separators,
       ...(options as IRouterOptions & { separators: ISeparators }).separators ?? {},

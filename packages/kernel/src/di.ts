@@ -53,6 +53,7 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator, IDisposable {
+  readonly id: number;
   readonly root: IContainer;
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
@@ -815,8 +816,10 @@ const InstrinsicTypeNames = new Set<string>([
 
 const factoryKey = 'di:factory';
 const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
+let containerId = 0;
 /** @internal */
 export class Container implements IContainer {
+  public readonly id: number = ++containerId;
   private registerDepth: number = 0;
 
   public get depth(): number {

@@ -80,6 +80,7 @@ export class CollectionSizeObserver implements ICollectionSubscriber, IFlushable
 
   public readonly type: AccessorType;
   public readonly obj: Set<unknown> | Map<unknown, unknown>;
+  public readonly queue!: FlushQueue;
 
   public constructor(
     public readonly owner: ICollectionObserver<CollectionKind.map | CollectionKind.set>,
@@ -102,6 +103,7 @@ export class CollectionSizeObserver implements ICollectionSubscriber, IFlushable
     if ((this.value = value) !== oldValue) {
       this.oldvalue = oldValue;
       this.f = flags;
+      this.queue.add(this);
       // this.subs.notify(value, oldValue, flags);
     }
   }

@@ -45,7 +45,7 @@ import {
   TestFunction,
 } from '../util.js';
 
-describe.only('promise template-controller', function () {
+describe('promise template-controller', function () {
 
   const phost = 'pending-host';
   const fhost = 'fulfilled-host';

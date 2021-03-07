@@ -40,12 +40,12 @@ export class UserProfileCustomElement implements IRouteViewModel {
 <div class="user-profile-container">
     <ul>
       <li class="nav-item">
-        <a class="nav-link" load="info;>
+        <a class="nav-link" load="info">
           My Info
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" load="route:items;>
+        <a class="nav-link" load="route:items">
           My Items
         </a>
       </li>

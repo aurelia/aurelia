@@ -361,6 +361,10 @@ export class RouteContext implements IContainer {
     return this.childViewportAgents.filter(x => x.isAvailable(resolution));
   }
 
+  public getFallbackViewportAgent(resolution: ResolutionMode, name: string): ViewportAgent | null {
+    return this.childViewportAgents.find(x => x.isAvailable(resolution) && x.viewport.name === name && x.viewport.fallback.length > 0) ?? null;
+  }
+
   /**
    * Create a component based on the provided viewportInstruction.
    *

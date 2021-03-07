@@ -568,19 +568,25 @@ describe('router config', function () {
     function getErrorMsg({
       routingMode,
       isRegistered,
+      fallback,
       instruction,
       parent,
       parentPath,
     }: {
       routingMode: 'configured-first' | 'configured-only';
       isRegistered: boolean;
+      fallback: string;
       instruction: string;
       parent: string;
       parentPath: string;
     }) {
       switch (routingMode) {
         case 'configured-first':
-          return `'${instruction}' did not match any configured route or registered component name at '${parentPath}' - did you forget to add the component '${instruction}' to the dependencies of '${parent}' or to register it as a global dependency?`;
+          if (fallback.length > 0) {
+            return `the requested component '${instruction}' and the fallback '${fallback}' at viewport 'default' did not match any configured route or registered component name at '${parentPath}' - did you forget to add the component '${instruction}' to the dependencies of '${parent}' or to register it as a global dependency?`;
+          } else {
+            return `'${instruction}' did not match any configured route or registered component name at '${parentPath}' and no fallback was provided for viewport 'default' - did you forget to add the component '${instruction}' to the dependencies of '${parent}' or to register it as a global dependency?`;
+          }
         case 'configured-only':
           if (isRegistered) {
             return `'${instruction}' did not match any configured route, but it does match a registered component name at '${parentPath}' - did you forget to add a @route({ path: '${instruction}' }) decorator to '${instruction}' or unintentionally set routingMode to 'configured-only'?`;
@@ -619,6 +625,7 @@ describe('router config', function () {
           assert.strictEqual(e.message, getErrorMsg({
             routingMode,
             isRegistered: false,
+            fallback: '',
             instruction: 'a01',
             parent: 'root',
             parentPath: 'root',
@@ -646,6 +653,7 @@ describe('router config', function () {
           assert.strictEqual(e.message, getErrorMsg({
             routingMode,
             isRegistered: false,
+            fallback: '',
             instruction: 'a',
             parent: 'root',
             parentPath: 'root',
@@ -681,11 +689,39 @@ describe('router config', function () {
         assert.strictEqual(e.message, getErrorMsg({
           routingMode: 'configured-first',
           isRegistered: false,
+          fallback: '',
           instruction: 'a11',
           parent: 'b11',
           parentPath: 'root/a11/b11',
         }));
       });
+    });
+
+    it(`navigate to non-existing dep with non-existing fallback`, async function () {
+      const routerOptions: IRouterOptions = { routingMode: 'configured-first' };
+      const getRouterOptions = () => routerOptions;
+
+      @customElement({ name: 'root', template: `<au-viewport fallback="a"></au-viewport>` })
+      class Root extends SimpleActivityTrackingVMBase {}
+
+      const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+
+      let e: Error | null = null;
+      try {
+        await router.load('b');
+      } catch (err) {
+        e = err;
+      }
+
+      assert.notStrictEqual(e, null);
+      assert.strictEqual(e.message, getErrorMsg({
+        routingMode: 'configured-first',
+        isRegistered: false,
+        fallback: 'a',
+        instruction: 'b',
+        parent: 'root',
+        parentPath: 'root',
+      }));
     });
 
     describe(`routingMode is 'configured-only'`, function () {
@@ -712,6 +748,7 @@ describe('router config', function () {
         assert.strictEqual(e.message, getErrorMsg({
           routingMode: 'configured-only',
           isRegistered: true,
+          fallback: '',
           instruction: 'a01',
           parent: 'root',
           parentPath: 'root',

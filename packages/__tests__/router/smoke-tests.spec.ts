@@ -718,5 +718,41 @@ describe('router (smoke tests)', function () {
       await au.stop(true);
       assert.areTaskQueuesEmpty();
     });
+
+    it(`will load the fallback when navigating to a non-existing route with mode: ${mode}`, async function () {
+      @customElement({ name: 'a', template: 'a' })
+      class A {}
+      @customElement({
+        name: 'root',
+        template: `root<au-viewport fallback="a">`,
+        dependencies: [A],
+      })
+      class Root {}
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(TestRouterConfiguration.for(ctx, LogLevel.debug));
+      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+
+      const component = container.get(Root);
+      const router = container.get(IRouter);
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      au.app({ component, host });
+
+      await au.start();
+
+      assertComponentsVisible(host, [Root]);
+
+      await router.load('b');
+
+      assertComponentsVisible(host, [Root, [A]]);
+
+      await au.stop(true);
+      assert.areTaskQueuesEmpty();
+    });
   }
 });

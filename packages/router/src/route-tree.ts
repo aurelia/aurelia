@@ -495,7 +495,7 @@ function createNode(
   const rr = ctx.recognize(path);
   if (rr === null) {
     const name = vi.component.value;
-    const ced: CustomElementDefinition | null = ctx.find(CustomElement, name);
+    let ced: CustomElementDefinition | null = ctx.find(CustomElement, name);
     switch (node.tree.options.routingMode) {
       case 'configured-only':
         if (ced === null) {
@@ -511,7 +511,16 @@ function createNode(
           if (name === '') {
             return null;
           }
-          throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
+          const vpName = vi.viewport === null || vi.viewport.length === 0 ? 'default' : vi.viewport;
+          const fallbackVPA = ctx.getFallbackViewportAgent('dynamic', vpName);
+          if (fallbackVPA === null) {
+            throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' and no fallback was provided for viewport '${vpName}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
+          }
+          const fallback = fallbackVPA.viewport.fallback;
+          ced = ctx.find(CustomElement, fallback);
+          if (ced === null) {
+            throw new Error(`the requested component '${name}' and the fallback '${fallback}' at viewport '${vpName}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
+          }
         }
         return createDirectNode(log, node, vi, append, ced);
     }

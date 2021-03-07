@@ -1,6 +1,6 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, ILogger } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode } from '@aurelia/router';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params } from '@aurelia/router';
 import { Aurelia, customElement, CustomElement } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
@@ -755,4 +755,112 @@ describe('router (smoke tests)', function () {
       assert.areTaskQueuesEmpty();
     });
   }
+
+  it(`correct parses parameters`, async function () {
+    const a1Params: Params[] = [];
+    const a2Params: Params[] = [];
+    const b1Params: Params[] = [];
+    const b2arams: Params[] = [];
+    @customElement({ name: 'b1', template: null })
+    class B1 {
+      public load(params: Params) {
+        b1Params.push(params);
+      }
+    }
+    @customElement({ name: 'b2', template: null })
+    class B2 {
+      public load(params: Params) {
+        b2arams.push(params);
+      }
+    }
+    @customElement({
+      name: 'a1',
+      template: `<au-viewport></au-viewport>`,
+      dependencies: [B1],
+    })
+    class A1 {
+      public load(params: Params) {
+        a1Params.push(params);
+      }
+    }
+    @customElement({
+      name: 'a2',
+      template: `<au-viewport></au-viewport>`,
+      dependencies: [B2],
+    })
+    class A2 {
+      public load(params: Params) {
+        a2Params.push(params);
+      }
+    }
+    @customElement({
+      name: 'root',
+      template: `<au-viewport name="a1"></au-viewport><au-viewport name="a2"></au-viewport>`,
+      dependencies: [A1, A2],
+    })
+    class Root {}
+
+    const ctx = TestContext.create();
+    const { container } = ctx;
+
+    container.register(TestRouterConfiguration.for(ctx, LogLevel.debug));
+    container.register(RouterConfiguration);
+
+    const component = container.get(Root);
+    const router = container.get(IRouter);
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    au.app({ component, host });
+
+    await au.start();
+    await router.load('a1(a)/b1(b)+a2(c)/b2(d)');
+    await router.load('a1(a=a)/b1(b=b)+a2(c=c)/b2(d=d)');
+    await router.load('a1(a,a=a)/b1(b,b=b)+a2(c,c=c)/b2(d,d=d)');
+    await router.load('a1(a=a,a)/b1(b=b,b)+a2(c=c,c)/b2(d=d,d)');
+    await router.load('a1(a=a,a)/b1(b,b=b)+a2(c=c,c)/b2(d,d=d)');
+
+    assert.deepStrictEqual(
+      [
+        a1Params,
+        b1Params,
+        a2Params,
+        b2arams,
+      ],
+      [
+        [
+          { 0: 'a' },
+          { a: 'a' },
+          { 0: 'a', a: 'a' },
+          { 1: 'a', a: 'a' },
+          { 1: 'a', a: 'a' },
+        ],
+        [
+          { 0: 'b' },
+          { a: 'a', b: 'b' },
+          { 0: 'b', a: 'a', b: 'b' },
+          { 1: 'b', a: 'a', b: 'b' },
+          { 0: 'b', 1: 'a', a: 'a', b: 'b' },
+        ],
+        [
+          { 0: 'c' },
+          { c: 'c' },
+          { 0: 'c', c: 'c' },
+          { 1: 'c', c: 'c' },
+          { 1: 'c', c: 'c' },
+        ],
+        [
+          { 0: 'd' },
+          { c: 'c', d: 'd' },
+          { 0: 'd', c: 'c', d: 'd' },
+          { 1: 'd', c: 'c', d: 'd' },
+          { 0: 'd', 1: 'c', c: 'c', d: 'd' },
+        ],
+      ],
+    );
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
 });

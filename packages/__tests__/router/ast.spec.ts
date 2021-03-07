@@ -72,7 +72,7 @@ describe('route-expression', function () {
       for (const action of actionSpecs) {
         for (const scoped of [true, false]) {
           const raw = `${component.raw}${action.raw}${viewport.raw}${scoped ? '' : '!'}`;
-          const url = `a${viewport.raw}`;
+          const url = `${component.raw}${viewport.raw}`;
 
           specs[`/${raw}`] = [new RouteExpression(
             `/${raw}`,

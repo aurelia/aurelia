@@ -1,4 +1,4 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig, ILogger } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode } from '@aurelia/router';
 import { Aurelia, customElement, CustomElement } from '@aurelia/runtime-html';
@@ -553,4 +553,170 @@ describe('router (smoke tests)', function () {
       }
     }
   });
+
+  for (const mode of ['static', 'dynamic'] as const) {
+    it(`can load single anonymous default at the root with mode: ${mode}`, async function () {
+      @customElement({ name: 'a', template: 'a' })
+      class A {}
+      @customElement({ name: 'b', template: 'b' })
+      class B {}
+      @customElement({
+        name: 'root',
+        template: `root<au-viewport default="a"></au-viewport>`,
+        dependencies: [A, B],
+      })
+      class Root {}
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(TestRouterConfiguration.for(ctx));
+      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+
+      const component = container.get(Root);
+      const router = container.get(IRouter);
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      au.app({ component, host });
+
+      await au.start();
+
+      assertComponentsVisible(host, [Root, [A]]);
+
+      await router.load('b');
+
+      assertComponentsVisible(host, [Root, [B]]);
+
+      await router.load('');
+
+      assertComponentsVisible(host, [Root, [A]]);
+
+      await au.stop(true);
+      assert.areTaskQueuesEmpty();
+    });
+
+    it(`can load a named default with one sibling at the root with mode: ${mode}`, async function () {
+      @customElement({ name: 'a', template: 'a' })
+      class A {}
+      @customElement({ name: 'b', template: 'b' })
+      class B {}
+      @customElement({
+        name: 'root',
+        template: `root<au-viewport name="a" default="a"></au-viewport><au-viewport name="b"></au-viewport>`,
+        dependencies: [A, B],
+      })
+      class Root {}
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(TestRouterConfiguration.for(ctx));
+      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+
+      const component = container.get(Root);
+      const router = container.get(IRouter);
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      au.app({ component, host });
+
+      await au.start();
+
+      assertComponentsVisible(host, [Root, [A]]);
+
+      await router.load('b@b');
+
+      assertComponentsVisible(host, [Root, [A, B]]);
+
+      await router.load('');
+
+      assertComponentsVisible(host, [Root, [A]]);
+
+      await router.load('a@a+b@b');
+
+      assertComponentsVisible(host, [Root, [A, B]]);
+
+      await router.load('b@a');
+
+      assertComponentsVisible(host, [Root, [B]]);
+
+      await router.load('');
+
+      assertComponentsVisible(host, [Root, [A]]);
+
+      await router.load('b@a+a@b');
+
+      assertComponentsVisible(host, [Root, [B, A]]);
+
+      await au.stop(true);
+      assert.areTaskQueuesEmpty();
+    });
+
+    it(`can load a named default with one sibling at a child with mode: ${mode}`, async function () {
+      @customElement({ name: 'b', template: 'b' })
+      class B {}
+      @customElement({ name: 'c', template: 'c' })
+      class C {}
+      @customElement({
+        name: 'a',
+        template: 'a<au-viewport name="b" default="b"></au-viewport><au-viewport name="c"></au-viewport>',
+        dependencies: [B, C],
+      })
+      class A {}
+      @customElement({
+        name: 'root',
+        template: `root<au-viewport default="a">`,
+        dependencies: [A],
+      })
+      class Root {}
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(TestRouterConfiguration.for(ctx, LogLevel.debug));
+      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+
+      const component = container.get(Root);
+      const router = container.get(IRouter);
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      au.app({ component, host });
+
+      await au.start();
+
+      assertComponentsVisible(host, [Root, [A, [B]]]);
+
+      await router.load('a/c@c');
+
+      assertComponentsVisible(host, [Root, [A, [B, C]]]);
+
+      await router.load('');
+
+      assertComponentsVisible(host, [Root, [A, [B]]]);
+
+      await router.load('a/(b@b+c@c)');
+
+      assertComponentsVisible(host, [Root, [A, [B, C]]]);
+
+      await router.load('a/c@b');
+
+      assertComponentsVisible(host, [Root, [A, [C]]]);
+
+      await router.load('');
+
+      assertComponentsVisible(host, [Root, [A, [B]]]);
+
+      await router.load('a/(c@b+b@c)');
+
+      assertComponentsVisible(host, [Root, [A, [C, B]]]);
+
+      await au.stop(true);
+      assert.areTaskQueuesEmpty();
+    });
+  }
 });

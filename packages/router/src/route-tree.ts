@@ -364,9 +364,17 @@ function updateNode(
     if (node.context === ctx) {
       // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)
       node.clearChildren();
-      return resolveAll(...vit.children.map(vi => {
+      return onResolve(resolveAll(...vit.children.map(vi => {
         return createAndAppendNodes(log, node, vi, node.tree.options.append || vi.append);
-      }));
+      })), () => {
+        return resolveAll(...ctx.getAvailableViewportAgents('dynamic').map(vpa => {
+          const defaultInstruction = ViewportInstruction.create({
+            component: vpa.viewport.default,
+            viewport: vpa.viewport.name,
+          });
+          return createAndAppendNodes(log, node, defaultInstruction, node.append);
+        }));
+      });
     }
 
     // Drill down until we're at the node whose context matches the provided navigation context
@@ -388,7 +396,10 @@ export function processResidue(node: RouteNode): Promise<void> | void {
         return createAndAppendNodes(log, node, vi, node.append);
       }),
       ...ctx.getAvailableViewportAgents('static').map(vpa => {
-        const defaultInstruction = ViewportInstruction.create(vpa.viewport.default);
+        const defaultInstruction = ViewportInstruction.create({
+          component: vpa.viewport.default,
+          viewport: vpa.viewport.name,
+        });
         return createAndAppendNodes(log, node, defaultInstruction, node.append);
       }),
     );
@@ -409,7 +420,10 @@ export function getDynamicChildren(node: RouteNode): Promise<readonly RouteNode[
           return createAndAppendNodes(log, node, vi, node.append);
         }),
         ...ctx.getAvailableViewportAgents('dynamic').map(vpa => {
-          const defaultInstruction = ViewportInstruction.create(vpa.viewport.default);
+          const defaultInstruction = ViewportInstruction.create({
+            component: vpa.viewport.default,
+            viewport: vpa.viewport.name,
+          });
           return createAndAppendNodes(log, node, defaultInstruction, node.append);
         }),
       ),

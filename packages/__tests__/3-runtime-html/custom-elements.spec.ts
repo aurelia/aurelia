@@ -7,8 +7,8 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       `<input value.bind="first_name | properCase">
       <form-input value.two-way="first_name | properCase"></form-input>`,
       class App {
-        message = 'Hello Aurelia 2!';
-        first_name = '';
+        public message = 'Hello Aurelia 2!';
+        public first_name = '';
       },
       [
         CustomElement.define({
@@ -17,20 +17,13 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
           bindables: {
             value: { mode: BindingMode.twoWay }
           }
-        }, class FormInput {}),
+        }, class FormInput { }),
         ValueConverter.define('properCase', class ProperCase {
           public toView(value: unknown): unknown {
             if (typeof value == 'string' && value) {
-              debugger
               return value
                 .split(' ')
-                .map(m => {
-                  if (m && m.length > 1) {
-                    return m[0].toUpperCase() + m.substr(1).toLowerCase();
-                  } else {
-                    return m.toUpperCase();
-                  }
-                })
+                .map(m => m[0].toUpperCase() + m.substring(1).toLowerCase())
                 .join(' ');
             }
             return value;
@@ -41,13 +34,12 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
     await startPromise;
 
-    const [outerInputEl, ceInputEl] = Array.from(appHost.querySelectorAll('input'));
-    ceInputEl.value = 'aa bb';
-    debugger;
-    ceInputEl.dispatchEvent(new ctx.CustomEvent('input', { bubbles: true }));
+    const [, nestedInputEl] = Array.from(appHost.querySelectorAll('input'));
+    nestedInputEl.value = 'aa bb';
+    nestedInputEl.dispatchEvent(new ctx.CustomEvent('input', { bubbles: true }));
 
     ctx.platform.domWriteQueue.flush();
-    assert.strictEqual(ceInputEl.value, 'Aa Bb');
+    assert.strictEqual(nestedInputEl.value, 'Aa Bb');
 
     await tearDown();
   });

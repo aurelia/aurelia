@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { DI, isObject, Constructable, IModule } from '@aurelia/kernel';
+import { DI, isObject, Constructable, IModule, isArrayIndex } from '@aurelia/kernel';
 import { ICustomElementViewModel, ICustomElementController, PartialCustomElementDefinition, isCustomElementViewModel, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteViewModel } from './component-agent.js';
@@ -163,7 +163,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
   public toUrlComponent(recursive: boolean = true): string {
     // TODO(fkleuver): use the context to determine create full tree
     const component = this.component.toUrlComponent();
-    const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(au$obj${getObjectId(this.params)})`; // TODO(fkleuver): serialize them instead
+    const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(${stringifyParams(this.params)})`;
     const viewport = this.viewport === null || this.viewport.length === 0 ? '' : `@${this.viewport}`;
     const thisPart = `${'('.repeat(this.open)}${component}${params}${viewport}${')'.repeat(this.close)}`;
     const childPart = recursive ? this.children.map(x => x.toUrlComponent()).join('+') : '';
@@ -183,6 +183,32 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     const props = [component, viewport, children].filter(Boolean).join(',');
     return `VPI(${props})`;
   }
+}
+
+function stringifyParams(params: Params): string {
+  const keys = Object.keys(params);
+  const values = Array<string>(keys.length);
+  const indexKeys: number[] = [];
+  const namedKeys: string[] = [];
+  for (const key of keys) {
+    if (isArrayIndex(key)) {
+      indexKeys.push(Number(key));
+    } else {
+      namedKeys.push(key);
+    }
+  }
+
+  for (let i = 0; i < keys.length; ++i) {
+    const indexKeyIdx = indexKeys.indexOf(i);
+    if (indexKeyIdx > -1) {
+      values[i] = params[i] as string;
+      indexKeys.splice(indexKeyIdx, 1);
+    } else {
+      const namedKey = namedKeys.shift()!;
+      values[i] = `${namedKey}=${params[namedKey]}`;
+    }
+  }
+  return values.join(',');
 }
 
 export interface IRedirectInstruction {

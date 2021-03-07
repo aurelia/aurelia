@@ -589,11 +589,13 @@ const InstrinsicTypeNames = new Set([
 ]);
 const factoryKey = 'di:factory';
 const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
+let containerId = 0;
 /** @internal */
 export class Container {
     constructor(parent, config) {
         this.parent = parent;
         this.config = config;
+        this.id = ++containerId;
         this.registerDepth = 0;
         this.disposableResolvers = new Set();
         if (parent === null) {
@@ -829,11 +831,17 @@ export class Container {
         }
         return emptyArray;
     }
+    invoke(Type, dynamicDependencies) {
+        if (isNativeFunction(Type)) {
+            throw createNativeInvocationError(Type);
+        }
+        return new Factory(Type, DI.getDependencies(Type)).construct(this, dynamicDependencies);
+    }
     getFactory(Type) {
         let factory = this.factories.get(Type);
         if (factory === void 0) {
             if (isNativeFunction(Type)) {
-                throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
+                throw createNativeInvocationError(Type);
             }
             this.factories.set(Type, factory = new Factory(Type, DI.getDependencies(Type)));
         }
@@ -1128,5 +1136,8 @@ function buildAllResponse(resolver, handler, requestor) {
         return results;
     }
     return [resolver.resolve(handler, requestor)];
+}
+function createNativeInvocationError(Type) {
+    return new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
 }
 //# sourceMappingURL=di.js.map

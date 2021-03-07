@@ -76,6 +76,9 @@ export class RenderContext {
         container.registerResolver(p.HTMLElement, ep);
         container.register(...definition.dependencies);
     }
+    get id() {
+        return this.container.id;
+    }
     // #region IServiceLocator api
     has(key, searchAncestors) {
         return this.container.has(key, searchAncestors);
@@ -102,6 +105,9 @@ export class RenderContext {
     }
     getResolver(key, autoRegister) {
         return this.container.getResolver(key, autoRegister);
+    }
+    invoke(key, dynamicDependencies) {
+        return this.container.invoke(key, dynamicDependencies);
     }
     getFactory(key) {
         return this.container.getFactory(key);

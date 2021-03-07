@@ -508,7 +508,11 @@ export class ParameterListExpression {
         return new ParameterListExpression(raw, expressions);
     }
     toObject() {
-        return {}; // TODO
+        const params = {};
+        for (const expr of this.expressions) {
+            params[expr.key] = expr.value;
+        }
+        return params;
     }
     toString() {
         return this.raw;

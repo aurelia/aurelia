@@ -19,7 +19,7 @@ export declare type Transformer<K> = (instance: Resolved<K>) => Resolved<K>;
 export interface IFactory<T extends Constructable = any> {
     readonly Type: T;
     registerTransformer(transformer: Transformer<T>): void;
-    construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T>;
+    construct(container: IContainer, dynamicDependencies?: unknown[]): Resolved<T>;
 }
 export interface IServiceLocator {
     has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
@@ -34,12 +34,14 @@ export interface IRegistry {
     register(container: IContainer, ...params: unknown[]): void | IResolver | IContainer;
 }
 export interface IContainer extends IServiceLocator, IDisposable {
+    readonly id: number;
     readonly root: IContainer;
     register(...params: any[]): IContainer;
     registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
     registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
     getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
     registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
+    invoke<T, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T;
     getFactory<T extends Constructable>(key: T): IFactory<T>;
     createChild(config?: IContainerConfiguration): IContainer;
     disposeResolvers(): void;

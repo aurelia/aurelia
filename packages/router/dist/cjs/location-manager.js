@@ -60,7 +60,7 @@ let BrowserLocationManager = class BrowserLocationManager {
         if (baseHref === null) {
             const origin = (_a = location.origin) !== null && _a !== void 0 ? _a : '';
             const normalized = this.baseHref = normalizePath(origin);
-            this.logger.debug(`no baseHref provided, defaulting to origin '${normalized}' (normalized from '${origin}')`);
+            this.logger.warn(`no baseHref provided, defaulting to origin '${normalized}' (normalized from '${origin}')`);
         }
         else {
             const normalized = this.baseHref = normalizePath(baseHref);

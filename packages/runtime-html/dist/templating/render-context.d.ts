@@ -117,6 +117,7 @@ export declare function getRenderContext(partialDefinition: PartialCustomElement
 export declare class RenderContext implements IComponentFactory {
     readonly definition: CustomElementDefinition;
     readonly parentContainer: IContainer;
+    get id(): number;
     readonly root: IContainer;
     private readonly container;
     private readonly parentControllerProvider;
@@ -141,6 +142,7 @@ export declare class RenderContext implements IComponentFactory {
     registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
     registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
     getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
+    invoke<T, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T;
     getFactory<T extends Constructable>(key: T): IFactory<T>;
     registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void;
     createChild(): IContainer;

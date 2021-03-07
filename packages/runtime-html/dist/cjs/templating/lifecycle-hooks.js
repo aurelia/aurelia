@@ -60,10 +60,12 @@ exports.LifecycleHooks = {
         let lookup = containerLookup.get(ctx);
         if (lookup === void 0) {
             lookup = {};
-            const instances = [
-                ...ctx.root.getAll(exports.ILifecycleHooks, false),
-                ...ctx.getAll(exports.ILifecycleHooks, false),
-            ];
+            const instances = ctx.root.id === ctx.id
+                ? ctx.getAll(exports.ILifecycleHooks, false)
+                : [
+                    ...ctx.root.getAll(exports.ILifecycleHooks, false),
+                    ...ctx.getAll(exports.ILifecycleHooks, false),
+                ];
             for (const instance of instances) {
                 const definition = kernel_1.Metadata.getOwn(exports.LifecycleHooks.name, instance.constructor);
                 const entry = new LifecycleHooksEntry(definition, instance);

@@ -25,6 +25,7 @@ export declare class RouteContext implements IContainer {
     readonly component: CustomElementDefinition;
     readonly definition: RouteDefinition;
     readonly parentContainer: IContainer;
+    get id(): number;
     private readonly childViewportAgents;
     readonly root: IRouteContext;
     get isRoot(): boolean;
@@ -78,6 +79,7 @@ export declare class RouteContext implements IContainer {
     registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
     registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
     getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
+    invoke<T, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T;
     getFactory<T extends Constructable>(key: T): IFactory<T>;
     registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void;
     createChild(): IContainer;
@@ -87,6 +89,7 @@ export declare class RouteContext implements IContainer {
     dispose(): void;
     resolveViewportAgent(req: ViewportRequest): ViewportAgent;
     getAvailableViewportAgents(resolution: ResolutionMode): readonly ViewportAgent[];
+    getFallbackViewportAgent(resolution: ResolutionMode, name: string): ViewportAgent | null;
     /**
      * Create a component based on the provided viewportInstruction.
      *

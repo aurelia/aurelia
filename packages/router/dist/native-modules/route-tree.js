@@ -279,9 +279,17 @@ function updateNode(log, vit, ctx, node) {
         if (node.context === ctx) {
             // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)
             node.clearChildren();
-            return resolveAll(...vit.children.map(vi => {
+            return onResolve(resolveAll(...vit.children.map(vi => {
                 return createAndAppendNodes(log, node, vi, node.tree.options.append || vi.append);
-            }));
+            })), () => {
+                return resolveAll(...ctx.getAvailableViewportAgents('dynamic').map(vpa => {
+                    const defaultInstruction = ViewportInstruction.create({
+                        component: vpa.viewport.default,
+                        viewport: vpa.viewport.name,
+                    });
+                    return createAndAppendNodes(log, node, defaultInstruction, node.append);
+                }));
+            });
         }
         // Drill down until we're at the node whose context matches the provided navigation context
         return resolveAll(...node.children.map(child => {
@@ -298,7 +306,10 @@ export function processResidue(node) {
         return resolveAll(...node.residue.splice(0).map(vi => {
             return createAndAppendNodes(log, node, vi, node.append);
         }), ...ctx.getAvailableViewportAgents('static').map(vpa => {
-            const defaultInstruction = ViewportInstruction.create(vpa.viewport.default);
+            const defaultInstruction = ViewportInstruction.create({
+                component: vpa.viewport.default,
+                viewport: vpa.viewport.name,
+            });
             return createAndAppendNodes(log, node, defaultInstruction, node.append);
         }));
     });
@@ -313,7 +324,10 @@ export function getDynamicChildren(node) {
         return onResolve(resolveAll(...node.residue.splice(0).map(vi => {
             return createAndAppendNodes(log, node, vi, node.append);
         }), ...ctx.getAvailableViewportAgents('dynamic').map(vpa => {
-            const defaultInstruction = ViewportInstruction.create(vpa.viewport.default);
+            const defaultInstruction = ViewportInstruction.create({
+                component: vpa.viewport.default,
+                viewport: vpa.viewport.name,
+            });
             return createAndAppendNodes(log, node, defaultInstruction, node.append);
         })), () => {
             return node.children.filter(x => !existingChildren.includes(x));
@@ -370,7 +384,7 @@ function createNode(log, node, vi, append) {
     const rr = ctx.recognize(path);
     if (rr === null) {
         const name = vi.component.value;
-        const ced = ctx.find(CustomElement, name);
+        let ced = ctx.find(CustomElement, name);
         switch (node.tree.options.routingMode) {
             case 'configured-only':
                 if (ced === null) {
@@ -386,7 +400,16 @@ function createNode(log, node, vi, append) {
                     if (name === '') {
                         return null;
                     }
-                    throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
+                    const vpName = vi.viewport === null || vi.viewport.length === 0 ? 'default' : vi.viewport;
+                    const fallbackVPA = ctx.getFallbackViewportAgent('dynamic', vpName);
+                    if (fallbackVPA === null) {
+                        throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' and no fallback was provided for viewport '${vpName}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
+                    }
+                    const fallback = fallbackVPA.viewport.fallback;
+                    ced = ctx.find(CustomElement, fallback);
+                    if (ced === null) {
+                        throw new Error(`the requested component '${name}' and the fallback '${fallback}' at viewport '${vpName}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
+                    }
                 }
                 return createDirectNode(log, node, vi, append, ced);
         }

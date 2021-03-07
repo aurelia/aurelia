@@ -104,6 +104,9 @@ export class RouteContext {
             });
         }
     }
+    get id() {
+        return this.container.id;
+    }
     get isRoot() {
         return this.parent === null;
     }
@@ -246,6 +249,9 @@ export class RouteContext {
         // this.logger.trace(`getResolver(key:${String(key)})`);
         return this.container.getResolver(key, autoRegister);
     }
+    invoke(key, dynamicDependencies) {
+        return this.container.invoke(key, dynamicDependencies);
+    }
     getFactory(key) {
         // this.logger.trace(`getFactory(key:${String(key)})`);
         return this.container.getFactory(key);
@@ -284,6 +290,10 @@ export class RouteContext {
     }
     getAvailableViewportAgents(resolution) {
         return this.childViewportAgents.filter(x => x.isAvailable(resolution));
+    }
+    getFallbackViewportAgent(resolution, name) {
+        var _a;
+        return (_a = this.childViewportAgents.find(x => x.isAvailable(resolution) && x.viewport.name === name && x.viewport.fallback.length > 0)) !== null && _a !== void 0 ? _a : null;
     }
     /**
      * Create a component based on the provided viewportInstruction.

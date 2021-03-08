@@ -7,7 +7,7 @@
 /* eslint-disable no-template-curly-in-string */
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
-import { DI, IContainer, Registration, IIndexable, Key, EventAggregator, IEventAggregator, IDisposable, Protocol } from '@aurelia/kernel';
+import { DI, IContainer, Registration, Key, EventAggregator, IEventAggregator, IDisposable, Protocol } from '@aurelia/kernel';
 import { CustomElementType, ICustomElementViewModel, IAppRoot, ICustomElementController } from '@aurelia/runtime-html';
 import { LoadInstruction } from './interfaces.js';
 import { Navigator, NavigatorNavigateEvent } from './navigator.js';
@@ -449,14 +449,10 @@ export class Router implements IRouter {
     let guard = 100;
     do {
       if (!guard--) { // Guard against endless loop
-        // TODO(alpha): Improve error message!!!
-        const err = new Error(remainingInstructions.length + ' remaining instructions after 100 iterations; there is likely an infinite loop.');
-        (err as Error & IIndexable)['remainingInstructions'] = remainingInstructions;
-        console.log('remainingInstructions', remainingInstructions);
 
         this.ea.publish(RouterNavigationErrorEvent.eventName, RouterNavigationErrorEvent.create(navigation));
         this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.create(navigation));
-        throw err;
+        throw createUnresolvedinstructionsError(remainingInstructions);
       }
       const changedEndpoints: IEndpoint[] = [];
 
@@ -1272,6 +1268,18 @@ export class Router implements IRouter {
 
     return instructions;
   }
+}
+
+interface UnresolvedInstructionsError extends Error {
+  remainingInstructions: RoutingInstruction[];
+}
+
+function createUnresolvedinstructionsError(remainingInstructions: RoutingInstruction[]): UnresolvedInstructionsError {
+  // TODO: Improve error message, including suggesting solutions
+  const error: Partial<UnresolvedInstructionsError> =
+    new Error(`${remainingInstructions.length} remaining instructions after 100 iterations; there is likely an infinite loop.`);
+  error.remainingInstructions = remainingInstructions;
+  return error as UnresolvedInstructionsError;
 }
 
 export class RouterEvent {

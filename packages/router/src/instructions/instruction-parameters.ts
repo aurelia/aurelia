@@ -147,6 +147,9 @@ export class InstructionParameters {
   }
 
   public set(parameters?: ComponentParameters | null): void {
+    this.parametersString = null;
+    this.parametersList = null;
+    this.parametersRecord = null;
     if (parameters == null || parameters === '') {
       this.parametersType = ParametersType.none;
       parameters = null;

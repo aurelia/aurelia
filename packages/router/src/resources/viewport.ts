@@ -80,7 +80,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   /**
    * The connected Viewport.
    */
-  public viewport: Viewport | null = null;
+  public endpoint: Viewport | null = null;
 
   /**
    * The custom element controller.
@@ -130,15 +130,15 @@ export class ViewportCustomElement implements ICustomElementViewModel {
       () => {
         // TODO(post-alpha): Consider using an event instead (not a priority)
         // If a content is waiting for us to be connected...
-        if (this.viewport?.activeResolve != null) {
+        if (this.endpoint?.activeResolve != null) {
           // ...resolve the promise
-          this.viewport.activeResolve();
-          this.viewport.activeResolve = null;
+          this.endpoint.activeResolve();
+          this.endpoint.activeResolve = null;
         }
       },
       () => {
-        if (this.viewport !== null && this.viewport.getNextContent() === null) {
-          return (this.viewport.activate(null, initiator, this.controller, flags, /* true, */ void 0) as Step<void>)?.asValue as void | Promise<void>;
+        if (this.endpoint !== null && this.endpoint.getNextContent() === null) {
+          return (this.endpoint.activate(null, initiator, this.controller, flags, /* true, */ void 0) as Step<void>)?.asValue as void | Promise<void>;
           // TODO: Restore scroll state (in attaching/attached)
         }
       },
@@ -146,15 +146,15 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   }
 
   public detaching(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
-    if (this.viewport !== null) {
+    if (this.endpoint !== null) {
       // TODO: Save scroll state before detach
       this.isBound = false;
-      return this.viewport.deactivate(null, initiator, parent, flags);
+      return this.endpoint.deactivate(null, initiator, parent, flags);
     }
   }
 
   public unbinding(_initiator: IHydratedController, _parent: ISyntheticView | ICustomElementController | null, _flags: LifecycleFlags): void | Promise<void> {
-    if (this.viewport !== null) {
+    if (this.endpoint !== null) {
       // TODO: Don't unload when stateful, instead save to cache. Something like
       // this.viewport.cacheContent();
 
@@ -164,8 +164,8 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   }
 
   public dispose(): void {
-    this.viewport?.dispose();
-    this.viewport = null;
+    this.endpoint?.dispose();
+    this.endpoint = null;
   }
 
   /**
@@ -191,14 +191,14 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     Object.keys(options).forEach(key => options[key as keyof typeof options] === undefined && delete options[key as keyof typeof options]);
 
-    this.viewport = this.router.connectEndpoint(this.viewport, 'Viewport', this, name, options) as Viewport;
+    this.endpoint = this.router.connectEndpoint(this.endpoint, 'Viewport', this, name, options) as Viewport;
   }
   /**
    * Disconnect this custom element from its router endpoint (Viewport).
    */
   public disconnect(step: Step | null): void {
-    if (this.viewport !== null) {
-      this.router.disconnectEndpoint(step, this.viewport, this);
+    if (this.endpoint !== null) {
+      this.router.disconnectEndpoint(step, this.endpoint, this);
     }
   }
 

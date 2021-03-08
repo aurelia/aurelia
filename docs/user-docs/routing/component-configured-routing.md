@@ -19,7 +19,7 @@ This approach works wonders for situations where you want a section inside your 
 ```text
 import { customElement, IRouteViewModel, Params, IPlatform, route } from 'aurelia';
 
-  
+
 import template from './user-profile.html';
 
 @route({

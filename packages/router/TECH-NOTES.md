@@ -2,7 +2,7 @@
 All navigations roughly follow the same flow:
 1) A user action (link click, browser navigation, api call) results in a set of `LoadInstruction`s to the `Router`, prepared by the corresponding handler (`LinkHandler`, `BrowserViewerStore` and `Router` respectively).
 2) The `Router` enriches the `LoadInstruction`(s) into a `Navigation` that's sent to the `Navigator`.
-3) The `Navigator` enriches the `Navigation` further and sends it to the `Router` for processing.
+3) The `Navigator` enriches the `Navigation` further, primarily with historical data, and sends it to the `Router` for processing.
 4) The `Router` turns, with help from the `RoutingScope`s, the `Navigation` into a set of `RoutingInstruction`s.
 5) The `RoutingInstruction`s are then, again with the help of the `RoutingScope`s, matched to the appropriate `Endpoint`s. (But `Endpoint`s are not yet receiving the `RoutingInstruction`s.)
 6) The `Endpoint`s are informed of their `RoutingInstruction`s.

@@ -140,8 +140,7 @@ export class TaskQueue<T> {
     return new QueueTask(this, item, cost);
   }
 
-  @bound
-  public dequeue(delta?: number): void {
+  public dequeue = (delta?: number): void => {
     if (this.processing !== null) {
       return;
     }
@@ -174,18 +173,24 @@ export class TaskQueue<T> {
     // } else {
     //   this.task = null;
     // }
-  }
+  };
 
   public clear(): void {
-    this.pending.splice(0, this.pending.length);
+    this.pending.length = 0;
   }
 
-  public resolve(task: QueueTask<T>, resolve: ((value: void | boolean | PromiseLike<void> | PromiseLike<boolean>) => void)): void {
+  /**
+   * @internal
+   */
+  public resolve(_task: QueueTask<T>, resolve: ((value: void | boolean | PromiseLike<void> | PromiseLike<boolean>) => void)): void {
     resolve();
     this.processing = null;
     this.dequeue();
   }
-  public reject(task: QueueTask<T>, reject: ((value: unknown | PromiseLike<unknown>) => void), reason: unknown): void {
+  /**
+   * @internal
+   */
+  public reject(_task: QueueTask<T>, reject: ((value: unknown | PromiseLike<unknown>) => void), reason: unknown): void {
     reject(reason);
     this.processing = null;
     this.dequeue();

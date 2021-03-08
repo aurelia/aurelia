@@ -350,7 +350,7 @@ export class NavigationCoordinator {
     });
     // TODO: Review this since it probably should happen in turn
     this.router.navigator.cancel(this.navigation).then(() => {
-      this.router.processingNavigation = null;
+      // this.router.processingNavigation = null;
       this.navigation.process?.resolve(false);
     }).catch(error => { throw error; });
     this.completed = true;

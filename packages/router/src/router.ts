@@ -161,10 +161,10 @@ export class Router implements IRouter {
    */
   public appendedInstructions: RoutingInstruction[] = [];
 
-  /**
-   * The currently processed navigation.
-   */
-  public processingNavigation: Navigation | null = null;
+  // /**
+  //  * The currently processed navigation.
+  //  */
+  // public processingNavigation: Navigation | null = null;
 
   /**
    * Whether the router is active/started
@@ -218,7 +218,7 @@ export class Router implements IRouter {
    * Whether the router is currently navigating.
    */
   public get isNavigating(): boolean {
-    return this.processingNavigation !== null;
+    return this.coordinators.length > 0;
   }
 
   /**
@@ -352,8 +352,7 @@ export class Router implements IRouter {
    * @internal
    */
   public processNavigation = async (navigation: Navigation): Promise<void> => {
-    // const navigation = this.processingNavigation = evNavigation as Navigation;
-    this.processingNavigation = navigation;
+    // this.processingNavigation = navigation;
 
     // // TODO: This can now probably be removed. Investigate!
     // this.pendingConnects.clear();
@@ -375,7 +374,7 @@ export class Router implements IRouter {
 
     // Invoke the transformFromUrl hook if it exists
     let transformedInstruction = typeof navigation.instruction === 'string' && !navigation.useFullStateInstruction
-      ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, this.processingNavigation as Navigation)
+      ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
       : navigation.instruction;
     // TODO: Review this
     if (transformedInstruction === '/') {
@@ -686,6 +685,7 @@ export class Router implements IRouter {
         if (navigation.navigation.new && !navigation.navigation.first && !navigation.repeating && allChangedEndpoints.every(endpoint => endpoint.options.noHistory)) {
           navigation.untracked = true;
         }
+        // TODO: Review this when adding noHistory back
         // this.lastNavigation = this.processingNavigation;
         // if (this.lastNavigation?.repeating ?? false) {
         //   this.lastNavigation!.repeating = false;
@@ -693,7 +693,7 @@ export class Router implements IRouter {
         // return this.navigator.finalize(navigation, this.coordinators.length === 1);
       },
       async () => {
-        this.processingNavigation = null;
+        // this.processingNavigation = null;
         while (this.coordinators.length > 0 && this.coordinators[0].completed) {
           const coord = this.coordinators.shift() as NavigationCoordinator;
 
@@ -795,7 +795,7 @@ export class Router implements IRouter {
     let scope: RoutingScope | null = null;
     ({ instructions, scope } = this.applyLoadOptions(instructions, options));
 
-    if ((options.append ?? false) && (!this.loadedFirst || this.processingNavigation !== null)) {
+    if ((options.append ?? false) && (!this.loadedFirst || this.isNavigating)) {
       instructions = RoutingInstruction.from(instructions);
       this.appendInstructions(instructions as RoutingInstruction[], scope);
       // Can't return current navigation promise since it can lead to deadlock in load

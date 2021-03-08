@@ -1053,10 +1053,11 @@ export class Router implements IRouter {
     const allRemainingInstructions: RoutingInstruction[] = [];
 
     while (instructions.length) {
-      if (instructions[0].scope === null) {
-        instructions[0].scope = this.rootScope!.scope;
+      const currInstruction = instructions[0];
+      if (currInstruction.scope === null) {
+        currInstruction.scope = this.rootScope!.scope;
       }
-      const scope: RoutingScope = instructions[0].scope;
+      const scope: RoutingScope = currInstruction.scope;
       const { matchedInstructions, remainingInstructions } = scope.matchEndpoints(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
       allMatchedInstructions.push(...matchedInstructions);
       allRemainingInstructions.push(...remainingInstructions);

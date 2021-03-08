@@ -58,7 +58,7 @@ class Entity {
   /**
    * The navigation state the entity is currently syncing/waiting on.
    */
-  public syncState: NavigationState | null = null;
+  public syncingState: NavigationState | null = null;
   /**
    * The (open) promise to resolve when the entity has reached its sync state.
    */
@@ -262,7 +262,7 @@ export class NavigationCoordinator {
       // is still pending)...
       if (entity?.syncPromise === null && openPromise.isPending) {
         // ...mark the entity as waiting for the state.
-        entity.syncState = state;
+        entity.syncingState = state;
         entity.syncPromise = new OpenPromise();
         // Also add the state as checked for the entity...
         entity.checkedStates.push(state);
@@ -381,10 +381,10 @@ export class NavigationCoordinator {
       (!this.checkedSyncStates.has(state) || this.entities.every(ent => ent.checkedStates.includes(state)))
     ) {
       for (const entity of this.entities) {
-        if (entity.syncState === state) {
+        if (entity.syncingState === state) {
           entity.syncPromise?.resolve();
           entity.syncPromise = null;
-          entity.syncState = null;
+          entity.syncingState = null;
         }
       }
       openPromise.resolve();

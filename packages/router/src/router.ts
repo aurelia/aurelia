@@ -249,8 +249,11 @@ export class Router implements IRouter {
     if (this.isActive) {
       throw new Error('Router has already been started');
     }
-
     this.isActive = true;
+
+    const root = this.container.get(IAppRoot);
+    // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
+    this.rootScope = new ViewportScope(this, 'rootScope', root.controller.viewModel as IConnectedCustomElement, null, true, root.config.component as CustomElementType);
 
     this.navigator.start({
       store: this.store,

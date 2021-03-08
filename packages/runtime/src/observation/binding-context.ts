@@ -118,7 +118,7 @@ function chooseContext(
     return name in overrideContext ? overrideContext : overrideContext.bindingContext;
   }
 
-  const fromView = mode != null && (mode & BindingMode.fromView) > 0;
+  const fromView = mode === BindingMode.fromView;
   // traverse the context and it's ancestors, searching for a context that has the name.
   while (
     !currentScope?.isComponentBoundary
@@ -135,7 +135,8 @@ function chooseContext(
   }
 
   if (overrideContext) {
-    return (name in overrideContext || fromView) ? overrideContext : overrideContext.bindingContext;
+    const bc = overrideContext.bindingContext;
+    return (name in overrideContext || (fromView && !(name in bc))) ? overrideContext : bc;
   }
 
   return null;

@@ -2278,13 +2278,14 @@ describe('BindingBehaviorExpression', function () {
         assert.strictEqual(mock.calls[0][5 + i], argValues[i], `mock.calls[0][5 + i]`);
         // verify the arguments that the bb's argument expressions were called with to obtain the values
         assert.strictEqual(arg.calls.length, 1, `arg.calls.length`);
-        assert.strictEqual(arg.calls[0].length, 6, `arg.calls[0].length`);
+        assert.strictEqual(arg.calls[0].length, 7, `arg.calls[0].length`);
         assert.strictEqual(arg.calls[0][0], 'evaluate', `arg.calls[0][0]`);
         assert.strictEqual(arg.calls[0][1], flags, `arg.calls[0][1]`);
         assert.strictEqual(arg.calls[0][2], scope, `arg.calls[0][2]`);
         assert.strictEqual(arg.calls[0][3], hs, `arg.calls[0][3]`);
         assert.strictEqual(arg.calls[0][4], locator, `arg.calls[0][4]`);
         assert.strictEqual(arg.calls[0][5], null, `arg.calls[0][5]`);
+        assert.strictEqual(arg.calls[0][6], null, `arg.calls[0][6]`);
       }
 
       if ($kind & ExpressionKind.HasBind) {
@@ -2315,13 +2316,14 @@ describe('BindingBehaviorExpression', function () {
 
       const callCount = ($kind & ExpressionKind.HasBind) > 0 ? 2 : 1;
       assert.strictEqual(expr.calls.length, callCount, `expr.calls.length`);
-      assert.strictEqual(expr.calls[callCount - 1].length, 6, `expr.calls[callCount - 1].length`);
+      assert.strictEqual(expr.calls[callCount - 1].length, 7, `expr.calls[callCount - 1].length`);
       assert.strictEqual(expr.calls[callCount - 1][0], 'evaluate', `expr.calls[callCount - 1][0]`);
       assert.strictEqual(expr.calls[callCount - 1][1], flags, `expr.calls[callCount - 1][1]`);
       assert.strictEqual(expr.calls[callCount - 1][2], scope, `expr.calls[callCount - 1][2]`);
       assert.strictEqual(expr.calls[callCount - 1][3], hs, `expr.calls[callCount - 1][3]`);
       assert.strictEqual(expr.calls[callCount - 1][4], binding.locator, `expr.calls[callCount - 1][4]`);
       assert.strictEqual(expr.calls[callCount - 1][5], null, `expr.calls[callCount - 1][5]`);
+      assert.strictEqual(expr.calls[callCount - 1][6], null, `expr.calls[callCount - 1][6]`);
     }
   ];
 
@@ -2341,13 +2343,14 @@ describe('BindingBehaviorExpression', function () {
 
       const callCount = ($kind & ExpressionKind.HasBind) > 0 ? 3 : 2;
       assert.strictEqual(expr.calls.length, callCount, `expr.calls.length`);
-      assert.strictEqual(expr.calls[callCount - 1].length, 6, `expr.calls[callCount - 1].length`);
+      assert.strictEqual(expr.calls[callCount - 1].length, 7, `expr.calls[callCount - 1].length`);
       assert.strictEqual(expr.calls[callCount - 1][0], 'evaluate', `expr.calls[callCount - 1][0]`);
       assert.strictEqual(expr.calls[callCount - 1][1], flags, `expr.calls[callCount - 1][1]`);
       assert.strictEqual(expr.calls[callCount - 1][2], scope, `expr.calls[callCount - 1][2]`);
       assert.strictEqual(expr.calls[callCount - 1][3], hs, `expr.calls[callCount - 1][3]`);
       assert.strictEqual(expr.calls[callCount - 1][4], locator, `expr.calls[callCount - 1][4]`);
       assert.strictEqual(expr.calls[callCount - 1][5], binding, `expr.calls[callCount - 1][5]`);
+      assert.strictEqual(expr.calls[callCount - 1][6], null, `expr.calls[callCount - 1][6]`);
     }
   ];
 
@@ -2366,13 +2369,14 @@ describe('BindingBehaviorExpression', function () {
 
       const callCount = ($kind & ExpressionKind.HasBind) > 0 ? 4 : 3;
       assert.strictEqual(expr.calls.length, callCount, `expr.calls.length`);
-      assert.strictEqual(expr.calls[callCount - 1].length, 6, `expr.calls[callCount - 1].length`);
+      assert.strictEqual(expr.calls[callCount - 1].length, 7, `expr.calls[callCount - 1].length`);
       assert.strictEqual(expr.calls[callCount - 1][0], 'assign', `expr.calls[callCount - 1][0]`);
       assert.strictEqual(expr.calls[callCount - 1][1], flags, `expr.calls[callCount - 1][1]`);
       assert.strictEqual(expr.calls[callCount - 1][2], scope, `expr.calls[callCount - 1][2]`);
       assert.strictEqual(expr.calls[callCount - 1][3], hs, `expr.calls[callCount - 1][3]`);
       assert.strictEqual(expr.calls[callCount - 1][4], binding.locator, `expr.calls[callCount - 1][4]`);
-      assert.strictEqual(expr.calls[callCount - 1][5], newValue, `expr.calls[callCount - 1][5]`);
+      assert.strictEqual(expr.calls[callCount - 1][5], null, `expr.calls[callCount - 1][5]`);
+      assert.strictEqual(expr.calls[callCount - 1][6], newValue, `expr.calls[callCount - 1][6]`);
 
       return newValue;
     }
@@ -2392,13 +2396,14 @@ describe('BindingBehaviorExpression', function () {
 
       const callCount = ($kind & ExpressionKind.HasBind) > 0 ? 5 : 4;
       assert.strictEqual(expr.calls.length, callCount, `expr.calls.length`);
-      assert.strictEqual(expr.calls[callCount - 1].length, 6, `expr.calls[callCount - 1].length`);
+      assert.strictEqual(expr.calls[callCount - 1].length, 7, `expr.calls[callCount - 1].length`);
       assert.strictEqual(expr.calls[callCount - 1][0], 'evaluate', `expr.calls[callCount - 1][0]`);
       assert.strictEqual(expr.calls[callCount - 1][1], flags, `expr.calls[callCount - 1][1]`);
       assert.strictEqual(expr.calls[callCount - 1][2], scope, `expr.calls[callCount - 1][2]`);
       assert.strictEqual(expr.calls[callCount - 1][3], hs, `expr.calls[callCount - 1][3]`);
       assert.strictEqual(expr.calls[callCount - 1][4], binding.locator, `expr.calls[callCount - 1][4]`);
       assert.strictEqual(expr.calls[callCount - 1][5], null, `expr.calls[callCount - 1][5]`);
+      assert.strictEqual(expr.calls[callCount - 1][6], null, `expr.calls[callCount - 1][6]`);
     }
   ];
 
@@ -2641,25 +2646,27 @@ describe('ValueConverterExpression', function () {
       }
 
       $1stAssertStrictEqual(expr.calls.length, 1, `expr.calls.length`);
-      $1stAssertStrictEqual(expr.calls[0].length, 6, `expr.calls[0].length`);
+      $1stAssertStrictEqual(expr.calls[0].length, 7, `expr.calls[0].length`);
       $1stAssertStrictEqual(expr.calls[0][0], 'evaluate', `expr.calls[0][0]`);
       $1stAssertStrictEqual(expr.calls[0][1], flags, `expr.calls[0][1]`);
       $1stAssertStrictEqual(expr.calls[0][2], scope, `expr.calls[0][2]`);
       $1stAssertStrictEqual(expr.calls[0][3], hs, `expr.calls[0][3]`);
       $1stAssertStrictEqual(expr.calls[0][4], binding.locator, `expr.calls[0][4]`);
       $1stAssertStrictEqual(expr.calls[0][5], null, `expr.calls[0][5]`);
+      $1stAssertStrictEqual(expr.calls[0][6], null, `expr.calls[0][6]`);
 
       for (let i = 0, ii = args.length; i < ii; ++i) {
         const arg = args[i];
         if (methods.includes('toView')) {
           $1stAssertStrictEqual(arg.calls.length, 1, `arg.calls.length`);
-          $1stAssertStrictEqual(arg.calls[0].length, 6, `arg.calls[0].length`);
+          $1stAssertStrictEqual(arg.calls[0].length, 7, `arg.calls[0].length`);
           $1stAssertStrictEqual(arg.calls[0][0], 'evaluate', `arg.calls[0][0]`);
           $1stAssertStrictEqual(arg.calls[0][1], flags, `arg.calls[0][1]`);
           $1stAssertStrictEqual(arg.calls[0][2], scope, `arg.calls[0][2]`);
           $1stAssertStrictEqual(arg.calls[0][3], hs, `arg.calls[0][3]`);
           $1stAssertStrictEqual(arg.calls[0][4], binding.locator, `arg.calls[0][4]`);
           $1stAssertStrictEqual(arg.calls[0][5], null, `arg.calls[0][5]`);
+          $1stAssertStrictEqual(arg.calls[0][6], null, `arg.calls[0][6]`);
         } else {
           $1stAssertStrictEqual(arg.calls.length, 0, `arg.calls.length`);
         }
@@ -2683,26 +2690,28 @@ describe('ValueConverterExpression', function () {
       const expr = sut.expression as any as MockTracingExpression;
 
       assert.strictEqual(expr.calls.length, 2, `expr.calls.length`);
-      assert.strictEqual(expr.calls[1].length, 6, `expr.calls[1].length`);
+      assert.strictEqual(expr.calls[1].length, 7, `expr.calls[1].length`);
       assert.strictEqual(expr.calls[1][0], 'evaluate', `expr.calls[1][0]`);
       assert.strictEqual(expr.calls[1][1], flags, `expr.calls[1][1]`);
       assert.strictEqual(expr.calls[1][2], scope, `expr.calls[1][2]`);
       assert.strictEqual(expr.calls[1][3], hs, `expr.calls[1][3]`);
       assert.strictEqual(expr.calls[1][4], locator, `expr.calls[1][4]`);
       assert.strictEqual(expr.calls[1][5], binding, `expr.calls[1][5]`);
+      assert.strictEqual(expr.calls[1][6], null, `expr.calls[1][6]`);
 
       const args = sut.args as any as MockTracingExpression[];
       for (let i = 0, ii = args.length; i < ii; ++i) {
         const arg = args[i];
         const offset = hasToView ? 1 : 0;
         assert.strictEqual(arg.calls.length, offset + 1, `arg.calls.length`);
-        assert.strictEqual(arg.calls[offset].length, 6, `arg.calls[offset].length`);
+        assert.strictEqual(arg.calls[offset].length, 7, `arg.calls[offset].length`);
         assert.strictEqual(arg.calls[offset][0], 'evaluate', `arg.calls[offset][0]`);
         assert.strictEqual(arg.calls[offset][1], flags, `arg.calls[offset][1]`);
         assert.strictEqual(arg.calls[offset][2], scope, `arg.calls[offset][2]`);
         assert.strictEqual(arg.calls[offset][3], hs, `arg.calls[offset][3]`);
         assert.strictEqual(arg.calls[offset][4], locator, `arg.calls[offset][4]`);
         assert.strictEqual(arg.calls[offset][5], binding, `arg.calls[offset][5]`);
+        assert.strictEqual(arg.calls[offset][6], null, `arg.calls[offset][6]`);
       }
 
       if (signals) {
@@ -2750,25 +2759,27 @@ describe('ValueConverterExpression', function () {
       }
 
       assert.strictEqual(expr.calls.length, 3, `expr.calls.length`);
-      assert.strictEqual(expr.calls[2].length, 6, `expr.calls[2].length`);
+      assert.strictEqual(expr.calls[2].length, 7, `expr.calls[2].length`);
       assert.strictEqual(expr.calls[2][0], 'assign', `expr.calls[2][0]`);
       assert.strictEqual(expr.calls[2][1], flags, `expr.calls[2][1]`);
       assert.strictEqual(expr.calls[2][2], scope, `expr.calls[2][2]`);
       assert.strictEqual(expr.calls[2][3], hs, `expr.calls[2][3]`);
       assert.strictEqual(expr.calls[2][4], binding.locator, `expr.calls[2][4]`);
-      assert.strictEqual(expr.calls[2][5], newValue, `expr.calls[2][5]`);
+      assert.strictEqual(expr.calls[2][5], null, `expr.calls[2][5]`);
+      assert.strictEqual(expr.calls[2][6], newValue, `expr.calls[2][6]`);
 
       for (let i = 0, ii = args.length; i < ii; ++i) {
         const arg = args[i];
         const callCount = hasToView ? hasFromView ? 3 : 2 : 1;
         assert.strictEqual(arg.calls.length, callCount, `arg.calls.length`);
-        assert.strictEqual(arg.calls[callCount - 1].length, 6, `arg.calls[callCount - 1].length`);
+        assert.strictEqual(arg.calls[callCount - 1].length, 7, `arg.calls[callCount - 1].length`);
         assert.strictEqual(arg.calls[callCount - 1][0], 'evaluate', `arg.calls[callCount - 1][0]`);
         assert.strictEqual(arg.calls[callCount - 1][1], flags, `arg.calls[callCount - 1][1]`);
         assert.strictEqual(arg.calls[callCount - 1][2], scope, `arg.calls[callCount - 1][2]`);
         assert.strictEqual(arg.calls[callCount - 1][3], hs, `arg.calls[callCount - 1][3]`);
         assert.strictEqual(arg.calls[callCount - 1][4], binding.locator, `arg.calls[callCount - 1][4]`);
         assert.strictEqual(arg.calls[callCount - 1][5], null, `arg.calls[callCount - 1][5]`);
+        assert.strictEqual(arg.calls[callCount - 1][6], null, `arg.calls[callCount - 1][6]`);
       }
 
       return newValue;
@@ -2806,24 +2817,26 @@ describe('ValueConverterExpression', function () {
         const arg = args[i];
         $2ndAssertStrictEqual(arg.calls.length, callCount, `arg.calls.length`);
         if (hasToView) {
-          $2ndAssertStrictEqual(arg.calls[callCount - 1].length, 6, `arg.calls[callCount - 1].length`);
+          $2ndAssertStrictEqual(arg.calls[callCount - 1].length, 7, `arg.calls[callCount - 1].length`);
           $2ndAssertStrictEqual(arg.calls[callCount - 1][0], 'evaluate', `arg.calls[callCount - 1][0]`);
           $2ndAssertStrictEqual(arg.calls[callCount - 1][1], flags, `arg.calls[callCount - 1][1]`);
           $2ndAssertStrictEqual(arg.calls[callCount - 1][2], scope, `arg.calls[callCount - 1][2]`);
           $2ndAssertStrictEqual(arg.calls[callCount - 1][3], hs, `arg.calls[callCount - 1][3]`);
           $2ndAssertStrictEqual(arg.calls[callCount - 1][4], binding.locator, `arg.calls[callCount - 1][4]`);
           $2ndAssertStrictEqual(arg.calls[callCount - 1][5], null, `arg.calls[callCount - 1][5]`);
+          $2ndAssertStrictEqual(arg.calls[callCount - 1][6], null, `arg.calls[callCount - 1][6]`);
         }
       }
 
       $2ndAssertStrictEqual(expr.calls.length, 4, `expr.calls.length`);
-      $2ndAssertStrictEqual(expr.calls[3].length, 6, `expr.calls[3].length`);
+      $2ndAssertStrictEqual(expr.calls[3].length, 7, `expr.calls[3].length`);
       $2ndAssertStrictEqual(expr.calls[3][0], 'evaluate', `expr.calls[3][0]`);
       $2ndAssertStrictEqual(expr.calls[3][1], flags, `expr.calls[3][1]`);
       $2ndAssertStrictEqual(expr.calls[3][2], scope, `expr.calls[3][2]`);
       $2ndAssertStrictEqual(expr.calls[3][3], hs, `expr.calls[3][3]`);
       $2ndAssertStrictEqual(expr.calls[3][4], binding.locator, `expr.calls[3][4]`);
       $2ndAssertStrictEqual(expr.calls[3][5], null, `expr.calls[3][5]`);
+      $2ndAssertStrictEqual(expr.calls[3][6], null, `expr.calls[3][6]`);
     }
   ];
 

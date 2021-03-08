@@ -28,7 +28,7 @@ import {
   TestFunction,
 } from '../util.js';
 
-describe('runtime-html.integration', function () {
+describe.only('runtime-html.integration', function () {
 
   async function runTest<TApp>(
     testFunction: TestFunction<IntegrationTestExecutionContext<TApp>>,
@@ -208,9 +208,9 @@ describe('runtime-html.integration', function () {
           const cgc = host.querySelector('#cgc');
           const cc = host.querySelector('#cc');
           const cr = host.querySelector('#cr');
-          assert.html.textContent(cgc, '3');
-          assert.html.textContent(cc, '3');
-          assert.html.textContent(cr, '3');
+          assert.html.textContent(cgc, '3', '#cgc');
+          assert.html.textContent(cc, '3', '#cc');
+          assert.html.textContent(cr, '3', '#cr');
 
           const childVm = CustomElement.for<Child>(host.querySelector('child')).viewModel;
           assert.strictEqual(childVm.value, 3);
@@ -368,14 +368,14 @@ describe('runtime-html.integration', function () {
     {
       @customElement({ name: 'app', isStrictBinding: true, template: '<child value.from-view="value"></child><div id="cr">${value}</div>' })
       class App {
-        public value: number;
+        public value: number = undefined!;
       }
       @customElement({ name: 'child', isStrictBinding: true, template: '<div id="cc">${value}</div>' })
       class Child {
         @bindable({ mode: BindingMode.toView }) public value: number = 2;
       }
       yield new TestData(
-        'to-view (child) -> from-view (root)',
+        'to-view (child) -> from-view (root) - #1',
         App,
         [Child],
         async function (ctx) {
@@ -392,6 +392,80 @@ describe('runtime-html.integration', function () {
           const childVm = CustomElement.for<Child>(host.querySelector('child')).viewModel;
           assert.strictEqual(childVm.value, 2, 'child.value.2');
           assert.html.textContent(cc, '2', 'cc.text.2');
+          assert.html.textContent(cr, '24', 'cr.text.2');
+
+          childVm.value = 42;
+          ctx.platform.domWriteQueue.flush();
+          assert.strictEqual(app.value, 42, 'app.value.3');
+          assert.html.textContent(cc, '42', 'cc.text.3');
+          assert.html.textContent(cr, '42', 'cr.text.3');
+        }
+      );
+    }
+    {
+      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.from-view="value"></child><div id="cr">${value}</div>' })
+      class App {
+        public value: number;
+      }
+      @customElement({ name: 'child', isStrictBinding: true, template: '<div id="cc">${value}</div>' })
+      class Child {
+        @bindable({ mode: BindingMode.toView }) public value: number = 2;
+      }
+      yield new TestData(
+        'to-view (child) -> from-view (root) - #2',
+        App,
+        [Child],
+        async function (ctx) {
+          const app = ctx.app;
+          const host = ctx.host;
+          const cc = host.querySelector('#cc');
+          const cr = host.querySelector('#cr');
+          assert.html.textContent(cc, '2', 'cc.text.1');
+          assert.html.textContent(cr, '2', 'cr.text.1');
+          assert.strictEqual(app.value, undefined, 'app.value.1');
+
+          app.value = 24;
+          ctx.platform.domWriteQueue.flush();
+          const childVm = CustomElement.for<Child>(host.querySelector('child')).viewModel;
+          assert.strictEqual(childVm.value, 2, 'child.value.2');
+          assert.html.textContent(cc, '2', 'cc.text.2');
+          assert.html.textContent(cr, '2', 'cr.text.2'); // `value` is not being observed, as it was not present in the bindingContext before the assignment.
+
+          childVm.value = 42;
+          ctx.platform.domWriteQueue.flush();
+          assert.strictEqual(app.value, 24, 'app.value.3'); // change does not get propagated, as `value`is not being observed.
+          assert.html.textContent(cc, '42', 'cc.text.3');
+          assert.html.textContent(cr, '42', 'cr.text.3');
+        }
+      );
+    }
+    {
+      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.from-view="$this.value"></child><div id="cr">${value}</div>' })
+      class App {
+        public value: number;
+      }
+      @customElement({ name: 'child', isStrictBinding: true, template: '<div id="cc">${value}</div>' })
+      class Child {
+        @bindable({ mode: BindingMode.toView }) public value: number = 2;
+      }
+      yield new TestData(
+        'to-view (child) -> from-view (root) - #3',
+        App,
+        [Child],
+        async function (ctx) {
+          const app = ctx.app;
+          const host = ctx.host;
+          const cc = host.querySelector('#cc');
+          const cr = host.querySelector('#cr');
+          assert.html.textContent(cc, '2', 'cc.text.1');
+          assert.html.textContent(cr, '2', 'cr.text.1');
+          assert.strictEqual(app.value, 2, 'app.value.1');
+
+          app.value = 24;
+          ctx.platform.domWriteQueue.flush();
+          const childVm = CustomElement.for<Child>(host.querySelector('child')).viewModel;
+          assert.strictEqual(childVm.value, 24, 'child.value.2');
+          assert.html.textContent(cc, '24', 'cc.text.2');
           assert.html.textContent(cr, '24', 'cr.text.2');
 
           childVm.value = 42;

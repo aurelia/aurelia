@@ -265,8 +265,6 @@ export class Router implements IRouter {
     this.navigatorNavigateEventSubscription = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
     this.viewer.start({ useUrlFragmentHash: RouterConfiguration.options.useUrlFragmentHash });
 
-    this.ensureRootScope();
-
     this.ea.publish(RouterStartEvent.eventName, RouterStartEvent.create());
   }
 
@@ -1155,18 +1153,6 @@ export class Router implements IRouter {
       }
     }
     return { matchedInstructions, earlierMatchedInstructions, remainingInstructions };
-  }
-
-  /**
-   * Ensure that the root scope exists.
-   */
-  private ensureRootScope(): ViewportScope {
-    if (!this.rootScope) {
-      const root = this.container.get(IAppRoot);
-      // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
-      this.rootScope = new ViewportScope(this, 'rootScope', root.controller.viewModel as IConnectedCustomElement, null, true, root.config.component as CustomElementType);
-    }
-    return this.rootScope;
   }
 
   /**

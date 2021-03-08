@@ -29,19 +29,15 @@ export class LinkHandler implements EventListenerObject {
     }
 
     const target = event.currentTarget as Element;
-    // eslint-disable-next-line eqeqeq
-    if (target == null) {
+
+    // Ignore links with the `external` attribute
+    if (target.hasAttribute('external')) {
       return;
     }
 
     // Only process links into this window
     const targetWindow = target.getAttribute('target') ?? '';
     if (targetWindow.length > 0 && targetWindow !== this.window.name && targetWindow !== '_self') {
-      return;
-    }
-
-    // Ignore links with the `external` attribute
-    if (target.hasAttribute('external')) {
       return;
     }
 

@@ -69,10 +69,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel {
       }
     }
     // TODO: Use router configuration for class name and update target
-    if (this.router.checkActive(instructions)) {
-      this.element.classList.add(this.activeClass);
-    } else {
-      this.element.classList.remove(this.activeClass);
-    }
+    this.element.classList.toggle(this.activeClass,
+      this.router.checkActive(instructions, { context: controller }));
   };
 }

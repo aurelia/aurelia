@@ -6,7 +6,7 @@ describe('Configuration', function () {
   function getModifiedRouter(container) {
     const router = container.get(IRouter);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-    mockBrowserHistoryLocation.changeCallback = router.viewer.handlePopstate;
+    mockBrowserHistoryLocation.changeCallback = async (ev) => { router.viewer.handlePopStateEvent(ev); };
     router.viewer.history = mockBrowserHistoryLocation as any;
     router.viewer.location = mockBrowserHistoryLocation as any;
     return router;

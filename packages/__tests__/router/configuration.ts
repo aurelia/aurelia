@@ -14,8 +14,7 @@ export const TestRouterConfiguration = {
           Registration.instance(IHistory, mockBrowserHistoryLocation),
           Registration.instance(ILocation, mockBrowserHistoryLocation),
           AppTask.with(IRouter).hydrating().call(router => {
-            // mockBrowserHistoryLocation.changeCallback = router['handlePopstate'];
-            mockBrowserHistoryLocation.changeCallback = router.viewer.handlePopstate;
+            mockBrowserHistoryLocation.changeCallback = async (ev) => { router.viewer.handlePopStateEvent(ev); };
           }),
         );
       },

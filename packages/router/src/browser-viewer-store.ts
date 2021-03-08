@@ -32,7 +32,7 @@ export interface IBrowserViewerStoreOptions extends INavigatorViewerOptions {
  *
  * @internal
  */
-export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
+export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, EventListenerObject {
   /**
    * Limit the number of executed actions within the same RAF (due to browser limitation).
    */
@@ -79,7 +79,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     }
     this.pendingCalls.start({ platform: this.platform, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    this.window.addEventListener('popstate', this.handlePopStateEvent);
+    this.window.addEventListener('popstate', this);
   }
 
   public stop(): void {
@@ -87,7 +87,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
       throw new Error('Browser navigation has not been started');
     }
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    this.window.removeEventListener('popstate', this.handlePopStateEvent);
+    this.window.removeEventListener('popstate', this);
     this.pendingCalls.stop();
     this.options = { useUrlFragmentHash: true };
     this.isActive = false;
@@ -109,14 +109,12 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
    */
   public get viewerState(): NavigatorViewerState {
     const { pathname, search, hash } = this.location;
-    return Object.assign(
-      new NavigatorViewerState(),
-      {
-        path: pathname,
-        query: search.slice(1),
-        hash,
-        instruction: this.options.useUrlFragmentHash ? hash.slice(1) : pathname,
-      });
+    return new NavigatorViewerState(
+      pathname,
+      search.slice(1),
+      hash,
+      (this.options.useUrlFragmentHash ?? false) ? hash.slice(1) : pathname,
+    );
   }
 
   /**
@@ -131,13 +129,12 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
 
     this.pendingCalls.enqueue([
       (task: QueueTask<IAction>) => {
-        const store: BrowserViewerStore = this;
         const eventTask: QueueTask<IAction> = doneTask;
         const suppressPopstate: boolean = suppressEvent;
 
         // Set the "forwarded state" that decides whether the browser's popstate event
         // should fire a change state event or not
-        store.forwardState({ eventTask, suppressPopstate });
+        this.forwardState({ eventTask, suppressPopstate });
         task.resolve();
       },
       (task: QueueTask<IAction>) => {
@@ -222,10 +219,9 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
 
     this.pendingCalls.enqueue(
       async (task: QueueTask<IAction>): Promise<void> => {
-        const store: BrowserViewerStore = this;
         const eventTask: QueueTask<IAction> = doneTask;
 
-        await store.popState(eventTask);
+        await this.popState(eventTask);
         task.resolve();
       }, 1);
     return doneTask.wait();
@@ -236,28 +232,35 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
   }
 
   /**
+   * Handle the browsers PopStateEvent
+   *
+   * @param event - The browser's PopStateEvent
+   */
+  public handleEvent(e: Event): void {
+    this.handlePopStateEvent(e as PopStateEvent);
+  }
+
+  /**
    * Enqueue an awaitable 'pop state' task when the viewer's state (browser's
    * Location) changes.
    *
    * @param event - The browser's PopStateEvent
    */
-  private readonly handlePopStateEvent: (event: PopStateEvent) => Promise<boolean | void> =
-    async (event: PopStateEvent): Promise<boolean | void> => {
-      // Get event to resolve when done and whether state change event should be suppressed
-      const { eventTask, suppressPopstate } = this.forwardedState;
-      this.forwardedState = { eventTask: null, suppressPopstate: false };
+  private handlePopStateEvent(event: PopStateEvent): void {
+    // Get event to resolve when done and whether state change event should be suppressed
+    const { eventTask, suppressPopstate } = this.forwardedState;
+    this.forwardedState = { eventTask: null, suppressPopstate: false };
 
-      return this.pendingCalls.enqueue(
-        async (task: QueueTask<IAction>) => {
-          const store: BrowserViewerStore = this;
-          const ev: PopStateEvent = event;
-          const evTask: QueueTask<IAction> | null = eventTask;
-          const suppressPopstateEvent: boolean = suppressPopstate;
+    this.pendingCalls.enqueue(
+      async (task: QueueTask<IAction>) => {
+        const ev: PopStateEvent = event;
+        const evTask: QueueTask<IAction> | null = eventTask;
+        const suppressPopstateEvent: boolean = suppressPopstate;
 
-          await store.notifySubscribers(ev, evTask, suppressPopstateEvent);
-          task.resolve();
-        }, 1).wait();
-    };
+        await this.notifySubscribers(ev, evTask, suppressPopstateEvent);
+        task.resolve();
+      }, 1);
+  }
 
   /**
    * Notifies subscribers that the state has changed
@@ -327,25 +330,27 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
  * @internal
  */
 export class NavigatorViewerState {
-  /**
-   * The URL (Location) path
-   */
-  public path!: string;
+  public constructor(
+    /**
+     * The URL (Location) path
+     */
+    public path: string,
 
-  /**
-   * The URL (Location) query
-   */
-  public query!: string;
+    /**
+     * The URL (Location) query
+     */
+    public query: string,
 
-  /**
-   * The URL (Location) hash
-   */
-  public hash!: string;
+    /**
+     * The URL (Location) hash
+     */
+    public hash: string,
 
-  /**
-   * The navigation instruction
-   */
-  public instruction!: string;
+    /**
+     * The navigation instruction
+     */
+    public instruction: string,
+  ) { }
 }
 
 /**

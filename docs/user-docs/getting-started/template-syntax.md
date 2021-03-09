@@ -91,7 +91,7 @@ Two of the most common events that do not bubble and, therefore do not work with
 A common scenario is capturing a click on a button or link, you have a couple of different options and you should choose the one that works best for your needs.
 
 ```text
-<button type="button" click.trigger"clickCallback()">Click Me!</button>
+<button type="button" click.trigger="clickCallback()">Click Me!</button>
 ```
 
 Using `.trigger` will attach a native event listener to the button, it's the equiavelent of writing `addEventListener` which is what Aurelia does under the hood for you anyway. In many cases, using `trigger` is recommended as it does not delegate and therefore, can lead to fewer issues when dealing with delegated events.
@@ -99,7 +99,7 @@ Using `.trigger` will attach a native event listener to the button, it's the equ
 However, if you are working with a lot of elements, say a list of items and each of those can be clicked, using `.delegate` might be a better option. The syntax is mostly the same.
 
 ```text
-<button type="button" click.delegate"clickCallback()">Click Me!</button>
+<button type="button" click.delegate="clickCallback()">Click Me!</button>
 ```
 
 What Aurelia will do here is attach an event listener to the nearest common parent. Say you have an unordered list of items and you have `click.delegate` used inside of it, Aurelia would know to attach an event listener to the `ul` element and listen for click events as they bubble up.

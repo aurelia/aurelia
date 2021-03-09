@@ -18,7 +18,7 @@ export interface ValueAttributeObserver extends ISubscriberCollection {}
  */
 export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlushable {
   public readonly obj: INode & IIndexable;
-  public currentValue: unknown = '';
+  public value: unknown = '';
   public oldValue: unknown = '';
 
   public hasChanges: boolean = false;
@@ -38,15 +38,15 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   public getValue(): unknown {
     // is it safe to assume the observer has the latest value?
     // todo: ability to turn on/off cache based on type
-    return this.currentValue;
+    return this.value;
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
-    if (Object.is(newValue, this.currentValue)) {
+    if (Object.is(newValue, this.value)) {
       return;
     }
-    this.oldValue = this.currentValue;
-    this.currentValue = newValue;
+    this.oldValue = this.value;
+    this.value = newValue;
     this.hasChanges = true;
     if (!this.handler.config.readonly && (flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
@@ -56,7 +56,7 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      this.obj[this.propertyKey as string] = this.currentValue ?? this.handler.config.default;
+      this.obj[this.propertyKey as string] = this.value ?? this.handler.config.default;
 
       if ((flags & LifecycleFlags.fromBind) === 0) {
         this.queue.add(this);
@@ -65,9 +65,9 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   }
 
   public handleEvent(): void {
-    const oldValue = this.oldValue = this.currentValue;
-    const currentValue = this.currentValue = this.obj[this.propertyKey as string];
-    if (oldValue !== currentValue) {
+    this.oldValue = this.value;
+    this.value = this.obj[this.propertyKey as string];
+    if (this.oldValue !== this.value) {
       this.hasChanges = false;
       this.queue.add(this);
     }
@@ -76,7 +76,7 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.handler.subscribe(this.obj, this);
-      this.currentValue = this.oldValue = this.obj[this.propertyKey as string];
+      this.value = this.oldValue = this.obj[this.propertyKey as string];
     }
   }
 
@@ -88,8 +88,8 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
 
   public flush(): void {
     oV = this.oldValue;
-    this.oldValue = this.currentValue;
-    this.subs.notify(this.currentValue, oV, LifecycleFlags.none);
+    this.oldValue = this.value;
+    this.subs.notify(this.value, oV, LifecycleFlags.none);
   }
 }
 

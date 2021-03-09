@@ -155,7 +155,7 @@ describe(spec, function () {
       const q = platform.domWriteQueue;
       await q.yield();
 
-      assert.html.innerEqual(host, '<bar id.from-view="id">bar</bar> <foo prop.bind="id" class="au">1</foo> <bar id.from-view="id">bar</bar> <foo prop.bind="id" class="au">2</foo>', `host.textContent`);
+      assert.html.innerEqual(host, '<bar id.from-view="id" class="au">bar</bar> <foo prop.bind="id" class="au">1</foo> <bar id.from-view="id" class="au">bar</bar> <foo prop.bind="id" class="au">2</foo>', `host.textContent`);
     }, setup);
   }
 

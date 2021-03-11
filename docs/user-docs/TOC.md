@@ -12,6 +12,7 @@
   * [Your First Component - Part 2: The View](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
   * [Next Steps](getting-started/quick-start-guide/next-steps.md)
 * [Template Syntax](getting-started/template-syntax.md)
+* [Bindable Setter](getting-started/bindable-setter.md)
 * [Building Components](getting-started/components/README.md)
   * [Creating a Custom Element](getting-started/components/creating-a-custom-element.md)
   * [Creating a Custom Attribute](getting-started/components/creating-a-custom-attribute.md)
@@ -71,6 +72,11 @@
 * [Displaying Errors](validation/displaying-errors.md)
 * [I18n Internationalization](validation/i18n-internationalization.md)
 * [Migration Guide & Breaking Changes](validation/migration-guide.md)
+
+## Advanced Scenarios
+
+* [CSS-in-JS](advanced-scenarios/css-in-js.md)
+* [TailwindCSS](advanced-scenarios/tailwindcss.md)
 
 ## Examples
 

@@ -77,6 +77,7 @@
 
 * [CSS-in-JS](advanced-scenarios/css-in-js.md)
 * [TailwindCSS](advanced-scenarios/tailwindcss.md)
+* [Custom plugin](advanced-scenarios/custom-plugin.md)
 
 ## Examples
 

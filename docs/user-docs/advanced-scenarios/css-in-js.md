@@ -49,7 +49,7 @@ Because Aurelia 2 supports ShadowDOM and we need to style those HTMLElements tha
 **What is cache.sheet.container?**
 The emotion library uses container configuration to inject styles into specific DOM. To support shadow-root we should inject our styles into the shadow block but for global styles `document.head` is good.
 
-**Why afterAttach?**
+**Why attached?**
 Detecting ShadowDOM mode for an HTMLElement is possible via this life-cycle method.
 
 Now, Register the new Emotion custom attribute in your main.ts file.

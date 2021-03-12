@@ -100,6 +100,33 @@ import { Philosophers } from './philosophers';
   }
 </style>
 <h4>Location: \${url}</h4>
+<br>
+<a load="dashboard@left">Dashboard</a>
+<h3 class="message">\${message}</h3>
+<au-compose subject.bind="root"></au-compose>
+<div>
+  <input type="checkbox" checked.bind="sync"> Sync swaps
+</div>
+<div class="links">
+  <a load="fast">Error</a>
+  <a href="javascript: void 0" click.trigger="sequence()">Sequence</a>
+  <a load="fast(abc)@left?str=def&arr=ghi&arr=jkl">fast(abc)@left?str=def&arr=ghi&arr=jkl</a>
+  <a href="javascript: void 0" click.trigger="fast()">Load fast(def)@left?str=ghi&arr=jkl&arr=mno</a>
+  <br>
+  <a load="lazy-parent@left">LazyParent</a>
+  <a load="philosophers@left">Philosophers</a>
+  <a load="fast@left+slow@right">Fast + Slow</a>
+  <a load="slow@left+fast@right">Slow + Fast</a>
+  <a load="fast@left+double-slow@right">Fast + DoubleSlow</a>
+  <a load="fast-parent@left/slow+slow@right">FastParent/Slow + Slow</a>
+  <a load="fast-parent@left/slow+double-slow@right">FastParent/Slow + DoubleSlow</a>
+  <a load="fast-parent@left/slow">FastParent/Slow</a>
+  <a load="langsam">Långsam</a>
+  <a load="fast-parent@left/langsam">FastParent/Långsam</a>
+  <a load="slow-attach-parent@left">SlowAttachParent</a>
+  <a load="slow-attach-parent@left/double-slow">SlowAttachParent/DoubleSlow</a>
+  <a load="-">Clear</a>
+</div>
 <div class="viewports">
   <div class="viewport">
     <div class="links">
@@ -122,34 +149,6 @@ import { Philosophers } from './philosophers';
     <au-viewport name="right"></au-viewport>
   </div>
 </div>
-<!--
-<br>
-<a load="dashboard@left">Dashboard</a>
-<h3 class="message">\${message}</h3>
-<au-compose subject.bind="root"></au-compose>
-<div>
-  <input type="checkbox" checked.bind="sync"> Sync swaps
-</div>
-<div class="links">
-<a href="javascript: void 0" click.trigger="sequence()">Sequence</a>
-<a load="fast(abc)@left?str=def&arr=ghi&arr=jkl">fast(abc)@left?str=def&arr=ghi&arr=jkl</a>
-  <a href="javascript: void 0" click.trigger="fast()">Load fast(def)@left?str=ghi&arr=jkl&arr=mno</a>
-  <br>
-  <a load="lazy-parent@left">LazyParent</a>
-  <a load="philosophers@left">Philosophers</a>
-  <a load="fast@left+slow@right">Fast + Slow</a>
-  <a load="slow@left+fast@right">Slow + Fast</a>
-  <a load="fast@left+double-slow@right">Fast + DoubleSlow</a>
-  <a load="fast-parent@left/slow+slow@right">FastParent/Slow + Slow</a>
-  <a load="fast-parent@left/slow+double-slow@right">FastParent/Slow + DoubleSlow</a>
-  <a load="fast-parent@left/slow">FastParent/Slow</a>
-  <a load="langsam">Långsam</a>
-  <a load="fast-parent@left/langsam">FastParent/Långsam</a>
-  <a load="slow-attach-parent@left">SlowAttachParent</a>
-  <a load="slow-attach-parent@left/double-slow">SlowAttachParent/DoubleSlow</a>
-  <a load="-">Clear</a>
-</div>
--->
   `,
 })
 export class MyApp {

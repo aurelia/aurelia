@@ -11,10 +11,10 @@ export const buttonTemplate = html<BootstrapButton>`
 `;
 ```
 
-To do this, we need two simple functionality so, create a `typed-template.ts` file.
+To do this, we need two simple functionality so, create a `strongly-typed-template` file.
 
 ```ts
-// typed-template.ts
+// strongly-typed-template.ts
 
 type TemplateValue<T> = { [P in keyof T]: T[P] extends Function ? never : P }[keyof T] | ((val: T) => unknown);;
 
@@ -82,12 +82,12 @@ The generic parameter in this function is actually your **view-model**.
 ```ts
 // bs-button-temlate.ts
 
-import { html } from 'typed-template';
+import { html } from 'strongly-typed-template';
 
 // BootstrapButton is my view-model
 export const buttonTemplate = html<BootstrapButton>`
     <button class="btn btn-primary btn-${x => x.size} ${x => x.block ? 'btn-block' : ''}" ref="bsButtonTemplate">
-        Primary Button
+        ${(x) => x.getName()}
     </button>
 `;
 ```

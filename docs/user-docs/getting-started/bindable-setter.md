@@ -2,7 +2,8 @@ In some cases you want to make an impact for the value that is binding. For such
 
 ```ts
 @bindable({ 
-    set: value => function(value) /* HERE */, 
+    set: value => function(value),  /* HERE */
+    // Or set: value => value,
     mode: /* ... */ 
 }) 
 ```
@@ -56,6 +57,12 @@ Now, we should set `truthyDetector` function as following:
 
 ```ts
 @bindable({ set: truthyDetector, mode: BindingMode.toView }) public navigator: BooleanString = false;
+```
+
+Although, there is another way to write the functionality too
+
+```ts
+@bindable({ set: v => v === '' || v === true || v === "true", mode: BindingMode.toView }) public navigator: BooleanString = false;
 ```
 
 You can simply use any of the above four methods to enable/disable your feature.

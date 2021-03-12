@@ -77,7 +77,7 @@ x => x.block ? 'btn-block' : ''
 
 Then, for variable parts we remove lambda part (`VARIABLE => VARIABLE.`) by regex via `parse` function. Finally, an HTML is created according to the acceptable standards for Aurelia template engine.
 
-The generic parameter this function is actually your **view-model**.
+The generic parameter in this function is actually your **view-model**.
 
 ```ts
 // bs-button-temlate.ts
@@ -101,10 +101,10 @@ import { buttonTemplate } from "./bs-button-temlate";
 
 @customElement({ name: "bs-button", template: buttonTemplate /* HERE */ })
 export class BootstrapButton /* view-model */ {
-    // ...
+    @bindable({ mode: BindingMode.toView }) public size: string;
+    @bindable({ mode: BindingMode.toView }) public block: boolean;
     getName() {
         return "Primary Button";
     }
-   // ...
 }
 ```

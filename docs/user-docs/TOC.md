@@ -77,6 +77,7 @@
 
 * [CSS-in-JS with Emotion](advanced-scenarios/css-in-js-with-emotion.md)
 * [TailwindCSS Integration](advanced-scenarios/tailwindcss-integration.md)
+* [Strongly-typed Template](advanced-scenarios/strongly-typed-template.md)
 * [Write Custom Plugin](advanced-scenarios/write-custom-plugin.md)
 
 ## Examples

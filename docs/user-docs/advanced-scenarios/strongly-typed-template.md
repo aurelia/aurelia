@@ -18,7 +18,7 @@ To do this, we need two simple functionality so, create a `typed-template.ts` fi
 
 type TemplateValue<T> = { [P in keyof T]: T[P] extends Function ? never : P }[keyof T] | ((val: T) => unknown);;
 
-function variableParser(val: any) {
+function parse(val: any) {
     const variable = val?.toString();
     const isFunc = variable.indexOf("f") > -1;
     if (!variable) return "";
@@ -43,8 +43,8 @@ export const html = <TSource = any>(
         const value = values[i];
         html += currentString;
         if (typeof value === "function") {
-            const parsedVaraiable = variableParser(value);
-            html += `\${${parsedVaraiable}}`;
+            const parsed = parse(value);
+            html += `\${${parsed}}`;
             continue;
         }
         html += `\${${value}}`;
@@ -55,7 +55,7 @@ export const html = <TSource = any>(
 }
 ```
 
-The idea behind the code is really simple. First we separate strings and variables parts.
+The idea behind the code is really simple. First we separate strings and variables parts inside `html` function.
 
 * string(s)
 ```html
@@ -75,7 +75,7 @@ x => x.block ? 'btn-block' : ''
 (x) => x.getName()
 ```
 
-Then, for variable parts we remove lambda part (`VARIABLE => VARIABLE.`) by regex. Finally, an HTML is created according to the acceptable standards for Aurelia template engine.
+Then, for variable parts we remove lambda part (`VARIABLE => VARIABLE.`) by regex via `parse` function. Finally, an HTML is created according to the acceptable standards for Aurelia template engine.
 
 The generic parameter this function is actually your **view-model**.
 

@@ -159,6 +159,7 @@ Create `src/BootstrapV5Options.ts` file.
 // BootstrapV5Options.ts
 
 import { Size } from "./Size";
+
 export interface IBootstrapV5Options {
     defaultSize?: Size;
 }
@@ -175,6 +176,9 @@ To register it via DI, you need to add codes below too:
 
 ```js
 // BootstrapV5Options.ts
+
+import { IContainer } from '@aurelia/kernel';
+import { AppTask, DI, Registration } from 'aurelia';
 
 function configure(container: IContainer, config: IBootstrapV5Options = defaultOptions) {
     return container.register(

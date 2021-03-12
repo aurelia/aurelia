@@ -75,9 +75,9 @@
 
 ## Advanced Scenarios
 
-* [CSS-in-JS](advanced-scenarios/css-in-js.md)
-* [TailwindCSS](advanced-scenarios/tailwindcss.md)
-* [Custom plugin](advanced-scenarios/custom-plugin.md)
+* [CSS-in-JS with Emotion](advanced-scenarios/css-in-js-with-emotion.md)
+* [TailwindCSS Integration](advanced-scenarios/tailwindcss-integration.md)
+* [Write Custom Plugin](advanced-scenarios/write-custom-plugin.md)
 
 ## Examples
 

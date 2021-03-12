@@ -35,6 +35,7 @@ import {
   ValueConverter,
   If,
   ISyntheticView,
+  ICustomElementController,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -338,7 +339,7 @@ describe('promise template-controller', function () {
       : ['detaching', 'unbinding'].flatMap(x => name.map(n => `${n}.${x}`));
   }
 
-  class TestData<TApp> implements TestSetupContext<TApp> {
+  class TestData<TApp = App> implements TestSetupContext<TApp> {
     public readonly template: string;
     public readonly registrations: any[];
     public readonly verifyStopCallsAsSet: boolean;
@@ -359,7 +360,7 @@ describe('promise template-controller', function () {
       public readonly expectedInnerHtml: string,
       public readonly expectedStartLog: string[],
       public readonly expectedStopLog: string[],
-      public readonly additionalAssertions: ((ctx: PromiseTestExecutionContext) => Promise<void> | void) | null = null,
+      public readonly additionalAssertions: ((ctx: PromiseTestExecutionContext<TApp>) => Promise<void> | void) | null = null,
       public readonly only: boolean = false,
     ) {
       this.name = `${name} - config: ${String(config)} - delayPromise: ${delayPromise}`;
@@ -2748,10 +2749,11 @@ describe('promise template-controller', function () {
           );
         }
         {
-          class App1 {
+          class App1 implements ICustomElementViewModel {
             public readonly promise: Promise<number>;
             public data: number;
             public err: Error;
+            public $controller: ICustomElementController<this>;
             public constructor() {
               this.promise = $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar'));
             }
@@ -2775,6 +2777,50 @@ describe('promise template-controller', function () {
               : `<div> <div>'foo-bar' 'foo-bar'</div> </div> undefined foo-bar`,
             [],
             [],
+            (ctx) => {
+              const app = ctx.app;
+              const s = app.$controller.scope;
+              const bc = s.bindingContext;
+              const oc = s.overrideContext;
+              if ($resolve) {
+                assert.strictEqual(bc.data, 42, 'bc.data');
+                assert.strictEqual(bc.err, undefined, 'bc.err');
+              } else {
+                assert.strictEqual(bc.data, undefined, 'bc.data');
+                assert.strictEqual((bc.err as Error).message, 'foo-bar', 'bc.err');
+              }
+              assert.strictEqual('data' in oc, false, 'data in oc');
+              assert.strictEqual('err' in oc, false, 'err in oc');
+            },
+          );
+
+          yield new TestData<App1>(
+            `shows scoped content correctly #4 - ${$resolve ? 'fulfilled' : 'rejected'}`,
+            null,
+            {
+              template: `
+              <div ${pattribute}="promise">
+                <div ${fattribute}="data">\${data}</div>
+                <div ${rattribute}="err">\${err.message}</div>
+              </div>`,
+              appType: App1,
+            },
+            null,
+            $resolve
+              ? `<div> <div>42</div> </div>`
+              : `<div> <div>foo-bar</div> </div>`,
+            [],
+            [],
+            (ctx) => {
+              const app = ctx.app;
+              const s = app.$controller.scope;
+              const bc = s.bindingContext;
+              const oc = s.overrideContext;
+              assert.strictEqual('data' in bc, false, 'data in bc');
+              assert.strictEqual('err' in bc, false, 'err in bc');
+              assert.strictEqual('data' in oc, false, 'data in oc');
+              assert.strictEqual('err' in oc, false, 'err in oc');
+            },
           );
         }
       }
@@ -2783,7 +2829,7 @@ describe('promise template-controller', function () {
   }
   for (const data of getTestData()) {
     (data.only ? $it.only : $it)(data.name,
-      async function (ctx: PromiseTestExecutionContext) {
+      async function (ctx: PromiseTestExecutionContext<any>) {
 
         assert.strictEqual(ctx.error, null);
         const expectedContent = data.expectedInnerHtml;

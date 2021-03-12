@@ -463,7 +463,59 @@ The need for this template controller originated from the need of showing partia
 ```
 
 In the example above the `span` will be shown independently of the status of either `generalInfoPromise`, or `addressInfoPromise`.
-The section dependent on each of those promise will attach DOM Elements according to the status of each promises, although independent of each other.
+The section dependent on each of those promise will attach DOM Elements according to the status of each promises, at the same time being independent of each other.
+
+### Scoping
+
+As `from-view` binding mode is used for `then` and `catch`, the `promise.resolve` template controller creates its own scope.
+This prevents accidentally polluting the parent scope or the view model where this template controller is used.
+Let use see an example to understand what it means.
+
+{% tabs %}
+{% tab title="my-app.html" %}
+```markup
+<div promise.resolve="promise">
+ <foo-bar then="data" foo-data.bind="data"></foo-bar>
+ <fizz-buzz catch="err" fizz-err.bind="err"></fizz-buzz>
+</div>
+```
+{% endtab %}
+
+{% tab title="my-app.ts" %}
+```typescript
+export class MyApp {
+  public data: any;
+}
+```
+{% endtab %}
+{% endtabs %}
+
+In the example above, we are storing the resolved value from the promise in the `data` property, and then passing the value to the `foo-bar` custom element by binding the `foo-data` property.
+Due to the fact that `promise.resolve` creates its own scope, this does not add a property to the binding context; that is for the example above the `data` property in `MyApp` stays uninitialized (more precisely, the `data` property never end up in the instance of `MyApp`).
+This is useful when we need that data only in view from passing from one component to another custom element, because it does not pollute the underlying view-model.
+Note that this does not make any difference in terms of data binding or change observation.
+However, when we do need to access the settled data inside the view model, we can use the `$parent.data` or `$parent.err` as shown in the example below.
+
+
+{% tabs %}
+{% tab title="my-app.html" %}
+```markup
+<div promise.resolve="promise">
+ <foo-bar then="$parent.data"></foo-bar>
+ <fizz-buzz catch="$parent.err"></fizz-buzz>
+</div>
+```
+{% endtab %}
+
+{% tab title="my-app.ts" %}
+```typescript
+export class MyApp {
+  public data: any;   // the resolved data is assigned to this once and when the promise is resolved
+  public data: Error; // the rejected reason is assigned to this once and when the promise is resolved
+}
+```
+{% endtab %}
+{% endtabs %}
 
 ### Nesting
 

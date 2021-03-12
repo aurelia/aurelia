@@ -2,13 +2,15 @@ One of the most important needs of users is to design custom plugins. In the fol
 
 ### What is mono-repository?
 
+A monorepo (mono repository) is a single repository that stores all of your code and assets for every project. Using a monorepo is important for many reasons. It creates a single source of truth. It makes it easier to share code. It even makes it easier to refactor code.
 
 ### How NPM v7 helps us?
 
+With `workspaces`. Workspaces are a set of features in the npm CLI that offer support for managing multiple packages within a single top-level, root package. The NPM v7 has shipped with Node.js v15.
 
 ### What is the scenario?
 
-To move forward with a practical example. We want to implement Bootstrap components in a custom mono-repository with a lot of configuration to make it customizable.
+To move forward with a practical example. We want to implement Bootstrap components in a custom mono-repository with a configuration to make it customizable.
 
 ### What is the library structure?
 
@@ -20,7 +22,7 @@ We will add the Bootstrap 5 configurations in this package.
 
 * **bootstrap-v5**
 
-Our Bootstrap 5 components will define in this package. `bootstrap-v5` depends `bootstrap-v5-core` packages.
+Our Bootstrap 5 components will define in this package. `bootstrap-v5` depends on `bootstrap-v5-core` packages.
 
 * **demo**
 
@@ -28,27 +30,32 @@ We will use our plugin in this package as a demo. `demo` depends on `bootstrap-v
 
 ![](/images/write-a-custom-plugin-with-aurelia-2-and-lerna/packages.png)
 
-### How to configure NPM v7?
+### How to configure NPM v7 workspaces?
 
-To config your monorepos, you should do as following:
+To configure your monorepo, you should do as following:
 
-Install `Lerna` as a global tool.
-
-```bash
-npm i lerna -g
-```
-
-Go to a folder that you want to make project and run
+Make sure you have installed NPM v7+
 
 ```bash
-lerna init
+npm -v
 ```
 
-The result should contain
+Go to a folder that you want to make project, for example `my-plugin`
 
-* `packages`: The folder you will create your repositories there.
-* `lerna.json`: Lerna's configuration file.
-* `package.json`: Node's configuration file.
+Create a `packages` folder and `package.json` inside it.
+
+```js
+// package.json content
+
+{
+  "name": "@my-plugin",
+  "workspaces": [
+    "packages/**"
+  ]
+}
+```
+
+The mono repository's name is `@my-plugin`. We defined our workspaces (projects) under `packages` folder.
 
 Open your `packages` folder and install the projects inside it.
 
@@ -58,74 +65,71 @@ npx makes aurelia bootstrap-v5 -s typescript
 npx makes aurelia demo -s typescript
 ```
 
-After creating, delete all files inside `src` folders of `bootstrap-v5-core` and `bootstrap-v5`. We will add our files there.
+After creating, delete all files inside `src` folders of `bootstrap-v5-core` and `bootstrap-v5` but `resource.d.ts`. We will add our files there.
 
-To continue we need to config `Lerna`, Open your `lerna.json` and paste the followimg code:
-
-```json
-{
-  "version": "0.1.0",
-  "npmClient": "npm",
-  "command": {
-    "bootstrap": {
-      "hoist": "**"
-    }
-  },
-  "packages": ["packages/*"]
-}
-```
-
-**version**: the current version of the repository.
-
-**npmClient**: an option to specify a specific client to run commands with (this can also be specified on a per command basis). Change to "yarn" to run all commands with yarn. Defaults to "npm".
-
-**command.bootstrap.hoist**: Common dependencies will be installed only to the top-level `node_modules`, and omitted from individual package `node_modules`.
-
-**packages**: Array of globs to use as package locations.
+![](../.gitbook/assets/custom-plugin/1.png)
 
 ## How to manage dependencies?
 
-As described in the structure section defined packages depend on each other. So, we link them together and add the other prerequisites for each.
+As described in the structure section defined packages depend on each other. So, we link them together and add the other prerequisites for each. At the same time it is good to name them a bit better.
 
 * **bootstrap-v5-core**
 
-This package has no dependency.
+Go to its `package.json` and change the name to
+
+```js
+"name": "@my-plugin/bootstrap-v5-core"
+```
+
+As our core package it has no dependency.
 
 * **bootstrap-v5**
 
-Go to `package.json` and add the following dependencies:
+Go to its `package.json` and change the name to
+
+```js
+"name": "@my-plugin/bootstrap-v5"
+```
+
+Then, add the following dependencies:
 
 ```js
 // bootstrap-v5/package.json
 "dependencies": {	
-    "aurelia": "dev",
-    "bootstrap": "^5.0.0-alpha2",	
-    "bootstrap-v5-core": "0.1.0"
+    "aurelia": "latest",
+    "bootstrap": "^5.0.0-beta2",	
+    "@my-plugin/bootstrap-v5-core": "0.1.0"
 },
 ```
 
 * **demo**
 
-Go to `package.json` and add the following dependencies
+Go to its `package.json` and change the name to
+
+```js
+"name": "@my-plugin/demo"
+```
+
+Then, add the following dependencies:
 
 ```js
 // demo/package.json
 "dependencies": {	
-    "aurelia": "dev",	
-    "bootstrap-v5-core": "0.1.0",
-    "bootstrap-v5": "0.1.0"
+    "aurelia": "latest",	
+    "@my-plugin/bootstrap-v5-core": "0.1.0",
+    "@my-plugin/bootstrap-v5": "0.1.0"
 },
 ```
 
-**Note**: All created packages have `0.1.0` version so pay attention if the version changes, update it in other packages.
+**Note**: All created packages have `0.1.0` version so pay attention if the version changes, update it correctly.
 
-Finally, run the below command inside your root folder (where `lerna.json` is) to install packages.
+Run the command below to install packages inside the `my-plugin` folder.
 
 ```bash
-lerna bootstrap
+npm install
 ```
 
-### How to define plugin configuration?
+### How to define a plugin configuration?
 
 Go to the `src` folder of `bootstrap-v5-core` package and create each of below files there.
 
@@ -134,6 +138,8 @@ Go to the `src` folder of `bootstrap-v5-core` package and create each of below f
 As I mentioned before, I want to write a configurable Bootstrap plugin so create `src/Size.ts` file.
 
 ```js
+// Size.ts
+
 export enum Size {
     ExtraSmall = 'xs',
     Small = 'sm',
@@ -143,71 +149,93 @@ export enum Size {
 }
 ```
 
-I made a `Size` enum to handle all Bootstrap sizes. Next we can manage our components according to size value.
+I made a `Size` enum to handle all Bootstrap sizes. I want to make an option for who use the plugin to define a global size for all Bootstrap components at first. Next, we manage our components according to size value.
 
-**Global Bootstrap 5 Options**
+**Bootstrap 5 Options**
 
-Create `src/IGlobalBootstrapV5Options.ts` file.
+Create `src/BootstrapV5Options.ts` file.
 
 ```js
+// BootstrapV5Options.ts
+
 import { Size } from "./Size";
-export interface IGlobalBootstrapV5Options {
+export interface IBootstrapV5Options {
     defaultSize?: Size;
 }
-export const defaultOptions: IGlobalBootstrapV5Options = {
+const defaultOptions: IBootstrapV5Options = {
     defaultSize: Size.Medium
 };
 ```
 
-You need to define your configs via an interface With its default values as a constant.
+You need to define your configurations via an interface with its default values as a constant.
 
 **DI**
 
-Create `src/BootstrapV5Configuration.ts` file.
+To register it via DI, you need to add codes below too:
 
 ```js
-import { DI, IContainer, Registration } from "aurelia";
-import { IGlobalBootstrapV5Options, defaultOptions } from './IGlobalBootstrapV5Options';
+// BootstrapV5Options.ts
 
-export const IBootstrapV5Options = DI.createInterface<IGlobalBootstrapV5Options>('IBootstrapV5Options').noDefault();
-
-function createIBootstrapV5Configuration(optionsProvider: (options: IGlobalBootstrapV5Options) => void) {
-    return {
-        optionsProvider,
-        register(container: IContainer) {
-            optionsProvider(defaultOptions);
-            return container.register(Registration.instance(IBootstrapV5Options, defaultOptions))
-        },
-        customize(cb?: (options: IGlobalBootstrapV5Options) => void) {
-            return createIBootstrapV5Configuration(cb ?? optionsProvider);
-        },
-    };
+function configure(container: IContainer, config: IBootstrapV5Options = defaultOptions) {
+    return container.register(
+        AppTask.with(IContainer).hydrating().call(async cfg => {
+            if (config.enableSpecificOption) {
+                const file = await import('file');
+                cfg.register(Registration.instance(ISpecificOption, file.do());
+            }
+            Registration.instance(IBootstrapV5Options, config).register(container);
+        })
+    );
 }
 
-export const BootstrapV5Configuration = createIBootstrapV5Configuration(() => {});
+export const IBootstrapV5Options = DI.createInterface<IBootstrapV5Options>('IBootstrapV5Options');
+
+export const BootstrapV5Configuration = {
+    register(container: IContainer) {
+        return configure(container);
+    },
+    customize(config: IBootstrapV5Options) {
+        return {
+            register(container: IContainer) {
+                return configure(container, config);
+            },
+        };
+    }
+};
 ```
 
-We can define our `IGlobalBootstrapV5Options` to DI container so this happened via `IBootstrapV5Options` constant.
+`configure` helps us to set the initial options or loading special files based on a specific option to DI system. To load specific files, you need to do this via `AppTask`. 
 
-`createIBootstrapV5Configuration` is the most important part of creating settings. 
+The `AppTask` allows you to position when/where certain initialization should happen and also optionally block app rendering accordingly.
 
-* `register(container: IContainer)` helps us to introduce our default config to DI container.
+If you no need this feature replace it with:
 
-* `customize(cb?: (options: IGlobalBootstrapV5Options) => void)` alse helps us to introduce our custom config to the DI container.
+```ts
+function configure(container: IContainer, config: IBootstrapV5Options = defaultOptions) {
+    Registration.instance(IBootstrapV5Options, config).register(container);
+}
+```
 
-Finally, we should export our current configuration with default options via `BootstrapV5Configuration`.
+`Registration.instance` helps us to register our default option into the container.
+
+To use your option later inside your components, you should introduce it via `DI.createInterface`. The trick here is to create a resource name the same as what you want to inject. This is the reason I name it as `IBootstrapV5Options` constant.
+
+Finally, you need to make sure that the user can determine the settings. This is the task of `BootstrapV5Configuration`.
+
+`register` This method helps the user to use your plugin with default settings but `customize` is the method that allows the user to introduce their custom settings.
 
 **Exports**
 
 Create `src/index.ts` file.
 
 ```js
+// index.ts
+
 export * from './BootstrapV5Configuration';
-export * from './IGlobalBootstrapV5Options';
 export * from './Size';
 ```
 
-Create new `index.ts` file inside `bootstrap-v5-core` package.
+Create new `index.ts` file inside `bootstrap-v5-core` package too.
 
 ```js
 export * from './src';
@@ -217,36 +245,12 @@ export * from './src';
 
 Go to the `src` folder of `bootstrap-v5` package, create a `button` folder then create each of below files there.
 
-![](/images/write-a-custom-plugin-with-aurelia-2-and-lerna/button.png)
-
-* **Resource**
-
-Create `resource.d.ts` file.
-
-```js
-declare module '*.html' {
-  import { IContainer } from '@aurelia/kernel';
-  import { IBindableDescription } from '@aurelia/runtime';
-  export const name: string;
-  export const template: string;
-  export default template;
-  export const dependencies: string[];
-  export const containerless: boolean | undefined;
-  export const bindables: Record<string, IBindableDescription>;
-  export const shadowOptions: { mode: 'open' | 'closed'} | undefined;
-  export function register(container: IContainer);
-}
-
-declare module '*.css';
-declare module '*.scss';
-```
-
 * **View**
 
 Create `bs-button.html` file.
 
 ```html
-<button class="btn btn-primary" ref="bsButtonTemplate">
+<button class="btn btn-primary btn-${size}" ref="bsButtonTemplate">
     Primary Button
 </button>
 ```
@@ -256,43 +260,58 @@ Create `bs-button.html` file.
 Create `bs-button.ts` file.
 
 ```js
-import { customElement, INode, containerless } from "aurelia";
+import { customElement, containerless, BindingMode, bindable } from "aurelia";
 import template from "./bs-button.html";
-import { IBootstrapV5Options, IGlobalBootstrapV5Options, Size } from "bootstrap-v5-core";
+import { IBootstrapV5Options, Size } from "@my-plugin/bootstrap-v5-core";
 
 @customElement({ name: "bs-button", template })
 @containerless
 export class BootstrapButton {
-  private bsButtonTemplate: Element;
-  constructor(
-    @IBootstrapV5Options private options: IGlobalBootstrapV5Options
-  ) {
-  }
-
-  afterAttach() {
-    if (this.options.defaultSize) {
-      switch (this.options.defaultSize) {
-        case Size.ExtraSmall:
-        case Size.Small:
-          this.bsButtonTemplate.classList.add("btn-sm");
-          break;
-        case Size.Large:
-        case Size.ExtraLarge:
-          this.bsButtonTemplate.classList.add("btn-lg");
-          break;
-        default:
-          this.bsButtonTemplate.classList.remove("btn-sm", "btn-lg");
-      }
+    private bsButtonTemplate: Element;
+    @bindable({ mode: BindingMode.toView }) public size?: Size = null;
+    constructor(
+        @IBootstrapV5Options private options: IBootstrapV5Options
+    ) {
     }
-  }
+    attached() {
+        this.applySize();
+    }
+    private applySize() {
+        if (this.options.defaultSize && !this.size) {
+            switch (this.options.defaultSize) {
+                case Size.ExtraSmall:
+                case Size.Small:
+                    this.resetSize();
+                    this.size = Size.Small;
+                    break;
+                case Size.Large:
+                case Size.ExtraLarge:
+                    this.resetSize();
+                    this.size = Size.Large;
+                    break;
+                default:
+                    this.resetSize();
+                    this.size = Size.Medium;
+            }
+        }
+    }
+    private resetSize() {
+        this.bsButtonTemplate.classList.remove("btn-sm", "btn-lg");
+    }
 }
 ```
 
 As you can see we are able to access to plugin options easy via `ctor` (DI) and react appropriately to its values.
 
-In this example I get the size from the user and apply it to the button component.
+```ts
+@IBootstrapV5Options private options: IBootstrapV5Options
+```
 
-* **Button Index**
+In this example I get the size from the user and apply it to the button component. If the user does not define a value, the default value will be used.
+
+**Exports**
+
+Create files below correctly:
 
 Create `src/button/index.ts` file.
 
@@ -300,15 +319,11 @@ Create `src/button/index.ts` file.
 export * from './bs-button';
 ```
 
-* **Src Index**
-
 Create `src/index.ts` file.
 
 ```js
 export * from './button';
 ```
-
-* **Global Index**
 
 Create new `index.ts` file inside `bootstrap-v5` package.
 
@@ -322,21 +337,15 @@ export * from './src';
 Open `demo` package and go to the `src` and update `main.ts`.
 
 ```js
+// main.ts
+
 import Aurelia from 'aurelia';
 import { MyApp } from './my-app';
-
-import { BootstrapV5Configuration, Size } from 'bootstrap-v5-core';
-// import { BootstrapButton } from 'bootstrap-v5';
-import * as BsComponents from 'bootstrap-v5';
+import { BootstrapV5Configuration } from '@my-plugin/bootstrap-v5-core';
+import * as BsComponents from '@my-plugin/bootstrap-v5';
 
 Aurelia
-
-  //.register(BootstrapButton)
-  .register(BsComponents)
-
-  //.register(BootstrapV5Configuration)
-  .register(BootstrapV5Configuration.customize((options) => { options.defaultSize = Size.Small }))
-
+  .register(BsComponents, BootstrapV5Configuration)
   .app(MyApp)
   .start();
 ```
@@ -344,13 +353,13 @@ Aurelia
 Importing is available for whole components
 
 ```js
-import * as BsComponents from 'bootstrap-v5';
+import * as BsComponents from '@my-plugin/bootstrap-v5';
 ```
 
 Or just a component
 
 ```js
-import { BootstrapButton } from 'bootstrap-v5';
+import { BootstrapButton } from '@my-plugin/bootstrap-v5';
 ```
 
 To register your components you should add them to `register` method. 
@@ -361,36 +370,42 @@ To register your components you should add them to `register` method.
 .register(BootstrapButton) // For a component
 ```
 
-Proudly, we support configuration so we should introduce it to `register` method too.
+We support configuration so we should introduce it to `register` method too.
 
 ```js
  // With default options
 .register(BootstrapV5Configuration)
 // Or with a custom option
-.register(BootstrapV5Configuration.customize((options) => { options.defaultSize = Size.Small }))
+.register(BootstrapV5Configuration.customize({
+  defaultSize: Size.Small // Components loads with small size.
+}))
 ```
 
 Now, You are able to use your `bs-button` inside `src/my-app.html`.
 
 ```html
-<div class="message">${message}</div>
 <bs-button></bs-button>
+<bs-button size="lg"></bs-button>
 ```
 
-To run the `demo` easily, go to the root folder (where `lerna.json` is) and add the following script to `package.json`.
+To run the `demo` easily, go to the `my-plugin` root folder and add the following script section to the `package.json`.
 
 ```bash
-"scripts": {
-  "start": "lerna run start --stream --scope demo"
+{
+  "name": "@my-plugin",
+  "workspaces": [
+    "packages/**"
+  ],
+  "scripts": {
+    "start": "npm run --prefix packages/demo start"
+  }
 }
 ```
 
 Then, call the command
 
 ```bash
+npm run start
 npm start
 ```
 
-![](/images/write-a-custom-plugin-with-aurelia-2-and-lerna/demo.png)
-
-### How to publish it?

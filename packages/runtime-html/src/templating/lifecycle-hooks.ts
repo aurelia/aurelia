@@ -74,7 +74,9 @@ export const LifecycleHooks = {
     let lookup = containerLookup.get(ctx);
     if (lookup === void 0) {
       lookup = {};
-      const instances = [
+      const instances = ctx.root.id === ctx.id
+      ? ctx.getAll(ILifecycleHooks, false)
+      : [
         ...ctx.root.getAll(ILifecycleHooks, false),
         ...ctx.getAll(ILifecycleHooks, false),
       ];

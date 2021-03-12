@@ -165,12 +165,14 @@ It is also permitted to define more than one hook per shared hook class:
 export class LifecycleLogger {
     canLoad(viewModel, params, next, current) {
         console.log(`invoking canLoad on ${next.component.name}`);
+        return true;
     }
     load(viewModel, params, next, current) {
         console.log(`invoking load on ${next.component.name}`);
     }
     canUnload(viewModel, next, current) {
         console.log(`invoking canUnload on ${current.component.name}`);
+        return true;
     }
     unload(viewModel, next, current) {
         console.log(`invoking unload on ${current.component.name}`);

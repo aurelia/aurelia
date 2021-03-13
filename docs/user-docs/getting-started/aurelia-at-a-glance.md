@@ -120,7 +120,7 @@ Add a `au-viewport` element into your view and then use the `load` attribute to 
 ```markup
 <import from="./my-component"></import>
 
-<p><a load="my-component()">My component</a></p>
+<p><a load="my-component">My component</a></p>
 
 <au-viewport></au-viewport>
 ```

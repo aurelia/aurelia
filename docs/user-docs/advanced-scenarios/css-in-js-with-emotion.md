@@ -43,13 +43,13 @@ Surely there are questions about the above code let me answer them one by one.
 **What is isInShadow?**
 This method helps us to find out our HTMLElement is inside a shadow-root or not.
 
-**Why shadow-root matter?**
+**Why does shadow-root matter?**
 Because Aurelia 2 supports ShadowDOM and we need to style those HTMLElements that are inside a shadow via the emotion library.
 
 **What is cache.sheet.container?**
 The emotion library uses container configuration to inject styles into specific DOM. To support shadow-root we should inject our styles into the shadow block but for global styles `document.head` is good.
 
-**Why attached?**
+**Why did we choose attached?**
 Detecting ShadowDOM mode for an HTMLElement is possible via this life-cycle method.
 
 Now, Register the new Emotion custom attribute in your main.ts file.

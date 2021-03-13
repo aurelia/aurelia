@@ -79,6 +79,7 @@
 * [TailwindCSS Integration](advanced-scenarios/tailwindcss-integration.md)
 * [Strongly-typed Template](advanced-scenarios/strongly-typed-template.md)
 * [Write Custom Plugin](advanced-scenarios/write-custom-plugin.md)
+* [DOM Style Injection](advanced-scenarios/dom-style-injection.md)
 
 ## Examples
 

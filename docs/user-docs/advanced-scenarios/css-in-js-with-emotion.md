@@ -41,7 +41,7 @@ export class EmotionCustomAttribute {
 Surely there are questions about the above code let me answer them one by one.
 
 **What is isInShadow?**
-This method helps us to find out our HTMLElement is inside a shadow-root or not.
+This method helps us to find out if our HTMLElement is inside of a shadow-root or not.
 
 **Why does shadow-root matter?**
 Because Aurelia 2 supports ShadowDOM and we need to style those HTMLElements that are inside a shadow via the emotion library.

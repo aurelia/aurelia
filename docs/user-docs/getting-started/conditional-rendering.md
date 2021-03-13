@@ -408,30 +408,56 @@ This section includes few more interesting examples that you might encounter in 
 ## promise.resolve
 
 The `promise.resolve` template controller enables us to render different content based on the status of a `promise`.
-The most basic example looks like as follows.
+A basic example is shown below.
 
+{% tabs %}
+{% tab title="my-app.html" %}
 ```markup
-<div promise.resolve="promise">
+<div promise.resolve="promise1">
  <template pending>The promise is not yet settled.</template>
- <template then="data">The promise is resolved with ${data}.</template>
- <template catch="err">This promise is rejected with ${err.message}.</template>
+ <template then="data">The promise is resolved with ${data}.</template>         <!-- grab the resolved value -->
+ <template catch="err">This promise is rejected with ${err.message}.</template> <!-- grab the rejection reason -->
 </div>
 
-<div promise.resolve="promise">
+<div promise.resolve="promise2">
  <template pending>The promise is not yet settled.</template>
  <template then>The promise is resolved.</template>
  <template catch>This promise is rejected.</template>
 </div>
 ```
+% endtab %}
 
-As it can be seen in the example above, then are three more companion template controllers: `pending`, `then`, and `catch`.
+{% tab title="my-app.ts" %}
+```typescript
+export class MyApp {
+  private promise1: Promise<any>;
+  private promise2: Promise<any>;
+
+  public binding() {
+    this.promise1 = this.fetchFoo();
+    this.promise2 = this.fetchBar();
+  }
+
+  private fetchFoo(): Promise<any> {
+    // return a promise
+  }
+
+  private fetchBar(): Promise<any> {
+    // return a promise
+  }
+}
+```
+{% endtab %}
+{% endtabs %}
+
+As it can be seen in the example above, there are three more companion template controllers: `pending`, `then`, and `catch`.
 The content under `pending` is shown till the promise is settled.
-Once the promise is settled, depending on whether the promise is resolved, or rejected, one of the content under `then`, and `catch` will be shown respectively.
+Once the promise is settled, depending on whether the promise is resolved, or rejected, the content under `then`, or `catch` will be shown respectively.
 Moreover, after the promise is settled, the content under the `pending` is detached from the DOM.
 
 Another important point to note here is that the resolved data from the promise can be accessed using the bound property with `then` (in the example above, it is `data`).
 Similarly, the rejection error/reason can be accessed using the bound property with `catch` (in the example above, it is `err`).
-The usage of these settled values are optional.
+The usage of these settled values are optional; that is both `then` and `catch` can be used without binding to any property.
 
 Contextually, it should be clarified here that these two bindings are in `from-view` binding mode.
 In fact `then="data"`, and `catch="err"` can also be written as `then.from-view="data"`, and `catch.from-view="err"`.
@@ -444,7 +470,7 @@ However, as the former feels more natural in the context, the documentation will
 
 ### Motivation
 
-The need for this template controller originated from the need of showing partial content in the view while another part of the view that is dependent on the promise, waits.
+The need for this template controller originated from the use-case of showing partial content in the view while another part of the view that is dependent on the promise, waits.
 
 ```markup
 <span> promise-independent content </span>
@@ -491,8 +517,9 @@ export class MyApp {
 {% endtabs %}
 
 In the example above, we are storing the resolved value from the promise in the `data` property, and then passing the value to the `foo-bar` custom element by binding the `foo-data` property.
-Due to the fact that `promise.resolve` creates its own scope, this does not add a property to the binding context; that is for the example above the `data` property in `MyApp` stays uninitialized (more precisely, the `data` property never end up in the instance of `MyApp`).
-This is useful when we need that data only in view from passing from one component to another custom element, because it does not pollute the underlying view-model.
+Due to the fact that `promise.resolve` creates its own scope, this does not add a property to the binding context.
+This means that for the example above the `data` property in `MyApp` stays uninitialized (more precisely, the `data` property never end up being in the instance of `MyApp`).
+This is useful when we need the data only in view for passing from one component to another custom element, as it does not pollute the underlying view-model.
 Note that this does not make any difference in terms of data binding or change observation.
 However, when we do need to access the settled data inside the view model, we can use the `$parent.data` or `$parent.err` as shown in the example below.
 
@@ -516,6 +543,27 @@ export class MyApp {
 ```
 {% endtab %}
 {% endtabs %}
+
+Another interesting aspect of this scoping is that now we can write the following markup.
+
+```markup
+<template promise.resolve="generalInfoPromise">
+ <template pending>Fetching info...</template>
+ <template then="data">${data.name} ${data.age}</template>
+ <template catch="err">Cannot get the general information</template>
+</template>
+
+<template promise.resolve="addressInfoPromise">
+ <template pending>Fetching address info...</template>
+ <template then="data">${data.pin} ${data.city}</template>
+ <template catch="err">Cannot get the address information</template>
+</template>
+```
+
+Note that the mark up uses 2 different promises but uses `data` property in both cases to grab the resolved data.
+Same can be observed for `err` as well.
+However, as separate scope is created by `promise.resolve`, the two `data` properties are actually two different properties.
+Without separate scope, we necessarily needs to use two properties with different names in this case (that can also be done even in this case, not necessarily).
 
 ### Nesting
 

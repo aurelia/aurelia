@@ -546,6 +546,7 @@ export class MyApp {
 
 Another interesting aspect of this scoping is that now we can write the following markup.
 
+{% code title="my-app.html" %}
 ```markup
 <template promise.resolve="generalInfoPromise">
  <template pending>Fetching info...</template>
@@ -559,6 +560,7 @@ Another interesting aspect of this scoping is that now we can write the followin
  <template catch="err">Cannot get the address information</template>
 </template>
 ```
+{% endcode %}
 
 Note that the mark up uses 2 different promises but uses `data` property in both cases to grab the resolved data.
 Same can be observed for `err` as well.
@@ -569,6 +571,7 @@ Without separate scope, we necessarily needs to use two properties with differen
 
 The template controllers can be nested.
 
+{% code title="my-app.html" %}
 ```markup
 <template promise.resolve="fetchPromise">
  <template pending>Fetching...</template>
@@ -579,21 +582,26 @@ The template controllers can be nested.
  <template catch="err2">Cannot fetch</template>
 </template>
 ```
+{% endcode %}
 
 ### Restriction
 
 The `pending`, `then`, and `catch` can not be used in isolation without the `promise.resolve` template controller.
 That is each one of the following examples throws error.
 
+{% code title="my-app.html" %}
 ```markup
 <template pending>does not work</template>
 <template then>does not work</template>
 <template catch>does not work</template>
 ```
+{% endcode %}
+
 
 However, `promise.resolve` template controller can be used without any of those three template controllers.
 Following are some valid examples.
 
+{% code title="my-app.html" %}
 ```markup
 <template promise.resolve="promise">
 </template>
@@ -607,10 +615,12 @@ Following are some valid examples.
  <template catch="err">...</template>
 </template>
 ```
+{% endcode %}
 
 It is important to note here that those three template controllers cannot be used under any template controller other than `promise.resolve`.
 Following are some invalid examples.
 
+{% code title="my-app.html" %}
 ```markup
 <template promise.resolve="generalInfoPromise">
  <template if.bind="true" pending>Fetching info...</template> <!--Here pending gets nested under if.bind-->
@@ -623,9 +633,11 @@ Following are some invalid examples.
  <template catch="err1">Cannot get the general information</template>
 </template>
 ```
+{% endcode %}
 
 However, the following are some valid examples of combining other template controllers.
 
+{% code title="my-app.html" %}
 ```markup
 <template promise.resolve="generalInfoPromise">
  <template pending if.bind="someCondition">Fetching info...</template>
@@ -638,3 +650,4 @@ However, the following are some valid examples of combining other template contr
  <template catch="err1">Cannot get the general information</template>
 </template>
 ```
+{% endcode %}

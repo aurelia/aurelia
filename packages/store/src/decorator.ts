@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
+import { Controller } from "@aurelia/runtime-html";
 import { Observable, Subscription } from 'rxjs';
 
 import { Store, STORE } from './store';
@@ -77,10 +78,9 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
         throw new Error('Provided onChanged handler does not exist on target VM');
       }
 
-      // const store = Controller.getCached(this)
-      //   ? Controller.getCached(this)!.context.get<Store<T>>(Store)
-      //   : STORE.container.get<Store<T>>(Store);
-      const store = STORE.container.get<Store<T>>(Store); // TODO: need to get rid of this helper for classic unit tests
+      const store = Controller.getCached(this)
+        ? Controller.getCached(this)!.context.get<Store<T>>(Store)
+        : STORE.container.get<Store<T>>(Store); // TODO: need to get rid of this helper for classic unit tests
 
       this._stateSubscriptions = createSelectors().map(s => getSource(store, s.selector).subscribe((state: unknown) => {
         const lastTargetIdx = s.targets.length - 1;

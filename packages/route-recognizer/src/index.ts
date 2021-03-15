@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-
 export interface IConfigurableRoute<T> {
   readonly path: string;
   readonly caseSensitive?: boolean;
@@ -10,7 +8,7 @@ export class ConfigurableRoute<T> implements IConfigurableRoute<T> {
   public constructor(
     public readonly path: string,
     public readonly caseSensitive: boolean,
-    public readonly handler: T,
+    public handler: T,
   ) {}
 }
 
@@ -25,9 +23,6 @@ export class RecognizedRoute<T> {
   public constructor(
     public readonly endpoint: Endpoint<T>,
     public readonly params: Readonly<Record<string, string | undefined>>,
-    public readonly searchParams: URLSearchParams,
-    public readonly isDynamic: boolean,
-    public readonly queryString: string,
   ) {}
 }
 
@@ -42,6 +37,7 @@ class Candidate<T> {
     private readonly result: RecognizeResult<T>,
   ) {
     this.head = states[states.length - 1];
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     this.endpoint = this.head?.endpoint!;
   }
 
@@ -283,9 +279,7 @@ class RecognizeResult<T> {
     return this.candidates.length === 0;
   }
 
-  public constructor(
-    rootState: SeparatorState<T>,
-  ) {
+  public constructor(rootState: SeparatorState<T>) {
     this.candidates = [new Candidate([''], [rootState], [], this)];
   }
 
@@ -323,20 +317,27 @@ class RecognizeResult<T> {
 
 export class RouteRecognizer<T> {
   private readonly rootState: SeparatorState<T> = new State(null, null, '') as SeparatorState<T>;
+  private readonly cache: Map<string, RecognizedRoute<T> | null> = new Map<string, RecognizedRoute<T> | null>();
 
-  public add(
-    routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[],
-  ): void {
+  public add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[]): void {
     if (routeOrRoutes instanceof Array) {
       for (const route of routeOrRoutes) {
-        this.add(route);
+        this.$add(route);
       }
-      return;
+    } else {
+      this.$add(routeOrRoutes as IConfigurableRoute<T>);
     }
 
-    const route = routeOrRoutes as IConfigurableRoute<T>;
+    // Clear the cache whenever there are state changes, because the recognizeResults could be arbitrarily different as a result
+    this.cache.clear();
+  }
+
+  private $add(route: IConfigurableRoute<T>): void {
+    const path = route.path;
     const $route = new ConfigurableRoute(route.path, route.caseSensitive === true, route.handler);
-    const parts = parsePath($route.path);
+
+    // Normalize leading, trailing and double slashes by ignoring empty segments
+    const parts = path === '' ? [''] : path.split('/').filter(isNotEmpty);
     const paramNames: string[] = [];
 
     let state = this.rootState as AnyState<T>;
@@ -372,18 +373,14 @@ export class RouteRecognizer<T> {
   }
 
   public recognize(path: string): RecognizedRoute<T> | null {
-    let searchParams: URLSearchParams;
-    let queryString = '';
-
-    const queryStart = path.indexOf('?');
-    if (queryStart >= 0) {
-      queryString = path.slice(queryStart + 1);
-      path = path.slice(0, queryStart);
-      searchParams = new URLSearchParams(queryString);
-    } else {
-      searchParams = new URLSearchParams();
+    let result = this.cache.get(path);
+    if (result === void 0) {
+      this.cache.set(path, result = this.$recognize(path));
     }
+    return result;
+  }
 
+  private $recognize(path: string): RecognizedRoute<T> | null {
     path = decodeURI(path);
 
     if (!path.startsWith('/')) {
@@ -411,15 +408,8 @@ export class RouteRecognizer<T> {
 
     const { endpoint } = candidate;
     const params = candidate.getParams();
-    const isDynamic = candidate.endpoint.paramNames.length > 0;
 
-    return new RecognizedRoute<T>(
-      endpoint,
-      params,
-      searchParams,
-      isDynamic,
-      queryString,
-    );
+    return new RecognizedRoute<T>(endpoint, params);
   }
 }
 
@@ -516,10 +506,7 @@ class State<T> {
     }
   }
 
-  public append<S extends AnySegment<T> | null>(
-    segment: S,
-    value: string,
-  ): SegmentToState<S, T> {
+  public append<S extends AnySegment<T> | null>(segment: S, value: string): SegmentToState<S, T> {
     let state: AnyState<T> | undefined;
     let nextStates = this.nextStates;
     if (nextStates === null) {
@@ -538,12 +525,9 @@ class State<T> {
     return state as SegmentToState<S, T>;
   }
 
-  public setEndpoint(
-    this: AnyState<T>,
-    endpoint: Endpoint<T>,
-  ): void {
+  public setEndpoint(this: AnyState<T>, endpoint: Endpoint<T>): void {
     if (this.endpoint !== null) {
-      throw new Error(`Cannot add ambiguous route. The pattern ${endpoint.route.path} clashes with ${this.endpoint.route.path}`);
+      throw new Error(`Cannot add ambiguous route. The pattern '${endpoint.route.path}' clashes with '${this.endpoint.route.path}'`);
     }
     this.endpoint = endpoint;
     if (this.isOptional) {
@@ -554,9 +538,7 @@ class State<T> {
     }
   }
 
-  public isMatch(
-    ch: string,
-  ): boolean {
+  public isMatch(ch: string): boolean {
     const segment = this.segment;
     switch (segment?.kind) {
       case SegmentKind.dynamic:
@@ -573,12 +555,6 @@ class State<T> {
 
 function isNotEmpty(segment: string): boolean {
   return segment.length > 0;
-}
-
-type Segments = readonly string[];
-function parsePath(path: string): Segments {
-  // Normalize leading, trailing and double slashes by ignoring empty segments
-  return path.split('/').filter(isNotEmpty);
 }
 
 type AnySegment<T> = (

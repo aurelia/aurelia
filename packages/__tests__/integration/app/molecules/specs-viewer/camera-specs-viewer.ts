@@ -1,6 +1,6 @@
-import { bindable, customElement } from '@aurelia/runtime';
+import { bindable, customElement } from '@aurelia/runtime-html';
 import template from './camera-specs-viewer.html';
-import { Thing } from './thing-viewer';
+import { Thing } from './thing-viewer.js';
 
 export class Zoom {
   public constructor(
@@ -28,7 +28,7 @@ export class CameraSpecsViewer {
   private focalLength: string;
   private fNumber: string;
 
-  public beforeBind(...args) {
+  public binding(...args) {
     const { focalLengthRange: [fln, flx], fNumberRange: [fnn, fnx] } = this.model;
     this.focalLength = `${fln}-${flx}`;
     this.fNumber = `${fnn}-${fnx}`;

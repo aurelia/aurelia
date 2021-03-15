@@ -3,6 +3,42 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.2"></a>
+# 2.0.0-alpha.2 (2021-03-07)
+
+**Note:** Version bump only for package @aurelia/fetch-client
+
+<a name="2.0.0-alpha.1"></a>
+# 2.0.0-alpha.1 (2021-03-03)
+
+**Note:** Version bump only for package @aurelia/fetch-client
+
+<a name="2.0.0-alpha.0"></a>
+# 2.0.0-alpha.0 (2021-03-02)
+
+**Note:** Version bump only for package @aurelia/fetch-client
+
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Features:
+
+* **fetch-client:** add IHttpClient interface ([b1a7a6d](https://github.com/aurelia/aurelia/commit/b1a7a6d))
+
+
+### Bug Fixes:
+
+* **fetch-client:** http-client.ts ([5137832](https://github.com/aurelia/aurelia/commit/5137832))
+
+<a name="0.8.0"></a>
+# 0.8.0 (2020-11-30)
+
+### Refactorings:
+
+* **all:** add .js extensions for native esm compat ([0308e2e](https://github.com/aurelia/aurelia/commit/0308e2e))
+* **fetch-client:** remove dom dep ([fa511d4](https://github.com/aurelia/aurelia/commit/fa511d4))
+* **all:** move html-specific stuff from runtime to runtime-html and remove Node generics ([c745963](https://github.com/aurelia/aurelia/commit/c745963))
+
 <a name="0.7.0"></a>
 # 0.7.0 (2020-05-08)
 

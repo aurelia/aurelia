@@ -1,9 +1,0 @@
-{
-  "baseUrl": "http://localhost:9500",
-  "fixturesFolder": "tests/fixtures",
-  "integrationFolder": "tests/integration",
-  "pluginsFile": "tests/plugins/index.js",
-  "screenshotsFolder": "tests/screenshots",
-  "supportFile": "tests/support/index.js",
-  "video": false
-}

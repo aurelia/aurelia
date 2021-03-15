@@ -1,37 +1,29 @@
 import {
-  DI,
   IContainer,
   Registration,
 } from '@aurelia/kernel';
 import {
   IDirtyChecker,
-
-  ILifecycle,
-  ILifecycleRegistration,
   IObserverLocator,
-  IObserverLocatorRegistration,
-  IScope,
-  ITargetAccessorLocator,
-  ITargetObserverLocator,
-  LifecycleFlags as LF,
-  OverrideContext,
   Scope,
-  IScheduler,
-} from '@aurelia/runtime';
+  OverrideContext,
+  INodeObserverLocator,
+} from '@aurelia/runtime-html';
+import { createContainer } from './test-context.js';
 // import {
-//   HTMLTargetedInstruction,
+//   IInstruction,
 //   NodeSequenceFactory,
 //   TextBindingInstruction,
 // } from '@aurelia/runtime-html';
 // import {
 //   FakeView,
 //   FakeViewFactory,
-// } from './fakes';
-// import { HTMLTestContext } from './html-test-context';
+// } from './fakes.js';
+// import { TestContext } from './html-test-context.js';
 // import {
 //   defineComponentLifecycleMock,
 //   IComponentLifecycleMock,
-// } from './mocks';
+// } from './mocks.js';
 
 // export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;
 // export type InstructionCb = (builder: InstructionBuilder) => InstructionBuilder;
@@ -76,7 +68,7 @@ import {
 // }
 
 // export class InstructionBuilder {
-//   private instructions: HTMLTargetedInstruction[];
+//   private instructions: IInstruction[];
 
 //   constructor() {
 //     this.instructions = [];
@@ -143,7 +135,7 @@ import {
 //     insCbOrBuilder: InstructionCb | InstructionBuilder,
 //     defCbOrBuilder: DefinitionCb | DefinitionBuilder
 //   ): InstructionBuilder {
-//     let childInstructions: HTMLTargetedInstruction[];
+//     let childInstructions: IInstruction[];
 //     let definition: PartialCustomElementDefinition;
 //     if (insCbOrBuilder instanceof InstructionBuilder) {
 //       childInstructions = insCbOrBuilder.build();
@@ -174,7 +166,7 @@ import {
 //     return this;
 //   }
 
-//   public build(): HTMLTargetedInstruction[] {
+//   public build(): IInstruction[] {
 //     const { instructions } = this;
 //     this.instructions = null!;
 //     return instructions;
@@ -186,7 +178,7 @@ import {
 //   private name: string;
 //   private templateBuilder: TemplateBuilder;
 //   private instructionBuilder: InstructionBuilder;
-//   private instructions: HTMLTargetedInstruction[][];
+//   private instructions: IInstruction[][];
 
 //   constructor(name?: string) {
 //     // eslint-disable-next-line prefer-template
@@ -317,7 +309,7 @@ import {
 //   private readonly Type: T;
 
 //   constructor(Type: T) {
-//     this.container = JitHtmlConfiguration.createContainer();
+//     this.container = StandardConfiguration.createContainer();
 //     this.container.register(Type as any);
 //     this.Type = Type;
 //   }
@@ -384,12 +376,12 @@ import {
 //   }
 
 //   public bind(flags?: LF): void {
-//     flags = arguments.length === 1 ? flags : LF.fromStartTask | LF.fromBind;
+//     flags = arguments.length === 1 ? flags : LF.fromAppTask | LF.fromBind;
 //     this.component.$bind(flags!);
 //   }
 
 //   public attach(flags?: LF): void {
-//     flags = arguments.length === 1 ? flags : LF.fromStartTask | LF.fromAttach;
+//     flags = arguments.length === 1 ? flags : LF.fromAppTask | LF.fromAttach;
 //     this.component.$attach(flags!);
 //   }
 
@@ -456,11 +448,10 @@ import {
 //   }
 // }
 
-export function createObserverLocator(containerOrLifecycle?: IContainer | ILifecycle): IObserverLocator {
+export function createObserverLocator(containerOrLifecycle?: IContainer): IObserverLocator {
   let container: IContainer;
   if (containerOrLifecycle === undefined || !('get' in containerOrLifecycle)) {
-    container = DI.createContainer();
-    container.register(ILifecycleRegistration);
+    container = createContainer();
   } else {
     container = containerOrLifecycle;
   }
@@ -469,22 +460,15 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
       return false;
     }
   };
-  const dummyScheduler: any = {
-
-  };
   Registration.instance(IDirtyChecker, null).register(container);
-  Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
-  Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
-  container.register(IObserverLocatorRegistration);
-  Registration.instance(IScheduler, dummyScheduler).register(container);
+  Registration.instance(INodeObserverLocator, dummyLocator).register(container);
   return container.get(IObserverLocator);
 }
 
-export function createScopeForTest(bindingContext: any = {}, parentBindingContext?: any): IScope {
-  if (parentBindingContext) {
-    return Scope.create(LF.none, bindingContext, OverrideContext.create(LF.none, bindingContext, OverrideContext.create(LF.none, parentBindingContext, null)));
-  }
-  return Scope.create(LF.none, bindingContext, OverrideContext.create(LF.none, bindingContext, null));
+export function createScopeForTest(bindingContext: any = {}, parentBindingContext?: any, isComponentBoundary?: boolean): Scope {
+  return parentBindingContext
+    ? Scope.fromParent(Scope.create(parentBindingContext), bindingContext)
+    : Scope.create(bindingContext, OverrideContext.create(bindingContext), isComponentBoundary);
 }
 
 // export type CustomAttribute = Writable<IViewModel> & IComponentLifecycleMock;
@@ -515,7 +499,7 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 //   return { Type, sut };
 // }
 
-// export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: HTMLTestContext) {
+// export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: TestContext) {
 //   const { container, dom } = ctx;
 //   const ElementType: ICustomElementType = Type as any;
 //   const parent = ctx.createElement('div');
@@ -525,26 +509,26 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 //     view.$nodes = new NodeSequenceFactory(dom, '<div>Fake View</div>').createNodeSequence() as INodeSequence<T>;
 //     return view;
 //   };
-//   const renderable = new FakeViewFactory('fake-view', createView, ctx.lifecycle).create();
+//   const composable = new FakeViewFactory('fake-view', createView, ctx.lifecycle).create();
 //   const instruction: IHydrateElementInstruction = {
-//     type: TargetedInstructionType.hydrateElement,
+//     type: InstructionType.composeElement,
 //     res: 'au-compose',
 //     instructions: []
 //   };
 
 //   dom.appendChild(parent, host);
 
-//   const renderableProvider = new InstanceProvider();
+//   const composableProvider = new InstanceProvider();
 //   const elementProvider = new InstanceProvider();
-//   const instructionProvider = new InstanceProvider<ITargetedInstruction>();
+//   const instructionProvider = new InstanceProvider<IInstruction>();
 
-//   renderableProvider.prepare(renderable);
+//   composableProvider.prepare(composable);
 //   elementProvider.prepare(host);
 //   instructionProvider.prepare(instruction);
 
 //   container.register(ElementType);
-//   container.registerResolver(IController, renderableProvider);
-//   container.registerResolver(ITargetedInstruction, instructionProvider);
+//   container.registerResolver(IController, composableProvider);
+//   container.registerResolver(IInstruction, instructionProvider);
 //   dom.registerElementResolver(container, elementProvider);
 
 //   const element = container.get<T & IViewModel>(

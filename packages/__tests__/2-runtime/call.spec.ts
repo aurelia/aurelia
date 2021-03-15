@@ -1,31 +1,31 @@
 import {
   AccessScopeExpression,
   BindingBehaviorExpression,
-  CallBinding,
   CallScopeExpression,
   ExpressionKind,
-  IExpression,
-  ILifecycle,
-  IScope,
+  IsBindingBehavior,
+  Scope,
   LifecycleFlags as LF,
-  RuntimeConfiguration,
   SetterObserver
 } from '@aurelia/runtime';
+import {
+  CallBinding,
+} from '@aurelia/runtime-html';
 import {
   createObserverLocator,
   createScopeForTest,
   eachCartesianJoinFactory,
-  assert
+  assert,
+  createContainer
 } from '@aurelia/testing';
 
 describe.skip('CallBinding', function () {
-  function createFixture(sourceExpression: IExpression, target: any, targetProperty: string) {
-    const container = RuntimeConfiguration.createContainer();
-    const lifecycle = container.get(ILifecycle);
+  function createFixture(sourceExpression: IsBindingBehavior, target: any, targetProperty: string) {
+    const container = createContainer(); // Note: used to be RuntimeConfiguration.createContainer, needs deps
     const observerLocator = createObserverLocator(container);
     const sut = new CallBinding(sourceExpression as any, target, targetProperty, observerLocator, container);
 
-    return { sut, lifecycle, container, observerLocator };
+    return { sut, container, observerLocator };
   }
 
   describe('$bind -> $bind', function () {
@@ -40,12 +40,12 @@ describe.skip('CallBinding', function () {
       () => ['barz', `'barz' `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new CallScopeExpression('theFunc', []),          `theFunc()`],
       () => [new BindingBehaviorExpression(new CallScopeExpression('theFunc', []), 'debounce', []),          `theFunc()`]
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({theFunc: () => { return; }}),       `{theFunc:()=>{}}       `]
     ];
 
@@ -60,9 +60,9 @@ describe.skip('CallBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [scope, $4], [renewScope, $5]) => {
       it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4} renewScope=${$5}`, function () {
         // - Arrange -
-        const { sut, lifecycle, observerLocator } = createFixture(expr, target, prop);
+        const { sut, observerLocator } = createFixture(expr, target, prop);
         const flags = LF.none;
-        const targetObserver = observerLocator.getObserver(LF.none, target, prop);
+        const targetObserver = observerLocator.getObserver(target, prop);
 
         // massSpy(scope.bindingContext, 'theFunc');
         // massSpy(sut, 'callSource');
@@ -73,7 +73,7 @@ describe.skip('CallBinding', function () {
         // expr['unbind'] = spy();
 
         // - Act -
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert -
         // double check we have the correct target observer
@@ -103,7 +103,7 @@ describe.skip('CallBinding', function () {
         // massReset(expr);
 
         // - Act -
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert -
         assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
@@ -141,12 +141,12 @@ describe.skip('CallBinding', function () {
       () => ['barz', `'barz' `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new CallScopeExpression('theFunc', []),          `theFunc()`],
       () => [new BindingBehaviorExpression(new CallScopeExpression('theFunc', []), 'debounce', []),          `theFunc()`]
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({theFunc: () => { return; }}),       `{theFunc:()=>{}}       `]
     ];
 
@@ -156,9 +156,9 @@ describe.skip('CallBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [scope, $4]) => {
       it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4}`, function () {
         // - Arrange -
-        const { sut, lifecycle, observerLocator } = createFixture(expr, target, prop);
+        const { sut, observerLocator } = createFixture(expr, target, prop);
         const flags = LF.none;
-        const targetObserver = observerLocator.getObserver(LF.none, target, prop);
+        const targetObserver = observerLocator.getObserver(target, prop);
 
         // massSpy(scope.bindingContext, 'theFunc');
         // massSpy(sut, 'callSource');
@@ -169,7 +169,7 @@ describe.skip('CallBinding', function () {
         // expr['unbind'] = spy();
 
         // - Act -
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert -
         // double check we have the correct target observer
@@ -245,12 +245,12 @@ describe.skip('CallBinding', function () {
       () => [{ arg3: ';lkasdf', arg1: {}, arg2: 42  }, `{} `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new CallScopeExpression('theFunc', []),          `theFunc()`],
       () => [new CallScopeExpression('theFunc', [new AccessScopeExpression('arg1'), new AccessScopeExpression('arg2'), new AccessScopeExpression('arg3')]), `theFunc(arg1, arg2, arg3)`]
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({theFunc: () => { return; }}),       `{theFunc:()=>{}}       `]
     ];
 
@@ -260,9 +260,9 @@ describe.skip('CallBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [args, $3], [expr, $4], [scope, $5]) => {
       it(`$bind() target=${$1} prop=${$2} args=${$3} expr=${$4} scope=${$5}`, function () {
         // - Arrange -
-        const { sut, lifecycle, observerLocator } = createFixture(expr, target, prop);
+        const { sut, observerLocator } = createFixture(expr, target, prop);
         const flags = LF.none;
-        const targetObserver = observerLocator.getObserver(LF.none, target, prop);
+        const targetObserver = observerLocator.getObserver(target, prop);
 
         // massSpy(scope.bindingContext, 'theFunc');
         // massSpy(sut, 'callSource');
@@ -270,7 +270,7 @@ describe.skip('CallBinding', function () {
         // massSpy(expr, 'evaluate', 'assign', 'connect');
 
         // - Act -
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert -
         // double check we have the correct target observer

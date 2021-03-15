@@ -1,18 +1,16 @@
-import { IScope, LifecycleFlags, PropertyBinding, bindingBehavior, IScheduler } from '@aurelia/runtime';
-import { DataAttributeAccessor } from '../../observation/data-attribute-accessor';
+import { LifecycleFlags, bindingBehavior } from '@aurelia/runtime';
+import { attrAccessor } from '../../observation/data-attribute-accessor.js';
+
+import type { Scope } from '@aurelia/runtime';
+import type { PropertyBinding } from '../../binding/property-binding.js';
 
 @bindingBehavior('attr')
 export class AttrBindingBehavior {
-  public bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding): void {
-    binding.targetObserver = new DataAttributeAccessor(
-      binding.locator.get(IScheduler),
-      flags,
-      binding.target as HTMLElement,
-      binding.targetProperty,
-    );
+  public bind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: PropertyBinding): void {
+    binding.targetObserver = attrAccessor;
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding): void {
+  public unbind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: PropertyBinding): void {
     return;
   }
 }

@@ -1,24 +1,26 @@
 import { IContainer } from '@aurelia/kernel';
-import {
-  AttrSyntax,
-  BindingSymbol,
-  getTarget,
-  BindingCommandInstance,
-  PlainAttributeSymbol,
-} from '@aurelia/jit';
+import { TranslationBinding } from './translation-binding.js';
 import {
   BindingMode,
   BindingType,
-  ICallBindingInstruction,
   IExpressionParser,
-  IInstructionRenderer,
-  instructionRenderer,
+  IRenderer,
+  renderer,
   IObserverLocator,
   IsBindingBehavior,
   LifecycleFlags,
-  IRenderableController
-} from '@aurelia/runtime';
-import { TranslationBinding } from './translation-binding';
+  IHydratableController,
+  AttrSyntax,
+  getTarget,
+  IPlatform,
+} from '@aurelia/runtime-html';
+
+import type {
+  CallBindingInstruction,
+  BindingSymbol,
+  BindingCommandInstance,
+  PlainAttributeSymbol,
+} from '@aurelia/runtime-html';
 
 export const TranslationInstructionType = 'tt';
 
@@ -50,21 +52,30 @@ export class TranslationBindingCommand implements BindingCommandInstance {
   }
 }
 
-@instructionRenderer(TranslationInstructionType)
-export class TranslationBindingRenderer implements IInstructionRenderer {
+@renderer(TranslationInstructionType)
+export class TranslationBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IPlatform private readonly platform: IPlatform,
   ) { }
 
   public render(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IRenderableController,
+    controller: IHydratableController,
     target: HTMLElement,
-    instruction: ICallBindingInstruction,
+    instruction: CallBindingInstruction,
   ): void {
-    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
+    TranslationBinding.create({
+      parser: this.parser,
+      observerLocator: this.observerLocator,
+      context,
+      controller,
+      target,
+      instruction,
+      platform: this.platform,
+    });
   }
 }
 
@@ -99,20 +110,29 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
   }
 }
 
-@instructionRenderer(TranslationBindInstructionType)
-export class TranslationBindBindingRenderer implements IInstructionRenderer {
+@renderer(TranslationBindInstructionType)
+export class TranslationBindBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IPlatform private readonly platform: IPlatform,
   ) { }
 
   public render(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IRenderableController,
+    controller: IHydratableController,
     target: HTMLElement,
-    instruction: ICallBindingInstruction,
+    instruction: CallBindingInstruction,
   ): void {
-    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
+    TranslationBinding.create({
+      parser: this.parser,
+      observerLocator: this.observerLocator,
+      context,
+      controller,
+      target,
+      instruction,
+      platform: this.platform
+    });
   }
 }

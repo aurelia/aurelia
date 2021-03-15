@@ -1,15 +1,12 @@
 import { statSync, openSync, readdirSync } from 'fs';
 import { IncomingMessage, ServerResponse } from 'http';
 import { ServerHttp2Stream, constants, Http2ServerRequest, Http2ServerResponse, OutgoingHttpHeaders } from 'http2';
-import * as url from 'url';
 import { join, resolve, relative, extname } from 'path';
-
 import { ILogger } from '@aurelia/kernel';
-
-import { IRequestHandler, IHttpServerOptions, IHttp2FileServer } from '../interfaces';
-import { IHttpContext, HttpContextState } from '../http-context';
-import { getContentType, HTTPStatusCode, QualifiedHeaderValues, Headers, getContentEncoding, ContentEncoding } from '../http-utils';
-import { readFile, isReadable, exists } from "../file-utils";
+import { IRequestHandler, IHttpServerOptions, IHttp2FileServer } from '../interfaces.js';
+import { IHttpContext, HttpContextState } from '../http-context.js';
+import { getContentType, HTTPStatusCode, getContentEncoding, ContentEncoding } from '../http-utils.js';
+import { readFile, isReadable, exists } from '../file-utils.js';
 
 const {
   HTTP2_HEADER_PATH,
@@ -51,18 +48,14 @@ export class FileServer implements IRequestHandler {
     const response = context.response;
 
     if (!(request instanceof IncomingMessage && response instanceof ServerResponse)) { return; }
-    const parsedUrl = url.parse(request.url!);
-    let parsedPath = parsedUrl.path!;
-    if (parsedPath.endsWith('/')) {
-      parsedPath = `${parsedPath}index.html`;
-    }
-    const path = join(this.root, parsedPath);
+    const parsedUrl = context.requestUrl;
+    const path = join(this.root, parsedUrl.path!);
 
     if (await isReadable(path)) {
       this.logger.debug(`Serving file "${path}"`);
 
       const contentType = getContentType(path);
-      const clientEncoding = determineContentEncoding(request.headers);
+      const clientEncoding = determineContentEncoding(context);
 
       let contentEncoding: ContentEncoding = (void 0)!;
       let content: any = (void 0)!;
@@ -89,7 +82,7 @@ export class FileServer implements IRequestHandler {
         'Cache-Control': this.cacheControlDirective
       });
 
-      await new Promise(function (resolve) {
+      await new Promise<void>(function (resolve) {
         response.end(content, resolve);
       });
 
@@ -136,14 +129,11 @@ export class Http2FileServer implements IHttp2FileServer {
     const response = context.response;
 
     if (!(request instanceof Http2ServerRequest && response instanceof Http2ServerResponse)) { return; }
-    const parsedUrl = url.parse(request.url!);
-    let parsedPath = parsedUrl.path!;
-    if (parsedPath.endsWith('/')) {
-      parsedPath = `${parsedPath}index.html`;
-    }
+    const parsedUrl = context.requestUrl;
+    const parsedPath = parsedUrl.path!;
     const path = join(this.root, parsedPath);
 
-    const contentEncoding = determineContentEncoding(request.headers);
+    const contentEncoding = determineContentEncoding(context);
     const file = this.getPushInfo(parsedPath, contentEncoding);
 
     if (file !== void 0) {
@@ -231,8 +221,8 @@ class PushInfo {
   ) { }
 }
 
-function determineContentEncoding(headers: Headers) {
-  const clientEncoding = new QualifiedHeaderValues(HTTP2_HEADER_ACCEPT_ENCODING, headers);
+function determineContentEncoding(context: IHttpContext) {
+  const clientEncoding = context.getQualifiedRequestHeaderFor(HTTP2_HEADER_ACCEPT_ENCODING);
 
   // if brotli compression is supported return `br`
   if (clientEncoding.isAccepted('br')) {

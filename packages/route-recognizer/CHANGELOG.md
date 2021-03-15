@@ -3,6 +3,38 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.2"></a>
+# 2.0.0-alpha.2 (2021-03-07)
+
+**Note:** Version bump only for package @aurelia/route-recognizer
+
+<a name="2.0.0-alpha.1"></a>
+# 2.0.0-alpha.1 (2021-03-03)
+
+**Note:** Version bump only for package @aurelia/route-recognizer
+
+<a name="2.0.0-alpha.0"></a>
+# 2.0.0-alpha.0 (2021-03-02)
+
+**Note:** Version bump only for package @aurelia/route-recognizer
+
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Bug Fixes:
+
+* **route-recognizer:** cleanup & fix empty path routes ([5edb119](https://github.com/aurelia/aurelia/commit/5edb119))
+
+
+### Refactorings:
+
+* **route-recognizer:** make handler mutable ([d8a3ad2](https://github.com/aurelia/aurelia/commit/d8a3ad2))
+
+<a name="0.8.0"></a>
+# 0.8.0 (2020-11-30)
+
+**Note:** Version bump only for package @aurelia/route-recognizer
+
 <a name="0.7.0"></a>
 # 0.7.0 (2020-05-08)
 

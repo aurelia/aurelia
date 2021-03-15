@@ -1,94 +1,6 @@
-import { HookManager } from './hook-manager';
 export {
-  BrowserNavigator,
-} from './browser-navigator';
-
-export {
-  ILinkHandlerOptions,
-  AnchorEventInfo,
-
-  LinkHandler,
-} from './link-handler';
-
-export {
-  InstructionResolver,
-} from './instruction-resolver';
-
-export {
-  INavigatorInstruction,
-  IRouteableComponent,
-  RouteableComponentType,
-  IViewportInstruction,
-  NavigationInstruction,
-  ReentryBehavior,
-  IRoute,
-} from './interfaces';
-
-export {
-  lifecycleLogger,
-  LifecycleClass,
-} from './lifecycle-logger';
-
-export {
-  HookManager,
-  HookTypes,
-  IHookDefinition,
-} from './hook-manager';
-
-export {
-  INavRoute,
-  Nav,
-} from './nav';
-
-export {
-  NavRoute,
-} from './nav-route';
-
-export {
-  IStoredNavigatorEntry,
-  INavigatorEntry,
-  INavigatorOptions,
-  INavigatorFlags,
-  INavigatorState,
-  INavigatorStore,
-  INavigatorViewer,
-  INavigatorViewerEvent,
-  Navigator,
-} from './navigator';
-
-export {
-  QueueItem,
-  IQueueOptions,
-  Queue,
-} from './queue';
-
-export {
-  RouteRecognizer,
-  IConfigurableRoute,
-  ConfigurableRoute,
-  RecognizedRoute,
-  Endpoint,
-} from './route-recognizer';
-
-export {
-  IRouterOptions,
-  IRouter,
-  Router,
-} from './router';
-
-export {
-  IViewportOptions,
-  Viewport,
-} from './viewport';
-
-export {
-  ContentStatus,
-  ViewportContent,
-} from './viewport-content';
-
-export {
-  ViewportInstruction,
-} from './viewport-instruction';
+  IViewport,
+} from './resources/viewport.js';
 
 export {
   RouterConfiguration,
@@ -97,10 +9,94 @@ export {
   DefaultResources,
   ViewportCustomElement,
   ViewportCustomElementRegistration,
-  NavCustomElement,
-  NavCustomElementRegistration,
-  GotoCustomAttribute,
-  GotoCustomAttributeRegistration,
+  LoadCustomAttribute,
+  LoadCustomAttributeRegistration,
   HrefCustomAttribute,
   HrefCustomAttributeRegistration,
-} from './configuration';
+} from './configuration.js';
+
+export {
+  IRouteViewModel,
+  ComponentAgent,
+} from './component-agent.js';
+export {
+  RouteableComponent,
+  NavigationInstruction,
+  IViewportInstruction,
+  Params,
+} from './instructions.js';
+export {
+  ILocationManager,
+  IBaseHrefProvider,
+} from './location-manager.js';
+export {
+  Routeable,
+  IRouteConfig,
+  IChildRouteConfig,
+  RouteConfig,
+  ChildRouteConfig,
+  Route,
+  RouteType,
+  route,
+} from './route.js';
+export {
+  IRouteContext,
+  RouteContext,
+} from './route-context.js';
+export {
+  RouteDefinition,
+} from './route-definition.js';
+export {
+  AST,
+  RouteExpression,
+  CompositeSegmentExpression,
+  ScopedSegmentExpression,
+  SegmentGroupExpression,
+  SegmentExpression,
+  ComponentExpression,
+  ActionExpression,
+  ViewportExpression,
+  ParameterListExpression,
+  ParameterExpression,
+  ExpressionKind,
+} from './route-expression.js';
+export {
+  RouteNode,
+  RouteTree,
+} from './route-tree.js';
+export {
+  AuNavId,
+  ManagedState,
+  isManagedState,
+  toManagedState,
+  IRouter,
+  Router,
+  IRouterOptions,
+  INavigationOptions,
+  RouterOptions,
+  NavigationOptions,
+  Transition,
+  Navigation,
+  RoutingMode,
+  ResolutionMode,
+  SwapStrategy,
+  QueryParamsStrategy,
+  FragmentStrategy,
+  HistoryStrategy,
+  SameUrlStrategy,
+} from './router.js';
+export {
+  IRouterEvents,
+  RouterEvent,
+  LocationChangeEvent,
+  NavigationStartEvent,
+  NavigationEndEvent,
+  NavigationCancelEvent,
+  NavigationErrorEvent,
+} from './router-events.js';
+export {
+  IStateManager,
+} from './state-manager.js';
+export {
+  ViewportAgent,
+} from './viewport-agent.js';

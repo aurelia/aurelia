@@ -1,17 +1,19 @@
-import { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import {
   DelegationStrategy,
-  hasBind,
-  hasUnbind,
-  IBinding,
-  IConnectableBinding,
-  IDOM,
-  IsBindingBehavior,
-  IScope,
   LifecycleFlags,
-  State
 } from '@aurelia/runtime';
-import { IEventManager } from '../observation/event-manager';
+
+import { IEventTarget } from '../dom.js';
+
+import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
+import type { IBinding, IConnectableBinding, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import type { IEventDelegator } from '../observation/event-delegator.js';
+import type { IPlatform } from '../platform.js';
+
+const options = {
+  [DelegationStrategy.capturing]: { capture: true } as const,
+  [DelegationStrategy.bubbling]: { capture: false } as const,
+} as const;
 
 export interface Listener extends IConnectableBinding {}
 /**
@@ -20,20 +22,20 @@ export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
   public interceptor: this = this;
 
-  public $state: State = State.none;
-  public $scope!: IScope;
-  public part?: string;
+  public isBound: boolean = false;
+  public $scope!: Scope;
+  public $hostScope: Scope | null = null;
 
-  private handler!: IDisposable;
+  private handler: IDisposable = null!;
 
   public constructor(
-    public dom: IDOM,
+    public platform: IPlatform,
     public targetEvent: string,
     public delegationStrategy: DelegationStrategy,
     public sourceExpression: IsBindingBehavior,
     public target: Node,
     public preventDefault: boolean,
-    public eventManager: IEventManager,
+    public eventDelegator: IEventDelegator,
     public locator: IServiceLocator,
   ) {}
 
@@ -41,7 +43,7 @@ export class Listener implements IBinding {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator, this.part);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.$hostScope, this.locator, null);
 
     Reflect.deleteProperty(overrideContext, '$event');
 
@@ -56,59 +58,63 @@ export class Listener implements IBinding {
     this.interceptor.callSource(event);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (this.$state & State.isBound) {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
+    if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
 
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
-    // add isBinding flag
-    this.$state |= State.isBinding;
 
     this.$scope = scope;
-    this.part = part;
+    this.$hostScope = hostScope;
 
     const sourceExpression = this.sourceExpression;
-    if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+    if (sourceExpression.hasBind) {
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
-    this.handler = this.eventManager.addEventListener(
-      this.dom,
-      this.target,
-      this.targetEvent,
-      this,
-      this.delegationStrategy
-    );
+    if (this.delegationStrategy === DelegationStrategy.none) {
+      this.target.addEventListener(this.targetEvent, this);
+    } else {
+      const eventTarget = this.locator.get(IEventTarget);
+      this.handler = this.eventDelegator.addEventListener(
+        eventTarget,
+        this.target,
+        this.targetEvent,
+        this,
+        options[this.delegationStrategy],
+      );
+    }
 
     // add isBound flag and remove isBinding flag
-    this.$state |= State.isBound;
-    this.$state &= ~State.isBinding;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    // add isUnbinding flag
-    this.$state |= State.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
-    if (hasUnbind(sourceExpression)) {
-      sourceExpression.unbind(flags, this.$scope, this.interceptor);
+    if (sourceExpression.hasUnbind) {
+      sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
     }
 
     this.$scope = null!;
-    this.handler.dispose();
-    this.handler = null!;
+    if (this.delegationStrategy === DelegationStrategy.none) {
+      this.target.removeEventListener(this.targetEvent, this);
+    } else {
+      this.handler.dispose();
+      this.handler = null!;
+    }
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(State.isBound | State.isUnbinding);
+    this.isBound = false;
   }
 
-  public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {
+  public observeProperty(obj: IIndexable, propertyName: string): void {
     return;
   }
 

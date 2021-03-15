@@ -1,47 +1,36 @@
 export {
   assert,
   fail
-} from './assert';
+} from './assert.js';
 
-export {
-  AuNode,
-  AuDOM,
-  AuDOMConfiguration,
-  AuDOMInitializer,
-  AuDOMTest,
-  AuNodeSequence,
-  AuNodeSequenceFactory,
-  AuObserverLocator,
-  AuProjector,
-  AuProjectorLocator,
-  AuTextInstruction,
-  AuTextRenderer,
-} from './au-dom';
 export {
   globalAttributeNames,
   CSS_PROPERTIES,
   PSEUDO_ELEMENTS,
-} from './data';
+} from './data.js';
 export {
   eachCartesianJoinFactory,
   eachCartesianJoin,
   eachCartesianJoinAsync,
   generateCartesianProduct,
-} from './each-cartesian-join';
+} from './each-cartesian-join.js';
 export {
   h,
   hJsx,
-} from './h';
+} from './h.js';
 export {
   createFixture
-} from './startup';
+} from './startup.js';
 export {
-  HTMLTestContext,
   TestContext,
-} from './html-test-context';
+  PLATFORM,
+  PLATFORMRegistration,
+  setPlatform,
+  createContainer,
+} from './test-context.js';
 export {
   inspect,
-} from './inspect';
+} from './inspect.js';
 export {
   MockBinding,
   MockBindingBehavior,
@@ -56,22 +45,22 @@ export {
   CollectionChangeSet,
   ProxyChangeSet,
   SpySubscriber,
-} from './mocks';
-export {
-  writeProfilerReport,
-} from './profiler';
+} from './mocks.js';
 export {
   SortValueConverter,
   JsonValueConverter,
   TestConfiguration,
-} from './resources';
+} from './resources.js';
+export {
+  ensureTaskQueuesEmpty,
+} from './scheduler.js';
 export {
   // verifyASTEqual,
   verifyBindingInstructionsEqual,
   verifyEqual,
   getVisibleText,
-  targetedInstructionTypeName,
-} from './specialized-assertions';
+  instructionTypeName,
+} from './specialized-assertions.js';
 export {
   _,
   stringify,
@@ -79,7 +68,7 @@ export {
   jsonStringify,
   padLeft,
   padRight,
-} from './string-manipulation';
+} from './string-manipulation.js';
 export {
   // DefinitionBuilder,
   // InstructionBuilder,
@@ -93,19 +82,16 @@ export {
   // CustomAttribute,
   // CustomElement,
   // hydrateCustomElement,
-} from './test-builder';
+} from './test-builder.js';
 export {
-  enableTracing,
-  disableTracing,
-  SymbolTraceWriter,
   Call,
   CallCollection,
   recordCalls,
   stopRecordingCalls,
   trace
-} from './tracing';
+} from './tracing.js';
 export {
   trimFull,
   createSpy,
   ISpy,
-} from './util';
+} from './util.js';

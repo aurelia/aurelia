@@ -1,9 +1,9 @@
-import { DI, IEventAggregator, PLATFORM } from '@aurelia/kernel';
-import { ILifecycleTask, ISignaler, PromiseTask } from '@aurelia/runtime';
+import { DI, IEventAggregator } from '@aurelia/kernel';
+import { ISignaler } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
-import { I18nInitOptions } from './i18n-configuration-options';
-import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
-import { Signals } from './utils';
+import { I18nInitOptions } from './i18n-configuration-options.js';
+import { I18nextWrapper, I18nWrapper } from './i18next-wrapper.js';
+import { Signals } from './utils.js';
 
 const enum TimeSpan {
   Second = 1000,
@@ -36,7 +36,7 @@ export class I18nKeyEvaluationResult {
 
 export interface I18N {
   i18next: i18nextCore.i18n;
-  readonly task: ILifecycleTask;
+  readonly initPromise: Promise<void>;
   /**
    * Evaluates the `keyExpr` to translated values.
    * For a single key, `I18nService#tr` method can also be easily used.
@@ -90,8 +90,16 @@ export interface I18N {
    * If the `locales` is skipped, then the currently active locale is used for formatting.
    */
   rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string;
+  /**
+   * Queue a subscriber to be invoked for when the locale of a I18N service changes
+   */
+  subscribeLocaleChange(subscriber: ILocalChangeSubscriber): void;
 }
-export const I18N = DI.createInterface<I18N>('I18N').noDefault();
+export const I18N = DI.createInterface<I18N>('I18N');
+
+export interface ILocalChangeSubscriber {
+  handleLocaleChange(locales: { oldLocale: string; newLocale: string }): void;
+}
 /**
  * Translation service class.
  */
@@ -100,16 +108,20 @@ export class I18nService implements I18N {
   public i18next: i18nextCore.i18n;
   /**
    * This is used for i18next initialization and awaited for before the bind phase.
-   * If need be (usually there is none), this task can be awaited for explicitly in client code.
+   * If need be (usually there is none), this can be awaited for explicitly in client code.
    */
-  public readonly task: ILifecycleTask;
+  public readonly initPromise: Promise<void>;
   private options!: I18nInitOptions;
-  private readonly intl: typeof Intl;
+  private readonly localeSubscribers: Set<ILocalChangeSubscriber> = new Set();
 
-  public constructor(@I18nWrapper i18nextWrapper: I18nextWrapper, @I18nInitOptions options: I18nInitOptions, @IEventAggregator private readonly ea: IEventAggregator, @ISignaler private readonly signaler: ISignaler) {
+  public constructor(
+    @I18nWrapper i18nextWrapper: I18nextWrapper,
+    @I18nInitOptions options: I18nInitOptions,
+    @IEventAggregator private readonly ea: IEventAggregator,
+    @ISignaler private readonly signaler: ISignaler,
+  ) {
     this.i18next = i18nextWrapper.i18next;
-    this.task = new PromiseTask(this.initializeI18next(options), null, this);
-    this.intl = PLATFORM.global.Intl;
+    this.initPromise = this.initializeI18next(options);
   }
 
   public evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[] {
@@ -139,13 +151,15 @@ export class I18nService implements I18N {
   }
   public async setLocale(newLocale: string): Promise<void> {
     const oldLocale = this.getLocale();
+    const locales = { oldLocale, newLocale };
     await this.i18next.changeLanguage(newLocale);
-    this.ea.publish(Signals.I18N_EA_CHANNEL, { oldLocale, newLocale });
+    this.ea.publish(Signals.I18N_EA_CHANNEL, locales);
+    this.localeSubscribers.forEach(sub => sub.handleLocaleChange(locales));
     this.signaler.dispatchSignal(Signals.I18N_SIGNAL);
   }
 
   public createNumberFormat(options?: Intl.NumberFormatOptions, locales?: string | string[]): Intl.NumberFormat {
-    return this.intl.NumberFormat(locales || this.getLocale(), options);
+    return Intl.NumberFormat(locales || this.getLocale(), options);
   }
 
   public nf(input: number, options?: Intl.NumberFormatOptions, locales?: string | string[]): string {
@@ -153,7 +167,7 @@ export class I18nService implements I18N {
   }
 
   public createDateTimeFormat(options?: Intl.DateTimeFormatOptions, locales?: string | string[]): Intl.DateTimeFormat {
-    return this.intl.DateTimeFormat(locales || this.getLocale(), options);
+    return Intl.DateTimeFormat(locales || this.getLocale(), options);
   }
 
   public df(input: number | Date, options?: Intl.DateTimeFormatOptions, locales?: string | string[]): string {
@@ -184,7 +198,7 @@ export class I18nService implements I18N {
   }
 
   public createRelativeTimeFormat(options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): Intl.RelativeTimeFormat {
-    return new this.intl.RelativeTimeFormat(locales || this.getLocale(), options);
+    return new Intl.RelativeTimeFormat(locales || this.getLocale(), options);
   }
 
   public rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string {
@@ -226,6 +240,10 @@ export class I18nService implements I18N {
     difference = Math.abs(difference) < TimeSpan.Second ? TimeSpan.Second : difference;
     value = difference / TimeSpan.Second;
     return formatter.format(Math.round(value), 'second');
+  }
+
+  public subscribeLocaleChange(subscriber: ILocalChangeSubscriber): void {
+    this.localeSubscribers.add(subscriber);
   }
 
   private now() {

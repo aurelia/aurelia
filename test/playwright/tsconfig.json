@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "pretty": true,
+    "noEmitOnError": true,
+    "strict": true,
+    "lib": ["esnext", "DOM"],
+
+    "target": "es2018",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
+
+    "sourceMap": true,
+    "baseUrl": ".",
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": [
+    "./src/**/*.ts"
+  ]
+}

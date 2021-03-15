@@ -1,4 +1,4 @@
-import { IHydrator } from '@aurelia/runtime/dist/ast';
+import { IExpressionHydrator } from '@aurelia/runtime';
 import * as AST from '@aurelia/runtime';
 
 enum ASTExpressionTypes {
@@ -27,8 +27,8 @@ enum ASTExpressionTypes {
   Interpolation = 'Interpolation'
 }
 
-export class Deserializer implements IHydrator {
-  public static deserialize(serializedExpr: string): AST.IExpression {
+export class Deserializer implements IExpressionHydrator {
+  public static deserialize(serializedExpr: string): AST.IsExpressionOrStatement {
     const deserializer = new Deserializer();
     const raw = JSON.parse(serializedExpr);
     return deserializer.hydrate(raw);
@@ -146,7 +146,7 @@ export class Deserializer implements IHydrator {
     }
   }
   private deserializeExpressions(exprs: unknown[]) {
-    const expressions: AST.IExpression[] = [];
+    const expressions: AST.IsExpressionOrStatement[] = [];
     for (const expr of exprs) {
       expressions.push(this.hydrate(expr));
     }
@@ -154,7 +154,7 @@ export class Deserializer implements IHydrator {
   }
 }
 export class Serializer implements AST.IVisitor<string> {
-  public static serialize(expr: AST.IExpression): string {
+  public static serialize(expr: AST.IsExpressionOrStatement): string {
     const visitor = new Serializer();
     if (expr == null || typeof expr.accept !== 'function') {
       return `${expr}`;
@@ -231,7 +231,7 @@ export class Serializer implements AST.IVisitor<string> {
   public visitInterpolation(expr: AST.Interpolation): string {
     return `{"$TYPE":"${ASTExpressionTypes.Interpolation}","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
-  private serializeExpressions(args: readonly AST.IExpression[]): string {
+  private serializeExpressions(args: readonly AST.IsExpressionOrStatement[]): string {
     let text = '[';
     for (let i = 0, ii = args.length; i < ii; ++i) {
       if (i !== 0) {

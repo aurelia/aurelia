@@ -1,11 +1,11 @@
-import { Constructable, IContainer, PLATFORM, Registration } from '@aurelia/kernel';
+import { Constructable, IContainer, noop, Registration } from '@aurelia/kernel';
 import { getDefaultValidationConfiguration, ValidationCustomizationOptions, ValidationConfiguration } from '@aurelia/validation';
-import { ValidationContainerCustomElement, defaultContainerDefinition, defaultContainerTemplate } from './subscribers/validation-container-custom-element';
-import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
-import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior';
-import { IValidationController, ValidationControllerFactory } from './validation-controller';
-import { ValidationHtmlCustomizationOptions } from './validation-customization-options';
-import { CustomElement } from '@aurelia/runtime';
+import { ValidationContainerCustomElement, defaultContainerDefinition, defaultContainerTemplate } from './subscribers/validation-container-custom-element.js';
+import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute.js';
+import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior.js';
+import { IValidationController, ValidationControllerFactory } from './validation-controller.js';
+import { ValidationHtmlCustomizationOptions } from './validation-customization-options.js';
+import { CustomElement } from '@aurelia/runtime-html';
 
 export type ValidationConfigurationProvider = (options: ValidationHtmlCustomizationOptions) => void;
 
@@ -56,5 +56,5 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
   };
 }
 
-export const ValidationHtmlConfiguration = createConfiguration(PLATFORM.noop);
+export const ValidationHtmlConfiguration = createConfiguration(noop);
 

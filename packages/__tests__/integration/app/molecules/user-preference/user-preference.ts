@@ -1,7 +1,7 @@
-import { computed, customElement, bindable } from '@aurelia/runtime';
+import { customElement, bindable } from '@aurelia/runtime-html';
 import template from './user-preference.html';
 import { trace } from '@aurelia/testing';
-import { callCollection } from '../../debug';
+import { callCollection } from '../../debug.js';
 
 export class TestArray extends Array {
   public indeterminate: string = 'test';
@@ -34,7 +34,6 @@ export class User {
     this.arr = new TestArray();
   }
 
-  @computed({ static: true })
   public get fullNameStatic() {
     return `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
@@ -47,7 +46,6 @@ export class User {
     return `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
 
-  @computed({ static: true })
   public get fullNameWrongStatic() {
     if (this.age < 1) {
       return `infant`;
@@ -55,18 +53,17 @@ export class User {
     return `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
 
-  public get roleNonVolatile() {
+  public get $role() {
     return `${this.role}, ${this.organization}`;
   }
-  public set roleNonVolatile(value: string) {
+  public set $role(value: string) {
     this.role = value;
   }
 
-  @computed({ volatile: true })
-  public get locationVolatile() {
+  public get $location() {
     return `${this.city}, ${this.country}`;
   }
-  public set locationVolatile(value: string) {
+  public set $location(value: string) {
     this.country = value;
   }
 }

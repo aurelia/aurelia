@@ -4,6 +4,10 @@ description: A quick guide on how to add in routing to your Aurelia applications
 
 # Routing
 
+{% hint style="info" %}
+`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
+{% endhint %}
+
 The router package allows you to add in flexible and highly configurable routing into your Aurelia applications. It offers a plethora of different ways you can add in routing from convention-based routing \(direct routing\) through to traditional configuration based routing.
 
 The Aurelia router supports three different types of routing in your Aurelia applications. It is also possible to mix and switch between the three different types of router to suit your needs.
@@ -18,7 +22,7 @@ The three different types of routing and how to leverage them can be found in th
 
 ## Getting Started
 
-We will not get into the technical specifics of routing here. We simply import the `RouterConfiguration` instance from the Aurelia package and then register it via the `register` method. 
+We will not get into the technical specifics of routing here. We simply import the `RouterConfiguration` instance from the Aurelia package and then register it via the `register` method.
 
 An assumption is being made here that you generated a new Aurelia application and you are working with TypeScript. Changing the following example to work with Javascript based Aurelia applications should not be too much work.
 
@@ -58,10 +62,10 @@ Now, let's use direct routing to create a component and add in a link to route t
 ```markup
 <import from="./my-component.html"></import>
 
-<p><a goto="my-component">My component</a></p>
+<p><a load="my-component">My component</a></p>
 
 <au-viewport></au-viewport>
 ```
 
-Running this code will give you a working application that allows you to route to a HTML only component and you should see the text, `This is a component rendered by the router, hello`. You might have noticed we created a link and then added an attribute called `goto` this simply tells the router this is a link that will go to a route.
+Running this code will give you a working application that allows you to route to a HTML only component and you should see the text, `This is a component rendered by the router, hello`. You might have noticed we created a link and then added an attribute called `load` this simply tells the router this is a link that will go to a route.
 

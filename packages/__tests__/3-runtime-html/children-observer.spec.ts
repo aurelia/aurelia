@@ -1,6 +1,6 @@
-import { children, Aurelia, CustomElement, PartialChildrenDefinition } from '@aurelia/runtime';
+import { children, CustomElement, PartialChildrenDefinition, Aurelia } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
-import { IContainer, PLATFORM } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 
 describe('ChildrenObserver', function () {
   describe('populates', function () {
@@ -10,7 +10,9 @@ describe('ChildrenObserver', function () {
       assert.instanceOf(viewModel.children[0], ChildOne);
       assert.instanceOf(viewModel.children[1], ChildTwo);
 
-      au.stop();
+      void au.stop();
+
+      au.dispose();
     });
 
     it('children array with by custom query', function () {
@@ -21,7 +23,8 @@ describe('ChildrenObserver', function () {
       assert.equal(viewModel.children.length, 1);
       assert.instanceOf(viewModel.children[0], ChildOne);
 
-      au.stop();
+      void au.stop();
+      au.dispose();
     });
 
     it('children array with by custom query, filter, and map', function () {
@@ -34,14 +37,15 @@ describe('ChildrenObserver', function () {
       assert.equal(viewModel.children.length, 1);
       assert.equal(viewModel.children[0].tagName, CustomElement.getDefinition(ChildOne).name.toUpperCase());
 
-      au.stop();
+      void au.stop();
+      au.dispose();
     });
   });
 
   describe('updates', function () {
-    if (!PLATFORM.isBrowserLike) {
-      return;
-    }
+    // if (!PLATFORM.isBrowserLike) {
+    //   return;
+    // }
 
     it('children array with child view models', function (done) {
       const { au, viewModel, ChildOne, ChildTwo, hostViewModel } = createAppAndStart();
@@ -59,7 +63,9 @@ describe('ChildrenObserver', function () {
         assert.instanceOf(viewModel.children[1], ChildOne);
         assert.instanceOf(viewModel.children[2], ChildTwo);
         assert.instanceOf(viewModel.children[3], ChildTwo);
-        au.stop();
+        void au.stop();
+
+        au.dispose();
         done();
       });
     });
@@ -81,7 +87,9 @@ describe('ChildrenObserver', function () {
         assert.equal(viewModel.childrenChangedCallCount, 1);
         assert.instanceOf(viewModel.children[0], ChildTwo);
         assert.instanceOf(viewModel.children[1], ChildTwo);
-        au.stop();
+        void au.stop();
+
+        au.dispose();
         done();
       });
     });
@@ -107,7 +115,9 @@ describe('ChildrenObserver', function () {
         assert.equal(viewModel.childrenChangedCallCount, 1);
         assert.equal(viewModel.children[0].tagName, tagName);
         assert.equal(viewModel.children[1].tagName, tagName);
-        au.stop();
+        void au.stop();
+
+        au.dispose();
         done();
       });
     });
@@ -118,7 +128,7 @@ describe('ChildrenObserver', function () {
   }
 
   function createAppAndStart(childrenOptions?: PartialChildrenDefinition) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container } = ctx;
 
     const HostElement = defineAndRegisterElementWithChildren(container, childrenOptions);
@@ -138,7 +148,7 @@ describe('ChildrenObserver', function () {
     const host = ctx.createElement(CustomElement.getDefinition(component).name);
 
     au.app({ host, component });
-    au.start();
+    void au.start();
 
     const hostViewModel = CustomElement.for(host).viewModel as {
       oneCount: number;

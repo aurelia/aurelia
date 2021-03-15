@@ -1,4 +1,4 @@
-import { HttpClient } from './http-client';
+import { HttpClient } from './http-client.js';
 
 /**
  * Interceptors can process requests before they are sent, and responses

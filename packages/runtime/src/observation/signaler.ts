@@ -1,20 +1,13 @@
 import { DI } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
-import { ISubscriber } from '../observation';
+import { LifecycleFlags } from '../observation.js';
+import type { ISubscriber } from '../observation.js';
 
 type Signal = string;
 
-export interface ISignaler {
-  signals: Record<string, Set<ISubscriber>>;
-  dispatchSignal(name: Signal, flags?: LifecycleFlags): void;
-  addSignalListener(name: Signal, listener: ISubscriber): void;
-  removeSignalListener(name: Signal, listener: ISubscriber): void;
-}
+export interface ISignaler extends Signaler {}
+export const ISignaler = DI.createInterface<ISignaler>('ISignaler', x => x.singleton(Signaler));
 
-export const ISignaler = DI.createInterface<ISignaler>('ISignaler').withDefault(x => x.singleton(Signaler));
-
-/** @internal */
-export class Signaler implements ISignaler {
+export class Signaler {
   public signals: Record<string, Set<ISubscriber>> = Object.create(null);
 
   public dispatchSignal(name: Signal, flags?: LifecycleFlags): void {
@@ -23,7 +16,7 @@ export class Signaler implements ISignaler {
       return;
     }
     for (const listener of listeners.keys()) {
-      listener.handleChange(undefined, undefined, flags! | LifecycleFlags.updateTargetInstance);
+      listener.handleChange(undefined, undefined, flags!);
     }
   }
 

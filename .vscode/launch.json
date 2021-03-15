@@ -225,6 +225,19 @@
       ],
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "serve router-layout test app",
+      "args": [
+        "-r",
+        "esm",
+        "${workspaceRoot}/test/router-layouts/node_modules/@aurelia/http-server/dist/esnext/cli.js",
+        "au.conf.js",
+      ],
+      "cwd": "${workspaceRoot}/test/router-layouts/",
+      "internalConsoleOptions": "openOnSessionStart"
     }
   ]
 }

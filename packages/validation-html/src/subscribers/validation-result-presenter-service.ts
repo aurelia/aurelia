@@ -1,11 +1,14 @@
-import { DOM } from '@aurelia/runtime';
+import { IPlatform } from '@aurelia/runtime-html';
 import { ValidationResult } from '@aurelia/validation';
-import { ValidationEvent, ValidationResultsSubscriber, ValidationResultTarget } from '../validation-controller';
+import { ValidationEvent, ValidationResultsSubscriber, ValidationResultTarget } from '../validation-controller.js';
 
 const resultIdAttribute = 'validation-result-id';
 const resultContainerAttribute = 'validation-result-container';
 
 export class ValidationResultPresenterService implements ValidationResultsSubscriber {
+  public constructor(
+    @IPlatform private readonly platform: IPlatform,
+  ) {}
 
   public handleValidationEvent(event: ValidationEvent): void {
     for (const [target, results] of this.reverseMap(event.removedResults)) {
@@ -34,7 +37,7 @@ export class ValidationResultPresenterService implements ValidationResultsSubscr
     if (parent === null) { return null; }
     let messageContainer = parent.querySelector(`[${resultContainerAttribute}]`);
     if (messageContainer === null) {
-      messageContainer = DOM.createElement('div') as Element;
+      messageContainer = this.platform.document.createElement('div') as Element;
       messageContainer.setAttribute(resultContainerAttribute, '');
       parent.appendChild(messageContainer);
     }
@@ -45,7 +48,7 @@ export class ValidationResultPresenterService implements ValidationResultsSubscr
     messageContainer.append(
       ...results.reduce((acc: Element[], result) => {
         if (!result.valid) {
-          const span = DOM.createElement('span') as HTMLSpanElement;
+          const span = this.platform.document.createElement('span') as HTMLSpanElement;
           span.setAttribute(resultIdAttribute, result.id.toString());
           span.textContent = result.message!;
           acc.push(span);

@@ -1,6 +1,7 @@
 import { I18N, Signals } from '@aurelia/i18n';
-import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, ILogger, Key } from '@aurelia/kernel';
-import { IExpressionParser, IInterpolationExpression, IScheduler, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, ILogger, IServiceLocator, Key } from '@aurelia/kernel';
+import { IExpressionParser, Interpolation, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { IPlatform } from '@aurelia/runtime-html';
 import { IValidationRule, IValidator, ValidationMessageProvider } from '@aurelia/validation';
 import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';
 
@@ -12,20 +13,21 @@ export interface ValidationI18nCustomizationOptions extends ValidationHtmlCustom
 }
 
 export type I18nKeyConfiguration = Pick<ValidationI18nCustomizationOptions, 'DefaultNamespace' | 'DefaultKeyPrefix'>;
-export const I18nKeyConfiguration = DI.createInterface<I18nKeyConfiguration>('I18nKeyConfiguration').noDefault();
+export const I18nKeyConfiguration = DI.createInterface<I18nKeyConfiguration>('I18nKeyConfiguration');
 
 export class LocalizedValidationController extends ValidationController {
   private readonly localeChangeSubscription: IDisposable;
   public constructor(
+    @IServiceLocator locator: IServiceLocator,
     @IEventAggregator ea: EventAggregator,
     @IValidator validator: IValidator,
     @IExpressionParser parser: IExpressionParser,
-    @IScheduler scheduler: IScheduler,
+    @IPlatform platform: IPlatform,
   ) {
-    super(validator, parser, scheduler);
+    super(validator, parser, platform, locator);
     this.localeChangeSubscription = ea.subscribe(
       I18N_VALIDATION_EA_CHANNEL,
-      () => { scheduler.getPostRenderTaskQueue().queueTask(async () => { await this.revalidateErrors(); }); }
+      () => { platform.domReadQueue.queueTask(async () => { await this.revalidateErrors(); }); }
     );
   }
 }
@@ -35,10 +37,11 @@ export class LocalizedValidationControllerFactory extends ValidationControllerFa
     return _dynamicDependencies !== void 0
       ? Reflect.construct(LocalizedValidationController, _dynamicDependencies)
       : new LocalizedValidationController(
+        container,
         container.get(IEventAggregator),
         container.get<IValidator>(IValidator),
         container.get(IExpressionParser),
-        container.get(IScheduler)
+        container.get(IPlatform)
       );
   }
 }
@@ -66,12 +69,12 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
     ea.subscribe(
       Signals.I18N_EA_CHANNEL,
       () => {
-        this.registeredMessages = new WeakMap<IValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>();
+        this.registeredMessages = new WeakMap<IValidationRule, Interpolation | PrimitiveLiteralExpression>();
         ea.publish(I18N_VALIDATION_EA_CHANNEL);
       });
   }
 
-  public getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
+  public getMessage(rule: IValidationRule): Interpolation | PrimitiveLiteralExpression {
     const parsedMessage = this.registeredMessages.get(rule);
     if (parsedMessage !== void 0) { return parsedMessage; }
 

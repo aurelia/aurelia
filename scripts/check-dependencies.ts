@@ -88,7 +88,7 @@ function run(baseDir: string): void {
         log(`${node.name} - OK`);
       } else {
         const missingDepNames = Array.from(missingDeps.keys()).map(function (name) {
-          return `\n    "${name}": "^${project.lerna.version}",`;
+          return `\n    "${name}": "^${project.pkg.version}",`;
         });
         log(`${node.name} - Missing deps:${missingDepNames.join('')}`);
       }

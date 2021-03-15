@@ -3,6 +3,328 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.2"></a>
+# 2.0.0-alpha.2 (2021-03-07)
+
+### Features:
+
+* **di:** add invoke to route context ([3c51a30](https://github.com/aurelia/aurelia/commit/3c51a30))
+* **di:** add invoke to render context too ([ead0522](https://github.com/aurelia/aurelia/commit/ead0522))
+
+
+### Bug Fixes:
+
+* **runtime:** fix duplicate lifecycleHooks resolution at root ([3b245ec](https://github.com/aurelia/aurelia/commit/3b245ec))
+
+<a name="2.0.0-alpha.1"></a>
+# 2.0.0-alpha.1 (2021-03-03)
+
+**Note:** Version bump only for package @aurelia/runtime-html
+
+<a name="2.0.0-alpha.0"></a>
+# 2.0.0-alpha.0 (2021-03-02)
+
+### Features:
+
+* ***:** input[type=number/date] value as number binding ([d7bc69d](https://github.com/aurelia/aurelia/commit/d7bc69d))
+* ***:** ability to teach attr-prop mapping ([55c8ca7](https://github.com/aurelia/aurelia/commit/55c8ca7))
+* **text-interpolation:** basic implementation ([67f5735](https://github.com/aurelia/aurelia/commit/67f5735))
+* ***:** track read on observable & bindable ([011804f](https://github.com/aurelia/aurelia/commit/011804f))
+
+
+### Bug Fixes:
+
+* **template-binder:** check if as-element was used ([35284f2](https://github.com/aurelia/aurelia/commit/35284f2))
+* **template-binder:** check if as-element was used ([6bc5d40](https://github.com/aurelia/aurelia/commit/6bc5d40))
+* **syntax-transformer:** don't transform attr of .class & .style commands ([c07b9d0](https://github.com/aurelia/aurelia/commit/c07b9d0))
+* **syntax-transformer): ?? vs ? vs () :dizz:**  ([af12ed7](https://github.com/aurelia/aurelia/commit/af12ed7))
+* ***:** binder ignore attr correctly ([311fe1e](https://github.com/aurelia/aurelia/commit/311fe1e))
+* **binder-test:** adjust the expected output as interpolation is removed ([2684446](https://github.com/aurelia/aurelia/commit/2684446))
+* **binder:** only remove attr when there's an interpolation ([51bb404](https://github.com/aurelia/aurelia/commit/51bb404))
+* ***:** remove attr with interpolation ([a0a1df9](https://github.com/aurelia/aurelia/commit/a0a1df9))
+* **content-interpolation:** cancel task if any when latest value is update ([6784103](https://github.com/aurelia/aurelia/commit/6784103))
+* **content-interpolation:** bogus null assignment ([815469e](https://github.com/aurelia/aurelia/commit/815469e))
+* **content-interpolation:** queue in both normal & collection change ([b8b6bbc](https://github.com/aurelia/aurelia/commit/b8b6bbc))
+* **interpolation-binding:** cleanup old value in unbind ([bdc394c](https://github.com/aurelia/aurelia/commit/bdc394c))
+* **binder:** dont remove the physical text node ([6beab31](https://github.com/aurelia/aurelia/commit/6beab31))
+* **bindings:** remove redundant return and ensure .updateSource flag ([4d975f7](https://github.com/aurelia/aurelia/commit/4d975f7))
+* **interpolation:** release task in unbind ([08933e4](https://github.com/aurelia/aurelia/commit/08933e4))
+* **debounce/throttle:** override queue when source changes ([3c366fd](https://github.com/aurelia/aurelia/commit/3c366fd))
+
+
+### Refactorings:
+
+* ***:** remove left over unused ids ([97fc845](https://github.com/aurelia/aurelia/commit/97fc845))
+* **template-binder:** handle binding plain attr differently ([a0a1df9](https://github.com/aurelia/aurelia/commit/a0a1df9))
+* **all:** remove .update flags ([3fc1632](https://github.com/aurelia/aurelia/commit/3fc1632))
+* **bindable:** use controller for determining bound state & change handler ([f4acedd](https://github.com/aurelia/aurelia/commit/f4acedd))
+* **content-interpolation:** put text node next to the original one ([b78a210](https://github.com/aurelia/aurelia/commit/b78a210))
+* **content-binding:** dont remove on unbind, add assertion for post tearDown ([343f790](https://github.com/aurelia/aurelia/commit/343f790))
+* **interpolation:** rename interpolation part binding, remove redundant code ([8a1a21e](https://github.com/aurelia/aurelia/commit/8a1a21e))
+* **bindable:** use controller for determining bound state & change handler ([043c679](https://github.com/aurelia/aurelia/commit/043c679))
+* ***:** update attr binding, throttle/debounce, add tests ([cab73f4](https://github.com/aurelia/aurelia/commit/cab73f4))
+* **prop-binding:** remove necessity for id stamping infra ([409d977](https://github.com/aurelia/aurelia/commit/409d977))
+
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Features:
+
+* **runtime-html:** add @lifecycleHooks wiring ([4076293](https://github.com/aurelia/aurelia/commit/4076293))
+* **runtime:** add getRef/setRef API's and expose $au object on nodes ([c47cc85](https://github.com/aurelia/aurelia/commit/c47cc85))
+* **runtime-html:** invoke created() hook on custom attributes ([3e90d68](https://github.com/aurelia/aurelia/commit/3e90d68))
+* ***:** decorator auSlots wip ([6ddb362](https://github.com/aurelia/aurelia/commit/6ddb362))
+* ***:** processContent wip ([cb8a103](https://github.com/aurelia/aurelia/commit/cb8a103))
+* **show/hide:** port show & hide attributes from v1 ([8dd9562](https://github.com/aurelia/aurelia/commit/8dd9562))
+* **compiler:** preserve 'alias' in the compiled instruction for usage by component instance ([e80a837](https://github.com/aurelia/aurelia/commit/e80a837))
+* **di:** remove DI.createInterface builder ([8146dcc](https://github.com/aurelia/aurelia/commit/8146dcc))
+* **work-tracker:** initial implementation for an app-wide 'wait-for-idle' api ([c677a4d](https://github.com/aurelia/aurelia/commit/c677a4d))
+
+
+### Bug Fixes:
+
+* **runtime:** prevent early taskQueue yield ([a72c8b2](https://github.com/aurelia/aurelia/commit/a72c8b2))
+* **custom-attribute:** fix CustomAttribute.for ([4c97444](https://github.com/aurelia/aurelia/commit/4c97444))
+* ***:** as-element support for au-slot ([ae233e3](https://github.com/aurelia/aurelia/commit/ae233e3))
+* ***:** linting issue ([0613391](https://github.com/aurelia/aurelia/commit/0613391))
+* ***:** compilation skipping ([c9f5bda](https://github.com/aurelia/aurelia/commit/c9f5bda))
+* ***:** order-agnostic processContent decorator ([c3a4bb6](https://github.com/aurelia/aurelia/commit/c3a4bb6))
+* **batch:** ensure nested batch not batched in outer ([ae61005](https://github.com/aurelia/aurelia/commit/ae61005))
+* ***:** ensure bindable & observable behavior match v1 ([200ac40](https://github.com/aurelia/aurelia/commit/200ac40))
+* **accessors:** add index signature ([617c416](https://github.com/aurelia/aurelia/commit/617c416))
+* ***:** use sub count from record only ([e9f578e](https://github.com/aurelia/aurelia/commit/e9f578e))
+* **semantic-model:** include alias in cache key ([ad09693](https://github.com/aurelia/aurelia/commit/ad09693))
+* **tests:** correct validation controller tests ([2849c99](https://github.com/aurelia/aurelia/commit/2849c99))
+* **attribute:** queue new task ([5f7fa27](https://github.com/aurelia/aurelia/commit/5f7fa27))
+* **controller:** fix async unbind with dispose race condition ([987d69d](https://github.com/aurelia/aurelia/commit/987d69d))
+
+
+### Performance Improvements:
+
+* **controller:** use stack to minimize promise tick overhead ([d861da8](https://github.com/aurelia/aurelia/commit/d861da8))
+
+
+### Refactorings:
+
+* ***:** au-slot info via DI ([1719669](https://github.com/aurelia/aurelia/commit/1719669))
+* **all:** rename macroTaskQueue to taskQueue ([87c073d](https://github.com/aurelia/aurelia/commit/87c073d))
+* ***:** decorator auSlots ([26e980c](https://github.com/aurelia/aurelia/commit/26e980c))
+* ***:** decorator auSlots ([9fbb312](https://github.com/aurelia/aurelia/commit/9fbb312))
+* ***:** and more tests for processContent ([893831e](https://github.com/aurelia/aurelia/commit/893831e))
+* **connectable:** merge observer record & collection observer record ([f2c1501](https://github.com/aurelia/aurelia/commit/f2c1501))
+* **all:** rename interfaces, simplify subscriber collection ([1c37183](https://github.com/aurelia/aurelia/commit/1c37183))
+* **all:** remove ILifecycle ([d141d8e](https://github.com/aurelia/aurelia/commit/d141d8e))
+* **observation:** minor cleanup, tweak accessor type ([2756ece](https://github.com/aurelia/aurelia/commit/2756ece))
+* **connectable:** more cryptic, less generic name ([0f303cb](https://github.com/aurelia/aurelia/commit/0f303cb))
+* **subscribers:** use a separate record for managing subscribers ([9f9152d](https://github.com/aurelia/aurelia/commit/9f9152d))
+* **di:** store factory per container root instead of via metadata ([dbbd8b9](https://github.com/aurelia/aurelia/commit/dbbd8b9))
+* ***:** use private static, tweak comments, simplify vs ast code ([d8f1c69](https://github.com/aurelia/aurelia/commit/d8f1c69))
+* ***:** use private static, tweak comments, simplify vs ast code ([98d33b4](https://github.com/aurelia/aurelia/commit/98d33b4))
+* **runtime-html:** more cleanup ([5bde778](https://github.com/aurelia/aurelia/commit/5bde778))
+* **watch:** move to runtime-html ([1250402](https://github.com/aurelia/aurelia/commit/1250402))
+* **runtime:** move binding implementations to runtime-html ([8d9a177](https://github.com/aurelia/aurelia/commit/8d9a177))
+* **connectable:** make observe coll part of IConnectable, updat watchers ([3df866c](https://github.com/aurelia/aurelia/commit/3df866c))
+* ***:** remove IPropertyChangeTracker interface ([d9ba9a4](https://github.com/aurelia/aurelia/commit/d9ba9a4))
+* **obs:** remove IPropertyObserver ([d29bc28](https://github.com/aurelia/aurelia/commit/d29bc28))
+* **all:** remove IBindingTargetAccessor & IBindingTargetObserver interfaces ([d9c27c6](https://github.com/aurelia/aurelia/commit/d9c27c6))
+* **runtime:** reexport watch on aurelia package ([af29a73](https://github.com/aurelia/aurelia/commit/af29a73))
+* **el-accessor:** merge size & length observersremove task reuse ([3af2d9f](https://github.com/aurelia/aurelia/commit/3af2d9f))
+* **obs:** clean up bind from observer, ([3006d3b](https://github.com/aurelia/aurelia/commit/3006d3b))
+* **if:** cleanup & utilize WorkTracker ([df3a5d5](https://github.com/aurelia/aurelia/commit/df3a5d5))
+* **bench-apps:** measurement ([ae4ecaf](https://github.com/aurelia/aurelia/commit/ae4ecaf))
+
+<a name="0.8.0"></a>
+# 0.8.0 (2020-11-30)
+
+### Features:
+
+* **templating-syntax:** ability to define custom bind to two way transform ([aa5a693](https://github.com/aurelia/aurelia/commit/aa5a693))
+* **computed:** no type check proxy, reorg args order ([6f3d36f](https://github.com/aurelia/aurelia/commit/6f3d36f))
+* **controller:** enable shadowDOM and containerless for host-less components ([89856c4](https://github.com/aurelia/aurelia/commit/89856c4))
+* ***:** allow configurable dirty check for el observation ([5636608](https://github.com/aurelia/aurelia/commit/5636608))
+* **kernel:** add resource create/find api's to the container ([1cab5bb](https://github.com/aurelia/aurelia/commit/1cab5bb))
+* **runtime-html:** add IEventTarget interface to specify event delegate target ([90b804c](https://github.com/aurelia/aurelia/commit/90b804c))
+* **setter-observer:** separate start/stop from subscribe, ([c895f93](https://github.com/aurelia/aurelia/commit/c895f93))
+* **runtime-html:** add interfaces for IWindow, IHistory, ILocation ([5273d0a](https://github.com/aurelia/aurelia/commit/5273d0a))
+* **runtime:** add cancel api and properly propagate async errors ([3c05ebe](https://github.com/aurelia/aurelia/commit/3c05ebe))
+* **runtime:** add component tree visitor infra ([5dd0f67](https://github.com/aurelia/aurelia/commit/5dd0f67))
+* **runtime:** implement/wireup dispose hook ([1e1819e](https://github.com/aurelia/aurelia/commit/1e1819e))
+* **observation:** move scheduling to bindings ([3237d3d](https://github.com/aurelia/aurelia/commit/3237d3d))
+* **obs-type:** add type & last update to all observers in runtime-html ([2f7feb8](https://github.com/aurelia/aurelia/commit/2f7feb8))
+* ***:** enhance API ([976ae0c](https://github.com/aurelia/aurelia/commit/976ae0c))
+
+
+### Bug Fixes:
+
+* **syntax-extension:** tweak two mapping, add some more comments ([f267f68](https://github.com/aurelia/aurelia/commit/f267f68))
+* **style-accessor-for-custom-properties' of http:** //github.com/aurelia/aurelia into fix-style-accessor-for-custom-properties ([e210496](https://github.com/aurelia/aurelia/commit/e210496))
+* **style-attribute-accessor:** handle prop and url ([89c878a](https://github.com/aurelia/aurelia/commit/89c878a))
+* ***:** linting issues ([e2fa345](https://github.com/aurelia/aurelia/commit/e2fa345))
+* **observer-loc:** new api for overriding accessors ([8af6c46](https://github.com/aurelia/aurelia/commit/8af6c46))
+* ***:** update trigger uses NodeObserverConfig ([b06fad0](https://github.com/aurelia/aurelia/commit/b06fad0))
+* ***:** delay default configuration ([02134f7](https://github.com/aurelia/aurelia/commit/02134f7))
+* ***:** alias node observer registration ([7541638](https://github.com/aurelia/aurelia/commit/7541638))
+* **update-trigger:** get all original handler config ([228c0a8](https://github.com/aurelia/aurelia/commit/228c0a8))
+* **tests:** adapt el observation changes ([7ac6f4a](https://github.com/aurelia/aurelia/commit/7ac6f4a))
+* **select-observer:** correctly toggle observing status ([7f45560](https://github.com/aurelia/aurelia/commit/7f45560))
+* **shadow-dom-registry:** remove StyleElementStylesFactory incorrect guard ([288a2a0](https://github.com/aurelia/aurelia/commit/288a2a0))
+* **controller:** add controller metadata to host ([9f1b23a](https://github.com/aurelia/aurelia/commit/9f1b23a))
+* ***:** disabled template controllers on local template surrogate ([62a45b9](https://github.com/aurelia/aurelia/commit/62a45b9))
+* **switch:** add missing accept impl ([d497214](https://github.com/aurelia/aurelia/commit/d497214))
+* **portal:** fallback to body on empty string querySelector ([8783bb3](https://github.com/aurelia/aurelia/commit/8783bb3))
+* **switch:** pass initiator through for correct deactivate hook timings ([3ea306c](https://github.com/aurelia/aurelia/commit/3ea306c))
+* **aurelia:** move controller dispose to stop() hook via a flag ([4305a7d](https://github.com/aurelia/aurelia/commit/4305a7d))
+* ***:** use interface instead ([9fc8323](https://github.com/aurelia/aurelia/commit/9fc8323))
+* **event-manager:** properly handle delegate events with shadowDOM / cleanup ([b79e7ba](https://github.com/aurelia/aurelia/commit/b79e7ba))
+* **attr-binding:** store task on observer ([b8e37b3](https://github.com/aurelia/aurelia/commit/b8e37b3))
+* ***:** linting/deepscan issues ([d9b275b](https://github.com/aurelia/aurelia/commit/d9b275b))
+* ***:** deepscan + linting issues ([2f75f1e](https://github.com/aurelia/aurelia/commit/2f75f1e))
+* **tests:** keep bind/unbind for now ([5a5174e](https://github.com/aurelia/aurelia/commit/5a5174e))
+* **observers:** merge flags instead ([1dc7165](https://github.com/aurelia/aurelia/commit/1dc7165))
+* ***:** broken tests ([3a73602](https://github.com/aurelia/aurelia/commit/3a73602))
+* ***:** ducktype checking for nodelist ([b6d650a](https://github.com/aurelia/aurelia/commit/b6d650a))
+
+
+### Performance Improvements:
+
+* **controller:** use stack to minimize promise tick overhead ([2cac413](https://github.com/aurelia/aurelia/commit/2cac413))
+* **bindings:** use eval/connect merge ([da4b49d](https://github.com/aurelia/aurelia/commit/da4b49d))
+
+
+### Refactorings:
+
+* **binding:** adapt obs record on attribute binding ([eddb58f](https://github.com/aurelia/aurelia/commit/eddb58f))
+* **binding:** chore try use an obs record ([1a93644](https://github.com/aurelia/aurelia/commit/1a93644))
+* **bindings:** use ??= instead ([830fdf5](https://github.com/aurelia/aurelia/commit/830fdf5))
+* **bindings:** optimize task queue update a bit more ([842ab26](https://github.com/aurelia/aurelia/commit/842ab26))
+* **prop-accessor:** simplify property accessor ([d19c0aa](https://github.com/aurelia/aurelia/commit/d19c0aa))
+* **bindings:** always cache source value in binding ([9d3aad2](https://github.com/aurelia/aurelia/commit/9d3aad2))
+* ***:** timing for binding state of controller ([4eb09f7](https://github.com/aurelia/aurelia/commit/4eb09f7))
+* **bindable:** let bindable take action based on controller ([a42949f](https://github.com/aurelia/aurelia/commit/a42949f))
+* **attr-syntax-transformer:** adapt code review merge, make interpret independent again ([1e09e9c](https://github.com/aurelia/aurelia/commit/1e09e9c))
+* **collection:** make lifecycle optionial, more type imports re-org ([9f8b189](https://github.com/aurelia/aurelia/commit/9f8b189))
+* **runtime-html:** remove unnecessary flag requirements ([86e8e9e](https://github.com/aurelia/aurelia/commit/86e8e9e))
+* **obs:** don't use Proxy on platform ([f7882e0](https://github.com/aurelia/aurelia/commit/f7882e0))
+* **dom:** allow parent-less nodes to be converted to render locations ([68aef8f](https://github.com/aurelia/aurelia/commit/68aef8f))
+* **computed-observer:** correctly call subscribers when set ([8497f38](https://github.com/aurelia/aurelia/commit/8497f38))
+* **dom:** give INode, IEventTarget and IRenderLocation overrideable generic types ([e2ac8b2](https://github.com/aurelia/aurelia/commit/e2ac8b2))
+* ***:** remove persistent flags ([ffba588](https://github.com/aurelia/aurelia/commit/ffba588))
+* **all:** add .js extensions for native esm compat ([0308e2e](https://github.com/aurelia/aurelia/commit/0308e2e))
+* **el-observation:** allow different observer ctor config ([161b544](https://github.com/aurelia/aurelia/commit/161b544))
+* **node-observation:** move interface to runtime-html ([42626f8](https://github.com/aurelia/aurelia/commit/42626f8))
+* **validation:** merge evaluate & connect, more efficient handling of classes ([7803dc6](https://github.com/aurelia/aurelia/commit/7803dc6))
+* ***:** use readonly from config ([b88e102](https://github.com/aurelia/aurelia/commit/b88e102))
+* ***:** better lookup for el obs loc ([9c5197c](https://github.com/aurelia/aurelia/commit/9c5197c))
+* **observation:** simplified el observers/accessors more ([e818e2f](https://github.com/aurelia/aurelia/commit/e818e2f))
+* **node-observation:** merge target observer/accessor, ([2c318ee](https://github.com/aurelia/aurelia/commit/2c318ee))
+* **accessors:** no cache in accessors ([2640c38](https://github.com/aurelia/aurelia/commit/2640c38))
+* **checked-observer:** make non-layout ([b75d6a8](https://github.com/aurelia/aurelia/commit/b75d6a8))
+* **accessors:** more static accessors ([6d83921](https://github.com/aurelia/aurelia/commit/6d83921))
+* **prop/attr-bindings:** always call update ([3fd75c8](https://github.com/aurelia/aurelia/commit/3fd75c8))
+* **select-observer:** remove flags & task props ([0622450](https://github.com/aurelia/aurelia/commit/0622450))
+* **select-observer:** remove dedundant handler/methods, add more mutation test ([28c5fe2](https://github.com/aurelia/aurelia/commit/28c5fe2))
+* **all:** rename noTargetQueue flag, remove infrequent mutationtc ([edfd2a4](https://github.com/aurelia/aurelia/commit/edfd2a4))
+* **obervers:** remove task property of IAccessor ([affd9d1](https://github.com/aurelia/aurelia/commit/affd9d1))
+* **controller:** remove bindingContext property ([3cb6a32](https://github.com/aurelia/aurelia/commit/3cb6a32))
+* **styles:** move style related stuff to single file ([80a6381](https://github.com/aurelia/aurelia/commit/80a6381))
+* **lifecycle:** move types to controller file ([93fdb7e](https://github.com/aurelia/aurelia/commit/93fdb7e))
+* **controller:** remove projector abstraction & rework attaching ([d69d03d](https://github.com/aurelia/aurelia/commit/d69d03d))
+* **projector:** inline take() ([189064a](https://github.com/aurelia/aurelia/commit/189064a))
+* **projector-locator:** merge into controller ([2577af5](https://github.com/aurelia/aurelia/commit/2577af5))
+* **instructions:** move instructions to renderer file ([3b71a44](https://github.com/aurelia/aurelia/commit/3b71a44))
+* **instructions:** merge listener instructions into one class ([5ef5e2e](https://github.com/aurelia/aurelia/commit/5ef5e2e))
+* **instructions:** declare instr type as getters ([97c5900](https://github.com/aurelia/aurelia/commit/97c5900))
+* **all:** remove binding strategy export ([cd258cd](https://github.com/aurelia/aurelia/commit/cd258cd))
+* **all:** remove strategy configuration ([0ae57c0](https://github.com/aurelia/aurelia/commit/0ae57c0))
+* **instructions:** merge to-view, two-way, from-view and one-time ([4a12c1d](https://github.com/aurelia/aurelia/commit/4a12c1d))
+* **resource-model:** merge with semantic-model file ([c497c16](https://github.com/aurelia/aurelia/commit/c497c16))
+* ***:** remove references to proxy strategy & proxy observer ([b1dfe93](https://github.com/aurelia/aurelia/commit/b1dfe93))
+* **attribute-pattern:** merge the two files ([437d5e4](https://github.com/aurelia/aurelia/commit/437d5e4))
+* **binding-command:** move to resources folder ([f9d20de](https://github.com/aurelia/aurelia/commit/f9d20de))
+* **attribute-pattern:** move to resources folder ([df52acf](https://github.com/aurelia/aurelia/commit/df52acf))
+* **templating:** remove hooks from CE definition ([dcd2762](https://github.com/aurelia/aurelia/commit/dcd2762))
+* **render-context:** rename compose to render ([f839165](https://github.com/aurelia/aurelia/commit/f839165))
+* **templating:** remove ResourceModel ([e4f2042](https://github.com/aurelia/aurelia/commit/e4f2042))
+* **all:** rename beforeUnbind to unbinding ([17a82ed](https://github.com/aurelia/aurelia/commit/17a82ed))
+* **all:** rename beforeDetach to detaching ([0fcb64d](https://github.com/aurelia/aurelia/commit/0fcb64d))
+* **all:** rename afterAttach to attaching ([0178027](https://github.com/aurelia/aurelia/commit/0178027))
+* **all:** rename afterAttachChildren to attached ([9e6e97e](https://github.com/aurelia/aurelia/commit/9e6e97e))
+* **all:** rename afterBind to bound ([696f5d4](https://github.com/aurelia/aurelia/commit/696f5d4))
+* **all:** rename beforeBind to binding ([67b1c5d](https://github.com/aurelia/aurelia/commit/67b1c5d))
+* **runtime-html:** rename InstructionComposer to Renderer and remove Composer abstraction ([6499d31](https://github.com/aurelia/aurelia/commit/6499d31))
+* **all:** rename CompositionContext back to RenderContext again ([1d7673b](https://github.com/aurelia/aurelia/commit/1d7673b))
+* **controller:** rename compileChildren to hydrateChildren ([4b6fddb](https://github.com/aurelia/aurelia/commit/4b6fddb))
+* **controller:** rename compile to hydrate ([868d125](https://github.com/aurelia/aurelia/commit/868d125))
+* **controller:** rename afterCompose to created ([02e9412](https://github.com/aurelia/aurelia/commit/02e9412))
+* **controller:** rename beforeComposeChildren to hydrated ([041a2ff](https://github.com/aurelia/aurelia/commit/041a2ff))
+* **controller:** rename beforeCompose to hydrating ([64b405e](https://github.com/aurelia/aurelia/commit/64b405e))
+* **all:** remove afterUnbind and afterUnbindChildren, and make deactivate bottom-up ([a431fdc](https://github.com/aurelia/aurelia/commit/a431fdc))
+* **controller:** simplify activate/deactivate ([b839126](https://github.com/aurelia/aurelia/commit/b839126))
+* **controller:** peel out cancellation for now ([bbf6c92](https://github.com/aurelia/aurelia/commit/bbf6c92))
+* **controller:** remove cancel api for now ([367f6c3](https://github.com/aurelia/aurelia/commit/367f6c3))
+* **all:** simplify update flags ([5c2cc3a](https://github.com/aurelia/aurelia/commit/5c2cc3a))
+* **all:** rename RuntimeHtmlConfiguration to StandardConfiguration ([665f3ba](https://github.com/aurelia/aurelia/commit/665f3ba))
+* **all:** move scheduler implementation to platform ([e22285a](https://github.com/aurelia/aurelia/commit/e22285a))
+* **scheduler:** remove ITaskQueue interface ([5b7b276](https://github.com/aurelia/aurelia/commit/5b7b276))
+* **all:** remove IDOM, HTMLDOM and DOM; replace DOM with PLATFORM ([6447468](https://github.com/aurelia/aurelia/commit/6447468))
+* **plugin-svg:** cleanup and move to runtime-html as a registration ([55a3938](https://github.com/aurelia/aurelia/commit/55a3938))
+* **all:** move html-specific stuff from runtime to runtime-html and remove Node generics ([c745963](https://github.com/aurelia/aurelia/commit/c745963))
+* **all:** remove PLATFORM global ([fdef656](https://github.com/aurelia/aurelia/commit/fdef656))
+* **dom:** remove setAttribute ([5cd8905](https://github.com/aurelia/aurelia/commit/5cd8905))
+* **dom:** remove removeEventListener ([1179737](https://github.com/aurelia/aurelia/commit/1179737))
+* **dom:** remove addEventListener ([706a833](https://github.com/aurelia/aurelia/commit/706a833))
+* **event-manager:** rename EventManager to EventDelegator ([9150bb4](https://github.com/aurelia/aurelia/commit/9150bb4))
+* **listener-tracker:** subscribe with EventListenerObject instead ([e100eb4](https://github.com/aurelia/aurelia/commit/e100eb4))
+* **dom:** remove DOM.createNodeObserver ([2dc0282](https://github.com/aurelia/aurelia/commit/2dc0282))
+* **all:** simplify DOM initialization, remove DOMInitializer ([ff13185](https://github.com/aurelia/aurelia/commit/ff13185))
+* **runtime:** rename CompositionRoot to AppRoot ([3141a2c](https://github.com/aurelia/aurelia/commit/3141a2c))
+* **runtime:** move Aurelia from runtime to runtime-html ([d56c4ca](https://github.com/aurelia/aurelia/commit/d56c4ca))
+* **instructions:** rename hydrate to compose ([2ab10b3](https://github.com/aurelia/aurelia/commit/2ab10b3))
+* **all:** shorten TargetedInstruction to Instruction ([a7e61c6](https://github.com/aurelia/aurelia/commit/a7e61c6))
+* **all:** shorten TargetedInstructionType to InstructionType ([7fe8d04](https://github.com/aurelia/aurelia/commit/7fe8d04))
+* **all:** finish renaming render to compose ([ede127b](https://github.com/aurelia/aurelia/commit/ede127b))
+* **all:** rename render to compose ([2d11d9e](https://github.com/aurelia/aurelia/commit/2d11d9e))
+* **runtime:** move rendering, binding commands, attr patterns and instructions to runtime-html ([bc010f5](https://github.com/aurelia/aurelia/commit/bc010f5))
+* **all:** rename renderer to composer ([c1a0f3c](https://github.com/aurelia/aurelia/commit/c1a0f3c))
+* **all:** cut back on the dispose calls ([9fec528](https://github.com/aurelia/aurelia/commit/9fec528))
+* **all:** simplify Aurelia#start/stop & AppTask#run, returning promise instead of task ([6c7608d](https://github.com/aurelia/aurelia/commit/6c7608d))
+* **observer-locator:** improve the flow / work out a few quirks ([cc042b4](https://github.com/aurelia/aurelia/commit/cc042b4))
+* **scope:** remove IScope interface and use import type where possible for Scope ([6b8eb5f](https://github.com/aurelia/aurelia/commit/6b8eb5f))
+* **focus:** only focus blur when *really* needed ([e71f36c](https://github.com/aurelia/aurelia/commit/e71f36c))
+* ***:** rename multi interpolation to interpolation ([d1c2202](https://github.com/aurelia/aurelia/commit/d1c2202))
+* **all:** remove reporter ([425fe96](https://github.com/aurelia/aurelia/commit/425fe96))
+* **interpolation:** remove interpolation binding reference, tweak html interpolation ([f3a8952](https://github.com/aurelia/aurelia/commit/f3a8952))
+* ***:** removed linktype in favor of link cb ([5af8498](https://github.com/aurelia/aurelia/commit/5af8498))
+* **runtime-html:** ensure .evaluate() is called with null ([8dc3b88](https://github.com/aurelia/aurelia/commit/8dc3b88))
+* **start-task:** rename StartTask to AppTask ([b52fc9c](https://github.com/aurelia/aurelia/commit/b52fc9c))
+* **all:** remove AST interfaces ([7e04d83](https://github.com/aurelia/aurelia/commit/7e04d83))
+* **all:** merge jit-html into runtime-html and remove jit-html-* packages ([f530bcf](https://github.com/aurelia/aurelia/commit/f530bcf))
+* **runtime:** cleanup unused flags ([77a930e](https://github.com/aurelia/aurelia/commit/77a930e))
+* **runtime:** merge controller api bind+attach into activate, detach+unbind into deactivate, and remove ILifecycleTask usage from controller ([15f3885](https://github.com/aurelia/aurelia/commit/15f3885))
+* **lifecycles:** pass down first + parent controller in the 'before' hooks and use that as the queue instead of ILifecycle ([031b7fd](https://github.com/aurelia/aurelia/commit/031b7fd))
+* **runtime:** rename 'caching' to 'dispose' and hook cache/dispose logic up to unbind based on isReleased flag ([e346ed4](https://github.com/aurelia/aurelia/commit/e346ed4))
+* **controller:** rename 'hold' to 'setLocation' ([eb43d9e](https://github.com/aurelia/aurelia/commit/eb43d9e))
+* **all:** remove State enum and use simple booleans instead ([762d3c7](https://github.com/aurelia/aurelia/commit/762d3c7))
+* **all:** rename afterDetach to afterDetachChildren ([080a724](https://github.com/aurelia/aurelia/commit/080a724))
+* **all:** rename afterAttach to afterAttachChildren ([02b573e](https://github.com/aurelia/aurelia/commit/02b573e))
+* **bindings:** always sync, control flush ([01db28d](https://github.com/aurelia/aurelia/commit/01db28d))
+* **html-observers:** controllable flush ([f0ec574](https://github.com/aurelia/aurelia/commit/f0ec574))
+* **html-observers:** keep tasks ([78e01f4](https://github.com/aurelia/aurelia/commit/78e01f4))
+* **html-observers:** remove unused code/commented code ([ae111f3](https://github.com/aurelia/aurelia/commit/ae111f3))
+* **bindings:** queue with preempt in handle change ([24350ce](https://github.com/aurelia/aurelia/commit/24350ce))
+* ***:** more tests flush revert, linting issues ([f3fdfc9](https://github.com/aurelia/aurelia/commit/f3fdfc9))
+* **bindings:** treat changes during bind differently ([cf65629](https://github.com/aurelia/aurelia/commit/cf65629))
+* **html-observers:** initialize values in bind ([83aeff3](https://github.com/aurelia/aurelia/commit/83aeff3))
+* **bindings:** no queue during bind ([2a7a0a0](https://github.com/aurelia/aurelia/commit/2a7a0a0))
+* **html-observers:** move task check top in setValue ([455ee23](https://github.com/aurelia/aurelia/commit/455ee23))
+* **bindings:** seprate flow entirely for layout accessors ([3915230](https://github.com/aurelia/aurelia/commit/3915230))
+* **html-observers:** handle task inside setValue ([2ac796d](https://github.com/aurelia/aurelia/commit/2ac796d))
+* **html-observers:** add todo for unsafe cache ([8cd7c68](https://github.com/aurelia/aurelia/commit/8cd7c68))
+* **style-attr-accessor.ts:** no read during bind ([1be26f5](https://github.com/aurelia/aurelia/commit/1be26f5))
+* **observers:** rename ObserverType to AccessorType ([5f8d0e1](https://github.com/aurelia/aurelia/commit/5f8d0e1))
+* ***:** host scope & AST ([9067a2c](https://github.com/aurelia/aurelia/commit/9067a2c))
+* ***:** facilitated host enhancement directly ([ad8c53c](https://github.com/aurelia/aurelia/commit/ad8c53c))
+
 <a name="0.7.0"></a>
 # 0.7.0 (2020-05-08)
 

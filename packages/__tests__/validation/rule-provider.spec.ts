@@ -13,7 +13,8 @@ import {
   PrimitiveLiteralExpression,
   LifecycleFlags,
   IExpressionParser,
-  BindingType
+  BindingType,
+  Scope
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
@@ -35,7 +36,7 @@ import {
   validationRulesRegistrar,
   rootObjectSymbol,
 } from '@aurelia/validation';
-import { Person } from './_test-resources';
+import { Person } from './_test-resources.js';
 
 describe('ValidationRules', function () {
 
@@ -552,7 +553,7 @@ describe('ValidationMessageProvider', function () {
     }
   }
   function setup(customMessages?: ICustomMessage[]) {
-    const container = TestContext.createHTMLTestContext().container;
+    const container = TestContext.create().container;
     const eventLog = new EventLog();
 
     const configuration = customMessages !== (void 0)
@@ -691,16 +692,16 @@ describe('ValidationMessageProvider', function () {
       const message = 'FooBar';
       const $rule = getRule();
       sut.setMessage($rule, message);
-      const scope = { bindingContext: {}, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
-      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
+      const scope = Scope.create({});
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, null, container, null);
       assert.equal(actual, message);
     });
 
     it(`rule.message returns the registered default message for a rule type when no message for the instance is registered - ${title}`, function () {
       const { sut, container } = setup();
       const $rule = getRule();
-      const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
-      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
+      const scope = Scope.create({ $displayName: 'FooBar', $rule });
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, null, container, null);
       assert.equal(actual, messages[i]);
     });
 
@@ -708,8 +709,8 @@ describe('ValidationMessageProvider', function () {
       const { sut, container } = setup();
       const $rule = getRule();
       $rule.messageKey = 'foobar';
-      const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
-      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
+      const scope = Scope.create({ $displayName: 'FooBar', $rule });
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, null, container, null);
       assert.equal(actual, 'FooBar is invalid.');
     });
   }
@@ -763,11 +764,11 @@ describe('ValidationMessageProvider', function () {
     const { sut, container, originalMessages } = setup(customMessages);
     for (const { getRule } of rules) {
       const $rule = getRule();
-      const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
-      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
+      const scope = Scope.create({ $displayName: 'FooBar', $rule });
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, null, container, null);
       const aliases = customMessages.find((item) => $rule instanceof item.rule).aliases;
       const template = aliases.length === 1 ? aliases[0].defaultMessage : aliases.find(({ name }) => name === $rule.messageKey)?.defaultMessage;
-      const expected = sut.parseMessage(template).evaluate(LifecycleFlags.none, scope, null!);
+      const expected = sut.parseMessage(template).evaluate(LifecycleFlags.none, scope, null, null!, null);
       assert.equal(actual, expected);
     }
     // reset the messages
@@ -779,7 +780,7 @@ describe('ValidationMessageProvider', function () {
   it('appending new custom key and messages is also possible', function () {
 
     const messageKey = 'fooBarFizBaz';
-    const displayName = 'FooBar';
+    const $displayName = 'FooBar';
     const customMessages: ICustomMessage[] = [
       {
         rule: RequiredRule,
@@ -796,11 +797,11 @@ describe('ValidationMessageProvider', function () {
     const $rule2 = new RequiredRule();
     $rule2.messageKey = messageKey;
 
-    const scope1 = { bindingContext: { $displayName: displayName, $rule: $rule1 }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
-    const scope2 = { bindingContext: { $displayName: displayName, $rule: $rule2 }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
+    const scope1 = Scope.create({ $displayName, $rule: $rule1 });
+    const scope2 = Scope.create({ $displayName, $rule: $rule2 });
 
-    const actual1 = sut.getMessage($rule1).evaluate(LifecycleFlags.none, scope1, container);
-    const actual2 = sut.getMessage($rule2).evaluate(LifecycleFlags.none, scope2, container);
+    const actual1 = sut.getMessage($rule1).evaluate(LifecycleFlags.none, scope1, null, container, null);
+    const actual2 = sut.getMessage($rule2).evaluate(LifecycleFlags.none, scope2, null, container, null);
 
     assert.equal(actual1, 'FooBar is required.');
     assert.equal(actual2, 'FooBar foobar fizbaz');
@@ -832,7 +833,7 @@ describe('ValidationMessageProvider', function () {
 describe('parsePropertyName', function () {
 
   function setup() {
-    const container = TestContext.createHTMLTestContext().container;
+    const container = TestContext.create().container;
     container.register(ValidationConfiguration);
     return {
       parser: container.get(IExpressionParser),
@@ -840,7 +841,6 @@ describe('parsePropertyName', function () {
     };
   }
 
-  /* eslint-disable @typescript-eslint/camelcase */
   const cov_1wjh4ld5ut: any = {};
   const a: string = 'foo';
   const positiveDataRows = [
@@ -947,7 +947,6 @@ describe('parsePropertyName', function () {
     { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut.s[50]++; return o.prop; },                        expected: 'prop' },
     { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut.f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },  expected: 'prop' },
   ];
-  /* eslint-enable @typescript-eslint/camelcase */
   for(const { property, expected } of positiveDataRows) {
     it(`parses ${property.toString()} to ${expected}`, function () {
       const { parser } = setup();
@@ -980,7 +979,7 @@ describe('parsePropertyName', function () {
 describe('PropertyRule', function () {
 
   function setup() {
-    const container = TestContext.createHTMLTestContext().container;
+    const container = TestContext.create().container;
     container.register(ValidationConfiguration);
     return { validationRules: container.get(IValidationRules), container };
   }

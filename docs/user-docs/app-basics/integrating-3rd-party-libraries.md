@@ -6,18 +6,18 @@ One of Aurelia's biggest strengths is that it plays nicely with most pre-existin
 
 First, make sure you install jQuery, as well as the types:
 
-```
+```text
 npm install jquery
 npm install @types/jquery -D
 ```
 
-Inside of your compononent or routeable view-model, you import jQuery and define the `afterAttach` lifecycle hook which is the best place to initialize any code that requires touching the dom.
+Inside of your compononent or routeable view-model, you import jQuery and define the `attached` lifecycle hook which is the best place to initialize any code that requires touching the dom.
 
 ```typescript
 import $ from 'jquery';
 
 export class MyComponent {
-    afterAttach(): void {
+    attached(): void {
         // Use jQuery to interact with the dom here or initialize jQuery plugins, etc
     }
 }
@@ -36,8 +36,8 @@ import $ from 'jquery';
 export class MyComponent {
     constructor(private element: HTMLElement) {
     }
-    
-    afterAttach(): void {
+
+    attached(): void {
       $(this.element).addClass('myClass');
     }
 }
@@ -49,7 +49,7 @@ The above code will add a new class to our HTML element using jQuery. You could 
 
 The popular CSS and Javascript UI library ships with both CSS styling as well as Javascript for various features. Integrating Bootstrap is super easy in Aurelia.
 
-```
+```text
 npm install bootstrap
 ```
 
@@ -65,3 +65,4 @@ import 'bootstrap/dist/css/bootstrap.css'; // Import the CSS
 
 If you are using CSS Modules and/or Shadow DOM, global CSS styles from Bootstrap will not work properly in the way described. In the case of CSS Modules, class names get rewritten into randomly named strings and Shadow DOM is designed to work in isolation per use. For these instances, adding Bootstrap into a global stylesheet and importing that where needed should fix the problem. This is a limitation of these standards and not Aurelia itself.
 {% endhint %}
+

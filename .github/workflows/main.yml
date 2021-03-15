@@ -1,38 +1,54 @@
 name: Github Actions
-on: [push, pull_request]
+on: [push]
+env:
+  PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property
+
 jobs:
 
-  lint:
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - run: npm ci
-      - run: npm run lint
+  # lint:
+  #   timeout-minutes: 10
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v1
+  #       with:
+  #         node-version: 12
+  #     - run: npm ci
+  #     - run: npm run lint:packages -- -- -- --quite
 
   node:
     timeout-minutes: 10
     strategy:
       matrix:
         suite: [
-          "aot",
-          "babel-jest",
-          "i18n",
-          "jit",
-          "jit-html",
           "kernel",
-          "plugin-conventions",
-          "plugin-gulp",
-          "router",
-          "route-recognizer",
           "runtime",
           "runtime-html",
-          "scheduler",
-          "ts-jest",
+          "router",
+          "i18n",
           "validation",
+        ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 15
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test-node:${{matrix.suite}}
+        working-directory: packages/__tests__
+
+  node-cjs:
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        suite: [
+          "aot",
+          "babel-jest",
+          "plugin-conventions",
+          "plugin-gulp",
+          "ts-jest",
           "webpack-loader",
         ]
     runs-on: ubuntu-latest
@@ -40,17 +56,21 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 15
       - run: npm ci
       - run: npm run build
+      - run: npm run change-tsconfigs:invert
+      - run: npm run build
+      - run: npm run change-tsconfigs:restore
+      - run: npm run change-package-refs:release -- commonjs
       - run: npm run test-node:${{matrix.suite}}
-        working-directory: packages/__tests__
+        working-directory: packages-cjs/__tests__
 
   browsers:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     container:
-      image: "cypress/browsers:node12.13.0-chrome80-ff74"
+      image: "circleci/node:15.4.0-buster-browsers"
       options: --user 1001
     strategy:
       matrix:
@@ -59,17 +79,22 @@ jobs:
       - uses: actions/checkout@v2
       - run: npm ci
       - run: npm run build
-      - run: npm run test-${{matrix.browser}}:verbose
+      - run: npm run test-${{matrix.browser}}
         working-directory: packages/__tests__
 
-  cypress:
+  testapps:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     container:
-      image: "cypress/browsers:node12.13.0-chrome80-ff74"
+      image: "circleci/node:15.4.0-buster-browsers"
       options: --user 1001
     steps:
       - uses: actions/checkout@v2
       - run: npm ci
       - run: npm run build
-      - run: npm run e2e
-        working-directory: packages/__e2e__
+      - run: npm run build
+        working-directory: examples/1kcomponents
+      - run: npm run build
+        working-directory: examples/fractals-tree
+      - run: npm run build
+        working-directory: examples/sierpinski-triangle

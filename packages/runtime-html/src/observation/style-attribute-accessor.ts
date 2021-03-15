@@ -1,32 +1,22 @@
-import {
-  IAccessor,
-  LifecycleFlags,
-  IScheduler,
-  ITask,
-  INode,
-} from '@aurelia/runtime';
-import { PLATFORM, kebabCase } from '@aurelia/kernel';
+import { LifecycleFlags, AccessorType } from '@aurelia/runtime';
+import { emptyArray, kebabCase } from '@aurelia/kernel';
+import type { IAccessor } from '@aurelia/runtime';
+
+const customPropertyPrefix: string = '--';
 
 export class StyleAttributeAccessor implements IAccessor {
-  public readonly obj: HTMLElement;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
-
-  public readonly persistentFlags: LifecycleFlags;
 
   public styles: Record<string, number> = {};
   public version: number = 0;
 
   public hasChanges: boolean = false;
-  public task: ITask | null = null;
+  public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
-    public readonly scheduler: IScheduler,
-    flags: LifecycleFlags,
-    obj: INode,
+    public readonly obj: HTMLElement,
   ) {
-    this.obj = obj as HTMLElement;
-    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): string {
@@ -36,28 +26,39 @@ export class StyleAttributeAccessor implements IAccessor {
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    if ((flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
     }
   }
 
   private getStyleTuplesFromString(currentValue: string): [string, string][] {
     const styleTuples: [string, string][] = [];
-    const rx = /\s*([\w-]+)\s*:\s*((?:(?:[\w-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^)]*)\),?|[^)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
-    let pair: RegExpExecArray;
-    let name: string;
-    while ((pair = rx.exec(currentValue)!) !== null) {
-      name = pair[1];
-      if (name.length === 0) {
+    const urlRegexTester = /url\([^)]+$/;
+    let offset = 0;
+    let currentChunk = '';
+    let nextSplit: number;
+    let indexOfColon: number;
+    let attribute: string;
+    let value: string;
+    while (offset < currentValue.length) {
+      nextSplit = currentValue.indexOf(';', offset);
+      if (nextSplit === -1) { nextSplit = currentValue.length; }
+      currentChunk += currentValue.substring(offset, nextSplit);
+      offset = nextSplit + 1;
+
+      // Make sure we never split a url so advance to next
+      if (urlRegexTester.test(currentChunk)) {
+        currentChunk += ';';
         continue;
       }
-      styleTuples.push([name, pair[2]]);
+
+      indexOfColon = currentChunk.indexOf(':');
+      attribute = currentChunk.substring(0, indexOfColon).trim();
+      value = currentChunk.substring(indexOfColon + 1).trim();
+      styleTuples.push([attribute, value]);
+      currentChunk = '';
     }
+
     return styleTuples;
   }
 
@@ -70,6 +71,11 @@ export class StyleAttributeAccessor implements IAccessor {
         continue;
       }
       if (typeof value === 'string') {
+        // Custom properties should not be tampered with
+        if (property.startsWith(customPropertyPrefix)) {
+          styles.push([property, value]);
+          continue;
+        }
         styles.push([kebabCase(property), value]);
         continue;
       }
@@ -89,7 +95,7 @@ export class StyleAttributeAccessor implements IAccessor {
       }
       return styles;
     }
-    return PLATFORM.emptyArray;
+    return emptyArray;
   }
 
   private getStyleTuples(currentValue: unknown): [string, string][] {
@@ -105,19 +111,20 @@ export class StyleAttributeAccessor implements IAccessor {
       return this.getStyleTuplesFromObject(currentValue as Record<string, unknown>);
     }
 
-    return PLATFORM.emptyArray;
+    return emptyArray;
   }
 
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue } = this;
-      this.oldValue = currentValue;
+      const currentValue = this.currentValue;
       const styles = this.styles;
+      const styleTuples = this.getStyleTuples(currentValue);
+
       let style: string;
       let version = this.version;
 
-      const styleTuples = this.getStyleTuples(currentValue);
+      this.oldValue = currentValue;
 
       let tuple: [string, string];
       let name: string;
@@ -159,19 +166,6 @@ export class StyleAttributeAccessor implements IAccessor {
   }
 
   public bind(flags: LifecycleFlags): void {
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      if (this.task !== null) {
-        this.task.cancel();
-      }
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    }
-    this.oldValue = this.currentValue = this.obj.style.cssText;
-  }
-
-  public unbind(flags: LifecycleFlags): void {
-    if (this.task !== null) {
-      this.task.cancel();
-      this.task = null;
-    }
+    this.currentValue = this.oldValue = this.obj.style.cssText;
   }
 }

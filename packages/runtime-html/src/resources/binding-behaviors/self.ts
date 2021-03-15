@@ -1,11 +1,11 @@
-import { Reporter } from '@aurelia/kernel';
-import { IScope, LifecycleFlags, bindingBehavior } from '@aurelia/runtime';
-import { Listener } from '../../binding/listener';
-import { findOriginalEventTarget } from '../../observation/event-manager';
+import { LifecycleFlags, bindingBehavior } from '@aurelia/runtime';
+import { Listener } from '../../binding/listener.js';
+
+import type { Scope } from '@aurelia/runtime';
 
 /** @internal */
 export function handleSelfEvent(this: SelfableBinding, event: Event): ReturnType<Listener['callSource']> {
-  const target = findOriginalEventTarget(event) as unknown as Node;
+  const target = event.composedPath()[0];
 
   if (this.target !== target) {
     return;
@@ -20,16 +20,16 @@ export type SelfableBinding = Listener & {
 
 @bindingBehavior('self')
 export class SelfBindingBehavior {
-  public bind(flags: LifecycleFlags, scope: IScope, binding: SelfableBinding): void {
+  public bind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: SelfableBinding): void {
     if (!binding.callSource || !binding.targetEvent) {
-      throw Reporter.error(8);
+      throw new Error('Self binding behavior only supports events.');
     }
 
     binding.selfEventCallSource = binding.callSource;
     binding.callSource = handleSelfEvent;
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: SelfableBinding): void {
+  public unbind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: SelfableBinding): void {
     binding.callSource = binding.selfEventCallSource;
     binding.selfEventCallSource = null!;
   }

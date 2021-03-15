@@ -1,2 +1,2 @@
-export * from './number-format-binding-behavior';
-export * from './number-format-value-converter';
+export * from './number-format-binding-behavior.js';
+export * from './number-format-value-converter.js';

@@ -1,53 +1,15 @@
-import { IIndexable, PLATFORM, Reporter, StrictPrimitive } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
-import { IBinding, ILifecycle } from '../lifecycle';
-import {
-  IBindingContext,
-  IOverrideContext,
-  IScope,
-  ObservedCollection,
-  ObserversLookup,
-  PropertyObserver
-} from '../observation';
-import { ProxyObserver } from './proxy-observer';
-import { SetterObserver } from './setter-observer';
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { LifecycleFlags } from '../observation.js';
 
-const enum RuntimeError {
-  NilScope = 250,
-  NilOverrideContext = 252,
-  NilParentScope = 253
-}
+import type { IIndexable } from '@aurelia/kernel';
+import type { IBinding, IBindingContext, IOverrideContext } from '../observation.js';
 
 const marker = Object.freeze({});
-
-/** @internal */
-export class InternalObserversLookup {
-  public getOrCreate(
-    this: { [key: string]: PropertyObserver },
-    lifecycle: ILifecycle,
-    flags: LifecycleFlags,
-    obj: IBindingContext | IOverrideContext,
-    key: string,
-  ): PropertyObserver {
-    if (this[key] === void 0) {
-      this[key] = new SetterObserver(lifecycle, flags, obj, key);
-    }
-    return this[key];
-  }
-}
-
-export type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 
 export class BindingContext implements IBindingContext {
   [key: string]: unknown;
 
-  public readonly $synthetic: true;
-
-  public $observers?: ObserversLookup;
-
   private constructor(keyOrObj?: string | IIndexable, value?: unknown) {
-    this.$synthetic = true;
-
     if (keyOrObj !== void 0) {
       if (value !== void 0) {
         // if value is defined then it's just a property and a value to initialize with
@@ -55,7 +17,7 @@ export class BindingContext implements IBindingContext {
       } else {
         // can either be some random object or another bindingContext to clone from
         for (const prop in keyOrObj as IIndexable) {
-          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop)) {
+          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop)as boolean) {
             this[prop] = (keyOrObj as IIndexable)[prop];
           }
         }
@@ -68,81 +30,52 @@ export class BindingContext implements IBindingContext {
    *
    * @param obj - Optional. An existing object or `BindingContext` to (shallow) clone (own) properties from.
    */
-  public static create(flags: LifecycleFlags, obj?: IIndexable): BindingContext;
+  public static create(obj?: IIndexable): BindingContext;
   /**
    * Create a new synthetic `BindingContext` for use in a `Scope`.
    *
    * @param key - The name of the only property to initialize this `BindingContext` with.
    * @param value - The value of the only property to initialize this `BindingContext` with.
    */
-  public static create(flags: LifecycleFlags, key: string, value: unknown): BindingContext;
+  public static create(key: string, value: unknown): BindingContext;
   /**
    * Create a new synthetic `BindingContext` for use in a `Scope`.
    *
    * This overload signature is simply the combined signatures of the other two, and can be used
    * to keep strong typing in situations where the arguments are dynamic.
    */
-  public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: unknown): BindingContext;
-  public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: unknown): BindingContext {
-    const bc = new BindingContext(keyOrObj, value);
-    if (flags & LifecycleFlags.proxyStrategy) {
-      return ProxyObserver.getOrCreate(bc).proxy;
-    }
-    return bc;
+  public static create(keyOrObj?: string | IIndexable, value?: unknown): BindingContext;
+  public static create(keyOrObj?: string | IIndexable, value?: unknown): BindingContext {
+    return new BindingContext(keyOrObj, value);
   }
 
-  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, part?: string): IBindingContext | IOverrideContext | IBinding | undefined | null {
-    if (scope == null) {
-      throw Reporter.error(RuntimeError.NilScope);
-    }
-    let overrideContext = scope.overrideContext;
-
-    if (ancestor > 0) {
-      // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
-      while (ancestor > 0) {
-        if (overrideContext.parentOverrideContext == null) {
-          return void 0;
-        }
-        ancestor--;
-        overrideContext = overrideContext.parentOverrideContext;
-      }
-
-      return name in overrideContext ? overrideContext : overrideContext.bindingContext;
+  public static get(scope: Scope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: Scope | null): IBindingContext | IOverrideContext | IBinding | undefined | null {
+    if (scope == null && hostScope == null) {
+      throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
     }
 
-    // traverse the context and it's ancestors, searching for a context that has the name.
-    while (overrideContext && !(name in overrideContext) && !(overrideContext.bindingContext && name in overrideContext.bindingContext)) {
-      overrideContext = overrideContext.parentOverrideContext!;
-    }
-
-    if (overrideContext) {
-      // we located a context with the property.  return it.
-      return name in overrideContext ? overrideContext : overrideContext.bindingContext;
-    }
-
-    // the name wasn't found. see if parent scope traversal is allowed and if so, try that
-    if ((flags & LifecycleFlags.allowParentScopeTraversal) > 0) {
-      let parent = scope.parentScope;
-      while (parent !== null) {
-        if (parent.scopeParts.includes(part!)) {
-          const result = this.get(parent, name, ancestor, flags
-            // unset the flag; only allow one level of scope boundary traversal
-            & ~LifecycleFlags.allowParentScopeTraversal
-            // tell the scope to return null if the name could not be found
-            | LifecycleFlags.isTraversingParentScope);
-          if (result === marker) {
-            return scope.bindingContext || scope.overrideContext;
-          } else {
-            return result;
-          }
-        } else {
-          parent = parent.parentScope;
-        }
-      }
-
-      if (parent === null) {
-        throw new Error(`No target scope could be found for part "${part}"`);
-      }
+    const hasOtherScope = hostScope !== scope && hostScope != null;
+    /* eslint-disable jsdoc/check-indentation */
+    /**
+     * This fallback is needed to support the following case:
+     * <div au-slot="s1">
+     *  <let outer-host.bind="$host"></let>
+     *  ${outerHost.prop}
+     * </div>
+     * To enable the `let` binding for 'hostScope', the property is added to `hostScope.overrideContext`. That enables us to use such let binding also inside a repeater.
+     * However, as the expression `${outerHost.prop}` does not start with `$host`, it is considered that to evaluate this expression we don't need the access to hostScope.
+     * This artifact raises the need for this fallback.
+     */
+    /* eslint-enable jsdoc/check-indentation */
+    let context = chooseContext(scope, name, ancestor);
+    if (
+      context !== null
+      && ((context == null ? false : name in context)
+        || !hasOtherScope)
+    ) { return context; }
+    if (hasOtherScope) {
+      context = chooseContext(hostScope!, name, ancestor);
+      if (context !== null && (context !== undefined && name in context)) { return context; }
     }
 
     // still nothing found. return the root binding context (or null
@@ -153,31 +86,54 @@ export class BindingContext implements IBindingContext {
     }
     return scope.bindingContext || scope.overrideContext;
   }
-
-  public getObservers(flags: LifecycleFlags): ObserversLookup {
-    if (this.$observers == null) {
-      this.$observers = new InternalObserversLookup() as ObserversLookup;
-    }
-    return this.$observers;
-  }
 }
 
-export class Scope implements IScope {
-  public parentScope: IScope | null;
-  public scopeParts: readonly string[];
-  public bindingContext: IBindingContext;
-  public overrideContext: IOverrideContext;
+function chooseContext(scope: Scope, name: string, ancestor: number): IBindingContext | undefined | null {
+  let overrideContext: IOverrideContext | null = scope.overrideContext;
+  let currentScope: Scope | null = scope;
 
-  private constructor(
-    parentScope: IScope | null,
-    bindingContext: IBindingContext,
-    overrideContext: IOverrideContext,
-  ) {
-    this.parentScope = parentScope;
-    this.scopeParts = PLATFORM.emptyArray;
-    this.bindingContext = bindingContext;
-    this.overrideContext = overrideContext;
+  if (ancestor > 0) {
+    // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
+    while (ancestor > 0) {
+      ancestor--;
+      currentScope = currentScope.parentScope;
+      if (currentScope?.overrideContext == null) {
+        return void 0;
+      }
+    }
+
+    overrideContext = currentScope!.overrideContext;
+    return name in overrideContext ? overrideContext : overrideContext.bindingContext;
   }
+
+  // traverse the context and it's ancestors, searching for a context that has the name.
+  while (
+    !currentScope?.isComponentBoundary
+    && overrideContext
+    && !(name in overrideContext)
+    && !(
+      overrideContext.bindingContext
+      && name in overrideContext.bindingContext
+    )
+  ) {
+    currentScope = currentScope!.parentScope ?? null;
+    overrideContext = currentScope?.overrideContext ?? null;
+  }
+
+  if (overrideContext) {
+    return name in overrideContext ? overrideContext : overrideContext.bindingContext;
+  }
+
+  return null;
+}
+
+export class Scope {
+  private constructor(
+    public parentScope: Scope | null,
+    public bindingContext: IBindingContext,
+    public overrideContext: IOverrideContext,
+    public readonly isComponentBoundary: boolean,
+  ) {}
 
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and a new standalone `OverrideContext`.
@@ -187,17 +143,17 @@ export class Scope implements IScope {
    *
    * @param bc - The `BindingContext` to back the `Scope` with.
    */
-  public static create(flags: LifecycleFlags, bc: object): Scope;
+  public static create(bc: object): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
    * @param bc - The `BindingContext` to back the `Scope` with.
    * @param oc - The `OverrideContext` to back the `Scope` with.
    * If a binding expression attempts to access a property that does not exist on the `BindingContext`
-   * during binding, it will traverse up via the `parentOverrideContext` of the `OverrideContext` until
+   * during binding, it will traverse up via the `parentScope` of the scope until
    * it finds the property.
    */
-  public static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext): Scope;
+  public static create(bc: object, oc: IOverrideContext, isComponentBoundary?: boolean): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -207,48 +163,36 @@ export class Scope implements IScope {
    * @param bc - The `BindingContext` to back the `Scope` with.
    * @param oc - null. This overload is functionally equivalent to not passing this argument at all.
    */
-  public static create(flags: LifecycleFlags, bc: object, oc: null): Scope;
-  public static create(flags: LifecycleFlags, bc: object, oc?: IOverrideContext | null): Scope {
-    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc as null) : oc);
+  public static create(bc: object, oc: null, isComponentBoundary?: boolean): Scope;
+  public static create(bc: object, oc?: IOverrideContext | null, isComponentBoundary?: boolean): Scope {
+    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(bc) : oc, isComponentBoundary ?? false);
   }
 
-  public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
+  public static fromOverride(oc: IOverrideContext): Scope {
     if (oc == null) {
-      throw Reporter.error(RuntimeError.NilOverrideContext);
+      throw new Error(`OverrideContext is ${oc}`);
     }
-    return new Scope(null, oc.bindingContext, oc);
+    return new Scope(null, oc.bindingContext, oc, false);
   }
 
-  public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: object): Scope {
+  public static fromParent(ps: Scope | null, bc: object): Scope {
     if (ps == null) {
-      throw Reporter.error(RuntimeError.NilParentScope);
+      throw new Error(`ParentScope is ${ps}`);
     }
-    return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc, ps.overrideContext));
+    return new Scope(ps, bc as IBindingContext, OverrideContext.create(bc), false);
   }
 }
 
 export class OverrideContext implements IOverrideContext {
   [key: string]: unknown;
 
-  public readonly $synthetic: true;
-  public $observers?: ObserversLookup;
   public bindingContext: IBindingContext;
-  public parentOverrideContext: IOverrideContext | null;
 
-  private constructor(bindingContext: IBindingContext, parentOverrideContext: IOverrideContext | null) {
-    this.$synthetic = true;
+  private constructor(bindingContext: IBindingContext) {
     this.bindingContext = bindingContext;
-    this.parentOverrideContext = parentOverrideContext;
   }
 
-  public static create(flags: LifecycleFlags, bc: object, poc: IOverrideContext | null): OverrideContext {
-    return new OverrideContext(bc as IBindingContext, poc === void 0 ? null : poc);
-  }
-
-  public getObservers(): ObserversLookup {
-    if (this.$observers === void 0) {
-      this.$observers = new InternalObserversLookup() as ObserversLookup;
-    }
-    return this.$observers;
+  public static create(bc: object): OverrideContext {
+    return new OverrideContext(bc as IBindingContext);
   }
 }

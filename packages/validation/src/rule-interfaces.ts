@@ -1,8 +1,8 @@
 import { Class, DI } from '@aurelia/kernel';
 import { IsBindingBehavior, IExpressionParser } from '@aurelia/runtime';
-import { Deserializer } from './ast-serialization';
-import { IValidationRules } from './rule-provider';
-import { IValidationMessageProvider } from './rules';
+import { Deserializer } from './ast-serialization.js';
+import { IValidationRules } from './rule-provider.js';
+import { IValidationMessageProvider } from './rules.js';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationRuleExecutionPredicate<TObject extends IValidateable = IValidateable> = (object?: TObject) => boolean;
@@ -84,8 +84,8 @@ export interface IValidationVisitor {
   visitPropertyRule(propertyRule: IPropertyRule): string;
 }
 
-export const IValidationHydrator = DI.createInterface<IValidationHydrator>('IValidationHydrator').noDefault();
-export interface IValidationHydrator {
+export const IValidationExpressionHydrator = DI.createInterface<IValidationExpressionHydrator>('IValidationExpressionHydrator');
+export interface IValidationExpressionHydrator {
   readonly astDeserializer: Deserializer;
   readonly parser: IExpressionParser;
   readonly messageProvider: IValidationMessageProvider;

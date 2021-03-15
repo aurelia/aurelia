@@ -1,5 +1,5 @@
-import { customElement, bindable } from '@aurelia/runtime';
-import * as template from './select-dropdown.html';
+import { customElement, bindable } from '@aurelia/runtime-html';
+import template from './select-dropdown.html';
 
 export interface SelectOption {
   id: any;

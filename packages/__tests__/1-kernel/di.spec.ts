@@ -1,7 +1,5 @@
 import {
   DI,
-  IContainer,
-  IDefaultableInterfaceSymbol,
   inject,
   Registration,
   singleton,
@@ -436,114 +434,22 @@ describe(`The DI object`, function () {
   });
 
   describe(`createInterface()`, function () {
-    it(`returns a function that has withDefault and noDefault functions`, function () {
+    it(`returns a function that stringifies its default friendly name`, function () {
       const sut = DI.createInterface();
-      assert.strictEqual(typeof sut, 'function', `typeof sut`);
-      assert.strictEqual(typeof sut.withDefault, 'function', `typeof sut.withDefault`);
-      assert.strictEqual(typeof sut.noDefault, 'function', `typeof sut.noDefault`);
+      const expected = 'InterfaceSymbol<(anonymous)>';
+      assert.strictEqual(sut.toString(), expected, `sut.toString() === '${expected}'`);
+      assert.strictEqual(String(sut), expected, `String(sut) === '${expected}'`);
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      assert.strictEqual(`${sut}`, expected, `\`\${sut}\` === '${expected}'`);
     });
 
-    it(`noDefault returns self`, function () {
-      const sut = DI.createInterface();
-      assert.strictEqual(sut.noDefault(), sut, `sut.noDefault()`);
-    });
-
-    it(`withDefault returns self with modified withDefault that throws`, function () {
-      const sut = DI.createInterface();
-      const sut2 = sut.withDefault(null as any);
-      assert.strictEqual(sut, sut2, `sut`);
-      assert.throws(() => sut.withDefault(null as any));
-    });
-
-    describe(`withDefault returns self with register function that registers the appropriate resolver`, function () {
-      let sut: IDefaultableInterfaceSymbol<any>;
-      let container: IContainer;
-
-      let registerResolver: ISpy<IContainer['registerResolver']>;
-
-      // eslint-disable-next-line mocha/no-hooks
-      beforeEach(function () {
-        sut = DI.createInterface();
-        container = DI.createContainer();
-        registerResolver = createSpy(container, 'registerResolver', true);
-      });
-
-      // eslint-disable-next-line mocha/no-hooks
-      afterEach(function () {
-        registerResolver.restore();
-      });
-
-      // function matchResolver(key: any, strategy: any, state: any): SinonMatcher {
-      //   return match(val => val.key === key && val.strategy === strategy && val.state === state);
-      // }
-
-      // it(`instance without key`, function () {
-      //   const value = {};
-      //   sut.withDefault(builder => builder.instance(value));
-      //   (sut as any).register(container);
-      //   expect(registerResolver).to.have.been.calledWith(sut, matchResolver(sut, ResolverStrategy.instance, value));
-      // });
-
-      // it(`instance with key`, function () {
-      //   const value = {};
-      //   sut.withDefault(builder => builder.instance(value));
-      //   (sut as any).register(container, 'key');
-      //   expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.instance, value));
-      // });
-
-      // it(`singleton without key`, function () {
-      //   class Foo {}
-      //   sut.withDefault(builder => builder.singleton(Foo));
-      //   (sut as any).register(container);
-      //   expect(registerResolver).to.have.been.calledWith(sut, matchResolver(sut, ResolverStrategy.singleton, Foo));
-      // });
-
-      // it(`singleton with key`, function () {
-      //   class Foo {}
-      //   sut.withDefault(builder => builder.singleton(Foo));
-      //   (sut as any).register(container, 'key');
-      //   expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.singleton, Foo));
-      // });
-
-      // it(`transient without key`, function () {
-      //   class Foo {}
-      //   sut.withDefault(builder => builder.transient(Foo));
-      //   (sut as any).register(container);
-      //   expect(registerResolver).to.have.been.calledWith(sut, matchResolver(sut, ResolverStrategy.transient, Foo));
-      // });
-
-      // it(`transient with key`, function () {
-      //   class Foo {}
-      //   sut.withDefault(builder => builder.transient(Foo));
-      //   (sut as any).register(container, 'key');
-      //   expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.transient, Foo));
-      // });
-
-      // it(`callback without key`, function () {
-      //   const callback = () => { return; };
-      //   sut.withDefault(builder => builder.callback(callback));
-      //   (sut as any).register(container);
-      //   expect(registerResolver).to.have.been.calledWith(sut, matchResolver(sut, ResolverStrategy.callback, callback));
-      // });
-
-      // it(`callback with key`, function () {
-      //   const callback = () => { return; };
-      //   sut.withDefault(builder => builder.callback(callback));
-      //   (sut as any).register(container, 'key');
-      //   expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.callback, callback));
-      // });
-
-      // it(`aliasTo without key`, function () {
-      //   sut.withDefault(builder => builder.aliasTo('key2'));
-      //   (sut as any).register(container);
-      //   expect(registerResolver).to.have.been.calledWith(sut, matchResolver(sut, ResolverStrategy.alias, 'key2'));
-      // });
-
-      // it(`aliasTo with key`, function () {
-      //   sut.withDefault(builder => builder.aliasTo('key2'));
-      //   (sut as any).register(container, 'key1');
-      //   expect(registerResolver).to.have.been.calledWith('key1', matchResolver('key1', ResolverStrategy.alias, 'key2'));
-      // });
+    it(`returns a function that stringifies its configured friendly name`, function () {
+      const sut = DI.createInterface('IFoo');
+      const expected = 'InterfaceSymbol<IFoo>';
+      assert.strictEqual(sut.toString(), expected, `sut.toString() === '${expected}'`);
+      assert.strictEqual(String(sut), expected, `String(sut) === '${expected}'`);
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      assert.strictEqual(`${sut}`, expected, `\`\${sut}\` === '${expected}'`);
     });
   });
 });
@@ -1097,7 +1003,7 @@ describe(`The Container class`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = createFixture();
-        assert.throws(() => sut.registerTransformer(key, null as any), /5/, `() => sut.registerTransformer(key, null as any)`);
+        assert.throws(() => sut.registerTransformer(key, null as any), /key\/value cannot be null or undefined/, `() => sut.registerTransformer(key, null as any)`);
       });
     }
 
@@ -1114,7 +1020,7 @@ describe(`The Container class`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = createFixture();
-        assert.throws(() => sut.getResolver(key, null as any), /5/, `() => sut.getResolver(key, null as any)`);
+        assert.throws(() => sut.getResolver(key, null as any), /key\/value cannot be null or undefined/, `() => sut.getResolver(key, null as any)`);
       });
     }
 
@@ -1137,7 +1043,7 @@ describe(`The Container class`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = createFixture();
-        assert.throws(() => sut.get(key), /5/, `() => sut.get(key)`);
+        assert.throws(() => sut.get(key), /key\/value cannot be null or undefined/, `() => sut.get(key)`);
       });
     }
 
@@ -1147,7 +1053,7 @@ describe(`The Container class`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = createFixture();
-        assert.throws(() => sut.getAll(key), /5/, `() => sut.getAll(key)`);
+        assert.throws(() => sut.getAll(key), /key\/value cannot be null or undefined/, `() => sut.getAll(key)`);
       });
     }
 

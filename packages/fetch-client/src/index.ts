@@ -1,5 +1,5 @@
-export { Interceptor, RetryConfiguration, RetryableRequest, ValidInterceptorMethodName } from './interfaces';
-export { json } from './util';
-export { retryStrategy, RetryInterceptor } from './retry-interceptor';
-export { HttpClientConfiguration } from './http-client-configuration';
-export { HttpClient } from './http-client';
+export { Interceptor, RetryConfiguration, RetryableRequest, ValidInterceptorMethodName } from './interfaces.js';
+export { json } from './util.js';
+export { retryStrategy, RetryInterceptor } from './retry-interceptor.js';
+export { HttpClientConfiguration } from './http-client-configuration.js';
+export { HttpClient, IHttpClient } from './http-client.js';

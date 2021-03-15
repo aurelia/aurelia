@@ -7,15 +7,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://badge.fury.io/js/%40aurelia%2Fkernel.svg)](https://badge.fury.io/js/%40aurelia%2Fkernel)
 [![CircleCI](https://circleci.com/gh/aurelia/aurelia.svg?style=shield)](https://circleci.com/gh/aurelia/aurelia)
+[![Actions Status](https://github.com/aurelia/aurelia/workflows/Github%20Actions/badge.svg)](https://github.com/aurelia/aurelia/actions)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 [![Twitter](https://img.shields.io/twitter/follow/aureliaeffect.svg?style=social&label=Follow)](https://twitter.com/intent/follow?screen_name=aureliaeffect)
 
-[![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
-[![Maintainability](https://api.codeclimate.com/v1/badges/5ac0e13689735698073a/maintainability)](https://codeclimate.com/github/aurelia/aurelia/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/5ac0e13689735698073a/test_coverage)](https://codeclimate.com/github/aurelia/aurelia/test_coverage)
-[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
-
-[![Backers on Open Collective](https://opencollective.com/aurelia/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/aurelia/sponsors/badge.svg)](#sponsors) 
+[![Backers on Open Collective](https://opencollective.com/aurelia/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/aurelia/sponsors/badge.svg)](#sponsors)
 [![Discord Chat](https://img.shields.io/discord/448698263508615178.svg)](https://discord.gg/RBtyM6u)
 
 # Aurelia 2
@@ -44,14 +40,18 @@ export class App {
 ```html
 <!-- app.html -->
 <form>
-  <label for="name-field">What is your name?</label>
-  <input id="name-field" value.bind="name & debounce:500">
+  <label>
+    <span>What is your name?</span>
+    <input value.bind="name & debounce:500">
+  </label>
 
-  <label for="quest-field">What is your quest?</label>
-  <select id="quest-field" value.bind="quest">
-    <option></option>
-    <option repeat.for="q of quests">${q}</option>
-  </select>
+  <label>
+    <span>What is your quest?</span>
+    <select value.bind="quest">
+      <option></option>
+      <option repeat.for="q of quests">${q}</option>
+    </select>
+  </label>
 </form>
 
 <p if.bind="name">${welcome}, ${name}!</p>
@@ -89,9 +89,3 @@ To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscr
 ## License
 
 Aurelia is MIT licensed. You can find out more and read the license document [here](LICENSE).
-
----
-
-Cross-browser testing provided by:
-
-<a href="http://browserstack.com"><img height="70" src="docs/images/browserstack-logo.png" alt="BrowserStack"></a>

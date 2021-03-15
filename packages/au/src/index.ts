@@ -1,8 +1,7 @@
-import { DebugConfiguration } from '@aurelia/debug';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
-import { AuConfigurationOptions } from './au-configuration-options';
-import { DevServer } from "./dev-server";
+import { AuConfigurationOptions } from './au-configuration-options.js';
+import { DevServer } from "./dev-server.js";
 export { AuConfigurationOptions };
 
 type AuCommands = 'help' | 'dev';
@@ -17,7 +16,7 @@ class ParsedArgs {
 }
 
 const cwd = process.cwd();
-function parseArgs(args: string[]): ParsedArgs {
+async function parseArgs(args: string[]): Promise<ParsedArgs> {
   const cmd = args[0];
   args = args.slice(1);
 
@@ -28,8 +27,8 @@ function parseArgs(args: string[]): ParsedArgs {
     if (!existsSync(configurationFile)) {
       throw new Error(`Configuration file is missing or uneven amount of args: ${args}. Args must come in pairs of --key value`);
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires
-      configuration.applyConfig(require(configurationFile));
+      const config = (await import(`file://${configurationFile}`)).default;
+      configuration.applyConfig(config);
       args = args.slice(1);
     }
   }
@@ -57,9 +56,7 @@ function parseArgs(args: string[]): ParsedArgs {
 }
 
 (async function () {
-  DebugConfiguration.register();
-
-  const args = parseArgs(process.argv.slice(2));
+  const args = await parseArgs(process.argv.slice(2));
   switch (args.cmd) {
     case 'dev': {
       const server = DevServer.create();

@@ -22,7 +22,15 @@
   "ignoreDeps": [
     "i18next",
     "pixi.js",
-    "@types/pixi.js"
+    "@types/pixi.js",
+    "rxjs",
+    "@jest/transform",
+    "@jest/types",
+    "ts-jest",
+    "babel-jest",
+    "karma-coverage-istanbul-reporter",
+    "jsdom",
+    "copy-webpack-plugin"
   ],
   "packageRules": [
     {
@@ -40,18 +48,6 @@
     {
       "packageNames": ["chromedriver"],
       "allowedVersions": "^77.0.0"
-    },
-    {
-      "packageNames": ["karma"],
-      "allowedVersions": "~4.1.0"
-    },
-    {
-      "packageNames": ["http-server"],
-      "allowedVersions": "0.9.0"
-    },
-    {
-      "packageNames": ["mocha"],
-      "allowedVersions": "~6.1.4"
     }
   ]
 }

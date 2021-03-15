@@ -1,8 +1,8 @@
-import { EventAggregator, IEventAggregator, EventAggregatorCallback } from '@aurelia/kernel';
+import { EventAggregator, IEventAggregator } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 type EA = IEventAggregator & {
-  eventLookup: Record<string, EventAggregatorCallback[]>;
+  eventLookup: Record<string, ((...args: unknown[]) => void)[]>;
   messageHandlers: any[];
 };
 
@@ -145,7 +145,7 @@ describe('event aggregator', function () {
       const callback = function () { return; };
 
       it('throws if channelOrType is undefined', function () {
-        assert.throws(() => { ea.subscribe(undefined, callback); }, 'Code 0');
+        assert.throws(() => { ea.subscribe(undefined, callback); }, /Invalid channel name or type/);
       });
 
     });
@@ -315,28 +315,12 @@ describe('event aggregator', function () {
         assert.strictEqual(someData, void 0, 'someData');
       });
 
-      it('handles errors in subscriber callbacks', function () {
+      it('propagates errors in subscriber callbacks', function () {
         const ea: IEventAggregator = new EventAggregator();
 
-        let someMessage: unknown;
+        ea.subscribe('dinner', () => { throw new Error('oops'); });
 
-        const crash = function () {
-          throw new Error('oops');
-        };
-
-        const callback = function (message) {
-          someMessage = message;
-        };
-
-        const data = { foo: 'bar' };
-
-        ea.subscribe('dinner', crash);
-        ea.subscribe('dinner', callback);
-        ea.subscribe('dinner', crash);
-
-        ea.publish('dinner', data);
-
-        assert.strictEqual(someMessage, data, `someMessage`);
+        assert.throws(() => ea.publish('dinner', {}), /oops/);
       });
 
     });
@@ -379,27 +363,12 @@ describe('event aggregator', function () {
         assert.strictEqual(someMessage, void 0, 'someMessage');
       });
 
-      it('handles errors in subscriber callbacks', function () {
+      it('propagates errors in subscriber callbacks', function () {
         const ea: IEventAggregator = new EventAggregator();
 
-        let someMessage: { message: unknown };
+        ea.subscribe(DinnerEvent, () => { throw new Error('oops'); });
 
-        const crash = function () {
-          throw new Error('oops');
-        };
-
-        const callback = function (message) {
-          someMessage = message;
-        };
-
-        const data = { foo: 'bar' };
-
-        ea.subscribe(DinnerEvent, crash);
-        ea.subscribe(DinnerEvent, callback);
-
-        ea.publish(new DinnerEvent(data));
-
-        assert.strictEqual(someMessage.message, data, `someMessage.message`);
+        assert.throws(() => ea.publish(new DinnerEvent(void 0)), /oops/);
       });
 
     });
@@ -408,7 +377,7 @@ describe('event aggregator', function () {
       const ea: IEventAggregator = new EventAggregator();
 
       it('throws if channelOrType is undefined', function () {
-        assert.throws(() => { ea.publish(undefined, {}); }, 'Code 0');
+        assert.throws(() => { ea.publish(undefined, {}); }, /Invalid channel name or instance: undefined./);
       });
 
     });

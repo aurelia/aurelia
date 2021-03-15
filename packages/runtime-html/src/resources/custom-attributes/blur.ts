@@ -1,14 +1,9 @@
-import { PLATFORM } from '@aurelia/kernel';
-import {
-  bindable,
-  customAttribute,
-  IDOM,
-  INode,
-  IScheduler,
-  ICustomAttributeViewModel,
-  ICustomAttributeController
-} from '@aurelia/runtime';
-import { HTMLDOM, NodeType } from '../../dom';
+import { emptyArray } from '@aurelia/kernel';
+import { INode, NodeType } from '../../dom.js';
+import { IPlatform } from '../../platform.js';
+import { customAttribute } from '../custom-attribute.js';
+import { bindable } from '../../bindable.js';
+import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller.js';
 
 const unset = Symbol();
 
@@ -30,15 +25,14 @@ export class BlurManager {
   private readonly handler: EventListenerObject;
 
   private constructor(
-    public readonly dom: HTMLDOM,
-    public readonly scheduler: IScheduler,
+    public readonly platform: IPlatform,
   ) {
-    blurDocMap.set(dom.document, this);
+    blurDocMap.set(platform.document, this);
     this.handler = createHandler(this, this.blurs);
   }
 
-  public static createFor(dom: HTMLDOM, scheduler: IScheduler): BlurManager {
-    return blurDocMap.get(dom.document) || new BlurManager(dom, scheduler);
+  public static createFor(platform: IPlatform): BlurManager {
+    return blurDocMap.get(platform.document) || new BlurManager(platform);
   }
 
   public register(blur: Blur): void {
@@ -60,9 +54,9 @@ export class BlurManager {
   }
 
   private addListeners(): void {
-    const dom = this.dom;
-    const doc = dom.document;
-    const win = dom.window;
+    const p = this.platform;
+    const doc = p.document;
+    const win = p.window;
     const handler = this.handler;
     if (win.navigator.pointerEnabled) {
       doc.addEventListener('pointerdown', handler, defaultCaptureEventInit);
@@ -74,9 +68,9 @@ export class BlurManager {
   }
 
   private removeListeners(): void {
-    const dom = this.dom;
-    const doc = dom.document;
-    const win = dom.window;
+    const p = this.platform;
+    const doc = p.document;
+    const win = p.window;
     const handler = this.handler;
     if (win.navigator.pointerEnabled) {
       doc.removeEventListener('pointerdown', handler, defaultCaptureEventInit);
@@ -93,9 +87,9 @@ export interface HasContains {
 }
 
 @customAttribute('blur')
-export class Blur implements ICustomAttributeViewModel<HTMLElement> {
+export class Blur implements ICustomAttributeViewModel {
 
-  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
+  public readonly $controller!: ICustomAttributeController<this>;
 
   @bindable()
   public value: boolean | typeof unset;
@@ -140,10 +134,10 @@ export class Blur implements ICustomAttributeViewModel<HTMLElement> {
    */
   private readonly manager: BlurManager;
 
-  private readonly element: HTMLElement;
-
-  public constructor(@INode element: INode, @IDOM private readonly dom: HTMLDOM, @IScheduler scheduler: IScheduler) {
-    this.element = element as HTMLElement;
+  public constructor(
+    @INode private readonly element: INode<HTMLElement>,
+    @IPlatform private readonly p: IPlatform,
+  ) {
     /**
      * By default, the behavior should be least surprise possible, that:
      *
@@ -154,14 +148,14 @@ export class Blur implements ICustomAttributeViewModel<HTMLElement> {
     this.searchSubTree = true;
     this.linkingContext = null;
     this.value = unset;
-    this.manager = BlurManager.createFor(dom, scheduler);
+    this.manager = BlurManager.createFor(p);
   }
 
-  public afterAttach(): void {
+  public attached(): void {
     this.manager.register(this);
   }
 
-  public beforeDetach(): void {
+  public detaching(): void {
     this.manager.unregister(this);
   }
 
@@ -169,8 +163,8 @@ export class Blur implements ICustomAttributeViewModel<HTMLElement> {
     if (this.value === false) {
       return;
     }
-    const dom = this.dom;
-    if (target === dom.window || target === dom.document || !this.contains(target as Element)) {
+    const p = this.p;
+    if (target === p.window || target === p.document || !this.contains(target as Element)) {
       this.triggerBlur();
     }
   }
@@ -193,7 +187,7 @@ export class Blur implements ICustomAttributeViewModel<HTMLElement> {
       return false;
     }
 
-    const doc = this.dom.document;
+    const doc = this.p.document;
     const linkedWith = this.linkedWith;
     const linkingContext = this.linkingContext;
     const searchSubTree = this.searchSubTree;
@@ -218,7 +212,7 @@ export class Blur implements ICustomAttributeViewModel<HTMLElement> {
           // todo: are there too many knobs?? Consider remove "linkedMultiple"??
           if (!linkedMultiple) {
             const el = contextNode.querySelector(link);
-            els = el !== null ? [el] : PLATFORM.emptyArray;
+            els = el !== null ? [el] : emptyArray;
           } else {
             els = contextNode.querySelectorAll(link);
           }
@@ -317,7 +311,7 @@ const createHandler = (
   };
   const markChecked = () => {
     hasChecked = true;
-    manager.scheduler.queueRenderTask(revertCheckage, { preempt: true });
+    manager.platform.domWriteQueue.queueTask(revertCheckage, { preempt: true });
   };
 
   const handleMousedown = (e: MouseEvent): void => {
@@ -346,7 +340,7 @@ const createHandler = (
     // when the window itself got focus, reacting to it is quite unnecessary
     // as it doesn't really affect element inside the document
     // Do a simple check and bail immediately
-    const isWindow = e.target === manager.dom.window;
+    const isWindow = e.target === manager.platform.window;
     if (isWindow) {
       for (let i = 0, ii = checkTargets.length; ii > i; ++i) {
         checkTargets[i].triggerBlur();

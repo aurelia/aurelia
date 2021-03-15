@@ -1,9 +1,8 @@
 import { IContainer } from '@aurelia/kernel';
-import { PropertyBinding } from '@aurelia/runtime';
-import { AttrBindingBehavior, DataAttributeAccessor } from '@aurelia/runtime-html';
+import { PropertyBinding, AttrBindingBehavior, DataAttributeAccessor } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
-describe('AttrBindingBehavior', function () {
+describe('3-runtime-html/attr-binding-behavior.spec.ts', function () {
   let target: any;
   let targetProperty: string;
   let container: IContainer;
@@ -12,19 +11,17 @@ describe('AttrBindingBehavior', function () {
 
   // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     target = ctx.createElement('div');
     targetProperty = 'foo';
     sut = new AttrBindingBehavior();
     container = ctx.container;
-    binding = new PropertyBinding(undefined, target, targetProperty, undefined, undefined, container);
-    sut.bind(undefined, undefined, binding);
+    binding = new PropertyBinding(undefined, target, targetProperty, undefined, undefined, container, {} as any);
+    sut.bind(undefined, undefined, null, binding);
   });
 
   it('bind()   should put a DataAttributeObserver on the binding', function () {
     assert.strictEqual(binding.targetObserver instanceof DataAttributeAccessor, true, `binding.targetObserver instanceof DataAttributeAccessor`);
-    assert.strictEqual(binding.targetObserver['obj'] === target, true, `binding.targetObserver['obj'] === target`);
-    assert.strictEqual(binding.targetObserver['propertyKey'] === targetProperty, true, `binding.targetObserver['propertyKey'] === targetProperty`);
   });
 
   // it('unbind() should clear the DataAttributeObserver from the binding', function () {

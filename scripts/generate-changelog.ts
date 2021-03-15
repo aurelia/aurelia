@@ -35,7 +35,7 @@ function getCurrentVersion(): {
   patch: string;
 } {
   const versionRegExp = /(\d+)\.(\d+)\.(\d+)($|-)/;
-  const match = versionRegExp.exec(project.lerna.version);
+  const match = versionRegExp.exec(project.pkg.version);
 
   return {
     major: match[1],
@@ -164,6 +164,7 @@ async function getChangeLogContent(
 export async function generateChangeLog(
   fromRevision: string,
   toRevision: string,
+  newVersion?: string,
 ): Promise<string> {
   const standardHeader = `# Change Log
 
@@ -176,11 +177,13 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
   const currentChangelog = readFileSync(project.changelog.path, { encoding: 'utf8' });
   const currentParts = currentChangelog.split(currentAnchor);
 
-  const { content: newChangeLog, newVersion } = await getChangeLogContent(fromRevision, toRevision, project.path);
+  const output = await getChangeLogContent(fromRevision, toRevision, project.path, void 0, newVersion);
+  const { content: newChangeLog } = output;
+  newVersion = output.newVersion;
   const newContent = standardHeader + newChangeLog + currentAnchor + (currentParts[1] || '');
   writeFileSync(project.changelog.path, newContent, { encoding: 'utf8' });
 
-  for (const pkg of project.packages.filter(p => p.folder === 'packages')) {
+  for (const pkg of project.packages.filter(p => p.folder.includes('packages'))) {
     let existingChangeLog = '';
     if (existsSync(pkg.changelog)) {
       const currentPkgChangelog = readFileSync(pkg.changelog, { encoding: 'utf8' });

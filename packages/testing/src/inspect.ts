@@ -24,20 +24,13 @@
  */
 
 import {
-  stringifyLifecycleFlags,
-} from '@aurelia/debug';
-import {
   Char,
-} from '@aurelia/jit';
+} from '@aurelia/runtime';
 import {
   Constructable,
   isArrayIndex,
   Primitive,
 } from '@aurelia/kernel';
-import {
-  DOM,
-} from '@aurelia/runtime-html';
-import { Call } from './tracing';
 import {
   Boolean_valueOf,
   colors,
@@ -107,9 +100,10 @@ import {
   truncate,
   TypedArray,
   TypedArrayConstructor,
-} from './util';
+} from './util.js';
+import { PLATFORM } from './test-context.js';
 
-/* eslint-disable max-lines-per-function, @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion */
+/* eslint-disable max-lines-per-function, @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types */
 
 let maxStack_ErrorName: string;
 let maxStack_ErrorMessage: string;
@@ -215,30 +209,18 @@ function getInspectContext(ctx: Partial<IInspectOptions>): IInspectContext {
   return obj;
 }
 
-interface IStyles {
-  special: 'cyan';
-  number: 'yellow';
-  boolean: 'yellow';
-  undefined: 'grey';
-  null: 'bold';
-  string: 'green';
-  symbol: 'green';
-  date: 'magenta';
-  regexp: 'red';
-}
-
-const styles: Readonly<IStyles> = Object_freeze(
+const styles = Object_freeze(
   {
-    special: 'cyan' as 'cyan',
-    number: 'yellow' as 'yellow',
-    boolean: 'yellow' as 'yellow',
-    undefined: 'grey' as 'grey',
-    null: 'bold' as 'bold',
-    string: 'green' as 'green',
-    symbol: 'green' as 'green',
-    date: 'magenta' as 'magenta',
-    regexp: 'red' as 'red',
-  },
+    special: 'cyan',
+    number: 'yellow',
+    boolean: 'yellow',
+    undefined: 'grey',
+    null: 'bold',
+    string: 'green',
+    symbol: 'green',
+    date: 'magenta',
+    regexp: 'red',
+  } as const,
 );
 
 interface IOperatorText {
@@ -543,12 +525,12 @@ function createErrDiff(actual: any, expected: any, operator: keyof IOperatorText
       let actualLine = actualLines[i];
       let divergingLines = (
         actualLine !== expectedLine && (!actualLine.endsWith(',')
-        || actualLine.slice(0, -1) !== expectedLine) // eslint-disable-line @typescript-eslint/prefer-string-starts-ends-with
+        || actualLine.slice(0, -1) !== expectedLine)
       );
       if (
         divergingLines
         && expectedLine.endsWith(',')
-        && expectedLine.slice(0, -1) === actualLine // eslint-disable-line @typescript-eslint/prefer-string-starts-ends-with
+        && expectedLine.slice(0, -1) === actualLine
       ) {
         divergingLines = false;
         actualLine += ',';
@@ -991,14 +973,14 @@ function getMessage(self: AssertionError): string {
 }
 
 export function formatNumber(
-  fn: (value: string, styleType: keyof IStyles) => string,
+  fn: (value: string, styleType: keyof typeof styles) => string,
   value: number,
 ): string {
   return fn(Object_is(value, -0) ? '-0' : `${value}`, 'number');
 }
 
 export function formatPrimitive(
-  fn: (value: string, styleType: keyof IStyles) => string,
+  fn: (value: string, styleType: keyof typeof styles) => string,
   value: Primitive,
   ctx: IInspectContext,
 ): string {
@@ -1285,74 +1267,6 @@ export function formatPromise(ctx: IInspectContext, value: Promise<any>, recurse
   return ['[object Promise]'];
 }
 
-// Still incomplete
-const methodNamesWithFlags: PropertyKey[] = [
-  'created',
-
-  'bind',
-  'bindCustomElement',
-  'bindCustomAttribute',
-  'bindSynthetic',
-
-  'bindBindings',
-  'bindControllers',
-  'endBind',
-
-  'beforeBind',
-  'afterBind',
-
-  'attach',
-  'attachCustomElement',
-  'attachCustomAttribute',
-  'attachSynthetic',
-
-  'attachControllers',
-
-  'beforeAttach',
-  'afterAttach',
-
-  'mount',
-  'mountCustomElement',
-  'mountCustomAttribute',
-  'mountSynthetic',
-
-  'detach',
-  'detachCustomElement',
-  'detachCustomAttribute',
-  'detachSynthetic',
-
-  'detachControllers',
-
-  'beforeDetach',
-  'afterDetach',
-
-  'unmount',
-  'unmountCustomElement',
-  'unmountCustomAttribute',
-  'unmountSynthetic',
-
-  'release',
-
-  'cache',
-  'cacheCustomElement',
-  'cacheCustomAttribute',
-  'cacheSynthetic',
-
-  'caching',
-
-  'unbind',
-  'unbindCustomElement',
-  'unbindCustomAttribute',
-  'unbindSynthetic',
-
-  'unbindBindings',
-  'unbindControllers',
-  'endUnbind',
-
-  'beforeUnbind',
-  'afterUnbind',
-];
-
 export function formatProperty(
   ctx: IInspectContext,
   value: any,
@@ -1362,87 +1276,6 @@ export function formatProperty(
 ): string {
   switch (key) {
     // Aurelia-specific:
-    // Note: this is actually the only place in inspection where we actually mutate the input
-    // It should be fine since we're only mutating recorded call args, but still important to keep in mind
-    case 'args':
-      if (value instanceof Call) {
-        switch (value.method) {
-          case 'created':
-
-          case 'bind':
-          case 'bindCustomElement':
-          case 'bindCustomAttribute':
-          case 'bindSynthetic':
-
-          case 'bindBindings':
-          case 'bindControllers':
-          case 'endBind':
-
-          case 'beforeBind':
-          case 'afterBind':
-
-          case 'attach':
-          case 'attachCustomElement':
-          case 'attachCustomAttribute':
-          case 'attachSynthetic':
-
-          case 'attachControllers':
-
-          case 'beforeAttach':
-          case 'afterAttach':
-
-          case 'mount':
-          case 'mountCustomElement':
-          case 'mountCustomAttribute':
-          case 'mountSynthetic':
-
-          case 'detach':
-          case 'detachCustomElement':
-          case 'detachCustomAttribute':
-          case 'detachSynthetic':
-
-          case 'detachControllers':
-
-          case 'beforeDetach':
-          case 'afterDetach':
-
-          case 'unmount':
-          case 'unmountCustomElement':
-          case 'unmountCustomAttribute':
-          case 'unmountSynthetic':
-
-          case 'release':
-
-          case 'cache':
-          case 'cacheCustomElement':
-          case 'cacheCustomAttribute':
-          case 'cacheSynthetic':
-
-          case 'caching':
-
-          case 'unbind':
-          case 'unbindCustomElement':
-          case 'unbindCustomAttribute':
-          case 'unbindSynthetic':
-
-          case 'unbindBindings':
-          case 'unbindControllers':
-          case 'endUnbind':
-
-          case 'beforeUnbind':
-          case 'afterUnbind':
-            value.args[0] = stringifyLifecycleFlags(value.args[0]);
-            break;
-          case 'valueChanged':
-            value.args[2] = stringifyLifecycleFlags(value.args[2]);
-            break;
-          case 'swap':
-          case 'updateView':
-            value.args[1] = stringifyLifecycleFlags(value.args[1]);
-            break;
-        }
-      }
-      break;
     case '$controller':
       return `$controller: { id: ${value.$controller.id} } (omitted for brevity)`;
     case 'overrideContext':
@@ -1545,7 +1378,6 @@ export function formatRaw(
     // Skip some standard components as their difference will not matter in assertions, but they will
     // generate a lot of noise and slow down the inspection due to their size and property depth
     case 'Container':
-    case 'Lifecycle':
     case 'ObserverLocator':
     // Also skip window object as it's not a node instance and therefore not filtered by formatProperty
     case 'Window':
@@ -1777,7 +1609,7 @@ export function formatRaw(
   try {
     output = formatter(ctx, value, recurseTimes, keys, braces);
     let $key: PropertyKey;
-    const isNotNode = !(value instanceof DOM.Node);
+    const isNotNode = !(value instanceof PLATFORM.Node);
     for (i = 0; i < keys.length; i++) {
       $key = keys[i];
       if (

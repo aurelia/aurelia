@@ -3,6 +3,149 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.2"></a>
+# 2.0.0-alpha.2 (2021-03-07)
+
+### Features:
+
+* **di:** add invoke to route context ([3c51a30](https://github.com/aurelia/aurelia/commit/3c51a30))
+
+
+### Bug Fixes:
+
+* **runtime:** fix duplicate lifecycleHooks resolution at root ([3b245ec](https://github.com/aurelia/aurelia/commit/3b245ec))
+* **router:** fix direct routing parenthesized parameters ([73f106d](https://github.com/aurelia/aurelia/commit/73f106d))
+* **router:** restore au-viewport's fallback property ([4f57cc5](https://github.com/aurelia/aurelia/commit/4f57cc5))
+* **router:** fix the au-viewport's default attribute ([25c87a8](https://github.com/aurelia/aurelia/commit/25c87a8))
+
+<a name="2.0.0-alpha.1"></a>
+# 2.0.0-alpha.1 (2021-03-03)
+
+**Note:** Version bump only for package @aurelia/router
+
+<a name="2.0.0-alpha.0"></a>
+# 2.0.0-alpha.0 (2021-03-02)
+
+**Note:** Version bump only for package @aurelia/router
+
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Features:
+
+* **router:** preserve original path / finalPath values in RouteNode ([e7aab7f](https://github.com/aurelia/aurelia/commit/e7aab7f))
+* **router:** add simple title customization api ([8ad49ad](https://github.com/aurelia/aurelia/commit/8ad49ad))
+* **di:** remove DI.createInterface builder ([8146dcc](https://github.com/aurelia/aurelia/commit/8146dcc))
+* **route-recognizer:** support path array ([b1ef7f1](https://github.com/aurelia/aurelia/commit/b1ef7f1))
+
+
+### Bug Fixes:
+
+* **route-expression:** fix segment grouping, scoping and serialization ([5acd0ed](https://github.com/aurelia/aurelia/commit/5acd0ed))
+* **router:** querystring ([eca9606](https://github.com/aurelia/aurelia/commit/eca9606))
+* **router:** update document.title ([071fd38](https://github.com/aurelia/aurelia/commit/071fd38))
+* **router:** set default swap strat to remove-first ([bad1f26](https://github.com/aurelia/aurelia/commit/bad1f26))
+* **router:** fix component agent slip-up ([e49d579](https://github.com/aurelia/aurelia/commit/e49d579))
+* **load:** apply the correct href attribute (preliminary)' ([e63d7fe](https://github.com/aurelia/aurelia/commit/e63d7fe))
+* **router:** pass data property to route node in direct routing ([6fc0e6b](https://github.com/aurelia/aurelia/commit/6fc0e6b))
+* **router:** fix params inheritance ([63df5ac](https://github.com/aurelia/aurelia/commit/63df5ac))
+* **router:** fix relative/absolute navigation ([2bcf8d2](https://github.com/aurelia/aurelia/commit/2bcf8d2))
+* **router:** fix absolute & relative paths ([6f2a49f](https://github.com/aurelia/aurelia/commit/6f2a49f))
+* **router:** add transitionPlan validation prop ([0f1b271](https://github.com/aurelia/aurelia/commit/0f1b271))
+* **router:** fix some lazy-loading edge cases / cleanup route-recognizer ([0043dad](https://github.com/aurelia/aurelia/commit/0043dad))
+* **router:** fix load isActive and expose it as a fromView bindable ([2e3eaaf](https://github.com/aurelia/aurelia/commit/2e3eaaf))
+* **router:** fix href isEnabled logic ([7f8ea00](https://github.com/aurelia/aurelia/commit/7f8ea00))
+* **router:** fix several issues in link handler and add trace logging ([8b9fa29](https://github.com/aurelia/aurelia/commit/8b9fa29))
+* **router:** add missing route config properties to the validator ([f8367a6](https://github.com/aurelia/aurelia/commit/f8367a6))
+* **router:** stop the router on AppTask.afterDeactivate ([aca6d81](https://github.com/aurelia/aurelia/commit/aca6d81))
+* **router:** use afterActivate app task ([d17bab7](https://github.com/aurelia/aurelia/commit/d17bab7))
+* **router:** fix caching issue with two siblings that are the same component ([3e60c79](https://github.com/aurelia/aurelia/commit/3e60c79))
+
+
+### Refactorings:
+
+* **router:** renames 'children' to 'routes' ([90b56a2](https://github.com/aurelia/aurelia/commit/90b56a2))
+* **router:** use @lifecycleHooks api for shared hooks ([b308328](https://github.com/aurelia/aurelia/commit/b308328))
+* **router:** fix some title stuff ([ddac8e0](https://github.com/aurelia/aurelia/commit/ddac8e0))
+* **router:** various fixes w.r.t. relative/absolute urls and default resolution ([b6dc3b9](https://github.com/aurelia/aurelia/commit/b6dc3b9))
+* **router:** fix several reference / clone issues w.r.t. redirects etc ([665a4c7](https://github.com/aurelia/aurelia/commit/665a4c7))
+* **router:** cleanup/simplify the tree compiler ([9e0a30b](https://github.com/aurelia/aurelia/commit/9e0a30b))
+* **all:** rename macroTaskQueue to taskQueue ([87c073d](https://github.com/aurelia/aurelia/commit/87c073d))
+* **router:** cleanup load & href custom attributes, add v1 compat ([b75ea31](https://github.com/aurelia/aurelia/commit/b75ea31))
+* **router:** rename resolutionStrategy to resolutionMode ([9591c7f](https://github.com/aurelia/aurelia/commit/9591c7f))
+* **router:** rename deferral back to resolutionStrategy ([1b6adf1](https://github.com/aurelia/aurelia/commit/1b6adf1))
+* **router:** use stack to minimize promise tick overhead + various improvements ([09d2379](https://github.com/aurelia/aurelia/commit/09d2379))
+* **viewport-agent:** utilize controller lifecycle linkage ([8e72222](https://github.com/aurelia/aurelia/commit/8e72222))
+* **router:** remove guard-hooks option ([054f0a7](https://github.com/aurelia/aurelia/commit/054f0a7))
+* **router:** port of PR #845 ([a67d0a2](https://github.com/aurelia/aurelia/commit/a67d0a2))
+
+<a name="0.8.0"></a>
+# 0.8.0 (2020-11-30)
+
+### Features:
+
+* **router:** review async in lifecycle hooks ([4c25d16](https://github.com/aurelia/aurelia/commit/4c25d16))
+* **router:** add  swap & use coordinator and runner ([70d97a3](https://github.com/aurelia/aurelia/commit/70d97a3))
+* **router:** add navigation coordinator ([071dc5f](https://github.com/aurelia/aurelia/commit/071dc5f))
+* **router:** add runner ([a4f0310](https://github.com/aurelia/aurelia/commit/a4f0310))
+* **runtime:** add component tree visitor infra ([5dd0f67](https://github.com/aurelia/aurelia/commit/5dd0f67))
+
+
+### Bug Fixes:
+
+* **event-manager:** properly handle delegate events with shadowDOM / cleanup ([b79e7ba](https://github.com/aurelia/aurelia/commit/b79e7ba))
+* **router:** restore router ([822838c](https://github.com/aurelia/aurelia/commit/822838c))
+* ***:** broken tests ([3a73602](https://github.com/aurelia/aurelia/commit/3a73602))
+
+
+### Refactorings:
+
+* **i18n-router:** adapt runtime flag refactoring ([8e2d7e7](https://github.com/aurelia/aurelia/commit/8e2d7e7))
+* **dom:** give INode, IEventTarget and IRenderLocation overrideable generic types ([e2ac8b2](https://github.com/aurelia/aurelia/commit/e2ac8b2))
+* **all:** add .js extensions for native esm compat ([0308e2e](https://github.com/aurelia/aurelia/commit/0308e2e))
+* **controller:** remove projector abstraction & rework attaching ([d69d03d](https://github.com/aurelia/aurelia/commit/d69d03d))
+* **all:** rename beforeUnbind to unbinding ([17a82ed](https://github.com/aurelia/aurelia/commit/17a82ed))
+* **all:** rename beforeDetach to detaching ([0fcb64d](https://github.com/aurelia/aurelia/commit/0fcb64d))
+* **all:** rename afterAttach to attaching ([0178027](https://github.com/aurelia/aurelia/commit/0178027))
+* **all:** rename afterBind to bound ([696f5d4](https://github.com/aurelia/aurelia/commit/696f5d4))
+* **all:** rename beforeBind to binding ([67b1c5d](https://github.com/aurelia/aurelia/commit/67b1c5d))
+* **all:** rename CompositionContext back to RenderContext again ([1d7673b](https://github.com/aurelia/aurelia/commit/1d7673b))
+* **controller:** rename beforeComposeChildren to hydrated ([041a2ff](https://github.com/aurelia/aurelia/commit/041a2ff))
+* **all:** remove afterUnbind and afterUnbindChildren, and make deactivate bottom-up ([a431fdc](https://github.com/aurelia/aurelia/commit/a431fdc))
+* **all:** move scheduler implementation to platform ([e22285a](https://github.com/aurelia/aurelia/commit/e22285a))
+* **all:** remove IDOM, HTMLDOM and DOM; replace DOM with PLATFORM ([6447468](https://github.com/aurelia/aurelia/commit/6447468))
+* **all:** move html-specific stuff from runtime to runtime-html and remove Node generics ([c745963](https://github.com/aurelia/aurelia/commit/c745963))
+* **all:** remove PLATFORM global ([fdef656](https://github.com/aurelia/aurelia/commit/fdef656))
+* **runtime:** rename afterCompose to beforeComposeChildren ([f65bb7b](https://github.com/aurelia/aurelia/commit/f65bb7b))
+* **runtime:** rename CompositionRoot to AppRoot ([3141a2c](https://github.com/aurelia/aurelia/commit/3141a2c))
+* **all:** shorten TargetedInstruction to Instruction ([a7e61c6](https://github.com/aurelia/aurelia/commit/a7e61c6))
+* **all:** finish renaming render to compose ([ede127b](https://github.com/aurelia/aurelia/commit/ede127b))
+* **runtime:** remove ILifecycleTask ([69f5fac](https://github.com/aurelia/aurelia/commit/69f5fac))
+* **runtime:** properly wireup root controller compilation hooks with apptasks & cleanup ([6a1f32f](https://github.com/aurelia/aurelia/commit/6a1f32f))
+* **runtime:** add ICompositionRoot and IAurelia interfaces and pass container+root into controllers ([23477a3](https://github.com/aurelia/aurelia/commit/23477a3))
+* **all:** remove reporter ([425fe96](https://github.com/aurelia/aurelia/commit/425fe96))
+* **start-task:** rename StartTask to AppTask ([b52fc9c](https://github.com/aurelia/aurelia/commit/b52fc9c))
+* **router:** use afterDeactivate hook for stopping ([3683586](https://github.com/aurelia/aurelia/commit/3683586))
+* **lifecycle-task:** rename afterAttach to afterActivate ([4045977](https://github.com/aurelia/aurelia/commit/4045977))
+* **lifecycle-task:** rename beforeBind to beforeActivate ([b363f2f](https://github.com/aurelia/aurelia/commit/b363f2f))
+* **all:** sync up remaining api changes ([29d6520](https://github.com/aurelia/aurelia/commit/29d6520))
+* **router:** fix error (temporarily) ([3e57ecb](https://github.com/aurelia/aurelia/commit/3e57ecb))
+* **router:** fix merge conflicts ([57076f0](https://github.com/aurelia/aurelia/commit/57076f0))
+* **router:** add more lifecycle behaviors ([e46f77c](https://github.com/aurelia/aurelia/commit/e46f77c))
+* **router:** add more lifecycle behaviors & change goto to load ([f49cca0](https://github.com/aurelia/aurelia/commit/f49cca0))
+* **router:** fix viewport scope (unfinished) ([157683a](https://github.com/aurelia/aurelia/commit/157683a))
+* **router:** replace bind+attach with activate ([19012ae](https://github.com/aurelia/aurelia/commit/19012ae))
+* **router:** rename INavigatorFlags to INavigationFlags ([0ea131f](https://github.com/aurelia/aurelia/commit/0ea131f))
+* **router:** replace INavigatorInstruction with Navigation ([081b602](https://github.com/aurelia/aurelia/commit/081b602))
+* **runtime:** cleanup unused flags ([77a930e](https://github.com/aurelia/aurelia/commit/77a930e))
+* **runtime:** merge controller api bind+attach into activate, detach+unbind into deactivate, and remove ILifecycleTask usage from controller ([15f3885](https://github.com/aurelia/aurelia/commit/15f3885))
+* **lifecycle-task:** remove cancellation ([23af2af](https://github.com/aurelia/aurelia/commit/23af2af))
+* **lifecycles:** pass down first + parent controller in the 'before' hooks and use that as the queue instead of ILifecycle ([031b7fd](https://github.com/aurelia/aurelia/commit/031b7fd))
+* **all:** rename afterDetach to afterDetachChildren ([080a724](https://github.com/aurelia/aurelia/commit/080a724))
+* **all:** rename afterUnbind to afterUnbindChildren ([09f1972](https://github.com/aurelia/aurelia/commit/09f1972))
+* **all:** rename afterAttach to afterAttachChildren ([02b573e](https://github.com/aurelia/aurelia/commit/02b573e))
+* **all:** rename afterBind to afterBindChildren ([bf0d79e](https://github.com/aurelia/aurelia/commit/bf0d79e))
+
 <a name="0.7.0"></a>
 # 0.7.0 (2020-05-08)
 

@@ -5,15 +5,12 @@ import {
   Constructable,
   Transformer,
   Key,
+  IServiceLocator,
 } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
   IExpressionParser,
-  IScope,
   LifecycleFlags,
-  IScheduler,
-  PropertyBinding,
-  State,
   ExpressionKind,
   IsBindingBehavior
 } from '@aurelia/runtime';
@@ -27,6 +24,12 @@ import {
   IValidationRule,
   IValidateable
 } from '@aurelia/validation';
+
+import type { Scope } from '@aurelia/runtime';
+import {
+  IPlatform,
+  PropertyBinding,
+} from '@aurelia/runtime-html';
 
 export type BindingWithBehavior = PropertyBinding & {
   sourceExpression: BindingBehaviorExpression;
@@ -97,14 +100,16 @@ export interface ValidationResultsSubscriber {
 export class BindingInfo {
   /**
    * @param {Element} target - The HTMLElement associated with the binding.
-   * @param {IScope} scope - The binding scope.
+   * @param {Scope} scope - The binding scope.
+   * @param {Scope | null} [hostScope] - The host scope.
    * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
    * @param {(PropertyInfo | undefined)} [propertyInfo=void 0] - Information describing the associated property for the binding.
    * @memberof BindingInfo
    */
   public constructor(
     public target: Element,
-    public scope: IScope,
+    public scope: Scope,
+    public hostScope: Scope | null,
     public rules?: PropertyRule[],
     public propertyInfo: PropertyInfo | undefined = void 0,
   ) { }
@@ -124,6 +129,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
   }
 
   const scope = info.scope;
+  const hostScope = info.hostScope;
   let expression = binding.sourceExpression.expression as IsBindingBehavior;
   const locator = binding.locator;
   let toCachePropertyName = true;
@@ -143,7 +149,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
         if (toCachePropertyName) {
           toCachePropertyName = keyExpr.$kind === ExpressionKind.PrimitiveLiteral;
         }
-        memberName = `[${(keyExpr.evaluate(flags, scope, locator) as any).toString()}]`;
+        memberName = `[${(keyExpr.evaluate(flags, scope, hostScope, locator, null) as any).toString()}]`;
         break;
       }
       default:
@@ -159,9 +165,9 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
   let object: any;
   if (propertyName.length === 0) {
     propertyName = expression.name;
-    object = scope.bindingContext;
+    object = expression.accessHostScope ? hostScope?.bindingContext : scope.bindingContext;
   } else {
-    object = expression.evaluate(flags, scope, locator);
+    object = expression.evaluate(flags, scope, hostScope, locator, null);
   }
   if (object === null || object === void 0) {
     return (void 0);
@@ -287,7 +293,7 @@ export interface IValidationController {
    */
   reset(instruction?: ValidateInstruction): void;
 }
-export const IValidationController = DI.createInterface<IValidationController>('IValidationController').noDefault();
+export const IValidationController = DI.createInterface<IValidationController>('IValidationController');
 
 export class ValidationController implements IValidationController {
 
@@ -308,7 +314,8 @@ export class ValidationController implements IValidationController {
   public constructor(
     @IValidator public readonly validator: IValidator,
     @IExpressionParser private readonly parser: IExpressionParser,
-    @IScheduler private readonly scheduler: IScheduler,
+    @IPlatform private readonly platform: IPlatform,
+    @IServiceLocator private readonly locator: IServiceLocator,
   ) { }
 
   public addObject(object: IValidateable, rules?: PropertyRule[]): void {
@@ -360,7 +367,6 @@ export class ValidationController implements IValidationController {
     this.bindings.delete(binding);
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public async validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult> {
     const { object: obj, objectTag, flags } = instruction ?? {};
     let instructions: ValidateInstruction[];
@@ -391,10 +397,9 @@ export class ValidationController implements IValidationController {
     }
 
     this.validating = true;
-    const task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
+    const task = this.platform.domReadQueue.queueTask(async () => {
       try {
         const results = await Promise.all(instructions.map(
-          // eslint-disable-next-line @typescript-eslint/require-await
           async (x) => this.validator.validate(x)
         ));
         const newResults = results.reduce(
@@ -422,8 +427,7 @@ export class ValidationController implements IValidationController {
   }
 
   public async validateBinding(binding: BindingWithBehavior) {
-    const $state = binding.$state;
-    if (($state & State.isBound) === 0 || ($state & State.isUnbinding) !== 0) { return; }
+    if (!binding.isBound) { return; }
 
     const bindingInfo = this.bindings.get(binding);
     if (bindingInfo === void 0) { return; }
@@ -477,7 +481,7 @@ export class ValidationController implements IValidationController {
             .map(([
               { validationRules, messageProvider, property },
               rules
-            ]) => new PropertyRule(validationRules, messageProvider, property, [rules]))
+            ]) => new PropertyRule(this.locator, validationRules, messageProvider, property, [rules]))
         ))
       );
     }
@@ -578,7 +582,8 @@ export class ValidationControllerFactory implements IFactory<Constructable<IVali
       : new ValidationController(
         container.get<IValidator>(IValidator),
         container.get(IExpressionParser),
-        container.get(IScheduler)
+        container.get(IPlatform),
+        container,
       );
   }
 }

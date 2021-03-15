@@ -1,20 +1,20 @@
 import { IContainer, Registration } from '@aurelia/kernel';
-import { StartTask } from '@aurelia/runtime';
-import { DateFormatBindingBehavior } from './df/date-format-binding-behavior';
-import { DateFormatValueConverter } from './df/date-format-value-converter';
-import { I18N, I18nService } from './i18n';
-import { I18nConfigurationOptions, I18nInitOptions } from './i18n-configuration-options';
-import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
-import { NumberFormatBindingBehavior } from './nf/number-format-binding-behavior';
-import { NumberFormatValueConverter } from './nf/number-format-value-converter';
-import { RelativeTimeBindingBehavior } from './rt/relative-time-binding-behavior';
-import { RelativeTimeValueConverter } from './rt/relative-time-value-converter';
-import { TranslationBindingBehavior } from './t/translation-binding-behavior';
+import { AppTask, AttributePatternDefinition, BindingCommand, AttributePattern } from '@aurelia/runtime-html';
+import { DateFormatBindingBehavior } from './df/date-format-binding-behavior.js';
+import { DateFormatValueConverter } from './df/date-format-value-converter.js';
+import { I18N, I18nService } from './i18n.js';
+import { I18nConfigurationOptions, I18nInitOptions } from './i18n-configuration-options.js';
+import { I18nextWrapper, I18nWrapper } from './i18next-wrapper.js';
+import { NumberFormatBindingBehavior } from './nf/number-format-binding-behavior.js';
+import { NumberFormatValueConverter } from './nf/number-format-value-converter.js';
+import { RelativeTimeBindingBehavior } from './rt/relative-time-binding-behavior.js';
+import { RelativeTimeValueConverter } from './rt/relative-time-value-converter.js';
+import { TranslationBindingBehavior } from './t/translation-binding-behavior.js';
 import {
   TranslationParametersAttributePattern,
   TranslationParametersBindingCommand,
   TranslationParametersBindingRenderer
-} from './t/translation-parameters-renderer';
+} from './t/translation-parameters-renderer.js';
 import {
   TranslationAttributePattern,
   TranslationBindAttributePattern,
@@ -22,9 +22,8 @@ import {
   TranslationBindBindingRenderer,
   TranslationBindingCommand,
   TranslationBindingRenderer
-} from './t/translation-renderer';
-import { TranslationValueConverter } from './t/translation-value-converter';
-import { AttributePatternDefinition, BindingCommand, AttributePattern } from '@aurelia/jit';
+} from './t/translation-renderer.js';
+import { TranslationValueConverter } from './t/translation-value-converter.js';
 
 export type I18NConfigOptionsProvider = (options: I18nConfigurationOptions) => void;
 
@@ -71,7 +70,7 @@ function coreComponents(options: I18nConfigurationOptions) {
     register(container: IContainer) {
       return container.register(
         Registration.callback(I18nInitOptions, () => options.initOptions),
-        StartTask.with(I18N).beforeBind().call(i18n => i18n.task),
+        AppTask.with(I18N).beforeActivate().call(i18n => i18n.initPromise),
         Registration.singleton(I18nWrapper, I18nextWrapper),
         Registration.singleton(I18N, I18nService),
 

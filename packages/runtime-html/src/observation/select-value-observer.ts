@@ -1,20 +1,22 @@
 import {
   CollectionKind,
-  IAccessor,
+  LifecycleFlags as LF,
+  subscriberCollection,
+  AccessorType,
+} from '@aurelia/runtime';
+
+import type { INode } from '../dom';
+import type { EventSubscriber } from './event-delegator';
+import type {
   ICollectionObserver,
-  IDOM,
   IndexMap,
+  IObserver,
   IObserverLocator,
   ISubscriber,
   ISubscriberCollection,
-  LifecycleFlags,
-  subscriberCollection,
-  IScheduler,
-  ITask,
 } from '@aurelia/runtime';
-import { IEventSubscriber } from './event-manager';
-import { bound } from '@aurelia/kernel';
 
+const hasOwn = Object.prototype.hasOwnProperty;
 const childObserverOptions = {
   childList: true,
   subtree: true,
@@ -36,102 +38,66 @@ export interface IOptionElement extends HTMLOptionElement {
 export interface SelectValueObserver extends
   ISubscriberCollection {}
 
-@subscriberCollection()
-export class SelectValueObserver implements IAccessor {
+export class SelectValueObserver implements IObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
-  public readonly persistentFlags: LifecycleFlags;
+  public readonly obj: ISelectElement;
 
   public hasChanges: boolean = false;
-  public task: ITask | null = null;
+  // ObserverType.Layout is not always true
+  // but for simplicity, always treat as such
+  public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
   public arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;
   public nodeObserver?: MutationObserver = void 0;
 
+  private observing: boolean = false;
+
   public constructor(
-    public readonly scheduler: IScheduler,
-    flags: LifecycleFlags,
+    obj: INode,
+    // deepscan-disable-next-line
+    _key: PropertyKey,
+    public readonly handler: EventSubscriber,
     public readonly observerLocator: IObserverLocator,
-    public readonly dom: IDOM,
-    public readonly handler: IEventSubscriber,
-    public readonly obj: ISelectElement,
   ) {
-    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
+    this.obj = obj as ISelectElement;
   }
 
   public getValue(): unknown {
-    return this.currentValue;
+    // is it safe to assume the observer has the latest value?
+    // todo: ability to turn on/off cache based on type
+    return this.observing
+      ? this.currentValue
+      : this.obj.multiple
+        ? Array.from(this.obj.options).map(o => o.value)
+        : this.obj.value;
   }
 
-  public setValue(newValue: unknown, flags: LifecycleFlags): void {
+  public setValue(newValue: unknown, flags: LF): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    this.observeArray(newValue instanceof Array ? newValue : null);
+    if ((flags & LF.noFlush) === 0) {
       this.flushChanges(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
     }
   }
 
-  public flushChanges(flags: LifecycleFlags): void {
+  public flushChanges(flags: LF): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue } = this;
-      this.oldValue = currentValue;
-
-      const isArray = Array.isArray(currentValue);
-      if (!isArray && currentValue != void 0 && this.obj.multiple) {
-        throw new Error('Only null or Array instances can be bound to a multi-select.');
-      }
-      if (this.arrayObserver) {
-        this.arrayObserver.unsubscribeFromCollection(this);
-        this.arrayObserver = void 0;
-      }
-      if (isArray) {
-        this.arrayObserver = this.observerLocator.getArrayObserver(flags, currentValue as unknown[]);
-        this.arrayObserver.subscribeToCollection(this);
-      }
       this.synchronizeOptions();
-      this.notify(flags);
     }
   }
 
-  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.synchronizeOptions();
-    } else {
-      this.hasChanges = true;
-    }
-    if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
-    }
-    this.callSubscribers(this.currentValue, this.oldValue, flags);
+  public handleCollectionChange(): void {
+    // always sync "selected" property of <options/>
+    // immediately whenever the array notifies its mutation
+    this.synchronizeOptions();
   }
 
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.synchronizeOptions();
-    } else {
-      this.hasChanges = true;
-    }
-    if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
-    }
-    this.callSubscribers(newValue, previousValue, flags);
-  }
-
-  public notify(flags: LifecycleFlags): void {
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+  public notify(flags: LF): void {
+    if ((flags & LF.fromBind) > 0) {
       return;
     }
     const oldValue = this.oldValue;
@@ -139,14 +105,13 @@ export class SelectValueObserver implements IAccessor {
     if (newValue === oldValue) {
       return;
     }
-    this.callSubscribers(newValue, oldValue, flags);
+    this.subs.notify(newValue, oldValue, flags);
   }
 
   public handleEvent(): void {
-    // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
     const shouldNotify = this.synchronizeValue();
     if (shouldNotify) {
-      this.callSubscribers(this.currentValue, this.oldValue, LifecycleFlags.fromDOMEvent | LifecycleFlags.allowPublishRoundtrip);
+      this.subs.notify(this.currentValue, this.oldValue, LF.none);
     }
   }
 
@@ -159,7 +124,7 @@ export class SelectValueObserver implements IAccessor {
 
     while (i-- > 0) {
       const option = options[i];
-      const optionValue = Object.prototype.hasOwnProperty.call(option, 'model') ? option.model : option.value;
+      const optionValue = hasOwn.call(option, 'model') ? option.model : option.value;
       if (isArray) {
         option.selected = (currentValue as unknown[]).findIndex(item => !!matcher(optionValue, item)) !== -1;
         continue;
@@ -169,7 +134,7 @@ export class SelectValueObserver implements IAccessor {
   }
 
   public synchronizeValue(): boolean {
-    // Spec for synchronizing value from `SelectObserver` to `<select/>`
+    // Spec for synchronizing value from `<select/>`  to `SelectObserver`
     // When synchronizing value to observed <select/> element, do the following steps:
     // A. If `<select/>` is multiple
     //    1. Check if current value, called `currentValue` is an array
@@ -192,7 +157,7 @@ export class SelectValueObserver implements IAccessor {
 
     if (obj.multiple) {
       // A.
-      if (!Array.isArray(currentValue)) {
+      if (!(currentValue instanceof Array)) {
         // A.1.a
         return true;
       }
@@ -205,7 +170,7 @@ export class SelectValueObserver implements IAccessor {
       while (i < len) {
         option = options[i];
         if (option.selected) {
-          values.push(Object.prototype.hasOwnProperty.call(option, 'model')
+          values.push(hasOwn.call(option, 'model')
             ? option.model
             : option.value
           );
@@ -242,7 +207,7 @@ export class SelectValueObserver implements IAccessor {
     while (i < len) {
       const option = options[i];
       if (option.selected) {
-        value = Object.prototype.hasOwnProperty.call(option, 'model')
+        value = hasOwn.call(option, 'model')
           ? option.model
           : option.value;
         break;
@@ -257,52 +222,55 @@ export class SelectValueObserver implements IAccessor {
     return true;
   }
 
-  public bind(flags: LifecycleFlags): void {
-    this.nodeObserver = this.dom.createNodeObserver!(this.obj, this.handleNodeChange, childObserverOptions) as MutationObserver;
-
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      if (this.task !== null) {
-        this.task.cancel();
-      }
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    }
+  private start(): void {
+    (this.nodeObserver = new this.obj.ownerDocument.defaultView!.MutationObserver(this.handleNodeChange.bind(this)))
+      .observe(this.obj, childObserverOptions);
+    this.observeArray(this.currentValue instanceof Array ? this.currentValue : null);
+    this.observing = true;
   }
 
-  public unbind(flags: LifecycleFlags): void {
+  private stop(): void {
     this.nodeObserver!.disconnect();
-    this.nodeObserver = null!;
+    this.arrayObserver?.unsubscribe(this);
+    this.nodeObserver
+      = this.arrayObserver
+      = void 0;
+    this.observing = false;
+  }
 
-    if (this.task !== null) {
-      this.task.cancel();
-      this.task = null;
-    }
-
-    if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeFromCollection(this);
-      this.arrayObserver = null!;
+  // todo: observe all kind of collection
+  private observeArray(array: unknown[] | null): void {
+    this.arrayObserver?.unsubscribe(this);
+    this.arrayObserver = void 0;
+    if (array != null) {
+      if (!this.obj.multiple) {
+        throw new Error('Only null or Array instances can be bound to a multi-select.');
+      }
+      (this.arrayObserver = this.observerLocator.getArrayObserver(array)).subscribe(this);
     }
   }
 
-  @bound
   public handleNodeChange(): void {
     this.synchronizeOptions();
     const shouldNotify = this.synchronizeValue();
     if (shouldNotify) {
-      this.notify(LifecycleFlags.fromDOMEvent);
+      this.notify(LF.none);
     }
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (!this.hasSubscribers()) {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.handler.subscribe(this.obj, this);
+      this.start();
     }
-    this.addSubscriber(subscriber);
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-    if (!this.hasSubscribers()) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.handler.dispose();
+      this.stop();
     }
   }
 }
+
+subscriberCollection(SelectValueObserver);

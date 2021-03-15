@@ -1,38 +1,32 @@
-import {
-  bindable,
-  BindingMode,
-  customAttribute,
-  IDOM,
-  INode,
-  State,
-  ICustomAttributeController,
-  ICustomAttributeViewModel
-} from '@aurelia/runtime';
-import { HTMLDOM } from '../../dom';
+import { BindingMode } from '@aurelia/runtime';
+import { INode } from '../../dom.js';
+import { IPlatform } from '../../platform.js';
+import { customAttribute } from '../custom-attribute.js';
+import { bindable } from '../../bindable.js';
+import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller.js';
 
 /**
  * Focus attribute for element focus binding
  */
 @customAttribute('focus')
-export class Focus implements ICustomAttributeViewModel<HTMLElement> {
+export class Focus implements ICustomAttributeViewModel {
 
-  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
+  public readonly $controller!: ICustomAttributeController<this>;
 
   @bindable({ mode: BindingMode.twoWay })
   public value: unknown;
 
   /**
-   * Indicates whether `apply` should be called when `afterAttach` callback is invoked
+   * Indicates whether `apply` should be called when `attached` callback is invoked
    */
   private needsApply: boolean = false;
 
-  private readonly element: HTMLElement;
+  public constructor(
+    @INode private readonly element: INode<HTMLElement>,
+    @IPlatform private readonly p: IPlatform,
+  ) {}
 
-  public constructor(@INode element: INode, @IDOM private readonly dom: HTMLDOM) {
-    this.element = element as HTMLElement;
-  }
-
-  public beforeBind(): void {
+  public binding(): void {
     this.valueChanged();
   }
 
@@ -47,20 +41,20 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
     // while it's disconnected from the document
     // thus, there neesd to be a check if it's currently connected or not
     // before applying the value to the element
-    if (this.$controller.state & State.isAttached) {
+    if (this.$controller.isActive) {
       this.apply();
     } else {
       // If the element is not currently connect
       // toggle the flag to add pending work for later
-      // in afterAttach lifecycle
+      // in attached lifecycle
       this.needsApply = true;
     }
   }
 
   /**
-   * Invoked when the attribute is afterAttach to the DOM.
+   * Invoked when the attribute is attached to the DOM.
    */
-  public afterAttach(): void {
+  public attached(): void {
     if (this.needsApply) {
       this.needsApply = false;
       this.apply();
@@ -71,9 +65,9 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
   }
 
   /**
-   * Invoked when the attribute is afterDetach from the DOM.
+   * Invoked when the attribute is afterDetachChildren from the DOM.
    */
-  public afterDetach(): void {
+  public afterDetachChildren(): void {
     const el = this.element;
     el.removeEventListener('focus', this);
     el.removeEventListener('blur', this);
@@ -88,7 +82,7 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
     // only need to switch the value to true
     if (e.type === 'focus') {
       this.value = true;
-    } else if (this.dom.document.activeElement !== this.element) {
+    } else if (!this.isElFocused) {
       // else, it's blur event
       // when a blur event happens, there are two situations
       // 1. the element itself lost the focus
@@ -105,10 +99,16 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
    */
   private apply(): void {
     const el = this.element;
-    if (this.value) {
+    const isFocused = this.isElFocused;
+    const shouldFocus = this.value;
+    if (shouldFocus && !isFocused) {
       el.focus();
-    } else {
+    } else if (!shouldFocus && isFocused) {
       el.blur();
     }
+  }
+
+  private get isElFocused(): boolean {
+    return this.element === this.p.document.activeElement;
   }
 }

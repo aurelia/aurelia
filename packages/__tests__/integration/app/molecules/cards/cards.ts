@@ -1,7 +1,6 @@
-import { bindable, CustomElement, PartialCustomElementDefinition } from '@aurelia/runtime';
-import { cssModules } from '@aurelia/runtime-html';
+import { bindable, CustomElement, PartialCustomElementDefinition, cssModules } from '@aurelia/runtime-html';
 import * as css from './cards.css';
-import * as template from './cards.html';
+import template from './cards.html';
 
 export interface Card {
   header: string;

@@ -1,7 +1,7 @@
 import { newInstanceForScope, newInstanceOf, toArray } from '@aurelia/kernel';
-import { Aurelia, CustomElement, customElement, IScheduler } from '@aurelia/runtime';
-import { assert, createSpy, getVisibleText, HTMLTestContext, ISpy, TestContext } from '@aurelia/testing';
+import { assert, createSpy, getVisibleText, ISpy, TestContext } from '@aurelia/testing';
 import { IValidationRules } from '@aurelia/validation';
+import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import {
   IValidationController,
   ValidationContainerCustomElement,
@@ -9,8 +9,8 @@ import {
   ValidationHtmlConfiguration,
   ValidationResultsSubscriber,
 } from '@aurelia/validation-html';
-import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util';
-import { Person } from '../../validation/_test-resources';
+import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util.js';
+import { Person } from '../../validation/_test-resources.js';
 
 describe('validation-container-custom-element', function () {
 
@@ -20,7 +20,7 @@ describe('validation-container-custom-element', function () {
     public controllerRemoveSubscriberSpy: ISpy;
 
     public constructor(
-      @IScheduler public readonly scheduler: IScheduler,
+      @IPlatform public readonly platform: IPlatform,
       @newInstanceForScope(IValidationController) public controller: ValidationController,
       @IValidationRules private readonly validationRules: IValidationRules,
     ) {
@@ -40,13 +40,13 @@ describe('validation-container-custom-element', function () {
         .withMessage('${$displayName} is not fizbaz');
     }
 
-    public beforeUnbind() {
+    public unbinding() {
       this.validationRules.off();
       // mandatory cleanup in root
       this.controller.reset();
     }
 
-    public afterUnbind() {
+    public dispose() {
       const controller = this.controller;
       assert.equal(controller.results.length, 0, 'the result should have been removed');
       assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');
@@ -61,9 +61,9 @@ describe('validation-container-custom-element', function () {
     testFunction: TestFunction<TestExecutionContext<App>>,
     { template, containerTemplate }: TestSetupContext
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('app');
+    const host = ctx.doc.createElement('app');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container);
     await au
@@ -79,31 +79,32 @@ describe('validation-container-custom-element', function () {
         host,
         component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
-      .start()
-      .wait();
+      .start();
 
-    const app: App = au.root.viewModel as App;
-    await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
+    const app: App = au.root.controller.viewModel as App;
+    await testFunction({ app, host, container, platform: app.platform, ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
     assert.equal(app.controllerRemoveSubscriberSpy.calls.length, template.match(/validation-container/g).length / 2 + template.match(/validate/g).length);
+
+    au.dispose();
   }
 
   const $it = createSpecFunction(runTest);
 
   async function assertEventHandler(
     target: HTMLElement,
-    scheduler: IScheduler,
+    platform: IPlatform,
     controllerValidateSpy: ISpy,
     handleValidationEventSpy: ISpy,
-    ctx: HTMLTestContext,
+    ctx: TestContext,
     event: string = 'focusout',
   ) {
     handleValidationEventSpy.calls.splice(0);
     controllerValidateSpy.calls.splice(0);
     target.dispatchEvent(new ctx.Event(event));
-    await scheduler.yieldAll(10);
+    await platform.domReadQueue.yield();
     assert.equal(controllerValidateSpy.calls.length, 1, 'incorrect #calls for validate');
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
   }
@@ -114,7 +115,7 @@ describe('validation-container-custom-element', function () {
   }
 
   $it('shows the errors for the containing validation targets',
-    async function ({ host, scheduler, app, ctx }) {
+    async function ({ host, platform, app, ctx }) {
       const ceEl1 = host.querySelector('validation-container');
       const ceEl2 = host.querySelector('validation-container:nth-of-type(2)');
       const ceVm1: ValidationContainerCustomElement = CustomElement.for(ceEl1).viewModel as ValidationContainerCustomElement;
@@ -131,11 +132,11 @@ describe('validation-container-custom-element', function () {
       const controllerSpy = app.controllerValidateSpy;
       const spy1 = createSpy(ceVm1, 'handleValidationEvent', true);
       const spy2 = createSpy(ceVm2, 'handleValidationEvent', true);
-      await assertEventHandler(input1, scheduler, controllerSpy, spy1, ctx);
-      await assertEventHandler(input2, scheduler, controllerSpy, spy2, ctx);
+      await assertEventHandler(input1, platform, controllerSpy, spy1, ctx);
+      await assertEventHandler(input2, platform, controllerSpy, spy2, ctx);
 
-      const errors1 = toArray(ceEl1.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true));
-      const errors2 = toArray(ceEl2.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true));
+      const errors1 = toArray(ceEl1.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(el, true));
+      const errors2 = toArray(ceEl2.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(el, true));
 
       assert.deepStrictEqual(errors1, ['Name is required.']);
       assert.deepStrictEqual(errors2, ['Age is required.']);
@@ -152,7 +153,7 @@ describe('validation-container-custom-element', function () {
   );
 
   $it('sorts the errors according to the target position',
-    async function ({ host, scheduler, app, ctx }) {
+    async function ({ host, platform, app, ctx }) {
       const ceEl = host.querySelector('validation-container');
       const ceVm: ValidationContainerCustomElement = CustomElement.for(ceEl).viewModel as ValidationContainerCustomElement;
       const spy = createSpy(ceVm, 'handleValidationEvent', true);
@@ -164,10 +165,10 @@ describe('validation-container-custom-element', function () {
       const target2 = ceEl.querySelector('#target2') as HTMLInputElement;
 
       const controllerSpy = app.controllerValidateSpy;
-      await assertEventHandler(target1, scheduler, controllerSpy, spy, ctx);
-      await assertEventHandler(target2, scheduler, controllerSpy, spy, ctx);
+      await assertEventHandler(target1, platform, controllerSpy, spy, ctx);
+      await assertEventHandler(target2, platform, controllerSpy, spy, ctx);
 
-      const errors = toArray(ceEl.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true));
+      const errors = toArray(ceEl.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(el, true));
       assert.deepStrictEqual(errors, ['Age is required.', 'Name is required.']);
     },
     {
@@ -180,7 +181,7 @@ describe('validation-container-custom-element', function () {
   );
 
   $it('lets injection of error template via Light DOM',
-    async function ({ host, scheduler, app, ctx }) {
+    async function ({ host, platform, app, ctx }) {
       const ceEl1 = host.querySelector('validation-container');
       const ceVm1: ValidationContainerCustomElement = CustomElement.for(ceEl1).viewModel as ValidationContainerCustomElement;
 
@@ -192,10 +193,10 @@ describe('validation-container-custom-element', function () {
 
       const controllerSpy = app.controllerValidateSpy;
       const spy1 = createSpy(ceVm1, 'handleValidationEvent', true);
-      await assertEventHandler(input1, scheduler, controllerSpy, spy1, ctx);
+      await assertEventHandler(input1, platform, controllerSpy, spy1, ctx);
 
-      assert.deepStrictEqual(toArray(ceEl1.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true)), ['Name is required.']);
-      assert.deepStrictEqual(toArray(ceEl1.querySelectorAll('small')).map((el) => getVisibleText(void 0, el, true)), ['Name is required.']);
+      assert.deepStrictEqual(toArray(ceEl1.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(el, true)), ['Name is required.']);
+      assert.deepStrictEqual(toArray(ceEl1.querySelectorAll('small')).map((el) => getVisibleText(el, true)), ['Name is required.']);
     },
     {
       template: `
@@ -211,7 +212,7 @@ describe('validation-container-custom-element', function () {
   );
 
   $it('the template is customizable',
-    async function ({ host, scheduler, app, ctx }) {
+    async function ({ host, platform, app, ctx }) {
       const ceEl1 = host.querySelector('validation-container');
       const ceVm1: ValidationContainerCustomElement = CustomElement.for(ceEl1).viewModel as ValidationContainerCustomElement;
 
@@ -223,7 +224,7 @@ describe('validation-container-custom-element', function () {
 
       const controllerSpy = app.controllerValidateSpy;
       const spy1 = createSpy(ceVm1, 'handleValidationEvent', true);
-      await assertEventHandler(input1, scheduler, controllerSpy, spy1, ctx);
+      await assertEventHandler(input1, platform, controllerSpy, spy1, ctx);
 
       if (typeof getComputedStyle === 'function') { // seems not to work with jsdom
         assert.equal(getComputedStyle(ceEl1).display, 'flex');
@@ -283,24 +284,23 @@ describe('validation-container-custom-element', function () {
           .required();
       }
 
-      public beforeUnbind() {
+      public unbinding() {
         this.validationRules.off();
       }
     }
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('app');
+    const host = ctx.doc.createElement('app');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container).register(ValidationHtmlConfiguration);
 
     await au
       .app({ host, component: App1 })
-      .start()
-      .wait();
+      .start();
 
-    const app: App1 = au.root.viewModel as App1;
-    const scheduler = container.get(IScheduler);
+    const app: App1 = au.root.controller.viewModel as App1;
+    const platform = container.get(IPlatform);
 
     const ceEl1 = host.querySelector('validation-container');
     const ceVm1: ValidationContainerCustomElement = CustomElement.for(ceEl1).viewModel as ValidationContainerCustomElement;
@@ -313,13 +313,15 @@ describe('validation-container-custom-element', function () {
 
     const controllerSpy = app.controllerValidateSpy;
     const spy1 = createSpy(ceVm1, 'handleValidationEvent', true);
-    await assertEventHandler(input1, scheduler, controllerSpy, spy1, ctx);
+    await assertEventHandler(input1, platform, controllerSpy, spy1, ctx);
 
-    const errors1 = toArray(ceEl1.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true));
+    const errors1 = toArray(ceEl1.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(el, true));
 
     assert.deepStrictEqual(errors1, ['Name is required.']);
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
   });
 });

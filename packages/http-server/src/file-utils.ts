@@ -14,9 +14,9 @@ import { join } from 'path';
 
 export async function readFile(path: string): Promise<Buffer>;
 export async function readFile(path: string, options: string): Promise<string>;
-export async function readFile(path: string, options: { encoding: string }): Promise<string>;
+export async function readFile(path: string, options: { encoding: BufferEncoding }): Promise<string>;
 export async function readFile(path: string, options: { encoding?: null }): Promise<Buffer>;
-export async function readFile(path: string, options?: string | { encoding?: null | string; flag?: string } | null) {
+export async function readFile(path: string, options?: string | { encoding?: null | BufferEncoding; flag?: string } | null) {
 
   return new Promise<string | Buffer>(function (resolve, reject) {
     $readFile(path, options, function (err, data) {
@@ -97,7 +97,7 @@ export async function readdir(path: string): Promise<string[]> {
 }
 
 export async function rmdir(path: string) {
-  return new Promise(function (resolve, reject) {
+  return new Promise<void>(function (resolve, reject) {
     $rmdir(path, function (err) {
       if (err !== null) {
         reject(err);
@@ -109,7 +109,7 @@ export async function rmdir(path: string) {
 }
 
 export async function unlink(path: string) {
-  return new Promise(function (resolve, reject) {
+  return new Promise<void>(function (resolve, reject) {
     $unlink(path, function (err) {
       if (err !== null) {
         reject(err);

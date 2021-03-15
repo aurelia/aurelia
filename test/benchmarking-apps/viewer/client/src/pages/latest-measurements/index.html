@@ -1,0 +1,15 @@
+<error-info context.bind="context" show-error.to-view="context.error !== null"></error-info>
+<template if.bind="data">
+  <details>
+    <summary>Metadata</summary>
+    <small class="info">
+      <strong>Branch</strong><span>${data.branch}</span>
+      <strong>Commit</strong><span>${data.commit}</span>
+      <strong>Performed on</strong><span>${data | time}</span>
+    </small>
+    <small>
+      You can fetch benchmarking data for another branch by appending query strings 'branch=BRANCH_NAME' and/or 'commit=COMMIT_HASH'
+    </small>
+  </details>
+  <by-browsers dataset.bind="data.measurements"></by-browsers>
+</template>

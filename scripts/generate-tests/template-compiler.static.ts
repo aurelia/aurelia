@@ -1,6 +1,5 @@
 import { join } from 'path';
 import { PropertyDeclaration, Statement } from 'typescript';
-import { kebabCase } from '../../packages/kernel/src/index';
 import project from '../project';
 import {
   $$call,
@@ -20,6 +19,113 @@ import {
   $property,
   emit
 } from './util';
+
+const baseCase = (function () {
+  const enum CharKind {
+    none = 0,
+    digit = 1,
+    upper = 2,
+    lower = 3,
+  }
+
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  const isDigit = Object.assign(Object.create(null) as {}, {
+    '0': true,
+    '1': true,
+    '2': true,
+    '3': true,
+    '4': true,
+    '5': true,
+    '6': true,
+    '7': true,
+    '8': true,
+    '9': true,
+  } as Record<string, true | undefined>);
+
+  function charToKind(char: string): CharKind {
+    if (char === '') {
+      // We get this if we do charAt() with an index out of range
+      return CharKind.none;
+    }
+
+    if (char !== char.toUpperCase()) {
+      return CharKind.lower;
+    }
+
+    if (char !== char.toLowerCase()) {
+      return CharKind.upper;
+    }
+
+    if (isDigit[char] === true) {
+      return CharKind.digit;
+    }
+
+    return CharKind.none;
+  }
+
+  return function (input: string, cb: (char: string, sep: boolean) => string): string {
+    const len = input.length;
+    if (len === 0) {
+      return input;
+    }
+
+    let sep = false;
+    let output = '';
+
+    let prevKind: CharKind;
+
+    let curChar = '';
+    let curKind = CharKind.none;
+
+    let nextChar = input.charAt(0);
+    let nextKind = charToKind(nextChar);
+
+    for (let i = 0; i < len; ++i) {
+      prevKind = curKind;
+
+      curChar = nextChar;
+      curKind = nextKind;
+
+      nextChar = input.charAt(i + 1);
+      nextKind = charToKind(nextChar);
+
+      if (curKind === CharKind.none) {
+        if (output.length > 0) {
+          // Only set sep to true if it's not at the beginning of output.
+          sep = true;
+        }
+      } else {
+        if (!sep && output.length > 0 && curKind === CharKind.upper) {
+          // Separate UAFoo into UA Foo.
+          // Separate uaFOO into ua FOO.
+          sep = prevKind === CharKind.lower || nextKind === CharKind.lower;
+        }
+
+        output += cb(curChar, sep);
+        sep = false;
+      }
+    }
+
+    return output;
+  };
+})();
+
+const kebabCase = (function () {
+  const cache = Object.create(null) as Record<string, string | undefined>;
+
+  function callback(char: string, sep: boolean): string {
+    return sep ? `-${char.toLowerCase()}` : char.toLowerCase();
+  }
+
+  return function (input: string): string {
+    let output = cache[input];
+    if (output === void 0) {
+      output = cache[input] = baseCase(input, callback);
+    }
+
+    return output;
+  };
+})();
 
 function outFile(suffix: string): string {
   return join(`${project.path}`, 'packages', '__tests__', '5-jit-html', 'generated', `template-compiler.${suffix}.spec.ts`);
@@ -53,7 +159,6 @@ interface Tag extends Identifiable {
   containerless?: boolean;
   shadowMode?: 'open' | 'closed';
   isTemplate?: boolean;
-  hasReplaceable?: boolean;
 }
 
 const tags: Tag[] = [
@@ -61,16 +166,11 @@ const tags: Tag[] = [
   // template is a duplicate so raw textBindings don't use it (double nested template with nothing on it doesn't work)
   { id: 'tag$02', name: 'template', isTemplate: true },
   { id: 'tag$03', name: 'template', elName: 'MyFoo', isCustom: true },
-  { id: 'tag$04', name: 'template', elName: 'MyFoo', isCustom: true, hasReplaceable: true },
-  { id: 'tag$05', name: 'template', elName: 'MyFoo', isCustom: true, containerless: true },
-  { id: 'tag$06', name: 'template', elName: 'MyFoo', isCustom: true, hasReplaceable: true , containerless: true },
-  { id: 'tag$07', name: 'template', elName: 'MyFoo', isCustom: true, shadowMode: 'open' },
-  { id: 'tag$08', name: 'template', elName: 'MyFoo', isCustom: true, hasReplaceable: true , shadowMode: 'open' },
-  { id: 'tag$09', name: 'template', elName: 'MyFoo', isCustom: true, shadowMode: 'closed' },
-  { id: 'tag$10', name: 'template', elName: 'MyFoo', isCustom: true, hasReplaceable: true , shadowMode: 'closed' }
+  { id: 'tag$04', name: 'template', elName: 'MyFoo', isCustom: true, containerless: true },
+  { id: 'tag$05', name: 'template', elName: 'MyFoo', isCustom: true, shadowMode: 'open' },
+  { id: 'tag$06', name: 'template', elName: 'MyFoo', isCustom: true, shadowMode: 'closed' },
 ];
 
-/* eslint-disable @typescript-eslint/camelcase */
 const text$01_1: TextBinding = {
   id: 'text$01',
   markup: 'a',
@@ -223,7 +323,50 @@ repeat$13_1.opposite = repeat$13_2;
 repeat$13_2.opposite = repeat$13_1;
 
 const repeats = [repeat$11_1, repeat$12_1, repeat$13_1];
-/* eslint-enable @typescript-eslint/camelcase */
+
+function registerCustomElement(
+  tag: Tag,
+  ifText: TextBinding,
+  elseText: TextBinding,
+  markup: string,
+  containerless: boolean | null,
+  shadowMode: 'open' | 'closed' | null,
+): Statement[] {
+  return [
+    $$const(tag.elName, $call('CustomElement.define', [
+      $expression({
+        name: kebabCase(tag.elName),
+        template: `<template>${markup}</template>`
+      }),
+      $class([
+        $property(
+          'bindables',
+          [ifText.variable, elseText.variable, 'item'],
+          true
+        ),
+        ...containerless !== null ? [$property('containerless', true, true)] : [],
+        ...shadowMode !== null ? [$property('shadowOptions', { mode: shadowMode }, true)] : [],
+        $property(ifText.variable, ''),
+        $property(elseText.variable, ''),
+        $property('item', '')
+      ])
+    ])),
+    $$call('au.register', [tag.elName])
+  ];
+}
+
+function fixup(
+  isArray: boolean,
+  ifVarRegex: RegExp,
+  elseVarRegex: RegExp,
+  $repeat: TplCtrl,
+  text: TextBinding,
+): string {
+  // if the repeater is an array (not a number), replace the interpolation expression from the textBinding
+  // with the property specified by the repeat's variable
+  // this is a bit lazy, probably need to refactor this eventually anyway
+  return isArray ? text.markup.replace(ifVarRegex, $repeat.prop).replace(elseVarRegex, $repeat.prop) : text.markup;
+}
 
 // eslint-disable-next-line max-lines-per-function
 function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs: TplCtrl[], repeaters: TplCtrl[]): Record<string, Statement[]> {
@@ -245,33 +388,6 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
 
       const resources = [];
 
-      function registerCustomElement(markup: string, containerless: boolean | null, shadowMode: 'open' | 'closed' | null): Statement[] {
-        if (tag.hasReplaceable) {
-          markup = `<${tag.name} replaceable="part1"></${tag.name}><${tag.name} replaceable="part2"></${tag.name}>`;
-        }
-        return [
-          $$const(tag.elName, $call('CustomElement.define', [
-            $expression({
-              name: kebabCase(tag.elName),
-              template: `<template>${markup}</template>`
-            }),
-            $class([
-              $property(
-                'bindables',
-                [ifText.variable, elseText.variable, 'item'],
-                true
-              ),
-              ...containerless !== null ? [$property('containerless', true, true)] : [],
-              ...shadowMode !== null ? [$property('shadowOptions', { mode: shadowMode }, true)] : [],
-              $property(ifText.variable, ''),
-              $property(elseText.variable, ''),
-              $property('item', '')
-            ])
-          ])),
-          $$call('au.register', [tag.elName])
-        ];
-      }
-      // eslint-disable-next-line sonarjs/no-collapsible-if
       if (tag.isCustom) {
         if (ifText.static || elseText.static) {
           continue;
@@ -291,23 +407,13 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
         } else if (tag.isCustom) {
           // binding with custom element
           const $tag = kebabCase(tag.elName);
-          if (tag.hasReplaceable) {
-            staticTests.push($$test(
-              `<${$tag} ${ifText.variable}.bind="${ifText.variable}"><${tag.name} replace="part1">${ifText.markup}</${tag.name}></${$tag}>`,
-              ifText.value,
-              ifText.properties,
-              [tag, ifText],
-              registerCustomElement(ifText.markup, tag.containerless === undefined ? null : tag.containerless, tag.shadowMode === undefined ? null : tag.shadowMode))
-            );
-          } else {
-            staticTests.push($$test(
-              `<${$tag} ${ifText.variable}.bind="${ifText.variable}"></${$tag}>`,
-              ifText.value,
-              ifText.properties,
-              [tag, ifText],
-              registerCustomElement(ifText.markup, tag.containerless === undefined ? null : tag.containerless, tag.shadowMode === undefined ? null : tag.shadowMode))
-            );
-          }
+          staticTests.push($$test(
+            `<${$tag} ${ifText.variable}.bind="${ifText.variable}"></${$tag}>`,
+            ifText.value,
+            ifText.properties,
+            [tag, ifText],
+            registerCustomElement(tag, ifText, elseText, ifText.markup, tag.containerless === undefined ? null : tag.containerless, tag.shadowMode === undefined ? null : tag.shadowMode))
+          );
         } else {
           // interpolation wrapped in div
           staticTests.push($$test(
@@ -321,14 +427,9 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
       }
       if (tag.isCustom) {
         const $tag = kebabCase(tag.elName);
-        resources.push(...registerCustomElement(`${ifText.markup}${elseText.markup}\${item}`, tag.containerless === undefined ? null : tag.containerless, tag.shadowMode === undefined ? null : tag.shadowMode));
-        if (tag.hasReplaceable) {
-          ifText.markup = `<${$tag} ${ifText.variable}.bind="${ifText.variable}"><${tag.name} replace="part1">${ifText.markup}</${tag.name}></${$tag}>`;
-          elseText.markup = `<${$tag} ${elseText.variable}.bind="${elseText.variable}"><${tag.name} replace="part2">${elseText.markup}</${tag.name}></${$tag}>`;
-        } else {
-          ifText.markup = `<${$tag} ${ifText.variable}.bind="${ifText.variable}"></${$tag}>`;
-          elseText.markup = `<${$tag} ${elseText.variable}.bind="${elseText.variable}"></${$tag}>`;
-        }
+        resources.push(...registerCustomElement(tag, ifText, elseText, `${ifText.markup}${elseText.markup}\${item}`, tag.containerless === undefined ? null : tag.containerless, tag.shadowMode === undefined ? null : tag.shadowMode));
+        ifText.markup = `<${$tag} ${ifText.variable}.bind="${ifText.variable}"></${$tag}>`;
+        elseText.markup = `<${$tag} ${elseText.variable}.bind="${elseText.variable}"></${$tag}>`;
       }
 
       for (const ifElsePair of ifElsePairs) {
@@ -706,11 +807,6 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
         // }
 
         for (const $repeat of repeaters) {
-          // skip repeated templates with replaceable since the generated tests don't make sense
-          // (need to refactor this test generator..)
-          if ($repeat.value > 1 && tag.hasReplaceable) {
-            continue;
-          }
           // only work with number or arrays as the repeaters value;
           // for a number we repeat the text content n times
           // otherwise we use the array values directly
@@ -722,16 +818,10 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           const $expected = isArray ? $repeat.value.join('') : expected.repeat($repeat.value);
           const ifVarRegex = new RegExp(ifText.variable === undefined ? '' : ifText.variable, 'g');
           const elseVarRegex = new RegExp(elseText.variable === undefined ? '' : elseText.variable, 'g');
-          function fixup(text: TextBinding): string {
-            // if the repeater is an array (not a number), replace the interpolation expression from the textBinding
-            // with the property specified by the repeat's variable
-            // this is a bit lazy, probably need to refactor this eventually anyway
-            return isArray ? text.markup.replace(ifVarRegex, $repeat.prop).replace(elseVarRegex, $repeat.prop) : text.markup;
-          }
           // identical to the if/else tests one level up, but wrapped in the repeater
           ifElseRepeatTests.push($$test(
-            $(tag, [$repeat], $(tag, [$if], fixup(ifText)) +
-              $(tag, [$else], fixup(elseText))
+            $(tag, [$repeat], $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+              $(tag, [$else], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))
             ),
             $expected,
             properties,
@@ -740,10 +830,10 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           );
           // if (!tag.hasReplaceable) {
           ifElseRepeatDoubleTests.push($$test(
-            $(tag, [$repeat], $(tag, [$if], fixup(ifText)) +
-                $(tag, [$else, $if], fixup(elseText)) +
-                $(tag, [$if], '') +
-                $(tag, [$else], fixup(elseText))
+            $(tag, [$repeat], $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+              $(tag, [$else, $if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)) +
+              $(tag, [$if], '') +
+              $(tag, [$else], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))
             ),
             $expected,
             properties,
@@ -754,8 +844,8 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
 
           // the inverse of the fullIfElse wrapped by repeater (repeater wrapped by if/else)
           ifElseRepeatTests.push($$test(
-            $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
-            $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+            $(tag, [$if], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText))) +
+            $(tag, [$else], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))),
             $expected,
             properties,
             [tag, ifText, $if, $repeat, {id: 'variant$02'}],
@@ -763,10 +853,10 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           );
           // if (!tag.hasReplaceable) {
           ifElseRepeatDoubleTests.push($$test(
-            $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
-              $(tag, [$else, $if], $(tag, [$repeat], fixup(elseText))) +
-              $(tag, [$if], '') +
-              $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+            $(tag, [$if], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText))) +
+            $(tag, [$else, $if], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))) +
+            $(tag, [$if], '') +
+            $(tag, [$else], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))),
             $expected,
             properties,
             [tag, ifText, $if, $repeat, {id: 'variant$02$double'}],
@@ -775,8 +865,8 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           // }
           // same as the test above but with the template controllers on the same element
           ifElseRepeatTests.push($$test(
-            $(tag, [$if, $repeat], fixup(ifText)) +
-            $(tag, [$else, $repeat], fixup(elseText)),
+            $(tag, [$if, $repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+            $(tag, [$else, $repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)),
             $expected,
             properties,
             [tag, ifText, $if, $repeat, {id: 'variant$03'}],
@@ -784,20 +874,20 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           );
           // if (!tag.hasReplaceable) {
           ifElseRepeatDoubleTests.push($$test(
-            $(tag, [$if, $repeat], fixup(ifText)) +
-              $(tag, [$else, $if, $repeat], fixup(elseText)) +
-              $(tag, [$if, $repeat], '') +
-              $(tag, [$else, $repeat], fixup(elseText)),
+            $(tag, [$if, $repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+            $(tag, [$else, $if, $repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)) +
+            $(tag, [$if, $repeat], '') +
+            $(tag, [$else, $repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)),
             $expected,
             properties,
             [tag, ifText, $if, $repeat, {id: 'variant$03$double$01'}],
             resources)
           );
           ifElseRepeatDoubleTests.push($$test(
-            $(tag, [$if, $repeat], fixup(ifText)) +
-              $(tag, [$else, $repeat, $if], fixup(elseText)) +
-              $(tag, [$if, $repeat], '') +
-              $(tag, [$else, $repeat], fixup(elseText)),
+            $(tag, [$if, $repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+            $(tag, [$else, $repeat, $if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)) +
+            $(tag, [$if, $repeat], '') +
+            $(tag, [$else, $repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)),
             $expected,
             properties,
             [tag, ifText, $if, $repeat, {id: 'variant$03$double$02'}],
@@ -807,7 +897,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
 
           if (!$else.value) {
             ifElseRepeatTests.push($$test(
-              $(tag, [$repeat], $(tag, [$if], fixup(ifText))),
+              $(tag, [$repeat], $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText))),
               $expected,
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$04'}],
@@ -815,14 +905,14 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             );
             // same as test above, but template controllers on same element
             ifElseRepeatTests.push($$test(
-              $(tag, [$repeat, $if], fixup(ifText)),
+              $(tag, [$repeat, $if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)),
               $expected,
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$05'}],
               resources)
             );
             ifElseRepeatTests.push($$test(
-              $(tag, [$if], $(tag, [$repeat], fixup(ifText))),
+              $(tag, [$if], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText))),
               $expected,
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$06'}],
@@ -830,7 +920,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             );
             // same as test above, but template controllers on same element
             ifElseRepeatTests.push($$test(
-              $(tag, [$if, $repeat], fixup(ifText)),
+              $(tag, [$if, $repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)),
               $expected,
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$07'}],
@@ -838,8 +928,8 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             );
 
             ifElseRepeatTests.push($$test(
-              $(tag, [$repeat], $(tag, [$if], fixup(ifText)) +
-                $(tag, [$else], fixup(elseText))
+              $(tag, [$repeat], $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+                $(tag, [$else], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))
               ),
               $expected,
               properties,
@@ -847,7 +937,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               resources)
             );
             ifElseRepeatTests.push($$test(
-              $(tag, [$repeat], $(tag, [$if], fixup(ifText)) +
+              $(tag, [$repeat], $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
                 $(tag, [$else], '')
               ),
               $expected,
@@ -856,15 +946,15 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               resources)
             );
             ifElseRepeatTests.push($$test(
-              $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
-              $(tag, [$else], $(tag, [$repeat], fixup(ifText))),
+              $(tag, [$if], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText))) +
+              $(tag, [$else], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText))),
               $expected,
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$09'}],
               resources)
             );
             ifElseRepeatTests.push($$test(
-              $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
+              $(tag, [$if], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText))) +
               $(tag, [$else], ''),
               $expected,
               properties,
@@ -873,20 +963,20 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             );
             // if (!tag.hasReplaceable) {
             ifElseRepeatDoubleTests.push($$test(
-              $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
-                $(tag, [$else, $if], $(tag, [$repeat], fixup(ifText))) +
+              $(tag, [$if], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText))) +
+                $(tag, [$else, $if], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText))) +
                 $(tag, [$if], '') +
-                $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+                $(tag, [$else], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))),
               $expected,
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$09$double$01'}],
               resources)
             );
             ifElseRepeatDoubleTests.push($$test(
-              $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
-                $(tag, [$else, $if], $(tag, [$repeat], fixup(ifText))) +
-                $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
-                $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+              $(tag, [$if], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText))) +
+                $(tag, [$else, $if], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText))) +
+                $(tag, [$if], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText))) +
+                $(tag, [$else], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))),
               $expected.repeat(2),
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$09$double$02'}],
@@ -897,8 +987,8 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
 
           if (!$if.value) {
             ifElseRepeatTests.push($$test(
-              $(tag, [$repeat], $(tag, [$if], fixup(ifText)) +
-                $(tag, [$else], fixup(elseText))
+              $(tag, [$repeat], $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+                $(tag, [$else], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))
               ),
               $expected,
               properties,
@@ -907,7 +997,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             );
             ifElseRepeatTests.push($$test(
               $(tag, [$repeat], $(tag, [$if], '') +
-                $(tag, [$else], fixup(elseText))
+                $(tag, [$else], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))
               ),
               $expected,
               properties,
@@ -915,8 +1005,8 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               resources)
             );
             ifElseRepeatTests.push($$test(
-              $(tag, [$if], fixup(ifText)) +
-              $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+              $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+              $(tag, [$else], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))),
               $expected,
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$11'}],
@@ -924,7 +1014,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             );
             ifElseRepeatTests.push($$test(
               $(tag, [$if], '') +
-              $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+              $(tag, [$else], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))),
               $expected,
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$11$empty'}],
@@ -932,19 +1022,19 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             );
             // if (!tag.hasReplaceable) {
             ifElseRepeatDoubleTests.push($$test(
-              $(tag, [$if], fixup(ifText)) +
-                $(tag, [$else], $(tag, [$repeat], fixup(elseText))) +
-                $(tag, [$if, $else], fixup(elseText)) +
-                $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+              $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+                $(tag, [$else], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))) +
+                $(tag, [$if, $else], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)) +
+                $(tag, [$else], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))),
               $expected.repeat(2),
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$11$double$01'}],
               resources)
             );
             ifElseRepeatDoubleTests.push($$test(
-              $(tag, [$if], fixup(ifText)) +
-                $(tag, [$else], $(tag, [$repeat], fixup(elseText))) +
-                $(tag, [$if, $else], fixup(elseText)) +
+              $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+                $(tag, [$else], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))) +
+                $(tag, [$if, $else], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)) +
                 $(tag, [$else], ''),
               $expected,
               properties,
@@ -952,10 +1042,10 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               resources)
             );
             ifElseRepeatDoubleTests.push($$test(
-              $(tag, [$if], fixup(ifText)) +
+              $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
                 $(tag, [$else], '') +
-                $(tag, [$if, $else], fixup(elseText)) +
-                $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
+                $(tag, [$if, $else], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)) +
+                $(tag, [$else], $(tag, [$repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText))),
               $expected,
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$11$double$03'}],
@@ -964,8 +1054,8 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             // }
             // same as test above, but template controllers on same element
             ifElseRepeatTests.push($$test(
-              $(tag, [$if], fixup(ifText)) +
-              $(tag, [$else, $repeat], fixup(elseText)),
+              $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+              $(tag, [$else, $repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)),
               $expected,
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$12'}],
@@ -973,20 +1063,20 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             );
             // if (!tag.hasReplaceable) {
             ifElseRepeatDoubleTests.push($$test(
-              $(tag, [$if], fixup(ifText)) +
-                $(tag, [$else, $repeat, $if], fixup(elseText)) +
-                $(tag, [$if], fixup(ifText)) +
-                $(tag, [$else, $repeat], fixup(elseText)),
+              $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+                $(tag, [$else, $repeat, $if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)) +
+                $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+                $(tag, [$else, $repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)),
               $expected,
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$12$double$01'}],
               resources)
             );
             ifElseRepeatDoubleTests.push($$test(
-              $(tag, [$if], fixup(ifText)) +
-                $(tag, [$else, $if, $repeat], fixup(elseText)) +
-                $(tag, [$if], fixup(ifText)) +
-                $(tag, [$else, $repeat], fixup(elseText)),
+              $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+                $(tag, [$else, $if, $repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)) +
+                $(tag, [$if], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, ifText)) +
+                $(tag, [$else, $repeat], fixup(isArray, ifVarRegex, elseVarRegex, $repeat, elseText)),
               $expected,
               properties,
               [tag, ifText, $if, $repeat, {id: 'variant$12$double$02'}],
@@ -1013,7 +1103,7 @@ function $$test(markup: string, expectedText: string, properties: PropertyDeclar
   return $$functionExpr('it', [
     $expression(`${ids.map(i => i.id).join(' ')} _`),
     $functionExpr([
-      $$const(['au', 'host'], $call('setup')),
+      $$const(['au', 'host'], $call('createFixture')),
       undefined,
       ...resources,
       $$const('App', $call('CustomElement.define', [
@@ -1055,7 +1145,7 @@ function generateAndEmit(): void {
             ])
           ),
           $$functionDecl(
-            'setup',
+            'createFixture',
             [
               $$const('ctx', $call('TestContext.createHTMLTestContext')),
               $$new('au', 'Aurelia', ['ctx.container']),

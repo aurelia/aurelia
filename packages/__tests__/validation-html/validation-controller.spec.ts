@@ -1,6 +1,5 @@
-/* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
-import { newInstanceForScope } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IScheduler, customElement } from '@aurelia/runtime';
+import { IServiceLocator, newInstanceForScope } from '@aurelia/kernel';
+import { Aurelia, CustomElement, IPlatform, customElement } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   IValidationRules,
@@ -16,8 +15,8 @@ import {
   ValidationEvent,
   ValidationHtmlConfiguration,
 } from '@aurelia/validation-html';
-import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util';
-import { Person } from '../validation/_test-resources';
+import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util.js';
+import { Person } from '../validation/_test-resources.js';
 
 describe('validation controller factory', function () {
   @customElement({
@@ -74,9 +73,9 @@ describe('validation controller factory', function () {
   async function runTest(
     testFunction: TestFunction<TestExecutionContext<VcRoot>>,
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('div');
+    const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container);
     await au
@@ -89,13 +88,14 @@ describe('validation controller factory', function () {
         CustomStuff3
       )
       .app({ host, component: App })
-      .start()
-      .wait();
+      .start();
 
-    await testFunction({ app: void 0, container, host, scheduler: container.get(IScheduler), ctx });
+    await testFunction({ app: void 0, container, host, platform: container.get(IPlatform), ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
   }
   const $it = createSpecFunction(runTest);
 
@@ -137,6 +137,7 @@ describe('validation-controller', function () {
     public person2rules: PropertyRule[];
 
     public constructor(
+      @IServiceLocator public locator: IServiceLocator,
       @newInstanceForScope(IValidationController) public controller: ValidationController,
       @IValidationRules public readonly validationRules: IValidationRules,
     ) {
@@ -169,13 +170,13 @@ describe('validation-controller', function () {
         .rules;
     }
 
-    public beforeUnbind() {
+    public unbinding() {
       this.validationRules.off();
       // mandatory cleanup in root
       this.controller.reset();
     }
 
-    public afterUnbind() {
+    public dispose() {
       const controller = this.controller;
       assert.equal(controller.results.length, 0, 'the result should have been removed');
       assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');
@@ -197,9 +198,9 @@ describe('validation-controller', function () {
     testFunction: TestFunction<TestExecutionContext<App>>,
     { template = '' }: Partial<TestSetupContext> = {}
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('app');
+    const host = ctx.doc.createElement('app');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container);
     await au
@@ -211,14 +212,15 @@ describe('validation-controller', function () {
         host,
         component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
-      .start()
-      .wait();
+      .start();
 
-    const app = au.root.viewModel as App;
-    await testFunction({ app, container, host, scheduler: container.get(IScheduler), ctx });
+    const app = au.root.controller.viewModel as App;
+    await testFunction({ app, container, host, platform: container.get(IPlatform), ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
   }
   const $it = createSpecFunction(runTest);
 
@@ -274,7 +276,7 @@ describe('validation-controller', function () {
       text: '{ object, propertyName, rules }',
       getValidationInstruction: (app: App) => {
         const { validationRules, messageProvider, property, $rules: [[required,]] } = app.person2rules[1];
-        const rule = new PropertyRule(validationRules, messageProvider, property, [[required]]);
+        const rule = new PropertyRule(app.locator, validationRules, messageProvider, property, [[required]]);
         return new ValidateInstruction(app.person2, void 0, [rule]);
       },
       assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction<Person>) => {
@@ -367,12 +369,12 @@ describe('validation-controller', function () {
   ];
   for (const { text, property } of testData1) {
     $it(`lets add custom error - ${text}`,
-      async function ({ app: { controller: sut, person1 }, scheduler, host }) {
+      async function ({ app: { controller: sut, person1 }, platform, host }) {
         const subscriber = new FooSubscriber();
         const msg = 'foobar';
         sut.addSubscriber(subscriber);
         sut.addError(msg, person1, property);
-        await scheduler.yieldAll();
+        platform.domReadQueue.flush();
 
         const result = sut.results.find((r) => r.object === person1 && r.propertyName === property);
         assert.notEqual(result, void 0);
@@ -399,19 +401,19 @@ describe('validation-controller', function () {
     );
 
     $it(`lets remove custom error - ${text}`,
-      async function ({ app: { controller: sut, person1 }, scheduler, host }) {
+      async function ({ app: { controller: sut, person1 }, platform, host }) {
         const subscriber = new FooSubscriber();
         const msg = 'foobar';
         sut.addSubscriber(subscriber);
         const result = sut.addError(msg, person1, property);
-        await scheduler.yieldAll();
+        platform.domReadQueue.flush();
         assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
         const events = subscriber.notifications;
         events.splice(0);
 
         sut.removeError(result);
-        await scheduler.yieldAll();
+        platform.domReadQueue.flush();
 
         assert.equal(events.length, 1);
         assert.equal(events[0].kind, ValidateEventKind.reset);
@@ -430,12 +432,12 @@ describe('validation-controller', function () {
   }
 
   $it(`lets remove error`,
-    async function ({ app: { controller: sut, person1 }, scheduler, host }) {
+    async function ({ app: { controller: sut, person1 }, platform, host }) {
       const subscriber = new FooSubscriber();
       const msg = 'Name is required.';
       sut.addSubscriber(subscriber);
       await sut.validate();
-      await scheduler.yieldAll();
+      platform.domReadQueue.flush();
       assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
       const result = sut.results.find((r) => r.object === person1 && r.propertyName === 'name' && !r.valid);
@@ -443,7 +445,7 @@ describe('validation-controller', function () {
       events.splice(0);
 
       sut.removeError(result);
-      await scheduler.yieldAll();
+      platform.domReadQueue.flush();
 
       assert.equal(events.length, 1);
       assert.equal(events[0].kind, ValidateEventKind.reset);
@@ -490,10 +492,10 @@ describe('validation-controller', function () {
   );
 
   $it(`revalidateErrors does not remove the manually added errors - w/o pre-existing errors`,
-    async function ({ app: { controller: sut, person1 }, scheduler, host }) {
+    async function ({ app: { controller: sut, person1 }, platform, host }) {
       const msg = 'foobar';
       const result = sut.addError(msg, person1);
-      await scheduler.yieldAll();
+      platform.domReadQueue.flush();
       assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
       await sut.revalidateErrors();

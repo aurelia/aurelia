@@ -1,9 +1,9 @@
-import { Camera, Zoom } from './molecules/specs-viewer/camera-specs-viewer';
-import { Laptop, Storage } from './molecules/specs-viewer/laptop-specs-viewer';
-import { User } from './molecules/user-preference/user-preference';
-import { Thing } from './molecules/specs-viewer/thing-viewer';
-import { SelectOption } from './atoms/select-dropdown/select-dropdown';
-import { Card } from './molecules/cards/cards';
+import { Camera, Zoom } from './molecules/specs-viewer/camera-specs-viewer.js';
+import { Laptop, Storage } from './molecules/specs-viewer/laptop-specs-viewer.js';
+import { User } from './molecules/user-preference/user-preference.js';
+import { Thing } from './molecules/specs-viewer/thing-viewer.js';
+import { SelectOption } from './atoms/select-dropdown/select-dropdown.js';
+import { Card } from './molecules/cards/cards.js';
 
 type Contact = { number: number; type: string };
 export type Product = { id: number; name: string };

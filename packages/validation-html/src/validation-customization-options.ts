@@ -1,7 +1,7 @@
 import { Class, Constructable, IFactory } from '@aurelia/kernel';
 import { ValidationCustomizationOptions } from '@aurelia/validation';
-import { ValidationTrigger } from './validate-binding-behavior';
-import { IValidationController } from './validation-controller';
+import { ValidationTrigger } from './validate-binding-behavior.js';
+import { IValidationController } from './validation-controller.js';
 
 /**
  * Customization options for the plugin.

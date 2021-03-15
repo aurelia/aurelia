@@ -1,8 +1,8 @@
-export * from './configuration';
-export * from './i18n';
-export * from './i18n-configuration-options';
-export * from './t/index';
-export * from './df/index';
-export * from './nf/index';
-export * from './rt/index';
-export { Signals } from './utils';
+export * from './configuration.js';
+export * from './i18n.js';
+export * from './i18n-configuration-options.js';
+export * from './t/index.js';
+export * from './df/index.js';
+export * from './nf/index.js';
+export * from './rt/index.js';
+export { Signals } from './utils.js';

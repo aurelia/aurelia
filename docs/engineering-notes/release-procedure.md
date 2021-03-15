@@ -9,10 +9,6 @@
 
 - Go to [circleci](https://circleci.com/gh/aurelia/aurelia) and make sure that the last build on the `master` branch succeeded.
 
-- Before triggering the release build, make sure no other builds are currently running or about to run
-
-> If multiple builds run at the same time this may cause the browserstack e2e tests to fail. While not the end of the world, this can waste some time and cause confusion. In the future this will be solved with a queue mechanism. The current remedy is to "rerun from failed"
-
 
 ## Steps
 
@@ -44,7 +40,7 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-Now keep an eye on [circleci](https://circleci.com/gh/aurelia/aurelia) and see that the `prepare_release` workflow runs without issues. If any individual job fails and the failure may be transient (such as browserstack executor errors), you can simply go directly to the workflow and from the dropdown pick "rerun from failed". This will rerun the workflow, starting at the failed job (instead of at the beginning).
+Now keep an eye on [circleci](https://circleci.com/gh/aurelia/aurelia) and see that the `prepare_release` workflow runs without issues. If any individual job fails and the failure may be transient, you can simply go directly to the workflow and from the dropdown pick "rerun from failed". This will rerun the workflow, starting at the failed job (instead of at the beginning).
 
 At the end of the job, it will commit everything to the `release` branch which then triggers the `prepare_release` workflow again, but with different steps.
 

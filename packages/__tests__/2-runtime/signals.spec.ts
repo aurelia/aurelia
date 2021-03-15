@@ -7,7 +7,7 @@
 //   BindingMode,
 //   IObserverLocator,
 //   IsBindingBehavior,
-//   IScope,
+//   Scope,
 //   ISignaler,
 //   LifecycleFlags,
 //   SignalBindingBehavior

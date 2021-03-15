@@ -1,8 +1,12 @@
-import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
-import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver } from '../observation';
-import { CollectionSizeObserver } from './collection-size-observer';
-import { collectionSubscriberCollection } from './subscriber-collection';
+import { createIndexMap, AccessorType, LifecycleFlags, ICollectionSubscriberCollection } from '../observation.js';
+import { CollectionSizeObserver } from './collection-length-observer.js';
+import { subscriberCollection } from './subscriber-collection.js';
+import { def } from '../utilities-objects.js';
+
+import type {
+  ICollectionObserver,
+  CollectionKind,
+} from '../observation.js';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();
 
@@ -20,19 +24,15 @@ const methods: ['add', 'clear', 'delete'] = ['add', 'clear', 'delete'];
 
 const observe = {
   // https://tc39.github.io/ecma262/#sec-set.prototype.add
-  add: function (this: IObservedSet, value: unknown): ReturnType<typeof $add> {
-    let $this = this;
-    if ($this.$raw !== undefined) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+  add: function (this: Set<unknown>, value: unknown): ReturnType<typeof $add> {
+    const o = observerLookup.get(this);
     if (o === undefined) {
-      $add.call($this, value);
+      $add.call(this, value);
       return this;
     }
-    const oldSize = $this.size;
-    $add.call($this, value);
-    const newSize = $this.size;
+    const oldSize = this.size;
+    $add.call(this, value);
+    const newSize = this.size;
     if (newSize === oldSize) {
       return this;
     }
@@ -41,54 +41,47 @@ const observe = {
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-set.prototype.clear
-  clear: function (this: IObservedSet): ReturnType<typeof $clear>  {
-    let $this = this;
-    if ($this.$raw !== undefined) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+  clear: function (this: Set<unknown>): ReturnType<typeof $clear>  {
+    const o = observerLookup.get(this);
     if (o === undefined) {
-      return $clear.call($this);
+      return $clear.call(this);
     }
-    const size = $this.size;
+    const size = this.size;
     if (size > 0) {
       const indexMap = o.indexMap;
       let i = 0;
-      for (const entry of $this.keys()) {
+      // deepscan-disable-next-line
+      for (const _ of this.keys()) {
         if (indexMap[i] > -1) {
           indexMap.deletedItems.push(indexMap[i]);
         }
         i++;
       }
-      $clear.call($this);
+      $clear.call(this);
       indexMap.length = 0;
       o.notify();
     }
     return undefined;
   },
   // https://tc39.github.io/ecma262/#sec-set.prototype.delete
-  delete: function (this: IObservedSet, value: unknown): ReturnType<typeof $delete> {
-    let $this = this;
-    if ($this.$raw !== undefined) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+  delete: function (this: Set<unknown>, value: unknown): ReturnType<typeof $delete> {
+    const o = observerLookup.get(this);
     if (o === undefined) {
-      return $delete.call($this, value);
+      return $delete.call(this, value);
     }
-    const size = $this.size;
+    const size = this.size;
     if (size === 0) {
       return false;
     }
     let i = 0;
     const indexMap = o.indexMap;
-    for (const entry of $this.keys()) {
+    for (const entry of this.keys()) {
       if (entry === value) {
         if (indexMap[i] > -1) {
           indexMap.deletedItems.push(indexMap[i]);
         }
         indexMap.splice(i, 1);
-        const deleteResult = $delete.call($this, value);
+        const deleteResult = $delete.call(this, value);
         if (deleteResult === true) {
           o.notify();
         }
@@ -105,8 +98,6 @@ const descriptorProps = {
   enumerable: false,
   configurable: true
 };
-
-const def = Reflect.defineProperty;
 
 for (const method of methods) {
   def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
@@ -130,70 +121,45 @@ export function disableSetObservation(): void {
   }
 }
 
-const slice = Array.prototype.slice;
+export interface SetObserver extends ICollectionObserver<CollectionKind.set>, ICollectionSubscriberCollection {}
 
-export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
-
-@collectionSubscriberCollection()
 export class SetObserver {
-  public inBatch: boolean;
+  public type: AccessorType = AccessorType.Set;
+  private lenObs?: CollectionSizeObserver;
 
-  public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
+  public constructor(observedSet: Set<unknown>) {
 
     if (!enableSetObservationCalled) {
       enableSetObservationCalled = true;
       enableSetObservation();
     }
 
-    this.inBatch = false;
-
     this.collection = observedSet;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.indexMap = createIndexMap(observedSet.size);
-    this.lifecycle = lifecycle;
-    this.lengthObserver = (void 0)!;
+    this.lenObs = void 0;
 
     observerLookup.set(observedSet, this);
   }
 
   public notify(): void {
-    if (this.lifecycle.batch.depth > 0) {
-      if (!this.inBatch) {
-        this.inBatch = true;
-        this.lifecycle.batch.add(this);
-      }
-    } else {
-      this.flushBatch(LifecycleFlags.none);
-    }
+    const indexMap = this.indexMap;
+    const size = this.collection.size;
+
+    this.indexMap = createIndexMap(size);
+    this.subs.notifyCollection(indexMap, LifecycleFlags.none);
   }
 
   public getLengthObserver(): CollectionSizeObserver {
-    if (this.lengthObserver === void 0) {
-      this.lengthObserver = new CollectionSizeObserver(this.collection);
-    }
-    return this.lengthObserver;
-  }
-
-  public getIndexObserver(index: number): ICollectionIndexObserver {
-    throw new Error('Set index observation not supported');
-  }
-
-  public flushBatch(flags: LifecycleFlags): void {
-    this.inBatch = false;
-    const { indexMap, collection } = this;
-    const { size } = collection;
-    this.indexMap = createIndexMap(size);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
-    if (this.lengthObserver !== void 0) {
-      this.lengthObserver.setValue(size, LifecycleFlags.updateTargetInstance);
-    }
+    return this.lenObs ??= new CollectionSizeObserver(this);
   }
 }
 
-export function getSetObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver {
-  const observer = observerLookup.get(observedSet);
+subscriberCollection(SetObserver);
+
+export function getSetObserver(observedSet: Set<unknown>): SetObserver {
+  let observer = observerLookup.get(observedSet);
   if (observer === void 0) {
-    return new SetObserver(flags, lifecycle, observedSet);
+    observer = new SetObserver(observedSet);
   }
   return observer;
 }

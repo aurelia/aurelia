@@ -1,13 +1,13 @@
-import { IContainer, PLATFORM } from '@aurelia/kernel';
+import { IContainer, noop } from '@aurelia/kernel';
 import { StyleConfiguration } from '@aurelia/runtime-html';
-import { Cards } from './cards/cards';
-import { LetDemo, SqrtValueConverter } from './let-demo/let-demo';
-import { CameraSpecsViewer } from './specs-viewer/camera-specs-viewer';
-import { LaptopSpecsViewer } from './specs-viewer/laptop-specs-viewer';
-import { SpecsViewer, ViewerValueConverter } from './specs-viewer/specs-viewer';
-import { ThingViewer } from './specs-viewer/thing-viewer';
-import { UserPreference } from './user-preference/user-preference';
-import { RandomGenerator } from './random-generator/random-generator';
+import { Cards } from './cards/cards.js';
+import { LetDemo, SqrtValueConverter } from './let-demo/let-demo.js';
+import { CameraSpecsViewer } from './specs-viewer/camera-specs-viewer.js';
+import { LaptopSpecsViewer } from './specs-viewer/laptop-specs-viewer.js';
+import { SpecsViewer, ViewerValueConverter } from './specs-viewer/specs-viewer.js';
+import { ThingViewer } from './specs-viewer/thing-viewer.js';
+import { UserPreference } from './user-preference/user-preference.js';
+import { RandomGenerator } from './random-generator/random-generator.js';
 
 export interface MolecularConfiguration {
   useCSSModule: boolean;
@@ -46,4 +46,4 @@ function createMolecularConfiguration(customizeConfiguration: MolecularConfigCus
   };
 }
 
-export const molecules = createMolecularConfiguration(PLATFORM.noop);
+export const molecules = createMolecularConfiguration(noop);

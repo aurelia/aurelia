@@ -1,24 +1,22 @@
-import { IContainer } from '@aurelia/kernel';
-import {
-  bindable,
-  INode,
-  LifecycleFlags,
-  customElement,
-  CustomElement,
-  ICompiledCustomElementController,
-  ICustomElementViewModel,
-  ICustomElementController,
-} from '@aurelia/runtime';
-import { IRouter } from '../router';
-import { IViewportOptions, Viewport } from '../viewport';
+import { ILogger } from '@aurelia/kernel';
+import { bindable, customElement, ICustomElementViewModel, IHydratedController, LifecycleFlags, ICustomElementController, ICompiledCustomElementController } from '@aurelia/runtime-html';
 
-export const ParentViewport = CustomElement.createInjectable();
+import { ViewportAgent } from '../viewport-agent.js';
+import { IRouteContext } from '../route-context.js';
 
-@customElement({
-  name: 'au-viewport',
-  injectable: ParentViewport
-})
-export class ViewportCustomElement implements ICustomElementViewModel<Element> {
+export interface IViewport {
+  readonly name: string;
+  readonly usedBy: string;
+  readonly default: string;
+  readonly fallback: string;
+  readonly noScope: boolean;
+  readonly noLink: boolean;
+  readonly noHistory: boolean;
+  readonly stateful: boolean;
+}
+
+@customElement({ name: 'au-viewport' })
+export class ViewportCustomElement implements ICustomElementViewModel, IViewport {
   @bindable public name: string = 'default';
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
@@ -28,118 +26,78 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
   @bindable public noHistory: boolean = false;
   @bindable public stateful: boolean = false;
 
-  public viewport: Viewport | null = null;
-
-  public readonly $controller!: ICustomElementController<Element, this>;
-
-  private readonly element: Element;
-
-  private isBound: boolean = false;
+  private agent: ViewportAgent = (void 0)!;
+  private controller: ICustomElementController = (void 0)!;
 
   public constructor(
-    @IRouter private readonly router: IRouter,
-    @INode element: INode,
-    @IContainer private container: IContainer,
-    @ParentViewport private readonly parentViewport: ViewportCustomElement,
+    @ILogger private readonly logger: ILogger,
+    @IRouteContext private readonly ctx: IRouteContext,
   ) {
-    this.element = element as HTMLElement;
+    this.logger = logger.scopeTo(`au-viewport<${ctx.friendlyPath}>`);
+
+    this.logger.trace('constructor()');
   }
 
-  public afterCompile(controller: ICompiledCustomElementController) {
-    this.container = controller.context.get(IContainer);
-    // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
-    // this.connect();
+  public hydrated(controller: ICompiledCustomElementController): void {
+    this.logger.trace('hydrated()');
+
+    this.controller = controller as ICustomElementController;
+    this.agent = this.ctx.registerViewport(this);
   }
 
-  public afterUnbind(): void {
-    this.isBound = false;
+  public attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+    this.logger.trace('attaching()');
+
+    return this.agent.activateFromViewport(initiator, this.controller, flags);
   }
 
-  public connect(): void {
-    if (this.router.rootScope === null) {
-      return;
-    }
-    const name: string = this.getAttribute('name', this.name) as string;
-    let value: string | boolean | undefined = this.getAttribute('no-scope', this.noScope);
-    const options: IViewportOptions = { scope: value === void 0 || !value ? true : false };
-    value = this.getAttribute('used-by', this.usedBy);
-    if (value !== void 0) {
-      options.usedBy = value as string;
-    }
-    value = this.getAttribute('default', this.default);
-    if (value !== void 0) {
-      options.default = value as string;
-    }
-    value = this.getAttribute('fallback', this.fallback);
-    if (value !== void 0) {
-      options.fallback = value as string;
-    }
-    value = this.getAttribute('no-link', this.noLink, true);
-    if (value !== void 0) {
-      options.noLink = value as boolean;
-    }
-    value = this.getAttribute('no-history', this.noHistory, true);
-    if (value !== void 0) {
-      options.noHistory = value as boolean;
-    }
-    value = this.getAttribute('stateful', this.stateful, true);
-    if (value !== void 0) {
-      options.stateful = value as boolean;
-    }
-    this.viewport = this.router.connectViewport(this.viewport, this.container, name, this.element, options);
-  }
-  public disconnect(): void {
-    if (this.viewport) {
-      this.router.disconnectViewport(this.viewport, this.container, this.element);
-    }
-    this.viewport = null;
+  public detaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+    this.logger.trace('detaching()');
+
+    return this.agent.deactivateFromViewport(initiator, this.controller, flags);
   }
 
-  public beforeBind(flags: LifecycleFlags): void {
-    this.isBound = true;
-    this.connect();
-    if (this.viewport) {
-      this.viewport.beforeBind(flags);
-    }
+  public dispose(): void {
+    this.logger.trace('dispose()');
+
+    this.ctx.unregisterViewport(this);
+    this.agent.dispose();
+    this.agent = (void 0)!;
   }
 
-  public beforeAttach(flags: LifecycleFlags): Promise<void> {
-    if (this.viewport) {
-      return this.viewport.beforeAttach(flags);
-    }
-    return Promise.resolve();
-  }
-
-  public beforeDetach(flags: LifecycleFlags): Promise<void> {
-    if (this.viewport) {
-      return this.viewport.beforeDetach(flags);
-    }
-    return Promise.resolve();
-  }
-
-  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
-    if (this.viewport) {
-      await this.viewport.beforeUnbind(flags);
-      this.disconnect();
-    }
-  }
-
-  private getAttribute(key: string, value: string | boolean, checkExists: boolean = false): string | boolean | undefined {
-    const result: Record<string, string | boolean> = {};
-    if (this.isBound && !checkExists) {
-      return value;
-    } else {
-      if (this.element.hasAttribute(key)) {
-        if (checkExists) {
-          return true;
-        } else {
-          value = this.element.getAttribute(key) as string;
-          if (value.length > 0) {
-            return value;
+  public toString(): string {
+    const propStrings: string[] = [];
+    for (const prop of props) {
+      const value = this[prop];
+      // Only report props that don't have default values (but always report name)
+      // This is a bit naive and dirty right now, but it's mostly for debugging purposes anyway. Can clean up later. Maybe put it in a serializer
+      switch (typeof value) {
+        case 'string':
+          if (value !== '') {
+            propStrings.push(`${prop}:'${value}'`);
           }
+          break;
+        case 'boolean':
+          if (value) {
+            propStrings.push(`${prop}:${value}`);
+          }
+          break;
+        default: {
+          propStrings.push(`${prop}:${String(value)}`);
         }
       }
     }
-    return void 0;
+    return `VP(ctx:'${this.ctx.friendlyPath}',${propStrings.join(',')})`;
   }
 }
+
+const props = [
+  'name',
+  'usedBy',
+  'default',
+  'fallback',
+  'noScope',
+  'noLink',
+  'noHistory',
+  'stateful',
+] as const;

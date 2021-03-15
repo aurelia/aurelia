@@ -1,5 +1,5 @@
 import { DI, LogLevel as $LogLevel } from '@aurelia/kernel';
-import { IHttpContext } from './http-context';
+import { IHttpContext } from './http-context.js';
 
 export const enum Encoding {
   utf8 = 'utf8',
@@ -39,7 +39,7 @@ export interface IHttp2FileServer {
   handleRequest(context: IHttpContext): void;
 }
 
-export const IHttpServerOptions = DI.createInterface<IHttpServerOptions>('IHttpServerOptions').noDefault();
-export const IHttpServer = DI.createInterface<IHttpServer>('IHttpServer').noDefault();
-export const IRequestHandler = DI.createInterface<IRequestHandler>('IRequestHandler').noDefault();
-export const IHttp2FileServer = DI.createInterface<IHttp2FileServer>('IHttp2FileServer').noDefault();
+export const IHttpServerOptions = DI.createInterface<IHttpServerOptions>('IHttpServerOptions');
+export const IHttpServer = DI.createInterface<IHttpServer>('IHttpServer');
+export const IRequestHandler = DI.createInterface<IRequestHandler>('IRequestHandler');
+export const IHttp2FileServer = DI.createInterface<IHttp2FileServer>('IHttp2FileServer');

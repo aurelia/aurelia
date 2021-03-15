@@ -1,36 +1,38 @@
-import { IEventAggregator, IServiceLocator, IContainer, toArray } from '@aurelia/kernel';
+import { toArray } from '@aurelia/kernel';
 import {
   BindingType,
   connectable,
   CustomElement,
   CustomExpression,
-  DOM,
-  ensureExpression,
-  IBindingTargetAccessor,
-  ICallBindingInstruction,
+  Interpolation,
+  LifecycleFlags,
+  IPlatform,
+} from '@aurelia/runtime-html';
+import i18next from 'i18next';
+import { I18N } from '../i18n.js';
+
+import type { ITask, QueueTaskOptions, IContainer, IServiceLocator } from '@aurelia/kernel';
+import {
+  Scope,
+  IsBindingBehavior,
+  IsExpression,
   IConnectableBinding,
   IExpressionParser,
-  Interpolation,
   IObserverLocator,
   IPartialConnectableBinding,
-  IScope,
-  IsExpression,
-  LifecycleFlags,
-  State,
-  INode,
-  IRenderableController,
+  IAccessor,
+  AccessorType,
 } from '@aurelia/runtime';
-import i18next from 'i18next';
-import { I18N } from '../i18n';
-import { Signals } from '../utils';
+import type { CallBindingInstruction, IHydratableController, INode } from '@aurelia/runtime-html';
 
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
   observerLocator: IObserverLocator;
   context: IContainer;
-  controller: IRenderableController;
+  controller: IHydratableController;
   target: HTMLElement;
-  instruction: ICallBindingInstruction;
+  instruction: CallBindingInstruction;
+  platform: IPlatform;
   isParameterContext?: boolean;
 }
 const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'] as const;
@@ -44,36 +46,43 @@ interface ContentValue {
 
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 
-export interface TranslationBinding extends IConnectableBinding {}
+export interface TranslationBinding extends IConnectableBinding { }
+
+const forOpts = { optional: true } as const;
+const taskQueueOpts: QueueTaskOptions = {
+  reusable: false,
+  preempt: true,
+};
 
 @connectable()
 export class TranslationBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
-  public id!: number;
-  public $state: State;
+  public isBound: boolean = false;
   public expr!: IsExpression;
-  public parametersExpr?: IsExpression;
   private readonly i18n: I18N;
   private readonly contentAttributes: readonly string[] = contentAttributes;
   private keyExpression: string | undefined | null;
-  private translationParameters!: i18next.TOptions;
-  private scope!: IScope;
-  private isInterpolatedSourceExpr!: boolean;
-  private readonly targetObservers: Set<IBindingTargetAccessor>;
+  private scope!: Scope;
+  private hostScope: Scope | null = null;
+  private task: ITask | null = null;
+  private isInterpolation!: boolean;
+  private readonly targetAccessors: Set<IAccessor>;
 
-  public readonly target: HTMLElement;
+  public target: HTMLElement;
+  private readonly platform: IPlatform;
+  private parameter: ParameterBinding | null = null;
 
   public constructor(
     target: INode,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
+    platform: IPlatform,
   ) {
     this.target = target as HTMLElement;
-    this.$state = State.none;
     this.i18n = this.locator.get(I18N);
-    const ea: IEventAggregator = this.locator.get(IEventAggregator);
-    ea.subscribe(Signals.I18N_EA_CHANNEL, this.handleLocaleChange.bind(this));
-    this.targetObservers = new Set<IBindingTargetAccessor>();
+    this.platform = platform;
+    this.targetAccessors = new Set<IAccessor>();
+    this.i18n.subscribeLocaleChange(this);
   }
 
   public static create({
@@ -83,15 +92,18 @@ export class TranslationBinding implements IPartialConnectableBinding {
     controller,
     target,
     instruction,
+    platform,
     isParameterContext,
   }: TranslationBindingCreationContext) {
-    const binding = this.getBinding({ observerLocator, context, controller, target });
-    const expr = ensureExpression(parser, instruction.from, BindingType.BindCommand);
-    if (!isParameterContext) {
+    const binding = this.getBinding({ observerLocator, context, controller, target, platform });
+    const expr = typeof instruction.from === 'string'
+      ? parser.parse(instruction.from, BindingType.BindCommand)
+      : instruction.from as IsBindingBehavior;
+    if (isParameterContext) {
+      binding.useParameter(expr);
+    } else {
       const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, BindingType.Interpolation) : undefined;
       binding.expr = interpolation || expr;
-    } else {
-      binding.parametersExpr = expr;
     }
   }
   private static getBinding({
@@ -99,78 +111,80 @@ export class TranslationBinding implements IPartialConnectableBinding {
     context,
     controller,
     target,
+    platform,
   }: Omit<TranslationBindingCreationContext, 'parser' | 'instruction' | 'isParameterContext'>): TranslationBinding {
-    let binding: TranslationBinding | undefined = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
+    let binding: TranslationBinding | null = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
     if (!binding) {
-      binding = new TranslationBinding(target, observerLocator, context);
+      binding = new TranslationBinding(target, observerLocator, context, platform);
       controller.addBinding(binding);
     }
     return binding;
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
-    if (!this.expr) { throw new Error('key expression is missing'); } // TODO replace with error code
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
+    if (!this.expr) { throw new Error('key expression is missing'); }
     this.scope = scope;
-    this.isInterpolatedSourceExpr = this.expr instanceof Interpolation;
+    this.hostScope = hostScope;
+    this.isInterpolation = this.expr instanceof Interpolation;
 
-    this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part) as string;
+    this.keyExpression = this.expr.evaluate(flags, scope, hostScope, this.locator, this) as string;
     this.ensureKeyExpression();
-    if (this.parametersExpr) {
-      const parametersFlags = flags | LifecycleFlags.secondaryExpression;
-      this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, this.locator, part) as i18next.TOptions;
-      this.parametersExpr.connect(parametersFlags, scope, this as any, part);
-    }
-
-    const expressions = !(this.expr instanceof CustomExpression) ? this.isInterpolatedSourceExpr ? (this.expr as Interpolation).expressions : [this.expr] : [];
-
-    for (const expr of expressions) {
-      expr.connect(flags, scope, this as any, part);
-    }
+    this.parameter?.$bind(flags, scope, hostScope);
 
     this.updateTranslations(flags);
-    this.$state = State.isBound;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    this.$state |= State.isUnbinding;
 
-    if (this.expr.unbind) {
-      this.expr.unbind(flags, this.scope, this as any);
+    if (this.expr.hasUnbind) {
+      this.expr.unbind(flags, this.scope, this.hostScope, this as any);
     }
 
-    if (this.parametersExpr && this.parametersExpr.unbind) {
-      this.parametersExpr.unbind(flags | LifecycleFlags.secondaryExpression, this.scope, this as any);
+    this.parameter?.$unbind(flags);
+    this.targetAccessors.clear();
+    if (this.task !== null) {
+      this.task.cancel();
+      this.task = null;
     }
-    this.unobserveTargets(flags);
 
     this.scope = (void 0)!;
-    (this as unknown as IConnectableBinding).unobserve(true);
+    this.obs.clear(true);
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
-    if (flags & LifecycleFlags.secondaryExpression) {
-      // @ToDo, @Fixme: where do we get "part" from (last argument for evaluate)?
-      this.translationParameters = this.parametersExpr!.evaluate(flags, this.scope, this.locator) as i18next.TOptions;
-    } else {
-      this.keyExpression = this.isInterpolatedSourceExpr
-        ? this.expr.evaluate(flags, this.scope, this.locator, '') as string
+    this.obs.version++;
+    this.keyExpression = this.isInterpolation
+        ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this) as string
         : newValue as string;
-      this.ensureKeyExpression();
-    }
+    this.obs.clear(false);
+    this.ensureKeyExpression();
     this.updateTranslations(flags);
   }
 
-  private handleLocaleChange() {
+  public handleLocaleChange() {
+    // todo:
+    // no flag passed, so if a locale is updated during binding of a component
+    // and the author wants to signal that locale change fromBind, then it's a bug
     this.updateTranslations(LifecycleFlags.none);
   }
 
+  public useParameter(expr: IsExpression) {
+    if (this.parameter != null) {
+      throw new Error('This translation parameter has already been specified.');
+    }
+    this.parameter = new ParameterBinding(this, expr, (flags: LifecycleFlags) => this.updateTranslations(flags));
+  }
+
   private updateTranslations(flags: LifecycleFlags) {
-    const results = this.i18n.evaluate(this.keyExpression!, this.translationParameters);
+    const results = this.i18n.evaluate(this.keyExpression!, this.parameter?.value);
     const content: ContentValue = Object.create(null);
-    this.unobserveTargets(flags);
+    const accessorUpdateTasks: AccessorUpdateTask[] = [];
+    const task = this.task;
+    this.targetAccessors.clear();
 
     for (const item of results) {
       const value = item.value;
@@ -179,22 +193,41 @@ export class TranslationBinding implements IPartialConnectableBinding {
         if (this.isContentAttribute(attribute)) {
           content[attribute] = value;
         } else {
-          this.updateAttribute(attribute, value, flags);
+          const controller = CustomElement.for(this.target, forOpts);
+          const accessor = controller && controller.viewModel
+            ? this.observerLocator.getAccessor(controller.viewModel, attribute)
+            : this.observerLocator.getAccessor(this.target, attribute);
+          const shouldQueueUpdate = (flags & LifecycleFlags.fromBind) === 0 && (accessor.type & AccessorType.Layout) > 0;
+          if (shouldQueueUpdate) {
+            accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, flags, this.target, attribute));
+          } else {
+            accessor.setValue(value, flags, this.target, attribute);
+          }
+          this.targetAccessors.add(accessor);
         }
       }
     }
-    if (Object.keys(content).length) {
-      this.updateContent(content, flags);
-    }
-  }
 
-  private updateAttribute(attribute: string, value: string, flags: LifecycleFlags) {
-    const controller = CustomElement.for(this.target);
-    const observer = controller && controller.viewModel
-      ? this.observerLocator.getAccessor(LifecycleFlags.none, controller.viewModel, attribute)
-      : this.observerLocator.getAccessor(LifecycleFlags.none, this.target, attribute);
-    observer.setValue(value, flags);
-    this.targetObservers.add(observer);
+    let shouldQueueContent = false;
+    if (Object.keys(content).length > 0) {
+      shouldQueueContent = (flags & LifecycleFlags.fromBind) === 0;
+      if (!shouldQueueContent) {
+        this.updateContent(content, flags);
+      }
+    }
+
+    if (accessorUpdateTasks.length > 0 || shouldQueueContent) {
+      this.task = this.platform.domWriteQueue.queueTask(() => {
+        this.task = null;
+        for (const updateTask of accessorUpdateTasks) {
+          updateTask.run();
+        }
+        if (shouldQueueContent) {
+          this.updateContent(content, flags);
+        }
+      }, taskQueueOpts);
+    }
+    task?.cancel();
   }
 
   private preprocessAttributes(attributes: string[]) {
@@ -241,7 +274,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   private prepareTemplate(content: ContentValue, marker: string, fallBackContents: ChildNode[]) {
-    const template = DOM.createTemplate() as HTMLTemplateElement;
+    const template = this.platform.document.createElement('template');
 
     this.addContentToTemplate(template, content.prepend, marker);
 
@@ -258,8 +291,9 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
   private addContentToTemplate(template: HTMLTemplateElement, content: string | undefined, marker: string) {
     if (content !== void 0 && content !== null) {
-      const addendum = DOM.createDocumentFragment(content) as Node;
-      for (const child of toArray(addendum.childNodes)) {
+      const parser = this.platform.document.createElement('div');
+      parser.innerHTML = content;
+      for (const child of toArray(parser.childNodes)) {
         Reflect.set(child, marker, true);
         template.content.append(child);
       }
@@ -268,20 +302,85 @@ export class TranslationBinding implements IPartialConnectableBinding {
     return false;
   }
 
-  private unobserveTargets(flags: LifecycleFlags) {
-    for (const observer of this.targetObservers) {
-      if (observer.unbind) {
-        observer.unbind(flags);
-      }
-    }
-    this.targetObservers.clear();
-  }
-
   private ensureKeyExpression() {
-    const expr = this.keyExpression = this.keyExpression ?? '';
+    const expr = this.keyExpression ??= '';
     const exprType = typeof expr;
     if (exprType !== 'string') {
       throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger
     }
+  }
+}
+
+class AccessorUpdateTask {
+  public constructor(
+    private readonly accessor: IAccessor,
+    private readonly v: unknown,
+    private readonly f: LifecycleFlags,
+    private readonly el: HTMLElement,
+    private readonly attr: string
+  ) {}
+
+  public run(): void {
+    this.accessor.setValue(this.v, this.f, this.el, this.attr);
+  }
+}
+
+interface ParameterBinding extends IConnectableBinding {}
+
+@connectable()
+class ParameterBinding {
+
+  public interceptor = this;
+
+  public value!: i18next.TOptions;
+  public readonly observerLocator: IObserverLocator;
+  public readonly locator: IServiceLocator;
+  public isBound: boolean = false;
+
+  private scope!: Scope;
+  private hostScope: Scope | null = null;
+
+  public constructor(
+    public readonly owner: TranslationBinding,
+    public readonly expr: IsExpression,
+    public readonly updater: (flags: LifecycleFlags) => void,
+  ) {
+    this.observerLocator = owner.observerLocator;
+    this.locator = owner.locator;
+  }
+
+  public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
+    this.obs.version++;
+    this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this) as i18next.TOptions;
+    this.obs.clear(false);
+    this.updater(flags);
+  }
+
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
+    if (this.isBound) {
+      return;
+    }
+    this.scope = scope;
+    this.hostScope = hostScope;
+
+    if (this.expr.hasBind) {
+      this.expr.bind(flags, scope, hostScope, this);
+    }
+
+    this.value = this.expr.evaluate(flags, scope, hostScope, this.locator, this) as i18next.TOptions;
+    this.isBound = true;
+  }
+
+  public $unbind(flags: LifecycleFlags) {
+    if (!this.isBound) {
+      return;
+    }
+
+    if (this.expr.hasUnbind) {
+      this.expr.unbind(flags, this.scope, this.hostScope, this);
+    }
+
+    this.scope = (void 0)!;
+    this.obs.clear(true);
   }
 }

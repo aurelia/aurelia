@@ -1,26 +1,28 @@
 import { IContainer } from '@aurelia/kernel';
-import {
-  attributePattern,
-  AttrSyntax,
-  bindingCommand,
-  BindingSymbol,
-  getTarget,
-  BindingCommandInstance,
-  PlainAttributeSymbol
-} from '@aurelia/jit';
+import { TranslationBinding } from './translation-binding.js';
 import {
   BindingMode,
   BindingType,
-  ICallBindingInstruction,
-  IRenderableController,
+  IHydratableController,
   IExpressionParser,
-  IInstructionRenderer,
-  instructionRenderer,
+  IRenderer,
+  renderer,
   IObserverLocator,
   IsBindingBehavior,
-  LifecycleFlags
-} from '@aurelia/runtime';
-import { TranslationBinding } from './translation-binding';
+  LifecycleFlags,
+  attributePattern,
+  AttrSyntax,
+  bindingCommand,
+  getTarget,
+  IPlatform,
+} from '@aurelia/runtime-html';
+
+import type {
+  CallBindingInstruction,
+  BindingSymbol,
+  BindingCommandInstance,
+  PlainAttributeSymbol,
+} from '@aurelia/runtime-html';
 
 export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
@@ -52,20 +54,21 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
   }
 }
 
-@instructionRenderer(TranslationParametersInstructionType)
-export class TranslationParametersBindingRenderer implements IInstructionRenderer {
+@renderer(TranslationParametersInstructionType)
+export class TranslationParametersBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IPlatform private readonly platform: IPlatform,
   ) { }
 
   public render(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IRenderableController,
+    controller: IHydratableController,
     target: HTMLElement,
-    instruction: ICallBindingInstruction,
+    instruction: CallBindingInstruction,
   ): void {
-    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
+    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true, platform: this.platform });
   }
 }

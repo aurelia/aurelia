@@ -1,10 +1,5 @@
-// import {
-//   Serializer,
-//   Unparser,
-// } from '@aurelia/debug';
-import { IElementProjector, If, Repeat, Replaceable, TargetedInstructionType, With, ICustomElementController, ViewModelKind, ISyntheticView } from '@aurelia/runtime';
-import { Compose, HTMLTargetedInstructionType } from '@aurelia/runtime-html';
-import { assert } from './assert';
+import { InstructionType, NodeType, CustomElement } from '@aurelia/runtime-html';
+import { assert } from './assert.js';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
 
@@ -64,87 +59,61 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
   }
 }
 
-export function getVisibleText(root: ICustomElementController, host: Node, removeWhiteSpace?: boolean): string | null {
-  const context = { text: host.textContent };
-  $getVisibleText(root, context);
-  const text = context.text;
+function nextAncestor(host: Node, node: Node): Node | null {
+  const parent = node.parentNode ?? (node as ShadowRoot).host ?? null;
+  if (parent === null || parent === host) {
+    return null;
+  }
+  return parent.nextSibling ?? nextAncestor(host, parent);
+}
+
+function nextNode(host: Node, node: Node): Node | null {
+  return CustomElement.for(node, { optional: true })?.shadowRoot?.firstChild ?? node.firstChild ?? node.nextSibling ?? nextAncestor(host, node);
+}
+
+export function getVisibleText(host: Node, removeWhiteSpace?: boolean): string | null {
+  let text = '';
+  let cur = CustomElement.for(host, { optional: true })?.shadowRoot?.firstChild ?? host.firstChild as Node | null;
+  while (cur !== null) {
+    if (cur.nodeType === NodeType.Text) {
+      text += (cur as Text).data;
+    }
+    cur = nextNode(host, cur);
+  }
   return removeWhiteSpace && text ? text.replace(/\s\s+/g, ' ').trim() : text;
 }
 
-function isShadowDOMProjector(projector: IElementProjector | undefined): projector is IElementProjector & { shadowRoot: ShadowRoot } {
-  return projector != void 0 && 'shadowRoot' in projector;
-}
-
-function $getVisibleText(root: ICustomElementController | ISyntheticView, context: { text: string | null}): void {
-  if (root == void 0) {
-    return;
-  }
-
-  const { controllers } = root;
-  if (controllers == void 0) {
-    return;
-  }
-  const { length } = controllers;
-  let controller;
-  for (let i = 0; i < length; ++i) {
-    controller = controllers[i];
-    switch (controller.vmKind) {
-      case ViewModelKind.customElement:
-        if (isShadowDOMProjector(controller.projector)) {
-          context.text += controller.projector.shadowRoot.textContent!;
-          $getVisibleText(controller, context);
-        } else if (controller.viewModel instanceof Compose) {
-          $getVisibleText((controller.viewModel as Compose).view!, context);
-        }
-        break;
-      case ViewModelKind.customAttribute:
-        if (controller.viewModel instanceof Replaceable) {
-          $getVisibleText((controller.viewModel as Replaceable).view, context);
-        } else if (controller.viewModel instanceof With) {
-          $getVisibleText((controller.viewModel as With).view, context);
-        } else if (controller.viewModel instanceof If) {
-          $getVisibleText((controller.viewModel as If).view!, context);
-        } else if (controller.viewModel instanceof Repeat) {
-          for (const view of (controller.viewModel as Repeat).views) {
-            $getVisibleText(view, context);
-          }
-        }
-        break;
-    }
-  }
-}
-
-export function targetedInstructionTypeName(type: string): string {
+export function instructionTypeName(type: string): string {
   switch (type) {
-    case HTMLTargetedInstructionType.textBinding:
+    case InstructionType.textBinding:
       return 'textBinding';
-    case TargetedInstructionType.interpolation:
+    case InstructionType.interpolation:
       return 'interpolation';
-    case TargetedInstructionType.propertyBinding:
+    case InstructionType.propertyBinding:
       return 'propertyBinding';
-    case TargetedInstructionType.iteratorBinding:
+    case InstructionType.iteratorBinding:
       return 'iteratorBinding';
-    case HTMLTargetedInstructionType.listenerBinding:
+    case InstructionType.listenerBinding:
       return 'listenerBinding';
-    case TargetedInstructionType.callBinding:
+    case InstructionType.callBinding:
       return 'callBinding';
-    case TargetedInstructionType.refBinding:
+    case InstructionType.refBinding:
       return 'refBinding';
-    case HTMLTargetedInstructionType.stylePropertyBinding:
+    case InstructionType.stylePropertyBinding:
       return 'stylePropertyBinding';
-    case TargetedInstructionType.setProperty:
+    case InstructionType.setProperty:
       return 'setProperty';
-    case HTMLTargetedInstructionType.setAttribute:
+    case InstructionType.setAttribute:
       return 'setAttribute';
-    case TargetedInstructionType.hydrateElement:
+    case InstructionType.hydrateElement:
       return 'hydrateElement';
-    case TargetedInstructionType.hydrateAttribute:
+    case InstructionType.hydrateAttribute:
       return 'hydrateAttribute';
-    case TargetedInstructionType.hydrateTemplateController:
+    case InstructionType.hydrateTemplateController:
       return 'hydrateTemplateController';
-    case TargetedInstructionType.hydrateLetElement:
+    case InstructionType.hydrateLetElement:
       return 'hydrateLetElement';
-    case TargetedInstructionType.letBinding:
+    case InstructionType.letBinding:
       return 'letBinding';
     default:
       return type;
@@ -178,8 +147,8 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
           actual = JSON.stringify(actual);
         }
         if (path.endsWith('type')) {
-          expected = targetedInstructionTypeName(expected);
-          actual = targetedInstructionTypeName(actual);
+          expected = instructionTypeName(expected);
+          actual = instructionTypeName(actual);
         }
         errors.push(`WRONG: ${path} === ${actual} (expected: ${expected})`);
       }

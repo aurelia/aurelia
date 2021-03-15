@@ -1,5 +1,5 @@
 import { Constructable, Protocol, Metadata, Class, DI, toArray } from '@aurelia/kernel';
-import { IInterpolationExpression, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import {
   IValidateable,
   IValidationRule,
@@ -11,7 +11,7 @@ import {
   IEqualsRule,
   IValidationVisitor,
   ValidationDisplayNameAccessor,
-} from './rule-interfaces';
+} from './rule-interfaces.js';
 
 /**
  * Retrieves validation messages and property display names.
@@ -20,22 +20,22 @@ export interface IValidationMessageProvider {
   /**
    * Gets the parsed message for the `rule`.
    */
-  getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
+  getMessage(rule: IValidationRule): Interpolation | PrimitiveLiteralExpression;
   /**
    * Gets the parsed message for the `rule`.
    */
-  setMessage(rule: IValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression;
+  setMessage(rule: IValidationRule, message: string): Interpolation | PrimitiveLiteralExpression;
   /**
    * Core message parsing function.
    */
-  parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression;
+  parseMessage(message: string): Interpolation | PrimitiveLiteralExpression;
   /**
    * Formulates a property display name using the property name and the configured displayName (if provided).
    */
   getDisplayName(propertyName: string | number | undefined, displayName?: string | null | ValidationDisplayNameAccessor): string | undefined;
 }
 
-export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>('IValidationMessageProvider').noDefault();
+export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>('IValidationMessageProvider');
 
 export interface ValidationRuleAlias {
   name: string;

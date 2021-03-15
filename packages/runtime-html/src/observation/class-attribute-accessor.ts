@@ -1,18 +1,11 @@
-import {
-  IAccessor,
-  LifecycleFlags,
-  IScheduler,
-  ITask,
-  INode,
-} from '@aurelia/runtime';
-import { PLATFORM } from '@aurelia/kernel';
+import { emptyArray } from '@aurelia/kernel';
+import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
+
+import type { IAccessor } from '@aurelia/runtime';
 
 export class ClassAttributeAccessor implements IAccessor {
-  public readonly obj: HTMLElement;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
-
-  public readonly persistentFlags: LifecycleFlags;
 
   public readonly doNotCache: true = true;
   public nameIndex: Record<string, number> = {};
@@ -20,38 +13,33 @@ export class ClassAttributeAccessor implements IAccessor {
 
   public hasChanges: boolean = false;
   public isActive: boolean = false;
-  public task: ITask | null = null;
+  public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
-    public readonly scheduler: IScheduler,
-    flags: LifecycleFlags,
-    obj: INode,
+    public readonly obj: HTMLElement
   ) {
-    this.obj = obj as HTMLElement;
-    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): unknown {
+    // is it safe to assume the observer has the latest value?
+    // todo: ability to turn on/off cache based on type
     return this.currentValue;
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    if ((flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
     }
   }
+
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue, nameIndex } = this;
-      let { version } = this;
+      const currentValue = this.currentValue;
+      const nameIndex = this.nameIndex;
+      let version = this.version;
       this.oldValue = currentValue;
 
       const classesToAdd = getClassesToAdd(currentValue as any);
@@ -84,22 +72,6 @@ export class ClassAttributeAccessor implements IAccessor {
     }
   }
 
-  public bind(flags: LifecycleFlags): void {
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      if (this.task !== null) {
-        this.task.cancel();
-      }
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    }
-  }
-
-  public unbind(flags: LifecycleFlags): void {
-    if (this.task !== null) {
-      this.task.cancel();
-      this.task = null;
-    }
-  }
-
   private addClassesAndUpdateIndex(classes: string[]) {
     const node = this.obj;
     for (let i = 0, ii = classes.length; i < ii; i++) {
@@ -114,17 +86,11 @@ export class ClassAttributeAccessor implements IAccessor {
 }
 
 export function getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
-
-  function splitClassString(classString: string): string[] {
-    const matches = classString.match(/\S+/g);
-    if (matches === null) {
-      return PLATFORM.emptyArray;
-    }
-    return matches;
-  }
-
   if (typeof object === 'string') {
     return splitClassString(object);
+  }
+  if (typeof object !== 'object') {
+    return emptyArray;
   }
 
   if (object instanceof Array) {
@@ -136,23 +102,29 @@ export function getClassesToAdd(object: Record<string, unknown> | [] | string): 
       }
       return classes;
     } else {
-      return PLATFORM.emptyArray;
+      return emptyArray;
     }
-  } else if (object instanceof Object) {
-    const classes: string[] = [];
-    for (const property in object) {
-      // Let non typical values also evaluate true so disable bool check
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
-      if (Boolean(object[property])) {
-        // We must do this in case object property has a space in the name which results in two classes
-        if (property.includes(' ')) {
-          classes.push(...splitClassString(property));
-        } else {
-          classes.push(property);
-        }
+  }
+
+  const classes: string[] = [];
+  for (const property in object) {
+    // Let non typical values also evaluate true so disable bool check
+    if (Boolean(object[property])) {
+      // We must do this in case object property has a space in the name which results in two classes
+      if (property.includes(' ')) {
+        classes.push(...splitClassString(property));
+      } else {
+        classes.push(property);
       }
     }
-    return classes;
   }
-  return PLATFORM.emptyArray;
+  return classes;
+}
+
+function splitClassString(classString: string): string[] {
+  const matches = classString.match(/\S+/g);
+  if (matches === null) {
+    return emptyArray;
+  }
+  return matches;
 }

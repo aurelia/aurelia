@@ -1,43 +1,25 @@
-import {
-  HTMLTestContext,
-  TestContext,
-} from '@aurelia/testing';
-import {
-  JitHtmlJsdomConfiguration
-} from '@aurelia/jit-html-jsdom';
-import {
-  Reporter,
-  LogLevel,
-} from '@aurelia/kernel';
+import { noop } from '@aurelia/kernel';
+import { BrowserPlatform } from '@aurelia/platform-browser';
 import { JSDOM } from 'jsdom';
+import { $setup } from './setup-shared.js';
 
-Reporter.level = LogLevel.error;
+const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
 
-function createJSDOMTestContext(): HTMLTestContext {
-  const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
-
-  return HTMLTestContext.create(
-    JitHtmlJsdomConfiguration,
-    jsdom.window,
-    jsdom.window.UIEvent,
-    jsdom.window.Event,
-    jsdom.window.CustomEvent,
-    jsdom.window.Node,
-    jsdom.window.Element,
-    jsdom.window.HTMLElement,
-    jsdom.window.HTMLDivElement,
-    jsdom.window.Text,
-    jsdom.window.Comment,
-    jsdom.window.DOMParser,
-    jsdom.window.CSSStyleSheet,
-    (jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
-  );
+const p = Promise.resolve();
+function $queueMicrotask(cb: () => void): void {
+  p.then(cb).catch(function (err) {
+    throw err;
+  });
 }
+const w = Object.assign(jsdom.window as unknown as Window & typeof globalThis);
+const platform = new BrowserPlatform(w, {
+  queueMicrotask: typeof w.queueMicrotask === 'function'
+    ? w.queueMicrotask.bind(w)
+    : $queueMicrotask,
+  fetch: typeof w.fetch === 'function'
+    ? w.fetch.bind(w)
+    : noop as any,
+});
+$setup(platform);
 
-function initializeJSDOMTestContext(): void {
-  TestContext.createHTMLTestContext = createJSDOMTestContext;
-  // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
-  TestContext.createHTMLTestContext().dom.createElement('div');
-}
-
-initializeJSDOMTestContext();
+console.log(`Node JSDOM test context initialized`);

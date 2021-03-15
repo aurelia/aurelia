@@ -1,0 +1,15 @@
+<div if.bind="showDetails" class="details-container">
+  <div repeat.for="item of addresses" with.bind="{address: item.address}">
+    ${address.street} ${address.houseNumber}<br>
+    ${address.pin} ${address.city} <br>
+    ${address.country}
+    <div class="types-container">
+      <span repeat.for="type of item | getAllTypes" class="type-badge">${type}</span>
+    </div>
+  </div>
+</div>
+<ul else class="summary">
+  <li repeat.for="item of addresses" with.bind="{address: item.address}">
+    ${address.city}, ${address.country}
+  </li>
+</ul>

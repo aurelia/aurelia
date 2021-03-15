@@ -1,30 +1,30 @@
+import { IServiceLocator } from '@aurelia/kernel';
 import {
-  IServiceLocator,
-  Reporter,
-} from '@aurelia/kernel';
-import {
-  AccessorOrObserver,
   BindingMode,
   connectable,
   ExpressionKind,
-  hasBind,
-  hasUnbind,
-  IBindingTargetObserver,
+  LifecycleFlags,
+  AccessorType,
+  IObserver,
+} from '@aurelia/runtime';
+
+import { AttributeObserver } from '../observation/element-attribute-observer.js';
+import { IPlatform } from '../platform.js';
+import { CustomElementDefinition } from '../resources/custom-element.js';
+import { BindingTargetSubscriber } from './binding-utils.js';
+
+import type {
   IConnectableBinding,
-  IForOfStatement,
+  ForOfStatement,
   IObserverLocator,
   IPartialConnectableBinding,
   IsBindingBehavior,
-  IScope,
-  LifecycleFlags,
-  State,
-  IScheduler,
-  INode,
+  ITask,
+  QueueTaskOptions,
+  Scope,
 } from '@aurelia/runtime';
-import {
-  AttributeObserver,
-  IHtmlElement,
-} from '../observation/element-attribute-observer';
+import type { IHtmlElement } from '../observation/element-attribute-observer.js';
+import type { INode } from '../dom.js';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -32,33 +32,40 @@ const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
 
+const taskOptions: QueueTaskOptions = {
+  reusable: false,
+  preempt: true,
+};
+
 export interface AttributeBinding extends IConnectableBinding {}
 
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
-@connectable()
 export class AttributeBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
-  public id!: number;
-  public $state: State = State.none;
-  public $scheduler: IScheduler;
-  public $scope: IScope = null!;
-  public part?: string;
+  public isBound: boolean = false;
+  public $platform: IPlatform;
+  public $scope: Scope = null!;
+  public $hostScope: Scope | null = null;
+  public projection?: CustomElementDefinition;
+  public task: ITask | null = null;
+  private targetSubscriber: BindingTargetSubscriber | null = null;
 
   /**
    * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
    */
 
-  public targetObserver!: AccessorOrObserver;
+  public targetObserver!: IObserver;
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public target: Element;
+  public value: unknown = void 0;
 
   public constructor(
-    public sourceExpression: IsBindingBehavior | IForOfStatement,
+    public sourceExpression: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
     // such as class -> collection of class names
@@ -72,146 +79,144 @@ export class AttributeBinding implements IPartialConnectableBinding {
     public locator: IServiceLocator,
   ) {
     this.target = target as Element;
-    connectable.assignIdTo(this);
-    this.$scheduler = locator.get(IScheduler);
+    this.$platform = locator.get(IPlatform);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
+    this.targetObserver.setValue(value, flags, this.target, this.targetProperty);
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
+    this.sourceExpression.assign!(flags, this.$scope, this.$hostScope, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
 
     flags |= this.persistentFlags;
 
-    if (this.mode === BindingMode.fromView) {
-      flags &= ~LifecycleFlags.updateTargetInstance;
-      flags |= LifecycleFlags.updateSourceExpression;
+    const mode = this.mode;
+    const interceptor = this.interceptor;
+    const sourceExpression = this.sourceExpression;
+    const $scope = this.$scope;
+    const locator = this.locator;
+    const targetObserver = this.targetObserver;
+    // Alpha: during bind a simple strategy for bind is always flush immediately
+    // todo:
+    //  (1). determine whether this should be the behavior
+    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
+    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+
+    if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.obs.count > 1) {
+      const shouldConnect = (mode & oneTime) === 0;
+      if (shouldConnect) {
+        this.obs.version++;
+      }
+      newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
+      if (shouldConnect) {
+        this.obs.clear(false);
+      }
     }
 
-    if (flags & LifecycleFlags.updateTargetInstance) {
-      const previousValue = this.targetObserver.getValue();
-      // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-      if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
+    let task: ITask | null;
+    if (newValue !== this.value) {
+      this.value = newValue;
+      if (shouldQueueFlush) {
+        // Queue the new one before canceling the old one, to prevent early yield
+        task = this.task;
+        this.task = this.$platform.domWriteQueue.queueTask(() => {
+          this.task = null;
+          interceptor.updateTarget(newValue, flags);
+        }, taskOptions);
+        task?.cancel();
+      } else {
+        interceptor.updateTarget(newValue, flags);
       }
-      if (newValue !== previousValue) {
-        this.interceptor.updateTarget(newValue, flags);
-      }
-      if ((this.mode & oneTime) === 0) {
-        this.version++;
-        this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
-        this.interceptor.unobserve(false);
-      }
-      return;
     }
-
-    if (flags & LifecycleFlags.updateSourceExpression) {
-      if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
-        this.interceptor.updateSource(newValue, flags);
-      }
-      return;
-    }
-
-    throw Reporter.error(15, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (this.$state & State.isBound) {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, projection?: CustomElementDefinition): void {
+    if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
-    // add isBinding flag
-    this.$state |= State.isBinding;
 
     // Store flags which we can only receive during $bind and need to pass on
     // to the AST during evaluate/connect/assign
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
 
     this.$scope = scope;
-    this.part = part;
+    this.$hostScope = hostScope;
+    this.projection = projection;
 
     let sourceExpression = this.sourceExpression;
-    if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+    if (sourceExpression.hasBind) {
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
-    let targetObserver = this.targetObserver as IBindingTargetObserver;
+    let targetObserver = this.targetObserver as IObserver;
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
-        this.$scheduler,
-        flags,
+        this.$platform,
         this.observerLocator,
         this.target as IHtmlElement,
         this.targetProperty,
         this.targetAttribute,
       );
     }
-    if (targetObserver.bind) {
-      targetObserver.bind(flags);
-    }
 
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
-    if (this.mode & toViewOrOneTime) {
-      this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+    const $mode = this.mode;
+    const interceptor = this.interceptor;
+
+    if ($mode & toViewOrOneTime) {
+      const shouldConnect = ($mode & toView) > 0;
+      interceptor.updateTarget(
+        this.value = sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null),
+        flags
+      );
     }
-    if (this.mode & toView) {
-      sourceExpression.connect(flags, scope, this, part);
-    }
-    if (this.mode & fromView) {
-      (targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] |= LifecycleFlags.updateSourceExpression;
-      targetObserver.subscribe(this.interceptor);
+    if ($mode & fromView) {
+      targetObserver.subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor));
     }
 
-    // add isBound flag and remove isBinding flag
-    this.$state |= State.isBound;
-    this.$state &= ~State.isBinding;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    // add isUnbinding flag
-    this.$state |= State.isUnbinding;
 
     // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
 
-    if (hasUnbind(this.sourceExpression)) {
-      this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
+    if (this.sourceExpression.hasUnbind) {
+      this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
     }
-    this.$scope = null!;
+    this.$scope
+      = this.$hostScope
+      = null!;
+    this.value = void 0;
 
-    if ((this.targetObserver as IBindingTargetObserver).unbind) {
-      (this.targetObserver as IBindingTargetObserver).unbind!(flags);
+    if (this.targetSubscriber) {
+      (this.targetObserver as IObserver).unsubscribe(this.targetSubscriber);
     }
-    if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
-      (this.targetObserver as IBindingTargetObserver).unsubscribe(this.interceptor);
-      (this.targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] &= ~LifecycleFlags.updateSourceExpression;
-    }
-    this.interceptor.unobserve(true);
+
+    this.task?.cancel();
+    this.task = null;
+    this.obs.clear(true);
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(State.isBound | State.isUnbinding);
-  }
-
-  public connect(flags: LifecycleFlags): void {
-    if (this.$state & State.isBound) {
-      flags |= this.persistentFlags;
-      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.interceptor, this.part); // why do we have a connect method here in the first place? will this be called after bind?
-    }
+    this.isBound = false;
   }
 }
+
+connectable(AttributeBinding);

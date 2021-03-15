@@ -1,7 +1,7 @@
-import { valueConverter } from '@aurelia/runtime';
+import { valueConverter } from '@aurelia/runtime-html';
 import i18next from 'i18next';
-import { I18N } from '../i18n';
-import { Signals, ValueConverters } from '../utils';
+import { I18N } from '../i18n.js';
+import { Signals, ValueConverters } from '../utils.js';
 
 @valueConverter(ValueConverters.translationValueConverterName)
 export class TranslationValueConverter {

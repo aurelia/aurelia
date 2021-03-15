@@ -1,4 +1,4 @@
-/* eslint-disable mocha/no-hooks,no-template-curly-in-string,mocha/no-sibling-hooks */
+/* eslint-disable mocha/no-hooks,mocha/no-sibling-hooks */
 import {
   IExpressionParser,
   BindingType,
@@ -28,7 +28,7 @@ import { Deserializer, Serializer } from '@aurelia/validation';
 
 describe('expression-de/serialization', function () {
   function setup() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     return ctx.container.get(IExpressionParser);
   }
   const list = [

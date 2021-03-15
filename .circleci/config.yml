@@ -41,7 +41,7 @@ map-5: &filter_only_tag
     branches:
       ignore: /.*/
     tags:
-      only: /^v[0-9]+(\.[0-9]+)*$/
+      only: /^v[0-9]+(\.[0-9]+)*(-[\w]+\.[0-9]+)?$/
 
 map-6: &filter_only_topic
   filters:
@@ -62,15 +62,11 @@ executors:
     parameters:
       node:
         type: string
-        default: "12.10.0"
+        default: "15.4.0"
     working_directory: *working_dir
     docker:
-      - image: "circleci/node:<< parameters.node >>-stretch-browsers"
+      - image: "circleci/node:<< parameters.node >>-buster-browsers"
 
-  docker-aurelia:
-    working_directory: *working_dir
-    docker:
-      - image: "aureliaeffect/circleci-v2:latest"
 # # # # # # # # # # # # # # # #
 # - Commands -
 # # # # # # # # # # # # # # # #
@@ -79,15 +75,10 @@ commands:
   checkout_install:
     steps:
       - checkout
-      - run: npm ci --ignore-scripts
+      - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
+      - run: npm ci
 
-  checkout_install_bootstrap:
-    steps:
-      - checkout
-      - run: npm ci --ignore-scripts
-      - run: npm run bootstrap
-
-  checkout_install_bootstrap_build_bundle_publish_verdaccio:
+  checkout_install_build_bundle_publish_verdaccio:
     parameters:
       from:
         type: string
@@ -103,18 +94,20 @@ commands:
         default: "http://localhost:4873"
     steps:
       - common/configure_git
-      - checkout_install_bootstrap
+      - checkout_install
       - run: npm run build:release
-      - run: npm run change-tsconfigs:overwrite:umd
+      - run: npm run change-tsconfigs:invert
       - run: npm run build:release
       - run: npm run change-tsconfigs:restore
+      - run: npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>
           channel: << parameters.channel >>
           suffix: << parameters.suffix >>
       - common/setup_verdaccio
-      - run: npm run publish:<< parameters.channel >> -- << parameters.suffix >> << parameters.registry >>
+      - run: npm config set registry << parameters.registry >>
+      - run: npm run publish:<< parameters.channel >>
 
   clean_merge_commit_dist:
     parameters:
@@ -137,8 +130,7 @@ commands:
         type: boolean
         default: true
     steps:
-      - run: set -o pipefail && ./node_modules/.bin/lerna clean -y
-      - run: set -o pipefail && git add packages/*/dist --force && git status
+      - run: set -o pipefail && git add packages/*/dist packages-cjs/*/dist --force && git status
       - run: set -o pipefail && git stash && git status
       - when:
           condition: << parameters.merge_topic >>
@@ -148,11 +140,11 @@ commands:
       - run: set -o pipefail && git checkout << parameters.to >> && git status
       - run: set -o pipefail && git reset --hard origin/<< parameters.to >> && git status
       - run: set -o pipefail && git merge << parameters.from >> --no-ff --no-edit -Xtheirs && git status
-      - run: set -o pipefail && rm -rf packages/*/dist && git status
+      - run: set -o pipefail && rm -rf packages/*/dist packages-cjs/*/dist && git status
       - run: set -o pipefail && git add . && git status
       - run: set -o pipefail && git checkout stash -- . && git status
-      - run: set -o pipefail && git add packages/*/dist --force && git status
-      - run: set -o pipefail && npm run change-package-refs:release
+      - run: set -o pipefail && git add packages/*/dist packages-cjs/*/dist --force && git status
+      - run: set -o pipefail && npm run change-package-refs:release -- none
       - when:
           condition: << parameters.bump_version >>
           steps:
@@ -165,7 +157,7 @@ commands:
 # # # # # # # # # # # # # # # #
 jobs:
 
-  unit_test:
+  unit_test_esm:
     parameters:
       coverage:
         type: boolean
@@ -173,15 +165,44 @@ jobs:
       npm_command:
         type: string
         default: "test"
-      e:
-        type: executor
+    executor: docker-circleci
+    steps:
+      - checkout_install
+      - run: npm run build
+      - run:
+          name: "Run unit tests"
+          command: |
+            cd packages/__tests__
+            npm run << parameters.npm_command >>
+      - when:
+          condition: << parameters.coverage >>
+          steps:
+            - run:
+                name: "Process coverage for Codecov"
+                command: |
+                  node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
+                when: always
+            - store_test_results:
+                path: packages/__tests__/coverage
+            - store_artifacts:
+                path: packages/__tests__/coverage
+
+  unit_test_cjs:
+    parameters:
+      npm_command:
+        type: string
+        default: "test"
       submodules:
         type: boolean
         default: false
-    executor: << parameters.e >>
+    executor: docker-circleci
     steps:
-      - checkout_install_bootstrap
+      - checkout_install
       - run: npm run build
+      - run: npm run change-tsconfigs:invert
+      - run: npm run build
+      - run: npm run change-tsconfigs:restore
+      - run: npm run change-package-refs:release -- none
       - when:
           condition: << parameters.submodules >>
           steps:
@@ -193,101 +214,19 @@ jobs:
       - run:
           name: "Run unit tests"
           command: |
-            cd packages/__tests__
+            cd packages-cjs/__tests__
             npm run << parameters.npm_command >>
-      - when:
-          condition: << parameters.coverage >>
-          steps:
-            - run:
-                name: "Process coverage results for Code Climate"
-                command: |
-                  curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ~/cc-test-reporter && chmod +x ~/cc-test-reporter
-                  ~/cc-test-reporter format-coverage packages/__tests__/coverage/lcov.info -t lcov -o packages/__tests__/coverage/cc-final.json
-                  ~/cc-test-reporter upload-coverage -i packages/__tests__/coverage/cc-final.json
-                environment:
-                  CC_TEST_REPORTER_ID: 29ad19bd108faacbd91b36265a5b5e891b404571ebf937f40655157877aa71a1
-                when: always
-            - run:
-                name: "Process coverage for Codecov"
-                command: |
-                  node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
-                when: always
-            - store_test_results:
-                path: packages/__tests__/coverage
-            - store_artifacts:
-                path: packages/__tests__/coverage
-
-  js_framework_benchmark:
-    executor: docker-circleci
-    steps:
-      #- checkout_install_bootstrap_build_bundle_publish_verdaccio:
-      #    from: ${CIRCLE_BRANCH}
-      #    to: develop
-      #    channel: dev
-      #    suffix: "-${CIRCLE_BUILD_NUM}"
-      - common/configure_git
-      - checkout_install_bootstrap
-      - run: npm run build:release
-      - run:
-          name: "Install js-framework-benchmark"
-          command: |
-            cd test/js-framework-benchmark
-            npm i
-      - run:
-          name: "Serve test app"
-          background: true
-          command: |
-            cd test/js-framework-benchmark
-            npm run start
-      - run:
-          name: "Install & build webdriver-ts"
-          command: |
-            cd test/js-framework-benchmark/webdriver-ts
-            npm i
-            npm run build-prod
-      - run:
-          name: "Install webdriver-ts-results"
-          command: |
-            cd test/js-framework-benchmark/webdriver-ts-results
-            npm i
-      - run:
-          name: "Run the benchmark"
-          command: |
-            cd test/js-framework-benchmark
-            npm run build -- --check
-      - run:
-          name: "Create the results"
-          command: |
-            cd test/js-framework-benchmark/webdriver-ts
-            node dist/createResultJS.js
-      - run:
-          name: "Build webdriver-ts-results"
-          command: |
-            cd test/js-framework-benchmark/webdriver-ts-results
-            npm run build-prod
-      - run:
-          name: "Run webdriver-ts index"
-          command: |
-            cd test/js-framework-benchmark/webdriver-ts
-            node dist/createIndex.js
-      - store_test_results:
-          path: test/js-framework-benchmark/webdriver-ts-results/table.html
-      - store_artifacts:
-          path: test/js-framework-benchmark/webdriver-ts-results/table.html
-      - run:
-          name: "Post benchmark result to comment"
-          command: npm run post-benchmark-result
 
   lint_packages:
     executor: docker-circleci
     steps:
-      - checkout_install_bootstrap
-      # TODO: Remove the " -- -- -- --quiet" once warning numbers are down to an acceptable level.
-      - run: npm run lint:packages -- -- -- --quiet
-      - run: npm run lint:other -- --quiet
+      - checkout_install
+      - run: npm run build
+      - run: npm run lint:packages:ci
+      - run: npm run lint:other:ci
 
   merge_and_dist:
-    executor: docker-aurelia
+    executor: docker-circleci
     parameters:
       from:
         type: string
@@ -305,11 +244,15 @@ jobs:
         type: boolean
         default: true
     steps:
-      - checkout_install_bootstrap
+      - run: git config --global user.email "aurelia@bluespire.com"
+      - run: git config --global user.name "AureliaEffect"
+      - run: git config --global core.mergeoptions "--no-edit"
+      - checkout_install
       - run: set -o pipefail && npm run build:release
-      - run: set -o pipefail && npm run change-tsconfigs:overwrite:umd
+      - run: set -o pipefail && npm run change-tsconfigs:invert
       - run: set -o pipefail && npm run build:release
       - run: set -o pipefail && npm run change-tsconfigs:restore
+      - run: set -o pipefail && npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>
@@ -321,74 +264,8 @@ jobs:
           steps:
             - run: git push origin << parameters.to >>
 
-  e2e_browserstack:
-    executor: docker-circleci
-    steps:
-      - checkout_install_bootstrap
-      - run: npm run build
-      - run:
-          name: "Install e2e tests"
-          command: |
-            cd test/browserstack
-            npm run build
-      - run:
-          name: "Serve e2e app in the background"
-          background: true
-          command: |
-            cd test/browserstack
-            npm run start
-      - run:
-          name: "Run e2e tests"
-          command: |
-            cd test/browserstack
-            npm run e2e
-
-  e2e_cypress_doc_example:
-    executor: docker-circleci
-    steps:
-      - checkout_install_bootstrap
-      - run: npm run build
-      - run:
-          name: "Install cypress"
-          command: |
-            cd test/doc-example
-            npm i
-      - run:
-          name: "Install and build test app"
-          command: |
-            cd test/doc-example/app
-            npm run build
-      - run:
-          name: "Serve test app in the background"
-          background: true
-          command: |
-            cd test/doc-example/app
-            npm run serve
-      - run:
-          name: "Run e2e tests"
-          command: |
-            cd test/doc-example
-            npm run test
-
-  e2e_cypress:
-    executor: docker-circleci
-    steps:
-      - checkout_install_bootstrap
-      - run: npm run build
-      - run:
-          name: "Install cypress"
-          command: |
-            cd packages/__e2e__
-            npm i
-      - run:
-          name: "Run e2e tests"
-          background: true
-          command: |
-            cd packages/__e2e__
-            npm run e2e
-
   publish_npm:
-    executor: docker-aurelia
+    executor: docker-circleci
     parameters:
       channel:
         type: string
@@ -404,18 +281,21 @@ jobs:
           steps:
             - run: git checkout << parameters.branch >>
             - run: git pull
-      - run: npm ci --ignore-scripts
+      - run: sudo npm i -g lage
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
       - run: npm run publish:<< parameters.channel >>
 
-  # Standalone wdio test jobs
-  e2e_wdio:
+  # Standalone playwright test jobs
+  e2e_playwright:
     executor: docker-circleci
     parameters:
       path:
         type: string
+      suite:
+        type: string
+        default: "examples"
       use_verdaccio:
         type: boolean
         default: true
@@ -423,15 +303,15 @@ jobs:
         type: string
         default: "http://localhost:4873"
     steps:
-      - checkout_install_bootstrap_build_bundle_publish_verdaccio:
+      - checkout_install_build_bundle_publish_verdaccio:
           from: ${CIRCLE_BRANCH}
           to: develop
           channel: dev
           suffix: "-${CIRCLE_BUILD_NUM}"
       - run:
-          name: "Install wdio"
+          name: "Install playwright"
           command: |
-            cd test/wdio
+            cd test/playwright
             npm ci
       - when:
           condition: << parameters.use_verdaccio >>
@@ -455,16 +335,66 @@ jobs:
             cd << parameters.path >>
             npm run build
       - run:
-          name: "Serve wdio test app"
+          name: "Serve playwright test app"
           background: true
           command: |
             cd << parameters.path >>
             npm run serve
       - run:
-          name: "Run wdio test"
+          name: "Run playwright test"
           command: |
-            cd test/wdio
-            npm run test
+            cd test/playwright
+            npm run build
+            npm run e2e:<< parameters.suite >>
+
+  # benchmark using playwright setup
+  benchmark_playwright:
+    executor: docker-circleci
+    steps:
+      - checkout
+      - run: git checkout master
+      - run: CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+      - run: npm ci
+      - run: npm run build
+      - run:
+          name: "Prepare cosmos db configuration and run test for the master branch"
+          # TODO(Sayan): remove the duplication of config, which was done for backward compatibility, and can be removed once PR #1094 is merged with master.
+          command: |
+            cd test/benchmarking-apps/runner
+            echo "{\"cosmosEndpoint\": \"https://aurelia.documents.azure.com:443/\",\"cosmosKey\": \"$AZURE_COSMOS_DB_KEY\", \"endpoint\": \"https://aurelia.documents.azure.com:443/\",\"key\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
+            set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos
+      - run: cd ../../../
+      - checkout_install
+      - run: npm run build
+      - run:
+          name: "Run test for the current branch"
+          command: |
+            cd test/benchmarking-apps/runner
+            set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos
+      # source: https://support.circleci.com/hc/en-us/articles/360048170573-Auto-comment-on-GitHub-Pull-Requests
+      - run:
+          name: Post benchmarking comparison link to GitHub PR
+          command: |
+            sudo apt-get install jq
+
+            pr_response=$(curl --location --request GET "https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls?head=$CIRCLE_PROJECT_USERNAME:$CIRCLE_BRANCH" -H "Authorization: token $GITHUB_TOKEN")
+
+            if [ $(echo $pr_response | jq length) -eq 0 ]; then
+              echo "No PR found to update"
+            else
+              pr_comment_url=$(echo $pr_response | jq -r ".[]._links.comments.href")
+
+              git checkout master
+              master_commit=$(git rev-parse HEAD)
+
+              comparison_url="https://au2-bench-viewer.azurewebsites.net/compare?branch=master&commit=$master_commit&branch=$CIRCLE_BRANCH&commit=$CIRCLE_SHA1"
+              curl --location --request POST "$pr_comment_url" \
+              -H 'Content-Type: application/json' \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              --data-raw "{
+              \"body\": \"The benchmarking comparison can be found here: $comparison_url\"
+              }"
+            fi
 
 # # # # # # # # # # # # # # # #
 # - Workflows -
@@ -474,47 +404,40 @@ workflows:
   # Triggered by push to master or topic branches
   build_test:
     jobs:
-      - unit_test:
+      - unit_test_esm:
           <<: *filter_ignore_develop_release
-          name: unit_test_chrome
-          e: docker-circleci
-          npm_command: "test-chrome:verbose"
-      - unit_test:
+          name: unit_test_esm_chrome
+          npm_command: "test-chrome"
+      - unit_test_esm:
          <<: *filter_ignore_develop_release
-         name: unit_test_firefox
-         e: docker-circleci
-         npm_command: "test-firefox:verbose"
+         name: unit_test_esm_firefox
+         npm_command: "test-firefox"
          coverage: false
-      - unit_test:
+      - unit_test_esm:
          <<: *filter_ignore_develop_release
-         name: unit_test_node
-         e: docker-circleci
-         npm_command: "test-node:verbose"
+         name: unit_test_esm_node
+         npm_command: "test-node"
          coverage: false
+      - unit_test_cjs:
+         <<: *filter_ignore_develop_release
+         npm_command: "test-node"
       #- unit_test:
       #   <<: *filter_ignore_develop_release
       #   name: test_test262
-      #   e: docker-circleci
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
       - lint_packages:
           <<: *filter_ignore_develop_release
-      - e2e_browserstack:
+      - benchmark_playwright:
           <<: *filter_ignore_develop_release
-      - js_framework_benchmark:
-          <<: *filter_ignore_develop_release
-      - e2e_cypress:
-         <<: *filter_ignore_develop_release
-      #- e2e_cypress_doc_example:
-      #    <<: *filter_ignore_develop_release
-      - e2e_wdio:
+      - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: jit-webpack-conventions-ts
           path: "examples/jit-webpack-conventions-ts"
           requires:
             - lint_packages # not a real requirement but forces long-running jobs to go first
-      - e2e_wdio:
+      - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: jit-webpack-vanilla-ts
           path: "examples/jit-webpack-vanilla-ts"
@@ -524,14 +447,12 @@ workflows:
           <<: *filter_only_master
           name: merge_and_dist_master
           requires:
-            - unit_test_chrome
-            - unit_test_firefox
-            - unit_test_node
+            - unit_test_esm_chrome
+            - unit_test_esm_firefox
+            - unit_test_esm_node
+            - unit_test_cjs
             #- test_test262
             - lint_packages
-            - e2e_browserstack
-            - e2e_cypress
-            #- e2e_cypress_doc_example
             - jit-webpack-conventions-ts
             - jit-webpack-vanilla-ts
           from: master
@@ -543,13 +464,11 @@ workflows:
           <<: *filter_only_topic
           name: merge_and_dist_topic
           requires:
-            - unit_test_chrome
-            - unit_test_firefox
-            - unit_test_node
+            - unit_test_esm_chrome
+            - unit_test_esm_firefox
+            - unit_test_esm_node
+            - unit_test_cjs
             - lint_packages
-            - e2e_browserstack
-            - e2e_cypress
-            #- e2e_cypress_doc_example
             - jit-webpack-conventions-ts
             - jit-webpack-vanilla-ts
           from: master
@@ -567,49 +486,40 @@ workflows:
   # Triggered by push to tag
   build_test_push_release:
     jobs:
-      - unit_test:
+      - unit_test_esm:
           <<: *filter_only_tag
-          name: unit_test_chrome
-          e: docker-circleci
-          npm_command: "test-chrome:verbose"
-      - unit_test:
+          name: unit_test_esm_chrome
+          npm_command: "test-chrome"
+      - unit_test_esm:
          <<: *filter_only_tag
-         name: unit_test_firefox
-         e: docker-circleci
-         npm_command: "test-firefox:verbose"
+         name: unit_test_esm_firefox
+         npm_command: "test-firefox"
          coverage: false
-      - unit_test:
+      - unit_test_esm:
          <<: *filter_only_tag
-         name: unit_test_node
-         e: docker-circleci
-         npm_command: "test-node:verbose"
+         name: unit_test_esm_node
+         npm_command: "test-node"
          coverage: false
+      - unit_test_cjs:
+         <<: *filter_only_tag
+         npm_command: "test-node"
       #- unit_test:
       #   <<: *filter_only_tag
       #   name: test_test262
-      #   e: docker-circleci
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
       - lint_packages:
           <<: *filter_only_tag
-      - e2e_browserstack:
-          <<: *filter_only_tag
-      - e2e_cypress:
-         <<: *filter_only_tag
-      #- e2e_cypress_doc_example:
-      #    <<: *filter_only_tag
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
-            - unit_test_chrome
-            - unit_test_firefox
-            - unit_test_node
+            - unit_test_esm_chrome
+            - unit_test_esm_firefox
+            - unit_test_esm_node
+            - unit_test_cjs
             #- test_test262
             - lint_packages
-            - e2e_browserstack
-            - e2e_cypress
-            #- e2e_cypress_doc_example
           from: $CIRCLE_TAG
           to: release
           channel: latest

@@ -1,21 +1,25 @@
-import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
 import {
-  CollectionKind,
   createIndexMap,
+  LifecycleFlags,
+  AccessorType,
+  ISubscriberCollection,
+  ICollectionSubscriberCollection,
+} from '../observation.js';
+import {
+  CollectionLengthObserver,
+} from './collection-length-observer.js';
+import {
+  subscriberCollection,
+} from './subscriber-collection.js';
+
+import type {
+  CollectionKind,
   ICollectionObserver,
+  IArrayIndexObserver,
   IndexMap,
-  IObservedArray,
-  ICollectionIndexObserver,
-  ISubscriber
-} from '../observation';
-import {
-  CollectionLengthObserver
-} from './collection-length-observer';
-import {
-  collectionSubscriberCollection,
-  subscriberCollection
-} from './subscriber-collection';
+  ISubscriber,
+} from '../observation.js';
+import { def, defineHiddenProp } from '../utilities-objects.js';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 
@@ -43,7 +47,7 @@ function preSortCompare(x: unknown, y: unknown): number {
   return 0;
 }
 
-function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: unknown, b: unknown) => number): void {
+function insertionSort(arr: unknown[], indexMap: IndexMap, from: number, to: number, compareFn: (a: unknown, b: unknown) => number): void {
   let velement, ielement, vtmp, itmp, order;
   let i, j;
   for (i = from + 1; i < to; i++) {
@@ -65,7 +69,7 @@ function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to
   }
 }
 
-function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: unknown, b: unknown) => number): void {
+function quickSort(arr: unknown[], indexMap: IndexMap, from: number, to: number, compareFn: (a: unknown, b: unknown) => number): void {
   let thirdIndex = 0, i = 0;
   let v0, v1, v2;
   let i0, i1, i2;
@@ -165,39 +169,31 @@ const methods: ['push', 'unshift', 'pop', 'shift', 'splice', 'reverse', 'sort'] 
 
 const observe = {
   // https://tc39.github.io/ecma262/#sec-array.prototype.push
-  push: function (this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.push> {
-    let $this = this;
-    if ($this.$raw !== void 0) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+  push: function (this: unknown[], ...args: unknown[]): ReturnType<typeof Array.prototype.push> {
+    const o = observerLookup.get(this);
     if (o === void 0) {
-      return $push.apply($this, args);
+      return $push.apply(this, args);
     }
-    const len = $this.length;
+    const len = this.length;
     const argCount = args.length;
     if (argCount === 0) {
       return len;
     }
-    $this.length = o.indexMap.length = len + argCount;
+    this.length = o.indexMap.length = len + argCount;
     let i = len;
-    while (i < $this.length) {
-      $this[i] = args[i - len];
+    while (i < this.length) {
+      this[i] = args[i - len];
       o.indexMap[i] = - 2;
       i++;
     }
     o.notify();
-    return $this.length;
+    return this.length;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
-  unshift: function (this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.unshift>  {
-    let $this = this;
-    if ($this.$raw !== void 0) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+  unshift: function (this: unknown[], ...args: unknown[]): ReturnType<typeof Array.prototype.unshift>  {
+    const o = observerLookup.get(this);
     if (o === void 0) {
-      return $unshift.apply($this, args);
+      return $unshift.apply(this, args);
     }
     const argCount = args.length;
     const inserts = new Array(argCount);
@@ -206,22 +202,18 @@ const observe = {
       inserts[i++] = - 2;
     }
     $unshift.apply(o.indexMap, inserts);
-    const len = $unshift.apply($this, args);
+    const len = $unshift.apply(this, args);
     o.notify();
     return len;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.pop
-  pop: function (this: IObservedArray): ReturnType<typeof Array.prototype.pop> {
-    let $this = this;
-    if ($this.$raw !== void 0) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+  pop: function (this: unknown[]): ReturnType<typeof Array.prototype.pop> {
+    const o = observerLookup.get(this);
     if (o === void 0) {
-      return $pop.call($this);
+      return $pop.call(this);
     }
     const indexMap = o.indexMap;
-    const element = $pop.call($this);
+    const element = $pop.call(this);
     // only mark indices as deleted if they actually existed in the original array
     const index = indexMap.length - 1;
     if (indexMap[index] > -1) {
@@ -232,17 +224,13 @@ const observe = {
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.shift
-  shift: function (this: IObservedArray): ReturnType<typeof Array.prototype.shift> {
-    let $this = this;
-    if ($this.$raw !== void 0) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+  shift: function (this: unknown[]): ReturnType<typeof Array.prototype.shift> {
+    const o = observerLookup.get(this);
     if (o === void 0) {
-      return $shift.call($this);
+      return $shift.call(this);
     }
     const indexMap = o.indexMap;
-    const element = $shift.call($this);
+    const element = $shift.call(this);
     // only mark indices as deleted if they actually existed in the original array
     if (indexMap[0] > -1) {
       indexMap.deletedItems.push(indexMap[0]);
@@ -252,16 +240,12 @@ const observe = {
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.splice
-  splice: function (this: IObservedArray, ...args: [number, number, ...unknown[]]): ReturnType<typeof Array.prototype.splice> {
+  splice: function (this: unknown[], ...args: [number, number, ...unknown[]]): ReturnType<typeof Array.prototype.splice> {
     const start: number = args[0];
     const deleteCount: number|undefined = args[1];
-    let $this = this;
-    if ($this.$raw !== void 0) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+    const o = observerLookup.get(this);
     if (o === void 0) {
-      return $splice.apply($this, args);
+      return $splice.apply(this, args);
     }
     const len = this.length;
     const relativeStart = start | 0;
@@ -290,30 +274,26 @@ const observe = {
     } else {
       $splice.apply(indexMap, args);
     }
-    const deleted = $splice.apply($this, args);
+    const deleted = $splice.apply(this, args);
     o.notify();
     return deleted;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
-  reverse: function (this: IObservedArray): ReturnType<typeof Array.prototype.reverse> {
-    let $this = this;
-    if ($this.$raw !== void 0) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+  reverse: function (this: unknown[]): ReturnType<typeof Array.prototype.reverse> {
+    const o = observerLookup.get(this);
     if (o === void 0) {
-      $reverse.call($this);
+      $reverse.call(this);
       return this;
     }
-    const len = $this.length;
+    const len = this.length;
     const middle = (len / 2) | 0;
     let lower = 0;
     while (lower !== middle) {
       const upper = len - lower - 1;
-      const lowerValue = $this[lower];  const lowerIndex = o.indexMap[lower];
-      const upperValue = $this[upper];  const upperIndex = o.indexMap[upper];
-      $this[lower] = upperValue;        o.indexMap[lower] = upperIndex;
-      $this[upper] = lowerValue;        o.indexMap[upper] = lowerIndex;
+      const lowerValue = this[lower];  const lowerIndex = o.indexMap[lower];
+      const upperValue = this[upper];  const upperIndex = o.indexMap[upper];
+      this[lower] = upperValue;        o.indexMap[lower] = upperIndex;
+      this[upper] = lowerValue;        o.indexMap[upper] = lowerIndex;
       lower++;
     }
     o.notify();
@@ -321,24 +301,20 @@ const observe = {
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.sort
   // https://github.com/v8/v8/blob/master/src/js/array.js
-  sort: function (this: IObservedArray, compareFn?: (a: unknown, b: unknown) => number): IObservedArray {
-    let $this = this;
-    if ($this.$raw !== void 0) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+  sort: function (this: unknown[], compareFn?: (a: unknown, b: unknown) => number): unknown[] {
+    const o = observerLookup.get(this);
     if (o === void 0) {
-      $sort.call($this, compareFn);
+      $sort.call(this, compareFn);
       return this;
     }
-    const len = $this.length;
+    const len = this.length;
     if (len < 2) {
       return this;
     }
-    quickSort($this, o.indexMap, 0, len, preSortCompare);
+    quickSort(this, o.indexMap, 0, len, preSortCompare);
     let i = 0;
     while (i < len) {
-      if ($this[i] === void 0) {
+      if (this[i] === void 0) {
         break;
       }
       i++;
@@ -346,19 +322,11 @@ const observe = {
     if (compareFn === void 0 || typeof compareFn !== 'function'/* spec says throw a TypeError, should we do that too? */) {
       compareFn = sortCompare;
     }
-    quickSort($this, o.indexMap, 0, i, compareFn);
+    quickSort(this, o.indexMap, 0, i, compareFn);
     o.notify();
     return this;
   }
 };
-
-const descriptorProps = {
-  writable: true,
-  enumerable: false,
-  configurable: true
-};
-
-const def = Reflect.defineProperty;
 
 for (const method of methods) {
   def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
@@ -369,7 +337,7 @@ let enableArrayObservationCalled = false;
 export function enableArrayObservation(): void {
   for (const method of methods) {
     if (proto[method].observing !== true) {
-      def(proto, method, { ...descriptorProps, value: observe[method] });
+      defineHiddenProp(proto, method, observe[method]);
     }
   }
 }
@@ -377,111 +345,65 @@ export function enableArrayObservation(): void {
 export function disableArrayObservation(): void {
   for (const method of methods) {
     if (proto[method].observing === true) {
-      def(proto, method, { ...descriptorProps, value: native[method] });
+      defineHiddenProp(proto, method, native[method]);
     }
   }
 }
 
-export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}
+export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>, ICollectionSubscriberCollection {}
 
-@collectionSubscriberCollection()
 export class ArrayObserver {
-  public inBatch: boolean;
+  public type: AccessorType = AccessorType.Array;
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
+  private lenObs?: CollectionLengthObserver;
 
-  public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
+  public constructor(array: unknown[]) {
 
     if (!enableArrayObservationCalled) {
       enableArrayObservationCalled = true;
       enableArrayObservation();
     }
 
-    this.inBatch = false;
     this.indexObservers = {};
 
     this.collection = array;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.indexMap = createIndexMap(array.length);
-    this.lifecycle = lifecycle;
-    this.lengthObserver = (void 0)!;
+    this.lenObs = void 0;
 
     observerLookup.set(array, this);
   }
 
   public notify(): void {
-    if (this.lifecycle.batch.depth > 0) {
-      if (!this.inBatch) {
-        this.inBatch = true;
-        this.lifecycle.batch.add(this);
-      }
-    } else {
-      this.flushBatch(LifecycleFlags.none);
-    }
+    const indexMap = this.indexMap;
+    const length = this.collection.length;
+
+    this.indexMap = createIndexMap(length);
+    this.subs.notifyCollection(indexMap, LifecycleFlags.none);
   }
 
   public getLengthObserver(): CollectionLengthObserver {
-    if (this.lengthObserver === void 0) {
-      this.lengthObserver = new CollectionLengthObserver(this.collection);
-    }
-    return this.lengthObserver;
+    return this.lenObs ??= new CollectionLengthObserver(this);
   }
 
-  public getIndexObserver(index: number): ICollectionIndexObserver {
-    return this.getOrCreateIndexObserver(index);
-  }
-
-  public flushBatch(flags: LifecycleFlags): void {
-    this.inBatch = false;
-    const indexMap = this.indexMap;
-    const length = this.collection.length;
-    this.indexMap = createIndexMap(length);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
-    if (this.lengthObserver !== void 0) {
-      this.lengthObserver.setValue(length, LifecycleFlags.updateTargetInstance);
-    }
-  }
-
-  /**
-   * @internal used by friend class ArrayIndexObserver only
-   */
-  public addIndexObserver(indexObserver: ArrayIndexObserver): void {
-    this.addCollectionSubscriber(indexObserver);
-  }
-
-  /**
-   * @internal used by friend class ArrayIndexObserver only
-   */
-  public removeIndexObserver(indexObserver: ArrayIndexObserver): void {
-    this.removeCollectionSubscriber(indexObserver);
-  }
-
-  /**
-   * @internal
-   */
-  private getOrCreateIndexObserver(index: number): ICollectionIndexObserver {
-    const indexObservers = this.indexObservers;
-    let observer = indexObservers[index];
-    if (observer === void 0) {
-      observer = indexObservers[index] = new ArrayIndexObserver(this, index);
-    }
-    return observer;
+  public getIndexObserver(index: number): IArrayIndexObserver {
+    // It's unnecessary to destroy/recreate index observer all the time,
+    // so just create once, and add/remove instead
+    return this.indexObservers[index] ??= new ArrayIndexObserver(this, index);
   }
 }
 
-export interface ArrayIndexObserver extends ICollectionIndexObserver {}
+export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberCollection {}
 
-@subscriberCollection()
-export class ArrayIndexObserver implements ICollectionIndexObserver {
+export class ArrayIndexObserver implements IArrayIndexObserver {
 
-  private subscriberCount: number = 0;
-  public currentValue: unknown;
+  public value: unknown;
 
   public constructor(
     public readonly owner: ArrayObserver,
     public readonly index: number
   ) {
-    this.currentValue = this.getValue();
+    this.value = this.getValue();
   }
 
   public getValue(): unknown {
@@ -515,31 +437,34 @@ export class ArrayIndexObserver implements ICollectionIndexObserver {
     if (noChange) {
       return;
     }
-    const prevValue = this.currentValue;
-    const currValue = this.currentValue = this.getValue();
+    const prevValue = this.value;
+    const currValue = this.value = this.getValue();
     // hmm
     if (prevValue !== currValue) {
-      this.callSubscribers(currValue, prevValue, flags);
+      this.subs.notify(currValue, prevValue, flags);
     }
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
-      this.owner.addIndexObserver(this);
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
+      this.owner.subscribe(this);
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
-      this.owner.removeIndexObserver(this);
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
+      this.owner.unsubscribe(this);
     }
   }
 }
 
-export function getArrayObserver(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray): ArrayObserver {
-  const observer = observerLookup.get(array);
+subscriberCollection(ArrayObserver);
+subscriberCollection(ArrayIndexObserver);
+
+export function getArrayObserver(array: unknown[]): ArrayObserver {
+  let observer = observerLookup.get(array);
   if (observer === void 0) {
-    return new ArrayObserver(flags, lifecycle, array);
+    observer = new ArrayObserver(array);
   }
   return observer;
 }

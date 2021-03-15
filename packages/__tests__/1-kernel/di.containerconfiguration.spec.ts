@@ -1,4 +1,4 @@
-import { DefaultContainerConfiguration, DefaultResolver, DI, IContainer } from '@aurelia/kernel';
+import { ContainerConfiguration, DefaultResolver, DI, IContainer, Registration } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('IContainerConfiguration', function () {
@@ -11,7 +11,7 @@ describe('IContainerConfiguration', function () {
         // eslint-disable-next-line mocha/no-hooks
         beforeEach(function () {
           container0 = DI.createContainer({
-            ...DefaultContainerConfiguration,
+            ...ContainerConfiguration.DEFAULT,
             defaultResolver: DefaultResolver.transient
           });
 
@@ -41,7 +41,7 @@ describe('IContainerConfiguration', function () {
           container0 = DI.createContainer();
 
           container1 = container0.createChild({
-            ...DefaultContainerConfiguration,
+            ...ContainerConfiguration.DEFAULT,
             defaultResolver: DefaultResolver.transient
           });
           container2 = container0.createChild();

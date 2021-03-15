@@ -23,11 +23,7 @@
  * IN THE SOFTWARE.
  */
 
-import {
-  isArrayIndex,
-  PLATFORM,
-  Primitive,
-} from '@aurelia/kernel';
+import { isArrayIndex, noop, Primitive } from '@aurelia/kernel';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any, no-control-regex */
 
@@ -519,13 +515,13 @@ export function createSpy<
     $spy = function spy(...args: unknown[]) {
       calls.push(args);
     };
-    $restore = PLATFORM.noop;
+    $restore = noop;
   } else if (key === void 0) {
     $spy = function spy(...args: unknown[]) {
       calls.push(args);
       return (instanceOrInnerFn as AnyFunction)(...args);
     };
-    $restore = PLATFORM.noop;
+    $restore = noop;
   } else {
     if (!(key in instanceOrInnerFn)) {
       throw new Error(`No method named '${key}' exists in object of type ${Reflect.getPrototypeOf(instanceOrInnerFn).constructor.name}`);

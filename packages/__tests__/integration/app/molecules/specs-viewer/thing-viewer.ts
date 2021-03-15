@@ -1,4 +1,4 @@
-import { customElement, bindable } from '@aurelia/runtime';
+import { customElement, bindable } from '@aurelia/runtime-html';
 import template from "./thing-viewer.html";
 
 export class Thing {

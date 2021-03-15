@@ -1,32 +1,41 @@
 import {
+  emptyArray,
+} from '@aurelia/kernel';
+import {
+  ExpressionKind,
+  LifecycleFlags,
+} from '@aurelia/runtime-html';
+
+import type {
   IContainer,
   IDisposable,
   IIndexable,
   IServiceLocator,
-  PLATFORM
 } from '@aurelia/kernel';
-import {
-  ExpressionKind,
+import type { Scope } from '@aurelia/runtime-html';
+import type {
   IBinding,
   IConnectableBinding,
   IndexMap,
   IObserverLocator,
-  IScope,
   ISignaler,
+  BindingObserverRecord,
+  Collection,
   ISubscribable,
-  LifecycleFlags,
-  State
+  ICollectionSubscribable,
 } from '@aurelia/runtime';
 
 export class MockBinding implements IConnectableBinding {
   public interceptor: this = this;
-  public id!: number;
   public observerSlots!: number;
   public version!: number;
   public observerLocator!: IObserverLocator;
   public locator!: IServiceLocator;
-  public $scope?: IScope | undefined;
-  public $state!: State;
+  public $scope?: Scope | undefined;
+  public $hostScope!: Scope | null;
+  public isBound!: boolean;
+  public value: unknown;
+  public obs!: BindingObserverRecord;
 
   public calls: [keyof MockBinding, ...any[]][] = [];
 
@@ -42,19 +51,23 @@ export class MockBinding implements IConnectableBinding {
     this.trace('handleChange', newValue, _previousValue, flags);
   }
 
-  public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {
-    this.trace('observeProperty', flags, obj, propertyName);
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    this.trace('handleCollectionChange', indexMap, flags);
   }
 
-  public unobserve(all?: boolean): void {
-    this.trace('unobserve', all);
+  public observeProperty(obj: IIndexable, propertyName: string): void {
+    this.trace('observeProperty', obj, propertyName);
   }
 
-  public addObserver(observer: ISubscribable): void {
-    this.trace('addObserver', observer);
+  public observeCollection(col: Collection): void {
+    this.trace('observeCollection', col);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope): void {
+  public subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void {
+    this.trace('subscribeTo', subscribable);
+  }
+
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
     this.trace('$bind', flags, scope);
   }
 
@@ -65,16 +78,20 @@ export class MockBinding implements IConnectableBinding {
   public trace(fnName: keyof MockBinding, ...args: any[]): void {
     this.calls.push([fnName, ...args]);
   }
+
+  public dispose(): void {
+    this.trace('dispose');
+  }
 }
 
 export class MockBindingBehavior {
   public calls: [keyof MockBindingBehavior, ...any[]][] = [];
 
-  public bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...rest: any[]): void {
+  public bind(flags: LifecycleFlags, scope: Scope, binding: IBinding, ...rest: any[]): void {
     this.trace('bind', flags, scope, binding, ...rest);
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...rest: any[]): void {
+  public unbind(flags: LifecycleFlags, scope: Scope, binding: IBinding, ...rest: any[]): void {
     this.trace('unbind', flags, scope, binding, ...rest);
   }
 
@@ -431,19 +448,19 @@ export class CollectionChangeSet implements IDisposable {
 export class SpySubscriber implements IDisposable {
   public get changes(): ChangeSet[] {
     if (this._changes === void 0) {
-      return PLATFORM.emptyArray;
+      return emptyArray;
     }
     return this._changes;
   }
   public get proxyChanges(): ProxyChangeSet[] {
     if (this._proxyChanges === void 0) {
-      return PLATFORM.emptyArray;
+      return emptyArray;
     }
     return this._proxyChanges;
   }
   public get collectionChanges(): CollectionChangeSet[] {
     if (this._collectionChanges === void 0) {
-      return PLATFORM.emptyArray;
+      return emptyArray;
     }
     return this._collectionChanges;
   }

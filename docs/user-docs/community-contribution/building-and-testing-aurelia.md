@@ -16,70 +16,62 @@ If you're looking to contribute directly to Aurelia or its test suite, you've co
 
 ## Setup
 
-In order to setup Aurelia, ensure that you have [Git](https://git-scm.com/downloads), the latest LTS version of [Node.js](https://nodejs.org/), and `npm@6.0.0` or higher installed.
+In order to build Aurelia, ensure that you have [Git](https://git-scm.com/downloads), [Node.js](https://nodejs.org/) `v15.4.0` or higher, and `npm@7.0.0` or higher installed.
 
-Clone a copy of the Aurelia repo:
-
-```bash
-git clone https://github.com/aurelia/aurelia.git
-```
-
-Change to the `aurelia` directory:
+Run the following commands to clone, install and build:
 
 ```bash
-cd aurelia
-```
-
-Install the development dependencies:
-
-```bash
+git clone https://github.com/aurelia/aurelia.git && cd aurelia
 npm ci
-```
-
-Install and symlink the internal package dependencies:
-
-```bash
-npm run bootstrap
-```
-
-{% hint style="info" %}
-**Note**
-
-The `npm ci` and `npm run bootstrap` commands only need to be run once for the repo.
-{% endhint %}
-
-## Build
-
-Once the above steps have been completed, you should be able to build the entire Aurelia monorepo with this command:
-
-```bash
 npm run build
 ```
 
-## Testing
+### packages
 
-To develop while running tests, you will need two console windows. In one console window, run the following command to build and put the monorepo in development mode:
-
-```bash
-npm run dev
-```
-
-Next, open a second console window, and change directory to the `__tests__` project:
+Go to the tests folder:
 
 ```bash
 cd packages/__tests__
 ```
 
-From within this directory, you can run tests in a variety of ways:
+To simply run all packages tests once, run one of the following commands:
 
-* `npm run test-node` - Run all tests in Node.js.
-* `npm run test-chrome` - Run all tests in Chrome.
-* `npm run test-chrome:watch` - Run all tests in Chrome with watch mode enabled.
-* `npm run test-chrome:debugger` - Run all tests in Chrome with the debugger enabled.
+```bash
+npm run test-chrome # run all tests in chrome (headless), also reports code coverage
+npm run test-firefox # run all tests in firefox (headless)
+npm run test-node # run all tests in node
+```
 
-{% hint style="info" %}
-**Additional Test Commands**
+Please inspect the package.json to see the other commands.
 
-See the `package.json` file within the `__tests__` project for additional test-related commands.
-{% endhint %}
+This documentation will be expanded upon in the future.
+
+### packages-cjs
+
+To develop/test any of the commonjs packages, we need to work around a limitation in NodeJS with regards to how it handles imports across esm/cjs packages.
+
+Run this command to swap the local working directly completely to "commonjs" mode. This will change the `tsconfig.json` and `package.json` files for all packages, and these changes should not be checked in. They can be reverted again as soon as you're done working in commonjs mode.
+
+```bash
+npm run change-tsconfigs:cjs
+npm run change-package-refs:release -- commonjs
+```
+
+Build once more to ensure all outputs are available in cjs:
+
+```bash
+npm run build
+```
+
+Go to the tests folder:
+
+```bash
+cd packages-cjs/__tests__
+```
+
+Run any of the test suites \(please inspect the package.json to see the other commands\):
+
+```bash
+npm run test-node # runs all cjs tests
+```
 

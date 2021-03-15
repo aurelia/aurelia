@@ -1,5 +1,5 @@
-import { customElement, bindable } from '@aurelia/runtime';
-import * as template from './checkbox-list.html';
+import { customElement, bindable } from '@aurelia/runtime-html';
+import template from './checkbox-list.html';
 
 /**
  * Potential test coverage targets:

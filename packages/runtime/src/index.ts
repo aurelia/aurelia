@@ -1,19 +1,26 @@
 export {
+  IPlatform,
+} from '@aurelia/kernel';
+export {
+  Platform,
+  TaskQueue,
+  Task,
+  TaskAbortError,
+  TaskQueuePriority,
+  TaskStatus,
+  QueueTaskOptions,
+  ITask,
+} from '@aurelia/platform';
+
+export {
+  alias,
+  registerAliases,
+} from './alias.js';
+export {
+  ExpressionKind,
   CallFunctionExpression,
-  connects,
-  observes,
-  callsFunction,
-  hasAncestor,
-  isAssignable,
-  isLeftHandSide,
-  isPrimary,
-  isResource,
-  hasBind,
-  hasUnbind,
-  isLiteral,
-  arePureLiterals,
-  isPureLiteral,
   CustomExpression,
+  IBindingBehaviorExpression,
   BindingBehaviorExpression,
   ValueConverterExpression,
   AssignExpression,
@@ -36,9 +43,7 @@ export {
   ObjectBindingPattern,
   BindingIdentifier,
   ForOfStatement,
-  Interpolation
-} from './binding/ast';
-export {
+  Interpolation,
   AnyBindingExpression,
   IsPrimary,
   IsLiteral,
@@ -52,70 +57,30 @@ export {
   IsAssignable,
   IsExpression,
   IsExpressionOrStatement,
-  Connects,
-  Observes,
-  CallsFunction,
-  IsResource,
-  HasBind,
-  HasUnbind,
-  HasAncestor,
   IVisitor,
-  IExpression,
-  IAccessKeyedExpression,
-  IAccessMemberExpression,
-  IAccessScopeExpression,
-  IAccessThisExpression,
-  IArrayBindingPattern,
-  IArrayLiteralExpression,
-  IAssignExpression,
-  IBinaryExpression,
-  IBindingBehaviorExpression,
-  IBindingIdentifier,
-  ICallFunctionExpression,
-  ICallMemberExpression,
-  ICallScopeExpression,
-  IConditionalExpression,
-  IForOfStatement,
-  IHtmlLiteralExpression,
-  IInterpolationExpression,
-  IObjectBindingPattern,
-  IObjectLiteralExpression,
-  IPrimitiveLiteralExpression,
-  ITaggedTemplateExpression,
-  ITemplateExpression,
-  IUnaryExpression,
-  IValueConverterExpression,
   BinaryOperator,
   BindingIdentifierOrPattern,
-  UnaryOperator
-} from './ast';
-export {
-  PropertyBinding
-} from './binding/property-binding';
-export {
-  CallBinding
-} from './binding/call-binding';
+  UnaryOperator,
+  IExpressionHydrator,
+} from './binding/ast.js';
 export {
   IPartialConnectableBinding,
   IConnectableBinding,
   connectable,
   BindingMediator,
-  MediatedBinding
-} from './binding/connectable';
+  MediatedBinding,
+  BindingObserverRecord,
+} from './binding/connectable.js';
 export {
   IExpressionParser,
-  BindingType
-} from './binding/expression-parser';
-export {
-  MultiInterpolationBinding,
-  InterpolationBinding
-} from './binding/interpolation-binding';
-export {
-  LetBinding
-} from './binding/let-binding';
-export {
-  RefBinding
-} from './binding/ref-binding';
+  BindingType,
+  parseExpression,
+  Char,
+  Access,
+  Precedence,
+  parse,
+  ParserState,
+} from './binding/expression-parser.js';
 
 export {
   ArrayObserver,
@@ -124,72 +89,75 @@ export {
   disableArrayObservation,
   applyMutationsToIndices,
   synchronizeIndices,
-} from './observation/array-observer';
+} from './observation/array-observer.js';
 export {
   MapObserver,
   enableMapObservation,
-  disableMapObservation
-} from './observation/map-observer';
+  disableMapObservation,
+} from './observation/map-observer.js';
 export {
   SetObserver,
   enableSetObservation,
   disableSetObservation
-} from './observation/set-observer';
+} from './observation/set-observer.js';
 export {
   BindingContext,
   Scope,
-  OverrideContext
-} from './observation/binding-context';
+  OverrideContext,
+} from './observation/binding-context.js';
 export {
   CollectionLengthObserver,
-} from './observation/collection-length-observer';
-export {
   CollectionSizeObserver,
-} from './observation/collection-size-observer';
+} from './observation/collection-length-observer.js';
 export {
-  ComputedOverrides,
-  ComputedLookup,
-  computed,
-  createComputedObserver,
-  CustomSetterObserver,
-  GetterObserver
-} from './observation/computed-observer';
+  ComputedObserver,
+} from './observation/computed-observer.js';
 export {
   IDirtyChecker,
   DirtyCheckProperty,
-  DirtyCheckSettings
-} from './observation/dirty-checker';
+  DirtyCheckSettings,
+} from './observation/dirty-checker.js';
+export {
+  IEffect,
+  IObservation,
+  Observation,
+  EffectFunc,
+} from './observation/observation.js';
+export {
+  IObservableDefinition,
+  observable,
+} from './observation/observable.js';
 export {
   IObjectObservationAdapter,
   IObserverLocator,
-  ITargetObserverLocator,
-  ITargetAccessorLocator,
+  INodeObserverLocator,
   getCollectionObserver,
-  ObserverLocator
-} from './observation/observer-locator';
+  ObserverLocator,
+  ObservableGetter,
+  ObservableSetter,
+} from './observation/observer-locator.js';
 export {
-  PrimitiveObserver
-} from './observation/primitive-observer';
+  PrimitiveObserver,
+} from './observation/primitive-observer.js';
 export {
-  PropertyAccessor
-} from './observation/property-accessor';
+  PropertyAccessor,
+} from './observation/property-accessor.js';
 export {
-  ProxyObserver
-} from './observation/proxy-observer';
+  ProxyObservable,
+} from './observation/proxy-observation.js';
 export {
-  BindableObserver
-} from './observation/bindable-observer';
+  SetterObserver,
+} from './observation/setter-observer.js';
 export {
-  SetterObserver
-} from './observation/setter-observer';
+  ISignaler,
+} from './observation/signaler.js';
 export {
-  ISignaler
-} from './observation/signaler';
-export {
+  SubscriberRecord,
   subscriberCollection,
-  collectionSubscriberCollection,
-  proxySubscriberCollection,
-} from './observation/subscriber-collection';
+} from './observation/subscriber-collection.js';
+export {
+  ConnectableSwitcher,
+} from './observation/connectable-switcher.js';
 
 export {
   bindingBehavior,
@@ -201,69 +169,10 @@ export {
   BindingBehaviorInstance,
   BindingBehaviorType,
   BindingInterceptor,
-  IInterceptableBinding
-} from './resources/binding-behavior';
-export {
-  BindingModeBehavior,
-  OneTimeBindingBehavior,
-  ToViewBindingBehavior,
-  FromViewBindingBehavior,
-  TwoWayBindingBehavior
-} from './resources/binding-behaviors/binding-mode';
-export {
-  DebounceBindingBehavior
-} from './resources/binding-behaviors/debounce';
-export {
-  SignalableBinding,
-  SignalBindingBehavior
-} from './resources/binding-behaviors/signals';
-export {
-  ThrottleBindingBehavior
-} from './resources/binding-behaviors/throttle';
-
-export {
-  customAttribute,
-  CustomAttributeDecorator,
-  CustomAttribute,
-  CustomAttributeDefinition,
-  CustomAttributeKind,
-  CustomAttributeType,
-  PartialCustomAttributeDefinition,
-  templateController,
-} from './resources/custom-attribute';
-export {
-  FrequentMutations,
-  InfrequentMutations,
-  ObserveShallow,
-} from './resources/custom-attributes/flags';
-export {
-  If,
-  Else
-} from './resources/custom-attributes/if';
-export {
-  Repeat
-} from './resources/custom-attributes/repeat';
-export {
-  Replaceable
-} from './resources/custom-attributes/replaceable';
-export {
-  With
-} from './resources/custom-attributes/with';
-
-export {
-  containerless,
-  customElement,
-  CustomElementHost,
-  CustomElement,
-  CustomElementDecorator,
-  CustomElementKind,
-  CustomElementType,
-  CustomElementDefinition,
-  PartialCustomElementDefinition,
-  IElementProjector,
-  IProjectorLocator,
-  useShadowDOM
-} from './resources/custom-element';
+  BindingBehaviorFactory,
+  BindingBehaviorStrategy,
+  IInterceptableBinding,
+} from './binding-behavior.js';
 
 export {
   ValueConverter,
@@ -274,249 +183,39 @@ export {
   ValueConverterInstance,
   ValueConverterType,
   valueConverter,
-} from './resources/value-converter';
-export {
-  ISanitizer,
-  SanitizeValueConverter
-} from './resources/value-converters/sanitize';
-export {
-  ViewValueConverter
-} from './resources/value-converters/view';
+} from './value-converter.js';
 
-export {
-  Now,
-  IScheduler,
-  ITask,
-  ITaskQueue,
-  QueueTaskOptions,
-  Task,
-  TaskAbortError,
-  TaskCallback,
-  TaskQueue,
-  TaskQueuePriority,
-  TaskStatus,
-  QueueTaskTargetOptions,
-} from '@aurelia/scheduler';
-
-export {
-  bindable,
-  PartialBindableDefinition,
-  BindableDefinition,
-  Bindable,
-} from './templating/bindable';
-
-export {
-  PartialChildrenDefinition,
-  ChildrenDefinition,
-  Children,
-  children,
-  ChildrenObserver,
-} from './templating/children';
-
-// These exports are temporary until we have a proper way to unit test them
-export {
-  Controller,
-} from './templating/controller';
-export {
-  ViewFactory,
-  IViewLocator,
-  ViewLocator,
-  view,
-  Views,
-} from './templating/view';
-
-export {
-  Aurelia,
-  IDOMInitializer,
-  ISinglePageApp,
-  CompositionRoot,
-} from './aurelia';
-export {
-  IfRegistration,
-  ElseRegistration,
-  RepeatRegistration,
-  ReplaceableRegistration,
-  WithRegistration,
-
-  SanitizeValueConverterRegistration,
-
-  DebounceBindingBehaviorRegistration,
-  OneTimeBindingBehaviorRegistration,
-  ToViewBindingBehaviorRegistration,
-  FromViewBindingBehaviorRegistration,
-  SignalBindingBehaviorRegistration,
-  ThrottleBindingBehaviorRegistration,
-  TwoWayBindingBehaviorRegistration,
-
-  RefBindingRendererRegistration,
-  CallBindingRendererRegistration,
-  CustomAttributeRendererRegistration,
-  CustomElementRendererRegistration,
-  InterpolationBindingRendererRegistration,
-  IteratorBindingRendererRegistration,
-  LetElementRendererRegistration,
-  PropertyBindingRendererRegistration,
-  SetPropertyRendererRegistration,
-  TemplateControllerRendererRegistration,
-
-  DefaultResources,
-  IObserverLocatorRegistration,
-  ILifecycleRegistration,
-  IRendererRegistration,
-  RuntimeConfiguration
-} from './configuration';
-export {
-  AttributeInstruction,
-  HooksDefinition,
-  ICallBindingInstruction,
-  IHydrateAttributeInstruction,
-  IHydrateElementInstruction,
-  IHydrateLetElementInstruction,
-  IHydrateTemplateController,
-  IInterpolationInstruction,
-  IIteratorBindingInstruction,
-  ILetBindingInstruction,
-  InstructionRow,
-  InstructionTypeName,
-  IPropertyBindingInstruction,
-  IRefBindingInstruction,
-  ISetPropertyInstruction,
-  isTargetedInstruction,
-  ITargetedInstruction,
-  NodeInstruction,
-  TargetedInstruction,
-  TargetedInstructionType,
-  PartialCustomElementDefinitionParts,
-  alias,
-  registerAliases
-} from './definitions';
-export {
-  DOM,
-  INode,
-  IRenderLocation,
-  IDOM,
-  NodeSequence,
-  INodeSequence,
-  INodeSequenceFactory
-} from './dom';
 export {
   BindingMode,
-  BindingStrategy,
-  ExpressionKind,
   LifecycleFlags,
-  State
-} from './flags';
-export {
-  CallBindingInstruction,
-  FromViewBindingInstruction,
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateTemplateController,
-  InterpolationInstruction,
-  IteratorBindingInstruction,
-  LetBindingInstruction,
-  LetElementInstruction,
-  OneTimeBindingInstruction,
-  RefBindingInstruction,
-  SetPropertyInstruction,
-  ToViewBindingInstruction,
-  TwoWayBindingInstruction
-} from './instructions';
-export {
-  ViewModelKind,
-  IBinding,
-  ILifecycle,
-  IViewModel,
-  IController,
-  IComponentController,
-  IContextualCustomElementController,
-  IRenderableController,
-  IDryCustomElementController,
-  ICustomAttributeController,
-  IHydratedController,
-  IHydratedComponentController,
-  IHydratedRenderableController,
-  ICompiledCustomElementController,
-  ICustomElementController,
-  IViewCache,
-  IViewFactory,
-  MountStrategy,
-  ICustomElementViewModel,
-  ICustomAttributeViewModel,
-  IHydratedCustomElementViewModel,
-  IHydratedCustomAttributeViewModel,
-  ISyntheticView,
-} from './lifecycle';
-export {
-  getRenderContext,
-  isRenderContext,
-  IRenderContext,
-  ICompiledRenderContext,
-  IComponentFactory,
-} from './templating/render-context';
-export {
-  PromiseOrTask,
-  MaybePromiseOrTask,
-  AggregateContinuationTask,
-  TerminalTask,
-  AggregateTerminalTask,
-  ContinuationTask,
-  ILifecycleTask,
-  LifecycleTask,
-  PromiseTask,
-  TaskSlot,
-  StartTask,
-  IStartTask,
-  IStartTaskManager,
-  ProviderTask,
-} from './lifecycle-task';
-export {
   AccessorOrObserver,
+  IBinding,
+  AccessorType,
   Collection,
   CollectionKind,
   DelegationStrategy,
   IAccessor,
   IBindingContext,
-  IBindingTargetAccessor,
-  IBindingTargetObserver,
   ICollectionChangeTracker,
   ICollectionObserver,
-  ICollectionIndexObserver,
+  IConnectable,
+  IArrayIndexObserver,
   ICollectionSubscriber,
   IndexMap,
+  IBatchable,
+  IObserver,
   IObservable,
-  IObservedArray,
-  IObservedMap,
-  IObservedSet,
   IOverrideContext,
-  IPropertyChangeTracker,
-  IPropertyObserver,
-  IScope,
+  InterceptorFunc,
   ISubscribable,
   ISubscriberCollection,
-  ObservedCollection,
-  ObserversLookup,
-  PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,
-  IProxyObserver,
-  IProxy,
-  IProxySubscribable,
-  IProxySubscriber,
-  IProxySubscriberCollection,
   ICollectionSubscribable,
   ISubscriber,
+  ISubscriberRecord,
   isIndexMap,
   copyIndexMap,
   cloneIndexMap,
   createIndexMap,
-} from './observation';
-export {
-  applyBindingBehavior,
-  IInstructionRenderer,
-  IInstructionTypeClassifier,
-  IRenderer,
-  ITemplateCompiler,
-  instructionRenderer,
-  ensureExpression,
-} from './renderer';
+} from './observation.js';

@@ -3,7 +3,7 @@ import {
   bindable,
   customElement,
   valueConverter
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 
 @valueConverter('sort')
 export class SortValueConverter {

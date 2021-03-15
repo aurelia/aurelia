@@ -1,5 +1,4 @@
-import { LifecycleFlags as LF } from '@aurelia/runtime';
-import { ValueAttributeObserver } from '@aurelia/runtime-html';
+import { LifecycleFlags as LF, ValueAttributeObserver } from '@aurelia/runtime-html';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
 describe.skip('ValueAttributeObserver', function () {
@@ -20,24 +19,25 @@ describe.skip('ValueAttributeObserver', function () {
   ]) {
     describe(`setValue() - type="${inputType}"`, function () {
       function createFixture(hasSubscriber: boolean) {
-        const ctx = TestContext.createHTMLTestContext();
-        const { container, lifecycle, observerLocator, scheduler } = ctx;
+        const ctx = TestContext.create();
+        const { container, observerLocator, platform } = ctx;
 
         const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;
         ctx.doc.body.appendChild(el);
 
-        const sut = observerLocator.getObserver(LF.none, el, 'value') as ValueAttributeObserver;
+        const sut = observerLocator.getObserver(el, 'value') as ValueAttributeObserver;
 
         const subscriber = { handleChange: createSpy() };
         if (hasSubscriber) {
           sut.subscribe(subscriber);
         }
 
-        return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, scheduler };
+        return { ctx, container, observerLocator, el, sut, subscriber, platform };
       }
 
       function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
         ctx.doc.body.removeChild(el);
+        assert.areTaskQueuesEmpty();
       }
 
       for (const hasSubscriber of [true, false]) {
@@ -46,7 +46,7 @@ describe.skip('ValueAttributeObserver', function () {
 
             it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, function () {
 
-              const { ctx, sut, lifecycle, el, subscriber, scheduler } = createFixture(hasSubscriber);
+              const { ctx, sut, el, subscriber, platform } = createFixture(hasSubscriber);
 
               const expectedValueBefore = nullValues.includes(valueBefore) ? '' : valueBefore;
               const expectedValueAfter = nullValues.includes(valueAfter) ? '' : valueAfter;
@@ -57,7 +57,7 @@ describe.skip('ValueAttributeObserver', function () {
 
               sut.setValue(valueBefore, LF.none);
               // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-              scheduler.getRenderTaskQueue().flush();
+              platform.domWriteQueue.flush();
               assert.strictEqual(el.value, expectedValueBefore, 'el.value 1');
               assert.strictEqual(sut.getValue(), expectedValueBefore, 'sut.getValue() 1');
               if (hasSubscriber && changeCountBefore) {
@@ -65,7 +65,7 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.fromSyncFlush | LF.updateTargetInstance],
+                    [expectedValueBefore, '', LF.none],
                   ],
                   'subscriber.handleChange.calls',
                 );
@@ -73,7 +73,7 @@ describe.skip('ValueAttributeObserver', function () {
 
               sut.setValue(valueAfter, LF.none);
               // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-              scheduler.getRenderTaskQueue().flush();
+              platform.domWriteQueue.flush();
               assert.strictEqual(el.value, expectedValueAfter, 'el.value 2');
               assert.strictEqual(sut.getValue(), expectedValueAfter, 'sut.getValue() 2',);
               if (hasSubscriber && changeCountAfter) {
@@ -81,8 +81,8 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.fromSyncFlush | LF.updateTargetInstance],
-                    [expectedValueAfter, expectedValueBefore, LF.fromSyncFlush | LF.updateTargetInstance],
+                    [expectedValueBefore, '', LF.none],
+                    [expectedValueAfter, expectedValueBefore, LF.none],
                   ],
                   'subscriber.handleChange.calls',
                 );
@@ -91,7 +91,7 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.strictEqual(subscriber.handleChange.calls.length, callCount, `subscriber.handleChange.calls.length`);
               }
 
-              tearDown({ ctx, sut, lifecycle, el });
+              tearDown({ ctx, sut, el });
             });
           }
         }
@@ -100,13 +100,13 @@ describe.skip('ValueAttributeObserver', function () {
 
     describe(`handleEvent() - type="${inputType}"`, function () {
       function createFixture() {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
         const { container, observerLocator } = ctx;
 
         const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;
         ctx.doc.body.appendChild(el);
 
-        const sut = observerLocator.getObserver(LF.none, el, 'value') as ValueAttributeObserver;
+        const sut = observerLocator.getObserver(el, 'value') as ValueAttributeObserver;
 
         const subscriber = { handleChange: createSpy() };
         sut.subscribe(subscriber);
@@ -139,7 +139,7 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.fromDOMEvent | LF.allowPublishRoundtrip],
+                    [expectedValueBefore, '', LF.none],
                   ],
                   'subscriber.handleChange.calls',
                 );
@@ -154,8 +154,8 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.fromDOMEvent | LF.allowPublishRoundtrip],
-                    [expectedValueAfter, expectedValueBefore, LF.fromDOMEvent | LF.allowPublishRoundtrip],
+                    [expectedValueBefore, '', LF.none],
+                    [expectedValueAfter, expectedValueBefore, LF.none],
                   ],
                   'subscriber.handleChange.calls',
                 );

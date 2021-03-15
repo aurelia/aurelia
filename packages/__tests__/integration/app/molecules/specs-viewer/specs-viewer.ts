@@ -1,7 +1,7 @@
-import { bindable, customElement, valueConverter } from '@aurelia/runtime';
-import { Thing, ThingViewer } from './thing-viewer';
-import { Camera, CameraSpecsViewer } from './camera-specs-viewer';
-import { Laptop, LaptopSpecsViewer } from './laptop-specs-viewer';
+import { bindable, customElement, valueConverter } from '@aurelia/runtime-html';
+import { Thing, ThingViewer } from './thing-viewer.js';
+import { Camera, CameraSpecsViewer } from './camera-specs-viewer.js';
+import { Laptop, LaptopSpecsViewer } from './laptop-specs-viewer.js';
 import template from './specs-viewer.html';
 
 @customElement({ name: 'specs-viewer', template })
@@ -9,7 +9,7 @@ export class SpecsViewer {
   @bindable public things: Thing[];
   private pairs: { vm: typeof ThingViewer; thing: Thing }[];
 
-  public beforeBind() {
+  public binding() {
     const toVm = (thing: Thing) => {
       switch (true) {
         case thing instanceof Camera: return CameraSpecsViewer;

@@ -1,9 +1,7 @@
-import { Reporter } from '@aurelia/kernel';
 import {
   DirtyCheckSettings,
   IDirtyChecker,
   LifecycleFlags,
-  IScheduler,
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -14,17 +12,17 @@ describe('DirtyChecker', function () {
   });
 
   function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const dirtyChecker = ctx.container.get(IDirtyChecker);
-    const taskQueue = ctx.container.get(IScheduler).getRenderTaskQueue();
+    const taskQueue = ctx.platform.taskQueue;
 
     return { dirtyChecker, taskQueue };
   }
-  const expectedFlags = LifecycleFlags.fromTick;
+  const expectedFlags = LifecycleFlags.none;
 
   const specs = [
     {
-      framesPerCheck: 1,
+      timeoutsPerCheck: 1,
       frameChecks: [
         { callCount: 0 },
         { oldValue: '0', newValue: '1', callCount: 1, flags: expectedFlags },
@@ -41,7 +39,7 @@ describe('DirtyChecker', function () {
       ]
     },
     {
-      framesPerCheck: 2,
+      timeoutsPerCheck: 2,
       frameChecks: [
         { callCount: 0 },
         { callCount: 0 },
@@ -58,7 +56,7 @@ describe('DirtyChecker', function () {
       ]
     },
     {
-      framesPerCheck: 3,
+      timeoutsPerCheck: 3,
       frameChecks: [
         { callCount: 0 },
         { callCount: 0 },
@@ -75,7 +73,7 @@ describe('DirtyChecker', function () {
       ]
     },
     {
-      framesPerCheck: 6,
+      timeoutsPerCheck: 6,
       frameChecks: [
         { callCount: 0 },
         { callCount: 0 },
@@ -94,9 +92,9 @@ describe('DirtyChecker', function () {
   ];
 
   for (const spec of specs) {
-    it(`updates after ${spec.framesPerCheck} RAF call`, function (done) {
-      const { framesPerCheck, frameChecks } = spec;
-      DirtyCheckSettings.framesPerCheck = framesPerCheck;
+    it(`updates after ${spec.timeoutsPerCheck} RAF call`, function (done) {
+      const { timeoutsPerCheck, frameChecks } = spec;
+      DirtyCheckSettings.timeoutsPerCheck = timeoutsPerCheck;
       const { dirtyChecker, taskQueue } = createFixture();
 
       const obj1 = { foo: '0' };
@@ -238,6 +236,7 @@ describe('DirtyChecker', function () {
                             observer1.unsubscribe(subscriber2);
                             observer2.unsubscribe(subscriber3);
                             observer2.unsubscribe(subscriber4);
+
                             done();
                           });
                         });
@@ -254,8 +253,8 @@ describe('DirtyChecker', function () {
   }
 
   it('does nothing if disabled', function (done) {
-    const framesPerCheck: number = 1;
-    DirtyCheckSettings.framesPerCheck = framesPerCheck;
+    const timeoutsPerCheck: number = 1;
+    DirtyCheckSettings.timeoutsPerCheck = timeoutsPerCheck;
     DirtyCheckSettings.disabled = true;
     const { dirtyChecker, taskQueue } = createFixture();
 
@@ -286,6 +285,7 @@ describe('DirtyChecker', function () {
             taskQueue.queueTask(() => {
               assert.strictEqual(callCount, 0, `callCount`);
               observer.unsubscribe(subscriber);
+
               done();
             });
           });
@@ -305,40 +305,6 @@ describe('DirtyChecker', function () {
     } catch (e) {
       err = e;
     }
-    assert.match(err.message, /800/, `err.message`);
-  });
-
-  // For some reason the spy doesn't work?
-  it.skip('warns by default', function () {
-    let warnCalled = false;
-    const writeBackup = Reporter.write;
-    Reporter.write = function (code) {
-      if (code === 801) {
-        warnCalled = true;
-      }
-    };
-    const { dirtyChecker } = createFixture();
-
-    const obj = { foo: '0' };
-    dirtyChecker.createProperty(obj, 'foo');
-    assert.strictEqual(warnCalled, true, `warnCalled`);
-    Reporter.write = writeBackup;
-  });
-
-  it('does not warn if warn is off', function () {
-    let warnCalled = false;
-    DirtyCheckSettings.warn = false;
-    const writeBackup = Reporter.write;
-    Reporter.write = function (code) {
-      if (code === 801) {
-        warnCalled = true;
-      }
-    };
-    const { dirtyChecker } = createFixture();
-
-    const obj = { foo: '0' };
-    dirtyChecker.createProperty(obj, 'foo');
-    assert.strictEqual(warnCalled, false, `warnCalled`);
-    Reporter.write = writeBackup;
+    assert.match(err.message, /Property 'foo' is being dirty-checked/, `err.message`);
   });
 });

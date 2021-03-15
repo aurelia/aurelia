@@ -1,10 +1,10 @@
 import { DI } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
-import { ValidationResult, validationRulesRegistrar, PropertyRule, rootObjectSymbol } from './rule-provider';
-import { IValidateable } from './rule-interfaces';
+import { ValidationResult, validationRulesRegistrar, PropertyRule, rootObjectSymbol } from './rule-provider.js';
+import { IValidateable } from './rule-interfaces.js';
 
 /**
- * Instruction for the validation controller's validate method.
+ * IInstruction for the validation controller's validate method.
  */
 export class ValidateInstruction<TObject extends IValidateable = IValidateable> {
   /**
@@ -25,7 +25,7 @@ export class ValidateInstruction<TObject extends IValidateable = IValidateable> 
   ) { }
 }
 
-export const IValidator = DI.createInterface<IValidator>('IValidator').noDefault();
+export const IValidator = DI.createInterface<IValidator>('IValidator');
 
 /**
  * The core validator contract.
@@ -56,7 +56,7 @@ export class StandardValidator implements IValidator {
     const flags = instruction.flags;
 
     const rules = instruction.rules ?? validationRulesRegistrar.get(object, instruction.objectTag) ?? [];
-    const scope = Scope.create(flags, { [rootObjectSymbol]: object });
+    const scope = Scope.create({ [rootObjectSymbol]: object });
 
     if (propertyName !== void 0) {
       return (await rules.find((r) => r.property.name === propertyName)?.validate(object, propertyTag, flags, scope)) ?? [];

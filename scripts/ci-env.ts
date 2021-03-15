@@ -1,5 +1,5 @@
 import * as os from 'os';
-import * as request from 'request';
+import * as https from 'https';
 import { c, createLogger } from './logger';
 
 const log = createLogger('ci-env');
@@ -226,12 +226,6 @@ export class CIEnv {
   }
 
   // custom variables
-  public static get BS_KEY(): string {
-    return logSecretVariable(toString(process.env.BS_KEY), 'BS_KEY');
-  }
-  public static get BS_USER(): string {
-    return logSecretVariable(toString(process.env.BS_USER), 'BS_USER');
-  }
   public static get NPM_TOKEN(): string {
     return logSecretVariable(toString(process.env.NPM_TOKEN), 'NPM_TOKEN');
   }
@@ -240,9 +234,6 @@ export class CIEnv {
   }
   public static get GITHUB_TOKEN(): string {
     return logSecretVariable(toString(process.env.GITHUB_TOKEN), 'GITHUB_TOKEN');
-  }
-  public static get BS_COMPAT_CHECK(): boolean {
-    return logVariable(toBoolean(process.env.BS_COMPAT_CHECK), 'BS_COMPAT_CHECK');
   }
   public static get APP_PORT(): string {
     return logVariable(process.env.APP_PORT || '9000', 'APP_PORT');
@@ -265,57 +256,55 @@ export class CIEnv {
   }
 
   public static async circleGet(path: string): Promise<any> {
-    const baseUrl = 'https://circleci.com/api/v1.1';
-    return new Promise(resolve => {
-      request.get(
-        {
-          url: `${baseUrl}/${path}?circle-token=${CIEnv.CIRCLE_TOKEN}`,
-          headers: {
-            'Accept': 'application/json'
-          }
+    return new Promise((resolve, reject) => {
+      https.get({
+        headers: {
+          'Accept': 'application/json'
         },
-        (_err, _resp, body) => {
-          resolve(JSON.parse(body));
-        }
-      );
+        method: 'GET',
+        hostname: 'circleci.com',
+        path: `api/v1.1`,
+        search: `circle-token=${CIEnv.CIRCLE_TOKEN}`,
+      }, res => {
+        let data = '';
+
+        res.on('data', chunk => {
+          data += chunk;
+        });
+
+        res.on('end', () => {
+          resolve(JSON.parse(data));
+        });
+
+        res.on('error', reject);
+      });
     });
   }
 
   public static async githubPost(path: string, body: any): Promise<any> {
-    const baseUrl = 'https://api.github.com';
-    return new Promise(resolve => {
-      request.post({
-        url: `${baseUrl}/${path}`,
+    return new Promise((resolve, reject) => {
+      https.get({
         headers: {
           'Authorization': `token ${CIEnv.GITHUB_TOKEN}`,
           'Content-Type': 'application/json',
           'User-Agent': 'request'
         },
-        body: JSON.stringify(body)
-      }, (_err, resp, _body) => {
-        resolve(resp);
-      });
-    });
-  }
+        method: 'POST',
+        hostname: 'api.github.com',
+        path,
+      }, res => {
+        let data = '';
 
-  public static async browserstackPut(path: string, body: any): Promise<any> {
-    const baseUrl = 'https://api.browserstack.com/automate';
-    const auth = new Buffer(`${CIEnv.BS_USER}:${CIEnv.BS_KEY}`).toString('base64');
-    return new Promise(resolve => {
-      request.put(
-        {
-          url: `${baseUrl}/${path}`,
-          headers: {
-            'Authorization': `Basic ${auth}`,
-            'Content-Type': 'application/json',
-            'User-Agent': 'request'
-          },
-          body: JSON.stringify(body)
-        },
-        (_err, resp, _body) => {
-          resolve(resp);
-        }
-      );
+        res.on('data', chunk => {
+          data += chunk;
+        });
+
+        res.on('end', () => {
+          resolve(JSON.parse(data));
+        });
+
+        res.on('error', reject);
+      });
     });
   }
 }

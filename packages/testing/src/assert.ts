@@ -23,25 +23,17 @@
  * IN THE SOFTWARE.
  */
 
-import {
-  IIndexable, PLATFORM,
-} from '@aurelia/kernel';
-import {
-  Scheduler,
-} from '@aurelia/scheduler';
-import {
-  CompositionRoot, CustomElement, CustomAttribute, IScheduler, ITaskQueue, TaskQueue, TaskQueuePriority, ITask,
-} from '@aurelia/runtime';
+import { IIndexable, Task, TaskQueue } from '@aurelia/kernel';
 import {
   isDeepEqual,
   isDeepStrictEqual,
-} from './comparison';
+} from './comparison.js';
 import {
   AssertionError,
   IAssertionErrorOpts,
   inspect,
-} from './inspect';
-import { getVisibleText } from './specialized-assertions';
+} from './inspect.js';
+import { getVisibleText } from './specialized-assertions.js';
 import {
   isError,
   isFunction,
@@ -54,10 +46,18 @@ import {
   Object_freeze,
   Object_is,
   Object_keys,
-} from './util';
-import { DOM } from '@aurelia/runtime-html';
+} from './util.js';
+import {
+  IAppRoot,
+  CustomElement,
+  CustomAttribute,
+  TaskQueuePriority,
+  BrowserPlatform,
+} from '@aurelia/runtime-html';
+import { ensureTaskQueuesEmpty } from './scheduler.js';
+import { PLATFORM } from './test-context.js';
 
-/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any */
 
 type ErrorMatcher = string | Error | RegExp | Function;
 
@@ -382,8 +382,8 @@ export function fail(message: string | Error = 'Failed'): never {
   throw err;
 }
 
-export function visibleTextEqual(root: CompositionRoot, expectedText: string, message?: string): void {
-  const actualText = getVisibleText(root.controller!, root.host as Node);
+export function visibleTextEqual(host: Node, expectedText: string, message?: string): void {
+  const actualText = getVisibleText(host);
   if (actualText !== expectedText) {
     innerFail({
       actual: actualText,
@@ -675,14 +675,14 @@ export function isCustomAttributeType(actual: any, message?: string): void {
   }
 }
 
-function getNode(elementOrSelector: string | Node, root: Node = DOM.document) {
+function getNode(elementOrSelector: string | Node, root: Node = PLATFORM.document) {
   return typeof elementOrSelector === "string"
     ? (root as Element).querySelector(elementOrSelector)
     : elementOrSelector;
 }
 function isTextContentEqual(elementOrSelector: string | Node, expectedText: string, message?: string, root?: Node) {
   const host = getNode(elementOrSelector, root);
-  const actualText = host && getVisibleText((void 0)!, host, true);
+  const actualText = host && getVisibleText(host, true);
   if (actualText !== expectedText) {
     innerFail({
       actual: actualText,
@@ -706,10 +706,30 @@ function isValueEqual(inputElementOrSelector: string | Node, expected: unknown, 
     });
   }
 }
+function isInnerHtmlEqual(elementOrSelector: string | Node, expected: string, message?: string, root?: Node, compact: boolean = true) {
+  const node = getNode(elementOrSelector, root) as HTMLElement;
+  let actual = node.innerHTML;
+  if (compact) {
+    actual = actual
+      .replace(/<!--au-start-->/g, '')
+      .replace(/<!--au-end-->/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  if (actual !== expected) {
+    innerFail({
+      actual,
+      expected: expected,
+      message,
+      operator: '==' as any,
+      stackStartFn: isInnerHtmlEqual
+    });
+  }
+}
 
 type styleMatch = { isMatch: true } | { isMatch: false; property: string; actual: string; expected: string };
 function matchStyle(element: Node, expectedStyles: Record<string, string>): styleMatch {
-  const styles = DOM.window.getComputedStyle(element as Element);
+  const styles = PLATFORM.window.getComputedStyle(element as Element);
   for (const [property, expected] of Object.entries(expectedStyles)) {
     const actual: string = styles[property as any];
     if (actual !== expected) {
@@ -745,19 +765,15 @@ function notComputedStyle(element: Node, expectedStyles: Record<string, string>,
   }
 }
 
-const isSchedulerEmpty = (function () {
+const areTaskQueuesEmpty = (function () {
   function priorityToString(priority: TaskQueuePriority) {
     switch (priority) {
-      case TaskQueuePriority.microTask:
-        return 'microTask';
       case TaskQueuePriority.render:
         return 'render';
       case TaskQueuePriority.macroTask:
         return 'macroTask';
       case TaskQueuePriority.postRender:
         return 'postRender';
-      case TaskQueuePriority.idle:
-        return 'idle';
       default:
         return 'unknown';
     }
@@ -767,89 +783,71 @@ const isSchedulerEmpty = (function () {
     return ((num * 10 + .5) | 0) / 10;
   }
 
-  function reportTask(task: any) {
+  function reportTask(task: Task) {
     const id = task.id;
     const created = round(task.createdTime);
     const queue = round(task.queueTime);
     const preempt = task.preempt;
     const reusable = task.reusable;
     const persistent = task.persistent;
-    const status = task._status;
+    const status = task['_status'];
 
-    return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}`;
+    return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}\n`
+      + `    task callback="${task.callback?.toString()}"`;
   }
 
-  function toArray(task: any) {
-    const arr = [task];
-    while (task = task.next) {
-      arr.push(task);
-    }
-    return arr;
-  }
+  function reportTaskQueue(name: string, taskQueue: TaskQueue) {
+    const processing = taskQueue['processing'] as any[];
+    const pending = taskQueue['pending'] as any[];
+    const delayed = taskQueue['delayed'] as any[];
+    const flushReq = taskQueue['flushRequested'];
 
-  function reportTaskQueue(taskQueue: any) {
-    const processing = taskQueue.processingSize;
-    const pending = taskQueue.pendingSize;
-    const delayed = taskQueue.delayedSize;
-    const flushReq = taskQueue.flushRequested;
-    const prio = taskQueue.priority;
-
-    let info = `${priorityToString(prio)}TaskQueue has processing=${processing} pending=${pending} delayed=${delayed} flushRequested=${flushReq}\n\n`;
-    if (processing > 0) {
-      info += `  Tasks in processing:\n${toArray(taskQueue.processingHead).map(reportTask).join('')}`;
+    let info = `${name} has processing=${processing.length} pending=${pending.length} delayed=${delayed.length} flushRequested=${flushReq}\n\n`;
+    if (processing.length > 0) {
+      info += `  Tasks in processing:\n${processing.map(reportTask).join('')}`;
     }
-    if (pending > 0) {
-      info += `  Tasks in pending:\n${toArray(taskQueue.pendingHead).map(reportTask).join('')}`;
+    if (pending.length > 0) {
+      info += `  Tasks in pending:\n${pending.map(reportTask).join('')}`;
     }
-    if (delayed > 0) {
-      info += `  Tasks in delayed:\n${toArray(taskQueue.delayedHead).map(reportTask).join('')}`;
+    if (delayed.length > 0) {
+      info += `  Tasks in delayed:\n${delayed.map(reportTask).join('')}`;
     }
 
     return info;
   }
 
-  return function $isSchedulerEmpty() {
-    // Please don't do this anywhere else. We need to get rid of this / improve this at some point, not make it worse.
-    // Also for this to work, a HTMLTestContext needs to have been created somewhere, so we can't just call this e.g. in kernel and certain runtime tests that don't use
-    // the full test context.
-    const scheduler = Scheduler.get(PLATFORM.global)!;
+  return function $areTaskQueuesEmpty(clearBeforeThrow?: any) {
+    const platform = BrowserPlatform.getOrCreate(globalThis)!;
 
-    const microTaskQueue = scheduler.getMicroTaskQueue() as any;
-    const renderTaskQueue = scheduler.getRenderTaskQueue() as any;
-    const macroTaskQueue = scheduler.getMacroTaskQueue() as any;
-    const postRenderTaskQueue = scheduler.getPostRenderTaskQueue() as any;
-    const idleTaskQueue = scheduler.getIdleTaskQueue() as any;
+    const domWriteQueue = platform.domWriteQueue;
+    const taskQueue = platform.taskQueue;
+    const domReadQueue = platform.domReadQueue;
 
     let isEmpty = true;
     let message = '';
-    if (!microTaskQueue.isEmpty) {
-      message += `\n${reportTaskQueue(microTaskQueue)}\n\n`;
+    if (!domWriteQueue.isEmpty) {
+      message += `\n${reportTaskQueue('domWriteQueue', domWriteQueue)}\n\n`;
       isEmpty = false;
     }
-    if (!renderTaskQueue.isEmpty) {
-      message += `\n${reportTaskQueue(renderTaskQueue)}\n\n`;
+    if (!taskQueue.isEmpty) {
+      message += `\n${reportTaskQueue('taskQueue', taskQueue)}\n\n`;
       isEmpty = false;
     }
-    if (!macroTaskQueue.isEmpty) {
-      message += `\n${reportTaskQueue(macroTaskQueue)}\n\n`;
-      isEmpty = false;
-    }
-    if (!postRenderTaskQueue.isEmpty) {
-      message += `\n${reportTaskQueue(postRenderTaskQueue)}\n\n`;
-      isEmpty = false;
-    }
-    if (!idleTaskQueue.isEmpty) {
-      message += `\n${reportTaskQueue(idleTaskQueue)}\n\n`;
+    if (!domReadQueue.isEmpty) {
+      message += `\n${reportTaskQueue('domReadQueue', domReadQueue)}\n\n`;
       isEmpty = false;
     }
 
     if (!isEmpty) {
+      if (clearBeforeThrow === true) {
+        ensureTaskQueuesEmpty(platform);
+      }
       innerFail({
         actual: void 0,
         expected: void 0,
         message,
         operator: '' as any,
-        stackStartFn: $isSchedulerEmpty
+        stackStartFn: $areTaskQueuesEmpty
       });
     }
   };
@@ -884,7 +882,7 @@ const assert = Object_freeze({
   match,
   notMatch,
   visibleTextEqual,
-  isSchedulerEmpty,
+  areTaskQueuesEmpty,
   isCustomElementType,
   isCustomAttributeType,
   strict: {
@@ -895,6 +893,7 @@ const assert = Object_freeze({
   },
   html: {
     textContent: isTextContentEqual,
+    innerEqual: isInnerHtmlEqual,
     value: isValueEqual,
     computedStyle: computedStyle,
     notComputedStyle: notComputedStyle

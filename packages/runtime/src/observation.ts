@@ -1,6 +1,59 @@
-import { IIndexable } from '@aurelia/kernel';
-import { LifecycleFlags } from './flags';
-import { ILifecycle } from './lifecycle';
+import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import type { Scope } from './observation/binding-context.js';
+import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer.js';
+
+export interface IBinding {
+  interceptor: this;
+  readonly locator: IServiceLocator;
+  readonly $scope?: Scope;
+  readonly $hostScope: Scope | null;
+  readonly isBound: boolean;
+  $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+  $unbind(flags: LifecycleFlags): void;
+}
+
+export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
+
+/*
+* Note: the oneTime binding now has a non-zero value for 2 reasons:
+*  - plays nicer with bitwise operations (more consistent code, more explicit settings)
+*  - allows for potentially having something like BindingMode.oneTime | BindingMode.fromView, where an initial value is set once to the view but updates from the view also propagate back to the view model
+*
+* Furthermore, the "default" mode would be for simple ".bind" expressions to make it explicit for our logic that the default is being used.
+* This essentially adds extra information which binding could use to do smarter things and allows bindingBehaviors that add a mode instead of simply overwriting it
+*/
+export enum BindingMode {
+  oneTime  = 0b0001,
+  toView   = 0b0010,
+  fromView = 0b0100,
+  twoWay   = 0b0110,
+  default  = 0b1000
+}
+
+export const enum LifecycleFlags {
+  none                          = 0b0000_000_00_0,
+  // Bitmask for flags that need to be stored on a binding during $bind for mutation
+  // callbacks outside of $bind
+  persistentBindingFlags        = 0b1111_000_00_1,
+  allowParentScopeTraversal     = 0b0001_000_00_0,
+  observeLeafPropertiesOnly     = 0b0010_000_00_0,
+  targetObserverFlags           = 0b1100_000_00_1,
+  noFlush                       = 0b0100_000_00_0,
+  persistentTargetObserverQueue = 0b1000_000_00_0,
+  bindingStrategy               = 0b0000_000_00_1,
+  isStrictBindingStrategy       = 0b0000_000_00_1,
+  fromBind                      = 0b0000_000_01_0,
+  fromUnbind                    = 0b0000_000_10_0,
+  mustEvaluate                  = 0b0000_001_00_0,
+  isTraversingParentScope       = 0b0000_010_00_0,
+  dispose                       = 0b0000_100_00_0,
+}
+
+export interface IConnectable {
+  observeProperty(obj: object, key: PropertyKey): void;
+  observeCollection(obj: Collection): void;
+  subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
+}
 
 /** @internal */
 export const enum SubscriberFlags {
@@ -13,9 +66,9 @@ export const enum SubscriberFlags {
 }
 
 export enum DelegationStrategy {
-  none = 0,
+  none      = 0,
   capturing = 1,
-  bubbling = 2
+  bubbling  = 2,
 }
 
 export interface IBatchable {
@@ -27,10 +80,6 @@ export interface ISubscriber<TValue = unknown> {
   handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
 }
 
-export interface IProxySubscriber<TValue = unknown> {
-  handleProxyChange(key: PropertyKey, newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
-}
-
 export interface ICollectionSubscriber {
   handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
 }
@@ -40,113 +89,64 @@ export interface ISubscribable {
   unsubscribe(subscriber: ISubscriber): void;
 }
 
-export interface IProxySubscribable {
-  subscribeToProxy(subscriber: IProxySubscriber): void;
-  unsubscribeFromProxy(subscriber: IProxySubscriber): void;
-}
-
 export interface ICollectionSubscribable {
-  subscribeToCollection(subscriber: ICollectionSubscriber): void;
-  unsubscribeFromCollection(subscriber: ICollectionSubscriber): void;
+  subscribe(subscriber: ICollectionSubscriber): void;
+  unsubscribe(subscriber: ICollectionSubscriber): void;
 }
 
+/**
+ * An interface describing the contract of a subscriber list,
+ * with the ability to propagate values to those subscribers
+ */
+export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber> {
+  readonly count: number;
+  add(subscriber: T): boolean;
+  has(subscriber: T): boolean;
+  remove(subscriber: T): boolean;
+  any(): boolean;
+  notify(value: unknown, oldValue: unknown, flags: LifecycleFlags): void;
+  notifyCollection(indexMap: IndexMap, flags: LifecycleFlags): void;
+}
+
+/**
+ * An internal interface describing the implementation of a ISubscribable of Aurelia that supports batching
+ *
+ * This is usually mixed into a class via the import `subscriberCollection` import from Aurelia.
+ * The `subscriberCollection` import can be used as either a decorator, or a function call.
+ */
 export interface ISubscriberCollection extends ISubscribable {
   [key: number]: LifecycleFlags;
-
-  /** @internal */_subscriberFlags: SubscriberFlags;
-  /** @internal */_subscriber0?: ISubscriber;
-  /** @internal */_subscriber1?: ISubscriber;
-  /** @internal */_subscriber2?: ISubscriber;
-  /** @internal */_subscribersRest?: ISubscriber[];
-
-  callSubscribers(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
-  hasSubscribers(): boolean;
-  hasSubscriber(subscriber: ISubscriber): boolean;
-  removeSubscriber(subscriber: ISubscriber): boolean;
-  addSubscriber(subscriber: ISubscriber): boolean;
+  /**
+   * The backing subscriber record for all subscriber methods of this collection
+   */
+  readonly subs: ISubscriberRecord<ISubscriber>;
 }
 
-export interface IProxySubscriberCollection extends IProxySubscribable {
-  [key: number]: LifecycleFlags;
-
-  /** @internal */_proxySubscriberFlags: SubscriberFlags;
-  /** @internal */_proxySubscriber0?: IProxySubscriber;
-  /** @internal */_proxySubscriber1?: IProxySubscriber;
-  /** @internal */_proxySubscriber2?: IProxySubscriber;
-  /** @internal */_proxySubscribersRest?: IProxySubscriber[];
-
-  callProxySubscribers(key: PropertyKey, newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
-  hasProxySubscribers(): boolean;
-  hasProxySubscriber(subscriber: IProxySubscriber): boolean;
-  removeProxySubscriber(subscriber: IProxySubscriber): boolean;
-  addProxySubscriber(subscriber: IProxySubscriber): boolean;
-}
-
+/**
+ * An internal interface describing the implementation of a ICollectionSubscribable of Aurelia that supports batching
+ *
+ * This is usually mixed into a class via the import `subscriberCollection` import from Aurelia.
+ * The `subscriberCollection` import can be used as either a decorator, or a function call.
+ */
 export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
   [key: number]: LifecycleFlags;
-
-  /** @internal */_collectionSubscriberFlags: SubscriberFlags;
-  /** @internal */_collectionSubscriber0?: ICollectionSubscriber;
-  /** @internal */_collectionSubscriber1?: ICollectionSubscriber;
-  /** @internal */_collectionSubscriber2?: ICollectionSubscriber;
-  /** @internal */_collectionSubscribersRest?: ICollectionSubscriber[];
-
-  callCollectionSubscribers(indexMap: IndexMap, flags: LifecycleFlags): void;
-  hasCollectionSubscribers(): boolean;
-  hasCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
-  removeCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
-  addCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
+  /**
+   * The backing subscriber record for all subscriber methods of this collection
+   */
+  readonly subs: ISubscriberRecord<ICollectionSubscriber>;
 }
-
-/**
- * Describes a complete property observer with an accessor, change tracking fields, normal and batched subscribers
- */
-export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj> extends
-  IAccessor<TObj[TProp]>,
-  IPropertyChangeTracker<TObj, TProp>,
-  ISubscriberCollection,
-  IBatchable {
-  inBatch: boolean;
-  observing: boolean;
-  persistentFlags: LifecycleFlags;
-}
-
-/**
- * An any-typed property observer
- */
-export type PropertyObserver = IPropertyObserver<IIndexable, string>;
 
 /**
  * A collection (array, set or map)
  */
 export type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
-interface IObservedCollection<T extends CollectionKind = CollectionKind> {
-  $raw?: this;
-}
-
-/**
- * An array that is being observed for mutations
- */
-export interface IObservedArray<T = unknown> extends IObservedCollection<CollectionKind.array>, Array<T> { }
-/**
- * A set that is being observed for mutations
- */
-export interface IObservedSet<T = unknown> extends IObservedCollection<CollectionKind.set>, Set<T> { }
-/**
- * A map that is being observed for mutations
- */
-export interface IObservedMap<K = unknown, V = unknown> extends IObservedCollection<CollectionKind.map>, Map<K, V> { }
-/**
- * A collection that is being observed for mutations
- */
-export type ObservedCollection = IObservedArray | IObservedSet | IObservedMap;
 
 export const enum CollectionKind {
   indexed = 0b1000,
   keyed   = 0b0100,
   array   = 0b1001,
   map     = 0b0110,
-  set     = 0b0111
+  set     = 0b0111,
 }
 
 export type LengthPropertyName<T> =
@@ -170,54 +170,55 @@ export type CollectionKindToType<T> =
             never;
 
 export type ObservedCollectionKindToType<T> =
-  T extends CollectionKind.array ? IObservedArray :
-    T extends CollectionKind.indexed ? IObservedArray :
-      T extends CollectionKind.map ? IObservedMap :
-        T extends CollectionKind.set ? IObservedSet :
-          T extends CollectionKind.keyed ? IObservedSet | IObservedMap :
+  T extends CollectionKind.array ? unknown[] :
+    T extends CollectionKind.indexed ? unknown[] :
+      T extends CollectionKind.map ? Map<unknown, unknown> :
+        T extends CollectionKind.set ? Set<unknown> :
+          T extends CollectionKind.keyed ? Map<unknown, unknown> | Set<unknown> :
             never;
 
-export interface IProxyObserver<TObj extends {} = {}> extends IProxySubscriberCollection {
-  proxy: IProxy<TObj>;
-}
+export const enum AccessorType {
+  None          = 0b0_0000_0000,
+  Observer      = 0b0_0000_0001,
 
-export type IProxy<TObj extends {} = {}> = TObj & {
-  $raw: TObj;
-};
+  Node          = 0b0_0000_0010,
+
+  // misc characteristic of accessors/observers when update
+  //
+  // by default, everything is synchronous
+  // except changes that are supposed to cause reflow/heavy computation
+  // an observer can use this flag to signal binding that don't carelessly tell it to update
+  // queue it instead
+  // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
+  // todo: https://csstriggers.com/
+  Layout        = 0b0_0000_0100,
+  // by default, everything is an object
+  // eg: a property is accessed on an object
+  // unless explicitly not so
+  Primtive      = 0b0_0000_1000,
+
+  Array         = 0b0_0001_0010,
+  Set           = 0b0_0010_0010,
+  Map           = 0b0_0100_0010,
+}
 
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
  */
 export interface IAccessor<TValue = unknown> {
-  getValue(): TValue;
-  setValue(newValue: TValue, flags: LifecycleFlags): void;
+  type: AccessorType;
+  getValue(obj?: object, key?: PropertyKey): TValue;
+  setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
 }
 
 /**
- * Describes a target observer for to-view bindings (in other words, an observer without the observation).
+ * An interface describing a standard contract of an observer in Aurelia binding & observation system
  */
-export interface IBindingTargetAccessor<
-  TObj = any,
-  TProp = keyof TObj,
-  TValue = unknown>
-  extends IAccessor<TValue>,
-  IPropertyChangeTracker<TObj, TProp> {
-  bind?(flags: LifecycleFlags): void;
-  unbind?(flags: LifecycleFlags): void;
-}
+export interface IObserver extends IAccessor, ISubscribable {}
 
-/**
- * Describes a target observer for from-view or two-way bindings.
- */
-export interface IBindingTargetObserver<
-  TObj = any,
-  TProp = keyof TObj,
-  TValue = unknown>
-  extends IBindingTargetAccessor<TObj, TProp, TValue>,
-  ISubscribable,
-  ISubscriberCollection {}
-
-export type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
+export type AccessorOrObserver = (IAccessor | IObserver) & {
+  doNotCache?: boolean;
+};
 
 /**
  * An array of indices, where the index of an element represents the index to map FROM, and the numeric value of the element itself represents the index to map TO
@@ -273,24 +274,7 @@ export function isIndexMap(value: unknown): value is IndexMap {
   return value instanceof Array && (value as IndexMap).isIndexMap === true;
 }
 
-/**
- * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
- */
-export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unknown> {
-  obj: TObj;
-  propertyKey?: TProp;
-  currentValue?: TValue;
-}
-
-export interface ICollectionLengthObserver extends IAccessor<number>, IPropertyChangeTracker<unknown[], 'length', number>, ISubscriberCollection {
-  currentValue: number;
-}
-
-export interface ICollectionSizeObserver extends IAccessor<number>, IPropertyChangeTracker<Set<unknown> | Map<unknown, unknown>, 'size', number>, ISubscriberCollection {
-  currentValue: number;
-}
-
-export interface ICollectionIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
+export interface IArrayIndexObserver extends IObserver {
   owner: ICollectionObserver<CollectionKind.array>;
 }
 
@@ -307,56 +291,24 @@ export interface ICollectionChangeTracker<T extends Collection> {
  */
 export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
-  ICollectionSubscriberCollection,
-  IBatchable {
-  inBatch: boolean;
-  lifecycle: ILifecycle;
-  persistentFlags: LifecycleFlags;
+  ICollectionSubscribable {
+  type: AccessorType;
   collection: ObservedCollectionKindToType<T>;
-  lengthObserver: T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
-  getLengthObserver(): T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
-  getIndexObserver(index: number): ICollectionIndexObserver;
+  getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
   notify(): void;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;
 
 export interface IBindingContext {
   [key: string]: any;
-
-  readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup;
-  getObservers?(flags: LifecycleFlags): ObserversLookup;
 }
 
 export interface IOverrideContext {
   [key: string]: unknown;
 
-  readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup;
   readonly bindingContext: IBindingContext;
-  readonly parentOverrideContext: IOverrideContext | null;
-  getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 
-export interface IScope {
-  readonly parentScope: IScope | null;
-  readonly scopeParts: readonly string[];
-  readonly bindingContext: IBindingContext;
-  readonly overrideContext: IOverrideContext;
-}
-
-export type ObserversLookup = IIndexable<{
-  getOrCreate(
-    lifecycle: ILifecycle,
-    flags: LifecycleFlags,
-    obj: IBindingContext | IOverrideContext,
-    key: string,
-  ): PropertyObserver;
-}, PropertyObserver>;
-
-export type InlineObserversLookup<T> = IIndexable<{}, T>;
-
-export type IObservable<T = {}> = {
-  readonly $synthetic?: false;
-  $observers?: ObserversLookup | InlineObserversLookup<T>;
+export type IObservable<T = IIndexable> = T & {
+  $observers?: IIndexable<{}, AccessorOrObserver>;
 };

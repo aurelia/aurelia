@@ -344,14 +344,13 @@ describe("store", function () {
     const { spyObj: internalDispatchSpy } = createCallCounter((store as any), "internalDispatch");
     store.resetToState(initialState);
 
-    await new Promise((resolve) => store.state.subscribe((state) => {
+    await new Promise<void>((resolve) => store.state.subscribe((state) => {
       assert.equal(internalDispatchSpy.callCounter, 0);
       assert.equal(state.foo, initialState.foo);
 
       internalDispatchSpy.reset();
       resolve();
-    })
-    );
+    }));
   });
 
   describe("piped dispatch", function () {

@@ -25,7 +25,7 @@ export async function executeSteps<T>(store: Store<T>, shouldLogResults: boolean
       }
     };
 
-  const lastStep = (step: StepFn<T>, resolve: () => void) =>
+  const lastStep = (step: StepFn<T>, resolve: (value?: unknown) => void) =>
     (res: T) => {
       step(res);
       resolve();

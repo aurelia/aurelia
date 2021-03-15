@@ -1,5 +1,3 @@
-import { PLATFORM } from '@aurelia/kernel';
-
 export const DEFAULT_LOCAL_STORAGE_KEY = "aurelia-store-state";
 
 export interface CallingAction {
@@ -26,19 +24,19 @@ export function logMiddleware(state: unknown, _: unknown, settings?: { logType: 
 }
 
 export function localStorageMiddleware(state: unknown, _: unknown, settings?: { key: string }) {
-  if (PLATFORM.global.localStorage !== undefined) {
+  if (globalThis.localStorage !== undefined) {
     const key = settings?.key !== undefined ? settings.key : DEFAULT_LOCAL_STORAGE_KEY;
 
-    PLATFORM.global.localStorage.setItem(key, JSON.stringify(state));
+    globalThis.localStorage.setItem(key, JSON.stringify(state));
   }
 }
 
 export function rehydrateFromLocalStorage<T>(state: T, key?: string) {
-  if (PLATFORM.global.localStorage === undefined) {
+  if (globalThis.localStorage === undefined) {
     return state;
   }
 
-  const storedState = PLATFORM.global.localStorage.getItem(key === undefined ? DEFAULT_LOCAL_STORAGE_KEY : key);
+  const storedState = globalThis.localStorage.getItem(key === undefined ? DEFAULT_LOCAL_STORAGE_KEY : key);
   if (storedState === null || storedState === "") {
     return state;
   }

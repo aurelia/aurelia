@@ -1,6 +1,6 @@
 import { Subscription } from 'rxjs';
 import { distinctUntilChanged, pluck } from 'rxjs/operators';
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 import { assert } from "@aurelia/testing";
 import { DI, Registration } from '@aurelia/kernel';
 import { STORE, Store, connectTo } from '@aurelia/store';

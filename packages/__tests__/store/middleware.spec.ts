@@ -1,5 +1,4 @@
 import { skip, take } from "rxjs/operators";
-import { PLATFORM } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 import {
   MiddlewarePlacement,
@@ -19,7 +18,7 @@ import {
 } from "./helpers";
 
 function mockLocalStorage(patch: unknown) {
-  Object.defineProperty(PLATFORM.global, "localStorage", {
+  Object.defineProperty(globalThis, "localStorage", {
     value: patch,
     configurable: true
   });
@@ -193,7 +192,7 @@ describe("middlewares", function () {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction).catch(() => { /**/ });
 
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         store.state.subscribe((state) => {
           assert.equal(state.counter, 1);
           resolve();
@@ -216,7 +215,7 @@ describe("middlewares", function () {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction).catch(() => { /**/ });
 
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         store.state.subscribe((state) => {
           assert.equal(state.counter, 1);
           resolve();
@@ -512,7 +511,7 @@ describe("middlewares", function () {
     store.registerAction("IncrementAction", incrementAction);
     store.dispatch(incrementAction).catch(() => { /**/ });
 
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       store.state.pipe(
         skip(1)
       ).subscribe(() => {
@@ -587,7 +586,7 @@ describe("middlewares", function () {
         skip(1)
       ).subscribe((state) => {
         assert.equal(state.counter, 2);
-        assert.equal(PLATFORM.global.localStorage.getItem("aurelia-store-state"), JSON.stringify(state));
+        assert.equal(globalThis.localStorage.getItem("aurelia-store-state"), JSON.stringify(state));
         done();
       });
     });
@@ -615,7 +614,7 @@ describe("middlewares", function () {
         skip(1)
       ).subscribe((state) => {
         assert.equal(state.counter, 2);
-        assert.equal(PLATFORM.global.localStorage.getItem(storageKey), JSON.stringify(state));
+        assert.equal(globalThis.localStorage.getItem(storageKey), JSON.stringify(state));
         done();
       });
     });

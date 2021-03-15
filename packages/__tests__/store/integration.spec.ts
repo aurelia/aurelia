@@ -1,18 +1,18 @@
 import { Subscription } from 'rxjs';
-import { INode, Aurelia, customElement, DOM } from '@aurelia/runtime';
+import { Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 import { StoreConfiguration, Store, connectTo, StoreOptions, dispatchify } from "@aurelia/store";
 import { Constructable } from '@aurelia/kernel';
 
 import { testState } from './helpers';
 
-async function createFixture({ host, component, options, initialState }: {
-  host: INode;
+async function createFixture({ component, options, initialState }: {
   component: Constructable;
   options?: StoreOptions;
   initialState?: testState;
 }) {
-  const ctx = TestContext.createHTMLTestContext();
+  const ctx = TestContext.create();
+  const host = ctx.platform.document.createElement('app');
   const au = new Aurelia(ctx.container);
   const actualState = typeof initialState === "undefined"
     ? {
@@ -25,8 +25,7 @@ async function createFixture({ host, component, options, initialState }: {
     StoreConfiguration.withInitialState(actualState)
       .withOptions(options))
     .app({ host, component })
-    .start()
-    .wait();
+    .start();
 
   const store = au.container.get<Store<typeof actualState>>(Store);
 
@@ -35,8 +34,9 @@ async function createFixture({ host, component, options, initialState }: {
     ctx,
     initialState: actualState,
     store,
+    host,
     tearDown: async () => {
-      await au.stop().wait();
+      await au.stop();
     }
   };
 }
@@ -57,8 +57,7 @@ describe("when using the store in an aurelia app", function () {
       }
     }
 
-    const host = DOM.createElement('app');
-    const { store, tearDown } = await createFixture({ host, component: App });
+    const { store, tearDown, host } = await createFixture({ component: App });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
     assert.equal((store as any)._state.getValue().foo, "bar");
@@ -70,9 +69,8 @@ describe("when using the store in an aurelia app", function () {
     @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>`, isStrictBinding: true })
     class App { }
 
-    const host = DOM.createElement('app');
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    assert.rejects(async () => createFixture({ host, component: App, initialState: null }));
+    assert.rejects(async () => createFixture({ component: App, initialState: null }));
   });
 
   it("should inject the proper store for connectTo", async function () {
@@ -80,8 +78,7 @@ describe("when using the store in an aurelia app", function () {
     @connectTo()
     class App { }
 
-    const host = DOM.createElement('app');
-    const { store, tearDown } = await createFixture({ host, component: App });
+    const { store, tearDown, host } = await createFixture({ component: App });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
     assert.equal((store as any)._state.getValue().foo, "bar");
@@ -94,9 +91,7 @@ describe("when using the store in an aurelia app", function () {
     @connectTo()
     class App { }
 
-    const host = DOM.createElement('app');
-    const { initialState, store, tearDown } = await createFixture({
-      host,
+    const { initialState, store, tearDown, host } = await createFixture({
       component: App,
       options: { history: { undoable: true } }
     });
@@ -133,15 +128,15 @@ describe("when using the store in an aurelia app", function () {
       }
     }
 
-    const host = DOM.createElement('app');
-    const { store, ctx, tearDown } = await createFixture({ host, component: App });
+    const { host, store, ctx, tearDown } = await createFixture({ component: App });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
     assert.equal((store as any)._state.getValue().foo, "bar");
 
     const sut = ctx.container.get(App);
     await sut.changeFoo();
-    ctx.scheduler.getRenderTaskQueue().flush();
+
+    ctx.platform.domWriteQueue.flush();
 
     assert.equal((host as Element).querySelector("#sut").textContent, "foobar");
     assert.equal((store as any)._state.getValue().foo, "foobar");

@@ -1,7 +1,7 @@
 /* eslint-disable compat/compat */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { IContainer, PLATFORM, ILogger, DI } from '@aurelia/kernel';
-import { HTMLDOM } from "@aurelia/runtime-html";
+import { IContainer, ILogger, DI } from '@aurelia/kernel';
+import { IPlatform } from "@aurelia/runtime-html";
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { jump, applyLimits, HistoryOptions, isStateHistory } from './history';
@@ -46,13 +46,7 @@ export const STORE: { container: IContainer } = {
 };
 
 // TODO: @Fred IGlobal.Kernel as abstraction for PLATFORM.global
-export const IStoreWindow = DI.createInterface<IStoreWindow>('IStoreWindow')
-  .withDefault(x => x.callback(handler => {
-    if (handler.has(HTMLDOM, true)) {
-      return handler.get(HTMLDOM).window;
-    }
-    return {} as unknown as IStoreWindow;
-  }));
+export const IStoreWindow = DI.createInterface<IStoreWindow>('IStoreWindow', x => x.callback(handler => handler.get(IPlatform).window));
 export interface IStoreWindow extends Window {
   devToolsExtension?: DevToolsExtension;
   __REDUX_DEVTOOLS_EXTENSION__?: DevToolsExtension;
@@ -219,7 +213,7 @@ export class Store<T> {
       throw new UnregisteredActionError(unregisteredAction.reducer);
     }
 
-    PLATFORM.performance.mark("dispatch-start");
+    globalThis.performance.mark("dispatch-start");
 
     const pipedActions = actions.map((a) => ({
       type: this.actions.get(a.reducer)!.type,
@@ -248,8 +242,8 @@ export class Store<T> {
     );
 
     if (beforeMiddleswaresResult === false) {
-      PLATFORM.performance.clearMarks();
-      PLATFORM.performance.clearMeasures();
+      globalThis.performance.clearMarks();
+      globalThis.performance.clearMeasures();
 
       return;
     }
@@ -259,13 +253,13 @@ export class Store<T> {
       // eslint-disable-next-line no-await-in-loop
       result = await action.reducer(result, ...action.params);
       if (result === false) {
-        PLATFORM.performance.clearMarks();
-        PLATFORM.performance.clearMeasures();
+        globalThis.performance.clearMarks();
+        globalThis.performance.clearMeasures();
 
         return;
       }
 
-      PLATFORM.performance.mark(`dispatch-after-reducer-${action.type}`);
+      globalThis.performance.mark(`dispatch-after-reducer-${action.type}`);
 
       if (!result && typeof result !== "object") {
         throw new ReducerNoStateError("The reducer has to return a new state");
@@ -280,8 +274,8 @@ export class Store<T> {
     );
 
     if (resultingState === false) {
-      PLATFORM.performance.clearMarks();
-      PLATFORM.performance.clearMeasures();
+      globalThis.performance.clearMarks();
+      globalThis.performance.clearMeasures();
 
       return;
     }
@@ -292,23 +286,23 @@ export class Store<T> {
     }
 
     this._state.next(resultingState);
-    PLATFORM.performance.mark("dispatch-end");
+    globalThis.performance.mark("dispatch-end");
 
     if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-      PLATFORM.performance.measure(
+      globalThis.performance.measure(
         "startEndDispatchDuration",
         "dispatch-start",
         "dispatch-end"
       );
 
-      const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
+      const measures = globalThis.performance.getEntriesByName("startEndDispatchDuration");
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `Total duration ${measures[0].duration} of dispatched action ${callingAction.name}:`,
         measures
       );
     } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-      const marks = PLATFORM.performance.getEntriesByType("mark");
+      const marks = globalThis.performance.getEntriesByType("mark");
       const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
         `Total duration ${totalDuration} of dispatched action ${callingAction.name}:`,
@@ -316,8 +310,8 @@ export class Store<T> {
       );
     }
 
-    PLATFORM.performance.clearMarks();
-    PLATFORM.performance.clearMeasures();
+    globalThis.performance.clearMarks();
+    globalThis.performance.clearMeasures();
 
     this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState);
   }
@@ -344,7 +338,7 @@ export class Store<T> {
           // eslint-disable-next-line @typescript-eslint/return-await
           return await prev;
         } finally {
-          PLATFORM.performance.mark(`dispatch-${placement}-${curr[0].name}`);
+          globalThis.performance.mark(`dispatch-${placement}-${curr[0].name}`);
         }
       }, state);
   }

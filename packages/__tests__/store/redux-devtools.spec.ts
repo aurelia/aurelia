@@ -20,7 +20,7 @@ describe("redux devtools", function () {
   it("should init devtools if available", function () {
     class InitTrackerMock extends DevToolsMock {
       public async init() {
-        await new Promise((resolve) => {
+        await new Promise<void>((resolve) => {
           setTimeout(() => assert.equal((store as any).devToolsAvailable, true));
           resolve();
         });

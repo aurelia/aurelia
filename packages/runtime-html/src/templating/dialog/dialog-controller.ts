@@ -1,11 +1,14 @@
-import { IContainer, newInstanceForScope, newInstanceOf, onResolve, Registration } from '@aurelia/kernel';
+import { IContainer, newInstanceOf, onResolve, Registration } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { ISyntheticView } from '../controller.js';
 import {
   IDialogComponent,
   IDialogController,
-  IDialogRenderer,
+  IDialogAnimator,
   LoadedDialogSettings,
+  IDialogDomRenderer,
+  IDialogDom,
+  IDialogDomSubscriber,
 } from './dialog-interfaces.js';
 import {
   createDialogCancelError,
@@ -19,7 +22,7 @@ import type {
 import { IComposer, ICompositionContext } from '../composer.js';
 
 export const enum ActivationResult {
-  none = 0,
+  normal = 0,
   error = 1,
   cancelled = 2,
 }
@@ -27,7 +30,7 @@ export const enum ActivationResult {
 /**
  * A controller object for a Dialog instance.
  */
-export class DialogController implements IDialogController {
+export class DialogController implements IDialogController, IDialogDomSubscriber {
   private readonly container: IContainer;
   private readonly viewModel: IDialogComponent<object>;
   private readonly composer: IComposer;
@@ -44,10 +47,13 @@ export class DialogController implements IDialogController {
    */
   public readonly settings: LoadedDialogSettings;
 
+  public animator!: IDialogAnimator;
+
   /**
-   * @internal
+   * The internal host of the dialog associated with this controller,
+   * not to be mistakened with the dialog host specified by user
    */
-  public renderer: IDialogRenderer;
+  private dialogDom!: IDialogDom;
 
   /**
    * The component controller associated with this dialog controller
@@ -68,9 +74,12 @@ export class DialogController implements IDialogController {
     this.composer = composer;
     this.settings = settings;
     this.viewModel = DialogController.getOrCreateVm(container, settings);
-    this.renderer = container.get(newInstanceOf(IDialogRenderer));
     this.resolve = resolve;
     this.reject = reject;
+  }
+
+  public handleOverlayClick(event: MouseEvent): void {
+    throw new Error('Method not implemented.');
   }
 
   private static getOrCreateVm(container: IContainer, settings: LoadedDialogSettings): IDialogComponent<object> {
@@ -86,7 +95,12 @@ export class DialogController implements IDialogController {
    * @internal
    */
   public activate(): ActivationResult | Promise<ActivationResult> {
-    const { container, viewModel, settings, renderer, settings: { model, rejectOnCancel } } = this;
+    const {
+      container,
+      viewModel,
+      settings,
+      settings: { animation, model, template, rejectOnCancel }
+    } = this;
 
     return onResolve(
       viewModel.canActivate?.(model),
@@ -98,26 +112,23 @@ export class DialogController implements IDialogController {
           return ActivationResult.error;
         }
 
-        const compositionContext: ICompositionContext<object> = {
-          viewModel: viewModel,
-          host: renderer.host,
-          template: settings.template,
-          container: container,
-        };
+        const hostRenderer: IDialogDomRenderer = container.get(newInstanceOf(IDialogDomRenderer));
+        const dom = this.dialogDom = hostRenderer.render(settings.host ?? document.body);
+        const compositionContext: ICompositionContext<object> = { viewModel, host: dom.host, template, container };
         const controller = this.controller = this.composer.compose(compositionContext);
+        const animator: IDialogAnimator = this.animator = container.get(newInstanceOf(IDialogAnimator));
 
         return onResolve(
           onResolve(
-            renderer.attaching(),
+            animator.attaching(dom, animation),
             () => controller.activate(controller, null!, LifecycleFlags.fromBind, null!),
           ),
           () => onResolve(
             onResolve(
-              // TODO: which comes first: activate for loading data or attached for ... maybe animation?
               viewModel.activate?.(model),
-              () => renderer.attached(),
+              () => animator.attached(dom, animation),
             ),
-            () => ActivationResult.none,
+            () => ActivationResult.normal,
           ),
         );
       },
@@ -149,9 +160,11 @@ export class DialogController implements IDialogController {
           }
           throw createDialogCancelError();
         }
-        return new Promise(r => r(viewModel.deactivate?.(dialogResult)))
+        return Promise
+          .resolve(viewModel.deactivate?.(dialogResult))
           .then(() => this.controller.deactivate(this.controller, null!, LifecycleFlags.fromUnbind))
           .then(() => {
+            this.dialogDom.dispose();
             if (!rejectOnCancel || ok) {
               this.resolve(dialogResult);
             } else {

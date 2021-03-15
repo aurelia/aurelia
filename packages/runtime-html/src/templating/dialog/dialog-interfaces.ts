@@ -1,7 +1,7 @@
 import { DI } from '@aurelia/kernel';
 import { ICustomElementViewModel } from '@aurelia/runtime-html';
 
-import type { Constructable, IContainer } from '@aurelia/kernel';
+import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 
 export const IDialogService = DI.createInterface<IDialogService>('IDialogService');
 /**
@@ -31,29 +31,39 @@ export const IDialogController = DI.createInterface<IDialogController>('IDialogC
  */
 export interface IDialogController {
   readonly settings: LoadedDialogSettings;
-  readonly renderer: IDialogRenderer;
+  readonly animator: IDialogAnimator;
 
   ok(output?: unknown): Promise<IDialogCancelableOperationResult>;
   cancel(output?: unknown): Promise<IDialogCancelableOperationResult>;
   error(output?: unknown): Promise<void>;
 }
 
-export const IDialogRenderer = DI.createInterface<IDialogRenderer>('IDialogRenderer');
-/**
- * The renderer used by a dialog controller for preparing, manipulating DOM elements for a dialog composition.
- */
-export interface IDialogRenderer {
-  /**
-   * The host element of the dialog
-   */
+export const IDialogDomRenderer = DI.createInterface<IDialogDomRenderer>('IDialogDomRenderer');
+export interface IDialogDomRenderer {
+  render(dialogHost: Element): IDialogDom;
+}
+
+export interface IDialogDom extends IDisposable {
+  readonly overlay: HTMLElement;
   readonly host: HTMLElement;
-  readonly controller: IDialogController;
+  subscribe(subscriber: IDialogDomSubscriber): void;
+  unsubscribe(subscriber: IDialogDomSubscriber): void;
+}
 
-  attaching(): void | Promise<Animation>;
-  attached(): void | Promise<Animation>;
+export interface IDialogDomSubscriber {
+  handleOverlayClick(event: MouseEvent): void;
+}
 
-  detaching(): void | Promise<Animation>;
-  detached(): void | Promise<Animation>;
+export const IDialogAnimator = DI.createInterface<IDialogAnimator>('IDialogAnimator');
+/**
+ * The animator used by a dialog controller for preparing, manipulating DOM elements for a dialog composition.
+ */
+export interface IDialogAnimator<T extends object = object> {
+  attaching(dialogDom: IDialogDom, animation?: T): void | Promise<unknown>;
+  attached(dialogDom: IDialogDom, animation?: T): void | Promise<unknown>;
+
+  detaching(dialogDom: IDialogDom, animation?: T): void | Promise<unknown>;
+  detached(dialogDom: IDialogDom, animation?: T): void | Promise<unknown>;
 }
 
 export type IDialogCancellableOpenResult = IDialogOpenResult | IDialogCancelResult;
@@ -80,7 +90,11 @@ export type MouseEventType = 'click' | 'mouseup' | 'mousedown';
 /**
  * All available dialog settings.
  */
-export interface IDialogSettings<TModel extends object = object, TVm extends object = object> {
+export interface IDialogSettings<
+  TModel extends object = object,
+  TVm extends object = object,
+  TAnimation extends Record<string, any> = Record<string, any>,
+> {
 
   /**
    * The view model url, constructor or instance for the dialog.
@@ -166,25 +180,10 @@ export interface IDialogSettings<TModel extends object = object, TVm extends obj
    */
   ignoreTransitions?: boolean;
 
-  animation?: {
-    attaching?: Parameters<Element['animate']>;
-    attached?: Parameters<Element['animate']>;
-    detaching?: Parameters<Element['animate']>;
-    detached?: Parameters<Element['animate']>;
-  }
   /**
-   * The specification for animation upon dialog entering
+   * Animation configuration for the dialog. This will be passed as is to the renderer
    */
-  enteringAnimation?: Parameters<Element['animate']>;
-  /**
-   * The specification for animation upon dialog entering
-   */
-  enterAnimation?: Parameters<Element['animate']>;
-
-  /**
-   * The specification for animation upon dialog exiting
-   */
-  exitAnimation?: Parameters<Element['animate']>;
+  animation?: TAnimation;
 
   /**
    * Usde to provide custom positioning logic.

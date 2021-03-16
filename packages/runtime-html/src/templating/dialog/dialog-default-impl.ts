@@ -1,19 +1,41 @@
 import { IPlatform } from '../../platform.js';
-import { IDialogAnimator, IDialogDomRenderer, IDialogDom, IDialogDomSubscriber } from './dialog-interfaces.js';
+import { IDialogAnimator, IDialogDomRenderer, IDialogDom, IDialogDomSubscriber, IGlobalDialogSettings, LoadedDialogSettings } from './dialog-interfaces.js';
 
-export class DefaultDialogHostRenderer implements IDialogDomRenderer {
+import { IContainer, Registration } from '@aurelia/kernel';
+
+export class DefaultGlobalSettings implements IGlobalDialogSettings {
+
+  public static register(container: IContainer) {
+    Registration.singleton(IGlobalDialogSettings, this).register(container);
+  }
+
+  public lock: boolean = true;
+  public startingZIndex = 1000;
+  public centerHorizontalOnly = false;
+  public rejectOnCancel = false;
+  public ignoreTransitions = false;
+  // public position?: (dialogContainer: Element, dialogOverlay: Element) => void;
+  public restoreFocus(el: HTMLElement): void {
+    el.focus();
+  }
+}
+
+export class DefaultDialogDomRenderer implements IDialogDomRenderer {
 
   protected static inject = [IPlatform];
 
   public constructor(private readonly p: IPlatform) {}
 
-  public render(dialogHost: HTMLElement): IDialogDom {
+  public static register(container: IContainer) {
+    Registration.singleton(IDialogDomRenderer, this).register(container);
+  }
+
+  public render(dialogHost: HTMLElement, settings: LoadedDialogSettings): IDialogDom {
     const doc = this.p.document;
     const h = (name: string) => doc.createElement(name);
-    const wrapper = dialogHost.appendChild(h('au-dialog-container'));
-    const overlay = dialogHost.appendChild(h('au-dialog-overlay'));
-    const host = wrapper.appendChild(h('div'));
-    return new DefaultDialogDom(wrapper, overlay, host);
+    const overlay = dialogHost.appendChild(h('au-dialog-container'));
+    const host = overlay.appendChild(h('div'));
+    return new DefaultDialogDom(overlay, host, settings);
   }
 }
 
@@ -22,11 +44,11 @@ export class DefaultDialogDom implements IDialogDom {
   private readonly subs: Set<IDialogDomSubscriber> = new Set();
 
   public constructor(
-    private readonly wrapper: HTMLElement,
     public readonly overlay: HTMLElement,
     public readonly host: HTMLElement,
+    private readonly s: LoadedDialogSettings,
   ) {
-    this.overlay.addEventListener('click', this);
+    overlay.addEventListener(s.mouseEvent ?? 'click', this);
   }
 
   /**
@@ -45,14 +67,13 @@ export class DefaultDialogDom implements IDialogDom {
   }
 
   public dispose(): void {
-    this.wrapper!.remove();
-    this.overlay?.removeEventListener('click', this);
+    this.overlay?.removeEventListener(this.s.mouseEvent ?? 'click', this);
     this.overlay!.remove();
     this.subs.clear();
   }
 }
 
-export interface IDefaultDialogAnimation {
+export interface IDefaultDialogAnimationSettings {
   ignoreTransitions?: boolean;
   attaching?: Parameters<Element['animate']>;
   attached?: Parameters<Element['animate']>;
@@ -63,21 +84,25 @@ export interface IDefaultDialogAnimation {
 /**
  * A default implementation for IDialogRenderer interface
  */
-export class DefaultDialogAnimator implements IDialogAnimator<IDefaultDialogAnimation> {
+export class DefaultDialogAnimator implements IDialogAnimator<IDefaultDialogAnimationSettings> {
 
-  public attaching(dialogDom: IDialogDom, animation: IDefaultDialogAnimation = {}): void | Promise<Animation> {
+  public static register(container: IContainer) {
+    Registration.singleton(IDialogAnimator, this).register(container);
+  }
+
+  public attaching(dialogDom: IDialogDom, animation: IDefaultDialogAnimationSettings = {}): void | Promise<Animation> {
     return this.animate(dialogDom.host, animation.attaching, animation.ignoreTransitions);
   }
 
-  public attached(dialogDom: IDialogDom, animation: IDefaultDialogAnimation = {}): void | Promise<Animation> {
+  public attached(dialogDom: IDialogDom, animation: IDefaultDialogAnimationSettings = {}): void | Promise<Animation> {
     return this.animate(dialogDom.host, animation.attached, animation.ignoreTransitions);
   }
 
-  public detaching(dialogDom: IDialogDom, animation: IDefaultDialogAnimation = {}): void | Promise<Animation> {
+  public detaching(dialogDom: IDialogDom, animation: IDefaultDialogAnimationSettings = {}): void | Promise<Animation> {
     return this.animate(dialogDom.host, animation.detaching, animation.ignoreTransitions);
   }
 
-  public detached(dialogDom: IDialogDom, animation: IDefaultDialogAnimation = {}): void | Promise<Animation> {
+  public detached(dialogDom: IDialogDom, animation: IDefaultDialogAnimationSettings = {}): void | Promise<Animation> {
     return this.animate(dialogDom.host, animation.detached, animation.ignoreTransitions);
   }
 

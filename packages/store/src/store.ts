@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { IContainer, ILogger, DI } from '@aurelia/kernel';
+import { IContainer, ILogger } from '@aurelia/kernel';
 import { IWindow } from "@aurelia/runtime-html";
 import { BehaviorSubject, Observable } from 'rxjs';
 
@@ -215,7 +215,7 @@ export class Store<T> {
       throw new UnregisteredActionError(unregisteredAction.reducer);
     }
 
-    globalThis.performance.mark("dispatch-start");
+    STORE.container.get(IWindow).performance.mark("dispatch-start");
 
     const pipedActions = actions.map((a) => ({
       type: this.actions.get(a.reducer)!.type,
@@ -244,8 +244,8 @@ export class Store<T> {
     );
 
     if (beforeMiddleswaresResult === false) {
-      globalThis.performance.clearMarks();
-      globalThis.performance.clearMeasures();
+      STORE.container.get(IWindow).performance.clearMarks();
+      STORE.container.get(IWindow).performance.clearMeasures();
 
       return;
     }
@@ -255,13 +255,13 @@ export class Store<T> {
       // eslint-disable-next-line no-await-in-loop
       result = await action.reducer(result, ...action.params);
       if (result === false) {
-        globalThis.performance.clearMarks();
-        globalThis.performance.clearMeasures();
+        STORE.container.get(IWindow).performance.clearMarks();
+        STORE.container.get(IWindow).performance.clearMeasures();
 
         return;
       }
 
-      globalThis.performance.mark(`dispatch-after-reducer-${action.type}`);
+      STORE.container.get(IWindow).performance.mark(`dispatch-after-reducer-${action.type}`);
 
       if (!result && typeof result !== "object") {
         throw new ReducerNoStateError("The reducer has to return a new state");
@@ -276,8 +276,8 @@ export class Store<T> {
     );
 
     if (resultingState === false) {
-      globalThis.performance.clearMarks();
-      globalThis.performance.clearMeasures();
+      STORE.container.get(IWindow).performance.clearMarks();
+      STORE.container.get(IWindow).performance.clearMeasures();
 
       return;
     }
@@ -288,22 +288,22 @@ export class Store<T> {
     }
 
     this._state.next(resultingState);
-    globalThis.performance.mark("dispatch-end");
+    STORE.container.get(IWindow).performance.mark("dispatch-end");
 
     if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-      globalThis.performance.measure(
+      STORE.container.get(IWindow).performance.measure(
         "startEndDispatchDuration",
         "dispatch-start",
         "dispatch-end"
       );
 
-      const measures = globalThis.performance.getEntriesByName("startEndDispatchDuration");
+      const measures = STORE.container.get(IWindow).performance.getEntriesByName("startEndDispatchDuration");
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
         `Total duration ${measures[0].duration} of dispatched action ${callingAction.name}:`,
         measures
       );
     } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-      const marks = globalThis.performance.getEntriesByType("mark");
+      const marks = STORE.container.get(IWindow).performance.getEntriesByType("mark");
       const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
         `Total duration ${totalDuration} of dispatched action ${callingAction.name}:`,
@@ -311,8 +311,8 @@ export class Store<T> {
       );
     }
 
-    globalThis.performance.clearMarks();
-    globalThis.performance.clearMeasures();
+    STORE.container.get(IWindow).performance.clearMarks();
+    STORE.container.get(IWindow).performance.clearMeasures();
 
     this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState);
   }
@@ -339,7 +339,7 @@ export class Store<T> {
           // eslint-disable-next-line @typescript-eslint/return-await
           return await prev;
         } finally {
-          globalThis.performance.mark(`dispatch-${placement}-${curr[0].name}`);
+          STORE.container.get(IWindow).performance.mark(`dispatch-${placement}-${curr[0].name}`);
         }
       }, state);
   }

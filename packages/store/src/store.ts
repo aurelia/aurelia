@@ -1,7 +1,6 @@
-/* eslint-disable compat/compat */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { IContainer, ILogger, DI } from '@aurelia/kernel';
-import { IPlatform } from "@aurelia/runtime-html";
+import { IWindow } from "@aurelia/runtime-html";
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { jump, applyLimits, HistoryOptions, isStateHistory } from './history';
@@ -45,8 +44,6 @@ export const STORE: { container: IContainer } = {
   container: null!
 };
 
-// TODO: @Fred IGlobal.Kernel as abstraction for PLATFORM.global
-export const IStoreWindow = DI.createInterface<IStoreWindow>('IStoreWindow', x => x.callback(handler => handler.get(IPlatform).window));
 export interface IStoreWindow extends Window {
   devToolsExtension?: DevToolsExtension;
   __REDUX_DEVTOOLS_EXTENSION__?: DevToolsExtension;
@@ -54,7 +51,7 @@ export interface IStoreWindow extends Window {
 
 export class UnregisteredActionError<T, P extends unknown[]> extends Error {
   public constructor(reducer?: string | Reducer<T, P>) {
-    super(`Tried to dispatch an unregistered action ${reducer && (typeof reducer === "string" ? reducer : reducer.name)}`);
+    super(`Tried to dispatch an unregistered action ${reducer !== undefined && (typeof reducer === "string" ? reducer : reducer.name)}`);
   }
 }
 
@@ -62,13 +59,18 @@ export class DevToolsRemoteDispatchError extends Error {}
 export class ActionRegistrationError extends Error {}
 export class ReducerNoStateError extends Error {}
 
+export interface MiddlewareSettings {
+  placement: MiddlewarePlacement;
+  settings?: unknown;
+}
+
 export class Store<T> {
   public readonly state: Observable<T>;
   // TODO: need an alternative for the Reporter which supports multiple log levels
   private devToolsAvailable: boolean = false;
   private devTools?: DevTools<T>;
-  private readonly actions: Map<Reducer<T>, Action<string>> = new Map();
-  private readonly middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement; settings?: unknown }> = new Map();
+  private readonly actions: Map<Reducer<T>, Action<string>> = new Map<Reducer<T>, Action<string>>();
+  private readonly middlewares: Map<Middleware<T>, MiddlewareSettings> = new Map<Middleware<T>, MiddlewareSettings>();
   private readonly _state: BehaviorSubject<T>;
   private readonly options: Partial<StoreOptions>;
   private readonly dispatchQueue: DispatchQueueItem<T>[] = [];
@@ -76,10 +78,10 @@ export class Store<T> {
   public constructor(
     private readonly initialState: T,
     @ILogger private readonly logger: ILogger,
-    @IStoreWindow private readonly window: IStoreWindow,
+    @IWindow private readonly window: IStoreWindow,
     options?: Partial<StoreOptions>
   ) {
-    this.options = options || {};
+    this.options = options ?? {};
     const isUndoable = this.options?.history?.undoable === true;
     this._state = new BehaviorSubject<T>(initialState);
     this.state = this._state.asObservable();
@@ -93,24 +95,24 @@ export class Store<T> {
     }
   }
 
-  public registerMiddleware<S extends undefined>(reducer: Middleware<T, undefined>, placement: MiddlewarePlacement): void;
+  public registerMiddleware(reducer: Middleware<T, undefined>, placement: MiddlewarePlacement): void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public registerMiddleware<S extends NonNullable<any>>(reducer: Middleware<T, S>, placement: MiddlewarePlacement, settings: S): void;
-  public registerMiddleware<S>(reducer: Middleware<T, S>, placement: MiddlewarePlacement, settings?: S) {
+  public registerMiddleware<S>(reducer: Middleware<T, S>, placement: MiddlewarePlacement, settings?: S): void {
     this.middlewares.set(reducer, { placement, settings });
   }
 
-  public unregisterMiddleware(reducer: Middleware<T>) {
+  public unregisterMiddleware(reducer: Middleware<T>): void {
     if (this.middlewares.has(reducer)) {
       this.middlewares.delete(reducer);
     }
   }
 
-  public isMiddlewareRegistered(middleware: Middleware<T>) {
+  public isMiddlewareRegistered(middleware: Middleware<T>): boolean {
     return this.middlewares.has(middleware);
   }
 
-  public registerAction(name: string, reducer: Reducer<T>) {
+  public registerAction(name: string, reducer: Reducer<T>): void {
     if (reducer.length === 0) {
       // The reducer is expected to have one or more parameters, where the first will be the present state
       throw new ActionRegistrationError("The reducer is expected to have one or more parameters, where the first will be the present state");
@@ -119,13 +121,13 @@ export class Store<T> {
     this.actions.set(reducer, { type: name });
   }
 
-  public unregisterAction(reducer: Reducer<T>) {
+  public unregisterAction(reducer: Reducer<T>): void {
     if (this.actions.has(reducer)) {
       this.actions.delete(reducer);
     }
   }
 
-  public isActionRegistered(reducer: Reducer<T> | string) {
+  public isActionRegistered(reducer: Reducer<T> | string): boolean {
     if (typeof reducer === 'string') {
       return Array.from(this.actions).find((action) => action[1].type === reducer) !== undefined;
     }
@@ -133,7 +135,7 @@ export class Store<T> {
     return this.actions.has(reducer);
   }
 
-  public resetToState(state: T) {
+  public resetToState(state: T): void {
     this._state.next(state);
   }
 
@@ -297,7 +299,6 @@ export class Store<T> {
 
       const measures = globalThis.performance.getEntriesByName("startEndDispatchDuration");
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `Total duration ${measures[0].duration} of dispatched action ${callingAction.name}:`,
         measures
       );
@@ -317,6 +318,7 @@ export class Store<T> {
   }
 
   private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T | false {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return Array.from(this.middlewares)
       .filter((middleware) => middleware[1].placement === placement)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -325,7 +327,6 @@ export class Store<T> {
           const result = await curr[0](await prev, this._state.getValue(), curr[1].settings, action);
 
           if (result === false) {
-
             return false;
           }
 
@@ -359,7 +360,7 @@ export class Store<T> {
           const byName = Array.from(this.actions).find(function ([reducer]) {
             return reducer.name === message.payload?.name;
           });
-          const action = this.lookupAction(message.payload?.name) || byName?.[0];
+          const action = this.lookupAction(message.payload?.name) ?? byName?.[0];
 
           if (!action) {
             throw new DevToolsRemoteDispatchError("Tried to remotely dispatch an unregistered action");
@@ -369,14 +370,13 @@ export class Store<T> {
             throw new DevToolsRemoteDispatchError("No action arguments provided");
           }
 
-          this.dispatch(action, ...message.payload.args.slice(1).map((arg: string) => JSON.parse(arg))).catch(() => {
+          this.dispatch(action, ...message.payload.args.slice(1).map((arg: string) => JSON.parse(arg) as T)).catch(() => {
             throw new DevToolsRemoteDispatchError("Issue when trying to dispatch an action through devtools");
           });
           return;
         }
 
         if (message.type === "DISPATCH" && message.payload) {
-          /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
           switch (message.payload.type) {
             case "JUMP_TO_STATE":
             case "JUMP_TO_ACTION":
@@ -390,14 +390,13 @@ export class Store<T> {
               this.resetToState(this.initialState);
               return;
             case "ROLLBACK": {
-              const parsedState = JSON.parse(message.state);
+              const parsedState = JSON.parse(message.state) as T;
 
               this.resetToState(parsedState);
               this.devTools!.init(parsedState);
               return;
             }
           }
-          /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
         }
       });
     }
@@ -415,7 +414,7 @@ export class Store<T> {
   }
 }
 
-export function dispatchify<T, P extends unknown[]>(action: Reducer<T, P> | string) {
+export function dispatchify<T, P extends unknown[]>(action: Reducer<T, P> | string): (...params: P) => Promise<void> {
   const store = STORE.container.get<Store<T>>(Store);
 
   return async function (...params: P): Promise<void> {

@@ -41,6 +41,7 @@
     "@aurelia/kernel": "2.0.0-alpha.2",
     "@aurelia/metadata": "2.0.0-alpha.2",
     "@aurelia/platform": "2.0.0-alpha.2",
+    "@aurelia/runtime-html": "2.0.0-alpha.2",
     "rxjs": "^6.5.3"
   },
   "devDependencies": {

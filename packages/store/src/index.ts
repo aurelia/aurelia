@@ -1,6 +1,8 @@
 import { IContainer, Registration, ILogger } from '@aurelia/kernel';
-import { isStateHistory } from './history';
-import { Store, STORE, StoreOptions, IStoreWindow } from './store';
+import { IWindow } from '@aurelia/runtime-html';
+
+import { isStateHistory, StateHistory } from './history';
+import { Store, STORE, StoreOptions } from './store';
 
 export interface StorePluginOptions<T> extends StoreOptions {
   initialState: T;
@@ -26,10 +28,10 @@ export const StoreConfiguration: IConfigure = {
     // TODO: get rid of this workaround for unit tests
     STORE.container = container;
 
-    const state = Reflect.get(this, 'state');
-    const options: Partial<StorePluginOptions<unknown>> = Reflect.get(this, 'options');
+    const state = Reflect.get(this, 'state') as unknown & Partial<StateHistory<unknown>>;
+    const options = Reflect.get(this, 'options') as Partial<StorePluginOptions<unknown>>;
     const logger = container.get(ILogger);
-    const window = container.get(IStoreWindow);
+    const window = container.get(IWindow);
 
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!state) {
@@ -38,6 +40,7 @@ export const StoreConfiguration: IConfigure = {
 
     let initState: unknown = state;
 
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (options?.history?.undoable && !isStateHistory(state)) {
       initState = { past: [], present: state, future: [] };
     }

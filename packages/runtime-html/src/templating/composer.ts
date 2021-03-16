@@ -5,7 +5,7 @@ import {
   InstanceProvider,
 } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
-import { INode, IRenderLocation } from '../dom';
+import { INode } from '../dom';
 import { IPlatform } from '../platform';
 import { getRenderContext } from './render-context';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
@@ -15,7 +15,7 @@ export interface ICompositionContext<T extends object> {
   container?: IContainer;
   viewModel?: T | Constructable<T>;
   template?: string | Element;
-  host: Element | IRenderLocation;
+  host: Element;
 }
 
 export interface IViewModelCompositionContext<T extends object> extends ICompositionContext<T> {
@@ -34,7 +34,7 @@ export interface IComposer {
   compose<T extends object>(options: ICompositionContext<T>): ISyntheticView;
 }
 
-export class Composer {
+export class Composer implements IComposer {
   public static get inject() { return [IPlatform, IContainer]; }
 
   public constructor(
@@ -43,7 +43,6 @@ export class Composer {
   ) { }
 
   public compose<T extends object>(options: ICompositionContext<T>): ISyntheticView {
-    const p = this.p;
     const viewModel = options.viewModel;
     const def = CustomElementDefinition.create(
       CustomElement.isType(viewModel)
@@ -51,15 +50,7 @@ export class Composer {
         : { name: CustomElement.generateName(), template: options.template }
     );
     const container = options.container ?? this.container;
-    const ep = new InstanceProvider('ElementResolver');
-
-    ep.prepare(options.host);
-    container.registerResolver(INode, ep);
-    container.registerResolver(p.Node, ep);
-    container.registerResolver(p.Element, ep);
-    container.registerResolver(p.HTMLElement, ep);
-
-    const instance = this.ensureViewModel(container, options.viewModel ?? new EmtpyViewModel() as T);
+    const instance = this.ensureViewModel(container, options.viewModel ?? new EmtpyViewModel() as T, options.host);
 
     const controller = getRenderContext(def, container).getViewFactory().create();
     controller.lockScope(Scope.create(instance, null, true));
@@ -68,10 +59,21 @@ export class Composer {
     return controller;
   }
 
-  private ensureViewModel<T extends object>(container: IContainer, objectOrCtor: T | Constructable<T>): T {
-    return typeof objectOrCtor === 'object'
-      ? objectOrCtor
-      : container.invoke(objectOrCtor);
+  private ensureViewModel<T extends object>(container: IContainer, objectOrCtor: T | Constructable<T>, host: Element): T {
+    if (typeof objectOrCtor === 'object') {
+      return objectOrCtor;
+    }
+
+    const p = this.p;
+    const ep = new InstanceProvider('ElementResolver');
+
+    ep.prepare(host);
+    container.registerResolver(INode, ep);
+    container.registerResolver(p.Node, ep);
+    container.registerResolver(p.Element, ep);
+    container.registerResolver(p.HTMLElement, ep);
+
+    return container.invoke(objectOrCtor);
   }
 }
 

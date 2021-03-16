@@ -1,12 +1,12 @@
 import { DI } from '@aurelia/kernel';
-import { ICustomElementViewModel } from '@aurelia/runtime-html';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
+import type { ICustomElementViewModel } from '../controller.js';
 
-export const IDialogService = DI.createInterface<IDialogService>('IDialogService');
 /**
  * The dialog service for composing view & view model into a dialog
  */
+export const IDialogService = DI.createInterface<IDialogService>('IDialogService');
 export interface IDialogService {
   readonly hasOpenDialog: boolean;
 
@@ -25,10 +25,10 @@ export interface IDialogService {
   closeAll(): Promise<IDialogController[]>;
 }
 
-export const IDialogController = DI.createInterface<IDialogController>('IDialogController');
 /**
  * The controller asscociated with every dialog view model
  */
+export const IDialogController = DI.createInterface<IDialogController>('IDialogController');
 export interface IDialogController {
   readonly settings: LoadedDialogSettings;
   readonly animator: IDialogAnimator;
@@ -38,11 +38,18 @@ export interface IDialogController {
   error(output?: unknown): Promise<void>;
 }
 
+/**
+ * An interface describing the object responsible for creating the dom structure of a dialog
+ */
 export const IDialogDomRenderer = DI.createInterface<IDialogDomRenderer>('IDialogDomRenderer');
 export interface IDialogDomRenderer {
-  render(dialogHost: Element): IDialogDom;
+  render(dialogHost: Element, settings: LoadedDialogSettings): IDialogDom;
 }
 
+/**
+ * An interface describing the DOM structure of a dialog
+ */
+export const IDialogDom = DI.createInterface<IDialogDom>('IDialogDom');
 export interface IDialogDom extends IDisposable {
   readonly overlay: HTMLElement;
   readonly host: HTMLElement;
@@ -54,10 +61,11 @@ export interface IDialogDomSubscriber {
   handleOverlayClick(event: MouseEvent): void;
 }
 
-export const IDialogAnimator = DI.createInterface<IDialogAnimator>('IDialogAnimator');
 /**
- * The animator used by a dialog controller for preparing, manipulating DOM elements for a dialog composition.
+ * An interface describing the ojbect responsible for animating the dialog in various lifecycles,
+ * based on dynamic user configuration
  */
+export const IDialogAnimator = DI.createInterface<IDialogAnimator>('IDialogAnimator');
 export interface IDialogAnimator<T extends object = object> {
   attaching(dialogDom: IDialogDom, animation?: T): void | Promise<unknown>;
   attached(dialogDom: IDialogDom, animation?: T): void | Promise<unknown>;
@@ -205,10 +213,11 @@ export type LoadedDialogSettings<T extends object = object> = Omit<IDialogSettin
   template?: string | Element;
 }
 
-export type IGlobalDefaultDialogSettings = Pick<
+export type IGlobalDialogSettings = Pick<
   IDialogSettings,
   'lock' | 'startingZIndex' | 'centerHorizontalOnly' | 'rejectOnCancel' | 'ignoreTransitions'
 >;
+export const IGlobalDialogSettings = DI.createInterface<IGlobalDialogSettings>('IGlobalDialogSettings');
 
 /**
  * The error thrown when a "cancel" occurs and DialogSettings.rejectOnCancel is set to "true".

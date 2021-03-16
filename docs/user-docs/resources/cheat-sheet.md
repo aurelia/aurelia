@@ -705,7 +705,7 @@ export class MyComponent {
   constructor(@newInstanceOf(IFoo) private foo: IFoo) {}
 }
 
-// Extend Window type for third party libraries like Redux DevTools yet inject the actual window object
+// Extend Window type for custom added properties or e.g. third party libraries like Redux DevTools which do so, yet inject the actual window object
 export interface IReduxDevTools extends Window {
   devToolsExtension?: DevToolsExtension;
   __REDUX_DEVTOOLS_EXTENSION__?: DevToolsExtension;

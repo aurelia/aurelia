@@ -1,5 +1,6 @@
 import { IContainer, onResolve, resolveAll } from '@aurelia/kernel';
-import { IDialogController, IDialogOpenResult, LoadedDialogSettings } from './dialog-interfaces.js';
+
+import { IDialogController, IDialogOpenResult, IGlobalDialogSettings, LoadedDialogSettings } from './dialog-interfaces.js';
 import { createDialogCancelError } from './dialog-utilities.js';
 import { ActivationResult, DialogController } from './dialog-controller.js';
 
@@ -9,7 +10,6 @@ import type {
   IDialogOpenPromise,
   IDialogService,
   IDialogSettings,
-  IGlobalDefaultDialogSettings,
 } from './dialog-interfaces.js';
 
 /**
@@ -27,10 +27,11 @@ export class DialogService implements IDialogService {
   public hasOpenDialog: boolean = false;
 
   // tslint:disable-next-line:member-ordering
-  protected static get inject() { return [IContainer, DefaultDialogSettings]; }
-  constructor(
+  protected static get inject() { return [IContainer, IGlobalDialogSettings]; }
+
+  public constructor(
     private readonly container: IContainer,
-    private readonly defaultSettings: IDialogSettings
+    private readonly defaultSettings: IGlobalDialogSettings,
   ) {}
 
   /**
@@ -40,29 +41,13 @@ export class DialogService implements IDialogService {
    *
    * Example usage:
 ```ts
-dialogService.open({
-  viewModel: () => MyDialog
-  view: 'my-template'
-})
-dialogService.open({
-  viewModel: () => MyDialog
-  view: document.createElement('my-template')
-})
+dialogService.open({ viewModel: () => MyDialog, view: 'my-template' })
+dialogService.open({ viewModel: () => MyDialog, view: document.createElement('my-template') })
 
-dialogService.open({
-  viewModel: () => MyDialog
-  // JSX
-  view: <my-template /> 
-})
+// JSX to hyperscript
+dialogService.open({ viewModel: () => MyDialog, view: <my-template /> })
 
-dialogService.open({
-  viewModel: () => import('...')
-  view: () => fetch('my.server/dialog-view.html')
-})
-dialogService.open({
-  viewModel: () => import('...')
-  view: () => fetch('my.server/dialog-view.html')
-})
+dialogService.open({ viewModel: () => import('...'), view: () => fetch('my.server/dialog-view.html') })
 ```
    */
   public open(settings: IDialogSettings & { rejectOnCancel: true }): IDialogOpenPromise<IDialogOpenResult>;
@@ -72,7 +57,7 @@ dialogService.open({
     let rejectCloseResult: any;
 
     const $settings = DialogSettings.from(this.defaultSettings, settings);
-    const container = ($settings.container ?? this.container).createChild();
+    const container = $settings.container ?? this.container;
     const closeResult: Promise<IDialogCloseResult> = new Promise((resolve, reject) => {
       resolveCloseResult = resolve;
       rejectCloseResult = reject;
@@ -145,16 +130,6 @@ dialogService.open({
   }
 }
 
-export class DefaultDialogSettings implements IGlobalDefaultDialogSettings {
-
-  public lock: boolean = true;
-  public startingZIndex = 1000;
-  public centerHorizontalOnly = false;
-  public rejectOnCancel = false;
-  public ignoreTransitions = false;
-  public position?: (dialogContainer: Element, dialogOverlay: Element) => void;
-  public restoreFocus: (el: HTMLElement) => void = focusElement;
-}
 
 interface DialogSettings<T extends object = object> extends IDialogSettings<T> {}
 class DialogSettings<T extends object = object> implements IDialogSettings<T> {
@@ -211,10 +186,6 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
     }
     return this;
   }
-}
-
-function focusElement(el: HTMLElement) {
-  el.focus();
 }
 
 function removeController(service: DialogService, dialogController: IDialogController): void {

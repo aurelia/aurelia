@@ -3,6 +3,7 @@ import { enterConnectable, exitConnectable } from './connectable-switcher.js';
 import { connectable } from '../binding/connectable.js';
 import { wrap, unwrap } from './proxy-observation.js';
 import { def } from '../utilities-objects.js';
+import { withFlushQueue } from './flush-queue.js';
 export class ComputedObserver {
     constructor(obj, get, set, useProxy, observerLocator) {
         this.obj = obj;
@@ -13,6 +14,7 @@ export class ComputedObserver {
         this.interceptor = this;
         this.type = 1 /* Observer */;
         this.value = void 0;
+        this.oldValue = void 0;
         // todo: maybe use a counter allow recursive call to a certain level
         /**
          * @internal
@@ -88,6 +90,11 @@ export class ComputedObserver {
             this.obs.clear(true);
         }
     }
+    flush() {
+        oV = this.oldValue;
+        this.oldValue = this.value;
+        this.subs.notify(this.value, oV, 0 /* none */);
+    }
     run() {
         if (this.running) {
             return;
@@ -96,8 +103,8 @@ export class ComputedObserver {
         const newValue = this.compute();
         this.isDirty = false;
         if (!Object.is(newValue, oldValue)) {
-            // should optionally queue
-            this.subs.notify(newValue, oldValue, 0 /* none */);
+            this.oldValue = oldValue;
+            this.queue.add(this);
         }
     }
     compute() {
@@ -116,4 +123,8 @@ export class ComputedObserver {
 }
 connectable(ComputedObserver);
 subscriberCollection(ComputedObserver);
+withFlushQueue(ComputedObserver);
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV = void 0;
 //# sourceMappingURL=computed-observer.js.map

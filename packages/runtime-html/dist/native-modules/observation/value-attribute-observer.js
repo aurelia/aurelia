@@ -1,4 +1,4 @@
-import { subscriberCollection } from '../../../../runtime/dist/native-modules/index.js';
+import { subscriberCollection, withFlushQueue } from '../../../../runtime/dist/native-modules/index.js';
 /**
  * Observer for non-radio, non-checkbox input.
  */
@@ -20,21 +20,23 @@ export class ValueAttributeObserver {
         return this.currentValue;
     }
     setValue(newValue, flags) {
+        if (Object.is(newValue, this.currentValue)) {
+            return;
+        }
+        this.oldValue = this.currentValue;
         this.currentValue = newValue;
-        this.hasChanges = newValue !== this.oldValue;
+        this.hasChanges = true;
         if (!this.handler.config.readonly && (flags & 256 /* noFlush */) === 0) {
             this.flushChanges(flags);
         }
     }
     flushChanges(flags) {
+        var _a;
         if (this.hasChanges) {
             this.hasChanges = false;
-            const currentValue = this.currentValue;
-            const oldValue = this.oldValue;
-            this.oldValue = currentValue;
-            this.obj[this.propertyKey] = currentValue !== null && currentValue !== void 0 ? currentValue : this.handler.config.default;
+            this.obj[this.propertyKey] = (_a = this.currentValue) !== null && _a !== void 0 ? _a : this.handler.config.default;
             if ((flags & 2 /* fromBind */) === 0) {
-                this.subs.notify(currentValue, oldValue, flags);
+                this.queue.add(this);
             }
         }
     }
@@ -42,8 +44,8 @@ export class ValueAttributeObserver {
         const oldValue = this.oldValue = this.currentValue;
         const currentValue = this.currentValue = this.obj[this.propertyKey];
         if (oldValue !== currentValue) {
-            this.oldValue = currentValue;
-            this.subs.notify(currentValue, oldValue, 0 /* none */);
+            this.hasChanges = false;
+            this.queue.add(this);
         }
     }
     subscribe(subscriber) {
@@ -57,6 +59,15 @@ export class ValueAttributeObserver {
             this.handler.dispose();
         }
     }
+    flush() {
+        oV = this.oldValue;
+        this.oldValue = this.currentValue;
+        this.subs.notify(this.currentValue, oV, 0 /* none */);
+    }
 }
 subscriberCollection(ValueAttributeObserver);
+withFlushQueue(ValueAttributeObserver);
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV = void 0;
 //# sourceMappingURL=value-attribute-observer.js.map

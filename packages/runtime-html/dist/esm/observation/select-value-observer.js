@@ -1,4 +1,4 @@
-import { subscriberCollection, } from '@aurelia/runtime';
+import { subscriberCollection, withFlushQueue, } from '@aurelia/runtime';
 const hasOwn = Object.prototype.hasOwnProperty;
 const childObserverOptions = {
     childList: true,
@@ -52,23 +52,6 @@ export class SelectValueObserver {
         // always sync "selected" property of <options/>
         // immediately whenever the array notifies its mutation
         this.synchronizeOptions();
-    }
-    notify(flags) {
-        if ((flags & 2 /* fromBind */) > 0) {
-            return;
-        }
-        const oldValue = this.oldValue;
-        const newValue = this.currentValue;
-        if (newValue === oldValue) {
-            return;
-        }
-        this.subs.notify(newValue, oldValue, flags);
-    }
-    handleEvent() {
-        const shouldNotify = this.synchronizeValue();
-        if (shouldNotify) {
-            this.subs.notify(this.currentValue, this.oldValue, 0 /* none */);
-        }
     }
     synchronizeOptions(indexMap) {
         const { currentValue, obj } = this;
@@ -200,11 +183,18 @@ export class SelectValueObserver {
             (this.arrayObserver = this.observerLocator.getArrayObserver(array)).subscribe(this);
         }
     }
+    handleEvent() {
+        const shouldNotify = this.synchronizeValue();
+        if (shouldNotify) {
+            this.queue.add(this);
+            // this.subs.notify(this.currentValue, this.oldValue, LF.none);
+        }
+    }
     handleNodeChange() {
         this.synchronizeOptions();
         const shouldNotify = this.synchronizeValue();
         if (shouldNotify) {
-            this.notify(0 /* none */);
+            this.queue.add(this);
         }
     }
     subscribe(subscriber) {
@@ -219,6 +209,10 @@ export class SelectValueObserver {
             this.stop();
         }
     }
+    flush() {
+        this.subs.notify(this.currentValue, this.oldValue, 0 /* none */);
+    }
 }
 subscriberCollection(SelectValueObserver);
+withFlushQueue(SelectValueObserver);
 //# sourceMappingURL=select-value-observer.js.map

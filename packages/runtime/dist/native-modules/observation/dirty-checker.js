@@ -1,5 +1,6 @@
 import { DI, IPlatform } from '../../../../kernel/dist/native-modules/index.js';
 import { subscriberCollection } from './subscriber-collection.js';
+import { withFlushQueue } from './flush-queue.js';
 export const IDirtyChecker = DI.createInterface('IDirtyChecker', x => x.singleton(DirtyChecker));
 export const DirtyCheckSettings = {
     /**
@@ -57,7 +58,7 @@ export class DirtyChecker {
             for (; i < len; ++i) {
                 current = tracked[i];
                 if (current.isDirty()) {
-                    current.flush(0 /* none */);
+                    this.queue.add(current);
                 }
             }
         };
@@ -86,11 +87,13 @@ export class DirtyChecker {
  * @internal
  */
 DirtyChecker.inject = [IPlatform];
+withFlushQueue(DirtyChecker);
 export class DirtyCheckProperty {
     constructor(dirtyChecker, obj, propertyKey) {
         this.dirtyChecker = dirtyChecker;
         this.obj = obj;
         this.propertyKey = propertyKey;
+        this.oldValue = void 0;
         this.type = 0 /* None */;
     }
     getValue() {
@@ -104,11 +107,11 @@ export class DirtyCheckProperty {
     isDirty() {
         return this.oldValue !== this.obj[this.propertyKey];
     }
-    flush(flags) {
+    flush() {
         const oldValue = this.oldValue;
         const newValue = this.getValue();
-        this.subs.notify(newValue, oldValue, flags);
         this.oldValue = newValue;
+        this.subs.notify(newValue, oldValue, 0 /* none */);
     }
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {

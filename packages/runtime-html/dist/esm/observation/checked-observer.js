@@ -1,4 +1,4 @@
-import { subscriberCollection, } from '@aurelia/runtime';
+import { subscriberCollection, withFlushQueue, } from '@aurelia/runtime';
 import { getCollectionObserver } from './observer-locator.js';
 function defaultMatcher(a, b) {
     return a === b;
@@ -14,6 +14,7 @@ export class CheckedObserver {
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
         this.collectionObserver = void 0;
         this.valueObserver = void 0;
+        this.f = 0 /* none */;
         this.obj = obj;
     }
     getValue() {
@@ -26,9 +27,10 @@ export class CheckedObserver {
         }
         this.value = newValue;
         this.oldValue = currentValue;
+        this.f = flags;
         this.observe();
         this.synchronizeElement();
-        this.subs.notify(newValue, currentValue, flags);
+        this.queue.add(this);
     }
     handleCollectionChange(indexMap, flags) {
         this.synchronizeElement();
@@ -181,7 +183,7 @@ export class CheckedObserver {
             return;
         }
         this.value = currentValue;
-        this.subs.notify(this.value, this.oldValue, 0 /* none */);
+        this.queue.add(this);
     }
     start() {
         this.handler.subscribe(this.obj, this);
@@ -204,6 +206,11 @@ export class CheckedObserver {
             this.stop();
         }
     }
+    flush() {
+        oV = this.oldValue;
+        this.oldValue = this.value;
+        this.subs.notify(this.value, oV, this.f);
+    }
     observe() {
         var _a, _b, _c, _d, _e, _f, _g;
         const obj = this.obj;
@@ -216,4 +223,8 @@ export class CheckedObserver {
     }
 }
 subscriberCollection(CheckedObserver);
+withFlushQueue(CheckedObserver);
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV = void 0;
 //# sourceMappingURL=checked-observer.js.map

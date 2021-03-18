@@ -2,7 +2,7 @@ import { CollectionKind, LifecycleFlags, SetterObserver, AccessorType } from '@a
 import type { INode } from '../dom.js';
 import type { EventSubscriber } from './event-delegator.js';
 import type { ValueAttributeObserver } from './value-attribute-observer.js';
-import type { ICollectionObserver, IndexMap, ISubscriber, ISubscriberCollection, IObserver, IObserverLocator } from '@aurelia/runtime';
+import type { ICollectionObserver, IndexMap, ISubscriber, ISubscriberCollection, IObserver, IObserverLocator, IFlushable, IWithFlushQueue, FlushQueue } from '@aurelia/runtime';
 export interface IInputElement extends HTMLInputElement {
     model?: unknown;
     $observers?: {
@@ -14,7 +14,7 @@ export interface IInputElement extends HTMLInputElement {
 declare function defaultMatcher(a: unknown, b: unknown): boolean;
 export interface CheckedObserver extends ISubscriberCollection {
 }
-export declare class CheckedObserver implements IObserver {
+export declare class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     readonly handler: EventSubscriber;
     readonly observerLocator: IObserverLocator;
     value: unknown;
@@ -23,6 +23,8 @@ export declare class CheckedObserver implements IObserver {
     type: AccessorType;
     collectionObserver?: ICollectionObserver<CollectionKind>;
     valueObserver?: ValueAttributeObserver | SetterObserver;
+    readonly queue: FlushQueue;
+    private f;
     constructor(obj: INode, _key: PropertyKey, handler: EventSubscriber, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
@@ -34,6 +36,7 @@ export declare class CheckedObserver implements IObserver {
     stop(): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
+    flush(): void;
     private observe;
 }
 export {};

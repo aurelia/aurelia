@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DirtyCheckProperty = exports.DirtyChecker = exports.DirtyCheckSettings = exports.IDirtyChecker = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const subscriber_collection_js_1 = require("./subscriber-collection.js");
+const flush_queue_js_1 = require("./flush-queue.js");
 exports.IDirtyChecker = kernel_1.DI.createInterface('IDirtyChecker', x => x.singleton(DirtyChecker));
 exports.DirtyCheckSettings = {
     /**
@@ -60,7 +61,7 @@ class DirtyChecker {
             for (; i < len; ++i) {
                 current = tracked[i];
                 if (current.isDirty()) {
-                    current.flush(0 /* none */);
+                    this.queue.add(current);
                 }
             }
         };
@@ -90,11 +91,13 @@ exports.DirtyChecker = DirtyChecker;
  * @internal
  */
 DirtyChecker.inject = [kernel_1.IPlatform];
+flush_queue_js_1.withFlushQueue(DirtyChecker);
 class DirtyCheckProperty {
     constructor(dirtyChecker, obj, propertyKey) {
         this.dirtyChecker = dirtyChecker;
         this.obj = obj;
         this.propertyKey = propertyKey;
+        this.oldValue = void 0;
         this.type = 0 /* None */;
     }
     getValue() {
@@ -108,11 +111,11 @@ class DirtyCheckProperty {
     isDirty() {
         return this.oldValue !== this.obj[this.propertyKey];
     }
-    flush(flags) {
+    flush() {
         const oldValue = this.oldValue;
         const newValue = this.getValue();
-        this.subs.notify(newValue, oldValue, flags);
         this.oldValue = newValue;
+        this.subs.notify(newValue, oldValue, 0 /* none */);
     }
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {

@@ -2,6 +2,7 @@ import { IPlatform } from '@aurelia/kernel';
 import { AccessorType, IObserver, ISubscriberCollection, LifecycleFlags } from '../observation.js';
 import type { IIndexable } from '@aurelia/kernel';
 import type { IObservable, ISubscriber } from '../observation';
+import { FlushQueue, IFlushable, IWithFlushQueue } from './flush-queue.js';
 export interface IDirtyChecker extends DirtyChecker {
 }
 export declare const IDirtyChecker: import("@aurelia/kernel").InterfaceSymbol<IDirtyChecker>;
@@ -33,8 +34,9 @@ export declare const DirtyCheckSettings: {
      */
     resetToDefault(): void;
 };
-export declare class DirtyChecker {
+export declare class DirtyChecker implements IWithFlushQueue {
     private readonly platform;
+    readonly queue: FlushQueue;
     private readonly tracked;
     private task;
     private elapsedFrames;
@@ -46,7 +48,7 @@ export declare class DirtyChecker {
 }
 export interface DirtyCheckProperty extends IObserver, ISubscriberCollection {
 }
-export declare class DirtyCheckProperty implements DirtyCheckProperty {
+export declare class DirtyCheckProperty implements DirtyCheckProperty, IFlushable {
     private readonly dirtyChecker;
     obj: IObservable & IIndexable;
     propertyKey: string;
@@ -56,7 +58,7 @@ export declare class DirtyCheckProperty implements DirtyCheckProperty {
     getValue(): unknown;
     setValue(v: unknown, f: LifecycleFlags): void;
     isDirty(): boolean;
-    flush(flags: LifecycleFlags): void;
+    flush(): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
 }

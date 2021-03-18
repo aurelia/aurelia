@@ -17,6 +17,7 @@ class CheckedObserver {
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
         this.collectionObserver = void 0;
         this.valueObserver = void 0;
+        this.f = 0 /* none */;
         this.obj = obj;
     }
     getValue() {
@@ -29,9 +30,10 @@ class CheckedObserver {
         }
         this.value = newValue;
         this.oldValue = currentValue;
+        this.f = flags;
         this.observe();
         this.synchronizeElement();
-        this.subs.notify(newValue, currentValue, flags);
+        this.queue.add(this);
     }
     handleCollectionChange(indexMap, flags) {
         this.synchronizeElement();
@@ -184,7 +186,7 @@ class CheckedObserver {
             return;
         }
         this.value = currentValue;
-        this.subs.notify(this.value, this.oldValue, 0 /* none */);
+        this.queue.add(this);
     }
     start() {
         this.handler.subscribe(this.obj, this);
@@ -207,6 +209,11 @@ class CheckedObserver {
             this.stop();
         }
     }
+    flush() {
+        oV = this.oldValue;
+        this.oldValue = this.value;
+        this.subs.notify(this.value, oV, this.f);
+    }
     observe() {
         var _a, _b, _c, _d, _e, _f, _g;
         const obj = this.obj;
@@ -220,4 +227,8 @@ class CheckedObserver {
 }
 exports.CheckedObserver = CheckedObserver;
 runtime_1.subscriberCollection(CheckedObserver);
+runtime_1.withFlushQueue(CheckedObserver);
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV = void 0;
 //# sourceMappingURL=checked-observer.js.map

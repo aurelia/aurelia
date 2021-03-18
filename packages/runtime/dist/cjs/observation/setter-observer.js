@@ -3,6 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SetterNotifier = exports.SetterObserver = void 0;
 const subscriber_collection_js_1 = require("./subscriber-collection.js");
 const utilities_objects_js_1 = require("../utilities-objects.js");
+const flush_queue_js_1 = require("./flush-queue.js");
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV = void 0;
 /**
  * Observer for the mutation of object property value employing getter-setter strategy.
  * This is used for observing object properties that has no decorator.
@@ -13,10 +17,10 @@ class SetterObserver {
         this.propertyKey = propertyKey;
         this.currentValue = void 0;
         this.oldValue = void 0;
-        this.inBatch = false;
         this.observing = false;
         // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
         this.type = 1 /* Observer */;
+        this.f = 0 /* none */;
     }
     getValue() {
         return this.currentValue;
@@ -28,7 +32,9 @@ class SetterObserver {
                 return;
             }
             this.currentValue = newValue;
-            this.subs.notify(newValue, currentValue, flags);
+            this.oldValue = currentValue;
+            this.f = flags;
+            this.queue.add(this);
         }
         else {
             // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
@@ -45,6 +51,11 @@ class SetterObserver {
             this.start();
         }
         this.subs.add(subscriber);
+    }
+    flush() {
+        oV = this.oldValue;
+        this.oldValue = this.currentValue;
+        this.subs.notify(this.currentValue, oV, this.f);
     }
     start() {
         if (this.observing === false) {
@@ -83,6 +94,14 @@ class SetterNotifier {
          * @internal
          */
         this.v = void 0;
+        /**
+         * @internal
+         */
+        this.oV = void 0;
+        /**
+         * @internal
+         */
+        this.f = 0 /* none */;
         this.obj = obj;
         this.s = set;
         const callback = obj[callbackKey];
@@ -97,20 +116,23 @@ class SetterNotifier {
         if (typeof this.s === 'function') {
             value = this.s(value);
         }
-        const oldValue = this.v;
-        if (!Object.is(value, oldValue)) {
+        if (!Object.is(value, this.v)) {
+            this.oV = this.v;
             this.v = value;
-            (_a = this.cb) === null || _a === void 0 ? void 0 : _a.call(this.obj, value, oldValue, flags);
-            // there's a chance that cb.call(...)
-            // changes the latest value of this observer
-            // and thus making `value` stale
-            // so for now, call with this.v
-            // todo: should oldValue be treated the same way?
-            this.subs.notify(this.v, oldValue, flags);
+            this.f = flags;
+            (_a = this.cb) === null || _a === void 0 ? void 0 : _a.call(this.obj, this.v, this.oV, flags);
+            this.queue.add(this);
         }
+    }
+    flush() {
+        oV = this.oV;
+        this.oV = this.v;
+        this.subs.notify(this.v, oV, this.f);
     }
 }
 exports.SetterNotifier = SetterNotifier;
 subscriber_collection_js_1.subscriberCollection(SetterObserver);
 subscriber_collection_js_1.subscriberCollection(SetterNotifier);
+flush_queue_js_1.withFlushQueue(SetterObserver);
+flush_queue_js_1.withFlushQueue(SetterNotifier);
 //# sourceMappingURL=setter-observer.js.map

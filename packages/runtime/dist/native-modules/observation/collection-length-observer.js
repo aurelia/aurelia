@@ -1,11 +1,13 @@
 import { isArrayIndex } from '../../../../kernel/dist/native-modules/index.js';
 import { subscriberCollection } from './subscriber-collection.js';
 import { ensureProto } from '../utilities-objects.js';
+import { withFlushQueue } from './flush-queue.js';
 export class CollectionLengthObserver {
     constructor(owner) {
         this.owner = owner;
+        this.f = 0 /* none */;
         this.type = 18 /* Array */;
-        this.value = (this.obj = owner.collection).length;
+        this.value = this.oldvalue = (this.obj = owner.collection).length;
     }
     getValue() {
         return this.obj.length;
@@ -20,21 +22,31 @@ export class CollectionLengthObserver {
                 this.obj.length = newValue;
             }
             this.value = newValue;
-            this.subs.notify(newValue, currentValue, flags);
+            this.oldvalue = currentValue;
+            this.f = flags;
+            this.queue.add(this);
         }
     }
     handleCollectionChange(_, flags) {
         const oldValue = this.value;
         const value = this.obj.length;
         if ((this.value = value) !== oldValue) {
-            this.subs.notify(value, oldValue, flags);
+            this.oldvalue = oldValue;
+            this.f = flags;
+            this.queue.add(this);
         }
+    }
+    flush() {
+        oV = this.oldvalue;
+        this.oldvalue = this.value;
+        this.subs.notify(this.value, oV, this.f);
     }
 }
 export class CollectionSizeObserver {
     constructor(owner) {
         this.owner = owner;
-        this.value = (this.obj = owner.collection).size;
+        this.f = 0 /* none */;
+        this.value = this.oldvalue = (this.obj = owner.collection).size;
         this.type = this.obj instanceof Map ? 66 /* Map */ : 34 /* Set */;
     }
     getValue() {
@@ -46,16 +58,23 @@ export class CollectionSizeObserver {
     handleCollectionChange(_, flags) {
         const oldValue = this.value;
         const value = this.obj.size;
-        this.value = value;
-        if (value !== oldValue) {
-            this.subs.notify(value, oldValue, flags);
+        if ((this.value = value) !== oldValue) {
+            this.oldvalue = oldValue;
+            this.f = flags;
+            this.queue.add(this);
         }
+    }
+    flush() {
+        oV = this.oldvalue;
+        this.oldvalue = this.value;
+        this.subs.notify(this.value, oV, this.f);
     }
 }
 function implementLengthObserver(klass) {
     const proto = klass.prototype;
     ensureProto(proto, 'subscribe', subscribe, true);
     ensureProto(proto, 'unsubscribe', unsubscribe, true);
+    withFlushQueue(klass);
     subscriberCollection(klass);
 }
 function subscribe(subscriber) {
@@ -70,4 +89,7 @@ function unsubscribe(subscriber) {
 }
 implementLengthObserver(CollectionLengthObserver);
 implementLengthObserver(CollectionSizeObserver);
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV = void 0;
 //# sourceMappingURL=collection-length-observer.js.map

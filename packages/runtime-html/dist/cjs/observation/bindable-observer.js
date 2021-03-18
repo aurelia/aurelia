@@ -13,8 +13,10 @@ class BindableObserver {
         this.propertyKey = propertyKey;
         this.set = set;
         this.$controller = $controller;
+        // todo: name too long. just value/oldValue, or v/oV
         this.currentValue = void 0;
         this.oldValue = void 0;
+        this.f = 0 /* none */;
         const cb = obj[cbName];
         const cbAll = obj.propertyChanged;
         const hasCb = this.hasCb = typeof cb === 'function';
@@ -50,6 +52,8 @@ class BindableObserver {
                 return;
             }
             this.currentValue = newValue;
+            this.oldValue = currentValue;
+            this.f = flags;
             // todo: controller (if any) state should determine the invocation instead
             if ( /* either not instantiated via a controller */this.$controller == null
                 /* or the controller instantiating this is bound */ || this.$controller.isBound) {
@@ -60,7 +64,8 @@ class BindableObserver {
                     this.cbAll.call(this.obj, this.propertyKey, newValue, currentValue, flags);
                 }
             }
-            this.subs.notify(newValue, currentValue, flags);
+            this.queue.add(this);
+            // this.subs.notify(newValue, currentValue, flags);
         }
         else {
             // See SetterObserver.setValue for explanation
@@ -78,6 +83,11 @@ class BindableObserver {
         }
         this.subs.add(subscriber);
     }
+    flush() {
+        oV = this.oldValue;
+        this.oldValue = this.currentValue;
+        this.subs.notify(this.currentValue, oV, this.f);
+    }
     createGetterSetter() {
         Reflect.defineProperty(this.obj, this.propertyKey, {
             enumerable: true,
@@ -91,4 +101,8 @@ class BindableObserver {
 }
 exports.BindableObserver = BindableObserver;
 runtime_1.subscriberCollection(BindableObserver);
+runtime_1.withFlushQueue(BindableObserver);
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV = void 0;
 //# sourceMappingURL=bindable-observer.js.map

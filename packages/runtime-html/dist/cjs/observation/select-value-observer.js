@@ -56,23 +56,6 @@ class SelectValueObserver {
         // immediately whenever the array notifies its mutation
         this.synchronizeOptions();
     }
-    notify(flags) {
-        if ((flags & 2 /* fromBind */) > 0) {
-            return;
-        }
-        const oldValue = this.oldValue;
-        const newValue = this.currentValue;
-        if (newValue === oldValue) {
-            return;
-        }
-        this.subs.notify(newValue, oldValue, flags);
-    }
-    handleEvent() {
-        const shouldNotify = this.synchronizeValue();
-        if (shouldNotify) {
-            this.subs.notify(this.currentValue, this.oldValue, 0 /* none */);
-        }
-    }
     synchronizeOptions(indexMap) {
         const { currentValue, obj } = this;
         const isArray = Array.isArray(currentValue);
@@ -203,11 +186,18 @@ class SelectValueObserver {
             (this.arrayObserver = this.observerLocator.getArrayObserver(array)).subscribe(this);
         }
     }
+    handleEvent() {
+        const shouldNotify = this.synchronizeValue();
+        if (shouldNotify) {
+            this.queue.add(this);
+            // this.subs.notify(this.currentValue, this.oldValue, LF.none);
+        }
+    }
     handleNodeChange() {
         this.synchronizeOptions();
         const shouldNotify = this.synchronizeValue();
         if (shouldNotify) {
-            this.notify(0 /* none */);
+            this.queue.add(this);
         }
     }
     subscribe(subscriber) {
@@ -222,7 +212,11 @@ class SelectValueObserver {
             this.stop();
         }
     }
+    flush() {
+        this.subs.notify(this.currentValue, this.oldValue, 0 /* none */);
+    }
 }
 exports.SelectValueObserver = SelectValueObserver;
 runtime_1.subscriberCollection(SelectValueObserver);
+runtime_1.withFlushQueue(SelectValueObserver);
 //# sourceMappingURL=select-value-observer.js.map

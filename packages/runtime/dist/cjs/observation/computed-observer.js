@@ -6,6 +6,7 @@ const connectable_switcher_js_1 = require("./connectable-switcher.js");
 const connectable_js_1 = require("../binding/connectable.js");
 const proxy_observation_js_1 = require("./proxy-observation.js");
 const utilities_objects_js_1 = require("../utilities-objects.js");
+const flush_queue_js_1 = require("./flush-queue.js");
 class ComputedObserver {
     constructor(obj, get, set, useProxy, observerLocator) {
         this.obj = obj;
@@ -16,6 +17,7 @@ class ComputedObserver {
         this.interceptor = this;
         this.type = 1 /* Observer */;
         this.value = void 0;
+        this.oldValue = void 0;
         // todo: maybe use a counter allow recursive call to a certain level
         /**
          * @internal
@@ -91,6 +93,11 @@ class ComputedObserver {
             this.obs.clear(true);
         }
     }
+    flush() {
+        oV = this.oldValue;
+        this.oldValue = this.value;
+        this.subs.notify(this.value, oV, 0 /* none */);
+    }
     run() {
         if (this.running) {
             return;
@@ -99,8 +106,8 @@ class ComputedObserver {
         const newValue = this.compute();
         this.isDirty = false;
         if (!Object.is(newValue, oldValue)) {
-            // should optionally queue
-            this.subs.notify(newValue, oldValue, 0 /* none */);
+            this.oldValue = oldValue;
+            this.queue.add(this);
         }
     }
     compute() {
@@ -120,4 +127,8 @@ class ComputedObserver {
 exports.ComputedObserver = ComputedObserver;
 connectable_js_1.connectable(ComputedObserver);
 subscriber_collection_js_1.subscriberCollection(ComputedObserver);
+flush_queue_js_1.withFlushQueue(ComputedObserver);
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV = void 0;
 //# sourceMappingURL=computed-observer.js.map

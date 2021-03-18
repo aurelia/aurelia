@@ -1,4 +1,4 @@
-import { subscriberCollection } from '@aurelia/runtime';
+import { subscriberCollection, withFlushQueue } from '@aurelia/runtime';
 /**
  * Observer for handling two-way binding with attributes
  * Has different strategy for class/style and normal attributes
@@ -11,21 +11,22 @@ export class AttributeObserver {
         this.obj = obj;
         this.propertyKey = propertyKey;
         this.targetAttribute = targetAttribute;
-        this.currentValue = null;
+        this.value = null;
         this.oldValue = null;
         this.hasChanges = false;
         // layout is not certain, depends on the attribute being flushed to owner element
         // but for simple start, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
+        this.f = 0 /* none */;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
         // todo: ability to turn on/off cache based on type
-        return this.currentValue;
+        return this.value;
     }
-    setValue(newValue, flags) {
-        this.currentValue = newValue;
-        this.hasChanges = newValue !== this.oldValue;
+    setValue(value, flags) {
+        this.value = value;
+        this.hasChanges = value !== this.oldValue;
         if ((flags & 256 /* noFlush */) === 0) {
             this.flushChanges(flags);
         }
@@ -33,7 +34,7 @@ export class AttributeObserver {
     flushChanges(flags) {
         if (this.hasChanges) {
             this.hasChanges = false;
-            const currentValue = this.currentValue;
+            const currentValue = this.value;
             this.oldValue = currentValue;
             switch (this.targetAttribute) {
                 case 'class': {
@@ -48,14 +49,7 @@ export class AttributeObserver {
                     // this also comes from syntax, where it would typically be my-class.class="someProperty"
                     //
                     // so there is no need for separating class by space and add all of them like class accessor
-                    //
-                    // note: not using .toggle API so that environment with broken impl (IE11) won't need to polfyfill by default
-                    if (!!currentValue) {
-                        this.obj.classList.add(this.propertyKey);
-                    }
-                    else {
-                        this.obj.classList.remove(this.propertyKey);
-                    }
+                    this.obj.classList.toggle(this.propertyKey, !!currentValue);
                     break;
                 }
                 case 'style': {
@@ -91,17 +85,18 @@ export class AttributeObserver {
                 default:
                     throw new Error(`Unsupported targetAttribute: ${this.targetAttribute}`);
             }
-            if (newValue !== this.currentValue) {
-                const { currentValue } = this;
-                this.currentValue = this.oldValue = newValue;
+            if (newValue !== this.value) {
+                this.oldValue = this.value;
+                this.value = newValue;
                 this.hasChanges = false;
-                this.subs.notify(newValue, currentValue, 0 /* none */);
+                this.f = 0 /* none */;
+                this.queue.add(this);
             }
         }
     }
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
-            this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
+            this.value = this.oldValue = this.obj.getAttribute(this.propertyKey);
             startObservation(this.obj.ownerDocument.defaultView.MutationObserver, this.obj, this);
         }
     }
@@ -110,8 +105,14 @@ export class AttributeObserver {
             stopObservation(this.obj, this);
         }
     }
+    flush() {
+        oV = this.oldValue;
+        this.oldValue = this.value;
+        this.subs.notify(this.value, oV, this.f);
+    }
 }
 subscriberCollection(AttributeObserver);
+withFlushQueue(AttributeObserver);
 const startObservation = ($MutationObserver, element, subscription) => {
     if (element.$eMObservers === undefined) {
         element.$eMObservers = new Set();
@@ -138,4 +139,7 @@ const handleMutation = (mutationRecords) => {
 function invokeHandleMutation(s) {
     s.handleMutation(this);
 }
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV = void 0;
 //# sourceMappingURL=element-attribute-observer.js.map

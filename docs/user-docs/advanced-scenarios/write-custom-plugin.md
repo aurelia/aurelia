@@ -28,8 +28,6 @@ Our Bootstrap 5 components will define in this package. `bootstrap-v5` depends o
 
 We will use our plugin in this package as a demo. `demo` depends on `bootstrap-v5-core` and `bootstrap-v5`.
 
-![](/images/write-a-custom-plugin-with-aurelia-2-and-lerna/packages.png)
-
 ### How to configure NPM v7 workspaces?
 
 To configure your monorepo, you should do as following:

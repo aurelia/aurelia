@@ -1,8 +1,16 @@
 import { noop } from '@aurelia/kernel';
-import { subscriberCollection, AccessorType, LifecycleFlags } from '@aurelia/runtime';
+import { subscriberCollection, AccessorType, LifecycleFlags, withFlushQueue } from '@aurelia/runtime';
 
 import type { IIndexable } from '@aurelia/kernel';
-import type { InterceptorFunc, IObserver, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
+import type {
+  InterceptorFunc,
+  IObserver,
+  ISubscriber,
+  ISubscriberCollection,
+  IFlushable,
+  IWithFlushQueue,
+  FlushQueue,
+} from '@aurelia/runtime';
 import type { IController } from '../templating/controller';
 
 export interface BindableObserver extends IObserver, ISubscriberCollection {}
@@ -13,18 +21,21 @@ interface IMayHavePropertyChangedCallback {
 
 type HasPropertyChangedCallback = Required<IMayHavePropertyChangedCallback>;
 
-export class BindableObserver {
+export class BindableObserver implements IFlushable, IWithFlushQueue {
   public get type(): AccessorType { return AccessorType.Observer; }
+  // todo: name too long. just value/oldValue, or v/oV
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
   public observing: boolean;
+  public queue!: FlushQueue;
 
   private readonly cb: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
   private readonly cbAll: HasPropertyChangedCallback['propertyChanged'];
   private readonly hasCb: boolean;
   private readonly hasCbAll: boolean;
   private readonly hasSetter: boolean;
+  private f: LifecycleFlags = LifecycleFlags.none;
 
   public constructor(
     public readonly obj: IIndexable,
@@ -74,6 +85,8 @@ export class BindableObserver {
         return;
       }
       this.currentValue = newValue;
+      this.oldValue = currentValue;
+      this.f = flags;
       // todo: controller (if any) state should determine the invocation instead
       if (/* either not instantiated via a controller */this.$controller == null
         /* or the controller instantiating this is bound */|| this.$controller.isBound
@@ -85,7 +98,8 @@ export class BindableObserver {
           this.cbAll.call(this.obj, this.propertyKey, newValue, currentValue, flags);
         }
       }
-      this.subs.notify(newValue, currentValue, flags);
+      this.queue.add(this);
+      // this.subs.notify(newValue, currentValue, flags);
     } else {
       // See SetterObserver.setValue for explanation
       this.obj[this.propertyKey] = newValue;
@@ -105,6 +119,12 @@ export class BindableObserver {
     this.subs.add(subscriber);
   }
 
+  public flush(): void {
+    oV = this.oldValue;
+    this.oldValue = this.currentValue;
+    this.subs.notify(this.currentValue, oV, this.f);
+  }
+
   private createGetterSetter(): void {
     Reflect.defineProperty(
       this.obj,
@@ -122,3 +142,8 @@ export class BindableObserver {
 }
 
 subscriberCollection(BindableObserver);
+withFlushQueue(BindableObserver);
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

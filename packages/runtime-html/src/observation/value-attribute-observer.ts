@@ -1,15 +1,22 @@
-import { LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
+import { LifecycleFlags, subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
 
 import type { EventSubscriber } from './event-delegator.js';
 import type { INode } from '../dom.js';
 import type { IIndexable } from '@aurelia/kernel';
-import type { ISubscriberCollection, ISubscriber, IObserver } from '@aurelia/runtime';
+import type {
+  ISubscriberCollection,
+  ISubscriber,
+  IObserver,
+  IFlushable,
+  IWithFlushQueue,
+  FlushQueue,
+} from '@aurelia/runtime';
 
 export interface ValueAttributeObserver extends ISubscriberCollection {}
 /**
  * Observer for non-radio, non-checkbox input.
  */
-export class ValueAttributeObserver implements IObserver {
+export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlushable {
   public readonly obj: INode & IIndexable;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
@@ -18,6 +25,7 @@ export class ValueAttributeObserver implements IObserver {
   // ObserverType.Layout is not always true, it depends on the element & property combo
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
+  public readonly queue!: FlushQueue;
 
   public constructor(
     obj: INode,
@@ -34,8 +42,12 @@ export class ValueAttributeObserver implements IObserver {
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
+    if (Object.is(newValue, this.currentValue)) {
+      return;
+    }
+    this.oldValue = this.currentValue;
     this.currentValue = newValue;
-    this.hasChanges = newValue !== this.oldValue;
+    this.hasChanges = true;
     if (!this.handler.config.readonly && (flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
@@ -44,13 +56,10 @@ export class ValueAttributeObserver implements IObserver {
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const currentValue = this.currentValue;
-      const oldValue = this.oldValue;
-      this.oldValue = currentValue;
-      this.obj[this.propertyKey as string] = currentValue ?? this.handler.config.default;
+      this.obj[this.propertyKey as string] = this.currentValue ?? this.handler.config.default;
 
       if ((flags & LifecycleFlags.fromBind) === 0) {
-        this.subs.notify(currentValue, oldValue, flags);
+        this.queue.add(this);
       }
     }
   }
@@ -59,8 +68,8 @@ export class ValueAttributeObserver implements IObserver {
     const oldValue = this.oldValue = this.currentValue;
     const currentValue = this.currentValue = this.obj[this.propertyKey as string];
     if (oldValue !== currentValue) {
-      this.oldValue = currentValue;
-      this.subs.notify(currentValue, oldValue, LifecycleFlags.none);
+      this.hasChanges = false;
+      this.queue.add(this);
     }
   }
 
@@ -76,6 +85,17 @@ export class ValueAttributeObserver implements IObserver {
       this.handler.dispose();
     }
   }
+
+  public flush(): void {
+    oV = this.oldValue;
+    this.oldValue = this.currentValue;
+    this.subs.notify(this.currentValue, oV, LifecycleFlags.none);
+  }
 }
 
 subscriberCollection(ValueAttributeObserver);
+withFlushQueue(ValueAttributeObserver);
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

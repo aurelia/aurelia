@@ -3,6 +3,8 @@ import {
   LifecycleFlags as LF,
   subscriberCollection,
   AccessorType,
+  withFlushQueue,
+  LifecycleFlags,
 } from '@aurelia/runtime';
 
 import type { INode } from '../dom';
@@ -14,6 +16,9 @@ import type {
   IObserverLocator,
   ISubscriber,
   ISubscriberCollection,
+  IWithFlushQueue,
+  IFlushable,
+  FlushQueue,
 } from '@aurelia/runtime';
 
 const hasOwn = Object.prototype.hasOwnProperty;
@@ -38,7 +43,7 @@ export interface IOptionElement extends HTMLOptionElement {
 export interface SelectValueObserver extends
   ISubscriberCollection {}
 
-export class SelectValueObserver implements IObserver {
+export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQueue {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
@@ -51,6 +56,7 @@ export class SelectValueObserver implements IObserver {
 
   public arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;
   public nodeObserver?: MutationObserver = void 0;
+  public readonly queue!: FlushQueue;
 
   private observing: boolean = false;
 
@@ -94,25 +100,6 @@ export class SelectValueObserver implements IObserver {
     // always sync "selected" property of <options/>
     // immediately whenever the array notifies its mutation
     this.synchronizeOptions();
-  }
-
-  public notify(flags: LF): void {
-    if ((flags & LF.fromBind) > 0) {
-      return;
-    }
-    const oldValue = this.oldValue;
-    const newValue = this.currentValue;
-    if (newValue === oldValue) {
-      return;
-    }
-    this.subs.notify(newValue, oldValue, flags);
-  }
-
-  public handleEvent(): void {
-    const shouldNotify = this.synchronizeValue();
-    if (shouldNotify) {
-      this.subs.notify(this.currentValue, this.oldValue, LF.none);
-    }
   }
 
   public synchronizeOptions(indexMap?: IndexMap): void {
@@ -250,11 +237,19 @@ export class SelectValueObserver implements IObserver {
     }
   }
 
+  public handleEvent(): void {
+    const shouldNotify = this.synchronizeValue();
+    if (shouldNotify) {
+      this.queue.add(this);
+      // this.subs.notify(this.currentValue, this.oldValue, LF.none);
+    }
+  }
+
   public handleNodeChange(): void {
     this.synchronizeOptions();
     const shouldNotify = this.synchronizeValue();
     if (shouldNotify) {
-      this.notify(LF.none);
+      this.queue.add(this);
     }
   }
 
@@ -271,6 +266,11 @@ export class SelectValueObserver implements IObserver {
       this.stop();
     }
   }
+
+  public flush(): void {
+    this.subs.notify(this.currentValue, this.oldValue, LifecycleFlags.none);
+  }
 }
 
 subscriberCollection(SelectValueObserver);
+withFlushQueue(SelectValueObserver);

@@ -4,6 +4,7 @@ import {
   SetterObserver,
   subscriberCollection,
   AccessorType,
+  withFlushQueue,
 } from '@aurelia/runtime';
 import { getCollectionObserver } from './observer-locator.js';
 import type { INode } from '../dom.js';
@@ -16,6 +17,9 @@ import type {
   ISubscriberCollection,
   IObserver,
   IObserverLocator,
+  IFlushable,
+  IWithFlushQueue,
+  FlushQueue,
 } from '@aurelia/runtime';
 
 export interface IInputElement extends HTMLInputElement {
@@ -34,7 +38,7 @@ function defaultMatcher(a: unknown, b: unknown): boolean {
 export interface CheckedObserver extends
   ISubscriberCollection { }
 
-export class CheckedObserver implements IObserver {
+export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
   public value: unknown = void 0;
   public oldValue: unknown = void 0;
 
@@ -44,6 +48,9 @@ export class CheckedObserver implements IObserver {
 
   public collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
   public valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
+  public readonly queue!: FlushQueue;
+
+  private f: LifecycleFlags = LifecycleFlags.none;
 
   public constructor(
     obj: INode,
@@ -66,9 +73,10 @@ export class CheckedObserver implements IObserver {
     }
     this.value = newValue;
     this.oldValue = currentValue;
+    this.f = flags;
     this.observe();
     this.synchronizeElement();
-    this.subs.notify(newValue, currentValue, flags);
+    this.queue.add(this);
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
@@ -221,7 +229,7 @@ export class CheckedObserver implements IObserver {
       return;
     }
     this.value = currentValue;
-    this.subs.notify(this.value, this.oldValue, LifecycleFlags.none);
+    this.queue.add(this);
   }
 
   public start() {
@@ -249,6 +257,12 @@ export class CheckedObserver implements IObserver {
     }
   }
 
+  public flush(): void {
+    oV = this.oldValue;
+    this.oldValue = this.value;
+    this.subs.notify(this.value, oV, this.f);
+  }
+
   private observe() {
     const obj = this.obj;
 
@@ -264,3 +278,8 @@ export class CheckedObserver implements IObserver {
 }
 
 subscriberCollection(CheckedObserver);
+withFlushQueue(CheckedObserver);
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

@@ -118,6 +118,12 @@ export {
   DirtyCheckSettings,
 } from './observation/dirty-checker.js';
 export {
+  IFlushable,
+  IWithFlushQueue,
+  FlushQueue,
+  withFlushQueue,
+} from './observation/flush-queue.js';
+export {
   IEffect,
   IObservation,
   Observation,

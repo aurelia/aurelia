@@ -10,7 +10,7 @@ export declare class BindableObserver implements IFlushable, IWithFlushQueue {
     private readonly set;
     readonly $controller: IController | null;
     get type(): AccessorType;
-    currentValue: unknown;
+    value: unknown;
     oldValue: unknown;
     observing: boolean;
     queue: FlushQueue;

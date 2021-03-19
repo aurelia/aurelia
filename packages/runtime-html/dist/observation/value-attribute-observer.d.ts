@@ -12,7 +12,7 @@ export declare class ValueAttributeObserver implements IObserver, IWithFlushQueu
     readonly propertyKey: PropertyKey;
     readonly handler: EventSubscriber;
     readonly obj: INode & IIndexable;
-    currentValue: unknown;
+    value: unknown;
     oldValue: unknown;
     hasChanges: boolean;
     type: AccessorType;

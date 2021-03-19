@@ -11,7 +11,7 @@ export interface SetterObserver extends IAccessor, ISubscriberCollection {
 export declare class SetterObserver implements IWithFlushQueue, IFlushable {
     readonly obj: IIndexable;
     readonly propertyKey: string;
-    currentValue: unknown;
+    value: unknown;
     oldValue: unknown;
     observing: boolean;
     type: AccessorType;

@@ -2,7 +2,7 @@ import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
 import type { IAccessor } from '@aurelia/runtime';
 export declare class ClassAttributeAccessor implements IAccessor {
     readonly obj: HTMLElement;
-    currentValue: unknown;
+    value: unknown;
     oldValue: unknown;
     readonly doNotCache: true;
     nameIndex: Record<string, number>;

@@ -11,7 +11,7 @@ export class BindableObserver {
         this.set = set;
         this.$controller = $controller;
         // todo: name too long. just value/oldValue, or v/oV
-        this.currentValue = void 0;
+        this.value = void 0;
         this.oldValue = void 0;
         this.f = 0 /* none */;
         const cb = obj[cbName];
@@ -31,24 +31,24 @@ export class BindableObserver {
         else {
             this.observing = true;
             const val = obj[propertyKey];
-            this.currentValue = hasSetter && val !== void 0 ? set(val) : val;
+            this.value = hasSetter && val !== void 0 ? set(val) : val;
             this.createGetterSetter();
         }
     }
     get type() { return 1 /* Observer */; }
     getValue() {
-        return this.currentValue;
+        return this.value;
     }
     setValue(newValue, flags) {
         if (this.hasSetter) {
             newValue = this.set(newValue);
         }
         if (this.observing) {
-            const currentValue = this.currentValue;
+            const currentValue = this.value;
             if (Object.is(newValue, currentValue)) {
                 return;
             }
-            this.currentValue = newValue;
+            this.value = newValue;
             this.oldValue = currentValue;
             this.f = flags;
             // todo: controller (if any) state should determine the invocation instead
@@ -73,7 +73,7 @@ export class BindableObserver {
         if (!this.observing === false) {
             this.observing = true;
             const currentValue = this.obj[this.propertyKey];
-            this.currentValue = this.hasSetter
+            this.value = this.hasSetter
                 ? this.set(currentValue)
                 : currentValue;
             this.createGetterSetter();
@@ -82,14 +82,14 @@ export class BindableObserver {
     }
     flush() {
         oV = this.oldValue;
-        this.oldValue = this.currentValue;
-        this.subs.notify(this.currentValue, oV, this.f);
+        this.oldValue = this.value;
+        this.subs.notify(this.value, oV, this.f);
     }
     createGetterSetter() {
         Reflect.defineProperty(this.obj, this.propertyKey, {
             enumerable: true,
             configurable: true,
-            get: ( /* Bindable Observer */) => this.currentValue,
+            get: ( /* Bindable Observer */) => this.value,
             set: (/* Bindable Observer */ value) => {
                 this.setValue(value, 0 /* none */);
             }

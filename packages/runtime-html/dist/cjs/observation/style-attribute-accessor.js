@@ -6,7 +6,7 @@ const customPropertyPrefix = '--';
 class StyleAttributeAccessor {
     constructor(obj) {
         this.obj = obj;
-        this.currentValue = '';
+        this.value = '';
         this.oldValue = '';
         this.styles = {};
         this.version = 0;
@@ -17,7 +17,7 @@ class StyleAttributeAccessor {
         return this.obj.style.cssText;
     }
     setValue(newValue, flags) {
-        this.currentValue = newValue;
+        this.value = newValue;
         this.hasChanges = newValue !== this.oldValue;
         if ((flags & 256 /* noFlush */) === 0) {
             this.flushChanges(flags);
@@ -99,7 +99,7 @@ class StyleAttributeAccessor {
     flushChanges(flags) {
         if (this.hasChanges) {
             this.hasChanges = false;
-            const currentValue = this.currentValue;
+            const currentValue = this.value;
             const styles = this.styles;
             const styleTuples = this.getStyleTuples(currentValue);
             let style;
@@ -139,7 +139,7 @@ class StyleAttributeAccessor {
         this.obj.style.setProperty(style, value, priority);
     }
     bind(flags) {
-        this.currentValue = this.oldValue = this.obj.style.cssText;
+        this.value = this.oldValue = this.obj.style.cssText;
     }
 }
 exports.StyleAttributeAccessor = StyleAttributeAccessor;

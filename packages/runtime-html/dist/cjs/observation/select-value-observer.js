@@ -17,7 +17,7 @@ class SelectValueObserver {
     _key, handler, observerLocator) {
         this.handler = handler;
         this.observerLocator = observerLocator;
-        this.currentValue = void 0;
+        this.value = void 0;
         this.oldValue = void 0;
         this.hasChanges = false;
         // ObserverType.Layout is not always true
@@ -32,13 +32,13 @@ class SelectValueObserver {
         // is it safe to assume the observer has the latest value?
         // todo: ability to turn on/off cache based on type
         return this.observing
-            ? this.currentValue
+            ? this.value
             : this.obj.multiple
                 ? Array.from(this.obj.options).map(o => o.value)
                 : this.obj.value;
     }
     setValue(newValue, flags) {
-        this.currentValue = newValue;
+        this.value = newValue;
         this.hasChanges = newValue !== this.oldValue;
         this.observeArray(newValue instanceof Array ? newValue : null);
         if ((flags & 256 /* noFlush */) === 0) {
@@ -57,7 +57,7 @@ class SelectValueObserver {
         this.synchronizeOptions();
     }
     synchronizeOptions(indexMap) {
-        const { currentValue, obj } = this;
+        const { value: currentValue, obj } = this;
         const isArray = Array.isArray(currentValue);
         const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
         const options = obj.options;
@@ -91,7 +91,7 @@ class SelectValueObserver {
         const obj = this.obj;
         const options = obj.options;
         const len = options.length;
-        const currentValue = this.currentValue;
+        const currentValue = this.value;
         let i = 0;
         if (obj.multiple) {
             // A.
@@ -153,16 +153,16 @@ class SelectValueObserver {
             ++i;
         }
         // B.2
-        this.oldValue = this.currentValue;
+        this.oldValue = this.value;
         // B.3
-        this.currentValue = value;
+        this.value = value;
         // B.4
         return true;
     }
     start() {
         (this.nodeObserver = new this.obj.ownerDocument.defaultView.MutationObserver(this.handleNodeChange.bind(this)))
             .observe(this.obj, childObserverOptions);
-        this.observeArray(this.currentValue instanceof Array ? this.currentValue : null);
+        this.observeArray(this.value instanceof Array ? this.value : null);
         this.observing = true;
     }
     stop() {
@@ -213,7 +213,7 @@ class SelectValueObserver {
         }
     }
     flush() {
-        this.subs.notify(this.currentValue, this.oldValue, 0 /* none */);
+        this.subs.notify(this.value, this.oldValue, 0 /* none */);
     }
 }
 exports.SelectValueObserver = SelectValueObserver;

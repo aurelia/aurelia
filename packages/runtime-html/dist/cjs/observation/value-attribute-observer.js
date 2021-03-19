@@ -9,7 +9,7 @@ class ValueAttributeObserver {
     constructor(obj, propertyKey, handler) {
         this.propertyKey = propertyKey;
         this.handler = handler;
-        this.currentValue = '';
+        this.value = '';
         this.oldValue = '';
         this.hasChanges = false;
         // ObserverType.Layout is not always true, it depends on the element & property combo
@@ -20,14 +20,14 @@ class ValueAttributeObserver {
     getValue() {
         // is it safe to assume the observer has the latest value?
         // todo: ability to turn on/off cache based on type
-        return this.currentValue;
+        return this.value;
     }
     setValue(newValue, flags) {
-        if (Object.is(newValue, this.currentValue)) {
+        if (Object.is(newValue, this.value)) {
             return;
         }
-        this.oldValue = this.currentValue;
-        this.currentValue = newValue;
+        this.oldValue = this.value;
+        this.value = newValue;
         this.hasChanges = true;
         if (!this.handler.config.readonly && (flags & 256 /* noFlush */) === 0) {
             this.flushChanges(flags);
@@ -37,16 +37,16 @@ class ValueAttributeObserver {
         var _a;
         if (this.hasChanges) {
             this.hasChanges = false;
-            this.obj[this.propertyKey] = (_a = this.currentValue) !== null && _a !== void 0 ? _a : this.handler.config.default;
+            this.obj[this.propertyKey] = (_a = this.value) !== null && _a !== void 0 ? _a : this.handler.config.default;
             if ((flags & 2 /* fromBind */) === 0) {
                 this.queue.add(this);
             }
         }
     }
     handleEvent() {
-        const oldValue = this.oldValue = this.currentValue;
-        const currentValue = this.currentValue = this.obj[this.propertyKey];
-        if (oldValue !== currentValue) {
+        this.oldValue = this.value;
+        this.value = this.obj[this.propertyKey];
+        if (this.oldValue !== this.value) {
             this.hasChanges = false;
             this.queue.add(this);
         }
@@ -54,7 +54,7 @@ class ValueAttributeObserver {
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
             this.handler.subscribe(this.obj, this);
-            this.currentValue = this.oldValue = this.obj[this.propertyKey];
+            this.value = this.oldValue = this.obj[this.propertyKey];
         }
     }
     unsubscribe(subscriber) {
@@ -64,8 +64,8 @@ class ValueAttributeObserver {
     }
     flush() {
         oV = this.oldValue;
-        this.oldValue = this.currentValue;
-        this.subs.notify(this.currentValue, oV, 0 /* none */);
+        this.oldValue = this.value;
+        this.subs.notify(this.value, oV, 0 /* none */);
     }
 }
 exports.ValueAttributeObserver = ValueAttributeObserver;

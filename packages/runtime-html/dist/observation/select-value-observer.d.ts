@@ -15,7 +15,7 @@ export interface SelectValueObserver extends ISubscriberCollection {
 export declare class SelectValueObserver implements IObserver, IFlushable, IWithFlushQueue {
     readonly handler: EventSubscriber;
     readonly observerLocator: IObserverLocator;
-    currentValue: unknown;
+    value: unknown;
     oldValue: unknown;
     readonly obj: ISelectElement;
     hasChanges: boolean;

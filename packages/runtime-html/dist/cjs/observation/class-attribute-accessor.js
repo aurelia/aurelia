@@ -5,7 +5,7 @@ const kernel_1 = require("@aurelia/kernel");
 class ClassAttributeAccessor {
     constructor(obj) {
         this.obj = obj;
-        this.currentValue = '';
+        this.value = '';
         this.oldValue = '';
         this.doNotCache = true;
         this.nameIndex = {};
@@ -17,10 +17,10 @@ class ClassAttributeAccessor {
     getValue() {
         // is it safe to assume the observer has the latest value?
         // todo: ability to turn on/off cache based on type
-        return this.currentValue;
+        return this.value;
     }
     setValue(newValue, flags) {
-        this.currentValue = newValue;
+        this.value = newValue;
         this.hasChanges = newValue !== this.oldValue;
         if ((flags & 256 /* noFlush */) === 0) {
             this.flushChanges(flags);
@@ -29,7 +29,7 @@ class ClassAttributeAccessor {
     flushChanges(flags) {
         if (this.hasChanges) {
             this.hasChanges = false;
-            const currentValue = this.currentValue;
+            const currentValue = this.value;
             const nameIndex = this.nameIndex;
             let version = this.version;
             this.oldValue = currentValue;

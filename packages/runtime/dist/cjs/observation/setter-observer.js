@@ -15,7 +15,7 @@ class SetterObserver {
     constructor(obj, propertyKey) {
         this.obj = obj;
         this.propertyKey = propertyKey;
-        this.currentValue = void 0;
+        this.value = void 0;
         this.oldValue = void 0;
         this.observing = false;
         // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
@@ -23,22 +23,22 @@ class SetterObserver {
         this.f = 0 /* none */;
     }
     getValue() {
-        return this.currentValue;
+        return this.value;
     }
     setValue(newValue, flags) {
         if (this.observing) {
-            const currentValue = this.currentValue;
-            if (Object.is(newValue, currentValue)) {
+            const value = this.value;
+            if (Object.is(newValue, value)) {
                 return;
             }
-            this.currentValue = newValue;
-            this.oldValue = currentValue;
+            this.value = newValue;
+            this.oldValue = value;
             this.f = flags;
             this.queue.add(this);
         }
         else {
             // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
-            // so calling obj[propertyKey] will actually return this.currentValue.
+            // so calling obj[propertyKey] will actually return this.value.
             // However, if subscribe() was not yet called (indicated by !this.observing), the target descriptor
             // is unmodified and we need to explicitly set the property value.
             // This will happen in one-time, to-view and two-way bindings during $bind, meaning that the $bind will not actually update the target value.
@@ -54,13 +54,13 @@ class SetterObserver {
     }
     flush() {
         oV = this.oldValue;
-        this.oldValue = this.currentValue;
-        this.subs.notify(this.currentValue, oV, this.f);
+        this.oldValue = this.value;
+        this.subs.notify(this.value, oV, this.f);
     }
     start() {
         if (this.observing === false) {
             this.observing = true;
-            this.currentValue = this.obj[this.propertyKey];
+            this.value = this.obj[this.propertyKey];
             utilities_objects_js_1.def(this.obj, this.propertyKey, {
                 enumerable: true,
                 configurable: true,
@@ -78,7 +78,7 @@ class SetterObserver {
                 enumerable: true,
                 configurable: true,
                 writable: true,
-                value: this.currentValue,
+                value: this.value,
             });
             this.observing = false;
             // todo(bigopon/fred): add .removeAllSubscribers()

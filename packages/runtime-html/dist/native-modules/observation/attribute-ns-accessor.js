@@ -6,7 +6,6 @@ const nsMap = Object.create(null);
 export class AttributeNSAccessor {
     constructor(namespace) {
         this.namespace = namespace;
-        this.currentValue = null;
         // ObserverType.Layout is not always true, it depends on the property
         // but for simplicity, always treat as such
         this.type = 2 /* Node */ | 4 /* Layout */;

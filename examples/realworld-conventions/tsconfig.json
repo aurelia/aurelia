@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "strict": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "target": "es2018",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "types": [
+      "aurelia"
+    ]
+  },
+  "include": [
+    "src"
+  ],
+  "files": [
+    "src/resources.d.ts"
+  ]
+}

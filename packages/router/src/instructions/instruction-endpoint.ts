@@ -9,7 +9,7 @@ import { ViewportScope } from '../endpoints/viewport-scope.js';
  * Public API - The routing instructions are the core of the router's navigations
  */
 
-export type EndpointHandle = string | Endpoint | EndpointType;
+export type EndpointHandle = string | Endpoint;
 
 export class InstructionEndpoint {
   public name: string | null = null;

@@ -995,7 +995,7 @@ class MockObserver {
   public propertyKey?: string | number | symbol;
   public oldValue?: any;
   public previousValue?: any;
-  public currentValue: any;
+  public value: any;
   public hasChanges?: boolean;
   public flush = createSpy();
   public getValue = createSpy();

@@ -5,7 +5,7 @@ import type { IAccessor } from '@aurelia/runtime';
 const customPropertyPrefix: string = '--';
 
 export class StyleAttributeAccessor implements IAccessor {
-  public currentValue: unknown = '';
+  public value: unknown = '';
   public oldValue: unknown = '';
 
   public styles: Record<string, number> = {};
@@ -24,7 +24,7 @@ export class StyleAttributeAccessor implements IAccessor {
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    this.currentValue = newValue;
+    this.value = newValue;
     this.hasChanges = newValue !== this.oldValue;
     if ((flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
@@ -117,7 +117,7 @@ export class StyleAttributeAccessor implements IAccessor {
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const currentValue = this.currentValue;
+      const currentValue = this.value;
       const styles = this.styles;
       const styleTuples = this.getStyleTuples(currentValue);
 
@@ -166,6 +166,6 @@ export class StyleAttributeAccessor implements IAccessor {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.currentValue = this.oldValue = this.obj.style.cssText;
+    this.value = this.oldValue = this.obj.style.cssText;
   }
 }

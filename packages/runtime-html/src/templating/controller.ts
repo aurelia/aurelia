@@ -19,13 +19,14 @@ import {
   LifecycleFlags,
   IObserverLocator,
   IExpressionParser,
+  IsBindingBehavior,
 } from '@aurelia/runtime';
 import { BindableObserver } from '../observation/bindable-observer.js';
 import { convertToRenderLocation, INode, INodeSequence, IRenderLocation, setRef } from '../dom.js';
 import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute.js';
 import { IRenderContext, getRenderContext, RenderContext, ICompiledRenderContext } from './render-context.js';
-import { ChildrenObserver } from './children.js';
+import { ChildrenDefinition, ChildrenObserver } from './children.js';
 import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
@@ -1055,9 +1056,10 @@ function createObservers(
   if (length > 0) {
     let name: string;
     let bindable: BindableDefinition;
+    let i = 0;
     const observers = getLookup(instance as IIndexable);
 
-    for (let i = 0; i < length; ++i) {
+    for (; i < length; ++i) {
       name = observableNames[i];
 
       if (observers[name] === void 0) {
@@ -1089,11 +1091,13 @@ function createChildrenObservers(
     const observers = getLookup(instance as IIndexable);
 
     let name: string;
-    for (let i = 0; i < length; ++i) {
+    let i = 0;
+    let childrenDescription: ChildrenDefinition;
+    for (; i < length; ++i) {
       name = childObserverNames[i];
 
       if (observers[name] == void 0) {
-        const childrenDescription = childrenObservers[name];
+        childrenDescription = childrenObservers[name];
         observers[name] = new ChildrenObserver(
           controller as ICustomElementController,
           instance as IIndexable,
@@ -1130,10 +1134,13 @@ function createWatchers(
   const observerLocator = context!.get(IObserverLocator);
   const expressionParser = context.get(IExpressionParser);
   const watches = definition.watches;
+  const ii = watches.length;
   let expression: IWatchDefinition['expression'];
   let callback: IWatchDefinition['callback'];
+  let ast: IsBindingBehavior;
+  let i = 0;
 
-  for (let i = 0, ii = watches.length; ii > i; ++i) {
+  for (; ii > i; ++i) {
     ({ expression, callback } = watches[i]);
     callback = typeof callback === 'function'
       ? callback
@@ -1152,7 +1159,7 @@ function createWatchers(
         true,
       ));
     } else {
-      const ast = typeof expression === 'string'
+      ast = typeof expression === 'string'
         ? expressionParser.parse(expression, BindingType.BindCommand)
         : AccessScopeAst.for(expression);
 

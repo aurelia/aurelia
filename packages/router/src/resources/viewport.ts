@@ -11,12 +11,15 @@ import {
   IHydratedController,
   IHydratedParentController,
   ISyntheticView,
+  IInstruction,
 } from '@aurelia/runtime-html';
 import { IRouter } from '../index.js';
 import { Viewport } from '../endpoints/viewport.js';
 import { IViewportOptions } from '../endpoints/viewport-options.js';
 import { Runner, Step } from '../utilities/runner.js';
 import { waitForRouterStart, getValueOrAttribute } from './utils.js';
+import { arrayRemove } from '../utilities/utils.js';
+import { OpenPromise } from '../utilities/open-promise.js';
 
 export const ParentViewport = CustomElement.createInjectable();
 
@@ -88,6 +91,16 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   public controller!: ICustomElementController;
 
   /**
+   * Child viewports waiting to be connected.
+   */
+  public pendingChildren: ViewportCustomElement[] = [];
+
+  /**
+   * Promise to await while children are waiting to be connected.
+   */
+  public pendingPromise: OpenPromise | null = null;
+
+  /**
    * Whether the viewport is bound or not.
    */
   private isBound: boolean = false;
@@ -98,11 +111,20 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     @IContainer public container: IContainer,
     @IEventAggregator private readonly ea: IEventAggregator,
     @ParentViewport public readonly parentViewport: ViewportCustomElement,
+    @IInstruction private readonly instruction: IInstruction,
   ) { }
 
   public hydrated(controller: ICompiledCustomElementController): void | Promise<void> {
     this.controller = controller as ICustomElementController;
     this.container = controller.context.get(IContainer);
+
+    const hasDefault = (this.instruction as any).instructions.filter((instr: any) => instr.to === 'default').length > 0;
+    if (hasDefault && this.parentViewport != null) {
+      this.parentViewport.pendingChildren.push(this);
+      if (this.parentViewport.pendingPromise === null) {
+        this.parentViewport.pendingPromise = new OpenPromise();
+      }
+    }
 
     return Runner.run<void>(null,
       // The first viewport(s) might be hydrated before the router is started
@@ -192,7 +214,17 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     Object.keys(options).forEach(key => options[key as keyof typeof options] === undefined && delete options[key as keyof typeof options]);
 
     this.endpoint = this.router.connectEndpoint(this.endpoint, 'Viewport', this, name, options) as Viewport;
+
+    const parentViewport = this.parentViewport;
+    if (parentViewport != null) {
+      arrayRemove(parentViewport.pendingChildren, child => child === this);
+      if (parentViewport.pendingChildren.length === 0 && parentViewport.pendingPromise !== null) {
+        parentViewport.pendingPromise.resolve();
+        parentViewport.pendingPromise = null;
+      }
+    }
   }
+
   /**
    * Disconnect this custom element from its router endpoint (Viewport).
    */

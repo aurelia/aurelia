@@ -196,7 +196,9 @@ export class Navigation extends StoredNavigation {
   }
 
   public get useFullStateInstruction(): boolean {
-    return (this.navigation.back ?? false) || (this.navigation.forward ?? false);
+    return (this.navigation.back ?? false) ||
+      (this.navigation.forward ?? false) ||
+      (this.navigation.refresh ?? false);
   }
 
   public static create(entry: INavigation = {

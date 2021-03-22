@@ -25,7 +25,7 @@ import { NavigationCoordinator } from './navigation-coordinator.js';
 import { Runner, Step } from './utilities/runner.js';
 import { Title } from './title.js';
 import { RoutingHook } from './routing-hook.js';
-import { RouterConfiguration } from './index.js';
+import { RouterConfiguration, ViewportCustomElement } from './index.js';
 
 /**
  * The router is the "main entry point" into routing. Its primary responsibilities are
@@ -651,18 +651,41 @@ export class Router implements IRouter {
         await Promise.all(unresolved.map(instr => instr.component.resolve() as Promise<any>));
       }
 
-      // Add appended instructions to either matched or remaining except default instructions
-      // where there's a non-default already in the lists.
-      if (coordinator.appendedInstructions.length > 0) {
-        ({ matchedInstructions, earlierMatchedInstructions, remainingInstructions } =
-          this.addAppendedInstructions(matchedInstructions, earlierMatchedInstructions, remainingInstructions, coordinator.appendedInstructions));
-        coordinator.appendedInstructions = [];
-      }
+      // Dequeue any instructions appended to the coordinator and add to either matched or
+      // remaining. Default instructions aren't added if there's already a non-default
+      ({ matchedInstructions, earlierMatchedInstructions, remainingInstructions } =
+        coordinator.dequeueAppendedInstructions(matchedInstructions, earlierMatchedInstructions, remainingInstructions));
+
+      // // Add appended instructions to either matched or remaining except default instructions
+      // // where there's a non-default already in the lists.
+      // if (coordinator.appendedInstructions.length > 0) {
+      //   let skippedInstructions: RoutingInstruction[] = [];
+      //   ({ matchedInstructions, earlierMatchedInstructions, remainingInstructions, skippedInstructions } =
+      //     this.addAppendedInstructions(matchedInstructions, earlierMatchedInstructions, remainingInstructions, coordinator.appendedInstructions));
+      //   coordinator.appendedInstructions = [];
+      //   // coordinator.appendedInstructions = coordinator.appendedInstructions
+      //   //   .filter(instr => !matchedInstructions.includes(instr) &&
+      //   //     !remainingInstructions.includes(instr) &&
+      //   //     !skippedInstructions.includes(instr));
+      // }
 
       // Once done with all explicit instructions...
       if (matchedInstructions.length === 0 && remainingInstructions.length === 0) {
-        // ...create the (remaining) implicit clear instructions (if any)
-        matchedInstructions = clearEndpoints.map(endpoint => RoutingInstruction.createClear(endpoint));
+        // ...check if we've got pending children (defaults that hasn't connected yet)...
+        const pendingEndpoints = earlierMatchedInstructions
+          .map(instr => (instr.endpoint.instance?.connectedCE as ViewportCustomElement).pendingPromise?.promise)
+          .filter(promise => promise != null);
+        // ...and await first one...
+        if (pendingEndpoints.length > 0) {
+          await Promise.any(pendingEndpoints);
+          // ...and dequeue them.
+          ({ matchedInstructions, earlierMatchedInstructions, remainingInstructions } =
+            coordinator.dequeueAppendedInstructions(matchedInstructions, earlierMatchedInstructions, remainingInstructions));
+
+        } else {
+          // ...or create the (remaining) implicit clear instructions (if any).
+          matchedInstructions = clearEndpoints.map(endpoint => RoutingInstruction.createClear(endpoint));
+        }
       }
     } while (matchedInstructions.length > 0 || remainingInstructions.length > 0);
 
@@ -976,7 +999,8 @@ export class Router implements IRouter {
         throw Error('Failed to append routing instructions to coordinator');
       }
     }
-    coordinator?.appendedInstructions.push(...instructions);
+    // coordinator?.appendedInstructions.push(...instructions);
+    coordinator?.enqueueAppendedInstructions(instructions);
   }
 
   /**
@@ -1096,61 +1120,66 @@ export class Router implements IRouter {
     return { foundChildRoute, configuredChildRoutePath };
   }
 
-  /**
-   * Add appended instructions to either matched or remaining except default instructions
-   * where there's a non-default already in the lists.
-   *
-   * @param matchedInstructions - The matched instructions
-   * @param earlierMatchedInstructions - The earlier matched instructions
-   * @param remainingInstructions - The remaining instructions
-   * @param appendedInstructions - The instructions to append
-   */
-  private addAppendedInstructions(matchedInstructions: RoutingInstruction[], earlierMatchedInstructions: RoutingInstruction[], remainingInstructions: RoutingInstruction[], appendedInstructions: RoutingInstruction[]) {
-    // Don't modify incoming originals
-    matchedInstructions = [...matchedInstructions];
-    earlierMatchedInstructions = [...earlierMatchedInstructions];
-    remainingInstructions = [...remainingInstructions];
-    appendedInstructions = [...appendedInstructions];
+  // /**
+  //  * Add appended instructions to either matched or remaining except default instructions
+  //  * where there's a non-default already in the lists.
+  //  *
+  //  * @param matchedInstructions - The matched instructions
+  //  * @param earlierMatchedInstructions - The earlier matched instructions
+  //  * @param remainingInstructions - The remaining instructions
+  //  * @param appendedInstructions - The instructions to append
+  //  */
+  // private addAppendedInstructions(matchedInstructions: RoutingInstruction[], earlierMatchedInstructions: RoutingInstruction[], remainingInstructions: RoutingInstruction[], appendedInstructions: RoutingInstruction[]) {
+  //   // Don't modify incoming originals
+  //   matchedInstructions = [...matchedInstructions];
+  //   earlierMatchedInstructions = [...earlierMatchedInstructions];
+  //   remainingInstructions = [...remainingInstructions];
+  //   appendedInstructions = [...appendedInstructions];
 
-    // Process non-defaults first (by separating and adding back)
-    const nonDefaultInstructions = appendedInstructions.filter(instr => !instr.default);
-    const defaultInstructions = appendedInstructions.filter(instr => instr.default);
-    appendedInstructions = [...nonDefaultInstructions, ...defaultInstructions];
+  //   // Process non-defaults first (by separating and adding back)
+  //   const nonDefaultInstructions = appendedInstructions.filter(instr => !instr.default);
+  //   const defaultInstructions = appendedInstructions.filter(instr => instr.default);
+  //   appendedInstructions = [...nonDefaultInstructions, ...defaultInstructions];
+  //   // appendedInstructions = nonDefaultInstructions.length > 0
+  //   //   ? [...nonDefaultInstructions]
+  //   //   : [...defaultInstructions];
+  //   const skippedInstructions: RoutingInstruction[] = [];
 
-    while (appendedInstructions.length > 0) {
-      const appendedInstruction = appendedInstructions.shift() as RoutingInstruction;
+  //   while (appendedInstructions.length > 0) {
+  //     const appendedInstruction = appendedInstructions.shift() as RoutingInstruction;
 
-      // Already matched (and processed) an instruction for this endpoint
-      const foundEarlierExisting = earlierMatchedInstructions.some(instr => instr.sameEndpoint(appendedInstruction, true));
-      // An already matched (but not processed) instruction for this endpoint
-      const existingMatched = matchedInstructions.find(instr => instr.sameEndpoint(appendedInstruction, true));
-      // An already found (but not matched or processed) instruction for this endpoint
-      const existingRemaining = remainingInstructions.find(instr => instr.sameEndpoint(appendedInstruction, true));
+  //     // Already matched (and processed) an instruction for this endpoint
+  //     const foundEarlierExisting = earlierMatchedInstructions.some(instr => instr.sameEndpoint(appendedInstruction, true));
+  //     // An already matched (but not processed) instruction for this endpoint
+  //     const existingMatched = matchedInstructions.find(instr => instr.sameEndpoint(appendedInstruction, true));
+  //     // An already found (but not matched or processed) instruction for this endpoint
+  //     const existingRemaining = remainingInstructions.find(instr => instr.sameEndpoint(appendedInstruction, true));
 
-      // If it's a default instruction that's already got a non-default in some way, just drop it
-      if (appendedInstruction.default &&
-        (foundEarlierExisting ||
-          (existingMatched !== void 0 && !existingMatched.default) ||
-          (existingRemaining !== void 0 && !existingRemaining.default))) {
-        continue;
-      }
-      // There's already a matched instruction, but it's default (or appended instruction isn't) so it should be removed
-      if (existingMatched !== void 0) {
-        arrayRemove(matchedInstructions, value => value === existingMatched);
-      }
-      // There's already a remaining instruction, but it's default (or appended instruction isn't) so it should be removed
-      if (existingRemaining !== void 0) {
-        arrayRemove(remainingInstructions, value => value === existingRemaining);
-      }
-      // An appended instruction that already has a viewport instance is already matched
-      if (appendedInstruction.endpoint.instance !== null) {
-        matchedInstructions.push(appendedInstruction);
-      } else {
-        remainingInstructions.push(appendedInstruction);
-      }
-    }
-    return { matchedInstructions, earlierMatchedInstructions, remainingInstructions };
-  }
+  //     // If it's a default instruction that's already got a non-default in some way, just skip it
+  //     if (appendedInstruction.default &&
+  //       (foundEarlierExisting ||
+  //         (existingMatched !== void 0 && !existingMatched.default) ||
+  //         (existingRemaining !== void 0 && !existingRemaining.default))) {
+  //       skippedInstructions.push(appendedInstruction);
+  //       continue;
+  //     }
+  //     // There's already a matched instruction, but it's default (or appended instruction isn't) so it should be removed
+  //     if (existingMatched !== void 0) {
+  //       arrayRemove(matchedInstructions, value => value === existingMatched);
+  //     }
+  //     // There's already a remaining instruction, but it's default (or appended instruction isn't) so it should be removed
+  //     if (existingRemaining !== void 0) {
+  //       arrayRemove(remainingInstructions, value => value === existingRemaining);
+  //     }
+  //     // An appended instruction that already has a viewport instance is already matched
+  //     if (appendedInstruction.endpoint.instance !== null) {
+  //       matchedInstructions.push(appendedInstruction);
+  //     } else {
+  //       remainingInstructions.push(appendedInstruction);
+  //     }
+  //   }
+  //   return { matchedInstructions, earlierMatchedInstructions, remainingInstructions, skippedInstructions };
+  // }
 
   /**
    * Update the navigation with full state, url, query string and title. The
@@ -1279,6 +1308,7 @@ function createUnresolvedinstructionsError(remainingInstructions: RoutingInstruc
   const error: Partial<UnresolvedInstructionsError> =
     new Error(`${remainingInstructions.length} remaining instructions after 100 iterations; there is likely an infinite loop.`);
   error.remainingInstructions = remainingInstructions;
+  console.log(error, error.remainingInstructions);
   return error as UnresolvedInstructionsError;
 }
 

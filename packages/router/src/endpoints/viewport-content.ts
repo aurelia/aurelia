@@ -243,8 +243,6 @@ export class ViewportContent extends EndpointContent {
       return true;
     }
 
-    // const typeParameters = this.instruction.component.type?.parameters ?? null;
-    // const parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
     // Propagate parent parameters
     // TODO: Do we really want this?
     const parentParameters = (this.endpoint as Viewport)
@@ -320,8 +318,6 @@ export class ViewportContent extends EndpointContent {
 
         // Skip if there's no hook in component
         if (this.instruction.component.instance?.load != null) {
-          // const typeParameters = this.instruction.component.type ? this.instruction.component.type.parameters : null;
-          // const parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
           // Propagate parent parameters
           // TODO: Do we really want this?
           const parentParameters = (this.endpoint as Viewport)

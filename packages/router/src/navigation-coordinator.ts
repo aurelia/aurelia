@@ -3,6 +3,7 @@ import { Navigation } from './navigation.js';
 import { IEndpoint } from './endpoints/endpoint.js';
 import { OpenPromise } from './utilities/open-promise.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
+import { arrayRemove } from './utilities/utils.js';
 
 /**
  * The navigation coordinator coordinates navigation between endpoints/entities
@@ -355,6 +356,77 @@ export class NavigationCoordinator {
     }).catch(error => { throw error; });
     this.completed = true;
     this.navigation.completed = true;
+  }
+
+  /**
+   * Enqueue instructions that should be appended to the navigation
+   *
+   * @param instructions - The instructions that should be appended to the navigation
+   */
+  public enqueueAppendedInstructions(instructions: RoutingInstruction[]): void {
+    this.appendedInstructions.push(...instructions);
+  }
+
+  /**
+   * Dequeue appended instructions to either matched or remaining except default instructions
+   * where there's a non-default already in the lists.
+   *
+   * @param matchedInstructions - The matched instructions
+   * @param earlierMatchedInstructions - The earlier matched instructions
+   * @param remainingInstructions - The remaining instructions
+   * @param appendedInstructions - The instructions to append
+   */
+  public dequeueAppendedInstructions(matchedInstructions: RoutingInstruction[], earlierMatchedInstructions: RoutingInstruction[], remainingInstructions: RoutingInstruction[]) {
+    let appendedInstructions = [...this.appendedInstructions];
+
+    // Don't modify incoming originals
+    matchedInstructions = [...matchedInstructions];
+    earlierMatchedInstructions = [...earlierMatchedInstructions];
+    remainingInstructions = [...remainingInstructions];
+
+    // Process non-defaults first (by separating and adding back)
+    const nonDefaultInstructions = appendedInstructions.filter(instr => !instr.default);
+    const defaultInstructions = appendedInstructions.filter(instr => instr.default);
+    // appendedInstructions = [...nonDefaultInstructions, ...defaultInstructions];
+    appendedInstructions = nonDefaultInstructions.length > 0
+      ? [...nonDefaultInstructions]
+      : [...defaultInstructions];
+
+    while (appendedInstructions.length > 0) {
+      const appendedInstruction = appendedInstructions.shift() as RoutingInstruction;
+      // Dequeue (remove) it from the appending instructions
+      arrayRemove(this.appendedInstructions, instr => instr === appendedInstruction);
+
+      // Already matched (and processed) an instruction for this endpoint
+      const foundEarlierExisting = earlierMatchedInstructions.some(instr => instr.sameEndpoint(appendedInstruction, true));
+      // An already matched (but not processed) instruction for this endpoint
+      const existingMatched = matchedInstructions.find(instr => instr.sameEndpoint(appendedInstruction, true));
+      // An already found (but not matched or processed) instruction for this endpoint
+      const existingRemaining = remainingInstructions.find(instr => instr.sameEndpoint(appendedInstruction, true));
+
+      // If it's a default instruction that's already got a non-default in some way, just skip it
+      if (appendedInstruction.default &&
+        (foundEarlierExisting ||
+          (existingMatched !== void 0 && !existingMatched.default) ||
+          (existingRemaining !== void 0 && !existingRemaining.default))) {
+        continue;
+      }
+      // There's already a matched instruction, but it's default (or appended instruction isn't) so it should be removed
+      if (existingMatched !== void 0) {
+        arrayRemove(matchedInstructions, value => value === existingMatched);
+      }
+      // There's already a remaining instruction, but it's default (or appended instruction isn't) so it should be removed
+      if (existingRemaining !== void 0) {
+        arrayRemove(remainingInstructions, value => value === existingRemaining);
+      }
+      // An appended instruction that already has a viewport instance is already matched
+      if (appendedInstruction.endpoint.instance !== null) {
+        matchedInstructions.push(appendedInstruction);
+      } else {
+        remainingInstructions.push(appendedInstruction);
+      }
+    }
+    return { matchedInstructions, earlierMatchedInstructions, remainingInstructions };
   }
 
   /**

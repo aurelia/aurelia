@@ -328,6 +328,13 @@ export class RoutingInstruction {
   }
 
   /**
+   * Get the instruction parameters with type specification applied.
+   */
+  public get typeParameters(): Record<string, unknown> {
+    return this.parameters.toSpecifiedParameters(this.component.type?.parameters ?? []);
+  }
+
+  /**
    * Compare the routing instruction's component with the component of another routing
    * instruction. Compares on name unless `compareType` is `true`.
    *

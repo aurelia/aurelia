@@ -1,12 +1,16 @@
+import template from './home.html';
+
+import { customElement } from 'aurelia';
 import { IRouteableComponent } from 'jwx-router';
 import { IArticleListState, ITagsState, IUserState } from '../state';
 import { Article, ArticleListQueryParams, FeedArticleListQueryParams } from '../api';
 import { queue } from '../util';
 
+@customElement({ name: 'home', template })
 export class Home implements IRouteableComponent {
   get articles(): Article[] { return this.$articleList.items; }
 
-  tag: string | undefined = undefined;
+  // tag: string | undefined = undefined;
   mode: 'all' | 'feed' = 'all';
 
   constructor(
@@ -15,22 +19,26 @@ export class Home implements IRouteableComponent {
     @IUserState readonly $user: IUserState,
   ) { }
 
-  async binding() {
-    await this.setView(this.mode);
+  public get tag(): string | undefined {
+    return (this.$articleList.params as ArticleListQueryParams).tag;
   }
 
-  @queue async setView(mode: 'all' | 'feed') {
-    this.mode = mode;
-    this.tag = undefined;
-    const { limit, offset } = this.$articleList.params;
-    const params = (mode === 'all' ? ArticleListQueryParams : FeedArticleListQueryParams).create({ limit, offset });
-    await this.$articleList.load(params);
-  }
+  // async binding() {
+  //   await this.setView(this.mode);
+  // }
 
-  @queue async setTag(tag: string) {
-    this.tag = tag;
-    const { limit, offset } = this.$articleList.params;
-    const params = ArticleListQueryParams.create({ limit, offset, tag });
-    await this.$articleList.load(params);
-  }
+  // @queue async setView(mode: 'all' | 'feed') {
+  //   this.mode = mode;
+  //   this.tag = undefined;
+  //   const { limit, offset } = this.$articleList.params;
+  //   const params = (mode === 'all' ? ArticleListQueryParams : FeedArticleListQueryParams).create({ limit, offset });
+  //   await this.$articleList.load(params);
+  // }
+
+  // @queue async setTag(tag: string) {
+  //   // this.tag = tag;
+  //   const { limit, offset } = this.$articleList.params;
+  //   const params = ArticleListQueryParams.create({ limit, offset, tag });
+  //   await this.$articleList.load(params);
+  // }
 }

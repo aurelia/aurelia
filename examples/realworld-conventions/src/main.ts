@@ -1,4 +1,4 @@
-import Aurelia, { LoggerConfiguration, ConsoleSink, LogLevel } from 'aurelia';
+import Aurelia, { LoggerConfiguration, ConsoleSink, LogLevel, CustomAttribute } from 'aurelia';
 import { RouterConfiguration } from 'jwx-router';
 
 import { AppRoot } from './app-root';
@@ -16,6 +16,18 @@ au.register(
     useUrlFragmentHash: false,
   }),
   GlobalResources,
+  // CustomAttribute.define('default-load', class DefaultLoadCustomAttribute {
+  //   public value: unknown;
+  //   public binding(): void {
+  //     console.log('default-load CustomAttribute', this.value, this);
+  //   }
+  // }),
+  // CustomAttribute.define('default', class DefaultCustomAttribute {
+  //   public value: unknown;
+  //   public binding(): void {
+  //     console.log('default CustomAttribute', this.value, this);
+  //   }
+  // }),
 );
 
 au.app({

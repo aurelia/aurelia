@@ -1,9 +1,12 @@
-import { IPlatform, watch } from 'aurelia';
-import {  IRouter, IRouteableComponent } from 'jwx-router';
+import template from './index.html';
+
+import { customElement, IPlatform, watch } from 'aurelia';
+import { IRouter, IRouteableComponent } from 'jwx-router';
 import { AuthHandler, IUserState } from '../state';
 import { User } from '../api';
 import { queue } from '../util';
 
+@customElement({ name: 'settings', template })
 export class Settings implements IRouteableComponent {
   local: User;
 

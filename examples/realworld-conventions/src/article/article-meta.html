@@ -1,12 +1,12 @@
 <div class="article-meta">
-  <a href="/profile/${author.username}">
+  <a load="/profile(${author.username})">
     <img src.bind="author.image" /></a>
   <div class="info">
-    <a href="/profile/${author.username}" class="author">${author.username}</a>
+    <a load="/profile(${author.username})" class="author">${author.username}</a>
     <span class="date">${article.createdAt | date}</span>
   </div>
   <span if.bind="canModify">
-    <a class="btn btn-outline-secondary btn-sm" href="/editor/${article.slug}">
+    <a class="btn btn-outline-secondary btn-sm" load="/editor(${article.slug})">
       <i class="ion-edit"></i>&nbsp;Edit Article
     </a>
     &nbsp;&nbsp;

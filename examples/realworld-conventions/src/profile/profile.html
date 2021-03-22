@@ -1,5 +1,7 @@
-<import from="./author-articles"></import>
-<import from="./favorited-articles"></import>
+<!--
+  <import from="./author-articles"></import>
+  <import from="./favorited-articles"></import>
+-->
 
 <div class="profile-page">
 
@@ -33,19 +35,19 @@
         <div class="articles-toggle">
           <ul class="nav nav-pills outline-active">
             <li class="nav-item">
-              <a class="nav-link" active.class="_author" load="author-articles(${profile.username})">
+              <a class="nav-link" active.class="_author" load="author-articles">
                 My Articles
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" active.class="_favorites" load="favorited-articles(${profile.username})">
+              <a class="nav-link" active.class="_favorites" load="favorited-articles">
                 Favorited Articles
               </a>
             </li>
           </ul>
         </div>
 
-        <au-viewport default="author-articles(${profile.username})"></au-viewport>
+        <au-viewport name="profile-articles" default="author-articles"></au-viewport>
 
       </div>
     </div>

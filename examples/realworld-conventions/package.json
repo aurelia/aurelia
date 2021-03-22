@@ -8,12 +8,11 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "aurelia": "latest",
-    "jwx-router": "file:../../packages/router"
+    "aurelia": "0.9.0",
+    "jwx-router": "../../packages/router"
   },
   "devDependencies": {
-    "@aurelia/testing": "latest",
-    "@aurelia/webpack-loader": "latest",
+    "@aurelia/testing": "0.9.0",
     "@types/node": "^14.14.21",
     "@typescript-eslint/eslint-plugin": "^4.14.0",
     "@typescript-eslint/parser": "^4.14.0",

@@ -1,8 +1,11 @@
-import { IPlatform } from 'aurelia';
+import template from './author-articles.html';
+
+import { customElement, IPlatform } from 'aurelia';
 import { IRouteableComponent, Parameters } from 'jwx-router';
 import { IArticleListState } from '../state';
 import { ArticleListQueryParams } from '../api';
 
+@customElement({ name: 'author-articles', template })
 export class AuthorArticles implements IRouteableComponent {
   static parameters: string[] = ['name'];
 

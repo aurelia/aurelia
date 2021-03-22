@@ -34,6 +34,25 @@ For safety reasons, standard interpolation will only display values as text. Thi
 
 The contents of the span will be replaced with the value of the `myHtml` variable defined within your view-model. This value will be interpreted as plain HTML, so any Aurelia specific bindings will be ignored.
 
+If you would like to display `myHtml` without rendering parent `span` tag, you can create `ValueConverter`.
+
+{% code title="to-html.js" %}
+```text
+class ToHtmlValueConverter {
+  toView(html) {
+    const div = document.createElement('div')
+    div.innerHTML = html;
+    return div.firstChild;
+  }
+}
+```
+
+and then it can be used in your views:
+
+```text
+<p>This is raw HTML: ${myHtml | toHtml}</p>
+```
+
 ### Attributes
 
 Native HTML attributes can easily be bound, or you can use interpolation inside of those too. A common scenario might be disabling a button inside of a form:

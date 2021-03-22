@@ -359,7 +359,7 @@ export class RoutingScope {
         scopes.splice(passThrough, 1, ...scope.getOwnedRoutingScopes(timestamp));
       }
     }
-    return scopes;
+    return arrayUnique(scopes);
   }
 
   public getRoutingInstructions(timestamp: number): RoutingInstruction[] | null {

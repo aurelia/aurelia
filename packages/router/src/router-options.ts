@@ -140,7 +140,24 @@ export class Separators {
   public action: string = '.';
 }
 
-export interface IRouterOptions extends Omit<Partial<RouterOptions>, 'separators' | 'title'> {
+export interface IIndicators extends Partial<Indicators> { }
+
+/**
+ * The indicators used to mark different states
+ */
+export class Indicators {
+  /**
+   * The name of the class indicating that the load link is active
+   */
+  public loadActive: string = 'active';
+
+  /**
+   * The name of the class indicating that the load link is active
+   */
+  public viewportActive: string = 'viewport-active';
+}
+
+export interface IRouterOptions extends Omit<Partial<RouterOptions>, 'separators' | 'indicators' | 'title'> {
   /**
    * The router's title configuration
    */
@@ -150,6 +167,11 @@ export interface IRouterOptions extends Omit<Partial<RouterOptions>, 'separators
    * The separators used in the direct routing syntax
    */
   separators?: ISeparators;
+
+  /**
+   * The indicators used to mark different states
+   */
+  indicators?: IIndicators;
 
   /**
    * Global routing hooks that should be added (primarily from start)
@@ -162,6 +184,11 @@ export class RouterOptions implements INavigatorOptions {
    * The separators used in the direct routing syntax
    */
   public separators: Separators = new Separators();
+
+  /**
+   * The indicators used to mark different states
+   */
+  public indicators: Indicators = new Indicators();
 
   /**
    * Whether the fragment should be used for the url/path
@@ -244,6 +271,12 @@ export class RouterOptions implements INavigatorOptions {
       ...(options as IRouterOptions & { separators: ISeparators }).separators ?? {},
     };
     (options as IRouterOptions & { separators: ISeparators }).separators = separatorOptions;
+
+    const indicatorOptions: IIndicators = {
+      ...RouterConfiguration.options.indicators,
+      ...(options as IRouterOptions & { indicators: IIndicators }).indicators ?? {},
+    };
+    (options as IRouterOptions & { indicators: IIndicators }).indicators = indicatorOptions;
 
     if (Array.isArray(options.hooks)) {
       options.hooks.forEach(hook => RouterConfiguration.addHook(hook.hook, hook.options));

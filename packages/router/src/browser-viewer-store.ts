@@ -247,17 +247,17 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
    * @param event - The browser's PopStateEvent
    */
   private handlePopStateEvent(event: PopStateEvent): void {
-    // Get event to resolve when done and whether state change event should be suppressed
     const { eventTask, suppressPopstate } = this.forwardedState;
     this.forwardedState = { eventTask: null, suppressPopstate: false };
 
     this.pendingCalls.enqueue(
       async (task: QueueTask<IAction>) => {
-        const ev: PopStateEvent = event;
-        const evTask: QueueTask<IAction> | null = eventTask;
-        const suppressPopstateEvent: boolean = suppressPopstate;
-
-        await this.notifySubscribers(ev, evTask, suppressPopstateEvent);
+        if (!suppressPopstate) {
+          this.notifySubscribers(event);
+        }
+        if (eventTask !== null) {
+          await eventTask.execute();
+        }
         task.resolve();
       }, 1);
   }
@@ -266,17 +266,12 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
    * Notifies subscribers that the state has changed
    *
    * @param ev - The browser's popstate event
-   * @param eventTask - A task to execute once subscribers have been notified
-   * @param suppressEvent - Whether to suppress the event or not
    */
-  private async notifySubscribers(ev: PopStateEvent, eventTask: QueueTask<IAction> | null, suppressEvent: boolean = false): Promise<void> {
-    if (!suppressEvent) {
-      this.ea.publish(NavigatorStateChangeEvent.eventName,
-        NavigatorStateChangeEvent.create(this.viewerState, ev, this.history.state as INavigatorState));
-    }
-    if (eventTask !== null) {
-      await eventTask.execute();
-    }
+  private notifySubscribers(ev: PopStateEvent): void {
+    this.ea.publish(
+      NavigatorStateChangeEvent.eventName,
+      NavigatorStateChangeEvent.create(this.viewerState, ev, this.history.state as INavigatorState)
+    );
   }
 
   /**

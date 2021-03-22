@@ -194,24 +194,30 @@ export class ViewportCustomElement implements ICustomElementViewModel {
    * Connect this custom element to a router endpoint (Viewport).
    */
   public connect(): void {
+    const { isBound, element } = this;
     // Collect custom element options from either properties (if the custom
     // element has been bound) or from html attributes (booleans are always
     // set based on whether html attribute exists)
-    const name: string = getValueOrAttribute('name', this.name, this.isBound, this.element) as string;
+    const name: string = getValueOrAttribute('name', this.name, isBound, element) as string;
     const options: IViewportOptions = {};
     // Endpoint property is `scope` but html attribute is `no-scope` so negate it
-    options.scope = !(getValueOrAttribute('no-scope', this.noScope, false, this.element, true) as boolean);
-    options.usedBy = getValueOrAttribute('used-by', this.usedBy, this.isBound, this.element) as string;
-    options.default = getValueOrAttribute('default', this.default, this.isBound, this.element) as string;
-    options.fallback = getValueOrAttribute('fallback', this.fallback, this.isBound, this.element) as string;
-    options.noLink = getValueOrAttribute('no-link', this.noLink, this.isBound, this.element, true) as boolean;
-    options.noTitle = getValueOrAttribute('no-title', this.noTitle, this.isBound, this.element, true) as boolean;
-    options.noHistory = getValueOrAttribute('no-history', this.noHistory, this.isBound, this.element, true) as boolean;
-    options.stateful = getValueOrAttribute('stateful', this.stateful, this.isBound, this.element, true) as boolean;
+    options.scope = !(getValueOrAttribute('no-scope', this.noScope, false, element, true) as boolean);
+    options.usedBy = getValueOrAttribute('used-by', this.usedBy, isBound, element) as string;
+    options.default = getValueOrAttribute('default', this.default, isBound, element) as string;
+    options.fallback = getValueOrAttribute('fallback', this.fallback, isBound, element) as string;
+    options.noLink = getValueOrAttribute('no-link', this.noLink, isBound, element, true) as boolean;
+    options.noTitle = getValueOrAttribute('no-title', this.noTitle, isBound, element, true) as boolean;
+    options.noHistory = getValueOrAttribute('no-history', this.noHistory, isBound, element, true) as boolean;
+    options.stateful = getValueOrAttribute('stateful', this.stateful, isBound, element, true) as boolean;
 
-    // Delete all keys with undefined value
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    Object.keys(options).forEach(key => options[key as keyof typeof options] === undefined && delete options[key as keyof typeof options]);
+    Object
+      .keys(options)
+      .forEach(key => {
+        if (options[key as keyof typeof options] === undefined) {
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+          delete options[key as keyof typeof options];
+        }
+      });
 
     this.endpoint = this.router.connectEndpoint(this.endpoint, 'Viewport', this, name, options) as Viewport;
 

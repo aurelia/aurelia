@@ -10,7 +10,7 @@ import { Runner, Step } from '../utilities/runner.js';
 import { AwaitableMap } from '../utilities/awaitable-map.js';
 import { EndpointContent, RoutingScope } from '../index.js';
 import { IRouter } from '../router.js';
-import { FoundRoute } from './../found-route.js';
+import { FoundRoute } from '../found-route.js';
 
 /**
  * The viewport content encapsulates the component loaded into a viewport
@@ -243,9 +243,14 @@ export class ViewportContent extends EndpointContent {
       return true;
     }
 
-    const typeParameters = this.instruction.component.type?.parameters ?? null;
-    const parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
-    const merged = { ...this.navigation.parameters, ...parameters };
+    // const typeParameters = this.instruction.component.type?.parameters ?? null;
+    // const parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
+    // Propagate parent parameters
+    // TODO: Do we really want this?
+    const parentParameters = (this.endpoint as Viewport)
+      .parentViewport?.getTimeContent(this.navigation.timestamp)?.instruction?.typeParameters;
+    const parameters = this.instruction.typeParameters;
+    const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
     const result = this.instruction.component.instance!.canLoad(merged, this.instruction, this.navigation);
     if (typeof result === 'boolean') {
       return result;
@@ -315,9 +320,14 @@ export class ViewportContent extends EndpointContent {
 
         // Skip if there's no hook in component
         if (this.instruction.component.instance?.load != null) {
-          const typeParameters = this.instruction.component.type ? this.instruction.component.type.parameters : null;
-          const parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
-          const merged = { ...this.navigation.parameters, ...parameters };
+          // const typeParameters = this.instruction.component.type ? this.instruction.component.type.parameters : null;
+          // const parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
+          // Propagate parent parameters
+          // TODO: Do we really want this?
+          const parentParameters = (this.endpoint as Viewport)
+            .parentViewport?.getTimeContent(this.navigation.timestamp)?.instruction?.typeParameters;
+          const parameters = this.instruction.typeParameters;
+          const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
           return this.instruction.component.instance.load(merged, this.instruction, this.navigation);
         }
       }

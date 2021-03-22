@@ -13,7 +13,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   private routerNavigationSubscription!: IDisposable;
 
-  private readonly activeClass: string = 'load-active';
+  private readonly activeClass: string = 'active';
   public constructor(
     @INode private readonly element: INode<Element>,
     @IRouter private readonly router: IRouter,

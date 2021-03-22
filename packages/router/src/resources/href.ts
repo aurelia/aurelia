@@ -16,7 +16,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>;
 
   private routerNavigationSubscription?: IDisposable;
-  private readonly activeClass: string = 'load-active';
+  private readonly activeClass: string = 'active';
 
   public constructor(
     @INode private readonly element: INode<Element>,

@@ -9,12 +9,12 @@
   },
   "license": "MIT",
   "dependencies": {
-    "aurelia": "2.1.0-dev.202103191418",
+    "aurelia": "2.1.0-dev.202103221441",
     "marked": "^1.2.7"
   },
   "type": "module",
   "devDependencies": {
-    "@aurelia/testing": "2.1.0-dev.202103191418",
+    "@aurelia/testing": "2.1.0-dev.202103221441",
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.11.5",
     "css-loader": "^5.0.1",

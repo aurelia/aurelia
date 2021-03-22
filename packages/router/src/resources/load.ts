@@ -3,6 +3,7 @@ import { customAttribute, INode, bindable, BindingMode, CustomAttribute, ICustom
 import { RoutingInstruction } from '../instructions/routing-instruction.js';
 import { ILinkHandler } from './link-handler.js';
 import { IRouter, RouterNavigationEndEvent } from '../router.js';
+import { RouterConfiguration } from '../configuration.js';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
@@ -13,7 +14,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   private routerNavigationSubscription!: IDisposable;
 
-  private readonly activeClass: string = 'active';
+  private readonly activeClass: string = RouterConfiguration.options.indicators.loadActive;
   public constructor(
     @INode private readonly element: INode<Element>,
     @IRouter private readonly router: IRouter,

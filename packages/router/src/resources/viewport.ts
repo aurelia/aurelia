@@ -13,7 +13,7 @@ import {
   ISyntheticView,
   IInstruction,
 } from '@aurelia/runtime-html';
-import { IRouter } from '../index.js';
+import { IRouter, RouterConfiguration } from '../index.js';
 import { Viewport } from '../endpoints/viewport.js';
 import { IViewportOptions } from '../endpoints/viewport-options.js';
 import { Runner, Step } from '../utilities/runner.js';
@@ -247,10 +247,6 @@ export class ViewportCustomElement implements ICustomElementViewModel {
    * @param active - Whether the viewport is active or not
    */
   public setActive(active: boolean): void {
-    if (active) {
-      this.element.classList.add('viewport-active');
-    } else {
-      this.element.classList.remove('viewport-active');
-    }
+    this.element.classList.toggle(RouterConfiguration.options.indicators.viewportActive, active);
   }
 }

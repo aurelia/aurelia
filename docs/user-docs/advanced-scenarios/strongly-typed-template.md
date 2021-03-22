@@ -57,15 +57,17 @@ export const html = <TSource = any>(
 
 The idea behind the code is really simple. First we separate strings and variables parts inside `html` function.
 
-* string(s)
+string(s):
+
 ```html
 <button class="btn btn-primary btn-
 
 " ref="atButtonTemplate">
-        
+
 </button>
 ```
-* variable(s)
+
+variable(s):
 
 ```ts
 x => x.size
@@ -82,7 +84,7 @@ The generic parameter in this function is actually your **view-model**.
 ```ts
 // bs-button-temlate.ts
 
-import { html } from 'strongly-typed-template';
+import { html } from './strongly-typed-template';
 
 // BootstrapButton is my view-model
 export const buttonTemplate = html<BootstrapButton>`

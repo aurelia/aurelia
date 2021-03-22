@@ -14,8 +14,6 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
     return nsMap[ns] ??= new AttributeNSAccessor(ns);
   }
 
-  public currentValue: string | null = null;
-
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;

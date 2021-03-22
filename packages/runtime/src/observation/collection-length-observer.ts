@@ -2,6 +2,7 @@ import { isArrayIndex } from '@aurelia/kernel';
 import { AccessorType, CollectionKind, LifecycleFlags } from '../observation.js';
 import { subscriberCollection } from './subscriber-collection.js';
 import { ensureProto } from '../utilities-objects.js';
+import { withFlushQueue } from './flush-queue.js';
 
 import type { Constructable } from '@aurelia/kernel';
 import type {
@@ -11,18 +12,25 @@ import type {
   ISubscriberCollection,
   ICollectionSubscriber,
 } from '../observation.js';
+import type { FlushQueue, IFlushable, IWithFlushQueue } from './flush-queue.js';
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 
-export class CollectionLengthObserver implements ICollectionSubscriber {
+export class CollectionLengthObserver implements IWithFlushQueue, ICollectionSubscriber, IFlushable {
+
   public value: number;
+  private oldvalue: number;
+  private f: LifecycleFlags = LifecycleFlags.none;
+
   public readonly type: AccessorType = AccessorType.Array;
   public readonly obj: unknown[];
+  // available via withFlushQueue mixin
+  public readonly queue!: FlushQueue;
 
   public constructor(
     public readonly owner: ICollectionObserver<CollectionKind.array>,
   ) {
-    this.value = (this.obj = owner.collection).length;
+    this.value = this.oldvalue = (this.obj = owner.collection).length;
   }
 
   public getValue(): number {
@@ -39,7 +47,9 @@ export class CollectionLengthObserver implements ICollectionSubscriber {
         this.obj.length = newValue;
       }
       this.value = newValue;
-      this.subs.notify(newValue, currentValue, flags);
+      this.oldvalue = currentValue;
+      this.f = flags;
+      this.queue.add(this);
     }
   }
 
@@ -47,22 +57,34 @@ export class CollectionLengthObserver implements ICollectionSubscriber {
     const oldValue = this.value;
     const value = this.obj.length;
     if ((this.value = value) !== oldValue) {
-      this.subs.notify(value, oldValue, flags);
+      this.oldvalue = oldValue;
+      this.f = flags;
+      this.queue.add(this);
     }
+  }
+
+  public flush(): void {
+    oV = this.oldvalue;
+    this.oldvalue = this.value;
+    this.subs.notify(this.value, oV, this.f);
   }
 }
 
 export interface CollectionSizeObserver extends ISubscriberCollection {}
 
-export class CollectionSizeObserver implements ICollectionSubscriber {
+export class CollectionSizeObserver implements ICollectionSubscriber, IFlushable {
   public value: number;
+  private oldvalue: number;
+  private f: LifecycleFlags = LifecycleFlags.none;
+
   public readonly type: AccessorType;
   public readonly obj: Set<unknown> | Map<unknown, unknown>;
+  public readonly queue!: FlushQueue;
 
   public constructor(
     public readonly owner: ICollectionObserver<CollectionKind.map | CollectionKind.set>,
   ) {
-    this.value = (this.obj = owner.collection).size;
+    this.value = this.oldvalue = (this.obj = owner.collection).size;
     this.type = this.obj instanceof Map ? AccessorType.Map : AccessorType.Set;
   }
 
@@ -77,10 +99,17 @@ export class CollectionSizeObserver implements ICollectionSubscriber {
   public handleCollectionChange(_: IndexMap, flags: LifecycleFlags): void {
     const oldValue = this.value;
     const value = this.obj.size;
-    this.value = value;
-    if (value !== oldValue) {
-      this.subs.notify(value, oldValue, flags);
+    if ((this.value = value) !== oldValue) {
+      this.oldvalue = oldValue;
+      this.f = flags;
+      this.queue.add(this);
     }
+  }
+
+  public flush(): void {
+    oV = this.oldvalue;
+    this.oldvalue = this.value;
+    this.subs.notify(this.value, oV, this.f);
   }
 }
 
@@ -92,6 +121,7 @@ function implementLengthObserver(klass: Constructable<ISubscriberCollection>) {
   const proto = klass.prototype as ISubscriberCollection;
   ensureProto(proto, 'subscribe', subscribe, true);
   ensureProto(proto, 'unsubscribe', unsubscribe, true);
+  withFlushQueue(klass);
   subscriberCollection(klass);
 }
 
@@ -109,3 +139,7 @@ function unsubscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber
 
 implementLengthObserver(CollectionLengthObserver);
 implementLengthObserver(CollectionSizeObserver);
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

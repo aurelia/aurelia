@@ -56,7 +56,7 @@ export const html = <TSource = any>(
 }
 ```
 
-The idea behind the code is really simple. First we separate strings and variables parts inside `html` function.
+The idea behind the code is really simple. First, we separate strings and variables parts inside `html` function.
 
 string\(s\):
 
@@ -78,7 +78,7 @@ x => x.block ? 'btn-block' : ''
 (x) => x.getName()
 ```
 
-Then, for variable parts we remove lambda part \(`VARIABLE => VARIABLE.`\) by regex via `parse` function. Finally, an HTML is created according to the acceptable standards for Aurelia template engine.
+Then, for variable parts, we remove the lambda part \(`VARIABLE => VARIABLE.`\) by regex via `parse` function. Finally, an HTML is created according to the acceptable standards for the Aurelia template engine.
 
 The generic parameter in this function is actually your **view-model**.
 

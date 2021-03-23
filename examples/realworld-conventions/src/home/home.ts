@@ -3,8 +3,7 @@ import template from './home.html';
 import { customElement } from 'aurelia';
 import { IRouteableComponent } from 'jwx-router';
 import { IArticleListState, ITagsState, IUserState } from '../state';
-import { Article, ArticleListQueryParams, FeedArticleListQueryParams } from '../api';
-import { queue } from '../util';
+import { Article, ArticleListQueryParams } from '../api';
 
 @customElement({ name: 'home', template })
 export class Home implements IRouteableComponent {

@@ -16,18 +16,6 @@ au.register(
     useUrlFragmentHash: false,
   }),
   GlobalResources,
-  // CustomAttribute.define('default-load', class DefaultLoadCustomAttribute {
-  //   public value: unknown;
-  //   public binding(): void {
-  //     console.log('default-load CustomAttribute', this.value, this);
-  //   }
-  // }),
-  // CustomAttribute.define('default', class DefaultCustomAttribute {
-  //   public value: unknown;
-  //   public binding(): void {
-  //     console.log('default CustomAttribute', this.value, this);
-  //   }
-  // }),
 );
 
 au.app({

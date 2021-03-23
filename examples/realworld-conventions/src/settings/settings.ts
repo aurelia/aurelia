@@ -1,4 +1,4 @@
-import template from './index.html';
+import template from './settings.html';
 
 import { customElement, IPlatform, watch } from 'aurelia';
 import { IRouter, IRouteableComponent } from 'jwx-router';

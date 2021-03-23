@@ -893,8 +893,9 @@ _flags, instance) {
     if (length > 0) {
         let name;
         let bindable;
+        let i = 0;
         const observers = getLookup(instance);
-        for (let i = 0; i < length; ++i) {
+        for (; i < length; ++i) {
             name = observableNames[i];
             if (observers[name] === void 0) {
                 bindable = bindables[name];
@@ -912,10 +913,12 @@ _flags, instance) {
     if (length > 0) {
         const observers = getLookup(instance);
         let name;
-        for (let i = 0; i < length; ++i) {
+        let i = 0;
+        let childrenDescription;
+        for (; i < length; ++i) {
             name = childObserverNames[i];
             if (observers[name] == void 0) {
-                const childrenDescription = childrenObservers[name];
+                childrenDescription = childrenObservers[name];
                 observers[name] = new children_js_1.ChildrenObserver(controller, instance, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
             }
         }
@@ -936,9 +939,12 @@ function createWatchers(controller, context, definition, instance) {
     const observerLocator = context.get(runtime_1.IObserverLocator);
     const expressionParser = context.get(runtime_1.IExpressionParser);
     const watches = definition.watches;
+    const ii = watches.length;
     let expression;
     let callback;
-    for (let i = 0, ii = watches.length; ii > i; ++i) {
+    let ast;
+    let i = 0;
+    for (; ii > i; ++i) {
         ({ expression, callback } = watches[i]);
         callback = typeof callback === 'function'
             ? callback
@@ -953,7 +959,7 @@ function createWatchers(controller, context, definition, instance) {
             true));
         }
         else {
-            const ast = typeof expression === 'string'
+            ast = typeof expression === 'string'
                 ? expressionParser.parse(expression, 53 /* BindCommand */)
                 : AccessScopeAst.for(expression);
             controller.addBinding(new watchers_js_1.ExpressionWatcher(controller.scope, context, observerLocator, ast, callback));

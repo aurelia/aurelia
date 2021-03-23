@@ -59,18 +59,25 @@ exports.LifecycleHooks = {
     resolve(ctx) {
         let lookup = containerLookup.get(ctx);
         if (lookup === void 0) {
-            lookup = {};
-            const instances = ctx.root.id === ctx.id
-                ? ctx.getAll(exports.ILifecycleHooks, false)
-                : [
-                    ...ctx.root.getAll(exports.ILifecycleHooks, false),
-                    ...ctx.getAll(exports.ILifecycleHooks, false),
-                ];
-            for (const instance of instances) {
-                const definition = kernel_1.Metadata.getOwn(exports.LifecycleHooks.name, instance.constructor);
-                const entry = new LifecycleHooksEntry(definition, instance);
-                for (const name of definition.propertyNames) {
-                    const entries = lookup[name];
+            lookup = new LifecycleHooksLookupImpl();
+            const root = ctx.root;
+            const instances = root.id === ctx.id
+                ? ctx.getAll(exports.ILifecycleHooks)
+                // if it's not root, only resolve it from the current context when it has the resolver
+                // to maintain resources semantic: current -> root
+                : ctx.has(exports.ILifecycleHooks, false)
+                    ? [...root.getAll(exports.ILifecycleHooks), ...ctx.getAll(exports.ILifecycleHooks)]
+                    : root.getAll(exports.ILifecycleHooks);
+            let instance;
+            let definition;
+            let entry;
+            let name;
+            let entries;
+            for (instance of instances) {
+                definition = kernel_1.Metadata.getOwn(exports.LifecycleHooks.name, instance.constructor);
+                entry = new LifecycleHooksEntry(definition, instance);
+                for (name of definition.propertyNames) {
+                    entries = lookup[name];
                     if (entries === void 0) {
                         lookup[name] = [entry];
                     }
@@ -83,6 +90,8 @@ exports.LifecycleHooks = {
         return lookup;
     },
 };
+class LifecycleHooksLookupImpl {
+}
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */

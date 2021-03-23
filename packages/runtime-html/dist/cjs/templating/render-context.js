@@ -63,17 +63,19 @@ class RenderContext {
         const container = this.container = parentContainer.createChild();
         // TODO(fkleuver): get contextual + root renderers
         const renderers = container.getAll(renderer_js_1.IRenderer);
-        for (let i = 0; i < renderers.length; ++i) {
-            const renderer = renderers[i];
+        let i = 0;
+        let renderer;
+        for (; i < renderers.length; ++i) {
+            renderer = renderers[i];
             this.renderers[renderer.instructionType] = renderer;
         }
         this.projectionProvider = container.get(au_slot_js_1.IProjectionProvider);
-        const p = this.platform = container.get(platform_js_1.IPlatform);
         container.registerResolver(view_js_1.IViewFactory, this.factoryProvider = new ViewFactoryProvider(), true);
         container.registerResolver(controller_js_1.IController, this.parentControllerProvider = new kernel_1.InstanceProvider('IController'), true);
         container.registerResolver(renderer_js_1.IInstruction, this.instructionProvider = new kernel_1.InstanceProvider('IInstruction'), true);
         container.registerResolver(dom_js_1.IRenderLocation, this.renderLocationProvider = new kernel_1.InstanceProvider('IRenderLocation'), true);
         container.registerResolver(au_slot_js_1.IAuSlotsInfo, this.auSlotsInfoProvider = new kernel_1.InstanceProvider('IAuSlotsInfo'), true);
+        const p = this.platform = container.get(platform_js_1.IPlatform);
         const ep = this.elementProvider = new kernel_1.InstanceProvider('ElementResolver');
         container.registerResolver(dom_js_1.INode, ep);
         container.registerResolver(p.Node, ep);

@@ -37,6 +37,11 @@ The contents of the span will be replaced with the value of the `myHtml` variabl
 If you would like to display `myHtml` without rendering parent `span` tag, you can create `ValueConverter`.
 
 {% code title="to-html.js" %}
+```
+
+```
+{% endcode %}
+
 ```text
 class ToHtmlValueConverter {
   toView(html) {

@@ -1,8 +1,10 @@
+# Write Custom Plugin
+
 One of the most important needs of users is to design custom plugins. In the following, we want to get acquainted with how to design a plugin in the form of a mono-repository structure with configuration.
 
 ### What is mono-repository?
 
-A monorepo (mono repository) is a single repository that stores all of your code and assets for every project. Using a monorepo is important for many reasons. It creates a single source of truth. It makes it easier to share code. It even makes it easier to refactor code.
+A monorepo \(mono repository\) is a single repository that stores all of your code and assets for every project. Using a monorepo is important for many reasons. It creates a single source of truth. It makes it easier to share code. It even makes it easier to refactor code.
 
 ### How NPM v7 helps us?
 
@@ -42,7 +44,7 @@ Go to a folder that you want to make project, for example `my-plugin`
 
 Create a `packages` folder and `package.json` inside it.
 
-```js
+```javascript
 // package.json content
 
 {
@@ -53,7 +55,7 @@ Create a `packages` folder and `package.json` inside it.
 }
 ```
 
-The mono repository's name is `@my-plugin`. We defined our workspaces (projects) under `packages` folder.
+The mono repository's name is `@my-plugin`. We defined our workspaces \(projects\) under `packages` folder.
 
 Open your `packages` folder and install the projects inside it.
 
@@ -65,7 +67,7 @@ npx makes aurelia demo -s typescript
 
 After creating, delete all files inside `src` folders of `bootstrap-v5-core` and `bootstrap-v5` but `resource.d.ts`. We will add our files there.
 
-![](../.gitbook/assets/custom-plugin/1.png)
+![](../.gitbook/assets/1.png)
 
 ## How to manage dependencies?
 
@@ -75,7 +77,7 @@ As described in the structure section defined packages depend on each other. So,
 
 Go to its `package.json` and change the name to
 
-```js
+```javascript
 "name": "@my-plugin/bootstrap-v5-core"
 ```
 
@@ -85,17 +87,17 @@ As our core package it has no dependency.
 
 Go to its `package.json` and change the name to
 
-```js
+```javascript
 "name": "@my-plugin/bootstrap-v5"
 ```
 
 Then, add the following dependencies:
 
-```js
+```javascript
 // bootstrap-v5/package.json
-"dependencies": {	
+"dependencies": {    
     "aurelia": "latest",
-    "bootstrap": "^5.0.0-beta2",	
+    "bootstrap": "^5.0.0-beta2",    
     "@my-plugin/bootstrap-v5-core": "0.1.0"
 },
 ```
@@ -104,16 +106,16 @@ Then, add the following dependencies:
 
 Go to its `package.json` and change the name to
 
-```js
+```javascript
 "name": "@my-plugin/demo"
 ```
 
 Then, add the following dependencies:
 
-```js
+```javascript
 // demo/package.json
-"dependencies": {	
-    "aurelia": "latest",	
+"dependencies": {    
+    "aurelia": "latest",    
     "@my-plugin/bootstrap-v5-core": "0.1.0",
     "@my-plugin/bootstrap-v5": "0.1.0"
 },
@@ -135,7 +137,7 @@ Go to the `src` folder of `bootstrap-v5-core` package and create each of below f
 
 As I mentioned before, I want to write a configurable Bootstrap plugin so create `src/Size.ts` file.
 
-```js
+```javascript
 // Size.ts
 
 export enum Size {
@@ -153,7 +155,7 @@ I made a `Size` enum to handle all Bootstrap sizes. I want to make an option for
 
 Create `src/BootstrapV5Options.ts` file.
 
-```js
+```javascript
 // BootstrapV5Options.ts
 
 import { Size } from "./Size";
@@ -172,7 +174,7 @@ You need to define your configurations via an interface with its default values 
 
 To register it via DI, you need to add codes below too:
 
-```js
+```javascript
 // BootstrapV5Options.ts
 
 import { IContainer } from '@aurelia/kernel';
@@ -206,13 +208,13 @@ export const BootstrapV5Configuration = {
 };
 ```
 
-`configure` helps us to set the initial options or loading special files based on a specific option to DI system. To load specific files, you need to do this via `AppTask`. 
+`configure` helps us to set the initial options or loading special files based on a specific option to DI system. To load specific files, you need to do this via `AppTask`.
 
 The `AppTask` allows you to position when/where certain initialization should happen and also optionally block app rendering accordingly.
 
 If you no need this feature replace it with:
 
-```ts
+```typescript
 function configure(container: IContainer, config: IBootstrapV5Options = defaultOptions) {
     Registration.instance(IBootstrapV5Options, config).register(container);
 }
@@ -230,7 +232,7 @@ Finally, you need to make sure that the user can determine the settings. This is
 
 Create `src/index.ts` file.
 
-```js
+```javascript
 // index.ts
 
 export * from './BootstrapV5Configuration';
@@ -239,7 +241,7 @@ export * from './Size';
 
 Create new `index.ts` file inside `bootstrap-v5-core` package too.
 
-```js
+```javascript
 export * from './src';
 ```
 
@@ -251,7 +253,7 @@ Go to the `src` folder of `bootstrap-v5` package, create a `button` folder then 
 
 Create `bs-button.html` file.
 
-```html
+```markup
 <button class="btn btn-primary btn-${size}" ref="bsButtonTemplate">
     Primary Button
 </button>
@@ -261,7 +263,7 @@ Create `bs-button.html` file.
 
 Create `bs-button.ts` file.
 
-```js
+```javascript
 import { customElement, containerless, BindingMode, bindable } from "aurelia";
 import template from "./bs-button.html";
 import { IBootstrapV5Options, Size } from "@my-plugin/bootstrap-v5-core";
@@ -303,9 +305,9 @@ export class BootstrapButton {
 }
 ```
 
-As you can see we are able to access to plugin options easy via `ctor` (DI) and react appropriately to its values.
+As you can see we are able to access to plugin options easy via `ctor` \(DI\) and react appropriately to its values.
 
-```ts
+```typescript
 @IBootstrapV5Options private options: IBootstrapV5Options
 ```
 
@@ -317,19 +319,19 @@ Create files below correctly:
 
 Create `src/button/index.ts` file.
 
-```js
+```javascript
 export * from './bs-button';
 ```
 
 Create `src/index.ts` file.
 
-```js
+```javascript
 export * from './button';
 ```
 
 Create new `index.ts` file inside `bootstrap-v5` package.
 
-```js
+```javascript
 import 'bootstrap/dist/css/bootstrap.min.css';
 export * from './src';
 ```
@@ -338,7 +340,7 @@ export * from './src';
 
 Open `demo` package and go to the `src` and update `main.ts`.
 
-```js
+```javascript
 // main.ts
 
 import Aurelia from 'aurelia';
@@ -354,19 +356,19 @@ Aurelia
 
 Importing is available for whole components
 
-```js
+```javascript
 import * as BsComponents from '@my-plugin/bootstrap-v5';
 ```
 
 Or just a component
 
-```js
+```javascript
 import { BootstrapButton } from '@my-plugin/bootstrap-v5';
 ```
 
-To register your components you should add them to `register` method. 
+To register your components you should add them to `register` method.
 
-```js
+```javascript
 .register(BsComponents) // For whole components
 // Or
 .register(BootstrapButton) // For a component
@@ -374,7 +376,7 @@ To register your components you should add them to `register` method.
 
 We support configuration so we should introduce it to `register` method too.
 
-```js
+```javascript
  // With default options
 .register(BootstrapV5Configuration)
 // Or with a custom option
@@ -385,7 +387,7 @@ We support configuration so we should introduce it to `register` method too.
 
 Now, You are able to use your `bs-button` inside `src/my-app.html`.
 
-```html
+```markup
 <bs-button></bs-button>
 <bs-button size="lg"></bs-button>
 ```

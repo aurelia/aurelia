@@ -1,6 +1,8 @@
+# DOM Style Injection
+
 Some users may want to inject their styles into the DOM like v1. There is no equivalent for this functionality in the second version so we can define our `injectStyle` function as following:
 
-```ts
+```typescript
 // inject-style.ts
 
 function caseConverter(str: string): string {
@@ -64,13 +66,13 @@ export function injectStyle(
 }
 ```
 
-### toCss(obj)
+## toCss\(obj\)
 
 A very simple object-to-css converter.
 
-| Parameter(s) |      Description      |  Optional | Default |
-|----------|:-------------|:------:|:------:|
-| obj |  Object-based style | No | - |
+| Parameter\(s\) | Description | Optional | Default |
+| :--- | :--- | :---: | :---: |
+| obj | Object-based style | No | - |
 
 **Returns**: a css text.
 
@@ -88,7 +90,7 @@ let cssText = toCss(cssObj);
 ```
 
 The value of `cssText` will be equal to:
- 
+
 ```css
 .main-wrapper {
   flex-direction: row;
@@ -111,21 +113,20 @@ li {
 
 You can use [css-to-js transformer](https://transform.tools/css-to-js) to convert a CSS text to a JS object and use the result for `toCss(result)` directly!
 
-There is a conventional naming approach for defining your rules. Every uppercase character will change to a hyphen and a lowercase character (`XyZ => -xy-z`). For example, If you want to achieve `-webkit-animation` you should write `WebkitAnimation` or `flexDirection` will change to `flex-direction`.
+There is a conventional naming approach for defining your rules. Every uppercase character will change to a hyphen and a lowercase character \(`XyZ => -xy-z`\). For example, If you want to achieve `-webkit-animation` you should write `WebkitAnimation` or `flexDirection` will change to `flex-direction`.
 
 This is exactly what the `caseConverter` function does.
 
-### injectStyle(textOrObject, id, overridable, hostElement)
+## injectStyle\(textOrObject, id, overridable, hostElement\)
 
 A functionality to inject your text or object-based style to the html document easily!
 
-| Parameter(s) |      Description      |  Optional | Default |
-|----------|:-------------|:------:|:------:|
-| textOrObject |  Text or object-based style. | No | - |
-| id |  To set an id for your `<style>`, it helps you to update an specific style tag. | Yes | - |
-| overridable |  If set this to `false`, your style is only injected **once** but to do this you must set an id parameter too. | Yes | true |
-| hostElement |  To set your host element to inject your style into it. Useful for shadow DOM. | Yes | document.head |
-
+| Parameter\(s\) | Description | Optional | Default |
+| :--- | :--- | :---: | :---: |
+| textOrObject | Text or object-based style. | No | - |
+| id | To set an id for your `<style>`, it helps you to update an specific style tag. | Yes | - |
+| overridable | If set this to `false`, your style is only injected **once** but to do this you must set an id parameter too. | Yes | true |
+| hostElement | To set your host element to inject your style into it. Useful for shadow DOM. | Yes | document.head |
 
 ```javascript
 import { injectStyle } from 'inject-style';
@@ -155,3 +156,4 @@ li {
 }
 `, 'my-style-tag', false);
 ```
+

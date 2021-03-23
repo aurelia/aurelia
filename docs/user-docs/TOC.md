@@ -81,6 +81,15 @@
 * [Write Custom Plugin](advanced-scenarios/write-custom-plugin.md)
 * [DOM Style Injection](advanced-scenarios/dom-style-injection.md)
 
+## Side-by-Side Comparison
+
+* [Creating A Skeleton](side-by-side-comparison/creating-a-skeleton.md)
+* [Bootstrapping](side-by-side-comparison/bootstrapping.md)
+* [Components](side-by-side-comparison/components.md)
+* [Dependency Injection](side-by-side-comparison/dependency-injection.md)
+* [Logging](side-by-side-comparison/logging.md)
+* [Router](side-by-side-comparison/router.md)
+
 ## Examples
 
 * [Binding & Templating](examples/binding-and-templating/README.md)

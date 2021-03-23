@@ -1,17 +1,18 @@
+# Bindable Setter
+
 In some cases you want to make an impact for the value that is binding. For such a scenario you can use the possibility of new `set`.
 
-```ts
+```typescript
 @bindable({ 
     set: value => function(value),  /* HERE */
     // Or set: value => value,
     mode: /* ... */ 
-}) 
+})
 ```
 
-Suppose you have a `carousel` component in which you want to enable `navigator` feature for it. 
-You probably imagine such a thing for yourself.
+Suppose you have a `carousel` component in which you want to enable `navigator` feature for it. You probably imagine such a thing for yourself.
 
-```html
+```markup
 <!-- Enable -->
 <my-carousel navigator.bind="true">
 <my-carousel navigator="true">
@@ -29,13 +30,13 @@ In version two, you can easily implement such a capability with the `set` featur
 
 To make things easier, first design a new type that accepts `true` and `false` as a string and a boolean.
 
-```ts
+```typescript
 export type BooleanString = "true" | "false" | true | false /* boolean */;
 ```
 
 Define your property like this:
 
-```ts
+```typescript
 @bindable({ set: /* ? */, mode: BindingMode.toView }) public navigator: BooleanString = false;
 ```
 
@@ -47,7 +48,7 @@ For `set` part, we need functionality to check the input, If the value is one of
 
 So our function will be like this
 
-```ts
+```typescript
 export function truthyDetector(value: unknown) {
     return value === '' || value === true || value === "true";
 }
@@ -55,14 +56,15 @@ export function truthyDetector(value: unknown) {
 
 Now, we should set `truthyDetector` function as following:
 
-```ts
+```typescript
 @bindable({ set: truthyDetector, mode: BindingMode.toView }) public navigator: BooleanString = false;
 ```
 
 Although, there is another way to write the functionality too
 
-```ts
+```typescript
 @bindable({ set: v => v === '' || v === true || v === "true", mode: BindingMode.toView }) public navigator: BooleanString = false;
 ```
 
 You can simply use any of the above four methods to enable/disable your feature.
+

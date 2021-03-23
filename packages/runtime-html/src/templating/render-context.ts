@@ -261,12 +261,13 @@ export class RenderContext implements IComponentFactory {
     const container = this.container = parentContainer.createChild();
     // TODO(fkleuver): get contextual + root renderers
     const renderers = container.getAll(IRenderer);
-    for (let i = 0; i < renderers.length; ++i) {
-      const renderer = renderers[i];
+    let i = 0;
+    let renderer: IRenderer;
+    for (; i < renderers.length; ++i) {
+      renderer = renderers[i];
       this.renderers[renderer.instructionType as string] = renderer;
     }
     this.projectionProvider = container.get(IProjectionProvider);
-    const p = this.platform = container.get(IPlatform);
 
     container.registerResolver(
       IViewFactory,
@@ -293,6 +294,7 @@ export class RenderContext implements IComponentFactory {
       this.auSlotsInfoProvider = new InstanceProvider<IAuSlotsInfo>('IAuSlotsInfo'),
       true,
     );
+    const p = this.platform = container.get(IPlatform);
     const ep = this.elementProvider = new InstanceProvider('ElementResolver');
     container.registerResolver(INode, ep);
     container.registerResolver(p.Node, ep);

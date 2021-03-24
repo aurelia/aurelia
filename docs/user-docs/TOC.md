@@ -89,6 +89,7 @@
 * [Dependency Injection](side-by-side-comparison/dependency-injection.md)
 * [Logging](side-by-side-comparison/logging.md)
 * [Router](side-by-side-comparison/router.md)
+* [Binding](side-by-side-comparison/binding.md)
 
 ## Examples
 

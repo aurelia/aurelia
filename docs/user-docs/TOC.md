@@ -90,6 +90,7 @@
 * [Logging](side-by-side-comparison/logging.md)
 * [Router](side-by-side-comparison/router.md)
 * [Binding](side-by-side-comparison/binding.md)
+* [Other Frameworks](side-by-side-comparison/other-frameworks.md)
 
 ## Examples
 

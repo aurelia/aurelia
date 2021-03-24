@@ -1,5 +1,5 @@
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { ConnectableSwitcher } from '@aurelia/runtime';
+import { ConnectableSwitcher, FlushQueue } from '@aurelia/runtime';
 import { setPlatform, assert, ensureTaskQueuesEmpty } from '@aurelia/testing';
 
 interface ExtendedSuite extends Mocha.Suite {
@@ -73,6 +73,12 @@ export function $setup(platform: BrowserPlatform) {
       throw ex;
     }
     assertNoWatcher(true);
+    try {
+      assertEmptyFlushQueue();
+    } catch (ex) {
+      FlushQueue.instance.clear();
+      throw ex;
+    }
   });
 
   function assertNoWatcher(shouldThrow: boolean) {
@@ -89,6 +95,12 @@ export function $setup(platform: BrowserPlatform) {
       } else {
         console.error('There is still some watcher not removed.');
       }
+    }
+  }
+
+  function assertEmptyFlushQueue() {
+    if (FlushQueue.instance.count > 0) {
+      throw new Error(`There is still ${FlushQueue.instance.count} flushable item(s).`);
     }
   }
 }

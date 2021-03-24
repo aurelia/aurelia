@@ -12,6 +12,7 @@
   * [Your First Component - Part 2: The View](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
   * [Next Steps](getting-started/quick-start-guide/next-steps.md)
 * [Template Syntax](getting-started/template-syntax.md)
+* [Bindable Setter](getting-started/bindable-setter.md)
 * [Building Components](getting-started/components/README.md)
   * [Creating a Custom Element](getting-started/components/creating-a-custom-element.md)
   * [Creating a Custom Attribute](getting-started/components/creating-a-custom-attribute.md)
@@ -72,6 +73,24 @@
 * [I18n Internationalization](validation/i18n-internationalization.md)
 * [Migration Guide & Breaking Changes](validation/migration-guide.md)
 
+## Advanced Scenarios
+
+* [CSS-in-JS with Emotion](advanced-scenarios/css-in-js-with-emotion.md)
+* [TailwindCSS Integration](advanced-scenarios/tailwindcss-integration.md)
+* [Strongly-typed Template](advanced-scenarios/strongly-typed-template.md)
+* [Write Custom Plugins](advanced-scenarios/write-custom-plugin.md)
+* [DOM Style Injection](advanced-scenarios/dom-style-injection.md)
+
+## Side-by-Side Comparison
+
+* [Creating A Skeleton](side-by-side-comparison/creating-a-skeleton.md)
+* [Bootstrapping](side-by-side-comparison/bootstrapping.md)
+* [Components](side-by-side-comparison/components.md)
+* [Dependency Injection](side-by-side-comparison/dependency-injection.md)
+* [Logging](side-by-side-comparison/logging.md)
+* [Router](side-by-side-comparison/router.md)
+* [Binding](side-by-side-comparison/binding.md)
+
 ## Examples
 
 * [Binding & Templating](examples/binding-and-templating/README.md)
@@ -94,7 +113,6 @@
 ## Resources
 
 * [FAQ](resources/faq.md)
-* [Browser Support](resources/browser-support.md)
 * [Versioning Policy](resources/versioning-policy.md)
 * [Framework Comparison](resources/framework-comparison.md)
 * [Migrating to Aurelia 2](resources/migrating-to-aurelia-2.md)

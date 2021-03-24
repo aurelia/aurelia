@@ -302,5 +302,5 @@ So far, we've only scratched the surface of what Aurelia's component system can 
 
 * [Local Templates](local-templates.md).
 * [Watching data](watching-data.md).
-* [Components Revisited](https://github.com/aurelia/aurelia/tree/5dcb1613039f0fa4f97d0114cc47cc7a66f04425/docs/user-docs/getting-started/app-basics/components-revisited.md).
+* [Components Revisited](../../app-basics/components-revisited.md).
 

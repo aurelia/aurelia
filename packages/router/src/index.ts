@@ -163,6 +163,7 @@ export {
 } from './endpoints/viewport-content.js';
 
 export {
+  IRouterConfiguration,
   RouterConfiguration,
   RouterRegistration,
   DefaultComponents,

@@ -10,7 +10,11 @@ import { IRouter } from './router.js';
 import { IRouterOptions, RouterOptions } from './router-options.js';
 import { BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction } from './routing-hook.js';
 
+export const IRouterConfiguration = DI.createInterface<IRouter>('IRouterConfiguration', x => x.singleton(RouterConfiguration));
+export interface IRouterConfiguration extends RouterConfiguration { }
+
 export const RouterRegistration = IRouter as unknown as IRegistry;
+export const RouterConfigurationRegistration = IRouterConfiguration as unknown as IRegistry;
 
 /**
  * Default runtime/environment-agnostic implementations for the following interfaces:
@@ -18,6 +22,7 @@ export const RouterRegistration = IRouter as unknown as IRegistry;
  */
 export const DefaultComponents = [
   RouterRegistration,
+  RouterConfigurationRegistration,
 ];
 
 export {
@@ -161,4 +166,8 @@ export class RouterConfiguration {
   //   // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
   //   // return viewport.removeRoutes(routes);
   // }
+
+  public get options(): RouterOptions {
+    return RouterConfiguration.options;
+  }
 }

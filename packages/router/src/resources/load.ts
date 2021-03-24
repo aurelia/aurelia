@@ -4,6 +4,8 @@ import { RoutingInstruction } from '../instructions/routing-instruction.js';
 import { ILinkHandler } from './link-handler.js';
 import { IRouter, RouterNavigationEndEvent } from '../router.js';
 import { RouterConfiguration } from '../configuration.js';
+import { LoadInstruction } from '../interfaces.js';
+import { getConsideredActiveInstructions, getLoadIndicator } from './utils.js';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
@@ -50,16 +52,22 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   }
   private readonly navigationEndHandler = (_navigation: RouterNavigationEndEvent): void => {
     const controller = CustomAttribute.for(this.element, 'load')!.parent!;
-    const created = this.router.applyLoadOptions(this.value as any, { context: controller });
-    const instructions = RoutingInstruction.from(created.instructions);
-    for (const instruction of instructions) {
-      if (instruction.scope === null) {
-        instruction.scope = created.scope;
-      }
-    }
-    // TODO: Use router configuration for class name and update target
-    this.element.classList.toggle(this.activeClass,
+    // const activeInstructions = (this.element.hasAttribute('considered-active')
+    //   ? this.element.getAttribute('considered-active')
+    //   : this.value) as LoadInstruction;
+    // const created = this.router.applyLoadOptions(activeInstructions, { context: controller });
+    // const instructions = RoutingInstruction.from(created.instructions);
+    // for (const instruction of instructions) {
+    //   if (instruction.scope === null) {
+    //     instruction.scope = created.scope;
+    //   }
+    // }
+
+    console.log((CustomAttribute.for(this.element, 'load')?.viewModel as any).value);
+
+    const instructions = getConsideredActiveInstructions(this.router, controller, this.element as HTMLElement, this.value);
+
+    getLoadIndicator(this.element as HTMLElement).classList.toggle(this.activeClass,
       this.router.checkActive(instructions, { context: controller }));
   };
 }
-

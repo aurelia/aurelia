@@ -1,6 +1,10 @@
+import { ConsideredActiveCustomAttribute } from './considered-active';
 /* eslint-disable compat/compat */
 import { IEventAggregator } from '@aurelia/kernel';
 import { IRouter, RouterStartEvent } from '../router.js';
+import { CustomAttribute, IHydratedController } from '@aurelia/runtime-html';
+import { LoadInstruction } from '../interfaces.js';
+import { RoutingInstruction } from '../instructions/routing-instruction.js';
 
 /**
  * Get either a provided value or the value of an html attribute,
@@ -44,4 +48,40 @@ export function waitForRouterStart(router: IRouter, ea: IEventAggregator): void 
       subscription.dispose();
     });
   });
+}
+
+export function getConsideredActiveInstructions(router: IRouter, controller: IHydratedController, element: HTMLElement, value: unknown): RoutingInstruction[] {
+  let activeInstructions = (CustomAttribute
+    .for(element, 'considered-active')?.viewModel as ConsideredActiveCustomAttribute)?.value as LoadInstruction;
+  if (activeInstructions === void 0) {
+    activeInstructions = value as LoadInstruction;
+  }
+  // const activeInstructions = (element.hasAttribute('considered-active')
+  //   ? element.getAttribute('considered-active')
+  //   : value) as LoadInstruction;
+
+  const created = router.applyLoadOptions(activeInstructions, { context: controller });
+  const instructions = RoutingInstruction.from(created.instructions);
+  for (const instruction of instructions) {
+    if (instruction.scope === null) {
+      instruction.scope = created.scope;
+    }
+  }
+  return instructions;
+}
+
+export function getLoadIndicator(element: HTMLElement): HTMLElement {
+  let indicator = element.parentElement;
+  while (indicator != null) {
+    if (indicator.tagName === 'AU-VIEWPORT') {
+      indicator = null;
+      break;
+    }
+    if (indicator.hasAttribute('load-active')) {
+      break;
+    }
+    indicator = indicator.parentElement;
+  }
+  indicator ??= element;
+  return indicator;
 }

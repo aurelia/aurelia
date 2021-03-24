@@ -1,23 +1,19 @@
 import template from './profile.html';
 
-import { customElement, IPlatform } from 'aurelia';
+import { customElement } from 'aurelia';
 import { IRouteableComponent, Parameters } from 'jwx-router';
 import { IProfileState, IUserState } from '../state';
 import { Profile as CurrentProfile } from '../api';
 import { queue } from '../util';
-import { AuthorArticles} from './author-articles';
-import { FavoritedArticles } from './favorited-articles';
+import { ArticleList } from '../_shared/article-list';
 
 @customElement({
   name: 'profile',
   template,
-  dependencies: [AuthorArticles, FavoritedArticles],
+  dependencies: [ArticleList],
 })
 export class Profile implements IRouteableComponent {
   static parameters: string[] = ['name'];
-
-  public test = 'testing';
-  public id = 'abc';
 
   get isSelf(): boolean { return this.profile.username === this.$user.current.username; }
   get profile(): CurrentProfile { return this.$profile.current; }

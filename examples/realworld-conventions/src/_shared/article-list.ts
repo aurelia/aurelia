@@ -1,22 +1,43 @@
 import template from './article-list.html';
 
 import { customElement } from 'aurelia';
-import { IRouteableComponent, Parameters, IRouter } from 'jwx-router';
+import { IRouteableComponent, Parameters, RoutingInstruction } from 'jwx-router';
 import { ArticleListQueryParams, FeedArticleListQueryParams } from '../api';
 import { IArticleListState } from '../state';
 import { queue } from '../util';
 
-@customElement({ name: 'article-list', template })
+@customElement({ name: 'article-list', template, aliases: ['author-articles', 'favorited-articles'] })
 export class ArticleList implements IRouteableComponent {
+  componentName = 'article-list';
+
   constructor(
     @IArticleListState readonly $articleList: IArticleListState,
   ) { }
 
-  async load({ mode, page, tag }: Parameters) {
-    if (typeof tag === 'string') {
-      mode = 'all';
-    }
-    mode = mode ?? this.$articleList.params.type;
+  get tag(): string | undefined {
+    return (this.$articleList.params as ArticleListQueryParams).tag;
+  }
+
+  get modeFilter(): string {
+    return this.componentName === 'article-list' && this.tag === undefined
+      ? `mode=${this.$articleList.params.type},` : '';
+  }
+
+  get tagFilter(): string {
+    return this.tag !== undefined ? `tag=${this.tag},` : '';
+  }
+
+  async load({ mode, page, tag, name }: Parameters, instruction: RoutingInstruction): Promise<void> {
+    // Component serves as three so set the right name
+    this.componentName = instruction.component.name ?? 'article-list';
+
+    // Set the right filter to name based on component
+    const author = this.componentName === 'author-articles' ? name : undefined;
+    const favorited = this.componentName === 'favorited-articles' ? name : undefined;
+
+    // If it's filtered on tag, force into mode 'all'
+    mode = typeof tag === 'string' ? 'all' : (mode ?? this.$articleList.params.type);
+
     const limit = this.$articleList.params.limit;
     const offset = typeof page === 'string'
       ? limit * (+page - 1)
@@ -24,7 +45,8 @@ export class ArticleList implements IRouteableComponent {
 
     const params = (mode === 'all' ? ArticleListQueryParams : FeedArticleListQueryParams)
       .create({
-        ...this.$articleList.params,
+        author: author as string,
+        favorited: favorited as string,
         limit,
         offset,
         tag: tag as string | undefined

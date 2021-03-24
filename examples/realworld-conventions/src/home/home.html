@@ -14,10 +14,12 @@
         <div class="feed-toggle">
           <ul class="nav nav-pills outline-active">
             <li if.bind="$user.isAuth" class="nav-item">
-              <a class="nav-link" load="article-list(mode=feed)" data-e2e="yourFeedLink">Your Feed</a>
+              <a class="nav-link" load="article-list(mode=feed,page=1)" considered-active="article-list(mode=feed)"
+                data-e2e="yourFeedLink">Your Feed</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" load="article-list(mode=all)" data-e2e="yourFeedLink">Global Feed</a>
+              <a class="nav-link" load="article-list(mode=all,page=1)" considered-active="article-list(mode=all)"
+                data-e2e="yourFeedLink">Global Feed</a>
             </li>
             <li if.bind="tag" class="nav-item">
               <a class="nav-link" load="article-list(tag=${tag})" data-e2e="yourFeedLink">
@@ -28,7 +30,7 @@
           </ul>
         </div>
 
-        <au-viewport name="article-list" default="article-list(mode=all)"></au-viewport>
+        <au-viewport name="article-list" default="article-list(mode=all,page=1)"></au-viewport>
       </div>
 
       <div class="col-md-3">
@@ -36,8 +38,8 @@
           <p>Popular Tags</p>
 
           <div class="tag-list">
-            <a repeat.for="tag of $tags.items" class="tag-pill tag-default" load="article-list(tag=${tag})"
-              data-e2e="${tag}TagLink">${tag}</a>
+            <a repeat.for="tag of $tags.items" class="tag-pill tag-default" load="article-list(tag=${tag},page=1)"
+              considered-active="article-list(tag=${tag})" data-e2e="${tag}TagLink">${tag}</a>
             <div if.bind="$tags.items.length === 0">No tags are here... yet.</div>
           </div>
         </div>

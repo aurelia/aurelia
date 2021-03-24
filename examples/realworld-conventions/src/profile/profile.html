@@ -35,19 +35,19 @@
         <div class="articles-toggle">
           <ul class="nav nav-pills outline-active">
             <li class="nav-item">
-              <a class="nav-link" active.class="_author" load="author-articles">
+              <a class="nav-link" load="author-articles(page=1)" considered-active="author-articles">
                 My Articles
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" active.class="_favorites" load="favorited-articles">
+              <a class="nav-link" load="favorited-articles(page=1)" considered-active="favorited-articles">
                 Favorited Articles
               </a>
             </li>
           </ul>
         </div>
 
-        <au-viewport name="profile-articles" default="author-articles"></au-viewport>
+        <au-viewport name="profile-articles" default="author-articles(page=1)"></au-viewport>
 
       </div>
     </div>

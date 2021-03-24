@@ -29,8 +29,9 @@
 
 <nav if.bind="$articleList.pages.length > 1">
   <ul class="pagination">
-    <li repeat.for="page of $articleList.pages" class="page-item" data-e2e="page-${page}Link">
-      <a class="page-link" load="../article-list(page=${page})">${page}</a>
+    <li repeat.for="page of $articleList.pages" class="page-item" load-active data-e2e="page-${page}Link">
+      <a class="page-link" load="../${componentName}(${modeFilter}${tagFilter}page=${page})"
+        considered-active="../${componentName}(page=${page})">${page}</a>
     </li>
   </ul>
 </nav>

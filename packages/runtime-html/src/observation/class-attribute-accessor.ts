@@ -4,7 +4,7 @@ import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
 import type { IAccessor } from '@aurelia/runtime';
 
 export class ClassAttributeAccessor implements IAccessor {
-  public currentValue: unknown = '';
+  public value: unknown = '';
   public oldValue: unknown = '';
 
   public readonly doNotCache: true = true;
@@ -16,18 +16,18 @@ export class ClassAttributeAccessor implements IAccessor {
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
-    public readonly obj: HTMLElement
+    public readonly obj: HTMLElement,
   ) {
   }
 
   public getValue(): unknown {
     // is it safe to assume the observer has the latest value?
     // todo: ability to turn on/off cache based on type
-    return this.currentValue;
+    return this.value;
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    this.currentValue = newValue;
+    this.value = newValue;
     this.hasChanges = newValue !== this.oldValue;
     if ((flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
@@ -37,7 +37,7 @@ export class ClassAttributeAccessor implements IAccessor {
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const currentValue = this.currentValue;
+      const currentValue = this.value;
       const nameIndex = this.nameIndex;
       let version = this.version;
       this.oldValue = currentValue;

@@ -73,22 +73,31 @@ export const LifecycleHooks = {
   resolve(ctx: IContainer): LifecycleHooksLookup {
     let lookup = containerLookup.get(ctx);
     if (lookup === void 0) {
-      lookup = {};
-      const instances = ctx.root.id === ctx.id
-      ? ctx.getAll(ILifecycleHooks, false)
-      : [
-        ...ctx.root.getAll(ILifecycleHooks, false),
-        ...ctx.getAll(ILifecycleHooks, false),
-      ];
-      for (const instance of instances) {
-        const definition = Metadata.getOwn(LifecycleHooks.name, instance.constructor) as LifecycleHooksDefinition;
-        const entry = new LifecycleHooksEntry(definition, instance);
-        for (const name of definition.propertyNames) {
-          const entries = lookup[name];
+      lookup = new LifecycleHooksLookupImpl();
+      const root = ctx.root;
+      const instances = root.id === ctx.id
+        ? ctx.getAll(ILifecycleHooks)
+        // if it's not root, only resolve it from the current context when it has the resolver
+        // to maintain resources semantic: current -> root
+        : ctx.has(ILifecycleHooks, false)
+          ? [...root.getAll(ILifecycleHooks), ...ctx.getAll(ILifecycleHooks)]
+          : root.getAll(ILifecycleHooks);
+
+      let instance: ILifecycleHooks;
+      let definition: LifecycleHooksDefinition;
+      let entry: LifecycleHooksEntry;
+      let name: string;
+      let entries: LifecycleHooksEntry[];
+
+      for (instance of instances) {
+        definition = Metadata.getOwn(LifecycleHooks.name, instance.constructor);
+        entry = new LifecycleHooksEntry(definition, instance);
+        for (name of definition.propertyNames) {
+          entries = lookup[name] as LifecycleHooksEntry[];
           if (entries === void 0) {
             lookup[name] = [entry];
           } else {
-            (entries as LifecycleHooksEntry[]).push(entry);
+            entries.push(entry);
           }
         }
       }
@@ -96,6 +105,8 @@ export const LifecycleHooks = {
     return lookup;
   },
 };
+
+class LifecycleHooksLookupImpl implements LifecycleHooksLookup {}
 
 /**
  * Decorator: Indicates that the decorated class is a custom element.

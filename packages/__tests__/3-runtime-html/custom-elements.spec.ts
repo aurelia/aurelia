@@ -1,3 +1,49 @@
+import { BindingMode, CustomElement, ValueConverter } from '@aurelia/runtime-html';
+import { assert, createFixture } from '@aurelia/testing';
+
+describe('3-runtime-html/custom-elements.spec.ts', function () {
+  it('works with multiple layers of change propagation & <input/>', async function () {
+    const { ctx, appHost, tearDown, startPromise } = createFixture(
+      `<input value.bind="first_name | properCase">
+      <form-input value.two-way="first_name | properCase"></form-input>`,
+      class App {
+        public message = 'Hello Aurelia 2!';
+        public first_name = '';
+      },
+      [
+        CustomElement.define({
+          name: 'form-input',
+          template: '<input value.bind="value">',
+          bindables: {
+            value: { mode: BindingMode.twoWay }
+          }
+        }, class FormInput { }),
+        ValueConverter.define('properCase', class ProperCase {
+          public toView(value: unknown): unknown {
+            if (typeof value == 'string' && value) {
+              return value
+                .split(' ')
+                .map(m => m[0].toUpperCase() + m.substring(1).toLowerCase())
+                .join(' ');
+            }
+            return value;
+          }
+        }),
+      ],
+    );
+
+    await startPromise;
+
+    const [, nestedInputEl] = Array.from(appHost.querySelectorAll('input'));
+    nestedInputEl.value = 'aa bb';
+    nestedInputEl.dispatchEvent(new ctx.CustomEvent('input', { bubbles: true }));
+
+    ctx.platform.domWriteQueue.flush();
+    assert.strictEqual(nestedInputEl.value, 'Aa Bb');
+
+    await tearDown();
+  });
+});
 // import {
 //   bindable,
 //   customElement,

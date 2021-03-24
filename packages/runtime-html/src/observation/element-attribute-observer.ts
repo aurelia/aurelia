@@ -1,7 +1,15 @@
-import { LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
+import { LifecycleFlags, subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
 
-import type { IObserver, IObserverLocator, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
+import type {
+  IObserver,
+  IObserverLocator,
+  ISubscriber,
+  ISubscriberCollection,
+  IFlushable,
+  IWithFlushQueue,
+  FlushQueue,
+} from '@aurelia/runtime';
 
 export interface IHtmlElement extends HTMLElement {
   $mObserver: MutationObserver;
@@ -22,14 +30,17 @@ export interface AttributeObserver extends
  * Has different strategy for class/style and normal attributes
  * TODO: handle SVG/attributes with namespace
  */
-export class AttributeObserver implements AttributeObserver, ElementMutationSubscription {
-  public currentValue: unknown = null;
+export class AttributeObserver implements AttributeObserver, ElementMutationSubscription, IWithFlushQueue, IFlushable {
+  public value: unknown = null;
   public oldValue: unknown = null;
 
   public hasChanges: boolean = false;
   // layout is not certain, depends on the attribute being flushed to owner element
   // but for simple start, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
+
+  public readonly queue!: FlushQueue;
+  private f: LifecycleFlags = LifecycleFlags.none;
 
   public constructor(
     private readonly platform: IPlatform,
@@ -43,12 +54,12 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public getValue(): unknown {
     // is it safe to assume the observer has the latest value?
     // todo: ability to turn on/off cache based on type
-    return this.currentValue;
+    return this.value;
   }
 
-  public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    this.currentValue = newValue;
-    this.hasChanges = newValue !== this.oldValue;
+  public setValue(value: unknown, flags: LifecycleFlags): void {
+    this.value = value;
+    this.hasChanges = value !== this.oldValue;
     if ((flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
@@ -57,7 +68,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const currentValue = this.currentValue;
+      const currentValue = this.value;
       this.oldValue = currentValue;
       switch (this.targetAttribute) {
         case 'class': {
@@ -72,13 +83,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
           // this also comes from syntax, where it would typically be my-class.class="someProperty"
           //
           // so there is no need for separating class by space and add all of them like class accessor
-          //
-          // note: not using .toggle API so that environment with broken impl (IE11) won't need to polfyfill by default
-          if (!!currentValue) {
-            this.obj.classList.add(this.propertyKey);
-          } else {
-            this.obj.classList.remove(this.propertyKey);
-          }
+          this.obj.classList.toggle(this.propertyKey, !!currentValue);
           break;
         }
         case 'style': {
@@ -117,18 +122,19 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
           throw new Error(`Unsupported targetAttribute: ${this.targetAttribute}`);
       }
 
-      if (newValue !== this.currentValue) {
-        const { currentValue } = this;
-        this.currentValue = this.oldValue = newValue;
+      if (newValue !== this.value) {
+        this.oldValue = this.value;
+        this.value = newValue;
         this.hasChanges = false;
-        this.subs.notify(newValue, currentValue, LifecycleFlags.none);
+        this.f = LifecycleFlags.none;
+        this.queue.add(this);
       }
     }
   }
 
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
-      this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
+      this.value = this.oldValue = this.obj.getAttribute(this.propertyKey);
       startObservation(this.obj.ownerDocument.defaultView!.MutationObserver, this.obj, this);
     }
   }
@@ -138,9 +144,16 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
       stopObservation(this.obj, this);
     }
   }
+
+  public flush(): void {
+    oV = this.oldValue;
+    this.oldValue = this.value;
+    this.subs.notify(this.value, oV, this.f);
+  }
 }
 
 subscriberCollection(AttributeObserver);
+withFlushQueue(AttributeObserver);
 
 const startObservation = ($MutationObserver: typeof MutationObserver, element: IHtmlElement, subscription: ElementMutationSubscription): void => {
   if (element.$eMObservers === undefined) {
@@ -171,3 +184,7 @@ const handleMutation = (mutationRecords: MutationRecord[]): void => {
 function invokeHandleMutation(this: MutationRecord[], s: ElementMutationSubscription): void {
   s.handleMutation(this);
 }
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

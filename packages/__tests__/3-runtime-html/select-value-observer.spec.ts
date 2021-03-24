@@ -60,13 +60,13 @@ describe('SelectValueObserver', function () {
           option({ text: 'C' })
         ]);
 
-        const currentValue = sut.currentValue as any[];
+        const currentValue = sut.value as any[];
         assert.instanceOf(currentValue, Array);
         assert.strictEqual(currentValue['length'], 0, `currentValue['length']`);
 
         sut.synchronizeValue();
 
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue, sut.value, `currentValue`);
         assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
       });
 
@@ -77,12 +77,12 @@ describe('SelectValueObserver', function () {
           option({ text: 'C' })
         ]);
 
-        const currentValue = sut.currentValue as any;
+        const currentValue = sut.value as any;
         assert.strictEqual(currentValue, null, `currentValue`);
 
         sut.synchronizeValue();
 
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue, sut.value, `currentValue`);
       });
 
       it('synchronizes with undefined', function () {
@@ -92,12 +92,12 @@ describe('SelectValueObserver', function () {
           option({ text: 'C' })
         ]);
 
-        const currentValue = sut.currentValue as any;
+        const currentValue = sut.value as any;
         assert.strictEqual(currentValue, undefined, `currentValue`);
 
         sut.synchronizeValue();
 
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue, sut.value, `currentValue`);
       });
 
       it('synchronizes with array (2)', function () {
@@ -107,11 +107,11 @@ describe('SelectValueObserver', function () {
           option({ text: 'C' })
         ]);
 
-        const currentValue = sut.currentValue as any[];
+        const currentValue = sut.value as any[];
 
         sut.synchronizeValue();
 
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue, sut.value, `currentValue`);
         assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
 
         verifyEqual(
@@ -130,11 +130,11 @@ describe('SelectValueObserver', function () {
           option({ text: 'C', value: 'CC' })
         ]);
 
-        const currentValue = sut.currentValue as any[];
+        const currentValue = sut.value as any[];
 
         sut.synchronizeValue();
 
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue, sut.value, `currentValue`);
         assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
 
         verifyEqual(
@@ -153,11 +153,11 @@ describe('SelectValueObserver', function () {
           option({ text: 'C', value: 'CC', disabled: true, selected: true })
         ]);
 
-        const currentValue = sut.currentValue as any[];
+        const currentValue = sut.value as any[];
 
         sut.synchronizeValue();
 
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue, sut.value, `currentValue`);
 
         verifyEqual(
           currentValue,
@@ -177,7 +177,7 @@ describe('SelectValueObserver', function () {
         ]);
 
         let handleChangeCallCount = 0;
-        const currentValue = sut.currentValue as any[];
+        const currentValue = sut.value as any[];
         const noopSubscriber = {
           handleChange() {
             handleChangeCallCount++;
@@ -185,7 +185,7 @@ describe('SelectValueObserver', function () {
         };
 
         sut.synchronizeValue();
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue, sut.value, `currentValue`);
         sut.subscribe(noopSubscriber);
 
         sut.obj.add(option({ text: 'DD', value: 'DD', selected: true })(ctx));
@@ -231,11 +231,11 @@ describe('SelectValueObserver', function () {
             option({ text: 'C', value: 'CC' })
           ]);
 
-          const currentValue = sut.currentValue as any[];
+          const currentValue = sut.value as any[];
 
           sut.synchronizeValue();
 
-          assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+          assert.strictEqual(currentValue, sut.value, `currentValue`);
           assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
 
           verifyEqual(
@@ -258,7 +258,7 @@ describe('SelectValueObserver', function () {
         const el = select(...optionFactories.map(create => create(ctx)))(ctx);
         const sut = observerLocator.getObserver(el, 'value') as SelectValueObserver;
 
-        sut.oldValue = sut.currentValue = initialValue;
+        sut.oldValue = sut.value = initialValue;
         return { ctx, el, sut };
       }
 

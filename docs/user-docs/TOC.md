@@ -78,7 +78,7 @@
 * [CSS-in-JS with Emotion](advanced-scenarios/css-in-js-with-emotion.md)
 * [TailwindCSS Integration](advanced-scenarios/tailwindcss-integration.md)
 * [Strongly-typed Template](advanced-scenarios/strongly-typed-template.md)
-* [Write Custom Plugin](advanced-scenarios/write-custom-plugin.md)
+* [Write Custom Plugins](advanced-scenarios/write-custom-plugin.md)
 * [DOM Style Injection](advanced-scenarios/dom-style-injection.md)
 
 ## Side-by-Side Comparison
@@ -112,7 +112,6 @@
 ## Resources
 
 * [FAQ](resources/faq.md)
-* [Browser Support](resources/browser-support.md)
 * [Versioning Policy](resources/versioning-policy.md)
 * [Framework Comparison](resources/framework-comparison.md)
 * [Migrating to Aurelia 2](resources/migrating-to-aurelia-2.md)

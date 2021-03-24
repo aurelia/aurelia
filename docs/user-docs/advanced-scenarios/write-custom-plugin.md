@@ -1,4 +1,4 @@
-# Write Custom Plugin
+# Write Custom Plugins
 
 One of the most important needs of users is to design custom plugins. In the following, we want to get acquainted with how to design a plugin in the form of a mono-repository structure with configuration.
 
@@ -8,7 +8,7 @@ A monorepo \(mono repository\) is a single repository that stores all of your co
 
 ### How NPM v7 helps us?
 
-With `workspaces`. Workspaces are a set of features in the npm CLI that offer support for managing multiple packages within a single top-level, root package. The NPM v7 has shipped with Node.js v15.
+With `workspaces`. Workspaces are a set of features in the npm CLI that offer support for managing multiple packages within a single top-level, root package. NPM v7 has shipped with Node.js v15.
 
 ### What is the scenario?
 
@@ -16,11 +16,11 @@ To move forward with a practical example. We want to implement Bootstrap compone
 
 ### What is the library structure?
 
-We want to separate our plugin in three packages.
+We want to separate our plugin into three packages.
 
 * **bootstrap-v5-core**
 
-We will add the Bootstrap 5 configurations in this package.
+We will add the Bootstrap 5 configurations to this package.
 
 * **bootstrap-v5**
 
@@ -40,7 +40,7 @@ Make sure you have installed NPM v7+
 npm -v
 ```
 
-Go to a folder that you want to make project, for example `my-plugin`
+Go to a folder that you want to make the project, for example `my-plugin`
 
 Create a `packages` folder and `package.json` inside it.
 
@@ -81,7 +81,7 @@ Go to its `package.json` and change the name to
 "name": "@my-plugin/bootstrap-v5-core"
 ```
 
-As our core package it has no dependency.
+As our core package, it has no dependency.
 
 * **bootstrap-v5**
 
@@ -131,7 +131,7 @@ npm install
 
 ### How to define a plugin configuration?
 
-Go to the `src` folder of `bootstrap-v5-core` package and create each of below files there.
+Go to the `src` folder of `bootstrap-v5-core` package and create each of the below files there.
 
 **Size**
 
@@ -149,7 +149,7 @@ export enum Size {
 }
 ```
 
-I made a `Size` enum to handle all Bootstrap sizes. I want to make an option for who use the plugin to define a global size for all Bootstrap components at first. Next, we manage our components according to size value.
+I made a `Size` enum to handle all Bootstrap sizes. I want to make an option for those who use the plugin to define a global size for all Bootstrap components at first. Next, we manage our components according to size value.
 
 **Bootstrap 5 Options**
 
@@ -247,7 +247,7 @@ export * from './src';
 
 ### How to implement the custom plugin?
 
-Go to the `src` folder of `bootstrap-v5` package, create a `button` folder then create each of below files there.
+Go to the `src` folder of `bootstrap-v5` package, create a `button` folder then create each of the below files there.
 
 * **View**
 
@@ -311,7 +311,7 @@ As you can see we are able to access to plugin options easy via `ctor` \(DI\) an
 @IBootstrapV5Options private options: IBootstrapV5Options
 ```
 
-In this example I get the size from the user and apply it to the button component. If the user does not define a value, the default value will be used.
+In this example, I get the size from the user and apply it to the button component. If the user does not define a value, the default value will be used.
 
 **Exports**
 

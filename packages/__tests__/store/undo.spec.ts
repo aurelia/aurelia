@@ -11,7 +11,7 @@ import {
   createStoreWithStateAndOptions,
   createUndoableTestStore,
   testState
-} from "./helpers";
+} from "./helpers.js";
 
 describe("an undoable store", function () {
   it("should throw if state is not matching type of StateHistory", function () {

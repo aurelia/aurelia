@@ -1,8 +1,8 @@
 import { IContainer, Registration, ILogger } from '@aurelia/kernel';
 import { IWindow } from '@aurelia/runtime-html';
 
-import { isStateHistory, StateHistory } from './history';
-import { Store, STORE, StoreOptions } from './store';
+import { isStateHistory, StateHistory } from './history.js';
+import { Store, STORE, StoreOptions } from './store.js';
 
 export interface StorePluginOptions<T> extends StoreOptions {
   initialState: T;
@@ -51,10 +51,57 @@ export const StoreConfiguration: IConfigure = {
   }
 };
 
-export * from './store';
-export * from './test-helpers';
-export * from './history';
-export * from './logging';
-export * from './middleware';
-export * from './decorator';
-export * from './devtools';
+export {
+  ActionRegistrationError,
+  DevToolsRemoteDispatchError,
+  IStoreWindow,
+  MiddlewareSettings,
+  PerformanceMeasurement,
+  PipedDispatch,
+  Reducer,
+  ReducerNoStateError,
+  STORE,
+  Store,
+  StoreOptions,
+  UnregisteredActionError,
+  dispatchify,
+} from './store.js';
+export {
+  StepFn,
+  executeSteps
+} from './test-helpers.js';
+export {
+  HistoryOptions,
+  StateHistory,
+  applyLimits,
+  isStateHistory,
+  jump,
+  nextStateHistory,
+} from './history.js';
+export {
+  LogDefinitions,
+  LogLevel,
+  getLogType,
+} from './logging.js';
+export {
+  CallingAction,
+  DEFAULT_LOCAL_STORAGE_KEY,
+  Middleware,
+  MiddlewarePlacement,
+  localStorageMiddleware,
+  logMiddleware,
+  rehydrateFromLocalStorage,
+} from './middleware.js';
+export {
+  ConnectToSettings,
+  MultipleSelector,
+  connectTo,
+} from './decorator.js';
+export {
+  Action,
+  ActionCreator,
+  DevTools,
+  DevToolsExtension,
+  DevToolsMessage,
+  DevToolsOptions,
+} from './devtools.js';

@@ -4,7 +4,7 @@ import { assert } from "@aurelia/testing";
 import {
   createTestStore,
   testState
-} from "./helpers";
+} from "./helpers.js";
 
 describe("test helpers", function () {
   it("should provide easy means to test sequences", async function () {
@@ -56,7 +56,7 @@ describe("test helpers", function () {
 
     ["log", "group", "groupEnd"].forEach((fct) => {
       origConsole[fct] = (global.console as any)[fct];
-      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/strict-boolean-expressions
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
       (global.console as any)[fct] = () => { callTracker[fct] = callTracker[fct] + 1 || 1; };
     });
 

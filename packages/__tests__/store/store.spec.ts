@@ -1,4 +1,7 @@
-import { skip } from "rxjs/operators";
+import { skip as _skip } from "rxjs/operators/index.js";
+import type { skip as $skip } from "rxjs/operators";
+const skip = _skip as typeof $skip;
+
 import {
   LogLevel,
   PerformanceMeasurement,
@@ -12,7 +15,7 @@ import {
   testState,
   createStoreWithStateAndOptions,
   createCallCounter
-} from "./helpers";
+} from "./helpers.js";
 import { assert } from '@aurelia/testing';
 
 describe("store", function () {

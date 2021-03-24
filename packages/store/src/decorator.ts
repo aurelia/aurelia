@@ -2,7 +2,7 @@
 import { Controller } from "@aurelia/runtime-html";
 import { Observable, Subscription } from 'rxjs';
 
-import { Store, STORE } from './store';
+import { Store, STORE } from './store.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface ConnectToSettings<T, R = T | any> {
@@ -44,7 +44,6 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       [_settings.target || 'state']: _settings.selector || defaultSelector
     };
 
-    // eslint-disable-next-line compat/compat
     return Object.entries({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...((isSelectorObj ? _settings.selector : fallbackSelector) as MultipleSelector<T, any>)
@@ -87,7 +86,6 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
         // eslint-disable-next-line default-param-last
         const oldState = s.targets.reduce((accu = {}, curr) => accu[curr], this);
 
-        // eslint-disable-next-line compat/compat
         Object.entries(s.changeHandlers).forEach(([handlerName, args]) => {
           if (handlerName in this) {
             this[handlerName](...[ s.targets[lastTargetIdx], state, oldState ].slice(args, 3));

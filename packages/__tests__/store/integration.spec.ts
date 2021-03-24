@@ -4,7 +4,7 @@ import { TestContext, assert } from '@aurelia/testing';
 import { StoreConfiguration, Store, connectTo, StoreOptions, dispatchify } from "@aurelia/store";
 import { Constructable } from '@aurelia/kernel';
 
-import { testState } from './helpers';
+import { testState } from './helpers.js';
 
 async function createFixture({ component, options, initialState }: {
   component: Constructable;

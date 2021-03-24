@@ -1,9 +1,12 @@
-import { skip } from 'rxjs/operators';
+import { skip as _skip } from "rxjs/operators/index.js";
+import type { skip as $skip } from "rxjs/operators";
+const skip = _skip as typeof $skip;
+
 import { DI, Registration } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 import { STORE, dispatchify, Store, UnregisteredActionError } from '@aurelia/store';
 
-import { createTestStore, testState } from './helpers';
+import { createTestStore, testState } from './helpers.js';
 
 function arrange() {
   const container = DI.createContainer();

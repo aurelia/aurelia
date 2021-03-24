@@ -1,11 +1,16 @@
 import { Subscription } from 'rxjs';
-import { distinctUntilChanged, pluck } from 'rxjs/operators';
+
+import { pluck as _pluck, distinctUntilChanged as _distinctUntilChanged } from "rxjs/operators/index.js";
+import type { pluck as $pluck, distinctUntilChanged as  $distinctUntilChanged } from "rxjs/operators";
+const pluck = _pluck as typeof $pluck;
+const distinctUntilChanged = _distinctUntilChanged as typeof $distinctUntilChanged;
+
 import { customElement } from '@aurelia/runtime-html';
 import { assert } from "@aurelia/testing";
 import { DI, Registration } from '@aurelia/kernel';
 import { STORE, Store, connectTo } from '@aurelia/store';
 
-import { createCallCounter, createDI } from "./helpers";
+import { createCallCounter, createDI } from "./helpers.js";
 
 interface DemoState {
   foo: string;

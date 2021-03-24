@@ -1,17 +1,19 @@
-import { delay, skip, take } from 'rxjs/operators';
+import { skip as _skip, take as _take, delay as _delay } from "rxjs/operators/index.js";
+import type { skip as $skip, take as $take, delay as $delay } from "rxjs/operators";
+const skip = _skip as typeof $skip;
+const take = _take as typeof $take;
+const delay = _delay as typeof $delay;
 
-import { Store } from './store';
+import type { Store } from './store.js';
 
 export type StepFn<T> = (res: T) => void;
 
 export async function executeSteps<T>(store: Store<T>, shouldLogResults: boolean, ...steps: StepFn<T>[]) {
   const logStep = (step: StepFn<T>, stepIdx: number) => (res: T) => {
     if (shouldLogResults) {
-      /* eslint-disable no-console, no-undef */
       console.group(`Step ${stepIdx}`);
       console.log(res);
       console.groupEnd();
-      /* eslint-enable no-console, no-undef */
     }
     step(res);
   };

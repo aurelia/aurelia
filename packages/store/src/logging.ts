@@ -1,4 +1,4 @@
-import { StoreOptions } from './store';
+import type { StoreOptions } from './store.js';
 
 export enum LogLevel {
   trace = 'trace',
@@ -19,10 +19,10 @@ export function getLogType(
   definition: keyof LogDefinitions,
   defaultLevel: LogLevel
 ): LogLevel {
+  // eslint-disable-next-line no-prototype-builtins
   if (options.logDefinitions?.hasOwnProperty(definition) &&
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     options.logDefinitions[definition] &&
-    // eslint-disable-next-line compat/compat
     Object.values(LogLevel).includes(options.logDefinitions[definition]!)) {
     return options.logDefinitions[definition]!;
   }

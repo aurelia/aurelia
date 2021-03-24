@@ -1,4 +1,9 @@
-import { skip, delay } from "rxjs/operators";
+import { skip as _skip, delay as _delay } from "rxjs/operators/index.js";
+import type { skip as $skip, delay as $delay } from "rxjs/operators";
+
+const skip = _skip as typeof $skip;
+const delay = _delay as typeof $delay;
+
 import { DevToolsOptions, Store, DevToolsRemoteDispatchError } from '@aurelia/store';
 import {
   testState,
@@ -6,7 +11,7 @@ import {
   DevToolsMock,
   createCallCounter,
   createTestStore
-} from './helpers';
+} from './helpers.js';
 import { assert } from '@aurelia/testing';
 
 describe("redux devtools", function () {

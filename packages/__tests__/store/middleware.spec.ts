@@ -1,4 +1,8 @@
-import { skip, take } from "rxjs/operators";
+import { skip as _skip, take as _take } from "rxjs/operators/index.js";
+import type { skip as $skip, take as $take } from "rxjs/operators";
+const skip = _skip as typeof $skip;
+const take = _take as typeof $take;
+
 import { assert } from '@aurelia/testing';
 import {
   MiddlewarePlacement,
@@ -15,7 +19,7 @@ import {
   createStoreWithState,
   createStoreWithStateAndOptions,
   createCallCounter
-} from "./helpers";
+} from "./helpers.js";
 
 function mockLocalStorage(patch: unknown) {
   Object.defineProperty(globalThis, "localStorage", {
@@ -569,7 +573,6 @@ describe("middlewares", function () {
       mockLocalStorage({
         store: { foo: "bar" },
         getItem(key: string) {
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           return this.store[key] || null;
         },
         setItem(key: string, value: string) {
@@ -597,7 +600,6 @@ describe("middlewares", function () {
       mockLocalStorage({
         store: { foo: "bar" },
         getItem(key: string) {
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           return this.store[key] || null;
         },
         setItem(key: string, value: string) {

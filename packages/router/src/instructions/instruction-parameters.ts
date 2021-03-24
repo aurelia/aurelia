@@ -134,6 +134,18 @@ export class InstructionParameters {
       .join(seps.parameterSeparator);
   }
 
+  /**
+   * Whether a record of instruction parameters contains another record of
+   * instruction parameters.
+   *
+   * @param parametersToSearch - Parameters that should contain (superset)
+   * @param parametersToFind - Parameters that should be contained (subset)
+   */
+  public static contains(parametersToSearch: Parameters, parametersToFind: Parameters): boolean {
+    // All parameters to find need to exist in parameters to search
+    return Object.keys(parametersToFind).every(key => parametersToFind[key] === parametersToSearch[key]);
+  }
+
   // Instance methods
 
   public get parameters(): IComponentParameter[] {

@@ -1,5 +1,5 @@
 import { InstructionParser } from './instruction-parser.js';
-import { InstructionParameters } from './instruction-parameters.js';
+import { InstructionParameters, Parameters } from './instruction-parameters.js';
 import { InstructionComponent } from './instruction-component.js';
 import { ComponentAppellation, ComponentParameters, LoadInstruction } from '../interfaces.js';
 import { RoutingScope } from '../routing-scope.js';
@@ -330,7 +330,7 @@ export class RoutingInstruction {
   /**
    * Get the instruction parameters with type specification applied.
    */
-  public get typeParameters(): Record<string, unknown> {
+  public get typeParameters(): Parameters {
     return this.parameters.toSpecifiedParameters(this.component.type?.parameters ?? []);
   }
 
@@ -463,6 +463,9 @@ export class RoutingInstruction {
       clone.component.set(this.component.instance ?? this.component.type ?? this.component.name!);
       clone.endpoint.set(this.endpoint.instance ?? this.endpoint.name!);
     }
+    // And transfer the component name afterwards to make sure aliases are kept
+    clone.component.name = this.component.name;
+
     clone.needsEndpointDescribed = this.needsEndpointDescribed;
     clone.route = this.route;
     clone.routeStart = this.routeStart;
@@ -489,7 +492,8 @@ export class RoutingInstruction {
    */
   public isIn(searchIn: RoutingInstruction[], deep: boolean): boolean {
     // Get all instructions with matching component.
-    const matching = searchIn.filter(instruction => instruction.sameComponent(this, true) &&
+    const matching = searchIn.filter(instruction => instruction.sameComponent(this) &&
+      InstructionParameters.contains(instruction.typeParameters, this.typeParameters) &&
       (this.endpoint.none || instruction.sameEndpoint(this, false)));
     // If no one matches, it's a failure.
     if (matching.length === 0) {

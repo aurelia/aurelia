@@ -1,5 +1,5 @@
 import Aurelia, { LoggerConfiguration, ConsoleSink, LogLevel, CustomAttribute } from 'aurelia';
-import { RouterConfiguration } from 'jwx-router';
+import { RouterConfiguration } from '@aurelia/router';
 
 import { AppRoot } from './app-root';
 import * as GlobalResources from './_shared/index';

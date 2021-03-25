@@ -2,7 +2,7 @@ import template from './article.html';
 
 import marked from 'marked';
 import { customElement } from 'aurelia';
-import { IRouteableComponent, Parameters } from 'jwx-router';
+import { IRouteableComponent, Parameters } from '@aurelia/router';
 import { IArticleState, IUserState } from '../state';
 import { ArticleMetaCustomElement } from './article-meta';
 import { CommentViewCustomElement } from './comment-view';

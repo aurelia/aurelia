@@ -1,7 +1,7 @@
 import template from './index.html';
 
 import { customElement } from 'aurelia';
-import { IRouter, IRouteableComponent, Parameters, route, RoutingInstruction } from 'jwx-router';
+import { IRouter, IRouteableComponent, Parameters, route, RoutingInstruction } from '@aurelia/router';
 import { IUserState } from '../state';
 import { queue } from '../util';
 

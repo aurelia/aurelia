@@ -1,7 +1,7 @@
 import template from './app-root.html';
 
 import { customElement, ICustomElementViewModel } from 'aurelia';
-// import { routes } from 'jwx-router';
+// import { routes } from '@aurelia/router';
 
 import { ITagsState, IUserState } from './state';
 

@@ -13,16 +13,11 @@
     "outDir": "dist",
     "rootDir": "src",
     "target": "es2018",
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
     "types": [
       "aurelia"
     ]
   },
   "include": [
     "src"
-  ],
-  "files": [
-    "src/resources.d.ts"
   ]
 }

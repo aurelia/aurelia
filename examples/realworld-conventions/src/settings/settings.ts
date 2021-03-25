@@ -1,7 +1,7 @@
 import template from './settings.html';
 
 import { customElement, IPlatform, watch } from 'aurelia';
-import { IRouter, IRouteableComponent } from 'jwx-router';
+import { IRouter, IRouteableComponent } from '@aurelia/router';
 import { AuthHandler, IUserState } from '../state';
 import { User } from '../api';
 import { queue } from '../util';

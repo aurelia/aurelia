@@ -155,7 +155,7 @@ const arrayHandler: ProxyHandler<unknown[]> = {
     return wrap(R$get(target, key, receiver));
   },
   // for (let i in array) ...
-  ownKeys(target: unknown[]): PropertyKey[] {
+  ownKeys(target: unknown[]): ArrayLike<string | symbol> {
     currentConnectable()?.observeProperty(target, 'length');
     return Reflect.ownKeys(target);
   },

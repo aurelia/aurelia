@@ -1,7 +1,7 @@
 import template from './article-list.html';
 
 import { customElement } from 'aurelia';
-import { IRouteableComponent, Parameters, RoutingInstruction } from 'jwx-router';
+import { IRouteableComponent, Parameters, RoutingInstruction } from '@aurelia/router';
 import { ArticleListQueryParams, FeedArticleListQueryParams } from '../api';
 import { IArticleListState } from '../state';
 import { queue } from '../util';

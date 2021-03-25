@@ -1,14 +1,16 @@
-import { IDisposable, IEventAggregator } from '@aurelia/kernel';
+import { IDisposable, IEventAggregator, Key } from '@aurelia/kernel';
 import { customAttribute, INode, bindable, BindingMode, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { RoutingInstruction } from '../instructions/routing-instruction.js';
 import { ILinkHandler } from './link-handler.js';
 import { IRouter, RouterNavigationEndEvent } from '../router.js';
-import { RouterConfiguration } from '../configuration.js';
+import { IRouterConfiguration, RouterConfiguration } from '../configuration.js';
 import { LoadInstruction } from '../interfaces.js';
 import { getConsideredActiveInstructions, getLoadIndicator } from './utils.js';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
+  public static get inject(): Key[] { return [INode, IRouter, ILinkHandler, IEventAggregator, IRouterConfiguration]; }
+
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
@@ -16,13 +18,26 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   private routerNavigationSubscription!: IDisposable;
 
-  private readonly activeClass: string = RouterConfiguration.options.indicators.loadActive;
+  private readonly activeClass: string; // = RouterConfiguration.options.indicators.loadActive;
+
+  // public constructor(
+  //   @INode private readonly element: INode<Element>,
+  //   @IRouter private readonly router: IRouter,
+  //   @ILinkHandler private readonly linkHandler: ILinkHandler,
+  //   @IEventAggregator private readonly ea: IEventAggregator,
+  //   // @IRouterConfiguration private readonly routerConfiguration: IRouterConfiguration,
+  // ) {
+  //   this.activeClass = RouterConfiguration.options.indicators.loadActive;
+  // }
   public constructor(
-    @INode private readonly element: INode<Element>,
-    @IRouter private readonly router: IRouter,
-    @ILinkHandler private readonly linkHandler: ILinkHandler,
-    @IEventAggregator private readonly ea: IEventAggregator,
-  ) { }
+    private readonly element: INode<Element>,
+    private readonly router: IRouter,
+    private readonly linkHandler: ILinkHandler,
+    private readonly ea: IEventAggregator,
+    private readonly routerConfiguration: IRouterConfiguration,
+  ) {
+    this.activeClass = this.routerConfiguration.options.indicators.loadActive;
+  }
 
   public binding(): void {
     this.element.addEventListener('click', this.linkHandler);
@@ -52,22 +67,9 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   }
   private readonly navigationEndHandler = (_navigation: RouterNavigationEndEvent): void => {
     const controller = CustomAttribute.for(this.element, 'load')!.parent!;
-    // const activeInstructions = (this.element.hasAttribute('considered-active')
-    //   ? this.element.getAttribute('considered-active')
-    //   : this.value) as LoadInstruction;
-    // const created = this.router.applyLoadOptions(activeInstructions, { context: controller });
-    // const instructions = RoutingInstruction.from(created.instructions);
-    // for (const instruction of instructions) {
-    //   if (instruction.scope === null) {
-    //     instruction.scope = created.scope;
-    //   }
-    // }
-
-    console.log((CustomAttribute.for(this.element, 'load')?.viewModel as any).value);
-
     const instructions = getConsideredActiveInstructions(this.router, controller, this.element as HTMLElement, this.value);
+    const element = getLoadIndicator(this.element as HTMLElement);
 
-    getLoadIndicator(this.element as HTMLElement).classList.toggle(this.activeClass,
-      this.router.checkActive(instructions, { context: controller }));
+    element.classList.toggle(this.activeClass, this.router.checkActive(instructions, { context: controller }));
   };
 }

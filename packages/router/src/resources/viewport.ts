@@ -247,6 +247,6 @@ export class ViewportCustomElement implements ICustomElementViewModel {
    * @param active - Whether the viewport is active or not
    */
   public setActive(active: boolean): void {
-    this.element.classList.toggle(RouterConfiguration.options.indicators.viewportActive, active);
+    this.element.classList.toggle(this.router.configuration.options.indicators.viewportActive, active);
   }
 }

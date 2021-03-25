@@ -45,7 +45,7 @@ export class LinkHandler implements EventListenerObject {
     const goto = gotoAttr !== void 0 ? (gotoAttr.viewModel as GotoCustomAttribute).value as string : null;
     const loadAttr = CustomAttribute.for(target, 'load');
     const load = loadAttr !== void 0 ? (loadAttr.viewModel as LoadCustomAttribute).value as string : null;
-    const href = RouterConfiguration.options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
+    const href = this.router.configuration.options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
 
     // Ignore empty links
     if ((goto === null || goto.length === 0) && (load === null || load.length === 0) && (href === null || href.length === 0)) {

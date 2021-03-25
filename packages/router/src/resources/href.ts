@@ -17,17 +17,19 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>;
 
   private routerNavigationSubscription?: IDisposable;
-  private readonly activeClass: string = RouterConfiguration.options.indicators.loadActive;
+  private readonly activeClass: string;
 
   public constructor(
     @INode private readonly element: INode<Element>,
     @IRouter private readonly router: IRouter,
     @ILinkHandler private readonly linkHandler: ILinkHandler,
     @IEventAggregator private readonly ea: IEventAggregator,
-  ) { }
+  ) {
+    this.activeClass = this.router.configuration.options.indicators.loadActive;
+  }
 
   public binding(): void {
-    if (RouterConfiguration.options.useHref && !this.hasLoad()) {
+    if (this.router.configuration.options.useHref && !this.hasLoad()) {
       this.element.addEventListener('click', this.linkHandler);
       this.routerNavigationSubscription = this.ea.subscribe(RouterNavigationEndEvent.eventName, this.navigationEndHandler);
     }

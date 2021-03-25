@@ -1,9 +1,8 @@
 import { IDisposable, IEventAggregator } from '@aurelia/kernel';
 import { customAttribute, INode, bindable, BindingMode, ViewModelKind, ICustomAttributeViewModel, ICustomAttributeController, CustomAttribute } from '@aurelia/runtime-html';
 import { IRouter, RouterNavigationEndEvent } from '../router.js';
-import { LoadCustomAttribute, RouterConfiguration } from '../index.js';
+import { LoadCustomAttribute } from '../index.js';
 import { ILinkHandler } from './link-handler.js';
-import { RoutingInstruction } from '../instructions/routing-instruction.js';
 import { getConsideredActiveInstructions, getLoadIndicator } from './utils.js';
 
 @customAttribute({
@@ -50,20 +49,10 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
 
   private readonly navigationEndHandler = (_navigation: RouterNavigationEndEvent): void => {
     const controller = CustomAttribute.for(this.element, 'href')!.parent!;
-    // const created = this.router.applyLoadOptions(this.value as any, { context: controller });
-    // const instructions = RoutingInstruction.from(created.instructions);
-    // for (const instruction of instructions) {
-    //   if (instruction.scope === null) {
-    //     instruction.scope = created.scope;
-    //   }
-    // }
-    // // TODO: Use router configuration for class name and update target
-    // this.element.classList.toggle(this.activeClass,
-    //   this.router.checkActive(instructions, { context: controller }));
     const instructions = getConsideredActiveInstructions(this.router, controller, this.element as HTMLElement, this.value);
+    const element = getLoadIndicator(this.element as HTMLElement);
 
-    getLoadIndicator(this.element as HTMLElement).classList.toggle(this.activeClass,
-      this.router.checkActive(instructions, { context: controller }));
+    element.classList.toggle(this.activeClass, this.router.checkActive(instructions, { context: controller }));
   };
 
   private hasLoad(): boolean {

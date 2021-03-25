@@ -25,7 +25,7 @@ import { NavigationCoordinator } from './navigation-coordinator.js';
 import { Runner, Step } from './utilities/runner.js';
 import { Title } from './title.js';
 import { RoutingHook } from './routing-hook.js';
-import { IRouterConfiguration, RouterConfiguration, ViewportCustomElement } from './index.js';
+import { IRouterConfiguration, ViewportCustomElement } from './index.js';
 
 /**
  * The router is the "main entry point" into routing. Its primary responsibilities are

@@ -11,7 +11,6 @@ import { Runner, Step } from '../utilities/runner.js';
 import { Routes } from '../decorators/routes.js';
 import { Route } from '../route.js';
 import { Endpoint, IConnectedCustomElement } from './endpoint.js';
-import { RouterConfiguration } from '../index.js';
 import { IViewportOptions, ViewportOptions } from './viewport-options.js';
 
 /**
@@ -530,7 +529,7 @@ export class Viewport extends Endpoint {
       () => coordinator.waitForEndpointState(this, 'routed'),
     ];
 
-    const swapOrder = RouterConfiguration.options.swapOrder;
+    const swapOrder = this.router.configuration.options.swapOrder;
     switch (swapOrder) {
       case 'detach-current-attach-next':
         lifecycleSteps.push(
@@ -943,10 +942,10 @@ export class Viewport extends Endpoint {
         const component = this.getComponentInstance();
         title = typeTitle.call(component, component!, navigation);
       }
-    } else if (RouterConfiguration.options.title.useComponentNames) {
+    } else if (this.router.configuration.options.title.useComponentNames) {
       let name = this.getContentInstruction()!.component.name ?? '';
       // TODO(alpha): Allow list of component prefixes
-      const prefix = (RouterConfiguration.options.title.componentPrefix ?? '') as string;
+      const prefix = (this.router.configuration.options.title.componentPrefix ?? '') as string;
       if (name.startsWith(prefix)) {
         name = name.slice(prefix.length);
       }

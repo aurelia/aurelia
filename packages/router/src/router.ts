@@ -1177,7 +1177,7 @@ export class Router implements IRouter {
     navigation.fullStateInstruction = fullViewportStates;
 
     if ((navigation.title ?? null) === null) {
-      const title = await Title.getTitle(this, instructions, navigation);
+      const title = await Title.getTitle(instructions, navigation, this.configuration.options.title);
       if (title !== null) {
         navigation.title = title;
       }

@@ -1,23 +1,20 @@
-import { RouterConfiguration } from './index.js';
+import { TitleOptions } from './router-options';
 import { RoutingInstruction } from './instructions/routing-instruction';
 import { Navigation } from './navigation';
-import { IRouter } from './router';
 import { RoutingHook } from './routing-hook.js';
 
 export class Title {
-  public static async getTitle(router: IRouter, instructions: RoutingInstruction[], navigation: Navigation): Promise<string | null> {
+  public static async getTitle(instructions: RoutingInstruction[], navigation: Navigation, titleOptions: TitleOptions): Promise<string | null> {
     // First invoke with viewport instructions
     let title: string | RoutingInstruction[] = await RoutingHook.invokeTransformTitle(instructions, navigation);
     if (typeof title !== 'string') {
       // Hook didn't return a title, so run title logic
-      const componentTitles = Title.stringifyTitles(title, navigation);
+      const componentTitles = Title.stringifyTitles(title, navigation, titleOptions);
 
-      title = RouterConfiguration.options.title.appTitle;
+      title = titleOptions.appTitle;
       title = title.replace(/\${componentTitles}/g, componentTitles);
       title = title.replace(/\${appTitleSeparator}/g,
-        componentTitles !== ''
-          ? RouterConfiguration.options.title.appTitleSeparator
-          : '');
+        componentTitles !== '' ? titleOptions.appTitleSeparator : '');
     }
     // Invoke again with complete string
     title = await RoutingHook.invokeTransformTitle(title, navigation);
@@ -25,27 +22,27 @@ export class Title {
     return title as string;
   }
 
-  private static stringifyTitles(instructions: RoutingInstruction[], navigation: Navigation): string {
+  private static stringifyTitles(instructions: RoutingInstruction[], navigation: Navigation, titleOptions: TitleOptions): string {
     const titles = instructions
-      .map(instruction => Title.stringifyTitle(instruction, navigation))
+      .map(instruction => Title.stringifyTitle(instruction, navigation, titleOptions))
       .filter(instruction => (instruction?.length ?? 0) > 0);
 
     return titles.join(' + ');
   }
 
-  private static stringifyTitle(instruction: RoutingInstruction, navigation: Navigation): string {
+  private static stringifyTitle(instruction: RoutingInstruction, navigation: Navigation, titleOptions: TitleOptions): string {
     const nextInstructions: RoutingInstruction[] | null = instruction.nextScopeInstructions;
-    let stringified = Title.resolveTitle(instruction, navigation);
+    let stringified = Title.resolveTitle(instruction, navigation, titleOptions);
     if (Array.isArray(nextInstructions) && nextInstructions.length > 0) {
-      let nextStringified: string = Title.stringifyTitles(nextInstructions, navigation);
+      let nextStringified: string = Title.stringifyTitles(nextInstructions, navigation, titleOptions);
       if (nextStringified.length > 0) {
         if (nextInstructions.length !== 1) { // TODO: This should really also check that the instructions have value
           nextStringified = "[ " + nextStringified + " ]";
         }
         if (stringified.length > 0) {
-          stringified = RouterConfiguration.options.title.componentTitleOrder === 'top-down'
-            ? stringified + RouterConfiguration.options.title.componentTitleSeparator + nextStringified
-            : nextStringified + RouterConfiguration.options.title.componentTitleSeparator + stringified;
+          stringified = titleOptions.componentTitleOrder === 'top-down'
+            ? stringified + titleOptions.componentTitleSeparator + nextStringified
+            : nextStringified + titleOptions.componentTitleSeparator + stringified;
         } else {
           stringified = nextStringified;
         }
@@ -54,10 +51,10 @@ export class Title {
     return stringified;
   }
 
-  private static resolveTitle(instruction: RoutingInstruction, navigation: Navigation): string {
+  private static resolveTitle(instruction: RoutingInstruction, navigation: Navigation, titleOptions: TitleOptions): string {
     let title = instruction.getTitle(navigation);
-    if (RouterConfiguration.options.title.transformTitle != null) {
-      title = RouterConfiguration.options.title.transformTitle!(title, instruction, navigation);
+    if (titleOptions.transformTitle != null) {
+      title = titleOptions.transformTitle!(title, instruction, navigation);
     }
     return title;
   }

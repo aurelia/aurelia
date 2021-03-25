@@ -1,4 +1,4 @@
-import { IRouter, RouterConfiguration, IRoute, IRouterTitle, RoutingInstruction, routes, Viewport, InstructionParameters } from '@aurelia/router';
+import { IRouter, RouterConfiguration, IRoute, ITitleOptions, RoutingInstruction, routes, Viewport, InstructionParameters } from '@aurelia/router';
 import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -1664,7 +1664,7 @@ describe('Router', function () {
       }
     });
 
-    const titleConfigs: (IRouterTitle | string)[] = [
+    const titleConfigs: (ITitleOptions | string)[] = [
       `\${componentTitles}\${appTitleSeparator}Aurelia2`,
       { appTitle: `Test\${appTitleSeparator}\${componentTitles}`, appTitleSeparator: ' : ', componentTitleOrder: 'top-down', componentTitleSeparator: ' + ', useComponentNames: true },
       { componentTitleOrder: 'bottom-up', componentTitleSeparator: ' < ', useComponentNames: true, componentPrefix: 'my-' },

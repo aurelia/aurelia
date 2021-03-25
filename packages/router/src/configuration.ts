@@ -11,7 +11,20 @@ import { IRouter } from './router.js';
 import { IRouterOptions, RouterOptions } from './router-options.js';
 import { BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction } from './routing-hook.js';
 
-export const IRouterConfiguration = DI.createInterface<IRouter>('IRouterConfiguration', x => x.singleton(RouterConfiguration));
+// import {
+//   NavCustomElement,
+//   ViewportCustomElement,
+//   ViewportScopeCustomElement,
+//   GotoCustomAttribute,
+//   LoadCustomAttribute,
+//   HrefCustomAttribute,
+//   ConsideredActiveCustomAttribute,
+//   IRouter,
+//   IRouterOptions, RouterOptions,
+//   BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction
+// } from './index.js';
+
+export const IRouterConfiguration = DI.createInterface<IRouterConfiguration>('IRouterConfiguration', x => x.singleton(RouterConfiguration));
 export interface IRouterConfiguration extends RouterConfiguration { }
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
@@ -64,7 +77,7 @@ export const DefaultResources: IRegistry[] = [
  * and the router options API.
  */
 export class RouterConfiguration {
-  public static options = new RouterOptions();
+  public static options = RouterOptions.create();
 
   private static configurationCall: ((router: IRouter) => void) = (router: IRouter) => {
     router.start();
@@ -94,7 +107,7 @@ export class RouterConfiguration {
    */
   public static customize(config?: IRouterOptions | ((router: IRouter) => void)): RouterConfiguration {
     if (config === undefined) {
-      RouterConfiguration.options = new RouterOptions();
+      RouterConfiguration.options = RouterOptions.create();
       RouterConfiguration.configurationCall = (router: IRouter) => {
         router.start();
       };
@@ -115,7 +128,7 @@ export class RouterConfiguration {
    */
   public static apply(options: IRouterOptions, firstResetDefaults: boolean = false): void {
     if (firstResetDefaults) {
-      RouterConfiguration.options = new RouterOptions();
+      RouterConfiguration.options = RouterOptions.create();
     }
     RouterConfiguration.options.apply(options);
   }

@@ -25,7 +25,7 @@ import { NavigationCoordinator } from './navigation-coordinator.js';
 import { Runner, Step } from './utilities/runner.js';
 import { Title } from './title.js';
 import { RoutingHook } from './routing-hook.js';
-import { RouterConfiguration, ViewportCustomElement } from './index.js';
+import { IRouterConfiguration, RouterConfiguration, ViewportCustomElement } from './index.js';
 
 /**
  * The router is the "main entry point" into routing. Its primary responsibilities are
@@ -136,7 +136,8 @@ export const IRouter = DI.createInterface<IRouter>('IRouter', x => x.singleton(R
 export interface IRouter extends Router { }
 
 export class Router implements IRouter {
-  public static readonly inject: readonly Key[] = [IContainer, IEventAggregator, Navigator, BrowserViewerStore, BrowserViewerStore];
+  public static get inject(): Key[] { return [IContainer, IEventAggregator, Navigator, BrowserViewerStore, BrowserViewerStore, IRouterConfiguration]; }
+
   public static readonly closestEndpointKey = Protocol.annotation.keyFor('closest-endpoint');
 
   /**
@@ -212,6 +213,11 @@ export class Router implements IRouter {
      * The store (browser) that stores navigations
      */
     public store: BrowserViewerStore,
+
+    /**
+     * The router configuration
+     */
+    public configuration: IRouterConfiguration,
   ) { }
 
   /**
@@ -225,7 +231,7 @@ export class Router implements IRouter {
    * Whether navigations are restricted/synchronized beyond the minimum.
    */
   public get isRestrictedNavigation(): boolean {
-    const syncStates = RouterConfiguration.options.navigationSyncStates;
+    const syncStates = this.configuration.options.navigationSyncStates;
     return syncStates.includes('guardedLoad') ||
       syncStates.includes('unloaded') ||
       syncStates.includes('loaded') ||
@@ -239,7 +245,7 @@ export class Router implements IRouter {
    * @internal
    */
   public get statefulHistory(): boolean {
-    return RouterConfiguration.options.statefulHistoryLength !== void 0 && RouterConfiguration.options.statefulHistoryLength > 0;
+    return this.configuration.options.statefulHistoryLength !== void 0 && this.configuration.options.statefulHistoryLength > 0;
   }
 
   /**
@@ -258,12 +264,12 @@ export class Router implements IRouter {
     this.navigator.start({
       store: this.store,
       viewer: this.viewer,
-      statefulHistoryLength: RouterConfiguration.options.statefulHistoryLength,
+      statefulHistoryLength: this.configuration.options.statefulHistoryLength,
     });
 
     this.navigatorStateChangeEventSubscription = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
     this.navigatorNavigateEventSubscription = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
-    this.viewer.start({ useUrlFragmentHash: RouterConfiguration.options.useUrlFragmentHash });
+    this.viewer.start({ useUrlFragmentHash: this.configuration.options.useUrlFragmentHash });
 
     this.ea.publish(RouterStartEvent.eventName, RouterStartEvent.create());
   }
@@ -278,7 +284,7 @@ export class Router implements IRouter {
     this.ea.publish(RouterStopEvent.eventName, RouterStopEvent.create());
     this.navigator.stop();
     this.viewer.stop();
-    // RouterConfiguration.apply({}, true); // TODO: Look into removing this
+    // this.configuration.apply({}, true); // TODO: Look into removing this
 
     this.navigatorStateChangeEventSubscription.dispose();
     this.navigatorNavigateEventSubscription.dispose();
@@ -360,7 +366,7 @@ export class Router implements IRouter {
     // Get and initialize a navigation coordinator that will keep track of all endpoint's progresses
     // and make sure they're in sync when they are supposed to be (no `canLoad` before all `canUnload`
     // and so on).
-    const coordinator = NavigationCoordinator.create(this, navigation, { syncStates: RouterConfiguration.options.navigationSyncStates }) as NavigationCoordinator;
+    const coordinator = NavigationCoordinator.create(this, navigation, { syncStates: this.configuration.options.navigationSyncStates }) as NavigationCoordinator;
     this.coordinators.push(coordinator);
 
     // If there are instructions appended between/before any navigation,
@@ -419,7 +425,7 @@ export class Router implements IRouter {
     // that there's an instruction to clear all non-specified viewports in the same scope as
     // the first routing instruction.
     // TODO: There should be a clear all instruction in all the scopes of the top instructions
-    if (!RouterConfiguration.options.additiveInstructionDefault) {
+    if (!this.configuration.options.additiveInstructionDefault) {
       instructions = this.ensureClearStateInstruction(instructions);
     }
 
@@ -998,10 +1004,10 @@ export class Router implements IRouter {
     if (typeof route !== 'string' || route.length === 0) {
       return;
     }
-    if (RouterConfiguration.options.useConfiguredRoutes && RouterConfiguration.options.useDirectRouting) {
+    if (this.configuration.options.useConfiguredRoutes && this.configuration.options.useDirectRouting) {
       // TODO: Add missing/unknown route handling
       throw new Error("No matching configured route or component found for '" + route + "'");
-    } else if (RouterConfiguration.options.useConfiguredRoutes) {
+    } else if (this.configuration.options.useConfiguredRoutes) {
       // TODO: Add missing/unknown route handling
       throw new Error("No matching configured route found for '" + route + "'");
     } else {

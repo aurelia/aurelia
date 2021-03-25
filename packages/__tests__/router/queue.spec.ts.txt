@@ -5,7 +5,7 @@ class Animal {
   public constructor(public type: string, public name: string) { }
 }
 
-describe('Queue', function () {
+describe.skip('Queue', function () {
   it('can be created', function () {
     const q = new Queue<Animal>((animal: QueueItem<Animal>) => { return; });
   });

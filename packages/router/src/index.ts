@@ -1,3 +1,4 @@
+import { ITitleOptions } from './router-options';
 /**
  *
  * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
@@ -11,8 +12,18 @@ export {
 } from './event-manager.js';
 
 export {
+  Endpoint,
+  IConnectedCustomElement,
+  IEndpointOptions,
+} from './endpoints/endpoint.js';
+
+export {
   EndpointContent,
 } from './endpoints/endpoint-content.js';
+
+export {
+  FoundRoute,
+} from './found-route.js';
 
 export {
   // ILinkHandlerOptions,
@@ -29,6 +40,7 @@ export {
 
 export {
   // Navigation,
+  ComponentAppellation,
   IRouteableComponent,
   RouteableComponentType,
   IRoutingInstruction,
@@ -95,7 +107,7 @@ export {
   IConfigurableRoute,
   ConfigurableRoute,
   RecognizedRoute,
-  Endpoint,
+  Endpoint as RecognizerEndpoint,
 } from './route-recognizer.js';
 
 export {
@@ -113,7 +125,7 @@ export {
 
 export {
   IRouterOptions,
-  IRouterTitle,
+  ITitleOptions,
   RouterOptions,
 } from './router-options.js';
 
@@ -127,8 +139,10 @@ export {
   RoutingHookType,
   IRoutingHookDefinition,
   RoutingHookFunction,
+  RoutingHookIdentity,
   RoutingHookParameter,
   RoutingHookResult,
+  IRoutingHookOptions,
   RoutingHookTarget,
   BeforeNavigationHookFunction,
   TransformFromUrlHookFunction,
@@ -151,6 +165,7 @@ export {
 
 export {
   IViewportOptions,
+  ViewportOptions,
 } from './endpoints/viewport-options.js';
 
 export {
@@ -163,21 +178,34 @@ export {
 } from './endpoints/viewport-content.js';
 
 export {
-  IRouterConfiguration,
+  ViewportScopeContent,
+} from './endpoints/viewport-scope-content.js';
+
+export {
   RouterConfiguration,
+  IRouterConfiguration,
   RouterRegistration,
   DefaultComponents,
   DefaultResources,
-  ViewportCustomElement,
+  // ViewportCustomElement,
   ViewportCustomElementRegistration,
-  ViewportScopeCustomElement,
+  // ViewportScopeCustomElement,
   ViewportScopeCustomElementRegistration,
-  NavCustomElement,
+  // NavCustomElement,
   NavCustomElementRegistration,
-  GotoCustomAttribute,
+  // GotoCustomAttribute,
   GotoCustomAttributeRegistration,
-  LoadCustomAttribute,
+  // LoadCustomAttribute,
   LoadCustomAttributeRegistration,
-  HrefCustomAttribute,
+  // HrefCustomAttribute,
   HrefCustomAttributeRegistration,
 } from './configuration.js';
+
+export { NavCustomElement } from './resources/nav.js';
+export { ViewportCustomElement } from './resources/viewport.js';
+export { ViewportScopeCustomElement } from './resources/viewport-scope.js';
+export { GotoCustomAttribute } from './resources/goto.js';
+export { LoadCustomAttribute } from './resources/load.js';
+export { HrefCustomAttribute } from './resources/href.js';
+export { ConsideredActiveCustomAttribute } from './resources/considered-active.js';
+

@@ -11,59 +11,6 @@ import { Navigation } from './navigation.js';
  */
 export type SwapOrder = 'attach-next-detach-current' | 'attach-detach-simultaneously' | 'detach-current-attach-next' | 'detach-attach-simultaneously';
 
-/**
- * The router's title configuration
- */
-// export interface IRouterTitle extends Partial<ITitleOptions> { }
-
-// /**
-//  * The router's title configuration
-//  */
-// export interface ITitleOptions {
-//   /**
-//    * The full application title. Can use placeholders `${componentTitles}`
-//    * and `${appTitleSeparator} for joined component titles and a separator
-//    * between the component titles and the application name.
-//    * Default: '${componentTitles}\${appTitleSeparator}Aurelia'
-//    */
-//   appTitle: string;
-
-//   /**
-//    * The separator between the joined component titles and application name.
-//    * Default: ' | '
-//    */
-//   appTitleSeparator: string;
-
-//   /**
-//    * In what order component titles are joined into `${componentTitles}`.
-//    * Default: 'top-down'
-//    */
-//   componentTitleOrder: 'top-down' | 'bottom-up';
-
-//   /**
-//    * The separator between the component titles. Default: ' > '
-//    */
-//   componentTitleSeparator: string;
-
-//   /**
-//    * Whether components' names should be used sa titles for components
-//    * that doesn't specify a title. Default: true
-//    */
-//   useComponentNames: boolean;
-
-//   /**
-//    * Prefixes that are removed from components' names before they are
-//    * used as titles. Default: 'app-'
-//    */
-//   componentPrefix: string | string[];
-
-//   /**
-//    * Function that is called for each component/route title. The
-//    * returned value is used instead as title. Default: undefined
-//    */
-//   transformTitle?: (title: string, instruction: RoutingInstruction, navigation: Navigation) => string;
-// }
-
 export interface ITitleOptions extends Partial<TitleOptions> { }
 
 /**
@@ -396,33 +343,6 @@ export class RouterOptions implements INavigatorOptions {
    * @param options - The options to apply
    */
   public apply(options: IRouterOptions): void {
-    // options = options ?? {};
-    // const titleOptions = {
-    //   ...RouterConfiguration.options.title,
-    //   ...(typeof options.title === 'string' ? { appTitle: options.title } : options.title),
-    // };
-    // options.title = titleOptions;
-
-    // // RouterConfiguration.options.separators.apply(options.separators);
-    // const separatorOptions: ISeparators = {
-    //   ...RouterConfiguration.options.separators,
-    //   ...(options as IRouterOptions & { separators: ISeparators }).separators ?? {},
-    // };
-    // (options as IRouterOptions & { separators: ISeparators }).separators = separatorOptions;
-
-    // const indicatorOptions: IIndicators = {
-    //   ...RouterConfiguration.options.indicators,
-    //   ...(options as IRouterOptions & { indicators: IIndicators }).indicators ?? {},
-    // };
-    // (options as IRouterOptions & { indicators: IIndicators }).indicators = indicatorOptions;
-
-    // if (Array.isArray(options.hooks)) {
-    //   options.hooks.forEach(hook => RouterConfiguration.addHook(hook.hook, hook.options));
-    //   delete options['hooks'];
-    // }
-
-    // Object.assign(this, options);
-
     options = options ?? {};
     this.separators.apply(options.separators);
     this.indicators.apply(options.indicators);
@@ -436,7 +356,7 @@ export class RouterOptions implements INavigatorOptions {
     this.navigationSyncStates = options.navigationSyncStates ?? this.navigationSyncStates;
     this.swapOrder = options.swapOrder ?? this.swapOrder;
 
-    // TODO: Fix and apply RoutingHooks!
+    // TODO: Fix RoutingHooks!
     if (Array.isArray(options.hooks)) {
       options.hooks.forEach(hook => RouterConfiguration.addHook(hook.hook, hook.options));
     }

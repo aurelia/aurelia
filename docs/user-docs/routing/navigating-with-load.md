@@ -73,7 +73,7 @@ export class MyComponent {
     }
 
     async viewProduct() {
-        await this.router.load({ component: Product, parameters: { id: '12' } });
+        await this.router.load({ component: Product, params: { id: '12' } });
     }
 }
 ```
@@ -91,7 +91,7 @@ export class MyComponent {
     }
 
     async viewProduct() {
-        await this.router.load({ component: 'product', parameters: { id: '12' }, viewport: 'main' });
+        await this.router.load({ component: 'product', params: { id: '12' }, viewport: 'main' });
     }
 }
 ```

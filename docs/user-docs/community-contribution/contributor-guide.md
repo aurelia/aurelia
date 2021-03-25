@@ -41,7 +41,7 @@ Check out [building and testing Aurelia](building-and-testing-aurelia.md) to get
 
 ### Submitting an Issue
 
-Before you submit your issue, search the archive. It may be that it was already addressed. If your issue appears to be a bug, and hasn't been reported, open a new issue. Help us to maximize the effort we can spend fixing issues and adding new features by not reporting duplicate issues. Please provide all the information requested in the issue template. This will increase the chances of your issue being dealt with quickly.
+Before you submit your issue, search the archive. It may be that it was already addressed. If your issue appears to be a bug and hasn't been reported, open a new issue. Help us to maximize the effort we can spend fixing issues and adding new features by not reporting duplicate issues. Please provide all the information requested in the issue template. This will increase the chances of your issue being dealt with quickly.
 
 ### Submitting a Pull Request
 
@@ -133,7 +133,7 @@ To ensure consistency throughout the source code, keep these rules in mind as yo
 
 ## Git Commit Guidelines
 
-We have very precise rules over how our git commit messages can be formatted. This leads to **more readable messages** that are easy to follow when looking through the **project history**. But also, we use the git commit messages to **generate the change log**.
+We have very precise rules over how our git commit messages can be formatted. This leads to **more readable messages** that are easy to follow when looking through the **project history**. But also, we use the git commit messages to **generate the changelog**.
 
 ### Commit Message Format
 
@@ -147,7 +147,7 @@ Each commit message consists of a **header**, a **body** and a **footer**. The h
 <footer>
 ```
 
-The subject line of the commit message cannot be longer 100 characters. This allows the message to be easier to read on GitHub as well as in various git tools.
+The subject line of the commit message cannot be longer than 100 characters. This allows the message to be easier to read on GitHub as well as in various git tools.
 
 #### Type
 
@@ -182,11 +182,7 @@ The body should include the motivation for the change and contrast this with pre
 
 The footer should contain any information about **Breaking Changes** and is also the place to reference GitHub issues that this commit **Closes**.
 
-## Signing the CLA
-
-Please sign our Contributor License Agreement \(CLA\) as part of the pull request process. You will see GitHub prompt you in the "checks" section of the PR after you have made your submission. For any code changes to be accepted, the CLA must be signed. It's a quick process, we promise! You can view the CLA in advance [here](https://gist.github.com/EisenbergEffect/fda70f8bf335118dd4fb84ee6d49e64a).
-
 ## Joining the Core Team
 
-[The Aurelia Core Team](https://github.com/orgs/aurelia/people) is made up of select community members who are committed to maintaining and evolving Aurelia over the long-term. The team may grow or shrink depending on project needs, member availability, and other factors. Core team members are typically long-time Aurelia community members who have shown enthusiasm while taking initiative to improve Aurelia in various ways, including fixing bugs, implementing features, writing documentation/books/blogs, triaging issues, and more. Each member has shown a consistency of quality and cadence in their contributions. If you are interested in joining the core team, please reach out to aurelia-team@bluespire.com. We'd be happy to discuss opportunities with you.
+[The Aurelia Core Team](https://github.com/orgs/aurelia/people) is made up of select community members who are committed to maintaining and evolving Aurelia over the long-term. The team may grow or shrink depending on project needs, member availability, and other factors. Core team members are typically long-time Aurelia community members who have shown enthusiasm while taking the initiative to improve Aurelia in various ways, including fixing bugs, implementing features, writing documentation/books/blogs, triaging issues, and more. Each member has shown a consistency of quality and cadence in their contributions. If you are interested in joining the core team, please reach out to aurelia-team@bluespire.com. We'd be happy to discuss opportunities with you.
 

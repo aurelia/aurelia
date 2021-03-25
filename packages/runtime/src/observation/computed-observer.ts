@@ -7,6 +7,7 @@ import { enterConnectable, exitConnectable } from './connectable-switcher.js';
 import { connectable } from '../binding/connectable.js';
 import { wrap, unwrap } from './proxy-observation.js';
 import { def } from '../utilities-objects.js';
+import { withFlushQueue } from './flush-queue.js';
 
 import type {
   ISubscriber,
@@ -16,10 +17,17 @@ import type {
 } from '../observation.js';
 import type { IConnectableBinding } from '../binding/connectable.js';
 import type { IObserverLocator, ObservableGetter } from './observer-locator.js';
+import type { FlushQueue, IFlushable, IWithFlushQueue } from './flush-queue.js';
 
 export interface ComputedObserver extends IConnectableBinding, ISubscriberCollection { }
 
-export class ComputedObserver implements IConnectableBinding, ISubscriber, ICollectionSubscriber, ISubscriberCollection {
+export class ComputedObserver implements
+  IConnectableBinding,
+  ISubscriber,
+  ICollectionSubscriber,
+  ISubscriberCollection,
+  IWithFlushQueue,
+  IFlushable {
   public static create(
     obj: object,
     key: PropertyKey,
@@ -45,8 +53,12 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
   }
 
   public interceptor = this;
+
   public type: AccessorType = AccessorType.Observer;
+  public readonly queue!: FlushQueue;
+
   public value: unknown = void 0;
+  private oldValue: unknown = void 0;
 
   // todo: maybe use a counter allow recursive call to a certain level
   /**
@@ -123,6 +135,12 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     }
   }
 
+  public flush(): void {
+    oV = this.oldValue;
+    this.oldValue = this.value;
+    this.subs.notify(this.value, oV, LifecycleFlags.none);
+  }
+
   private run(): void {
     if (this.running) {
       return;
@@ -133,8 +151,8 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     this.isDirty = false;
 
     if (!Object.is(newValue, oldValue)) {
-      // should optionally queue
-      this.subs.notify(newValue, oldValue, LifecycleFlags.none);
+      this.oldValue = oldValue;
+      this.queue.add(this);
     }
   }
 
@@ -154,3 +172,8 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
 
 connectable(ComputedObserver);
 subscriberCollection(ComputedObserver);
+withFlushQueue(ComputedObserver);
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

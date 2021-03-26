@@ -1,7 +1,7 @@
 import template from './home.html';
 
 import { customElement } from 'aurelia';
-import { IRouteableComponent, IRouterConfiguration } from '@aurelia/router';
+import { IRouteableComponent } from '@aurelia/router';
 import { IArticleListState, ITagsState, IUserState } from '../state';
 import { Article, ArticleListQueryParams } from '../api';
 
@@ -16,11 +16,9 @@ export class Home implements IRouteableComponent {
     @IArticleListState readonly $articleList: IArticleListState,
     @ITagsState readonly $tags: ITagsState,
     @IUserState readonly $user: IUserState,
-    @IRouterConfiguration readonly routerConfiuration: IRouterConfiguration,
   ) { }
 
   load() {
-    console.log(this.routerConfiuration);
     if (this.$articleList.params instanceof ArticleListQueryParams) {
       this.$articleList.params.author = undefined;
       this.$articleList.params.favorited = undefined;

@@ -1,16 +1,23 @@
-import { IContainer, onResolve, resolveAll } from '@aurelia/kernel';
+import { IContainer, onResolve, Registration, resolveAll } from '@aurelia/kernel';
 
-import { IDialogController, IDialogOpenResult, IGlobalDialogSettings, LoadedDialogSettings } from './dialog-interfaces.js';
+import { 
+  IDialogService,
+  DialogDeactivationStatuses,
+  IDialogClosedResult,
+  IDialogController,
+  IDialogOpenResult,
+  IGlobalDialogSettings,
+  LoadedDialogSettings,
+  IDialogCancelError,
+} from './dialog-interfaces.js';
 import { createDialogCancelError } from './dialog-utilities.js';
 import { ActivationResult, DialogController } from './dialog-controller.js';
 
 import type {
-  IDialogCancellableOpenResult,
-  IDialogCloseResult,
   IDialogOpenPromise,
-  IDialogService,
   IDialogSettings,
 } from './dialog-interfaces.js';
+import { AppTask } from '../../app-task.js';
 
 /**
  * A default implementation for the dialog service allowing for the creation of dialogs.
@@ -18,13 +25,16 @@ import type {
 export class DialogService implements IDialogService {
   /**
    * The current dialog controllers
+   * @internal
    */
-  public controllers: IDialogController[] = [];
+  private readonly controllers: Set<IDialogController> = new Set();
 
   /**
    * Is there an open dialog
    */
-  public hasOpenDialog: boolean = false;
+  public get hasOpenDialog(): boolean {
+    return this.controllers.size > 0;
+  }
 
   // tslint:disable-next-line:member-ordering
   protected static get inject() { return [IContainer, IGlobalDialogSettings]; }
@@ -33,6 +43,21 @@ export class DialogService implements IDialogService {
     private readonly container: IContainer,
     private readonly defaultSettings: IGlobalDialogSettings,
   ) {}
+  
+  public static register(container: IContainer) {
+    container.register(
+      Registration.singleton(IDialogService, this),
+      AppTask.with(IDialogService).beforeDeactivate().call(dialogService => onResolve(
+        dialogService.closeAll(),
+        (openDialogController) => {
+          if (openDialogController.length > 0) {
+            // todo: what to do?
+            throw new Error(`There are still ${openDialogController.length} open dialogs.`);
+          }
+        }
+      ))
+    );
+  }
 
   /**
    * Opens a new dialog.
@@ -50,24 +75,22 @@ dialogService.open({ viewModel: () => MyDialog, view: <my-template /> })
 dialogService.open({ viewModel: () => import('...'), view: () => fetch('my.server/dialog-view.html') })
 ```
    */
-  public open(settings: IDialogSettings & { rejectOnCancel: true }): IDialogOpenPromise<IDialogOpenResult>;
-  public open(settings?: IDialogSettings): IDialogOpenPromise<IDialogCancellableOpenResult>;
-  public open(settings: IDialogSettings = {}): IDialogOpenPromise<IDialogCancellableOpenResult> {
-    let resolveCloseResult: any;
-    let rejectCloseResult: any;
-
+  public open(settings: IDialogSettings = {}): IDialogOpenPromise {
     const $settings = DialogSettings.from(this.defaultSettings, settings);
     const container = $settings.container ?? this.container;
-    const closeResult: Promise<IDialogCloseResult> = new Promise((resolve, reject) => {
-      resolveCloseResult = resolve;
-      rejectCloseResult = reject;
-    });
 
-    return asDialogOpenPromise(new Promise((resolve, reject) => onResolve(
+    return asDialogOpenPromise(new Promise<IDialogOpenResult>((resolve, reject) => onResolve(
       $settings.load(),
       loadedSettings => {
-        const dialogController = container.invoke(DialogController, [loadedSettings, resolveCloseResult, rejectCloseResult]);
-        const $removeController = () => { removeController(this, dialogController); };
+        let resolveCloseResult: (v: IDialogClosedResult) => unknown;
+        let rejectCloseResult: (err: unknown) => unknown;
+
+        const closeResult: Promise<IDialogClosedResult> = new Promise((resolve, reject) => {
+          resolveCloseResult = resolve;
+          rejectCloseResult = reject;
+        });
+        const dialogController = container.invoke(DialogController, [loadedSettings, resolveCloseResult!, rejectCloseResult!]);
+        const $removeController = () => this.remove(dialogController);
 
         closeResult.then($removeController, $removeController);
 
@@ -76,15 +99,12 @@ dialogService.open({ viewModel: () => import('...'), view: () => fetch('my.serve
           activationResult => {
             switch (activationResult) {
               case ActivationResult.cancelled:
-                return resolve({ wasCancelled: true });
+                return resolve(DialogOpenResult.create(true, dialogController, closeResult));
               case ActivationResult.error:
                 return reject(createDialogCancelError());
             }
-            return resolve({
-              controller: dialogController,
-              closeResult,
-              wasCancelled: false,
-            });
+            this.controllers.add(dialogController);
+            return resolve(DialogOpenResult.create(false, dialogController, closeResult));
           }
         );
       }
@@ -97,36 +117,27 @@ dialogService.open({ viewModel: () => import('...'), view: () => fetch('my.serve
    */
   public closeAll(): Promise<IDialogController[]> {
     return Promise
-      .all(this
-        .controllers
-        .slice(0)
+      .all(Array.from(this.controllers)
         .map(controller => {
-          if (!controller.settings.rejectOnCancel) {
-            return controller
-              .cancel()
-              .then(result => {
-                if (result.wasCancelled) {
-                  return controller;
-                }
-                return null;
-              });
+          if (controller.settings.rejectOnCancel) {
+            // this will throw when calling cancel
+            // so only leave return null as noop
+            return controller.cancel().then(() => null);
           }
-          return controller
-            .cancel()
-            .then(
-              () => null,
-              (reason) => {
-                if (reason.wasCancelled) {
-                  return controller;
-                }
-                throw reason;
-              }
-            );
+          return controller.cancel().then(result =>
+            result.status === DialogDeactivationStatuses.Cancel
+              ? null
+              : controller
+          );
         })
       )
       .then(unclosedControllers =>
         unclosedControllers.filter(unclosed => !!unclosed) as IDialogController[]
       );
+  }
+
+  private remove(controller: DialogController): void {
+    this.controllers.delete(controller);
   }
 }
 
@@ -141,37 +152,24 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
   }
 
   public load(): LoadedDialogSettings | Promise<LoadedDialogSettings> {
-    const vm = this.viewModel;
+    const loaded = this as LoadedDialogSettings;
+    const cmp = this.component;
     const template = this.template;
-    let promises: Promise<void>[] | undefined;
-    let maybePromise: Promise<void> | unknown;
-    if (typeof vm === 'function') {
-      maybePromise = onResolve(
-        vm(),
-        loadedVm => { (this as LoadedDialogSettings).viewModel = loadedVm; },
-      );
-      if (maybePromise instanceof Promise) {
-        ((promises = []) as Promise<void>[]).push(maybePromise);
-      }
-    }
-    if (typeof template === 'function') {
-      maybePromise = onResolve(
-        template(),
-        loadedTemplate => { this.template = loadedTemplate; },
-      )
-      if (maybePromise instanceof Promise) {
-        (promises ??= []).push(maybePromise);
-      }
-    }
-    maybePromise = resolveAll(...promises!);
-    if (maybePromise instanceof Promise) {
-      return maybePromise.then(() => this as LoadedDialogSettings);
-    }
-    return this as LoadedDialogSettings;
+    const maybePromise = resolveAll(...[
+      typeof cmp === 'function'
+        ? onResolve(cmp(), loadedCmp => { loaded.component = loadedCmp; })
+        : void 0,
+      typeof template === 'function'
+        ? onResolve(template(), loadedTpl => { loaded.template = loadedTpl; })
+        : void 0
+    ]);
+    return maybePromise instanceof Promise
+      ? maybePromise.then(() => loaded)
+      : loaded;
   }
 
   private validate(): this {
-    if (!this.viewModel && !this.template) {
+    if (!this.component && !this.template) {
       throw new Error('Invalid Dialog Settings. You must provide "viewModel", "view" or both.');
     }
     return this;
@@ -188,28 +186,32 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
   }
 }
 
-function removeController(service: DialogService, dialogController: IDialogController): void {
-  const i = service.controllers.indexOf(dialogController);
-  if (i !== -1) {
-    service.controllers.splice(i, 1);
-    service.hasOpenDialog = !!service.controllers.length;
-  }
-}
-
 function whenClosed<TResult1 = unknown, TResult2 = unknown>(
-  this: Promise<IDialogCancellableOpenResult>,
-  onfulfilled?: (r: IDialogCloseResult) => TResult1 | PromiseLike<TResult1>,
+  this: Promise<IDialogOpenResult>,
+  onfulfilled?: (r: IDialogClosedResult) => TResult1 | PromiseLike<TResult1>,
   onrejected?: (err: unknown) => TResult2 | PromiseLike<TResult2>
 ): Promise<TResult1 | TResult2> {
   return this
-    .then(r => r.wasCancelled
-      ? r
-      // TODO: why is TS not able to infer the type
-      : r.closeResult
-    )
+    .then(or => or.closeResult)
     .then(onfulfilled, onrejected);
 }
-function asDialogOpenPromise<T extends IDialogCancellableOpenResult>(promise: Promise<T>): IDialogOpenPromise<T> {
-  (promise as IDialogOpenPromise<T>).whenClosed = whenClosed;
-  return promise as IDialogOpenPromise<T>;
+function asDialogOpenPromise(promise: Promise<unknown>): IDialogOpenPromise {
+  (promise as IDialogOpenPromise).whenClosed = whenClosed;
+  return promise as IDialogOpenPromise;
+}
+
+class DialogOpenResult implements IDialogOpenResult {
+  protected constructor(
+    public readonly wasCancelled: boolean,
+    public readonly controller: IDialogController,
+    public readonly closeResult: Promise<IDialogClosedResult<DialogDeactivationStatuses, unknown>>,
+  ) {}
+
+  public static create(
+    wasCancelled: boolean,
+    controller: IDialogController,
+    closeResult: Promise<IDialogClosedResult<DialogDeactivationStatuses, unknown>>,
+  ) {
+    return new DialogOpenResult(wasCancelled, controller, closeResult);
+  }
 }

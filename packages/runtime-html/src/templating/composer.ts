@@ -5,21 +5,21 @@ import {
   InstanceProvider,
 } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
-import { INode } from '../dom';
-import { IPlatform } from '../platform';
-import { getRenderContext } from './render-context';
-import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
-import type { ISyntheticView } from './controller';
+import { INode } from '../dom.js';
+import { IPlatform } from '../platform.js';
+import { getRenderContext } from './render-context.js';
+import { CustomElement, CustomElementDefinition } from '../resources/custom-element.js';
+import type { ISyntheticView } from './controller.js';
 
 export interface ICompositionContext<T extends object> {
   container?: IContainer;
-  viewModel?: T | Constructable<T>;
+  component?: T | Constructable<T>;
   template?: string | Element;
   host: Element;
 }
 
 export interface IViewModelCompositionContext<T extends object> extends ICompositionContext<T> {
-  viewModel: Constructable<T>;
+  component: Constructable<T>;
 }
 
 export interface ITemplateBasedCompositionContext extends ICompositionContext<object> {
@@ -43,20 +43,29 @@ export class Composer implements IComposer {
   ) { }
 
   public compose<T extends object>(options: ICompositionContext<T>): ISyntheticView {
-    const viewModel = options.viewModel;
+    const component = options.component;
+    // do not use cached definition,
+    // it's cached per context
     const def = CustomElementDefinition.create(
-      CustomElement.isType(viewModel)
-        ? CustomElement.getDefinition(viewModel)
-        : { name: CustomElement.generateName(), template: options.template }
+      this.getDefinition(component) ?? { name: CustomElement.generateName(), template: options.template }
     );
     const container = options.container ?? this.container;
-    const instance = this.ensureViewModel(container, options.viewModel ?? new EmtpyViewModel() as T, options.host);
+    const instance = this.ensureViewModel(container, options.component ?? new EmtpyViewModel() as T, options.host);
 
     const controller = getRenderContext(def, container).getViewFactory().create();
     controller.lockScope(Scope.create(instance, null, true));
-    controller.setLocation(options.host);
+    controller.setHost(options.host);
 
     return controller;
+  }
+
+  private getDefinition(component?: object | Constructable) {
+    const Ctor = (typeof component === 'function'
+      ? component
+      : component?.constructor) as Constructable;
+    return CustomElement.isType(Ctor)
+      ? CustomElement.getDefinition(Ctor)
+      : null;
   }
 
   private ensureViewModel<T extends object>(container: IContainer, objectOrCtor: T | Constructable<T>, host: Element): T {

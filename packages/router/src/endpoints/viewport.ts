@@ -258,7 +258,7 @@ export class Viewport extends Endpoint {
    */
   public setNextContent(instruction: RoutingInstruction, navigation: Navigation): TransitionAction {
     instruction.endpoint.set(this);
-    this.clear = instruction.isClear;
+    this.clear = instruction.isClear(this.router);
 
     const content = this.contents[this.contents.length - 1];
     // Can have a (resolved) type or a string (to be resolved later)

@@ -112,8 +112,8 @@ export class ViewportScope extends Endpoint {
   public setNextContent(instruction: RoutingInstruction, navigation: Navigation): TransitionAction {
     instruction.endpoint.set(this);
 
-    this.remove = instruction.isClear || instruction.isClearAll;
-    this.add = instruction.isAdd && Array.isArray(this.source);
+    this.remove = instruction.isClear(this.router) || instruction.isClearAll(this.router);
+    this.add = instruction.isAdd(this.router) && Array.isArray(this.source);
 
     if (this.add) {
       instruction.component.name = null;
@@ -189,8 +189,8 @@ export class ViewportScope extends Endpoint {
     if (segment === null && segment === void 0 || segment.length === 0) {
       return true;
     }
-    if (segment === RoutingInstruction.clear()
-      || segment === RoutingInstruction.add()
+    if (segment === RoutingInstruction.clear(this.router)
+      || segment === RoutingInstruction.add(this.router)
       || segment === this.name) {
       return true;
     }

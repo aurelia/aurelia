@@ -98,7 +98,7 @@ export class NavRoute {
   }
 
   private computeLink(instructions: RoutingInstruction[]): string {
-    return RoutingInstruction.stringify(instructions);
+    return RoutingInstruction.stringify(this.nav.router, instructions);
   }
 
   private activeChild(): boolean {

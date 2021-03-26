@@ -436,7 +436,7 @@ export class Router implements IRouter {
     ({ clearEndpoints, instructions } = this.getClearAllEndpoints(instructions));
 
     // Make sure "add all" instructions have the correct name and scope
-    for (const addInstruction of instructions.filter(instr => instr.isAddAll)) {
+    for (const addInstruction of instructions.filter(instr => instr.isAddAll(this))) {
       addInstruction.endpoint.set(addInstruction.scope!.endpoint.name);
       addInstruction.scope = addInstruction.scope!.owningScope!;
     }
@@ -471,7 +471,7 @@ export class Router implements IRouter {
       // any of those scopes that aren't already in an instruction.
       matchedInstructions.push(...clearEndpoints
         .filter(endpoint => matchedScopes.includes(endpoint.owningScope) && !matchedEndpoints.includes(endpoint))
-        .map(endpoint => RoutingInstruction.createClear(endpoint)));
+        .map(endpoint => RoutingInstruction.createClear(this, endpoint)));
 
       // TODO: Review whether this await poses a problem (it's currently necessary for new viewports to load)
       const hooked = await RoutingHook.invokeBeforeNavigation(matchedInstructions, navigation);
@@ -512,14 +512,14 @@ export class Router implements IRouter {
           arrayRemove(clearEndpoints, clear => dontClear.includes(clear));
           // ...as well as already matched clear instructions (but not itself).
           arrayRemove(matchedInstructions, matched => matched !== matchedInstruction
-            && matched.isClear && dontClear.includes(matched.endpoint.instance!));
+            && matched.isClear(this) && dontClear.includes(matched.endpoint.instance!));
           // And also exclude the routing instruction's parent viewport scope...
-          if (!matchedInstruction.isClear && matchedInstruction.scope?.parent?.isViewportScope) {
+          if (!matchedInstruction.isClear(this) && matchedInstruction.scope?.parent?.isViewportScope) {
             // ...from clears...
             arrayRemove(clearEndpoints, clear => clear === matchedInstruction.scope!.parent!.endpoint);
             // ...and already matched clears.
             arrayRemove(matchedInstructions, matched => matched !== matchedInstruction
-              && matched.isClear && matched.endpoint.instance === matchedInstruction.scope!.parent!.endpoint);
+              && matched.isClear(this) && matched.endpoint.instance === matchedInstruction.scope!.parent!.endpoint);
           }
           // If the endpoint has been changed/swapped the next scope instructions
           // need to be moved into the new endpoint content scope
@@ -677,7 +677,7 @@ export class Router implements IRouter {
             coordinator.dequeueAppendedInstructions(matchedInstructions, earlierMatchedInstructions, remainingInstructions));
         } else {
           // ...or create the (remaining) implicit clear instructions (if any).
-          matchedInstructions = clearEndpoints.map(endpoint => RoutingInstruction.createClear(endpoint));
+          matchedInstructions = clearEndpoints.map(endpoint => RoutingInstruction.createClear(this, endpoint));
         }
       }
     } while (matchedInstructions.length > 0 || remainingInstructions.length > 0);
@@ -1023,8 +1023,8 @@ export class Router implements IRouter {
   private ensureClearStateInstruction(instructions: RoutingInstruction[]): RoutingInstruction[] {
     if (instructions.length > 0) {
       const instruction = instructions[0];
-      if (!instruction.isAddAll && !instruction.isClearAll) {
-        const clearAll = RoutingInstruction.create(RoutingInstruction.clear()) as RoutingInstruction;
+      if (!instruction.isAddAll(this) && !instruction.isClearAll(this)) {
+        const clearAll = RoutingInstruction.create(RoutingInstruction.clear(this)) as RoutingInstruction;
         clearAll.scope = instruction.scope;
         return [clearAll, ...instructions];
       }
@@ -1041,7 +1041,7 @@ export class Router implements IRouter {
   private getClearAllEndpoints(instructions: RoutingInstruction[]): { clearEndpoints: Endpoint[]; instructions: RoutingInstruction[] } {
     let clearEndpoints: Endpoint[] = [];
     // For each clear all routing instruction...
-    for (const clearInstruction of instructions.filter(instruction => instruction.isClearAll)) {
+    for (const clearInstruction of instructions.filter(instruction => instruction.isClearAll(this))) {
       // ... get the routing scope...
       const clearScope = clearInstruction.scope!;
       // ...and mark all endpoints in the scope to be cleared unless it's specified for something
@@ -1051,7 +1051,7 @@ export class Router implements IRouter {
         .map(scope => scope.endpoint);
     }
     // Remove the clear all instructions
-    return { clearEndpoints, instructions: instructions.filter(instruction => !instruction.isClearAll) };
+    return { clearEndpoints, instructions: instructions.filter(instruction => !instruction.isClearAll(this)) };
   }
 
   /**
@@ -1150,7 +1150,7 @@ export class Router implements IRouter {
     let state = await RoutingHook.invokeTransformToUrl(instructions, navigation);
     if (typeof state !== 'string') {
       // Convert to string if necessary
-      state = RoutingInstruction.stringify(state, false, true);
+      state = RoutingInstruction.stringify(this, state, false, true);
     }
     // Invoke again with string
     state = await RoutingHook.invokeTransformToUrl(state, navigation);
@@ -1174,7 +1174,7 @@ export class Router implements IRouter {
     navigation.path = state + query;
     // }
 
-    const fullViewportStates = [RoutingInstruction.create(RoutingInstruction.clear()) as RoutingInstruction];
+    const fullViewportStates = [RoutingInstruction.create(RoutingInstruction.clear(this)) as RoutingInstruction];
     fullViewportStates.push(...RoutingInstruction.clone(instructions, this.statefulHistory));
     navigation.fullStateInstruction = fullViewportStates;
 

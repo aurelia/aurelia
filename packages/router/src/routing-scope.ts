@@ -236,7 +236,7 @@ export class RoutingScope {
             route.instructions = instructions;
             if (route.instructions.length > 0) {
               const nextInstructions = route.instructions[0].nextScopeInstructions ?? [];
-              route.remaining = RoutingInstruction.stringify(nextInstructions);
+              route.remaining = RoutingInstruction.stringify(this.router, nextInstructions);
               // TODO: Verify that it's okay to leave this in
               route.instructions[0].nextScopeInstructions = null;
             }

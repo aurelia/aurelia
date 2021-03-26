@@ -48,7 +48,7 @@ describe('RoutingInstruction', function () {
       RoutingInstruction.create('foo', 'left', '123') as RoutingInstruction,
       RoutingInstruction.create('bar', 'right', '456') as RoutingInstruction,
     ];
-    let instructionsString = RoutingInstruction.stringify(instructions);
+    let instructionsString = RoutingInstruction.stringify(router, instructions);
     assert.strictEqual(instructionsString, 'foo(123)@left+bar(456)@right', `instructionsString`);
     let newInstructions = RoutingInstruction.parse(instructionsString);
     assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
@@ -58,7 +58,7 @@ describe('RoutingInstruction', function () {
       RoutingInstruction.create('bar', 'right') as RoutingInstruction,
       RoutingInstruction.create('baz') as RoutingInstruction,
     ];
-    instructionsString = RoutingInstruction.stringify(instructions);
+    instructionsString = RoutingInstruction.stringify(router, instructions);
     assert.strictEqual(instructionsString, 'foo(123)+bar@right+baz', `instructionsString`);
     newInstructions = RoutingInstruction.parse(instructionsString);
     assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
@@ -95,7 +95,7 @@ describe('RoutingInstruction', function () {
         routingInstruction.scopeModifier = '';
         const parsed = RoutingInstruction.parse(instruction)[0];
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
-        const newInstruction = parsed.stringify();
+        const newInstruction = parsed.stringify(router);
         assert.strictEqual(newInstruction, instruction, `newInstruction`);
 
         await tearDown();
@@ -112,7 +112,7 @@ describe('RoutingInstruction', function () {
         routingInstruction.scopeModifier = '/';
         const parsed = RoutingInstruction.parse(prefixedInstruction)[0];
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
-        const newInstruction = parsed.stringify();
+        const newInstruction = parsed.stringify(router);
         assert.strictEqual(`${newInstruction}`, prefixedInstruction, `newInstruction`);
 
         await tearDown();
@@ -129,7 +129,7 @@ describe('RoutingInstruction', function () {
         routingInstruction.scopeModifier = '../../';
         const parsed = RoutingInstruction.parse(prefixedInstruction)[0];
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
-        const newInstruction = parsed.stringify();
+        const newInstruction = parsed.stringify(router);
         assert.strictEqual(`${newInstruction}`, prefixedInstruction, `newInstruction`);
 
         await tearDown();
@@ -172,9 +172,9 @@ describe('RoutingInstruction', function () {
 
     const instructions: RoutingInstruction[] = [a, h];
 
-    const instructionsString = RoutingInstruction.stringify(instructions);
+    const instructionsString = RoutingInstruction.stringify(router, instructions);
     const parsedInstructions = RoutingInstruction.parse(instructionsString);
-    const stringified = RoutingInstruction.stringify(parsedInstructions);
+    const stringified = RoutingInstruction.stringify(router, parsedInstructions);
     assert.strictEqual(stringified, instructionsString, `stringified`);
 
     await tearDown();
@@ -189,7 +189,7 @@ describe('RoutingInstruction', function () {
       const { host, router, tearDown } = await createFixture();
 
       const parsed = RoutingInstruction.parse(instruction);
-      const stringifiedInstructions = RoutingInstruction.stringify(parsed);
+      const stringifiedInstructions = RoutingInstruction.stringify(router, parsed);
       assert.strictEqual(stringifiedInstructions, instruction, `stringifiedInstructions`);
 
       await tearDown();

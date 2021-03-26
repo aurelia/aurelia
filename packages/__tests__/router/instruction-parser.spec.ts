@@ -322,7 +322,7 @@ describe('RoutingInstruction parsing', function () {
           error = err;
         }
         if (error === '') {
-          const newInstruction = RoutingInstruction.stringify(routingInstructions);
+          const newInstruction = RoutingInstruction.stringify(router, routingInstructions);
           // if (parsed == null) {
           //   console.log(`{ instruction: '${instruction}', parsed: ${JSON.stringify(routingInstructions)}, clean: '${newInstruction}' },`);
           // }

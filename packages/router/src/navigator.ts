@@ -1,4 +1,4 @@
-import { EventAggregator, IEventAggregator } from '@aurelia/kernel';
+import { EventAggregator, IContainer, IEventAggregator } from '@aurelia/kernel';
 import { IRouteableComponent } from './interfaces.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation, IStoredNavigation, INavigation, NavigationFlags } from './navigation.js';
@@ -139,6 +139,7 @@ export class Navigator {
 
   public constructor(
     @IEventAggregator private readonly ea: EventAggregator,
+    @IContainer private readonly container: IContainer,
   ) {
     this.uninitializedNavigation = Navigation.create({
       instruction: 'NAVIGATOR UNINITIALIZED',
@@ -452,9 +453,9 @@ export class Navigator {
     // Get a navigation with only the properties that are stored
     const storeable = navigation instanceof Navigation ? navigation.toStoredNavigation() : navigation;
     // Make sure instruction is a string
-    storeable.instruction = RoutingInstruction.stringify(storeable.instruction);
+    storeable.instruction = RoutingInstruction.stringify(this.container, storeable.instruction);
     // Make sure full state instruction is a string
-    storeable.fullStateInstruction = RoutingInstruction.stringify(storeable.fullStateInstruction);
+    storeable.fullStateInstruction = RoutingInstruction.stringify(this.container, storeable.fullStateInstruction);
     // Only string scopes can be stored
     if (typeof storeable.scope !== 'string') {
       storeable.scope = null;
@@ -496,12 +497,12 @@ export class Navigator {
     if (typeof navigation.fullStateInstruction !== 'string') {
       // Save the instruction
       instructions.push(...navigation.fullStateInstruction);
-      navigation.fullStateInstruction = RoutingInstruction.stringify(navigation.fullStateInstruction);
+      navigation.fullStateInstruction = RoutingInstruction.stringify(this.container, navigation.fullStateInstruction);
     }
     if (typeof navigation.instruction !== 'string') {
       // Save the instruction
       instructions.push(...navigation.instruction);
-      navigation.instruction = RoutingInstruction.stringify(navigation.instruction);
+      navigation.instruction = RoutingInstruction.stringify(this.container, navigation.instruction);
     }
 
     // Process only the instructions with instances and make them unique

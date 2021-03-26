@@ -4,6 +4,7 @@ import { Viewport } from './endpoints/viewport.js';
 import { arrayRemove } from './utilities/utils.js';
 import { Collection } from './utilities/collection.js';
 import { RoutingScope } from './routing-scope.js';
+import { IRouter } from './index.js';
 
 /**
  * The EndpointMatcher finds endpoints, viewports and viewport scopes, that matches routing instructions' criteria.
@@ -68,7 +69,9 @@ export class EndpointMatcher {
     // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
     // and remainingInstructions and sets viewport/viewport scope and scope in actual RoutingInstruction
     // Pass in `false` to `doesntNeedViewportDescribed` even though it doesn't really apply for ViewportScope
-    EndpointMatcher.matchKnownEndpoints('ViewportScope',
+    EndpointMatcher.matchKnownEndpoints(
+      routingScope.router,
+      'ViewportScope',
       routingInstructions,
       availableEndpoints,
       matchedInstructions,
@@ -81,7 +84,9 @@ export class EndpointMatcher {
       // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
       // and remainingInstructions and sets viewport/viewport scope and scope in actual RoutingInstruction
       // Pass in `false` to `doesntNeedViewportDescribed` since we can't know for sure whether viewport is necessary or not
-      EndpointMatcher.matchKnownEndpoints('Viewport',
+      EndpointMatcher.matchKnownEndpoints(
+        routingScope.router,
+        'Viewport',
         routingInstructions,
         availableEndpoints,
         matchedInstructions,
@@ -94,6 +99,7 @@ export class EndpointMatcher {
     // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
     // and remainingInstructions and sets viewport scope and scope in actual RoutingInstruction
     EndpointMatcher.matchViewportScopeSegment(
+      routingScope.router,
       routingScope,
       routingInstructions,
       availableEndpoints,
@@ -162,7 +168,9 @@ export class EndpointMatcher {
     };
   }
 
-  private static matchKnownEndpoints(type: string,
+  private static matchKnownEndpoints(
+    router: IRouter,
+    type: string,
     routingInstructions: Collection<RoutingInstruction>,
     availableEndpoints: (Viewport | ViewportScope)[],
     matchedInstructions: RoutingInstruction[],
@@ -173,7 +181,7 @@ export class EndpointMatcher {
     while ((instruction = routingInstructions.next()) !== null) {
       if (
         // The endpoint is already known and it's not an add instruction...
-        instruction.endpoint.instance !== null && !instruction.isAdd &&
+        instruction.endpoint.instance !== null && !instruction.isAdd(router) &&
         // ...(and of the type we're currently checking)...
         instruction.endpoint.endpointType === type
       ) {
@@ -196,6 +204,7 @@ export class EndpointMatcher {
   }
 
   private static matchViewportScopeSegment(
+    router: IRouter,
     routingScope: RoutingScope,
     routingInstructions: Collection<RoutingInstruction>,
     availableEndpoints: (Viewport | ViewportScope)[],
@@ -216,7 +225,7 @@ export class EndpointMatcher {
             // ...see if there's any already existing list entry that's available...
             let available = availableEndpoints.find(available => available instanceof ViewportScope && available.name === endpoint.name);
             // ...otherwise create one (adding it to the list) and...
-            if (available === void 0 || instruction.isAdd) {
+            if (available === void 0 || instruction.isAdd(router)) {
               const item = endpoint.addSourceItem();
               available = routingScope.getOwnedScopes()
                 .filter(scope => scope.isViewportScope)

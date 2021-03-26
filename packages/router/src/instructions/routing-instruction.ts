@@ -8,8 +8,10 @@ import { FoundRoute } from '../found-route.js';
 import { Endpoint, EndpointType } from '../endpoints/endpoint';
 import { Viewport } from '../endpoints/viewport.js';
 import { CustomElement } from '@aurelia/runtime-html';
-import { Navigation, RouterConfiguration } from '../index.js';
+import { IRouter, IRouterConfiguration, Navigation } from '../index.js';
 import { EndpointHandle, InstructionEndpoint } from './instruction-endpoint.js';
+import { Separators } from '../router-options.js';
+import { IContainer } from '@aurelia/kernel';
 
 /**
  * The routing instructions are the core of the router's navigations. All
@@ -118,8 +120,8 @@ export class RoutingInstruction {
    *
    * @param endpoint - The endpoint to create the clear instruction for
    */
-  public static createClear(endpoint: EndpointType | Endpoint): RoutingInstruction {
-    return RoutingInstruction.create(RoutingInstruction.clear(), endpoint) as RoutingInstruction;
+  public static createClear(context: IRouterConfiguration | IRouter, endpoint: EndpointType | Endpoint): RoutingInstruction {
+    return RoutingInstruction.create(RoutingInstruction.clear(context), endpoint) as RoutingInstruction;
   }
 
   /**
@@ -164,15 +166,15 @@ export class RoutingInstruction {
   /**
    * The routing instruction component that represents "clear".
    */
-  public static clear(): string {
-    return RouterConfiguration.options.separators.clear;
+  public static clear(context: IRouterConfiguration | IRouter): string {
+    return Separators.for(context).clear;
   }
 
   /**
    * The routing instruction component that represents "add".
    */
-  public static add(): string {
-    return RouterConfiguration.options.separators.add;
+  public static add(context: IRouterConfiguration | IRouter): string {
+    return Separators.for(context).add;
   }
 
   /**
@@ -203,17 +205,18 @@ export class RoutingInstruction {
   /**
    * Stringify a list of routing instructions, recursively down next scope/child instructions.
    *
+   * @param context - The context (used for syntax) within to stringify the instructions
    * @param instructions - The instructions to stringify
    * @param excludeEndpoint - Whether to exclude endpoint names in the string
    * @param endpointContext - Whether to include endpoint context in the string
    */
-  public static stringify(instructions: RoutingInstruction[] | string, excludeEndpoint: boolean = false, endpointContext: boolean = false): string {
+  public static stringify(context: IRouterConfiguration | IRouter | IContainer, instructions: RoutingInstruction[] | string, excludeEndpoint: boolean = false, endpointContext: boolean = false): string {
     return typeof (instructions) === 'string'
       ? instructions
       : instructions
-        .map(instruction => instruction.stringify(excludeEndpoint, endpointContext))
+        .map(instruction => instruction.stringify(context, excludeEndpoint, endpointContext))
         .filter(instruction => instruction.length > 0)
-        .join(RouterConfiguration.options.separators.sibling);
+        .join(Separators.for(context).sibling);
   }
 
   /**
@@ -298,26 +301,26 @@ export class RoutingInstruction {
   /**
    * Whether the routing instruction is an "add" instruction.
    */
-  public get isAdd(): boolean {
-    return this.component.name === RouterConfiguration.options.separators.add;
+  public isAdd(context: IRouterConfiguration | IRouter): boolean {
+    return this.component.name === Separators.for(context).add;
   }
   /**
    * Whether the routing instruction is a "clear" instruction.
    */
-  public get isClear(): boolean {
-    return this.component.name === RouterConfiguration.options.separators.clear;
+  public isClear(context: IRouterConfiguration | IRouter): boolean {
+    return this.component.name === Separators.for(context).clear;
   }
   /**
    * Whether the routing instruction is an "add all" instruction.
    */
-  public get isAddAll(): boolean {
-    return this.isAdd && ((this.endpoint.name?.length ?? 0) === 0);
+  public isAddAll(context: IRouterConfiguration | IRouter): boolean {
+    return this.isAdd(context) && ((this.endpoint.name?.length ?? 0) === 0);
   }
   /**
    * Whether the routing instruction is an "clear all" instruction.
    */
-  public get isClearAll(): boolean {
-    return this.isClear && ((this.endpoint.name?.length ?? 0) === 0);
+  public isClearAll(context: IRouterConfiguration | IRouter): boolean {
+    return this.isClear(context) && ((this.endpoint.name?.length ?? 0) === 0);
   }
 
   /**
@@ -379,11 +382,12 @@ export class RoutingInstruction {
   /**
    * Stringify the routing instruction, recursively down next scope/child instructions.
    *
+   * @param context - The context (used for syntax) within to stringify the instructions
    * @param excludeEndpoint - Whether to exclude endpoint names in the string
    * @param endpointContext - Whether to include endpoint context in the string
    */
-  public stringify(excludeEndpoint: boolean = false, endpointContext: boolean = false): string {
-    const seps = RouterConfiguration.options.separators;
+  public stringify(context: IRouterConfiguration | IRouter | IContainer, excludeEndpoint: boolean = false, endpointContext: boolean = false): string {
+    const seps = Separators.for(context);
     let excludeCurrentEndpoint = excludeEndpoint;
     let excludeCurrentComponent = false;
 
@@ -414,7 +418,7 @@ export class RoutingInstruction {
       // ...that's already added as part of a configuration, so skip to next scope!
       if (!this.routeStart) {
         return Array.isArray(nextInstructions)
-          ? RoutingInstruction.stringify(nextInstructions, excludeEndpoint, endpointContext)
+          ? RoutingInstruction.stringify(context, nextInstructions, excludeEndpoint, endpointContext)
           : '';
       }
       // ...that's the first instruction of a route...
@@ -424,12 +428,12 @@ export class RoutingInstruction {
         ? path.slice(0, -seps.scope.length)
         : path;
     } else { // Not (part of) a route so add it
-      stringified += this.stringifyShallow(excludeCurrentEndpoint, excludeCurrentComponent);
+      stringified += this.stringifyShallow(context, excludeCurrentEndpoint, excludeCurrentComponent);
     }
     // If any next scope/child instructions...
     if (Array.isArray(nextInstructions) && nextInstructions.length > 0) {
       // ...get them as string...
-      const nextStringified = RoutingInstruction.stringify(nextInstructions, excludeEndpoint, endpointContext);
+      const nextStringified = RoutingInstruction.stringify(context, nextInstructions, excludeEndpoint, endpointContext);
       if (nextStringified.length > 0) {
         // ...and add with scope separator and...
         stringified += seps.scope;
@@ -569,11 +573,12 @@ export class RoutingInstruction {
   /**
    * Stringify the routing instruction shallowly, NOT recursively down next scope/child instructions.
    *
+   * @param context - The context (used for syntax) within to stringify the instructions
    * @param excludeEndpoint - Whether to exclude endpoint names in the string
    * @param excludeComponent - Whether to exclude component names in the string
    */
-  private stringifyShallow(excludeEndpoint: boolean = false, excludeComponent: boolean = false): string {
-    const seps = RouterConfiguration.options.separators;
+  private stringifyShallow(context: IRouterConfiguration | IRouter | IContainer, excludeEndpoint: boolean = false, excludeComponent: boolean = false): string {
+    const seps = Separators.for(context);
     // Start with component (unless excluded)
     let instructionString = !excludeComponent ? this.component.name ?? '' : '';
 

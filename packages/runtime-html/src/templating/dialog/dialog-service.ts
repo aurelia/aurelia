@@ -8,7 +8,6 @@ import {
   IDialogOpenResult,
   IGlobalDialogSettings,
   LoadedDialogSettings,
-  IDialogCancelError,
 } from './dialog-interfaces.js';
 import { createDialogCancelError } from './dialog-utilities.js';
 import { ActivationResult, DialogController } from './dialog-controller.js';

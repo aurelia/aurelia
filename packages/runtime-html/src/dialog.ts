@@ -1,7 +1,7 @@
 export {
-  ActionKey,
-  KeyEventType,
-  MouseEventType,
+  DialogActionKey,
+  DialogKeyEventType,
+  DialogMouseEventType,
 
   // main interfaces
   LoadedDialogSettings,
@@ -12,13 +12,12 @@ export {
   IDialogDomSubscriber,
   IDialogAnimator,
 
+  DialogDeactivationStatuses,
   // dialog results
+  IDialogClosedResult,
+  IDialogError,
   IDialogCancelError,
-  IDialogCancelResult,
-  IDialogCancelableOperationResult,
   IDialogCloseError,
-  IDialogCloseResult,
-  IDialogCancellableOpenResult,
   IDialogCustomElementViewModel,
   IDialogOpenPromise,
   IDialogOpenResult,
@@ -33,6 +32,10 @@ export {
   IDialogComponentDeactivate,
   IDialogComponentCanDeactivate,
 } from './templating/dialog/dialog-interfaces.js';
+export {
+  DialogController,
+  ActivationResult,
+} from './templating/dialog/dialog-controller.js';
 export {
   DialogService,
 } from './templating/dialog/dialog-service.js';

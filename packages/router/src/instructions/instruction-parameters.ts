@@ -201,7 +201,7 @@ export class InstructionParameters {
   }
 
   public toSpecifiedParameters(specifications?: string[] | null | undefined): Record<string, unknown> {
-    specifications = specifications || [];
+    specifications = specifications ?? [];
     const parameters = this.parameters;
 
     const specified: Record<string, unknown> = {};

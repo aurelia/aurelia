@@ -492,9 +492,21 @@ export class RoutingInstruction {
    */
   public isIn(searchIn: RoutingInstruction[], deep: boolean): boolean {
     // Get all instructions with matching component.
-    const matching = searchIn.filter(instruction => instruction.sameComponent(this) &&
-      InstructionParameters.contains(instruction.typeParameters, this.typeParameters) &&
-      (this.endpoint.none || instruction.sameEndpoint(this, false)));
+    const matching = searchIn.filter(instruction => {
+      if (!instruction.sameComponent(this)) {
+        return false;
+      }
+      // Use own type if we have it, the other's type if not
+      const instructionType = instruction.component.type ?? this.component.type;
+      const thisType = this.component.type ?? instruction.component.type;
+      const instructionParameters = instruction.parameters.toSpecifiedParameters(instructionType?.parameters);
+      const thisParameters = this.parameters.toSpecifiedParameters(thisType?.parameters);
+
+      if (!InstructionParameters.contains(instructionParameters, thisParameters)) {
+        return false;
+      }
+      return (this.endpoint.none || instruction.sameEndpoint(this, false));
+    });
     // If no one matches, it's a failure.
     if (matching.length === 0) {
       return false;

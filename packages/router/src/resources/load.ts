@@ -2,13 +2,10 @@ import { IDisposable, IEventAggregator, Key } from '@aurelia/kernel';
 import { customAttribute, INode, bindable, BindingMode, CustomAttribute, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { ILinkHandler } from './link-handler.js';
 import { IRouter, RouterNavigationEndEvent } from '../router.js';
-import { IRouterConfiguration } from '../configuration.js';
 import { getConsideredActiveInstructions, getLoadIndicator } from './utils.js';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
-  public static get inject(): Key[] { return [INode, IRouter, ILinkHandler, IEventAggregator, IRouterConfiguration]; }
-
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 

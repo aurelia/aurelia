@@ -358,6 +358,7 @@ export class Router implements IRouter {
    * @internal
    */
   public processNavigation = async (navigation: Navigation): Promise<void> => {
+    const options = this.configuration.options;
     // this.processingNavigation = navigation;
 
     // // TODO: This can now probably be removed. Investigate!
@@ -391,7 +392,7 @@ export class Router implements IRouter {
     navigation.scope ??= this.rootScope!.scope;
     // Ask the scope for routing instructions. The result will be either that there's a configured
     // route (which in turn contain routing instructions) or a list of routing instructions
-    let foundRoute = navigation.scope!.findInstructions(transformedInstruction);
+    let foundRoute = navigation.scope.findInstructions(transformedInstruction, options.useDirectRouting, options.useConfiguredRoutes);
     let configuredRoutePath: string | null = null;
 
     // Make sure we got routing instructions...
@@ -1086,6 +1087,7 @@ export class Router implements IRouter {
    * @param configuredRoutePath - The previous configured route path
    */
   private findChildRoute(alreadyMatchedInstructions: RoutingInstruction[], configuredRoute: FoundRoute, configuredRoutePath: string | null) {
+    const options = this.configuration.options;
     let foundChildRoute = new FoundRoute();
     let configuredChildRoutePath = configuredRoutePath ?? '';
 
@@ -1099,7 +1101,7 @@ export class Router implements IRouter {
     // Go through all endpoints...
     for (const endpoint of routeEndpoints) {
       // ...looking for instructions...
-      foundChildRoute = endpoint.scope.findInstructions(configuredRoute.remaining);
+      foundChildRoute = endpoint.scope.findInstructions(configuredRoute.remaining, options.useDirectRouting, options.useConfiguredRoutes);
       // ...and use first configured route if we find one
       if (foundChildRoute.foundConfiguration) {
         break;

@@ -1,6 +1,5 @@
 import { DI } from '@aurelia/kernel';
 import { IWindow, CustomAttribute } from '@aurelia/runtime-html';
-import { RouterConfiguration } from '../index.js';
 import { GotoCustomAttribute } from './goto.js';
 import { LoadCustomAttribute } from './load.js';
 import { IRouter } from '../router.js';

@@ -1,9 +1,10 @@
 /* eslint-disable no-template-curly-in-string */
+import { IContainer } from '@aurelia/kernel';
 import { INavigatorOptions } from './navigator.js';
 import { NavigationState } from './navigation-coordinator.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { IRoutingHookDefinition } from './routing-hook.js';
-import { RouterConfiguration } from './index.js';
+import { IRouter, Router, IRouterConfiguration, RouterConfiguration } from './index.js';
 import { Navigation } from './navigation.js';
 
 /**
@@ -74,6 +75,10 @@ export class TitleOptions {
       input.componentPrefix,
       input.transformTitle,
     );
+  }
+
+  public static for(context: IRouterConfiguration | IRouter | IContainer): TitleOptions {
+    return RouterOptions.for(context).title;
   }
 
   public apply(input: string | ITitleOptions = {}): void {
@@ -184,6 +189,10 @@ export class Separators {
     );
   }
 
+  public static for(context: IRouterConfiguration | IRouter | IContainer): Separators {
+    return RouterOptions.for(context).separators;
+  }
+
   public apply(input: ISeparators = {}): void {
     this.viewport = input.viewport ?? this.viewport;
     this.sibling = input.sibling ?? this.sibling;
@@ -224,6 +233,10 @@ export class Indicators {
       input.loadActive,
       input.viewportActive,
     );
+  }
+
+  public static for(context: IRouterConfiguration | IRouter | IContainer): Indicators {
+    return RouterOptions.for(context).indicators;
   }
 
   public apply(input: IIndicators = {}): void {
@@ -335,6 +348,18 @@ export class RouterOptions implements INavigatorOptions {
       input.navigationSyncStates,
       input.swapOrder,
     );
+  }
+
+  public static for(context: IRouterConfiguration | IRouter | IContainer): RouterOptions {
+    if (context instanceof RouterConfiguration) {
+      return context.options;
+    }
+    if (context instanceof Router) {
+      context = context.configuration;
+    } else {
+      context = context.get(IRouterConfiguration);
+    }
+    return context.options;
   }
 
   /**

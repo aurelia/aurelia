@@ -7,7 +7,7 @@ import { GotoCustomAttribute } from './resources/goto.js';
 import { LoadCustomAttribute } from './resources/load.js';
 import { HrefCustomAttribute } from './resources/href.js';
 import { ConsideredActiveCustomAttribute } from './resources/considered-active.js';
-import { IRouter } from './router.js';
+import { IRouter, Router } from './router.js';
 import { IRouterOptions, RouterOptions } from './router-options.js';
 import { BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction } from './routing-hook.js';
 
@@ -138,6 +138,18 @@ export class RouterConfiguration {
    */
   public static createContainer(): IContainer {
     return this.register(DI.createContainer());
+  }
+
+  /**
+   * Get the router configuration for a context.
+   *
+   * @param context - The context to get the configuration for
+   */
+  public static for(context: IRouter | IContainer): RouterConfiguration {
+    if (context instanceof Router) {
+      return context.configuration;
+    }
+    return context.get(IRouterConfiguration);
   }
 
   /**

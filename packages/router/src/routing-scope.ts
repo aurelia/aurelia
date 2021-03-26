@@ -1,5 +1,5 @@
 import { IViewportScopeOptions, ViewportScope } from './endpoints/viewport-scope.js';
-import { CustomElement, CustomElementType, getEffectiveParentNode, ICustomElementController, ICustomElementViewModel, INode } from '@aurelia/runtime-html';
+import { CustomElement, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { FoundRoute } from './found-route.js';
 import { IRouter } from './router.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
@@ -10,8 +10,8 @@ import { Runner, Step } from './utilities/runner.js';
 import { IRoute, Route } from './route.js';
 import { Endpoint, IConnectedCustomElement } from './endpoints/endpoint.js';
 import { EndpointMatcher, IMatchEndpointsResult } from './endpoint-matcher.js';
-import { EndpointContent, Router, RouterConfiguration } from './index.js';
-import { IContainer, Metadata } from '@aurelia/kernel';
+import { EndpointContent, Router } from './index.js';
+import { IContainer } from '@aurelia/kernel';
 import { arrayUnique } from './utilities/utils.js';
 
 export type TransitionAction = 'skip' | 'reload' | 'swap' | '';
@@ -223,16 +223,16 @@ export class RoutingScope {
     return scopes;
   }
 
-  public findInstructions(instruction: string | RoutingInstruction[]): FoundRoute {
+  public findInstructions(instruction: string | RoutingInstruction[], useDirectRouting: boolean, useConfiguredRoutes: boolean): FoundRoute {
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
       const instructions = RoutingInstruction.parse(instruction);
-      if (RouterConfiguration.options.useConfiguredRoutes && !RoutingInstruction.containsSiblings(instructions)) {
+      if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(instructions)) {
         const foundRoute = this.findMatchingRoute(instruction);
         if (foundRoute?.foundConfiguration ?? false) {
           route = foundRoute!;
         } else {
-          if (RouterConfiguration.options.useDirectRouting) {
+          if (useDirectRouting) {
             route.instructions = instructions;
             if (route.instructions.length > 0) {
               const nextInstructions = route.instructions[0].nextScopeInstructions ?? [];
@@ -242,7 +242,7 @@ export class RoutingScope {
             }
           }
         }
-      } else if (RouterConfiguration.options.useDirectRouting) {
+      } else if (useDirectRouting) {
         route.instructions = instructions;
       }
     } else {

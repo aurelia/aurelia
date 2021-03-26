@@ -13,7 +13,7 @@ import {
   ISyntheticView,
   IInstruction,
 } from '@aurelia/runtime-html';
-import { IRouter, RouterConfiguration } from '../index.js';
+import { IRouter } from '../index.js';
 import { Viewport } from '../endpoints/viewport.js';
 import { IViewportOptions } from '../endpoints/viewport-options.js';
 import { Runner, Step } from '../utilities/runner.js';

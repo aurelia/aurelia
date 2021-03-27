@@ -34,12 +34,23 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
     Registration.singleton(IDialogDomRenderer, this).register(container);
   }
 
+  private readonly wrapperCss: string = 'position: absolute; width: 100%; height: 100%; display: flex;';
+  private readonly overlayCss: string = `position: absolute; width: 100%; height: 100%; top: 0; left: 0;`;
+  private readonly hostCss: string = 'position: relative; margin: auto;'
+
   public render(dialogHost: HTMLElement, settings: LoadedDialogSettings): IDialogDom {
     const doc = this.p.document;
-    const h = (name: string) => doc.createElement(name);
-    const overlay = dialogHost.appendChild(h('au-dialog-container'));
-    const host = overlay.appendChild(h('div'));
-    return new DefaultDialogDom(overlay, host, settings);
+    const h = (name: string, css?: string) => {
+      const el = doc.createElement(name);
+      if (css != null) {
+        el.style.cssText = css;
+      }
+      return el;
+    };
+    const wrapper = dialogHost.appendChild(h('au-dialog-container', this.wrapperCss));
+    const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));
+    const host = overlay.appendChild(h('div', this.hostCss));
+    return new DefaultDialogDom(wrapper, overlay, host, settings);
   }
 }
 
@@ -48,7 +59,8 @@ export class DefaultDialogDom implements IDialogDom {
   private readonly subs: Set<IDialogDomSubscriber> = new Set();
 
   public constructor(
-    public readonly overlay: HTMLElement,
+    private readonly wrapper: HTMLElement,
+    private readonly overlay: HTMLElement,
     public readonly host: HTMLElement,
     private readonly s: LoadedDialogSettings,
   ) {
@@ -59,9 +71,7 @@ export class DefaultDialogDom implements IDialogDom {
    * @internal
    */
   public handleEvent(e: Event) {
-    if (this.overlay !== e.target) {
-      this.subs.forEach(sub => sub.handleOverlayClick(e as MouseEvent));
-    }
+    this.subs.forEach(sub => sub.handleOverlayClick(e as MouseEvent));
   }
 
   public subscribe(subscriber: IDialogDomSubscriber): void {
@@ -73,8 +83,8 @@ export class DefaultDialogDom implements IDialogDom {
   }
 
   public dispose(): void {
-    this.overlay?.removeEventListener(this.s.mouseEvent ?? 'click', this);
-    this.overlay!.remove();
+    this.wrapper.remove();
+    this.overlay.removeEventListener(this.s.mouseEvent ?? 'click', this);
     this.subs.clear();
   }
 }

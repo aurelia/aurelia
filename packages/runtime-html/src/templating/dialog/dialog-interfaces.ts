@@ -49,7 +49,6 @@ export interface IDialogDomRenderer {
  */
 export const IDialogDom = DI.createInterface<IDialogDom>('IDialogDom');
 export interface IDialogDom extends IDisposable {
-  readonly overlay: HTMLElement;
   readonly host: HTMLElement;
   subscribe(subscriber: IDialogDomSubscriber): void;
   unsubscribe(subscriber: IDialogDomSubscriber): void;

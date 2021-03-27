@@ -34,7 +34,6 @@ export {
 } from './templating/dialog/dialog-interfaces.js';
 export {
   DialogController,
-  ActivationResult,
 } from './templating/dialog/dialog-controller.js';
 export {
   DialogService,

@@ -111,7 +111,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
       ? ctn.get(IEventTarget) as Element
       : null;
 
-    // there's a chance that application root host is a different element with the dialog root host
+    // application root host may be a different element with the dialog root host
     // example:
     // <body>
     //   <my-app>
@@ -139,7 +139,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
         if (canActivate !== true) {
           dom.dispose();
           if (rejectOnCancel) {
-            throw createDialogCancelError();
+            throw createDialogCancelError(null, 'Dialog activation rejected');
           }
           return DialogOpenResult.create(true, this, closePromise);
         }
@@ -190,7 +190,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
           if (!rejectOnCancel) {
             return DialogClosedResult.create(DialogDeactivationStatuses.Abort as T);
           }
-          throw createDialogCancelError();
+          throw createDialogCancelError(null, 'Dialog cancellation rejected');
         }
         return Promise
           .resolve(animator.detaching(dom, animation))
@@ -202,7 +202,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
             if (!rejectOnCancel && status !== DialogDeactivationStatuses.Error) {
               this.resolve(dialogResult);
             } else {
-              this.reject(createDialogCancelError(value));
+              this.reject(createDialogCancelError(value, 'Dialog cancelled with a rejection on cancel'));
             }
             return DialogClosedResult.create(status);
           })
@@ -298,8 +298,8 @@ class DialogClosedResult<T extends DialogDeactivationStatuses> implements IDialo
   }
 }
 
-function createDialogCancelError<T>(output?: T): IDialogCancelError<T> {
-  const error = new Error('Operation cancelled.') as IDialogCancelError<T>;
+function createDialogCancelError<T>(output: T | undefined, msg: string): IDialogCancelError<T> {
+  const error = new Error(msg) as IDialogCancelError<T>;
   error.wasCancelled = true;
   error.value = output;
   return error;

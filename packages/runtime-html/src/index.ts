@@ -671,10 +671,7 @@ export {
   ExpressionWatcher,
 } from './templating/watchers.js';
 
-export * as dialog from './dialog.js';
-
 export {
-  ActivationResult,
   DialogController,
   DialogActionKey,
   DialogKeyEventType,

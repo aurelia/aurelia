@@ -12,14 +12,16 @@ export interface IDialogService {
 
   /**
    * Opens a new dialog.
-   * @param settings Dialog settings for this dialog instance.
-   * @return Promise A promise that settles when the dialog is closed.
+   *
+   * @param settings - Dialog settings for this dialog instance.
+   * @returns Promise A promise that settles when the dialog is closed.
    */
   open(settings?: IDialogSettings): IDialogOpenPromise;
 
   /**
    * Closes all open dialogs at the time of invocation.
-   * @return Promise<DialogController[]> All controllers whose close operation was cancelled.
+   *
+   * @returns Promise<DialogController[]> All controllers whose close operation was cancelled.
    */
   closeAll(): Promise<IDialogController[]>;
 }
@@ -199,7 +201,7 @@ export interface IDialogSettings<
 export type LoadedDialogSettings<T extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template'> & {
   component?: Constructable<T> | T;
   template?: string | Element;
-}
+};
 
 export type IGlobalDialogSettings = Pick<
   IDialogSettings,
@@ -261,8 +263,7 @@ export interface IDialogOpenResult {
   readonly closeResult: Promise<IDialogClosedResult>;
 }
 
-
-//#region Implementable
+// #region Implementable
 
 export interface IDialogComponent<T> {
   canActivate?: IDialogComponentCanActivate<T>['canActivate'];
@@ -314,4 +315,4 @@ export interface IDialogComponentDeactivate {
   deactivate(result: IDialogClosedResult): void | Promise<void> | PromiseLike<void>;
 }
 
-//#endregion
+// #endregion

@@ -1,6 +1,6 @@
 import { IContainer, onResolve, Registration, resolveAll } from '@aurelia/kernel';
 
-import { 
+import {
   IDialogService,
   DialogDeactivationStatuses,
   IDialogClosedResult,
@@ -23,6 +23,7 @@ import { AppTask } from '../../app-task.js';
 export class DialogService implements IDialogService {
   /**
    * The current dialog controllers
+   *
    * @internal
    */
   private readonly controllers: Set<IDialogController> = new Set();
@@ -41,7 +42,7 @@ export class DialogService implements IDialogService {
     private readonly container: IContainer,
     private readonly defaultSettings: IGlobalDialogSettings,
   ) {}
-  
+
   public static register(container: IContainer) {
     container.register(
       Registration.singleton(IDialogService, this),
@@ -59,17 +60,18 @@ export class DialogService implements IDialogService {
 
   /**
    * Opens a new dialog.
-   * @param settings Dialog settings for this dialog instance.
-   * @return Promise A promise that settles when the dialog is closed.
+   *
+   * @param settings - Dialog settings for this dialog instance.
+   * @returns Promise A promise that settles when the dialog is closed.
    *
    * Example usage:
 ```ts
 dialogService.open({ viewModel: () => MyDialog, view: 'my-template' })
 dialogService.open({ viewModel: () => MyDialog, view: document.createElement('my-template') })
-
+   
 // JSX to hyperscript
 dialogService.open({ viewModel: () => MyDialog, view: <my-template /> })
-
+   
 dialogService.open({ viewModel: () => import('...'), view: () => fetch('my.server/dialog-view.html') })
 ```
    */
@@ -80,10 +82,10 @@ dialogService.open({ viewModel: () => import('...'), view: () => fetch('my.serve
     return asDialogOpenPromise(new Promise<IDialogOpenResult>(resolve => onResolve(
       $settings.load(),
       loadedSettings => {
-        const dialogController = container.invoke(DialogController, [loadedSettings]);
+        const dialogController = container.invoke(DialogController);
 
         return onResolve(
-          dialogController.activate(),
+          dialogController.activate(loadedSettings),
           openResult => {
             if (!openResult.wasCancelled) {
               this.controllers.add(dialogController);
@@ -100,7 +102,8 @@ dialogService.open({ viewModel: () => import('...'), view: () => fetch('my.serve
 
   /**
    * Closes all open dialogs at the time of invocation.
-   * @return Promise<DialogController[]> All controllers whose close operation was cancelled.
+   *
+   * @returns Promise<DialogController[]> All controllers whose close operation was cancelled.
    */
   public closeAll(): Promise<IDialogController[]> {
     return Promise
@@ -127,7 +130,6 @@ dialogService.open({ viewModel: () => import('...'), view: () => fetch('my.serve
     this.controllers.delete(controller);
   }
 }
-
 
 interface DialogSettings<T extends object = object> extends IDialogSettings<T> {}
 class DialogSettings<T extends object = object> implements IDialogSettings<T> {

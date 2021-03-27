@@ -38,8 +38,8 @@ export class Composer implements IComposer {
   public static get inject() { return [IPlatform, IContainer]; }
 
   public constructor(
-    private p: IPlatform,
-    private container: IContainer,
+    private readonly p: IPlatform,
+    private readonly container: IContainer,
   ) { }
 
   public compose<T extends object>(options: ICompositionContext<T>): ISyntheticView {

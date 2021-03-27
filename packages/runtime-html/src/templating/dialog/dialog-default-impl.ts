@@ -38,7 +38,7 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
 
   private readonly wrapperCss: string = `${baseWrapperCss} display: flex;`;
   private readonly overlayCss: string = baseWrapperCss;
-  private readonly hostCss: string = 'position: relative; margin: auto;'
+  private readonly hostCss: string = 'position: relative; margin: auto;';
 
   public render(dialogHost: HTMLElement, settings: LoadedDialogSettings): IDialogDom {
     const doc = this.p.document;

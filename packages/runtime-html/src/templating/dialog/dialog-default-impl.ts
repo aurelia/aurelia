@@ -24,6 +24,8 @@ export class DefaultGlobalSettings implements IGlobalDialogSettings {
   }
 }
 
+const baseWrapperCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
+
 export class DefaultDialogDomRenderer implements IDialogDomRenderer {
 
   protected static inject = [IPlatform];
@@ -34,8 +36,8 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
     Registration.singleton(IDialogDomRenderer, this).register(container);
   }
 
-  private readonly wrapperCss: string = 'position: absolute; width: 100%; height: 100%; display: flex;';
-  private readonly overlayCss: string = `position: absolute; width: 100%; height: 100%; top: 0; left: 0;`;
+  private readonly wrapperCss: string = `${baseWrapperCss} display: flex;`;
+  private readonly overlayCss: string = baseWrapperCss;
   private readonly hostCss: string = 'position: relative; margin: auto;'
 
   public render(dialogHost: HTMLElement, settings: LoadedDialogSettings): IDialogDom {

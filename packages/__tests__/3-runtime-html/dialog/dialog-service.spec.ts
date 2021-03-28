@@ -13,7 +13,6 @@ import {
 import {
   createFixture,
   assert,
-  createSpy
 } from '@aurelia/testing';
 
 describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {

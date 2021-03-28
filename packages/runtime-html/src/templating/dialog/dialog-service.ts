@@ -69,21 +69,22 @@ export class DialogService implements IDialogService {
    * @returns Promise A promise that settles when the dialog is closed.
    *
    * Example usage:
-```ts
-dialogService.open({ viewModel: () => MyDialog, view: 'my-template' })
-dialogService.open({ viewModel: () => MyDialog, view: document.createElement('my-template') })
-
-// JSX to hyperscript
-dialogService.open({ viewModel: () => MyDialog, view: <my-template /> })
-
-dialogService.open({ viewModel: () => import('...'), view: () => fetch('my.server/dialog-view.html') })
-```
+   * ```ts
+   * dialogService.open({ viewModel: () => MyDialog, view: 'my-template' })
+   * dialogService.open({ viewModel: () => MyDialog, view: document.createElement('my-template') })
+   *
+   * // JSX to hyperscript
+   * dialogService.open({ viewModel: () => MyDialog, view: <my-template /> })
+   *
+   * dialogService.open({ viewModel: () => import('...'), view: () => fetch('my.server/dialog-view.html') })
+   * ```
    */
   public open(settings: IDialogSettings = {}): IDialogOpenPromise {
     return asDialogOpenPromise(new Promise<IDialogOpenResult>(resolve => {
       const $settings = DialogSettings.from(this.defaultSettings, settings);
       const container = ($settings.container ?? this.container).createChild();
 
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       onResolve(
         $settings.load(),
         loadedSettings => {

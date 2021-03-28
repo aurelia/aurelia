@@ -12,7 +12,7 @@ Navigate to the `src` directory where your application code lives and open up th
 
 ```typescript
 export class MyApp {
-  public message = 'Hello World!';
+  message = 'Hello World!';
 }
 ```
 
@@ -26,7 +26,7 @@ We are now going to create a new component which will be a smarter hello compone
 
 ```typescript
 export class HelloNameCustomElement {
-  public name = 'Person';
+  name = 'Person';
 }
 ```
 

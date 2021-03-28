@@ -12,23 +12,23 @@ Aurelia uses an intuitive HTML-based template syntax which is spec-compliant. By
 
 Using Aurelia's interpolation syntax \(a dollar sign followed by enclosed curly braces\) `${}` you can display text in your views:
 
-```text
+```markup
 <p>My name is: ${name}</p>
 ```
 
-This syntax is borrowed from the Template Strings syntax you might already be familiar with in Javascript. The interpolation will be replaced with the value corresponding to the variable `name` defined on the view-model. When `name` changes, the value will be updated in the UI.
+This syntax is borrowed from the Template Strings syntax you might already be familiar with in JavaScript. The interpolation will be replaced with the value corresponding to the variable `name` defined on the view-model. When `name` changes, the value will be updated in the UI.
 
 You can also specify one-time interpolations using the `oneTime` binding behavior which will instruct Aurelia to display the value once and not watch this value for any further changes.
 
-```text
+```markup
 <p>My name is: ${name & oneTime}</p>
 ```
 
 ### HTML
 
-For safety reasons, standard interpolation will only display values as text. This means if you want to display HTML, `${}` will not work. If you want to display HTML in your views, you can behind to the `innerhtml` property on an element to set the HTML \(just like you would in Javascript\).
+For safety reasons, standard interpolation will only display values as text. This means if you want to display HTML, `${}` will not work. If you want to display HTML in your views, you can behind to the `innerhtml` property on an element to set the HTML \(just like you would in JavaScript\).
 
-```text
+```markup
 <p>This is raw HTML: <span innerhtml.bind="myHtml"></span></p>
 ```
 
@@ -37,12 +37,7 @@ The contents of the span will be replaced with the value of the `myHtml` variabl
 If you would like to display `myHtml` without rendering parent `span` tag, you can create `ValueConverter`.
 
 {% code title="to-html.js" %}
-```
-
-```
-{% endcode %}
-
-```text
+```typescript
 class ToHtmlValueConverter {
   toView(html) {
     const div = document.createElement('div')
@@ -51,10 +46,11 @@ class ToHtmlValueConverter {
   }
 }
 ```
+{% endcode %}
 
 and then it can be used in your views:
 
-```text
+```markup
 <p>This is raw HTML: ${myHtml | toHtml}</p>
 ```
 
@@ -62,7 +58,7 @@ and then it can be used in your views:
 
 Native HTML attributes can easily be bound, or you can use interpolation inside of those too. A common scenario might be disabling a button inside of a form:
 
-```text
+```markup
 <button disabled.bind="buttonDisabled">My Button</button>
 ```
 
@@ -70,13 +66,13 @@ If the value of `buttonDisabled` is truthy, the button will be disabled. If the 
 
 You can also bind to other attributes like `id`:
 
-```text
+```markup
 <div id.bind="myId">Unique Element</div>
 ```
 
 If you want to use interpolation, this will also work:
 
-```text
+```markup
 <div id="${myId}">Unique Element</div>
 ```
 
@@ -84,25 +80,25 @@ If you want to use interpolation, this will also work:
 
 While we have only shown you how to display values, interpolation supports a heap of other cool things including basic math and ternary expressions:
 
-```text
+```markup
 <p>${myNumber * 5}</p>
 ```
 
 A ternary:
 
-```text
+```markup
 <p>${isTrue ? 'True' : 'False'}</p>
 ```
 
 How about we call a function:
 
-```text
+```markup
 <p>${myFunctionReturnsSomething()}</p>
 ```
 
 ## Events
 
-You can bind to a whole variety of native Javascript events, depending on the element you are binding to. Unlike standard bindings in Aurelia which are denoted using `.bind`, binding to events works a little differently \(but still uses a decimal to denote a binding\).
+You can bind to a whole variety of native JavaScript events, depending on the element you are binding to. Unlike standard bindings in Aurelia which are denoted using `.bind`, binding to events works a little differently \(but still uses a decimal to denote a binding\).
 
 There are three different ways you can bind to events; delegate, trigger and capture. In most instances, you will use either delegate or trigger, with capture being reserved for cases where the prior event bindings do not work, capture is all but guaranteed to work.
 
@@ -114,15 +110,15 @@ Two of the most common events that do not bubble and, therefore do not work with
 
 A common scenario is capturing a click on a button or link, you have a couple of different options and you should choose the one that works best for your needs.
 
-```text
+```markup
 <button type="button" click.trigger="clickCallback()">Click Me!</button>
 ```
 
-Using `.trigger` will attach a native event listener to the button, it's the equiavelent of writing `addEventListener` which is what Aurelia does under the hood for you anyway. In many cases, using `trigger` is recommended as it does not delegate and therefore, can lead to fewer issues when dealing with delegated events.
+Using `.trigger` will attach a native event listener to the button, it's the equivalent of writing `addEventListener` which is what Aurelia does under the hood for you anyway. In many cases, using `trigger` is recommended as it does not delegate and therefore, can lead to fewer issues when dealing with delegated events.
 
 However, if you are working with a lot of elements, say a list of items and each of those can be clicked, using `.delegate` might be a better option. The syntax is mostly the same.
 
-```text
+```markup
 <button type="button" click.delegate="clickCallback()">Click Me!</button>
 ```
 
@@ -134,13 +130,13 @@ These two events are commonly used when dealing with form elements; `<input>`, `
 
 The `change` event fires when a form element has finished changing. This means that the change event will not be fired as the user types into a text input, which can be confusing if you're not aware of this. A text input will only fire a `change` event once it loses focus.
 
-```text
+```markup
 <input type="text" change.trigger="changeCallback()">
 ```
 
 If you want to call a function as the user types or performs other actions inside of your form elements, you will want to use `input`. The `input` event is fired every time the value is modified by the user, even if the user pastes text into the input or deletes the value.
 
-```text
+```markup
 <input type="text" input.trigger="changeCallback()">
 ```
 

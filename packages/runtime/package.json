@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/runtime",
-  "version": "2.1.0-dev.202103282325",
+  "version": "2.1.0-dev.202103282331",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
@@ -37,9 +37,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202103282325",
-    "@aurelia/metadata": "2.1.0-dev.202103282325",
-    "@aurelia/platform": "2.1.0-dev.202103282325"
+    "@aurelia/kernel": "2.1.0-dev.202103282331",
+    "@aurelia/metadata": "2.1.0-dev.202103282331",
+    "@aurelia/platform": "2.1.0-dev.202103282331"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

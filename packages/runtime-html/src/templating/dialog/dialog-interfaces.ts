@@ -8,6 +8,10 @@ import type { ICustomElementViewModel } from '../controller.js';
  */
 export const IDialogService = DI.createInterface<IDialogService>('IDialogService');
 export interface IDialogService {
+  /**
+   * An indicator of how many dialogs are being opened with this service
+   */
+  readonly count: number;
   readonly hasOpenDialog: boolean;
 
   /**
@@ -31,11 +35,11 @@ export interface IDialogService {
  */
 export const IDialogController = DI.createInterface<IDialogController>('IDialogController');
 export interface IDialogController {
-  readonly settings: Readonly<LoadedDialogSettings>;
+  readonly settings: Readonly<ILoadedDialogSettings>;
 
-  ok(output?: unknown): Promise<IDialogClosedResult<DialogDeactivationStatuses.Ok>>;
-  cancel(output?: unknown): Promise<IDialogClosedResult<DialogDeactivationStatuses.Cancel>>;
-  error(output?: unknown): Promise<void>;
+  ok(value?: unknown): Promise<IDialogCloseResult<DialogDeactivationStatuses.Ok>>;
+  cancel(value?: unknown): Promise<IDialogCloseResult<DialogDeactivationStatuses.Cancel>>;
+  error(value?: unknown): Promise<void>;
 }
 
 /**
@@ -43,7 +47,7 @@ export interface IDialogController {
  */
 export const IDialogDomRenderer = DI.createInterface<IDialogDomRenderer>('IDialogDomRenderer');
 export interface IDialogDomRenderer {
-  render(dialogHost: Element, settings: LoadedDialogSettings): IDialogDom;
+  render(dialogHost: Element, settings: ILoadedDialogSettings): IDialogDom;
 }
 
 /**
@@ -81,7 +85,7 @@ export interface IDialogOpenPromise extends Promise<IDialogOpenResult> {
    * Add a callback that will be invoked when a dialog has been closed
    */
   whenClosed<TResult1, TResult2>(
-    onfulfilled?: (value: IDialogClosedResult) => TResult1 | PromiseLike<TResult1>,
+    onfulfilled?: (value: IDialogCloseResult) => TResult1 | PromiseLike<TResult1>,
     onrejected?: (reason: unknown) => TResult2 | PromiseLike<TResult2>
   ): Promise<TResult1 | TResult2>;
 }
@@ -198,7 +202,7 @@ export interface IDialogSettings<
   restoreFocus?: (lastActiveElement: HTMLElement) => void;
 }
 
-export type LoadedDialogSettings<T extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template'> & {
+export type ILoadedDialogSettings<T extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template'> & {
   component?: Constructable<T> | T;
   template?: string | Element;
 };
@@ -239,7 +243,7 @@ export const enum DialogDeactivationStatuses {
   Abort = 'abort',
 }
 
-export interface IDialogClosedResult<
+export interface IDialogCloseResult<
   TStatus extends DialogDeactivationStatuses = DialogDeactivationStatuses,
   TVal = unknown,
 > {
@@ -260,7 +264,7 @@ export interface IDialogOpenResult {
   /**
    * Promise that settles when the dialog is closed.
    */
-  readonly closeResult: Promise<IDialogClosedResult>;
+  readonly closePromise: Promise<IDialogCloseResult>;
 }
 
 // #region Implementable
@@ -302,7 +306,7 @@ export interface IDialogComponentCanDeactivate {
    * To cancel the closing of the dialog return false or a promise that resolves to false.
    * Any other returned value is coerced to true.
    */
-  canDeactivate(result: IDialogClosedResult): boolean | Promise<boolean> | PromiseLike<boolean>;
+  canDeactivate(result: IDialogCloseResult): boolean | Promise<boolean> | PromiseLike<boolean>;
 }
 
 /**
@@ -312,7 +316,7 @@ export interface IDialogComponentDeactivate {
   /**
    * Implement this hook if you want to perform custom logic when the dialog is being closed.
    */
-  deactivate(result: IDialogClosedResult): void | Promise<void> | PromiseLike<void>;
+  deactivate(result: IDialogCloseResult): void | Promise<void> | PromiseLike<void>;
 }
 
 // #endregion

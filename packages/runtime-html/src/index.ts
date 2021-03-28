@@ -685,7 +685,7 @@ export {
   IDialogAnimator,
   IDialogCancelError,
   IDialogCloseError,
-  IDialogClosedResult,
+  IDialogCloseResult,
   IDialogComponent,
   IDialogComponentActivate,
   IDialogComponentCanActivate,
@@ -702,5 +702,5 @@ export {
   IDialogOpenResult,
   IDialogService,
   IDialogSettings,
-  LoadedDialogSettings,
+  ILoadedDialogSettings,
 } from './dialog.js';

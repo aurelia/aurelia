@@ -4,7 +4,7 @@ export {
   DialogMouseEventType,
 
   // main interfaces
-  LoadedDialogSettings,
+  ILoadedDialogSettings,
   IDialogService,
   IDialogController,
   IDialogDom,
@@ -14,7 +14,7 @@ export {
 
   DialogDeactivationStatuses,
   // dialog results
-  IDialogClosedResult,
+  IDialogCloseResult,
   IDialogError,
   IDialogCancelError,
   IDialogCloseError,

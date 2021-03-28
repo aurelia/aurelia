@@ -3,11 +3,11 @@ import { IContainer, onResolve, Registration, resolveAll } from '@aurelia/kernel
 import {
   IDialogService,
   DialogDeactivationStatuses,
-  IDialogClosedResult,
+  IDialogCloseResult,
   IDialogController,
   IDialogOpenResult,
   IGlobalDialogSettings,
-  LoadedDialogSettings,
+  ILoadedDialogSettings,
 } from './dialog-interfaces.js';
 import { DialogController } from './dialog-controller.js';
 
@@ -27,6 +27,10 @@ export class DialogService implements IDialogService {
    * @internal
    */
   private readonly controllers: Set<IDialogController> = new Set();
+
+  public get count(): number {
+    return this.controllers.size;
+  }
 
   /**
    * Is there an open dialog
@@ -68,36 +72,38 @@ export class DialogService implements IDialogService {
 ```ts
 dialogService.open({ viewModel: () => MyDialog, view: 'my-template' })
 dialogService.open({ viewModel: () => MyDialog, view: document.createElement('my-template') })
-   
+
 // JSX to hyperscript
 dialogService.open({ viewModel: () => MyDialog, view: <my-template /> })
-   
+
 dialogService.open({ viewModel: () => import('...'), view: () => fetch('my.server/dialog-view.html') })
 ```
    */
   public open(settings: IDialogSettings = {}): IDialogOpenPromise {
-    const $settings = DialogSettings.from(this.defaultSettings, settings);
-    const container = $settings.container ?? this.container;
+    return asDialogOpenPromise(new Promise<IDialogOpenResult>(resolve => {
+      const $settings = DialogSettings.from(this.defaultSettings, settings);
+      const container = ($settings.container ?? this.container).createChild();
 
-    return asDialogOpenPromise(new Promise<IDialogOpenResult>(resolve => onResolve(
-      $settings.load(),
-      loadedSettings => {
-        const dialogController = container.invoke(DialogController);
+      onResolve(
+        $settings.load(),
+        loadedSettings => {
+          const dialogController = container.getFactory(DialogController).construct(container);
 
-        return onResolve(
-          dialogController.activate(loadedSettings),
-          openResult => {
-            if (!openResult.wasCancelled) {
-              this.controllers.add(dialogController);
+          return onResolve(
+            dialogController.activate(loadedSettings),
+            openResult => {
+              if (!openResult.wasCancelled) {
+                this.controllers.add(dialogController);
 
-              const $removeController = () => this.remove(dialogController);
-              openResult.closeResult.then($removeController, $removeController);
+                const $removeController = () => this.remove(dialogController);
+                openResult.closePromise.then($removeController, $removeController);
+              }
+              resolve(openResult);
             }
-            return resolve(openResult);
-          }
-        );
-      }
-    )));
+          );
+        }
+      );
+    }));
   }
 
   /**
@@ -140,14 +146,14 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
       .normalize();
   }
 
-  public load(): LoadedDialogSettings | Promise<LoadedDialogSettings> {
-    const loaded = this as LoadedDialogSettings;
+  public load(): ILoadedDialogSettings | Promise<ILoadedDialogSettings> {
+    const loaded = this as ILoadedDialogSettings;
     const cmp = this.component;
     const template = this.template;
     const maybePromise = resolveAll(...[
-      typeof cmp === 'function'
-        ? onResolve(cmp(), loadedCmp => { loaded.component = loadedCmp; })
-        : void 0,
+      cmp == null
+        ? void 0
+        : onResolve(cmp(), loadedCmp => { loaded.component = loadedCmp; }),
       typeof template === 'function'
         ? onResolve(template(), loadedTpl => { loaded.template = loadedTpl; })
         : void 0
@@ -158,7 +164,7 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
   }
 
   private validate(): this {
-    if (!this.component && !this.template) {
+    if (this.component == null && this.template == null) {
       throw new Error('Invalid Dialog Settings. You must provide "component", "template" or both.');
     }
     return this;
@@ -177,11 +183,11 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
 
 function whenClosed<TResult1 = unknown, TResult2 = unknown>(
   this: Promise<IDialogOpenResult>,
-  onfulfilled?: (r: IDialogClosedResult) => TResult1 | PromiseLike<TResult1>,
+  onfulfilled?: (r: IDialogCloseResult) => TResult1 | PromiseLike<TResult1>,
   onrejected?: (err: unknown) => TResult2 | PromiseLike<TResult2>
 ): Promise<TResult1 | TResult2> {
   return this
-    .then(or => or.closeResult)
+    .then(or => or.closePromise)
     .then(onfulfilled, onrejected);
 }
 function asDialogOpenPromise(promise: Promise<unknown>): IDialogOpenPromise {

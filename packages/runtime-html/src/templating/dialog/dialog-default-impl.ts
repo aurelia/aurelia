@@ -5,7 +5,7 @@ import {
   IDialogDom,
   IDialogDomSubscriber,
   IGlobalDialogSettings,
-  LoadedDialogSettings,
+  ILoadedDialogSettings,
 } from './dialog-interfaces.js';
 
 import { IContainer, Registration } from '@aurelia/kernel';
@@ -40,7 +40,7 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
   private readonly overlayCss: string = baseWrapperCss;
   private readonly hostCss: string = 'position: relative; margin: auto;';
 
-  public render(dialogHost: HTMLElement, settings: LoadedDialogSettings): IDialogDom {
+  public render(dialogHost: HTMLElement, settings: ILoadedDialogSettings): IDialogDom {
     const doc = this.p.document;
     const h = (name: string, css?: string) => {
       const el = doc.createElement(name);
@@ -64,7 +64,7 @@ export class DefaultDialogDom implements IDialogDom {
     private readonly wrapper: HTMLElement,
     private readonly overlay: HTMLElement,
     public readonly host: HTMLElement,
-    private readonly s: LoadedDialogSettings,
+    private readonly s: ILoadedDialogSettings,
   ) {
     overlay.addEventListener(s.mouseEvent ?? 'click', this);
   }

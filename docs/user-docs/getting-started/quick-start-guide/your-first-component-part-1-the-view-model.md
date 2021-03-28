@@ -10,7 +10,7 @@ Aurelia as a default convention works on the premise of a view and view-model, b
 
 Navigate to the `src` directory where your application code lives and open up the `my-app(.ts/.js` file. This is  the main entry point for the application and this file is where business logic would live. As you can see, there is not a lot going on at the moment.
 
-```text
+```typescript
 export class MyApp {
   public message = 'Hello World!';
 }
@@ -18,13 +18,13 @@ export class MyApp {
 
 The class property `message` contains a string and within our view, we are displaying it using interpolation.
 
-```text
+```markup
 <div class="message">${message}</div>
 ```
 
 We are now going to create a new component which will be a smarter hello component. Inside of `src` create a new file called `hello-name` and use the appropriate file extension depending on whether you are using TypeScript or not. So, `hello-name.ts` or `hello-name.js`.
 
-```text
+```typescript
 export class HelloNameCustomElement {
   public name = 'Person';
 }

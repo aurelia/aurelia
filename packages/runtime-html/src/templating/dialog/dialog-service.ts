@@ -82,7 +82,7 @@ export class DialogService implements IDialogService {
   public open(settings: IDialogSettings = {}): IDialogOpenPromise {
     return asDialogOpenPromise(new Promise<IDialogOpenResult>(resolve => {
       const $settings = DialogSettings.from(this.defaultSettings, settings);
-      const container = ($settings.container ?? this.container).createChild();
+      const container = $settings.container ?? this.container.createChild();
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       onResolve(

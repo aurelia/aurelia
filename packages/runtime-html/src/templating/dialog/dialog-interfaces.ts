@@ -35,7 +35,7 @@ export interface IDialogService {
  */
 export const IDialogController = DI.createInterface<IDialogController>('IDialogController');
 export interface IDialogController {
-  readonly settings: Readonly<ILoadedDialogSettings>;
+  readonly settings: ILoadedDialogSettings;
   /**
    * A promise that will be fulfilled once this dialog has been closed
    */
@@ -178,19 +178,9 @@ export interface IDialogSettings<
   startingZIndex?: number;
 
   /**
-   * Centers the dialog only horizontally.
-   */
-  centerHorizontalOnly?: boolean;
-
-  /**
    * When set to true conveys a cancellation as a rejection.
    */
   rejectOnCancel?: boolean;
-
-  /**
-   * When set to true transitions will not be awaited to end.
-   */
-  ignoreTransitions?: boolean;
 
   /**
    * Animation configuration for the dialog. This will be passed as is to the renderer
@@ -213,7 +203,7 @@ export type ILoadedDialogSettings<T extends object = object> = Omit<IDialogSetti
 
 export type IGlobalDialogSettings = Pick<
   IDialogSettings,
-  'lock' | 'startingZIndex' | 'centerHorizontalOnly' | 'rejectOnCancel' | 'ignoreTransitions'
+  'lock' | 'startingZIndex' | 'rejectOnCancel'
 >;
 export const IGlobalDialogSettings = DI.createInterface<IGlobalDialogSettings>('IGlobalDialogSettings');
 

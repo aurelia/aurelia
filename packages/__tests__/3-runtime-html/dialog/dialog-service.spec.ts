@@ -6,7 +6,6 @@ import {
   customElement,
   IDialogCancelError,
   DialogDeactivationStatuses,
-  IDialogCloseResult,
   IDialogAnimator,
   IDialogDom,
 } from '@aurelia/runtime-html';
@@ -28,7 +27,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       },
       {
         title: 'hasOpenDialog with 1 dialog',
-        afterStarted: async ({}, dialogService) => {
+        afterStarted: async (_, dialogService) => {
           assert.strictEqual(dialogService.hasOpenDialog, false);
           const { controller } = await dialogService.open({ template: '' });
           assert.strictEqual(dialogService.hasOpenDialog, true);
@@ -209,7 +208,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           await controller.closed.catch(err => {
             errorCaughtCount++;
             error = err;
-            return {} as IDialogCloseResult;
+            return { status: DialogDeactivationStatuses.Ok };
           });
           assert.notStrictEqual(error, undefined);
           assert.strictEqual(errorCaughtCount, 1);

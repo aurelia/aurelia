@@ -10,7 +10,7 @@ Inside the `src` directory create a new file called `hello-name.html` this will 
 
 Firstly, let's write the code to display the value. Notice how we are using interpolation to print the value like the default generated `my-app.html` file was? `${name}` the value inside the curly braces references the class property we defined in the previous section, by the name of `name`.
 
-```text
+```markup
 <div>
     <h4>Hello, ${name}!</h4>
 </div>
@@ -20,7 +20,7 @@ I would say run the app and see it in action, but we haven't imported our custom
 
 Inside of `my-app.html` replace the entire file with the following:
 
-```text
+```markup
 <import from="./hello-name"></import>
 
 <hello-name></hello-name>
@@ -36,7 +36,7 @@ If you were to run the app using `npm start` you would then see your application
 
 We have a functional custom element, but we promised we would be able to update the name with any value we want. Inside of `hello-name.html` add the following beneath the existing heading. 
 
-```text
+```markup
 <div>
     <h4>Hello, ${name}!</h4>
     

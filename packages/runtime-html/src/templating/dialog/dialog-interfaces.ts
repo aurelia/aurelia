@@ -36,6 +36,10 @@ export interface IDialogService {
 export const IDialogController = DI.createInterface<IDialogController>('IDialogController');
 export interface IDialogController {
   readonly settings: Readonly<ILoadedDialogSettings>;
+  /**
+   * A promise that will be fulfilled once this dialog has been closed
+   */
+  readonly closed: Promise<IDialogCloseResult>;
 
   ok(value?: unknown): Promise<IDialogCloseResult<DialogDeactivationStatuses.Ok>>;
   cancel(value?: unknown): Promise<IDialogCloseResult<DialogDeactivationStatuses.Cancel>>;
@@ -260,11 +264,6 @@ export interface IDialogOpenResult {
    * The controller for the open dialog.
    */
   readonly controller: IDialogController;
-
-  /**
-   * Promise that settles when the dialog is closed.
-   */
-  readonly closePromise: Promise<IDialogCloseResult>;
 }
 
 // #region Implementable

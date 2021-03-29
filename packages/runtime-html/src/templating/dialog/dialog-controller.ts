@@ -49,6 +49,8 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
    */
   public settings!: ILoadedDialogSettings;
 
+  public readonly closed: Promise<IDialogCloseResult>;
+
   /** @internal */
   private animator!: IDialogAnimator;
 
@@ -76,6 +78,10 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
     this.p = p;
     this.ctn = container;
     this.composer = composer;
+    this.closed = new Promise((resolve, reject) => {
+      this.resolve = resolve;
+      this.reject = reject;
+    });
   }
 
   private getOrCreateVm(container: IContainer, settings: ILoadedDialogSettings): IDialogComponent<object> {
@@ -113,41 +119,32 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
       Registration.instance(INode, dom.host),
       Registration.instance(IDialogDom, dom),
     );
-    const component = this.cmp = this.getOrCreateVm(ctn, settings);
-    const closePromise: Promise<IDialogCloseResult> = new Promise((rs, rj) => {
-      this.resolve = rs;
-      this.reject = rj;
-    });
+    const cmp = this.cmp = this.getOrCreateVm(ctn, settings);
 
     return onResolve(
-      'canActivate' in component ? component.canActivate?.(model) : true,
+      'canActivate' in cmp ? cmp.canActivate?.(model) : true,
       (canActivate) => {
         if (canActivate !== true) {
           dom.dispose();
           if (rejectOnCancel) {
             throw createDialogCancelError(null, 'Dialog activation rejected');
           }
-          return DialogOpenResult.create(true, this, closePromise);
+          return DialogOpenResult.create(true, this);
         }
 
-        const compositionContext: ICompositionContext<object> = { component, host: dom.host, template, container: ctn };
-        const controller = this.controller = this.composer.compose(compositionContext);
+        const compositionContext: ICompositionContext<object> = { component: cmp, host: dom.host, template, container: ctn };
+        const ctrlr = this.controller = this.composer.compose(compositionContext);
         const animator: IDialogAnimator = this.animator = ctn.get(IDialogAnimator);
 
-        return onResolve(
-          onResolve(
-            animator.attaching(dom, animation),
-            () => component.activate?.(model),
-          ),
-          () => onResolve(
-            controller.activate(controller, null!, LifecycleFlags.fromBind, controller.scope),
-            () => {
+        return onResolve(animator.attaching(dom, animation), () =>
+          onResolve(cmp.activate?.(model), () =>
+            onResolve(ctrlr.activate(ctrlr, null!, LifecycleFlags.fromBind, ctrlr.scope), () => {
               dom.subscribe(this);
-              return DialogOpenResult.create(false, this, closePromise);
-            },
-          ),
+              return DialogOpenResult.create(false, this);
+            })
+          )
         );
-      },
+      }
     );
   }
 
@@ -158,44 +155,42 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
     }
 
     const { animator, controller, dom, cmp, settings: { rejectOnCancel, animation }} = this;
-    const dialogResult: IDialogCloseResult = DialogClosedResult.create(status, value);
+    const dialogResult = DialogCloseResult.create(status as T, value);
 
-    const promise: Promise<IDialogCloseResult<T>> = new Promise(r => {
-        r('canDeactivate' in cmp ? cmp.canDeactivate?.(dialogResult) : true);
-      })
-      .catch(reason => {
-        this.closingPromise = undefined;
-        return Promise.reject(reason);
-      })
-      .then(canDeactivate => {
-        if (canDeactivate !== true) {
-          // we are done, do not block consecutive calls
-          this.closingPromise = undefined;
-          if (!rejectOnCancel) {
-            return DialogClosedResult.create(DialogDeactivationStatuses.Abort as T);
-          }
-          throw createDialogCancelError(null, 'Dialog cancellation rejected');
-        }
-        return Promise
-          .resolve(animator.detaching(dom, animation))
-          .then(() => cmp.deactivate?.(dialogResult))
-          .then(() => controller.deactivate(controller, null!, LifecycleFlags.fromUnbind))
-          .then(() => {
-            dom.unsubscribe(this);
-            dom.dispose();
-            if (!rejectOnCancel && status !== DialogDeactivationStatuses.Error) {
-              this.resolve(dialogResult);
-            } else {
-              this.reject(createDialogCancelError(value, 'Dialog cancelled with a rejection on cancel'));
+    const promise: Promise<IDialogCloseResult<T>> = new Promise<IDialogCloseResult<T>>(r => {
+      r(onResolve(
+        'canDeactivate' in cmp ? cmp.canDeactivate?.(dialogResult) : true,
+        canDeactivate => {
+          if (canDeactivate !== true) {
+            // we are done, do not block consecutive calls
+            this.closingPromise = void 0;
+            if (rejectOnCancel) {
+              throw createDialogCancelError(null, 'Dialog cancellation rejected');
             }
-            return DialogClosedResult.create(status);
-          })
-          .catch(reason => {
-            this.closingPromise = undefined;
-            return Promise.reject(reason);
-          });
-      });
-
+            return DialogCloseResult.create(DialogDeactivationStatuses.Abort as T);
+          }
+          return onResolve(animator.detaching(dom, animation),
+            () => onResolve(cmp.deactivate?.(dialogResult),
+              () => onResolve(controller.deactivate(controller, null!, LifecycleFlags.fromUnbind),
+                () => {
+                  dom.unsubscribe(this);
+                  dom.dispose();
+                  if (!rejectOnCancel && status !== DialogDeactivationStatuses.Error) {
+                    this.resolve(dialogResult);
+                  } else {
+                    this.reject(createDialogCancelError(value, 'Dialog cancelled with a rejection on cancel'));
+                  }
+                  return dialogResult;
+                }
+              )
+            )
+          );
+        }
+      ));
+    }).catch(reason => {
+      this.closingPromise = void 0;
+      throw reason;
+    });
     this.closingPromise = promise;
     return promise;
   }
@@ -226,11 +221,15 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
    */
   public error(value: unknown): Promise<void> {
     const closeError = createDialogCloseError(value);
-    return new Promise(r =>
-        r(this.cmp.deactivate?.(DialogClosedResult.create(DialogDeactivationStatuses.Error, closeError)))
+    return new Promise(r => r(onResolve(
+      this.cmp.deactivate?.(DialogCloseResult.create(DialogDeactivationStatuses.Error, closeError)),
+      () => onResolve(
+        this.controller.deactivate(this.controller, null!, LifecycleFlags.fromUnbind),
+        () => {
+          this.reject(closeError);
+        }
       )
-      .then(() => this.controller.deactivate(this.controller, null!, LifecycleFlags.fromUnbind))
-      .then(() => { this.reject(closeError); });
+    )));
   }
 
   /**
@@ -261,26 +260,24 @@ class DialogOpenResult implements IDialogOpenResult {
   protected constructor(
     public readonly wasCancelled: boolean,
     public readonly controller: IDialogController,
-    public readonly closePromise: Promise<IDialogCloseResult>,
   ) {}
 
   public static create(
     wasCancelled: boolean,
     controller: IDialogController,
-    closePromise: Promise<IDialogCloseResult>,
   ) {
-    return new DialogOpenResult(wasCancelled, controller, closePromise);
+    return new DialogOpenResult(wasCancelled, controller);
   }
 }
 
-class DialogClosedResult<T extends DialogDeactivationStatuses> implements IDialogCloseResult {
+class DialogCloseResult<T extends DialogDeactivationStatuses> implements IDialogCloseResult {
   protected constructor(
     public readonly status: T,
     public readonly value?: unknown,
   ) {}
 
   public static create<T extends DialogDeactivationStatuses>(status: T, value?: unknown): IDialogCloseResult<T> {
-    return new DialogClosedResult(status, value);
+    return new DialogCloseResult(status, value);
   }
 }
 

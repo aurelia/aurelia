@@ -16,12 +16,11 @@ import {
 } from '@aurelia/testing';
 
 describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
-  describe('.open()', () => {
-
+  describe('.open()', function () {
     const testCases: IDialogServiceTestCase[] = [
       {
         title: 'throws on invalid configuration',
-        afterStarted: async ({}, dialogService) => {
+        afterStarted: async (_, dialogService) => {
           let error: IDialogCancelError<unknown>;
           await dialogService.open({}).catch(err => error = err);
           assert.strictEqual(error.message, 'Invalid Dialog Settings. You must provide "component", "template" or both.');
@@ -31,26 +30,26 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'hasOpenDialog with 1 dialog',
         afterStarted: async ({}, dialogService) => {
           assert.strictEqual(dialogService.hasOpenDialog, false);
-          const { controller, closePromise } = await dialogService.open({ template: '' });
+          const { controller } = await dialogService.open({ template: '' });
           assert.strictEqual(dialogService.hasOpenDialog, true);
           void controller.ok();
-          await closePromise;
+          await controller.closed;
           assert.strictEqual(dialogService.hasOpenDialog, false);
         }
       },
       {
         title: 'hasOpenDialog with more than 1 dialog',
-        afterStarted: async ({}, dialogService) => {
+        afterStarted: async (_, dialogService) => {
           assert.strictEqual(dialogService.hasOpenDialog, false);
-          const { controller: controller1, closePromise: closePromise1 } = await dialogService.open({ template: '' });
+          const { controller: controller1 } = await dialogService.open({ template: '' });
           assert.strictEqual(dialogService.hasOpenDialog, true);
-          const { controller: controller2, closePromise: closePromise2 } = await dialogService.open({ template: '' });
+          const { controller: controller2 } = await dialogService.open({ template: '' });
           assert.strictEqual(dialogService.hasOpenDialog, true);
           void controller1.ok();
-          await closePromise1;
+          await controller1.closed;
           assert.strictEqual(dialogService.hasOpenDialog, true);
           void controller2.ok();
-          await closePromise2;
+          await controller2.closed;
           assert.strictEqual(dialogService.hasOpenDialog, false);
         }
       },
@@ -92,7 +91,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             template: 'hello dialog',
           })
           class TestElement {
-            canActivate() {
+            public canActivate() {
               canActivateCallCount++;
               return true;
             }
@@ -153,7 +152,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       },
       {
         title: 'propagates errors from canActivate',
-        afterStarted: async ({}, dialogService) => {
+        afterStarted: async (_, dialogService) => {
           const expectedError = new Error('Expected error.');
           let canActivateCallCount = 0;
           let error: IDialogCancelError<unknown>;
@@ -167,31 +166,32 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             }
           }).catch(err => error = err);
           assert.strictEqual(error, expectedError);
+          assert.strictEqual(canActivateCallCount, 1);
         }
       },
       {
         title: 'resolves: "IDialogCloseResult" when: .ok()',
-        afterStarted: async ({}, dialogService) => {
-          const { controller, closePromise } = await dialogService.open({ template: '' });
+        afterStarted: async (_, dialogService) => {
+          const { controller } = await dialogService.open({ template: '' });
           const expectedValue = 'expected ok output';
           await controller.ok(expectedValue);
-          const result = await closePromise;
+          const result = await controller.closed;
           assert.strictEqual(result.status, DialogDeactivationStatuses.Ok);
           assert.strictEqual(result.value, expectedValue);
         }
       },
       {
         title: 'resolves: "IDialogCloseResult" when: .cancel() + rejectOnCancel: false',
-        afterStarted: async ({}, dialogService) => {
-          const { controller, closePromise } = await dialogService.open({ template: '' });
+        afterStarted: async (_, dialogService) => {
+          const { controller } = await dialogService.open({ template: '' });
           const expectedOutput = 'expected cancel output';
           let error: IDialogCancelError<unknown>;
           let errorCaughtCount = 0;
           void controller.cancel(expectedOutput);
-          const result = await closePromise.catch(err => {
+          const result = await controller.closed.catch(err => {
             errorCaughtCount++;
             error = err;
-            return {} as IDialogCloseResult;
+            return { status: DialogDeactivationStatuses.Error };
           });
           assert.strictEqual(error, undefined);
           assert.strictEqual(errorCaughtCount, 0);
@@ -200,13 +200,13 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       },
       {
         title: 'rejects: "IDialogCancelError" when: .cancel() + rejectOnCancel: true',
-        afterStarted: async ({}, dialogService) => {
-          const { controller, closePromise } = await dialogService.open({ template: '', rejectOnCancel: true });
+        afterStarted: async (_, dialogService) => {
+          const { controller } = await dialogService.open({ template: '', rejectOnCancel: true });
           const expectedValue = 'expected cancel error output';
           let error: IDialogCancelError<unknown>;
           let errorCaughtCount = 0;
           void controller.cancel(expectedValue);
-          await closePromise.catch(err => {
+          await controller.closed.catch(err => {
             errorCaughtCount++;
             error = err;
             return {} as IDialogCloseResult;
@@ -219,13 +219,13 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       },
       {
         title: 'gets rejected with provided error when ".error" closed',
-        afterStarted: async ({}, dialogService) => {
-          const { controller, closePromise } = await dialogService.open({ template: '' })
+        afterStarted: async (_, dialogService) => {
+          const { controller } = await dialogService.open({ template: '' });
           const expectedError = new Error('expected test error');
           let error: IDialogCancelError<unknown>;
           let errorCaughtCount = 0;
           void controller.error(expectedError);
-          await closePromise.catch(err => {
+          await controller.closed.catch(err => {
             errorCaughtCount++;
             error = err;
           });
@@ -237,7 +237,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       },
       {
         title: '.closeAll() with 1 dialog',
-        afterStarted: async ({}, dialogService) => {
+        afterStarted: async (_, dialogService) => {
           await dialogService.open({ template: '' });
           assert.strictEqual(dialogService.hasOpenDialog, true);
           assert.strictEqual(dialogService.count, 1);
@@ -249,7 +249,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       },
       {
         title: '.closeAll() with more than 1 dialog',
-        afterStarted: async ({}, dialogService) => {
+        afterStarted: async (_, dialogService) => {
           await Promise.all([
             dialogService.open({ template: '' }),
             dialogService.open({ template: '' }),
@@ -278,11 +278,11 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             return fn.call(this, dom, animation);
           })(dialogAnimator.detaching);
 
-          const { controller, closePromise } = await dialogService.open({ template: '' });
+          const { controller } = await dialogService.open({ template: '' });
           assert.strictEqual(attachingCallCount, 1);
 
           void controller.ok();
-          await closePromise;
+          await controller.closed;
           assert.strictEqual(detachingCallCount, 1);
         }
       }
@@ -314,7 +314,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
   });
 
   interface IDialogServiceTestCase {
-    title: string,
+    title: string;
     afterStarted: (appCreationResult: ReturnType<typeof createFixture>, dialogService: IDialogService) => void | Promise<void>;
     afterTornDown?: (appCreationResult: ReturnType<typeof createFixture>, dialogService: IDialogService) => void | Promise<void>;
     only?: boolean;

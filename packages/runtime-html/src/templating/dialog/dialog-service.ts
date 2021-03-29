@@ -97,7 +97,7 @@ export class DialogService implements IDialogService {
                 this.controllers.add(dialogController);
 
                 const $removeController = () => this.remove(dialogController);
-                openResult.closePromise.then($removeController, $removeController);
+                dialogController.closed.then($removeController, $removeController);
               }
               resolve(openResult);
             }
@@ -187,10 +187,9 @@ function whenClosed<TResult1 = unknown, TResult2 = unknown>(
   onfulfilled?: (r: IDialogCloseResult) => TResult1 | PromiseLike<TResult1>,
   onrejected?: (err: unknown) => TResult2 | PromiseLike<TResult2>
 ): Promise<TResult1 | TResult2> {
-  return this
-    .then(or => or.closePromise)
-    .then(onfulfilled, onrejected);
+  return this.then(openResult => openResult.controller.closed.then(onfulfilled, onrejected));
 }
+
 function asDialogOpenPromise(promise: Promise<unknown>): IDialogOpenPromise {
   (promise as IDialogOpenPromise).whenClosed = whenClosed;
   return promise as IDialogOpenPromise;

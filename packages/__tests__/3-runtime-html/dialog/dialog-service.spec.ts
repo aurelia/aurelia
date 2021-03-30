@@ -263,6 +263,31 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         }
       },
       {
+        title: '.closeAll() with one dialog open',
+        afterStarted: async (_, dialogService) => {
+          await Promise.all([
+            dialogService.open({ template: '' }),
+            dialogService.open({ template: '' }),
+            dialogService.open({ component: () => class App {
+              private deactivateCount = 0
+              public canDeactivate() {
+                // only deactivate when called 2nd time
+                return this.deactivateCount++ > 0;
+              }
+            }, template: '' }),
+          ]);
+          assert.strictEqual(dialogService.hasOpenDialog, true);
+          assert.strictEqual(dialogService.count, 3);
+          let unclosedController = await dialogService.closeAll();
+          assert.strictEqual(dialogService.hasOpenDialog, true);
+          assert.strictEqual(dialogService.count, 1);
+          assert.strictEqual(unclosedController.length, 1);
+          unclosedController = await dialogService.closeAll();
+          assert.strictEqual(dialogService.count, 0);
+          assert.deepStrictEqual(unclosedController, []);
+        }
+      },
+      {
         title: 'invokes animator',
         afterStarted: async ({ ctx }, dialogService) => {
           let attachingCallCount = 0;

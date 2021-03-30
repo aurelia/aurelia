@@ -99,9 +99,6 @@ export type DialogActionKey = 'Escape' | 'Enter';
 export type DialogKeyEventType = 'keyup' | 'keydown';
 export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
 
-/**
- * All available dialog settings.
- */
 export interface IDialogSettings<
   TModel = unknown,
   TVm extends object = object,
@@ -111,7 +108,7 @@ export interface IDialogSettings<
   /**
    * The view model url, constructor or instance for the dialog.
    */
-  component?: () => Constructable<TVm> | TVm;
+  component?: () => Constructable<TVm> | TVm | Promise<TVm | Constructable<TVm>>;
 
   /**
    * The view url or view strategy to override the default view location convention.

@@ -8,6 +8,7 @@ import {
   IDialogOpenResult,
   IGlobalDialogSettings,
   ILoadedDialogSettings,
+  DialogActionKey,
 } from './dialog-interfaces.js';
 import { DialogController } from './dialog-controller.js';
 
@@ -16,6 +17,7 @@ import type {
   IDialogSettings,
 } from './dialog-interfaces.js';
 import { AppTask } from '../../app-task.js';
+import { IPlatform } from '../../platform.js';
 
 /**
  * A default implementation for the dialog service allowing for the creation of dialogs.
@@ -26,24 +28,30 @@ export class DialogService implements IDialogService {
    *
    * @internal
    */
-  private readonly controllers: Set<IDialogController> = new Set();
+  private readonly dlgs: IDialogController[] = [];
 
   public get count(): number {
-    return this.controllers.size;
+    return this.dlgs.length;
   }
 
   /**
    * Is there an open dialog
    */
   public get hasOpenDialog(): boolean {
-    return this.controllers.size > 0;
+    return this.dlgs.length > 0;
+  }
+
+  private get top(): IDialogController | null {
+    const dlgs = this.dlgs;
+    return dlgs.length > 0 ? dlgs[dlgs.length - 1] : null;
   }
 
   // tslint:disable-next-line:member-ordering
-  protected static get inject() { return [IContainer, IGlobalDialogSettings]; }
+  protected static get inject() { return [IContainer, IPlatform, IGlobalDialogSettings]; }
 
   public constructor(
     private readonly container: IContainer,
+    private readonly p: IPlatform,
     private readonly defaultSettings: IGlobalDialogSettings,
   ) {}
 
@@ -84,8 +92,7 @@ export class DialogService implements IDialogService {
       const $settings = DialogSettings.from(this.defaultSettings, settings);
       const container = $settings.container ?? this.container.createChild();
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      onResolve(
+      resolve(onResolve(
         $settings.load(),
         loadedSettings => {
           const dialogController = container.getFactory(DialogController).construct(container);
@@ -94,16 +101,18 @@ export class DialogService implements IDialogService {
             dialogController.activate(loadedSettings),
             openResult => {
               if (!openResult.wasCancelled) {
-                this.controllers.add(dialogController);
+                if (this.dlgs.push(dialogController) === 1) {
+                  this.p.window.addEventListener('keydown', this);
+                }
 
                 const $removeController = () => this.remove(dialogController);
                 dialogController.closed.then($removeController, $removeController);
               }
-              resolve(openResult);
+              return openResult;
             }
           );
         }
-      );
+      ));
     }));
   }
 
@@ -114,7 +123,7 @@ export class DialogService implements IDialogService {
    */
   public closeAll(): Promise<IDialogController[]> {
     return Promise
-      .all(Array.from(this.controllers)
+      .all(Array.from(this.dlgs)
         .map(controller => {
           if (controller.settings.rejectOnCancel) {
             // this will throw when calling cancel
@@ -133,8 +142,35 @@ export class DialogService implements IDialogService {
       );
   }
 
+  /** @internal */
   private remove(controller: DialogController): void {
-    this.controllers.delete(controller);
+    const ctrls = this.dlgs;
+    const idx = ctrls.indexOf(controller);
+    if (idx > -1) {
+      this.dlgs.splice(idx, 1);
+    }
+    if (ctrls.length === 0) {
+      this.p.window.removeEventListener('keydown', this);
+    }
+  }
+
+  /** @internal */
+  public handleEvent(e: Event): void {
+    const keyEvent = e as KeyboardEvent;
+    const key = getActionKey(keyEvent);
+    if (key == null) {
+      return;
+    }
+    const top = this.top;
+    if (top == null || !top.settings.keyboard) {
+      return;
+    }
+    const keyboard = top.settings.keyboard;
+    if (matchKey('Escape', key, keyboard)) {
+      top.cancel();
+    } else if (matchKey('Enter', key, keyboard)) {
+      top.ok();
+    }
   }
 }
 
@@ -172,7 +208,7 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
   }
 
   private normalize(): DialogSettings {
-    if (typeof this.keyboard !== 'boolean' && !this.keyboard) {
+    if (typeof this.keyboard !== 'boolean' && this.keyboard == null) {
       this.keyboard = !this.lock;
     }
     if (typeof this.overlayDismiss !== 'boolean') {
@@ -193,4 +229,19 @@ function whenClosed<TResult1 = unknown, TResult2 = unknown>(
 function asDialogOpenPromise(promise: Promise<unknown>): IDialogOpenPromise {
   (promise as IDialogOpenPromise).whenClosed = whenClosed;
   return promise as IDialogOpenPromise;
+}
+
+function getActionKey(e: KeyboardEvent): DialogActionKey | undefined {
+  if ((e.code || e.key) === 'Escape' || e.keyCode === 27) {
+    return 'Escape';
+  }
+  if ((e.code || e.key) === 'Enter' || e.keyCode === 13) {
+    return 'Enter';
+  }
+  return undefined;
+}
+
+function matchKey(keyToMatch: DialogActionKey, key: string, keyboard: string | boolean | DialogActionKey[]) {
+  return key === keyToMatch
+    && (keyboard === true || keyboard === key || (Array.isArray(keyboard) && keyboard.indexOf(key) > -1));
 }

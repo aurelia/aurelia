@@ -78,7 +78,7 @@ The settings that are available in the `open` method of the dialog service:
 - `overlayDismiss` if set to `true` cancel closes the dialog when clicked outside of it. (takes precedence over `lock`)
 - `rejectOnCancel` is a boolean you must set to `true` if you want to handle cancellations as rejection. The reason will be an `IDialogCancelError` - the property `wasCancelled` will be set to `true` and if cancellation data was provided it will be set to the `value` property.
 
-The default global settings has the following values, based on the above list:
+The default global settings has the following values:
 - `lock` is true
 - `startingZIndex` is `1000`
 - `rejectOnCancel` is `false`

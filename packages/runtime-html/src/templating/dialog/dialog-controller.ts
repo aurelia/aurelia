@@ -68,7 +68,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
    */
   private controller!: ISyntheticView;
 
-  protected static inject = [IPlatform, IContainer, IComposer];
+  protected static get inject() { return [IPlatform, IContainer, IComposer]; }
 
   public constructor(
     p: IPlatform,
@@ -94,7 +94,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
   }
 
   /** @internal */
-  public activate(settings: ILoadedDialogSettings): IDialogOpenResult | Promise<IDialogOpenResult> {
+  public activate(settings: ILoadedDialogSettings): Promise<IDialogOpenResult> {
     const { ctn } = this;
     const { animation, model, template, rejectOnCancel } = settings;
     const hostRenderer: IDialogDomRenderer = ctn.get(IDialogDomRenderer);
@@ -121,9 +121,12 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
     );
     const cmp = this.cmp = this.getOrCreateVm(ctn, settings);
 
-    return onResolve(
-      'canActivate' in cmp ? cmp.canActivate?.(model) : true,
-      (canActivate) => {
+    return new Promise(r => {
+        r('canActivate' in cmp ? cmp.canActivate?.(model) : true);
+      }).catch(e => {
+        dom.dispose();
+        throw e;
+      }).then(canActivate => {
         if (canActivate !== true) {
           dom.dispose();
           if (rejectOnCancel) {
@@ -144,8 +147,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
             })
           )
         );
-      }
-    );
+      });
   }
 
   /** @internal */
@@ -154,6 +156,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
       return this.closingPromise as Promise<IDialogCloseResult<T>>;
     }
 
+    let deactivating = true;
     const { animator, controller, dom, cmp, settings: { rejectOnCancel, animation }} = this;
     const dialogResult = DialogCloseResult.create(status as T, value);
 
@@ -163,6 +166,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
         canDeactivate => {
           if (canDeactivate !== true) {
             // we are done, do not block consecutive calls
+            deactivating = false;
             this.closingPromise = void 0;
             if (rejectOnCancel) {
               throw createDialogCancelError(null, 'Dialog cancellation rejected');
@@ -173,7 +177,6 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
             () => onResolve(cmp.deactivate?.(dialogResult),
               () => onResolve(controller.deactivate(controller, null!, LifecycleFlags.fromUnbind),
                 () => {
-                  dom.unsubscribe(this);
                   dom.dispose();
                   if (!rejectOnCancel && status !== DialogDeactivationStatuses.Error) {
                     this.resolve(dialogResult);
@@ -191,7 +194,10 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
       this.closingPromise = void 0;
       throw reason;
     });
-    this.closingPromise = promise;
+    // when component canDeactivate is synchronous, and returns something other than true
+    // then the below assignment will override
+    // the assignment inside the callback without the deactivating variable check
+    this.closingPromise = deactivating ? promise : void 0;
     return promise;
   }
 
@@ -226,6 +232,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
       () => onResolve(
         this.controller.deactivate(this.controller, null!, LifecycleFlags.fromUnbind),
         () => {
+          this.dom.dispose();
           this.reject(closeError);
         }
       )
@@ -245,7 +252,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
 
   /** @internal */
   public handleOverlayClick(event: MouseEvent): void {
-    if (/* user allows dismiss on overlay click */!this.settings.lock
+    if (/* user allows dismiss on overlay click */this.settings.overlayDismiss
       && /* did not click inside the host element */!this.dom.host.contains(event.target as Element)
     ) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises

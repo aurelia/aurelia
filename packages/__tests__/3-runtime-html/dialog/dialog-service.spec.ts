@@ -159,13 +159,17 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             template: 'hello world',
             component: () => class TestElement {
               public canActivate() {
-                canActivateCallCount++;
-                throw expectedError;
+                if (canActivateCallCount === 0) {
+                  canActivateCallCount++;
+                  throw expectedError;
+                }
               }
             }
           }).catch(err => error = err);
+          assert.strictEqual(dialogService.count, 0);
           assert.strictEqual(error, expectedError);
           assert.strictEqual(canActivateCallCount, 1);
+          assert.strictEqual(dialogService.count, 0);
         }
       },
       {
@@ -232,6 +236,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             wasCancelled: false,
             value: expectedError
           }));
+          assert.strictEqual(errorCaughtCount, 1);
         }
       },
       {
@@ -309,6 +314,53 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           await controller.closed;
           assert.strictEqual(detachingCallCount, 1);
         }
+      },
+      {
+        title: 'closes dialog when clicking on overlay with lock: false',
+        afterStarted: async ({ ctx }, dialogService) => {
+          const { controller } = await dialogService.open({ template: 'Hello world', lock: false });
+          debugger;
+          assert.strictEqual(ctx.doc.querySelector('au-dialog-container').textContent, 'Hello world');
+          const overlay = ctx.doc.querySelector('au-dialog-overlay') as HTMLElement;
+          overlay.click();
+          await Promise.any([
+            controller.closed,
+            new Promise(r => setTimeout(r, 50)),
+          ]);
+          assert.strictEqual(dialogService.hasOpenDialog, false);
+          assert.strictEqual(dialogService.count, 0);
+        }
+      },
+      {
+        title: 'does not close dialog when clicking on overlay with lock: true',
+        afterStarted: async ({ ctx }, dialogService) => {
+          const { controller } = await dialogService.open({ template: 'Hello world' });
+          assert.strictEqual(controller.settings.lock, true);
+          assert.strictEqual(ctx.doc.querySelector('au-dialog-container').textContent, 'Hello world');
+          const overlay = ctx.doc.querySelector('au-dialog-overlay') as HTMLElement;
+          overlay.click();
+          await Promise.any([
+            controller.closed,
+            new Promise(r => setTimeout(r, 50)),
+          ]);
+          assert.strictEqual(dialogService.hasOpenDialog, true);
+          assert.strictEqual(dialogService.count, 1);
+        }
+      },
+      {
+        title: 'does not close dialog when clicking inside dialog host with lock: false',
+        afterStarted: async ({ ctx }, dialogService) => {
+          const { controller } = await dialogService.open({ template: 'Hello world', lock: false });
+          assert.strictEqual(ctx.doc.querySelector('au-dialog-container').textContent, 'Hello world');
+          const host = ctx.doc.querySelector('div') as HTMLElement;
+          host.click();
+          await Promise.any([
+            controller.closed,
+            new Promise(r => setTimeout(r, 50)),
+          ]);
+          assert.strictEqual(dialogService.hasOpenDialog, true);
+          assert.strictEqual(dialogService.count, 1);
+        }
       }
     ];
 
@@ -328,11 +380,17 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           try {
             await tearDown();
           } catch (e2) {/* best effort */ }
+          ctx.doc.querySelectorAll('au-dialog-container').forEach(e => e.remove());
           throw ex;
         }
 
         await tearDown();
         await afterTornDown?.(creationResult, dialogService);
+        const dialogContainerEls = ctx.doc.querySelectorAll('au-dialog-container');
+        dialogContainerEls.forEach(e => e.remove());
+        if (dialogContainerEls.length > 0) {
+          throw new Error('Invalid test, left over <au-dialog-container/> in the document');
+        }
       });
     }
   });

@@ -90,7 +90,7 @@ describe('au-slot', function () {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
         ) {
-           assert.instanceOf(slots, AuSlotsInfo);
+          assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       return CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, MyElement);
@@ -191,7 +191,7 @@ describe('au-slot', function () {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
         ) {
-           assert.instanceOf(slots, AuSlotsInfo);
+          assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       yield new TestData(
@@ -213,7 +213,7 @@ describe('au-slot', function () {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
         ) {
-           assert.instanceOf(slots, AuSlotsInfo);
+          assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       yield new TestData(
@@ -512,6 +512,78 @@ describe('au-slot', function () {
           },
         );
       }
+
+      yield new TestData(
+        'works with data from repeater scope - template[repeat.for]>custom-element - source: override context in outer scope',
+        `<let items.bind="['1', '2']"></let>
+         <template repeat.for="item of items">
+          <my-element>
+            <template au-slot>
+              \${item}
+            </template>
+          </my-element>
+         </template>`,
+        [
+          createMyElement('<au-slot></au-slot>')
+        ],
+        {
+          'my-element': [`1`, new AuSlotsInfo(['default'])],
+          'my-element+my-element': [`2`, new AuSlotsInfo(['default'])],
+        },
+      );
+
+      yield new TestData(
+        'works with data from repeater scope - custom-element[repeat.for] - source: override context in outer scope',
+        `<let items.bind="['1', '2']"></let>
+        <my-element repeat.for="item of items">
+          <template au-slot>
+            \${item}
+          </template>
+        </my-element>`,
+        [
+          createMyElement('<au-slot></au-slot>')
+        ],
+        {
+          'my-element': [`1`, new AuSlotsInfo(['default'])],
+          'my-element+my-element': [`2`, new AuSlotsInfo(['default'])],
+        },
+      );
+
+      yield new TestData(
+        'works with data from repeater scope - template[repeat.for]>custom-element - source: binding context in outer scope',
+        `<template>
+          <template repeat.for="person of people">
+            <my-element>
+              <template au-slot>
+                \${person.firstName}
+              </template>
+            </my-element>
+          </template>
+         </template>`,
+        [
+          createMyElement('<au-slot></au-slot>')
+        ],
+        {
+          'my-element': [`John`, new AuSlotsInfo(['default'])],
+          'my-element+my-element': [`Max`, new AuSlotsInfo(['default'])],
+        },
+      );
+
+      yield new TestData(
+        'works with data from repeater scope - custom-element[repeat.for] - source: binding context in outer scope',
+        `<my-element repeat.for="person of people">
+          <template au-slot>
+            \${person.firstName}
+          </template>
+        </my-element>`,
+        [
+          createMyElement('<au-slot></au-slot>')
+        ],
+        {
+          'my-element': [`John`, new AuSlotsInfo(['default'])],
+          'my-element+my-element': [`Max`, new AuSlotsInfo(['default'])],
+        },
+      );
     }
     // #endregion
 
@@ -1217,7 +1289,7 @@ describe('au-slot', function () {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
         ) {
-           assert.instanceOf(slots, AuSlotsInfo);
+          assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       @customElement({
@@ -1228,7 +1300,7 @@ describe('au-slot', function () {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
         ) {
-           assert.instanceOf(slots, AuSlotsInfo);
+          assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       @customElement({
@@ -1239,7 +1311,7 @@ describe('au-slot', function () {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
         ) {
-           assert.instanceOf(slots, AuSlotsInfo);
+          assert.instanceOf(slots, AuSlotsInfo);
         }
       }
 

@@ -80,6 +80,7 @@
 * [Strongly-typed Template](advanced-scenarios/strongly-typed-template.md)
 * [Write Custom Plugins](advanced-scenarios/write-custom-plugin.md)
 * [DOM Style Injection](advanced-scenarios/dom-style-injection.md)
+* [Markdown Integration](advanced-scenarios/markdown-integration.md)
 
 ## Side-by-Side Comparison
 

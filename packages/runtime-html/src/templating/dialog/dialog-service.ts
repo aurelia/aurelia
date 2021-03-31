@@ -144,12 +144,12 @@ export class DialogService implements IDialogService {
 
   /** @internal */
   private remove(controller: DialogController): void {
-    const ctrls = this.dlgs;
-    const idx = ctrls.indexOf(controller);
+    const dlgs = this.dlgs;
+    const idx = dlgs.indexOf(controller);
     if (idx > -1) {
       this.dlgs.splice(idx, 1);
     }
-    if (ctrls.length === 0) {
+    if (dlgs.length === 0) {
       this.p.window.removeEventListener('keydown', this);
     }
   }

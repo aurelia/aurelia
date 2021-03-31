@@ -12,6 +12,7 @@ import {
 import {
   createFixture,
   assert,
+  createSpy,
 } from '@aurelia/testing';
 
 describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
@@ -359,6 +360,80 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           ]);
           assert.strictEqual(dialogService.hasOpenDialog, true);
           assert.strictEqual(dialogService.count, 1);
+        }
+      },
+      {
+        title: 'closes the latest open dialog when hitting ESC key',
+        afterStarted: async ({ ctx }, dialogService) => {
+          const [{ controller: controller1 }, { controller: controller2 }] = await Promise.all([
+            dialogService.open({ template: 'Hello world', lock: false }),
+            dialogService.open({ template: 'Hello world', lock: false })
+          ]);
+          const cancelSpy1 = createSpy(controller1, 'cancel', true);
+          const cancelSpy2 = createSpy(controller2, 'cancel', true);
+          ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
+          assert.strictEqual(cancelSpy1.calls.length, 0);
+          assert.strictEqual(cancelSpy2.calls.length, 1);
+          await controller2.closed;
+          ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
+          assert.strictEqual(cancelSpy1.calls.length, 1);
+          assert.strictEqual(cancelSpy2.calls.length, 1);
+          await controller1.closed;
+          assert.strictEqual(dialogService.hasOpenDialog, false);
+          assert.strictEqual(dialogService.count, 0);
+
+          cancelSpy1.restore();
+          cancelSpy2.restore();
+        }
+      },
+      {
+        title: 'does not close the latest open dialog when hitting ESC key when lock:true',
+        afterStarted: async ({ ctx }, dialogService) => {
+          const [{ controller: controller1 }, { controller: controller2 }] = await Promise.all([
+            dialogService.open({ template: 'Hello world', lock: false }),
+            dialogService.open({ template: 'Hello world', lock: true })
+          ]);
+          const cancelSpy1 = createSpy(controller1, 'cancel', true);
+          const cancelSpy2 = createSpy(controller2, 'cancel', true);
+          ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
+          assert.strictEqual(cancelSpy1.calls.length, 0);
+          assert.strictEqual(cancelSpy2.calls.length, 0);
+          controller2.cancel();
+          await controller2.closed;
+          ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
+          assert.strictEqual(cancelSpy1.calls.length, 1);
+          await controller1.closed;
+          assert.strictEqual(dialogService.hasOpenDialog, false);
+          assert.strictEqual(dialogService.count, 0);
+
+          cancelSpy1.restore();
+          cancelSpy2.restore();
+        }
+      },
+      {
+        title: 'closes on Enter with keyboard:Enter regardless lock:[value]',
+        afterStarted: async ({ ctx }, dialogService) => {
+          const { controller: controller1 } = await dialogService.open({ template: 'Hello world', lock: false, keyboard: 'Enter' });
+          const { controller: controller2 } = await dialogService.open({ template: 'Hello world', lock: true, keyboard: 'Enter' });
+          const okSpy1 = createSpy(controller1, 'ok', true);
+          const okSpy2 = createSpy(controller2, 'ok', true);
+          ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
+          assert.strictEqual(okSpy1.calls.length, 0);
+          assert.strictEqual(okSpy2.calls.length, 0);
+
+          ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Enter' }));
+          assert.strictEqual(okSpy1.calls.length, 0);
+          assert.strictEqual(okSpy2.calls.length, 1);
+          await controller2.closed;
+          ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Enter' }));
+          assert.strictEqual(okSpy1.calls.length, 1);
+          assert.strictEqual(okSpy2.calls.length, 1);
+          await controller1.closed;
+          assert.strictEqual(dialogService.hasOpenDialog, false);
+          assert.strictEqual(dialogService.count, 0);
+
+          okSpy1.restore();
+          okSpy2.restore();
         }
       }
     ];

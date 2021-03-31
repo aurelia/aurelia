@@ -207,7 +207,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
    * @param value - The returned success output.
    */
   public ok(value?: unknown): Promise<IDialogCloseResult<DialogDeactivationStatuses.Ok>> {
-    return this.close(DialogDeactivationStatuses.Ok, value);
+    return this.deactivate(DialogDeactivationStatuses.Ok, value);
   }
 
   /**
@@ -216,7 +216,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
    * @param value - The returned cancel output.
    */
   public cancel(value?: unknown): Promise<IDialogCloseResult<DialogDeactivationStatuses.Cancel>> {
-    return this.close(DialogDeactivationStatuses.Cancel, value);
+    return this.deactivate(DialogDeactivationStatuses.Cancel, value);
   }
 
   /**

@@ -25,7 +25,7 @@ The class property `message` contains a string and within our view, we are displ
 We are now going to create a new component which will be a smarter hello component. Inside of `src` create a new file called `hello-name` and use the appropriate file extension depending on whether you are using TypeScript or not. So, `hello-name.ts` or `hello-name.js`.
 
 ```typescript
-export class HelloNameCustomElement {
+export class HelloName {
   name = 'Person';
 }
 ```

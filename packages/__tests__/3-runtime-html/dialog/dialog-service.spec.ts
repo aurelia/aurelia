@@ -398,7 +398,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
           assert.strictEqual(cancelSpy1.calls.length, 0);
           assert.strictEqual(cancelSpy2.calls.length, 0);
-          controller2.cancel();
+          void controller2.cancel();
           await controller2.closed;
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
           assert.strictEqual(cancelSpy1.calls.length, 1);

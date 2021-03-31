@@ -167,9 +167,9 @@ export class DialogService implements IDialogService {
     }
     const keyboard = top.settings.keyboard;
     if (matchKey('Escape', key, keyboard)) {
-      top.cancel();
+      void top.cancel();
     } else if (matchKey('Enter', key, keyboard)) {
-      top.ok();
+      void top.ok();
     }
   }
 }
@@ -243,5 +243,5 @@ function getActionKey(e: KeyboardEvent): DialogActionKey | undefined {
 
 function matchKey(keyToMatch: DialogActionKey, key: string, keyboard: string | boolean | DialogActionKey[]) {
   return key === keyToMatch
-    && (keyboard === true || keyboard === key || (Array.isArray(keyboard) && keyboard.indexOf(key) > -1));
+    && (keyboard === true || keyboard === key || (Array.isArray(keyboard) && keyboard.includes(key)));
 }

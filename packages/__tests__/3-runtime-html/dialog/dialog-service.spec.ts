@@ -274,7 +274,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             dialogService.open({ template: '' }),
             dialogService.open({ template: '' }),
             dialogService.open({ component: () => class App {
-              private deactivateCount = 0
+              private deactivateCount = 0;
               public canDeactivate() {
                 // only deactivate when called 2nd time
                 return this.deactivateCount++ > 0;
@@ -319,7 +319,6 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'closes dialog when clicking on overlay with lock: false',
         afterStarted: async ({ ctx }, dialogService) => {
           const { controller } = await dialogService.open({ template: 'Hello world', lock: false });
-          debugger;
           assert.strictEqual(ctx.doc.querySelector('au-dialog-container').textContent, 'Hello world');
           const overlay = ctx.doc.querySelector('au-dialog-overlay') as HTMLElement;
           overlay.click();

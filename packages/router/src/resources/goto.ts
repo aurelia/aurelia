@@ -62,7 +62,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel {
   private readonly navigationEndHandler = (_navigation: RouterNavigationEndEvent): void => {
     const controller = CustomAttribute.for(this.element, 'goto')!.parent!;
     const created = this.router.applyLoadOptions(this.value as any, { context: controller });
-    const instructions = RoutingInstruction.from(created.instructions);
+    const instructions = RoutingInstruction.from(this.router, created.instructions);
     for (const instruction of instructions) {
       if (instruction.scope === null) {
         instruction.scope = created.scope;

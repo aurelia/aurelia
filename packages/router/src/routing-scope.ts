@@ -226,7 +226,7 @@ export class RoutingScope {
   public findInstructions(instruction: string | RoutingInstruction[], useDirectRouting: boolean, useConfiguredRoutes: boolean): FoundRoute {
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
-      const instructions = RoutingInstruction.parse(instruction);
+      const instructions = RoutingInstruction.parse(this.router, instruction);
       if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(instructions)) {
         const foundRoute = this.findMatchingRoute(instruction);
         if (foundRoute?.foundConfiguration ?? false) {
@@ -517,7 +517,7 @@ export class RoutingScope {
       }];
     }
     if (route.redirectTo === null) {
-      route.instructions = RoutingInstruction.from(route.instructions!);
+      route.instructions = RoutingInstruction.from(this.router, route.instructions!);
     }
     return route as Route;
   }

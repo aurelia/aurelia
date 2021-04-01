@@ -50,7 +50,7 @@ describe('RoutingInstruction', function () {
     ];
     let instructionsString = RoutingInstruction.stringify(router, instructions);
     assert.strictEqual(instructionsString, 'foo(123)@left+bar(456)@right', `instructionsString`);
-    let newInstructions = RoutingInstruction.parse(instructionsString);
+    let newInstructions = RoutingInstruction.parse(router, instructionsString);
     assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
 
     instructions = [
@@ -60,7 +60,7 @@ describe('RoutingInstruction', function () {
     ];
     instructionsString = RoutingInstruction.stringify(router, instructions);
     assert.strictEqual(instructionsString, 'foo(123)+bar@right+baz', `instructionsString`);
-    newInstructions = RoutingInstruction.parse(instructionsString);
+    newInstructions = RoutingInstruction.parse(router, instructionsString);
     assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
 
     await tearDown();
@@ -93,7 +93,7 @@ describe('RoutingInstruction', function () {
         const { host, router, tearDown } = await createFixture();
 
         routingInstruction.scopeModifier = '';
-        const parsed = RoutingInstruction.parse(instruction)[0];
+        const parsed = RoutingInstruction.parse(router, instruction)[0];
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
         const newInstruction = parsed.stringify(router);
         assert.strictEqual(newInstruction, instruction, `newInstruction`);
@@ -110,7 +110,7 @@ describe('RoutingInstruction', function () {
         const { host, router, tearDown } = await createFixture();
 
         routingInstruction.scopeModifier = '/';
-        const parsed = RoutingInstruction.parse(prefixedInstruction)[0];
+        const parsed = RoutingInstruction.parse(router, prefixedInstruction)[0];
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
         const newInstruction = parsed.stringify(router);
         assert.strictEqual(`${newInstruction}`, prefixedInstruction, `newInstruction`);
@@ -127,7 +127,7 @@ describe('RoutingInstruction', function () {
         const { host, router, tearDown } = await createFixture();
 
         routingInstruction.scopeModifier = '../../';
-        const parsed = RoutingInstruction.parse(prefixedInstruction)[0];
+        const parsed = RoutingInstruction.parse(router, prefixedInstruction)[0];
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
         const newInstruction = parsed.stringify(router);
         assert.strictEqual(`${newInstruction}`, prefixedInstruction, `newInstruction`);
@@ -173,7 +173,7 @@ describe('RoutingInstruction', function () {
     const instructions: RoutingInstruction[] = [a, h];
 
     const instructionsString = RoutingInstruction.stringify(router, instructions);
-    const parsedInstructions = RoutingInstruction.parse(instructionsString);
+    const parsedInstructions = RoutingInstruction.parse(router, instructionsString);
     const stringified = RoutingInstruction.stringify(router, parsedInstructions);
     assert.strictEqual(stringified, instructionsString, `stringified`);
 
@@ -188,7 +188,7 @@ describe('RoutingInstruction', function () {
     it(`parses and stringifies viewport instructions: ${instruction}`, async function () {
       const { host, router, tearDown } = await createFixture();
 
-      const parsed = RoutingInstruction.parse(instruction);
+      const parsed = RoutingInstruction.parse(router, instruction);
       const stringifiedInstructions = RoutingInstruction.stringify(router, parsed);
       assert.strictEqual(stringifiedInstructions, instruction, `stringifiedInstructions`);
 
@@ -216,9 +216,9 @@ describe('RoutingInstruction', function () {
     it(`parses and stringifies component parameters: ${parameters.params} => ${parameters.result}`, async function () {
       const { router, tearDown } = await createFixture();
 
-      const parsed = InstructionParameters.parse(parameters.params);
+      const parsed = InstructionParameters.parse(router, parameters.params);
       // console.log('parsed', parsed);
-      const stringified = InstructionParameters.stringify(parsed);
+      const stringified = InstructionParameters.stringify(router, parsed);
       assert.deepStrictEqual(stringified, parameters.params, `stringified`);
       await tearDown();
     });
@@ -228,7 +228,7 @@ describe('RoutingInstruction', function () {
       const { router, tearDown } = await createFixture();
 
       const instruction = RoutingInstruction.create('', '', parameters.params) as RoutingInstruction;
-      const specified = instruction.parameters.toSpecifiedParameters(parameters.spec);
+      const specified = instruction.parameters.toSpecifiedParameters(router, parameters.spec);
       assert.deepStrictEqual(specified, parameters.result, `specified`);
       await tearDown();
     });
@@ -244,11 +244,11 @@ describe('RoutingInstruction', function () {
 
         const outerInstruction = RoutingInstruction.create(Test, '', outer.params) as RoutingInstruction;
         const innerInstruction = RoutingInstruction.create(Test, '', inner.params) as RoutingInstruction;
-        const outerResult = outerInstruction.parameters.toSpecifiedParameters(outer.spec);
-        const innerResult = innerInstruction.parameters.toSpecifiedParameters(outer.spec);
+        const outerResult = outerInstruction.parameters.toSpecifiedParameters(router, outer.spec);
+        const innerResult = innerInstruction.parameters.toSpecifiedParameters(router, outer.spec);
         // console.log(outer.params, inner.params, outerResult, innerResult, isEqual(outerResult, innerResult));
-        assert.strictEqual(outerInstruction.sameParameters(innerInstruction), isEqual(outerResult, innerResult), `outer.sameParameters`);
-        assert.strictEqual(innerInstruction.sameParameters(outerInstruction), isEqual(outerResult, innerResult), `inner.sameParameters`);
+        assert.strictEqual(outerInstruction.sameParameters(router, innerInstruction), isEqual(outerResult, innerResult), `outer.sameParameters`);
+        assert.strictEqual(innerInstruction.sameParameters(router, outerInstruction), isEqual(outerResult, innerResult), `inner.sameParameters`);
 
         await tearDown();
       });

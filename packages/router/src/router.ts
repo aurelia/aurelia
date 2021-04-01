@@ -808,7 +808,7 @@ export class Router implements IRouter {
     ({ instructions, scope } = this.applyLoadOptions(instructions, options));
 
     if ((options.append ?? false) && (!this.loadedFirst || this.isNavigating)) {
-      instructions = RoutingInstruction.from(instructions);
+      instructions = RoutingInstruction.from(this, instructions);
       this.appendInstructions(instructions as RoutingInstruction[], scope);
       // Can't return current navigation promise since it can lead to deadlock in load
       return Promise.resolve();
@@ -869,7 +869,7 @@ export class Router implements IRouter {
         scope = null; // router.rootScope!.scope;
       }
       if (!keepString) {
-        loadInstructions = RoutingInstruction.from(loadInstructions);
+        loadInstructions = RoutingInstruction.from(this, loadInstructions);
         for (const instruction of loadInstructions as RoutingInstruction[]) {
           if (instruction.scope === null) {
             instruction.scope = scope;
@@ -877,7 +877,7 @@ export class Router implements IRouter {
         }
       }
     } else {
-      loadInstructions = RoutingInstruction.from(loadInstructions);
+      loadInstructions = RoutingInstruction.from(this, loadInstructions);
       for (const instruction of loadInstructions as RoutingInstruction[]) {
         if (instruction.scope === null) {
           instruction.scope = scope;
@@ -952,7 +952,7 @@ export class Router implements IRouter {
       const scopeActives = scope.matchScope(this.activeComponents, true);
 
       // ...if any instruction, including next scope instructions, isn't found...
-      if (!RoutingInstruction.contains(scopeActives, scopeInstructions, true)) {
+      if (!RoutingInstruction.contains(this, scopeActives, scopeInstructions, true)) {
         // ...the instructions are not considered active.
         return false;
       }

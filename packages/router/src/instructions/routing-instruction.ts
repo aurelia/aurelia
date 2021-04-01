@@ -127,17 +127,18 @@ export class RoutingInstruction {
   /**
    * Get routing instructions based on load instructions.
    *
+   * @param context - The context (used for syntax) within to parse the instructions
    * @param loadInstructions - The load instructions to get the routing
    * instructions from.
    */
-  public static from(loadInstructions: LoadInstruction | LoadInstruction[]): RoutingInstruction[] {
+  public static from(context: IRouterConfiguration | IRouter | IContainer, loadInstructions: LoadInstruction | LoadInstruction[]): RoutingInstruction[] {
     if (!Array.isArray(loadInstructions)) {
       loadInstructions = [loadInstructions];
     }
     const instructions: RoutingInstruction[] = [];
     for (const instruction of loadInstructions as LoadInstruction[]) {
       if (typeof instruction === 'string') {
-        instructions.push(...RoutingInstruction.parse(instruction));
+        instructions.push(...RoutingInstruction.parse(context, instruction));
       } else if (instruction instanceof RoutingInstruction) {
         instructions.push(instruction);
       } else if (instruction instanceof Promise) {
@@ -150,7 +151,7 @@ export class RoutingInstruction {
         const viewportComponent = instruction;
         const newInstruction = RoutingInstruction.create(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters) as RoutingInstruction;
         if (viewportComponent.children !== void 0 && viewportComponent.children !== null) {
-          newInstruction.nextScopeInstructions = RoutingInstruction.from(viewportComponent.children);
+          newInstruction.nextScopeInstructions = RoutingInstruction.from(context, viewportComponent.children);
         }
         instructions.push(newInstruction);
       } else if (typeof instruction === 'object' && instruction !== null) {
@@ -180,9 +181,11 @@ export class RoutingInstruction {
   /**
    * Parse an instruction string into a list of routing instructions.
    *
+   * @param context - The context (used for syntax) within to parse the instructions
    * @param instructions - The instruction string to parse
    */
-  public static parse(instructions: string): RoutingInstruction[] {
+  public static parse(context: IRouterConfiguration | IRouter | IContainer, instructions: string): RoutingInstruction[] {
+    const seps = Separators.for(context);
     let scopeModifier = '';
     // Scope modifier is a start with .. or / and any combination thereof
     const match = /^[./]+/.exec(instructions);
@@ -194,7 +197,7 @@ export class RoutingInstruction {
       instructions = instructions.slice(scopeModifier.length);
     }
     // Parse the instructions...
-    const parsedInstructions: RoutingInstruction[] = InstructionParser.parse(instructions, true, true).instructions;
+    const parsedInstructions: RoutingInstruction[] = InstructionParser.parse(seps, instructions, true, true).instructions;
     for (const instruction of parsedInstructions) {
       // ...and set the scope modifier on each of them.
       instruction.scopeModifier = scopeModifier;
@@ -267,13 +270,14 @@ export class RoutingInstruction {
    * instructions. If deep, all next scope instructions needs to be contained
    * in containing next scope instructions as well.
    *
+   * @param context - The context (used for parameter syntax) to compare within
    * @param instructionsToSearch - Instructions that should contain (superset)
    * @param instructionsToFind - Instructions that should be contained (subset)
    * @param deep - Whether next scope instructions also need to be contained (recursively)
    */
-  public static contains(instructionsToSearch: RoutingInstruction[], instructionsToFind: RoutingInstruction[], deep: boolean): boolean {
+  public static contains(context: IRouterConfiguration | IRouter | IContainer, instructionsToSearch: RoutingInstruction[], instructionsToFind: RoutingInstruction[], deep: boolean): boolean {
     // All instructions to find need to exist in instructions to search
-    return instructionsToFind.every(find => find.isIn(instructionsToSearch, deep));
+    return instructionsToFind.every(find => find.isIn(context, instructionsToSearch, deep));
   }
 
   /**
@@ -333,20 +337,21 @@ export class RoutingInstruction {
   /**
    * Get the instruction parameters with type specification applied.
    */
-  public get typeParameters(): Parameters {
-    return this.parameters.toSpecifiedParameters(this.component.type?.parameters ?? []);
+  public typeParameters(context: IRouterConfiguration | IRouter | IContainer): Parameters {
+    return this.parameters.toSpecifiedParameters(context, this.component.type?.parameters ?? []);
   }
 
   /**
    * Compare the routing instruction's component with the component of another routing
    * instruction. Compares on name unless `compareType` is `true`.
    *
+   * @param context - The context (used for parameter syntax) to compare within
    * @param other - The routing instruction to compare to
    * @param compareParameters - Whether parameters should also be compared
    * @param compareType - Whether comparision should be made on type only (and not name)
    */
-  public sameComponent(other: RoutingInstruction, compareParameters: boolean = false, compareType: boolean = false): boolean {
-    if (compareParameters && !this.sameParameters(other, compareType)) {
+  public sameComponent(context: IRouterConfiguration | IRouter | IContainer, other: RoutingInstruction, compareParameters: boolean = false, compareType: boolean = false): boolean {
+    if (compareParameters && !this.sameParameters(context, other, compareType)) {
       return false;
     }
     return this.component.same(other.component, compareType);
@@ -371,12 +376,12 @@ export class RoutingInstruction {
    * @param other - The routing instruction to compare to
    * @param compareType - Whether comparision should be made on type as well
    */
-  public sameParameters(other: RoutingInstruction, compareType: boolean = false): boolean {
+  public sameParameters(context: IRouterConfiguration | IRouter | IContainer, other: RoutingInstruction, compareType: boolean = false): boolean {
     // TODO: Somewhere we need to check for format such as spaces etc
     if (!this.component.same(other.component, compareType)) {
       return false;
     }
-    return this.parameters.same(other.parameters, this.component.type);
+    return this.parameters.same(context, other.parameters, this.component.type);
   }
 
   /**
@@ -491,20 +496,21 @@ export class RoutingInstruction {
    * deep, all next scope instructions needs to be contained in containing
    * next scope instructions as well.
    *
+   * @param context - The context (used for parameter syntax) to compare within
    * @param searchIn - Instructions that should contain (superset)
    * @param deep - Whether next scope instructions also need to be contained (recursively)
    */
-  public isIn(searchIn: RoutingInstruction[], deep: boolean): boolean {
+  public isIn(context: IRouterConfiguration | IRouter | IContainer, searchIn: RoutingInstruction[], deep: boolean): boolean {
     // Get all instructions with matching component.
     const matching = searchIn.filter(instruction => {
-      if (!instruction.sameComponent(this)) {
+      if (!instruction.sameComponent(context, this)) {
         return false;
       }
       // Use own type if we have it, the other's type if not
       const instructionType = instruction.component.type ?? this.component.type;
       const thisType = this.component.type ?? instruction.component.type;
-      const instructionParameters = instruction.parameters.toSpecifiedParameters(instructionType?.parameters);
-      const thisParameters = this.parameters.toSpecifiedParameters(thisType?.parameters);
+      const instructionParameters = instruction.parameters.toSpecifiedParameters(context, instructionType?.parameters);
+      const thisParameters = this.parameters.toSpecifiedParameters(context, thisType?.parameters);
 
       if (!InstructionParameters.contains(instructionParameters, thisParameters)) {
         return false;
@@ -525,6 +531,7 @@ export class RoutingInstruction {
     // Match the next scope instructions to the next scope instructions of each
     // of the matching instructions and if at least one match (recursively)...
     if (matching.some(matched => RoutingInstruction.contains(
+      context,
       matched.nextScopeInstructions ?? [],
       this.nextScopeInstructions!,
       deep))
@@ -586,7 +593,7 @@ export class RoutingInstruction {
     // TODO(alpha): Use Metadata!
     const specification = this.component.type ? this.component.type.parameters : null;
     // Get parameters according to specification
-    const parameters = InstructionParameters.stringify(this.parameters.toSortedParameters(specification));
+    const parameters = InstructionParameters.stringify(context, this.parameters.toSortedParameters(context, specification));
     if (parameters.length > 0) {
       // Add to component or use standalone
       instructionString += !excludeComponent

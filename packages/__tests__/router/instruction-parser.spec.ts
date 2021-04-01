@@ -317,7 +317,7 @@ describe('RoutingInstruction parsing', function () {
         let routingInstructions;
         let error = '';
         try {
-          routingInstructions = RoutingInstruction.parse(instruction);
+          routingInstructions = RoutingInstruction.parse(router, instruction);
         } catch (err) {
           error = err;
         }

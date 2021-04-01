@@ -61,7 +61,7 @@ export function getConsideredActiveInstructions(router: IRouter, controller: IHy
   //   : value) as LoadInstruction;
 
   const created = router.applyLoadOptions(activeInstructions, { context: controller });
-  const instructions = RoutingInstruction.from(created.instructions);
+  const instructions = RoutingInstruction.from(router, created.instructions);
   for (const instruction of instructions) {
     if (instruction.scope === null) {
       instruction.scope = created.scope;

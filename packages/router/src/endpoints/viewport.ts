@@ -365,7 +365,7 @@ export class Viewport extends Endpoint {
     }
 
     if (this.getContent().componentInstance === null && this.getNextContent()?.componentInstance == null && this.options.default) {
-      const instructions = RoutingInstruction.parse(this.options.default);
+      const instructions = RoutingInstruction.parse(this.router, this.options.default);
       for (const instruction of instructions) {
         // Set to name to be delayed one turn (refactor: not sure why, so changed it)
         instruction.endpoint.set(this);

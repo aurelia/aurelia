@@ -4,8 +4,10 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { RouterConfiguration } from '../index.js';
+import { IRouter, IRouterConfiguration } from '../index.js';
 import { RouteableComponentType } from '../interfaces.js';
+import { Separators } from '../router-options.js';
+import { IContainer } from '@aurelia/kernel';
 
 /**
  * @internal - Shouldn't be used directly
@@ -50,13 +52,13 @@ export class InstructionParameters {
   }
 
   // TODO: Deal with separators in data and complex types
-  public static parse(parameters: ComponentParameters | null, uriComponent: boolean = false): IComponentParameter[] {
+  public static parse(context: IRouterConfiguration | IRouter | IContainer, parameters: ComponentParameters | null, uriComponent: boolean = false): IComponentParameter[] {
     if (parameters == null || parameters.length === 0) {
       return [];
     }
-
-    const parameterSeparator = RouterConfiguration.options.separators.parameterSeparator;
-    const parameterKeySeparator = RouterConfiguration.options.separators.parameterKeySeparator;
+    const seps = Separators.for(context);
+    const parameterSeparator = seps.parameterSeparator;
+    const parameterKeySeparator = seps.parameterKeySeparator;
 
     if (typeof parameters === 'string') {
       const list: IComponentParameter[] = [];
@@ -120,11 +122,11 @@ export class InstructionParameters {
     }
   }
   // TODO: Deal with separators in data and complex types
-  public static stringify(parameters: IComponentParameter[], uriComponent: boolean = false): string {
+  public static stringify(context: IRouterConfiguration | IRouter | IContainer, parameters: IComponentParameter[], uriComponent: boolean = false): string {
     if (!Array.isArray(parameters) || parameters.length === 0) {
       return '';
     }
-    const seps = RouterConfiguration.options.separators;
+    const seps = Separators.for(context);
     return parameters
       .map(param => {
         const key = param.key !== void 0 && uriComponent ? encodeURIComponent(param.key) : param.key;
@@ -148,14 +150,8 @@ export class InstructionParameters {
 
   // Instance methods
 
-  public get parameters(): IComponentParameter[] {
-    return InstructionParameters.parse(this.typedParameters);
-  }
-  public get normalizedParameters(): string {
-    if (this.typedParameters !== null) {
-      return InstructionParameters.stringify(this.parameters);
-    }
-    return '';
+  public parameters(context: IRouterConfiguration | IRouter | IContainer): IComponentParameter[] {
+    return InstructionParameters.parse(context, this.typedParameters);
   }
 
   public set(parameters?: ComponentParameters | null): void {
@@ -177,12 +173,12 @@ export class InstructionParameters {
     }
   }
 
-  public get(name?: string): IComponentParameter[] | unknown | unknown[] {
+  public get(context: IRouterConfiguration | IRouter | IContainer, name?: string): IComponentParameter[] | unknown | unknown[] {
     if (name === void 0) {
       // TODO: Turn this into a parameters object instead
-      return this.parameters;
+      return this.parameters(context);
     }
-    const params = this.parameters.filter(p => p.key === name).map(p => p.value);
+    const params = this.parameters(context).filter(p => p.key === name).map(p => p.value);
     if (params.length === 0) {
       return;
     }
@@ -200,9 +196,9 @@ export class InstructionParameters {
     this.set({ ...this.parametersRecord, ...parameters });
   }
 
-  public toSpecifiedParameters(specifications?: string[] | null | undefined): Record<string, unknown> {
+  public toSpecifiedParameters(context: IRouterConfiguration | IRouter | IContainer, specifications: string[] | null | undefined): Record<string, unknown> {
     specifications = specifications ?? [];
-    const parameters = this.parameters;
+    const parameters = this.parameters(context);
 
     const specified: Record<string, unknown> = {};
     for (const spec of specifications) {
@@ -233,9 +229,9 @@ export class InstructionParameters {
     return specified;
   }
 
-  public toSortedParameters(specifications?: string[] | null | undefined): IComponentParameter[] {
+  public toSortedParameters(context: IRouterConfiguration | IRouter | IContainer, specifications?: string[] | null | undefined): IComponentParameter[] {
     specifications = specifications || [];
-    const parameters = this.parameters;
+    const parameters = this.parameters(context);
 
     const sorted: IComponentParameter[] = [];
     for (const spec of specifications) {
@@ -268,10 +264,10 @@ export class InstructionParameters {
   }
 
   // TODO: Somewhere we need to check for format such as spaces etc
-  public same(other: InstructionParameters, componentType: RouteableComponentType | null): boolean {
+  public same(context: IRouterConfiguration | IRouter | IContainer, other: InstructionParameters, componentType: RouteableComponentType | null): boolean {
     const typeParameters = componentType !== null ? componentType.parameters : [];
-    const mine = this.toSpecifiedParameters(typeParameters);
-    const others = other.toSpecifiedParameters(typeParameters);
+    const mine = this.toSpecifiedParameters(context, typeParameters);
+    const others = other.toSpecifiedParameters(context, typeParameters);
 
     return Object.keys(mine).every(key => mine[key] === others[key])
       && Object.keys(others).every(key => others[key] === mine[key]);

@@ -1447,7 +1447,7 @@ describe('Router', function () {
     const appDependencies = [Parent, Parent2, Child, Child2, Grandchild, Grandchild2];
     const appRoutes: IRoute[] = [
       { path: 'parent-config', component: 'parent', viewport: 'default', title: 'ParentConfig' },
-      { path: 'parent-config/:id', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }], title: (instruction: RoutingInstruction) => `ParentConfig${instruction.parameters.get('id') ?? ':id'}Config` },
+      { path: 'parent-config/:id', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }], title: (instruction: RoutingInstruction) => `ParentConfig${instruction.parameters.get(instruction.scope.router, 'id') ?? ':id'}Config` },
       { path: 'parent-config/child-config', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }], title: 'ParentConfigChildConfig' },
       { path: 'parent-config/child2', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }], title: 'ParentConfigChild2Config' },
       { path: 'parent-config/child2@parent', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }], title: 'ParentConfigChild2@ParentConfig' },
@@ -1771,7 +1771,7 @@ describe('Router', function () {
     const appDependencies = [Parent, Parent2, Child, Child2];
     const appRoutes: IRoute[] = [
       { path: 'parent-config', component: 'my-parent', viewport: 'default', title: 'TheParentConfig' },
-      { path: 'parent-config/:id', instructions: [{ component: 'my-parent', viewport: 'default', children: [{ component: 'my-child', viewport: 'parent' }] }], title: (instruction) => `TheParentConfig(${instruction.parameters.get('id') ?? ':id'})Config` },
+      { path: 'parent-config/:id', instructions: [{ component: 'my-parent', viewport: 'default', children: [{ component: 'my-child', viewport: 'parent' }] }], title: (instruction) => `TheParentConfig(${instruction.parameters.get(instruction.scope.router, 'id') ?? ':id'})Config` },
       { path: 'parent-config/child-config', instructions: [{ component: 'my-parent', viewport: 'default', children: [{ component: 'my-child', viewport: 'parent' }] }], title: 'TheParentConfigChildConfig' },
       { path: 'parent-config/child2', instructions: [{ component: 'my-parent', viewport: 'default', children: [{ component: 'my-child2', viewport: 'parent' }] }], title: 'TheParentConfigChild2Config' },
       { path: 'parent-config/my-child2@parent', instructions: [{ component: 'my-parent', viewport: 'default', children: [{ component: 'my-child2', viewport: 'parent' }] }], title: 'TheParentConfigChild2@ParentConfig' },

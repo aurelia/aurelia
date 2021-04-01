@@ -40,7 +40,7 @@ describe('RoutingHook', function () {
     }
 
     const navigationInstruction = Navigation.create({ instruction: 'test', fullStateInstruction: 'full-test' });
-    const routingInstructions: RoutingInstruction[] = RoutingInstruction.parse('parent/child');
+    const routingInstructions: RoutingInstruction[] = RoutingInstruction.parse(router, 'parent/child');
     return { au, container, platform, host, router, tearDown, navigationInstruction, routingInstructions };
   }
 

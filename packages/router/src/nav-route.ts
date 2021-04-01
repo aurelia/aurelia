@@ -40,7 +40,7 @@ export class NavRoute {
     }
     this.linkActive = route.consideredActive !== null && route.consideredActive !== void 0 ? route.consideredActive : this.link;
     if (this.linkActive !== null && (!(this.linkActive instanceof Function) || InstructionComponent.isType(this.linkActive as RouteableComponentType))) {
-      this.linkActive = RoutingInstruction.from(this.linkActive as LoadInstruction | LoadInstruction[]);
+      this.linkActive = RoutingInstruction.from(this.nav.router, this.linkActive as LoadInstruction | LoadInstruction[]);
     }
     this.execute = route.execute;
     this.compareParameters = !!route.compareParameters;
@@ -73,7 +73,7 @@ export class NavRoute {
   }
 
   private parseRoute<C extends Constructable>(routes: LoadInstruction | LoadInstruction[]): RoutingInstruction[] {
-    return RoutingInstruction.from(routes);
+    return RoutingInstruction.from(this.nav.router, routes);
   }
 
   private computeVisible(): boolean {
@@ -90,7 +90,7 @@ export class NavRoute {
     const components = this.linkActive as RoutingInstruction[];
     const activeComponents = RoutingInstruction.flat(this.nav.router.activeComponents);
     for (const component of components) {
-      if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && component.parameters.typedParameters !== null))) {
+      if (activeComponents.every((active) => !active.sameComponent(this.nav.router, component, this.compareParameters && component.parameters.typedParameters !== null))) {
         return '';
       }
     }

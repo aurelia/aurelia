@@ -1,15 +1,12 @@
-import { RouterConfiguration } from '../index.js';
 import { RoutingInstruction } from './routing-instruction.js';
+import { Separators } from '../router-options.js';
 
 export class InstructionParser {
-  // public static separators = RouterConfiguration.options.separators;
-
-  public static parse(instructions: string, grouped: boolean, topScope: boolean): { instructions: RoutingInstruction[]; remaining: string } {
-    const seps = RouterConfiguration.options.separators;
+  public static parse(seps: Separators, instructions: string, grouped: boolean, topScope: boolean): { instructions: RoutingInstruction[]; remaining: string } {
     if (!instructions) {
       return { instructions: [], remaining: '' };
     }
-    if (instructions.startsWith(seps.sibling) && !InstructionParser.isAdd(instructions)) {
+    if (instructions.startsWith(seps.sibling) && !InstructionParser.isAdd(seps, instructions)) {
       throw new Error(`Instruction parser error: Unnecessary siblings separator ${seps.sibling} in beginning of instruction part "${instructions}".`);
     }
     const routingInstructions: RoutingInstruction[] = [];
@@ -27,12 +24,12 @@ export class InstructionParser {
           instructions = instructions.slice(seps.groupStart.length);
           grouped = true;
         }
-        const { instructions: found, remaining } = InstructionParser.parse(instructions, groupStart, false);
+        const { instructions: found, remaining } = InstructionParser.parse(seps, instructions, groupStart, false);
         routingInstructions[routingInstructions.length - 1].nextScopeInstructions = found;
         instructions = remaining;
       } else if (instructions.startsWith(seps.groupStart)) {
         instructions = instructions.slice(seps.groupStart.length);
-        const { instructions: found, remaining } = InstructionParser.parse(instructions, true, topScope);
+        const { instructions: found, remaining } = InstructionParser.parse(seps, instructions, true, topScope);
         routingInstructions.push(...found);
         instructions = remaining;
       } else if (instructions.startsWith(seps.groupEnd)) {
@@ -57,14 +54,14 @@ export class InstructionParser {
         if (i >= ii) {
           return { instructions: routingInstructions, remaining: instructions };
         }
-      } else if (instructions.startsWith(seps.sibling) && !InstructionParser.isAdd(instructions)) {
+      } else if (instructions.startsWith(seps.sibling) && !InstructionParser.isAdd(seps, instructions)) {
         if (!grouped) {
           return { instructions: routingInstructions, remaining: instructions };
         }
         instructions = instructions.slice(seps.sibling.length);
 
       } else {
-        const { instruction: routingInstruction, remaining } = InstructionParser.parseOne(instructions);
+        const { instruction: routingInstruction, remaining } = InstructionParser.parseOne(seps, instructions);
         routingInstructions.push(routingInstruction);
         instructions = remaining;
       }
@@ -73,16 +70,14 @@ export class InstructionParser {
     return { instructions: routingInstructions, remaining: instructions };
   }
 
-  private static isAdd(instruction: string): boolean {
-    return (instruction === RouterConfiguration.options.separators.add ||
-      instruction.startsWith(`${RouterConfiguration.options.separators.add}${RouterConfiguration.options.separators.viewport}`));
+  private static isAdd(seps: Separators, instruction: string): boolean {
+    return (instruction === seps.add || instruction.startsWith(`${seps.add}${seps.viewport}`));
   }
 
-  private static parseOne(instruction: string): {
+  private static parseOne(seps: Separators, instruction: string): {
     instruction: RoutingInstruction;
     remaining: string;
   } {
-    const seps = RouterConfiguration.options.separators;
     const tokens = [seps.parameters, seps.viewport, seps.noScope, seps.groupEnd, seps.scope, seps.sibling];
     let component: string | undefined = void 0;
     let parametersString: string | undefined = void 0;

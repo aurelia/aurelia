@@ -135,7 +135,7 @@ export class ViewportContent extends EndpointContent {
    * @param other - The viewport content to compare with
    */
   public equalComponent(other: ViewportContent): boolean {
-    return this.instruction.sameComponent(other.instruction);
+    return this.instruction.sameComponent(this.router, other.instruction);
   }
 
   /**
@@ -145,7 +145,7 @@ export class ViewportContent extends EndpointContent {
    * @param other - The viewport content to compare with
    */
   public equalParameters(other: ViewportContent): boolean {
-    return this.instruction.sameComponent(other.instruction, true) &&
+    return this.instruction.sameComponent(this.router, other.instruction, true) &&
       // TODO: Review whether query is enough or if parameters need
       // to be checked as well depending on when query is updated.
       // Should probably be able to compare parameters vs query as well.
@@ -159,7 +159,7 @@ export class ViewportContent extends EndpointContent {
    * @param other - The viewport content to compare with
    */
   public isCacheEqual(other: ViewportContent): boolean {
-    return this.instruction.sameComponent(other.instruction, true);
+    return this.instruction.sameComponent(this.router, other.instruction, true);
   }
 
   /**
@@ -246,8 +246,8 @@ export class ViewportContent extends EndpointContent {
     // Propagate parent parameters
     // TODO: Do we really want this?
     const parentParameters = (this.endpoint as Viewport)
-      .parentViewport?.getTimeContent(this.navigation.timestamp)?.instruction?.typeParameters;
-    const parameters = this.instruction.typeParameters;
+      .parentViewport?.getTimeContent(this.navigation.timestamp)?.instruction?.typeParameters(this.router);
+    const parameters = this.instruction.typeParameters(this.router);
     const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
     const result = this.instruction.component.instance!.canLoad(merged, this.instruction, this.navigation);
     if (typeof result === 'boolean') {
@@ -321,8 +321,8 @@ export class ViewportContent extends EndpointContent {
           // Propagate parent parameters
           // TODO: Do we really want this?
           const parentParameters = (this.endpoint as Viewport)
-            .parentViewport?.getTimeContent(this.navigation.timestamp)?.instruction?.typeParameters;
-          const parameters = this.instruction.typeParameters;
+            .parentViewport?.getTimeContent(this.navigation.timestamp)?.instruction?.typeParameters(this.router);
+          const parameters = this.instruction.typeParameters(this.router);
           const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
           return this.instruction.component.instance.load(merged, this.instruction, this.navigation);
         }

@@ -28,7 +28,6 @@ export const IRouterConfiguration = DI.createInterface<IRouterConfiguration>('IR
 export interface IRouterConfiguration extends RouterConfiguration { }
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
-// export const RouterConfigurationRegistration = IRouterConfiguration as unknown as IRegistry;
 
 /**
  * Default runtime/environment-agnostic implementations for the following interfaces:
@@ -36,7 +35,6 @@ export const RouterRegistration = IRouter as unknown as IRegistry;
  */
 export const DefaultComponents = [
   RouterRegistration,
-  // RouterConfigurationRegistration,
 ];
 
 export {
@@ -103,17 +101,7 @@ export class RouterConfiguration {
     _this.options.setRouterConfiguration(_this);
     // Reset defaults
     RouterConfiguration.options = RouterOptions.create();
-    // console.log('before', _this);
-    // const result = container.register(
-    //   ...DefaultComponents,
-    //   ...DefaultResources,
-    //   AppTask.with(IRouter).beforeActivate().call(RouterConfiguration.configurationCall),
-    //   AppTask.with(IRouter).afterActivate().call((router: IRouter) => router.initialLoad() as Promise<void>),
-    //   AppTask.with(IRouter).afterDeactivate().call((router: IRouter) => router.stop()),
-    // );
-    // const after = container.get(IRouterConfiguration);
-    // console.log('after', after, _this === after);
-    // return result;
+
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
@@ -140,7 +128,6 @@ export class RouterConfiguration {
     } else {
       RouterConfiguration.options = RouterOptions.create();
       RouterConfiguration.options.apply(config);
-      // RouterConfiguration.apply(config, true);
     }
     return RouterConfiguration as unknown as RouterConfiguration;
   }
@@ -220,10 +207,5 @@ export class RouterConfiguration {
   //   // TODO: This should remove from the context instead
   //   // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
   //   // return viewport.removeRoutes(routes);
-  // }
-
-  // public get options(): RouterOptions {
-  //   console.log('>>> Getting options', RouterConfiguration.options);
-  //   return RouterConfiguration.options;
   // }
 }

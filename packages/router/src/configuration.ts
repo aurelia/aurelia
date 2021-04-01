@@ -28,7 +28,7 @@ export const IRouterConfiguration = DI.createInterface<IRouterConfiguration>('IR
 export interface IRouterConfiguration extends RouterConfiguration { }
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
-export const RouterConfigurationRegistration = IRouterConfiguration as unknown as IRegistry;
+// export const RouterConfigurationRegistration = IRouterConfiguration as unknown as IRegistry;
 
 /**
  * Default runtime/environment-agnostic implementations for the following interfaces:
@@ -36,7 +36,7 @@ export const RouterConfigurationRegistration = IRouterConfiguration as unknown a
  */
 export const DefaultComponents = [
   RouterRegistration,
-  RouterConfigurationRegistration,
+  // RouterConfigurationRegistration,
 ];
 
 export {
@@ -77,11 +77,18 @@ export const DefaultResources: IRegistry[] = [
  * and the router options API.
  */
 export class RouterConfiguration {
-  public static options = RouterOptions.create();
+  // ONLY used during registration to support .customize. Transfered to
+  // instance property after that.
+  private static options = RouterOptions.create();
 
   private static configurationCall: ((router: IRouter) => void) = (router: IRouter) => {
     router.start();
   };
+
+  /**
+   * The router options.
+   */
+  public options!: RouterOptions;
 
   /**
    * Register this configuration in a provided container and
@@ -90,6 +97,23 @@ export class RouterConfiguration {
    * @param container - The container to register in
    */
   public static register(container: IContainer): IContainer {
+    const _this = container.get(IRouterConfiguration);
+    // Transfer optins (that's possibly modified through .customize)
+    _this.options = RouterConfiguration.options;
+    _this.options.setRouterConfiguration(_this);
+    // Reset defaults
+    RouterConfiguration.options = RouterOptions.create();
+    // console.log('before', _this);
+    // const result = container.register(
+    //   ...DefaultComponents,
+    //   ...DefaultResources,
+    //   AppTask.with(IRouter).beforeActivate().call(RouterConfiguration.configurationCall),
+    //   AppTask.with(IRouter).afterActivate().call((router: IRouter) => router.initialLoad() as Promise<void>),
+    //   AppTask.with(IRouter).afterDeactivate().call((router: IRouter) => router.stop()),
+    // );
+    // const after = container.get(IRouterConfiguration);
+    // console.log('after', after, _this === after);
+    // return result;
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
@@ -114,23 +138,11 @@ export class RouterConfiguration {
     } else if (config instanceof Function) {
       RouterConfiguration.configurationCall = config;
     } else {
-      RouterConfiguration.apply(config, true);
-    }
-    return RouterConfiguration;
-  }
-
-  /**
-   * Apply router options.
-   *
-   * @param options - The options to apply
-   * @param firstResetDefaults - Whether the default router options should
-   * be set before applying the specified options
-   */
-  public static apply(options: IRouterOptions, firstResetDefaults: boolean = false): void {
-    if (firstResetDefaults) {
       RouterConfiguration.options = RouterOptions.create();
+      RouterConfiguration.options.apply(config);
+      // RouterConfiguration.apply(config, true);
     }
-    RouterConfiguration.options.apply(options);
+    return RouterConfiguration as unknown as RouterConfiguration;
   }
 
   /**
@@ -153,17 +165,31 @@ export class RouterConfiguration {
   }
 
   /**
+   * Apply router options.
+   *
+   * @param options - The options to apply
+   * @param firstResetDefaults - Whether the default router options should
+   * be set before applying the specified options
+   */
+  public apply(options: IRouterOptions, firstResetDefaults: boolean = false): void {
+    if (firstResetDefaults) {
+      this.options = RouterOptions.create();
+    }
+    this.options.apply(options);
+  }
+
+  /**
    * Add a routing hook.
    *
    * @param hookFunction - The hook callback function
    * @param options - Options specifyinig hook type and filters
    */
-  public static addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
-  public static addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
-  public static addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
-  public static addHook(transformTitleHookFunction: TransformTitleHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
-  public static addHook(hookFunction: RoutingHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
-  public static addHook(hookFunction: RoutingHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity {
+  public addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
+  public addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
+  public addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
+  public addHook(transformTitleHookFunction: TransformTitleHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
+  public addHook(hookFunction: RoutingHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
+  public addHook(hookFunction: RoutingHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity {
     return RoutingHook.add(hookFunction, options);
   }
   /**
@@ -171,13 +197,13 @@ export class RouterConfiguration {
    *
    * @param id - The id of the hook to remove (returned from the addHook call)
    */
-  public static removeHook(id: RoutingHookIdentity): void {
+  public removeHook(id: RoutingHookIdentity): void {
     return RoutingHook.remove(id);
   }
   /**
    * Remove all routing hooks.
    */
-  public static removeAllHooks(): void {
+  public removeAllHooks(): void {
     return RoutingHook.removeAll();
   }
 
@@ -196,7 +222,8 @@ export class RouterConfiguration {
   //   // return viewport.removeRoutes(routes);
   // }
 
-  public get options(): RouterOptions {
-    return RouterConfiguration.options;
-  }
+  // public get options(): RouterOptions {
+  //   console.log('>>> Getting options', RouterConfiguration.options);
+  //   return RouterConfiguration.options;
+  // }
 }

@@ -45,7 +45,7 @@ describe('Configuration', function () {
 
     const { router, tearDown } = await createFixture();
     assert.strictEqual(router['isActive'], true, `router.isActive`);
-    assert.strictEqual(RouterConfiguration.options.separators.viewport, '@', `RouterConfiguration.options.separators.viewport`);
+    assert.strictEqual(RouterConfiguration.for(router).options.separators.viewport, '@', `RouterConfiguration.options.separators.viewport`);
 
     await tearDown();
   });
@@ -55,7 +55,7 @@ describe('Configuration', function () {
 
     const { router, tearDown } = await createFixture({ separators: { viewport: '#' } });
     assert.strictEqual(router['isActive'], true, `router.isActive`);
-    assert.strictEqual(RouterConfiguration.options.separators.viewport, '#', `RouterConfiguration.options.separators.viewport`);
+    assert.strictEqual(RouterConfiguration.for(router).options.separators.viewport, '#', `RouterConfiguration.options.separators.viewport`);
 
     RouterConfiguration.customize();
     await tearDown();
@@ -65,11 +65,11 @@ describe('Configuration', function () {
     this.timeout(5000);
 
     const { router, tearDown } = await createFixture((router) => {
-      RouterConfiguration.apply({ separators: { viewport: '%' } });
+      RouterConfiguration.for(router).apply({ separators: { viewport: '%' } });
       router.start();
     });
     assert.strictEqual(router['isActive'], true, `router.isActive`);
-    assert.strictEqual(RouterConfiguration.options.separators.viewport, '%', `RouterConfiguration.options.separators.viewport`);
+    assert.strictEqual(RouterConfiguration.for(router).options.separators.viewport, '%', `RouterConfiguration.options.separators.viewport`);
 
     RouterConfiguration.customize();
     await tearDown();

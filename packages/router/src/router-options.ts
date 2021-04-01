@@ -268,6 +268,18 @@ export interface IRouterOptions extends Omit<Partial<RouterOptions>, 'separators
 }
 
 export class RouterOptions implements INavigatorOptions {
+  /**
+   * The router configuration these options belong to.
+   */
+  public routerConfiguration!: RouterConfiguration;
+
+  /**
+   * Any routing hooks that were set during registration with
+   * RouterConfiguration.customize are temporarily stored here
+   * so that they can be set once properly instantiated.
+   */
+  private registrationHooks: IRoutingHookDefinition[] = [];
+
   protected constructor(
     /**
      * The separators used in the direct routing syntax
@@ -383,7 +395,20 @@ export class RouterOptions implements INavigatorOptions {
 
     // TODO: Fix RoutingHooks!
     if (Array.isArray(options.hooks)) {
-      options.hooks.forEach(hook => RouterConfiguration.addHook(hook.hook, hook.options));
+      if (this.routerConfiguration !== void 0) {
+        options.hooks.forEach(hook => this.routerConfiguration.addHook(hook.hook, hook.options));
+      } else {
+        this.registrationHooks = options.hooks;
+      }
     }
+  }
+
+  public setRouterConfiguration(routerConfiguration: RouterConfiguration): void {
+    this.routerConfiguration = routerConfiguration;
+
+    // Set previously configured routing hooks
+    // TODO: Fix RoutingHooks!
+    this.registrationHooks.forEach(hook => this.routerConfiguration.addHook(hook.hook, hook.options));
+    this.registrationHooks.length = 0;
   }
 }

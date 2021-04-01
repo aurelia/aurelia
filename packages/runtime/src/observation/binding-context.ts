@@ -92,7 +92,7 @@ function chooseContext(
   scope: Scope,
   name: string,
   ancestor: number,
-  outerScope: Scope | null,
+  projectionScope: Scope | null,
 ): IBindingContext | undefined | null {
   let overrideContext: IOverrideContext | null = scope.overrideContext;
   let currentScope: Scope | null = scope;
@@ -114,7 +114,7 @@ function chooseContext(
   // traverse the context and it's ancestors, searching for a context that has the name.
   while (
     (!currentScope?.isComponentBoundary
-      || outerScope !== null && outerScope !== currentScope
+      || projectionScope !== null && projectionScope !== currentScope
     )
     && overrideContext
     && !(name in overrideContext)

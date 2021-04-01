@@ -828,6 +828,36 @@ It is also possible to project to a nested slot, used inside a `repeat.for`.
 
 Another interesting example of `repeat.for` is already shown in the [Binding scope](components-revisited.md#binding-scope) section in context of `$host` keyword that you must check, if you haven't already.
 
+The examples above show how to project into slots, residing inside a `repeat.for` in the host element.
+It is however also possible to project from a `repeat.for` residing in the outer scope.
+The following examples shows that.
+
+{% code title="my-app.html" %}
+```markup
+<template as-custom-element="my-element">
+  <au-slot></au-slot>
+</template>
+
+<let items.bind="['1', '2']"></let>
+<template repeat.for="item of items">
+<my-element>
+  <template au-slot>
+    ${item}
+  </template>
+</my-element>
+</template>
+<!-- Rendered (simplified): -->
+<!--
+  <my-element>
+    1
+  </my-element>
+  <my-element>
+    2
+  </my-element>
+-->
+```
+{% endcode %}
+
 **Examples using `with`**
 
 The `with` template controller can also be used naturally with `au-slot`. A basic example is shown below.

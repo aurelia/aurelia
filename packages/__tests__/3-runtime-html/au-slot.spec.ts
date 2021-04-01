@@ -584,6 +584,135 @@ describe('au-slot', function () {
           'my-element+my-element': [`Max`, new AuSlotsInfo(['default'])],
         },
       );
+
+      {
+        let counter = 0;
+        const expected: Record<string, readonly [string, AuSlotsInfo]> = Object.fromEntries(new Array(3)
+          .fill(0)
+          .flatMap(
+            (_, i) => new Array(3)
+              .fill(0)
+              .map((__, j) => [
+                new Array(++counter).fill('my-element').join('+'),
+                [String(i * j), new AuSlotsInfo(['default'])]
+              ])
+          ));
+
+        yield new TestData(
+          'works with data from repeater scope - template[repeat.for]>template[repeat.for]>custom-element - nested repeater',
+          `<template>
+          <template repeat.for="i of 3">
+            <template repeat.for="j of 3">
+              <my-element>
+                <template au-slot>
+                  \${i*j}
+                </template>
+              </my-element>
+            </template>
+          </template>
+         </template>`,
+          [
+            createMyElement('<au-slot></au-slot>')
+          ],
+          expected,
+        );
+
+        yield new TestData(
+          'works with data from repeater scope - template[repeat.for]>custom-element[repeat.for] - nested repeater',
+          `<template>
+          <template repeat.for="i of 3">
+            <my-element repeat.for="j of 3">
+              <template au-slot>
+                \${i*j}
+              </template>
+            </my-element>
+          </template>
+         </template>`,
+          [
+            createMyElement('<au-slot></au-slot>')
+          ],
+          expected,
+        );
+
+        yield new TestData(
+          'works with data from repeater scope - template[repeat.for]>template[repeat.for]>custom-element - nested repeater - source: override context',
+          `<let rows.bind="3" cols.bind="3"></let>
+          <template repeat.for="i of rows">
+            <template repeat.for="j of cols">
+              <my-element>
+                <template au-slot>
+                  \${i*j}
+                </template>
+              </my-element>
+            </template>
+          </template>`,
+          [
+            createMyElement('<au-slot></au-slot>')
+          ],
+          expected,
+        );
+
+        yield new TestData(
+          'works with data from repeater scope - template[repeat.for]>custom-element[repeat.for] - nested repeater - source: override context',
+          `<let rows.bind="3" cols.bind="3"></let>
+          <template repeat.for="i of rows">
+            <my-element repeat.for="j of cols">
+              <template au-slot>
+                \${i*j}
+              </template>
+            </my-element>
+          </template>`,
+          [
+            createMyElement('<au-slot></au-slot>')
+          ],
+          expected,
+        );
+      }
+
+      {
+        const expected: Record<string, readonly [string, AuSlotsInfo]> = {
+          'my-element': ['John Mustermann', new AuSlotsInfo(['default'])],
+          'my-element+my-element': ['John Doe', new AuSlotsInfo(['default'])],
+          'my-element+my-element+my-element': ['Max Mustermann', new AuSlotsInfo(['default'])],
+          'my-element+my-element+my-element+my-element': ['Max Doe', new AuSlotsInfo(['default'])],
+        };
+        yield new TestData(
+          'works with data from repeater scope - template[repeat.for]>template[repeat.for]>custom-element - nested repeater - source: binding context',
+          `<template>
+          <template repeat.for="i of people">
+            <template repeat.for="j of people.slice().reverse()">
+              <my-element>
+                <template au-slot>
+                  \${i.firstName} \${j.lastName}
+                </template>
+              </my-element>
+            </template>
+          </template>
+        </template>`,
+          [
+            createMyElement('<au-slot></au-slot>')
+          ],
+          expected,
+        );
+
+        yield new TestData(
+          'works with data from repeater scope - template[repeat.for]>custom-element[repeat.for] - nested repeater - source: binding context',
+          `<template>
+          <template repeat.for="i of people">
+            <my-element repeat.for="j of people.slice().reverse()">
+              <template au-slot>
+                \${i.firstName} \${j.lastName}
+              </template>
+            </my-element>
+          </template>
+        </template>
+        `,
+          [
+            createMyElement('<au-slot></au-slot>')
+          ],
+          expected,
+        );
+      }
     }
     // #endregion
 

@@ -122,7 +122,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
     const cmp = this.cmp = this.getOrCreateVm(ctn, settings);
 
     return new Promise(r => {
-        r('canActivate' in cmp ? cmp.canActivate?.(model) : true);
+        r(cmp.canActivate?.(model) ?? true);
       }).catch(e => {
         dom.dispose();
         throw e;
@@ -162,7 +162,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
 
     const promise: Promise<IDialogCloseResult<T>> = new Promise<IDialogCloseResult<T>>(r => {
       r(onResolve(
-        'canDeactivate' in cmp ? cmp.canDeactivate?.(dialogResult) : true,
+        cmp.canDeactivate?.(dialogResult) ?? true,
         canDeactivate => {
           if (canDeactivate !== true) {
             // we are done, do not block consecutive calls

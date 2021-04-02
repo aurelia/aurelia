@@ -6,6 +6,7 @@ import {
   IDialogDomSubscriber,
   IGlobalDialogSettings,
   ILoadedDialogSettings,
+  DialogMouseEventType,
 } from './dialog-interfaces.js';
 
 import { IContainer, Registration } from '@aurelia/kernel';
@@ -59,14 +60,15 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
 export class DefaultDialogDom implements IDialogDom {
 
   private readonly subs: Set<IDialogDomSubscriber> = new Set();
+  private readonly e: DialogMouseEventType;
 
   public constructor(
-    private readonly wrapper: HTMLElement,
-    private readonly overlay: HTMLElement,
+    public readonly wrapper: HTMLElement,
+    public readonly overlay: HTMLElement,
     public readonly host: HTMLElement,
-    private readonly s: ILoadedDialogSettings,
+    s: ILoadedDialogSettings,
   ) {
-    overlay.addEventListener(s.mouseEvent ?? 'click', this);
+    overlay.addEventListener(this.e = s.mouseEvent ?? 'click', this);
   }
 
   /**
@@ -86,7 +88,7 @@ export class DefaultDialogDom implements IDialogDom {
 
   public dispose(): void {
     this.wrapper.remove();
-    this.overlay.removeEventListener(this.s.mouseEvent ?? 'click', this);
+    this.overlay.removeEventListener(this.e, this);
     this.subs.clear();
   }
 }

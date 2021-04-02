@@ -9,10 +9,10 @@ This article covers the dialog plugin for Aurelia. This plugin is created for sh
 {% hint style="success" %}
 **Here's what you'll learn...**
 
-* todo...
-* todo...
-* todo...
-* todo...
+* How to install & configure the plugin
+* How to use default dialog service
+* How to enhance & replace parts of the default implementations
+* The lifeycle of a dialog
 {% endhint %}
 
 ... Placeholder & link to advanced examples with:
@@ -33,6 +33,50 @@ import { Aurelia } from 'aurelia';
 Aurelia.register(DefaultDialogConfiguration).app(MyApp).start();
 ```
 
+### Configuring the Plugin
+The export `DefaultDialogConfiguration` is a preset of default behaviors & implementations that are done in a way suitable to most common scenarios.
+
+* If it's desirable to change some of the behaviors or implementations of, we can either change the first or the 2nd parameter of the `customize` function on this object.
+
+  An example of changing the behavior for configuring the global settings is:
+  ```typescript
+  Aurelia.register(DefaultDialogConfiguration.customize(globalSettings => {
+    // change global settings ...
+  })).app(MyApp).start()
+  ```
+
+* If it's desirable to change some of the default implementations, we can **instead** use the export named `DialogConfiguration` and pass in the list of implementation for the main interfaces:
+  ```typescript
+  import { DialogConfiguration } from '@aurelia/runtime-html';
+
+  Aurelia.register(DialogConfiguration.customize(settings => {
+
+  }, [
+    // all custom implementation
+    MyDialogService,
+    MyDialogRenderer,
+    MyDialogGlobalSettings,
+    MyDialogAnimator,
+  ]))
+  ```
+  If there's a need to only swap some implementation, say `IDialogDomRenderer` for example, then the default implementation can be imported and mixed like the following example:
+  ```typescript
+  import { DialogConfiguration, DialogService, DefaultDialogAnimator, DefaultGlobalSettings } from '@aurelia/runtime-html';
+
+  Aurelia.register(DialogConfiguration.customize(settings => {
+
+  }, [
+    // use default dialog service
+    DialogService,
+    // BYO dialog dom renderer
+    MyDialogRenderer,
+    // use default dialog global settings
+    DefaultGlobalSettings,
+    // use default dialog animator
+    DefaultDialogAnimator,
+  ]))
+  ```
+
 ## Using The Default Implementation
 ### The Dialog Settings
 There are two levels where dialog behavior can be configured:
@@ -41,7 +85,7 @@ There are two levels where dialog behavior can be configured:
 
 Normally, the global settings would be changed during the app startup/or before, while the single dialog settings would be changed during the contruction of the dialog view model, via the `open` method.
 
-An example of configuring the global dialog settings:
+An example of configuring the **global** dialog settings:
 
 Make all dialogs, by default:
 - not dismissable by clicking outside of it, or hitting the ESC key
@@ -265,7 +309,90 @@ export class Welcome {
 }
 ```
 
-### The Default Dialog Animator
 ### The Default Dialog Renderer
+By default, the dialog DOM structure is rendered as follow:
+```text
+> (1) Dialog host element
+  > (2) Dialog Wrapper Element
+    > (3) Dialog Overlay Element
+    > (4) Dialog Content Host Element
+```
+
+The Dialog host element is the target where an application chooses to add the dialog to, this is normally the document body, if not supplied in the settings of the `open` method of the dialog service.
+
+An example of the html structure when document body is the dialog host:
+```html
+<body>
+  <au-dialog-container> <!-- wrapper -->
+    <au-dialog-overlay> <!-- overlay -->
+    <div> <!-- dialog content host -->
+```
+
+By default, the dialog content host is centered horizontally and vertically. You can change this via `IDialogDom` injection:
+```ts
+import { IDialogDom, DefaultDialogDom } from '@aurelia/runtime-html';
+
+@inject(IDialogDom)
+export class MyDialog {
+  public constructor(dialogDom: DefaultDialogDom) {
+    dialogDom.host.style.margin = "0 auto"; // only center horizontally
+  }
+}
+```
+
 #### BYO Dialog Renderer
-#### Component Lifecycles With The Dialog Plugin
+... todo
+### The Default Dialog Animator
+... todo
+### Component Lifecycles With The Dialog Plugin
+In adition to the lifecycle hooks defined in the core templating, the `dialog` defines additional ones. All dialog specific hooks can return a `Promise`, that resolves to the appropriate value for the hook, and will be awaited.
+
+#### `.canActivate()`
+
+With this hook you can cancel the opening of a dialog. It is invoked with one parameter - the value of the `model` setting passed to `.open()`. To cancel the opening of the dialog return `false` - `null` and `undefined` will be coerced to `true`.
+
+#### `.activate()`
+
+This hook can be used to do any necessary init work. The hook is invoked with one parameter - the value of the `model` setting passed to `.open()`.
+
+#### `.canDeactivate(result: IDialogCloseResult)`
+
+With this hook you can cancel the closing of a dialog. To do so return `false` - `null` and `undefined` will be coerced to `true`.
+The passed in result parameter has a property `status`, indicating if the dialog was closed or cancelled, or the deactivation process itself has been aborted, and an `value` property with the dialog result which can be manipulated before dialog deactivation.
+
+The `IDialogCloseResult` has the following interface (simplified):
+```ts
+interface IDialogCloseResult {
+  readonly status: 'Ok' | 'Cancel' | 'Abort' | 'Error';
+  readonly value?: unknown;
+}
+```
+
+> Warning
+> When the `error` method of a `DialogController` is called this hook will be skipped.
+
+#### `.deactivate(result: IDialogCloseResult)`
+
+This hook can be used to do any clean up work. The hook is invoked with one result parameter that has a property `status`, indicating if the dialog was closed (`Ok`) or cancelled (`Cancel`), and an `value` property with the dialog result.
+
+#### Order of Invocation
+
+Each dialog instance goes through the full lifecycle once.
+
+--- activation phase:
+1. `constructor()`
+2. `.canActivate()` - `dialog` *specific*
+3. `.activate()` - `dialog` *specific*
+4. `define`
+5. `hydrating`
+6. `hydrated`
+7. `.created()`
+8. `.binding()`
+9. `.bound()`
+10. `attaching`
+11. `attached`
+--- deactivation phase:
+12. `.canDeactivate()` - `dialog` *specific*
+13. `.deactivate()` - `dialog` *specific*
+14. `.detaching()`
+15. `.unbinding()`

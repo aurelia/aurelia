@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/ts-jest",
-  "version": "2.1.0-dev.202103310619",
+  "version": "2.1.0-dev.202104020748",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
@@ -37,11 +37,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202103310619",
-    "@aurelia/metadata": "2.1.0-dev.202103310619",
-    "@aurelia/platform": "2.1.0-dev.202103310619",
-    "@aurelia/plugin-conventions": "2.1.0-dev.202103310619",
-    "@aurelia/runtime": "2.1.0-dev.202103310619",
+    "@aurelia/kernel": "2.1.0-dev.202104020748",
+    "@aurelia/metadata": "2.1.0-dev.202104020748",
+    "@aurelia/platform": "2.1.0-dev.202104020748",
+    "@aurelia/plugin-conventions": "2.1.0-dev.202104020748",
+    "@aurelia/runtime": "2.1.0-dev.202104020748",
     "ts-jest": "^26.2.0"
   },
   "devDependencies": {

@@ -36,14 +36,14 @@ export class BindingContext {
          * This artifact raises the need for this fallback.
          */
         /* eslint-enable jsdoc/check-indentation */
-        let context = chooseContext(scope, name, ancestor);
+        let context = chooseContext(scope, name, ancestor, null);
         if (context !== null
             && ((context == null ? false : name in context)
                 || !hasOtherScope)) {
             return context;
         }
         if (hasOtherScope) {
-            context = chooseContext(hostScope, name, ancestor);
+            context = chooseContext(hostScope, name, ancestor, scope);
             if (context !== null && (context !== undefined && name in context)) {
                 return context;
             }
@@ -57,7 +57,7 @@ export class BindingContext {
         return scope.bindingContext || scope.overrideContext;
     }
 }
-function chooseContext(scope, name, ancestor) {
+function chooseContext(scope, name, ancestor, projectionScope) {
     var _a, _b;
     let overrideContext = scope.overrideContext;
     let currentScope = scope;
@@ -74,7 +74,8 @@ function chooseContext(scope, name, ancestor) {
         return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
     // traverse the context and it's ancestors, searching for a context that has the name.
-    while (!(currentScope === null || currentScope === void 0 ? void 0 : currentScope.isComponentBoundary)
+    while ((!(currentScope === null || currentScope === void 0 ? void 0 : currentScope.isComponentBoundary)
+        || projectionScope !== null && projectionScope !== currentScope)
         && overrideContext
         && !(name in overrideContext)
         && !(overrideContext.bindingContext

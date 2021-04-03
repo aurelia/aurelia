@@ -38,6 +38,7 @@ class SelectValueObserver {
                 : this.obj.value;
     }
     setValue(newValue, flags) {
+        this.oldValue = this.value;
         this.value = newValue;
         this.hasChanges = newValue !== this.oldValue;
         this.observeArray(newValue instanceof Array ? newValue : null);
@@ -48,31 +49,33 @@ class SelectValueObserver {
     flushChanges(flags) {
         if (this.hasChanges) {
             this.hasChanges = false;
-            this.synchronizeOptions();
+            this.syncOptions();
         }
     }
     handleCollectionChange() {
         // always sync "selected" property of <options/>
         // immediately whenever the array notifies its mutation
-        this.synchronizeOptions();
+        this.syncOptions();
     }
-    synchronizeOptions(indexMap) {
-        const { value: currentValue, obj } = this;
-        const isArray = Array.isArray(currentValue);
-        const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
+    syncOptions() {
+        var _a;
+        const value = this.value;
+        const obj = this.obj;
+        const isArray = Array.isArray(value);
+        const matcher = (_a = obj.matcher) !== null && _a !== void 0 ? _a : defaultMatcher;
         const options = obj.options;
         let i = options.length;
         while (i-- > 0) {
             const option = options[i];
             const optionValue = hasOwn.call(option, 'model') ? option.model : option.value;
             if (isArray) {
-                option.selected = currentValue.findIndex(item => !!matcher(optionValue, item)) !== -1;
+                option.selected = value.findIndex(item => !!matcher(optionValue, item)) !== -1;
                 continue;
             }
-            option.selected = !!matcher(optionValue, currentValue);
+            option.selected = !!matcher(optionValue, value);
         }
     }
-    synchronizeValue() {
+    syncValue() {
         // Spec for synchronizing value from `<select/>`  to `SelectObserver`
         // When synchronizing value to observed <select/> element, do the following steps:
         // A. If `<select/>` is multiple
@@ -187,15 +190,15 @@ class SelectValueObserver {
         }
     }
     handleEvent() {
-        const shouldNotify = this.synchronizeValue();
+        const shouldNotify = this.syncValue();
         if (shouldNotify) {
             this.queue.add(this);
             // this.subs.notify(this.currentValue, this.oldValue, LF.none);
         }
     }
     handleNodeChange() {
-        this.synchronizeOptions();
-        const shouldNotify = this.synchronizeValue();
+        this.syncOptions();
+        const shouldNotify = this.syncValue();
         if (shouldNotify) {
             this.queue.add(this);
         }
@@ -213,10 +216,15 @@ class SelectValueObserver {
         }
     }
     flush() {
-        this.subs.notify(this.value, this.oldValue, 0 /* none */);
+        oV = this.oldValue;
+        this.oldValue = this.value;
+        this.subs.notify(this.value, oV, 0 /* none */);
     }
 }
 exports.SelectValueObserver = SelectValueObserver;
 runtime_1.subscriberCollection(SelectValueObserver);
 runtime_1.withFlushQueue(SelectValueObserver);
+// a shared variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV = void 0;
 //# sourceMappingURL=select-value-observer.js.map

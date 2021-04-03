@@ -1,7 +1,7 @@
 import { CollectionKind, LifecycleFlags as LF, AccessorType } from '@aurelia/runtime';
 import type { INode } from '../dom';
 import type { EventSubscriber } from './event-delegator';
-import type { ICollectionObserver, IndexMap, IObserver, IObserverLocator, ISubscriber, ISubscriberCollection, IWithFlushQueue, IFlushable, FlushQueue } from '@aurelia/runtime';
+import type { ICollectionObserver, IObserver, IObserverLocator, ISubscriber, ISubscriberCollection, IWithFlushQueue, IFlushable, FlushQueue } from '@aurelia/runtime';
 declare function defaultMatcher(a: unknown, b: unknown): boolean;
 export interface ISelectElement extends HTMLSelectElement {
     options: HTMLCollectionOf<IOptionElement> & Pick<HTMLOptionsCollection, 'length' | 'selectedIndex' | 'add' | 'remove'>;
@@ -29,8 +29,8 @@ export declare class SelectValueObserver implements IObserver, IFlushable, IWith
     setValue(newValue: unknown, flags: LF): void;
     flushChanges(flags: LF): void;
     handleCollectionChange(): void;
-    synchronizeOptions(indexMap?: IndexMap): void;
-    synchronizeValue(): boolean;
+    syncOptions(): void;
+    syncValue(): boolean;
     private start;
     private stop;
     private observeArray;

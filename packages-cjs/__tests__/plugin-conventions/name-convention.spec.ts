@@ -21,6 +21,11 @@ describe('nameConvention', function () {
       name: 'prefix-foo-bar',
       type: 'customElement'
     });
+
+    assert.deepEqual(nameConvention('FooBarCustomElement'), {
+      name: 'foo-bar',
+      type: 'customElement'
+    });
   });
 
   it('gets custom attribute like resource', function () {

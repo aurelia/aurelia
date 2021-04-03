@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.nameConvention = void 0;
 const kernel_1 = require("@aurelia/kernel");
 function nameConvention(className) {
-    const m = /^(.+?)(CustomAttribute|ValueConverter|BindingBehavior|BindingCommand|TemplateController)?$/.exec(className);
+    const m = /^(.+?)(CustomElement|CustomAttribute|ValueConverter|BindingBehavior|BindingCommand|TemplateController)?$/.exec(className);
     if (!m) {
         throw new Error(`No convention found for class name ${className}`);
     }

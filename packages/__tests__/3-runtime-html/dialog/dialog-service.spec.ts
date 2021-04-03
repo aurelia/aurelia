@@ -18,10 +18,11 @@ import {
 
 describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
   describe('configuration', function () {
-    it('throws on empty configuration', function () {
+    it('throws on empty configuration', async function () {
       let error: unknown = void 0;
       try {
-        createFixture('', class App { }, [DialogConfiguration]);
+        const { startPromise } = createFixture('', class App { }, [DialogConfiguration]);
+        await startPromise;
       } catch (err) {
         error = err;
       }
@@ -577,6 +578,29 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           buttons[1].click();
           assert.strictEqual(click1CallCount, 1);
           assert.strictEqual(click2CallCount, 1);
+        }
+      },
+      {
+        title: 'it passes model to the lifecycle methods',
+        afterStarted: async (_, dialogService) => {
+          let canActivateCalled = false;
+          let activateCalled = false;
+          const model = {};
+          await dialogService.open({
+            model,
+            component: () => class {
+              public canActivate($model: unknown) {
+                canActivateCalled = true;
+                assert.strictEqual(model, $model);
+              }
+              public activate($model: unknown) {
+                activateCalled = true;
+                assert.strictEqual(model, $model);
+              }
+            }
+          });
+          assert.strictEqual(canActivateCalled, true);
+          assert.strictEqual(activateCalled, true);
         }
       }
     ];

@@ -48,11 +48,11 @@ export class FooBar {}
   });
 
   it('injects customElement decorator for loosely equal class name', function () {
-    const code = `export class UAFooBar {}\n`;
+    const code = `export class UAFooBarCustomElement {}\n`;
     const expected = `import * as __au2ViewDef from './ua-foo-bar.html';
 import { customElement } from '@aurelia/runtime-html';
 @customElement(__au2ViewDef)
-export class UAFooBar {}
+export class UAFooBarCustomElement {}
 `;
     const result = preprocessResource(
       {

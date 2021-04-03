@@ -43,7 +43,7 @@ export const DialogConfiguration = createConfiguration(() => {
     '<IDialogService>, <IGlobalDialogSettings>, <IDialogDomRenderer> and <IDialogAnimator>, ' +
     'or use the DefaultDialogConfiguration export.'
   );
-});
+}, [DefaultGlobalSettings]);
 
 export const DefaultDialogConfiguration = createConfiguration(noop, [
   DialogService,

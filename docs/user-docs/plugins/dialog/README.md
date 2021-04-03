@@ -391,7 +391,9 @@ Each dialog instance goes through the full lifecycle once.
 9. `.bound()`
 10. `attaching`
 11. `attached`
+
 --- deactivation phase:
+
 12. `.canDeactivate()` - `dialog` *specific*
 13. `.deactivate()` - `dialog` *specific*
 14. `.detaching()`

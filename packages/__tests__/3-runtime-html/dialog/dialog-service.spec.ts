@@ -2,6 +2,7 @@ import {
   IDialogService,
   IDialogSettings,
   IGlobalDialogSettings,
+  DialogConfiguration,
   DefaultDialogConfiguration,
   customElement,
   IDialogCancelError,
@@ -16,6 +17,19 @@ import {
 } from '@aurelia/testing';
 
 describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
+  describe('configuration', function () {
+    it('throws on empty configuration', function () {
+      let error: unknown = void 0;
+      try {
+        createFixture('', class App { }, [DialogConfiguration]);
+      } catch (err) {
+        error = err;
+      }
+      assert.notStrictEqual(error, void 0);
+      assert.includes((error as Error).message, 'Invalid dialog configuration.');
+    });
+  });
+
   describe('.open()', function () {
     const testCases: IDialogServiceTestCase[] = [
       {
@@ -82,8 +96,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           assert.deepStrictEqual(actualSettings, expectedSettings);
         }
       },
-      {
-        title: 'invokes & resolves with [canActivate: true]',
+      ...[null, undefined, true].map<IDialogServiceTestCase>(canActivate => ({
+        title: `invokes & resolves with [canActivate: ${canActivate}]`,
         afterStarted: async function ({ ctx }, dialogService) {
           let canActivateCallCount = 0;
           @customElement({
@@ -93,7 +107,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           class TestElement {
             public canActivate() {
               canActivateCallCount++;
-              return true;
+              return canActivate;
             }
           }
 
@@ -107,7 +121,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterTornDown: ({ ctx }) => {
           assert.html.textContent(ctx.doc.querySelector('au-dialog-container'), null);
         }
-      },
+      })),
       {
         title: 'resolves to "IOpenDialogResult" with [canActivate: false + rejectOnCancel: false]',
         afterStarted: async ({ ctx }, dialogService) => {
@@ -173,6 +187,34 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           assert.strictEqual(dialogService.count, 0);
         }
       },
+      ...[null, undefined, true].map<IDialogServiceTestCase>(canDeactivate => ({
+        title: `invokes & resolves with [canDeactivate: ${canDeactivate}]`,
+        afterStarted: async function ({ ctx }, dialogService) {
+          let canActivateCallCount = 0;
+          @customElement({
+            name: 'test',
+            template: 'hello dialog',
+          })
+          class TestElement {
+            public canDeactivate() {
+              canActivateCallCount++;
+              return canDeactivate;
+            }
+          }
+
+          const result = await dialogService.open({
+            component: () => TestElement
+          });
+          assert.strictEqual(result.wasCancelled, false);
+          assert.strictEqual(canActivateCallCount, 0);
+          assert.html.textContent(ctx.doc.querySelector('au-dialog-container'), 'hello dialog');
+
+          void result.controller.ok();
+          await result.controller.closed;
+          assert.strictEqual(canActivateCallCount, 1);
+          assert.html.textContent(ctx.doc.querySelector('au-dialog-container'), null);
+        }
+      })),
       {
         title: 'resolves: "IDialogCloseResult" when: .ok()',
         afterStarted: async (_, dialogService) => {
@@ -434,6 +476,107 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
 
           okSpy1.restore();
           okSpy2.restore();
+        }
+      },
+      {
+        title: 'invokes lifeycyles in correct order',
+        afterStarted: async (_, dialogService) => {
+          const lifecycles: string[] = [];
+          function log(lifecylce: string) {
+            lifecycles.push(lifecylce);
+          }
+
+          class MyDialog {
+            public constructor() {
+              log('constructor');
+            }
+          }
+
+          [
+            'canActivate',
+            'activate',
+            'define',
+            'hydrating',
+            'hydrated',
+            'binding',
+            'bound',
+            'attaching',
+            'attached',
+            'canDeactivate',
+            'deactivate',
+            'detaching',
+            'unbinding',
+          ].forEach(method => {
+            MyDialog.prototype[method] = function () {
+              log(method);
+            };
+          });
+
+          const { controller } = await dialogService.open({ component: () => MyDialog });
+          assert.deepStrictEqual(lifecycles, [
+            'constructor',
+            'canActivate',
+            'activate',
+            'define',
+            'hydrating',
+            'hydrated',
+            'binding',
+            'bound',
+            'attaching',
+            'attached',
+          ]);
+
+          void controller.ok();
+          await controller.closed;
+          assert.deepStrictEqual(lifecycles, [
+            'constructor',
+            'canActivate',
+            'activate',
+            'define',
+            'hydrating',
+            'hydrated',
+            'binding',
+            'bound',
+            'attaching',
+            'attached',
+            'canDeactivate',
+            'deactivate',
+            'detaching',
+            'unbinding',
+          ]);
+        }
+      },
+      {
+        title: 'it works with .delegate listener',
+        afterStarted: async ({ ctx }, dialogService) => {
+          let click1CallCount = 0;
+          let click2CallCount = 0;
+          await Promise.all([
+            dialogService.open({
+              component: () => class MyClass1 {
+                public onClick() {
+                  click1CallCount++;
+                }
+              },
+              template: '<button data-dialog-btn click.delegate="onClick()">'
+            }),
+            dialogService.open({
+              component: () => class MyClass2 {
+                public onClick() {
+                  click2CallCount++;
+                }
+              },
+              template: '<button data-dialog-btn click.delegate="onClick()">'
+            }),
+          ]);
+
+          const buttons = Array.from(ctx.doc.querySelectorAll('[data-dialog-btn]')) as HTMLElement[];
+          buttons[0].click();
+          assert.strictEqual(click1CallCount, 1);
+          assert.strictEqual(click2CallCount, 0);
+          buttons[1].click();
+          assert.strictEqual(click1CallCount, 1);
+          assert.strictEqual(click2CallCount, 1);
         }
       }
     ];

@@ -1,6 +1,6 @@
-import { IContainer, onResolve, Registration } from '@aurelia/kernel';
+import { Constructable, IContainer, InstanceProvider, onResolve, Registration } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
-import { ISyntheticView } from '../controller.js';
+import { Controller, ICustomElementController } from '../controller.js';
 import {
   DialogDeactivationStatuses,
   IDialogAnimator,
@@ -11,7 +11,6 @@ import {
   IDialogCancelError,
   IDialogCloseError,
 } from './dialog-interfaces.js';
-import { IComposer, ICompositionContext } from '../composer.js';
 import { IEventTarget, INode } from '../../dom.js';
 
 import type {
@@ -21,6 +20,7 @@ import type {
   IDialogCloseResult,
 } from './dialog-interfaces.js';
 import { IPlatform } from '../../platform.js';
+import { CustomElement, CustomElementDefinition } from '../../resources/custom-element.js';
 
 /**
  * A controller object for a Dialog instance.
@@ -28,7 +28,6 @@ import { IPlatform } from '../../platform.js';
 export class DialogController implements IDialogController, IDialogDomSubscriber {
   private readonly p: IPlatform;
   private readonly ctn: IContainer;
-  private readonly composer: IComposer;
 
   /** @internal */
   private cmp!: IDialogComponent<object>;
@@ -66,42 +65,31 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
    *
    * @internal
    */
-  private controller!: ISyntheticView;
+  private controller!: ICustomElementController;
 
-  protected static get inject() { return [IPlatform, IContainer, IComposer]; }
+  protected static get inject() { return [IPlatform, IContainer]; }
 
   public constructor(
     p: IPlatform,
     container: IContainer,
-    composer: IComposer,
   ) {
     this.p = p;
     this.ctn = container;
-    this.composer = composer;
     this.closed = new Promise((resolve, reject) => {
       this.resolve = resolve;
       this.reject = reject;
     });
   }
 
-  private getOrCreateVm(container: IContainer, settings: ILoadedDialogSettings): IDialogComponent<object> {
-    const Component = settings.component;
-    return typeof Component === 'object'
-      ? Component
-      : Component == null
-        ? new EmptyComponent()
-        : container.invoke(Component);
-  }
-
   /** @internal */
   public activate(settings: ILoadedDialogSettings): Promise<IDialogOpenResult> {
-    const { ctn } = this;
+    const { ctn: container } = this;
     const { animation, model, template, rejectOnCancel } = settings;
-    const hostRenderer: IDialogDomRenderer = ctn.get(IDialogDomRenderer);
+    const hostRenderer: IDialogDomRenderer = container.get(IDialogDomRenderer);
     const dialogTargetHost = settings.host ?? this.p.document.body;
     const dom = this.dom = hostRenderer.render(dialogTargetHost, settings);
-    const rootEventTarget = ctn.has(IEventTarget, true)
-      ? ctn.get(IEventTarget) as Element
+    const rootEventTarget = container.has(IEventTarget, true)
+      ? container.get(IEventTarget) as Element
       : null;
 
     this.settings = settings;
@@ -112,14 +100,14 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
     //   <au-dialog-container>
     // when it's different, needs to ensure delegate bindings work
     if (rootEventTarget == null || !rootEventTarget.contains(dialogTargetHost)) {
-      ctn.register(Registration.instance(IEventTarget, dialogTargetHost));
+      container.register(Registration.instance(IEventTarget, dialogTargetHost));
     }
 
-    ctn.register(
+    container.register(
       Registration.instance(INode, dom.host),
       Registration.instance(IDialogDom, dom),
     );
-    const cmp = this.cmp = this.getOrCreateVm(ctn, settings);
+    const cmp = this.cmp = this.getOrCreateVm(container, settings, dom.host);
 
     return new Promise(r => {
         r(cmp.canActivate?.(model) ?? true);
@@ -135,17 +123,27 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
           return DialogOpenResult.create(true, this);
         }
 
-        const compositionContext: ICompositionContext<object> = { component: cmp, host: dom.host, template, container: ctn };
-        const ctrlr = this.controller = this.composer.compose(compositionContext);
-        const animator: IDialogAnimator = this.animator = ctn.get(IDialogAnimator);
+        const animator: IDialogAnimator = this.animator = container.get(IDialogAnimator);
 
         return onResolve(animator.attaching(dom, animation), () =>
-          onResolve(cmp.activate?.(model), () =>
-            onResolve(ctrlr.activate(ctrlr, null!, LifecycleFlags.fromBind, ctrlr.scope), () => {
+          onResolve(cmp.activate?.(model), () => {
+            const ctrlr = this.controller = Controller.forCustomElement(
+              null,
+              container,
+              cmp,
+              dom.host,
+              null,
+              LifecycleFlags.none,
+              true,
+              CustomElementDefinition.create(
+                this.getDefinition(cmp) ?? { name: CustomElement.generateName(), template }
+              )
+            ) as ICustomElementController;
+            return onResolve(ctrlr.activate(ctrlr, null!, LifecycleFlags.fromBind), () => {
               dom.subscribe(this);
               return DialogOpenResult.create(false, this);
-            })
-          )
+            });
+          })
         );
       });
   }
@@ -258,6 +256,36 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.cancel();
     }
+  }
+
+  private getOrCreateVm(container: IContainer, settings: ILoadedDialogSettings, host: HTMLElement): IDialogComponent<object> {
+    const Component = settings.component;
+    if (Component == null) {
+      return new EmptyComponent();
+    }
+    if (typeof Component === 'object') {
+      return Component;
+    }
+
+    const p = this.p;
+    const ep = new InstanceProvider('ElementResolver');
+
+    ep.prepare(host);
+    container.registerResolver(INode, ep);
+    container.registerResolver(p.Node, ep);
+    container.registerResolver(p.Element, ep);
+    container.registerResolver(p.HTMLElement, ep);
+
+    return container.invoke(Component!);
+  }
+
+  private getDefinition(component?: object | Constructable) {
+    const Ctor = (typeof component === 'function'
+      ? component
+      : component?.constructor) as Constructable;
+    return CustomElement.isType(Ctor)
+      ? CustomElement.getDefinition(Ctor)
+      : null;
   }
 }
 

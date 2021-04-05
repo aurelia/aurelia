@@ -115,7 +115,8 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
       if (this.href === null) {
         this.el.removeAttribute(this.attribute);
       } else {
-        this.el.setAttribute(this.attribute, this.href);
+        const useHash = this.router.options.useUrlFragmentHash;
+        this.el.setAttribute(this.attribute, useHash ? `#${this.href}` : this.href);
       }
     }
   }

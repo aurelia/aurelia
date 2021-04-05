@@ -326,8 +326,7 @@ export class ViewportInstructionTree {
 
   public toUrl(): string {
     const path = this.children.map(x => x.toUrlComponent()).join('+');
-    const query = this.queryParams.toString();
-    return query !== '' ? `${path}?${query}` : path;
+    return path;
   }
 
   public toString(): string {

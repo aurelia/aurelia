@@ -45,6 +45,13 @@ export class BrowserLocationManager {
   private readonly baseHref: string;
   private eventId: number = 0;
 
+  public get pathname(): string {
+    return this.location.pathname;
+  }
+  public get hash(): string {
+    return this.location.hash;
+  }
+
   public constructor(
     @ILogger private readonly logger: ILogger,
     @IRouterEvents private readonly events: IRouterEvents,

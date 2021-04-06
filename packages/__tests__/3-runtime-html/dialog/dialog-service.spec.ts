@@ -2,9 +2,9 @@ import { noop } from '@aurelia/kernel';
 import {
   IDialogService,
   IDialogSettings,
-  IGlobalDialogSettings,
+  IDialogGlobalSettings,
   DialogConfiguration,
-  DefaultDialogConfiguration,
+  DialogDefaultConfiguration,
   customElement,
   IDialogCancelError,
   DialogDeactivationStatuses,
@@ -94,7 +94,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             ...overrideSettings,
             component: () => Object.create(null),
           });
-          const expectedSettings = { ...ctx.container.get(IGlobalDialogSettings), ...overrideSettings };
+          const expectedSettings = { ...ctx.container.get(IDialogGlobalSettings), ...overrideSettings };
           const actualSettings = { ...controller.settings };
           delete actualSettings.component;
           assert.deepStrictEqual(actualSettings, expectedSettings);
@@ -104,9 +104,9 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'should not modify the default settings',
         afterStarted: async ({ ctx }, dialogService) => {
           const overrideSettings = { component: () => ({}), model: 'model data' };
-          const expectedSettings = { ...ctx.container.get(IGlobalDialogSettings) };
+          const expectedSettings = { ...ctx.container.get(IDialogGlobalSettings) };
           await dialogService.open(overrideSettings);
-          const actualSettings = { ...ctx.container.get(IGlobalDialogSettings) };
+          const actualSettings = { ...ctx.container.get(IDialogGlobalSettings) };
           assert.deepStrictEqual(actualSettings, expectedSettings);
         }
       },
@@ -621,7 +621,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
     for (const { title, only, afterStarted, afterTornDown } of testCases) {
       const $it = only ? it.only : it;
       $it(title, async function () {
-        const creationResult = createFixture('', class App { }, [DefaultDialogConfiguration]);
+        const creationResult = createFixture('', class App { }, [DialogDefaultConfiguration]);
         const { ctx, tearDown, startPromise } = creationResult;
         await startPromise;
         const dialogService = ctx.container.get(IDialogService);

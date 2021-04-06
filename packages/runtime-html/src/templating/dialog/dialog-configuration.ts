@@ -40,11 +40,11 @@ DialogConfiguration.customize(settings => {
 export const DialogConfiguration = createConfiguration(() => {
   throw new Error('Invalid dialog configuration. ' +
     'Specify the implementations for ' +
-    '<IDialogService>, <IGlobalDialogSettings>, <IDialogDomRenderer> and <IDialogAnimator>, ' +
+    '<IDialogService>, <IDialogGlobalSettings>, <IDialogDomRenderer> and <IDialogAnimator>, ' +
     'or use the DefaultDialogConfiguration export.'
   );
 }, [class NoopDialogGlobalSettings {
-  static register(container: IContainer) {
+  public static register(container: IContainer): void {
     container.register(Registration.singleton(IDialogGlobalSettings, this));
   }
 }]);

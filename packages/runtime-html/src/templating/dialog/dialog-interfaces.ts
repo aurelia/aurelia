@@ -202,7 +202,7 @@ export type IDialogGlobalSettings = Pick<
   IDialogSettings,
   'lock' | 'startingZIndex' | 'rejectOnCancel'
 >;
-export const IDialogGlobalSettings = DI.createInterface<IDialogGlobalSettings>('IGlobalDialogSettings');
+export const IDialogGlobalSettings = DI.createInterface<IDialogGlobalSettings>('IDialogGlobalSettings');
 
 export interface IDialogError<T> extends Error {
   wasCancelled: boolean;

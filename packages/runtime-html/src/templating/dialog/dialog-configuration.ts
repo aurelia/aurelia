@@ -1,11 +1,11 @@
-import { IContainer, IRegistry, noop } from '@aurelia/kernel';
+import { IContainer, IRegistry, noop, Registration } from '@aurelia/kernel';
 
-import { IGlobalDialogSettings } from './dialog-interfaces.js';
+import { IDialogGlobalSettings } from './dialog-interfaces.js';
 import { DefaultGlobalSettings, DefaultDialogAnimator, DefaultDialogDomRenderer } from './dialog-default-impl.js';
 import { AppTask } from '../../app-task.js';
 import { DialogService } from './dialog-service.js';
 
-export type DialogConfigurationProvider = (settings: IGlobalDialogSettings) => void | Promise<unknown>;
+export type DialogConfigurationProvider = (settings: IDialogGlobalSettings) => void | Promise<unknown>;
 
 export interface IDialogConfiguration extends IRegistry {
   settingsProvider: DialogConfigurationProvider;
@@ -21,7 +21,7 @@ function createConfiguration(settingsProvider: DialogConfigurationProvider, regi
       AppTask
         .with(IContainer)
         .beforeCreate()
-        .call(c => settingsProvider(c.get(IGlobalDialogSettings)) as void)
+        .call(c => settingsProvider(c.get(IDialogGlobalSettings)) as void)
     ),
     customize(cb: DialogConfigurationProvider, regs?: IRegistry[]) {
       return createConfiguration(cb, regs ?? registrations);
@@ -43,9 +43,13 @@ export const DialogConfiguration = createConfiguration(() => {
     '<IDialogService>, <IGlobalDialogSettings>, <IDialogDomRenderer> and <IDialogAnimator>, ' +
     'or use the DefaultDialogConfiguration export.'
   );
-}, [DefaultGlobalSettings]);
+}, [class NoopDialogGlobalSettings {
+  static register(container: IContainer) {
+    container.register(Registration.singleton(IDialogGlobalSettings, this));
+  }
+}]);
 
-export const DefaultDialogConfiguration = createConfiguration(noop, [
+export const DialogDefaultConfiguration = createConfiguration(noop, [
   DialogService,
   DefaultGlobalSettings,
   DefaultDialogDomRenderer,

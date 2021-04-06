@@ -35,7 +35,7 @@ export interface IDialogService {
  */
 export const IDialogController = DI.createInterface<IDialogController>('IDialogController');
 export interface IDialogController {
-  readonly settings: ILoadedDialogSettings;
+  readonly settings: IDialogLoadedSettings;
   /**
    * A promise that will be fulfilled once this dialog has been closed
    */
@@ -51,7 +51,7 @@ export interface IDialogController {
  */
 export const IDialogDomRenderer = DI.createInterface<IDialogDomRenderer>('IDialogDomRenderer');
 export interface IDialogDomRenderer {
-  render(dialogHost: Element, settings: ILoadedDialogSettings): IDialogDom;
+  render(dialogHost: Element, settings: IDialogLoadedSettings): IDialogDom;
 }
 
 /**
@@ -193,16 +193,16 @@ export interface IDialogSettings<
   restoreFocus?: (lastActiveElement: HTMLElement) => void;
 }
 
-export type ILoadedDialogSettings<T extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template'> & {
+export type IDialogLoadedSettings<T extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template'> & {
   component?: Constructable<T> | T;
   template?: string | Element;
 };
 
-export type IGlobalDialogSettings = Pick<
+export type IDialogGlobalSettings = Pick<
   IDialogSettings,
   'lock' | 'startingZIndex' | 'rejectOnCancel'
 >;
-export const IGlobalDialogSettings = DI.createInterface<IGlobalDialogSettings>('IGlobalDialogSettings');
+export const IDialogGlobalSettings = DI.createInterface<IDialogGlobalSettings>('IGlobalDialogSettings');
 
 export interface IDialogError<T> extends Error {
   wasCancelled: boolean;

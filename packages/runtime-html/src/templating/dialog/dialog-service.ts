@@ -6,8 +6,8 @@ import {
   IDialogCloseResult,
   IDialogController,
   IDialogOpenResult,
-  IGlobalDialogSettings,
-  ILoadedDialogSettings,
+  IDialogGlobalSettings,
+  IDialogLoadedSettings,
   DialogActionKey,
 } from './dialog-interfaces.js';
 import { DialogController } from './dialog-controller.js';
@@ -47,12 +47,12 @@ export class DialogService implements IDialogService {
   }
 
   // tslint:disable-next-line:member-ordering
-  protected static get inject() { return [IContainer, IPlatform, IGlobalDialogSettings]; }
+  protected static get inject() { return [IContainer, IPlatform, IDialogGlobalSettings]; }
 
   public constructor(
     private readonly container: IContainer,
     private readonly p: IPlatform,
-    private readonly defaultSettings: IGlobalDialogSettings,
+    private readonly defaultSettings: IDialogGlobalSettings,
   ) {}
 
   public static register(container: IContainer) {
@@ -74,7 +74,7 @@ export class DialogService implements IDialogService {
    * Opens a new dialog.
    *
    * @param settings - Dialog settings for this dialog instance.
-   * @returns Promise A promise that settles when the dialog is closed.
+   * @returns A promise that settles when the dialog is closed.
    *
    * Example usage:
    * ```ts
@@ -119,7 +119,7 @@ export class DialogService implements IDialogService {
   /**
    * Closes all open dialogs at the time of invocation.
    *
-   * @returns Promise<DialogController[]> All controllers whose close operation was cancelled.
+   * @returns All controllers whose close operation was cancelled.
    */
   public closeAll(): Promise<IDialogController[]> {
     return Promise
@@ -183,8 +183,8 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
       .normalize();
   }
 
-  public load(): ILoadedDialogSettings | Promise<ILoadedDialogSettings> {
-    const loaded = this as ILoadedDialogSettings;
+  public load(): IDialogLoadedSettings | Promise<IDialogLoadedSettings> {
+    const loaded = this as IDialogLoadedSettings;
     const cmp = this.component;
     const template = this.template;
     const maybePromise = resolveAll(...[

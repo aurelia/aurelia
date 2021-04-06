@@ -15,7 +15,7 @@ import { IEventTarget, INode } from '../../dom.js';
 
 import type {
   IDialogComponent,
-  ILoadedDialogSettings,
+  IDialogLoadedSettings,
   IDialogDomSubscriber,
   IDialogCloseResult,
 } from './dialog-interfaces.js';
@@ -46,7 +46,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
   /**
    * The settings used by this controller.
    */
-  public settings!: ILoadedDialogSettings;
+  public settings!: IDialogLoadedSettings;
 
   public readonly closed: Promise<IDialogCloseResult>;
 
@@ -82,7 +82,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
   }
 
   /** @internal */
-  public activate(settings: ILoadedDialogSettings): Promise<IDialogOpenResult> {
+  public activate(settings: IDialogLoadedSettings): Promise<IDialogOpenResult> {
     const { ctn: container } = this;
     const { animation, model, template, rejectOnCancel } = settings;
     const hostRenderer: IDialogDomRenderer = container.get(IDialogDomRenderer);
@@ -109,12 +109,8 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
     );
     const cmp = this.cmp = this.getOrCreateVm(container, settings, dom.host);
 
-    return new Promise(r => {
-        r(cmp.canActivate?.(model) ?? true);
-      }).catch(e => {
-        dom.dispose();
-        throw e;
-      }).then(canActivate => {
+    return new Promise(r => { r(cmp.canActivate?.(model) ?? true); })
+      .then(canActivate => {
         if (canActivate !== true) {
           dom.dispose();
           if (rejectOnCancel) {
@@ -145,6 +141,9 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
             });
           })
         );
+      }, e => {
+        dom.dispose();
+        throw e;
       });
   }
 
@@ -258,7 +257,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
     }
   }
 
-  private getOrCreateVm(container: IContainer, settings: ILoadedDialogSettings, host: HTMLElement): IDialogComponent<object> {
+  private getOrCreateVm(container: IContainer, settings: IDialogLoadedSettings, host: HTMLElement): IDialogComponent<object> {
     const Component = settings.component;
     if (Component == null) {
       return new EmptyComponent();

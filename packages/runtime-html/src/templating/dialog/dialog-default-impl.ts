@@ -4,17 +4,17 @@ import {
   IDialogDomRenderer,
   IDialogDom,
   IDialogDomSubscriber,
-  IGlobalDialogSettings,
-  ILoadedDialogSettings,
+  IDialogGlobalSettings,
+  IDialogLoadedSettings,
   DialogMouseEventType,
 } from './dialog-interfaces.js';
 
 import { IContainer, Registration } from '@aurelia/kernel';
 
-export class DefaultGlobalSettings implements IGlobalDialogSettings {
+export class DefaultGlobalSettings implements IDialogGlobalSettings {
 
   public static register(container: IContainer) {
-    Registration.singleton(IGlobalDialogSettings, this).register(container);
+    Registration.singleton(IDialogGlobalSettings, this).register(container);
   }
 
   public lock: boolean = true;
@@ -41,7 +41,7 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
   private readonly overlayCss: string = baseWrapperCss;
   private readonly hostCss: string = 'position: relative; margin: auto;';
 
-  public render(dialogHost: HTMLElement, settings: ILoadedDialogSettings): IDialogDom {
+  public render(dialogHost: HTMLElement, settings: IDialogLoadedSettings): IDialogDom {
     const doc = this.p.document;
     const h = (name: string, css?: string) => {
       const el = doc.createElement(name);
@@ -66,7 +66,7 @@ export class DefaultDialogDom implements IDialogDom {
     public readonly wrapper: HTMLElement,
     public readonly overlay: HTMLElement,
     public readonly host: HTMLElement,
-    s: ILoadedDialogSettings,
+    s: IDialogLoadedSettings,
   ) {
     overlay.addEventListener(this.e = s.mouseEvent ?? 'click', this);
   }

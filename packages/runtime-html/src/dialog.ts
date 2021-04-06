@@ -4,7 +4,7 @@ export {
   DialogMouseEventType,
 
   // main interfaces
-  ILoadedDialogSettings,
+  IDialogLoadedSettings,
   IDialogService,
   IDialogController,
   IDialogDom,
@@ -24,7 +24,7 @@ export {
 
   // dialog settings
   IDialogSettings,
-  IGlobalDialogSettings,
+  IDialogGlobalSettings,
   // implementable
   IDialogComponent,
   IDialogComponentActivate,
@@ -40,7 +40,7 @@ export {
 } from './templating/dialog/dialog-service.js';
 export {
   DialogConfiguration,
-  DefaultDialogConfiguration,
+  DialogDefaultConfiguration,
   IDialogConfiguration,
   DialogConfigurationProvider,
 } from './templating/dialog/dialog-configuration.js';

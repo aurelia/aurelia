@@ -11,7 +11,6 @@ import type { INode } from '../dom';
 import type { EventSubscriber } from './event-delegator';
 import type {
   ICollectionObserver,
-  IndexMap,
   IObserver,
   IObserverLocator,
   ISubscriber,
@@ -81,6 +80,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   }
 
   public setValue(newValue: unknown, flags: LF): void {
+    this.oldValue = this.value;
     this.value = newValue;
     this.hasChanges = newValue !== this.oldValue;
     this.observeArray(newValue instanceof Array ? newValue : null);
@@ -92,20 +92,21 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   public flushChanges(flags: LF): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      this.synchronizeOptions();
+      this.syncOptions();
     }
   }
 
   public handleCollectionChange(): void {
     // always sync "selected" property of <options/>
     // immediately whenever the array notifies its mutation
-    this.synchronizeOptions();
+    this.syncOptions();
   }
 
-  public synchronizeOptions(indexMap?: IndexMap): void {
-    const { value: currentValue, obj } = this;
-    const isArray = Array.isArray(currentValue);
-    const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
+  public syncOptions(): void {
+    const value = this.value;
+    const obj = this.obj;
+    const isArray = Array.isArray(value);
+    const matcher = obj.matcher ?? defaultMatcher;
     const options = obj.options;
     let i = options.length;
 
@@ -113,14 +114,14 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
       const option = options[i];
       const optionValue = hasOwn.call(option, 'model') ? option.model : option.value;
       if (isArray) {
-        option.selected = (currentValue as unknown[]).findIndex(item => !!matcher(optionValue, item)) !== -1;
+        option.selected = (value as unknown[]).findIndex(item => !!matcher(optionValue, item)) !== -1;
         continue;
       }
-      option.selected = !!matcher(optionValue, currentValue);
+      option.selected = !!matcher(optionValue, value);
     }
   }
 
-  public synchronizeValue(): boolean {
+  public syncValue(): boolean {
     // Spec for synchronizing value from `<select/>`  to `SelectObserver`
     // When synchronizing value to observed <select/> element, do the following steps:
     // A. If `<select/>` is multiple
@@ -238,7 +239,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   }
 
   public handleEvent(): void {
-    const shouldNotify = this.synchronizeValue();
+    const shouldNotify = this.syncValue();
     if (shouldNotify) {
       this.queue.add(this);
       // this.subs.notify(this.currentValue, this.oldValue, LF.none);
@@ -246,8 +247,8 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   }
 
   public handleNodeChange(): void {
-    this.synchronizeOptions();
-    const shouldNotify = this.synchronizeValue();
+    this.syncOptions();
+    const shouldNotify = this.syncValue();
     if (shouldNotify) {
       this.queue.add(this);
     }
@@ -268,9 +269,15 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   }
 
   public flush(): void {
-    this.subs.notify(this.value, this.oldValue, LifecycleFlags.none);
+    oV = this.oldValue;
+    this.oldValue = this.value;
+    this.subs.notify(this.value, oV, LifecycleFlags.none);
   }
 }
 
 subscriberCollection(SelectValueObserver);
 withFlushQueue(SelectValueObserver);
+
+// a shared variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

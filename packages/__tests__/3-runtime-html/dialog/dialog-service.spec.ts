@@ -1,3 +1,4 @@
+import { noop } from '@aurelia/kernel';
 import {
   IDialogService,
   IDialogSettings,
@@ -28,6 +29,18 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       }
       assert.notStrictEqual(error, void 0);
       assert.includes((error as Error).message, 'Invalid dialog configuration.');
+    });
+
+    it('throws when customize without any implementation', async function () {
+      let error: unknown = void 0;
+      try {
+        const { startPromise } = createFixture('', class App { }, [DialogConfiguration.customize(noop, [])]);
+        await startPromise;
+      } catch (err) {
+        error = err;
+      }
+      assert.notStrictEqual(error, void 0);
+      assert.includes((error as Error).message, 'Attempted to jitRegister an interface: IDialogGlobalSettings');
     });
   });
 

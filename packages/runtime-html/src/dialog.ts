@@ -51,4 +51,4 @@ export {
   DefaultDialogDomRenderer,
   DefaultDialogGlobalSettings,
   IDefaultDialogAnimationSettings,
-} from './templating/dialog/dialog-default-impl';
+} from './templating/dialog/dialog-default-impl.js';

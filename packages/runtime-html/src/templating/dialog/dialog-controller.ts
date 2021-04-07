@@ -91,6 +91,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
     const rootEventTarget = container.has(IEventTarget, true)
       ? container.get(IEventTarget) as Element
       : null;
+    const contentHost = dom.contentHost;
 
     this.settings = settings;
     // application root host may be a different element with the dialog root host
@@ -104,10 +105,10 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
     }
 
     container.register(
-      Registration.instance(INode, dom.host),
+      Registration.instance(INode, contentHost),
       Registration.instance(IDialogDom, dom),
     );
-    const cmp = this.cmp = this.getOrCreateVm(container, settings, dom.host);
+    const cmp = this.cmp = this.getOrCreateVm(container, settings, contentHost);
 
     return new Promise(r => { r(cmp.canActivate?.(model) ?? true); })
       .then(canActivate => {
@@ -127,7 +128,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
               null,
               container,
               cmp,
-              dom.host,
+              contentHost,
               null,
               LifecycleFlags.none,
               true,
@@ -236,21 +237,10 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
     )));
   }
 
-  /**
-   * Closes the dialog.
-   *
-   * @param status - Whether or not the user input signified success.
-   * @param value - The specified output.
-   * @returns Promise An empty promise object.
-   */
-  public close<T extends DialogDeactivationStatuses>(status: T, value?: unknown): Promise<IDialogCloseResult<T>> {
-    return this.deactivate(status, value);
-  }
-
   /** @internal */
   public handleOverlayClick(event: MouseEvent): void {
     if (/* user allows dismiss on overlay click */this.settings.overlayDismiss
-      && /* did not click inside the host element */!this.dom.host.contains(event.target as Element)
+      && /* did not click inside the host element */!this.dom.contentHost.contains(event.target as Element)
     ) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.cancel();

@@ -11,7 +11,7 @@ import {
 
 import { IContainer, Registration } from '@aurelia/kernel';
 
-export class DefaultGlobalSettings implements IDialogGlobalSettings {
+export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
 
   public static register(container: IContainer) {
     Registration.singleton(IDialogGlobalSettings, this).register(container);
@@ -37,9 +37,9 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
     Registration.singleton(IDialogDomRenderer, this).register(container);
   }
 
-  private readonly wrapperCss: string = `${baseWrapperCss} display: flex;`;
+  private readonly wrapperCss: string = `${baseWrapperCss} display:flex;`;
   private readonly overlayCss: string = baseWrapperCss;
-  private readonly hostCss: string = 'position: relative; margin: auto;';
+  private readonly hostCss: string = 'position:relative;margin:auto;';
 
   public render(dialogHost: HTMLElement, settings: IDialogLoadedSettings): IDialogDom {
     const doc = this.p.document;
@@ -65,7 +65,7 @@ export class DefaultDialogDom implements IDialogDom {
   public constructor(
     public readonly wrapper: HTMLElement,
     public readonly overlay: HTMLElement,
-    public readonly host: HTMLElement,
+    public readonly contentHost: HTMLElement,
     s: IDialogLoadedSettings,
   ) {
     overlay.addEventListener(this.e = s.mouseEvent ?? 'click', this);
@@ -109,11 +109,11 @@ export class DefaultDialogAnimator implements IDialogAnimator<IDefaultDialogAnim
   }
 
   public attaching(dialogDom: IDialogDom, animation: IDefaultDialogAnimationSettings = {}): void | Promise<Animation> {
-    return this.animate(dialogDom.host, animation.attaching, animation.ignoreTransitions);
+    return this.animate(dialogDom.contentHost, animation.attaching, animation.ignoreTransitions);
   }
 
   public detaching(dialogDom: IDialogDom, animation: IDefaultDialogAnimationSettings = {}): void | Promise<Animation> {
-    return this.animate(dialogDom.host, animation.detaching, animation.ignoreTransitions);
+    return this.animate(dialogDom.contentHost, animation.detaching, animation.ignoreTransitions);
   }
 
   private animate(host: HTMLElement, params?: Parameters<Element['animate']>, doNotWait?: boolean): void | Promise<Animation> {

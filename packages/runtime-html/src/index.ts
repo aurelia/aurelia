@@ -703,4 +703,10 @@ export {
   IDialogOpenResult,
   IDialogService,
   IDialogSettings,
+
+  DefaultDialogAnimator,
+  DefaultDialogDom,
+  DefaultDialogDomRenderer,
+  DefaultDialogGlobalSettings,
+  IDefaultDialogAnimationSettings
 } from './dialog.js';

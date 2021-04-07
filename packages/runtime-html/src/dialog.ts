@@ -44,3 +44,11 @@ export {
   IDialogConfiguration,
   DialogConfigurationProvider,
 } from './templating/dialog/dialog-configuration.js';
+
+export {
+  DefaultDialogAnimator,
+  DefaultDialogDom,
+  DefaultDialogDomRenderer,
+  DefaultDialogGlobalSettings,
+  IDefaultDialogAnimationSettings,
+} from './templating/dialog/dialog-default-impl';

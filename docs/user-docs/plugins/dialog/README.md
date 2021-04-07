@@ -61,7 +61,7 @@ The export `DefaultDialogConfiguration` is a preset of default behaviors & imple
   ```
   If there's a need to only swap some implementation, say `IDialogDomRenderer` for example, then the default implementation can be imported and mixed like the following example:
   ```typescript
-  import { DialogConfiguration, DialogService, DefaultDialogAnimator, DefaultGlobalSettings } from '@aurelia/runtime-html';
+  import { DialogConfiguration, DialogService, DefaultDialogAnimator, DefaultDialogGlobalSettings } from '@aurelia/runtime-html';
 
   Aurelia.register(DialogConfiguration.customize(settings => {
 
@@ -71,7 +71,7 @@ The export `DefaultDialogConfiguration` is a preset of default behaviors & imple
     // BYO dialog dom renderer
     MyDialogRenderer,
     // use default dialog global settings
-    DefaultGlobalSettings,
+    DefaultDialogGlobalSettings,
     // use default dialog animator
     DefaultDialogAnimator,
   ]))
@@ -328,14 +328,31 @@ An example of the html structure when document body is the dialog host:
     <div> <!-- dialog content host -->
 ```
 
+#### Centering/Uncentering dialog position
+
 By default, the dialog content host is centered horizontally and vertically. You can change this via `IDialogDom` injection:
 ```ts
 import { IDialogDom, DefaultDialogDom } from '@aurelia/runtime-html';
 
 @inject(IDialogDom)
 export class MyDialog {
-  public constructor(dialogDom: DefaultDialogDom) {
+  constructor(dialogDom: DefaultDialogDom) {
     dialogDom.host.style.margin = "0 auto"; // only center horizontally
+  }
+}
+```
+
+#### Styling the overlay
+
+By default, the overlay of a dialog is transparent. Though it's often desirable to add 50% opacity and a background color of black to the modal. To achieve this in dialog you can retrieve the `IDialogDom` instance and modify the `overlay` element `style`:
+
+```ts
+import { IDialogDom, DefaultDialogDom } from '@aurelia/runtime-html';
+
+@inject(IDialogDom)
+export class MyDialog {
+  constructor(dialogDom: DefaultDialogDom) {
+    dialogDom.overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
   }
 }
 ```
@@ -344,6 +361,7 @@ export class MyDialog {
 ... todo
 ### The Default Dialog Animator
 ... todo
+
 ### Component Lifecycles With The Dialog Plugin
 In adition to the lifecycle hooks defined in the core templating, the `dialog` defines additional ones. All dialog specific hooks can return a `Promise`, that resolves to the appropriate value for the hook, and will be awaited.
 

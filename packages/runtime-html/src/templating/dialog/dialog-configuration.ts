@@ -1,7 +1,7 @@
 import { IContainer, IRegistry, noop, Registration } from '@aurelia/kernel';
 
 import { IDialogGlobalSettings } from './dialog-interfaces.js';
-import { DefaultGlobalSettings, DefaultDialogAnimator, DefaultDialogDomRenderer } from './dialog-default-impl.js';
+import { DefaultDialogGlobalSettings, DefaultDialogAnimator, DefaultDialogDomRenderer } from './dialog-default-impl.js';
 import { AppTask } from '../../app-task.js';
 import { DialogService } from './dialog-service.js';
 
@@ -51,7 +51,7 @@ export const DialogConfiguration = createConfiguration(() => {
 
 export const DialogDefaultConfiguration = createConfiguration(noop, [
   DialogService,
-  DefaultGlobalSettings,
+  DefaultDialogGlobalSettings,
   DefaultDialogDomRenderer,
   DefaultDialogAnimator,
 ]);

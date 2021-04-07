@@ -78,13 +78,13 @@ export class DialogService implements IDialogService {
    *
    * Example usage:
    * ```ts
-   * dialogService.open({ viewModel: () => MyDialog, view: 'my-template' })
-   * dialogService.open({ viewModel: () => MyDialog, view: document.createElement('my-template') })
+   * dialogService.open({ component: () => MyDialog, template: 'my-template' })
+   * dialogService.open({ component: () => MyDialog, template: document.createElement('my-template') })
    *
    * // JSX to hyperscript
-   * dialogService.open({ viewModel: () => MyDialog, view: <my-template /> })
+   * dialogService.open({ component: () => MyDialog, template: <my-template /> })
    *
-   * dialogService.open({ viewModel: () => import('...'), view: () => fetch('my.server/dialog-view.html') })
+   * dialogService.open({ component: () => import('...'), template: () => fetch('my.server/dialog-view.html') })
    * ```
    */
   public open(settings: IDialogSettings = {}): IDialogOpenPromise {

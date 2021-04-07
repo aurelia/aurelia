@@ -111,6 +111,8 @@ const arrayHandler: ProxyHandler<unknown[]> = {
         return wrappedArrayEvery;
       case 'filter':
         return wrappedArrayFilter;
+      case 'find':
+        return wrappedArrayFind;
       case 'findIndex':
         return wrappedArrayFindIndex;
       case 'flat':
@@ -155,9 +157,9 @@ const arrayHandler: ProxyHandler<unknown[]> = {
     return wrap(R$get(target, key, receiver));
   },
   // for (let i in array) ...
-  ownKeys(target: unknown[]): PropertyKey[] {
+  ownKeys(target: unknown[]): (string | symbol)[] {
     currentConnectable()?.observeProperty(target, 'length');
-    return Reflect.ownKeys(target);
+    return Reflect.ownKeys(target) as (string | symbol)[];
   },
 };
 
@@ -212,6 +214,13 @@ function wrappedArrayFindIndex(this: unknown[], cb: (v: unknown, i: number, arr:
   const res = raw.findIndex((v, i) => unwrap(cb.call(thisArg, wrap(v), i, this)));
   currentConnectable()?.observeCollection(raw);
   return res;
+}
+
+function wrappedArrayFind(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => boolean, thisArg?: unknown): unknown {
+  const raw = getRaw(this);
+  const res = raw.find((v, i) => cb(wrap(v), i, this), thisArg);
+  currentConnectable()?.observeCollection(raw);
+  return wrap(res);
 }
 
 function wrappedArrayFlat(this: unknown[]): unknown[] {

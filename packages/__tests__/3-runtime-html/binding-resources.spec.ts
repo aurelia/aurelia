@@ -19,7 +19,7 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
   }
 
   describe('debounce', function () {
-    // if we are to turn the v1 behavior of thottle back on
+    // if we are to turn the v1 behavior of throttle back on
     // the following test should be enabled
     // ===================================================
     // it('works with toView bindings to elements', async function () {
@@ -79,6 +79,37 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
 
     //   au.dispose();
     // });
+
+    it('works without parameters', async function () {
+      @customElement({
+        name: 'app',
+        template: `<input ref="receiver" value.bind="value & debounce">`,
+      })
+      class App {
+        public value: string = '0';
+        public receiver: HTMLInputElement;
+      }
+
+      const { au, host, ctx } = $createFixture();
+
+      const component = new App();
+      au.app({ component, host });
+      await au.start();
+
+      const receiver = component.receiver;
+
+      receiver.value = '1';
+      receiver.dispatchEvent(new ctx.CustomEvent('change'));
+
+      await wait(10);
+      assert.strictEqual(component.value, '0', 'component value pre 200ms');
+      await wait(200);
+      assert.strictEqual(component.value, '1', 'component value post 200ms');
+
+      await au.stop();
+
+      au.dispose();
+    });
 
     it('works with toView bindings to elements', async function () {
       @customElement({

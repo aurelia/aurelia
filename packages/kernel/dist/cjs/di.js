@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateKey = exports.InstanceProvider = exports.Registration = exports.ParameterizedRegistry = exports.Container = exports.Factory = exports.Resolver = exports.ResolverStrategy = exports.newInstanceOf = exports.newInstanceForScope = exports.ignore = exports.optional = exports.lazy = exports.all = exports.singleton = exports.transient = exports.inject = exports.IServiceLocator = exports.IContainer = exports.DI = exports.ContainerConfiguration = exports.DefaultResolver = exports.ResolverBuilder = void 0;
 const metadata_1 = require("@aurelia/metadata");
-metadata_1.applyMetadataPolyfill(Reflect);
+metadata_1.applyMetadataPolyfill(Reflect, false, false);
 const functions_js_1 = require("./functions.js");
 const platform_js_1 = require("./platform.js");
 const resource_js_1 = require("./resource.js");

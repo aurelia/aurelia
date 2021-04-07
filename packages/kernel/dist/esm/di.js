@@ -1,5 +1,5 @@
 import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
-applyMetadataPolyfill(Reflect);
+applyMetadataPolyfill(Reflect, false, false);
 import { isArrayIndex, isNativeFunction } from './functions.js';
 import { emptyArray } from './platform.js';
 import { Protocol } from './resource.js';

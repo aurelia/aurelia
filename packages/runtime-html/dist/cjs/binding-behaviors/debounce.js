@@ -13,7 +13,7 @@ const defaultDelay = 200;
 class DebounceBindingBehavior extends runtime_1.BindingInterceptor {
     constructor(binding, expr) {
         super(binding, expr);
-        this.opts = { delay: 0 };
+        this.opts = { delay: defaultDelay };
         this.firstArg = null;
         this.task = null;
         this.taskQueue = binding.locator.get(kernel_1.IPlatform).taskQueue;

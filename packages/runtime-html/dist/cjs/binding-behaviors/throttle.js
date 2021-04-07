@@ -10,7 +10,7 @@ const defaultDelay = 200;
 class ThrottleBindingBehavior extends runtime_1.BindingInterceptor {
     constructor(binding, expr) {
         super(binding, expr);
-        this.opts = { delay: 0 };
+        this.opts = { delay: defaultDelay };
         this.firstArg = null;
         this.task = null;
         this.lastCall = 0;

@@ -386,6 +386,7 @@ export class ArrayIndexObserver {
     constructor(owner, index) {
         this.owner = owner;
         this.index = index;
+        this.doNotCache = true;
         this.value = this.getValue();
     }
     getValue() {

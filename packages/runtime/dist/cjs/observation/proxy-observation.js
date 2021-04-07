@@ -101,6 +101,8 @@ const arrayHandler = {
                 return wrappedArrayEvery;
             case 'filter':
                 return wrappedArrayFilter;
+            case 'find':
+                return wrappedArrayFind;
             case 'findIndex':
                 return wrappedArrayFindIndex;
             case 'flat':
@@ -201,6 +203,13 @@ function wrappedArrayFindIndex(cb, thisArg) {
     const res = raw.findIndex((v, i) => unwrap(cb.call(thisArg, wrap(v), i, this)));
     (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return res;
+}
+function wrappedArrayFind(cb, thisArg) {
+    var _a;
+    const raw = getRaw(this);
+    const res = raw.find((v, i) => cb(wrap(v), i, this), thisArg);
+    (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+    return wrap(res);
 }
 function wrappedArrayFlat() {
     var _a;

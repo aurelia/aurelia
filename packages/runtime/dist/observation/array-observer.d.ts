@@ -19,6 +19,7 @@ export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberColl
 export declare class ArrayIndexObserver implements IArrayIndexObserver {
     readonly owner: ArrayObserver;
     readonly index: number;
+    doNotCache: boolean;
     value: unknown;
     constructor(owner: ArrayObserver, index: number);
     getValue(): unknown;

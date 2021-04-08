@@ -22,6 +22,7 @@ export declare class BindingObserverRecord implements ISubscriber, ICollectionSu
     binding: IConnectableBinding;
     version: number;
     count: number;
+    slots: number;
     constructor(binding: IConnectableBinding);
     handleChange(value: unknown, oldValue: unknown, flags: LifecycleFlags): unknown;
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;

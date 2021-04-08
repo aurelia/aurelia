@@ -5,22 +5,6 @@ const utilities_objects_js_1 = require("../utilities-objects.js");
 const array_observer_js_1 = require("../observation/array-observer.js");
 const set_observer_js_1 = require("../observation/set-observer.js");
 const map_observer_js_1 = require("../observation/map-observer.js");
-// TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
-const slotNames = [];
-const versionSlotNames = [];
-let lastSlot = -1;
-function ensureEnoughSlotNames(currentSlot) {
-    if (currentSlot === lastSlot) {
-        lastSlot += 5;
-        const ii = slotNames.length = versionSlotNames.length = lastSlot + 1;
-        let i = currentSlot + 1;
-        for (; i < ii; ++i) {
-            slotNames[i] = `_o${i}`;
-            versionSlotNames[i] = `_v${i}`;
-        }
-    }
-}
-ensureEnoughSlotNames(-1);
 function observeProperty(obj, key) {
     const observer = this.observerLocator.getObserver(obj, key);
     /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
@@ -67,6 +51,7 @@ class BindingObserverRecord {
         this.binding = binding;
         this.version = 0;
         this.count = 0;
+        this.slots = 0;
     }
     handleChange(value, oldValue, flags) {
         return this.binding.interceptor.handleChange(value, oldValue, flags);
@@ -79,51 +64,54 @@ class BindingObserverRecord {
      */
     add(observer) {
         // find the observer.
-        const observerSlots = this.count == null ? 0 : this.count;
+        const observerSlots = this.slots;
         let i = observerSlots;
-        while (i-- && this[slotNames[i]] !== observer)
+        // find the slot number of the observer
+        while (i-- && this[`_o${i}`] !== observer)
             ;
         // if we are not already observing, put the observer in an open slot and subscribe.
         if (i === -1) {
             i = 0;
-            while (this[slotNames[i]]) {
+            // go from the start, find an open slot number
+            while (this[`_o${i}`] !== void 0) {
                 i++;
             }
-            this[slotNames[i]] = observer;
+            // store the reference to the observer and subscribe
+            this[`_o${i}`] = observer;
             observer.subscribe(this);
             // increment the slot count.
             if (i === observerSlots) {
-                this.count = i + 1;
+                this.slots = i + 1;
             }
+            ++this.count;
         }
-        this[versionSlotNames[i]] = this.version;
-        ensureEnoughSlotNames(i);
+        this[`_v${i}`] = this.version;
     }
     /**
      * Unsubscribe the observers that are not up to date with the record version
      */
     clear(all) {
-        const slotCount = this.count;
+        const slotCount = this.slots;
         let slotName;
         let observer;
         let i = 0;
         if (all === true) {
             for (; i < slotCount; ++i) {
-                slotName = slotNames[i];
+                slotName = `_o${i}`;
                 observer = this[slotName];
-                if (observer != null) {
+                if (observer !== void 0) {
                     this[slotName] = void 0;
                     observer.unsubscribe(this);
                 }
             }
-            this.count = 0;
+            this.count = this.slots = 0;
         }
         else {
             for (; i < slotCount; ++i) {
-                if (this[versionSlotNames[i]] !== this.version) {
-                    slotName = slotNames[i];
+                if (this[`_v${i}`] !== this.version) {
+                    slotName = `_o${i}`;
                     observer = this[slotName];
-                    if (observer != null) {
+                    if (observer !== void 0) {
                         this[slotName] = void 0;
                         observer.unsubscribe(this);
                         this.count--;

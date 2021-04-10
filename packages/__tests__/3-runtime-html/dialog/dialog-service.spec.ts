@@ -10,6 +10,10 @@ import {
   DialogDeactivationStatuses,
   IDialogAnimator,
   IDialogDom,
+  IDialogController,
+  INode,
+  DialogController,
+  DefaultDialogDom,
 } from '@aurelia/runtime-html';
 import {
   createFixture,
@@ -52,6 +56,24 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           let error: IDialogCancelError<unknown>;
           await dialogService.open({}).catch(err => error = err);
           assert.strictEqual(error.message, 'Invalid Dialog Settings. You must provide "component", "template" or both.');
+        }
+      },
+      {
+        title: 'works with @inject(IDialogController, IDialogDom, INode)',
+        afterStarted: async (_, dialogService) => {
+          await dialogService.open({
+            component: () => class {
+              public static inject = [IDialogController, IDialogDom, INode];
+              public constructor(
+                controller: DialogController,
+                dialogDom: DefaultDialogDom,
+                node: Element
+              ) {
+                assert.strictEqual(controller['dom'], dialogDom);
+                assert.strictEqual(dialogDom.contentHost, node);
+              }
+            }
+          });
         }
       },
       {

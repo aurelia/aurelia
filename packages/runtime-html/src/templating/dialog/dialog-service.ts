@@ -95,7 +95,8 @@ export class DialogService implements IDialogService {
       resolve(onResolve(
         $settings.load(),
         loadedSettings => {
-          const dialogController = container.getFactory(DialogController).construct(container);
+          const dialogController = container.invoke(DialogController);
+          container.register(Registration.instance(IDialogController, dialogController));
 
           return onResolve(
             dialogController.activate(loadedSettings),

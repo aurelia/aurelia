@@ -55,8 +55,6 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
 
   /**
    * The dom structure created to support the dialog associated with this controller
-   *
-   * @internal
    */
   private dom!: IDialogDom;
 

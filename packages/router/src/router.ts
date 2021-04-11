@@ -12,7 +12,6 @@ import { IViewportInstruction, NavigationInstruction, RouteContextLike, Viewport
 import { Batch, mergeDistinct, UnwrapPromise } from './util.js';
 import { RouteDefinition } from './route-definition.js';
 import { ViewportAgent } from './viewport-agent.js';
-import { RouteExpression } from './route-expression.js';
 
 export const AuNavId = 'au-nav-id' as const;
 export type AuNavId = typeof AuNavId;
@@ -654,6 +653,9 @@ export class Router {
   }
 
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
+    if (typeof instructionOrInstructions === 'string') {
+      instructionOrInstructions = this.locationMgr.removeBaseHref(instructionOrInstructions);
+    }
     return ViewportInstructionTree.create(instructionOrInstructions, this.getNavigationOptions(options));
   }
 
@@ -865,19 +867,7 @@ export class Router {
   }
 
   private applyHistoryState(tr: Transition): void {
-    const { pathname, hash } = this.locationMgr;
-
-    let newPathname: string;
-    let newHash: string;
-    if (this.options.useUrlFragmentHash) {
-      newPathname = pathname;
-      newHash = tr.finalInstructions.toUrl();
-    } else {
-      newPathname = tr.finalInstructions.toUrl();
-      newHash = hash;
-    }
-    const newSearch = tr.finalInstructions.queryParams.toString();
-    const newUrl = `${newPathname}${newHash}${newSearch}`;
+    const newUrl = tr.finalInstructions.toUrl(this.options.useUrlFragmentHash);
     switch (tr.options.getHistoryStrategy(this.instructions)) {
       case 'none':
         // do nothing

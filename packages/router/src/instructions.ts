@@ -324,7 +324,25 @@ export class ViewportInstructionTree {
     return true;
   }
 
-  public toUrl(): string {
+  public toUrl(useUrlFragmentHash: boolean = false): string {
+    let pathname: string;
+    let hash: string;
+    if (useUrlFragmentHash) {
+      pathname = '';
+      hash = `#${this.toPath()}`;
+    } else {
+      pathname = this.toPath();
+      hash = this.fragment ?? '';
+    }
+
+    let search = this.queryParams.toString();
+    search = search === '' ? '' : `?${search}`;
+
+    const url = `${pathname}${hash}${search}`;
+    return url;
+  }
+
+  public toPath(): string {
     const path = this.children.map(x => x.toUrlComponent()).join('+');
     return path;
   }

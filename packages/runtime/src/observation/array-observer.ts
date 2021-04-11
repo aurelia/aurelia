@@ -397,6 +397,7 @@ export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberColl
 
 export class ArrayIndexObserver implements IArrayIndexObserver {
 
+  public doNotCache: boolean = true;
   public value: unknown;
 
   public constructor(

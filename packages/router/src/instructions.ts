@@ -164,7 +164,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     // TODO(fkleuver): use the context to determine create full tree
     const component = this.component.toUrlComponent();
     const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(${stringifyParams(this.params)})`;
-    const viewport = this.viewport === null || this.viewport.length === 0 ? '' : `@${this.viewport}`;
+    const viewport = component.length === 0 || this.viewport === null || this.viewport.length === 0 ? '' : `@${this.viewport}`;
     const thisPart = `${'('.repeat(this.open)}${component}${params}${viewport}${')'.repeat(this.close)}`;
     const childPart = recursive ? this.children.map(x => x.toUrlComponent()).join('+') : '';
     if (thisPart.length > 0) {

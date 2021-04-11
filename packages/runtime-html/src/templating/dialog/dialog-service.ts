@@ -97,6 +97,9 @@ export class DialogService implements IDialogService {
         loadedSettings => {
           const dialogController = container.invoke(DialogController);
           container.register(Registration.instance(IDialogController, dialogController));
+          container.register(Registration.callback(DialogController, () => {
+            throw new Error('Invalid injection of DialogController. Use IDialogController instead.');
+          }));
 
           return onResolve(
             dialogController.activate(loadedSettings),

@@ -416,3 +416,48 @@ Each dialog instance goes through the full lifecycle once.
 13. `.deactivate()` - `dialog` *specific*
 14. `.detaching()`
 15. `.unbinding()`
+
+## V1 Dialog Migration
+
+- `DialogService` is no longer injectable. Inject `IDialogService` instead.
+- `DialogController` is no longer injectable. Inject `IDialogController` instead.
+- `viewModel` setting in `DialogService.prototype.open` is changed to `component`.
+- `view` setting in `DialogService.prototype.open` is changed to `template`.
+- The resolved of `DialogService.prototype.open` is changed from:
+    ```ts
+    interface DialogOpenResult {
+      wasCancelled: boolean;
+      controller: DialogController;
+      closeResult: Promise<DialogCloseResult>;
+    }
+    ```
+  to:
+    ```ts
+    interface IDialogOpenResult {
+      wasCancelled: boolean;
+      controller: IDialogController;
+    }
+    ```
+- `closeResult` is removed from the returned object. Uses `closed` property on the dialog controller instead, example of open a dialog with hello world text, and automaticlly close after 2 seconds:
+    ```ts
+    dialogService
+      .open({ template: 'hello world' })
+      .then(({ controller }) => {
+        setTimeout(() => { controller.ok() }, 2000)
+        return controller.closed
+      });
+    ```
+- The interface of dialog close results is changed from:
+    ```ts
+    interface DialogCloseResult {
+      wasCancelled: boolean;
+      output?: unknown;
+    }
+    ```
+  to:
+    ```ts
+    interface IDialogCloseResult {
+      status: DialogDeactivationStatus;
+      value?: unknown;
+    }
+    ```

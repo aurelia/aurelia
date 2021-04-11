@@ -204,9 +204,11 @@ This section shows couple of recipes to make resources available for Backend plu
         contentBase: path.join(__dirname, "dist"),
       },
       plugins: [
-        new CopyPlugin([
-          { from: 'src/locales', to: 'locales' } // assumption: src/locales exists
-        ])
+        new CopyPlugin({
+          patterns: [
+            { from: 'src/locales', to: 'locales' } // assumption: src/locales exists
+          ]
+        })
       ]
     }
   }

@@ -5,6 +5,7 @@ import {
   IDialogGlobalSettings,
   DialogConfiguration,
   DialogDefaultConfiguration,
+  DefaultDialogGlobalSettings,
   customElement,
   IDialogCancelError,
   DialogDeactivationStatuses,
@@ -46,6 +47,56 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       assert.notStrictEqual(error, void 0);
       assert.includes((error as Error).message, 'Attempted to jitRegister an interface: IDialogGlobalSettings');
     });
+
+    it('reuses previous registration', async function () {
+      let customized = false;
+      const { ctx, startPromise, tearDown } = createFixture(
+        '',
+        class App { },
+        [
+          DialogDefaultConfiguration.customize(settings => {
+            customized = true;
+            assert.instanceOf(settings, DefaultDialogGlobalSettings);
+          })
+        ]
+      );
+
+      await startPromise;
+      const dialogService = ctx.container.get(IDialogService);
+      await dialogService.open({
+        component: () => ({}),
+        template: () => '<div>Hello world</div>'
+      });
+      assert.strictEqual(customized, true);
+      await tearDown();
+    });
+  });
+
+  describe('on deactivation', function () {
+    it('throws when it fails to cleanup', async function () {
+      const { ctx, startPromise, tearDown } = createFixture('', class App { }, [DialogDefaultConfiguration]);
+
+      await startPromise;
+      const dialogService = ctx.container.get(IDialogService);
+
+      let canDeactivate = false;
+      await dialogService.open({
+        component: () => ({
+          canDeactivate: () => canDeactivate
+        }),
+        template: () => '<div>Hello world</div>'
+      });
+
+      let err: Error;
+      await tearDown().catch(ex => {
+        err = ex;
+      });
+      assert.notStrictEqual(err, undefined);
+      assert.includes(err.message, 'There are still 1 open dialog(s).');
+
+      canDeactivate = true;
+      await dialogService.closeAll();
+    });
   });
 
   describe('.open()', function () {
@@ -74,6 +125,52 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
               }
             }
           });
+        }
+      },
+      {
+        title: 'throws when @inject(DialogController) instead of IDialogController',
+        afterStarted: async (_, dialogService) => {
+          let error: Error;
+          await dialogService.open({
+            component: () => class {
+              public static inject = [DialogController];
+              public constructor(
+                controller: DialogController,
+                dialogDom: DefaultDialogDom,
+                node: Element
+              ) {
+                assert.strictEqual(controller['dom'], dialogDom);
+                assert.strictEqual(dialogDom.contentHost, node);
+              }
+            }
+          }).catch(ex => {
+            error = ex;
+          });
+          assert.notStrictEqual(error, undefined);
+          assert.includes(error.message, 'Invalid injection of DialogController. Use IDialogController instead.');
+        }
+      },
+      {
+        title: 'works with promise component',
+        afterStarted: async (_, dialogService) => {
+          let activated = false;
+          await dialogService.open({
+            component: () => new Promise(r => {
+              setTimeout(() => r({ activate: () => activated = true }), 0);
+            })
+          });
+          assert.strictEqual(activated, true);
+        }
+      },
+      {
+        title: 'works with promise template',
+        afterStarted: async ({ ctx }, dialogService) => {
+          await dialogService.open({
+            template: () => new Promise(r => {
+              setTimeout(() => r('<p>hello world 1234'), 0);
+            })
+          });
+          assert.visibleTextEqual(ctx.doc.querySelector('p'), 'hello world 1234');
         }
       },
       {
@@ -465,6 +562,30 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         }
       },
       {
+        title: 'closes with keyboard: ["Enter", "Escape"] setting',
+        afterStarted: async ({ ctx }, dialogService) => {
+          const [{ controller: controller1 }, { controller: controller2 }] = await Promise.all([
+            dialogService.open({ template: 'Hello world', lock: false, keyboard: ['Enter', 'Escape'] }),
+            dialogService.open({ template: 'Hello world', lock: false, keyboard: ['Enter', 'Escape'] })
+          ]);
+          const cancelSpy1 = createSpy(controller1, 'ok', true);
+          const cancelSpy2 = createSpy(controller2, 'cancel', true);
+          ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
+          assert.strictEqual(cancelSpy1.calls.length, 0);
+          assert.strictEqual(cancelSpy2.calls.length, 1);
+          await controller2.closed;
+          ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Enter' }));
+          assert.strictEqual(cancelSpy1.calls.length, 1);
+          assert.strictEqual(cancelSpy2.calls.length, 1);
+          await controller1.closed;
+          assert.strictEqual(dialogService.hasOpenDialog, false);
+          assert.strictEqual(dialogService.count, 0);
+
+          cancelSpy1.restore();
+          cancelSpy2.restore();
+        }
+      },
+      {
         title: 'does not close the latest open dialog when hitting ESC key when lock:true',
         afterStarted: async ({ ctx }, dialogService) => {
           const [{ controller: controller1 }, { controller: controller2 }] = await Promise.all([
@@ -512,6 +633,22 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
 
           okSpy1.restore();
           okSpy2.restore();
+        }
+      },
+      {
+        title: 'does not response to keys that are not [Escape]/[Enter]',
+        afterStarted: async ({ ctx }, dialogService) => {
+          const { controller: controller1 } = await dialogService.open({ template: 'Hello world', lock: false, keyboard: true });
+          const okSpy1 = createSpy(controller1, 'ok', true);
+          ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Tab' }));
+          assert.strictEqual(okSpy1.calls.length, 0);
+
+          ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'A' }));
+          assert.strictEqual(okSpy1.calls.length, 0);
+          ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Space' }));
+          assert.strictEqual(okSpy1.calls.length, 0);
+
+          okSpy1.restore();
         }
       },
       {
@@ -636,6 +773,52 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           });
           assert.strictEqual(canActivateCalled, true);
           assert.strictEqual(activateCalled, true);
+        }
+      },
+      {
+        title: 'works with .whenClosed() shortcut',
+        afterStarted: async (_, dialogService) => {
+          const openPromise = dialogService.open({
+            template: () => 'Hello'
+          });
+          const whenClosedPromise = openPromise.whenClosed(result => result.value);
+          const { controller } = await openPromise;
+          setTimeout(() => {
+            controller.ok('Hello 123abc');
+          }, 0);
+          const value = await whenClosedPromise;
+          assert.strictEqual(value, 'Hello 123abc');
+        }
+      },
+      {
+        title: 'it renders to a specific host',
+        afterStarted: async ({ ctx, appHost }, dialogService) => {
+          const dialogHost = appHost.appendChild(ctx.createElement('div'));
+          await dialogService.open({
+            host: dialogHost,
+            template: '<p>Hello world</p>'
+          });
+          assert.visibleTextEqual(dialogHost, 'Hello world');
+        }
+      },
+      {
+        title: 'registers only first deactivation value',
+        afterStarted: async (_, dialogService) => {
+          let resolve: (value?: unknown) => unknown
+          const { controller } = await dialogService.open({
+            component: () => ({
+              deactivate: () => new Promise(r => { resolve = r; })
+            })
+          });
+
+          const dialogValue = {};
+          const p1 = controller.ok(dialogValue);
+          const p2 = controller.ok();
+
+          resolve();
+          const [result1, result2] = await Promise.all([p1, p2]);
+          assert.strictEqual(result1.value, result2.value);
+          assert.strictEqual(result1.value, dialogValue);
         }
       }
     ];

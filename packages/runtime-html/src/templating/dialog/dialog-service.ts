@@ -63,7 +63,7 @@ export class DialogService implements IDialogService {
         (openDialogController) => {
           if (openDialogController.length > 0) {
             // todo: what to do?
-            throw new Error(`There are still ${openDialogController.length} open dialogs.`);
+            throw new Error(`There are still ${openDialogController.length} open dialog(s).`);
           }
         }
       ))
@@ -87,7 +87,7 @@ export class DialogService implements IDialogService {
    * dialogService.open({ component: () => import('...'), template: () => fetch('my.server/dialog-view.html') })
    * ```
    */
-  public open(settings: IDialogSettings = {}): IDialogOpenPromise {
+  public open(settings: IDialogSettings): IDialogOpenPromise {
     return asDialogOpenPromise(new Promise<IDialogOpenResult>(resolve => {
       const $settings = DialogSettings.from(this.defaultSettings, settings);
       const container = $settings.container ?? this.container.createChild();

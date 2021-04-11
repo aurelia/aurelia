@@ -13,7 +13,7 @@ export interface IDialogConfiguration extends IRegistry {
   customize(cb: DialogConfigurationProvider, registrations?: IRegistry[]): IDialogConfiguration;
 }
 
-function createConfiguration(settingsProvider: DialogConfigurationProvider, registrations: IRegistry[] = []): IDialogConfiguration {
+function createConfiguration(settingsProvider: DialogConfigurationProvider, registrations: IRegistry[]): IDialogConfiguration {
   return {
     settingsProvider: settingsProvider,
     register: (ctn: IContainer) => ctn.register(

@@ -20,9 +20,6 @@ export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
   public lock: boolean = true;
   public startingZIndex = 1000;
   public rejectOnCancel = false;
-  public restoreFocus(el: HTMLElement): void {
-    el.focus();
-  }
 }
 
 const baseWrapperCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
@@ -43,11 +40,9 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
 
   public render(dialogHost: HTMLElement, settings: IDialogLoadedSettings): IDialogDom {
     const doc = this.p.document;
-    const h = (name: string, css?: string) => {
+    const h = (name: string, css: string) => {
       const el = doc.createElement(name);
-      if (css != null) {
-        el.style.cssText = css;
-      }
+      el.style.cssText = css;
       return el;
     };
     const wrapper = dialogHost.appendChild(h('au-dialog-container', this.wrapperCss));

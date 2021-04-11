@@ -106,9 +106,11 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
       Registration.instance(INode, contentHost),
       Registration.instance(IDialogDom, dom),
     );
-    const cmp = this.cmp = this.getOrCreateVm(container, settings, contentHost);
 
-    return new Promise(r => { r(cmp.canActivate?.(model) ?? true); })
+    return new Promise(r => {
+        const cmp = this.cmp = this.getOrCreateVm(container, settings, contentHost);
+        r(cmp.canActivate?.(model) ?? true);
+      })
       .then(canActivate => {
         if (canActivate !== true) {
           dom.dispose();
@@ -119,6 +121,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
         }
 
         const animator: IDialogAnimator = this.animator = container.get(IDialogAnimator);
+        const cmp = this.cmp;
 
         return onResolve(animator.attaching(dom, animation), () =>
           onResolve(cmp.activate?.(model), () => {

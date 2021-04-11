@@ -784,7 +784,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           const whenClosedPromise = openPromise.whenClosed(result => result.value);
           const { controller } = await openPromise;
           setTimeout(() => {
-            controller.ok('Hello 123abc');
+            void controller.ok('Hello 123abc');
           }, 0);
           const value = await whenClosedPromise;
           assert.strictEqual(value, 'Hello 123abc');
@@ -804,7 +804,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'registers only first deactivation value',
         afterStarted: async (_, dialogService) => {
-          let resolve: (value?: unknown) => unknown
+          let resolve: (value?: unknown) => unknown;
           const { controller } = await dialogService.open({
             component: () => ({
               deactivate: () => new Promise(r => { resolve = r; })

@@ -164,7 +164,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     // TODO(fkleuver): use the context to determine create full tree
     const component = this.component.toUrlComponent();
     const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(${stringifyParams(this.params)})`;
-    const viewport = this.viewport === null || this.viewport.length === 0 ? '' : `@${this.viewport}`;
+    const viewport = component.length === 0 || this.viewport === null || this.viewport.length === 0 ? '' : `@${this.viewport}`;
     const thisPart = `${'('.repeat(this.open)}${component}${params}${viewport}${')'.repeat(this.close)}`;
     const childPart = recursive ? this.children.map(x => x.toUrlComponent()).join('+') : '';
     if (thisPart.length > 0) {
@@ -324,10 +324,27 @@ export class ViewportInstructionTree {
     return true;
   }
 
-  public toUrl(): string {
+  public toUrl(useUrlFragmentHash: boolean = false): string {
+    let pathname: string;
+    let hash: string;
+    if (useUrlFragmentHash) {
+      pathname = '';
+      hash = `#${this.toPath()}`;
+    } else {
+      pathname = this.toPath();
+      hash = this.fragment ?? '';
+    }
+
+    let search = this.queryParams.toString();
+    search = search === '' ? '' : `?${search}`;
+
+    const url = `${pathname}${hash}${search}`;
+    return url;
+  }
+
+  public toPath(): string {
     const path = this.children.map(x => x.toUrlComponent()).join('+');
-    const query = this.queryParams.toString();
-    return query !== '' ? `${path}?${query}` : path;
+    return path;
   }
 
   public toString(): string {

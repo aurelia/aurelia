@@ -11,14 +11,16 @@ import { customAttribute, bindable, BindingMode, IEventDelegator, IEventTarget, 
 import { IRouter } from '../router.js';
 import { IRouteContext } from '../route-context.js';
 import { IRouterEvents } from '../router-events.js';
+import { ILocationManager } from '../location-manager.js';
 let LoadCustomAttribute = class LoadCustomAttribute {
-    constructor(target, el, router, events, delegator, ctx) {
+    constructor(target, el, router, events, delegator, ctx, locationMgr) {
         this.target = target;
         this.el = el;
         this.router = router;
         this.events = events;
         this.delegator = delegator;
         this.ctx = ctx;
+        this.locationMgr = locationMgr;
         this.attribute = 'href';
         this.active = false;
         this.href = null;
@@ -64,6 +66,7 @@ let LoadCustomAttribute = class LoadCustomAttribute {
         this.navigationEndListener.dispose();
     }
     valueChanged() {
+        const useHash = this.router.options.useUrlFragmentHash;
         if (this.route !== null && this.route !== void 0 && this.ctx.allResolved === null) {
             const def = this.ctx.childRoutes.find(x => x.id === this.route);
             if (def !== void 0) {
@@ -85,16 +88,16 @@ let LoadCustomAttribute = class LoadCustomAttribute {
                 path = path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, '');
                 if (parentPath) {
                     if (path) {
-                        this.href = [parentPath, path].join('/');
+                        this.href = `${useHash ? '#' : ''}${[parentPath, path].join('/')}`;
                     }
                     else {
-                        this.href = parentPath;
+                        this.href = `${useHash ? '#' : ''}${parentPath}`;
                     }
                 }
                 else {
-                    this.href = path;
+                    this.href = `${useHash ? '#' : ''}${path}`;
                 }
-                this.instructions = this.router.createViewportInstructions(path, { context: this.ctx });
+                this.instructions = this.router.createViewportInstructions(`${useHash ? '#' : ''}${path}`, { context: this.ctx });
             }
             else {
                 if (typeof this.params === 'object' && this.params !== null) {
@@ -103,7 +106,7 @@ let LoadCustomAttribute = class LoadCustomAttribute {
                 else {
                     this.instructions = this.router.createViewportInstructions(this.route, { context: this.ctx });
                 }
-                this.href = this.instructions.toUrl();
+                this.href = this.instructions.toUrl(this.router.options.useUrlFragmentHash);
             }
         }
         else {
@@ -119,7 +122,8 @@ let LoadCustomAttribute = class LoadCustomAttribute {
                 this.el.removeAttribute(this.attribute);
             }
             else {
-                this.el.setAttribute(this.attribute, this.href);
+                const value = useHash ? this.href : this.locationMgr.addBaseHref(this.href);
+                this.el.setAttribute(this.attribute, value);
             }
         }
     }
@@ -143,7 +147,8 @@ LoadCustomAttribute = __decorate([
     __param(2, IRouter),
     __param(3, IRouterEvents),
     __param(4, IEventDelegator),
-    __param(5, IRouteContext)
+    __param(5, IRouteContext),
+    __param(6, ILocationManager)
 ], LoadCustomAttribute);
 export { LoadCustomAttribute };
 //# sourceMappingURL=load.js.map

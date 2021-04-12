@@ -9,11 +9,18 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BrowserLocationManager = exports.ILocationManager = exports.BrowserBaseHrefProvider = exports.IBaseHrefProvider = void 0;
+exports.BrowserLocationManager = exports.ILocationManager = exports.BrowserBaseHrefProvider = exports.BaseHref = exports.IBaseHrefProvider = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const runtime_html_1 = require("@aurelia/runtime-html");
 const router_events_js_1 = require("./router-events.js");
 exports.IBaseHrefProvider = kernel_1.DI.createInterface('IBaseHrefProvider', x => x.singleton(BrowserBaseHrefProvider));
+class BaseHref {
+    constructor(path, rootedPath) {
+        this.path = path;
+        this.rootedPath = rootedPath;
+    }
+}
+exports.BaseHref = BaseHref;
 /**
  * Default browser base href provider.
  *
@@ -26,11 +33,14 @@ let BrowserBaseHrefProvider = class BrowserBaseHrefProvider {
         this.window = window;
     }
     getBaseHref() {
+        var _a;
         const base = this.window.document.head.querySelector('base');
         if (base === null) {
             return null;
         }
-        return normalizePath(base.href);
+        const rootedPath = normalizePath(base.href);
+        const path = normalizePath((_a = base.getAttribute('href')) !== null && _a !== void 0 ? _a : '');
+        return new BaseHref(path, rootedPath);
     }
 };
 BrowserBaseHrefProvider = __decorate([
@@ -59,12 +69,12 @@ let BrowserLocationManager = class BrowserLocationManager {
         const baseHref = baseHrefProvider.getBaseHref();
         if (baseHref === null) {
             const origin = (_a = location.origin) !== null && _a !== void 0 ? _a : '';
-            const normalized = this.baseHref = normalizePath(origin);
-            this.logger.warn(`no baseHref provided, defaulting to origin '${normalized}' (normalized from '${origin}')`);
+            const baseHref = this.baseHref = new BaseHref('', normalizePath(origin));
+            this.logger.warn(`no baseHref provided, defaulting to origin '${baseHref.rootedPath}' (normalized from '${origin}')`);
         }
         else {
-            const normalized = this.baseHref = normalizePath(baseHref);
-            this.logger.debug(`baseHref set to '${normalized}' (normalized from '${baseHref}')`);
+            this.baseHref = baseHref;
+            this.logger.debug(`baseHref set to path: '${baseHref.path}', rootedPath: '${baseHref.rootedPath}'`);
         }
     }
     startListening() {
@@ -86,6 +96,7 @@ let BrowserLocationManager = class BrowserLocationManager {
         this.events.publish(new router_events_js_1.LocationChangeEvent(++this.eventId, this.getPath(), 'hashchange', null));
     }
     pushState(state, title, url) {
+        url = this.addBaseHref(url);
         try {
             const stateString = JSON.stringify(state);
             this.logger.trace(`pushState(state:${stateString},title:'${title}',url:'${url}')`);
@@ -96,6 +107,7 @@ let BrowserLocationManager = class BrowserLocationManager {
         this.history.pushState(state, title, url);
     }
     replaceState(state, title, url) {
+        url = this.addBaseHref(url);
         try {
             const stateString = JSON.stringify(state);
             this.logger.trace(`replaceState(state:${stateString},title:'${title}',url:'${url}')`);
@@ -107,35 +119,41 @@ let BrowserLocationManager = class BrowserLocationManager {
     }
     getPath() {
         const { pathname, search, hash } = this.location;
-        const path = this.normalize(`${pathname}${normalizeQuery(search)}${hash}`);
+        const path = this.removeBaseHref(`${pathname}${normalizeQuery(search)}${hash}`);
         this.logger.trace(`getPath() -> '${path}'`);
         return path;
     }
     currentPathEquals(path) {
-        const equals = this.getPath() === this.normalize(path);
+        const equals = this.getPath() === this.removeBaseHref(path);
         this.logger.trace(`currentPathEquals(path:'${path}') -> ${equals}`);
         return equals;
     }
-    getExternalURL(path) {
-        const $path = path;
-        let base = this.baseHref;
+    addBaseHref(path) {
+        const initialPath = path;
+        let fullPath;
+        let base = this.baseHref.rootedPath;
         if (base.endsWith('/')) {
             base = base.slice(0, -1);
         }
-        if (path.startsWith('/')) {
-            path = path.slice(1);
+        if (base.length === 0) {
+            fullPath = path;
         }
-        const url = `${base}/${path}`;
-        this.logger.trace(`getExternalURL(path:'${$path}') -> '${url}'`);
-        return url;
+        else {
+            if (path.startsWith('/')) {
+                path = path.slice(1);
+            }
+            fullPath = `${base}/${path}`;
+        }
+        this.logger.trace(`addBaseHref(path:'${initialPath}') -> '${fullPath}'`);
+        return fullPath;
     }
-    normalize(path) {
+    removeBaseHref(path) {
         const $path = path;
-        if (path.startsWith(this.baseHref)) {
-            path = path.slice(this.baseHref.length);
+        if (path.startsWith(this.baseHref.path)) {
+            path = path.slice(this.baseHref.path.length);
         }
         path = normalizePath(path);
-        this.logger.trace(`normalize(path:'${$path}') -> '${path}'`);
+        this.logger.trace(`removeBaseHref(path:'${$path}') -> '${path}'`);
         return path;
     }
 };

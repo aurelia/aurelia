@@ -2,6 +2,7 @@ import { ICustomAttributeViewModel, IEventDelegator, IEventTarget, INode } from 
 import { IRouter } from '../router.js';
 import { IRouteContext } from '../route-context.js';
 import { IRouterEvents } from '../router-events.js';
+import { ILocationManager } from '../location-manager.js';
 export declare class LoadCustomAttribute implements ICustomAttributeViewModel {
     private readonly target;
     private readonly el;
@@ -9,6 +10,7 @@ export declare class LoadCustomAttribute implements ICustomAttributeViewModel {
     private readonly events;
     private readonly delegator;
     private readonly ctx;
+    private readonly locationMgr;
     route: unknown;
     params: unknown;
     attribute: string;
@@ -18,7 +20,7 @@ export declare class LoadCustomAttribute implements ICustomAttributeViewModel {
     private eventListener;
     private navigationEndListener;
     private readonly isEnabled;
-    constructor(target: IEventTarget, el: INode<HTMLElement>, router: IRouter, events: IRouterEvents, delegator: IEventDelegator, ctx: IRouteContext);
+    constructor(target: IEventTarget, el: INode<HTMLElement>, router: IRouter, events: IRouterEvents, delegator: IEventDelegator, ctx: IRouteContext, locationMgr: ILocationManager);
     binding(): void;
     attaching(): void | Promise<void>;
     unbinding(): void;

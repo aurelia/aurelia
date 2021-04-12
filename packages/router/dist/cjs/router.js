@@ -424,6 +424,9 @@ let Router = class Router {
         return routeContext;
     }
     createViewportInstructions(instructionOrInstructions, options) {
+        if (typeof instructionOrInstructions === 'string') {
+            instructionOrInstructions = this.locationMgr.removeBaseHref(instructionOrInstructions);
+        }
         return instructions_js_1.ViewportInstructionTree.create(instructionOrInstructions, this.getNavigationOptions(options));
     }
     /**
@@ -603,15 +606,16 @@ let Router = class Router {
         });
     }
     applyHistoryState(tr) {
+        const newUrl = tr.finalInstructions.toUrl(this.options.useUrlFragmentHash);
         switch (tr.options.getHistoryStrategy(this.instructions)) {
             case 'none':
                 // do nothing
                 break;
             case 'push':
-                this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), tr.finalInstructions.toUrl());
+                this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
                 break;
             case 'replace':
-                this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), tr.finalInstructions.toUrl());
+                this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
                 break;
         }
     }

@@ -93,7 +93,8 @@ export declare class ViewportInstructionTree {
     constructor(options: NavigationOptions, isAbsolute: boolean, children: ViewportInstruction[], queryParams: Readonly<URLSearchParams>, fragment: string | null);
     static create(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree;
     equals(other: ViewportInstructionTree): boolean;
-    toUrl(): string;
+    toUrl(useUrlFragmentHash?: boolean): string;
+    toPath(): string;
     toString(): string;
 }
 export declare const enum NavigationInstructionType {

@@ -8,6 +8,11 @@ export interface IHashChangeEvent extends HashChangeEvent {
 export declare const IBaseHrefProvider: import("@aurelia/kernel").InterfaceSymbol<IBaseHrefProvider>;
 export interface IBaseHrefProvider extends BrowserBaseHrefProvider {
 }
+export declare class BaseHref {
+    readonly path: string;
+    readonly rootedPath: string;
+    constructor(path: string, rootedPath: string);
+}
 /**
  * Default browser base href provider.
  *
@@ -18,7 +23,7 @@ export interface IBaseHrefProvider extends BrowserBaseHrefProvider {
 export declare class BrowserBaseHrefProvider {
     private readonly window;
     constructor(window: IWindow);
-    getBaseHref(): string | null;
+    getBaseHref(): BaseHref | null;
 }
 export declare const ILocationManager: import("@aurelia/kernel").InterfaceSymbol<ILocationManager>;
 export interface ILocationManager extends BrowserLocationManager {
@@ -48,7 +53,7 @@ export declare class BrowserLocationManager {
     replaceState(state: {} | null, title: string, url: string): void;
     getPath(): string;
     currentPathEquals(path: string): boolean;
-    getExternalURL(path: string): string;
-    private normalize;
+    addBaseHref(path: string): string;
+    removeBaseHref(path: string): string;
 }
 //# sourceMappingURL=location-manager.d.ts.map

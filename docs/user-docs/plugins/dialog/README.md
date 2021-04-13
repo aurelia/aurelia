@@ -196,12 +196,12 @@ An important feature of the dialog plugin is that it is possible to resolve and 
           // you get here when the dialog is opened,
           // and you are able to close dialog
           setTimeout(() => {
-            openDialogResult.controller.cancel('Failed to finish editing after 3 seconds');
+            openDialogResult.dialog.cancel('Failed to finish editing after 3 seconds');
           }, 3000);
 
           // each dialog controller should expose a promise for attaching callbacks
           // to be executed for when it has been closed
-          return openDialogResult.controller.closed;
+          return openDialogResult.dialog.closed;
         })
         .then((response) => {
           if (response.status === DialogDeactivationStatuses.Ok) {
@@ -228,7 +228,7 @@ An important feature of the dialog plugin is that it is possible to resolve and 
     }
 
     async submit() {
-      const { controller } = await this.dialogService.open({
+      const { dialog } = await this.dialogService.open({
         component: () => EditPerson,
         model: this.person
       });
@@ -236,10 +236,10 @@ An important feature of the dialog plugin is that it is possible to resolve and 
       // you get here when the dialog is opened,
       // and you are able to close dialog
       setTimeout(() => {
-        openDialogResult.controller.cancel('Failed to finish editing after 3 seconds');
+        openDialogResult.dialog.cancel('Failed to finish editing after 3 seconds');
       }, 3000);
 
-      const response = await openDialogResult.closed;
+      const response = await openDialogResult.dialog.closed;
       if (response.status === DialogDeactivationStatuses.Ok) {
         console.log('good');
       } else {
@@ -307,6 +307,47 @@ export class Welcome {
       });
   }
 }
+```
+
+##### Template Only Dialogs
+
+The dialog service supports rendering dialogs with only template specified. You can open a template only dialog like the following examples:
+```ts
+dialogService.open({
+  template: () => fetch('https://some-server.com/alert-dialog.html').then(r => r.text()),
+  template: () => '<div>Welcome to Aurelia</div>',
+  template: '<div>Are you ready?</div>'
+})
+```
+
+##### Retrieving the dialog controller
+
+By default, the dialog controller of a dialog will be assigned automatically to the property `$dialog` on the component view model. To specify this in TypeScript, you can let your component class implement the interface `IDialogCustomElementViewModel`:
+```ts
+import { IDialogController, IDialogCustomElementViewModel } from '@aurelia/runtime-html';
+
+class MyDialog implements IDialogCustomElementViewModel {
+  $dialog: IDialogController;
+
+  closeDialog() {
+    this.$dialog.ok('All good!');
+  }
+}
+```
+
+{% hint style="warning" %}
+Note that the property `$dialog` will only be ready after the contructor.
+{% endhint %}
+
+This means you can also control the dialog from template only dialog via the `$dialog` property. An example of this is:
+Open an alert dialog, and display an "Ok" button to close it, without using any component:
+```ts
+dialogService.open({
+  template: `<div>
+    Please check the oven!
+    <button click.trigger="$dialog.ok()">Close and check</button>
+  </div>`
+})
 ```
 
 ### The Default Dialog Renderer
@@ -435,16 +476,16 @@ Each dialog instance goes through the full lifecycle once.
     ```ts
     interface IDialogOpenResult {
       wasCancelled: boolean;
-      controller: IDialogController;
+      dialog: IDialogController;
     }
     ```
 - `closeResult` is removed from the returned object. Uses `closed` property on the dialog controller instead, example of open a dialog with hello world text, and automaticlly close after 2 seconds:
     ```ts
     dialogService
       .open({ template: 'hello world' })
-      .then(({ controller }) => {
-        setTimeout(() => { controller.ok() }, 2000)
-        return controller.closed
+      .then(({ dialog }) => {
+        setTimeout(() => { dialog.ok() }, 2000)
+        return dialog.closed
       });
     ```
 - The interface of dialog close results is changed from:
@@ -461,3 +502,4 @@ Each dialog instance goes through the full lifecycle once.
       value?: unknown;
     }
     ```
+- The dialog controller is assigned to property `$dialog` (v2) on the view model, instead of property `controller` (v1)

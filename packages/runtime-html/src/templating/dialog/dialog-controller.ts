@@ -108,7 +108,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
     );
 
     return new Promise(r => {
-        const cmp = this.cmp = this.getOrCreateVm(container, settings, contentHost);
+        const cmp = Object.assign(this.cmp = this.getOrCreateVm(container, settings, contentHost), { $dialog: this });
         r(cmp.canActivate?.(model) ?? true);
       })
       .then(canActivate => {
@@ -284,14 +284,14 @@ class EmptyComponent {}
 class DialogOpenResult implements IDialogOpenResult {
   protected constructor(
     public readonly wasCancelled: boolean,
-    public readonly controller: IDialogController,
+    public readonly dialog: IDialogController,
   ) {}
 
   public static create(
     wasCancelled: boolean,
-    controller: IDialogController,
+    dialog: IDialogController,
   ) {
-    return new DialogOpenResult(wasCancelled, controller);
+    return new DialogOpenResult(wasCancelled, dialog);
   }
 }
 

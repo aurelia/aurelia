@@ -220,7 +220,7 @@ export type IDialogCancelError<T> = IDialogError<T> & { wasCancelled: true };
 export type IDialogCloseError<T> = IDialogError<T> & { wasCancelled: false };
 
 export interface IDialogCustomElementViewModel extends ICustomElementViewModel {
-  controller: IDialogController;
+  $dialog: IDialogController;
 }
 
 export const enum DialogDeactivationStatuses {
@@ -250,7 +250,7 @@ export interface IDialogOpenResult {
   /**
    * The controller for the open dialog.
    */
-  readonly controller: IDialogController;
+  readonly dialog: IDialogController;
 }
 
 // #region Implementable

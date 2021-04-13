@@ -15,6 +15,7 @@ import {
   INode,
   DialogController,
   DefaultDialogDom,
+  CustomElement,
 } from '@aurelia/runtime-html';
 import {
   createFixture,
@@ -177,7 +178,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'hasOpenDialog with 1 dialog',
         afterStarted: async (_, dialogService) => {
           assert.strictEqual(dialogService.hasOpenDialog, false);
-          const { controller } = await dialogService.open({ template: '' });
+          const { dialog: controller } = await dialogService.open({ template: '' });
           assert.strictEqual(dialogService.hasOpenDialog, true);
           void controller.ok();
           await controller.closed;
@@ -188,15 +189,15 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'hasOpenDialog with more than 1 dialog',
         afterStarted: async (_, dialogService) => {
           assert.strictEqual(dialogService.hasOpenDialog, false);
-          const { controller: controller1 } = await dialogService.open({ template: '' });
+          const { dialog: dialog1 } = await dialogService.open({ template: '' });
           assert.strictEqual(dialogService.hasOpenDialog, true);
-          const { controller: controller2 } = await dialogService.open({ template: '' });
+          const { dialog: dialog2 } = await dialogService.open({ template: '' });
           assert.strictEqual(dialogService.hasOpenDialog, true);
-          void controller1.ok();
-          await controller1.closed;
+          void dialog1.ok();
+          await dialog1.closed;
           assert.strictEqual(dialogService.hasOpenDialog, true);
-          void controller2.ok();
-          await controller2.closed;
+          void dialog2.ok();
+          await dialog2.closed;
           assert.strictEqual(dialogService.hasOpenDialog, false);
         }
       },
@@ -209,7 +210,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             keyboard: 'Escape',
             overlayDismiss: true,
           };
-          const { controller } = await dialogService.open({
+          const { dialog: controller } = await dialogService.open({
             ...overrideSettings,
             component: () => Object.create(null),
           });
@@ -342,8 +343,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           assert.strictEqual(canActivateCallCount, 0);
           assert.html.textContent(ctx.doc.querySelector('au-dialog-container'), 'hello dialog');
 
-          void result.controller.ok();
-          await result.controller.closed;
+          void result.dialog.ok();
+          await result.dialog.closed;
           assert.strictEqual(canActivateCallCount, 1);
           assert.html.textContent(ctx.doc.querySelector('au-dialog-container'), null);
         }
@@ -351,10 +352,10 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'resolves: "IDialogCloseResult" when: .ok()',
         afterStarted: async (_, dialogService) => {
-          const { controller } = await dialogService.open({ template: '' });
+          const { dialog } = await dialogService.open({ template: '' });
           const expectedValue = 'expected ok output';
-          await controller.ok(expectedValue);
-          const result = await controller.closed;
+          await dialog.ok(expectedValue);
+          const result = await dialog.closed;
           assert.strictEqual(result.status, DialogDeactivationStatuses.Ok);
           assert.strictEqual(result.value, expectedValue);
         }
@@ -362,12 +363,12 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'resolves: "IDialogCloseResult" when: .cancel() + rejectOnCancel: false',
         afterStarted: async (_, dialogService) => {
-          const { controller } = await dialogService.open({ template: '' });
+          const { dialog } = await dialogService.open({ template: '' });
           const expectedOutput = 'expected cancel output';
           let error: IDialogCancelError<unknown>;
           let errorCaughtCount = 0;
-          void controller.cancel(expectedOutput);
-          const result = await controller.closed.catch(err => {
+          void dialog.cancel(expectedOutput);
+          const result = await dialog.closed.catch(err => {
             errorCaughtCount++;
             error = err;
             return { status: DialogDeactivationStatuses.Error };
@@ -380,12 +381,12 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'rejects: "IDialogCancelError" when: .cancel() + rejectOnCancel: true',
         afterStarted: async (_, dialogService) => {
-          const { controller } = await dialogService.open({ template: '', rejectOnCancel: true });
+          const { dialog } = await dialogService.open({ template: '', rejectOnCancel: true });
           const expectedValue = 'expected cancel error output';
           let error: IDialogCancelError<unknown>;
           let errorCaughtCount = 0;
-          void controller.cancel(expectedValue);
-          await controller.closed.catch(err => {
+          void dialog.cancel(expectedValue);
+          await dialog.closed.catch(err => {
             errorCaughtCount++;
             error = err;
             return { status: DialogDeactivationStatuses.Ok };
@@ -399,12 +400,12 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'gets rejected with provided error when ".error" closed',
         afterStarted: async (_, dialogService) => {
-          const { controller } = await dialogService.open({ template: '' });
+          const { dialog } = await dialogService.open({ template: '' });
           const expectedError = new Error('expected test error');
           let error: IDialogCancelError<unknown>;
           let errorCaughtCount = 0;
-          void controller.error(expectedError);
-          await controller.closed.catch(err => {
+          void dialog.error(expectedError);
+          await dialog.closed.catch(err => {
             errorCaughtCount++;
             error = err;
           });
@@ -483,23 +484,23 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             return fn.call(this, dom, animation);
           })(dialogAnimator.detaching);
 
-          const { controller } = await dialogService.open({ template: '' });
+          const { dialog } = await dialogService.open({ template: '' });
           assert.strictEqual(attachingCallCount, 1);
 
-          void controller.ok();
-          await controller.closed;
+          void dialog.ok();
+          await dialog.closed;
           assert.strictEqual(detachingCallCount, 1);
         }
       },
       {
         title: 'closes dialog when clicking on overlay with lock: false',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { controller } = await dialogService.open({ template: 'Hello world', lock: false });
+          const { dialog } = await dialogService.open({ template: 'Hello world', lock: false });
           assert.strictEqual(ctx.doc.querySelector('au-dialog-container').textContent, 'Hello world');
           const overlay = ctx.doc.querySelector('au-dialog-overlay') as HTMLElement;
           overlay.click();
           await Promise.any([
-            controller.closed,
+            dialog.closed,
             new Promise(r => setTimeout(r, 50)),
           ]);
           assert.strictEqual(dialogService.hasOpenDialog, false);
@@ -509,13 +510,13 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'does not close dialog when clicking on overlay with lock: true',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { controller } = await dialogService.open({ template: 'Hello world' });
-          assert.strictEqual(controller.settings.lock, true);
+          const { dialog } = await dialogService.open({ template: 'Hello world' });
+          assert.strictEqual(dialog.settings.lock, true);
           assert.strictEqual(ctx.doc.querySelector('au-dialog-container').textContent, 'Hello world');
           const overlay = ctx.doc.querySelector('au-dialog-overlay') as HTMLElement;
           overlay.click();
           await Promise.any([
-            controller.closed,
+            dialog.closed,
             new Promise(r => setTimeout(r, 50)),
           ]);
           assert.strictEqual(dialogService.hasOpenDialog, true);
@@ -525,12 +526,12 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'does not close dialog when clicking inside dialog host with lock: false',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { controller } = await dialogService.open({ template: 'Hello world', lock: false });
+          const { dialog } = await dialogService.open({ template: 'Hello world', lock: false });
           assert.strictEqual(ctx.doc.querySelector('au-dialog-container').textContent, 'Hello world');
           const host = ctx.doc.querySelector('div') as HTMLElement;
           host.click();
           await Promise.any([
-            controller.closed,
+            dialog.closed,
             new Promise(r => setTimeout(r, 50)),
           ]);
           assert.strictEqual(dialogService.hasOpenDialog, true);
@@ -540,20 +541,20 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'closes the latest open dialog when hitting ESC key',
         afterStarted: async ({ ctx }, dialogService) => {
-          const [{ controller: controller1 }, { controller: controller2 }] = await Promise.all([
+          const [{ dialog: dialog1 }, { dialog: dialog2 }] = await Promise.all([
             dialogService.open({ template: 'Hello world', lock: false }),
             dialogService.open({ template: 'Hello world', lock: false })
           ]);
-          const cancelSpy1 = createSpy(controller1, 'cancel', true);
-          const cancelSpy2 = createSpy(controller2, 'cancel', true);
+          const cancelSpy1 = createSpy(dialog1, 'cancel', true);
+          const cancelSpy2 = createSpy(dialog2, 'cancel', true);
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
           assert.strictEqual(cancelSpy1.calls.length, 0);
           assert.strictEqual(cancelSpy2.calls.length, 1);
-          await controller2.closed;
+          await dialog2.closed;
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
           assert.strictEqual(cancelSpy1.calls.length, 1);
           assert.strictEqual(cancelSpy2.calls.length, 1);
-          await controller1.closed;
+          await dialog1.closed;
           assert.strictEqual(dialogService.hasOpenDialog, false);
           assert.strictEqual(dialogService.count, 0);
 
@@ -564,20 +565,20 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'closes with keyboard: ["Enter", "Escape"] setting',
         afterStarted: async ({ ctx }, dialogService) => {
-          const [{ controller: controller1 }, { controller: controller2 }] = await Promise.all([
+          const [{ dialog: dialog1 }, { dialog: dialog2 }] = await Promise.all([
             dialogService.open({ template: 'Hello world', lock: false, keyboard: ['Enter', 'Escape'] }),
             dialogService.open({ template: 'Hello world', lock: false, keyboard: ['Enter', 'Escape'] })
           ]);
-          const cancelSpy1 = createSpy(controller1, 'ok', true);
-          const cancelSpy2 = createSpy(controller2, 'cancel', true);
+          const cancelSpy1 = createSpy(dialog1, 'ok', true);
+          const cancelSpy2 = createSpy(dialog2, 'cancel', true);
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
           assert.strictEqual(cancelSpy1.calls.length, 0);
           assert.strictEqual(cancelSpy2.calls.length, 1);
-          await controller2.closed;
+          await dialog2.closed;
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Enter' }));
           assert.strictEqual(cancelSpy1.calls.length, 1);
           assert.strictEqual(cancelSpy2.calls.length, 1);
-          await controller1.closed;
+          await dialog1.closed;
           assert.strictEqual(dialogService.hasOpenDialog, false);
           assert.strictEqual(dialogService.count, 0);
 
@@ -588,20 +589,20 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'does not close the latest open dialog when hitting ESC key when lock:true',
         afterStarted: async ({ ctx }, dialogService) => {
-          const [{ controller: controller1 }, { controller: controller2 }] = await Promise.all([
+          const [{ dialog: dialog1 }, { dialog: dialog2 }] = await Promise.all([
             dialogService.open({ template: 'Hello world', lock: false }),
             dialogService.open({ template: 'Hello world', lock: true })
           ]);
-          const cancelSpy1 = createSpy(controller1, 'cancel', true);
-          const cancelSpy2 = createSpy(controller2, 'cancel', true);
+          const cancelSpy1 = createSpy(dialog1, 'cancel', true);
+          const cancelSpy2 = createSpy(dialog2, 'cancel', true);
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
           assert.strictEqual(cancelSpy1.calls.length, 0);
           assert.strictEqual(cancelSpy2.calls.length, 0);
-          void controller2.cancel();
-          await controller2.closed;
+          void dialog2.cancel();
+          await dialog2.closed;
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
           assert.strictEqual(cancelSpy1.calls.length, 1);
-          await controller1.closed;
+          await dialog1.closed;
           assert.strictEqual(dialogService.hasOpenDialog, false);
           assert.strictEqual(dialogService.count, 0);
 
@@ -612,10 +613,10 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'closes on Enter with keyboard:Enter regardless lock:[value]',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { controller: controller1 } = await dialogService.open({ template: 'Hello world', lock: false, keyboard: 'Enter' });
-          const { controller: controller2 } = await dialogService.open({ template: 'Hello world', lock: true, keyboard: 'Enter' });
-          const okSpy1 = createSpy(controller1, 'ok', true);
-          const okSpy2 = createSpy(controller2, 'ok', true);
+          const { dialog: dialog1 } = await dialogService.open({ template: 'Hello world', lock: false, keyboard: 'Enter' });
+          const { dialog: dialog2 } = await dialogService.open({ template: 'Hello world', lock: true, keyboard: 'Enter' });
+          const okSpy1 = createSpy(dialog1, 'ok', true);
+          const okSpy2 = createSpy(dialog2, 'ok', true);
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
           assert.strictEqual(okSpy1.calls.length, 0);
           assert.strictEqual(okSpy2.calls.length, 0);
@@ -623,11 +624,11 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Enter' }));
           assert.strictEqual(okSpy1.calls.length, 0);
           assert.strictEqual(okSpy2.calls.length, 1);
-          await controller2.closed;
+          await dialog2.closed;
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Enter' }));
           assert.strictEqual(okSpy1.calls.length, 1);
           assert.strictEqual(okSpy2.calls.length, 1);
-          await controller1.closed;
+          await dialog1.closed;
           assert.strictEqual(dialogService.hasOpenDialog, false);
           assert.strictEqual(dialogService.count, 0);
 
@@ -638,7 +639,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'does not response to keys that are not [Escape]/[Enter]',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { controller: controller1 } = await dialogService.open({ template: 'Hello world', lock: false, keyboard: true });
+          const { dialog: controller1 } = await dialogService.open({ template: 'Hello world', lock: false, keyboard: true });
           const okSpy1 = createSpy(controller1, 'ok', true);
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Tab' }));
           assert.strictEqual(okSpy1.calls.length, 0);
@@ -685,7 +686,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             };
           });
 
-          const { controller } = await dialogService.open({ component: () => MyDialog });
+          const { dialog } = await dialogService.open({ component: () => MyDialog });
           assert.deepStrictEqual(lifecycles, [
             'constructor',
             'canActivate',
@@ -699,8 +700,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             'attached',
           ]);
 
-          void controller.ok();
-          await controller.closed;
+          void dialog.ok();
+          await dialog.closed;
           assert.deepStrictEqual(lifecycles, [
             'constructor',
             'canActivate',
@@ -782,9 +783,9 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             template: () => 'Hello'
           });
           const whenClosedPromise = openPromise.whenClosed(result => result.value);
-          const { controller } = await openPromise;
+          const { dialog } = await openPromise;
           setTimeout(() => {
-            void controller.ok('Hello 123abc');
+            void dialog.ok('Hello 123abc');
           }, 0);
           const value = await whenClosedPromise;
           assert.strictEqual(value, 'Hello 123abc');
@@ -805,22 +806,70 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'registers only first deactivation value',
         afterStarted: async (_, dialogService) => {
           let resolve: (value?: unknown) => unknown;
-          const { controller } = await dialogService.open({
+          const { dialog } = await dialogService.open({
             component: () => ({
               deactivate: () => new Promise(r => { resolve = r; })
             })
           });
 
           const dialogValue = {};
-          const p1 = controller.ok(dialogValue);
-          const p2 = controller.ok();
+          const p1 = dialog.ok(dialogValue);
+          const p2 = dialog.ok();
 
           resolve();
           const [result1, result2] = await Promise.all([p1, p2]);
           assert.strictEqual(result1.value, result2.value);
           assert.strictEqual(result1.value, dialogValue);
         }
-      }
+      },
+      {
+        title: 'assigns the dialog controller to "$dialog" property for view only dialog',
+        afterStarted: async ({ ctx }, dialogService) => {
+          const { dialog } = await dialogService.open({
+            template: 'Hello world <button click.trigger="$dialog.ok(1)"></button>'
+          });
+          const spy = createSpy(dialog, 'ok', true);
+          ctx.doc.querySelector('button').click();
+          assert.strictEqual(spy.calls.length, 1);
+        }
+      },
+      {
+        title: 'assigns the dialog controller to "$dialog" property for component only dialog',
+        afterStarted: async (_, dialogService) => {
+          let isSet = false;
+          let $dialog: IDialogController;
+          const { dialog } = await dialogService.open({
+            component: () => ({
+              set $dialog(dialog: IDialogController) {
+                isSet = true;
+                $dialog = dialog;
+              }
+            })
+          });
+          assert.strictEqual(isSet, true);
+          assert.strictEqual($dialog, dialog);
+        }
+      },
+      {
+        title: 'assigns the dialog controller to "$dialog" property for CustomElement',
+        afterStarted: async (_, dialogService) => {
+          let isSet = false;
+          let $dialog: IDialogController;
+          const { dialog } = await dialogService.open({
+            component: () => CustomElement.define({
+              name: 'hello-world',
+              template: 'Hello 123'
+            }, class {
+              public set $dialog(dialog: IDialogController) {
+                isSet = true;
+                $dialog = dialog;
+              }
+            })
+          });
+          assert.strictEqual(isSet, true);
+          assert.strictEqual($dialog, dialog);
+        }
+      },
     ];
 
     for (const { title, only, afterStarted, afterTornDown } of testCases) {

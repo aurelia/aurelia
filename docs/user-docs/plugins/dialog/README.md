@@ -4,7 +4,7 @@ description: The basics of the dialog plugin for Aurelia.
 
 ## Introduction
 
-This article covers the dialog plugin for Aurelia. This plugin is created for showing dialogs (sometimes referred to as modals) in your application. The plugin supports the use of dynamic content for all aspects and is easily configurable / overridable.
+This article covers the dialog plugin for Aurelia. This plugin is created for showing dialogs (sometimes referred to as modals) in our application. The plugin supports the use of dynamic content for all aspects and is easily configurable / overridable.
 
 {% hint style="success" %}
 **Here's what you'll learn...**
@@ -120,7 +120,7 @@ The settings that are available in the `open` method of the dialog service:
 - `lock` makes the dialog not dismissable via clicking outside, or using keyboard.
 - `keyboard` allows configuring keyboard keys that close the dialog. To disable set to `false`. To cancel close a dialog when the *ESC* key is pressed set to `true`, `'Escape'` or and array containing `'Escape'` - `['Escape']`. To close with confirmation when the *ENTER* key is pressed set to `'Enter'` or an array containing `'Enter'` - `['Enter']`. To combine the *ESC* and *ENTER* keys set to `['Enter', 'Escape']` - the order is irrelevant. (takes precedence over `lock`)
 - `overlayDismiss` if set to `true` cancel closes the dialog when clicked outside of it. (takes precedence over `lock`)
-- `rejectOnCancel` is a boolean you must set to `true` if you want to handle cancellations as rejection. The reason will be an `IDialogCancelError` - the property `wasCancelled` will be set to `true` and if cancellation data was provided it will be set to the `value` property.
+- `rejectOnCancel` is a boolean that must be set to `true` if cancellations should be treated as rejection. The reason will be an `IDialogCancelError` - the property `wasCancelled` will be set to `true` and if cancellation data was provided it will be set to the `value` property.
 
 The default global settings has the following values:
 - `lock` is true
@@ -173,9 +173,9 @@ interface IDialogController {
 }
 ```
 
-An important feature of the dialog plugin is that it is possible to resolve and close (using `cancel`/`ok`/`error` methods) a dialog in the same context where you open it.
+An important feature of the dialog plugin is that it is possible to resolve and close (using `cancel`/`ok`/`error` methods) a dialog in the same context where it's open.
 
-* If you want to control the opening and closing of a dialog in promise style:
+* Example of controlling the opening and closing of a dialog in promise style:
   ```typescript
   import { EditPerson } from './edit-person';
   import { IDialogService, DialogDeactivationStatuses } from '@aurelia/runtime-html';
@@ -193,8 +193,8 @@ An important feature of the dialog plugin is that it is possible to resolve and 
         .open({ component: () => EditPerson, model: this.person })
         .then(openDialogResult => {
           // Note:
-          // you get here when the dialog is opened,
-          // and you are able to close dialog
+          // We get here when the dialog is opened,
+          // and we are able to close dialog
           setTimeout(() => {
             openDialogResult.dialog.cancel('Failed to finish editing after 3 seconds');
           }, 3000);
@@ -214,7 +214,7 @@ An important feature of the dialog plugin is that it is possible to resolve and 
     }
   }
   ```
-* If you want to control the opening and closing of a dialog using `async/await`:
+* Example of controlling the opening and closing of a dialog using `async/await`:
   ```typescript
   import { EditPerson } from './edit-person';
   import { IDialogService, DialogDeactivationStatuses } from '@aurelia/runtime-html';
@@ -233,8 +233,8 @@ An important feature of the dialog plugin is that it is possible to resolve and 
         model: this.person
       });
       // Note:
-      // you get here when the dialog is opened,
-      // and you are able to close dialog
+      // We get here when the dialog is opened,
+      // and we are able to close dialog
       setTimeout(() => {
         openDialogResult.dialog.cancel('Failed to finish editing after 3 seconds');
       }, 3000);
@@ -276,7 +276,7 @@ export class Welcome {
 }
 ```
 
-If you only care about the response when a dialog has been closed, and ignore the opening result of it, there's a `whenClosed` method exposed on the returned promise of the `open` method of the dialog service, that should help you reduce some boilerplate code, per following example:
+If there's no need for the opening result of a dialog, and only the response of it after the dialog has been closed, there is a `whenClosed` method exposed on the returned promise of the `open` method of the dialog service, that should help reduce some boilerplate code, per following example:
 
 ```typescript
 import { EditPerson } from './edit-person';
@@ -311,7 +311,7 @@ export class Welcome {
 
 ##### Template Only Dialogs
 
-The dialog service supports rendering dialogs with only template specified. You can open a template only dialog like the following examples:
+The dialog service supports rendering dialogs with only template specified. A template only dialog can be open like the following examples:
 ```ts
 dialogService.open({
   template: () => fetch('https://some-server.com/alert-dialog.html').then(r => r.text()),
@@ -322,7 +322,7 @@ dialogService.open({
 
 ##### Retrieving the dialog controller
 
-By default, the dialog controller of a dialog will be assigned automatically to the property `$dialog` on the component view model. To specify this in TypeScript, you can let your component class implement the interface `IDialogCustomElementViewModel`:
+By default, the dialog controller of a dialog will be assigned automatically to the property `$dialog` on the component view model. To specify this in TypeScript, the component class can implement the interface `IDialogCustomElementViewModel`:
 ```ts
 import { IDialogController, IDialogCustomElementViewModel } from '@aurelia/runtime-html';
 
@@ -339,7 +339,20 @@ class MyDialog implements IDialogCustomElementViewModel {
 Note that the property `$dialog` will only be ready after the contructor.
 {% endhint %}
 
-This means you can also control the dialog from template only dialog via the `$dialog` property. An example of this is:
+If it's desirable to retrieve the associated dialog controller of a dialog during the constructor of the component, `IDialogController` can be inject to achieve the same effect:
+```ts
+import { IDialogController } from '@aurelia/runtime-html';
+
+@inject(IDialogController)
+class MyDialog {
+  constructor(dialog) {
+    // change some settings
+    dialog.settings.zIndex = 100;
+  }
+}
+```
+
+This means it's also possible to control the dialog from template only dialog via the `$dialog` property. An example of this is:
 Open an alert dialog, and display an "Ok" button to close it, without using any component:
 ```ts
 dialogService.open({
@@ -371,7 +384,7 @@ An example of the html structure when document body is the dialog host:
 
 #### Centering/Uncentering dialog position
 
-By default, the dialog content host is centered horizontally and vertically. You can change this via `IDialogDom` injection:
+By default, the dialog content host is centered horizontally and vertically. It can be changed via `IDialogDom` injection:
 ```ts
 import { IDialogDom, DefaultDialogDom } from '@aurelia/runtime-html';
 
@@ -385,7 +398,7 @@ export class MyDialog {
 
 #### Styling the overlay
 
-By default, the overlay of a dialog is transparent. Though it's often desirable to add 50% opacity and a background color of black to the modal. To achieve this in dialog you can retrieve the `IDialogDom` instance and modify the `overlay` element `style`:
+By default, the overlay of a dialog is transparent. Though it's often desirable to add 50% opacity and a background color of black to the modal. To achieve this in dialog, retrieve the `IDialogDom` instance and modify the `overlay` element `style`:
 
 ```ts
 import { IDialogDom, DefaultDialogDom } from '@aurelia/runtime-html';
@@ -408,7 +421,7 @@ In adition to the lifecycle hooks defined in the core templating, the `dialog` d
 
 #### `.canActivate()`
 
-With this hook you can cancel the opening of a dialog. It is invoked with one parameter - the value of the `model` setting passed to `.open()`. To cancel the opening of the dialog return `false` - `null` and `undefined` will be coerced to `true`.
+This hook can be used to cancel the opening of a dialog. It is invoked with one parameter - the value of the `model` setting passed to `.open()`. To cancel the opening of the dialog return `false` - `null` and `undefined` will be coerced to `true`.
 
 #### `.activate()`
 
@@ -416,7 +429,7 @@ This hook can be used to do any necessary init work. The hook is invoked with on
 
 #### `.canDeactivate(result: IDialogCloseResult)`
 
-With this hook you can cancel the closing of a dialog. To do so return `false` - `null` and `undefined` will be coerced to `true`.
+This hook can be used to cancel the closing of a dialog. To do so return `false` - `null` and `undefined` will be coerced to `true`.
 The passed in result parameter has a property `status`, indicating if the dialog was closed or cancelled, or the deactivation process itself has been aborted, and an `value` property with the dialog result which can be manipulated before dialog deactivation.
 
 The `IDialogCloseResult` has the following interface (simplified):

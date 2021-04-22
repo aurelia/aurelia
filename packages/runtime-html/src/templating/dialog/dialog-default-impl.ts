@@ -3,7 +3,6 @@ import {
   IDialogDomRenderer,
   IDialogDom,
   IDialogGlobalSettings,
-  IDialogLoadedSettings,
 } from './dialog-interfaces.js';
 
 import { IContainer, Registration } from '@aurelia/kernel';

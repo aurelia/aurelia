@@ -76,13 +76,11 @@ export interface DialogOpenPromise extends Promise<DialogOpenResult> {
 /* tslint:enable:max-line-length */
 
 export type DialogActionKey = 'Escape' | 'Enter';
-export type DialogKeyEventType = 'keyup' | 'keydown';
 export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
 
 export interface IDialogSettings<
   TModel = unknown,
   TVm extends object = object,
-  TAnimation extends object = object,
 > {
 
   /**
@@ -126,15 +124,7 @@ export interface IDialogSettings<
    * the dialog will be "ok" closed  when the ENTER key is pressed.
    * Using the array format allows combining the ESC and ENTER keys.
    */
-  keyboard?: boolean | DialogActionKey | DialogActionKey[];
-
-  /**
-   * Determines which type of key event should be used to listen for
-   * ENTER and ESC keys
-   *
-   * Default: keyup
-   */
-  keyEvent?: DialogKeyEventType;
+  keyboard?: DialogActionKey[];
 
   /**
    * Determines which type of mouse event should be used for closing the dialog
@@ -158,24 +148,12 @@ export interface IDialogSettings<
    * When set to true conveys a cancellation as a rejection.
    */
   rejectOnCancel?: boolean;
-
-  /**
-   * Animation configuration for the dialog. This will be passed as is to the renderer
-   */
-  animation?: TAnimation;
-
-  /**
-   * This function is called when a dialog closes to restore focus to the last
-   * element that was focused when the dialog opened. It can be overridden in
-   * general settings, or on a case by case basis by providing an override when
-   * a particular dialog is opened.
-   */
-  restoreFocus?: (lastActiveElement: HTMLElement) => void;
 }
 
-export type IDialogLoadedSettings<T extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template'> & {
+export type IDialogLoadedSettings<T extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template' | 'keyboard'> & {
   component?: Constructable<T> | T;
   template?: string | Element;
+  readonly keyboard: DialogActionKey[];
 };
 
 export type IDialogGlobalSettings = Pick<

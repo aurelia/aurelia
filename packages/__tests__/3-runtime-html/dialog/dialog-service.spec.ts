@@ -204,7 +204,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           const overrideSettings: IDialogSettings = {
             rejectOnCancel: true,
             lock: true,
-            keyboard: 'Escape',
+            keyboard: ['Escape'],
             overlayDismiss: true,
           };
           const { dialog: controller } = await dialogService.open({
@@ -544,7 +544,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           assert.strictEqual(cancelSpy1.calls.length, 1);
           assert.strictEqual(cancelSpy2.calls.length, 1);
           await dialog1.closed;
-          assert.strictEqual(dialogService.controllers.length, 0)
+          assert.strictEqual(dialogService.controllers.length, 0);
 
           cancelSpy1.restore();
           cancelSpy2.restore();
@@ -576,8 +576,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'closes on Enter with keyboard:Enter regardless lock:[value]',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { dialog: dialog1 } = await dialogService.open({ template: 'Hello world', lock: false, keyboard: 'Enter' });
-          const { dialog: dialog2 } = await dialogService.open({ template: 'Hello world', lock: true, keyboard: 'Enter' });
+          const { dialog: dialog1 } = await dialogService.open({ template: 'Hello world', lock: false, keyboard: ['Enter'] });
+          const { dialog: dialog2 } = await dialogService.open({ template: 'Hello world', lock: true, keyboard: ['Enter'] });
           const okSpy1 = createSpy(dialog1, 'ok', true);
           const okSpy2 = createSpy(dialog2, 'ok', true);
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
@@ -601,7 +601,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'does not response to keys that are not [Escape]/[Enter]',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { dialog: controller1 } = await dialogService.open({ template: 'Hello world', lock: false, keyboard: true });
+          const { dialog: controller1 } = await dialogService.open({ template: 'Hello world', lock: false, keyboard: ['Enter', 'Escape'] });
           const okSpy1 = createSpy(controller1, 'ok', true);
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Tab' }));
           assert.strictEqual(okSpy1.calls.length, 0);
@@ -839,22 +839,22 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             template: '<div style="width: 300px; height: 300px; background: red;">Hello world',
             component: () => class MyDialog {
               public static get inject() { return [INode]; }
-              public constructor(private host: Element) {}
+              public constructor(private readonly host: Element) {}
 
               public attaching() {
-                const animation = this.host.animate(
+                const animation = this.host.animate?.(
                   [{ transform: 'translateY(0px)' }, { transform: 'translateY(-300px)' }],
                   { duration: 100 },
                 );
-                return animation.finished;
+                return animation?.finished;
               }
 
               public detaching() {
-                const animation = this.host.animate(
+                const animation = this.host.animate?.(
                   [{ transform: 'translateY(-300px)' }, { transform: 'translateY(0)' }],
                   { duration: 100 },
                 );
-                return animation.finished;
+                return animation?.finished;
               }
             },
           });

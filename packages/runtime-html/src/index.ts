@@ -679,7 +679,6 @@ export {
 
   // enums
   DialogActionKey,
-  DialogKeyEventType,
   DialogMouseEventType,
   DialogDeactivationStatuses,
 

@@ -158,13 +158,13 @@ export class DialogService implements IDialogService {
       return;
     }
     const top = this.top;
-    if (top == null || !top.settings.keyboard) {
+    if (top === null || top.settings.keyboard.length === 0) {
       return;
     }
     const keyboard = top.settings.keyboard;
-    if (matchKey('Escape', key, keyboard)) {
+    if (key === 'Escape' && keyboard.includes(key)) {
       void top.cancel();
-    } else if (matchKey('Enter', key, keyboard)) {
+    } else if (key === 'Enter' && keyboard.includes(key)) {
       void top.ok();
     }
   }
@@ -204,8 +204,8 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
   }
 
   private normalize(): DialogSettings {
-    if (typeof this.keyboard !== 'boolean' && this.keyboard == null) {
-      this.keyboard = !this.lock;
+    if (this.keyboard == null) {
+      this.keyboard = this.lock ? [] : ['Enter', 'Escape'];
     }
     if (typeof this.overlayDismiss !== 'boolean') {
       this.overlayDismiss = !this.lock;
@@ -235,9 +235,4 @@ function getActionKey(e: KeyboardEvent): DialogActionKey | undefined {
     return 'Enter';
   }
   return undefined;
-}
-
-function matchKey(keyToMatch: DialogActionKey, key: string, keyboard: string | boolean | DialogActionKey[]) {
-  return key === keyToMatch
-    && (keyboard === true || keyboard === key || (Array.isArray(keyboard) && keyboard.includes(key)));
 }

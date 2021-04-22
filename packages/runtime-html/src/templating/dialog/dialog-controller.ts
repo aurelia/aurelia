@@ -77,7 +77,7 @@ export class DialogController implements IDialogController {
   /** @internal */
   public activate(settings: IDialogLoadedSettings): Promise<DialogOpenResult> {
     const { ctn: container } = this;
-    const { animation, model, template, rejectOnCancel } = settings;
+    const { model, template, rejectOnCancel } = settings;
     const hostRenderer: IDialogDomRenderer = container.get(IDialogDomRenderer);
     const dialogTargetHost = settings.host ?? this.p.document.body;
     const dom = this.dom = hostRenderer.render(dialogTargetHost, settings);

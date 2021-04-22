@@ -112,7 +112,7 @@ The settings that are available in the `open` method of the dialog service:
 - `host` allows providing the element which will parent the dialog - if not provided the document body will be used.
 - `container` allows specifying the DI Container instance to be used for the dialog. If not provided a new child container will be created from the root one.
 - `lock` makes the dialog not dismissable via clicking outside, or using keyboard.
-- `keyboard` allows configuring keyboard keys that close the dialog. To disable set to `false`. To cancel close a dialog when the *ESC* key is pressed set to `true`, `'Escape'` or and array containing `'Escape'` - `['Escape']`. To close with confirmation when the *ENTER* key is pressed set to `'Enter'` or an array containing `'Enter'` - `['Enter']`. To combine the *ESC* and *ENTER* keys set to `['Enter', 'Escape']` - the order is irrelevant. (takes precedence over `lock`)
+- `keyboard` allows configuring keyboard keys that close the dialog. To disable set to an empty array `[]`. To cancel close a dialog when the *ESC* key is pressed set to an array containing `'Escape'` - `['Escape']`. To close with confirmation when the *ENTER* key is pressed set to an array containing `'Enter'` - `['Enter']`. To combine the *ESC* and *ENTER* keys set to `['Enter', 'Escape']` - the order is irrelevant. (takes precedence over `lock`)
 - `overlayDismiss` if set to `true` cancel closes the dialog when clicked outside of it. (takes precedence over `lock`)
 - `rejectOnCancel` is a boolean that must be set to `true` if cancellations should be treated as rejection. The reason will be an `IDialogCancelError` - the property `wasCancelled` will be set to `true` and if cancellation data was provided it will be set to the `value` property.
 
@@ -381,10 +381,14 @@ import { IDialogDom, DefaultDialogDom } from '@aurelia/runtime-html';
 @inject(IDialogDom)
 export class MyDialog {
   constructor(dialogDom: DefaultDialogDom) {
-    dialogDom.host.style.margin = "0 auto"; // only center horizontally
+    dialogDom.contentHost.style.margin = "0 auto"; // only center horizontally
   }
 }
 ```
+
+{% hint style="info" %}
+Note that the `contentHost` property on a `DefaultDialogDom` object is the same with the host element of a component. You can inject `IDialogDom` and retrieve the host element via `contentHost` property, or inject `INode`/`Element`/`HTMLElement` to retrieve it.
+{% endhint %}
 
 #### Styling the overlay
 
@@ -405,9 +409,9 @@ export class MyDialog {
 ... todo
 
 ### Animation
-The lifecycles `attaching` and `detaching` can be used to animate a dialog, as in those lifecycle, if a promise is returned, it will be awaited during the activation/deactivation phases.
+The lifecycles `attaching` and `detaching` can be used to animate a dialog, as in those lifecycles, if a promise is returned, it will be awaited during the activation/deactivation phases.
 
-An example of animating a dialog on attaching:
+An example of animating a dialog on attaching and detaching, with the animation duration of 200 milliseconds:
 ```typescript
 
 @inject(Element)

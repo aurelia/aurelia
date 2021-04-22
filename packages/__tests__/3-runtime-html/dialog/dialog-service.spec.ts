@@ -832,6 +832,35 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           assert.strictEqual($dialog, dialog);
         }
       },
+      {
+        title: 'animates correctly',
+        afterStarted: async (_, dialogService) => {
+          const { dialog } = await dialogService.open({
+            template: '<div style="width: 300px; height: 300px; background: red;">Hello world',
+            component: () => class MyDialog {
+              public static get inject() { return [INode]; }
+              public constructor(private host: Element) {}
+
+              public attaching() {
+                const animation = this.host.animate(
+                  [{ transform: 'translateY(0px)' }, { transform: 'translateY(-300px)' }],
+                  { duration: 100 },
+                );
+                return animation.finished;
+              }
+
+              public detaching() {
+                const animation = this.host.animate(
+                  [{ transform: 'translateY(-300px)' }, { transform: 'translateY(0)' }],
+                  { duration: 100 },
+                );
+                return animation.finished;
+              }
+            },
+          });
+          await dialog.ok();
+        }
+      }
     ];
 
     for (const { title, only, afterStarted, afterTornDown } of testCases) {

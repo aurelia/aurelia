@@ -15,15 +15,12 @@ This article covers the dialog plugin for Aurelia. This plugin is created for sh
 * The lifeycle of a dialog
 {% endhint %}
 
-... Placeholder & link to advanced examples with:
-
 ## Installing The Plugin
 There's a set of default implementations for the main interfaces of the Dialog plugin, which includes:
 
 - `IDialogService`
 - `IDialogGlobalSettings`
 - `IDialogDomRenderer`
-- `IDialogAnimator`
 
 These default implementation are grouped in the export named `DefaultDialogConfiguration` of the dialog plugin, which can be used per the following:
 ```ts
@@ -56,12 +53,11 @@ The export `DefaultDialogConfiguration` is a preset of default behaviors & imple
     MyDialogService,
     MyDialogRenderer,
     MyDialogGlobalSettings,
-    MyDialogAnimator,
   ]))
   ```
   If there's a need to only swap some implementation, say `IDialogDomRenderer` for example, then the default implementation can be imported and mixed like the following example:
   ```typescript
-  import { DialogConfiguration, DialogService, DefaultDialogAnimator, DefaultDialogGlobalSettings } from '@aurelia/runtime-html';
+  import { DialogConfiguration, DialogService, DefaultDialogGlobalSettings } from '@aurelia/runtime-html';
 
   Aurelia.register(DialogConfiguration.customize(settings => {
 
@@ -72,8 +68,6 @@ The export `DefaultDialogConfiguration` is a preset of default behaviors & imple
     MyDialogRenderer,
     // use default dialog global settings
     DefaultDialogGlobalSettings,
-    // use default dialog animator
-    DefaultDialogAnimator,
   ]))
   ```
 
@@ -135,11 +129,7 @@ If `rejectOnCancel` behavior is desired, it should only be applied to individual
 The interface that a dialog service should follow:
 ```typescript
 interface IDialogService {
-  /**
-   * An indicator of how many dialogs are being opened with this service
-   */
-  readonly count: number;
-  readonly hasOpenDialog: boolean;
+  readonly controllers: IDialogController[];
 
   /**
    * Opens a new dialog.
@@ -147,7 +137,7 @@ interface IDialogService {
    * @param settings - Dialog settings for this dialog instance.
    * @returns Promise A promise that settles when the dialog is closed.
    */
-  open(settings?: IDialogSettings): IDialogOpenPromise;
+  open(settings?: IDialogSettings): DialogOpenPromise;
 
   /**
    * Closes all open dialogs at the time of invocation.
@@ -165,10 +155,10 @@ interface IDialogController {
   /**
    * A promise that will be fulfilled once this dialog has been closed
    */
-  readonly closed: Promise<IDialogCloseResult>;
+  readonly closed: Promise<DialogCloseResult>;
 
-  ok(value?: unknown): Promise<IDialogCloseResult<DialogDeactivationStatuses.Ok>>;
-  cancel(value?: unknown): Promise<IDialogCloseResult<DialogDeactivationStatuses.Cancel>>;
+  ok(value?: unknown): Promise<DialogCloseResult<DialogDeactivationStatuses.Ok>>;
+  cancel(value?: unknown): Promise<DialogCloseResult<DialogDeactivationStatuses.Cancel>>;
   error(value?: unknown): Promise<void>;
 }
 ```
@@ -413,8 +403,36 @@ export class MyDialog {
 
 #### BYO Dialog Renderer
 ... todo
-### The Default Dialog Animator
-... todo
+
+### Animation
+The lifecycles `attaching` and `detaching` can be used to animate a dialog, as in those lifecycle, if a promise is returned, it will be awaited during the activation/deactivation phases.
+
+An example of animating a dialog on attaching:
+```typescript
+
+@inject(Element)
+export class MyDialog {
+  constructor(host: Element) {
+    this.host = host;
+  }
+
+  attaching() {
+    const animation = this.host.animate(
+      [{ transform: 'translateY(0px)' }, { transform: 'translateY(-300px)' }],
+      { duration: 200 },
+    );
+    return animation.finished;
+  }
+
+  detaching() {
+    const animation = this.host.animate(
+      [{ transform: 'translateY(-300px)' }, { transform: 'translateY(0)' }],
+      { duration: 200 },
+    );
+    return animation.finished;
+  }
+}
+```
 
 ### Component Lifecycles With The Dialog Plugin
 In adition to the lifecycle hooks defined in the core templating, the `dialog` defines additional ones. All dialog specific hooks can return a `Promise`, that resolves to the appropriate value for the hook, and will be awaited.
@@ -427,14 +445,14 @@ This hook can be used to cancel the opening of a dialog. It is invoked with one 
 
 This hook can be used to do any necessary init work. The hook is invoked with one parameter - the value of the `model` setting passed to `.open()`.
 
-#### `.canDeactivate(result: IDialogCloseResult)`
+#### `.canDeactivate(result: DialogCloseResult)`
 
 This hook can be used to cancel the closing of a dialog. To do so return `false` - `null` and `undefined` will be coerced to `true`.
 The passed in result parameter has a property `status`, indicating if the dialog was closed or cancelled, or the deactivation process itself has been aborted, and an `value` property with the dialog result which can be manipulated before dialog deactivation.
 
-The `IDialogCloseResult` has the following interface (simplified):
+The `DialogCloseResult` has the following interface (simplified):
 ```ts
-interface IDialogCloseResult {
+interface DialogCloseResult {
   readonly status: 'Ok' | 'Cancel' | 'Abort' | 'Error';
   readonly value?: unknown;
 }
@@ -443,7 +461,7 @@ interface IDialogCloseResult {
 > Warning
 > When the `error` method of a `DialogController` is called this hook will be skipped.
 
-#### `.deactivate(result: IDialogCloseResult)`
+#### `.deactivate(result: DialogCloseResult)`
 
 This hook can be used to do any clean up work. The hook is invoked with one result parameter that has a property `status`, indicating if the dialog was closed (`Ok`) or cancelled (`Cancel`), and an `value` property with the dialog result.
 
@@ -487,7 +505,7 @@ Each dialog instance goes through the full lifecycle once.
     ```
   to:
     ```ts
-    interface IDialogOpenResult {
+    interface DialogOpenResult {
       wasCancelled: boolean;
       dialog: IDialogController;
     }
@@ -510,9 +528,11 @@ Each dialog instance goes through the full lifecycle once.
     ```
   to:
     ```ts
-    interface IDialogCloseResult {
+    interface DialogCloseResult {
       status: DialogDeactivationStatus;
       value?: unknown;
     }
     ```
 - The dialog controller is assigned to property `$dialog` (v2) on the view model, instead of property `controller` (v1)
+
+TODO: links to advanced examples/playground

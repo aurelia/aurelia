@@ -7,9 +7,8 @@ import {
   DialogDefaultConfiguration,
   DefaultDialogGlobalSettings,
   customElement,
-  IDialogCancelError,
+  DialogCancelError,
   DialogDeactivationStatuses,
-  IDialogAnimator,
   IDialogDom,
   IDialogController,
   INode,
@@ -105,7 +104,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'throws on invalid configuration',
         afterStarted: async (_, dialogService) => {
-          let error: IDialogCancelError<unknown>;
+          let error: DialogCancelError<unknown>;
           await dialogService.open({}).catch(err => error = err);
           assert.strictEqual(error.message, 'Invalid Dialog Settings. You must provide "component", "template" or both.');
         }
@@ -177,28 +176,26 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'hasOpenDialog with 1 dialog',
         afterStarted: async (_, dialogService) => {
-          assert.strictEqual(dialogService.hasOpenDialog, false);
           const { dialog: controller } = await dialogService.open({ template: '' });
-          assert.strictEqual(dialogService.hasOpenDialog, true);
+          assert.strictEqual(dialogService.controllers.length, 1);
           void controller.ok();
           await controller.closed;
-          assert.strictEqual(dialogService.hasOpenDialog, false);
+          assert.strictEqual(dialogService.controllers.length, 0);
         }
       },
       {
         title: 'hasOpenDialog with more than 1 dialog',
         afterStarted: async (_, dialogService) => {
-          assert.strictEqual(dialogService.hasOpenDialog, false);
           const { dialog: dialog1 } = await dialogService.open({ template: '' });
-          assert.strictEqual(dialogService.hasOpenDialog, true);
+          assert.strictEqual(dialogService.controllers.length, 1);
           const { dialog: dialog2 } = await dialogService.open({ template: '' });
-          assert.strictEqual(dialogService.hasOpenDialog, true);
+          assert.strictEqual(dialogService.controllers.length, 2);
           void dialog1.ok();
           await dialog1.closed;
-          assert.strictEqual(dialogService.hasOpenDialog, true);
+          assert.strictEqual(dialogService.controllers.length, 1);
           void dialog2.ok();
           await dialog2.closed;
-          assert.strictEqual(dialogService.hasOpenDialog, false);
+          assert.strictEqual(dialogService.controllers.length, 0);
         }
       },
       {
@@ -279,7 +276,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'gets rejected with "IDialogCancelError" with [canActivate: false + rejectOnCancel: true]',
         afterStarted: async ({ ctx }, dialogService) => {
           let canActivateCallCount = 0;
-          let error: IDialogCancelError<unknown>;
+          let error: DialogCancelError<unknown>;
           await dialogService.open({
             rejectOnCancel: true,
             template: 'hello world',
@@ -303,7 +300,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async (_, dialogService) => {
           const expectedError = new Error('Expected error.');
           let canActivateCallCount = 0;
-          let error: IDialogCancelError<unknown>;
+          let error: DialogCancelError<unknown>;
           await dialogService.open({
             template: 'hello world',
             component: () => class TestElement {
@@ -315,10 +312,9 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
               }
             }
           }).catch(err => error = err);
-          assert.strictEqual(dialogService.count, 0);
+          assert.strictEqual(dialogService.controllers.length, 0);
           assert.strictEqual(error, expectedError);
           assert.strictEqual(canActivateCallCount, 1);
-          assert.strictEqual(dialogService.count, 0);
         }
       },
       ...[null, undefined, true].map<IDialogServiceTestCase>(canDeactivate => ({
@@ -365,7 +361,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async (_, dialogService) => {
           const { dialog } = await dialogService.open({ template: '' });
           const expectedOutput = 'expected cancel output';
-          let error: IDialogCancelError<unknown>;
+          let error: DialogCancelError<unknown>;
           let errorCaughtCount = 0;
           void dialog.cancel(expectedOutput);
           const result = await dialog.closed.catch(err => {
@@ -383,7 +379,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async (_, dialogService) => {
           const { dialog } = await dialogService.open({ template: '', rejectOnCancel: true });
           const expectedValue = 'expected cancel error output';
-          let error: IDialogCancelError<unknown>;
+          let error: DialogCancelError<unknown>;
           let errorCaughtCount = 0;
           void dialog.cancel(expectedValue);
           await dialog.closed.catch(err => {
@@ -402,7 +398,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async (_, dialogService) => {
           const { dialog } = await dialogService.open({ template: '' });
           const expectedError = new Error('expected test error');
-          let error: IDialogCancelError<unknown>;
+          let error: DialogCancelError<unknown>;
           let errorCaughtCount = 0;
           void dialog.error(expectedError);
           await dialog.closed.catch(err => {
@@ -420,11 +416,9 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: '.closeAll() with 1 dialog',
         afterStarted: async (_, dialogService) => {
           await dialogService.open({ template: '' });
-          assert.strictEqual(dialogService.hasOpenDialog, true);
-          assert.strictEqual(dialogService.count, 1);
+          assert.strictEqual(dialogService.controllers.length, 1);
           const unclosedController = await dialogService.closeAll();
-          assert.strictEqual(dialogService.hasOpenDialog, false);
-          assert.strictEqual(dialogService.count, 0);
+          assert.strictEqual(dialogService.controllers.length, 0);
           assert.deepStrictEqual(unclosedController, []);
         }
       },
@@ -436,11 +430,9 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             dialogService.open({ template: '' }),
             dialogService.open({ template: '' }),
           ]);
-          assert.strictEqual(dialogService.hasOpenDialog, true);
-          assert.strictEqual(dialogService.count, 3);
+          assert.strictEqual(dialogService.controllers.length, 3);
           const unclosedController = await dialogService.closeAll();
-          assert.strictEqual(dialogService.hasOpenDialog, false);
-          assert.strictEqual(dialogService.count, 0);
+          assert.strictEqual(dialogService.controllers.length, 0);
           assert.deepStrictEqual(unclosedController, []);
         }
       },
@@ -450,46 +442,23 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           await Promise.all([
             dialogService.open({ template: '' }),
             dialogService.open({ template: '' }),
-            dialogService.open({ component: () => class App {
-              private deactivateCount = 0;
-              public canDeactivate() {
-                // only deactivate when called 2nd time
-                return this.deactivateCount++ > 0;
-              }
-            }, template: '' }),
+            dialogService.open({
+              component: () => class App {
+                private deactivateCount = 0;
+                public canDeactivate() {
+                  // only deactivate when called 2nd time
+                  return this.deactivateCount++ > 0;
+                }
+              }, template: ''
+            }),
           ]);
-          assert.strictEqual(dialogService.hasOpenDialog, true);
-          assert.strictEqual(dialogService.count, 3);
+          assert.strictEqual(dialogService.controllers.length, 3);
           let unclosedController = await dialogService.closeAll();
-          assert.strictEqual(dialogService.hasOpenDialog, true);
-          assert.strictEqual(dialogService.count, 1);
+          assert.strictEqual(dialogService.controllers.length, 1);
           assert.strictEqual(unclosedController.length, 1);
           unclosedController = await dialogService.closeAll();
-          assert.strictEqual(dialogService.count, 0);
+          assert.strictEqual(dialogService.controllers.length, 0);
           assert.deepStrictEqual(unclosedController, []);
-        }
-      },
-      {
-        title: 'invokes animator',
-        afterStarted: async ({ ctx }, dialogService) => {
-          let attachingCallCount = 0;
-          let detachingCallCount = 0;
-          const dialogAnimator = ctx.container.get(IDialogAnimator);
-          dialogAnimator.attaching = (fn => function (dom: IDialogDom, animation: unknown) {
-            attachingCallCount++;
-            return fn.call(this, dom, animation);
-          })(dialogAnimator.attaching);
-          dialogAnimator.detaching = (fn => function (dom: IDialogDom, animation: unknown) {
-            detachingCallCount++;
-            return fn.call(this, dom, animation);
-          })(dialogAnimator.detaching);
-
-          const { dialog } = await dialogService.open({ template: '' });
-          assert.strictEqual(attachingCallCount, 1);
-
-          void dialog.ok();
-          await dialog.closed;
-          assert.strictEqual(detachingCallCount, 1);
         }
       },
       {
@@ -503,8 +472,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             dialog.closed,
             new Promise(r => setTimeout(r, 50)),
           ]);
-          assert.strictEqual(dialogService.hasOpenDialog, false);
-          assert.strictEqual(dialogService.count, 0);
+          assert.strictEqual(dialogService.controllers.length, 0);
         }
       },
       {
@@ -519,8 +487,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             dialog.closed,
             new Promise(r => setTimeout(r, 50)),
           ]);
-          assert.strictEqual(dialogService.hasOpenDialog, true);
-          assert.strictEqual(dialogService.count, 1);
+          assert.strictEqual(dialogService.controllers.length, 1);
         }
       },
       {
@@ -534,8 +501,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             dialog.closed,
             new Promise(r => setTimeout(r, 50)),
           ]);
-          assert.strictEqual(dialogService.hasOpenDialog, true);
-          assert.strictEqual(dialogService.count, 1);
+          assert.strictEqual(dialogService.controllers.length, 1);
         }
       },
       {
@@ -555,8 +521,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           assert.strictEqual(cancelSpy1.calls.length, 1);
           assert.strictEqual(cancelSpy2.calls.length, 1);
           await dialog1.closed;
-          assert.strictEqual(dialogService.hasOpenDialog, false);
-          assert.strictEqual(dialogService.count, 0);
+          assert.strictEqual(dialogService.controllers.length, 0);
 
           cancelSpy1.restore();
           cancelSpy2.restore();
@@ -579,8 +544,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           assert.strictEqual(cancelSpy1.calls.length, 1);
           assert.strictEqual(cancelSpy2.calls.length, 1);
           await dialog1.closed;
-          assert.strictEqual(dialogService.hasOpenDialog, false);
-          assert.strictEqual(dialogService.count, 0);
+          assert.strictEqual(dialogService.controllers.length, 0)
 
           cancelSpy1.restore();
           cancelSpy2.restore();
@@ -603,8 +567,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
           assert.strictEqual(cancelSpy1.calls.length, 1);
           await dialog1.closed;
-          assert.strictEqual(dialogService.hasOpenDialog, false);
-          assert.strictEqual(dialogService.count, 0);
+          assert.strictEqual(dialogService.controllers.length, 0);
 
           cancelSpy1.restore();
           cancelSpy2.restore();
@@ -629,8 +592,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           assert.strictEqual(okSpy1.calls.length, 1);
           assert.strictEqual(okSpy2.calls.length, 1);
           await dialog1.closed;
-          assert.strictEqual(dialogService.hasOpenDialog, false);
-          assert.strictEqual(dialogService.count, 0);
+          assert.strictEqual(dialogService.controllers.length, 0);
 
           okSpy1.restore();
           okSpy2.restore();

@@ -7,13 +7,13 @@ import { DialogService } from './dialog-service.js';
 
 export type DialogConfigurationProvider = (settings: IDialogGlobalSettings) => void | Promise<unknown>;
 
-export interface IDialogConfiguration extends IRegistry {
+export interface DialogConfiguration extends IRegistry {
   settingsProvider: DialogConfigurationProvider;
   register(container: IContainer): IContainer;
-  customize(cb: DialogConfigurationProvider, registrations?: IRegistry[]): IDialogConfiguration;
+  customize(cb: DialogConfigurationProvider, registrations?: IRegistry[]): DialogConfiguration;
 }
 
-function createConfiguration(settingsProvider: DialogConfigurationProvider, registrations: IRegistry[]): IDialogConfiguration {
+function createDialogConfiguration(settingsProvider: DialogConfigurationProvider, registrations: IRegistry[]): DialogConfiguration {
   return {
     settingsProvider: settingsProvider,
     register: (ctn: IContainer) => ctn.register(
@@ -24,7 +24,7 @@ function createConfiguration(settingsProvider: DialogConfigurationProvider, regi
         .call(c => settingsProvider(c.get(IDialogGlobalSettings)) as void)
     ),
     customize(cb: DialogConfigurationProvider, regs?: IRegistry[]) {
-      return createConfiguration(cb, regs ?? registrations);
+      return createDialogConfiguration(cb, regs ?? registrations);
     },
   };
 }
@@ -37,7 +37,7 @@ DialogConfiguration.customize(settings => {
 }, [all_implementations_here])
 ```
  */
-export const DialogConfiguration = createConfiguration(() => {
+export const DialogConfiguration = createDialogConfiguration(() => {
   throw new Error('Invalid dialog configuration. ' +
     'Specify the implementations for ' +
     '<IDialogService>, <IDialogGlobalSettings> and <IDialogDomRenderer>, ' +
@@ -49,7 +49,7 @@ export const DialogConfiguration = createConfiguration(() => {
   }
 }]);
 
-export const DialogDefaultConfiguration = createConfiguration(noop, [
+export const DialogDefaultConfiguration = createDialogConfiguration(noop, [
   DialogService,
   DefaultDialogGlobalSettings,
   DefaultDialogDomRenderer,

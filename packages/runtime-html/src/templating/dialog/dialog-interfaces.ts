@@ -8,19 +8,14 @@ import type { ICustomElementViewModel } from '../controller.js';
  */
 export const IDialogService = DI.createInterface<IDialogService>('IDialogService');
 export interface IDialogService {
-  /**
-   * An indicator of how many dialogs are being opened with this service
-   */
-  readonly count: number;
-  readonly hasOpenDialog: boolean;
-
+  readonly controllers: IDialogController[];
   /**
    * Opens a new dialog.
    *
    * @param settings - Dialog settings for this dialog instance.
    * @returns Promise A promise that settles when the dialog is closed.
    */
-  open(settings?: IDialogSettings): IDialogOpenPromise;
+  open(settings?: IDialogSettings): DialogOpenPromise;
 
   /**
    * Closes all open dialogs at the time of invocation.
@@ -59,13 +54,8 @@ export interface IDialogDomRenderer {
  */
 export const IDialogDom = DI.createInterface<IDialogDom>('IDialogDom');
 export interface IDialogDom extends IDisposable {
+  readonly overlay: HTMLElement;
   readonly contentHost: HTMLElement;
-  subscribe(subscriber: IDialogDomSubscriber): void;
-  unsubscribe(subscriber: IDialogDomSubscriber): void;
-}
-
-export interface IDialogDomSubscriber {
-  handleOverlayClick(event: MouseEvent): void;
 }
 
 // export type IDialogCancellableOpenResult = IDialogOpenResult | IDialogCancelResult;
@@ -74,7 +64,7 @@ export interface IDialogDomSubscriber {
 /**
  * The promised returned from a dialog composition.
  */
-export interface IDialogOpenPromise extends Promise<DialogOpenResult> {
+export interface DialogOpenPromise extends Promise<DialogOpenResult> {
   /**
    * Add a callback that will be invoked when a dialog has been closed
    */
@@ -237,8 +227,8 @@ export class DialogCloseResult<
   }
 }
 
-export interface IDialogCustomElementViewModel extends ICustomElementViewModel {
-  $dialog: IDialogController;
+export interface IDialogCustomElementViewModel<T = unknown> extends ICustomElementViewModel, IDialogComponent<T> {
+  readonly $dialog: IDialogController;
 }
 
 export const enum DialogDeactivationStatuses {

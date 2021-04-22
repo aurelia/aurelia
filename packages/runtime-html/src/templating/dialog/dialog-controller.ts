@@ -16,7 +16,6 @@ import { IEventTarget, INode } from '../../dom.js';
 import type {
   IDialogComponent,
   IDialogLoadedSettings,
-  IDialogDomSubscriber,
 } from './dialog-interfaces.js';
 import { IPlatform } from '../../platform.js';
 import { CustomElement, CustomElementDefinition } from '../../resources/custom-element.js';
@@ -24,7 +23,7 @@ import { CustomElement, CustomElementDefinition } from '../../resources/custom-e
 /**
  * A controller object for a Dialog instance.
  */
-export class DialogController implements IDialogController, IDialogDomSubscriber {
+export class DialogController implements IDialogController {
   private readonly p: IPlatform;
   private readonly ctn: IContainer;
 
@@ -132,7 +131,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
             )
           ) as ICustomElementController;
           return onResolve(ctrlr.activate(ctrlr, null!, LifecycleFlags.fromBind), () => {
-            dom.subscribe(this);
+            dom.overlay.addEventListener(settings.mouseEvent ?? 'click', this);
             return DialogOpenResult.create(false, this);
           });
         });
@@ -149,7 +148,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
     }
 
     let deactivating = true;
-    const { controller, dom, cmp, settings: { rejectOnCancel, animation }} = this;
+    const { controller, dom, cmp, settings: { mouseEvent, rejectOnCancel }} = this;
     const dialogResult = DialogCloseResult.create(status as T, value);
 
     const promise: Promise<DialogCloseResult<T>> = new Promise<DialogCloseResult<T>>(r => {
@@ -169,6 +168,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
             () => onResolve(controller.deactivate(controller, null!, LifecycleFlags.fromUnbind),
               () => {
                 dom.dispose();
+                dom.overlay.removeEventListener(mouseEvent ?? 'click', this);
                 if (!rejectOnCancel && status !== DialogDeactivationStatuses.Error) {
                   this.resolve(dialogResult);
                 } else {
@@ -230,7 +230,7 @@ export class DialogController implements IDialogController, IDialogDomSubscriber
   }
 
   /** @internal */
-  public handleOverlayClick(event: MouseEvent): void {
+  public handleEvent(event: MouseEvent): void {
     if (/* user allows dismiss on overlay click */this.settings.overlayDismiss
       && /* did not click inside the host element */!this.dom.contentHost.contains(event.target as Element)
     ) {

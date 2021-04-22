@@ -2,10 +2,8 @@ import { IPlatform } from '../../platform.js';
 import {
   IDialogDomRenderer,
   IDialogDom,
-  IDialogDomSubscriber,
   IDialogGlobalSettings,
   IDialogLoadedSettings,
-  DialogMouseEventType,
 } from './dialog-interfaces.js';
 
 import { IContainer, Registration } from '@aurelia/kernel';
@@ -37,7 +35,7 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
   private readonly overlayCss: string = baseWrapperCss;
   private readonly hostCss: string = 'position:relative;margin:auto;';
 
-  public render(dialogHost: HTMLElement, settings: IDialogLoadedSettings): IDialogDom {
+  public render(dialogHost: HTMLElement): IDialogDom {
     const doc = this.p.document;
     const h = (name: string, css: string) => {
       const el = doc.createElement(name);
@@ -47,42 +45,19 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
     const wrapper = dialogHost.appendChild(h('au-dialog-container', this.wrapperCss));
     const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));
     const host = overlay.appendChild(h('div', this.hostCss));
-    return new DefaultDialogDom(wrapper, overlay, host, settings);
+    return new DefaultDialogDom(wrapper, overlay, host);
   }
 }
 
 export class DefaultDialogDom implements IDialogDom {
-
-  private readonly subs: Set<IDialogDomSubscriber> = new Set();
-  private readonly e: DialogMouseEventType;
-
   public constructor(
     public readonly wrapper: HTMLElement,
     public readonly overlay: HTMLElement,
     public readonly contentHost: HTMLElement,
-    s: IDialogLoadedSettings,
   ) {
-    overlay.addEventListener(this.e = s.mouseEvent ?? 'click', this);
-  }
-
-  /**
-   * @internal
-   */
-  public handleEvent(e: Event) {
-    this.subs.forEach(sub => sub.handleOverlayClick(e as MouseEvent));
-  }
-
-  public subscribe(subscriber: IDialogDomSubscriber): void {
-    this.subs.add(subscriber);
-  }
-
-  public unsubscribe(subscriber: IDialogDomSubscriber): void {
-    this.subs.delete(subscriber);
   }
 
   public dispose(): void {
     this.wrapper.remove();
-    this.overlay.removeEventListener(this.e, this);
-    this.subs.clear();
   }
 }

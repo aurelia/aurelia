@@ -13,7 +13,7 @@ import {
 import { DialogController } from './dialog-controller.js';
 
 import type {
-  IDialogOpenPromise,
+  DialogOpenPromise,
   IDialogSettings,
 } from './dialog-interfaces.js';
 import { AppTask } from '../../app-task.js';
@@ -23,23 +23,15 @@ import { IPlatform } from '../../platform.js';
  * A default implementation for the dialog service allowing for the creation of dialogs.
  */
 export class DialogService implements IDialogService {
+  public get controllers() {
+    return this.dlgs.slice(0);
+  }
   /**
    * The current dialog controllers
    *
    * @internal
    */
   private readonly dlgs: IDialogController[] = [];
-
-  public get count(): number {
-    return this.dlgs.length;
-  }
-
-  /**
-   * Is there an open dialog
-   */
-  public get hasOpenDialog(): boolean {
-    return this.dlgs.length > 0;
-  }
 
   private get top(): IDialogController | null {
     const dlgs = this.dlgs;
@@ -87,7 +79,7 @@ export class DialogService implements IDialogService {
    * dialogService.open({ component: () => import('...'), template: () => fetch('my.server/dialog-view.html') })
    * ```
    */
-  public open(settings: IDialogSettings): IDialogOpenPromise {
+  public open(settings: IDialogSettings): DialogOpenPromise {
     return asDialogOpenPromise(new Promise<DialogOpenResult>(resolve => {
       const $settings = DialogSettings.from(this.defaultSettings, settings);
       const container = $settings.container ?? this.container.createChild();
@@ -227,12 +219,12 @@ function whenClosed<TResult1 = unknown, TResult2 = unknown>(
   onfulfilled?: (r: DialogCloseResult) => TResult1 | PromiseLike<TResult1>,
   onrejected?: (err: unknown) => TResult2 | PromiseLike<TResult2>
 ): Promise<TResult1 | TResult2> {
-  return this.then(openResult => openResult.dialog.closed.then(onfulfilled, onrejected));
+  return this.then(openResult => openResult.dialog.closed.then(onfulfilled, onrejected), onrejected);
 }
 
-function asDialogOpenPromise(promise: Promise<unknown>): IDialogOpenPromise {
-  (promise as IDialogOpenPromise).whenClosed = whenClosed;
-  return promise as IDialogOpenPromise;
+function asDialogOpenPromise(promise: Promise<unknown>): DialogOpenPromise {
+  (promise as DialogOpenPromise).whenClosed = whenClosed;
+  return promise as DialogOpenPromise;
 }
 
 function getActionKey(e: KeyboardEvent): DialogActionKey | undefined {

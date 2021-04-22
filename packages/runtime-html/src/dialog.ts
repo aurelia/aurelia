@@ -1,30 +1,31 @@
 export {
+  // enums
   DialogActionKey,
   DialogKeyEventType,
   DialogMouseEventType,
+  DialogDeactivationStatuses,
 
   // main interfaces
-  IDialogLoadedSettings,
   IDialogService,
   IDialogController,
-  IDialogDom,
   IDialogDomRenderer,
-  IDialogDomSubscriber,
+  IDialogDom,
 
-  DialogDeactivationStatuses,
   // dialog results
   DialogCloseResult,
   DialogError,
   DialogCancelError,
   DialogCloseError,
-  IDialogCustomElementViewModel,
-  IDialogOpenPromise,
+  DialogOpenPromise,
   DialogOpenResult,
 
   // dialog settings
   IDialogSettings,
+  IDialogLoadedSettings,
   IDialogGlobalSettings,
+
   // implementable
+  IDialogCustomElementViewModel,
   IDialogComponent,
   IDialogComponentActivate,
   IDialogComponentCanActivate,
@@ -40,7 +41,6 @@ export {
 export {
   DialogConfiguration,
   DialogDefaultConfiguration,
-  IDialogConfiguration,
   DialogConfigurationProvider,
 } from './templating/dialog/dialog-configuration.js';
 

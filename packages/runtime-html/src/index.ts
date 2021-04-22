@@ -672,38 +672,48 @@ export {
 } from './templating/watchers.js';
 
 export {
-  DialogController,
+  // configurations
+  DialogConfiguration,
+  DialogConfigurationProvider,
+  DialogDefaultConfiguration,
+
+  // enums
   DialogActionKey,
   DialogKeyEventType,
   DialogMouseEventType,
-  DialogDefaultConfiguration,
-  DialogConfiguration,
-  DialogConfigurationProvider,
   DialogDeactivationStatuses,
-  DialogService,
+
+  // settings
+  IDialogSettings,
   IDialogGlobalSettings,
   IDialogLoadedSettings,
+
+  // main interfaces
+  IDialogService,
+  IDialogController,
+  IDialogDomRenderer,
+  IDialogDom,
+
+  // dialog results
+  DialogError,
+  DialogOpenPromise,
+  DialogOpenResult,
   DialogCancelError,
   DialogCloseError,
   DialogCloseResult,
-  IDialogComponent,
-  IDialogComponentActivate,
-  IDialogComponentCanActivate,
-  IDialogComponentCanDeactivate,
-  IDialogComponentDeactivate,
-  IDialogConfiguration,
-  IDialogController,
-  IDialogCustomElementViewModel,
-  IDialogDom,
-  IDialogDomRenderer,
-  IDialogDomSubscriber,
-  DialogError as IDialogError,
-  IDialogOpenPromise,
-  DialogOpenResult as IDialogOpenResult,
-  IDialogService,
-  IDialogSettings,
 
+  // default impls
+  DialogService,
+  DialogController,
   DefaultDialogDom,
   DefaultDialogDomRenderer,
   DefaultDialogGlobalSettings,
+
+  // implementable for applications
+  IDialogCustomElementViewModel,
+  IDialogComponent,
+  IDialogComponentActivate,
+  IDialogComponentCanActivate,
+  IDialogComponentDeactivate,
+  IDialogComponentCanDeactivate,
 } from './dialog.js';

@@ -39,10 +39,10 @@ export interface IDialogController {
   /**
    * A promise that will be fulfilled once this dialog has been closed
    */
-  readonly closed: Promise<IDialogCloseResult>;
+  readonly closed: Promise<DialogCloseResult>;
 
-  ok(value?: unknown): Promise<IDialogCloseResult<DialogDeactivationStatuses.Ok>>;
-  cancel(value?: unknown): Promise<IDialogCloseResult<DialogDeactivationStatuses.Cancel>>;
+  ok(value?: unknown): Promise<DialogCloseResult<DialogDeactivationStatuses.Ok>>;
+  cancel(value?: unknown): Promise<DialogCloseResult<DialogDeactivationStatuses.Cancel>>;
   error(value?: unknown): Promise<void>;
 }
 
@@ -68,28 +68,18 @@ export interface IDialogDomSubscriber {
   handleOverlayClick(event: MouseEvent): void;
 }
 
-/**
- * An interface describing the ojbect responsible for animating the dialog in various lifecycles,
- * based on dynamic user configuration
- */
-export const IDialogAnimator = DI.createInterface<IDialogAnimator>('IDialogAnimator');
-export interface IDialogAnimator<T extends object = object> {
-  attaching(dialogDom: IDialogDom, animation?: T): void | Promise<unknown>;
-  detaching(dialogDom: IDialogDom, animation?: T): void | Promise<unknown>;
-}
-
 // export type IDialogCancellableOpenResult = IDialogOpenResult | IDialogCancelResult;
 
 /* tslint:disable:max-line-length */
 /**
  * The promised returned from a dialog composition.
  */
-export interface IDialogOpenPromise extends Promise<IDialogOpenResult> {
+export interface IDialogOpenPromise extends Promise<DialogOpenResult> {
   /**
    * Add a callback that will be invoked when a dialog has been closed
    */
   whenClosed<TResult1, TResult2>(
-    onfulfilled?: (value: IDialogCloseResult) => TResult1 | PromiseLike<TResult1>,
+    onfulfilled?: (value: DialogCloseResult) => TResult1 | PromiseLike<TResult1>,
     onrejected?: (reason: unknown) => TResult2 | PromiseLike<TResult2>
   ): Promise<TResult1 | TResult2>;
 }
@@ -204,7 +194,7 @@ export type IDialogGlobalSettings = Pick<
 >;
 export const IDialogGlobalSettings = DI.createInterface<IDialogGlobalSettings>('IDialogGlobalSettings');
 
-export interface IDialogError<T> extends Error {
+export interface DialogError<T> extends Error {
   wasCancelled: boolean;
   value?: T;
 }
@@ -212,12 +202,40 @@ export interface IDialogError<T> extends Error {
 /**
  * The error thrown when a "cancel" occurs and DialogSettings.rejectOnCancel is set to "true".
  */
-export type IDialogCancelError<T> = IDialogError<T> & { wasCancelled: true };
+export type DialogCancelError<T> = DialogError<T> & { wasCancelled: true };
 
 /**
  * The error thrown when the dialog is closed with the `DialogController.prototype.error` method.
  */
-export type IDialogCloseError<T> = IDialogError<T> & { wasCancelled: false };
+export type DialogCloseError<T> = DialogError<T> & { wasCancelled: false };
+
+export class DialogOpenResult {
+  private constructor(
+    public readonly wasCancelled: boolean,
+    public readonly dialog: IDialogController,
+  ) {}
+
+  public static create(
+    wasCancelled: boolean,
+    dialog: IDialogController,
+  ) {
+    return new DialogOpenResult(wasCancelled, dialog);
+  }
+}
+
+export class DialogCloseResult<
+  T extends DialogDeactivationStatuses = DialogDeactivationStatuses,
+  TVal = unknown
+> {
+  private constructor(
+    public readonly status: T,
+    public readonly value?: TVal,
+  ) {}
+
+  public static create<T extends DialogDeactivationStatuses, TVal = unknown>(status: T, value?: TVal): DialogCloseResult<T, TVal> {
+    return new DialogCloseResult(status, value);
+  }
+}
 
 export interface IDialogCustomElementViewModel extends ICustomElementViewModel {
   $dialog: IDialogController;
@@ -234,18 +252,10 @@ export const enum DialogDeactivationStatuses {
   Abort = 'abort',
 }
 
-export interface IDialogCloseResult<
-  TStatus extends DialogDeactivationStatuses = DialogDeactivationStatuses,
-  TVal = unknown,
-> {
-  readonly status: TStatus;
-  readonly value?: TVal;
-}
-
 /**
  * The result received when a dialog opens.
  */
-export interface IDialogOpenResult {
+export interface DialogOpenResult {
   readonly wasCancelled: boolean;
   /**
    * The controller for the open dialog.
@@ -292,7 +302,7 @@ export interface IDialogComponentCanDeactivate {
    * To cancel the closing of the dialog return false or a promise that resolves to false.
    * Any other returned value is coerced to true.
    */
-  canDeactivate(result: IDialogCloseResult): boolean | Promise<boolean> | PromiseLike<boolean>;
+  canDeactivate(result: DialogCloseResult): boolean | Promise<boolean> | PromiseLike<boolean>;
 }
 
 /**
@@ -302,7 +312,7 @@ export interface IDialogComponentDeactivate {
   /**
    * Implement this hook if you want to perform custom logic when the dialog is being closed.
    */
-  deactivate(result: IDialogCloseResult): void | Promise<void> | PromiseLike<void>;
+  deactivate(result: DialogCloseResult): void | Promise<void> | PromiseLike<void>;
 }
 
 // #endregion

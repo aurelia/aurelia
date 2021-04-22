@@ -1,14 +1,14 @@
 import { IContainer, onResolve, Registration, resolveAll } from '@aurelia/kernel';
 
 import {
-  IDialogService,
+  DialogActionKey,
+  DialogCloseResult,
   DialogDeactivationStatuses,
-  IDialogCloseResult,
+  DialogOpenResult,
+  IDialogService,
   IDialogController,
-  IDialogOpenResult,
   IDialogGlobalSettings,
   IDialogLoadedSettings,
-  DialogActionKey,
 } from './dialog-interfaces.js';
 import { DialogController } from './dialog-controller.js';
 
@@ -88,7 +88,7 @@ export class DialogService implements IDialogService {
    * ```
    */
   public open(settings: IDialogSettings): IDialogOpenPromise {
-    return asDialogOpenPromise(new Promise<IDialogOpenResult>(resolve => {
+    return asDialogOpenPromise(new Promise<DialogOpenResult>(resolve => {
       const $settings = DialogSettings.from(this.defaultSettings, settings);
       const container = $settings.container ?? this.container.createChild();
 
@@ -223,8 +223,8 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
 }
 
 function whenClosed<TResult1 = unknown, TResult2 = unknown>(
-  this: Promise<IDialogOpenResult>,
-  onfulfilled?: (r: IDialogCloseResult) => TResult1 | PromiseLike<TResult1>,
+  this: Promise<DialogOpenResult>,
+  onfulfilled?: (r: DialogCloseResult) => TResult1 | PromiseLike<TResult1>,
   onrejected?: (err: unknown) => TResult2 | PromiseLike<TResult2>
 ): Promise<TResult1 | TResult2> {
   return this.then(openResult => openResult.dialog.closed.then(onfulfilled, onrejected));

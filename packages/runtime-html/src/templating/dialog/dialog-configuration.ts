@@ -1,7 +1,7 @@
 import { IContainer, IRegistry, noop, Registration } from '@aurelia/kernel';
 
 import { IDialogGlobalSettings } from './dialog-interfaces.js';
-import { DefaultDialogGlobalSettings, DefaultDialogAnimator, DefaultDialogDomRenderer } from './dialog-default-impl.js';
+import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-default-impl.js';
 import { AppTask } from '../../app-task.js';
 import { DialogService } from './dialog-service.js';
 
@@ -40,7 +40,7 @@ DialogConfiguration.customize(settings => {
 export const DialogConfiguration = createConfiguration(() => {
   throw new Error('Invalid dialog configuration. ' +
     'Specify the implementations for ' +
-    '<IDialogService>, <IDialogGlobalSettings>, <IDialogDomRenderer> and <IDialogAnimator>, ' +
+    '<IDialogService>, <IDialogGlobalSettings> and <IDialogDomRenderer>, ' +
     'or use the DefaultDialogConfiguration export.'
   );
 }, [class NoopDialogGlobalSettings {
@@ -53,5 +53,4 @@ export const DialogDefaultConfiguration = createConfiguration(noop, [
   DialogService,
   DefaultDialogGlobalSettings,
   DefaultDialogDomRenderer,
-  DefaultDialogAnimator,
 ]);

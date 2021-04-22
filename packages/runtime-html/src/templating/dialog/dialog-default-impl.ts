@@ -1,6 +1,5 @@
 import { IPlatform } from '../../platform.js';
 import {
-  IDialogAnimator,
   IDialogDomRenderer,
   IDialogDom,
   IDialogDomSubscriber,
@@ -85,38 +84,5 @@ export class DefaultDialogDom implements IDialogDom {
     this.wrapper.remove();
     this.overlay.removeEventListener(this.e, this);
     this.subs.clear();
-  }
-}
-
-export interface IDefaultDialogAnimationSettings {
-  ignoreTransitions?: boolean;
-  attaching?: Parameters<Element['animate']>;
-  detaching?: Parameters<Element['animate']>;
-}
-
-/**
- * A default implementation for IDialogRenderer interface
- */
-export class DefaultDialogAnimator implements IDialogAnimator<IDefaultDialogAnimationSettings> {
-
-  public static register(container: IContainer) {
-    Registration.singleton(IDialogAnimator, this).register(container);
-  }
-
-  public attaching(dialogDom: IDialogDom, animation: IDefaultDialogAnimationSettings = {}): void | Promise<Animation> {
-    return this.animate(dialogDom.contentHost, animation.attaching, animation.ignoreTransitions);
-  }
-
-  public detaching(dialogDom: IDialogDom, animation: IDefaultDialogAnimationSettings = {}): void | Promise<Animation> {
-    return this.animate(dialogDom.contentHost, animation.detaching, animation.ignoreTransitions);
-  }
-
-  private animate(host: HTMLElement, params?: Parameters<Element['animate']>, doNotWait?: boolean): void | Promise<Animation> {
-    if (params != null) {
-      const animation = host.animate(...params);
-      if (!doNotWait) {
-        return animation.finished;
-      }
-    }
   }
 }

@@ -10,17 +10,16 @@ export {
   IDialogDom,
   IDialogDomRenderer,
   IDialogDomSubscriber,
-  IDialogAnimator,
 
   DialogDeactivationStatuses,
   // dialog results
-  IDialogCloseResult,
-  IDialogError,
-  IDialogCancelError,
-  IDialogCloseError,
+  DialogCloseResult,
+  DialogError,
+  DialogCancelError,
+  DialogCloseError,
   IDialogCustomElementViewModel,
   IDialogOpenPromise,
-  IDialogOpenResult,
+  DialogOpenResult,
 
   // dialog settings
   IDialogSettings,
@@ -46,9 +45,7 @@ export {
 } from './templating/dialog/dialog-configuration.js';
 
 export {
-  DefaultDialogAnimator,
   DefaultDialogDom,
   DefaultDialogDomRenderer,
   DefaultDialogGlobalSettings,
-  IDefaultDialogAnimationSettings,
 } from './templating/dialog/dialog-default-impl.js';

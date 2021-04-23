@@ -22,22 +22,22 @@ There's a set of default implementations for the main interfaces of the Dialog p
 - `IDialogGlobalSettings`
 - `IDialogDomRenderer`
 
-These default implementation are grouped in the export named `DefaultDialogConfiguration` of the dialog plugin, which can be used per the following:
+These default implementation are grouped in the export named `DialogDefaultConfiguration` of the dialog plugin, which can be used per the following:
 ```ts
-import { DefaultDialogConfiguration } from '@aurelia/runtime-html';
+import { DialogDefaultConfiguration } from '@aurelia/runtime-html';
 import { Aurelia } from 'aurelia';
 
-Aurelia.register(DefaultDialogConfiguration).app(MyApp).start();
+Aurelia.register(DialogDefaultConfiguration).app(MyApp).start();
 ```
 
 ### Configuring the Plugin
-The export `DefaultDialogConfiguration` is a preset of default behaviors & implementations that are done in a way suitable to most common scenarios.
+The export `DialogDefaultConfiguration` is a preset of default behaviors & implementations that are done in a way suitable to most common scenarios.
 
 * If it's desirable to change some of the behaviors or implementations of, we can either change the first or the 2nd parameter of the `customize` function on this object.
 
   An example of changing the behavior for configuring the global settings is:
   ```typescript
-  Aurelia.register(DefaultDialogConfiguration.customize(globalSettings => {
+  Aurelia.register(DialogDefaultConfiguration.customize(globalSettings => {
     // change global settings ...
   })).app(MyApp).start()
   ```
@@ -86,7 +86,7 @@ Make all dialogs, by default:
 - have starting CSS `z-index` of 5
 - if not locked, closable by hitting the `ESC` key
 ```typescript
-Aurelia.register(DefaultDialogConfiguration.customize(settings => {
+Aurelia.register(DialogDefaultConfiguration.customize(settings => {
   settings.lock = true;
   settings.startingZIndex = 5;
   settings.keyboard = true;
@@ -474,6 +474,7 @@ This hook can be used to do any clean up work. The hook is invoked with one resu
 Each dialog instance goes through the full lifecycle once.
 
 --- activation phase:
+
 1. `constructor()`
 2. `.canActivate()` - `dialog` *specific*
 3. `.activate()` - `dialog` *specific*
@@ -499,6 +500,7 @@ Each dialog instance goes through the full lifecycle once.
 - `DialogController` is no longer injectable. Inject `IDialogController` instead.
 - `viewModel` setting in `DialogService.prototype.open` is changed to `component`.
 - `view` setting in `DialogService.prototype.open` is changed to `template`.
+- `keyboard` setting in `DialogService.prototype.open` is changed to accept an array of `Enter`/`Escape` only. Boolean variants are no longer valid. In the future, the API may become less strict.
 - The resolved of `DialogService.prototype.open` is changed from:
     ```ts
     interface DialogOpenResult {

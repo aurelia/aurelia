@@ -366,6 +366,7 @@ export class Controller {
                 this.scope = scope !== null && scope !== void 0 ? scope : null;
                 break;
             case 2 /* synthetic */:
+                // maybe only check when there's not already a scope
                 if (scope === void 0 || scope === null) {
                     throw new Error(`Scope is null or undefined`);
                 }

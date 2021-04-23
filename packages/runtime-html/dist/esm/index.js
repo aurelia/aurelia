@@ -65,4 +65,11 @@ export { BindableInfo, ElementInfo, AttrInfo, BindingSymbol, CustomAttributeSymb
 export { CSSModulesProcessorRegistry, cssModules, ShadowDOMRegistry, IShadowDOMStyleFactory, shadowCSS, StyleConfiguration, AdoptedStyleSheetsStyles, StyleElementStyles, IShadowDOMStyles, IShadowDOMGlobalStyles, } from './templating/styles.js';
 export { Watch, watch, } from './watch.js';
 export { ComputedWatcher, ExpressionWatcher, } from './templating/watchers.js';
+export { 
+// configurations
+DialogConfiguration, DialogDefaultConfiguration, DialogDeactivationStatuses, IDialogGlobalSettings, 
+// main interfaces
+IDialogService, IDialogController, IDialogDomRenderer, IDialogDom, DialogOpenResult, DialogCloseResult, 
+// default impls
+DialogService, DialogController, DefaultDialogDom, DefaultDialogDomRenderer, DefaultDialogGlobalSettings, } from './dialog.js';
 //# sourceMappingURL=index.js.map

@@ -333,7 +333,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     compiledContext.registerProjections(projectionsMap, this.scope!);
     // once the projections are registered, we can cleanup the projection map to prevent memory leaks.
-    projectionsMap.clear();
+    // projectionsMap.clear();
     this.isStrictBinding = isStrictBinding;
 
     if ((this.hostController = CustomElement.for(this.host!, optional) as Controller | null) !== null) {

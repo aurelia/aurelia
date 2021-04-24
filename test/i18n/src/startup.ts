@@ -18,30 +18,30 @@ Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
 
 (async function () {
   const host = document.querySelector<HTMLElement>('app');
-  const searchParams = new URL(location.href).searchParams;
-  const fetchResource = !!searchParams.get('fetchResource');
+  // const searchParams = new URL(location.href).searchParams;
+  // const fetchResource = !!searchParams.get('fetchResource');
 
   const au = new Aurelia()
     .register(
       StandardConfiguration,
-      I18nConfiguration.customize((options) => {
-        options.translationAttributeAliases = ['t', 'i18n'];
-        const plugins = [intervalPlural.default];
-        if (fetchResource) {
-          plugins.push(Fetch);
-        }
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        options.initOptions = {
-          plugins,
-          resources: !fetchResource ? resources : undefined,
-          backend: fetchResource
-            ? { loadPath: '/locales/{{lng}}/{{ns}}.json', }
-            : undefined,
-          skipTranslationOnMissingKey: !!searchParams.get('skipkey')
-        } as I18nInitOptions;
-      }),
-      SutI18N,
-      CustomMessage,
+      // I18nConfiguration.customize((options) => {
+      //   options.translationAttributeAliases = ['t', 'i18n'];
+      //   const plugins = [intervalPlural.default];
+      //   if (fetchResource) {
+      //     plugins.push(Fetch);
+      //   }
+      //   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      //   options.initOptions = {
+      //     plugins,
+      //     resources: !fetchResource ? resources : undefined,
+      //     backend: fetchResource
+      //       ? { loadPath: '/locales/{{lng}}/{{ns}}.json', }
+      //       : undefined,
+      //     skipTranslationOnMissingKey: !!searchParams.get('skipkey')
+      //   } as I18nInitOptions;
+      // }),
+      // SutI18N,
+      // CustomMessage,
     );
   au.app({ host, component });
 

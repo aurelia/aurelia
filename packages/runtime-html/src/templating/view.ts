@@ -20,7 +20,7 @@ export class ViewFactory implements IViewFactory {
     public name: string,
     public readonly context: IRenderContext,
     public readonly contentType: AuSlotContentType | undefined,
-    public readonly projectionScope: Scope | null = null,
+    public projectionScope: Scope | null = null,
   ) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {

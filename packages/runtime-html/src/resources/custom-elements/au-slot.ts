@@ -1,4 +1,4 @@
-import { DI, Writable } from '@aurelia/kernel';
+import { DI, InstanceProvider, Writable } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
 import { IInstruction, Instruction } from '../../renderer.js';
@@ -18,14 +18,7 @@ export class SlotInfo {
   public constructor(
     public readonly name: string,
     public readonly type: AuSlotContentType,
-    public readonly projectionContext: ProjectionContext,
-  ) { }
-}
-
-export class ProjectionContext {
-  public constructor(
     public readonly content: CustomElementDefinition,
-    public readonly scope: Scope | null = null
   ) { }
 }
 
@@ -39,16 +32,28 @@ export class RegisteredProjections {
 export interface IProjectionProvider extends ProjectionProvider { }
 export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider', x => x.singleton(ProjectionProvider));
 
+const auSlotScopeMap: WeakMap<IInstruction, Scope> = new WeakMap<Instruction, Scope>();
 const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<Instruction, RegisteredProjections>();
 export class ProjectionProvider {
   public registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     for (const [instruction, $projections] of projections) {
-      projectionMap.set(instruction, new RegisteredProjections(scope, $projections));
+    console.log('registerProjections', instruction);
+    projectionMap.set(instruction, new RegisteredProjections(scope, $projections));
     }
   }
 
   public getProjectionFor(instruction: IInstruction): RegisteredProjections | null {
     return projectionMap.get(instruction) ?? null;
+  }
+
+  public registerScopeForAuSlot(auSlotInstruction: IInstruction, scope: Scope): void {
+    console.log('registerScopeForAuSlot', auSlotInstruction);
+    auSlotScopeMap.set(auSlotInstruction, scope);
+  }
+
+  public getScopeForAuSlot(auSlotInstruction: IInstruction): Scope | null {
+    console.log('getScopeForAuSlot', auSlotInstruction, auSlotScopeMap.has(auSlotInstruction));
+    return auSlotScopeMap.get(auSlotInstruction) ?? null;
   }
 }
 
@@ -72,6 +77,7 @@ export class AuSlot implements ICustomElementViewModel {
     this.view = factory.create().setLocation(location);
     this.isProjection = factory.contentType === AuSlotContentType.Projection;
     this.outerScope = factory.projectionScope;
+    console.log('au-slot ctor outer scope', this.outerScope);
   }
 
   public binding(
@@ -80,6 +86,7 @@ export class AuSlot implements ICustomElementViewModel {
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hostScope = this.$controller.scope.parentScope!;
+    console.log('au-slot binding outerScope === hostScope: ', this.outerScope === this.hostScope);
   }
 
   public attaching(

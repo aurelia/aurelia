@@ -5,7 +5,7 @@ import { Aurelia, AuSlotsInfo, bindable, BindingMode, customElement, CustomEleme
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
-describe('au-slot', function () {
+describe.only('au-slot', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];
@@ -82,6 +82,7 @@ describe('au-slot', function () {
       public readonly registrations: any[],
       public readonly expected: Record<string, readonly [string, AuSlotsInfo]>,
       public readonly additionalAssertion?: (ctx: AuSlotTestExecutionContext) => void | Promise<void>,
+      public readonly only: boolean = false,
     ) { }
   }
   function* getTestData() {
@@ -732,7 +733,9 @@ describe('au-slot', function () {
         [
           createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div>`),
         ],
-        { 'my-element': [`<div><div>Mustermann</div></div>`, new AuSlotsInfo(['default'])] }
+        { 'my-element': [`<div><div>Mustermann</div></div>`, new AuSlotsInfo(['default'])] },
+        undefined,
+        true,
       );
       yield new TestData(
         'works with "with" on self',
@@ -1477,8 +1480,8 @@ describe('au-slot', function () {
       );
     }
   }
-  for (const { spec, template, expected, registrations, additionalAssertion } of getTestData()) {
-    $it(spec,
+  for (const { spec, template, expected, registrations, additionalAssertion, only } of getTestData()) {
+    (only ? $it.only : $it)(spec,
       async function (ctx) {
         const { host, error } = ctx;
         assert.deepEqual(error, null);

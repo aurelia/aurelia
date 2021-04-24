@@ -400,8 +400,9 @@ export class CustomElementRenderer implements IRenderer {
 
     const slotInfo = instruction.slotInfo;
     if (slotInfo !== null) {
-      const projectionCtx = slotInfo.projectionContext;
-      viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
+      const scope = context.getScopeForAuSlot(instruction);
+      // console.log('[render] scope for au-slot', scope);
+      viewFactory = getRenderContext(slotInfo.content, context).getViewFactory(void 0, slotInfo.type, scope);
     }
 
     const targetedProjections = context.getProjectionFor(instruction);

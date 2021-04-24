@@ -9,6 +9,13 @@ export interface IHashChangeEvent extends HashChangeEvent {}
 export const IBaseHrefProvider = DI.createInterface<IBaseHrefProvider>('IBaseHrefProvider', x => x.singleton(BrowserBaseHrefProvider));
 export interface IBaseHrefProvider extends BrowserBaseHrefProvider {}
 
+export class BaseHref {
+  public constructor(
+    public readonly path: string,
+    public readonly rootedPath: string,
+  ) {}
+}
+
 /**
  * Default browser base href provider.
  *
@@ -21,13 +28,15 @@ export class BrowserBaseHrefProvider {
     @IWindow private readonly window: IWindow,
   ) {}
 
-  public getBaseHref(): string | null {
+  public getBaseHref(): BaseHref | null {
     const base = this.window.document.head.querySelector('base');
     if (base === null) {
       return null;
     }
 
-    return normalizePath(base.href);
+    const rootedPath = normalizePath(base.href);
+    const path = normalizePath(base.getAttribute('href') ?? '');
+    return new BaseHref(path, rootedPath);
   }
 }
 
@@ -42,7 +51,7 @@ export interface ILocationManager extends BrowserLocationManager {}
  * This is internal API for the moment. The shape of this API (as well as in which package it resides) is also likely temporary.
  */
 export class BrowserLocationManager {
-  private readonly baseHref: string;
+  private readonly baseHref: BaseHref;
   private eventId: number = 0;
 
   public constructor(
@@ -58,11 +67,11 @@ export class BrowserLocationManager {
     const baseHref = baseHrefProvider.getBaseHref();
     if (baseHref === null) {
       const origin = location.origin ?? '';
-      const normalized = this.baseHref = normalizePath(origin);
-      this.logger.warn(`no baseHref provided, defaulting to origin '${normalized}' (normalized from '${origin}')`);
+      const baseHref = this.baseHref = new BaseHref('', normalizePath(origin));
+      this.logger.warn(`no baseHref provided, defaulting to origin '${baseHref.rootedPath}' (normalized from '${origin}')`);
     } else {
-      const normalized = this.baseHref = normalizePath(baseHref);
-      this.logger.debug(`baseHref set to '${normalized}' (normalized from '${baseHref}')`);
+      this.baseHref = baseHref;
+      this.logger.debug(`baseHref set to path: '${baseHref.path}', rootedPath: '${baseHref.rootedPath}'`);
     }
   }
 
@@ -105,6 +114,7 @@ export class BrowserLocationManager {
   }
 
   public pushState(state: {} | null, title: string, url: string): void {
+    url = this.addBaseHref(url);
     try {
       const stateString = JSON.stringify(state);
       this.logger.trace(`pushState(state:${stateString},title:'${title}',url:'${url}')`);
@@ -116,6 +126,7 @@ export class BrowserLocationManager {
   }
 
   public replaceState(state: {} | null, title: string, url: string): void {
+    url = this.addBaseHref(url);
     try {
       const stateString = JSON.stringify(state);
       this.logger.trace(`replaceState(state:${stateString},title:'${title}',url:'${url}')`);
@@ -128,7 +139,7 @@ export class BrowserLocationManager {
 
   public getPath(): string {
     const { pathname, search, hash } = this.location;
-    const path = this.normalize(`${pathname}${normalizeQuery(search)}${hash}`);
+    const path = this.removeBaseHref(`${pathname}${normalizeQuery(search)}${hash}`);
 
     this.logger.trace(`getPath() -> '${path}'`);
 
@@ -136,37 +147,44 @@ export class BrowserLocationManager {
   }
 
   public currentPathEquals(path: string): boolean {
-    const equals = this.getPath() === this.normalize(path);
+    const equals = this.getPath() === this.removeBaseHref(path);
 
     this.logger.trace(`currentPathEquals(path:'${path}') -> ${equals}`);
 
     return equals;
   }
 
-  public getExternalURL(path: string): string {
-    const $path = path;
-    let base = this.baseHref;
+  public addBaseHref(path: string): string {
+    const initialPath = path;
+    let fullPath: string;
+
+    let base = this.baseHref.rootedPath;
     if (base.endsWith('/')) {
       base = base.slice(0, -1);
     }
-    if (path.startsWith('/')) {
-      path = path.slice(1);
+
+    if (base.length === 0) {
+      fullPath = path;
+    } else {
+      if (path.startsWith('/')) {
+        path = path.slice(1);
+      }
+      fullPath = `${base}/${path}`;
     }
-    const url = `${base}/${path}`;
 
-    this.logger.trace(`getExternalURL(path:'${$path}') -> '${url}'`);
+    this.logger.trace(`addBaseHref(path:'${initialPath}') -> '${fullPath}'`);
 
-    return url;
+    return fullPath;
   }
 
-  private normalize(path: string): string {
+  public removeBaseHref(path: string): string {
     const $path = path;
-    if (path.startsWith(this.baseHref)) {
-      path = path.slice(this.baseHref.length);
+    if (path.startsWith(this.baseHref.path)) {
+      path = path.slice(this.baseHref.path.length);
     }
     path = normalizePath(path);
 
-    this.logger.trace(`normalize(path:'${$path}') -> '${path}'`);
+    this.logger.trace(`removeBaseHref(path:'${$path}') -> '${path}'`);
 
     return path;
   }

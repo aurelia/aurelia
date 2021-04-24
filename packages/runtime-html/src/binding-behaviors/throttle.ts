@@ -12,7 +12,7 @@ const defaultDelay = 200;
 export class ThrottleBindingBehavior extends BindingInterceptor {
   private readonly taskQueue: TaskQueue;
   private readonly platform: IPlatform;
-  private readonly opts: QueueTaskOptions = { delay: 0 };
+  private readonly opts: QueueTaskOptions = { delay: defaultDelay };
   private readonly firstArg: IsAssign | null = null;
   private task: ITask | null = null;
   private lastCall: number = 0;
@@ -75,7 +75,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.firstArg !== null) {
-      const delay = Number(this.firstArg.evaluate(flags,  scope,  hostScope,  this.locator, null, null));
+      const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator, null));
       this.opts.delay = this.delay = isNaN(delay) ? defaultDelay : delay;
     }
     this.binding.$bind(flags, scope, hostScope);

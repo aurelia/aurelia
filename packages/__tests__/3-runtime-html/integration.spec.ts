@@ -124,8 +124,8 @@ describe('runtime-html.integration', function () {
           const app = ctx.app;
           const container = app.container;
           const host = ctx.host;
-          assert.strictEqual(container, host.querySelector('#cr'));
-          assert.strictEqual(app['container2'], host.querySelector('#cr2'));
+          assert.strictEqual(container, host.querySelector('#cr'), '#cr');
+          assert.strictEqual(app['container2'], host.querySelector('#cr2'), '#cr2');
           assert.html.textContent(container, '1');
 
           const childEl = host.querySelector('#child');
@@ -133,17 +133,17 @@ describe('runtime-html.integration', function () {
 
           const childVm = CustomElement.for<Child>(childEl).viewModel;
           const childContainer = childVm.container;
-          assert.strictEqual(childEl.querySelector('#cc'), childContainer);
-          assert.strictEqual(childVm['container2'], childEl.querySelector('#cc2'));
+          assert.strictEqual(childEl.querySelector('#cc'), childContainer, '#cc');
+          assert.strictEqual(childVm['container2'], childEl.querySelector('#cc2'), '#cc2');
           assert.html.textContent(childContainer, '2');
 
           const grandChildEl = childEl.querySelector('#grandChild');
-          assert.strictEqual(childVm.grandChild, grandChildEl);
+          assert.strictEqual(childVm.grandChild, grandChildEl, '#grandChild');
 
           const grandChildVm = CustomElement.for<GrandChild>(grandChildEl).viewModel;
           const grandChildContainer = grandChildVm.container;
-          assert.strictEqual(grandChildEl.querySelector('#cgc'), grandChildContainer);
-          assert.strictEqual(grandChildVm['container2'], grandChildEl.querySelector('#cgc2'));
+          assert.strictEqual(grandChildEl.querySelector('#cgc'), grandChildContainer, '#cgc');
+          assert.strictEqual(grandChildVm['container2'], grandChildEl.querySelector('#cgc2'), '#cgc2');
           assert.html.textContent(grandChildContainer, '3');
         }
       );

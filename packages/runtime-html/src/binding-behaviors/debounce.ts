@@ -14,7 +14,7 @@ const defaultDelay = 200;
 //
 export class DebounceBindingBehavior extends BindingInterceptor {
   private readonly taskQueue: TaskQueue;
-  private readonly opts: QueueTaskOptions = { delay: 0 };
+  private readonly opts: QueueTaskOptions = { delay: defaultDelay };
   private readonly firstArg: IsAssign | null = null;
   private task: ITask | null = null;
 

@@ -6,6 +6,7 @@ import { IRouteContext } from '../route-context.js';
 import { NavigationInstruction, Params, ViewportInstructionTree } from '../instructions.js';
 import { IRouterEvents } from '../router-events.js';
 import { RouteDefinition } from '../route-definition.js';
+import { ILocationManager } from '../location-manager.js';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
@@ -34,6 +35,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     @IRouterEvents private readonly events: IRouterEvents,
     @IEventDelegator private readonly delegator: IEventDelegator,
     @IRouteContext private readonly ctx: IRouteContext,
+    @ILocationManager private readonly locationMgr: ILocationManager,
   ) {
     // Ensure the element is not explicitly marked as external.
     this.isEnabled = !el.hasAttribute('external') && !el.hasAttribute('data-external');
@@ -66,6 +68,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   }
 
   public valueChanged(): void {
+    const useHash = this.router.options.useUrlFragmentHash;
     if (this.route !== null && this.route !== void 0 && this.ctx.allResolved === null) {
       const def = (this.ctx.childRoutes as RouteDefinition[]).find(x => x.id === this.route);
       if (def !== void 0) {
@@ -87,21 +90,21 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
         path = path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, '');
         if (parentPath) {
           if (path) {
-            this.href = [parentPath, path].join('/');
+            this.href = `${useHash ? '#' : ''}${[parentPath, path].join('/')}`;
           } else {
-            this.href = parentPath;
+            this.href = `${useHash ? '#' : ''}${parentPath}`;
           }
         } else {
-          this.href = path;
+          this.href = `${useHash ? '#' : ''}${path}`;
         }
-        this.instructions = this.router.createViewportInstructions(path, { context: this.ctx });
+        this.instructions = this.router.createViewportInstructions(`${useHash ? '#' : ''}${path}`, { context: this.ctx });
       } else {
         if (typeof this.params === 'object' && this.params !== null) {
           this.instructions = this.router.createViewportInstructions({ component: this.route as NavigationInstruction, params: this.params as Params }, { context: this.ctx });
         } else {
           this.instructions = this.router.createViewportInstructions(this.route as NavigationInstruction, { context: this.ctx });
         }
-        this.href = this.instructions.toUrl();
+        this.href = this.instructions.toUrl(this.router.options.useUrlFragmentHash);
       }
     } else {
       this.instructions = null;
@@ -115,7 +118,8 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
       if (this.href === null) {
         this.el.removeAttribute(this.attribute);
       } else {
-        this.el.setAttribute(this.attribute, this.href);
+        const value = useHash ? this.href : this.locationMgr.addBaseHref(this.href);
+        this.el.setAttribute(this.attribute, value);
       }
     }
   }

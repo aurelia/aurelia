@@ -125,7 +125,7 @@ import { inject, IContainer, IAttrSyntaxTransformer, INodeObserverLocator, AppTa
 
 Aurelia
   .register(
-    AppTask.with(IContainer).beforeCreate().call(container => {
+    AppTask.beforeCreate(IContainer, container => {
       const attrSyntaxTransformer = container.get(IAttrSyntaxTransformer);
       const nodeObserverLocator = container.get(INodeObserverLocator);
       attrSyntaxTransformer.useTwoWay((el, property) => {

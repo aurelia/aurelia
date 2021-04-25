@@ -38,7 +38,7 @@ export const DialogConfiguration = createDialogConfiguration(() => {
   throw new Error('Invalid dialog configuration. ' +
     'Specify the implementations for ' +
     '<IDialogService>, <IDialogGlobalSettings> and <IDialogDomRenderer>, ' +
-    'or use the DefaultDialogConfiguration export.'
+    'or use the DialogDefaultConfiguration export.'
   );
 }, [class NoopDialogGlobalSettings {
   public static register(container: IContainer): void {

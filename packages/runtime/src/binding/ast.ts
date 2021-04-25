@@ -414,7 +414,7 @@ export class BindingBehaviorExpression {
     if (!(behavior instanceof BindingBehaviorFactory)) {
       if ((b as BindingWithBehavior)[this.behaviorKey] === void 0) {
         (b as BindingWithBehavior)[this.behaviorKey] = behavior;
-        (behavior.bind.call as (...args: unknown[]) => void)(behavior, f, s, hs, b, ...this.args.map(a => a.evaluate(f, s, hs, b.locator, null, null)));
+        (behavior.bind.call as (...args: unknown[]) => void)(behavior, f, s, hs, b, ...this.args.map(a => a.evaluate(f, s, hs, b.locator, null, null))); // TODO: handle binding m properly
       } else {
         throw new Error(`BindingBehavior named '${this.name}' already applied.`);
       }

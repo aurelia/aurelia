@@ -23,7 +23,7 @@ import {
 
 const spec = 'repeater-custom-element';
 
-describe(spec, function () {
+describe.only(spec, function () {
 
   interface TestSetupContext<TApp> {
     template: string;

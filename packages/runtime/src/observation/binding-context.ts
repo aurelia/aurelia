@@ -136,8 +136,7 @@ function chooseContext(
   }
 
   if (overrideContext) {
-    const bc = overrideContext.bindingContext;
-    return (name in overrideContext || !(name in bc)) ? overrideContext : bc;
+    return name in overrideContext ? overrideContext : overrideContext.bindingContext;
   }
 
   return null;

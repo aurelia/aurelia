@@ -582,7 +582,7 @@ describe('PropertyBinding', function () {
         const originalScope = JSON.parse(JSON.stringify(scope));
         // - Arrange - Part 1
         const { sut, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
-        const srcVal = expr.evaluate(LF.none, scope, null, container, null, BindingMode.twoWay);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null, null);
         const targetObserver = observerLocator.getObserver(target, prop) as IObserver & ISubscriberCollection;
 
         // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');

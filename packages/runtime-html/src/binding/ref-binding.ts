@@ -33,7 +33,7 @@ export class RefBinding implements IBinding {
       this.sourceExpression.bind(flags, scope, hostScope, this);
     }
 
-    this.sourceExpression.assign!(flags, this.$scope, hostScope, this.locator, null, this.target);
+    this.sourceExpression.assign!(flags, this.$scope, hostScope, this.locator, this.target);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -45,8 +45,8 @@ export class RefBinding implements IBinding {
     }
 
     let sourceExpression = this.sourceExpression;
-    if (sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, null, null) === this.target) {
-      sourceExpression.assign!(flags, this.$scope!, this.$hostScope, this.locator, null, null);
+    if (sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, null) === this.target) {
+      sourceExpression.assign!(flags, this.$scope!, this.$hostScope, this.locator, null);
     }
 
     // source expression might have been modified durring assign, via a BB

@@ -149,7 +149,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     if (expression === void 0) {
       value = object;
     } else {
-      value = expression.evaluate(flags, scope, null, this.locator, null, null); // TODO: get proper hostScope?
+      value = expression.evaluate(flags, scope, null, this.locator, null); // TODO: get proper hostScope?
     }
 
     let isValid = true;
@@ -172,7 +172,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
               rule,
               object,
             ));
-          message = this.messageProvider.getMessage(rule).evaluate(flags!, messageEvaluationScope, null, null!, null, null) as string;
+          message = this.messageProvider.getMessage(rule).evaluate(flags!, messageEvaluationScope, null, null!, null) as string;
         }
         return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
       };

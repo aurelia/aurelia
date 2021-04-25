@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { BindingMode, LifecycleFlags } from '../observation.js';
+import { LifecycleFlags } from '../observation.js';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type { IBinding, IBindingContext, IOverrideContext } from '../observation.js';
@@ -49,14 +49,7 @@ export class BindingContext implements IBindingContext {
     return new BindingContext(keyOrObj, value);
   }
 
-  public static get(
-    scope: Scope,
-    name: string,
-    ancestor: number,
-    flags: LifecycleFlags,
-    mode: BindingMode | null,
-    hostScope?: Scope | null,
-  ): IBindingContext | IOverrideContext | IBinding | undefined | null {
+  public static get(scope: Scope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: Scope | null): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (scope == null && hostScope == null) {
       throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
     }

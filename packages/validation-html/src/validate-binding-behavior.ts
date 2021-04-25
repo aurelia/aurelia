@@ -179,16 +179,16 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
       const arg = args[i];
       switch (i) {
         case 0:
-          trigger = this.ensureTrigger(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.triggerMediator, this.propertyBinding.mode));
+          trigger = this.ensureTrigger(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.triggerMediator));
           break;
         case 1:
-          controller = this.ensureController(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.controllerMediator, this.propertyBinding.mode));
+          controller = this.ensureController(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.controllerMediator));
           break;
         case 2:
-          rules = this.ensureRules(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.rulesMediator, this.propertyBinding.mode));
+          rules = this.ensureRules(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.rulesMediator));
           break;
         default:
-          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${arg.evaluate(evaluationFlags, scope, hostScope, locator, null, this.propertyBinding.mode)}`);
+          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${arg.evaluate(evaluationFlags, scope, hostScope, locator, null)}`);
       }
     }
 

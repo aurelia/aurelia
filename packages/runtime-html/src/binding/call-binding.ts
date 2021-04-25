@@ -31,7 +31,7 @@ export class CallBinding {
     // OR, at the very least, use getter/setter for each property in args to get/set original source
     // ---
     Object.assign(overrideContext, args);
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.$hostScope, this.locator, null, null);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.$hostScope, this.locator, null);
 
     for (const prop in args) {
       Reflect.deleteProperty(overrideContext, prop);

@@ -42,7 +42,7 @@ export class LetBinding implements IPartialConnectableBinding {
     const targetProperty = this.targetProperty as string;
     const previousValue: unknown = target[targetProperty];
     this.obs.version++;
-    newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, this.interceptor, null);
+    newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, this.interceptor);
     this.obs.clear(false);
     if (newValue !== previousValue) {
       target[targetProperty] = newValue;
@@ -67,7 +67,7 @@ export class LetBinding implements IPartialConnectableBinding {
     }
     // sourceExpression might have been changed during bind
     this.target[this.targetProperty]
-      = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, hostScope, this.locator, this.interceptor, null);
+      = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, hostScope, this.locator, this.interceptor);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;

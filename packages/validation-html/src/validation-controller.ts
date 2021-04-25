@@ -149,7 +149,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
         if (toCachePropertyName) {
           toCachePropertyName = keyExpr.$kind === ExpressionKind.PrimitiveLiteral;
         }
-        memberName = `[${(keyExpr.evaluate(flags, scope, hostScope, locator, null, binding.mode) as any).toString()}]`;
+        memberName = `[${(keyExpr.evaluate(flags, scope, hostScope, locator, null) as any).toString()}]`;
         break;
       }
       default:
@@ -167,7 +167,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
     propertyName = expression.name;
     object = expression.accessHostScope ? hostScope?.bindingContext : scope.bindingContext;
   } else {
-    object = expression.evaluate(flags, scope, hostScope, locator, null, binding.mode);
+    object = expression.evaluate(flags, scope, hostScope, locator, null);
   }
   if (object === null || object === void 0) {
     return (void 0);

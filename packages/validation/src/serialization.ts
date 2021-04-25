@@ -255,7 +255,7 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
         const parsed = this.parser.parse(when, BindingType.None);
         rule.canExecute = (object: IValidateable) => {
           const flags = LifecycleFlags.none; // TODO? need to get the flags propagated here?
-          return parsed.evaluate(flags, Scope.create({ $object: object }), null, this.locator, null, null) as boolean; // TODO get hostScope?
+          return parsed.evaluate(flags, Scope.create({ $object: object }), null, this.locator, null) as boolean; // TODO get hostScope?
         };
       } else if (typeof when === 'function') {
         rule.canExecute = when;

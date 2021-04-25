@@ -1525,6 +1525,7 @@ describe('promise template-controller', function () {
             <let items.bind="[[42, true], ['foo-bar', false], ['forty-two', true], ['fizz-bazz', false]]"></let>
             <template repeat.for="item of items">
               <template ${pattribute}="item[0] | promisify:item[1]">
+                <let data.bind="null" err.bind="null"></let>
                 <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
                 <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
               </template>
@@ -1546,6 +1547,7 @@ describe('promise template-controller', function () {
           <template>
             <let items.bind="[[42, true], ['foo-bar', false], ['forty-two', true], ['fizz-bazz', false]]"></let>
               <template repeat.for="item of items" ${pattribute}="item[0] | promisify:item[1]">
+                <let data.bind="null" err.bind="null"></let>
                 <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
                 <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
               </template>
@@ -2717,6 +2719,7 @@ describe('promise template-controller', function () {
             {
               template: `
               <div ${pattribute}="promise">
+                <let data.bind="null" err.bind="null"></let>
                 <div ${fattribute}="data">\${data} \${$parent.data}</div>
                 <div ${rattribute}="err">'\${err.message}' '\${$parent.err.message}'</div>
               </div>`,
@@ -2816,8 +2819,8 @@ describe('promise template-controller', function () {
               const s = app.$controller.scope;
               const bc = s.bindingContext;
               const oc = s.overrideContext;
-              assert.strictEqual('data' in bc, false, 'data in bc');
-              assert.strictEqual('err' in bc, false, 'err in bc');
+              assert.strictEqual('data' in bc, true, 'data in bc');
+              assert.strictEqual('err' in bc, true, 'err in bc');
               assert.strictEqual('data' in oc, false, 'data in oc');
               assert.strictEqual('err' in oc, false, 'err in oc');
             },

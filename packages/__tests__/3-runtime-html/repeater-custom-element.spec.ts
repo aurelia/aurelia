@@ -23,7 +23,7 @@ import {
 
 const spec = 'repeater-custom-element';
 
-describe.only(spec, function () {
+describe(spec, function () {
 
   interface TestSetupContext<TApp> {
     template: string;
@@ -146,6 +146,7 @@ describe.only(spec, function () {
       template:
         `<template>
           <template repeat.for="i of 2">
+            <let id.bind="null"></let>
             <bar id.from-view="id"></bar>
             <foo prop.bind="id"></foo>
           </template>

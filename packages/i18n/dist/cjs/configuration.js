@@ -51,7 +51,7 @@ function coreComponents(options) {
     ];
     return {
         register(container) {
-            return container.register(kernel_1.Registration.callback(i18n_configuration_options_js_1.I18nInitOptions, () => options.initOptions), runtime_html_1.AppTask.with(i18n_js_1.I18N).beforeActivate().call(i18n => i18n.initPromise), kernel_1.Registration.singleton(i18next_wrapper_js_1.I18nWrapper, i18next_wrapper_js_1.I18nextWrapper), kernel_1.Registration.singleton(i18n_js_1.I18N, i18n_js_1.I18nService), ...renderers, ...translation);
+            return container.register(kernel_1.Registration.callback(i18n_configuration_options_js_1.I18nInitOptions, () => options.initOptions), runtime_html_1.AppTask.beforeActivate(i18n_js_1.I18N, i18n => i18n.initPromise), kernel_1.Registration.singleton(i18next_wrapper_js_1.I18nWrapper, i18next_wrapper_js_1.I18nextWrapper), kernel_1.Registration.singleton(i18n_js_1.I18N, i18n_js_1.I18nService), ...renderers, ...translation);
         }
     };
 }

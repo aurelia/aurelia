@@ -28,7 +28,7 @@ export class DialogService {
     // tslint:disable-next-line:member-ordering
     static get inject() { return [IContainer, IPlatform, IDialogGlobalSettings]; }
     static register(container) {
-        container.register(Registration.singleton(IDialogService, this), AppTask.with(IDialogService).beforeDeactivate().call(dialogService => onResolve(dialogService.closeAll(), (openDialogController) => {
+        container.register(Registration.singleton(IDialogService, this), AppTask.beforeDeactivate(IDialogService, dialogService => onResolve(dialogService.closeAll(), (openDialogController) => {
             if (openDialogController.length > 0) {
                 // todo: what to do?
                 throw new Error(`There are still ${openDialogController.length} open dialog(s).`);

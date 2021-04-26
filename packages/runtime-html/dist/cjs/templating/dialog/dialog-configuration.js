@@ -9,10 +9,7 @@ const dialog_service_js_1 = require("./dialog-service.js");
 function createDialogConfiguration(settingsProvider, registrations) {
     return {
         settingsProvider: settingsProvider,
-        register: (ctn) => ctn.register(...registrations, app_task_js_1.AppTask
-            .with(kernel_1.IContainer)
-            .beforeCreate()
-            .call(c => settingsProvider(c.get(dialog_interfaces_js_1.IDialogGlobalSettings)))),
+        register: (ctn) => ctn.register(...registrations, app_task_js_1.AppTask.beforeCreate(() => settingsProvider(ctn.get(dialog_interfaces_js_1.IDialogGlobalSettings)))),
         customize(cb, regs) {
             return createDialogConfiguration(cb, regs !== null && regs !== void 0 ? regs : registrations);
         },

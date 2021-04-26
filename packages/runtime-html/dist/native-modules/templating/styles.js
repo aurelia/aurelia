@@ -145,7 +145,7 @@ export class StyleElementStyles {
 }
 export const StyleConfiguration = {
     shadowDOM(config) {
-        return AppTask.with(IContainer).beforeCreate().call(container => {
+        return AppTask.beforeCreate(IContainer, container => {
             if (config.sharedStyles != null) {
                 const factory = container.get(IShadowDOMStyleFactory);
                 container.register(Registration.instance(IShadowDOMGlobalStyles, factory.createStyles(config.sharedStyles, null)));

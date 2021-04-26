@@ -4,52 +4,40 @@ exports.AppTask = exports.IAppTask = void 0;
 const kernel_1 = require("@aurelia/kernel");
 exports.IAppTask = kernel_1.DI.createInterface('IAppTask');
 class $AppTask {
-    constructor(key) {
-        this.key = key;
-        this.slot = (void 0);
-        this.callback = (void 0);
-        this.container = (void 0);
-    }
-    static with(key) {
-        return new $AppTask(key);
-    }
-    beforeCreate() {
-        return this.at('beforeCreate');
-    }
-    hydrating() {
-        return this.at('hydrating');
-    }
-    hydrated() {
-        return this.at('hydrated');
-    }
-    beforeActivate() {
-        return this.at('beforeActivate');
-    }
-    afterActivate() {
-        return this.at('afterActivate');
-    }
-    beforeDeactivate() {
-        return this.at('beforeDeactivate');
-    }
-    afterDeactivate() {
-        return this.at('afterDeactivate');
-    }
-    at(slot) {
+    constructor(slot, key, cb) {
+        /** @internal */
+        this.c = (void 0);
         this.slot = slot;
-        return this;
-    }
-    call(fn) {
-        this.callback = fn;
-        return this;
+        this.k = key;
+        this.cb = cb;
     }
     register(container) {
-        return this.container = container.register(kernel_1.Registration.instance(exports.IAppTask, this));
+        return this.c = container.register(kernel_1.Registration.instance(exports.IAppTask, this));
     }
     run() {
-        const callback = this.callback;
-        const instance = this.container.get(this.key);
-        return callback(instance);
+        const key = this.k;
+        const cb = this.cb;
+        return key === null
+            ? cb()
+            : cb(this.c.get(key));
     }
 }
-exports.AppTask = $AppTask;
+exports.AppTask = Object.freeze({
+    beforeCreate: createAppTaskSlotHook('beforeCreate'),
+    hydrating: createAppTaskSlotHook('hydrating'),
+    hydrated: createAppTaskSlotHook('hydrated'),
+    beforeActivate: createAppTaskSlotHook('beforeActivate'),
+    afterActivate: createAppTaskSlotHook('afterActivate'),
+    beforeDeactivate: createAppTaskSlotHook('beforeDeactivate'),
+    afterDeactivate: createAppTaskSlotHook('afterDeactivate'),
+});
+function createAppTaskSlotHook(slotName) {
+    function appTaskFactory(keyOrCallback, callback) {
+        if (typeof callback === 'function') {
+            return new $AppTask(slotName, keyOrCallback, callback);
+        }
+        return new $AppTask(slotName, null, keyOrCallback);
+    }
+    return appTaskFactory;
+}
 //# sourceMappingURL=app-task.js.map

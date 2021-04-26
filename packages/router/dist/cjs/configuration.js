@@ -33,7 +33,7 @@ exports.DefaultResources = [
     href_js_1.HrefCustomAttribute,
 ];
 function configure(container, config) {
-    return container.register(runtime_html_1.AppTask.with(kernel_1.IContainer).hydrated().call(route_context_js_1.RouteContext.setRoot), runtime_html_1.AppTask.with(router_js_1.IRouter).afterActivate().call(router => {
+    return container.register(runtime_html_1.AppTask.hydrated(kernel_1.IContainer, route_context_js_1.RouteContext.setRoot), runtime_html_1.AppTask.afterActivate(router_js_1.IRouter, router => {
         if (kernel_1.isObject(config)) {
             if (typeof config === 'function') {
                 return config(router);
@@ -43,7 +43,7 @@ function configure(container, config) {
             }
         }
         return router.start({}, true);
-    }), runtime_html_1.AppTask.with(router_js_1.IRouter).afterDeactivate().call(router => {
+    }), runtime_html_1.AppTask.afterDeactivate(router_js_1.IRouter, router => {
         router.stop();
     }), ...exports.DefaultComponents, ...exports.DefaultResources);
 }

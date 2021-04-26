@@ -28,7 +28,7 @@ export const DefaultResources = [
     HrefCustomAttribute,
 ];
 function configure(container, config) {
-    return container.register(AppTask.with(IContainer).hydrated().call(RouteContext.setRoot), AppTask.with(IRouter).afterActivate().call(router => {
+    return container.register(AppTask.hydrated(IContainer, RouteContext.setRoot), AppTask.afterActivate(IRouter, router => {
         if (isObject(config)) {
             if (typeof config === 'function') {
                 return config(router);
@@ -38,7 +38,7 @@ function configure(container, config) {
             }
         }
         return router.start({}, true);
-    }), AppTask.with(IRouter).afterDeactivate().call(router => {
+    }), AppTask.afterDeactivate(IRouter, router => {
         router.stop();
     }), ...DefaultComponents, ...DefaultResources);
 }

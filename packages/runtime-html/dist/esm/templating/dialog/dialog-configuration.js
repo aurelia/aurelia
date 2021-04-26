@@ -1,4 +1,4 @@
-import { IContainer, noop, Registration } from '@aurelia/kernel';
+import { noop, Registration } from '@aurelia/kernel';
 import { IDialogGlobalSettings } from './dialog-interfaces.js';
 import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-default-impl.js';
 import { AppTask } from '../../app-task.js';
@@ -6,10 +6,7 @@ import { DialogService } from './dialog-service.js';
 function createDialogConfiguration(settingsProvider, registrations) {
     return {
         settingsProvider: settingsProvider,
-        register: (ctn) => ctn.register(...registrations, AppTask
-            .with(IContainer)
-            .beforeCreate()
-            .call(c => settingsProvider(c.get(IDialogGlobalSettings)))),
+        register: (ctn) => ctn.register(...registrations, AppTask.beforeCreate(() => settingsProvider(ctn.get(IDialogGlobalSettings)))),
         customize(cb, regs) {
             return createDialogConfiguration(cb, regs !== null && regs !== void 0 ? regs : registrations);
         },

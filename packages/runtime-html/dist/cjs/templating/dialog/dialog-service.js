@@ -31,7 +31,7 @@ class DialogService {
     // tslint:disable-next-line:member-ordering
     static get inject() { return [kernel_1.IContainer, platform_js_1.IPlatform, dialog_interfaces_js_1.IDialogGlobalSettings]; }
     static register(container) {
-        container.register(kernel_1.Registration.singleton(dialog_interfaces_js_1.IDialogService, this), app_task_js_1.AppTask.with(dialog_interfaces_js_1.IDialogService).beforeDeactivate().call(dialogService => kernel_1.onResolve(dialogService.closeAll(), (openDialogController) => {
+        container.register(kernel_1.Registration.singleton(dialog_interfaces_js_1.IDialogService, this), app_task_js_1.AppTask.beforeDeactivate(dialog_interfaces_js_1.IDialogService, dialogService => kernel_1.onResolve(dialogService.closeAll(), (openDialogController) => {
             if (openDialogController.length > 0) {
                 // todo: what to do?
                 throw new Error(`There are still ${openDialogController.length} open dialog(s).`);

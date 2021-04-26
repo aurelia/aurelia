@@ -70,7 +70,7 @@ function coreComponents(options: I18nConfigurationOptions) {
     register(container: IContainer) {
       return container.register(
         Registration.callback(I18nInitOptions, () => options.initOptions),
-        AppTask.with(I18N).beforeActivate().call(i18n => i18n.initPromise),
+        AppTask.beforeActivate(I18N, i18n => i18n.initPromise),
         Registration.singleton(I18nWrapper, I18nextWrapper),
         Registration.singleton(I18N, I18nService),
 

@@ -1,7 +1,7 @@
 import template from './editor.html';
 
 import { customElement, watch } from 'aurelia';
-import { IRouteableComponent, Parameters, IRouter } from '@aurelia/router';
+import { IRouteableComponent, Parameters, IRouter } from 'aurelia-direct-router';
 import { AuthHandler, IArticleState } from '../state';
 import { Article } from '../api';
 import { queue } from '../util';

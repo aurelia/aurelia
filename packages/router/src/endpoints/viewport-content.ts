@@ -378,7 +378,7 @@ export class ViewportContent extends EndpointContent {
         this.contentStates.set('activating', void 0);
 
         const contentController = this.contentController(connectedCE);
-        return contentController.activate(initiator ?? contentController, parent, flags, void 0, void 0, boundCallback, this.instruction.topInstruction ? attachPromise : void 0) as Promise<void>;
+        return contentController.activate(initiator ?? contentController, parent, flags, void 0, void 0 /*, boundCallback, this.instruction.topInstruction ? attachPromise : void 0 */) as Promise<void>;
       },
       () => {
         this.contentStates.set('activated', void 0);

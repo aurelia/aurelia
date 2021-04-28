@@ -1,7 +1,7 @@
 import template from './comment-view.html';
 
 import { bindable, customElement } from 'aurelia';
-import { IRouteableComponent } from '@aurelia/router';
+import { IRouteableComponent } from 'aurelia-direct-router';
 import { Comment } from '../api';
 import { IArticleState, IUserState } from '../state';
 import { queue } from '../util';

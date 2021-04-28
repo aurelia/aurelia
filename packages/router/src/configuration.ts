@@ -96,7 +96,7 @@ export class RouterConfiguration {
    */
   public static register(container: IContainer): IContainer {
     const _this = container.get(IRouterConfiguration);
-    // Transfer optins (that's possibly modified through .customize)
+    // Transfer options (that's possibly modified through .customize)
     _this.options = RouterConfiguration.options;
     _this.options.setRouterConfiguration(_this);
     // Reset defaults

@@ -1,22 +1,23 @@
 {
-  "name": "@aurelia/router",
-  "version": "0.9.0",
+  "name": "aurelia-direct-router",
+  "version": "0.9.1",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
   "type": "module",
-  "homepage": "https://aurelia.io",
+  "homepage": "https://github.com/jwx/aurelia-direct-router",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aurelia/aurelia"
+    "url": "https://github.com/jwx/aurelia-direct-router"
   },
   "bugs": {
-    "url": "https://github.com/aurelia/aurelia/issues"
+    "url": "https://github.com/jwx/aurelia-direct-router/issues"
   },
   "keywords": [
     "aurelia",
+    "direct",
     "router"
   ],
   "files": [
@@ -38,13 +39,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.9.0",
-    "@aurelia/metadata": "0.9.0",
-    "@aurelia/platform": "0.9.0",
-    "@aurelia/platform-browser": "0.9.0",
-    "@aurelia/route-recognizer": "0.9.0",
-    "@aurelia/runtime-html": "0.9.0",
-    "@aurelia/runtime": "0.9.0"
+    "@aurelia/kernel": "latest",
+    "@aurelia/metadata": "latest",
+    "@aurelia/platform": "latest",
+    "@aurelia/platform-browser": "latest",
+    "@aurelia/route-recognizer": "latest",
+    "@aurelia/runtime": "latest",
+    "@aurelia/runtime-html": "latest"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

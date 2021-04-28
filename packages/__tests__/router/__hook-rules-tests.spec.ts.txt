@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IContainer } from '@aurelia/kernel';
 import { CustomElement, customElement } from '@aurelia/runtime-html';
-import { IRouterOptions, IRouter } from '@aurelia/router';
+import { IRouterOptions, IRouter } from 'aurelia-direct-router';
 import { assert } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker.js';

@@ -522,10 +522,12 @@ export class Router implements IRouter {
               && matched.isClear(this) && matched.endpoint.instance === matchedInstruction.scope!.parent!.endpoint);
           }
           // If the endpoint has been changed/swapped the next scope instructions
-          // need to be moved into the new endpoint content scope
+          // need to be moved into the new endpoint content scope and the endpoint
+          // instance needs to be cleared
           if (action !== 'skip' && matchedInstruction.hasNextScopeInstructions) {
             for (const nextScopeInstruction of matchedInstruction.nextScopeInstructions!) {
               nextScopeInstruction.scope = endpoint.scope;
+              nextScopeInstruction.endpoint.instance = null;
             }
           }
         }

@@ -15,7 +15,7 @@ import {
   RoutingInstruction,
   Navigation,
   IRouterOptions,
-} from '@aurelia/router';
+} from 'aurelia-direct-router';
 import {
   customElement,
   CustomElement,

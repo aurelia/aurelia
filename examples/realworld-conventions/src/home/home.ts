@@ -1,7 +1,7 @@
 import template from './home.html';
 
 import { customElement } from 'aurelia';
-import { IRouteableComponent } from '@aurelia/router';
+import { IRouteableComponent } from 'aurelia-direct-router';
 import { IArticleListState, ITagsState, IUserState } from '../state';
 import { Article, ArticleListQueryParams } from '../api';
 

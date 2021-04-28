@@ -1,6 +1,6 @@
 import { IContainer, Registration, IRegistry, LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 import { MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { IRouter } from '@aurelia/router';
+import { IRouter } from 'aurelia-direct-router';
 import { AppTask, IHistory, ILocation } from '@aurelia/runtime-html';
 
 export const TestRouterConfiguration = {

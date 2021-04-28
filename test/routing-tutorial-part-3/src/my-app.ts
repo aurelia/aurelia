@@ -1,4 +1,4 @@
-import { IRouter, RouterConfiguration, RoutingInstruction } from '@aurelia/router';
+import { IRouter, RouterConfiguration, RoutingInstruction } from 'aurelia-direct-router';
 import { customElement } from '@aurelia/runtime-html';
 import { Auth } from "./main/auth";
 import template from './my-app.html';

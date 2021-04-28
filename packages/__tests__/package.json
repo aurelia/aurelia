@@ -39,7 +39,7 @@
     "@aurelia/platform": "0.9.0",
     "@aurelia/platform-browser": "0.9.0",
     "@aurelia/route-recognizer": "0.9.0",
-    "@aurelia/router": "0.9.0",
+    "aurelia-direct-router": "0.9.0",
     "@aurelia/runtime-html": "0.9.0",
     "@aurelia/runtime": "0.9.0",
     "@aurelia/store": "0.9.0",

@@ -1,5 +1,5 @@
 import { DI, ILifecycleHooks, ILogger } from 'aurelia';
-import { IRouteableComponent, LoadInstruction, Navigation, Parameters, RoutingInstruction } from '@aurelia/router';
+import { IRouteableComponent, LoadInstruction, Navigation, Parameters, RoutingInstruction } from 'aurelia-direct-router';
 import { Article, ArticleListResponse, ArticleResponse, Comment, ErrorRecordResponse, IApiService, IJwtService, ArticleQueryParams, User, UserLogin, UserRegistration, UserResponse, UserUpdate, ArticleListQueryParams, Profile, ProfileResponse, ErrorList } from './api';
 
 /**

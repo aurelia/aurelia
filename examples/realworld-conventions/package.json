@@ -9,7 +9,8 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "aurelia": "0.9.0"
+    "aurelia": "0.9.0",
+    "aurelia-direct-router": "../../packages/router"
   },
   "type": "module",
   "devDependencies": {

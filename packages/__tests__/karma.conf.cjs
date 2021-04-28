@@ -100,9 +100,9 @@ module.exports = function (config) {
     if (/\.js$/.test(file.pattern)) {
       // Only instrument core framework files (not the specs themselves, nor any test utils (for now))
       if (/__tests__|testing/.test(file.pattern) || !config.coverage) {
-        p[file.pattern] = ['aurelia'];
+        p[file.pattern] = [];
       } else {
-        p[file.pattern] = ['aurelia', 'karma-coverage-istanbul-instrumenter'];
+        p[file.pattern] = ['karma-coverage-istanbul-instrumenter'];
       }
     }
     return p;

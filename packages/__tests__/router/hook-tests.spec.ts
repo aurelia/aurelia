@@ -17,7 +17,7 @@ import {
   Navigation,
   RoutingInstruction,
   RouterConfiguration,
-} from '@aurelia/router';
+} from 'aurelia-direct-router';
 import { assert, TestContext } from '@aurelia/testing';
 
 import { ResolutionMode, SwapStrategy, translateOptions } from './_shared/create-fixture.js';

@@ -6,10 +6,6 @@ description: >-
 
 # Router Hooks
 
-{% hint style="info" %}
-`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
-{% endhint %}
-
 As the name implies, route hooks allow you to guard specific routes and redirect the user or cancel navigation entirely. In most cases, you will want to use route hooks to protect certain areas of your application from people who do not have the required permission.
 
 {% hint style="success" %}

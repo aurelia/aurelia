@@ -4,10 +4,6 @@ description: The Aurelia Router comes with support for easily creating navigatio
 
 # Navigation Menus
 
-{% hint style="info" %}
-`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
-{% endhint %}
-
 ## Creating Navigation Menus
 
 Injecting the router into your application and calling the `addNav` method, you can create navigation menus without needing to manually create the HTML yourself. Furthermore, navigation is highly configurable and allows you to work with strings, component instances and specify the target viewport.
@@ -26,13 +22,13 @@ export class MyApp implements IViewModel {
 
     afterBind() {
         this.router.addNav('main-nav', [
-            { 
-                title: 'Baz', 
-                route: Baz, 
+            {
+                title: 'Baz',
+                route: Baz,
                 children: [
-                    { 
-                        title: 'Bar', 
-                        route: ['bar', Baz] 
+                    {
+                        title: 'Bar',
+                        route: ['bar', Baz]
                     }
                 ]
             },
@@ -41,11 +37,11 @@ export class MyApp implements IViewModel {
                 route: 'bar'
             },
             {
-                title: 'Foo', 
-                route: { 
-                    component: Foo, 
-                    viewport: 'main-viewport' 
-                } 
+                title: 'Foo',
+                route: {
+                    component: Foo,
+                    viewport: 'main-viewport'
+                }
             }
         ]);
     }

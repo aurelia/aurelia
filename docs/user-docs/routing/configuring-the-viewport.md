@@ -4,10 +4,6 @@ description: How to work with and configure the viewport for the Aurelia Router.
 
 # Configuring The Viewport
 
-{% hint style="info" %}
-`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
-{% endhint %}
-
 The `<au-viewport>` element is where all of the routing magic happens, the outlet. It supports a few different custom attributes which allow you to configure how the router acts \(from defaults, to which components are allowed to be rendered\).
 
 {% hint style="success" %}

@@ -38,7 +38,7 @@ should be changed to
 import Aurelia from 'aurelia';
 import { RouterConfiguration } from 'aurelia-direct-router';
 ```
-Note that while a lot of the API of the router shipping with Aurelia is mostly a subset of the API of Aurelia Direct Router, there are some differences. Please consult the Aurelia Direct Router documentation for details.
+Note that while a lot of the API of the router shipping with Aurelia is a subset of the API of Aurelia Direct Router, there are some differences. Please consult the Aurelia Direct Router documentation for details.
 
 ## Documentation
 

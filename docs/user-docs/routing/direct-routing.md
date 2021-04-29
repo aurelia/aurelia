@@ -6,10 +6,6 @@ description: >-
 
 # Direct Routing
 
-{% hint style="info" %}
-`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
-{% endhint %}
-
 Aurelia is known for its conventions-based approach to building applications. It provides you with a set of sane defaults and ways of doing certain things in your app, which help save time and make your life easier. The router in Aurelia 2 is no exception.
 
 {% hint style="success" %}

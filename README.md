@@ -10,7 +10,7 @@
 
 # Aurelia Direct Router
 
-This plugin is the original and fully featured Aurelia v2 router. It is a way to provide additional features for those who need or want it. It might later be incorporated into the core of Aurelia v2.
+This plugin is the original and fully featured Aurelia v2 router. It is a way to provide additional features for those who need or want it. It might later be added back into the core of Aurelia v2.
 
 ## Installing
 

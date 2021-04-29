@@ -4,13 +4,9 @@ description: A quick guide on how to add in routing to your Aurelia applications
 
 # Routing
 
-{% hint style="info" %}
-`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
-{% endhint %}
+The Aurelia Direct Router allows you to add in flexible and highly configurable routing into your Aurelia applications. It offers a plethora of different ways you can add in routing from direct routing \(convention-based routing\) through to traditional configuration based routing.
 
-The router package allows you to add in flexible and highly configurable routing into your Aurelia applications. It offers a plethora of different ways you can add in routing from convention-based routing \(direct routing\) through to traditional configuration based routing.
-
-The Aurelia router supports three different types of routing in your Aurelia applications. It is also possible to mix and switch between the three different types of router to suit your needs.
+The Aurelia Direct Router supports three different types of routing in your Aurelia applications. It is also possible to mix and switch between the three different types of router to suit your needs.
 
 The three different types of routing and how to leverage them can be found in the routing documentation. For brevity, each style of routing is linked below where you can learn more about how they work and which option is the right one for you.
 
@@ -29,7 +25,8 @@ An assumption is being made here that you generated a new Aurelia application an
 **Inside of `main.ts` import and register the `RouterConfiguration` instance:**
 
 ```typescript
-import Aurelia, { RouterConfiguration } from 'aurelia';
+import Aurelia from 'aurelia';
+import { RouterConfiguration } from 'aurelia-direct-router';
 
 Aurelia
   .register(RouterConfiguration)
@@ -51,7 +48,7 @@ That's all you need to do to add in support for routing to your application. It 
 
 ## Create A Routable Component
 
-Now, let's use direct routing to create a component and add in a link to route to it. Let's create a new file inside of the `src` directory called `my-component.html`.
+Now, let's use direct routing to create a component and add in a link to load it. Let's create a new file inside of the `src` directory called `my-component.html`.
 
 ```markup
 <h1>This is a component rendered by the router, hello</h1>
@@ -67,5 +64,4 @@ Now, let's use direct routing to create a component and add in a link to route t
 <au-viewport></au-viewport>
 ```
 
-Running this code will give you a working application that allows you to route to a HTML only component and you should see the text, `This is a component rendered by the router, hello`. You might have noticed we created a link and then added an attribute called `load` this simply tells the router this is a link that will go to a route.
-
+Running this code will give you a working application that allows you to load an HTML only component and you should see the text, `This is a component rendered by the router, hello`. You might have noticed we created a link and then added an attribute called `load` that simply tells the router what component to load.

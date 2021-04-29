@@ -1,4 +1,0 @@
-# Managing App State
-
-Placeholder...
-

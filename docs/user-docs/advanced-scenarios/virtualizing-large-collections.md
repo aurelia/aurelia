@@ -1,4 +1,0 @@
-# Virtualizing Large Collections
-
-Placeholder...
-

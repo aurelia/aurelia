@@ -1,4 +1,0 @@
-# Browser Support
-
-Placeholder...
-

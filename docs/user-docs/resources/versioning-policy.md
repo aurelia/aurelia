@@ -1,4 +1,0 @@
-# Versioning Policy
-
-Placeholder...
-

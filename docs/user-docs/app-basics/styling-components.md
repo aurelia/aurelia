@@ -1,4 +1,0 @@
-# Styling Components
-
-Placeholder...
-

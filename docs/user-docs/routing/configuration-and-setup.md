@@ -8,20 +8,26 @@ description: >-
 
 ## Getting Started
 
-The Router comes with the default installation of Aurelia and does not require the installation of any additional packages. The only requirement for the router is that you have an Aurelia application already created.
+First of all the Aurelia Direct Router package needs to be installed. Open a command prompt in the root of your Aurelia application and run the command
+```cmd
+npm i aurelia-direct-router
+```
+Once that's finished, you're all set up for using the `aurelia-direct-router` in your application.
 
 {% hint style="success" %}
 **What you will learn in this section**
 
 * How to configure the router
-* How to use hash-style routing as well as pushState routing
+* How to use hash-style routing as well as "pushState" routing
 * How to style active router links
+* How to change the application title
 {% endhint %}
 
-To register the plugin in your application, you can pass in the router object to the `register` method inside of the file containing your Aurelia initialization code. We import the `RouterConfiguration` class from the `aurelia` package, which allows us to register our router and change configuration settings.
+To register the plugin in your application, you pass in the router object to the `register` method inside of the file containing your Aurelia initialization code. Then import the `RouterConfiguration` class from the `aurelia-direct-router` package, which allows you to register the router and change configuration settings.
 
 ```typescript
-import Aurelia, { RouterConfiguration } from 'aurelia';
+import Aurelia from 'aurelia';
+import { RouterConfiguration } from 'aurelia-direct-router';
 
 Aurelia
   .register(RouterConfiguration)
@@ -31,10 +37,11 @@ Aurelia
 
 ## Changing The Router Mode \(hash and pushState routing\)
 
-If you do not provide any configuration value, the default as we saw above is hash style routing. In most cases, you will probably prefer to use pushState style routing which uses cleaner URL's for routing instead of the hashes added into your route.
+If you do not provide any configuration value, the default is that the router uses the URL fragment hash for your routes. If you prefer to use the pathname part of the URL for your routes, sometimes called pushState routing, you can disable hash-style routing by doing a customized registration:
 
 ```typescript
-import Aurelia, { RouterConfiguration } from 'aurelia';
+import Aurelia from 'aurelia';
+import { RouterConfiguration } from 'aurelia-direct-router';
 
 Aurelia
   .register(RouterConfiguration.customize({ useUrlFragmentHash: false }))
@@ -42,49 +49,64 @@ Aurelia
   .start();
 ```
 
-By calling the `customize` method, you can supply a configuration object containing the property `useUrlFragmentHash` and supplying a boolean value. If you supply `false` this will enable pushState style routing and `true` will enable hash mode, which is the default setting.
+By calling the `customize` method when registering, you can supply a configuration object containing the property `useUrlFragmentHash` and specify a boolean value. If you specify `false` this will disable hash-style mode and enable pushState style routing. If you specify `true` this will enable hash mode (the default).
 
 {% hint style="warning" %}
-Enabling pushState routing setting `useUrlFragmentHash` to false will require a server that can handle pushState style routing.
+Enabling pushState routing by setting `useUrlFragmentHash` to false will require a server that can handle pushState style routing.
 {% endhint %}
 
 ## Styling Active Router Links
 
-A common scenario is styling an active router link with styling to signify that the link is active, such as making the text bold. By default, any link with a `load` attribute that is routed to, will receive the class `load-active` if it is currently active.
-
-{% hint style="info" %}
-A future update to the router package will allow this class to be user-configurable. For now, the class name cannot be changed.
-{% endhint %}
-
-If you were to make all of your active route links bold, all you would need to do is write the following CSS and put it somewhere global in your application.
-
-```css
-.load-active {
-    font-weight: bold;
-}
-```
-
-## Setting The Title
-
-The router supports setting the application title a few different ways. You can set a default title on the router when you configure it like above via the `register` method.
-
-### Via Configuration
+A common scenario is styling active router links to indicate that the links are active, such as making the text bold. By default, any link with a `load` attribute will receive the class `active` if it is currently active. The class name can be changed by using the `indicators.loadActive` property of the configuration object.
 
 ```typescript
-import Aurelia, { RouterConfiguration } from 'aurelia';
+import Aurelia from 'aurelia';
+import { RouterConfiguration } from 'aurelia-direct-router';
 
 Aurelia
-  .register(RouterConfiguration.customize({ useUrlFragmentHash: false, title: 'My Application' }))
+  .register(RouterConfiguration.customize({
+    indicators: {
+      loadActive: 'link-active',
+    },
+  }))
   .app(component)
   .start();
 ```
 
-If you are working with direct routing, then supplying a `title` property on your component will allow you to set the title. This can either be a string or a function.
+To make all of your active router links bold, all you need to do is write the following CSS and put it somewhere global in your application.
+
+```css
+.active {
+    font-weight: bold;
+}
+```
+
+{% hint style="info" %}
+An earlier version of the router used the class name `load-active` to indicate active links. If you're using that earlier version and your links are no longer being indicated as active, either change the name of the indicating class in the CSS or in the customized registration.
+{% endhint %}
+
+## Setting The Title
+
+The router supports setting the application title a few different ways. You can set a default title on the router when you configure it like above via the `customize` method.
+
+### Via Configuration
+
+```typescript
+import Aurelia from 'aurelia';
+import { RouterConfiguration } from 'aurelia-direct-router';
+
+Aurelia
+  .register(RouterConfiguration.customize({ title: 'My Application' }))
+  .app(component)
+  .start();
+```
+
+By default, the names of your active components will be added to the application title. Supplying a `title` property on your components will allow you to set the title of the components. This can either be a string or a function.
 
 ### Passing a String To Title
 
 ```typescript
-import { IRouteableComponent } from '@aurelia/router';
+import { IRouteableComponent } from 'aurelia-direct-router';
 
 export class Product implements IRouteableComponent {
     public static title = 'My Product';
@@ -93,15 +115,16 @@ export class Product implements IRouteableComponent {
 
 ### Using a Function
 
-When passing a function into the `title` property, the first argument is the view-model of the component itself. This allows you to get information from the view-model such as loaded details like a product name or username. the function must return a string.
+When passing a function into the `title` property, the first argument is the view-model of the component itself. This allows you to get information from the view-model such as loaded details like a product name or username. The function must return a string or `null` if the component shouldn't be a part of the title.
 
 ```typescript
-import { IRouteableComponent } from '@aurelia/router';
+import { IRouteableComponent } from 'aurelia-direct-router';
 
 export class Product implements IRouteableComponent {
     public static title = (viewModel: Product) => `${viewModel.productName}`;
 }
 ```
 
-For configured routing, you can specify the title on the route itself. But, you can also dynamically set the title from within a router hook or within the routable component itself. Please see the [Router Hooks](router-hooks.md#setting-the-title-from-within-router-hooks) section for specifics around using a hook to change the title.
+As mentioned, there are several ways to set the application title, including specifying the title on the route itself when using configured routes.
 
+More details about configuring titles, and the entire router, can be found in the Configuration details section.

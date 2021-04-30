@@ -4,8 +4,8 @@ description: 'Get acquainted with the Aurelia Direct Router.'
 
 # Introduction
 
-The Aurelia Direct Router is a router plugin for the Aurelia 2 framework. Its goal is to make Aurelia routing as painless and boilerplate-free a possible while at the same time providing great and time-saving features.
+The Aurelia Direct Router is the original and fully featured Aurelia v2 router. Its goal is to make Aurelia routing as painless and boilerplate-free a possible while at the same time provide useful and time-saving features. It might later be added back into the core of Aurelia 2.
 
-Continue to the App Basics section for more details and the first example.
+This documentation isn’t caught up yet, but {% page-ref page="routing/configuration-and-setup/" %} is accurate. As this router is and will continue to be well maintained the documentation should shortly be fully in order.
 
 {% page-ref page="app-basics/routing/" %}

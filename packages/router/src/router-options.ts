@@ -297,8 +297,17 @@ export class RouterOptions implements INavigatorOptions {
     public useUrlFragmentHash: boolean = true,
 
     /**
-     * Whether the `href` html attribute can be used like the `load` custom attribute
+     * The base path (base element href) for the app. If set to
+     * - a string that string is used as base path,
+     * - null the value is read from base element's href attribute (default).
+     * The base path is removed or added to the Location url as
+     * needed.
      */
+    public basePath: string | null = null,
+
+    /**
+    * Whether the `href` html attribute can be used like the `load` custom attribute
+    */
     public useHref: boolean = true,
 
     /**
@@ -351,6 +360,7 @@ export class RouterOptions implements INavigatorOptions {
       Separators.create(input.separators),
       Indicators.create(input.indicators),
       input.useUrlFragmentHash,
+      input.basePath,
       input.useHref,
       input.statefulHistoryLength,
       input.useDirectRouting,

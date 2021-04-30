@@ -261,6 +261,18 @@ export class Router implements IRouter {
     // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
     this.rootScope = new ViewportScope(this, 'rootScope', root.controller.viewModel as IConnectedCustomElement, null, true, root.config.component as CustomElementType);
 
+    const options = this.configuration.options;
+    // If base path isn't configured...
+    if (options.basePath === null) {
+      // ...get it from baseURI (base element href)
+      const url = new URL(root.host.baseURI);
+      options.basePath = url.pathname;
+    }
+    // Base path shouldn't end with '/' (to differentiate absolutes from relative)
+    if (options.basePath.endsWith('/')) {
+      options.basePath = options.basePath.slice(0, -1);
+    }
+
     this.navigator.start({
       store: this.store,
       viewer: this.viewer,
@@ -383,6 +395,15 @@ export class Router implements IRouter {
     let transformedInstruction = typeof navigation.instruction === 'string' && !navigation.useFullStateInstruction
       ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
       : navigation.instruction;
+
+    // If app uses a base path remove it if present (unless we're using fragment hash)
+    const basePath = options.basePath;
+    if (basePath !== null &&
+      typeof transformedInstruction === 'string' && transformedInstruction.startsWith(basePath) &&
+      !options.useUrlFragmentHash) {
+      transformedInstruction = transformedInstruction.slice(basePath.length);
+    }
+
     // TODO: Review this
     if (transformedInstruction === '/') {
       transformedInstruction = '';
@@ -1171,9 +1192,18 @@ export class Router implements IRouter {
       }
       navigation.query = search.toString();
     }
+
+    // Add base path...
+    let basePath = `${this.configuration.options.basePath}/`;
+    // ...unless it's not set or we've got an absolute state/path (or we're using fragment hash)
+    if (basePath === null || (state !== '' && state[0] === '/') ||
+      this.configuration.options.useUrlFragmentHash) {
+      basePath = '';
+    }
+
     const query = (navigation.query && navigation.query.length ? "?" + navigation.query : '');
     // if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {
-    navigation.path = state + query;
+    navigation.path = basePath + state + query;
     // }
 
     const fullViewportStates = [RoutingInstruction.create(RoutingInstruction.clear(this)) as RoutingInstruction];

@@ -46,7 +46,10 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     }
     if (!this.hasHref) {
       // TODO: Figure out a better value here for non-strings (using RoutingInstruction?)
-      const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value);
+      let value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value);
+      if (this.router.configuration.options.useUrlFragmentHash && !value.startsWith('#')) {
+        value = `#${value}`;
+      }
       this.element.setAttribute('href', value);
     }
   }

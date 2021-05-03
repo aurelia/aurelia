@@ -514,7 +514,7 @@ export class RoutingScope {
 
   private ensureProperRoute(route: IRoute): Route {
     if (route.id === void 0) {
-      route.id = route.path;
+      route.id = Array.isArray(route.path) ? route.path.join(',') : route.path;
     }
     if (route.instructions === void 0) {
       route.instructions = [{

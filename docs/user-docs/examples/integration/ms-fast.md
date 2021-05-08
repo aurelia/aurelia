@@ -9,7 +9,7 @@ The following is a code example of how to teach Aurelia to work seamlessly with 
 ```typescript
 import { AppTask, IContainer, IAttrSyntaxTransformer, NodeObserverLocator } from 'aurelia';
 
-Aurelia.register(AppTask.with(IContainer).beforeCreate().call(container => {
+Aurelia.register(AppTask.beforeCreate(IContainer, container => {
   const attrSyntaxTransformer = container.get(IAttrSyntaxTransformer);
   const nodeObserverLocator = container.get(NodeObserverLocator);
   attrSyntaxTransformer.useTwoWay((el, property) => {

@@ -18,10 +18,7 @@ function createDialogConfiguration(settingsProvider: DialogConfigurationProvider
     settingsProvider: settingsProvider,
     register: (ctn: IContainer) => ctn.register(
       ...registrations,
-      AppTask
-        .with(IContainer)
-        .beforeCreate()
-        .call(c => settingsProvider(c.get(IDialogGlobalSettings)) as void)
+      AppTask.beforeCreate(() => settingsProvider(ctn.get(IDialogGlobalSettings)) as void)
     ),
     customize(cb: DialogConfigurationProvider, regs?: IRegistry[]) {
       return createDialogConfiguration(cb, regs ?? registrations);

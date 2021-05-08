@@ -229,6 +229,8 @@ export {
   TaskSlot,
   AppTask,
   IAppTask,
+  AppTaskCallback,
+  AppTaskCallbackNoArg,
 } from './app-task.js';
 export {
   AttrSyntax,

@@ -460,8 +460,8 @@ Similarly, the rejection error/reason can be accessed using the bound property w
 The usage of these settled values are optional; that is both `then` and `catch` can be used without binding to any property.
 
 Contextually, it should be clarified here that these two bindings are in `from-view` binding mode.
-In fact `then="data"`, and `catch="err"` can also be written as `then.from-view="data"`, and `catch.from-view="err"`.
-As that might be the most frequently used binding mode in this context, Aurelia2 provides a less verbose option in form of simply `then="data"`, and `catch="err"`.
+In fact `then="data"`, and `catch="err"` can also be written as `then.from-view="data"`, and `catch.from-view="err"` respectively.
+As `from-view` might be the most frequently used binding mode in this context, Aurelia2 provides less verbose alternatives in form of simply `then="data"`, and `catch="err"`.
 
 {% hint style="info" %}
 The `promise.resolve="promise"` is also an alias for `promise.bind="promise"`.
@@ -564,8 +564,12 @@ Another interesting aspect of this scoping is that now we can write the followin
 
 Note that the mark up uses 2 different promises but uses `data` property in both cases to grab the resolved data.
 Same can be observed for `err` as well.
-However, as separate scope is created by `promise.resolve`, the two `data` properties are actually two different properties.
-Without separate scope, we necessarily needs to use two properties with different names in this case (that can also be done even in this case, not necessarily).
+However, as separate scopes are created by every `promise.resolve`, the two `data` properties are actually two different properties in two different scopes.
+Without separate scope, we necessarily need to use two properties with different names in this case (that can also be done even in this case, not necessarily).
+
+{% hint style="info" %}
+In case you are interested about the details on scoping and binding context, you can refer to the [Scope and context documentation](../app-basics/scope-and-binding-context).
+{% endhint %}
 
 ### Nesting
 
@@ -583,6 +587,69 @@ The template controllers can be nested.
 </template>
 ```
 {% endcode %}
+
+### Using it inside repeat.for
+
+Due to the way the scoping and binding context resolution works (refer to the [Scope and context documentation](../app-basics/scope-and-binding-context)), you might want to use a `let` binding when using the `promise.resolve` inside `repeat.for`.
+This is shown in the example below.
+
+{% tabs %}
+{% tab title="my-app.html" %}
+```markup
+<template>
+  <let items.bind="[[42, true], ['foo-bar', false], ['forty-two', true], ['fizz-bazz', false]]"></let>
+  <template repeat.for="item of items">
+    <template promise.resolve="item[0] | promisify:item[1]">
+      <let data.bind="null" err.bind="null"></let>
+      <span then="data">${data}</span>
+      <span catch="err">${err.message}</span>
+    </template>
+  </template>
+</template>
+```
+{% endtab %}
+{% tab title="promisify.ts" %}
+```ts
+import {
+  valueConverter,
+} from '@aurelia/runtime-html';
+
+@valueConverter('promisify')
+class Promisify {
+  public toView(value: unknown, resolve: boolean = true): Promise<unknown> {
+    return resolve
+      ? Promise.resolve(value)
+      : Promise.reject(new Error(String(value)));
+  }
+}
+```
+{% endtab %}
+{% endtabs %}
+
+The above example shows an usage involving `repeat.for` chained with a `promisify` value converter.
+The value converter converts a simple value to a resolving or rejecting promise depending on the second boolean value passed to it.
+The value converter in itself is not that important for this discussion.
+It is used to construct a `repeat.for`, `promise.resolve` combination easily.
+
+The important thing to note here is the usage of `let` binding that forces creation of two properties, namely `data` and `err`, in the override context which gets higher precedence while binding.
+Without these properties in the override context, the properties gets created in the binding context, which eventually gets overwritten with the second iteration of the repeat.
+In short, with `let` binding in place the output looks like as follows.
+
+```html
+<span>42</span>
+<span>foo-bar</span>
+<span>forty-two</span>
+<span>fizz-bazz</span>
+```
+
+Whereas without the `let` binding, the result looks like below that does not match the general expectation.
+
+```html
+<span>forty-two</span>
+<span>fizz-bazz</span>
+<span>forty-two</span>
+<span>fizz-bazz</span>
+```
 
 ### Restriction
 

@@ -9,9 +9,10 @@ Have you ever needed to hide or show part of a UI based on some condition? Well,
 {% hint style="success" %}
 **Here's what you'll learn...**
 
-* Adding and removing DOM with `if`/`else`, `switch`, and `promise.resolve`.
+* Adding and removing DOM with `if`/`else`, and `switch`.
 * Hiding and showing DOM with `show`/`hide`.
 * Choosing between `if`/`else` and `show`/`hide`.
+* Facilitate partial and deferred rendering with `promise.resolve`.
 {% endhint %}
 
 ## if/else
@@ -493,7 +494,7 @@ The section dependent on each of those promise will attach DOM Elements accordin
 
 ### Scoping
 
-As `from-view` binding mode is used for `then` and `catch`, the `promise.resolve` template controller creates its own scope.
+The `promise.resolve` template controller creates its own scope.
 This prevents accidentally polluting the parent scope or the view model where this template controller is used.
 Let use see an example to understand what it means.
 
@@ -538,7 +539,7 @@ However, when we do need to access the settled data inside the view model, we ca
 ```typescript
 export class MyApp {
   public data: any;   // the resolved data is assigned to this once and when the promise is resolved
-  public data: Error; // the rejected reason is assigned to this once and when the promise is resolved
+  public err: Error; // the rejected reason is assigned to this once and when the promise is resolved
 }
 ```
 {% endtab %}

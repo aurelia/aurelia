@@ -414,6 +414,10 @@ export class RoutingInstruction {
       if (viewport?.options.fallback === this.component.name) {
         excludeCurrentComponent = true;
       }
+      // ...or a default instruction without next scope instructions/children
+      if (this.default && !this.hasNextScopeInstructions) {
+        excludeCurrentComponent = true;
+      }
     }
     const nextInstructions: RoutingInstruction[] | null = this.nextScopeInstructions;
     // Start with the scope modifier (if any)
@@ -478,6 +482,7 @@ export class RoutingInstruction {
     clone.needsEndpointDescribed = this.needsEndpointDescribed;
     clone.route = this.route;
     clone.routeStart = this.routeStart;
+    clone.default = this.default;
 
     // Only transfer scope modifier if specified
     if (scopeModifier) {

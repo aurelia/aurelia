@@ -306,8 +306,8 @@ export class RouterOptions implements INavigatorOptions {
     public basePath: string | null = null,
 
     /**
-    * Whether the `href` html attribute can be used like the `load` custom attribute
-    */
+     * Whether the `href` html attribute can be used like the `load` custom attribute
+     */
     public useHref: boolean = true,
 
     /**

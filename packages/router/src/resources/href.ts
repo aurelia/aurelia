@@ -28,7 +28,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   }
 
   public binding(): void {
-    if (this.router.configuration.options.useHref && !this.hasLoad()) {
+    if (this.router.configuration.options.useHref && !this.hasLoad() && !this.element.hasAttribute('external')) {
       this.element.addEventListener('click', this.linkHandler);
       this.routerNavigationSubscription = this.ea.subscribe(RouterNavigationEndEvent.eventName, this.navigationEndHandler);
     }

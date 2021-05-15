@@ -68,9 +68,10 @@ import {
   PendingTemplateController,
   FulfilledTemplateController,
   RejectedTemplateController,
-  PromiseAttributePattern,
-  FulfilledAttributePattern,
-  RejectedAttributePattern,
+  // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
+  // PromiseAttributePattern,
+  // FulfilledAttributePattern,
+  // RejectedAttributePattern,
 } from './resources/template-controllers/promise.js';
 import { Compose } from './resources/custom-elements/compose.js';
 import { AuSlot } from './resources/custom-elements/au-slot.js';
@@ -181,9 +182,10 @@ export const PromiseTemplateControllerRegistration = PromiseTemplateController a
 export const PendingTemplateControllerRegistration = PendingTemplateController as unknown as IRegistry;
 export const FulfilledTemplateControllerRegistration = FulfilledTemplateController as unknown as IRegistry;
 export const RejectedTemplateControllerRegistration = RejectedTemplateController as unknown as IRegistry;
-export const PromiseAttributePatternRegistration = PromiseAttributePattern as unknown as IRegistry;
-export const FulfilledAttributePatternRegistration = FulfilledAttributePattern as unknown as IRegistry;
-export const RejectedAttributePatternRegistration = RejectedAttributePattern as unknown as IRegistry;
+// TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
+// export const PromiseAttributePatternRegistration = PromiseAttributePattern as unknown as IRegistry;
+// export const FulfilledAttributePatternRegistration = FulfilledAttributePattern as unknown as IRegistry;
+// export const RejectedAttributePatternRegistration = RejectedAttributePattern as unknown as IRegistry;
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior as unknown as IRegistry;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior as unknown as IRegistry;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as unknown as IRegistry;
@@ -224,9 +226,10 @@ export const DefaultResources = [
   PendingTemplateControllerRegistration,
   FulfilledTemplateControllerRegistration,
   RejectedTemplateControllerRegistration,
-  PromiseAttributePatternRegistration,
-  FulfilledAttributePatternRegistration,
-  RejectedAttributePatternRegistration,
+  // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
+  // PromiseAttributePatternRegistration,
+  // FulfilledAttributePatternRegistration,
+  // RejectedAttributePatternRegistration,
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,

@@ -15,7 +15,6 @@ import {
 } from '../../templating/controller.js';
 import { ICompiledRenderContext } from '../../templating/render-context.js';
 import { IViewFactory } from '../../templating/view.js';
-import { attributePattern, AttrSyntax } from '../attribute-pattern.js';
 import { templateController } from '../custom-attribute.js';
 
 @templateController('promise')

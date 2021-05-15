@@ -154,9 +154,8 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
 
   public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
     this.preSettledTask?.cancel();
-    this.preSettledTask = null;
     this.postSettledTask?.cancel();
-    this.postSettledTask = null;
+    this.preSettledTask = this.postSettledTask = null;
     return this.view.deactivate(initiator, this.$controller, flags);
   }
 

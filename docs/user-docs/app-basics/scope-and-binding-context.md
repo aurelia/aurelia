@@ -58,7 +58,7 @@ Even though there are couple of subtle difference between these two kinds of con
 
 ### JavaScript analogy
 
-One way to think about expression and binding context is in terms of functions and binding those functions.
+One way to think about expression and binding context is in terms of functions and binding those functions with a execution context (Refer: [Function.bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind)).
 Let us consider the following example.
 
 {% code title="foo.ts" %}
@@ -67,7 +67,7 @@ function foo() { return this.a ** 2; }
 ```
 {% endcode %}
 
-If we execute this function we will get `NaN`.
+If we invoke this function like `foo()`, we will get `NaN`.
 However, when we bind any object to it, it might return more meaningful value, depending on the bound object.
 
 {% code title="foo.ts" %}

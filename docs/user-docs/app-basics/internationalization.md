@@ -213,10 +213,10 @@ This section shows couple of recipes to make resources available for Backend plu
     }
   }
   ```
-  
+
 If you are using an earlier version than v6.0.0 of `copy-webpack-plugin`, use this config.
-  
-  ```javascript
+
+```javascript
   const path = require('path');
   const CopyPlugin = require('copy-webpack-plugin');
 
@@ -232,7 +232,7 @@ If you are using an earlier version than v6.0.0 of `copy-webpack-plugin`, use th
       ]
     }
   }
-  ```
+```
 
 * cli: TODO
 

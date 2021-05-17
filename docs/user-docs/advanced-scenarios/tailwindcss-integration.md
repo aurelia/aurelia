@@ -53,6 +53,8 @@ require('tailwindcss')('tailwind.config.js'),
 
 ![](../.gitbook/assets/2.png)
 
+![](../.gitbook/assets/screenshot_1.png)
+
 6- Add these lines to the **top** of your main CSS file \(for example `my-app.css`\)
 
 ```css

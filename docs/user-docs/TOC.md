@@ -75,7 +75,7 @@
 
 ## Plugins
 
-* [Dialog](plugins/dialog/README.md)
+* [Dialog](plugins/dialog.md)
 
 ## Advanced Scenarios
 

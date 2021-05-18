@@ -409,6 +409,12 @@ export {
   Case,
   DefaultCase,
 } from './resources/template-controllers/switch.js';
+export {
+  PromiseTemplateController,
+  FulfilledTemplateController,
+  PendingTemplateController,
+  RejectedTemplateController,
+} from './resources/template-controllers/promise.js';
 
 export {
   Blur,

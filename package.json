@@ -1,11 +1,10 @@
 {
-  "name": "aurelia-direct-router/monorepo",
+  "name": "aurelia-direct-router-monorepo",
   "private": true,
-  "version": "2.0.0-alpha.2.3",
+  "version": "2.0.0-alpha.2.4",
   "workspaces": [
-    "packages/router",
-    "examples/base-url",
-    "examples/base-url-dumber"
+    "packages/__tests__",
+    "packages/router"
   ],
   "license": "MIT",
   "engines": {
@@ -16,8 +15,8 @@
     "commit": "git-cz",
     "init": "npm ci && npm run build",
     "rebuild": "npm run clean && npm run build",
-    "build": "lage build --scope aurelia-direct-router --scope @aurelia/* --no-cache --verbose --no-deps",
-    "build:release": "lage run build --scope aurelia-direct-router --no-cache --verbose --no-deps",
+    "build": "lage build --scope aurelia-direct-router --scope aurelia-direct-router-* --no-cache --verbose --no-deps",
+    "build:release": "lage run build --scope aurelia-direct-router --scope aurelia-direct-router-* --no-cache --verbose --no-deps",
     "postbuild:release": "npm run clean:tsconfig-build-cache",
     "build:release:full": "npm run build:release && npm run change-tsconfigs:invert && npm run build:release && npm run change-tsconfigs:restore",
     "change-package-refs:dev": "ts-node -P tsconfig.json scripts/change-package-refs.ts dev",

@@ -1,7 +1,7 @@
 {
   "name": "au",
-  "version": "2.1.0-dev.202105190816",
-  "main": "dist/cjs/index.js",
+  "version": "2.0.0-alpha.3",
+  "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -44,10 +44,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/metadata": "2.1.0-dev.202105190816",
-    "@aurelia/platform": "2.1.0-dev.202105190816",
-    "@aurelia/kernel": "2.1.0-dev.202105190816",
-    "@aurelia/http-server": "2.1.0-dev.202105190816"
+    "@aurelia/metadata": "2.0.0-alpha.3",
+    "@aurelia/platform": "2.0.0-alpha.3",
+    "@aurelia/kernel": "2.0.0-alpha.3",
+    "@aurelia/http-server": "2.0.0-alpha.3"
   },
   "devDependencies": {
     "@types/node": "^14.11.5",

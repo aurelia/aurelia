@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BlurRegistration = exports.FocusRegistration = exports.PortalRegistration = exports.ComposeRegistration = exports.UpdateTriggerBindingBehaviorRegistration = exports.SelfBindingBehaviorRegistration = exports.AttrBindingBehaviorRegistration = exports.DefaultCaseRegistration = exports.CaseRegistration = exports.SwitchRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.FrequentMutationsRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.DefaultBindingLanguage = exports.StyleBindingCommandRegistration = exports.ClassBindingCommandRegistration = exports.AttrBindingCommandRegistration = exports.CaptureBindingCommandRegistration = exports.DelegateBindingCommandRegistration = exports.TriggerBindingCommandRegistration = exports.RefBindingCommandRegistration = exports.TwoWayBindingCommandRegistration = exports.ToViewBindingCommandRegistration = exports.OneTimeBindingCommandRegistration = exports.FromViewBindingCommandRegistration = exports.ForBindingCommandRegistration = exports.DefaultBindingCommandRegistration = exports.CallBindingCommandRegistration = exports.ShortHandBindingSyntax = exports.DefaultBindingSyntax = exports.DotSeparatedAttributePatternRegistration = exports.RefAttributePatternRegistration = exports.ColonPrefixedBindAttributePatternRegistration = exports.AtPrefixedTriggerAttributePatternRegistration = exports.SVGAnalyzerRegistration = exports.DefaultComponents = exports.INodeObserverLocatorRegistration = exports.ITemplateCompilerRegistration = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = void 0;
-exports.StandardConfiguration = exports.DefaultRenderers = exports.TextBindingRendererRegistration = exports.StylePropertyBindingRendererRegistration = exports.SetStyleAttributeRendererRegistration = exports.SetClassAttributeRendererRegistration = exports.SetAttributeRendererRegistration = exports.AttributeBindingRendererRegistration = exports.ListenerBindingRendererRegistration = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.ShowRegistration = void 0;
+exports.UpdateTriggerBindingBehaviorRegistration = exports.SelfBindingBehaviorRegistration = exports.AttrBindingBehaviorRegistration = exports.RejectedTemplateControllerRegistration = exports.FulfilledTemplateControllerRegistration = exports.PendingTemplateControllerRegistration = exports.PromiseTemplateControllerRegistration = exports.DefaultCaseRegistration = exports.CaseRegistration = exports.SwitchRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.FrequentMutationsRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.DefaultBindingLanguage = exports.StyleBindingCommandRegistration = exports.ClassBindingCommandRegistration = exports.AttrBindingCommandRegistration = exports.CaptureBindingCommandRegistration = exports.DelegateBindingCommandRegistration = exports.TriggerBindingCommandRegistration = exports.RefBindingCommandRegistration = exports.TwoWayBindingCommandRegistration = exports.ToViewBindingCommandRegistration = exports.OneTimeBindingCommandRegistration = exports.FromViewBindingCommandRegistration = exports.ForBindingCommandRegistration = exports.DefaultBindingCommandRegistration = exports.CallBindingCommandRegistration = exports.ShortHandBindingSyntax = exports.DefaultBindingSyntax = exports.DotSeparatedAttributePatternRegistration = exports.RefAttributePatternRegistration = exports.ColonPrefixedBindAttributePatternRegistration = exports.AtPrefixedTriggerAttributePatternRegistration = exports.SVGAnalyzerRegistration = exports.DefaultComponents = exports.INodeObserverLocatorRegistration = exports.ITemplateCompilerRegistration = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = void 0;
+exports.StandardConfiguration = exports.DefaultRenderers = exports.TextBindingRendererRegistration = exports.StylePropertyBindingRendererRegistration = exports.SetStyleAttributeRendererRegistration = exports.SetClassAttributeRendererRegistration = exports.SetAttributeRendererRegistration = exports.AttributeBindingRendererRegistration = exports.ListenerBindingRendererRegistration = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.ShowRegistration = exports.BlurRegistration = exports.FocusRegistration = exports.PortalRegistration = exports.ComposeRegistration = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const attribute_pattern_js_1 = require("./resources/attribute-pattern.js");
 const binding_command_js_1 = require("./resources/binding-command.js");
@@ -24,6 +24,7 @@ const if_js_1 = require("./resources/template-controllers/if.js");
 const repeat_js_1 = require("./resources/template-controllers/repeat.js");
 const with_js_1 = require("./resources/template-controllers/with.js");
 const switch_js_1 = require("./resources/template-controllers/switch.js");
+const promise_js_1 = require("./resources/template-controllers/promise.js");
 const compose_js_1 = require("./resources/custom-elements/compose.js");
 const au_slot_js_1 = require("./resources/custom-elements/au-slot.js");
 const sanitize_js_1 = require("./resources/value-converters/sanitize.js");
@@ -119,6 +120,14 @@ exports.WithRegistration = with_js_1.With;
 exports.SwitchRegistration = switch_js_1.Switch;
 exports.CaseRegistration = switch_js_1.Case;
 exports.DefaultCaseRegistration = switch_js_1.DefaultCase;
+exports.PromiseTemplateControllerRegistration = promise_js_1.PromiseTemplateController;
+exports.PendingTemplateControllerRegistration = promise_js_1.PendingTemplateController;
+exports.FulfilledTemplateControllerRegistration = promise_js_1.FulfilledTemplateController;
+exports.RejectedTemplateControllerRegistration = promise_js_1.RejectedTemplateController;
+// TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
+// export const PromiseAttributePatternRegistration = PromiseAttributePattern as unknown as IRegistry;
+// export const FulfilledAttributePatternRegistration = FulfilledAttributePattern as unknown as IRegistry;
+// export const RejectedAttributePatternRegistration = RejectedAttributePattern as unknown as IRegistry;
 exports.AttrBindingBehaviorRegistration = attr_js_1.AttrBindingBehavior;
 exports.SelfBindingBehaviorRegistration = self_js_1.SelfBindingBehavior;
 exports.UpdateTriggerBindingBehaviorRegistration = update_trigger_js_1.UpdateTriggerBindingBehavior;
@@ -154,6 +163,14 @@ exports.DefaultResources = [
     exports.SwitchRegistration,
     exports.CaseRegistration,
     exports.DefaultCaseRegistration,
+    exports.PromiseTemplateControllerRegistration,
+    exports.PendingTemplateControllerRegistration,
+    exports.FulfilledTemplateControllerRegistration,
+    exports.RejectedTemplateControllerRegistration,
+    // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
+    // PromiseAttributePatternRegistration,
+    // FulfilledAttributePatternRegistration,
+    // RejectedAttributePatternRegistration,
     exports.AttrBindingBehaviorRegistration,
     exports.SelfBindingBehaviorRegistration,
     exports.UpdateTriggerBindingBehaviorRegistration,

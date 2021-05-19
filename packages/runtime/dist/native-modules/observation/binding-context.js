@@ -71,6 +71,7 @@ function chooseContext(scope, name, ancestor, projectionScope) {
             }
         }
         overrideContext = currentScope.overrideContext;
+        // Here we are giving benefit of doubt considering the dev has used one or more `$parent` token, and thus should know what s/he is targeting.
         return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
     // traverse the context and it's ancestors, searching for a context that has the name.

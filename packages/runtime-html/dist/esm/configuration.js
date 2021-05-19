@@ -20,6 +20,7 @@ import { Else, If } from './resources/template-controllers/if.js';
 import { Repeat } from './resources/template-controllers/repeat.js';
 import { With } from './resources/template-controllers/with.js';
 import { Switch, Case, DefaultCase } from './resources/template-controllers/switch.js';
+import { PromiseTemplateController, PendingTemplateController, FulfilledTemplateController, RejectedTemplateController, } from './resources/template-controllers/promise.js';
 import { Compose } from './resources/custom-elements/compose.js';
 import { AuSlot } from './resources/custom-elements/au-slot.js';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize.js';
@@ -115,6 +116,14 @@ export const WithRegistration = With;
 export const SwitchRegistration = Switch;
 export const CaseRegistration = Case;
 export const DefaultCaseRegistration = DefaultCase;
+export const PromiseTemplateControllerRegistration = PromiseTemplateController;
+export const PendingTemplateControllerRegistration = PendingTemplateController;
+export const FulfilledTemplateControllerRegistration = FulfilledTemplateController;
+export const RejectedTemplateControllerRegistration = RejectedTemplateController;
+// TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
+// export const PromiseAttributePatternRegistration = PromiseAttributePattern as unknown as IRegistry;
+// export const FulfilledAttributePatternRegistration = FulfilledAttributePattern as unknown as IRegistry;
+// export const RejectedAttributePatternRegistration = RejectedAttributePattern as unknown as IRegistry;
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior;
@@ -150,6 +159,14 @@ export const DefaultResources = [
     SwitchRegistration,
     CaseRegistration,
     DefaultCaseRegistration,
+    PromiseTemplateControllerRegistration,
+    PendingTemplateControllerRegistration,
+    FulfilledTemplateControllerRegistration,
+    RejectedTemplateControllerRegistration,
+    // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
+    // PromiseAttributePatternRegistration,
+    // FulfilledAttributePatternRegistration,
+    // RejectedAttributePatternRegistration,
     AttrBindingBehaviorRegistration,
     SelfBindingBehaviorRegistration,
     UpdateTriggerBindingBehaviorRegistration,

@@ -41,6 +41,7 @@ export { If, Else, } from './resources/template-controllers/if.js';
 export { Repeat } from './resources/template-controllers/repeat.js';
 export { With } from './resources/template-controllers/with.js';
 export { Switch, Case, DefaultCase, } from './resources/template-controllers/switch.js';
+export { PromiseTemplateController, FulfilledTemplateController, PendingTemplateController, RejectedTemplateController, } from './resources/template-controllers/promise.js';
 export { Blur, BlurManager, } from './resources/custom-attributes/blur.js';
 export { Focus, } from './resources/custom-attributes/focus.js';
 export { Portal, } from './resources/template-controllers/portal.js';

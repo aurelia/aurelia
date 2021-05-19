@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.3"></a>
+# 2.0.0-alpha.3 (2021-05-19)
+
+### Features:
+
+* **app-task:** allow app task to be created without a key ([2786898](https://github.com/aurelia/aurelia/commit/2786898))
+
+
+### Bug Fixes:
+
+* **router:** fix baseHref issue and fragment hash routing ([6647e54](https://github.com/aurelia/aurelia/commit/6647e54))
+* **router:** fix issue where @default would be included when last segment is empty ([ed54dd4](https://github.com/aurelia/aurelia/commit/ed54dd4))
+* **router:** fix fragment hash routing ([4cc336e](https://github.com/aurelia/aurelia/commit/4cc336e))
+
+
+### Refactorings:
+
+* **app-task:** simplify usage, align with .createInterface ([2786898](https://github.com/aurelia/aurelia/commit/2786898))
+
 <a name="2.0.0-alpha.2"></a>
 # 2.0.0-alpha.2 (2021-03-07)
 

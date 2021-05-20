@@ -15,6 +15,7 @@ import {
   EndpointContent,
   Viewport,
   ViewportScope,
+  NavigationFlags,
 } from '../index.js';
 
 /**
@@ -29,7 +30,7 @@ export interface IConnectedCustomElement extends ICustomElementViewModel {
   container: IContainer;
   controller: ICustomElementController;
 
-  setActive?: (active: boolean) => void;
+  setActivity?: (state: string | NavigationFlags, active: boolean) => void;
 }
 
 export interface IEndpointOptions {
@@ -202,7 +203,7 @@ export class Endpoint {
    * Finalize the change of content by making the next content the current
    * content. The previously current content is deleted.
    */
-  public finalizeContentChange(_coordinator: NavigationCoordinator): void {
+  public finalizeContentChange(_coordinator: NavigationCoordinator, _step: Step<void> | null): void {
     throw new Error(`Method 'finalizeContentChange' needs to be implemented in all endpoints!`);
   }
 

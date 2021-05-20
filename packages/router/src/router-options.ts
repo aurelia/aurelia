@@ -223,15 +223,18 @@ export class Indicators {
     public loadActive: string = 'active',
 
     /**
-     * The name of the class indicating that the viewport is active
+     * The name of the class indicating that the viewport is navigating.
+     * The different types of navigation -- first, new, back, forward and
+     * refresh -- will be added as well with this class as prefix, for
+     * example 'navigating-back'.
      */
-    public viewportActive: string = 'viewport-active',
+    public viewportNavigating: string = 'navigating',
   ) { }
 
   public static create(input: IIndicators = {}): Indicators {
     return new Indicators(
       input.loadActive,
-      input.viewportActive,
+      input.viewportNavigating,
     );
   }
 
@@ -241,7 +244,7 @@ export class Indicators {
 
   public apply(input: IIndicators = {}): void {
     this.loadActive = input.loadActive ?? this.loadActive;
-    this.viewportActive = input.viewportActive ?? this.viewportActive;
+    this.viewportNavigating = input.viewportNavigating ?? this.viewportNavigating;
   }
 }
 

@@ -394,7 +394,7 @@ export class Router implements IRouter {
     // Invoke the transformFromUrl hook if it exists
     let transformedInstruction = typeof navigation.instruction === 'string' && !navigation.useFullStateInstruction
       ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
-      : navigation.instruction;
+      : (navigation.useFullStateInstruction ? navigation.fullStateInstruction : navigation.instruction);
 
     // If app uses a base path remove it if present (unless we're using fragment hash)
     const basePath = options.basePath;

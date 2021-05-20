@@ -103,24 +103,24 @@ export class RouterConfiguration {
     RouterConfiguration.options = RouterOptions.create();
 
     // TODO: Old AppTask, remove before beta
-    // if (AppTask.with != null) {
-    //   return container.register(
-    //     ...DefaultComponents,
-    //     ...DefaultResources,
-    //     AppTask.with(IRouter).beforeActivate().call(RouterConfiguration.configurationCall),
-    //     AppTask.with(IRouter).afterActivate().call((router: IRouter) => router.initialLoad() as Promise<void>),
-    //     AppTask.with(IRouter).afterDeactivate().call((router: IRouter) => router.stop()),
-    //   );
-    // } else {
-    return container.register(
-      ...DefaultComponents,
-      ...DefaultResources,
-      // TODO: Remove the as any before beta
-      (AppTask as any).beforeActivate(IRouter, RouterConfiguration.configurationCall),
-      (AppTask as any).afterActivate(IRouter, (router: IRouter) => router.initialLoad() as Promise<void>),
-      (AppTask as any).afterDeactivate(IRouter, (router: IRouter) => router.stop()),
-    );
-    // }
+    if ((AppTask as any).with != null) {
+      return container.register(
+        ...DefaultComponents,
+        ...DefaultResources,
+        (AppTask as any).with(IRouter).beforeActivate().call(RouterConfiguration.configurationCall),
+        (AppTask as any).with(IRouter).afterActivate().call((router: IRouter) => router.initialLoad() as Promise<void>),
+        (AppTask as any).with(IRouter).afterDeactivate().call((router: IRouter) => router.stop()),
+      );
+    } else {
+      return container.register(
+        ...DefaultComponents,
+        ...DefaultResources,
+        // TODO: Remove the as any before beta
+        (AppTask as any).beforeActivate(IRouter, RouterConfiguration.configurationCall),
+        (AppTask as any).afterActivate(IRouter, (router: IRouter) => router.initialLoad() as Promise<void>),
+        (AppTask as any).afterDeactivate(IRouter, (router: IRouter) => router.stop()),
+      );
+    }
   }
 
   /**

@@ -27,6 +27,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   public binding(): void {
     this.element.addEventListener('click', this.linkHandler);
     this.updateValue();
+    this.updateActive();
 
     this.routerNavigationSubscription = this.ea.subscribe(RouterNavigationEndEvent.eventName, this.navigationEndHandler);
   }
@@ -38,6 +39,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   public valueChanged(_newValue: unknown): void {
     this.updateValue();
+    this.updateActive();
   }
 
   private updateValue(): void {
@@ -54,10 +56,14 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     }
   }
   private readonly navigationEndHandler = (_navigation: RouterNavigationEndEvent): void => {
+    this.updateActive();
+  };
+
+  private updateActive(): void {
     const controller = CustomAttribute.for(this.element, 'load')!.parent!;
     const instructions = getConsideredActiveInstructions(this.router, controller, this.element as HTMLElement, this.value);
     const element = getLoadIndicator(this.element as HTMLElement);
 
     element.classList.toggle(this.activeClass, this.router.checkActive(instructions, { context: controller }));
-  };
+  }
 }

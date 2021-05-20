@@ -176,8 +176,6 @@ export class Navigator {
     if (!(navigation instanceof Navigation)) {
       navigation = Navigation.create(navigation);
     }
-    (navigation as Navigation).process = new OpenPromise();
-
     const navigationFlags = new NavigationFlags();
 
     // If no proper last navigation, no navigation has been processed this session, meaning
@@ -218,8 +216,11 @@ export class Navigator {
         navigationFlags.back = true;
       }
     } else if ((navigation.refreshing ?? false) || navigationFlags.refresh) { // If the navigation is a refresh...
-      // ...just reuse last index.
-      navigation.index = this.lastNavigationIndex;
+      // ...just reuse the navigation.
+      // navigation.index = this.lastNavigationIndex;
+      navigation = this.navigations[this.lastNavigationIndex];
+      navigation.replacing = true;
+      navigation.refreshing = true;
     } else if (navigation.replacing ?? false) {  // If the navigation is replacing...
       // ...set appropriate flags...
       navigationFlags.replace = true;
@@ -238,9 +239,11 @@ export class Navigator {
     (navigation as Navigation).navigation = navigationFlags;
     // Set the previous navigation.
     navigation.previous = this.navigations[Math.max(this.lastNavigationIndex, 0)];
+    // Create a process with an awaitable promise.
+    (navigation as Navigation).process = new OpenPromise();
 
     // Set the last navigated index to the navigation index
-    this.lastNavigationIndex = navigation.index;
+    this.lastNavigationIndex = navigation.index as number;
 
     this.notifySubscribers(navigation as Navigation);
 

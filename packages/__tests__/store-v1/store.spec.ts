@@ -8,7 +8,7 @@ import {
   UnregisteredActionError,
   ActionRegistrationError,
   ReducerNoStateError
-} from "@aurelia/store";
+} from "@aurelia/store-v1";
 
 import {
   createTestStore,

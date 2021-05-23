@@ -4,7 +4,7 @@ const skip = _skip as typeof $skip;
 
 import { DI, Registration } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
-import { STORE, dispatchify, Store, UnregisteredActionError } from '@aurelia/store';
+import { STORE, dispatchify, Store, UnregisteredActionError } from '@aurelia/store-v1';
 
 import { createTestStore, testState } from './helpers.js';
 

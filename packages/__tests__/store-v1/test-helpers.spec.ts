@@ -1,4 +1,4 @@
-import { executeSteps } from "@aurelia/store";
+import { executeSteps } from "@aurelia/store-v1";
 import { assert } from "@aurelia/testing";
 
 import {

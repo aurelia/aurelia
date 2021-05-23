@@ -8,7 +8,7 @@ const distinctUntilChanged = _distinctUntilChanged as typeof $distinctUntilChang
 import { customElement } from '@aurelia/runtime-html';
 import { assert } from "@aurelia/testing";
 import { DI, Registration } from '@aurelia/kernel';
-import { STORE, Store, connectTo } from '@aurelia/store';
+import { STORE, Store, connectTo } from '@aurelia/store-v1';
 
 import { createCallCounter, createDI } from "./helpers.js";
 

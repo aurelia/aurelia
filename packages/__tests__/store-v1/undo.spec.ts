@@ -4,7 +4,7 @@ import {
   jump,
   nextStateHistory,
   StateHistory
-} from "@aurelia/store";
+} from "@aurelia/store-v1";
 import { assert } from "@aurelia/testing";
 
 import {

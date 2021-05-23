@@ -1,7 +1,7 @@
 import { Subscription } from 'rxjs';
 import { Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
-import { StoreConfiguration, Store, connectTo, StoreOptions, dispatchify } from "@aurelia/store";
+import { StoreConfiguration, Store, connectTo, StoreOptions, dispatchify } from "@aurelia/store-v1";
 import { Constructable } from '@aurelia/kernel';
 
 import { testState } from './helpers.js';

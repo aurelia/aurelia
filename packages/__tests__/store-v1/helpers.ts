@@ -4,9 +4,9 @@ import {
   StateHistory,
   DevToolsOptions,
   IStoreWindow
-} from '@aurelia/store';
-import { DI, ILogger, Registration } from '@aurelia/kernel';
-import { IWindow } from '@aurelia/runtime-html';
+} from '@aurelia/store-v1';
+import { DI, ILogger, IPlatform, Registration } from '@aurelia/kernel';
+import { BrowserPlatform, IWindow } from '@aurelia/runtime-html';
 
 export type testState = {
   foo: string;
@@ -24,15 +24,27 @@ export class DevToolsMock {
   public constructor(public devToolsOptions: DevToolsOptions) { }
 }
 
+const devtoolsInstalled = Symbol();
+
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function createDI(storeWindowMock?: unknown) {
+export function createDI(mockWindow?: object) {
   const container = DI.createContainer();
-  container.register(Registration.instance(IWindow,
-    storeWindowMock !== undefined
-      ? storeWindowMock
-  : { devToolsExtension: {}, __REDUX_DEVTOOLS_EXTENSION__: {
-    connect: (devToolsOptions?: DevToolsOptions) => new DevToolsMock(devToolsOptions)
-  }}));
+  const platform = BrowserPlatform.getOrCreate(globalThis);
+  const win = mockWindow ?? (() => {
+    const $win = platform.window;
+    if (!$win[devtoolsInstalled]) {
+      $win[devtoolsInstalled] = true;
+      Object.assign($win, {
+        devToolsExtension: {},
+        __REDUX_DEVTOOLS_EXTENSION__: {
+          connect: (devToolsOptions?: DevToolsOptions) => new DevToolsMock(devToolsOptions)
+        }
+      });
+    }
+    return $win;
+  })();
+  container.register(Registration.instance(IPlatform, platform));
+  container.register(Registration.instance(IWindow, win));
 
   return {
     logger: container.get(ILogger),

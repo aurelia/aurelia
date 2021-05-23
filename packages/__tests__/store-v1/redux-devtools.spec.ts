@@ -4,7 +4,7 @@ import type { skip as $skip, delay as $delay } from "rxjs/operators";
 const skip = _skip as typeof $skip;
 const delay = _delay as typeof $delay;
 
-import { DevToolsOptions, Store, DevToolsRemoteDispatchError } from '@aurelia/store';
+import { DevToolsOptions, Store, DevToolsRemoteDispatchError } from '@aurelia/store-v1';
 import {
   testState,
   createDI,

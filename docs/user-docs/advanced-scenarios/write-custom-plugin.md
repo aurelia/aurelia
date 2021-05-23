@@ -182,7 +182,7 @@ import { AppTask, DI, Registration } from 'aurelia';
 
 function configure(container: IContainer, config: IBootstrapV5Options = defaultOptions) {
     return container.register(
-        AppTask.with(IContainer).hydrating().call(async cfg => {
+        AppTask.hydrating(IContainer, async container => {
             if (config.enableSpecificOption) {
                 const file = await import('file');
                 cfg.register(Registration.instance(ISpecificOption, file.do());

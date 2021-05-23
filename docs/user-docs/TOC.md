@@ -73,6 +73,10 @@
 * [I18n Internationalization](validation/i18n-internationalization.md)
 * [Migration Guide & Breaking Changes](validation/migration-guide.md)
 
+## Plugins
+
+* [Dialog](plugins/dialog.md)
+
 ## Advanced Scenarios
 
 * [CSS-in-JS with Emotion](advanced-scenarios/css-in-js-with-emotion.md)
@@ -80,6 +84,7 @@
 * [Strongly-typed Template](advanced-scenarios/strongly-typed-template.md)
 * [Write Custom Plugins](advanced-scenarios/write-custom-plugin.md)
 * [DOM Style Injection](advanced-scenarios/dom-style-injection.md)
+* [Markdown Integration](advanced-scenarios/markdown-integration.md)
 
 ## Side-by-Side Comparison
 

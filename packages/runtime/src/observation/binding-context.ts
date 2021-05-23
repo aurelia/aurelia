@@ -67,14 +67,14 @@ export class BindingContext implements IBindingContext {
      * This artifact raises the need for this fallback.
      */
     /* eslint-enable jsdoc/check-indentation */
-    let context = chooseContext(scope, name, ancestor);
+    let context = chooseContext(scope, name, ancestor, null);
     if (
       context !== null
       && ((context == null ? false : name in context)
         || !hasOtherScope)
     ) { return context; }
     if (hasOtherScope) {
-      context = chooseContext(hostScope!, name, ancestor);
+      context = chooseContext(hostScope!, name, ancestor, scope);
       if (context !== null && (context !== undefined && name in context)) { return context; }
     }
 
@@ -88,7 +88,12 @@ export class BindingContext implements IBindingContext {
   }
 }
 
-function chooseContext(scope: Scope, name: string, ancestor: number): IBindingContext | undefined | null {
+function chooseContext(
+  scope: Scope,
+  name: string,
+  ancestor: number,
+  projectionScope: Scope | null,
+): IBindingContext | undefined | null {
   let overrideContext: IOverrideContext | null = scope.overrideContext;
   let currentScope: Scope | null = scope;
 
@@ -103,12 +108,15 @@ function chooseContext(scope: Scope, name: string, ancestor: number): IBindingCo
     }
 
     overrideContext = currentScope!.overrideContext;
+    // Here we are giving benefit of doubt considering the dev has used one or more `$parent` token, and thus should know what s/he is targeting.
     return name in overrideContext ? overrideContext : overrideContext.bindingContext;
   }
 
   // traverse the context and it's ancestors, searching for a context that has the name.
   while (
-    !currentScope?.isComponentBoundary
+    (!currentScope?.isComponentBoundary
+      || projectionScope !== null && projectionScope !== currentScope
+    )
     && overrideContext
     && !(name in overrideContext)
     && !(

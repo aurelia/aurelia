@@ -42,8 +42,8 @@ export const DefaultResources: IRegistry[] = [
 export type RouterConfig = IRouterOptions | ((router: IRouter) => ReturnType<IRouter['start']>);
 function configure(container: IContainer, config?: RouterConfig): IContainer {
   return container.register(
-    AppTask.with(IContainer).hydrated().call(RouteContext.setRoot),
-    AppTask.with(IRouter).afterActivate().call(router => {
+    AppTask.hydrated(IContainer, RouteContext.setRoot),
+    AppTask.afterActivate(IRouter, router => {
       if (isObject(config)) {
         if (typeof config === 'function') {
           return config(router) as void | Promise<void>;
@@ -53,7 +53,7 @@ function configure(container: IContainer, config?: RouterConfig): IContainer {
       }
       return router.start({}, true) as void | Promise<void>;
     }),
-    AppTask.with(IRouter).afterDeactivate().call(router => {
+    AppTask.afterDeactivate(IRouter, router => {
       router.stop();
     }),
     ...DefaultComponents,

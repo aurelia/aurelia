@@ -665,3 +665,68 @@ export class App {
 
 [Select Multiple Strings Demo](https://codesandbox.io/embed/yvr7p888q9?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
 
+## Form Submission
+
+Most of the time, a `<form>` element should be used to group one or many controls in a form, it acts a container for those controls, and can also be used for layout purposes with CSS. Normally, HTML forms can be submitted without involving any JavaScript, via the `action` and `method` attributes on a `<form>`. Though it's also common in applications that forms are driven by JavaScript. In Aurelia, driving form via script can be achieved via `submit` event on the the form, with the basic usage looks like the following example:
+
+```markup
+<form submit.trigger="submitMyForm()">
+  ...
+</form>
+```
+
+```typescript
+class MyApp {
+  submitMyForm() {
+    fetch('/register', { method: 'POST', ... })
+  }
+}
+```
+
+Note that by default, for a `<form/>` without a `method` attribute, or `method` attribute value being equal to `GET/get`, using `submit.trigger` will call `preventDefault()` on the `submit` event, which prevents the normally unwanted behavior of html of navigating the page to the `URI` of the form. If this behavior is not desired, return true in the method being called, like the following example:
+
+```typescript
+class MyApp {
+  submitMyForm() {
+    ...
+    return true;
+  }
+}
+```
+
+### Recommendations
+
+* When a normal `<button/>` element, without any `type` attribute is placed inside a form, it will have the default type of `submit`, which means that if a user clicks on this button, the containing form will be submitted. To avoid this behavior, always specify `type` attribute on button with `button` value, if it's not a submit button, like the following example:
+
+  ```markup
+    <form submit.trigger="submitMyForm()">
+      <button type="button" click.trigger="showTocDialog()">Read TOC</button>
+    </form>
+  ```
+
+* Always try to use `submit` event on `<form>` elements, as it captures both `click` mouse action on a button of `submit` type and `enter` keyboard action on a form field, per following example:
+
+    Do this:
+
+  ```markup
+    <form submit.trigger="submitMyForm()">
+      ...
+    </form>
+  ```
+
+    Avoid `click` like this:
+
+  ```markup
+    <form>
+      <button type="button" click.trigger="submitMyForm()">Ok</button>
+    </form>
+  ```
+
+    Avoid `enter` like this:
+
+  ```markup
+    <form>
+      <input type="text" keydown.trigger="submitIfEnter($event)">
+    </form>
+  ```
+

@@ -2,14 +2,14 @@
 
 If the example doesn't seem obvious, the following prerequisite reads are recommended:
 
-* [extending templating syntax](https://github.com/aurelia/aurelia/tree/1bdb122cd1af090b298c934325d917b9bd494949/docs/user-docs/app-basics/extening-templating-syntax.md)
+* [extending templating syntax](https://docs.aurelia.io/app-basics/extending-templating-syntax)
 
 The following is a code example of how to teach Aurelia to work seamlessly with [Microsoft FAST](https://www.fast.design/):
 
 ```typescript
 import { AppTask, IContainer, IAttrSyntaxTransformer, NodeObserverLocator } from 'aurelia';
 
-Aurelia.register(AppTask.with(IContainer).beforeCreate().call(container => {
+Aurelia.register(AppTask.beforeCreate(IContainer, container => {
   const attrSyntaxTransformer = container.get(IAttrSyntaxTransformer);
   const nodeObserverLocator = container.get(NodeObserverLocator);
   attrSyntaxTransformer.useTwoWay((el, property) => {

@@ -229,6 +229,8 @@ export {
   TaskSlot,
   AppTask,
   IAppTask,
+  AppTaskCallback,
+  AppTaskCallbackNoArg,
 } from './app-task.js';
 export {
   AttrSyntax,
@@ -407,6 +409,12 @@ export {
   Case,
   DefaultCase,
 } from './resources/template-controllers/switch.js';
+export {
+  PromiseTemplateController,
+  FulfilledTemplateController,
+  PendingTemplateController,
+  RejectedTemplateController,
+} from './resources/template-controllers/promise.js';
 
 export {
   Blur,
@@ -670,3 +678,49 @@ export {
   ComputedWatcher,
   ExpressionWatcher,
 } from './templating/watchers.js';
+
+export {
+  // configurations
+  DialogConfiguration,
+  DialogConfigurationProvider,
+  DialogDefaultConfiguration,
+
+  // enums
+  DialogActionKey,
+  DialogMouseEventType,
+  DialogDeactivationStatuses,
+
+  // settings
+  IDialogSettings,
+  IDialogGlobalSettings,
+  IDialogLoadedSettings,
+
+  // main interfaces
+  IDialogService,
+  IDialogController,
+  IDialogDomRenderer,
+  IDialogDom,
+
+  // dialog results
+  DialogError,
+  DialogOpenPromise,
+  DialogOpenResult,
+  DialogCancelError,
+  DialogCloseError,
+  DialogCloseResult,
+
+  // default impls
+  DialogService,
+  DialogController,
+  DefaultDialogDom,
+  DefaultDialogDomRenderer,
+  DefaultDialogGlobalSettings,
+
+  // implementable for applications
+  IDialogCustomElementViewModel,
+  IDialogComponent,
+  IDialogComponentActivate,
+  IDialogComponentCanActivate,
+  IDialogComponentDeactivate,
+  IDialogComponentCanDeactivate,
+} from './dialog.js';

@@ -6,7 +6,7 @@ description: Observe changes in your applications.
 
 ## Observation Basic
 
-Aurelia observation system is built using observers and subscribers. By default, an observer locator is used to create observers and subscribe to them for change notification. 
+Aurelia observation system is built using observers and subscribers. By default, an observer locator is used to create observers and subscribe to them for change notification.
 
 **A basic observer has the following interface:**
 
@@ -27,7 +27,7 @@ interface ISubscriber {
 }
 ```
 
-An observer of an object property can be retrieved using an observer locator. 
+An observer of an object property can be retrieved using an observer locator.
 
 **An example of this is:**
 
@@ -53,7 +53,64 @@ observer.unsubscribe(subscriber)
 
 ## The observable decorator
 
-TODO: describe the decorator here
+Have you ever needed to perform an action when a property is changed? If you have, that's a great use of property observation.
+
+To observe a property, you need to decorate it with the `@observable` decorator and define a method as the change handler. This method can receive 2 parameters: the new value and the old value. You can put any business logic inside this method.
+
+By convention, the change handler is a method whose name is composed of the property_name and the literal value 'Changed'. For example, if you decorate the property `color` with `@observable`, you have to define a method named `colorChanged()` to be the change handler.
+
+**An example of this is:**
+```typescript
+import { observable } from '@aurelia/runtime';
+
+export class Car {
+  @observable color = 'blue';
+
+  colorChanged(newValue, oldValue) {
+    // this will fire whenever the 'color' property changes
+  }
+}
+```
+
+{% hint style="info" %}
+You do not have to check if `newValue` and `oldValue` are different. The change handler will not be called if you assign a value that the property already has.
+{% endhint %}
+
+If you do not want to use the convention, you can define the callback name for the change handler by setting the `callback` property of the `@observable` decorator:
+
+```typescript
+import { observable } from '@aurelia/runtime';
+
+export class Car {
+  @observable({ callback: 'myCallback' })
+  color = 'blue';
+
+  myCallback(newValue, oldValue) {
+    // this will fire whenever the 'color' property changes
+  }
+}
+```
+
+If you prefer, can also put the `@observable` on classes:
+
+```typescript
+import { observable } from '@aurelia/runtime';
+
+@observable('color')
+@observable({ name: 'speed', callback: 'speedCallback' })
+export class Car {
+  color = 'blue';
+  speed = 300;
+
+  colorChanged(newValue, oldValue) {
+    // this will fire whenever the 'color' property changes
+  }
+
+  speedCallback(newValue, oldValue) {
+    // this will fire whenever the 'speed' property changes
+  }
+}
+```
 
 ### Effect Observation
 
@@ -74,7 +131,7 @@ The property `coord` of a `MouseTracker` instance will be turned into a reactive
 
 ### Creating an Effect
 
-The effect API is provided via the default implementation of an interface named `IObservation`. 
+The effect API is provided via the default implementation of an interface named `IObservation`.
 
 An example to retrieve an instance of this interface is per following:
 
@@ -91,7 +148,7 @@ An example to retrieve an instance of this interface is per following:
 
    ```typescript
     import { inject, IObservation } from 'aurelia';
- 
+
     @inject(IObservation)
     class MyElement {
       constructor(observation) {
@@ -147,11 +204,11 @@ effect.stop();
     class App {
       constructor(observation) {
         const mouseTracker = new MouseTracker();
-     
+
         document.addEventListener('mousemove', (e) => {
           mouseTracker.coord = [e.pageX, e.pageY]
         });
-     
+
         observation.run(() => {
           console.log(mouseTracker.coord)
         });
@@ -159,7 +216,7 @@ effect.stop();
     }
    ```
 
-   Now whenever the user moves the mouse around, a log will be added to the console with the coordinate of the mouse.  
+   Now whenever the user moves the mouse around, a log will be added to the console with the coordinate of the mouse.
 
 2. Creating an effect that sends a request whenever user focus/unfocus the browser tab
 
@@ -175,11 +232,11 @@ effect.stop();
     class App {
       constructor(observation) {
         const pageActivity = new PageActivity();
-     
+
         document.addEventListener(visibilityChange, (e) => {
           pageActivity.active = !document.hidden;
         });
-     
+
         observation.run(() => {
           fetch('my-game/user-activity', { body: JSON.stringify({ active: pageActivity.active }) })
         });
@@ -193,7 +250,7 @@ HTML elements are special objects that often require different observation strat
 
 As an example, the `value` property of an `<input />` element should be observed by listening to the `<input />` change events such as `input` or `change` on the element. Another example is the `value` property of a `<select />` element should be observed by listening to the `change` event on it.
 
-By default, the observation of HTML elements is done using a default node observer locator implementation. This default locator has a basic set of API that allows users to teach Aurelia how to observe HTML element observation effectively. 
+By default, the observation of HTML elements is done using a default node observer locator implementation. This default locator has a basic set of API that allows users to teach Aurelia how to observe HTML element observation effectively.
 
 The following is the trimmed interface of the node observer locator, highlighting its capability to learn how to observe HTML elements:
 
@@ -218,7 +275,7 @@ export class NodeObserverLocator {
   nodeObserverLocator.useConfig('textarea', 'value', { events: ['input', 'change'] });
   ```
 
-  In this example, the `eventsConfig` argument has the value `{ events: ['input', 'change']}`.  
+  In this example, the `eventsConfig` argument has the value `{ events: ['input', 'change']}`.
 
 * Another example of how to teach Aurelia to observe property `length` of an `<input />` element:
 

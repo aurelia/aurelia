@@ -63,6 +63,16 @@ import { Else, If } from './resources/template-controllers/if.js';
 import { Repeat } from './resources/template-controllers/repeat.js';
 import { With } from './resources/template-controllers/with.js';
 import { Switch, Case, DefaultCase } from './resources/template-controllers/switch.js';
+import {
+  PromiseTemplateController,
+  PendingTemplateController,
+  FulfilledTemplateController,
+  RejectedTemplateController,
+  // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
+  // PromiseAttributePattern,
+  // FulfilledAttributePattern,
+  // RejectedAttributePattern,
+} from './resources/template-controllers/promise.js';
 import { Compose } from './resources/custom-elements/compose.js';
 import { AuSlot } from './resources/custom-elements/au-slot.js';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize.js';
@@ -168,6 +178,14 @@ export const WithRegistration = With as unknown as IRegistry;
 export const SwitchRegistration = Switch as unknown as IRegistry;
 export const CaseRegistration = Case as unknown as IRegistry;
 export const DefaultCaseRegistration = DefaultCase as unknown as IRegistry;
+export const PromiseTemplateControllerRegistration = PromiseTemplateController as unknown as IRegistry;
+export const PendingTemplateControllerRegistration = PendingTemplateController as unknown as IRegistry;
+export const FulfilledTemplateControllerRegistration = FulfilledTemplateController as unknown as IRegistry;
+export const RejectedTemplateControllerRegistration = RejectedTemplateController as unknown as IRegistry;
+// TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
+// export const PromiseAttributePatternRegistration = PromiseAttributePattern as unknown as IRegistry;
+// export const FulfilledAttributePatternRegistration = FulfilledAttributePattern as unknown as IRegistry;
+// export const RejectedAttributePatternRegistration = RejectedAttributePattern as unknown as IRegistry;
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior as unknown as IRegistry;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior as unknown as IRegistry;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as unknown as IRegistry;
@@ -204,6 +222,14 @@ export const DefaultResources = [
   SwitchRegistration,
   CaseRegistration,
   DefaultCaseRegistration,
+  PromiseTemplateControllerRegistration,
+  PendingTemplateControllerRegistration,
+  FulfilledTemplateControllerRegistration,
+  RejectedTemplateControllerRegistration,
+  // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
+  // PromiseAttributePatternRegistration,
+  // FulfilledAttributePatternRegistration,
+  // RejectedAttributePatternRegistration,
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,

@@ -9,9 +9,10 @@ Have you ever needed to hide or show part of a UI based on some condition? Well,
 {% hint style="success" %}
 **Here's what you'll learn...**
 
-* Adding and removing DOM with `if`/`else`.
+* Adding and removing DOM with `if`/`else`, and `switch`.
 * Hiding and showing DOM with `show`/`hide`.
 * Choosing between `if`/`else` and `show`/`hide`.
+* Facilitate partial and deferred rendering with `promise`.
 {% endhint %}
 
 ## if/else
@@ -405,3 +406,309 @@ This section includes few more interesting examples that you might encounter in 
   ```
   {% endcode %}
 
+## promise
+
+The `promise` template controller enables us to render different content based on the status of a promise.
+A basic example is shown below.
+
+{% tabs %}
+{% tab title="my-app.html" %}
+```markup
+<div promise.bind="promise1">
+ <template pending>The promise is not yet settled.</template>
+ <template then.from-view="data">The promise is resolved with ${data}.</template>         <!-- grab the resolved value -->
+ <template catch.from-view="err">This promise is rejected with ${err.message}.</template> <!-- grab the rejection reason -->
+</div>
+
+<div promise.bind="promise2">
+ <template pending>The promise is not yet settled.</template>
+ <template then>The promise is resolved.</template>
+ <template catch>This promise is rejected.</template>
+</div>
+```
+% endtab %}
+
+{% tab title="my-app.ts" %}
+```typescript
+export class MyApp {
+  private promise1: Promise<any>;
+  private promise2: Promise<any>;
+
+  public binding() {
+    this.promise1 = this.fetchFoo();
+    this.promise2 = this.fetchBar();
+  }
+
+  private fetchFoo(): Promise<any> {
+    // return a promise
+  }
+
+  private fetchBar(): Promise<any> {
+    // return a promise
+  }
+}
+```
+{% endtab %}
+{% endtabs %}
+
+As it can be seen in the example above, there are three more companion template controllers: `pending`, `then`, and `catch`.
+The content under `pending` is shown till the promise is settled.
+Once the promise is settled, depending on whether the promise is resolved, or rejected, the content under `then`, or `catch` will be shown respectively.
+Moreover, after the promise is settled, the content under the `pending` is detached from the DOM.
+
+Another important point to note here is that the resolved data from the promise can be accessed using the bound property with `then` (in the example above, it is `data`).
+Similarly, the rejection error/reason can be accessed using the bound property with `catch` (in the example above, it is `err`).
+The usage of these settled values are optional; that is both `then` and `catch` can be used without binding to any property.
+
+Contextually, it should be clarified here that the usage of `from-view` binding mode for `then`, and `catch` is intentional, as other binding mode in this context would not make much sense.
+
+### Motivation
+
+The need for this template controller originated from the use-case of showing partial content in the view while another part of the view that is dependent on the promise, waits.
+
+```markup
+<span> promise-independent content </span>
+
+<template promise.bind="generalInfoPromise">
+ <template pending>Fetching info...</template>
+ <template then.from-view="info">${info.name} ${info.age}</template>
+ <template catch.from-view="err1">Cannot get the general information</template>
+</template>
+
+<template promise.bind="addressInfoPromise">
+ <template pending>Fetching address info...</template>
+ <template then.from-view="address">${address.pin} ${address.city}</template>
+ <template catch.from-view="err2">Cannot get the address information</template>
+</template>
+```
+
+In the example above the `span` will be shown independently of the status of either `generalInfoPromise`, or `addressInfoPromise`.
+The section dependent on each of those promise will attach DOM Elements according to the status of each promises, at the same time being independent of each other.
+
+### Scoping
+
+The `promise` template controller creates its own scope.
+This prevents accidentally polluting the parent scope or the view model where this template controller is used.
+Let use see an example to understand what it means.
+
+{% tabs %}
+{% tab title="my-app.html" %}
+```markup
+<div promise.bind="promise">
+ <foo-bar then.from-view="data" foo-data.bind="data"></foo-bar>
+ <fizz-buzz catch.from-view="err" fizz-err.bind="err"></fizz-buzz>
+</div>
+```
+{% endtab %}
+
+{% tab title="my-app.ts" %}
+```typescript
+export class MyApp {
+  public data: any;
+}
+```
+{% endtab %}
+{% endtabs %}
+
+In the example above, we are storing the resolved value from the promise in the `data` property, and then passing the value to the `foo-bar` custom element by binding the `foo-data` property.
+Due to the fact that `promise` creates its own scope, this does not add a property to the binding context.
+This means that for the example above the `data` property in `MyApp` stays uninitialized (more precisely, the `data` property never end up being in the instance of `MyApp`).
+This is useful when we need the data only in view for passing from one component to another custom element, as it does not pollute the underlying view-model.
+Note that this does not make any difference in terms of data binding or change observation.
+However, when we do need to access the settled data inside the view model, we can use the `$parent.data` or `$parent.err` as shown in the example below.
+
+
+{% tabs %}
+{% tab title="my-app.html" %}
+```markup
+<div promise.bind="promise">
+ <foo-bar then="$parent.data"></foo-bar>
+ <fizz-buzz catch="$parent.err"></fizz-buzz>
+</div>
+```
+{% endtab %}
+
+{% tab title="my-app.ts" %}
+```typescript
+export class MyApp {
+  public data: any;   // the resolved data is assigned to this once and when the promise is resolved
+  public err: Error; // the rejected reason is assigned to this once and when the promise is resolved
+}
+```
+{% endtab %}
+{% endtabs %}
+
+Another interesting aspect of this scoping is that now we can write the following markup.
+
+{% code title="my-app.html" %}
+```markup
+<template promise.bind="generalInfoPromise">
+ <template pending>Fetching info...</template>
+ <template then.from-view="data">${data.name} ${data.age}</template>
+ <template catch.from-view="err">Cannot get the general information</template>
+</template>
+
+<template promise.bind="addressInfoPromise">
+ <template pending>Fetching address info...</template>
+ <template then.from-view="data">${data.pin} ${data.city}</template>
+ <template catch.from-view="err">Cannot get the address information</template>
+</template>
+```
+{% endcode %}
+
+Note that the mark up uses 2 different promises but uses `data` property in both cases to grab the resolved data.
+Same can be observed for `err` as well.
+However, as separate scopes are created by every `promise`, the two `data` properties are actually two different properties in two different scopes.
+Without separate scope, we necessarily need to use two properties with different names in this case (that can also be done even in this case, not necessarily).
+
+{% hint style="info" %}
+In case you are interested about the details on scoping and binding context, you can refer to the [Scope and context documentation](../app-basics/scope-and-binding-context).
+{% endhint %}
+
+### Nesting
+
+The template controllers can be nested.
+
+{% code title="my-app.html" %}
+```markup
+<template promise.bind="fetchPromise">
+ <template pending>Fetching...</template>
+ <template then.from-view="response" promise.bind="response.json()">
+   <template then.from-view="data">${data}</template>
+   <template catch>Deserialization error</template>
+ </template>
+ <template catch.from-view="err2">Cannot fetch</template>
+</template>
+```
+{% endcode %}
+
+### Using it inside repeat.for
+
+Due to the way the scoping and binding context resolution works (refer to the [Scope and context documentation](../app-basics/scope-and-binding-context)), you might want to use a `let` binding when using the `promise` inside `repeat.for`.
+This is shown in the example below.
+
+{% tabs %}
+{% tab title="my-app.html" %}
+```markup
+<template>
+  <let items.bind="[[42, true], ['foo-bar', false], ['forty-two', true], ['fizz-bazz', false]]"></let>
+  <template repeat.for="item of items">
+    <template promise.bind="item[0] | promisify:item[1]">
+      <let data.bind="null" err.bind="null"></let>
+      <span then.from-view="data">${data}</span>
+      <span catch.from-view="err">${err.message}</span>
+    </template>
+  </template>
+</template>
+```
+{% endtab %}
+{% tab title="promisify.ts" %}
+```ts
+import {
+  valueConverter,
+} from '@aurelia/runtime-html';
+
+@valueConverter('promisify')
+class Promisify {
+  public toView(value: unknown, resolve: boolean = true): Promise<unknown> {
+    return resolve
+      ? Promise.resolve(value)
+      : Promise.reject(new Error(String(value)));
+  }
+}
+```
+{% endtab %}
+{% endtabs %}
+
+The above example shows an usage involving `repeat.for` chained with a `promisify` value converter.
+The value converter converts a simple value to a resolving or rejecting promise depending on the second boolean value passed to it.
+The value converter in itself is not that important for this discussion.
+It is used to construct a `repeat.for`, `promise` combination easily.
+
+The important thing to note here is the usage of `let` binding that forces creation of two properties, namely `data` and `err`, in the override context which gets higher precedence while binding.
+Without these properties in the override context, the properties gets created in the binding context, which eventually gets overwritten with the second iteration of the repeat.
+In short, with `let` binding in place the output looks like as follows.
+
+```html
+<span>42</span>
+<span>foo-bar</span>
+<span>forty-two</span>
+<span>fizz-bazz</span>
+```
+
+Whereas without the `let` binding, the result looks like below that does not match the general expectation.
+
+```html
+<span>forty-two</span>
+<span>fizz-bazz</span>
+<span>forty-two</span>
+<span>fizz-bazz</span>
+```
+
+### Restriction
+
+The `pending`, `then`, and `catch` can not be used in isolation without the `promise` template controller.
+That is each one of the following examples throws error.
+
+{% code title="my-app.html" %}
+```markup
+<template pending>does not work</template>
+<template then>does not work</template>
+<template catch>does not work</template>
+```
+{% endcode %}
+
+
+However, `promise` template controller can be used without any of those three template controllers.
+Following are some valid examples.
+
+{% code title="my-app.html" %}
+```markup
+<template promise.bind="promise">
+</template>
+
+<template promise.bind="promise">
+ <template pending>Please wait...</template>
+</template>
+
+<template promise.bind="promise">
+ <template then="data">...</template>
+ <template catch="err">...</template>
+</template>
+```
+{% endcode %}
+
+It is important to note here that those three template controllers cannot be used under any template controller other than `promise`.
+Following are some invalid examples.
+
+{% code title="my-app.html" %}
+```markup
+<template promise.bind="generalInfoPromise">
+ <template if.bind="true" pending>Fetching info...</template> <!--Here pending gets nested under if.bind-->
+ <template then.from-view="info">${info.name} ${info.age}</template>
+ <template catch.from-view="err1">Cannot get the general information</template>
+</template>
+
+<template promise.bind="generalInfoPromise">
+ <template repeat.for="i of 10" then.from-view="info">${info.name} ${info.age}</template>  <!--Here pending gets nested under repeat.for-->
+ <template catch.from-view="err1">Cannot get the general information</template>
+</template>
+```
+{% endcode %}
+
+However, the following are some valid examples of combining other template controllers.
+
+{% code title="my-app.html" %}
+```markup
+<template promise.bind="generalInfoPromise">
+ <template pending if.bind="someCondition">Fetching info...</template>
+ <template then.from-view="info">${info.name} ${info.age}</template>
+ <template catch.from-view="err1">Cannot get the general information</template>
+</template>
+
+<template promise.bind="generalInfoPromise">
+ <template then.from-view="items" repeat.for="item of item">${item.name}</template>
+ <template catch.from-view="err1">Cannot get the general information</template>
+</template>
+```
+{% endcode %}

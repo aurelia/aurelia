@@ -204,13 +204,35 @@ This section shows couple of recipes to make resources available for Backend plu
         contentBase: path.join(__dirname, "dist"),
       },
       plugins: [
+        new CopyPlugin({
+          patterns: [
+            { from: 'src/locales', to: 'locales' } // assumption: src/locales exists
+          ]
+        })
+      ]
+    }
+  }
+  ```
+
+If you are using an earlier version than v6.0.0 of `copy-webpack-plugin`, use this config.
+
+```javascript
+  const path = require('path');
+  const CopyPlugin = require('copy-webpack-plugin');
+
+  module.exports = function() {
+    return {
+      devServer: {
+        contentBase: path.join(__dirname, "dist"),
+      },
+      plugins: [
         new CopyPlugin([
           { from: 'src/locales', to: 'locales' } // assumption: src/locales exists
         ])
       ]
     }
   }
-  ```
+```
 
 * cli: TODO
 

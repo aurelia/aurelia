@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/store",
+  "name": "@aurelia/store-v1",
   "version": "2.0.0-alpha.3",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
@@ -41,6 +41,7 @@
     "@aurelia/kernel": "2.0.0-alpha.3",
     "@aurelia/metadata": "2.0.0-alpha.3",
     "@aurelia/platform": "2.0.0-alpha.3",
+    "@aurelia/runtime-html": "2.0.0-alpha.3",
     "rxjs": "^6.5.3"
   },
   "devDependencies": {

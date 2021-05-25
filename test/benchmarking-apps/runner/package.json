@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "devDependencies": {
-    "@aurelia/http-server": "2.1.0-dev.202105250527",
+    "@aurelia/http-server": "2.0.0-alpha.4",
     "@benchmarking-apps/storage": "1.0.0",
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.11.5",

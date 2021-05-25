@@ -35,7 +35,8 @@
     "build": "tsc -b",
     "dev": "tsc -b -w --preserveWatchOutput",
     "publish:dev": "npm publish --tag dev",
-    "publish:latest": "npm publish --tag latest"
+    "publish:latest": "npm publish --tag latest",
+    "rollup": "rollup -c"
   },
   "publishConfig": {
     "access": "public"

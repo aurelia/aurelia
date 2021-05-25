@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.4"></a>
+# 2.0.0-alpha.4 (2021-05-25)
+
+### Features:
+
+* **store:** move tests into tests folder ([bd0029b](https://github.com/aurelia/aurelia/commit/bd0029b))
+
+
+### Bug Fixes:
+
+* **store:** adjusted IConfigure method names ([0ec0728](https://github.com/aurelia/aurelia/commit/0ec0728))
+* **store:** connectTo store obtaining API updated ([7f713b3](https://github.com/aurelia/aurelia/commit/7f713b3))
+* **store:** inject window via DI; fix redux tests ([5ca4b07](https://github.com/aurelia/aurelia/commit/5ca4b07))
+* **store:** decorator afterUnbind ([44225c1](https://github.com/aurelia/aurelia/commit/44225c1))
+* **store:** throw on non-history-state for jump ([e795e47](https://github.com/aurelia/aurelia/commit/e795e47))
+* **store:** test imports should reference package ([55adcd6](https://github.com/aurelia/aurelia/commit/55adcd6))
+
+
+### Refactorings:
+
+* **store:** remove unnecessary injection token ([53d12bf](https://github.com/aurelia/aurelia/commit/53d12bf))
+* **store:** get rid of Reporter; additional tests ([8ac53c4](https://github.com/aurelia/aurelia/commit/8ac53c4))
+
 <a name="2.0.0-alpha.3"></a>
 # 2.0.0-alpha.3 (2021-05-19)
 

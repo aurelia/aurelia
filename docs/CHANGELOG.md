@@ -3,6 +3,48 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.4"></a>
+# 2.0.0-alpha.4 (2021-05-25)
+
+### Features:
+
+* **store:** use STORE.container for performance api ([4024a5b](https://github.com/aurelia/aurelia/commit/4024a5b))
+* **store:** use STORE.container for global DOM api ([f9e7620](https://github.com/aurelia/aurelia/commit/f9e7620))
+* **store:** switch to ILogger ([8ffa768](https://github.com/aurelia/aurelia/commit/8ffa768))
+* **store:** ff action dispatch feature from v1 ([3a00cae](https://github.com/aurelia/aurelia/commit/3a00cae))
+* **kernel:** add full IPerformance to PLATFORM ([0dadea9](https://github.com/aurelia/aurelia/commit/0dadea9))
+* **store:** bring store up-to-state with v1 features ([111dc0c](https://github.com/aurelia/aurelia/commit/111dc0c))
+* **kernel:** update performance interface ([1a3fff8](https://github.com/aurelia/aurelia/commit/1a3fff8))
+* **store:** move tests into tests folder ([bd0029b](https://github.com/aurelia/aurelia/commit/bd0029b))
+* **store:** getting tsconfig to acknowledge environment and other fixes ([dfd2fc8](https://github.com/aurelia/aurelia/commit/dfd2fc8))
+* **store:** remove unneeded and irrelevant parameters from created ([154a8e3](https://github.com/aurelia/aurelia/commit/154a8e3))
+* **store:** merged in bigopon changes from original repo pr ([37bb425](https://github.com/aurelia/aurelia/commit/37bb425))
+* **store:** getting tests to work ([a0f0125](https://github.com/aurelia/aurelia/commit/a0f0125))
+* **store:** initial wip migration work of store ([49be9b2](https://github.com/aurelia/aurelia/commit/49be9b2))
+
+
+### Bug Fixes:
+
+* **store:** adjusted IConfigure method names ([0ec0728](https://github.com/aurelia/aurelia/commit/0ec0728))
+* **store:** connectTo store obtaining API updated ([7f713b3](https://github.com/aurelia/aurelia/commit/7f713b3))
+* **store:** inject window via DI; fix redux tests ([5ca4b07](https://github.com/aurelia/aurelia/commit/5ca4b07))
+* **store:** decorator afterUnbind ([44225c1](https://github.com/aurelia/aurelia/commit/44225c1))
+* **store:** throw on non-history-state for jump ([e795e47](https://github.com/aurelia/aurelia/commit/e795e47))
+* **store:** test imports should reference package ([55adcd6](https://github.com/aurelia/aurelia/commit/55adcd6))
+* **store:** merging syntax broke package file ([3f4cc8b](https://github.com/aurelia/aurelia/commit/3f4cc8b))
+
+
+### Refactorings:
+
+* **store:** remove unnecessary injection token ([53d12bf](https://github.com/aurelia/aurelia/commit/53d12bf))
+* **store:** get rid of Reporter; additional tests ([8ac53c4](https://github.com/aurelia/aurelia/commit/8ac53c4))
+* **store:** new lifecycle hooks ([78d5d81](https://github.com/aurelia/aurelia/commit/78d5d81))
+* **store:** adapt to new IPerformance interface ([68c2452](https://github.com/aurelia/aurelia/commit/68c2452))
+* **debug:** reporter codes properly sorted and fixed names for obj ([6163a3a](https://github.com/aurelia/aurelia/commit/6163a3a))
+* **store:** comment out broken tests, clean up testing setup ([b07832b](https://github.com/aurelia/aurelia/commit/b07832b))
+* **store:** refactoring tests and setup ([4b24b03](https://github.com/aurelia/aurelia/commit/4b24b03))
+* **store:** exported object is more explicit for configuration ([2e3a364](https://github.com/aurelia/aurelia/commit/2e3a364))
+
 <a name="2.0.0-alpha.3"></a>
 # 2.0.0-alpha.3 (2021-05-19)
 

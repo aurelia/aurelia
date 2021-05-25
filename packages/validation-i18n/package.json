@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/validation-i18n",
-  "version": "2.0.0-alpha.3",
+  "version": "2.0.0-alpha.4",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
@@ -39,15 +39,15 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/i18n": "2.0.0-alpha.3",
-    "@aurelia/kernel": "2.0.0-alpha.3",
-    "@aurelia/metadata": "2.0.0-alpha.3",
-    "@aurelia/platform": "2.0.0-alpha.3",
-    "@aurelia/platform-browser": "2.0.0-alpha.3",
-    "@aurelia/runtime-html": "2.0.0-alpha.3",
-    "@aurelia/runtime": "2.0.0-alpha.3",
-    "@aurelia/validation-html": "2.0.0-alpha.3",
-    "@aurelia/validation": "2.0.0-alpha.3",
+    "@aurelia/i18n": "2.0.0-alpha.4",
+    "@aurelia/kernel": "2.0.0-alpha.4",
+    "@aurelia/metadata": "2.0.0-alpha.4",
+    "@aurelia/platform": "2.0.0-alpha.4",
+    "@aurelia/platform-browser": "2.0.0-alpha.4",
+    "@aurelia/runtime-html": "2.0.0-alpha.4",
+    "@aurelia/runtime": "2.0.0-alpha.4",
+    "@aurelia/validation-html": "2.0.0-alpha.4",
+    "@aurelia/validation": "2.0.0-alpha.4",
     "i18next": "^17.0.0"
   },
   "devDependencies": {

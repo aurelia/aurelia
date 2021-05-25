@@ -16,7 +16,7 @@
     "@aurelia/router" "2.0.0-alpha.3"
     "@aurelia/runtime" "2.0.0-alpha.3"
     "@aurelia/runtime-html" "2.0.0-alpha.3"
-    "@aurelia/store" "2.0.0-alpha.3"
+    "@aurelia/store-v1" "2.0.0-alpha.3"
     "@aurelia/testing" "2.0.0-alpha.3"
     "@aurelia/validation" "2.0.0-alpha.3"
     "@aurelia/validation-html" "2.0.0-alpha.3"
@@ -186,8 +186,8 @@
     "@aurelia/metadata" "2.0.0-alpha.3"
     "@aurelia/platform" "2.0.0-alpha.3"
 
-"@aurelia/store@2.0.0-alpha.3", "@aurelia/store@file:/home/circleci/repo/packages/store":
-  "resolved" "file:packages/store"
+"@aurelia/store-v1@2.0.0-alpha.3", "@aurelia/store-v1@file:/home/circleci/repo/packages/store-v1":
+  "resolved" "file:packages/store-v1"
   "version" "2.0.0-alpha.3"
   dependencies:
     "@aurelia/kernel" "2.0.0-alpha.3"

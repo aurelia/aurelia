@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig-build.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "rootDir": "src",
+    "lib": ["esnext", "dom"],
+    "strictBindCallApply": false
+  },
+  "include": [
+    "src"
+  ]
+}

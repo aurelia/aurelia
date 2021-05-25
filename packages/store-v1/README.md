@@ -9,11 +9,11 @@
 For the latest stable version:
 
 ```bash
-npm i @aurelia/store
+npm i @aurelia/store-v1
 ```
 
 For our nightly builds:
 
 ```bash
-npm i @aurelia/store@dev
+npm i @aurelia/store-v1@dev
 ```

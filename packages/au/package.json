@@ -38,7 +38,8 @@
     "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system aurelia",
     "dev": "tsc -b -w --preserveWatchOutput",
     "publish:dev": "npm publish --tag dev",
-    "publish:latest": "npm publish --tag latest"
+    "publish:latest": "npm publish --tag latest",
+    "rollup": "rollup -c"
   },
   "publishConfig": {
     "access": "public"

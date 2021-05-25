@@ -58,8 +58,9 @@
     "init": "npm ci && npm run build",
     "rebuild": "npm run clean && npm run build",
     "build": "lage build --scope @aurelia/* --scope aurelia --scope au --scope @benchmarking-apps/* --no-cache --verbose --no-deps",
+    "postbuild": "npm run rollup",
     "build:release": "lage run build --scope aurelia --scope au --scope @aurelia/a* --scope @aurelia/b* --scope @aurelia/f* --scope @aurelia/h* --scope @aurelia/i* --scope @aurelia/k* --scope @aurelia/m* --scope @aurelia/p* --scope @aurelia/r* --scope @aurelia/s* --scope @aurelia/t* --scope @aurelia/v* --scope @aurelia/w* --no-cache --verbose --no-deps",
-    "postbuild:release": "npm run clean:tsconfig-build-cache",
+    "postbuild:release": "npm run rollup && npm run clean:tsconfig-build-cache",
     "build:release:full": "npm run build:release && npm run change-tsconfigs:invert && npm run build:release && npm run change-tsconfigs:restore",
     "change-package-refs:dev": "ts-node -P tsconfig.json scripts/change-package-refs.ts dev",
     "change-package-refs:release": "ts-node -P tsconfig.json scripts/change-package-refs.ts release",
@@ -84,10 +85,12 @@
     "pregenerate-tests:template-compiler.static": "tsc --resolveJsonModule --module commonjs --moduleResolution node --outDir scripts/dist scripts/generate-tests/template-compiler.static.ts",
     "generate-tests:template-compiler.static": "node scripts/dist/scripts/generate-tests/template-compiler.static.js",
     "generate-tests:template-compiler.mutations": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.mutations.ts",
-    "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts"
+    "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts",
+    "rollup": "lage rollup"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.2.0",
+    "@rollup/plugin-typescript": "^8.2.1",
     "@typescript-eslint/eslint-plugin": "^4.10.0",
     "@typescript-eslint/parser": "^4.10.0",
     "chalk": "^4.1.0",
@@ -101,6 +104,7 @@
     "husky": "^4.3.0",
     "lage": "^0.26.2",
     "rimraf": "^3.0.0",
+    "rollup": "^2.49.0",
     "ts-node": "^9.0.0",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^4.0.3"

@@ -13,7 +13,7 @@
     { "path": "route-recognizer" },
     { "path": "runtime" },
     { "path": "runtime-html" },
-    { "path": "store" },
+    { "path": "store-v1" },
     { "path": "testing" },
     { "path": "validation" },
     { "path": "validation-html" },

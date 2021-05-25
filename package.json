@@ -17,7 +17,7 @@
     "packages/runtime",
     "packages/runtime-html",
     "packages/http-server",
-    "packages/store",
+    "packages/store-v1",
     "packages/testing",
     "packages/validation",
     "packages/validation-html",

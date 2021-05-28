@@ -55,7 +55,6 @@ export class BindingContext implements IBindingContext {
     }
 
     const hasOtherScope = hostScope !== scope && hostScope != null;
-    console.log(`BindingContext#get name: ${name} | hasOtherScope: ${hasOtherScope} | scope === hostScope: ${scope === hostScope}`);
     /* eslint-disable jsdoc/check-indentation */
     /**
      * This fallback is needed to support the following case:
@@ -98,8 +97,6 @@ function chooseContext(
   let overrideContext: IOverrideContext | null = scope.overrideContext;
   let currentScope: Scope | null = scope;
 
-  console.log(`[chooseContext] name: ${name}`);
-
   if (ancestor > 0) {
     // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
     while (ancestor > 0) {
@@ -127,14 +124,11 @@ function chooseContext(
       && name in overrideContext.bindingContext
     )
   ) {
-    console.log(`[chooseContext] name: ${name} | traversing to upper scope.`);
     currentScope = currentScope!.parentScope ?? null;
     overrideContext = currentScope?.overrideContext ?? null;
   }
 
-  console.log(`[chooseContext] name: ${name} | has overrideContext: ${!!overrideContext}.`);
   if (overrideContext) {
-    console.log(`[chooseContext] name: ${name} | name in overrideContext: ${name in overrideContext} | name in overrideContext.bindingContext: ${name in overrideContext.bindingContext}.`);
     return name in overrideContext ? overrideContext : overrideContext.bindingContext;
   }
 

@@ -5,7 +5,7 @@ import { Aurelia, AuSlotsInfo, bindable, BindingMode, customElement, CustomEleme
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
-describe.only('au-slot', function () {
+describe('au-slot', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];
@@ -734,8 +734,6 @@ describe.only('au-slot', function () {
           createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div>`),
         ],
         { 'my-element': [`<div><div>Mustermann</div></div>`, new AuSlotsInfo(['default'])] },
-        undefined,
-        true,
       );
       yield new TestData(
         'works with "with" on self',

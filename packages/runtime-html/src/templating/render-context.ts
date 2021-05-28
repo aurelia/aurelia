@@ -14,7 +14,7 @@ import {
 } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
 import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom.js';
-import { IRenderer, ITemplateCompiler, IInstruction, Instruction, InstructionTypeName, HydrateElementInstruction } from '../renderer.js';
+import { IRenderer, ITemplateCompiler, IInstruction, Instruction, InstructionTypeName, HydrateElementInstruction, HydrateTemplateController } from '../renderer.js';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { IViewFactory, ViewFactory } from './view.js';
 import { AuSlotContentType, IAuSlotsInfo, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
@@ -450,12 +450,19 @@ export class RenderContext implements IComponentFactory {
     if (targetedProjections === null) { return; }
     const scope = targetedProjections.scope;
     const projectionProvider = this.projectionProvider;
-    for (const instruction of this.compiledDefinition.instructions.flat()) {
-      const slotInfo = instruction instanceof HydrateElementInstruction
-        ? (instruction as HydrateElementInstruction).slotInfo
-        : null;
-      if (slotInfo !== null && slotInfo.type === AuSlotContentType.Projection) {
-        projectionProvider.registerScopeForAuSlot(instruction, scope);
+    const instructions = this.compiledDefinition.instructions.flat();
+    while (instructions.length) {
+      const instruction = instructions.shift()!;
+      if (instruction instanceof HydrateElementInstruction) {
+        const slotInfo = instruction.slotInfo ?? null;
+        if (slotInfo !== null) {
+          if (slotInfo.type === AuSlotContentType.Projection) {
+            projectionProvider.registerScopeForAuSlot(instruction, scope);
+          }
+          instructions.push(...(slotInfo.content.instructions?.flat() ?? []));
+        }
+      } else if (instruction instanceof HydrateTemplateController) {
+        instructions.push(...((instruction.def.instructions?.flat() ?? []) as IInstruction[]));
       }
     }
   }

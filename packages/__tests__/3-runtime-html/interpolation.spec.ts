@@ -468,6 +468,43 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
 });
 
 describe('3-runtime/interpolation.spec.ts', function () {
+  it('observes and updates when bound with array', async function () {
+    const { tearDown, appHost, ctx, startPromise } = createFixture(
+      `<label repeat.for="product of products">
+      <input
+        type="checkbox"
+        model.bind="product.id"
+        checked.bind="selectedProductIds"></label>
+      Selected product IDs: \${selectedProductIds}`,
+      class App {
+        public products = [
+          { id: 0, name: 'Motherboard' },
+          { id: 1, name: 'CPU' },
+          { id: 2, name: 'Memory' },
+        ];
+
+        public selectedProductIds = [];
+      }
+    );
+
+    await startPromise;
+
+    assert.includes(appHost.textContent, 'Selected product IDs: ');
+    const [box1, box2, box3] = Array.from(appHost.querySelectorAll('input'));
+    box1.checked = true;
+    box1.dispatchEvent(new ctx.CustomEvent('change'));
+    assert.includes(appHost.textContent, 'Selected product IDs: ');
+    ctx.platform.domWriteQueue.flush();
+    assert.includes(appHost.textContent, 'Selected product IDs: 0');
+    box2.checked = true;
+    box2.dispatchEvent(new ctx.CustomEvent('change'));
+    assert.includes(appHost.textContent, 'Selected product IDs: 0');
+    ctx.platform.domWriteQueue.flush();
+    assert.includes(appHost.textContent, 'Selected product IDs: 0,1');
+
+    await tearDown();
+  });
+
   it('[Repeat] interpolates expression with value converter that returns HTML nodes', async function () {
     const { tearDown, appHost, ctx, component, startPromise } = createFixture(
       `<template><div repeat.for="item of items">\${item.value | $}</div></template>`,

@@ -311,7 +311,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
   }
 
   public handleCollectionChange(): void {
-    this.queueUpdate(String(this.value), LifecycleFlags.none);
+    this.queueUpdate(this.value, LifecycleFlags.none);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
@@ -363,6 +363,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     this.task = null;
   }
 
+  // queue a force update
   private queueUpdate(newValue: unknown, flags: LifecycleFlags): void {
     const task = this.task;
     this.task = this.p.domWriteQueue.queueTask(() => {

@@ -21,22 +21,6 @@ import type { Scope } from '../observation/binding-context.js';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 
-const slotNames: string[] = [];
-const versionSlotNames: string[] = [];
-let lastSlot = -1;
-function ensureEnoughSlotNames(currentSlot: number): void {
-  if (currentSlot === lastSlot) {
-    lastSlot += 5;
-    const ii = slotNames.length = versionSlotNames.length = lastSlot + 1;
-    let i = currentSlot + 1;
-    for (; i < ii; ++i) {
-      slotNames[i] = `_o${i}`;
-      versionSlotNames[i] = `_v${i}`;
-    }
-  }
-}
-ensureEnoughSlotNames(-1);
-
 export interface IPartialConnectableBinding extends IBinding, ISubscriber, ICollectionSubscriber {
   observerLocator: IObserverLocator;
 }
@@ -101,6 +85,7 @@ export interface BindingObserverRecord extends ObservationRecordImplType { }
 export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber {
   public version: number = 0;
   public count: number = 0;
+  public slots: number = 0;
 
   public constructor(
     public binding: IConnectableBinding
@@ -120,52 +105,55 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
    */
   public add(observer: ISubscribable | ICollectionSubscribable): void {
     // find the observer.
-    const observerSlots = this.count == null ? 0 : this.count;
+    const observerSlots = this.slots;
     let i = observerSlots;
 
-    while (i-- && this[slotNames[i]] !== observer);
+    // find the slot number of the observer
+    while (i-- && this[`_o${i}`] !== observer);
 
     // if we are not already observing, put the observer in an open slot and subscribe.
     if (i === -1) {
       i = 0;
-      while (this[slotNames[i]]) {
+      // go from the start, find an open slot number
+      while (this[`_o${i}`] !== void 0) {
         i++;
       }
-      this[slotNames[i]] = observer;
+      // store the reference to the observer and subscribe
+      this[`_o${i}`] = observer;
       observer.subscribe(this);
       // increment the slot count.
       if (i === observerSlots) {
-        this.count = i + 1;
+        this.slots = i + 1;
       }
+      ++this.count;
     }
-    this[versionSlotNames[i]] = this.version;
-    ensureEnoughSlotNames(i);
+    this[`_v${i}`] = this.version;
   }
 
   /**
    * Unsubscribe the observers that are not up to date with the record version
    */
   public clear(all?: boolean): void {
-    const slotCount = this.count;
+    const slotCount = this.slots;
     let slotName: string;
     let observer: (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
     let i = 0;
     if (all === true) {
       for (; i < slotCount; ++i) {
-        slotName = slotNames[i];
+        slotName = `_o${i}`;
         observer = this[slotName] as (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
-        if (observer != null) {
+        if (observer !== void 0) {
           this[slotName] = void 0;
           observer.unsubscribe(this);
         }
       }
-      this.count = 0;
+      this.count = this.slots = 0;
     } else {
       for (; i < slotCount; ++i) {
-        if (this[versionSlotNames[i]] !== this.version) {
-          slotName = slotNames[i];
+        if (this[`_v${i}`] !== this.version) {
+          slotName = `_o${i}`;
           observer = this[slotName] as (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
-          if (observer != null) {
+          if (observer !== void 0) {
             this[slotName] = void 0;
             observer.unsubscribe(this);
             this.count--;

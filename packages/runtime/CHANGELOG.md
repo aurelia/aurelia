@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.4"></a>
+# 2.0.0-alpha.4 (2021-05-25)
+
+**Note:** Version bump only for package @aurelia/runtime
+
+<a name="2.0.0-alpha.3"></a>
+# 2.0.0-alpha.3 (2021-05-19)
+
+### Bug Fixes:
+
+* **obs-record:** separate count & slot number ([c824801](https://github.com/aurelia/aurelia/commit/c824801))
+* **array-obs:** handle array.find for computed obs, dont cache index obs ([79ba544](https://github.com/aurelia/aurelia/commit/79ba544))
+* ***:** #1114 ([eed272e](https://github.com/aurelia/aurelia/commit/eed272e))
+* ***:** revert changes in attr-observer, remove unused code in dirty checker ([192a26f](https://github.com/aurelia/aurelia/commit/192a26f))
+* **observers:** ensure oldValue is correctly updated in flush,with optz ([07bc335](https://github.com/aurelia/aurelia/commit/07bc335))
+* ***:** queue the size observer ([0317bce](https://github.com/aurelia/aurelia/commit/0317bce))
+
+
+### Refactorings:
+
+* ***:** binding context resolution with bindingmode participation" ([b84813c](https://github.com/aurelia/aurelia/commit/b84813c))
+* ***:** binding context resolution with bindingmode participation ([3abe3f6](https://github.com/aurelia/aurelia/commit/3abe3f6))
+* **all:** rename currentValue -> value ([6dc943e](https://github.com/aurelia/aurelia/commit/6dc943e))
+* **flush-queue:** wrap with finally ([1c14950](https://github.com/aurelia/aurelia/commit/1c14950))
+* **observation:** fix linting issues ([e738bc1](https://github.com/aurelia/aurelia/commit/e738bc1))
+* **observation:** don't propagate changes with depth first resolution ([235f227](https://github.com/aurelia/aurelia/commit/235f227))
+
 <a name="2.0.0-alpha.2"></a>
 # 2.0.0-alpha.2 (2021-03-07)
 

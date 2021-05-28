@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.4"></a>
+# 2.0.0-alpha.4 (2021-05-25)
+
+**Note:** Version bump only for package @aurelia/kernel
+
+<a name="2.0.0-alpha.3"></a>
+# 2.0.0-alpha.3 (2021-05-19)
+
+### Refactorings:
+
+* ***:** ease multiple metadata polyfill strictness ([54f485a](https://github.com/aurelia/aurelia/commit/54f485a))
+
 <a name="2.0.0-alpha.2"></a>
 # 2.0.0-alpha.2 (2021-03-07)
 

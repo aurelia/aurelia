@@ -73,6 +73,10 @@
 * [I18n Internationalization](validation/i18n-internationalization.md)
 * [Migration Guide & Breaking Changes](validation/migration-guide.md)
 
+## Plugins
+
+* [Dialog](plugins/dialog.md)
+
 ## Advanced Scenarios
 
 * [CSS-in-JS with Emotion](advanced-scenarios/css-in-js-with-emotion.md)

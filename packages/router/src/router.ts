@@ -653,6 +653,9 @@ export class Router {
   }
 
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
+    if (typeof instructionOrInstructions === 'string') {
+      instructionOrInstructions = this.locationMgr.removeBaseHref(instructionOrInstructions);
+    }
     return ViewportInstructionTree.create(instructionOrInstructions, this.getNavigationOptions(options));
   }
 
@@ -864,15 +867,16 @@ export class Router {
   }
 
   private applyHistoryState(tr: Transition): void {
+    const newUrl = tr.finalInstructions.toUrl(this.options.useUrlFragmentHash);
     switch (tr.options.getHistoryStrategy(this.instructions)) {
       case 'none':
         // do nothing
         break;
       case 'push':
-        this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), tr.finalInstructions.toUrl());
+        this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
         break;
       case 'replace':
-        this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), tr.finalInstructions.toUrl());
+        this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
         break;
     }
   }

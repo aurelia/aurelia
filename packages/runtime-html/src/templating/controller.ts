@@ -467,6 +467,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.scope = scope ?? null;
         break;
       case ViewModelKind.synthetic:
+        // maybe only check when there's not already a scope
         if (scope === void 0 || scope === null) {
           throw new Error(`Scope is null or undefined`);
         }

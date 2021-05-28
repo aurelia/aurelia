@@ -251,7 +251,7 @@ class ContentBinding {
         }
     }
     handleCollectionChange() {
-        this.queueUpdate(String(this.value), 0 /* none */);
+        this.queueUpdate(this.value, 0 /* none */);
     }
     $bind(flags, scope, hostScope) {
         if (this.isBound) {
@@ -290,6 +290,7 @@ class ContentBinding {
         (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
         this.task = null;
     }
+    // queue a force update
     queueUpdate(newValue, flags) {
         const task = this.task;
         this.task = this.p.domWriteQueue.queueTask(() => {

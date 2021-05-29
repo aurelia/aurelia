@@ -1,4 +1,4 @@
-import { DI, InstanceProvider, Writable } from '@aurelia/kernel';
+import { DI, Writable } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
 import { IInstruction, Instruction } from '../../renderer.js';

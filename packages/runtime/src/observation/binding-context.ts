@@ -17,7 +17,7 @@ export class BindingContext implements IBindingContext {
       } else {
         // can either be some random object or another bindingContext to clone from
         for (const prop in keyOrObj as IIndexable) {
-          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop) as boolean) {
+          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop)as boolean) {
             this[prop] = (keyOrObj as IIndexable)[prop];
           }
         }
@@ -141,7 +141,7 @@ export class Scope {
     public bindingContext: IBindingContext,
     public overrideContext: IOverrideContext,
     public readonly isComponentBoundary: boolean,
-  ) { }
+  ) {}
 
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and a new standalone `OverrideContext`.

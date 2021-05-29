@@ -45,11 +45,11 @@ export class ProjectionProvider {
     return projectionMap.get(instruction) ?? null;
   }
 
-  public registerScopeForAuSlot(auSlotInstruction: IInstruction, scope: Scope): void {
+  public registerScopeFor(auSlotInstruction: IInstruction, scope: Scope): void {
     auSlotScopeMap.set(auSlotInstruction, scope);
   }
 
-  public getScopeForAuSlot(auSlotInstruction: IInstruction): Scope | null {
+  public getScopeFor(auSlotInstruction: IInstruction): Scope | null {
     return auSlotScopeMap.get(auSlotInstruction) ?? null;
   }
 }

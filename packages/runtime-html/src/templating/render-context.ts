@@ -457,7 +457,7 @@ export class RenderContext implements IComponentFactory {
         const slotInfo = instruction.slotInfo ?? null;
         if (slotInfo !== null) {
           if (slotInfo.type === AuSlotContentType.Projection) {
-            projectionProvider.registerScopeForAuSlot(instruction, scope);
+            projectionProvider.registerScopeFor(instruction, scope);
           }
           instructions.push(...(slotInfo.content.instructions?.flat() ?? []));
         }
@@ -580,11 +580,11 @@ export class RenderContext implements IComponentFactory {
     return this.projectionProvider.getProjectionFor(instruction);
   }
 
-  public registerScopeForAuSlot(auSlotInstruction: IInstruction, scope: Scope): void {
-    this.projectionProvider.registerScopeForAuSlot(auSlotInstruction, scope);
+  public registerScopeFor(auSlotInstruction: IInstruction, scope: Scope): void {
+    this.projectionProvider.registerScopeFor(auSlotInstruction, scope);
   }
-  public getScopeForAuSlot(auSlotInstruction: IInstruction): Scope | null {
-    return this.projectionProvider.getScopeForAuSlot(auSlotInstruction);
+  public getScopeFor(auSlotInstruction: IInstruction): Scope | null {
+    return this.projectionProvider.getScopeFor(auSlotInstruction);
   }
   // #endregion
 }

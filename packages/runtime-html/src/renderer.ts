@@ -400,7 +400,7 @@ export class CustomElementRenderer implements IRenderer {
 
     const slotInfo = instruction.slotInfo;
     if (slotInfo !== null) {
-      const scope = context.getScopeForAuSlot(instruction);
+      const scope = context.getScopeFor(instruction);
       viewFactory = getRenderContext(slotInfo.content, context).getViewFactory(void 0, slotInfo.type, scope);
     }
 

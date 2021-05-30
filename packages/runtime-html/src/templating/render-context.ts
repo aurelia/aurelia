@@ -70,7 +70,7 @@ export interface IRenderContext extends IContainer {
    *
    * @returns Either a new `IViewFactory` (if this is the first call), or a cached one.
    */
-  getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: Scope | null): IViewFactory;
+  getViewFactory(name?: string): IViewFactory;
 }
 
 /**
@@ -418,15 +418,13 @@ export class RenderContext implements IComponentFactory {
     return this;
   }
 
-  public getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: Scope | null): IViewFactory {
+  public getViewFactory(name?: string): IViewFactory {
     let factory = this.factory;
     if (factory === void 0) {
       if (name === void 0) {
         name = this.definition.name;
       }
-      factory = this.factory = new ViewFactory(name, this, contentType, projectionScope);
-    } else {
-      factory.projectionScope = projectionScope!;
+      factory = this.factory = new ViewFactory(name, this);
     }
     return factory;
   }
@@ -451,8 +449,9 @@ export class RenderContext implements IComponentFactory {
     const scope = targetedProjections.scope;
     const projectionProvider = this.projectionProvider;
     const instructions = this.compiledDefinition.instructions.flat();
-    while (instructions.length) {
-      const instruction = instructions.shift()!;
+    let i = 0;
+    while (i < instructions.length) {
+      const instruction = instructions[i++];
       if (instruction instanceof HydrateElementInstruction) {
         const slotInfo = instruction.slotInfo ?? null;
         if (slotInfo !== null) {

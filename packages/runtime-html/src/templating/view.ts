@@ -3,7 +3,6 @@ import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element.js';
 import { Controller } from './controller.js';
 import { IRenderContext } from './render-context.js';
-import { AuSlotContentType } from '../resources/custom-elements/au-slot.js';
 import type { ICustomElementViewModel, ISyntheticView, IDryCustomElementController, IContextualCustomElementController, ICompiledCustomElementController, ICustomElementController, ICustomAttributeController, IHydratedController, IHydratedParentController } from './controller.js';
 
 export interface IViewFactory extends ViewFactory {}
@@ -19,8 +18,6 @@ export class ViewFactory implements IViewFactory {
   public constructor(
     public name: string,
     public readonly context: IRenderContext,
-    public readonly contentType: AuSlotContentType | undefined,
-    public projectionScope: Scope | null = null,
   ) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {

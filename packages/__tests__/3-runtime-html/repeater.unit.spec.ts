@@ -560,7 +560,7 @@ describe(`Repeat`, function () {
           container,
         );
 
-        const itemFactory = new ViewFactory(`item-view`, itemContext, void 0, null);
+        const itemFactory = new ViewFactory(`item-view`, itemContext);
 
         const binding: PropertyBinding = {
           target: null,

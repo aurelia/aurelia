@@ -151,8 +151,8 @@ describe(`If/Else`, function () {
         );
 
         const work = container.get(IWorkTracker);
-        const ifFactory = new ViewFactory('if-view', ifContext, void 0, null);
-        const elseFactory = new ViewFactory('else-view', elseContext, void 0, null);
+        const ifFactory = new ViewFactory('if-view', ifContext);
+        const elseFactory = new ViewFactory('else-view', elseContext);
         const sut = new If(ifFactory, ifLoc, work);
         const elseSut = new Else(elseFactory);
         const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);

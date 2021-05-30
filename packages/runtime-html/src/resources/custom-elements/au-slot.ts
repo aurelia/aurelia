@@ -58,22 +58,22 @@ export class AuSlot implements ICustomElementViewModel {
   /**
    * @internal
    */
-  public static get inject() { return [IViewFactory, IRenderLocation]; }
+  public static get inject() { return [ProjectionProvider, IInstruction, IViewFactory, IRenderLocation]; }
 
   public readonly view: ISyntheticView;
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
-  private readonly isProjection: boolean;
   private hostScope: Scope | null = null;
   private readonly outerScope: Scope | null;
 
   public constructor(
+    projectionProvider: ProjectionProvider,
+    instruction: IInstruction,
     factory: IViewFactory,
     location: IRenderLocation,
   ) {
     this.view = factory.create().setLocation(location);
-    this.isProjection = factory.contentType === AuSlotContentType.Projection;
-    this.outerScope = factory.projectionScope;
+    this.outerScope = projectionProvider.getScopeFor(instruction);
   }
 
   public binding(

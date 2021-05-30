@@ -372,7 +372,7 @@ export class RenderContext implements IComponentFactory {
   public compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext {
     let compiledDefinition: CustomElementDefinition;
     if (this.isCompiled) {
-      this.$registerScopeForAuSlot(targetedProjections);
+      this.registerScopeForAuSlot(targetedProjections);
       return this;
     }
     this.isCompiled = true;
@@ -383,7 +383,7 @@ export class RenderContext implements IComponentFactory {
       const compiler = container.get(ITemplateCompiler);
 
       compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, targetedProjections);
-      this.$registerScopeForAuSlot(targetedProjections);
+      this.registerScopeForAuSlot(targetedProjections);
     } else {
       compiledDefinition = this.compiledDefinition = definition;
     }
@@ -444,7 +444,7 @@ export class RenderContext implements IComponentFactory {
     return this;
   }
 
-  private $registerScopeForAuSlot(targetedProjections: RegisteredProjections | null): void {
+  private registerScopeForAuSlot(targetedProjections: RegisteredProjections | null): void {
     if (targetedProjections === null) { return; }
     const scope = targetedProjections.scope;
     const projectionProvider = this.projectionProvider;

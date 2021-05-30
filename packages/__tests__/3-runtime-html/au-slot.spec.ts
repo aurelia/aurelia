@@ -82,6 +82,7 @@ describe('au-slot', function () {
       public readonly registrations: any[],
       public readonly expected: Record<string, readonly [string, AuSlotsInfo]>,
       public readonly additionalAssertion?: (ctx: AuSlotTestExecutionContext) => void | Promise<void>,
+      public readonly only: boolean = false,
     ) { }
   }
   function* getTestData() {
@@ -713,6 +714,54 @@ describe('au-slot', function () {
           expected,
         );
       }
+
+      {
+        @customElement({
+          name: 'list-box',
+          template: `<div><au-slot></au-slot></div>`
+        })
+        class ListBox {
+          @bindable public value: unknown;
+        }
+
+        let i = 0;
+        @customElement({
+          name: 'assignee',
+          template: `<list-box value.two-way="value">
+          <template au-slot>
+            \${value}
+          </template>
+        </list-box>`
+        })
+        class Assignee {
+          private value;
+
+          public binding() {
+            this.value = i++;
+          }
+        }
+
+        @customElement({
+          name: 'item-row',
+          template: `<div><assignee></assignee></div>`
+        })
+        class ItemRow { }
+
+        yield new TestData(
+          'coping works correctly in conjunction with repeat.for',
+          `<template>
+            <item-row repeat.for="_ of 3"></item-row>
+           </template>`,
+          [
+            ListBox, Assignee, ItemRow
+          ],
+          {
+            'item-row': ['<div><assignee class="au"><list-box value.two-way="value" class="au"> <div> 0 </div></list-box></assignee></div>',null],
+            'item-row+item-row': ['<div><assignee class="au"><list-box value.two-way="value" class="au"> <div> 1 </div></list-box></assignee></div>',null],
+            'item-row+item-row+item-row': ['<div><assignee class="au"><list-box value.two-way="value" class="au"> <div> 2 </div></list-box></assignee></div>',null],
+          },
+        );
+      }
     }
     // #endregion
 
@@ -732,7 +781,7 @@ describe('au-slot', function () {
         [
           createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div>`),
         ],
-        { 'my-element': [`<div><div>Mustermann</div></div>`, new AuSlotsInfo(['default'])] }
+        { 'my-element': [`<div><div>Mustermann</div></div>`, new AuSlotsInfo(['default'])] },
       );
       yield new TestData(
         'works with "with" on self',
@@ -1252,6 +1301,97 @@ describe('au-slot', function () {
           );
         }
       }
+
+      {
+        @customElement({
+          name: 'elem',
+          template: `Parent \${text}
+          <notch>
+            <child au-slot text.bind="text" view-model.ref="child"></child>
+          </notch>
+          \${child.id}`,
+        })
+        class Elem {
+          @bindable public text: string;
+        }
+
+        @customElement({
+          name: 'notch',
+          template: `Notch <au-slot></au-slot>`,
+        })
+        class Notch { }
+
+        let id = 0;
+        @customElement({
+          name: 'child',
+          template: `Id: \${id}. Child \${text}`,
+        })
+        class Child {
+          @bindable public text: string;
+          public id = id++;
+        }
+
+        yield new TestData(
+          'multiple usage of slotted custom element',
+          `<elem text="1"></elem><elem text="2"></elem>`,
+          [Elem, Notch, Child],
+          {
+            'elem': ['Parent 1 <notch class="au"> Notch <child text.bind="text" view-model.ref="child" class="au">Id: 0. Child 1</child></notch> 0', null],
+            'elem+elem': ['Parent 2 <notch class="au"> Notch <child text.bind="text" view-model.ref="child" class="au">Id: 1. Child 2</child></notch> 1', null],
+          }
+        );
+      }
+
+      {
+        @customElement({ name: 'tab-bar', template: '<au-slot></au-slot>' })
+        class TabBar { }
+
+        @customElement({
+          name: 'my-tab',
+          template: `<button active.class="active">\${label}</button>`
+        })
+        class MyTab {
+          @bindable public active: boolean;
+          @bindable public label: string;
+        }
+
+        @customElement({
+          name: 'parent',
+          template:
+            `<tab-bar>
+              <template au-slot>
+                <my-tab repeat.for="t of tabs" label.bind="t" active.bind="selected===t"
+                        click.trigger="selected=t"></my-tab>
+              </template>
+            </tab-bar>`
+        })
+        class Parent {
+          private readonly tabs = ['tab 1', 'tab 2'];
+          private readonly selected = 'tab 1';
+        }
+
+        yield new TestData(
+          'tab-bar',
+          `<parent></parent><parent></parent>`,
+          [MyTab, TabBar, Parent],
+          {},
+          async ({ host, platform }) => {
+            const myTabs = Array.from(host.querySelectorAll('button'));
+            assert.strictEqual(myTabs.length, 4, 'there should be 4 tabs');
+            const [tab1, tab2, tab3, tab4] = myTabs;
+
+            assert.contains(tab1.classList, 'active');
+            assert.contains(tab3.classList, 'active');
+
+            tab2.click();
+            platform.domWriteQueue.flush();
+            assert.notContains(tab1.classList, 'active');
+            assert.contains(tab2.classList, 'active');
+            assert.contains(tab3.classList, 'active');
+            assert.notContains(tab4.classList, 'active');
+          },
+        );
+      }
     }
     // #endregion
 
@@ -1477,8 +1617,8 @@ describe('au-slot', function () {
       );
     }
   }
-  for (const { spec, template, expected, registrations, additionalAssertion } of getTestData()) {
-    $it(spec,
+  for (const { spec, template, expected, registrations, additionalAssertion, only } of getTestData()) {
+    (only ? $it.only : $it)(spec,
       async function (ctx) {
         const { host, error } = ctx;
         assert.deepEqual(error, null);

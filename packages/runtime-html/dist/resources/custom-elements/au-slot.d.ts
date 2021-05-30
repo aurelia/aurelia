@@ -13,13 +13,8 @@ export declare enum AuSlotContentType {
 export declare class SlotInfo {
     readonly name: string;
     readonly type: AuSlotContentType;
-    readonly projectionContext: ProjectionContext;
-    constructor(name: string, type: AuSlotContentType, projectionContext: ProjectionContext);
-}
-export declare class ProjectionContext {
     readonly content: CustomElementDefinition;
-    readonly scope: Scope | null;
-    constructor(content: CustomElementDefinition, scope?: Scope | null);
+    constructor(name: string, type: AuSlotContentType, content: CustomElementDefinition);
 }
 export declare class RegisteredProjections {
     readonly scope: Scope;
@@ -32,14 +27,15 @@ export declare const IProjectionProvider: import("@aurelia/kernel").InterfaceSym
 export declare class ProjectionProvider {
     registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void;
     getProjectionFor(instruction: IInstruction): RegisteredProjections | null;
+    registerScopeFor(auSlotInstruction: IInstruction, scope: Scope): void;
+    getScopeFor(auSlotInstruction: IInstruction): Scope | null;
 }
 export declare class AuSlot implements ICustomElementViewModel {
     readonly view: ISyntheticView;
     readonly $controller: ICustomElementController<this>;
-    private readonly isProjection;
     private hostScope;
     private readonly outerScope;
-    constructor(factory: IViewFactory, location: IRenderLocation);
+    constructor(projectionProvider: ProjectionProvider, instruction: IInstruction, factory: IViewFactory, location: IRenderLocation);
     binding(_initiator: IHydratedController, _parent: IHydratedParentController, _flags: LifecycleFlags): void | Promise<void>;
     attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;

@@ -7,11 +7,9 @@ const custom_element_js_1 = require("../resources/custom-element.js");
 const controller_js_1 = require("./controller.js");
 exports.IViewFactory = kernel_1.DI.createInterface('IViewFactory');
 class ViewFactory {
-    constructor(name, context, contentType, projectionScope = null) {
+    constructor(name, context) {
         this.name = name;
         this.context = context;
-        this.contentType = contentType;
-        this.projectionScope = projectionScope;
         this.isCaching = false;
         this.cache = null;
         this.cacheSize = -1;

@@ -16,7 +16,7 @@ import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetEleme
 import { IPlatform } from './platform.js';
 import { Bindable } from './bindable.js';
 import { IAttributeParser } from './resources/attribute-pattern.js';
-import { AuSlotContentType, ProjectionContext, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { AuSlotContentType, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 class CustomElementCompilationUnit {
     constructor(partialDefinition, surrogate, template) {
@@ -143,8 +143,8 @@ let TemplateCompiler = class TemplateCompiler {
         if (isAuSlot) {
             const targetedProjection = (_a = targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections) === null || _a === void 0 ? void 0 : _a[slotName];
             slotInfo = targetedProjection !== void 0
-                ? new SlotInfo(slotName, AuSlotContentType.Projection, new ProjectionContext(targetedProjection, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.scope))
-                : new SlotInfo(slotName, AuSlotContentType.Fallback, new ProjectionContext(this.compileProjectionFallback(symbol, projections, targetedProjections)));
+                ? new SlotInfo(slotName, AuSlotContentType.Projection, targetedProjection)
+                : new SlotInfo(slotName, AuSlotContentType.Fallback, this.compileProjectionFallback(symbol, projections, targetedProjections));
         }
         const instruction = instructionRow[0] = new HydrateElementInstruction(symbol.res, symbol.info.alias, this.compileBindings(symbol), slotInfo);
         const compiledProjections = this.compileProjections(symbol, projections, targetedProjections);

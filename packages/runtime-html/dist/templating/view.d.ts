@@ -1,8 +1,7 @@
 import { Constructable, ConstructableClass } from '@aurelia/kernel';
-import { LifecycleFlags, Scope } from '@aurelia/runtime';
+import { LifecycleFlags } from '@aurelia/runtime';
 import { PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element.js';
 import { IRenderContext } from './render-context.js';
-import { AuSlotContentType } from '../resources/custom-elements/au-slot.js';
 import type { ICustomElementViewModel, ISyntheticView, ICustomElementController, ICustomAttributeController } from './controller.js';
 export interface IViewFactory extends ViewFactory {
 }
@@ -10,13 +9,11 @@ export declare const IViewFactory: import("@aurelia/kernel").InterfaceSymbol<IVi
 export declare class ViewFactory implements IViewFactory {
     name: string;
     readonly context: IRenderContext;
-    readonly contentType: AuSlotContentType | undefined;
-    readonly projectionScope: Scope | null;
     static maxCacheSize: number;
     isCaching: boolean;
     private cache;
     private cacheSize;
-    constructor(name: string, context: IRenderContext, contentType: AuSlotContentType | undefined, projectionScope?: Scope | null);
+    constructor(name: string, context: IRenderContext);
     setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
     canReturnToCache(controller: ISyntheticView): boolean;
     tryReturnToCache(controller: ISyntheticView): boolean;

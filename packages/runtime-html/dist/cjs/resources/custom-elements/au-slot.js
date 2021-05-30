@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuSlotsInfo = exports.IAuSlotsInfo = exports.AuSlot = exports.ProjectionProvider = exports.IProjectionProvider = exports.RegisteredProjections = exports.ProjectionContext = exports.SlotInfo = exports.AuSlotContentType = exports.IProjections = void 0;
+exports.AuSlotsInfo = exports.IAuSlotsInfo = exports.AuSlot = exports.ProjectionProvider = exports.IProjectionProvider = exports.RegisteredProjections = exports.SlotInfo = exports.AuSlotContentType = exports.IProjections = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const dom_js_1 = require("../../dom.js");
+const renderer_js_1 = require("../../renderer.js");
 const view_js_1 = require("../../templating/view.js");
 const custom_element_js_1 = require("../custom-element.js");
 exports.IProjections = kernel_1.DI.createInterface("IProjections");
@@ -12,20 +13,13 @@ var AuSlotContentType;
     AuSlotContentType[AuSlotContentType["Fallback"] = 1] = "Fallback";
 })(AuSlotContentType = exports.AuSlotContentType || (exports.AuSlotContentType = {}));
 class SlotInfo {
-    constructor(name, type, projectionContext) {
+    constructor(name, type, content) {
         this.name = name;
         this.type = type;
-        this.projectionContext = projectionContext;
+        this.content = content;
     }
 }
 exports.SlotInfo = SlotInfo;
-class ProjectionContext {
-    constructor(content, scope = null) {
-        this.content = content;
-        this.scope = scope;
-    }
-}
-exports.ProjectionContext = ProjectionContext;
 class RegisteredProjections {
     constructor(scope, projections) {
         this.scope = scope;
@@ -34,6 +28,7 @@ class RegisteredProjections {
 }
 exports.RegisteredProjections = RegisteredProjections;
 exports.IProjectionProvider = kernel_1.DI.createInterface('IProjectionProvider', x => x.singleton(ProjectionProvider));
+const auSlotScopeMap = new WeakMap();
 const projectionMap = new WeakMap();
 class ProjectionProvider {
     registerProjections(projections, scope) {
@@ -45,19 +40,25 @@ class ProjectionProvider {
         var _a;
         return (_a = projectionMap.get(instruction)) !== null && _a !== void 0 ? _a : null;
     }
+    registerScopeFor(auSlotInstruction, scope) {
+        auSlotScopeMap.set(auSlotInstruction, scope);
+    }
+    getScopeFor(auSlotInstruction) {
+        var _a;
+        return (_a = auSlotScopeMap.get(auSlotInstruction)) !== null && _a !== void 0 ? _a : null;
+    }
 }
 exports.ProjectionProvider = ProjectionProvider;
 class AuSlot {
-    constructor(factory, location) {
+    constructor(projectionProvider, instruction, factory, location) {
         this.hostScope = null;
         this.view = factory.create().setLocation(location);
-        this.isProjection = factory.contentType === AuSlotContentType.Projection;
-        this.outerScope = factory.projectionScope;
+        this.outerScope = projectionProvider.getScopeFor(instruction);
     }
     /**
      * @internal
      */
-    static get inject() { return [view_js_1.IViewFactory, dom_js_1.IRenderLocation]; }
+    static get inject() { return [ProjectionProvider, renderer_js_1.IInstruction, view_js_1.IViewFactory, dom_js_1.IRenderLocation]; }
     binding(_initiator, _parent, _flags) {
         this.hostScope = this.$controller.scope.parentScope;
     }

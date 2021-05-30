@@ -282,8 +282,7 @@ class CustomElementRenderer {
         let viewFactory;
         const slotInfo = instruction.slotInfo;
         if (slotInfo !== null) {
-            const projectionCtx = slotInfo.projectionContext;
-            viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
+            viewFactory = getRenderContext(slotInfo.content, context).getViewFactory(void 0);
         }
         const targetedProjections = context.getProjectionFor(instruction);
         const factory = context.getComponentFactory(

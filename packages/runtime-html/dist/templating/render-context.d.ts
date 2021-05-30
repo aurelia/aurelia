@@ -4,7 +4,7 @@ import { INode, INodeSequence, IRenderLocation } from '../dom.js';
 import { IInstruction, Instruction } from '../renderer.js';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { IViewFactory } from './view.js';
-import { AuSlotContentType, IAuSlotsInfo, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import { IAuSlotsInfo, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
 import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller.js';
@@ -43,7 +43,7 @@ export interface IRenderContext extends IContainer {
      *
      * @returns Either a new `IViewFactory` (if this is the first call), or a cached one.
      */
-    getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: Scope | null): IViewFactory;
+    getViewFactory(name?: string): IViewFactory;
 }
 /**
  * A compiled `IRenderContext` that can create instances of `INodeSequence` (based on the template of the compiled definition)
@@ -150,8 +150,9 @@ export declare class RenderContext implements IComponentFactory {
     create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null;
     disposeResolvers(): void;
     compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext;
-    getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: Scope | null): IViewFactory;
+    getViewFactory(name?: string): IViewFactory;
     beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext;
+    private registerScopeForAuSlot;
     createNodes(): INodeSequence;
     getComponentFactory(parentController?: IController, host?: HTMLElement, instruction?: Instruction, viewFactory?: IViewFactory, location?: IRenderLocation, auSlotsInfo?: IAuSlotsInfo): IComponentFactory;
     createComponent<TViewModel = ICustomElementViewModel>(resourceKey: string): TViewModel;
@@ -160,5 +161,7 @@ export declare class RenderContext implements IComponentFactory {
     dispose(): void;
     registerProjections(projections: Map<Instruction, Record<string, CustomElementDefinition>>, scope: Scope): void;
     getProjectionFor(instruction: Instruction): RegisteredProjections | null;
+    registerScopeFor(auSlotInstruction: IInstruction, scope: Scope): void;
+    getScopeFor(auSlotInstruction: IInstruction): Scope | null;
 }
 //# sourceMappingURL=render-context.d.ts.map

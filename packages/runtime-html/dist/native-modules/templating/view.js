@@ -4,11 +4,9 @@ import { CustomElement, CustomElementDefinition } from '../resources/custom-elem
 import { Controller } from './controller.js';
 export const IViewFactory = DI.createInterface('IViewFactory');
 export class ViewFactory {
-    constructor(name, context, contentType, projectionScope = null) {
+    constructor(name, context) {
         this.name = name;
         this.context = context;
-        this.contentType = contentType;
-        this.projectionScope = projectionScope;
         this.isCaching = false;
         this.cache = null;
         this.cacheSize = -1;

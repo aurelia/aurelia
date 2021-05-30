@@ -250,8 +250,6 @@ class Controller {
         const compiledContext = this.context.compile(targetedProjections);
         const { projectionsMap, shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
         compiledContext.registerProjections(projectionsMap, this.scope);
-        // once the projections are registered, we can cleanup the projection map to prevent memory leaks.
-        projectionsMap.clear();
         this.isStrictBinding = isStrictBinding;
         if ((this.hostController = custom_element_js_1.CustomElement.for(this.host, optional)) !== null) {
             this.host = this.platform.document.createElement(this.context.definition.name);

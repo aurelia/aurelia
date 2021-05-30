@@ -146,8 +146,8 @@ let TemplateCompiler = class TemplateCompiler {
         if (isAuSlot) {
             const targetedProjection = (_a = targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections) === null || _a === void 0 ? void 0 : _a[slotName];
             slotInfo = targetedProjection !== void 0
-                ? new au_slot_js_1.SlotInfo(slotName, au_slot_js_1.AuSlotContentType.Projection, new au_slot_js_1.ProjectionContext(targetedProjection, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.scope))
-                : new au_slot_js_1.SlotInfo(slotName, au_slot_js_1.AuSlotContentType.Fallback, new au_slot_js_1.ProjectionContext(this.compileProjectionFallback(symbol, projections, targetedProjections)));
+                ? new au_slot_js_1.SlotInfo(slotName, au_slot_js_1.AuSlotContentType.Projection, targetedProjection)
+                : new au_slot_js_1.SlotInfo(slotName, au_slot_js_1.AuSlotContentType.Fallback, this.compileProjectionFallback(symbol, projections, targetedProjections));
         }
         const instruction = instructionRow[0] = new renderer_js_1.HydrateElementInstruction(symbol.res, symbol.info.alias, this.compileBindings(symbol), slotInfo);
         const compiledProjections = this.compileProjections(symbol, projections, targetedProjections);

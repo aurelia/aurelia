@@ -1,5 +1,6 @@
 import { DI } from '../../../../../kernel/dist/native-modules/index.js';
 import { IRenderLocation } from '../../dom.js';
+import { IInstruction } from '../../renderer.js';
 import { IViewFactory } from '../../templating/view.js';
 import { customElement } from '../custom-element.js';
 export const IProjections = DI.createInterface("IProjections");
@@ -9,16 +10,10 @@ export var AuSlotContentType;
     AuSlotContentType[AuSlotContentType["Fallback"] = 1] = "Fallback";
 })(AuSlotContentType || (AuSlotContentType = {}));
 export class SlotInfo {
-    constructor(name, type, projectionContext) {
+    constructor(name, type, content) {
         this.name = name;
         this.type = type;
-        this.projectionContext = projectionContext;
-    }
-}
-export class ProjectionContext {
-    constructor(content, scope = null) {
         this.content = content;
-        this.scope = scope;
     }
 }
 export class RegisteredProjections {
@@ -28,6 +23,7 @@ export class RegisteredProjections {
     }
 }
 export const IProjectionProvider = DI.createInterface('IProjectionProvider', x => x.singleton(ProjectionProvider));
+const auSlotScopeMap = new WeakMap();
 const projectionMap = new WeakMap();
 export class ProjectionProvider {
     registerProjections(projections, scope) {
@@ -39,18 +35,24 @@ export class ProjectionProvider {
         var _a;
         return (_a = projectionMap.get(instruction)) !== null && _a !== void 0 ? _a : null;
     }
+    registerScopeFor(auSlotInstruction, scope) {
+        auSlotScopeMap.set(auSlotInstruction, scope);
+    }
+    getScopeFor(auSlotInstruction) {
+        var _a;
+        return (_a = auSlotScopeMap.get(auSlotInstruction)) !== null && _a !== void 0 ? _a : null;
+    }
 }
 export class AuSlot {
-    constructor(factory, location) {
+    constructor(projectionProvider, instruction, factory, location) {
         this.hostScope = null;
         this.view = factory.create().setLocation(location);
-        this.isProjection = factory.contentType === AuSlotContentType.Projection;
-        this.outerScope = factory.projectionScope;
+        this.outerScope = projectionProvider.getScopeFor(instruction);
     }
     /**
      * @internal
      */
-    static get inject() { return [IViewFactory, IRenderLocation]; }
+    static get inject() { return [ProjectionProvider, IInstruction, IViewFactory, IRenderLocation]; }
     binding(_initiator, _parent, _flags) {
         this.hostScope = this.$controller.scope.parentScope;
     }

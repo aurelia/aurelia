@@ -453,8 +453,8 @@ export class RenderContext implements IComponentFactory {
     while (i < instructions.length) {
       const instruction = instructions[i++];
       if (instruction instanceof HydrateElementInstruction) {
-        const slotInfo = instruction.slotInfo ?? null;
-        if (slotInfo !== null) {
+        const slotInfo = instruction.slotInfo;
+        if (slotInfo != null) {
           if (slotInfo.type === AuSlotContentType.Projection) {
             projectionProvider.registerScopeFor(instruction, scope);
           }

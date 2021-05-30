@@ -1,4 +1,4 @@
-import { AccessorType, BindingMode, connectable, ExpressionKind, LifecycleFlags } from '@aurelia/runtime';
+import { AccessorType, BindingMode, connectable, ExpressionKind, IndexMap, LifecycleFlags } from '@aurelia/runtime';
 import { BindingTargetSubscriber } from './binding-utils.js';
 
 import type { IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
@@ -81,6 +81,48 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
 
+    // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+    if (sourceExpression.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
+      // todo: in VC expressions, from view also requires connect
+      const shouldConnect = this.mode > oneTime;
+      if (shouldConnect) {
+        obsRecord.version++;
+      }
+      newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator, interceptor);
+      if (shouldConnect) {
+        obsRecord.clear(false);
+      }
+    }
+
+    if (shouldQueueFlush) {
+      // Queue the new one before canceling the old one, to prevent early yield
+      const task = this.task;
+      this.task = this.taskQueue.queueTask(() => {
+        interceptor.updateTarget(newValue, flags);
+        this.task = null;
+      }, updateTaskOpts);
+      task?.cancel();
+    } else {
+      interceptor.updateTarget(newValue, flags);
+    }
+  }
+
+  public handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags): void {
+    if (!this.isBound) {
+      return;
+    }
+
+    flags |= this.persistentFlags;
+
+    const targetObserver = this.targetObserver!;
+    const interceptor = this.interceptor;
+    const sourceExpression = this.sourceExpression;
+    const $scope = this.$scope;
+    const locator = this.locator;
+    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+    const obsRecord = this.obs;
+
+    let newValue: unknown;
     // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
     if (sourceExpression.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
       // todo: in VC expressions, from view also requires connect

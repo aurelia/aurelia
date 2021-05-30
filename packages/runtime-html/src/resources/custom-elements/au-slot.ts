@@ -18,14 +18,7 @@ export class SlotInfo {
   public constructor(
     public readonly name: string,
     public readonly type: AuSlotContentType,
-    public readonly projectionContext: ProjectionContext,
-  ) { }
-}
-
-export class ProjectionContext {
-  public constructor(
     public readonly content: CustomElementDefinition,
-    public readonly scope: Scope | null = null
   ) { }
 }
 
@@ -39,6 +32,7 @@ export class RegisteredProjections {
 export interface IProjectionProvider extends ProjectionProvider { }
 export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider', x => x.singleton(ProjectionProvider));
 
+const auSlotScopeMap: WeakMap<IInstruction, Scope> = new WeakMap<Instruction, Scope>();
 const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<Instruction, RegisteredProjections>();
 export class ProjectionProvider {
   public registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
@@ -50,28 +44,36 @@ export class ProjectionProvider {
   public getProjectionFor(instruction: IInstruction): RegisteredProjections | null {
     return projectionMap.get(instruction) ?? null;
   }
+
+  public registerScopeFor(auSlotInstruction: IInstruction, scope: Scope): void {
+    auSlotScopeMap.set(auSlotInstruction, scope);
+  }
+
+  public getScopeFor(auSlotInstruction: IInstruction): Scope | null {
+    return auSlotScopeMap.get(auSlotInstruction) ?? null;
+  }
 }
 
 export class AuSlot implements ICustomElementViewModel {
   /**
    * @internal
    */
-  public static get inject() { return [IViewFactory, IRenderLocation]; }
+  public static get inject() { return [ProjectionProvider, IInstruction, IViewFactory, IRenderLocation]; }
 
   public readonly view: ISyntheticView;
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
-  private readonly isProjection: boolean;
   private hostScope: Scope | null = null;
   private readonly outerScope: Scope | null;
 
   public constructor(
+    projectionProvider: ProjectionProvider,
+    instruction: IInstruction,
     factory: IViewFactory,
     location: IRenderLocation,
   ) {
     this.view = factory.create().setLocation(location);
-    this.isProjection = factory.contentType === AuSlotContentType.Projection;
-    this.outerScope = factory.projectionScope;
+    this.outerScope = projectionProvider.getScopeFor(instruction);
   }
 
   public binding(

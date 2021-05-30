@@ -29,6 +29,7 @@
 
 * [Working with Form Elements](app-basics/working-with-form-elements.md)
 * [Dependency Injection](app-basics/dependency-injection.md)
+* [Scope and context](app-basics/scope-and-binding-context.md)
 * [Components Revisited](app-basics/components-revisited.md)
 * [Styling Components](app-basics/styling-components.md)
 * [Extending Templating Syntax](app-basics/extending-templating-syntax.md)

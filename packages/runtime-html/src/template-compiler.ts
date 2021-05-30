@@ -52,7 +52,7 @@ import {
 import { IPlatform } from './platform.js';
 import { Bindable } from './bindable.js';
 import { IAttributeParser } from './resources/attribute-pattern.js';
-import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { AuSlotContentType, IProjections, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
 
 class CustomElementCompilationUnit {
@@ -215,8 +215,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (isAuSlot) {
       const targetedProjection = targetedProjections?.projections?.[slotName];
       slotInfo = targetedProjection !== void 0
-        ? new SlotInfo(slotName, AuSlotContentType.Projection, new ProjectionContext(targetedProjection, targetedProjections?.scope))
-        : new SlotInfo(slotName, AuSlotContentType.Fallback, new ProjectionContext(this.compileProjectionFallback(symbol, projections, targetedProjections)));
+        ? new SlotInfo(slotName, AuSlotContentType.Projection, targetedProjection)
+        : new SlotInfo(slotName, AuSlotContentType.Fallback, this.compileProjectionFallback(symbol, projections, targetedProjections));
     }
     const instruction = instructionRow[0] = new HydrateElementInstruction(
       symbol.res,

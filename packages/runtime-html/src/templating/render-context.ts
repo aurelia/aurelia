@@ -14,7 +14,7 @@ import {
 } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
 import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom.js';
-import { IRenderer, ITemplateCompiler, IInstruction, Instruction, InstructionTypeName } from '../renderer.js';
+import { IRenderer, ITemplateCompiler, IInstruction, Instruction, InstructionTypeName, HydrateElementInstruction, HydrateTemplateController } from '../renderer.js';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { IViewFactory, ViewFactory } from './view.js';
 import { AuSlotContentType, IAuSlotsInfo, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
@@ -70,7 +70,7 @@ export interface IRenderContext extends IContainer {
    *
    * @returns Either a new `IViewFactory` (if this is the first call), or a cached one.
    */
-  getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: Scope | null): IViewFactory;
+  getViewFactory(name?: string): IViewFactory;
 }
 
 /**
@@ -372,6 +372,7 @@ export class RenderContext implements IComponentFactory {
   public compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext {
     let compiledDefinition: CustomElementDefinition;
     if (this.isCompiled) {
+      this.registerScopeForAuSlot(targetedProjections);
       return this;
     }
     this.isCompiled = true;
@@ -382,6 +383,7 @@ export class RenderContext implements IComponentFactory {
       const compiler = container.get(ITemplateCompiler);
 
       compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, targetedProjections);
+      this.registerScopeForAuSlot(targetedProjections);
     } else {
       compiledDefinition = this.compiledDefinition = definition;
     }
@@ -416,13 +418,13 @@ export class RenderContext implements IComponentFactory {
     return this;
   }
 
-  public getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: Scope | null): IViewFactory {
+  public getViewFactory(name?: string): IViewFactory {
     let factory = this.factory;
     if (factory === void 0) {
       if (name === void 0) {
         name = this.definition.name;
       }
-      factory = this.factory = new ViewFactory(name, this, contentType, projectionScope);
+      factory = this.factory = new ViewFactory(name, this);
     }
     return factory;
   }
@@ -440,6 +442,28 @@ export class RenderContext implements IComponentFactory {
     }
 
     return this;
+  }
+
+  private registerScopeForAuSlot(targetedProjections: RegisteredProjections | null): void {
+    if (targetedProjections === null) { return; }
+    const scope = targetedProjections.scope;
+    const projectionProvider = this.projectionProvider;
+    const instructions = this.compiledDefinition.instructions.flat();
+    let i = 0;
+    while (i < instructions.length) {
+      const instruction = instructions[i++];
+      if (instruction instanceof HydrateElementInstruction) {
+        const slotInfo = instruction.slotInfo;
+        if (slotInfo != null) {
+          if (slotInfo.type === AuSlotContentType.Projection) {
+            projectionProvider.registerScopeFor(instruction, scope);
+          }
+          instructions.push(...(slotInfo.content.instructions?.flat() ?? []));
+        }
+      } else if (instruction instanceof HydrateTemplateController) {
+        instructions.push(...((instruction.def.instructions?.flat() ?? []) as IInstruction[]));
+      }
+    }
   }
 
   // #endregion
@@ -485,7 +509,7 @@ export class RenderContext implements IComponentFactory {
     if (viewFactory !== void 0) {
       this.factoryProvider.prepare(viewFactory);
     }
-    if(auSlotsInfo !== void 0) {
+    if (auSlotsInfo !== void 0) {
       this.auSlotsInfoProvider.prepare(auSlotsInfo);
     }
 
@@ -553,6 +577,13 @@ export class RenderContext implements IComponentFactory {
 
   public getProjectionFor(instruction: Instruction): RegisteredProjections | null {
     return this.projectionProvider.getProjectionFor(instruction);
+  }
+
+  public registerScopeFor(auSlotInstruction: IInstruction, scope: Scope): void {
+    this.projectionProvider.registerScopeFor(auSlotInstruction, scope);
+  }
+  public getScopeFor(auSlotInstruction: IInstruction): Scope | null {
+    return this.projectionProvider.getScopeFor(auSlotInstruction);
   }
   // #endregion
 }

@@ -426,7 +426,7 @@ A basic example is shown below.
  <template catch>This promise is rejected.</template>
 </div>
 ```
-% endtab %}
+{% endtab %}
 
 {% tab title="my-app.ts" %}
 ```typescript

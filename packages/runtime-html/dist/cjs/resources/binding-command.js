@@ -234,7 +234,7 @@ exports.CaptureBindingCommand = CaptureBindingCommand;
  */
 let AttrBindingCommand = class AttrBindingCommand {
     constructor() {
-        this.bindingType = 32 /* IsProperty */;
+        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     compile(binding) {
         const target = getTarget(binding, false);

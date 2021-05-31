@@ -37,9 +37,10 @@ class AttributeObserver {
     flushChanges(flags) {
         if (this.hasChanges) {
             this.hasChanges = false;
-            const currentValue = this.value;
-            this.oldValue = currentValue;
-            switch (this.targetAttribute) {
+            const value = this.value;
+            const attr = this.targetAttribute;
+            this.oldValue = value;
+            switch (attr) {
                 case 'class': {
                     // Why does class attribute observer setValue look different with class attribute accessor?
                     // ==============
@@ -52,17 +53,26 @@ class AttributeObserver {
                     // this also comes from syntax, where it would typically be my-class.class="someProperty"
                     //
                     // so there is no need for separating class by space and add all of them like class accessor
-                    this.obj.classList.toggle(this.propertyKey, !!currentValue);
+                    this.obj.classList.toggle(this.propertyKey, !!value);
                     break;
                 }
                 case 'style': {
                     let priority = '';
-                    let newValue = currentValue;
+                    let newValue = value;
                     if (typeof newValue === 'string' && newValue.includes('!important')) {
                         priority = 'important';
                         newValue = newValue.replace('!important', '');
                     }
                     this.obj.style.setProperty(this.propertyKey, newValue, priority);
+                    break;
+                }
+                default: {
+                    if (value == null) {
+                        this.obj.removeAttribute(attr);
+                    }
+                    else {
+                        this.obj.setAttribute(attr, String(value));
+                    }
                 }
             }
         }
@@ -86,7 +96,7 @@ class AttributeObserver {
                     newValue = this.obj.style.getPropertyValue(this.propertyKey);
                     break;
                 default:
-                    throw new Error(`Unsupported targetAttribute: ${this.targetAttribute}`);
+                    throw new Error(`Unsupported observation of attribute: ${this.targetAttribute}`);
             }
             if (newValue !== this.value) {
                 this.oldValue = this.value;

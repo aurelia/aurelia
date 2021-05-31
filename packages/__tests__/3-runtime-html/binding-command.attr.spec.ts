@@ -35,6 +35,29 @@ describe('3-runtime-html/binding-command.attr.spec.ts', function () {
         assert.strictEqual(appHost.querySelector('div')?.getAttribute('custom-attr'), '5');
       },
     },
+    {
+      title: 'removes attribute when value is null/undefined',
+      template: '<div myattr.attr="a">',
+      App: class App { public a = 5 },
+      assertFn: ({ ctx, appHost, component }) => {
+        assert.strictEqual(appHost.querySelector('div')?.getAttribute('myattr'), '5');
+
+        component['a'] = undefined;
+        assert.strictEqual(appHost.querySelector('div').getAttribute('myattr'), '5');
+        ctx.platform.domWriteQueue.flush();
+        assert.strictEqual(appHost.querySelector('div').hasAttribute('myattr'), false);
+
+        component['a'] = 5;
+        assert.strictEqual(appHost.querySelector('div').hasAttribute('myattr'), false);
+        ctx.platform.domWriteQueue.flush();
+        assert.strictEqual(appHost.querySelector('div').getAttribute('myattr'), '5');
+
+        component['a'] = null;
+        assert.strictEqual(appHost.querySelector('div').getAttribute('myattr'), '5');
+        ctx.platform.domWriteQueue.flush();
+        assert.strictEqual(appHost.querySelector('div').hasAttribute('myattr'), false);
+      },
+    },
   ];
 
   for (const testCase of testCases) {

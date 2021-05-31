@@ -7,7 +7,7 @@ describe('3-runtime-html/binding-command.attr.spec.ts', function () {
     {
       title: 'sets attribute with hyphen',
       template: '<div my-attr.attr="a">',
-      App: class { public a = 5 },
+      App: class { public a = 5; },
       assertFn: ({ appHost }) => {
         assert.strictEqual(appHost.querySelector('div')?.getAttribute('my-attr'), '5');
       },
@@ -15,7 +15,7 @@ describe('3-runtime-html/binding-command.attr.spec.ts', function () {
     {
       title: 'sets attribute without hyphen',
       template: '<div myattr.attr="a">',
-      App: class { public a = 5 },
+      App: class { public a = 5; },
       assertFn: ({ appHost }) => {
         assert.strictEqual(appHost.querySelector('div')?.getAttribute('myattr'), '5');
       },
@@ -23,10 +23,10 @@ describe('3-runtime-html/binding-command.attr.spec.ts', function () {
     {
       title: 'ignores custom attributes',
       template: '<div custom-attr.attr="a"></div>',
-      App: class { public a = 5 },
+      App: class { public a = 5; },
       registrations: [
         CustomAttribute.define({ name: 'custom-attr', bindables: ['value'] }, class {
-          constructor() {
+          public constructor() {
             throw new Error('Should have not created a custom attribute');
           }
         })
@@ -38,7 +38,7 @@ describe('3-runtime-html/binding-command.attr.spec.ts', function () {
     {
       title: 'removes attribute when value is null/undefined',
       template: '<div myattr.attr="a">',
-      App: class App { public a = 5 },
+      App: class App { public a = 5; },
       assertFn: ({ ctx, appHost, component }) => {
         assert.strictEqual(appHost.querySelector('div')?.getAttribute('myattr'), '5');
 
@@ -64,7 +64,7 @@ describe('3-runtime-html/binding-command.attr.spec.ts', function () {
     const { title, template, App, registrations = [], assertFn } = testCase;
     it(title, async function () {
       const { appHost, ctx, component, startPromise, tearDown } = createFixture(template, App, registrations);
-      
+
       await startPromise;
 
       await assertFn({ ctx, component, appHost });
@@ -77,7 +77,7 @@ describe('3-runtime-html/binding-command.attr.spec.ts', function () {
     title: string;
     template: string;
     App?: Constructable<T>;
-    registrations?: unknown[],
-    assertFn: (params: { ctx: TestContext; component: T; appHost: HTMLElement; }) => void | Promise<void>;
+    registrations?: unknown[];
+    assertFn: (params: { ctx: TestContext; component: T; appHost: HTMLElement }) => void | Promise<void>;
   }
 });

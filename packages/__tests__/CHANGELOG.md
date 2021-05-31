@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.5"></a>
+# 2.0.0-alpha.5 (2021-05-31)
+
+### Bug Fixes:
+
+* ***:** broken tests ([17ccba5](https://github.com/aurelia/aurelia/commit/17ccba5))
+* **content:** fix content array auto observation ([98f14ef](https://github.com/aurelia/aurelia/commit/98f14ef))
+
+
+### Refactorings:
+
+* ***:** dropped superfluous props view factory ([9ef9664](https://github.com/aurelia/aurelia/commit/9ef9664))
+
 <a name="2.0.0-alpha.4"></a>
 # 2.0.0-alpha.4 (2021-05-25)
 

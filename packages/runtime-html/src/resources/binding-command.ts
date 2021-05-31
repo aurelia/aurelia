@@ -255,7 +255,7 @@ export class CaptureBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('attr')
 export class AttrBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty;
+  public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
     const target = getTarget(binding, false);

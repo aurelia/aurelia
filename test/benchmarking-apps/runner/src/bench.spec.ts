@@ -16,6 +16,19 @@ declare const $$port: string;
 declare const $$iterations: number;
 declare const $$measurements: Measurement[];
 
+class Logger {
+  private readonly logs: string[] = [];
+  public constructor(private readonly browserType: string) {
+
+  }
+  public log(msg: string): void {
+    this.logs.push(`[${this.browserType}]: ${msg}`);
+  }
+  public flush() {
+    console.log(JSON.stringify(this.logs, void 0, 2));
+  }
+}
+
 describe('benchmark', function () {
 
   async function setup(browserType: BrowserType, initialPopulation = 0) {
@@ -38,15 +51,15 @@ describe('benchmark', function () {
     return { page, browser, durationLoad };
   }
 
-  async function runCommonSequence(page: playwright.Page, measurement: Measurement) {
-    await new UpdateEvery10thRow(page, measurement).run();
-    await new ToggleDetails(page, measurement).run();
-    await new ToggleLocale(page, measurement).run();
-    await new Sort(page, measurement).run();
-    await new Filter(page, measurement).run();
-    await new SelectFirst(page, measurement).run();
-    await new DeleteFirst(page, measurement).run();
-    await new DeleteAll(page, measurement).run();
+  async function runCommonSequence(page: playwright.Page, measurement: Measurement, logger: Logger) {
+    await new UpdateEvery10thRow(page, measurement, logger).run();
+    await new ToggleDetails(page, measurement, logger).run();
+    await new ToggleLocale(page, measurement, logger).run();
+    await new Sort(page, measurement, logger).run();
+    await new Filter(page, measurement, logger).run();
+    await new SelectFirst(page, measurement, logger).run();
+    await new DeleteFirst(page, measurement, logger).run();
+    await new DeleteAll(page, measurement, logger).run();
   }
 
   const measurements: Measurements = new Measurements();
@@ -56,6 +69,7 @@ describe('benchmark', function () {
 
   for (const browserType of browserTypes) {
     describe(browserType, function () {
+      const logger = new Logger(browserType);
       for (let i = 0; i < $$iterations; i++) {
         describe(`iteration-#${i}`, function () {
           for (const initialPopulation of [0, 100]) {
@@ -66,9 +80,9 @@ describe('benchmark', function () {
               measurements.push(measurement);
 
               if (initialPopulation === 0) {
-                await new PopulateHundred(page, measurement).run();
+                await new PopulateHundred(page, measurement, logger).run();
               }
-              await runCommonSequence(page, measurement);
+              await runCommonSequence(page, measurement, logger);
 
               await browser.close();
             });
@@ -82,9 +96,9 @@ describe('benchmark', function () {
               measurements.push(measurement);
 
               if (initialPopulation === 0) {
-                await new PopulateThousand(page, measurement).run();
+                await new PopulateThousand(page, measurement, logger).run();
               }
-              await runCommonSequence(page, measurement);
+              await runCommonSequence(page, measurement, logger);
 
               await browser.close();
             });
@@ -98,15 +112,16 @@ describe('benchmark', function () {
               measurements.push(measurement);
 
               if (initialPopulation === 0) {
-                await new PopulateTenThousand(page, measurement).run();
+                await new PopulateTenThousand(page, measurement, logger).run();
               }
-              await runCommonSequence(page, measurement);
+              await runCommonSequence(page, measurement, logger);
 
               await browser.close();
             });
           }
         });
       }
+      logger.flush();
     });
   }
 });
@@ -118,19 +133,20 @@ abstract class BaseActMeasureAssert<TPreState = unknown> {
     public readonly selector: string,
     public readonly page: Page,
     public readonly measurement: Measurement,
+    protected readonly logger: Logger,
   ) { }
 
   // Act, measures, and asserts
   public async run() {
     const label = this.label;
-    console.log(`starting ${label}`);
+    this.logger.log(`starting ${label}`);
 
     const preState = await this.getPreRunState();
 
     this.measurement[this.measurementKey] = await this.actAndMeasure();
 
     await this.assert(preState);
-    console.log(`finished ${label}`);
+    this.logger.log(`finished ${label}`);
   }
 
   protected abstract getPreRunState(): Promise<TPreState>;
@@ -165,8 +181,9 @@ abstract class BaseMultiStateActMeasureAssert<
     selector: string,
     page: Page,
     measurement: Measurement,
+    logger: Logger,
   ) {
-    super(label, selector, page, measurement);
+    super(label, selector, page, measurement, logger);
   }
   public get currentState() { return this._currentState; }
 
@@ -178,14 +195,14 @@ abstract class BaseMultiStateActMeasureAssert<
       this._currentState = state;
       const label = `${this.label} - ${state}`;
 
-      console.log(`starting ${label}`);
+      this.logger.log(`starting ${label}`);
 
       const preState = await this.getPreRunState();
 
       duration += await this.actAndMeasure();
 
       await this.assert(preState);
-      console.log(`finished ${label}`);
+      this.logger.log(`finished ${label}`);
     }
     /* eslint-enable no-await-in-loop */
     this.measurement[this.measurementKey] = duration / states.length;
@@ -199,8 +216,9 @@ class Populate extends BaseActMeasureAssert {
     page: Page,
     measurement: Measurement,
     public readonly population: number,
+    logger: Logger,
   ) {
-    super(`populate ${population}`, selector, page, measurement);
+    super(`populate ${population}`, selector, page, measurement, logger);
   }
 
   protected async getPreRunState(): Promise<ElementHandle<SVGElement | HTMLElement>[]> {
@@ -223,8 +241,9 @@ class PopulateHundred extends Populate {
   public constructor(
     page: Page,
     measurement: Measurement,
+    logger: Logger,
   ) {
-    super('button#hundred', page, measurement, 100);
+    super('button#hundred', page, measurement, 100, logger);
   }
 }
 
@@ -232,8 +251,9 @@ class PopulateThousand extends Populate {
   public constructor(
     page: Page,
     measurement: Measurement,
+    logger: Logger,
   ) {
-    super('button#thousand', page, measurement, 1_000);
+    super('button#thousand', page, measurement, 1_000, logger);
   }
 }
 
@@ -241,8 +261,9 @@ class PopulateTenThousand extends Populate {
   public constructor(
     page: Page,
     measurement: Measurement,
+    logger: Logger,
   ) {
-    super('button#ten-thousand', page, measurement, 10_000);
+    super('button#ten-thousand', page, measurement, 10_000, logger);
   }
 }
 
@@ -251,8 +272,9 @@ class DeleteFirst extends BaseActMeasureAssert {
   public constructor(
     page: Page,
     measurement: Measurement,
+    logger: Logger,
   ) {
-    super('delete first', 'span.delete', page, measurement);
+    super('delete first', 'span.delete', page, measurement, logger);
   }
 
   protected async getPreRunState(): Promise<ElementHandle<SVGElement | HTMLElement>[]> {
@@ -271,8 +293,9 @@ class DeleteAll extends BaseActMeasureAssert {
   public constructor(
     page: Page,
     measurement: Measurement,
+    logger: Logger,
   ) {
-    super('delete all', 'button#remove-all', page, measurement);
+    super('delete all', 'button#remove-all', page, measurement, logger);
   }
 
   protected async getPreRunState(): Promise<ElementHandle<SVGElement | HTMLElement>[]> {
@@ -291,8 +314,9 @@ class ToggleDetails extends BaseMultiStateActMeasureAssert<readonly ['show', 'hi
   public constructor(
     page: Page,
     measurement: Measurement,
+    logger: Logger,
   ) {
-    super('toggle details', 'button#details', page, measurement);
+    super('toggle details', 'button#details', page, measurement, logger);
   }
 
   protected getPreRunState(): Promise<ElementHandle<SVGElement | HTMLElement>[]> {
@@ -322,8 +346,9 @@ class ToggleLocale extends BaseMultiStateActMeasureAssert<readonly ['de', 'en']>
   public constructor(
     page: Page,
     measurement: Measurement,
+    logger: Logger,
   ) {
-    super('toggle localize-date', 'button#locale', page, measurement);
+    super('toggle localize-date', 'button#locale', page, measurement, logger);
   }
 
   protected getPreRunState(): Promise<undefined> {
@@ -350,8 +375,9 @@ class Filter extends BaseActMeasureAssert {
   public constructor(
     page: Page,
     measurement: Measurement,
+    logger: Logger,
   ) {
-    super('', '', page, measurement);
+    super('', '', page, measurement, logger);
   }
 
   public async run() {
@@ -360,7 +386,7 @@ class Filter extends BaseActMeasureAssert {
 
     // #region filter - employed
     let label = 'filter - employed';
-    console.log(`starting ${label}`);
+    this.logger.log(`starting ${label}`);
 
     let previous = await page.$$(selector);
     const all = previous;
@@ -371,12 +397,12 @@ class Filter extends BaseActMeasureAssert {
 
     assert.strictEqual(current.length <= all.length, true, `${label} - count`);
     assert.strictEqual((await Promise.all(current.map((e) => e.textContent()))).every((t) => !!t), true, `${label} - content`);
-    console.log(`finished ${label}`);
+    this.logger.log(`finished ${label}`);
     // #endregion
 
     // #region filter - unemployed
     label = 'filter - unemployed';
-    console.log(`starting ${label}`);
+    this.logger.log(`starting ${label}`);
 
     measurement += await this.actAndMeasure('button#unemployed');
 
@@ -384,12 +410,12 @@ class Filter extends BaseActMeasureAssert {
 
     assert.notEqual(current.length <= all.length, `${label} - count`);
     assert.strictEqual((await Promise.all(current.map((e) => e.textContent()))).every((t) => !t), true, `${label} - content`);
-    console.log(`finished ${label}`);
+    this.logger.log(`finished ${label}`);
     // #endregion
 
     // #region filter - no
     label = 'filter - no';
-    console.log(`starting ${label}`);
+    this.logger.log(`starting ${label}`);
 
     previous = current;
 
@@ -403,7 +429,7 @@ class Filter extends BaseActMeasureAssert {
       await Promise.all(all.map((e) => e.textContent())),
       `${label} - content`
     );
-    console.log(`finished ${label}`);
+    this.logger.log(`finished ${label}`);
     // #endregion
     this.measurement[this.measurementKey] = measurement / 3;
   }
@@ -422,8 +448,9 @@ class Sort extends BaseActMeasureAssert {
   public constructor(
     page: Page,
     measurement: Measurement,
+    logger: Logger,
   ) {
-    super((void 0)!, (void 0)!, page, measurement);
+    super((void 0)!, (void 0)!, page, measurement, logger);
   }
 
   public async run() {
@@ -439,7 +466,7 @@ class Sort extends BaseActMeasureAssert {
       for (const state of states) {
         const label = `${key} - ${state}`;
 
-        console.log(`starting ${label}`);
+        this.logger.log(`starting ${label}`);
 
         duration += await this.actAndMeasure(selector);
 
@@ -448,7 +475,7 @@ class Sort extends BaseActMeasureAssert {
         } else {
           await this.assertString(state === 'asc' ? 1 : -1, colContentSelector, label);
         }
-        console.log(`finished ${label}`);
+        this.logger.log(`finished ${label}`);
       }
     }
     /* eslint-enable no-await-in-loop */
@@ -488,8 +515,9 @@ class SelectFirst extends BaseActMeasureAssert {
   public constructor(
     page: Page,
     measurement: Measurement,
+    logger: Logger,
   ) {
-    super('select first', 'div.grid>span.selection-target', page, measurement);
+    super('select first', 'div.grid>span.selection-target', page, measurement, logger);
   }
   protected async getPreRunState(): Promise<void> {
     assert.deepStrictEqual(
@@ -528,8 +556,9 @@ class UpdateEvery10thRow extends BaseActMeasureAssert {
   public constructor(
     page: Page,
     measurement: Measurement,
+    logger: Logger,
   ) {
-    super('update every 10th row', 'button#update-10', page, measurement);
+    super('update every 10th row', 'button#update-10', page, measurement, logger);
   }
   protected async getPreRunState(): Promise<(string | null)[]> {
     return this.getFirstNameCol();

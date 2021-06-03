@@ -20,44 +20,44 @@ import type { Scope } from '../observation/binding-context.js';
 import { IConnectableBinding } from './connectable.js';
 
 export const enum ExpressionKind {
-  Connects = 0b000000000001_00000, // The expression's connect() function calls observeProperty and/or calls connect() on another expression that it wraps (all expressions except for AccessThis, PrimitiveLiteral, CallMember/Function and Assign)
-  Observes = 0b000000000010_00000, // The expression's connect() function calls observeProperty (only AccessScope, AccessMember and AccessKeyed do this)
-  CallsFunction = 0b000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()
-  HasAncestor = 0b000000001000_00000, // Has an "ancestor" property, meaning the expression could climb up the context (only AccessThis, AccessScope and CallScope)
-  IsPrimary = 0b000000010000_00000, // Is a primary expression according to ES parsing rules
-  IsLeftHandSide = 0b000000100000_00000, // Is a left-hand side expression according to ES parsing rules, includes IsPrimary
-  HasBind = 0b000001000000_00000, // Has a bind() method (currently only BindingBehavior)
-  HasUnbind = 0b000010000000_00000, // Has an unbind() method (currentl only BindingBehavior and ValueConverter)
-  IsAssignable = 0b000100000000_00000, // Is an assignable expression according to ES parsing rules (only AccessScope, AccessMember, AccessKeyed ans Assign)
-  IsLiteral = 0b001000000000_00000, // Is an Aurelia resource (ValueConverter or BindingBehavior)
-  IsResource = 0b010000000000_00000, // Is literal expression (Primitive, Array, Object or Template)
-  IsForDeclaration = 0b100000000000_00000, // Is a For declaration (for..of, for..in -> currently only ForOfStatement)
-  Type = 0b000000000000_11111, // Type mask to uniquely identify each AST class (concrete types start below)
+  Connects             = 0b000000000001_00000, // The expression's connect() function calls observeProperty and/or calls connect() on another expression that it wraps (all expressions except for AccessThis, PrimitiveLiteral, CallMember/Function and Assign)
+  Observes             = 0b000000000010_00000, // The expression's connect() function calls observeProperty (only AccessScope, AccessMember and AccessKeyed do this)
+  CallsFunction        = 0b000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()
+  HasAncestor          = 0b000000001000_00000, // Has an "ancestor" property, meaning the expression could climb up the context (only AccessThis, AccessScope and CallScope)
+  IsPrimary            = 0b000000010000_00000, // Is a primary expression according to ES parsing rules
+  IsLeftHandSide       = 0b000000100000_00000, // Is a left-hand side expression according to ES parsing rules, includes IsPrimary
+  HasBind              = 0b000001000000_00000, // Has a bind() method (currently only BindingBehavior)
+  HasUnbind            = 0b000010000000_00000, // Has an unbind() method (currentl only BindingBehavior and ValueConverter)
+  IsAssignable         = 0b000100000000_00000, // Is an assignable expression according to ES parsing rules (only AccessScope, AccessMember, AccessKeyed ans Assign)
+  IsLiteral            = 0b001000000000_00000, // Is an Aurelia resource (ValueConverter or BindingBehavior)
+  IsResource           = 0b010000000000_00000, // Is literal expression (Primitive, Array, Object or Template)
+  IsForDeclaration     = 0b100000000000_00000, // Is a For declaration (for..of, for..in -> currently only ForOfStatement)
+  Type                 = 0b000000000000_11111, // Type mask to uniquely identify each AST class (concrete types start below)
   // ---------------------------------------------------------------------------------------------------------------------------
-  AccessThis = 0b000000111000_00001, //               HasAncestor
-  AccessScope = 0b000100111011_00010, // IsAssignable  HasAncestor       Observes  Connects
-  ArrayLiteral = 0b001000110001_00011, //                                           Connects
-  ObjectLiteral = 0b001000110001_00100, //                                           Connects
-  PrimitiveLiteral = 0b001000110000_00101, //
-  Template = 0b001000110001_00110, //                                           Connects
-  Unary = 0b000000000001_00111, //                                           Connects
-  CallScope = 0b000000101101_01000, //               HasAncestor  CallsFunction  Connects
-  CallMember = 0b000000100100_01001, //                            CallsFunction
-  CallFunction = 0b000000100100_01010, //                            CallsFunction
-  AccessMember = 0b000100100011_01011, // IsAssignable                    Observes  Connects
-  AccessKeyed = 0b000100100011_01100, // IsAssignable                    Observes  Connects
-  TaggedTemplate = 0b000000100101_01101, //                            CallsFunction  Connects
-  Binary = 0b000000000001_01110, //                                           Connects
-  Conditional = 0b000000000001_11111, //                                           Connects
-  Assign = 0b000100000000_10000, // IsAssignable
-  ValueConverter = 0b010010000001_10001, //                                           Connects
-  BindingBehavior = 0b010011000001_10010, //                                           Connects
-  HtmlLiteral = 0b000000000001_10011, //                                           Connects
-  ArrayBindingPattern = 0b100000000000_10100, //
+  AccessThis           = 0b000000111000_00001, //               HasAncestor
+  AccessScope          = 0b000100111011_00010, // IsAssignable  HasAncestor       Observes  Connects
+  ArrayLiteral         = 0b001000110001_00011, //                                           Connects
+  ObjectLiteral        = 0b001000110001_00100, //                                           Connects
+  PrimitiveLiteral     = 0b001000110000_00101, //
+  Template             = 0b001000110001_00110, //                                           Connects
+  Unary                = 0b000000000001_00111, //                                           Connects
+  CallScope            = 0b000000101101_01000, //               HasAncestor  CallsFunction  Connects
+  CallMember           = 0b000000100100_01001, //                            CallsFunction
+  CallFunction         = 0b000000100100_01010, //                            CallsFunction
+  AccessMember         = 0b000100100011_01011, // IsAssignable                    Observes  Connects
+  AccessKeyed          = 0b000100100011_01100, // IsAssignable                    Observes  Connects
+  TaggedTemplate       = 0b000000100101_01101, //                            CallsFunction  Connects
+  Binary               = 0b000000000001_01110, //                                           Connects
+  Conditional          = 0b000000000001_11111, //                                           Connects
+  Assign               = 0b000100000000_10000, // IsAssignable
+  ValueConverter       = 0b010010000001_10001, //                                           Connects
+  BindingBehavior      = 0b010011000001_10010, //                                           Connects
+  HtmlLiteral          = 0b000000000001_10011, //                                           Connects
+  ArrayBindingPattern  = 0b100000000000_10100, //
   ObjectBindingPattern = 0b100000000000_10101, //
-  BindingIdentifier = 0b100000000000_10110, //
-  ForOfStatement = 0b000011000001_10111, //                                           Connects
-  Interpolation = 0b000000000000_11000  //
+  BindingIdentifier    = 0b100000000000_10110, //
+  ForOfStatement       = 0b000011000001_10111, //                                           Connects
+  Interpolation        = 0b000000000000_11000  //
 }
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
@@ -372,7 +372,7 @@ type BindingWithBehavior = IConnectableBinding & { [key: string]: BindingBehavio
 export class CustomExpression {
   public constructor(
     public readonly value: string,
-  ) { }
+  ) {}
 
   public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): string {
     return this.value;
@@ -380,7 +380,7 @@ export class CustomExpression {
 }
 
 /** @internal - only exists to workaround circular reference caused by emitted metadata */
-export interface IBindingBehaviorExpression extends BindingBehaviorExpression { }
+export interface IBindingBehaviorExpression extends BindingBehaviorExpression {}
 export class BindingBehaviorExpression {
   public get $kind(): ExpressionKind.BindingBehavior { return ExpressionKind.BindingBehavior; }
   public get hasBind(): true { return true; }
@@ -467,7 +467,7 @@ export class ValueConverterExpression {
     // though to work with signal, it needs to have `handleChange`
     // so having `handleChange` as a guard in the connectable as a safe measure is needed
     // to make sure signaler works
-    if (c !== null && ('handleChange' in (c as unknown as ISubscriber))) {
+    if (c !== null && ('handleChange' in (c  as unknown as ISubscriber))) {
       const signals = vc.signals;
       if (signals != null) {
         const signaler = l.get(ISignaler);
@@ -523,7 +523,7 @@ export class AssignExpression {
   public constructor(
     public readonly target: IsAssignable,
     public readonly value: IsAssign,
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
     return this.target.assign(f, s, hs, l, this.value.evaluate(f, s, hs, l, c));
@@ -552,7 +552,7 @@ export class ConditionalExpression {
     public readonly condition: IsBinary,
     public readonly yes: IsAssign,
     public readonly no: IsAssign,
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
     return this.condition.evaluate(f, s, hs, l, c) ? this.yes.evaluate(f, s, hs, l, c) : this.no.evaluate(f, s, hs, l, c);
@@ -582,7 +582,7 @@ export class AccessThisExpression {
 
   public constructor(
     public readonly ancestor: number = 0,
-  ) { }
+  ) {}
 
   public evaluate(_f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): IBindingContext | undefined {
     if (this === AccessThisExpression.$host) {
@@ -620,7 +620,7 @@ export class AccessScopeExpression {
     public readonly name: string,
     public readonly ancestor: number = 0,
     public readonly accessHostScope: boolean = false,
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, c: IConnectable | null): IBindingContext | IOverrideContext {
     const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IBindingContext;
@@ -670,7 +670,7 @@ export class AccessMemberExpression {
   public constructor(
     public readonly object: IsLeftHandSide,
     public readonly name: string,
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
     const instance = this.object.evaluate(f, s, hs, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as IIndexable;
@@ -720,7 +720,7 @@ export class AccessKeyedExpression {
   public constructor(
     public readonly object: IsLeftHandSide,
     public readonly key: IsAssign,
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
     const instance = this.object.evaluate(f, s, hs, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as IIndexable;
@@ -759,7 +759,7 @@ export class CallScopeExpression {
     public readonly args: readonly IsAssign[],
     public readonly ancestor: number = 0,
     public readonly accessHostScope: boolean = false,
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
     s = chooseScope(this.accessHostScope, s, hs);
@@ -798,7 +798,7 @@ export class CallMemberExpression {
     public readonly object: IsLeftHandSide,
     public readonly name: string,
     public readonly args: readonly IsAssign[],
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
     const instance = this.object.evaluate(f, s, hs, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as IIndexable;
@@ -832,7 +832,7 @@ export class CallFunctionExpression {
   public constructor(
     public readonly func: IsLeftHandSide,
     public readonly args: readonly IsAssign[],
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
     const func = this.func.evaluate(f, s, hs, l, c);
@@ -867,7 +867,7 @@ export class BinaryExpression {
     public readonly operation: BinaryOperator,
     public readonly left: IsBinary,
     public readonly right: IsBinary,
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
     switch (this.operation) {
@@ -964,7 +964,7 @@ export class UnaryExpression {
   public constructor(
     public readonly operation: UnaryOperator,
     public readonly expression: IsLeftHandSide,
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
     switch (this.operation) {
@@ -1007,7 +1007,7 @@ export class PrimitiveLiteralExpression<TValue extends null | undefined | number
 
   public constructor(
     public readonly value: TValue,
-  ) { }
+  ) {}
 
   public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): TValue {
     return this.value;
@@ -1033,7 +1033,7 @@ export class HtmlLiteralExpression {
 
   public constructor(
     public readonly parts: readonly HtmlLiteralExpression[],
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): string {
     let result = '';
@@ -1068,7 +1068,7 @@ export class ArrayLiteralExpression {
 
   public constructor(
     public readonly elements: readonly IsAssign[],
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): readonly unknown[] {
     return this.elements.map(e => e.evaluate(f, s, hs, l, c));
@@ -1096,7 +1096,7 @@ export class ObjectLiteralExpression {
   public constructor(
     public readonly keys: readonly (number | string)[],
     public readonly values: readonly IsAssign[],
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): Record<string, unknown> {
     const instance: Record<string, unknown> = {};
@@ -1128,7 +1128,7 @@ export class TemplateExpression {
   public constructor(
     public readonly cooked: readonly string[],
     public readonly expressions: readonly IsAssign[] = emptyArray,
-  ) { }
+  ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): string {
     let result = this.cooked[0];
@@ -1196,7 +1196,7 @@ export class ArrayBindingPattern {
   // We'll either have elements, or keys+values, but never all 3
   public constructor(
     public readonly elements: readonly IsAssign[],
-  ) { }
+  ) {}
 
   public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): unknown {
     // TODO: this should come after batch
@@ -1237,7 +1237,7 @@ export class ObjectBindingPattern {
   public constructor(
     public readonly keys: readonly (string | number)[],
     public readonly values: readonly IsAssign[],
-  ) { }
+  ) {}
 
   public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): unknown {
     // TODO
@@ -1268,7 +1268,7 @@ export class BindingIdentifier {
 
   public constructor(
     public readonly name: string,
-  ) { }
+  ) {}
 
   public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator | null, _c: IConnectable | null): string {
     return this.name;

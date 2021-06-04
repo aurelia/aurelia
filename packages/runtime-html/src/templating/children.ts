@@ -1,9 +1,9 @@
-import { Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable } from '@aurelia/kernel';
+import { Protocol, Metadata, firstDefined, getPrototypeChain, emptyArray } from '@aurelia/kernel';
 import { LifecycleFlags, subscriberCollection } from '@aurelia/runtime';
 import { CustomElement } from '../resources/custom-element.js';
 
-import type { Constructable } from '@aurelia/kernel';
-import type { ISubscriberCollection, IAccessor, ISubscribable, ISubscriber, IObserver } from '@aurelia/runtime';
+import type { IIndexable, Constructable } from '@aurelia/kernel';
+import type { ISubscriberCollection, IAccessor, ISubscribable, IObserver } from '@aurelia/runtime';
 import type { INode } from '../dom.js';
 import type { ICustomElementViewModel, ICustomElementController } from './controller.js';
 
@@ -161,13 +161,21 @@ export interface ChildrenObserver extends
   ISubscriberCollection,
   IObserver { }
 
-/** @internal */
+/**
+ * @internal
+ *
+ * A special observer for observing the children of a custom element. Unlike other observer that starts/stops
+ * based on the changes in the subscriber addition/removal, this is a controlled observers.
+ *
+ * The controller of a custom element should totally control when this observer starts/stops.
+ */
 @subscriberCollection()
 export class ChildrenObserver {
   public observing: boolean = false;
 
   private readonly callback: () => void;
-  private children: any[] = (void 0)!;
+  private children: unknown[] = (void 0)!;
+  private observer: MutationObserver | undefined = void 0;
 
   public constructor(
     private readonly controller: ICustomElementController,
@@ -192,35 +200,43 @@ export class ChildrenObserver {
     );
   }
 
-  public getValue(): any[] {
-    this.tryStartObserving();
-    return this.children;
+  public getValue(): unknown[] {
+    return this.observing ? this.children : this.get();
   }
 
-  public setValue(newValue: unknown): void { /* do nothing */ }
+  public setValue(value: unknown): void { /* do nothing */ }
 
-  public subscribe(subscriber: ISubscriber): void {
-    this.tryStartObserving();
-    this.subs.add(subscriber);
-  }
-
-  private tryStartObserving() {
+  public start(): void {
     if (!this.observing) {
       this.observing = true;
-      this.children = filterChildren(this.controller, this.query, this.filter, this.map);
-      const obs = new this.controller.host.ownerDocument.defaultView!.MutationObserver(() => { this.onChildrenChanged(); });
-      obs.observe(this.controller.host, this.options);
+      this.children = this.get();
+      (this.observer ??= new this.controller.host.ownerDocument.defaultView!.MutationObserver(() => { this.onChildrenChanged(); }))
+        .observe(this.controller.host, this.options);
+    }
+  }
+
+  public stop(): void {
+    if (this.observing) {
+      this.observing = false;
+      this.observer!.disconnect();
+      this.children = emptyArray;
     }
   }
 
   private onChildrenChanged(): void {
-    this.children = filterChildren(this.controller, this.query, this.filter, this.map);
+    this.children = this.get();
 
     if (this.callback !== void 0) {
       this.callback.call(this.obj);
     }
 
     this.subs.notify(this.children, undefined, LifecycleFlags.none);
+  }
+
+  // freshly retrieve the children everytime
+  // in case this observer is not observing
+  private get() {
+    return filterChildren(this.controller, this.query, this.filter, this.map);
   }
 }
 
@@ -246,12 +262,17 @@ export function filterChildren(
   map: typeof defaultChildMap
 ): any[] {
   const nodes = query(controller);
+  const ii = nodes.length;
   const children = [];
 
-  for (let i = 0, ii = nodes.length; i < ii; ++i) {
-    const node = nodes[i];
-    const $controller = CustomElement.for(node, forOpts);
-    const viewModel = $controller?.viewModel ?? null;
+  let node: INode;
+  let $controller: ICustomElementController | null;
+  let viewModel: ICustomElementViewModel | null;
+  let i = 0;
+  for (; i < ii; ++i) {
+    node = nodes[i];
+    $controller = CustomElement.for(node, forOpts);
+    viewModel = $controller?.viewModel ?? null;
 
     if (filter(node, $controller, viewModel)) {
       children.push(map(node, $controller, viewModel));

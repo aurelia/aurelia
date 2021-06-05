@@ -1,4 +1,4 @@
-import { IContainer, Writable, IDisposable } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
 import { INode, INodeSequence, IRenderLocation } from '../dom.js';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
@@ -6,6 +6,7 @@ import { CustomAttributeDefinition } from '../resources/custom-attribute.js';
 import { IRenderContext, RenderContext, ICompiledRenderContext } from './render-context.js';
 import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
+import type { Writable, IDisposable } from '@aurelia/kernel';
 import type { IBinding, AccessorOrObserver } from '@aurelia/runtime';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import type { IViewFactory } from './view.js';
@@ -65,6 +66,7 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     private logger;
     private debug;
     private fullyNamed;
+    private childrenObs;
     readonly platform: IPlatform;
     readonly hooks: HooksDefinition;
     constructor(root: IAppRoot | null, container: IContainer, vmKind: ViewModelKind, flags: LifecycleFlags, definition: CustomElementDefinition | CustomAttributeDefinition | null, 

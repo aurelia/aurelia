@@ -114,7 +114,14 @@ class ChildrenDefinition {
     }
 }
 exports.ChildrenDefinition = ChildrenDefinition;
-/** @internal */
+/**
+ * @internal
+ *
+ * A special observer for observing the children of a custom element. Unlike other observer that starts/stops
+ * based on the changes in the subscriber addition/removal, this is a controlled observers.
+ *
+ * The controller of a custom element should totally control when this observer starts/stops.
+ */
 let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
     constructor(controller, obj, propertyKey, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
         this.controller = controller;
@@ -126,6 +133,7 @@ let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
         this.options = options;
         this.observing = false;
         this.children = (void 0);
+        this.observer = void 0;
         this.callback = obj[cbName];
         Reflect.defineProperty(this.obj, this.propertyKey, {
             enumerable: true,
@@ -135,28 +143,36 @@ let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
         });
     }
     getValue() {
-        this.tryStartObserving();
-        return this.children;
+        return this.observing ? this.children : this.get();
     }
-    setValue(newValue) { }
-    subscribe(subscriber) {
-        this.tryStartObserving();
-        this.subs.add(subscriber);
-    }
-    tryStartObserving() {
+    setValue(value) { }
+    start() {
+        var _a;
         if (!this.observing) {
             this.observing = true;
-            this.children = filterChildren(this.controller, this.query, this.filter, this.map);
-            const obs = new this.controller.host.ownerDocument.defaultView.MutationObserver(() => { this.onChildrenChanged(); });
-            obs.observe(this.controller.host, this.options);
+            this.children = this.get();
+            ((_a = this.observer) !== null && _a !== void 0 ? _a : (this.observer = new this.controller.host.ownerDocument.defaultView.MutationObserver(() => { this.onChildrenChanged(); })))
+                .observe(this.controller.host, this.options);
+        }
+    }
+    stop() {
+        if (this.observing) {
+            this.observing = false;
+            this.observer.disconnect();
+            this.children = kernel_1.emptyArray;
         }
     }
     onChildrenChanged() {
-        this.children = filterChildren(this.controller, this.query, this.filter, this.map);
+        this.children = this.get();
         if (this.callback !== void 0) {
             this.callback.call(this.obj);
         }
         this.subs.notify(this.children, undefined, 0 /* none */);
+    }
+    // freshly retrieve the children everytime
+    // in case this observer is not observing
+    get() {
+        return filterChildren(this.controller, this.query, this.filter, this.map);
     }
 };
 ChildrenObserver = ChildrenObserver_1 = __decorate([
@@ -177,11 +193,16 @@ const forOpts = { optional: true };
 function filterChildren(controller, query, filter, map) {
     var _a;
     const nodes = query(controller);
+    const ii = nodes.length;
     const children = [];
-    for (let i = 0, ii = nodes.length; i < ii; ++i) {
-        const node = nodes[i];
-        const $controller = custom_element_js_1.CustomElement.for(node, forOpts);
-        const viewModel = (_a = $controller === null || $controller === void 0 ? void 0 : $controller.viewModel) !== null && _a !== void 0 ? _a : null;
+    let node;
+    let $controller;
+    let viewModel;
+    let i = 0;
+    for (; i < ii; ++i) {
+        node = nodes[i];
+        $controller = custom_element_js_1.CustomElement.for(node, forOpts);
+        viewModel = (_a = $controller === null || $controller === void 0 ? void 0 : $controller.viewModel) !== null && _a !== void 0 ? _a : null;
         if (filter(node, $controller, viewModel)) {
             children.push(map(node, $controller, viewModel));
         }

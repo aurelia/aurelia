@@ -1816,7 +1816,14 @@ class ChildrenDefinition {
         return new ChildrenDefinition(firstDefined(def.callback, `${prop}Changed`), firstDefined(def.property, prop), (_a = def.options) !== null && _a !== void 0 ? _a : childObserverOptions$1, def.query, def.filter, def.map);
     }
 }
-/** @internal */
+/**
+ * @internal
+ *
+ * A special observer for observing the children of a custom element. Unlike other observer that starts/stops
+ * based on the changes in the subscriber addition/removal, this is a controlled observers.
+ *
+ * The controller of a custom element should totally control when this observer starts/stops.
+ */
 let ChildrenObserver = class ChildrenObserver {
     constructor(controller, obj, propertyKey, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
         this.controller = controller;
@@ -1828,6 +1835,7 @@ let ChildrenObserver = class ChildrenObserver {
         this.options = options;
         this.observing = false;
         this.children = (void 0);
+        this.observer = void 0;
         this.callback = obj[cbName];
         Reflect.defineProperty(this.obj, this.propertyKey, {
             enumerable: true,
@@ -1837,28 +1845,36 @@ let ChildrenObserver = class ChildrenObserver {
         });
     }
     getValue() {
-        this.tryStartObserving();
-        return this.children;
+        return this.observing ? this.children : this.get();
     }
-    setValue(newValue) { }
-    subscribe(subscriber) {
-        this.tryStartObserving();
-        this.subs.add(subscriber);
-    }
-    tryStartObserving() {
+    setValue(value) { }
+    start() {
+        var _a;
         if (!this.observing) {
             this.observing = true;
-            this.children = filterChildren(this.controller, this.query, this.filter, this.map);
-            const obs = new this.controller.host.ownerDocument.defaultView.MutationObserver(() => { this.onChildrenChanged(); });
-            obs.observe(this.controller.host, this.options);
+            this.children = this.get();
+            ((_a = this.observer) !== null && _a !== void 0 ? _a : (this.observer = new this.controller.host.ownerDocument.defaultView.MutationObserver(() => { this.onChildrenChanged(); })))
+                .observe(this.controller.host, this.options);
+        }
+    }
+    stop() {
+        if (this.observing) {
+            this.observing = false;
+            this.observer.disconnect();
+            this.children = emptyArray;
         }
     }
     onChildrenChanged() {
-        this.children = filterChildren(this.controller, this.query, this.filter, this.map);
+        this.children = this.get();
         if (this.callback !== void 0) {
             this.callback.call(this.obj);
         }
         this.subs.notify(this.children, undefined, 0 /* none */);
+    }
+    // freshly retrieve the children everytime
+    // in case this observer is not observing
+    get() {
+        return filterChildren(this.controller, this.query, this.filter, this.map);
     }
 };
 ChildrenObserver = __decorate([
@@ -1878,11 +1894,16 @@ const forOpts = { optional: true };
 function filterChildren(controller, query, filter, map) {
     var _a;
     const nodes = query(controller);
+    const ii = nodes.length;
     const children = [];
-    for (let i = 0, ii = nodes.length; i < ii; ++i) {
-        const node = nodes[i];
-        const $controller = CustomElement.for(node, forOpts);
-        const viewModel = (_a = $controller === null || $controller === void 0 ? void 0 : $controller.viewModel) !== null && _a !== void 0 ? _a : null;
+    let node;
+    let $controller;
+    let viewModel;
+    let i = 0;
+    for (; i < ii; ++i) {
+        node = nodes[i];
+        $controller = CustomElement.for(node, forOpts);
+        viewModel = (_a = $controller === null || $controller === void 0 ? void 0 : $controller.viewModel) !== null && _a !== void 0 ? _a : null;
         if (filter(node, $controller, viewModel)) {
             children.push(map(node, $controller, viewModel));
         }
@@ -3438,6 +3459,7 @@ class Controller {
         this.logger = null;
         this.debug = false;
         this.fullyNamed = false;
+        this.childrenObs = emptyArray;
         this.$initiator = null;
         this.$flags = 0 /* none */;
         this.$resolve = void 0;
@@ -3565,7 +3587,7 @@ class Controller {
             createWatchers(this, this.container, definition, instance);
         }
         createObservers(this, definition, flags, instance);
-        createChildrenObservers(this, definition, flags, instance);
+        this.childrenObs = createChildrenObservers(this, definition, flags, instance);
         if (this.hooks.hasDefine) {
             if (this.debug) {
                 this.logger.trace(`invoking define() hook`);
@@ -3764,6 +3786,16 @@ class Controller {
         if (this.debug) {
             this.logger.trace(`bind()`);
         }
+        // timing: after binding, before bound
+        // reason: needs to start observing before all the bindings finish their $bind phase,
+        //         so that changes in one binding can be reflected into the other, regardless the index of the binding
+        //
+        // todo: is this timing appropriate?
+        if (this.childrenObs.length) {
+            for (let i = 0; i < this.childrenObs.length; ++i) {
+                this.childrenObs[i].start();
+            }
+        }
         if (this.bindings !== null) {
             for (let i = 0; i < this.bindings.length; ++i) {
                 this.bindings[i].$bind(this.$flags, this.scope, this.hostScope);
@@ -3882,6 +3914,14 @@ class Controller {
         this.$flags = flags;
         if (initiator === this) {
             this.enterDetaching();
+        }
+        // timing: before deactiving
+        // reason: avoid queueing a callback from the mutation observer, caused by the changes of nodes by repeat/if etc...
+        // todo: is this appropriate timing?
+        if (this.childrenObs.length) {
+            for (let i = 0; i < this.childrenObs.length; ++i) {
+                this.childrenObs[i].stop();
+            }
         }
         if (this.children !== null) {
             for (let i = 0; i < this.children.length; ++i) {
@@ -4269,6 +4309,7 @@ _flags, instance) {
     const length = childObserverNames.length;
     if (length > 0) {
         const observers = getLookup(instance);
+        const obs = [];
         let name;
         let i = 0;
         let childrenDescription;
@@ -4276,10 +4317,12 @@ _flags, instance) {
             name = childObserverNames[i];
             if (observers[name] == void 0) {
                 childrenDescription = childrenObservers[name];
-                observers[name] = new ChildrenObserver(controller, instance, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
+                obs[obs.length] = observers[name] = new ChildrenObserver(controller, instance, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
             }
         }
+        return obs;
     }
+    return emptyArray;
 }
 const AccessScopeAst = {
     map: new Map(),

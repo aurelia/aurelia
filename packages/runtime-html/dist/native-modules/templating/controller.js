@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-import { nextId, isObject, ILogger, DI, } from '../../../../kernel/dist/native-modules/index.js';
+import { nextId, isObject, ILogger, DI, emptyArray, } from '../../../../kernel/dist/native-modules/index.js';
 import { AccessScopeExpression, Scope, IObserverLocator, IExpressionParser, } from '../../../../runtime/dist/native-modules/index.js';
 import { BindableObserver } from '../observation/bindable-observer.js';
 import { convertToRenderLocation, setRef } from '../dom.js';
@@ -76,6 +76,7 @@ export class Controller {
         this.logger = null;
         this.debug = false;
         this.fullyNamed = false;
+        this.childrenObs = emptyArray;
         this.$initiator = null;
         this.$flags = 0 /* none */;
         this.$resolve = void 0;
@@ -203,7 +204,7 @@ export class Controller {
             createWatchers(this, this.container, definition, instance);
         }
         createObservers(this, definition, flags, instance);
-        createChildrenObservers(this, definition, flags, instance);
+        this.childrenObs = createChildrenObservers(this, definition, flags, instance);
         if (this.hooks.hasDefine) {
             if (this.debug) {
                 this.logger.trace(`invoking define() hook`);
@@ -402,6 +403,16 @@ export class Controller {
         if (this.debug) {
             this.logger.trace(`bind()`);
         }
+        // timing: after binding, before bound
+        // reason: needs to start observing before all the bindings finish their $bind phase,
+        //         so that changes in one binding can be reflected into the other, regardless the index of the binding
+        //
+        // todo: is this timing appropriate?
+        if (this.childrenObs.length) {
+            for (let i = 0; i < this.childrenObs.length; ++i) {
+                this.childrenObs[i].start();
+            }
+        }
         if (this.bindings !== null) {
             for (let i = 0; i < this.bindings.length; ++i) {
                 this.bindings[i].$bind(this.$flags, this.scope, this.hostScope);
@@ -520,6 +531,14 @@ export class Controller {
         this.$flags = flags;
         if (initiator === this) {
             this.enterDetaching();
+        }
+        // timing: before deactiving
+        // reason: avoid queueing a callback from the mutation observer, caused by the changes of nodes by repeat/if etc...
+        // todo: is this appropriate timing?
+        if (this.childrenObs.length) {
+            for (let i = 0; i < this.childrenObs.length; ++i) {
+                this.childrenObs[i].stop();
+            }
         }
         if (this.children !== null) {
             for (let i = 0; i < this.children.length; ++i) {
@@ -907,6 +926,7 @@ _flags, instance) {
     const length = childObserverNames.length;
     if (length > 0) {
         const observers = getLookup(instance);
+        const obs = [];
         let name;
         let i = 0;
         let childrenDescription;
@@ -914,10 +934,12 @@ _flags, instance) {
             name = childObserverNames[i];
             if (observers[name] == void 0) {
                 childrenDescription = childrenObservers[name];
-                observers[name] = new ChildrenObserver(controller, instance, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
+                obs[obs.length] = observers[name] = new ChildrenObserver(controller, instance, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
             }
         }
+        return obs;
     }
+    return emptyArray;
 }
 const AccessScopeAst = {
     map: new Map(),

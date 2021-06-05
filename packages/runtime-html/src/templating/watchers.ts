@@ -138,10 +138,6 @@ export class ExpressionWatcher implements IConnectableBinding {
     }
   }
 
-  public handleCollectionChange(): void {
-    return;
-  }
-
   public $bind(): void {
     if (this.isBound) {
       return;

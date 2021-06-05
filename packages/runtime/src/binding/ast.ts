@@ -624,16 +624,10 @@ export class AccessScopeExpression {
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, c: IConnectable | null): IBindingContext | IOverrideContext {
     const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IBindingContext;
-    const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (c !== null) {
       c.observeProperty(obj, this.name);
-      if (Array.isArray(evaluatedValue)
-        || evaluatedValue instanceof Map
-        || evaluatedValue instanceof Set
-      ) {
-        c.observeCollection(evaluatedValue);
-      }
     }
+    const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (f & LF.isStrictBindingStrategy) {
       return evaluatedValue;
     }

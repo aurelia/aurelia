@@ -605,25 +605,21 @@ describe('AccessKeyedExpression', function () {
   });
 
   it('observes property in keyed array access when key is number', function () {
-    const context1 = { foo: ['hello world'] };
-    const scope = createScopeForTest(context1);
+    const scope = createScopeForTest({ foo: ['hello world'] });
     const expression3 = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), new PrimitiveLiteralExpression(0));
     assert.strictEqual(expression3.evaluate(LF.none, scope, null, null, null), 'hello world', `expression3.evaluate(LF.none, scope, null)`);
     const binding = new MockBinding();
     expression3.evaluate(LF.none, scope, null, dummyLocator, binding);
     assert.deepStrictEqual(binding.calls[0], ['observeProperty', scope.bindingContext, 'foo'], 'binding.calls[0]');
-    assert.deepStrictEqual(binding.calls[1], ['observeCollection', context1.foo], 'binding.calls[1]');
-    assert.strictEqual(binding.calls.length, 3, 'binding.calls.length');
+    assert.strictEqual(binding.calls.length, 2, 'binding.calls.length');
 
-    const context2 = { foo: ['hello hostScope'] };
-    const hs = createScopeForTest(context2);
+    const hs = createScopeForTest({ foo: ['hello hostScope'] });
     makeHostScoped(expression3, true);
     assert.strictEqual(expression3.evaluate(LF.none, scope, hs, null, null), 'hello hostScope', `expression3.evaluate(LF.none, scope, null)`);
     const binding2 = new MockBinding();
     expression3.evaluate(LF.none, scope, hs, dummyLocator, binding2);
-    assert.deepStrictEqual(binding2.calls[0], ['observeProperty', hs.bindingContext, 'foo'], 'binding2.calls[0]');
-    assert.deepStrictEqual(binding2.calls[1], ['observeCollection', context2.foo], 'binding2.calls[1]');
-    assert.strictEqual(binding2.calls.length, 3, 'binding2.calls.length');
+    assert.deepStrictEqual(binding2.calls[0], ['observeProperty', hs.bindingContext, 'foo'], 'binding.calls[0]');
+    assert.strictEqual(binding2.calls.length, 2, 'binding.calls.length');
   });
 
   describe('does not attempt to observe property when object is primitive', function () {

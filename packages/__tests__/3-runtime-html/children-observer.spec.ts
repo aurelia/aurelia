@@ -1,131 +1,153 @@
-import { children, CustomElement, PartialChildrenDefinition, Aurelia } from '@aurelia/runtime-html';
-import { TestContext, assert } from '@aurelia/testing';
+import { children, CustomElement, PartialChildrenDefinition, Aurelia, customElement } from '@aurelia/runtime-html';
+import { TestContext, assert, createFixture } from '@aurelia/testing';
 import { IContainer } from '@aurelia/kernel';
 
 describe('ChildrenObserver', function () {
   describe('populates', function () {
-    it('children array with child view models', function () {
+    it('[without shadow DOM] static plain elements', async function () {
+      @customElement({ name: 'my-el', template: '<slot>' })
+      class MyEl {
+        @children({ filter: n => !!n, map: n => n }) public children: unknown[];
+      }
+      const { appHost, startPromise, tearDown } = createFixture(
+        '<my-el><div>one</div><span>two</span>',
+        class {},
+        [MyEl]
+      );
+
+      await startPromise;
+
+      const myElVm = CustomElement.for(appHost.querySelector('my-el')).viewModel as MyEl;
+      assert.strictEqual(myElVm.children.length, 2);
+
+      await tearDown();
+    });
+
+    it('children array with child view models', async function () {
       const { au, viewModel, ChildOne, ChildTwo } = createAppAndStart();
+
+      await Promise.resolve();
       assert.equal(viewModel.children.length, 2);
       assert.instanceOf(viewModel.children[0], ChildOne);
       assert.instanceOf(viewModel.children[1], ChildTwo);
 
-      void au.stop();
+      await au.stop();
 
       au.dispose();
     });
 
-    it('children array with by custom query', function () {
+    it('children array with by custom query', async function () {
       const { au, viewModel, ChildOne } = createAppAndStart({
-        query: p => (p.host as HTMLElement).querySelectorAll('.child-one')
+        query: p => p.host.querySelectorAll('.child-one')
       });
+
+      await Promise.resolve();
 
       assert.equal(viewModel.children.length, 1);
       assert.instanceOf(viewModel.children[0], ChildOne);
 
-      void au.stop();
+      await au.stop();
       au.dispose();
     });
 
-    it('children array with by custom query, filter, and map', function () {
+    it('children array with by custom query, filter, and map', async function () {
       const { au, viewModel, ChildOne } = createAppAndStart({
-        query: p => (p.host as HTMLElement).querySelectorAll('.child-one'),
+        query: p => p.host.querySelectorAll('.child-one'),
         filter: (node) => !!node,
         map: (node) => node
       });
 
+      await Promise.resolve();
+
       assert.equal(viewModel.children.length, 1);
       assert.equal(viewModel.children[0].tagName, CustomElement.getDefinition(ChildOne).name.toUpperCase());
 
-      void au.stop();
+      await au.stop();
       au.dispose();
     });
   });
 
   describe('updates', function () {
-    // if (!PLATFORM.isBrowserLike) {
-    //   return;
-    // }
-
-    it('children array with child view models', function (done) {
+    it('children array with child view models', async function () {
       const { au, viewModel, ChildOne, ChildTwo, hostViewModel } = createAppAndStart();
 
+      await Promise.resolve();
+
       assert.equal(viewModel.children.length, 2);
-      assert.equal(viewModel.childrenChangedCallCount, 0);
+      assert.equal(viewModel.childrenChangedCallCount, 1);
 
       hostViewModel.oneCount = 2;
       hostViewModel.twoCount = 2;
 
-      waitForUpdate(() => {
-        assert.equal(viewModel.children.length, 4);
-        assert.equal(viewModel.childrenChangedCallCount, 1);
-        assert.instanceOf(viewModel.children[0], ChildOne);
-        assert.instanceOf(viewModel.children[1], ChildOne);
-        assert.instanceOf(viewModel.children[2], ChildTwo);
-        assert.instanceOf(viewModel.children[3], ChildTwo);
-        void au.stop();
+      await Promise.resolve();
 
-        au.dispose();
-        done();
-      });
+      assert.equal(viewModel.children.length, 4);
+      assert.equal(viewModel.childrenChangedCallCount, 2);
+      assert.instanceOf(viewModel.children[0], ChildOne);
+      assert.instanceOf(viewModel.children[1], ChildOne);
+      assert.instanceOf(viewModel.children[2], ChildTwo);
+      assert.instanceOf(viewModel.children[3], ChildTwo);
+      await au.stop();
+
+      au.dispose();
     });
 
-    it('children array with by custom query', function (done) {
+    it('children array with by custom query', async function () {
       const { au, viewModel, ChildTwo, hostViewModel } = createAppAndStart({
-        query: p => (p.host as HTMLElement).querySelectorAll('.child-two')
+        query: p => p.host.querySelectorAll('.child-two')
       });
+
+      await Promise.resolve();
 
       assert.equal(viewModel.children.length, 1);
       assert.instanceOf(viewModel.children[0], ChildTwo);
-      assert.equal(viewModel.childrenChangedCallCount, 0);
+      assert.equal(viewModel.childrenChangedCallCount, 1);
 
       hostViewModel.oneCount = 2;
       hostViewModel.twoCount = 2;
 
-      waitForUpdate(() => {
-        assert.equal(viewModel.children.length, 2);
-        assert.equal(viewModel.childrenChangedCallCount, 1);
-        assert.instanceOf(viewModel.children[0], ChildTwo);
-        assert.instanceOf(viewModel.children[1], ChildTwo);
-        void au.stop();
+      await Promise.resolve();
 
-        au.dispose();
-        done();
-      });
+      assert.equal(viewModel.children.length, 2);
+      assert.equal(viewModel.childrenChangedCallCount, 2);
+      assert.instanceOf(viewModel.children[0], ChildTwo);
+      assert.instanceOf(viewModel.children[1], ChildTwo);
+
+      await au.stop();
+
+      au.dispose();
     });
 
-    it('children array with by custom query, filter, and map', function (done) {
+    it('children array with by custom query, filter, and map', async function () {
       const { au, viewModel, ChildTwo, hostViewModel } = createAppAndStart({
-        query: p => (p.host as HTMLElement).querySelectorAll('.child-two'),
+        query: p => p.host.querySelectorAll('.child-two'),
         filter: (node) => !!node,
         map: (node) => node
       });
+
+      await Promise.resolve();
 
       const tagName = CustomElement.getDefinition(ChildTwo).name.toUpperCase();
 
       assert.equal(viewModel.children.length, 1);
       assert.equal(viewModel.children[0].tagName, tagName);
-      assert.equal(viewModel.childrenChangedCallCount, 0);
+      assert.equal(viewModel.childrenChangedCallCount, 1);
 
       hostViewModel.oneCount = 2;
       hostViewModel.twoCount = 2;
 
-      waitForUpdate(() => {
-        assert.equal(viewModel.children.length, 2);
-        assert.equal(viewModel.childrenChangedCallCount, 1);
-        assert.equal(viewModel.children[0].tagName, tagName);
-        assert.equal(viewModel.children[1].tagName, tagName);
-        void au.stop();
+      await Promise.resolve();
 
-        au.dispose();
-        done();
-      });
+      assert.equal(viewModel.children.length, 2);
+      assert.equal(viewModel.childrenChangedCallCount, 2);
+      assert.equal(viewModel.children[0].tagName, tagName);
+      assert.equal(viewModel.children[1].tagName, tagName);
+
+      await au.stop();
+
+      au.dispose();
     });
   });
-
-  function waitForUpdate(callback: () => void) {
-    Promise.resolve().then(() => callback()).catch((error: Error) => { throw error; });
-  }
 
   function createAppAndStart(childrenOptions?: PartialChildrenDefinition) {
     const ctx = TestContext.create();

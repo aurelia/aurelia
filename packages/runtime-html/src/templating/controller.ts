@@ -1,16 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
   IContainer,
-  IIndexable,
   nextId,
-  Writable,
-  Constructable,
-  IDisposable,
   isObject,
   ILogger,
   LogLevel,
-  IServiceLocator,
   DI,
+  emptyArray,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -19,7 +15,6 @@ import {
   LifecycleFlags,
   IObserverLocator,
   IExpressionParser,
-  IsBindingBehavior,
 } from '@aurelia/runtime';
 import { BindableObserver } from '../observation/bindable-observer.js';
 import { convertToRenderLocation, INode, INodeSequence, IRenderLocation, setRef } from '../dom.js';
@@ -31,10 +26,19 @@ import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
 import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
+
+import type {
+  IIndexable,
+  Writable,
+  Constructable,
+  IDisposable,
+  IServiceLocator,
+} from '@aurelia/kernel';
 import type {
   IBinding,
   IObservable,
   AccessorOrObserver,
+  IsBindingBehavior,
 } from '@aurelia/runtime';
 import type { BindableDefinition } from '../bindable.js';
 import type { PropertyBinding } from '../binding/property-binding.js';
@@ -121,6 +125,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private logger: ILogger | null = null;
   private debug: boolean = false;
   private fullyNamed: boolean = false;
+  private childrenObs: ChildrenObserver[] = emptyArray;
 
   public readonly platform: IPlatform;
   public readonly hooks: HooksDefinition;
@@ -285,7 +290,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       createWatchers(this, this.container, definition, instance);
     }
     createObservers(this, definition, flags, instance);
-    createChildrenObservers(this as Controller, definition, flags, instance);
+    this.childrenObs = createChildrenObservers(this as Controller, definition, flags, instance);
 
     if (this.hooks.hasDefine) {
       if (this.debug) { this.logger.trace(`invoking define() hook`); }
@@ -508,6 +513,17 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private bind(): void {
     if (this.debug) { this.logger!.trace(`bind()`); }
 
+    // timing: after binding, before bound
+    // reason: needs to start observing before all the bindings finish their $bind phase,
+    //         so that changes in one binding can be reflected into the other, regardless the index of the binding
+    //
+    // todo: is this timing appropriate?
+    if (this.childrenObs.length) {
+      for (let i = 0; i < this.childrenObs.length; ++i) {
+        this.childrenObs[i].start();
+      }
+    }
+
     if (this.bindings !== null) {
       for (let i = 0; i < this.bindings.length; ++i) {
         this.bindings[i].$bind(this.$flags, this.scope!, this.hostScope);
@@ -636,6 +652,15 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     if (initiator === this) {
       this.enterDetaching();
+    }
+
+    // timing: before deactiving
+    // reason: avoid queueing a callback from the mutation observer, caused by the changes of nodes by repeat/if etc...
+    // todo: is this appropriate timing?
+    if (this.childrenObs.length) {
+      for (let i = 0; i < this.childrenObs.length; ++i) {
+        this.childrenObs[i].stop();
+      }
     }
 
     if (this.children !== null) {
@@ -1082,12 +1107,13 @@ function createChildrenObservers(
   // deepscan-disable-next-line
   _flags: LifecycleFlags,
   instance: object,
-): void {
+): ChildrenObserver[] {
   const childrenObservers = definition.childrenObservers;
   const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
   const length = childObserverNames.length;
   if (length > 0) {
     const observers = getLookup(instance as IIndexable);
+    const obs: ChildrenObserver[] = [];
 
     let name: string;
     let i = 0;
@@ -1097,7 +1123,7 @@ function createChildrenObservers(
 
       if (observers[name] == void 0) {
         childrenDescription = childrenObservers[name];
-        observers[name] = new ChildrenObserver(
+        obs[obs.length] = observers[name] = new ChildrenObserver(
           controller as ICustomElementController,
           instance as IIndexable,
           name,
@@ -1109,7 +1135,10 @@ function createChildrenObservers(
         );
       }
     }
+    return obs;
   }
+
+  return emptyArray;
 }
 
 const AccessScopeAst = {

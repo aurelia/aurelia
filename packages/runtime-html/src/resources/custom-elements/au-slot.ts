@@ -1,7 +1,7 @@
-import { DI, Writable } from '@aurelia/kernel';
+import { DI, emptyObject, Writable } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
-import { IInstruction, Instruction } from '../../renderer.js';
+import { HydrateElementInstruction, IInstruction, Instruction } from '../../renderer.js';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 import { IViewFactory } from '../../templating/view.js';
 import { customElement, CustomElementDefinition } from '../custom-element.js';
@@ -32,9 +32,20 @@ export class RegisteredProjections {
 export interface IProjectionProvider extends ProjectionProvider { }
 export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider', x => x.singleton(ProjectionProvider));
 
+const projection = Symbol();
 const auSlotScopeMap: WeakMap<IInstruction, Scope> = new WeakMap<Instruction, Scope>();
 const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<Instruction, RegisteredProjections>();
 export class ProjectionProvider {
+  public associate(instruction: HydrateElementInstruction, projections: Record<string, CustomElementDefinition>): void {
+    // @ts-ignore
+    instruction[projection] = projections;
+  }
+
+  public retrieve(instruction: HydrateElementInstruction): Record<string, CustomElementDefinition> {
+    // @ts-ignore
+    return instruction[projection] ?? emptyObject;
+  }
+
   public registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     for (const [instruction, $projections] of projections) {
       projectionMap.set(instruction, new RegisteredProjections(scope, $projections));

@@ -55,7 +55,7 @@ import {
 import { IPlatform } from './platform.js';
 import { Bindable } from './bindable.js';
 import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
-import { AuSlotContentType, IProjections, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { AuSlotContentType, IProjectionProvider, IProjections, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomElement, CustomElementDefinition, CustomElementType, PartialCustomElementDefinition } from './resources/custom-element.js';
 import { CustomAttribute, CustomAttributeDefinition, CustomAttributeType } from './resources/custom-attribute.js';
 import { BindingCommand, BindingCommandInstance } from './resources/binding-command.js';
@@ -574,12 +574,15 @@ function processLocalTemplates(
 
 interface ICompilationContext {
   def: PartialCustomElementDefinition;
+  logger: ILogger;
   attrParser: IAttributeParser;
   attrTransformer: IAttrSyntaxTransformer;
   exprParser: IExpressionParser;
   /* an array representing targets of instructions, built on depth first tree walking compilation */
   instructionRows: unknown[];
+  projectionProvider: IProjectionProvider;
   projections: RegisteredProjections | null;
+  localElements: Set<string>;
 }
 
 export class ViewCompiler {
@@ -662,7 +665,7 @@ export class ViewCompiler {
     // if there's actual projection for this <au-slot/>
     // then just create an instruction straight away
     // no need ot bother with the attributes on it
-    // todo: maybe support compilation of the binding on <au-slot />
+    // todo: maybe support compilation of the bindings on <au-slot />
     const marker = this.marker(el);
     const slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, targetedProjection);
     const instructionRow = new HydrateElementInstruction(
@@ -775,8 +778,10 @@ export class ViewCompiler {
               ? camelCase(attrName)
               : attrValue;
             expr = exprParser.parse(realAttrValue, bindingType);
-            
-            // todo: add instruction
+
+            // todo:
+            //  1. ensure a custom element instruction exist
+            //  2. add instruction to the custom element instruction instructions
 
             // to next attribute
             continue;
@@ -798,6 +803,14 @@ export class ViewCompiler {
         if (expr !== null) {
 
         }
+      }
+    }
+
+    if (elementInfo !== null) {
+      if (elementInfo.containerless) {
+        // todo: should the process of turning this into a render location
+        //       bedone during compilation, or rendering?
+        //       variables: normal compilation vs enhancement
       }
     }
 
@@ -827,7 +840,69 @@ export class ViewCompiler {
     } else {
 
     }
+
+    const shouldCompileContent = elementInfo != null
+      && elementInfo.processContent?.call(elementInfo.Type, el, container.get(IPlatform)) !== false;
+    if (shouldCompileContent) {
+      // todo:
+      //    if there's a template controller
+      //      context here should be created from the most inner template controller
+      //      not the context this compile method is called with
+      //    if there is NOT a template controller
+      //      context here should be the same with the context this method is called with
+      this.projection(el, container, context, elementInstruction!);
+    }
+
     return el.nextSibling;
+  }
+
+  projection(el: Element, container: IContainer, context: ICompilationContext, instruction: HydrateElementInstruction) {
+    let node = el.firstChild;
+    // for each child element of a custom element
+    // scan for [au-slot], if there's one
+    // then extract the element into a projection definition
+    // this allows support for [au-slot] declared on the same element with anther template controller
+    // e.g:
+    //
+    // can do:
+    //  <my-el>
+    //    <div au-slot if.bind="..."></div>
+    //    <div if.bind="..." au-slot></div>
+    //  </my-el>
+    //
+    // instead of:
+    //  <my-el>
+    //    <template au-slot><div if.bind="..."></div>
+    //  </my-el>
+    let projections: Record<string, CustomElementDefinition> = {};
+    while (node !== null) {
+      const next = node.nextSibling;
+      switch (node.nodeType) {
+        case 1:
+          const targetedSlot = (node as Element).getAttribute('au-slot');
+          if (targetedSlot !== null) {
+            const template = el.insertBefore(document.createElement('template'), node);
+            const auSlotContext: ICompilationContext = {
+              ...context,
+              instructionRows: [],
+              def: {
+                name: CustomElement.generateName(),
+                instructions: [],
+                template,
+                needsCompile: false,
+              }
+            };
+            template.content.appendChild(node);
+            this.node(template.content, container, auSlotContext);
+            projections[targetedSlot] = CustomElementDefinition.create(auSlotContext.def);
+          }
+        default:
+          break;
+      }
+      node = next;
+    }
+
+    context.projectionProvider.associate(instruction, projections);
   }
 
   text() {
@@ -877,10 +952,76 @@ export class ViewCompiler {
     // todo: assumption made: parentNode won't be null
     return el.parentNode!.insertBefore(marker, el);
   }
-}
 
-function createMarker(): HTMLElement {
-  const marker = document.createElement('au-m');
-  marker.className = 'au';
-  return marker;
+  local(template: Element, container: IContainer, context: ICompilationContext) {
+    const dependencies: PartialCustomElementDefinition[] = [];
+    let root: HTMLElement | DocumentFragment;
+
+    if (template.nodeName === 'TEMPLATE') {
+      if (template.hasAttribute(localTemplateIdentifier)) {
+        throw new Error('The root cannot be a local template itself.');
+      }
+      root = (template as HTMLTemplateElement).content;
+    } else {
+      root = template as HTMLElement;
+    }
+    const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) as HTMLTemplateElement[];
+    const numLocalTemplates = localTemplates.length;
+    if (numLocalTemplates === 0) { return; }
+    if (numLocalTemplates === root.childElementCount) {
+      throw new Error('The custom element does not have any content other than local template(s).');
+    }
+    const localTemplateNames: Set<string> = new Set();
+
+    for (const localTemplate of localTemplates) {
+      if (localTemplate.parentNode !== root) {
+        throw new Error('Local templates needs to be defined directly under root.');
+      }
+      const name = processTemplateName(localTemplate, localTemplateNames);
+
+      const localTemplateType = class LocalTemplate { };
+      const content = localTemplate.content;
+      const bindableEls = toArray(content.querySelectorAll('bindable'));
+      const bindableInstructions = Bindable.for(localTemplateType);
+      const properties = new Set<string>();
+      const attributes = new Set<string>();
+      for (const bindableEl of bindableEls) {
+        if (bindableEl.parentNode !== content) {
+          throw new Error('Bindable properties of local templates needs to be defined directly under root.');
+        }
+        const property = bindableEl.getAttribute(LocalTemplateBindableAttributes.property);
+        if (property === null) { throw new Error(`The attribute 'property' is missing in ${bindableEl.outerHTML}`); }
+        const attribute = bindableEl.getAttribute(LocalTemplateBindableAttributes.attribute);
+        if (attribute !== null
+          && attributes.has(attribute)
+          || properties.has(property)
+        ) {
+          throw new Error(`Bindable property and attribute needs to be unique; found property: ${property}, attribute: ${attribute}`);
+        } else {
+          if (attribute !== null) {
+            attributes.add(attribute);
+          }
+          properties.add(property);
+        }
+        bindableInstructions.add({
+          property,
+          attribute: attribute ?? void 0,
+          mode: getBindingMode(bindableEl),
+        });
+        const ignoredAttributes = bindableEl.getAttributeNames().filter((attrName) => !allowedLocalTemplateBindableAttributes.includes(attrName));
+        if (ignoredAttributes.length > 0) {
+          context.logger.warn(`The attribute(s) ${ignoredAttributes.join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
+        }
+
+        content.removeChild(bindableEl);
+      }
+
+      const localTemplateDefinition = CustomElement.define({ name, template: localTemplate }, localTemplateType);
+      // the casting is needed here as the dependencies are typed as readonly array
+      dependencies.push(localTemplateDefinition);
+      container.register(localTemplateDefinition);
+
+      root.removeChild(localTemplate);
+    }
+  }
 }

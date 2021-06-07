@@ -29,7 +29,7 @@ import { getRenderContext, ICompiledRenderContext } from './templating/render-co
 import { AuSlotsInfo, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
 import { convertToRenderLocation, INode, setRef } from './dom.js';
-import { Controller } from './templating/controller.js';
+import { Controller, IHydratedController } from './templating/controller.js';
 import { IViewFactory } from './templating/view.js';
 import { IPlatform } from './platform.js';
 import type { IHydratableController, IController, ICustomAttributeViewModel, ICustomElementViewModel } from './templating/controller.js';
@@ -404,6 +404,12 @@ export class CustomElementRenderer implements IRenderer {
     }
 
     const targetedProjections = context.getProjectionFor(instruction);
+    // todo: assign scope to the projection
+    //       the scope of the projection is the parent controller scope
+    const projectionScope = (controller as IHydratedController).scope;
+    const projections = context.retrieve(instruction);
+    // toto-end
+
     const factory = context.getComponentFactory(
       /* parentController */controller,
       /* host             */target,

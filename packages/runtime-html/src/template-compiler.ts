@@ -601,6 +601,9 @@ export class ViewCompiler {
     return null!;
   }
 
+  // overall flow:
+  // each of the method will be responsible for compiling its corresponding node type
+  // and it should return the next node to be compiled
   node(node: Node, container: IContainer, context: ICompilationContext): Node | null {
     switch (node.nodeType) {
       case 1:
@@ -608,8 +611,12 @@ export class ViewCompiler {
           case 'LET':
             this.declare(node as Element, container, context);
             break;
+          case 'AU-SLOT':
+            this.auSlot(node as Element, container, context);
+            break;
           default:
             this.element(node as Element, container, context);
+            break;
         }
         break;
       case 3:
@@ -628,7 +635,44 @@ export class ViewCompiler {
   declare(el: Element, container: IContainer, context: ICompilationContext) {
     // probably no need to replace
     // as the let itself can be used as is
+    // though still need to mark el as target to ensure the instruction is matched with a target
     this.mark(el);
+    context.instructionRows.push(new HydrateLetElementInstruction(
+      [],
+      el.hasAttribute('to-binding-context')
+    ));
+    return el.nextSibling;
+  }
+
+  auSlot(el: Element, container: IContainer, context: ICompilationContext): Node | null {
+    const slotName = el.getAttribute('name') || 'default';
+    const targetedProjection = context.projections?.projections?.[slotName];
+    // if there's no projection for an <au-slot/>
+    // there's no need to treat it in any special way
+    // inline all the fallback content into the parent template
+    if (targetedProjection == null) {
+      const firstNode = el.firstChild;
+      while (el.firstChild !== null) {
+        // todo: assumption made: parent is not null
+        el.parentNode?.insertBefore(el.firstChild, el);
+      }
+      return firstNode;
+    }
+
+    // if there's actual projection for this <au-slot/>
+    // then just create an instruction straight away
+    // no need ot bother with the attributes on it
+    // todo: maybe support compilation of the binding on <au-slot />
+    const marker = this.marker(el);
+    const slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, targetedProjection);
+    const instructionRow = new HydrateElementInstruction(
+      'au-slot',
+      void 0,
+      emptyArray,
+      slotInfo,
+    );
+    context.instructionRows.push(instructionRow);
+    return marker;
   }
 
   element(el: Element, container: IContainer, context: ICompilationContext): Node | null {
@@ -766,8 +810,7 @@ export class ViewCompiler {
           const template = document.createElement('template');
           // assumption: el.parentNode is not null
           // but not always the case: e.g compile/enhance an element without parent with TC on it
-          const marker = el.parentNode!.insertBefore(document.createElement('au-m'), el);
-          this.mark(marker);
+          this.marker(el);
           template.content.appendChild(el);
           return template;
         })(),
@@ -826,6 +869,13 @@ export class ViewCompiler {
 
   mark(el: Element) {
     el.classList.add('au');
+  }
+
+  marker(el: Element) {
+    const marker = document.createElement('au-m');
+    marker.classList.add('au');
+    // todo: assumption made: parentNode won't be null
+    return el.parentNode!.insertBefore(marker, el);
   }
 }
 

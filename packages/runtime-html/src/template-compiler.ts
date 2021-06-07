@@ -7,12 +7,15 @@ import {
   toArray,
   Key,
   ILogger,
+  camelCase,
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
   Interpolation,
   IsBindingBehavior,
   BindingMode,
+  BindingType,
+  AnyBindingExpression,
 } from '@aurelia/runtime';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
 import { TemplateBinder } from './template-binder.js';
@@ -51,9 +54,12 @@ import {
 } from './renderer.js';
 import { IPlatform } from './platform.js';
 import { Bindable } from './bindable.js';
-import { IAttributeParser } from './resources/attribute-pattern.js';
+import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
 import { AuSlotContentType, IProjections, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
-import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
+import { CustomElement, CustomElementDefinition, CustomElementType, PartialCustomElementDefinition } from './resources/custom-element.js';
+import { CustomAttribute, CustomAttributeDefinition, CustomAttributeType } from './resources/custom-attribute.js';
+import { BindingCommand, BindingCommandInstance } from './resources/binding-command.js';
+import { createLookup } from './utilities-html.js';
 
 class CustomElementCompilationUnit {
   public readonly instructions: Instruction[][] = [];
@@ -564,4 +570,267 @@ function processLocalTemplates(
 
     root.removeChild(localTemplate);
   }
+}
+
+interface ICompilationContext {
+  def: PartialCustomElementDefinition;
+  attrParser: IAttributeParser;
+  attrTransformer: IAttrSyntaxTransformer;
+  exprParser: IExpressionParser;
+  /* an array representing targets of instructions, built on depth first tree walking compilation */
+  instructionRows: unknown[];
+  projections: RegisteredProjections | null;
+}
+
+export class ViewCompiler {
+  public constructor() {
+
+  }
+
+  compile(template: string | Element | DocumentFragment, container: IContainer): CustomElementDefinition {
+    if (typeof template === 'string') {
+      template = this.parse(template);
+    }
+    let content: Element | DocumentFragment = template;
+    if (template instanceof HTMLTemplateElement) {
+      content = template.content;
+      // todo: surrogate
+    }
+    content
+
+    return null!;
+  }
+
+  node(node: Node, container: IContainer, context: ICompilationContext): Node | null {
+    switch (node.nodeType) {
+      case 1:
+        switch (node.nodeName) {
+          case 'LET':
+            this.declare(node as Element, container, context);
+            break;
+          default:
+            this.element(node as Element, container, context);
+        }
+        break;
+      case 3:
+        this.text();
+      case 11: {
+        let current: Node | null = (node as DocumentFragment).firstChild;
+        while (current !== null) {
+          current = this.node(current, container, context);
+        }
+        break;
+      }
+    }
+    return node.nextSibling;
+  }
+
+  declare(el: Element, container: IContainer, context: ICompilationContext) {
+    // probably no need to replace
+    // as the let itself can be used as is
+    this.mark(el);
+  }
+
+  element(el: Element, container: IContainer, context: ICompilationContext): Node | null {
+    const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
+    const elementInfo = container.find(CustomElement, elName) as CustomElementDefinition | null;
+    const attrParser = context.attrParser;
+    const exprParser = context.exprParser;
+    const attrSyntaxTransformer = context.attrTransformer;
+    const attrs = el.attributes;
+    const instructionRow: unknown[] = [];
+    let i = 0;
+    let attr: Attr;
+    let attrName: string;
+    let attrValue: string;
+    let attrSyntax: AttrSyntax;
+    let attrInfo: CustomAttributeDefinition | null = null;
+    let instructions: any[] = [];
+    let attrInstructions: any[] = [];
+    let currentController: any;
+    let templateControllers: AttrSyntax[] = [];
+    let expr: AnyBindingExpression;
+    let elementInstruction: HydrateElementInstruction;
+    let bindingCommand: BindingCommandInstance | null = null;
+
+    // create 2 arrays
+    // 1 array for instructions
+    // 1 array for template controllers
+    // custom element instruction is separate
+
+    for (; attrs.length > i; ++i) {
+      attr = attrs[i];
+      attrName = attr.name;
+      attrValue = attr.value;
+      attrSyntax = attrParser.parse(attrName, attrValue);
+
+      bindingCommand = this.getBindingCommand(container, attrSyntax, false);
+      if (bindingCommand !== null && bindingCommand.bindingType & BindingType.IgnoreAttr) {
+        // when the binding command overrides everything
+        // just pass the target as is to the binding command, and treat it as a normal attribute:
+        // active.class="..."
+        // background.style="..."
+        // my-attr.attr="..."
+
+        // todo: create an instruction & add to the list
+
+        // to next attribute
+        continue;
+      }
+
+      // if not a ignore attribute binding command
+      // then process with the next possibilities
+      attrInfo = container.find(CustomAttribute, attrSyntax.target) as CustomAttributeDefinition | null;
+      // when encountering an attribute,
+      // custom attribute takes precedence over custom element bindables
+      if (attrInfo !== null) {
+        if (attrInfo.isTemplateController) {
+          el.removeAttribute(attrName);
+          --i;
+
+          // const template = document.createElement('template');
+          // parent.insertBefore(createMarker(/* platform */), el);
+          // template.content.appendChild(el);
+          const bindings = attrValue.split(';')/* create binding from the attr value */;
+          if (attrSyntax.command !== null) {
+            // custom attribute with binding command:
+            // my-attr.bind="..."
+            // my-attr.two-way="..."
+            
+          } else {
+            // custom attribute WITHOUT binding command:
+            // my-attr=""
+            // my-attr="${}"
+            // my-attr="prop1.bind: ...; prop2.bind: ..."
+            // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
+          }
+          // TODO: need to somehow pass the existing, parsed attriute instruction to this definition
+          // const def = this.templateController(template, context);
+          // const currentControllerInstruction = templateControllers[templateControllers.length - 1];
+          // const instruction: TemporaryControllerInstruction = {
+          //   template: template,
+          //   instructions
+          // };
+
+          // to next attribute
+          continue;
+        }
+
+        // todo: create hydrate custom attribute instruction, add to the instruction row
+      } else {
+        const bindingType = bindingCommand === null ? BindingType.Interpolation : bindingCommand.bindingType;
+        if (elementInfo !== null) {
+          elementInstruction ??= new HydrateElementInstruction(elementInfo.name, void 0, [], null);
+          const bindable = elementInfo.bindables[attrSyntax.target];
+          if (bindable !== null) {
+            const normalPropCommand = BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand;
+            // if it looks like: <my-el value.bind>
+            // it means        : <my-el value.bind="value">
+            // this is a shortcut
+            const realAttrValue = attrValue.length === 0 && (bindingType & normalPropCommand) > 0
+              ? camelCase(attrName)
+              : attrValue;
+            expr = exprParser.parse(realAttrValue, bindingType);
+            
+            // todo: add instruction
+
+            // to next attribute
+            continue;
+          }
+        }
+
+        // plain attribute, on a normal, or a custom element here
+        // regardless, can process the same way
+        if ((bindingType & BindingType.IgnoreAttr) === 0) {
+          attrSyntaxTransformer.transform(el, attrSyntax);
+        }
+        expr = exprParser.parse(attrValue, bindingType);
+        const isInterpolation = bindingType === BindingType.Interpolation && expr != null;
+        if (isInterpolation) {
+
+        } else {
+
+        }
+        if (expr !== null) {
+
+        }
+      }
+    }
+
+    if (templateControllers.length > 0) {
+      i = templateControllers.length - 1;
+      const def = CustomElementDefinition.create({
+        name: CustomElement.generateName(),
+        instructions: instructions,
+        template: (() => {
+          const template = document.createElement('template');
+          // assumption: el.parentNode is not null
+          // but not always the case: e.g compile/enhance an element without parent with TC on it
+          const marker = el.parentNode!.insertBefore(document.createElement('au-m'), el);
+          this.mark(marker);
+          template.content.appendChild(el);
+          return template;
+        })(),
+        needsCompile: false,
+      });
+      while (--i > 0) {
+        // for each of the template controller from [right] to [left]
+        // do create:
+        // (1) a template
+        // (2) add a marker to the template
+        // (3) an instruction
+        // instruction will be corresponded to the marker
+      }
+    } else {
+
+    }
+    return el.nextSibling;
+  }
+
+  text() {
+
+  }
+
+  parse(template: string): DocumentFragment {
+    const parser = document.createElement('div');
+    parser.innerHTML = `<template>${template}</template>`;
+    return document.adoptNode((parser.firstElementChild as HTMLTemplateElement).content);
+  }
+
+  private readonly commandLookup: Record<string, BindingCommandInstance | null | undefined> = createLookup();
+  /**
+   * Retrieve a binding command resource.
+   *
+   * @param name - The parsed `AttrSyntax`
+   *
+   * @returns An instance of the command if it exists, or `null` if it does not exist.
+   */
+  private getBindingCommand(container: IContainer, syntax: AttrSyntax, optional: boolean): BindingCommandInstance | null {
+    const name = syntax.command;
+    if (name === null) {
+      return null;
+    }
+    let result = this.commandLookup[name];
+    if (result === void 0) {
+      result = container.create(BindingCommand, name) as BindingCommandInstance;
+      if (result === null) {
+        if (optional) {
+          return null;
+        }
+        throw new Error(`Unknown binding command: ${name}`);
+      }
+      this.commandLookup[name] = result;
+    }
+    return result;
+  }
+
+  mark(el: Element) {
+    el.classList.add('au');
+  }
+}
+
+function createMarker(): HTMLElement {
+  const marker = document.createElement('au-m');
+  marker.className = 'au';
+  return marker;
 }

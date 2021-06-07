@@ -56,8 +56,8 @@ import { IPlatform } from './platform.js';
 import { Bindable } from './bindable.js';
 import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
 import { AuSlotContentType, IProjectionProvider, IProjections, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
-import { CustomElement, CustomElementDefinition, CustomElementType, PartialCustomElementDefinition } from './resources/custom-element.js';
-import { CustomAttribute, CustomAttributeDefinition, CustomAttributeType } from './resources/custom-attribute.js';
+import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
+import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute.js';
 import { BindingCommand, BindingCommandInstance } from './resources/binding-command.js';
 import { createLookup } from './utilities-html.js';
 
@@ -612,16 +612,12 @@ export class ViewCompiler {
       case 1:
         switch (node.nodeName) {
           case 'LET':
-            this.declare(node as Element, container, context);
-            break;
+            return this.declare(node as Element, container, context);
           case 'AU-SLOT':
-            this.auSlot(node as Element, container, context);
-            break;
+            return this.auSlot(node as Element, container, context);
           default:
-            this.element(node as Element, container, context);
-            break;
+            return this.element(node as Element, container, context);
         }
-        break;
       case 3:
         this.text();
       case 11: {
@@ -635,15 +631,52 @@ export class ViewCompiler {
     return node.nextSibling;
   }
 
-  declare(el: Element, container: IContainer, context: ICompilationContext) {
+  declare(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     // probably no need to replace
     // as the let itself can be used as is
     // though still need to mark el as target to ensure the instruction is matched with a target
     this.mark(el);
-    context.instructionRows.push(new HydrateLetElementInstruction(
-      [],
-      el.hasAttribute('to-binding-context')
-    ));
+    const attrs = el.attributes;
+    const ii = attrs.length;
+    const letInstructions: LetBindingInstruction[] = [];
+    let toBindingContext = false;
+    let i = 0;
+    let attr: Attr;
+    let attrSyntax: AttrSyntax;
+    let attrName: string;
+    let attrValue: string;
+    let bindingCommand: BindingCommandInstance | null;
+    let bindingType: BindingType;
+    for (; ii > i; ++i) {
+      attr = attrs[i];
+      attrName = attr.name;
+      attrValue = attr.value;
+      if (attrName === 'to-binding-context') {
+        toBindingContext = true;
+      } else {
+        attrSyntax = context.attrParser.parse(attrName, attrValue);
+        bindingCommand = this.getBindingCommand(container, attrSyntax, false);
+        bindingType = bindingCommand === null ? BindingType.Interpolation : bindingCommand.bindingType;
+
+        if (bindingType === BindingType.Interpolation) {
+          letInstructions.push(new LetBindingInstruction(
+            context.exprParser.parse(attrSyntax.rawValue, bindingType),
+            attrSyntax.target
+          ));
+          continue;
+        }
+
+        if (attrSyntax.command === null) {
+          // todo: should support literal
+          letInstructions.push(new LetBindingInstruction(attrSyntax.rawValue, attrSyntax.target));
+        } else {
+          // the attrSyntax.command === null check ensures that optional: "false"
+          // will always throw or return a command
+          if (bindingCommand ) {}
+        }
+      }
+    }
+    context.instructionRows.push(new HydrateLetElementInstruction(letInstructions, toBindingContext));
     return el.nextSibling;
   }
 
@@ -856,7 +889,7 @@ export class ViewCompiler {
     return el.nextSibling;
   }
 
-  projection(el: Element, container: IContainer, context: ICompilationContext, instruction: HydrateElementInstruction) {
+  projection(el: Element, container: IContainer, context: ICompilationContext, instruction: HydrateElementInstruction): void {
     let node = el.firstChild;
     // for each child element of a custom element
     // scan for [au-slot], if there's one
@@ -874,13 +907,14 @@ export class ViewCompiler {
     //  <my-el>
     //    <template au-slot><div if.bind="..."></div>
     //  </my-el>
-    let projections: Record<string, CustomElementDefinition> = {};
+    const projections: Record<string, CustomElementDefinition> = {};
     while (node !== null) {
       const next = node.nextSibling;
       switch (node.nodeType) {
         case 1:
           const targetedSlot = (node as Element).getAttribute('au-slot');
           if (targetedSlot !== null) {
+            (node as Element).removeAttribute('au-slot');
             const template = el.insertBefore(document.createElement('template'), node);
             const auSlotContext: ICompilationContext = {
               ...context,

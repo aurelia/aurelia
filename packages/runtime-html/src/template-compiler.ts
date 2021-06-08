@@ -34,7 +34,8 @@ import {
   PlainElementSymbol,
   TemplateControllerSymbol,
   TextSymbol,
-  SymbolFlags
+  SymbolFlags,
+  BindableInfo
 } from './semantic-model.js';
 import {
   AttributeInstruction,
@@ -52,9 +53,10 @@ import {
   SetStyleAttributeInstruction,
   TextBindingInstruction,
   ITemplateCompiler,
+  IInstruction,
 } from './renderer.js';
 import { IPlatform } from './platform.js';
-import { Bindable } from './bindable.js';
+import { Bindable, BindableDefinition } from './bindable.js';
 import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
 import { AuSlotContentType, IProjectionProvider, IProjections, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
@@ -692,14 +694,15 @@ export class ViewCompiler {
   auSlot(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     const slotName = el.getAttribute('name') || 'default';
     const targetedProjection = context.projections?.projections?.[slotName];
+    let firstNode: Node | null;
     // if there's no projection for an <au-slot/>
     // there's no need to treat it in any special way
     // inline all the fallback content into the parent template
     if (targetedProjection == null) {
-      const firstNode = el.firstChild;
+      firstNode = el.firstChild;
       while (el.firstChild !== null) {
         // todo: assumption made: parent is not null
-        el.parentNode?.insertBefore(el.firstChild, el);
+        el.parentNode!.insertBefore(el.firstChild, el);
       }
       return firstNode;
     }
@@ -727,20 +730,22 @@ export class ViewCompiler {
     const exprParser = context.exprParser;
     const attrSyntaxTransformer = context.attrTransformer;
     const attrs = el.attributes;
-    const instructionRow: unknown[] = [];
+    const instructions: any[] = [];
+    const bindableInstructions: unknown[] = [];
     let i = 0;
     let attr: Attr;
     let attrName: string;
     let attrValue: string;
     let attrSyntax: AttrSyntax;
     let attrInfo: CustomAttributeDefinition | null = null;
-    let instructions: any[] = [];
+    let bindable: BindableDefinition;
     let attrInstructions: any[] = [];
     let currentController: any;
     let templateControllers: AttrSyntax[] = [];
     let expr: AnyBindingExpression;
     let elementInstruction: HydrateElementInstruction;
     let bindingCommand: BindingCommandInstance | null = null;
+    let bindingSymbol: PlainAttributeSymbol | BindingSymbol;
 
     // create 2 arrays
     // 1 array for instructions
@@ -806,54 +811,88 @@ export class ViewCompiler {
         }
 
         // todo: create hydrate custom attribute instruction, add to the instruction row
-      } else {
-        const bindingType = bindingCommand === null ? BindingType.Interpolation : bindingCommand.bindingType;
+        continue;
+      }
+
+      if (bindingCommand === null) {
         if (elementInfo !== null) {
-          elementInstruction ??= new HydrateElementInstruction(elementInfo.name, void 0, [], null);
-          const bindable = elementInfo.bindables[attrSyntax.target];
-          if (bindable !== null) {
-            const normalPropCommand = BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand;
-            // if it looks like: <my-el value.bind>
-            // it means        : <my-el value.bind="value">
-            // this is a shortcut
-            const realAttrValue = attrValue.length === 0 && (bindingType & normalPropCommand) > 0
-              ? camelCase(attrName)
-              : attrValue;
-            expr = exprParser.parse(realAttrValue, bindingType);
-
-            // todo:
-            //  1. ensure a custom element instruction exist
-            //  2. add instruction to the custom element instruction instructions
-
-            // to next attribute
+          bindable = elementInfo.bindables[attrSyntax.target];
+          if (bindable != null) {
+            expr = exprParser.parse(attrSyntax.rawValue, BindingType.Interpolation);
+            bindableInstructions.push(new InterpolationInstruction(expr, bindable.property));
             continue;
           }
         }
 
-        // plain attribute, on a normal, or a custom element here
-        // regardless, can process the same way
-        if ((bindingType & BindingType.IgnoreAttr) === 0) {
-          attrSyntaxTransformer.transform(el, attrSyntax);
-        }
-        expr = exprParser.parse(attrValue, bindingType);
-        const isInterpolation = bindingType === BindingType.Interpolation && expr != null;
-        if (isInterpolation) {
+        // if not a bindable, then first need to
+        // apply transformation to ensure plain attribute are mapped correctly:
+        // e.g: colspan -> colSpan
+        //      innerhtml -> innerHTML
+        //      minlength -> minLengt etc...
+        attrSyntaxTransformer.transform(el, attrSyntax);
 
-        } else {
-
-        }
+        // after transformation, both attrSyntax value & target could have been changed
+        // access it again to ensure it's fresh
+        expr = exprParser.parse(attrSyntax.rawValue, BindingType.Interpolation);
         if (expr !== null) {
+          instructions.push(new InterpolationInstruction(expr, attrSyntax.target));
+        }
+        // if not a custom attribute + no binding command + not a bindable + not an interpolation
+        // then it's just a plain attribute, do nothing
+        continue;
+      }
 
+      // reaching here means:
+      // + has binding command
+      // + not an overriding binding command
+      // + not a custom attribute
+
+      if (elementInfo !== null) {
+        // if the element is a custom element
+        // - prioritize bindables on a custom element before plain attributes
+        bindable = elementInfo.bindables[attrSyntax.target];
+        if (bindable != null) {
+          const normalPropCommand = BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand;
+          // if it looks like: <my-el value.bind>
+          // it means        : <my-el value.bind="value">
+          // this is a shortcut
+          const realAttrValue = attrValue.length === 0 && (bindingCommand.bindingType & normalPropCommand) > 0
+            ? camelCase(attrName)
+            : attrValue;
+          expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
+          bindingSymbol = new BindingSymbol(
+            bindingCommand,
+            new BindableInfo(bindable.property, bindable.mode),
+            expr,
+            realAttrValue,
+            bindable.property
+          );
+
+          bindableInstructions.push(bindingCommand.compile(bindingSymbol));
+          continue;
         }
       }
+
+      // reaching here means it's a binding command used against a plain attribute
+      // first apply transformation to ensure getting the right target
+      // e.g: colspan -> colSpan
+      //      innerhtml -> innerHTML
+      //      minlength -> minLengt etc...
+      attrSyntaxTransformer.transform(el, attrSyntax);
+
+      expr = exprParser.parse(attrSyntax.rawValue, bindingCommand.bindingType);
+      bindingSymbol = new PlainAttributeSymbol(attrSyntax, bindingCommand, expr);
+
+      instructions.push(bindingCommand.compile(bindingSymbol));
     }
 
-    if (elementInfo !== null) {
-      if (elementInfo.containerless) {
-        // todo: should the process of turning this into a render location
-        //       bedone during compilation, or rendering?
-        //       variables: normal compilation vs enhancement
-      }
+    if (
+      // not null is not needed, though for avoiding non-null assertion
+      elementInfo !== null
+      && bindableInstructions.length > 0
+    ) {
+      elementInstruction = new HydrateElementInstruction(elementInfo.name, void 0, bindableInstructions as IInstruction[], null);
+      instructions.unshift(elementInstruction);
     }
 
     if (templateControllers.length > 0) {
@@ -985,18 +1024,6 @@ export class ViewCompiler {
     return result;
   }
 
-  private mark<T extends Element>(el: T): T {
-    el.classList.add('au');
-    return el;
-  }
-
-  marker(el: Element) {
-    const marker = document.createElement('au-m');
-    marker.classList.add('au');
-    // todo: assumption made: parentNode won't be null
-    return el.parentNode!.insertBefore(marker, el);
-  }
-
   local(template: Element, container: IContainer, context: ICompilationContext) {
     const dependencies: PartialCustomElementDefinition[] = [];
     let root: HTMLElement | DocumentFragment;
@@ -1067,5 +1094,18 @@ export class ViewCompiler {
 
       root.removeChild(localTemplate);
     }
+  }
+
+  private mark<T extends Element>(el: T): T {
+    el.classList.add('au');
+    return el;
+  }
+
+  private marker(el: Element): HTMLElement {
+    // maybe use this one-liner instead?
+    // return this.mark(el.parentNode!.insertBefore(document.createElement('au-m'), el));
+    const marker = document.createElement('au-m');
+    // todo: assumption made: parentNode won't be null
+    return this.mark(el.parentNode!.insertBefore(marker, el));
   }
 }

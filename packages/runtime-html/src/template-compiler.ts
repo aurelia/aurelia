@@ -1014,33 +1014,35 @@ export class ViewCompiler {
     //        * has no colon: ie: <div my-attr="abcd">
     //          In this scenario, it's simply invalid syntax. Consider style attribute rule-value pair: <div style="rule: ruleValue">
     const isMultiBindings = attrDef.noMultiBindings === false && bindingCommand === null && hasInlineBindings(attrRawValue);
-    // custom attribute + multiple values + WITHOUT binding command:
-    // my-attr="prop1.bind: ...; prop2.bind: ..."
-    // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
     if (isMultiBindings) {
+      // custom attribute + multiple values:
+      // my-attr="prop1: literal1 prop2.bind: ...; prop3: literal3"
+      // my-attr="prop1.bind: ...; prop2.bind: ..."
+      // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
       const bindables = attrInfo.bindables;
       const valueLength = attrRawValue.length;
-  
+
       let $attrName: string | undefined = void 0;
       let $attrValue: string | undefined = void 0;
-  
+
       let start = 0;
       let ch = 0;
-  
+      let expr: AnyBindingExpression;
+
       for (let i = 0; i < valueLength; ++i) {
         ch = attrRawValue.charCodeAt(i);
-  
+
         if (ch === Char.Backslash) {
           ++i;
           // Ignore whatever comes next because it's escaped
         } else if (ch === Char.Colon) {
           $attrName = attrRawValue.slice(start, i);
-  
+
           // Skip whitespace after colon
           while (attrRawValue.charCodeAt(++i) <= Char.Space);
-  
+
           start = i;
-  
+
           for (; i < valueLength; ++i) {
             ch = attrRawValue.charCodeAt(i);
             if (ch === Char.Backslash) {
@@ -1051,12 +1053,12 @@ export class ViewCompiler {
               break;
             }
           }
-  
+
           if ($attrValue === void 0) {
             // No semicolon found, so just grab the rest of the value
             $attrValue = attrRawValue.slice(start);
           }
-  
+
           const attrSyntax = context.attrParser.parse($attrName, $attrValue);
           // const attrTarget = camelCase(attrSyntax.target);
           const command = this.getBindingCommand(container, attrSyntax, false);
@@ -1065,22 +1067,21 @@ export class ViewCompiler {
             throw new Error('Invalid usage of multi-binding custom attribute: target attribute/property not found.');
           }
           if (command === null) {
-            const expr = context.exprParser.parse($attrValue, BindingType.Interpolation);
-            if (expr === null) {
-              instructions.push(new SetPropertyInstruction(attrRawValue, bindable.propName));
-            } else {
-              instructions.push(new InterpolationInstruction(expr, bindable.propName));
-            }
+            expr = context.exprParser.parse($attrValue, BindingType.Interpolation);
+            instructions.push(expr === null
+              ? new SetPropertyInstruction(attrRawValue, bindable.propName)
+              : new InterpolationInstruction(expr, bindable.propName)
+            );
           } else {
-            const expr = context.exprParser.parse($attrValue, command.bindingType);
+            expr = context.exprParser.parse($attrValue, command.bindingType);
             instructions.push(command.compile(new BindingSymbol(command, bindable, expr, $attrValue, $attrName)));
           }
-  
+
           // Skip whitespace after semicolon
           while (i < valueLength && attrRawValue.charCodeAt(++i) <= Char.Space);
-  
+
           start = i;
-  
+
           $attrName = void 0;
           $attrValue = void 0;
         }
@@ -1090,16 +1091,16 @@ export class ViewCompiler {
       // custom attribute + single value + WITHOUT binding command:
       // my-attr=""
       // my-attr="${}"
-      // my-attr="prop1.bind: ...; prop2.bind: ..."
-      // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
       if (bindingCommand === null) {
         const expr = context.exprParser.parse(attrRawValue, BindingType.Interpolation);
-        if (expr === null) {
-          instructions.push(new SetPropertyInstruction(attrRawValue, primaryBindable.propName));
-        } else {
-          instructions.push(new InterpolationInstruction(expr, primaryBindable.propName));
-        }
+        instructions.push(expr === null
+          ? new SetPropertyInstruction(attrRawValue, primaryBindable.propName)
+          : new InterpolationInstruction(expr, primaryBindable.propName)
+        );
       } else {
+        // custom attribute with binding command:
+        // my-attr.bind="..."
+        // my-attr.two-way="..."
         const expr = context.exprParser.parse(attrRawValue, bindingCommand.bindingType);
         instructions.push(bindingCommand.compile(new BindingSymbol(bindingCommand, attrInfo.bindable, expr, attrRawValue, attrInfo.bindable.propName)));
       }

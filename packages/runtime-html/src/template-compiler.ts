@@ -16,6 +16,7 @@ import {
   BindingMode,
   BindingType,
   AnyBindingExpression,
+  PrimitiveLiteralExpression,
 } from '@aurelia/runtime';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
 import { TemplateBinder } from './template-binder.js';
@@ -632,13 +633,10 @@ export class ViewCompiler {
   }
 
   declare(el: Element, container: IContainer, context: ICompilationContext): Node | null {
-    // probably no need to replace
-    // as the let itself can be used as is
-    // though still need to mark el as target to ensure the instruction is matched with a target
-    this.mark(el);
     const attrs = el.attributes;
     const ii = attrs.length;
     const letInstructions: LetBindingInstruction[] = [];
+    const exprParser = context.exprParser;
     let toBindingContext = false;
     let i = 0;
     let attr: Attr;
@@ -646,38 +644,49 @@ export class ViewCompiler {
     let attrName: string;
     let attrValue: string;
     let bindingCommand: BindingCommandInstance | null;
-    let bindingType: BindingType;
+    let realAttrTarget: string;
+    let realAttrValue: string;
+    let expr: AnyBindingExpression;
     for (; ii > i; ++i) {
       attr = attrs[i];
       attrName = attr.name;
       attrValue = attr.value;
       if (attrName === 'to-binding-context') {
         toBindingContext = true;
-      } else {
-        attrSyntax = context.attrParser.parse(attrName, attrValue);
-        bindingCommand = this.getBindingCommand(container, attrSyntax, false);
-        bindingType = bindingCommand === null ? BindingType.Interpolation : bindingCommand.bindingType;
-
-        if (bindingType === BindingType.Interpolation) {
-          letInstructions.push(new LetBindingInstruction(
-            context.exprParser.parse(attrSyntax.rawValue, bindingType),
-            attrSyntax.target
-          ));
-          continue;
-        }
-
-        if (attrSyntax.command === null) {
-          // todo: should support literal
-          letInstructions.push(new LetBindingInstruction(attrSyntax.rawValue, attrSyntax.target));
-        } else {
-          // the attrSyntax.command === null check ensures that optional: "false"
-          // will always throw or return a command
-          if (bindingCommand ) {}
-        }
+        continue;
       }
+
+      attrSyntax = context.attrParser.parse(attrName, attrValue);
+      realAttrTarget = attrSyntax.target;
+      realAttrValue = attrSyntax.rawValue;
+
+      bindingCommand = this.getBindingCommand(container, attrSyntax, false);
+      if (bindingCommand !== null) {
+        // supporting one time may not be as simple as it appears
+        // as the let expression could compute its value from various expressions,
+        // which means some value could be unavailable by the time it computes.
+        //
+        // Onetime means it will not have appropriate value, but it's also a good thing,
+        // since often one it's just a simple declaration
+        // todo: consider supporting one-time for <let>
+        if (bindingCommand.bindingType !== BindingType.ToViewCommand) {
+          throw new Error('Invalid binding command for <let>. Only to-view supported');
+        }
+        letInstructions.push(new LetBindingInstruction(exprParser.parse(realAttrValue, bindingCommand.bindingType), realAttrTarget));
+        continue;
+      }
+
+      expr = exprParser.parse(realAttrValue, BindingType.Interpolation);
+      letInstructions.push(new LetBindingInstruction(
+        expr === null ? new PrimitiveLiteralExpression(realAttrValue) : expr,
+        realAttrTarget
+      ));
     }
     context.instructionRows.push(new HydrateLetElementInstruction(letInstructions, toBindingContext));
-    return el.nextSibling;
+    // probably no need to replace
+    // as the let itself can be used as is
+    // though still need to mark el as target to ensure the instruction is matched with a target
+    return this.mark(el).nextSibling;
   }
 
   auSlot(el: Element, container: IContainer, context: ICompilationContext): Node | null {
@@ -976,8 +985,9 @@ export class ViewCompiler {
     return result;
   }
 
-  mark(el: Element) {
+  private mark<T extends Element>(el: T): T {
     el.classList.add('au');
+    return el;
   }
 
   marker(el: Element) {

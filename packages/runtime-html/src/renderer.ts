@@ -1,5 +1,6 @@
 import { Metadata, IServiceLocator, IContainer, Registration, Class, DI, IRegistry } from '@aurelia/kernel';
 import {
+  PrimitiveLiteralExpression,
   BindingMode,
   BindingType,
   IExpressionParser,

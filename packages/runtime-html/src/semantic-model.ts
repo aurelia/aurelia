@@ -447,15 +447,17 @@ export class AttrInfo {
    * Only applicable to single attribute bindings (where the attribute value
    * contains no semicolons)
    */
-  public bindable: BindableInfo | null = null;
+  public bindable: BindableInfo = null!;
 
-  public constructor(
+  protected constructor(
     public name: string,
     public alias: string | undefined,
     public isTemplateController: boolean,
     public noMultiBindings: boolean,
   ) {}
 
+  public static from(def: CustomAttributeDefinition, alias: string): AttrInfo;
+  public static from(def: CustomAttributeDefinition | null, alias: string): AttrInfo | null;
   public static from(def: CustomAttributeDefinition | null, alias: string): AttrInfo | null {
     if (def === null) {
       return null;

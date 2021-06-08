@@ -17,6 +17,7 @@ import {
   BindingType,
   AnyBindingExpression,
   PrimitiveLiteralExpression,
+  Char,
 } from '@aurelia/runtime';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
 import { TemplateBinder } from './template-binder.js';
@@ -35,7 +36,8 @@ import {
   TemplateControllerSymbol,
   TextSymbol,
   SymbolFlags,
-  BindableInfo
+  BindableInfo,
+  AttrInfo
 } from './semantic-model.js';
 import {
   AttributeInstruction,
@@ -724,13 +726,18 @@ export class ViewCompiler {
   }
 
   element(el: Element, container: IContainer, context: ICompilationContext): Node | null {
+    // instructions sort:
+    // hydrate custom element instruction first
+    // hydrate custom attribute instructions next
+    // rest kept as is (to-be-decided)
+
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elementInfo = container.find(CustomElement, elName) as CustomElementDefinition | null;
     const attrParser = context.attrParser;
     const exprParser = context.exprParser;
     const attrSyntaxTransformer = context.attrTransformer;
     const attrs = el.attributes;
-    const instructions: any[] = [];
+    const instructions: IInstruction[] = [];
     const bindableInstructions: unknown[] = [];
     let i = 0;
     let attr: Attr;
@@ -739,7 +746,7 @@ export class ViewCompiler {
     let attrSyntax: AttrSyntax;
     let attrInfo: CustomAttributeDefinition | null = null;
     let bindable: BindableDefinition;
-    let attrInstructions: any[] = [];
+    let attrInstructions: IInstruction[];
     let currentController: any;
     let templateControllers: AttrSyntax[] = [];
     let expr: AnyBindingExpression;
@@ -765,8 +772,10 @@ export class ViewCompiler {
         // active.class="..."
         // background.style="..."
         // my-attr.attr="..."
+        expr = exprParser.parse(attrValue, bindingCommand.bindingType);
+        bindingSymbol = new PlainAttributeSymbol(attrSyntax, bindingCommand, expr);
 
-        // todo: create an instruction & add to the list
+        instructions.push(bindingCommand.compile(bindingSymbol));
 
         // to next attribute
         continue;
@@ -778,26 +787,27 @@ export class ViewCompiler {
       // when encountering an attribute,
       // custom attribute takes precedence over custom element bindables
       if (attrInfo !== null) {
+        attrInstructions = this.customAttr(attrSyntax, bindingCommand, attrInfo, container, context);
+
+        // custom attribute WITHOUT binding command:
+        // my-attr=""
+        // my-attr="${}"
+        // my-attr="prop1.bind: ...; prop2.bind: ..."
+        // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
+        if (bindingCommand === null) {
+
+        } else {
+          // custom attribute with binding command:
+          // my-attr.bind="..."
+          // my-attr.two-way="..."
+
+        }
+
         if (attrInfo.isTemplateController) {
           el.removeAttribute(attrName);
           --i;
 
-          // const template = document.createElement('template');
-          // parent.insertBefore(createMarker(/* platform */), el);
-          // template.content.appendChild(el);
           const bindings = attrValue.split(';')/* create binding from the attr value */;
-          if (attrSyntax.command !== null) {
-            // custom attribute with binding command:
-            // my-attr.bind="..."
-            // my-attr.two-way="..."
-            
-          } else {
-            // custom attribute WITHOUT binding command:
-            // my-attr=""
-            // my-attr="${}"
-            // my-attr="prop1.bind: ...; prop2.bind: ..."
-            // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
-          }
           // TODO: need to somehow pass the existing, parsed attriute instruction to this definition
           // const def = this.templateController(template, context);
           // const currentControllerInstruction = templateControllers[templateControllers.length - 1];
@@ -899,7 +909,7 @@ export class ViewCompiler {
       i = templateControllers.length - 1;
       const def = CustomElementDefinition.create({
         name: CustomElement.generateName(),
-        instructions: instructions,
+        instructions: [instructions],
         template: (() => {
           const template = document.createElement('template');
           // assumption: el.parentNode is not null
@@ -937,7 +947,7 @@ export class ViewCompiler {
     return el.nextSibling;
   }
 
-  projection(el: Element, container: IContainer, context: ICompilationContext, instruction: HydrateElementInstruction): void {
+  private projection(el: Element, container: IContainer, context: ICompilationContext, instruction: HydrateElementInstruction): void {
     let node = el.firstChild;
     // for each child element of a custom element
     // scan for [au-slot], if there's one
@@ -987,11 +997,118 @@ export class ViewCompiler {
     context.projectionProvider.associate(instruction, projections);
   }
 
-  text() {
+  private text() {
 
   }
 
-  parse(template: string): DocumentFragment {
+  private customAttr(attrSyntax: AttrSyntax, bindingCommand: BindingCommandInstance | null, attrDef: CustomAttributeDefinition, container: IContainer, context: ICompilationContext): IInstruction[] {
+    const attrRawValue = attrSyntax.rawValue;
+    const instructions: IInstruction[] = [];
+    const attrInfo = AttrInfo.from(attrDef, attrSyntax.target);
+    // Custom attributes are always in multiple binding mode,
+    // except when they can't be
+    // When they cannot be:
+    //        * has explicit configuration noMultiBindings: false
+    //        * has binding command, ie: <div my-attr.bind="...">.
+    //          In this scenario, the value of the custom attributes is required to be a valid expression
+    //        * has no colon: ie: <div my-attr="abcd">
+    //          In this scenario, it's simply invalid syntax. Consider style attribute rule-value pair: <div style="rule: ruleValue">
+    const isMultiBindings = attrDef.noMultiBindings === false && bindingCommand === null && hasInlineBindings(attrRawValue);
+    // custom attribute + multiple values + WITHOUT binding command:
+    // my-attr="prop1.bind: ...; prop2.bind: ..."
+    // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
+    if (isMultiBindings) {
+      const bindables = attrInfo.bindables;
+      const valueLength = attrRawValue.length;
+  
+      let $attrName: string | undefined = void 0;
+      let $attrValue: string | undefined = void 0;
+  
+      let start = 0;
+      let ch = 0;
+  
+      for (let i = 0; i < valueLength; ++i) {
+        ch = attrRawValue.charCodeAt(i);
+  
+        if (ch === Char.Backslash) {
+          ++i;
+          // Ignore whatever comes next because it's escaped
+        } else if (ch === Char.Colon) {
+          $attrName = attrRawValue.slice(start, i);
+  
+          // Skip whitespace after colon
+          while (attrRawValue.charCodeAt(++i) <= Char.Space);
+  
+          start = i;
+  
+          for (; i < valueLength; ++i) {
+            ch = attrRawValue.charCodeAt(i);
+            if (ch === Char.Backslash) {
+              ++i;
+              // Ignore whatever comes next because it's escaped
+            } else if (ch === Char.Semicolon) {
+              $attrValue = attrRawValue.slice(start, i);
+              break;
+            }
+          }
+  
+          if ($attrValue === void 0) {
+            // No semicolon found, so just grab the rest of the value
+            $attrValue = attrRawValue.slice(start);
+          }
+  
+          const attrSyntax = context.attrParser.parse($attrName, $attrValue);
+          // const attrTarget = camelCase(attrSyntax.target);
+          const command = this.getBindingCommand(container, attrSyntax, false);
+          const bindable = bindables[attrSyntax.target];
+          if (bindable == null) {
+            throw new Error('Invalid usage of multi-binding custom attribute: target attribute/property not found.');
+          }
+          if (command === null) {
+            const expr = context.exprParser.parse($attrValue, BindingType.Interpolation);
+            if (expr === null) {
+              instructions.push(new SetPropertyInstruction(attrRawValue, bindable.propName));
+            } else {
+              instructions.push(new InterpolationInstruction(expr, bindable.propName));
+            }
+          } else {
+            const expr = context.exprParser.parse($attrValue, command.bindingType);
+            instructions.push(command.compile(new BindingSymbol(command, bindable, expr, $attrValue, $attrName)));
+          }
+  
+          // Skip whitespace after semicolon
+          while (i < valueLength && attrRawValue.charCodeAt(++i) <= Char.Space);
+  
+          start = i;
+  
+          $attrName = void 0;
+          $attrValue = void 0;
+        }
+      }
+    } else {
+      const primaryBindable = attrInfo.bindable;
+      // custom attribute + single value + WITHOUT binding command:
+      // my-attr=""
+      // my-attr="${}"
+      // my-attr="prop1.bind: ...; prop2.bind: ..."
+      // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
+      if (bindingCommand === null) {
+        const expr = context.exprParser.parse(attrRawValue, BindingType.Interpolation);
+        if (expr === null) {
+          instructions.push(new SetPropertyInstruction(attrRawValue, primaryBindable.propName));
+        } else {
+          instructions.push(new InterpolationInstruction(expr, primaryBindable.propName));
+        }
+      } else {
+        const expr = context.exprParser.parse(attrRawValue, bindingCommand.bindingType);
+        instructions.push(bindingCommand.compile(new BindingSymbol(bindingCommand, attrInfo.bindable, expr, attrRawValue, attrInfo.bindable.propName)));
+      }
+    }
+
+    return instructions;
+  }
+
+  private parse(template: string): DocumentFragment {
     const parser = document.createElement('div');
     parser.innerHTML = `<template>${template}</template>`;
     return document.adoptNode((parser.firstElementChild as HTMLTemplateElement).content);
@@ -1024,7 +1141,7 @@ export class ViewCompiler {
     return result;
   }
 
-  local(template: Element, container: IContainer, context: ICompilationContext) {
+  private local(template: Element, container: IContainer, context: ICompilationContext) {
     const dependencies: PartialCustomElementDefinition[] = [];
     let root: HTMLElement | DocumentFragment;
 
@@ -1108,4 +1225,21 @@ export class ViewCompiler {
     // todo: assumption made: parentNode won't be null
     return this.mark(el.parentNode!.insertBefore(marker, el));
   }
+}
+
+function hasInlineBindings(rawValue: string): boolean {
+  const len = rawValue.length;
+  let ch = 0;
+  for (let i = 0; i < len; ++i) {
+    ch = rawValue.charCodeAt(i);
+    if (ch === Char.Backslash) {
+      ++i;
+      // Ignore whatever comes next because it's escaped
+    } else if (ch === Char.Colon) {
+      return true;
+    } else if (ch === Char.Dollar && rawValue.charCodeAt(i + 1) === Char.OpenBrace) {
+      return false;
+    }
+  }
+  return false;
 }

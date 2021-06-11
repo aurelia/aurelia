@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/aot",
-  "version": "2.0.0-alpha.6",
+  "version": "2.0.1-dev.202106111308",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
@@ -38,10 +38,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.6",
-    "@aurelia/metadata": "2.0.0-alpha.6",
-    "@aurelia/platform": "2.0.0-alpha.6",
-    "@aurelia/runtime": "2.0.0-alpha.6",
+    "@aurelia/kernel": "2.0.1-dev.202106111308",
+    "@aurelia/metadata": "2.0.1-dev.202106111308",
+    "@aurelia/platform": "2.0.1-dev.202106111308",
+    "@aurelia/runtime": "2.0.1-dev.202106111308",
     "jsdom": "^15.2.1",
     "typescript": "^4.0.3"
   },

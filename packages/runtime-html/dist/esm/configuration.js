@@ -21,7 +21,8 @@ import { Repeat } from './resources/template-controllers/repeat.js';
 import { With } from './resources/template-controllers/with.js';
 import { Switch, Case, DefaultCase } from './resources/template-controllers/switch.js';
 import { PromiseTemplateController, PendingTemplateController, FulfilledTemplateController, RejectedTemplateController, } from './resources/template-controllers/promise.js';
-import { Compose } from './resources/custom-elements/compose.js';
+import { AuRender } from './resources/custom-elements/au-render.js';
+import { AuCompose } from './resources/custom-elements/au-compose.js';
 import { AuSlot } from './resources/custom-elements/au-slot.js';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize.js';
 import { ViewValueConverter } from './resources/value-converters/view.js';
@@ -127,7 +128,8 @@ export const RejectedTemplateControllerRegistration = RejectedTemplateController
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior;
-export const ComposeRegistration = Compose;
+export const AuRenderRegistration = AuRender;
+export const AuComposeRegistration = AuCompose;
 export const PortalRegistration = Portal;
 export const FocusRegistration = Focus;
 export const BlurRegistration = Blur;
@@ -170,7 +172,8 @@ export const DefaultResources = [
     AttrBindingBehaviorRegistration,
     SelfBindingBehaviorRegistration,
     UpdateTriggerBindingBehaviorRegistration,
-    ComposeRegistration,
+    AuRenderRegistration,
+    AuComposeRegistration,
     PortalRegistration,
     FocusRegistration,
     BlurRegistration,

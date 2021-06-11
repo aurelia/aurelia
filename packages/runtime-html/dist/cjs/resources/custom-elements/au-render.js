@@ -9,7 +9,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Compose = void 0;
+exports.AuRender = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const runtime_1 = require("@aurelia/runtime");
 const create_element_js_1 = require("../../create-element.js");
@@ -25,7 +25,7 @@ function toLookup(acc, item) {
     }
     return acc;
 }
-let Compose = class Compose {
+let AuRender = class AuRender {
     constructor(p, instruction) {
         this.p = p;
         this.id = kernel_1.nextId('au$component');
@@ -127,17 +127,17 @@ let Compose = class Compose {
 };
 __decorate([
     bindable_js_1.bindable
-], Compose.prototype, "subject", void 0);
+], AuRender.prototype, "subject", void 0);
 __decorate([
     bindable_js_1.bindable({ mode: runtime_1.BindingMode.fromView })
-], Compose.prototype, "composing", void 0);
-Compose = __decorate([
-    custom_element_js_1.customElement({ name: 'au-compose', template: null, containerless: true }),
+], AuRender.prototype, "composing", void 0);
+AuRender = __decorate([
+    custom_element_js_1.customElement({ name: 'au-render', template: null, containerless: true }),
     __param(0, platform_js_1.IPlatform),
     __param(1, renderer_js_1.IInstruction)
-], Compose);
-exports.Compose = Compose;
+], AuRender);
+exports.AuRender = AuRender;
 function isController(subject) {
     return 'lockScope' in subject;
 }
-//# sourceMappingURL=compose.js.map
+//# sourceMappingURL=au-render.js.map

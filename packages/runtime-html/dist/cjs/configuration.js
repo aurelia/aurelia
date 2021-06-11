@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateTriggerBindingBehaviorRegistration = exports.SelfBindingBehaviorRegistration = exports.AttrBindingBehaviorRegistration = exports.RejectedTemplateControllerRegistration = exports.FulfilledTemplateControllerRegistration = exports.PendingTemplateControllerRegistration = exports.PromiseTemplateControllerRegistration = exports.DefaultCaseRegistration = exports.CaseRegistration = exports.SwitchRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.FrequentMutationsRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.DefaultBindingLanguage = exports.StyleBindingCommandRegistration = exports.ClassBindingCommandRegistration = exports.AttrBindingCommandRegistration = exports.CaptureBindingCommandRegistration = exports.DelegateBindingCommandRegistration = exports.TriggerBindingCommandRegistration = exports.RefBindingCommandRegistration = exports.TwoWayBindingCommandRegistration = exports.ToViewBindingCommandRegistration = exports.OneTimeBindingCommandRegistration = exports.FromViewBindingCommandRegistration = exports.ForBindingCommandRegistration = exports.DefaultBindingCommandRegistration = exports.CallBindingCommandRegistration = exports.ShortHandBindingSyntax = exports.DefaultBindingSyntax = exports.DotSeparatedAttributePatternRegistration = exports.RefAttributePatternRegistration = exports.ColonPrefixedBindAttributePatternRegistration = exports.AtPrefixedTriggerAttributePatternRegistration = exports.SVGAnalyzerRegistration = exports.DefaultComponents = exports.INodeObserverLocatorRegistration = exports.ITemplateCompilerRegistration = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = void 0;
-exports.StandardConfiguration = exports.DefaultRenderers = exports.TextBindingRendererRegistration = exports.StylePropertyBindingRendererRegistration = exports.SetStyleAttributeRendererRegistration = exports.SetClassAttributeRendererRegistration = exports.SetAttributeRendererRegistration = exports.AttributeBindingRendererRegistration = exports.ListenerBindingRendererRegistration = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.ShowRegistration = exports.BlurRegistration = exports.FocusRegistration = exports.PortalRegistration = exports.ComposeRegistration = void 0;
+exports.StandardConfiguration = exports.DefaultRenderers = exports.TextBindingRendererRegistration = exports.StylePropertyBindingRendererRegistration = exports.SetStyleAttributeRendererRegistration = exports.SetClassAttributeRendererRegistration = exports.SetAttributeRendererRegistration = exports.AttributeBindingRendererRegistration = exports.ListenerBindingRendererRegistration = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.ShowRegistration = exports.BlurRegistration = exports.FocusRegistration = exports.PortalRegistration = exports.AuComposeRegistration = exports.AuRenderRegistration = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const attribute_pattern_js_1 = require("./resources/attribute-pattern.js");
 const binding_command_js_1 = require("./resources/binding-command.js");
@@ -25,7 +25,8 @@ const repeat_js_1 = require("./resources/template-controllers/repeat.js");
 const with_js_1 = require("./resources/template-controllers/with.js");
 const switch_js_1 = require("./resources/template-controllers/switch.js");
 const promise_js_1 = require("./resources/template-controllers/promise.js");
-const compose_js_1 = require("./resources/custom-elements/compose.js");
+const au_render_js_1 = require("./resources/custom-elements/au-render.js");
+const au_compose_js_1 = require("./resources/custom-elements/au-compose.js");
 const au_slot_js_1 = require("./resources/custom-elements/au-slot.js");
 const sanitize_js_1 = require("./resources/value-converters/sanitize.js");
 const view_js_1 = require("./resources/value-converters/view.js");
@@ -131,7 +132,8 @@ exports.RejectedTemplateControllerRegistration = promise_js_1.RejectedTemplateCo
 exports.AttrBindingBehaviorRegistration = attr_js_1.AttrBindingBehavior;
 exports.SelfBindingBehaviorRegistration = self_js_1.SelfBindingBehavior;
 exports.UpdateTriggerBindingBehaviorRegistration = update_trigger_js_1.UpdateTriggerBindingBehavior;
-exports.ComposeRegistration = compose_js_1.Compose;
+exports.AuRenderRegistration = au_render_js_1.AuRender;
+exports.AuComposeRegistration = au_compose_js_1.AuCompose;
 exports.PortalRegistration = portal_js_1.Portal;
 exports.FocusRegistration = focus_js_1.Focus;
 exports.BlurRegistration = blur_js_1.Blur;
@@ -174,7 +176,8 @@ exports.DefaultResources = [
     exports.AttrBindingBehaviorRegistration,
     exports.SelfBindingBehaviorRegistration,
     exports.UpdateTriggerBindingBehaviorRegistration,
-    exports.ComposeRegistration,
+    exports.AuRenderRegistration,
+    exports.AuComposeRegistration,
     exports.PortalRegistration,
     exports.FocusRegistration,
     exports.BlurRegistration,

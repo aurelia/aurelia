@@ -22,7 +22,7 @@ function toLookup(acc, item) {
     }
     return acc;
 }
-let Compose = class Compose {
+let AuRender = class AuRender {
     constructor(p, instruction) {
         this.p = p;
         this.id = nextId('au$component');
@@ -124,17 +124,17 @@ let Compose = class Compose {
 };
 __decorate([
     bindable
-], Compose.prototype, "subject", void 0);
+], AuRender.prototype, "subject", void 0);
 __decorate([
     bindable({ mode: BindingMode.fromView })
-], Compose.prototype, "composing", void 0);
-Compose = __decorate([
-    customElement({ name: 'au-compose', template: null, containerless: true }),
+], AuRender.prototype, "composing", void 0);
+AuRender = __decorate([
+    customElement({ name: 'au-render', template: null, containerless: true }),
     __param(0, IPlatform),
     __param(1, IInstruction)
-], Compose);
-export { Compose };
+], AuRender);
+export { AuRender };
 function isController(subject) {
     return 'lockScope' in subject;
 }
-//# sourceMappingURL=compose.js.map
+//# sourceMappingURL=au-render.js.map

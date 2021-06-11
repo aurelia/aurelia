@@ -8,7 +8,7 @@ import { CustomElementDefinition } from '../custom-element.js';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 export declare type Subject = IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
 export declare type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;
-export declare class Compose implements ICustomElementViewModel {
+export declare class AuRender implements ICustomElementViewModel {
     private readonly p;
     readonly id: number;
     subject?: MaybeSubjectPromise;
@@ -29,4 +29,4 @@ export declare class Compose implements ICustomElementViewModel {
     dispose(): void;
     accept(visitor: ControllerVisitor): void | true;
 }
-//# sourceMappingURL=compose.d.ts.map
+//# sourceMappingURL=au-render.d.ts.map

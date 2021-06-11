@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.6"></a>
+# 2.0.0-alpha.6 (2021-06-11)
+
+**Note:** Version bump only for package @aurelia/i18n
+
 <a name="2.0.0-alpha.5"></a>
 # 2.0.0-alpha.5 (2021-05-31)
 

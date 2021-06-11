@@ -24,8 +24,8 @@ function toLookup(
   return acc;
 }
 
-@customElement({ name: 'au-compose', template: null, containerless: true })
-export class Compose implements ICustomElementViewModel {
+@customElement({ name: 'au-render', template: null, containerless: true })
+export class AuRender implements ICustomElementViewModel {
   public readonly id: number = nextId('au$component');
 
   @bindable public subject?: MaybeSubjectPromise = void 0;

@@ -859,10 +859,7 @@ export class Container implements IContainer {
           this.root.resourceResolvers,
         );
       } else {
-        this.resourceResolvers = Object.assign(
-          Object.create(null),
-          this.root.resourceResolvers,
-        );
+        this.resourceResolvers = Object.create(null);
       }
     }
 

@@ -930,6 +930,9 @@ export class Container implements IContainer {
     if (result == null) {
       resolvers.set(key, resolver);
       if (isResourceKey(key)) {
+        if (this.resourceResolvers[key] !== void 0) {
+          throw new Error(`Resource key "${key}" already registered`);
+        }
         this.resourceResolvers[key] = resolver;
       }
     } else if (result instanceof Resolver && result.strategy === ResolverStrategy.array) {

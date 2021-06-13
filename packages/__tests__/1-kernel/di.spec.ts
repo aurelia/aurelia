@@ -1371,7 +1371,11 @@ describe(`The Container class`, function () {
         assert.strictEqual(childHasKey, false, `childHasKey`);
       });
 
-      it(`stores resource resolvers in resourceResolvers in parent and inherits them from root but does not from parent`, function () {
+      // container used to copy resource keys all the way down
+      // it's not only wasteful, but also inappropriate
+      // a change in the way resources information is carried forward resulted in this test being skipped
+      // but kept as a reminder how it used to be, in case someone relying on this behavior ran into the odd behavior
+      it.skip(`stores resource resolvers in resourceResolvers in parent and inherits them from root but does not from parent`, function () {
         const type = class {};
         const keyFromRoot = 'foo:bar' as any;
         const keyFromParent = 'foo:baz' as any;
@@ -1392,10 +1396,10 @@ describe(`The Container class`, function () {
         const childHasKeyFromRoot = child['resourceResolvers'][keyFromRoot] !== void 0;
         const childHasKeyFromParent = child['resourceResolvers'][keyFromParent] !== void 0;
 
-        assert.strictEqual(parentHasKeyFromRoot, true, `parentHasKeyFromRoot`);
+        assert.strictEqual(parentHasKeyFromRoot, false, `parentHasKeyFromRoot`);
         assert.strictEqual(parentHasKeyFromParent, true, `parentHasKeyFromParent`);
 
-        assert.strictEqual(childHasKeyFromRoot, true, `childHasKeyFromRoot`);
+        assert.strictEqual(childHasKeyFromRoot, false, `childHasKeyFromRoot`);
         assert.strictEqual(childHasKeyFromParent, false, `childHasKeyFromParent`);
       });
     });

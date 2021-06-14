@@ -4621,11 +4621,13 @@ let HrefCustomAttribute = class HrefCustomAttribute {
         this.router = router;
         this.delegator = delegator;
         this.ctx = ctx;
-        this.eventListener = null;
         this.isInitialized = false;
         this.onClick = (e) => {
-            // Ensure this is an ordinary left-button click.
-            if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0) {
+            // Ensure this is an ordinary left-button click
+            if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0
+                // on an internally managed link
+                || this.isExternal
+                || !this.isEnabled) {
                 return;
             }
             // Use the normalized attribute instead of this.value to ensure consistency.
@@ -4638,10 +4640,7 @@ let HrefCustomAttribute = class HrefCustomAttribute {
         };
         if (router.options.useHref &&
             // Ensure the element is an anchor
-            el.nodeName === 'A' &&
-            // Ensure the anchor is not explicitly marked as external.
-            !el.hasAttribute('external') &&
-            !el.hasAttribute('data-external')) {
+            el.nodeName === 'A') {
             // Ensure the anchor targets the current window.
             switch (el.getAttribute('target')) {
                 case null:
@@ -4658,6 +4657,9 @@ let HrefCustomAttribute = class HrefCustomAttribute {
             this.isEnabled = false;
         }
     }
+    get isExternal() {
+        return this.el.hasAttribute('external') || this.el.hasAttribute('data-external');
+    }
     binding() {
         if (!this.isInitialized) {
             this.isInitialized = true;
@@ -4665,13 +4667,11 @@ let HrefCustomAttribute = class HrefCustomAttribute {
         }
         if (this.isEnabled) {
             this.el.setAttribute('href', this.value);
-            this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.onClick);
         }
+        this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.onClick);
     }
     unbinding() {
-        if (this.isEnabled) {
-            this.eventListener.dispose();
-        }
+        this.eventListener.dispose();
     }
     valueChanged(newValue) {
         this.el.setAttribute('href', newValue);

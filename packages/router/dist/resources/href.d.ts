@@ -11,6 +11,7 @@ export declare class HrefCustomAttribute implements ICustomAttributeViewModel {
     private eventListener;
     private isInitialized;
     private isEnabled;
+    private get isExternal();
     readonly $controller: ICustomAttributeController<this>;
     constructor(target: IEventTarget, el: INode<HTMLElement>, router: IRouter, delegator: IEventDelegator, ctx: IRouteContext, w: IWindow);
     binding(): void;

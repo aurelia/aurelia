@@ -8722,10 +8722,10 @@ function createObserverLocator(containerOrLifecycle) {
     Registration.instance(INodeObserverLocator, dummyLocator).register(container);
     return container.get(IObserverLocator);
 }
-function createScopeForTest(bindingContext = {}, parentBindingContext, isComponentBoundary) {
+function createScopeForTest(bindingContext = {}, parentBindingContext, isBoundary) {
     return parentBindingContext
         ? Scope.fromParent(Scope.create(parentBindingContext), bindingContext)
-        : Scope.create(bindingContext, OverrideContext.create(bindingContext), isComponentBoundary);
+        : Scope.create(bindingContext, OverrideContext.create(bindingContext), isBoundary);
 }
 // export type CustomAttribute = Writable<IViewModel> & IComponentLifecycleMock;
 // export function createCustomAttribute(nameOrDef: string | PartialCustomAttributeDefinition = 'foo') {

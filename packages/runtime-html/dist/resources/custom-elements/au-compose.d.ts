@@ -31,7 +31,7 @@ export declare class AuCompose {
     attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController): void | Promise<void>;
 }
-interface ICompositionController {
+export interface ICompositionController {
     readonly controller: IHydratedController;
     readonly context: CompositionContext;
     activate(): void | Promise<void>;

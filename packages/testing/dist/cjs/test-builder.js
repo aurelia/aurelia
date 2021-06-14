@@ -413,10 +413,10 @@ function createObserverLocator(containerOrLifecycle) {
     return container.get(runtime_html_1.IObserverLocator);
 }
 exports.createObserverLocator = createObserverLocator;
-function createScopeForTest(bindingContext = {}, parentBindingContext, isComponentBoundary) {
+function createScopeForTest(bindingContext = {}, parentBindingContext, isBoundary) {
     return parentBindingContext
         ? runtime_html_1.Scope.fromParent(runtime_html_1.Scope.create(parentBindingContext), bindingContext)
-        : runtime_html_1.Scope.create(bindingContext, runtime_html_1.OverrideContext.create(bindingContext), isComponentBoundary);
+        : runtime_html_1.Scope.create(bindingContext, runtime_html_1.OverrideContext.create(bindingContext), isBoundary);
 }
 exports.createScopeForTest = createScopeForTest;
 // export type CustomAttribute = Writable<IViewModel> & IComponentLifecycleMock;

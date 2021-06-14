@@ -75,7 +75,7 @@ function chooseContext(scope, name, ancestor, projectionScope) {
         return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
     // traverse the context and it's ancestors, searching for a context that has the name.
-    while ((!(currentScope === null || currentScope === void 0 ? void 0 : currentScope.isComponentBoundary)
+    while ((!(currentScope === null || currentScope === void 0 ? void 0 : currentScope.isBoundary)
         || projectionScope !== null && projectionScope !== currentScope)
         && overrideContext
         && !(name in overrideContext)
@@ -90,14 +90,14 @@ function chooseContext(scope, name, ancestor, projectionScope) {
     return null;
 }
 export class Scope {
-    constructor(parentScope, bindingContext, overrideContext, isComponentBoundary) {
+    constructor(parentScope, bindingContext, overrideContext, isBoundary) {
         this.parentScope = parentScope;
         this.bindingContext = bindingContext;
         this.overrideContext = overrideContext;
-        this.isComponentBoundary = isComponentBoundary;
+        this.isBoundary = isBoundary;
     }
-    static create(bc, oc, isComponentBoundary) {
-        return new Scope(null, bc, oc == null ? OverrideContext.create(bc) : oc, isComponentBoundary !== null && isComponentBoundary !== void 0 ? isComponentBoundary : false);
+    static create(bc, oc, isBoundary) {
+        return new Scope(null, bc, oc == null ? OverrideContext.create(bc) : oc, isBoundary !== null && isBoundary !== void 0 ? isBoundary : false);
     }
     static fromOverride(oc) {
         if (oc == null) {

@@ -408,8 +408,7 @@ This section includes few more interesting examples that you might encounter in 
 
 ## promise
 
-The `promise` template controller enables us to render different content based on the status of a promise.
-A basic example is shown below.
+The `promise` template controller enables us to render different content based on the status of a promise. A basic example is shown below.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -451,14 +450,9 @@ export class MyApp {
 {% endtab %}
 {% endtabs %}
 
-As it can be seen in the example above, there are three more companion template controllers: `pending`, `then`, and `catch`.
-The content under `pending` is shown till the promise is settled.
-Once the promise is settled, depending on whether the promise is resolved, or rejected, the content under `then`, or `catch` will be shown respectively.
-Moreover, after the promise is settled, the content under the `pending` is detached from the DOM.
+As it can be seen in the example above, there are three more companion template controllers: `pending`, `then`, and `catch`. The content under `pending` is shown till the promise is settled. Once the promise is settled, depending on whether the promise is resolved, or rejected, the content under `then`, or `catch` will be shown respectively. Moreover, after the promise is settled, the content under the `pending` is detached from the DOM.
 
-Another important point to note here is that the resolved data from the promise can be accessed using the bound property with `then` (in the example above, it is `data`).
-Similarly, the rejection error/reason can be accessed using the bound property with `catch` (in the example above, it is `err`).
-The usage of these settled values are optional; that is both `then` and `catch` can be used without binding to any property.
+Another important point to note here is that the resolved data from the promise can be accessed using the bound property with `then` \(in the example above, it is `data`\). Similarly, the rejection error/reason can be accessed using the bound property with `catch` \(in the example above, it is `err`\). The usage of these settled values are optional; that is both `then` and `catch` can be used without binding to any property.
 
 Contextually, it should be clarified here that the usage of `from-view` binding mode for `then`, and `catch` is intentional, as other binding mode in this context would not make much sense.
 
@@ -482,14 +476,11 @@ The need for this template controller originated from the use-case of showing pa
 </template>
 ```
 
-In the example above the `span` will be shown independently of the status of either `generalInfoPromise`, or `addressInfoPromise`.
-The section dependent on each of those promise will attach DOM Elements according to the status of each promises, at the same time being independent of each other.
+In the example above the `span` will be shown independently of the status of either `generalInfoPromise`, or `addressInfoPromise`. The section dependent on each of those promise will attach DOM Elements according to the status of each promises, at the same time being independent of each other.
 
 ### Scoping
 
-The `promise` template controller creates its own scope.
-This prevents accidentally polluting the parent scope or the view model where this template controller is used.
-Let use see an example to understand what it means.
+The `promise` template controller creates its own scope. This prevents accidentally polluting the parent scope or the view model where this template controller is used. Let use see an example to understand what it means.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -510,13 +501,7 @@ export class MyApp {
 {% endtab %}
 {% endtabs %}
 
-In the example above, we are storing the resolved value from the promise in the `data` property, and then passing the value to the `foo-bar` custom element by binding the `foo-data` property.
-Due to the fact that `promise` creates its own scope, this does not add a property to the binding context.
-This means that for the example above the `data` property in `MyApp` stays uninitialized (more precisely, the `data` property never end up being in the instance of `MyApp`).
-This is useful when we need the data only in view for passing from one component to another custom element, as it does not pollute the underlying view-model.
-Note that this does not make any difference in terms of data binding or change observation.
-However, when we do need to access the settled data inside the view model, we can use the `$parent.data` or `$parent.err` as shown in the example below.
-
+In the example above, we are storing the resolved value from the promise in the `data` property, and then passing the value to the `foo-bar` custom element by binding the `foo-data` property. Due to the fact that `promise` creates its own scope, this does not add a property to the binding context. This means that for the example above the `data` property in `MyApp` stays uninitialized \(more precisely, the `data` property never end up being in the instance of `MyApp`\). This is useful when we need the data only in view for passing from one component to another custom element, as it does not pollute the underlying view-model. Note that this does not make any difference in terms of data binding or change observation. However, when we do need to access the settled data inside the view model, we can use the `$parent.data` or `$parent.err` as shown in the example below.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -556,13 +541,10 @@ Another interesting aspect of this scoping is that now we can write the followin
 ```
 {% endcode %}
 
-Note that the mark up uses 2 different promises but uses `data` property in both cases to grab the resolved data.
-Same can be observed for `err` as well.
-However, as separate scopes are created by every `promise`, the two `data` properties are actually two different properties in two different scopes.
-Without separate scope, we necessarily need to use two properties with different names in this case (that can also be done even in this case, not necessarily).
+Note that the mark up uses 2 different promises but uses `data` property in both cases to grab the resolved data. Same can be observed for `err` as well. However, as separate scopes are created by every `promise`, the two `data` properties are actually two different properties in two different scopes. Without separate scope, we necessarily need to use two properties with different names in this case \(that can also be done even in this case, not necessarily\).
 
 {% hint style="info" %}
-In case you are interested about the details on scoping and binding context, you can refer to the [Scope and context documentation](../app-basics/scope-and-binding-context).
+In case you are interested about the details on scoping and binding context, you can refer to the [Scope and context documentation](https://github.com/aurelia/aurelia/tree/3823c8ef549f352e308bb1b5892a5b9a4eacee9a/docs/user-docs/app-basics/scope-and-binding-context/README.md).
 {% endhint %}
 
 ### Nesting
@@ -584,8 +566,7 @@ The template controllers can be nested.
 
 ### Using it inside repeat.for
 
-Due to the way the scoping and binding context resolution works (refer to the [Scope and context documentation](../app-basics/scope-and-binding-context)), you might want to use a `let` binding when using the `promise` inside `repeat.for`.
-This is shown in the example below.
+Due to the way the scoping and binding context resolution works \(refer to the [Scope and context documentation](https://github.com/aurelia/aurelia/tree/3823c8ef549f352e308bb1b5892a5b9a4eacee9a/docs/user-docs/app-basics/scope-and-binding-context/README.md)\), you might want to use a `let` binding when using the `promise` inside `repeat.for`. This is shown in the example below.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -602,8 +583,9 @@ This is shown in the example below.
 </template>
 ```
 {% endtab %}
+
 {% tab title="promisify.ts" %}
-```ts
+```typescript
 import {
   valueConverter,
 } from '@aurelia/runtime-html';
@@ -620,16 +602,11 @@ class Promisify {
 {% endtab %}
 {% endtabs %}
 
-The above example shows an usage involving `repeat.for` chained with a `promisify` value converter.
-The value converter converts a simple value to a resolving or rejecting promise depending on the second boolean value passed to it.
-The value converter in itself is not that important for this discussion.
-It is used to construct a `repeat.for`, `promise` combination easily.
+The above example shows an usage involving `repeat.for` chained with a `promisify` value converter. The value converter converts a simple value to a resolving or rejecting promise depending on the second boolean value passed to it. The value converter in itself is not that important for this discussion. It is used to construct a `repeat.for`, `promise` combination easily.
 
-The important thing to note here is the usage of `let` binding that forces creation of two properties, namely `data` and `err`, in the override context which gets higher precedence while binding.
-Without these properties in the override context, the properties gets created in the binding context, which eventually gets overwritten with the second iteration of the repeat.
-In short, with `let` binding in place the output looks like as follows.
+The important thing to note here is the usage of `let` binding that forces creation of two properties, namely `data` and `err`, in the override context which gets higher precedence while binding. Without these properties in the override context, the properties gets created in the binding context, which eventually gets overwritten with the second iteration of the repeat. In short, with `let` binding in place the output looks like as follows.
 
-```html
+```markup
 <span>42</span>
 <span>foo-bar</span>
 <span>forty-two</span>
@@ -638,7 +615,7 @@ In short, with `let` binding in place the output looks like as follows.
 
 Whereas without the `let` binding, the result looks like below that does not match the general expectation.
 
-```html
+```markup
 <span>forty-two</span>
 <span>fizz-bazz</span>
 <span>forty-two</span>
@@ -647,8 +624,7 @@ Whereas without the `let` binding, the result looks like below that does not mat
 
 ### Restriction
 
-The `pending`, `then`, and `catch` can not be used in isolation without the `promise` template controller.
-That is each one of the following examples throws error.
+The `pending`, `then`, and `catch` can not be used in isolation without the `promise` template controller. That is each one of the following examples throws error.
 
 {% code title="my-app.html" %}
 ```markup
@@ -658,9 +634,7 @@ That is each one of the following examples throws error.
 ```
 {% endcode %}
 
-
-However, `promise` template controller can be used without any of those three template controllers.
-Following are some valid examples.
+However, `promise` template controller can be used without any of those three template controllers. Following are some valid examples.
 
 {% code title="my-app.html" %}
 ```markup
@@ -678,8 +652,7 @@ Following are some valid examples.
 ```
 {% endcode %}
 
-It is important to note here that those three template controllers cannot be used under any template controller other than `promise`.
-Following are some invalid examples.
+It is important to note here that those three template controllers cannot be used under any template controller other than `promise`. Following are some invalid examples.
 
 {% code title="my-app.html" %}
 ```markup
@@ -712,3 +685,4 @@ However, the following are some valid examples of combining other template contr
 </template>
 ```
 {% endcode %}
+

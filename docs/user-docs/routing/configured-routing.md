@@ -16,7 +16,7 @@ In Aurelia, you can define routes inside of your components using the `route` de
 
 The `route` decorator accepts an object with a property called `routes` which accepts an array.
 
-```text
+```typescript
 @route({
   routes: [
     { id: 'home', path: '', component: import('./home'), title: 'Home' },

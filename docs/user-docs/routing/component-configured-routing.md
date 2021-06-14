@@ -16,7 +16,7 @@ This approach works wonders for situations where you want a section inside your 
 
 **Your view-model might look like the following:**
 
-```text
+```typescript
 import { customElement, IRouteViewModel, Params, IPlatform, route } from 'aurelia';
 
 
@@ -36,7 +36,7 @@ export class UserProfileCustomElement implements IRouteViewModel {
 
 **Your view might be something basic like this:**
 
-```text
+```markup
 <div class="user-profile-container">
     <ul>
       <li class="nav-item">

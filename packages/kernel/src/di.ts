@@ -617,7 +617,7 @@ export function ignore(target: Injectable, property?: string | number, descripto
 ignore.$isResolver = true;
 ignore.resolve = () => undefined;
 export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
-  const instance = createNewInstance(key, handler);
+  const instance = createNewInstance(key, handler, requestor);
 
   const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key));
   instanceProvider.prepare(instance);
@@ -627,9 +627,30 @@ export const newInstanceForScope = createResolver((key: any, handler: IContainer
   return instance;
 });
 
-export const newInstanceOf = createResolver((key: any, handler: IContainer, _requestor: IContainer) => createNewInstance(key, handler));
+export const newInstanceOf = createResolver((key: any, handler: IContainer, requestor: IContainer) => createNewInstance(key, handler, requestor));
 
-function createNewInstance(key: any, handler: IContainer) {
+function createNewInstance(key: any, handler: IContainer, requestor: IContainer) {
+  const resolver = handler.getResolver(key, false);
+  let factory: IFactory<typeof key> | null;
+  if (typeof resolver?.getFactory === 'function') {
+    factory = resolver.getFactory(handler);
+      // 2 scenarios:
+      //
+      // 1. if construct is invoked with handler
+      // then anew instance of something registered from parent
+      // will not have information of some dependencies registered in child, even child is the requestor
+      //
+      // 2. if construct is invoked with requestor
+      // then a new instance of something registered from parent
+      // will have the information of something registered in child shadowing the samething registered in parent
+      //
+      // choice: No. (2), as it makes more sense in terms of WYSIWYG
+      //         and if anyone wants to avoid shadowing behavior, they can use parent() resolver
+      //         todo: implement parent resolver
+    if (factory != null) {
+      return factory.construct(requestor);
+    }
+  }
   return handler.getFactory(key).construct(handler);
 }
 

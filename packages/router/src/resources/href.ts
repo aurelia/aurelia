@@ -10,9 +10,13 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
-  private eventListener: IDisposable | null = null;
+  private eventListener!: IDisposable;
   private isInitialized: boolean = false;
   private isEnabled: boolean;
+
+  private get isExternal(): boolean {
+    return this.el.hasAttribute('external') || this.el.hasAttribute('data-external');
+  }
 
   public readonly $controller!: ICustomAttributeController<this>;
 
@@ -27,10 +31,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     if (
       router.options.useHref &&
       // Ensure the element is an anchor
-      el.nodeName === 'A' &&
-      // Ensure the anchor is not explicitly marked as external.
-      !el.hasAttribute('external') &&
-      !el.hasAttribute('data-external')
+      el.nodeName === 'A'
     ) {
       // Ensure the anchor targets the current window.
       switch (el.getAttribute('target')) {
@@ -55,13 +56,11 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     }
     if (this.isEnabled) {
       this.el.setAttribute('href', this.value as string);
-      this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.onClick as EventListener);
     }
+    this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.onClick as EventListener);
   }
   public unbinding(): void {
-    if (this.isEnabled) {
-      this.eventListener!.dispose();
-    }
+    this.eventListener.dispose();
   }
 
   public valueChanged(newValue: unknown): void {
@@ -69,8 +68,12 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   }
 
   private readonly onClick = (e: MouseEvent): void => {
-    // Ensure this is an ordinary left-button click.
-    if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0) {
+    // Ensure this is an ordinary left-button click
+    if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0
+      // on an internally managed link
+      || this.isExternal
+      || !this.isEnabled
+    ) {
       return;
     }
 

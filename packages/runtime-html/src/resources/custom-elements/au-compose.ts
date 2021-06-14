@@ -268,7 +268,7 @@ export class AuCompose {
 
 class EmptyComponent { }
 
-interface ICompositionController {
+export interface ICompositionController {
   readonly controller: IHydratedController;
   readonly context: CompositionContext;
   activate(): void | Promise<void>;

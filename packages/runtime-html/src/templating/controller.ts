@@ -7,6 +7,7 @@ import {
   LogLevel,
   DI,
   emptyArray,
+  Registration,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -42,7 +43,7 @@ import type {
 } from '@aurelia/runtime';
 import type { BindableDefinition } from '../bindable.js';
 import type { PropertyBinding } from '../binding/property-binding.js';
-import { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import { IProjections, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
 import type { IWatchDefinition, IWatcherCallback } from '../watch.js';
@@ -186,7 +187,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     viewModel: C,
     host: HTMLElement,
     // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
-    targetedProjections: RegisteredProjections | null,
+    // targetedProjections: RegisteredProjections | null,
+    targetedProjections: IProjections | null,
     flags: LifecycleFlags = LifecycleFlags.none,
     hydrate: boolean = true,
     // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
@@ -196,6 +198,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return controllerLookup.get(viewModel) as unknown as ICustomElementController<C>;
     }
 
+    // todo: the caching behavior from CustomElement.getDefinition here will stip us time to time
+    //       when combined with au-slot. Consider a way to not allow this
     definition = definition ?? CustomElement.getDefinition(viewModel.constructor as Constructable);
 
     const controller = new Controller<C>(
@@ -274,7 +278,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   /** @internal */
-  public hydrateCustomElement(parentContainer: IContainer, targetedProjections: RegisteredProjections | null): void {
+  public hydrateCustomElement(parentContainer: IContainer, projections: IProjections | null): void {
     this.logger = parentContainer.get(ILogger).root;
     this.debug = this.logger.config.level <= LogLevel.debug;
     if (this.debug) {
@@ -304,7 +308,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    const context = this.context = getRenderContext(definition, parentContainer, targetedProjections?.projections) as RenderContext;
+    const context = this.context = getRenderContext(definition, parentContainer, projections) as RenderContext;
+    // always registered, so other can also use content compiled from [au-slot]
+    // but needs to switch the instance, as render context may be cached!!!
+    // todo: don't cache
+    // context.register(Registration.instance(IProjections, projections));
+
     this.lifecycleHooks = LifecycleHooks.resolve(context);
     // Support Recursive Components by adding self to own context
     definition.register(context);
@@ -321,19 +330,19 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
     if ((this.root?.controller as this | undefined) !== this) {
-      this.hydrate(targetedProjections);
+      this.hydrate(projections);
       this.hydrateChildren();
     }
   }
 
   /** @internal */
-  public hydrate(targetedProjections: RegisteredProjections | null): void {
+  public hydrate(projections: IProjections | null): void {
     if (this.hooks.hasHydrating) {
       if (this.debug) { this.logger!.trace(`invoking hasHydrating() hook`); }
       (this.viewModel as BindingContext<C>).hydrating(this as ICustomElementController);
     }
 
-    const compiledContext = this.context!.compile(targetedProjections);
+    const compiledContext = this.context!.compile(projections);
     const { projectionsMap, shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
 
     compiledContext.registerProjections(projectionsMap, this.scope!);

@@ -3,7 +3,7 @@ import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../
 import { IRenderer, ITemplateCompiler, IInstruction, HydrateElementInstruction, HydrateTemplateController } from '../renderer.js';
 import { CustomElementDefinition } from '../resources/custom-element.js';
 import { IViewFactory, ViewFactory } from './view.js';
-import { AuSlotContentType, IAuSlotsInfo, IProjectionProvider } from '../resources/custom-elements/au-slot.js';
+import { AuSlotContentType, IAuSlotsInfo, IProjectionProvider, IProjections } from '../resources/custom-elements/au-slot.js';
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
 
@@ -70,7 +70,7 @@ export interface IRenderContext extends IContainer {
    *
    * @returns The compiled `IRenderContext`.
    */
-  compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext;
+  compile(targetedProjections: IProjections | null): ICompiledRenderContext;
 
   /**
    * Creates an (or returns the cached) `IViewFactory` that can be used to create synthetic view controllers.
@@ -176,7 +176,7 @@ export interface IComponentFactory extends ICompiledRenderContext, IDisposable {
 export function getRenderContext(
   partialDefinition: PartialCustomElementDefinition,
   parentContainer: IContainer,
-  projections?: Record<string, CustomElementDefinition> | null,
+  projections?: IProjections | null,
 ): IRenderContext {
   const definition = CustomElementDefinition.getOrCreate(partialDefinition);
 
@@ -376,10 +376,10 @@ export class RenderContext implements IComponentFactory {
   // #endregion
 
   // #region IRenderContext api
-  public compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext {
+  public compile(targetedProjections: IProjections | null): ICompiledRenderContext {
     let compiledDefinition: CustomElementDefinition;
     if (this.isCompiled) {
-      this.registerScopeForAuSlot(targetedProjections);
+      // this.registerScopeForAuSlot(targetedProjections);
       return this;
     }
     this.isCompiled = true;
@@ -390,7 +390,7 @@ export class RenderContext implements IComponentFactory {
       const compiler = container.get(ITemplateCompiler);
 
       compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, targetedProjections);
-      this.registerScopeForAuSlot(targetedProjections);
+      // this.registerScopeForAuSlot(targetedProjections);
     } else {
       compiledDefinition = this.compiledDefinition = definition;
     }

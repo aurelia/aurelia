@@ -380,9 +380,11 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    Registration.transient(key, Type).register(container);
-    Registration.aliasTo(key, Type).register(container);
-    registerAliases(aliases, CustomElement, key, container);
+    if (!container.has(key, false)) {
+      Registration.transient(key, Type).register(container);
+      Registration.aliasTo(key, Type).register(container);
+      registerAliases(aliases, CustomElement, key, container);
+    }
   }
 }
 

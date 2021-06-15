@@ -1,10 +1,15 @@
-import { DI, Writable } from '@aurelia/kernel';
-import { LifecycleFlags, Scope } from '@aurelia/runtime';
+import { DI } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom.js';
-import { IInstruction, Instruction } from '../../renderer.js';
-import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
+import { IInstruction } from '../../renderer.js';
+import { ViewModelKind } from '../../templating/controller.js';
 import { IViewFactory } from '../../templating/view.js';
-import { customElement, CustomElementDefinition } from '../custom-element.js';
+import { customElement } from '../custom-element.js';
+
+import type { Writable } from '@aurelia/kernel';
+import type { LifecycleFlags, Scope } from '@aurelia/runtime';
+import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
+import type { CustomElementDefinition } from '../custom-element.js';
+import type { HydrateElementInstruction, Instruction } from '../../renderer.js';
 
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections");
@@ -55,25 +60,21 @@ export class ProjectionProvider {
 }
 
 export class AuSlot implements ICustomElementViewModel {
-  /**
-   * @internal
-   */
-  public static get inject() { return [ProjectionProvider, IInstruction, IViewFactory, IRenderLocation]; }
+  /** @internal */
+  public static get inject() { return [IInstruction, IViewFactory, IRenderLocation]; }
 
   public readonly view: ISyntheticView;
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
   private hostScope: Scope | null = null;
-  private readonly outerScope: Scope | null;
+  private outerScope: Scope | null = null;
 
   public constructor(
-    projectionProvider: ProjectionProvider,
-    instruction: IInstruction,
+    private readonly instruction: HydrateElementInstruction,
     factory: IViewFactory,
     location: IRenderLocation,
   ) {
     this.view = factory.create().setLocation(location);
-    this.outerScope = projectionProvider.getScopeFor(instruction);
   }
 
   public binding(
@@ -82,6 +83,19 @@ export class AuSlot implements ICustomElementViewModel {
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hostScope = this.$controller.scope.parentScope!;
+    if (this.instruction.slotInfo!.type === AuSlotContentType.Projection) {
+      // todo: replace the following block with an IContextController injection
+      let contextController = this.$controller.parent;
+      while (contextController != null) {
+        if (contextController.vmKind === ViewModelKind.customElement
+          && !(contextController.viewModel instanceof AuSlot)
+        ) {
+          break;
+        }
+        contextController = contextController.parent;
+      }
+      this.outerScope =  contextController?.parent?.scope ?? null;
+    }
   }
 
   public attaching(

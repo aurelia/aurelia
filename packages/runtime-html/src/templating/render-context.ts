@@ -1,9 +1,17 @@
-import {
+import { DI, InstanceProvider } from '@aurelia/kernel';
+import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom.js';
+import { IRenderer, ITemplateCompiler, IInstruction, HydrateElementInstruction, HydrateTemplateController } from '../renderer.js';
+import { CustomElementDefinition } from '../resources/custom-element.js';
+import { IViewFactory, ViewFactory } from './view.js';
+import { AuSlotContentType, IAuSlotsInfo, IProjectionProvider } from '../resources/custom-elements/au-slot.js';
+import { IPlatform } from '../platform.js';
+import { IController } from './controller.js';
+
+import type {
   Constructable,
   IContainer,
   IDisposable,
   IFactory,
-  InstanceProvider,
   IResolver,
   IResourceKind,
   Key,
@@ -12,20 +20,19 @@ import {
   ResourceType,
   Transformer,
 } from '@aurelia/kernel';
-import { Scope, LifecycleFlags } from '@aurelia/runtime';
-import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom.js';
-import { IRenderer, ITemplateCompiler, IInstruction, Instruction, InstructionTypeName, HydrateElementInstruction, HydrateTemplateController } from '../renderer.js';
-import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
-import { IViewFactory, ViewFactory } from './view.js';
-import { AuSlotContentType, IAuSlotsInfo, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
-import { IPlatform } from '../platform.js';
-import { IController } from './controller.js';
+import type { Scope, LifecycleFlags } from '@aurelia/runtime';
 import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller.js';
+import type { Instruction, InstructionTypeName } from '../renderer.js';
+import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
+import type { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();
 
 const fragmentCache = new WeakMap<CustomElementDefinition, Node | null>();
+
+export const IContextElementInstruction = DI.createInterface<HydrateElementInstruction>('IContextElementInstruction');
+export interface IContextElementInstruction extends HydrateElementInstruction {}
 
 export function isRenderContext(value: unknown): value is IRenderContext {
   return value instanceof RenderContext;

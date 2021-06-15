@@ -272,8 +272,17 @@ export interface ITemplateCompiler {
   compile(
     partialDefinition: PartialCustomElementDefinition,
     context: IContainer,
-    projections: IProjections | null,
+    compilationInstruction: ICompliationInstruction | null,
   ): CustomElementDefinition;
+}
+
+export interface ICompliationInstruction {
+  /**
+   * A record of projections available for compiling a template.
+   * Where each key is the matching slot name for <au-slot/> inside,
+   * and each value is the definition to render and project
+   */
+  projections: IProjections | null;
 }
 
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler');
@@ -424,7 +433,7 @@ export class CustomElementRenderer implements IRenderer {
       /* container           */context,
       /* viewModel           */component,
       /* host                */target,
-      /* projections         */projections,
+      /* instructions        */instruction,
       /* flags               */flags,
     );
 

@@ -1653,7 +1653,6 @@ describe('TemplateCompiler - au-slot', function () {
       public readonly template: string,
       public readonly customElements: CustomElementType[],
       public readonly partialTargetedProjections: [Scope, Record<string, string>] | null,
-      public readonly expectedProjections: [string, Record<string, string>][],
       public readonly expectedSlotInfos: ExpectedSlotInfo[],
     ) {
       this.getTargetedProjections = this.getTargetedProjections.bind(this);
@@ -1679,21 +1678,18 @@ describe('TemplateCompiler - au-slot', function () {
       `<my-element><div au-slot></div></my-element>`,
       [$createCustomElement('')],
       null,
-      [['my-element', { 'default': '<div></div>' }]],
       [],
     );
     yield new TestData(
       `<my-element><div au-slot="s1">p1</div><div au-slot="s2">p2</div></my-element>`,
       [$createCustomElement('')],
       null,
-      [['my-element', { 's1': '<div>p1</div>', 's2': '<div>p2</div>' }]],
       [],
     );
     yield new TestData(
       `<au-slot name="s1">s1fb</au-slot><au-slot name="s2"><div>s2fb</div></au-slot>`,
       [],
       null,
-      [],
       [
         new ExpectedSlotInfo('s1', AuSlotContentType.Fallback, 's1fb'),
         new ExpectedSlotInfo('s2', AuSlotContentType.Fallback, '<div>s2fb</div>'),
@@ -1704,7 +1700,6 @@ describe('TemplateCompiler - au-slot', function () {
       `<au-slot name="s1">s1fb</au-slot><au-slot name="s2"><div>s2fb</div></au-slot>`,
       [],
       [scope1, { s1: '<span>s1p</span>' }],
-      [],
       [
         new ExpectedSlotInfo('s1', AuSlotContentType.Projection, '<span>s1p</span>', scope1),
         new ExpectedSlotInfo('s2', AuSlotContentType.Fallback, '<div>s2fb</div>'),
@@ -1714,7 +1709,6 @@ describe('TemplateCompiler - au-slot', function () {
       `<au-slot name="s1">s1fb</au-slot><au-slot name="s2"><div>s2fb</div></au-slot>`,
       [],
       [scope1, { s1: '<span>s1p</span>', s2: '<div><span>s2p</span></div>' }],
-      [],
       [
         new ExpectedSlotInfo('s1', AuSlotContentType.Projection, '<span>s1p</span>', scope1),
         new ExpectedSlotInfo('s2', AuSlotContentType.Projection, '<div><span>s2p</span></div>', scope1),
@@ -1724,13 +1718,12 @@ describe('TemplateCompiler - au-slot', function () {
       `<au-slot name="s1">s1fb</au-slot><my-element><div au-slot>p</div></my-element>`,
       [$createCustomElement('')],
       [scope1, { s1: '<span>s1p</span>' }],
-      [['my-element', { 'default': '<div>p</div>' }]],
       [
         new ExpectedSlotInfo('s1', AuSlotContentType.Projection, '<span>s1p</span>', scope1),
       ],
     );
   }
-  for (const { customElements, template, getTargetedProjections, expectedProjections, expectedSlotInfos } of getTestData()) {
+  for (const { customElements, template, getTargetedProjections, expectedSlotInfos } of getTestData()) {
     it(`compiles - ${template}`, function () {
       const { sut, container } = createFixture();
       container.register(AuSlot, ...customElements);
@@ -1739,7 +1732,7 @@ describe('TemplateCompiler - au-slot', function () {
       const compiledDefinition = sut.compile(
         CustomElementDefinition.create({ name: 'my-ce', template }, class MyCe { }),
         container,
-        getTargetedProjections(factory)
+        { projections: getTargetedProjections(factory) }
       );
 
       const allInstructions = compiledDefinition.instructions.flat();

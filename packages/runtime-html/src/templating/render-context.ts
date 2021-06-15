@@ -1,9 +1,9 @@
-import { DI, InstanceProvider } from '@aurelia/kernel';
+import { InstanceProvider } from '@aurelia/kernel';
 import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom.js';
-import { IRenderer, ITemplateCompiler, IInstruction, HydrateElementInstruction, HydrateTemplateController } from '../renderer.js';
+import { IRenderer, ITemplateCompiler, IInstruction, ICompliationInstruction } from '../renderer.js';
 import { CustomElementDefinition } from '../resources/custom-element.js';
 import { IViewFactory, ViewFactory } from './view.js';
-import { AuSlotContentType, IAuSlotsInfo, IProjections } from '../resources/custom-elements/au-slot.js';
+import { IAuSlotsInfo, IProjections } from '../resources/custom-elements/au-slot.js';
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
 
@@ -20,7 +20,7 @@ import type {
   ResourceType,
   Transformer,
 } from '@aurelia/kernel';
-import type { Scope, LifecycleFlags } from '@aurelia/runtime';
+import type { LifecycleFlags } from '@aurelia/runtime';
 import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller.js';
 import type { Instruction, InstructionTypeName } from '../renderer.js';
 import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
@@ -29,9 +29,6 @@ const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<I
 const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();
 
 const fragmentCache = new WeakMap<CustomElementDefinition, Node | null>();
-
-export const IContextElementInstruction = DI.createInterface<HydrateElementInstruction>('IContextElementInstruction');
-export interface IContextElementInstruction extends HydrateElementInstruction {}
 
 export function isRenderContext(value: unknown): value is IRenderContext {
   return value instanceof RenderContext;
@@ -69,7 +66,7 @@ export interface IRenderContext extends IContainer {
    *
    * @returns The compiled `IRenderContext`.
    */
-  compile(targetedProjections: IProjections | null): ICompiledRenderContext;
+  compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext;
 
   /**
    * Creates an (or returns the cached) `IViewFactory` that can be used to create synthetic view controllers.
@@ -373,7 +370,7 @@ export class RenderContext implements IComponentFactory {
   // #endregion
 
   // #region IRenderContext api
-  public compile(targetedProjections: IProjections | null): ICompiledRenderContext {
+  public compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext {
     let compiledDefinition: CustomElementDefinition;
     if (this.isCompiled) {
       return this;
@@ -385,7 +382,7 @@ export class RenderContext implements IComponentFactory {
       const container = this.container;
       const compiler = container.get(ITemplateCompiler);
 
-      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, targetedProjections);
+      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, compilationInstruction);
     } else {
       compiledDefinition = this.compiledDefinition = definition;
     }

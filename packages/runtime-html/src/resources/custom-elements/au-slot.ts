@@ -9,7 +9,7 @@ import type { Writable } from '@aurelia/kernel';
 import type { LifecycleFlags, Scope } from '@aurelia/runtime';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 import type { CustomElementDefinition } from '../custom-element.js';
-import type { HydrateElementInstruction, Instruction } from '../../renderer.js';
+import type { HydrateElementInstruction } from '../../renderer.js';
 
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections");
@@ -25,38 +25,6 @@ export class SlotInfo {
     public readonly type: AuSlotContentType,
     public readonly content: CustomElementDefinition,
   ) { }
-}
-
-export class RegisteredProjections {
-  public constructor(
-    public readonly scope: Scope,
-    public readonly projections: Record<string, CustomElementDefinition>,
-  ) { }
-}
-
-export interface IProjectionProvider extends ProjectionProvider { }
-export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider', x => x.singleton(ProjectionProvider));
-
-const auSlotScopeMap: WeakMap<IInstruction, Scope> = new WeakMap<Instruction, Scope>();
-const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<Instruction, RegisteredProjections>();
-export class ProjectionProvider {
-  public registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
-    for (const [instruction, $projections] of projections) {
-      projectionMap.set(instruction, new RegisteredProjections(scope, $projections));
-    }
-  }
-
-  public getProjectionFor(instruction: IInstruction): RegisteredProjections | null {
-    return projectionMap.get(instruction) ?? null;
-  }
-
-  public registerScopeFor(auSlotInstruction: IInstruction, scope: Scope): void {
-    auSlotScopeMap.set(auSlotInstruction, scope);
-  }
-
-  public getScopeFor(auSlotInstruction: IInstruction): Scope | null {
-    return auSlotScopeMap.get(auSlotInstruction) ?? null;
-  }
 }
 
 export class AuSlot implements ICustomElementViewModel {

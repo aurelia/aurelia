@@ -28,7 +28,6 @@ import {
   BindableDefinition,
   PartialBindableDefinition,
 } from '../bindable.js';
-import { IProjections } from './custom-elements/au-slot.js';
 import { INode, getEffectiveParentNode, getRef } from '../dom.js';
 import { IInstruction } from '../renderer.js';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children.js';
@@ -53,7 +52,6 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
   readonly hasSlots?: boolean;
   readonly enhance?: boolean;
-  readonly projectionsMap?: Map<IInstruction, IProjections>;
   readonly watches?: IWatchDefinition[];
   readonly processContent?: ProcessContentHook | null;
 }>;
@@ -221,7 +219,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly shadowOptions: { mode: 'open' | 'closed' } | null,
     public readonly hasSlots: boolean,
     public readonly enhance: boolean,
-    public readonly projectionsMap: Map<IInstruction, IProjections>,
     public readonly watches: IWatchDefinition[],
     public readonly processContent: ProcessContentHook | null,
   ) {}
@@ -278,7 +275,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('shadowOptions', def, () => null),
         fromDefinitionOrDefault('hasSlots', def, () => false),
         fromDefinitionOrDefault('enhance', def, () => false),
-        fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<IInstruction, IProjections>()),
         fromDefinitionOrDefault('watches', def as CustomElementDefinition, () => emptyArray),
         fromAnnotationOrTypeOrDefault('processContent', Type, () => null),
       );
@@ -315,7 +311,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null),
         fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false),
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
-        fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<IInstruction, IProjections>()),
         mergeArrays(Watch.getAnnotation(Type), Type.watches),
         fromAnnotationOrTypeOrDefault('processContent', Type, () => null),
       );
@@ -356,7 +351,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null),
       fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
-      fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<IInstruction, IProjections>()),
       mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches),
       fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, () => null),
     );

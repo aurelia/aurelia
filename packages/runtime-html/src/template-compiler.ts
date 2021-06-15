@@ -58,7 +58,6 @@ import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition 
 class CustomElementCompilationUnit {
   public readonly instructions: Instruction[][] = [];
   public readonly surrogates: Instruction[] = [];
-  public readonly projectionsMap: Map<Instruction, IProjections> = new Map<Instruction, IProjections>();
 
   public constructor(
     public readonly partialDefinition: PartialCustomElementDefinition,
@@ -76,7 +75,6 @@ class CustomElementCompilationUnit {
       template: this.template,
       needsCompile: false,
       hasSlots: this.surrogate.hasSlots,
-      projectionsMap: this.projectionsMap,
     });
   }
 }

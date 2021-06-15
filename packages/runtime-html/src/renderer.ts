@@ -26,7 +26,7 @@ import { Listener } from './binding/listener.js';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
 import { getRenderContext, ICompiledRenderContext } from './templating/render-context.js';
-import { AuSlotsInfo, IProjections, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { AuSlotsInfo, IProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
 import { convertToRenderLocation, INode, setRef } from './dom.js';
 import { Controller } from './templating/controller.js';
@@ -149,7 +149,6 @@ export class SetPropertyInstruction {
 
 export class HydrateElementInstruction {
   public get type(): InstructionType.hydrateElement { return InstructionType.hydrateElement; }
-
 
   public constructor(
     public res: string,

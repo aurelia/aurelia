@@ -43,7 +43,7 @@ import type {
 } from '@aurelia/runtime';
 import type { BindableDefinition } from '../bindable.js';
 import type { PropertyBinding } from '../binding/property-binding.js';
-import { IProjections, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import { IProjections } from '../resources/custom-elements/au-slot.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
 import type { IWatchDefinition, IWatcherCallback } from '../watch.js';
@@ -187,8 +187,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     viewModel: C,
     host: HTMLElement,
     // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
-    // targetedProjections: RegisteredProjections | null,
-    targetedProjections: IProjections | null,
+    projections: IProjections | null,
     flags: LifecycleFlags = LifecycleFlags.none,
     hydrate: boolean = true,
     // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
@@ -216,7 +215,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrate) {
-      controller.hydrateCustomElement(container, targetedProjections);
+      controller.hydrateCustomElement(container, projections);
     }
 
     return controller as unknown as ICustomElementController<C>;
@@ -309,10 +308,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     const context = this.context = getRenderContext(definition, parentContainer, projections) as RenderContext;
-    // always registered, so other can also use content compiled from [au-slot]
-    // but needs to switch the instance, as render context may be cached!!!
-    // todo: don't cache
-    // context.register(Registration.instance(IProjections, projections));
+    // todo: should register a resolver resolving to a IContextElement/IContextComponent
+    //       so that component directly under this template can easily distinguish its owner/parent
 
     this.lifecycleHooks = LifecycleHooks.resolve(context);
     // Support Recursive Components by adding self to own context
@@ -343,9 +340,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     const compiledContext = this.context!.compile(projections);
-    const { projectionsMap, shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
+    const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
 
-    compiledContext.registerProjections(projectionsMap, this.scope!);
     this.isStrictBinding = isStrictBinding;
 
     if ((this.hostController = CustomElement.for(this.host!, optional) as Controller | null) !== null) {

@@ -571,19 +571,23 @@ function processLocalTemplates(
 }
 
 interface ICompilationContext {
-  def: PartialCustomElementDefinition;
+  parent: ICompilationContext | null;
+  instruction: ICompliationInstruction;
   logger: ILogger;
   attrParser: IAttributeParser;
   attrTransformer: IAttrSyntaxTransformer;
   exprParser: IExpressionParser;
   /* an array representing targets of instructions, built on depth first tree walking compilation */
   instructionRows: unknown[];
-  projections: IProjections | null;
   localElements: Set<string>;
 }
 
 export class ViewCompiler {
-  public compile(template: string | Element | DocumentFragment, container: IContainer): CustomElementDefinition {
+  public compile(
+    template: string | Element | DocumentFragment,
+    container: IContainer,
+    compilationInstruction: ICompliationInstruction,
+  ): CustomElementDefinition {
     if (typeof template === 'string') {
       template = this.parse(template);
     }
@@ -593,6 +597,11 @@ export class ViewCompiler {
       // todo: surrogate
     }
     content
+
+    return null!;
+  }
+
+  private doCompile(template: Element | DocumentFragment, context: ICompilationContext): CustomElementDefinition {
 
     return null!;
   }
@@ -683,7 +692,7 @@ export class ViewCompiler {
 
   private auSlot(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     const slotName = el.getAttribute('name') || 'default';
-    const targetedProjection = context.projections?.[slotName];
+    const targetedProjection = context.instruction.projections?.[slotName];
     let firstNode: Node | null;
     // if there's no projection for an <au-slot/>
     // there's no need to treat it in any special way
@@ -719,7 +728,7 @@ export class ViewCompiler {
     // hydrate custom element instruction first
     // hydrate custom attribute instructions next
     // rest kept as is (to-be-decided)
-
+    const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = container.find(CustomElement, elName) as CustomElementDefinition | null;
     const attrParser = context.attrParser;
@@ -727,21 +736,23 @@ export class ViewCompiler {
     const attrSyntaxTransformer = context.attrTransformer;
     const attrs = el.attributes;
     const instructions: IInstruction[] = [];
-    const bindableInstructions: unknown[] = [];
     let ii = attrs.length;
     let i = 0;
     let attr: Attr;
     let attrName: string;
     let attrValue: string;
     let attrSyntax: AttrSyntax;
+    let elBindableInstructions: IInstruction[] | undefined;
     let attrDef: CustomAttributeDefinition | null = null;
     let isMultiBindings = false;
     let bindable: BindableDefinition;
     let attrInstructions: IInstruction[];
-    let templateControllers: AttrSyntax[] = [];
+    let tcInstructions: HydrateTemplateController[] | undefined;
+    let tcInstruction: HydrateTemplateController | undefined;
     let expr: AnyBindingExpression;
     let elementInstruction: HydrateElementInstruction;
     let bindingCommand: BindingCommandInstance | null = null;
+    let childContext: ICompilationContext & { parent: ICompilationContext; } | undefined;
 
     // create 2 arrays
     // 1 array for instructions
@@ -767,7 +778,7 @@ export class ViewCompiler {
         commandBuildInfo.attr = attrSyntax;
         commandBuildInfo.expr = expr;
         commandBuildInfo.bindable = null;
-        bindableInstructions.push(bindingCommand.build(commandBuildInfo));
+        instructions.push(bindingCommand.build(commandBuildInfo));
 
         // to next attribute
         continue;
@@ -799,10 +810,11 @@ export class ViewCompiler {
           // my-attr="${}"
           if (bindingCommand === null) {
             expr = context.exprParser.parse(attrValue, BindingType.Interpolation);
-            instructions.push(expr === null
-              ? new SetPropertyInstruction(attrValue, attrDef.primary.property)
-              : new InterpolationInstruction(expr, attrDef.primary.property)
-            );
+            attrInstructions = [
+              expr === null
+                ? new SetPropertyInstruction(attrValue, attrDef.primary.property)
+                : new InterpolationInstruction(expr, attrDef.primary.property)
+            ];
           } else {
             // custom attribute with binding command:
             // my-attr.bind="..."
@@ -813,7 +825,7 @@ export class ViewCompiler {
             commandBuildInfo.attr = attrSyntax;
             commandBuildInfo.expr = expr;
             commandBuildInfo.bindable = attrDef.primary;
-            bindableInstructions.push(bindingCommand.build(commandBuildInfo));
+            attrInstructions = [bindingCommand.build(commandBuildInfo)];
           }
         }
 
@@ -824,13 +836,12 @@ export class ViewCompiler {
           --i;
           --ii;
 
-          // TODO: need to somehow pass the existing, parsed attriute instruction to this definition
-          // const def = this.templateController(template, context);
-          // const currentControllerInstruction = templateControllers[templateControllers.length - 1];
-          // const instruction: TemporaryControllerInstruction = {
-          //   template: template,
-          //   instructions
-          // };
+          (tcInstructions ??= []).push(new HydrateTemplateController(
+            voidDefinition,
+            attrDef.name,
+            attrName,
+            attrInstructions,
+          ));
 
           // to next attribute
           continue;
@@ -845,7 +856,7 @@ export class ViewCompiler {
           bindable = elDef.bindables[attrSyntax.target];
           if (bindable != null) {
             expr = exprParser.parse(attrSyntax.rawValue, BindingType.Interpolation);
-            bindableInstructions.push(new InterpolationInstruction(expr, bindable.property));
+            (elBindableInstructions ??= []).push(new InterpolationInstruction(expr, bindable.property));
             continue;
           }
         }
@@ -891,7 +902,7 @@ export class ViewCompiler {
           commandBuildInfo.attr = attrSyntax;
           commandBuildInfo.expr = expr;
           commandBuildInfo.bindable = bindable;
-          bindableInstructions.push(bindingCommand.build(commandBuildInfo));
+          (elBindableInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
           continue;
         }
       }
@@ -907,7 +918,6 @@ export class ViewCompiler {
       // new: map attr syntax target during building instruction
 
       expr = exprParser.parse(attrSyntax.rawValue, bindingCommand.bindingType);
-      // bindingSymbol = new PlainAttributeSymbol(attrSyntax, bindingCommand, expr);
 
       commandBuildInfo.node = el;
       commandBuildInfo.attr = attrSyntax;
@@ -919,47 +929,67 @@ export class ViewCompiler {
     if (
       // not null is not needed, though for avoiding non-null assertion
       elDef !== null
-      && bindableInstructions.length > 0
     ) {
       elementInstruction = new HydrateElementInstruction(
         elDef.name,
         void 0,
-        bindableInstructions as IInstruction[],
+        (elBindableInstructions ?? emptyArray) as IInstruction[],
         null,
-        null
+        null,
       );
       instructions.unshift(elementInstruction);
     }
 
-    if (templateControllers.length > 0) {
-      i = templateControllers.length - 1;
-      const def = CustomElementDefinition.create({
-        name: CustomElement.generateName(),
-        instructions: [instructions],
-        template: (() => {
-          const template = document.createElement('template');
-          // assumption: el.parentNode is not null
-          // but not always the case: e.g compile/enhance an element without parent with TC on it
-          this.marker(el);
-          template.content.appendChild(el);
-          return template;
-        })(),
-        needsCompile: false,
-      });
-      while (--i > 0) {
+    if (tcInstructions != null && tcInstructions.length > 0) {
+      ii = tcInstructions.length;
+      i = ii - 1;
+      tcInstruction = tcInstructions[i];
+      childContext = {
+        ...context,
+        parent: context,
+        instructionRows: [],
+      };
+      const mostInnerTemplate = (() => {
+        const template = document.createElement('template');
+        // assumption: el.parentNode is not null
+        // but not always the case: e.g compile/enhance an element without parent with TC on it
+        this.marker(el);
+        template.content.appendChild(el);
+        return template;
+      })();
+      tcInstruction.def = this.doCompile(mostInnerTemplate, childContext);
+      i -= 1;
+      while (i > 0) {
         // for each of the template controller from [right] to [left]
         // do create:
         // (1) a template
         // (2) add a marker to the template
         // (3) an instruction
         // instruction will be corresponded to the marker
+        tcInstruction = tcInstructions[i];
+        const template = (() => {
+          const template = document.createElement('template');
+          // assumption: el.parentNode is not null
+          // but not always the case: e.g compile/enhance an element without parent with TC on it
+          template.content.appendChild(mostInnerTemplate);
+          this.marker(mostInnerTemplate);
+          return template;
+        })();
+        tcInstruction.def = CustomElementDefinition.create({
+          name: CustomElement.generateName(),
+          template,
+          needsCompile: false,
+          instructions: [[tcInstructions[i + 1]]]
+        });
+        --i;
       }
     } else {
 
     }
 
-    const shouldCompileContent = elDef != null
-      && elDef.processContent?.call(elDef.Type, el, container.get(IPlatform)) !== false;
+    const shouldCompileContent = elDef === null
+      || elDef != null
+        && elDef.processContent?.call(elDef.Type, el, container.get(IPlatform)) !== false;
     if (shouldCompileContent) {
       // todo:
       //    if there's a template controller
@@ -967,10 +997,22 @@ export class ViewCompiler {
       //      not the context this compile method is called with
       //    if there is NOT a template controller
       //      context here should be the same with the context this method is called with
-      this.projection(el, container, context, elementInstruction!);
+      // this.projection(el, container, context, elementInstruction!);
+    } else {
+      let child = el.firstChild as Node | null;
+      while (child !== null) {
+        switch (child.nodeType) {
+          case 1:
+            // if has [au-slot] then it's a projection
+            break;
+          default:
+            child = this.node(child, container, context);
+            break;
+        }
+      }
     }
 
-    return el.nextSibling;
+    return nextSibling;
   }
 
   private projection(el: Element, container: IContainer, context: ICompilationContext, instruction: HydrateElementInstruction): void {
@@ -1005,16 +1047,17 @@ export class ViewCompiler {
             const auSlotContext: ICompilationContext = {
               ...context,
               instructionRows: [],
-              def: {
-                name: CustomElement.generateName(),
-                instructions: [],
-                template,
-                needsCompile: false,
-              }
+              // def: {
+              //   name: CustomElement.generateName(),
+              //   instructions: [],
+              //   template,
+              //   needsCompile: false,
+              // }
             };
             template.content.appendChild(node);
             this.node(template.content, container, auSlotContext);
-            projections[targetedSlot] = CustomElementDefinition.create(auSlotContext.def);
+            // todo:
+            // projections[targetedSlot] = CustomElementDefinition.create(auSlotContext.def);
           }
         default:
           break;
@@ -1227,11 +1270,18 @@ export class ViewCompiler {
     }
   }
 
+  /**
+   * Mark an element as target with a special css class
+   * and return it
+   */
   private mark<T extends Element>(el: T): T {
     el.classList.add('au');
     return el;
   }
 
+  /**
+   * Replace an element with a marker, and return the marker
+   */
   private marker(el: Element): HTMLElement {
     // maybe use this one-liner instead?
     // return this.mark(el.parentNode!.insertBefore(document.createElement('au-m'), el));
@@ -1240,6 +1290,10 @@ export class ViewCompiler {
     return this.mark(el.parentNode!.insertBefore(marker, el));
   }
 }
+
+// class CompilationContext implements ICompilationContext {
+  
+// }
 
 function hasInlineBindings(rawValue: string): boolean {
   const len = rawValue.length;
@@ -1257,6 +1311,10 @@ function hasInlineBindings(rawValue: string): boolean {
   }
   return false;
 }
+
+const voidDefinition: CustomElementDefinition = {
+  name: CustomElement.generateName(),
+} as CustomElementDefinition;
 
 const commandBuildInfo: ICommandBuildInfo = {
   node: null!,

@@ -106,6 +106,19 @@ export class AttrSyntaxTransformer {
     this.fns.push(fn);
   }
 
+  public isTwoWay(node: Element, attrName: string): boolean {
+    return shouldDefaultToTwoWay(node, attrName)
+      || this.fns.length > 0 && this.fns.some(fn => fn(node, attrName));
+  }
+
+  public map(node: Element, attr: string): string {
+    return this.tagAttrMap[node.tagName]?.[attr] as string
+      ?? this.globalAttrMap[attr]
+      ?? (isDataAttribute(node, attr, this.svg)
+        ? attr
+        : null);
+  }
+
   /**
    * @internal
    */

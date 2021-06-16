@@ -1,9 +1,9 @@
-import { InstanceProvider, } from '@aurelia/kernel';
+import { InstanceProvider } from '@aurelia/kernel';
 import { FragmentNodeSequence, INode, IRenderLocation } from '../dom.js';
-import { IRenderer, ITemplateCompiler, IInstruction, HydrateElementInstruction, HydrateTemplateController } from '../renderer.js';
+import { IRenderer, ITemplateCompiler, IInstruction } from '../renderer.js';
 import { CustomElementDefinition } from '../resources/custom-element.js';
 import { IViewFactory, ViewFactory } from './view.js';
-import { AuSlotContentType, IAuSlotsInfo, IProjectionProvider } from '../resources/custom-elements/au-slot.js';
+import { IAuSlotsInfo } from '../resources/custom-elements/au-slot.js';
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
 const definitionContainerLookup = new WeakMap();
@@ -64,7 +64,6 @@ export class RenderContext {
             renderer = renderers[i];
             this.renderers[renderer.instructionType] = renderer;
         }
-        this.projectionProvider = container.get(IProjectionProvider);
         container.registerResolver(IViewFactory, this.factoryProvider = new ViewFactoryProvider(), true);
         container.registerResolver(IController, this.parentControllerProvider = new InstanceProvider('IController'), true);
         container.registerResolver(IInstruction, this.instructionProvider = new InstanceProvider('IInstruction'), true);
@@ -131,10 +130,9 @@ export class RenderContext {
     }
     // #endregion
     // #region IRenderContext api
-    compile(targetedProjections) {
+    compile(compilationInstruction) {
         let compiledDefinition;
         if (this.isCompiled) {
-            this.registerScopeForAuSlot(targetedProjections);
             return this;
         }
         this.isCompiled = true;
@@ -142,8 +140,7 @@ export class RenderContext {
         if (definition.needsCompile) {
             const container = this.container;
             const compiler = container.get(ITemplateCompiler);
-            compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, targetedProjections);
-            this.registerScopeForAuSlot(targetedProjections);
+            compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, compilationInstruction);
         }
         else {
             compiledDefinition = this.compiledDefinition = definition;
@@ -198,31 +195,6 @@ export class RenderContext {
             this.viewModelProvider.prepare(instance);
         }
         return this;
-    }
-    registerScopeForAuSlot(targetedProjections) {
-        var _a, _b, _c, _d;
-        if (targetedProjections === null) {
-            return;
-        }
-        const scope = targetedProjections.scope;
-        const projectionProvider = this.projectionProvider;
-        const instructions = this.compiledDefinition.instructions.flat();
-        let i = 0;
-        while (i < instructions.length) {
-            const instruction = instructions[i++];
-            if (instruction instanceof HydrateElementInstruction) {
-                const slotInfo = instruction.slotInfo;
-                if (slotInfo != null) {
-                    if (slotInfo.type === AuSlotContentType.Projection) {
-                        projectionProvider.registerScopeFor(instruction, scope);
-                    }
-                    instructions.push(...((_b = (_a = slotInfo.content.instructions) === null || _a === void 0 ? void 0 : _a.flat()) !== null && _b !== void 0 ? _b : []));
-                }
-            }
-            else if (instruction instanceof HydrateTemplateController) {
-                instructions.push(...((_d = (_c = instruction.def.instructions) === null || _c === void 0 ? void 0 : _c.flat()) !== null && _d !== void 0 ? _d : []));
-            }
-        }
     }
     // #endregion
     // #region ICompiledRenderContext api
@@ -294,20 +266,6 @@ export class RenderContext {
     }
     dispose() {
         this.elementProvider.dispose();
-    }
-    // #endregion
-    // #region IProjectionProvider api
-    registerProjections(projections, scope) {
-        this.projectionProvider.registerProjections(projections, scope);
-    }
-    getProjectionFor(instruction) {
-        return this.projectionProvider.getProjectionFor(instruction);
-    }
-    registerScopeFor(auSlotInstruction, scope) {
-        this.projectionProvider.registerScopeFor(auSlotInstruction, scope);
-    }
-    getScopeFor(auSlotInstruction) {
-        return this.projectionProvider.getScopeFor(auSlotInstruction);
     }
 }
 /** @internal */

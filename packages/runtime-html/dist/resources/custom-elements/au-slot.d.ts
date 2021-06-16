@@ -1,9 +1,9 @@
-import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
-import { IInstruction } from '../../renderer.js';
-import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 import { IViewFactory } from '../../templating/view.js';
-import { CustomElementDefinition } from '../custom-element.js';
+import type { LifecycleFlags } from '@aurelia/runtime';
+import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
+import type { CustomElementDefinition } from '../custom-element.js';
+import type { HydrateElementInstruction } from '../../renderer.js';
 export declare type IProjections = Record<string, CustomElementDefinition>;
 export declare const IProjections: import("@aurelia/kernel").InterfaceSymbol<Record<string, CustomElementDefinition<import("@aurelia/kernel").Constructable<{}>>>>;
 export declare enum AuSlotContentType {
@@ -16,26 +16,13 @@ export declare class SlotInfo {
     readonly content: CustomElementDefinition;
     constructor(name: string, type: AuSlotContentType, content: CustomElementDefinition);
 }
-export declare class RegisteredProjections {
-    readonly scope: Scope;
-    readonly projections: Record<string, CustomElementDefinition>;
-    constructor(scope: Scope, projections: Record<string, CustomElementDefinition>);
-}
-export interface IProjectionProvider extends ProjectionProvider {
-}
-export declare const IProjectionProvider: import("@aurelia/kernel").InterfaceSymbol<IProjectionProvider>;
-export declare class ProjectionProvider {
-    registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void;
-    getProjectionFor(instruction: IInstruction): RegisteredProjections | null;
-    registerScopeFor(auSlotInstruction: IInstruction, scope: Scope): void;
-    getScopeFor(auSlotInstruction: IInstruction): Scope | null;
-}
 export declare class AuSlot implements ICustomElementViewModel {
+    private readonly instruction;
     readonly view: ISyntheticView;
     readonly $controller: ICustomElementController<this>;
     private hostScope;
-    private readonly outerScope;
-    constructor(projectionProvider: ProjectionProvider, instruction: IInstruction, factory: IViewFactory, location: IRenderLocation);
+    private outerScope;
+    constructor(instruction: HydrateElementInstruction, factory: IViewFactory, location: IRenderLocation);
     binding(_initiator: IHydratedController, _parent: IHydratedParentController, _flags: LifecycleFlags): void | Promise<void>;
     attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;

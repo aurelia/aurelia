@@ -1,6 +1,5 @@
 import { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
 import { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
-import { IProjections } from './custom-elements/au-slot.js';
 import { INode } from '../dom.js';
 import { IInstruction } from '../renderer.js';
 import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children.js';
@@ -24,7 +23,6 @@ export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     } | null;
     readonly hasSlots?: boolean;
     readonly enhance?: boolean;
-    readonly projectionsMap?: Map<IInstruction, IProjections>;
     readonly watches?: IWatchDefinition[];
     readonly processContent?: ProcessContentHook | null;
 }>;
@@ -151,7 +149,6 @@ export declare class CustomElementDefinition<C extends Constructable = Construct
     } | null;
     readonly hasSlots: boolean;
     readonly enhance: boolean;
-    readonly projectionsMap: Map<IInstruction, IProjections>;
     readonly watches: IWatchDefinition[];
     readonly processContent: ProcessContentHook | null;
     private constructor();

@@ -21,7 +21,7 @@ export { InterpolationBinding, } from './binding/interpolation-binding.js';
 export { LetBinding, } from './binding/let-binding.js';
 export { PropertyBinding, } from './binding/property-binding.js';
 export { RefBinding, } from './binding/ref-binding.js';
-export { IRenderer, IInstructionTypeClassifier, ITemplateCompiler, renderer, CallBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, HydrateLetElementInstruction, RefBindingInstruction, SetPropertyInstruction, AttributeBindingInstruction, ListenerBindingInstruction, PropertyBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetStyleAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, AttributeInstruction, InstructionRow, isInstruction, NodeInstruction, InstructionTypeName, Instruction, IInstruction, InstructionType, } from './renderer.js';
+export { IRenderer, IInstructionTypeClassifier, ITemplateCompiler, ICompliationInstruction, renderer, CallBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, HydrateLetElementInstruction, RefBindingInstruction, SetPropertyInstruction, AttributeBindingInstruction, ListenerBindingInstruction, PropertyBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetStyleAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, AttributeInstruction, InstructionRow, isInstruction, NodeInstruction, InstructionTypeName, Instruction, IInstruction, InstructionType, } from './renderer.js';
 export { AttributeNSAccessor, } from './observation/attribute-ns-accessor.js';
 export { IInputElement, CheckedObserver, } from './observation/checked-observer.js';
 export { ClassAttributeAccessor, } from './observation/class-attribute-accessor.js';
@@ -45,7 +45,7 @@ export { PromiseTemplateController, FulfilledTemplateController, PendingTemplate
 export { Blur, BlurManager, } from './resources/custom-attributes/blur.js';
 export { Focus, } from './resources/custom-attributes/focus.js';
 export { Portal, PortalTarget, PortalLifecycleCallback, } from './resources/template-controllers/portal.js';
-export { AuSlot, IProjections, SlotInfo, AuSlotContentType, RegisteredProjections, IProjectionProvider, AuSlotsInfo, IAuSlotsInfo, } from './resources/custom-elements/au-slot.js';
+export { AuSlot, IProjections, SlotInfo, AuSlotContentType, AuSlotsInfo, IAuSlotsInfo, } from './resources/custom-elements/au-slot.js';
 export { containerless, customElement, CustomElement, CustomElementDecorator, CustomElementKind, CustomElementType, CustomElementDefinition, PartialCustomElementDefinition, useShadowDOM, processContent, } from './resources/custom-element.js';
 export { Subject, AuRender, } from './resources/custom-elements/au-render.js';
 export { AuCompose, IDynamicComponentActivate, } from './resources/custom-elements/au-compose.js';
@@ -55,7 +55,7 @@ export { ITemplateCompilerRegistration, INodeObserverLocatorRegistration, Defaul
 export { TemplateBinder, } from './template-binder.js';
 export { ITemplateElementFactory } from './template-element-factory.js';
 export { PartialChildrenDefinition, ChildrenDefinition, Children, children, ChildrenObserver, } from './templating/children.js';
-export { Controller, isCustomElementController, isCustomElementViewModel, ViewModelKind, ControllerVisitor, IViewModel, IController, IComponentController, IContextualCustomElementController, IHydratableController, IDryCustomElementController, ICustomAttributeController, IHydratedController, IHydratedComponentController, IHydratedParentController, ICompiledCustomElementController, ICustomElementController, ICustomElementViewModel, ICustomAttributeViewModel, IHydratedCustomElementViewModel, IHydratedCustomAttributeViewModel, ISyntheticView, } from './templating/controller.js';
+export { Controller, isCustomElementController, isCustomElementViewModel, ViewModelKind, ControllerVisitor, IViewModel, IController, IComponentController, IContextualCustomElementController, IControllerElementHydrationInstruction, IHydratableController, IDryCustomElementController, ICustomAttributeController, IHydratedController, IHydratedComponentController, IHydratedParentController, ICompiledCustomElementController, ICustomElementController, ICustomElementViewModel, ICustomAttributeViewModel, IHydratedCustomElementViewModel, IHydratedCustomAttributeViewModel, ISyntheticView, } from './templating/controller.js';
 export { ILifecycleHooks, LifecycleHooksEntry, LifecycleHooksDefinition, LifecycleHooksLookup, LifecycleHook, LifecycleHooks, lifecycleHooks, } from './templating/lifecycle-hooks.js';
 export { getRenderContext, isRenderContext, IRenderContext, ICompiledRenderContext, IComponentFactory, } from './templating/render-context.js';
 export { ViewFactory, IViewFactory, IViewLocator, ViewLocator, view, Views, } from './templating/view.js';

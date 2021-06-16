@@ -8,10 +8,10 @@ import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import type { Writable, IDisposable } from '@aurelia/kernel';
 import type { IBinding, AccessorOrObserver } from '@aurelia/runtime';
-import { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import { IProjections } from '../resources/custom-elements/au-slot.js';
+import { LifecycleHooksLookup } from './lifecycle-hooks.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
-import { LifecycleHooksLookup } from './lifecycle-hooks.js';
 declare type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 export declare const enum MountTarget {
     none = 0,
@@ -88,7 +88,7 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     host: HTMLElement | null);
     static getCached<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C> | undefined;
     static getCachedOrThrow<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C>;
-    static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(root: IAppRoot | null, container: IContainer, viewModel: C, host: HTMLElement, targetedProjections: RegisteredProjections | null, flags?: LifecycleFlags, hydrate?: boolean, definition?: CustomElementDefinition | undefined): ICustomElementController<C>;
+    static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(root: IAppRoot | null, container: IContainer, viewModel: C, host: HTMLElement, hydrationInst: IControllerElementHydrationInstruction | null, flags?: LifecycleFlags, hydrate?: boolean, definition?: CustomElementDefinition | undefined): ICustomElementController<C>;
     static forCustomAttribute<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(root: IAppRoot | null, container: IContainer, viewModel: C, host: HTMLElement, flags?: LifecycleFlags): ICustomAttributeController<C>;
     static forSyntheticView(root: IAppRoot | null, context: IRenderContext, viewFactory: IViewFactory, flags?: LifecycleFlags, parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
     private hydrateCustomAttribute;
@@ -453,6 +453,9 @@ export interface IHydratedCustomElementViewModel extends ICustomElementViewModel
 }
 export interface IHydratedCustomAttributeViewModel extends ICustomAttributeViewModel {
     readonly $controller: ICustomAttributeController<this>;
+}
+export interface IControllerElementHydrationInstruction {
+    readonly projections: IProjections | null;
 }
 export {};
 //# sourceMappingURL=controller.d.ts.map

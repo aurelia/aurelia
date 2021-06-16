@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuSlotsInfo = exports.IAuSlotsInfo = exports.AuSlot = exports.ProjectionProvider = exports.IProjectionProvider = exports.RegisteredProjections = exports.SlotInfo = exports.AuSlotContentType = exports.IProjections = void 0;
+exports.AuSlotsInfo = exports.IAuSlotsInfo = exports.AuSlot = exports.SlotInfo = exports.AuSlotContentType = exports.IProjections = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const dom_js_1 = require("../../dom.js");
 const renderer_js_1 = require("../../renderer.js");
@@ -20,47 +20,30 @@ class SlotInfo {
     }
 }
 exports.SlotInfo = SlotInfo;
-class RegisteredProjections {
-    constructor(scope, projections) {
-        this.scope = scope;
-        this.projections = projections;
-    }
-}
-exports.RegisteredProjections = RegisteredProjections;
-exports.IProjectionProvider = kernel_1.DI.createInterface('IProjectionProvider', x => x.singleton(ProjectionProvider));
-const auSlotScopeMap = new WeakMap();
-const projectionMap = new WeakMap();
-class ProjectionProvider {
-    registerProjections(projections, scope) {
-        for (const [instruction, $projections] of projections) {
-            projectionMap.set(instruction, new RegisteredProjections(scope, $projections));
-        }
-    }
-    getProjectionFor(instruction) {
-        var _a;
-        return (_a = projectionMap.get(instruction)) !== null && _a !== void 0 ? _a : null;
-    }
-    registerScopeFor(auSlotInstruction, scope) {
-        auSlotScopeMap.set(auSlotInstruction, scope);
-    }
-    getScopeFor(auSlotInstruction) {
-        var _a;
-        return (_a = auSlotScopeMap.get(auSlotInstruction)) !== null && _a !== void 0 ? _a : null;
-    }
-}
-exports.ProjectionProvider = ProjectionProvider;
 class AuSlot {
-    constructor(projectionProvider, instruction, factory, location) {
+    constructor(instruction, factory, location) {
+        this.instruction = instruction;
         this.hostScope = null;
+        this.outerScope = null;
         this.view = factory.create().setLocation(location);
-        this.outerScope = projectionProvider.getScopeFor(instruction);
     }
-    /**
-     * @internal
-     */
-    static get inject() { return [ProjectionProvider, renderer_js_1.IInstruction, view_js_1.IViewFactory, dom_js_1.IRenderLocation]; }
+    /** @internal */
+    static get inject() { return [renderer_js_1.IInstruction, view_js_1.IViewFactory, dom_js_1.IRenderLocation]; }
     binding(_initiator, _parent, _flags) {
+        var _a, _b;
         this.hostScope = this.$controller.scope.parentScope;
+        if (this.instruction.slotInfo.type === AuSlotContentType.Projection) {
+            // todo: replace the following block with an IContextController injection
+            let contextController = this.$controller.parent;
+            while (contextController != null) {
+                if (contextController.vmKind === 0 /* customElement */
+                    && !(contextController.viewModel instanceof AuSlot)) {
+                    break;
+                }
+                contextController = contextController.parent;
+            }
+            this.outerScope = (_b = (_a = contextController === null || contextController === void 0 ? void 0 : contextController.parent) === null || _a === void 0 ? void 0 : _a.scope) !== null && _b !== void 0 ? _b : null;
+        }
     }
     attaching(initiator, parent, flags) {
         var _a;

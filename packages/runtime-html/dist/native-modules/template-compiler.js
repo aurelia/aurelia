@@ -25,7 +25,6 @@ class CustomElementCompilationUnit {
         this.template = template;
         this.instructions = [];
         this.surrogates = [];
-        this.projectionsMap = new Map();
     }
     toDefinition() {
         const def = this.partialDefinition;
@@ -36,7 +35,6 @@ class CustomElementCompilationUnit {
             template: this.template,
             needsCompile: false,
             hasSlots: this.surrogate.hasSlots,
-            projectionsMap: this.projectionsMap,
         });
     }
 }
@@ -72,7 +70,7 @@ let TemplateCompiler = class TemplateCompiler {
     static register(container) {
         return Registration.singleton(ITemplateCompiler, this).register(container);
     }
-    compile(partialDefinition, context, targetedProjections) {
+    compile(partialDefinition, context, compilationInstruction) {
         const definition = CustomElementDefinition.getOrCreate(partialDefinition);
         if (definition.template === null || definition.template === void 0) {
             return definition;
@@ -101,12 +99,12 @@ let TemplateCompiler = class TemplateCompiler {
                 offset++;
             }
         }
-        this.compileChildNodes(surrogate, compilation.instructions, compilation.projectionsMap, targetedProjections);
+        this.compileChildNodes(surrogate, compilation.instructions, compilationInstruction);
         const compiledDefinition = compilation.toDefinition();
         this.compilation = null;
         return compiledDefinition;
     }
-    compileChildNodes(parent, instructionRows, projections, targetedProjections) {
+    compileChildNodes(parent, instructionRows, compilationInstruction) {
         if ((parent.flags & 16384 /* hasChildNodes */) > 0) {
             const childNodes = parent.childNodes;
             const ii = childNodes.length;
@@ -128,12 +126,12 @@ let TemplateCompiler = class TemplateCompiler {
                     instructionRows.push([new HydrateLetElementInstruction(instructions, childNode.toBindingContext)]);
                 }
                 else {
-                    this.compileParentNode(childNode, instructionRows, projections, targetedProjections);
+                    this.compileParentNode(childNode, instructionRows, compilationInstruction);
                 }
             }
         }
     }
-    compileCustomElement(symbol, instructionRows, projections, targetedProjections) {
+    compileCustomElement(symbol, instructionRows, compilationInstruction) {
         var _a;
         const isAuSlot = (symbol.flags & 512 /* isAuSlot */) > 0;
         // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
@@ -141,46 +139,42 @@ let TemplateCompiler = class TemplateCompiler {
         const slotName = symbol.slotName;
         let slotInfo = null;
         if (isAuSlot) {
-            const targetedProjection = (_a = targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections) === null || _a === void 0 ? void 0 : _a[slotName];
+            const targetedProjection = (_a = compilationInstruction === null || compilationInstruction === void 0 ? void 0 : compilationInstruction.projections) === null || _a === void 0 ? void 0 : _a[slotName];
             slotInfo = targetedProjection !== void 0
                 ? new SlotInfo(slotName, AuSlotContentType.Projection, targetedProjection)
-                : new SlotInfo(slotName, AuSlotContentType.Fallback, this.compileProjectionFallback(symbol, projections, targetedProjections));
+                : new SlotInfo(slotName, AuSlotContentType.Fallback, this.compileProjectionFallback(symbol, compilationInstruction));
         }
-        const instruction = instructionRow[0] = new HydrateElementInstruction(symbol.res, symbol.info.alias, this.compileBindings(symbol), slotInfo);
-        const compiledProjections = this.compileProjections(symbol, projections, targetedProjections);
-        if (compiledProjections !== null) {
-            projections.set(instruction, compiledProjections);
-        }
+        instructionRow[0] = new HydrateElementInstruction(symbol.res, symbol.info.alias, this.compileBindings(symbol), this.compileProjections(symbol, compilationInstruction), slotInfo);
         instructionRows.push(instructionRow);
         if (!isAuSlot) {
-            this.compileChildNodes(symbol, instructionRows, projections, targetedProjections);
+            this.compileChildNodes(symbol, instructionRows, compilationInstruction);
         }
     }
-    compilePlainElement(symbol, instructionRows, projections, targetedProjections) {
+    compilePlainElement(symbol, instructionRows, compilationInstruction) {
         const attributes = this.compileAttributes(symbol, 0);
         if (attributes.length > 0) {
             instructionRows.push(attributes);
         }
-        this.compileChildNodes(symbol, instructionRows, projections, targetedProjections);
+        this.compileChildNodes(symbol, instructionRows, compilationInstruction);
     }
-    compileParentNode(symbol, instructionRows, projections, targetedProjections) {
+    compileParentNode(symbol, instructionRows, compilationInstruction) {
         switch (symbol.flags & 1023 /* type */) {
             case 16 /* isCustomElement */:
             case 512 /* isAuSlot */:
-                this.compileCustomElement(symbol, instructionRows, projections, targetedProjections);
+                this.compileCustomElement(symbol, instructionRows, compilationInstruction);
                 break;
             case 64 /* isPlainElement */:
-                this.compilePlainElement(symbol, instructionRows, projections, targetedProjections);
+                this.compilePlainElement(symbol, instructionRows, compilationInstruction);
                 break;
             case 1 /* isTemplateController */:
-                this.compileTemplateController(symbol, instructionRows, projections, targetedProjections);
+                this.compileTemplateController(symbol, instructionRows, compilationInstruction);
         }
     }
-    compileTemplateController(symbol, instructionRows, projections, targetedProjections) {
+    compileTemplateController(symbol, instructionRows, compilationInstruction) {
         var _a;
         const bindings = this.compileBindings(symbol);
         const controllerInstructionRows = [];
-        this.compileParentNode(symbol.template, controllerInstructionRows, projections, targetedProjections);
+        this.compileParentNode(symbol.template, controllerInstructionRows, compilationInstruction);
         const def = CustomElementDefinition.create({
             name: (_a = symbol.info.alias) !== null && _a !== void 0 ? _a : symbol.info.name,
             template: symbol.physicalNode,
@@ -292,20 +286,20 @@ let TemplateCompiler = class TemplateCompiler {
     //     return this.compilePlainAttribute(symbol as PlainAttributeSymbol);
     //   }
     // }
-    compileProjections(symbol, projectionMap, targetedProjections) {
+    compileProjections(symbol, compilationInstruction) {
         if ((symbol.flags & 32768 /* hasProjections */) === 0) {
             return null;
         }
         const p = this.p;
-        const projections = Object.create(null);
+        const compiledProjections = Object.create(null);
         const $projections = symbol.projections;
         const len = $projections.length;
         for (let i = 0; i < len; ++i) {
             const projection = $projections[i];
             const name = projection.name;
             const instructions = [];
-            this.compileParentNode(projection.template, instructions, projectionMap, targetedProjections);
-            const definition = projections[name];
+            this.compileParentNode(projection.template, instructions, compilationInstruction);
+            const definition = compiledProjections[name];
             if (definition === void 0) {
                 let template = projection.template.physicalNode;
                 if (template.tagName !== 'TEMPLATE') {
@@ -313,7 +307,7 @@ let TemplateCompiler = class TemplateCompiler {
                     _template.content.appendChild(template);
                     template = _template;
                 }
-                projections[name] = CustomElementDefinition.create({ name, template, instructions, needsCompile: false });
+                compiledProjections[name] = CustomElementDefinition.create({ name, template, instructions, needsCompile: false });
             }
             else {
                 // consolidate the projections to same slot
@@ -321,11 +315,11 @@ let TemplateCompiler = class TemplateCompiler {
                 definition.instructions.push(...instructions);
             }
         }
-        return projections;
+        return compiledProjections;
     }
-    compileProjectionFallback(symbol, projections, targetedProjections) {
+    compileProjectionFallback(symbol, compilationInstruction) {
         const instructions = [];
-        this.compileChildNodes(symbol, instructions, projections, targetedProjections);
+        this.compileChildNodes(symbol, instructions, compilationInstruction);
         const template = this.p.document.createElement('template');
         template.content.append(...toArray(symbol.physicalNode.childNodes));
         return CustomElementDefinition.create({ name: CustomElement.generateName(), template, instructions, needsCompile: false });

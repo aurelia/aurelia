@@ -16,45 +16,30 @@ export class SlotInfo {
         this.content = content;
     }
 }
-export class RegisteredProjections {
-    constructor(scope, projections) {
-        this.scope = scope;
-        this.projections = projections;
-    }
-}
-export const IProjectionProvider = DI.createInterface('IProjectionProvider', x => x.singleton(ProjectionProvider));
-const auSlotScopeMap = new WeakMap();
-const projectionMap = new WeakMap();
-export class ProjectionProvider {
-    registerProjections(projections, scope) {
-        for (const [instruction, $projections] of projections) {
-            projectionMap.set(instruction, new RegisteredProjections(scope, $projections));
-        }
-    }
-    getProjectionFor(instruction) {
-        var _a;
-        return (_a = projectionMap.get(instruction)) !== null && _a !== void 0 ? _a : null;
-    }
-    registerScopeFor(auSlotInstruction, scope) {
-        auSlotScopeMap.set(auSlotInstruction, scope);
-    }
-    getScopeFor(auSlotInstruction) {
-        var _a;
-        return (_a = auSlotScopeMap.get(auSlotInstruction)) !== null && _a !== void 0 ? _a : null;
-    }
-}
 export class AuSlot {
-    constructor(projectionProvider, instruction, factory, location) {
+    constructor(instruction, factory, location) {
+        this.instruction = instruction;
         this.hostScope = null;
+        this.outerScope = null;
         this.view = factory.create().setLocation(location);
-        this.outerScope = projectionProvider.getScopeFor(instruction);
     }
-    /**
-     * @internal
-     */
-    static get inject() { return [ProjectionProvider, IInstruction, IViewFactory, IRenderLocation]; }
+    /** @internal */
+    static get inject() { return [IInstruction, IViewFactory, IRenderLocation]; }
     binding(_initiator, _parent, _flags) {
+        var _a, _b;
         this.hostScope = this.$controller.scope.parentScope;
+        if (this.instruction.slotInfo.type === AuSlotContentType.Projection) {
+            // todo: replace the following block with an IContextController injection
+            let contextController = this.$controller.parent;
+            while (contextController != null) {
+                if (contextController.vmKind === 0 /* customElement */
+                    && !(contextController.viewModel instanceof AuSlot)) {
+                    break;
+                }
+                contextController = contextController.parent;
+            }
+            this.outerScope = (_b = (_a = contextController === null || contextController === void 0 ? void 0 : contextController.parent) === null || _a === void 0 ? void 0 : _a.scope) !== null && _b !== void 0 ? _b : null;
+        }
     }
     attaching(initiator, parent, flags) {
         var _a;

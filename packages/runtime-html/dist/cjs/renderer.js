@@ -104,10 +104,13 @@ class SetPropertyInstruction {
 }
 exports.SetPropertyInstruction = SetPropertyInstruction;
 class HydrateElementInstruction {
-    constructor(res, alias, instructions, slotInfo) {
+    constructor(res, alias, instructions, 
+    // only not null if this is an au-slot instruction
+    projections, slotInfo) {
         this.res = res;
         this.alias = alias;
         this.instructions = instructions;
+        this.projections = projections;
         this.slotInfo = slotInfo;
     }
     get type() { return "ra" /* hydrateElement */; }
@@ -301,20 +304,19 @@ let CustomElementRenderer =
 /** @internal */
 class CustomElementRenderer {
     render(flags, context, controller, target, instruction) {
-        var _a;
         let viewFactory;
         const slotInfo = instruction.slotInfo;
-        if (slotInfo !== null) {
+        if (instruction.res === 'au-slot' && slotInfo !== null) {
             viewFactory = render_context_js_1.getRenderContext(slotInfo.content, context).getViewFactory(void 0);
         }
-        const targetedProjections = context.getProjectionFor(instruction);
+        const projections = instruction.projections;
         const factory = context.getComponentFactory(
         /* parentController */ controller, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ viewFactory, 
         /* location         */ target, 
-        /* auSlotsInfo      */ new au_slot_js_1.AuSlotsInfo(Object.keys((_a = targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections) !== null && _a !== void 0 ? _a : {})));
+        /* auSlotsInfo      */ new au_slot_js_1.AuSlotsInfo(Object.keys(projections !== null && projections !== void 0 ? projections : kernel_1.emptyObject)));
         const key = custom_element_js_1.CustomElement.keyFrom(instruction.res);
         const component = factory.createComponent(key);
         const childController = controller_js_1.Controller.forCustomElement(
@@ -322,7 +324,7 @@ class CustomElementRenderer {
         /* container           */ context, 
         /* viewModel           */ component, 
         /* host                */ target, 
-        /* targetedProjections */ targetedProjections, 
+        /* instructions        */ instruction, 
         /* flags               */ flags);
         flags = childController.flags;
         dom_js_1.setRef(target, key, childController);

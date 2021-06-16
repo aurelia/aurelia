@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Metadata, Registration, DI } from '@aurelia/kernel';
+import { Metadata, Registration, DI, emptyObject } from '@aurelia/kernel';
 import { BindingMode, IExpressionParser, IObserverLocator, BindingBehaviorExpression, BindingBehaviorFactory, } from '@aurelia/runtime';
 import { CallBinding } from './binding/call-binding.js';
 import { AttributeBinding } from './binding/attribute.js';
@@ -94,10 +94,13 @@ export class SetPropertyInstruction {
     get type() { return "re" /* setProperty */; }
 }
 export class HydrateElementInstruction {
-    constructor(res, alias, instructions, slotInfo) {
+    constructor(res, alias, instructions, 
+    // only not null if this is an au-slot instruction
+    projections, slotInfo) {
         this.res = res;
         this.alias = alias;
         this.instructions = instructions;
+        this.projections = projections;
         this.slotInfo = slotInfo;
     }
     get type() { return "ra" /* hydrateElement */; }
@@ -278,20 +281,19 @@ let CustomElementRenderer =
 /** @internal */
 class CustomElementRenderer {
     render(flags, context, controller, target, instruction) {
-        var _a;
         let viewFactory;
         const slotInfo = instruction.slotInfo;
-        if (slotInfo !== null) {
+        if (instruction.res === 'au-slot' && slotInfo !== null) {
             viewFactory = getRenderContext(slotInfo.content, context).getViewFactory(void 0);
         }
-        const targetedProjections = context.getProjectionFor(instruction);
+        const projections = instruction.projections;
         const factory = context.getComponentFactory(
         /* parentController */ controller, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ viewFactory, 
         /* location         */ target, 
-        /* auSlotsInfo      */ new AuSlotsInfo(Object.keys((_a = targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections) !== null && _a !== void 0 ? _a : {})));
+        /* auSlotsInfo      */ new AuSlotsInfo(Object.keys(projections !== null && projections !== void 0 ? projections : emptyObject)));
         const key = CustomElement.keyFrom(instruction.res);
         const component = factory.createComponent(key);
         const childController = Controller.forCustomElement(
@@ -299,7 +301,7 @@ class CustomElementRenderer {
         /* container           */ context, 
         /* viewModel           */ component, 
         /* host                */ target, 
-        /* targetedProjections */ targetedProjections, 
+        /* instructions        */ instruction, 
         /* flags               */ flags);
         flags = childController.flags;
         setRef(target, key, childController);

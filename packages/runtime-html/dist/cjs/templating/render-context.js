@@ -69,7 +69,6 @@ class RenderContext {
             renderer = renderers[i];
             this.renderers[renderer.instructionType] = renderer;
         }
-        this.projectionProvider = container.get(au_slot_js_1.IProjectionProvider);
         container.registerResolver(view_js_1.IViewFactory, this.factoryProvider = new ViewFactoryProvider(), true);
         container.registerResolver(controller_js_1.IController, this.parentControllerProvider = new kernel_1.InstanceProvider('IController'), true);
         container.registerResolver(renderer_js_1.IInstruction, this.instructionProvider = new kernel_1.InstanceProvider('IInstruction'), true);
@@ -136,10 +135,9 @@ class RenderContext {
     }
     // #endregion
     // #region IRenderContext api
-    compile(targetedProjections) {
+    compile(compilationInstruction) {
         let compiledDefinition;
         if (this.isCompiled) {
-            this.registerScopeForAuSlot(targetedProjections);
             return this;
         }
         this.isCompiled = true;
@@ -147,8 +145,7 @@ class RenderContext {
         if (definition.needsCompile) {
             const container = this.container;
             const compiler = container.get(renderer_js_1.ITemplateCompiler);
-            compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, targetedProjections);
-            this.registerScopeForAuSlot(targetedProjections);
+            compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, compilationInstruction);
         }
         else {
             compiledDefinition = this.compiledDefinition = definition;
@@ -203,31 +200,6 @@ class RenderContext {
             this.viewModelProvider.prepare(instance);
         }
         return this;
-    }
-    registerScopeForAuSlot(targetedProjections) {
-        var _a, _b, _c, _d;
-        if (targetedProjections === null) {
-            return;
-        }
-        const scope = targetedProjections.scope;
-        const projectionProvider = this.projectionProvider;
-        const instructions = this.compiledDefinition.instructions.flat();
-        let i = 0;
-        while (i < instructions.length) {
-            const instruction = instructions[i++];
-            if (instruction instanceof renderer_js_1.HydrateElementInstruction) {
-                const slotInfo = instruction.slotInfo;
-                if (slotInfo != null) {
-                    if (slotInfo.type === au_slot_js_1.AuSlotContentType.Projection) {
-                        projectionProvider.registerScopeFor(instruction, scope);
-                    }
-                    instructions.push(...((_b = (_a = slotInfo.content.instructions) === null || _a === void 0 ? void 0 : _a.flat()) !== null && _b !== void 0 ? _b : []));
-                }
-            }
-            else if (instruction instanceof renderer_js_1.HydrateTemplateController) {
-                instructions.push(...((_d = (_c = instruction.def.instructions) === null || _c === void 0 ? void 0 : _c.flat()) !== null && _d !== void 0 ? _d : []));
-            }
-        }
     }
     // #endregion
     // #region ICompiledRenderContext api
@@ -299,20 +271,6 @@ class RenderContext {
     }
     dispose() {
         this.elementProvider.dispose();
-    }
-    // #endregion
-    // #region IProjectionProvider api
-    registerProjections(projections, scope) {
-        this.projectionProvider.registerProjections(projections, scope);
-    }
-    getProjectionFor(instruction) {
-        return this.projectionProvider.getProjectionFor(instruction);
-    }
-    registerScopeFor(auSlotInstruction, scope) {
-        this.projectionProvider.registerScopeFor(auSlotInstruction, scope);
-    }
-    getScopeFor(auSlotInstruction) {
-        return this.projectionProvider.getScopeFor(auSlotInstruction);
     }
 }
 exports.RenderContext = RenderContext;

@@ -3,7 +3,7 @@ import { BindingMode, IExpressionParser, IObserverLocator, Interpolation, IsBind
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
 import { ICompiledRenderContext } from './templating/render-context.js';
-import { RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { IProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { INode } from './dom.js';
 import { IPlatform } from './platform.js';
 import type { IHydratableController, IController } from './templating/controller.js';
@@ -78,9 +78,10 @@ export declare class HydrateElementInstruction {
     res: string;
     alias: string | undefined;
     instructions: IInstruction[];
+    projections: Record<string, CustomElementDefinition> | null;
     slotInfo: SlotInfo | null;
     get type(): InstructionType.hydrateElement;
-    constructor(res: string, alias: string | undefined, instructions: IInstruction[], slotInfo: SlotInfo | null);
+    constructor(res: string, alias: string | undefined, instructions: IInstruction[], projections: Record<string, CustomElementDefinition> | null, slotInfo: SlotInfo | null);
 }
 export declare class HydrateAttributeInstruction {
     res: string;
@@ -165,7 +166,15 @@ export declare class AttributeBindingInstruction {
     attr: string, from: string | IsBindingBehavior, to: string);
 }
 export interface ITemplateCompiler {
-    compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, targetedProjections: RegisteredProjections | null): CustomElementDefinition;
+    compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, compilationInstruction: ICompliationInstruction | null): CustomElementDefinition;
+}
+export interface ICompliationInstruction {
+    /**
+     * A record of projections available for compiling a template.
+     * Where each key is the matching slot name for <au-slot/> inside,
+     * and each value is the definition to render and project
+     */
+    projections: IProjections | null;
 }
 export declare const ITemplateCompiler: import("@aurelia/kernel").InterfaceSymbol<ITemplateCompiler>;
 export interface IInstructionTypeClassifier<TType extends string = string> {

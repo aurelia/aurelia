@@ -1,13 +1,15 @@
-import { Constructable, IContainer, IDisposable, IFactory, IResolver, IResourceKind, Key, Resolved, ResourceDefinition, ResourceType, Transformer } from '@aurelia/kernel';
-import { Scope, LifecycleFlags } from '@aurelia/runtime';
 import { INode, INodeSequence, IRenderLocation } from '../dom.js';
-import { IInstruction, Instruction } from '../renderer.js';
-import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
+import { IInstruction, ICompliationInstruction } from '../renderer.js';
+import { CustomElementDefinition } from '../resources/custom-element.js';
 import { IViewFactory } from './view.js';
-import { IAuSlotsInfo, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import { IAuSlotsInfo, IProjections } from '../resources/custom-elements/au-slot.js';
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
+import type { Constructable, IContainer, IDisposable, IFactory, IResolver, IResourceKind, Key, Resolved, ResourceDefinition, ResourceType, Transformer } from '@aurelia/kernel';
+import type { LifecycleFlags } from '@aurelia/runtime';
 import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller.js';
+import type { Instruction } from '../renderer.js';
+import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 export declare function isRenderContext(value: unknown): value is IRenderContext;
 /**
  * A render context that wraps an `IContainer` and must be compiled before it can be used for composing.
@@ -37,7 +39,7 @@ export interface IRenderContext extends IContainer {
      *
      * @returns The compiled `IRenderContext`.
      */
-    compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext;
+    compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext;
     /**
      * Creates an (or returns the cached) `IViewFactory` that can be used to create synthetic view controllers.
      *
@@ -49,7 +51,7 @@ export interface IRenderContext extends IContainer {
  * A compiled `IRenderContext` that can create instances of `INodeSequence` (based on the template of the compiled definition)
  * and begin a component operation to create new component instances.
  */
-export interface ICompiledRenderContext extends IRenderContext, IProjectionProvider {
+export interface ICompiledRenderContext extends IRenderContext {
     /**
      * The compiled `CustomElementDefinition`.
      *
@@ -113,7 +115,7 @@ export interface IComponentFactory extends ICompiledRenderContext, IDisposable {
      */
     dispose(): void;
 }
-export declare function getRenderContext(partialDefinition: PartialCustomElementDefinition, parentContainer: IContainer, projections?: Record<string, CustomElementDefinition> | null): IRenderContext;
+export declare function getRenderContext(partialDefinition: PartialCustomElementDefinition, parentContainer: IContainer, projections?: IProjections | null): IRenderContext;
 export declare class RenderContext implements IComponentFactory {
     readonly definition: CustomElementDefinition;
     readonly parentContainer: IContainer;
@@ -130,7 +132,6 @@ export declare class RenderContext implements IComponentFactory {
     private fragment;
     private factory;
     private isCompiled;
-    private readonly projectionProvider;
     readonly platform: IPlatform;
     private readonly renderers;
     compiledDefinition: CustomElementDefinition;
@@ -149,19 +150,14 @@ export declare class RenderContext implements IComponentFactory {
     find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
     create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null;
     disposeResolvers(): void;
-    compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext;
+    compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext;
     getViewFactory(name?: string): IViewFactory;
     beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext;
-    private registerScopeForAuSlot;
     createNodes(): INodeSequence;
     getComponentFactory(parentController?: IController, host?: HTMLElement, instruction?: Instruction, viewFactory?: IViewFactory, location?: IRenderLocation, auSlotsInfo?: IAuSlotsInfo): IComponentFactory;
     createComponent<TViewModel = ICustomElementViewModel>(resourceKey: string): TViewModel;
     render(flags: LifecycleFlags, controller: IHydratableController, targets: ArrayLike<INode>, definition: CustomElementDefinition, host: INode | null | undefined): void;
     renderChildren(flags: LifecycleFlags, instructions: readonly IInstruction[], controller: IHydratableController, target: unknown): void;
     dispose(): void;
-    registerProjections(projections: Map<Instruction, Record<string, CustomElementDefinition>>, scope: Scope): void;
-    getProjectionFor(instruction: Instruction): RegisteredProjections | null;
-    registerScopeFor(auSlotInstruction: IInstruction, scope: Scope): void;
-    getScopeFor(auSlotInstruction: IInstruction): Scope | null;
 }
 //# sourceMappingURL=render-context.d.ts.map

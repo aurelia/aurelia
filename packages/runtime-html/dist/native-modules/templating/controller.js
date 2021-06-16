@@ -135,14 +135,14 @@ export class Controller {
         }
         return controller;
     }
-    static forCustomElement(root, container, viewModel, host, 
-    // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
-    targetedProjections, flags = 0 /* none */, hydrate = true, 
+    static forCustomElement(root, container, viewModel, host, hydrationInst, flags = 0 /* none */, hydrate = true, 
     // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
     definition = void 0) {
         if (controllerLookup.has(viewModel)) {
             return controllerLookup.get(viewModel);
         }
+        // todo: the caching behavior from CustomElement.getDefinition here will stip us time to time
+        //       when combined with au-slot. Consider a way to not allow this
         definition = definition !== null && definition !== void 0 ? definition : CustomElement.getDefinition(viewModel.constructor);
         const controller = new Controller(
         /* root           */ root, 
@@ -154,7 +154,7 @@ export class Controller {
         /* host           */ host);
         controllerLookup.set(viewModel, controller);
         if (hydrate) {
-            controller.hydrateCustomElement(container, targetedProjections);
+            controller.hydrateCustomElement(container, hydrationInst);
         }
         return controller;
     }
@@ -189,7 +189,7 @@ export class Controller {
         return controller;
     }
     /** @internal */
-    hydrateCustomElement(parentContainer, targetedProjections) {
+    hydrateCustomElement(parentContainer, hydrationInst) {
         var _a;
         this.logger = parentContainer.get(ILogger).root;
         this.debug = this.logger.config.level <= 1 /* debug */;
@@ -217,7 +217,11 @@ export class Controller {
                 definition = CustomElementDefinition.getOrCreate(result);
             }
         }
-        const context = this.context = getRenderContext(definition, parentContainer, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections);
+        // todo: make projections not influential on the render context construction
+        const context = this.context = getRenderContext(definition, parentContainer, hydrationInst === null || hydrationInst === void 0 ? void 0 : hydrationInst.projections);
+        // todo: should register a resolver resolving to a IContextElement/IContextComponent
+        //       so that component directly under this template can easily distinguish its owner/parent
+        // context.register(Registration.instance(IContextElement))
         this.lifecycleHooks = LifecycleHooks.resolve(context);
         // Support Recursive Components by adding self to own context
         definition.register(context);
@@ -233,21 +237,20 @@ export class Controller {
         // - Controller.compileChildren
         // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
         if (((_a = this.root) === null || _a === void 0 ? void 0 : _a.controller) !== this) {
-            this.hydrate(targetedProjections);
+            this.hydrate(hydrationInst);
             this.hydrateChildren();
         }
     }
     /** @internal */
-    hydrate(targetedProjections) {
+    hydrate(hydrationInst) {
         if (this.hooks.hasHydrating) {
             if (this.debug) {
                 this.logger.trace(`invoking hasHydrating() hook`);
             }
             this.viewModel.hydrating(this);
         }
-        const compiledContext = this.context.compile(targetedProjections);
-        const { projectionsMap, shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
-        compiledContext.registerProjections(projectionsMap, this.scope);
+        const compiledContext = this.context.compile(hydrationInst);
+        const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
         this.isStrictBinding = isStrictBinding;
         if ((this.hostController = CustomElement.for(this.host, optional)) !== null) {
             this.host = this.platform.document.createElement(this.context.definition.name);

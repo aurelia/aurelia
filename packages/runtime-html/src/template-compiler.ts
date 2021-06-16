@@ -578,32 +578,79 @@ interface ICompilationContext {
   attrTransformer: IAttrSyntaxTransformer;
   exprParser: IExpressionParser;
   /* an array representing targets of instructions, built on depth first tree walking compilation */
-  instructionRows: unknown[];
+  instructionRows: IInstruction[][];
   localElements: Set<string>;
+  p: IPlatform;
 }
 
 export class ViewCompiler {
   public compile(
-    template: string | Element | DocumentFragment,
+    partialDefinition: PartialCustomElementDefinition,
     container: IContainer,
     compilationInstruction: ICompliationInstruction,
   ): CustomElementDefinition {
-    if (typeof template === 'string') {
-      template = this.parse(template);
+    const definition = CustomElementDefinition.getOrCreate(partialDefinition);
+    if (definition.template === null || definition.template === void 0) {
+      return definition;
     }
-    let content: Element | DocumentFragment = template;
-    if (template instanceof HTMLTemplateElement) {
-      content = template.content;
-      // todo: surrogate
+    if (definition.needsCompile === false) {
+      return definition;
     }
-    content
 
-    return null!;
+    const factory: ITemplateElementFactory = container.get(ITemplateElementFactory);
+    const attrParser: IAttributeParser = container.get(IAttributeParser);
+    const exprParser: IExpressionParser = container.get(IExpressionParser);
+    const attrTransformer: IAttrSyntaxTransformer = container.get(IAttrSyntaxTransformer);
+    const logger: ILogger = container.get(ILogger);
+    const p: IPlatform = container.get(IPlatform);
+    const compilationContext: ICompilationContext = {
+      instruction: compilationInstruction,
+      attrParser,
+      exprParser,
+      attrTransformer,
+      instructionRows: [],
+      localElements: new Set(),
+      logger,
+      p,
+      parent: null,
+    };
+    const template = typeof definition.template === 'string'
+      ? this.parse(definition.template)
+      : definition.template as HTMLElement;
+    return this.doCompile(partialDefinition, template, container, compilationContext);
+
+    // if (typeof template === 'string') {
+    //   template = this.parse(template);
+    // }
+    // let content: Element | DocumentFragment = template;
+    // if (template instanceof HTMLTemplateElement) {
+    //   content = template.content;
+    //   // todo: surrogate
+    // }
+    // content
+
+    // return null!;
   }
 
-  private doCompile(template: Element | DocumentFragment, context: ICompilationContext): CustomElementDefinition {
-
-    return null!;
+  private doCompile(
+    partialDefinition: PartialCustomElementDefinition,
+    template: Element | DocumentFragment,
+    container: IContainer,
+    context: ICompilationContext
+  ): CustomElementDefinition {
+    let node: Node | null = template.nodeType === 11
+      ? template
+      : template.nodeName === 'TEMPLATE'
+        ? (template as HTMLTemplateElement).content
+        : template;
+    while (node !== null) {
+      node = this.node(node, container, context);
+    }
+    return CustomElementDefinition.create({
+      ...partialDefinition,
+      template,
+      instructions: context.instructionRows,
+    });
   }
 
   // overall flow:
@@ -683,7 +730,7 @@ export class ViewCompiler {
         realAttrTarget
       ));
     }
-    context.instructionRows.push(new HydrateLetElementInstruction(letInstructions, toBindingContext));
+    context.instructionRows.push([new HydrateLetElementInstruction(letInstructions, toBindingContext)]);
     // probably no need to replace
     // as the let itself can be used as is
     // though still need to mark el as target to ensure the instruction is matched with a target
@@ -712,22 +759,22 @@ export class ViewCompiler {
     // todo: maybe support compilation of the bindings on <au-slot />
     const marker = this.marker(el);
     const slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, targetedProjection);
-    const instructionRow = new HydrateElementInstruction(
+    const instruction = new HydrateElementInstruction(
       'au-slot',
       void 0,
       emptyArray,
       null,
       slotInfo,
     );
-    context.instructionRows.push(instructionRow);
+    context.instructionRows.push([instruction]);
     return marker;
   }
 
   private element(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     // instructions sort:
-    // hydrate custom element instruction first
-    // hydrate custom attribute instructions next
-    // rest kept as is (to-be-decided)
+    // 1. hydrate custom element instruction
+    // 2. hydrate custom attribute instructions
+    // 3. rest kept as is (except special cases & to-be-decided)
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = container.find(CustomElement, elName) as CustomElementDefinition | null;
@@ -957,7 +1004,7 @@ export class ViewCompiler {
         template.content.appendChild(el);
         return template;
       })();
-      tcInstruction.def = this.doCompile(mostInnerTemplate, childContext);
+      tcInstruction.def = this.doCompile(tcInstruction.def, mostInnerTemplate, container, childContext);
       i -= 1;
       while (i > 0) {
         // for each of the template controller from [right] to [left]

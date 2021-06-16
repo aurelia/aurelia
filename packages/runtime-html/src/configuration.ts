@@ -21,7 +21,7 @@ import {
   StyleBindingCommand,
   TriggerBindingCommand,
 } from './resources/binding-command.js';
-import { TemplateCompiler } from './template-compiler.js';
+import { TemplateCompiler, ViewCompiler } from './template-compiler.js';
 import {
   CallBindingRenderer,
   CustomAttributeRenderer,
@@ -88,7 +88,8 @@ export const SignalBindingBehaviorRegistration = SignalBindingBehavior as unknow
 export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as unknown as IRegistry;
 export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknown as IRegistry;
 
-export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
+// export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
+export const ITemplateCompilerRegistration = ViewCompiler as IRegistry;
 export const INodeObserverLocatorRegistration = NodeObserverLocator as IRegistry;
 
 /**

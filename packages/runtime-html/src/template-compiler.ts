@@ -583,7 +583,11 @@ interface ICompilationContext {
   p: IPlatform;
 }
 
-export class ViewCompiler {
+export class ViewCompiler implements ITemplateCompiler {
+  public static register(container: IContainer): IResolver<ITemplateCompiler> {
+    return Registration.singleton(ITemplateCompiler, this).register(container);
+  }
+
   public compile(
     partialDefinition: PartialCustomElementDefinition,
     container: IContainer,
@@ -614,9 +618,7 @@ export class ViewCompiler {
       p,
       parent: null,
     };
-    const template = typeof definition.template === 'string'
-      ? this.parse(definition.template)
-      : definition.template as HTMLElement;
+    const template = factory.createTemplate(definition.template);
     return this.doCompile(partialDefinition, template, container, compilationContext);
 
     // if (typeof template === 'string') {
@@ -1033,6 +1035,11 @@ export class ViewCompiler {
     } else {
 
     }
+
+    if (instructions.length > 0 || tcInstructions != null) {
+      this.mark(el);
+    }
+    context.instructionRows.push(instructions);
 
     const shouldCompileContent = elDef === null
       || elDef != null

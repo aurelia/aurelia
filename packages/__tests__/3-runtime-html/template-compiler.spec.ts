@@ -31,7 +31,6 @@ import {
   IInstruction,
   CustomElementType,
   AuSlot,
-  RegisteredProjections,
   AuSlotContentType,
   Scope,
   parseExpression,
@@ -512,7 +511,6 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
         instructions: [[childInstr]],
         needsCompile: false,
         enhance: false,
-        projectionsMap: new Map<IInstruction, IProjections>(),
         processContent: null,
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
@@ -527,7 +525,6 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
-      projectionsMap: new Map<IInstruction, IProjections>(),
       processContent: null,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
@@ -552,7 +549,6 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
         instructions,
         needsCompile: false,
         enhance: false,
-        projectionsMap: new Map<IInstruction, IProjections>(),
         processContent: null,
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
@@ -568,7 +564,6 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
-      projectionsMap: new Map<IInstruction, IProjections>(),
       processContent: null,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
@@ -586,11 +581,12 @@ function createCustomElement(
   childOutput?,
   childInput?,
 ): [PartialCustomElementDefinition, PartialCustomElementDefinition] {
-  const instruction = {
+  const instruction: Partial<HydrateElementInstruction> = {
     type: TT.hydrateElement,
     res: tagName,
-    instructions: childInstructions,
+    instructions: childInstructions as IInstruction[],
     slotInfo: null,
+    projections: null,
   };
   const exprParser = ctx.container.get(IExpressionParser);
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
@@ -611,7 +607,6 @@ function createCustomElement(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     enhance: false,
-    projectionsMap: new Map<IInstruction, IProjections>(),
     watches: [],
     processContent: null,
   };
@@ -651,7 +646,6 @@ function createCustomAttribute(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     enhance: false,
-    projectionsMap: new Map<IInstruction, IProjections>(),
     watches: [],
     processContent: null,
   };
@@ -770,7 +764,6 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           enhance: false,
-          projectionsMap: new Map<IInstruction, IProjections>(),
           processContent: null,
         };
 
@@ -841,7 +834,6 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           enhance: false,
-          projectionsMap: new Map<IInstruction, IProjections>(),
           watches: [],
           processContent: null,
         };
@@ -1110,7 +1102,6 @@ describe(`TemplateCompiler - combinations`, function () {
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           needsCompile: false,
           enhance: false,
-          projectionsMap: new Map<IInstruction, IProjections>(),
           watches: [],
           processContent: null,
         };
@@ -1302,7 +1293,7 @@ describe('TemplateCompiler - local templates', function () {
     }
 
   }
-  function* getLocalTemplateTestData() {
+  function *getLocalTemplateTestData() {
     yield new LocalTemplateTestData(
       `<template as-custom-element="foo-bar">static</template>
       <foo-bar></foo-bar>`,
@@ -1648,7 +1639,6 @@ describe('TemplateCompiler - au-slot', function () {
   function $createCustomElement(template: string, name: string = 'my-element') {
     return CustomElement.define({ name, isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, class MyElement { });
   }
-  type ProjectionMap = Map<IInstruction, Record<string, CustomElementDefinition>>;
 
   class ExpectedSlotInfo {
     public constructor(
@@ -1663,45 +1653,43 @@ describe('TemplateCompiler - au-slot', function () {
       public readonly template: string,
       public readonly customElements: CustomElementType[],
       public readonly partialTargetedProjections: [Scope, Record<string, string>] | null,
-      public readonly expectedProjections: [string, Record<string, string>][],
       public readonly expectedSlotInfos: ExpectedSlotInfo[],
     ) {
       this.getTargetedProjections = this.getTargetedProjections.bind(this);
     }
 
-    public getTargetedProjections(factory: ITemplateElementFactory) {
+    public getTargetedProjections(factory: ITemplateElementFactory): IProjections {
       if (this.partialTargetedProjections === null) { return null; }
-      const [scope, projections] = this.partialTargetedProjections;
-      return new RegisteredProjections(
-        scope,
-        Object.entries(projections)
+      const [, projections] = this.partialTargetedProjections;
+      return Object.entries(projections)
           .reduce((acc: Record<string, CustomElementDefinition>, [key, template]) => {
-            acc[key] = CustomElementDefinition.create({ name: CustomElement.generateName(), template: factory.createTemplate(template), needsCompile: false });
+            acc[key] = CustomElementDefinition.create({
+              name: CustomElement.generateName(),
+              template: template ? factory.createTemplate(template) : factory.createTemplate(''),
+              needsCompile: false
+            });
             return acc;
-          }, Object.create(null))
-      );
+          }, Object.create(null));
     }
   }
-  function* getTestData() {
+
+  function *getTestData() {
     yield new TestData(
       `<my-element><div au-slot></div></my-element>`,
       [$createCustomElement('')],
       null,
-      [['my-element', { 'default': '<div></div>' }]],
       [],
     );
     yield new TestData(
       `<my-element><div au-slot="s1">p1</div><div au-slot="s2">p2</div></my-element>`,
       [$createCustomElement('')],
       null,
-      [['my-element', { 's1': '<div>p1</div>', 's2': '<div>p2</div>' }]],
       [],
     );
     yield new TestData(
       `<au-slot name="s1">s1fb</au-slot><au-slot name="s2"><div>s2fb</div></au-slot>`,
       [],
       null,
-      [],
       [
         new ExpectedSlotInfo('s1', AuSlotContentType.Fallback, 's1fb'),
         new ExpectedSlotInfo('s2', AuSlotContentType.Fallback, '<div>s2fb</div>'),
@@ -1712,7 +1700,6 @@ describe('TemplateCompiler - au-slot', function () {
       `<au-slot name="s1">s1fb</au-slot><au-slot name="s2"><div>s2fb</div></au-slot>`,
       [],
       [scope1, { s1: '<span>s1p</span>' }],
-      [],
       [
         new ExpectedSlotInfo('s1', AuSlotContentType.Projection, '<span>s1p</span>', scope1),
         new ExpectedSlotInfo('s2', AuSlotContentType.Fallback, '<div>s2fb</div>'),
@@ -1722,7 +1709,6 @@ describe('TemplateCompiler - au-slot', function () {
       `<au-slot name="s1">s1fb</au-slot><au-slot name="s2"><div>s2fb</div></au-slot>`,
       [],
       [scope1, { s1: '<span>s1p</span>', s2: '<div><span>s2p</span></div>' }],
-      [],
       [
         new ExpectedSlotInfo('s1', AuSlotContentType.Projection, '<span>s1p</span>', scope1),
         new ExpectedSlotInfo('s2', AuSlotContentType.Projection, '<div><span>s2p</span></div>', scope1),
@@ -1732,13 +1718,12 @@ describe('TemplateCompiler - au-slot', function () {
       `<au-slot name="s1">s1fb</au-slot><my-element><div au-slot>p</div></my-element>`,
       [$createCustomElement('')],
       [scope1, { s1: '<span>s1p</span>' }],
-      [['my-element', { 'default': '<div>p</div>' }]],
       [
         new ExpectedSlotInfo('s1', AuSlotContentType.Projection, '<span>s1p</span>', scope1),
       ],
     );
   }
-  for (const { customElements, template, getTargetedProjections, expectedProjections, expectedSlotInfos } of getTestData()) {
+  for (const { customElements, template, getTargetedProjections, expectedSlotInfos } of getTestData()) {
     it(`compiles - ${template}`, function () {
       const { sut, container } = createFixture();
       container.register(AuSlot, ...customElements);
@@ -1747,21 +1732,8 @@ describe('TemplateCompiler - au-slot', function () {
       const compiledDefinition = sut.compile(
         CustomElementDefinition.create({ name: 'my-ce', template }, class MyCe { }),
         container,
-        getTargetedProjections(factory)
+        { projections: getTargetedProjections(factory) }
       );
-
-      const actual = Array.from(compiledDefinition.projectionsMap);
-      const ii = actual.length;
-      assert.strictEqual(ii, expectedProjections.length, 'actual.size');
-      for (let i = 0; i < ii; i++) {
-        const [ceName, ep] = expectedProjections[i];
-        const [instruction, ap] = actual[i];
-        assert.includes((instruction as HydrateElementInstruction).res, ceName);
-        assert.deepStrictEqual(Object.keys(ap), Object.keys(ep));
-        for (const [key, { template: actualTemplate }] of Object.entries(ap)) {
-          assert.deepStrictEqual((actualTemplate as HTMLTemplateElement).outerHTML, `<template>${ep[key]}</template>`, 'projections');
-        }
-      }
 
       const allInstructions = compiledDefinition.instructions.flat();
       for (const expectedSlotInfo of expectedSlotInfos) {

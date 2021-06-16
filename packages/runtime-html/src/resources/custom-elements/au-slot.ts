@@ -1,10 +1,15 @@
-import { DI, Writable } from '@aurelia/kernel';
-import { LifecycleFlags, Scope } from '@aurelia/runtime';
+import { DI } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom.js';
-import { IInstruction, Instruction } from '../../renderer.js';
-import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
+import { IInstruction } from '../../renderer.js';
+import { ViewModelKind } from '../../templating/controller.js';
 import { IViewFactory } from '../../templating/view.js';
-import { customElement, CustomElementDefinition } from '../custom-element.js';
+import { customElement } from '../custom-element.js';
+
+import type { Writable } from '@aurelia/kernel';
+import type { LifecycleFlags, Scope } from '@aurelia/runtime';
+import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
+import type { CustomElementDefinition } from '../custom-element.js';
+import type { HydrateElementInstruction } from '../../renderer.js';
 
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections");
@@ -22,58 +27,22 @@ export class SlotInfo {
   ) { }
 }
 
-export class RegisteredProjections {
-  public constructor(
-    public readonly scope: Scope,
-    public readonly projections: Record<string, CustomElementDefinition>,
-  ) { }
-}
-
-export interface IProjectionProvider extends ProjectionProvider { }
-export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider', x => x.singleton(ProjectionProvider));
-
-const auSlotScopeMap: WeakMap<IInstruction, Scope> = new WeakMap<Instruction, Scope>();
-const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<Instruction, RegisteredProjections>();
-export class ProjectionProvider {
-  public registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
-    for (const [instruction, $projections] of projections) {
-      projectionMap.set(instruction, new RegisteredProjections(scope, $projections));
-    }
-  }
-
-  public getProjectionFor(instruction: IInstruction): RegisteredProjections | null {
-    return projectionMap.get(instruction) ?? null;
-  }
-
-  public registerScopeFor(auSlotInstruction: IInstruction, scope: Scope): void {
-    auSlotScopeMap.set(auSlotInstruction, scope);
-  }
-
-  public getScopeFor(auSlotInstruction: IInstruction): Scope | null {
-    return auSlotScopeMap.get(auSlotInstruction) ?? null;
-  }
-}
-
 export class AuSlot implements ICustomElementViewModel {
-  /**
-   * @internal
-   */
-  public static get inject() { return [ProjectionProvider, IInstruction, IViewFactory, IRenderLocation]; }
+  /** @internal */
+  public static get inject() { return [IInstruction, IViewFactory, IRenderLocation]; }
 
   public readonly view: ISyntheticView;
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
   private hostScope: Scope | null = null;
-  private readonly outerScope: Scope | null;
+  private outerScope: Scope | null = null;
 
   public constructor(
-    projectionProvider: ProjectionProvider,
-    instruction: IInstruction,
+    private readonly instruction: HydrateElementInstruction,
     factory: IViewFactory,
     location: IRenderLocation,
   ) {
     this.view = factory.create().setLocation(location);
-    this.outerScope = projectionProvider.getScopeFor(instruction);
   }
 
   public binding(
@@ -82,6 +51,19 @@ export class AuSlot implements ICustomElementViewModel {
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hostScope = this.$controller.scope.parentScope!;
+    if (this.instruction.slotInfo!.type === AuSlotContentType.Projection) {
+      // todo: replace the following block with an IContextController injection
+      let contextController = this.$controller.parent;
+      while (contextController != null) {
+        if (contextController.vmKind === ViewModelKind.customElement
+          && !(contextController.viewModel instanceof AuSlot)
+        ) {
+          break;
+        }
+        contextController = contextController.parent;
+      }
+      this.outerScope =  contextController?.parent?.scope ?? null;
+    }
   }
 
   public attaching(

@@ -36,7 +36,6 @@ import {
   TemplateControllerSymbol,
   TextSymbol,
   SymbolFlags,
-  BindableInfo,
   AttrInfo
 } from './semantic-model.js';
 import {
@@ -66,8 +65,9 @@ import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-a
 import { BindingCommand, BindingCommandInstance } from './resources/binding-command.js';
 import { createLookup } from './utilities-html.js';
 
-import type { PartialCustomElementDefinition } from './resources/custom-element.js';
 import type { IProjections } from './resources/custom-elements/au-slot.js';
+import type { ICommandBuildInfo } from './resources/binding-command.js';
+import type { PartialCustomElementDefinition } from './resources/custom-element.js';
 import type { BindableDefinition } from './bindable.js';
 import type { ICompliationInstruction, IInstruction, } from './renderer.js';
 
@@ -583,7 +583,7 @@ interface ICompilationContext {
 }
 
 export class ViewCompiler {
-  compile(template: string | Element | DocumentFragment, container: IContainer): CustomElementDefinition {
+  public compile(template: string | Element | DocumentFragment, container: IContainer): CustomElementDefinition {
     if (typeof template === 'string') {
       template = this.parse(template);
     }
@@ -600,7 +600,7 @@ export class ViewCompiler {
   // overall flow:
   // each of the method will be responsible for compiling its corresponding node type
   // and it should return the next node to be compiled
-  node(node: Node, container: IContainer, context: ICompilationContext): Node | null {
+  private node(node: Node, container: IContainer, context: ICompilationContext): Node | null {
     switch (node.nodeType) {
       case 1:
         switch (node.nodeName) {
@@ -624,7 +624,7 @@ export class ViewCompiler {
     return node.nextSibling;
   }
 
-  declare(el: Element, container: IContainer, context: ICompilationContext): Node | null {
+  private declare(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     const attrs = el.attributes;
     const ii = attrs.length;
     const letInstructions: LetBindingInstruction[] = [];
@@ -714,41 +714,41 @@ export class ViewCompiler {
     return marker;
   }
 
-  element(el: Element, container: IContainer, context: ICompilationContext): Node | null {
+  private element(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     // instructions sort:
     // hydrate custom element instruction first
     // hydrate custom attribute instructions next
     // rest kept as is (to-be-decided)
 
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
-    const elementInfo = container.find(CustomElement, elName) as CustomElementDefinition | null;
+    const elDef = container.find(CustomElement, elName) as CustomElementDefinition | null;
     const attrParser = context.attrParser;
     const exprParser = context.exprParser;
     const attrSyntaxTransformer = context.attrTransformer;
     const attrs = el.attributes;
     const instructions: IInstruction[] = [];
     const bindableInstructions: unknown[] = [];
+    let ii = attrs.length;
     let i = 0;
     let attr: Attr;
     let attrName: string;
     let attrValue: string;
     let attrSyntax: AttrSyntax;
-    let attrInfo: CustomAttributeDefinition | null = null;
+    let attrDef: CustomAttributeDefinition | null = null;
+    let isMultiBindings = false;
     let bindable: BindableDefinition;
     let attrInstructions: IInstruction[];
-    let currentController: any;
     let templateControllers: AttrSyntax[] = [];
     let expr: AnyBindingExpression;
     let elementInstruction: HydrateElementInstruction;
     let bindingCommand: BindingCommandInstance | null = null;
-    let bindingSymbol: PlainAttributeSymbol | BindingSymbol;
 
     // create 2 arrays
     // 1 array for instructions
     // 1 array for template controllers
     // custom element instruction is separate
 
-    for (; attrs.length > i; ++i) {
+    for (; ii > i; ++i) {
       attr = attrs[i];
       attrName = attr.name;
       attrValue = attr.value;
@@ -762,9 +762,12 @@ export class ViewCompiler {
         // background.style="..."
         // my-attr.attr="..."
         expr = exprParser.parse(attrValue, bindingCommand.bindingType);
-        bindingSymbol = new PlainAttributeSymbol(attrSyntax, bindingCommand, expr);
 
-        instructions.push(bindingCommand.compile(bindingSymbol));
+        commandBuildInfo.node = el;
+        commandBuildInfo.attr = attrSyntax;
+        commandBuildInfo.expr = expr;
+        commandBuildInfo.bindable = null;
+        bindableInstructions.push(bindingCommand.build(commandBuildInfo));
 
         // to next attribute
         continue;
@@ -772,31 +775,55 @@ export class ViewCompiler {
 
       // if not a ignore attribute binding command
       // then process with the next possibilities
-      attrInfo = container.find(CustomAttribute, attrSyntax.target) as CustomAttributeDefinition | null;
+      attrDef = container.find(CustomAttribute, attrSyntax.target) as CustomAttributeDefinition | null;
       // when encountering an attribute,
       // custom attribute takes precedence over custom element bindables
-      if (attrInfo !== null) {
-        attrInstructions = this.customAttr(attrSyntax, bindingCommand, attrInfo, container, context);
-
-        // custom attribute WITHOUT binding command:
-        // my-attr=""
-        // my-attr="${}"
-        // my-attr="prop1.bind: ...; prop2.bind: ..."
-        // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
-        if (bindingCommand === null) {
-
+      if (attrDef !== null) {
+        // Custom attributes are always in multiple binding mode,
+        // except when they can't be
+        // When they cannot be:
+        //        * has explicit configuration noMultiBindings: false
+        //        * has binding command, ie: <div my-attr.bind="...">.
+        //          In this scenario, the value of the custom attributes is required to be a valid expression
+        //        * has no colon: ie: <div my-attr="abcd">
+        //          In this scenario, it's simply invalid syntax.
+        //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
+        isMultiBindings = attrDef.noMultiBindings === false
+          && bindingCommand === null
+          && hasInlineBindings(attrValue);
+        if (isMultiBindings) {
+          attrInstructions = this.multiBindings(el, attrValue, attrDef, container, context)
         } else {
-          // custom attribute with binding command:
-          // my-attr.bind="..."
-          // my-attr.two-way="..."
+          // custom attribute + single value + WITHOUT binding command:
+          // my-attr=""
+          // my-attr="${}"
+          if (bindingCommand === null) {
+            expr = context.exprParser.parse(attrValue, BindingType.Interpolation);
+            instructions.push(expr === null
+              ? new SetPropertyInstruction(attrValue, attrDef.primary.property)
+              : new InterpolationInstruction(expr, attrDef.primary.property)
+            );
+          } else {
+            // custom attribute with binding command:
+            // my-attr.bind="..."
+            // my-attr.two-way="..."
+            expr = context.exprParser.parse(attrValue, bindingCommand.bindingType);
 
+            commandBuildInfo.node = el;
+            commandBuildInfo.attr = attrSyntax;
+            commandBuildInfo.expr = expr;
+            commandBuildInfo.bindable = attrDef.primary;
+            bindableInstructions.push(bindingCommand.build(commandBuildInfo));
+          }
         }
 
-        if (attrInfo.isTemplateController) {
+        if (attrDef.isTemplateController) {
+          // todo: build hydrate template controller instruction
+          //        and add to a special array of template controller instructions
           el.removeAttribute(attrName);
           --i;
+          --ii;
 
-          const bindings = attrValue.split(';')/* create binding from the attr value */;
           // TODO: need to somehow pass the existing, parsed attriute instruction to this definition
           // const def = this.templateController(template, context);
           // const currentControllerInstruction = templateControllers[templateControllers.length - 1];
@@ -809,13 +836,13 @@ export class ViewCompiler {
           continue;
         }
 
-        // todo: create hydrate custom attribute instruction, add to the instruction row
+        // todo: create hydrate custom attribute instruction & add to the instruction row
         continue;
       }
 
       if (bindingCommand === null) {
-        if (elementInfo !== null) {
-          bindable = elementInfo.bindables[attrSyntax.target];
+        if (elDef !== null) {
+          bindable = elDef.bindables[attrSyntax.target];
           if (bindable != null) {
             expr = exprParser.parse(attrSyntax.rawValue, BindingType.Interpolation);
             bindableInstructions.push(new InterpolationInstruction(expr, bindable.property));
@@ -823,18 +850,18 @@ export class ViewCompiler {
           }
         }
 
-        // if not a bindable, then first need to
-        // apply transformation to ensure plain attribute are mapped correctly:
-        // e.g: colspan -> colSpan
-        //      innerhtml -> innerHTML
-        //      minlength -> minLengt etc...
-        attrSyntaxTransformer.transform(el, attrSyntax);
-
         // after transformation, both attrSyntax value & target could have been changed
         // access it again to ensure it's fresh
         expr = exprParser.parse(attrSyntax.rawValue, BindingType.Interpolation);
         if (expr !== null) {
-          instructions.push(new InterpolationInstruction(expr, attrSyntax.target));
+          instructions.push(new InterpolationInstruction(
+            expr,
+            // if not a bindable, then ensure plain attribute are mapped correctly:
+            // e.g: colspan -> colSpan
+            //      innerhtml -> innerHTML
+            //      minlength -> minLengt etc...
+            attrSyntaxTransformer.map(el, attrSyntax.target) ?? camelCase(attrSyntax.target)
+          ));
         }
         // if not a custom attribute + no binding command + not a bindable + not an interpolation
         // then it's just a plain attribute, do nothing
@@ -846,10 +873,10 @@ export class ViewCompiler {
       // + not an overriding binding command
       // + not a custom attribute
 
-      if (elementInfo !== null) {
+      if (elDef !== null) {
         // if the element is a custom element
         // - prioritize bindables on a custom element before plain attributes
-        bindable = elementInfo.bindables[attrSyntax.target];
+        bindable = elDef.bindables[attrSyntax.target];
         if (bindable != null) {
           const normalPropCommand = BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand;
           // if it looks like: <my-el value.bind>
@@ -859,39 +886,43 @@ export class ViewCompiler {
             ? camelCase(attrName)
             : attrValue;
           expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
-          bindingSymbol = new BindingSymbol(
-            bindingCommand,
-            new BindableInfo(bindable.property, bindable.mode),
-            expr,
-            realAttrValue,
-            bindable.property
-          );
 
-          bindableInstructions.push(bindingCommand.compile(bindingSymbol));
+          commandBuildInfo.node = el;
+          commandBuildInfo.attr = attrSyntax;
+          commandBuildInfo.expr = expr;
+          commandBuildInfo.bindable = bindable;
+          bindableInstructions.push(bindingCommand.build(commandBuildInfo));
           continue;
         }
       }
 
+      // old: mutate attr syntax before building instruction
       // reaching here means it's a binding command used against a plain attribute
       // first apply transformation to ensure getting the right target
       // e.g: colspan -> colSpan
       //      innerhtml -> innerHTML
       //      minlength -> minLengt etc...
-      attrSyntaxTransformer.transform(el, attrSyntax);
+      // attrSyntaxTransformer.transform(el, attrSyntax);
+
+      // new: map attr syntax target during building instruction
 
       expr = exprParser.parse(attrSyntax.rawValue, bindingCommand.bindingType);
-      bindingSymbol = new PlainAttributeSymbol(attrSyntax, bindingCommand, expr);
+      // bindingSymbol = new PlainAttributeSymbol(attrSyntax, bindingCommand, expr);
 
-      instructions.push(bindingCommand.compile(bindingSymbol));
+      commandBuildInfo.node = el;
+      commandBuildInfo.attr = attrSyntax;
+      commandBuildInfo.expr = expr;
+      commandBuildInfo.bindable = null;
+      instructions.push(bindingCommand.build(commandBuildInfo));
     }
 
     if (
       // not null is not needed, though for avoiding non-null assertion
-      elementInfo !== null
+      elDef !== null
       && bindableInstructions.length > 0
     ) {
       elementInstruction = new HydrateElementInstruction(
-        elementInfo.name,
+        elDef.name,
         void 0,
         bindableInstructions as IInstruction[],
         null,
@@ -927,8 +958,8 @@ export class ViewCompiler {
 
     }
 
-    const shouldCompileContent = elementInfo != null
-      && elementInfo.processContent?.call(elementInfo.Type, el, container.get(IPlatform)) !== false;
+    const shouldCompileContent = elDef != null
+      && elDef.processContent?.call(elDef.Type, el, container.get(IPlatform)) !== false;
     if (shouldCompileContent) {
       // todo:
       //    if there's a template controller
@@ -998,112 +1029,97 @@ export class ViewCompiler {
 
   }
 
-  private customAttr(attrSyntax: AttrSyntax, bindingCommand: BindingCommandInstance | null, attrDef: CustomAttributeDefinition, container: IContainer, context: ICompilationContext): IInstruction[] {
-    const attrRawValue = attrSyntax.rawValue;
+  private multiBindings(
+    node: Element,
+    attrRawValue: string,
+    attrDef: CustomAttributeDefinition,
+    container: IContainer,
+    context: ICompilationContext
+  ): IInstruction[] {
+    // custom attribute + multiple values:
+    // my-attr="prop1: literal1 prop2.bind: ...; prop3: literal3"
+    // my-attr="prop1.bind: ...; prop2.bind: ..."
+    // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
+    const bindables = attrDef.bindables;
+    const valueLength = attrRawValue.length;
     const instructions: IInstruction[] = [];
-    const attrInfo = AttrInfo.from(attrDef, attrSyntax.target);
-    // Custom attributes are always in multiple binding mode,
-    // except when they can't be
-    // When they cannot be:
-    //        * has explicit configuration noMultiBindings: false
-    //        * has binding command, ie: <div my-attr.bind="...">.
-    //          In this scenario, the value of the custom attributes is required to be a valid expression
-    //        * has no colon: ie: <div my-attr="abcd">
-    //          In this scenario, it's simply invalid syntax. Consider style attribute rule-value pair: <div style="rule: ruleValue">
-    const isMultiBindings = attrDef.noMultiBindings === false && bindingCommand === null && hasInlineBindings(attrRawValue);
-    if (isMultiBindings) {
-      // custom attribute + multiple values:
-      // my-attr="prop1: literal1 prop2.bind: ...; prop3: literal3"
-      // my-attr="prop1.bind: ...; prop2.bind: ..."
-      // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
-      const bindables = attrInfo.bindables;
-      const valueLength = attrRawValue.length;
 
-      let $attrName: string | undefined = void 0;
-      let $attrValue: string | undefined = void 0;
+    let attrName: string | undefined = void 0;
+    let attrValue: string | undefined = void 0;
 
-      let start = 0;
-      let ch = 0;
-      let expr: AnyBindingExpression;
+    let start = 0;
+    let ch = 0;
+    let expr: AnyBindingExpression;
+    let attrSyntax: AttrSyntax;
+    let command: BindingCommandInstance | null;
+    let bindable: BindableDefinition;
 
-      for (let i = 0; i < valueLength; ++i) {
-        ch = attrRawValue.charCodeAt(i);
+    for (let i = 0; i < valueLength; ++i) {
+      ch = attrRawValue.charCodeAt(i);
 
-        if (ch === Char.Backslash) {
-          ++i;
-          // Ignore whatever comes next because it's escaped
-        } else if (ch === Char.Colon) {
-          $attrName = attrRawValue.slice(start, i);
+      if (ch === Char.Backslash) {
+        ++i;
+        // Ignore whatever comes next because it's escaped
+      } else if (ch === Char.Colon) {
+        attrName = attrRawValue.slice(start, i);
 
-          // Skip whitespace after colon
-          while (attrRawValue.charCodeAt(++i) <= Char.Space);
+        // Skip whitespace after colon
+        while (attrRawValue.charCodeAt(++i) <= Char.Space);
 
-          start = i;
+        start = i;
 
-          for (; i < valueLength; ++i) {
-            ch = attrRawValue.charCodeAt(i);
-            if (ch === Char.Backslash) {
-              ++i;
-              // Ignore whatever comes next because it's escaped
-            } else if (ch === Char.Semicolon) {
-              $attrValue = attrRawValue.slice(start, i);
-              break;
-            }
+        for (; i < valueLength; ++i) {
+          ch = attrRawValue.charCodeAt(i);
+          if (ch === Char.Backslash) {
+            ++i;
+            // Ignore whatever comes next because it's escaped
+          } else if (ch === Char.Semicolon) {
+            attrValue = attrRawValue.slice(start, i);
+            break;
           }
-
-          if ($attrValue === void 0) {
-            // No semicolon found, so just grab the rest of the value
-            $attrValue = attrRawValue.slice(start);
-          }
-
-          const attrSyntax = context.attrParser.parse($attrName, $attrValue);
-          // const attrTarget = camelCase(attrSyntax.target);
-          const command = this.getBindingCommand(container, attrSyntax, false);
-          const bindable = bindables[attrSyntax.target];
-          if (bindable == null) {
-            throw new Error('Invalid usage of multi-binding custom attribute: target attribute/property not found.');
-          }
-          if (command === null) {
-            expr = context.exprParser.parse($attrValue, BindingType.Interpolation);
-            instructions.push(expr === null
-              ? new SetPropertyInstruction(attrRawValue, bindable.propName)
-              : new InterpolationInstruction(expr, bindable.propName)
-            );
-          } else {
-            expr = context.exprParser.parse($attrValue, command.bindingType);
-            instructions.push(command.compile(new BindingSymbol(command, bindable, expr, $attrValue, $attrName)));
-          }
-
-          // Skip whitespace after semicolon
-          while (i < valueLength && attrRawValue.charCodeAt(++i) <= Char.Space);
-
-          start = i;
-
-          $attrName = void 0;
-          $attrValue = void 0;
         }
-      }
-    } else {
-      const primaryBindable = attrInfo.bindable;
-      // custom attribute + single value + WITHOUT binding command:
-      // my-attr=""
-      // my-attr="${}"
-      if (bindingCommand === null) {
-        const expr = context.exprParser.parse(attrRawValue, BindingType.Interpolation);
-        instructions.push(expr === null
-          ? new SetPropertyInstruction(attrRawValue, primaryBindable.propName)
-          : new InterpolationInstruction(expr, primaryBindable.propName)
-        );
-      } else {
-        // custom attribute with binding command:
-        // my-attr.bind="..."
-        // my-attr.two-way="..."
-        const expr = context.exprParser.parse(attrRawValue, bindingCommand.bindingType);
-        instructions.push(bindingCommand.compile(new BindingSymbol(bindingCommand, attrInfo.bindable, expr, attrRawValue, attrInfo.bindable.propName)));
+
+        if (attrValue === void 0) {
+          // No semicolon found, so just grab the rest of the value
+          attrValue = attrRawValue.slice(start);
+        }
+
+        attrSyntax = context.attrParser.parse(attrName, attrValue);
+        // ================================================
+        // todo: should it always camel case???
+        // const attrTarget = camelCase(attrSyntax.target);
+        // ================================================
+        command = this.getBindingCommand(container, attrSyntax, false);
+        bindable = bindables[attrSyntax.target];
+        if (bindable == null) {
+          throw new Error('Invalid usage of multi-binding custom attribute: target attribute/property not found.');
+        }
+        if (command === null) {
+          expr = context.exprParser.parse(attrValue, BindingType.Interpolation);
+          instructions.push(expr === null
+            ? new SetPropertyInstruction(attrRawValue, bindable.property)
+            : new InterpolationInstruction(expr, bindable.property)
+          );
+        } else {
+          expr = context.exprParser.parse(attrValue, command.bindingType);
+          commandBuildInfo.node = node;
+          commandBuildInfo.attr = attrSyntax;
+          commandBuildInfo.expr = expr;
+          commandBuildInfo.bindable = bindable;
+          // instructions.push(command.compile(new BindingSymbol(command, bindable, expr, attrValue, attrName)));
+          instructions.push(command.build(commandBuildInfo));
+        }
+
+        // Skip whitespace after semicolon
+        while (i < valueLength && attrRawValue.charCodeAt(++i) <= Char.Space);
+
+        start = i;
+
+        attrName = void 0;
+        attrValue = void 0;
       }
     }
-
-    return instructions;
+    return [];
   }
 
   private parse(template: string): DocumentFragment {
@@ -1241,3 +1257,10 @@ function hasInlineBindings(rawValue: string): boolean {
   }
   return false;
 }
+
+const commandBuildInfo: ICommandBuildInfo = {
+  node: null!,
+  expr: null!,
+  attr: null!,
+  bindable: null,
+};

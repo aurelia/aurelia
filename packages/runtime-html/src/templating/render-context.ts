@@ -1,9 +1,17 @@
-import {
+import { InstanceProvider } from '@aurelia/kernel';
+import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom.js';
+import { IRenderer, ITemplateCompiler, IInstruction, ICompliationInstruction } from '../renderer.js';
+import { CustomElementDefinition } from '../resources/custom-element.js';
+import { IViewFactory, ViewFactory } from './view.js';
+import { IAuSlotsInfo, IProjections } from '../resources/custom-elements/au-slot.js';
+import { IPlatform } from '../platform.js';
+import { IController } from './controller.js';
+
+import type {
   Constructable,
   IContainer,
   IDisposable,
   IFactory,
-  InstanceProvider,
   IResolver,
   IResourceKind,
   Key,
@@ -12,15 +20,10 @@ import {
   ResourceType,
   Transformer,
 } from '@aurelia/kernel';
-import { Scope, LifecycleFlags } from '@aurelia/runtime';
-import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom.js';
-import { IRenderer, ITemplateCompiler, IInstruction, Instruction, InstructionTypeName, HydrateElementInstruction, HydrateTemplateController } from '../renderer.js';
-import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
-import { IViewFactory, ViewFactory } from './view.js';
-import { AuSlotContentType, IAuSlotsInfo, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
-import { IPlatform } from '../platform.js';
-import { IController } from './controller.js';
+import type { LifecycleFlags } from '@aurelia/runtime';
 import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller.js';
+import type { Instruction, InstructionTypeName } from '../renderer.js';
+import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();
@@ -63,7 +66,7 @@ export interface IRenderContext extends IContainer {
    *
    * @returns The compiled `IRenderContext`.
    */
-  compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext;
+  compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext;
 
   /**
    * Creates an (or returns the cached) `IViewFactory` that can be used to create synthetic view controllers.
@@ -77,7 +80,7 @@ export interface IRenderContext extends IContainer {
  * A compiled `IRenderContext` that can create instances of `INodeSequence` (based on the template of the compiled definition)
  * and begin a component operation to create new component instances.
  */
-export interface ICompiledRenderContext extends IRenderContext, IProjectionProvider {
+export interface ICompiledRenderContext extends IRenderContext {
   /**
    * The compiled `CustomElementDefinition`.
    *
@@ -169,7 +172,7 @@ export interface IComponentFactory extends ICompiledRenderContext, IDisposable {
 export function getRenderContext(
   partialDefinition: PartialCustomElementDefinition,
   parentContainer: IContainer,
-  projections?: Record<string, CustomElementDefinition> | null,
+  projections?: IProjections | null,
 ): IRenderContext {
   const definition = CustomElementDefinition.getOrCreate(partialDefinition);
 
@@ -247,7 +250,6 @@ export class RenderContext implements IComponentFactory {
   private factory: IViewFactory | undefined = void 0;
   private isCompiled: boolean = false;
 
-  private readonly projectionProvider: IProjectionProvider;
   public readonly platform: IPlatform;
   private readonly renderers: Record<InstructionTypeName, IRenderer> = Object.create(null);
 
@@ -267,7 +269,6 @@ export class RenderContext implements IComponentFactory {
       renderer = renderers[i];
       this.renderers[renderer.instructionType as string] = renderer;
     }
-    this.projectionProvider = container.get(IProjectionProvider);
 
     container.registerResolver(
       IViewFactory,
@@ -369,10 +370,9 @@ export class RenderContext implements IComponentFactory {
   // #endregion
 
   // #region IRenderContext api
-  public compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext {
+  public compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext {
     let compiledDefinition: CustomElementDefinition;
     if (this.isCompiled) {
-      this.registerScopeForAuSlot(targetedProjections);
       return this;
     }
     this.isCompiled = true;
@@ -382,8 +382,7 @@ export class RenderContext implements IComponentFactory {
       const container = this.container;
       const compiler = container.get(ITemplateCompiler);
 
-      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, targetedProjections);
-      this.registerScopeForAuSlot(targetedProjections);
+      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, compilationInstruction);
     } else {
       compiledDefinition = this.compiledDefinition = definition;
     }
@@ -442,28 +441,6 @@ export class RenderContext implements IComponentFactory {
     }
 
     return this;
-  }
-
-  private registerScopeForAuSlot(targetedProjections: RegisteredProjections | null): void {
-    if (targetedProjections === null) { return; }
-    const scope = targetedProjections.scope;
-    const projectionProvider = this.projectionProvider;
-    const instructions = this.compiledDefinition.instructions.flat();
-    let i = 0;
-    while (i < instructions.length) {
-      const instruction = instructions[i++];
-      if (instruction instanceof HydrateElementInstruction) {
-        const slotInfo = instruction.slotInfo;
-        if (slotInfo != null) {
-          if (slotInfo.type === AuSlotContentType.Projection) {
-            projectionProvider.registerScopeFor(instruction, scope);
-          }
-          instructions.push(...(slotInfo.content.instructions?.flat() ?? []));
-        }
-      } else if (instruction instanceof HydrateTemplateController) {
-        instructions.push(...((instruction.def.instructions?.flat() ?? []) as IInstruction[]));
-      }
-    }
   }
 
   // #endregion
@@ -567,23 +544,6 @@ export class RenderContext implements IComponentFactory {
 
   public dispose(): void {
     this.elementProvider.dispose();
-  }
-  // #endregion
-
-  // #region IProjectionProvider api
-  public registerProjections(projections: Map<Instruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
-    this.projectionProvider.registerProjections(projections, scope);
-  }
-
-  public getProjectionFor(instruction: Instruction): RegisteredProjections | null {
-    return this.projectionProvider.getProjectionFor(instruction);
-  }
-
-  public registerScopeFor(auSlotInstruction: IInstruction, scope: Scope): void {
-    this.projectionProvider.registerScopeFor(auSlotInstruction, scope);
-  }
-  public getScopeFor(auSlotInstruction: IInstruction): Scope | null {
-    return this.projectionProvider.getScopeFor(auSlotInstruction);
   }
   // #endregion
 }

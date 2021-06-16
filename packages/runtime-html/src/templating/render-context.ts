@@ -571,14 +571,6 @@ export class RenderContext implements IComponentFactory {
   // #endregion
 
   // #region IProjectionProvider api
-  public associate(instruction: HydrateElementInstruction, projections: Record<string, CustomElementDefinition>): void {
-    this.projectionProvider.associate(instruction, projections);
-  }
-
-  public retrieve(instruction: HydrateElementInstruction): Record<string, CustomElementDefinition> {
-    return this.projectionProvider.retrieve(instruction);
-  }
-
   public registerProjections(projections: Map<Instruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     this.projectionProvider.registerProjections(projections, scope);
   }

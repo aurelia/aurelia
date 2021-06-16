@@ -55,17 +55,21 @@ import {
   SetStyleAttributeInstruction,
   TextBindingInstruction,
   ITemplateCompiler,
-  ICompliationInstruction,
 } from './renderer.js';
 
 import { IPlatform } from './platform.js';
 import { Bindable } from './bindable.js';
-import { IAttributeParser } from './resources/attribute-pattern.js';
-import { AuSlotContentType, IProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
-import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
+import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
+import { AuSlotContentType, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute.js';
 import { BindingCommand, BindingCommandInstance } from './resources/binding-command.js';
 import { createLookup } from './utilities-html.js';
+
+import type { PartialCustomElementDefinition } from './resources/custom-element.js';
+import type { IProjections } from './resources/custom-elements/au-slot.js';
+import type { BindableDefinition } from './bindable.js';
+import type { ICompliationInstruction, IInstruction, } from './renderer.js';
 
 class CustomElementCompilationUnit {
   public readonly instructions: Instruction[][] = [];
@@ -574,16 +578,11 @@ interface ICompilationContext {
   exprParser: IExpressionParser;
   /* an array representing targets of instructions, built on depth first tree walking compilation */
   instructionRows: unknown[];
-  projectionProvider: IProjectionProvider;
-  projections: RegisteredProjections | null;
+  projections: IProjections | null;
   localElements: Set<string>;
 }
 
 export class ViewCompiler {
-  public constructor() {
-
-  }
-
   compile(template: string | Element | DocumentFragment, container: IContainer): CustomElementDefinition {
     if (typeof template === 'string') {
       template = this.parse(template);
@@ -682,9 +681,9 @@ export class ViewCompiler {
     return this.mark(el).nextSibling;
   }
 
-  auSlot(el: Element, container: IContainer, context: ICompilationContext): Node | null {
+  private auSlot(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     const slotName = el.getAttribute('name') || 'default';
-    const targetedProjection = context.projections?.projections?.[slotName];
+    const targetedProjection = context.projections?.[slotName];
     let firstNode: Node | null;
     // if there's no projection for an <au-slot/>
     // there's no need to treat it in any special way
@@ -708,6 +707,7 @@ export class ViewCompiler {
       'au-slot',
       void 0,
       emptyArray,
+      null,
       slotInfo,
     );
     context.instructionRows.push(instructionRow);
@@ -890,7 +890,13 @@ export class ViewCompiler {
       elementInfo !== null
       && bindableInstructions.length > 0
     ) {
-      elementInstruction = new HydrateElementInstruction(elementInfo.name, void 0, bindableInstructions as IInstruction[], null);
+      elementInstruction = new HydrateElementInstruction(
+        elementInfo.name,
+        void 0,
+        bindableInstructions as IInstruction[],
+        null,
+        null
+      );
       instructions.unshift(elementInstruction);
     }
 
@@ -938,6 +944,7 @@ export class ViewCompiler {
 
   private projection(el: Element, container: IContainer, context: ICompilationContext, instruction: HydrateElementInstruction): void {
     let node = el.firstChild;
+    let hasProjection = false;
     // for each child element of a custom element
     // scan for [au-slot], if there's one
     // then extract the element into a projection definition
@@ -954,13 +961,14 @@ export class ViewCompiler {
     //  <my-el>
     //    <template au-slot><div if.bind="..."></div>
     //  </my-el>
-    const projections: Record<string, CustomElementDefinition> = {};
+    const projections: IProjections = createLookup();
     while (node !== null) {
       const next = node.nextSibling;
       switch (node.nodeType) {
         case 1:
           const targetedSlot = (node as Element).getAttribute('au-slot');
           if (targetedSlot !== null) {
+            hasProjection = true;
             (node as Element).removeAttribute('au-slot');
             const template = el.insertBefore(document.createElement('template'), node);
             const auSlotContext: ICompilationContext = {
@@ -983,7 +991,7 @@ export class ViewCompiler {
       node = next;
     }
 
-    context.projectionProvider.associate(instruction, projections);
+    instruction.projections = hasProjection ? projections : null;
   }
 
   private text() {

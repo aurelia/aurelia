@@ -114,7 +114,7 @@ function chooseContext(
 
   // traverse the context and it's ancestors, searching for a context that has the name.
   while (
-    (!currentScope?.isComponentBoundary
+    (!currentScope?.isBoundary
       || projectionScope !== null && projectionScope !== currentScope
     )
     && overrideContext
@@ -140,7 +140,7 @@ export class Scope {
     public parentScope: Scope | null,
     public bindingContext: IBindingContext,
     public overrideContext: IOverrideContext,
-    public readonly isComponentBoundary: boolean,
+    public readonly isBoundary: boolean,
   ) {}
 
   /**
@@ -161,7 +161,7 @@ export class Scope {
    * during binding, it will traverse up via the `parentScope` of the scope until
    * it finds the property.
    */
-  public static create(bc: object, oc: IOverrideContext, isComponentBoundary?: boolean): Scope;
+  public static create(bc: object, oc: IOverrideContext, isBoundary?: boolean): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -171,9 +171,9 @@ export class Scope {
    * @param bc - The `BindingContext` to back the `Scope` with.
    * @param oc - null. This overload is functionally equivalent to not passing this argument at all.
    */
-  public static create(bc: object, oc: null, isComponentBoundary?: boolean): Scope;
-  public static create(bc: object, oc?: IOverrideContext | null, isComponentBoundary?: boolean): Scope {
-    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(bc) : oc, isComponentBoundary ?? false);
+  public static create(bc: object, oc: null, isBoundary?: boolean): Scope;
+  public static create(bc: object, oc?: IOverrideContext | null, isBoundary?: boolean): Scope {
+    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(bc) : oc, isBoundary ?? false);
   }
 
   public static fromOverride(oc: IOverrideContext): Scope {

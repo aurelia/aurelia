@@ -40,13 +40,14 @@ import type {
   AccessorOrObserver,
   IsBindingBehavior,
 } from '@aurelia/runtime';
+import { IProjections } from '../resources/custom-elements/au-slot.js';
+import { LifecycleHooks, LifecycleHooksLookup } from './lifecycle-hooks.js';
+
 import type { BindableDefinition } from '../bindable.js';
 import type { PropertyBinding } from '../binding/property-binding.js';
-import { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
 import type { IWatchDefinition, IWatcherCallback } from '../watch.js';
-import { LifecycleHooks, LifecycleHooksLookup } from './lifecycle-hooks.js';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -185,8 +186,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     container: IContainer,
     viewModel: C,
     host: HTMLElement,
-    // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
-    targetedProjections: RegisteredProjections | null,
+    hydrationInst: IControllerElementHydrationInstruction | null,
     flags: LifecycleFlags = LifecycleFlags.none,
     hydrate: boolean = true,
     // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
@@ -196,6 +196,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return controllerLookup.get(viewModel) as unknown as ICustomElementController<C>;
     }
 
+    // todo: the caching behavior from CustomElement.getDefinition here will stip us time to time
+    //       when combined with au-slot. Consider a way to not allow this
     definition = definition ?? CustomElement.getDefinition(viewModel.constructor as Constructable);
 
     const controller = new Controller<C>(
@@ -212,7 +214,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrate) {
-      controller.hydrateCustomElement(container, targetedProjections);
+      controller.hydrateCustomElement(container, hydrationInst);
     }
 
     return controller as unknown as ICustomElementController<C>;
@@ -274,7 +276,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   /** @internal */
-  public hydrateCustomElement(parentContainer: IContainer, targetedProjections: RegisteredProjections | null): void {
+  public hydrateCustomElement(
+    parentContainer: IContainer,
+    hydrationInst: IControllerElementHydrationInstruction | null
+  ): void {
     this.logger = parentContainer.get(ILogger).root;
     this.debug = this.logger.config.level <= LogLevel.debug;
     if (this.debug) {
@@ -304,7 +309,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    const context = this.context = getRenderContext(definition, parentContainer, targetedProjections?.projections) as RenderContext;
+    // todo: make projections not influential on the render context construction
+    const context = this.context = getRenderContext(definition, parentContainer, hydrationInst?.projections) as RenderContext;
+    // todo: should register a resolver resolving to a IContextElement/IContextComponent
+    //       so that component directly under this template can easily distinguish its owner/parent
+    // context.register(Registration.instance(IContextElement))
+
     this.lifecycleHooks = LifecycleHooks.resolve(context);
     // Support Recursive Components by adding self to own context
     definition.register(context);
@@ -321,22 +331,21 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
     if ((this.root?.controller as this | undefined) !== this) {
-      this.hydrate(targetedProjections);
+      this.hydrate(hydrationInst);
       this.hydrateChildren();
     }
   }
 
   /** @internal */
-  public hydrate(targetedProjections: RegisteredProjections | null): void {
+  public hydrate(hydrationInst: IControllerElementHydrationInstruction | null): void {
     if (this.hooks.hasHydrating) {
       if (this.debug) { this.logger!.trace(`invoking hasHydrating() hook`); }
       (this.viewModel as BindingContext<C>).hydrating(this as ICustomElementController);
     }
 
-    const compiledContext = this.context!.compile(targetedProjections);
-    const { projectionsMap, shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
+    const compiledContext = this.context!.compile(hydrationInst);
+    const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
 
-    compiledContext.registerProjections(projectionsMap, this.scope!);
     this.isStrictBinding = isStrictBinding;
 
     if ((this.hostController = CustomElement.for(this.host!, optional) as Controller | null) !== null) {
@@ -1686,4 +1695,8 @@ export interface IHydratedCustomElementViewModel extends ICustomElementViewModel
 
 export interface IHydratedCustomAttributeViewModel extends ICustomAttributeViewModel {
   readonly $controller: ICustomAttributeController<this>;
+}
+
+export interface IControllerElementHydrationInstruction {
+  readonly projections: IProjections | null;
 }

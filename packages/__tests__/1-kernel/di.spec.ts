@@ -1,6 +1,8 @@
 import {
   DI,
   inject,
+  newInstanceForScope,
+  newInstanceOf,
   Registration,
   singleton,
   transient,
@@ -564,6 +566,96 @@ describe(`The singleton decorator`, function () {
   });
 });
 
+describe('1-kernel/di.spec.ts/@newInstanceOf', function () {
+  it('throws when there is no registration for interface', function () {
+    const container = DI.createContainer();
+    const I = DI.createInterface('I');
+    assert.throws(() => container.get(newInstanceOf(I)), `No registration for interface: 'I'`);
+  });
+
+  it('creates new instance everytime', function () {
+    const container = DI.createContainer();
+    const I = DI.createInterface('I');
+    let iCallCount = 0;
+    class IImpl {
+      public constructor() {
+        iCallCount++;
+      }
+    }
+    container.register(Registration.singleton(I, IImpl));
+    const instance = container.get(newInstanceOf(I));
+    assert.strictEqual(iCallCount, 1);
+    assert.instanceOf(instance, IImpl);
+
+    const instance2 = container.get(newInstanceOf(I));
+    assert.strictEqual(iCallCount, 2);
+    assert.instanceOf(instance2, IImpl);
+  });
+
+  it('resolves dependencies from requestor', function () {
+    const container = DI.createContainer();
+    const I = DI.createInterface('I');
+    const IDep = DI.createInterface('IDep');
+    let iCallCount = 0;
+    class IImpl {
+      public static get inject() {
+        return [IDep];
+      }
+      public constructor() {
+        iCallCount++;
+      }
+    }
+    let parentDepCallCount = 0;
+    let childDepCallCount = 0;
+    container.register(Registration.singleton(I, IImpl));
+    container.register(Registration.singleton(IDep, class {
+      public constructor() {
+        parentDepCallCount++;
+      }
+    }));
+    const childContainer = container.createChild();
+    childContainer.register(Registration.singleton(IDep, class {
+      public constructor() {
+        childDepCallCount++;
+      }
+    }));
+    const instance = childContainer.get(newInstanceOf(I));
+    assert.strictEqual(iCallCount, 1);
+    assert.strictEqual(parentDepCallCount, 0);
+    assert.strictEqual(childDepCallCount, 1);
+    assert.instanceOf(instance, IImpl);
+  });
+});
+
+describe('1-kernel/di.spec.ts/@newInstanceForScope', function () {
+  // the following test tests a more common, expected scenario,
+  // where some instance is scoped to a child container,
+  // instead of the container registering the interface itself.
+  //
+  // for the container that registers the interface itself,
+  // the first registration is always a different resolver,
+  // with the actual resolver that resolves the instance of the interface
+  it('creates new instance once in child container', function () {
+    const container = DI.createContainer();
+    const I = DI.createInterface('I');
+    let iCallCount = 0;
+    class IImpl {
+      public constructor() {
+        iCallCount++;
+      }
+    }
+    container.register(Registration.singleton(I, IImpl));
+    const childContainer = container.createChild();
+    const instance = childContainer.get(newInstanceForScope(I));
+    assert.strictEqual(iCallCount, 1);
+    assert.instanceOf(instance, IImpl);
+
+    const instance2 = childContainer.get(I);
+    assert.strictEqual(iCallCount, 1);
+    assert.instanceOf(instance2, IImpl);
+    assert.strictEqual(instance, instance2);
+  });
+});
 // describe(`The Resolver class`, function () {
 //   let container: IContainer;
 //   let registerResolver: ReturnType<typeof spy>;
@@ -1371,7 +1463,11 @@ describe(`The Container class`, function () {
         assert.strictEqual(childHasKey, false, `childHasKey`);
       });
 
-      it(`stores resource resolvers in resourceResolvers in parent and inherits them from root but does not from parent`, function () {
+      // container used to copy resource keys all the way down
+      // it's not only wasteful, but also inappropriate
+      // a change in the way resources information is carried forward resulted in this test being skipped
+      // but kept as a reminder how it used to be, in case someone relying on this behavior ran into the odd behavior
+      it.skip(`stores resource resolvers in resourceResolvers in parent and inherits them from root but does not from parent`, function () {
         const type = class {};
         const keyFromRoot = 'foo:bar' as any;
         const keyFromParent = 'foo:baz' as any;
@@ -1392,10 +1488,10 @@ describe(`The Container class`, function () {
         const childHasKeyFromRoot = child['resourceResolvers'][keyFromRoot] !== void 0;
         const childHasKeyFromParent = child['resourceResolvers'][keyFromParent] !== void 0;
 
-        assert.strictEqual(parentHasKeyFromRoot, true, `parentHasKeyFromRoot`);
+        assert.strictEqual(parentHasKeyFromRoot, false, `parentHasKeyFromRoot`);
         assert.strictEqual(parentHasKeyFromParent, true, `parentHasKeyFromParent`);
 
-        assert.strictEqual(childHasKeyFromRoot, true, `childHasKeyFromRoot`);
+        assert.strictEqual(childHasKeyFromRoot, false, `childHasKeyFromRoot`);
         assert.strictEqual(childHasKeyFromParent, false, `childHasKeyFromParent`);
       });
     });

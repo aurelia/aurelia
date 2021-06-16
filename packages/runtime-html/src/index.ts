@@ -297,6 +297,7 @@ export {
   IRenderer,
   IInstructionTypeClassifier,
   ITemplateCompiler,
+  ICompliationInstruction,
   renderer,
   CallBindingInstruction,
   HydrateAttributeInstruction,
@@ -436,8 +437,6 @@ export {
   IProjections,
   SlotInfo,
   AuSlotContentType,
-  RegisteredProjections,
-  IProjectionProvider,
   AuSlotsInfo,
   IAuSlotsInfo,
 } from './resources/custom-elements/au-slot.js';
@@ -457,8 +456,12 @@ export {
 
 export {
   Subject,
-  Compose,
-} from './resources/custom-elements/compose.js';
+  AuRender,
+} from './resources/custom-elements/au-render.js';
+export {
+  AuCompose,
+  IDynamicComponentActivate,
+} from './resources/custom-elements/au-compose.js';
 export {
   ISanitizer,
   SanitizeValueConverter,
@@ -511,7 +514,7 @@ export {
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
-  ComposeRegistration,
+  AuRenderRegistration as ComposeRegistration,
 
   DefaultResources,
 
@@ -564,6 +567,7 @@ export {
   IController,
   IComponentController,
   IContextualCustomElementController,
+  IControllerElementHydrationInstruction,
   IHydratableController,
   IDryCustomElementController,
   ICustomAttributeController,

@@ -57,9 +57,10 @@ Have you ever needed to perform an action when a property is changed? If you hav
 
 To observe a property, you need to decorate it with the `@observable` decorator and define a method as the change handler. This method can receive 2 parameters: the new value and the old value. You can put any business logic inside this method.
 
-By convention, the change handler is a method whose name is composed of the property_name and the literal value 'Changed'. For example, if you decorate the property `color` with `@observable`, you have to define a method named `colorChanged()` to be the change handler.
+By convention, the change handler is a method whose name is composed of the property\_name and the literal value 'Changed'. For example, if you decorate the property `color` with `@observable`, you have to define a method named `colorChanged()` to be the change handler.
 
 **An example of this is:**
+
 ```typescript
 import { observable } from '@aurelia/runtime';
 

@@ -7,6 +7,7 @@ async function wait(ms: number): Promise<void> {
 
 // TemplateCompiler - Binding Resources integration
 describe('3-runtime-html/binding-resources.spec.ts', function () {
+  this.retries(3);
   function $createFixture() {
     const ctx = TestContext.create();
     const au = new Aurelia(ctx.container);

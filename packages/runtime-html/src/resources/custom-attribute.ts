@@ -92,7 +92,6 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
 }
 
 export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
-  public readonly primary: BindableDefinition;
   private constructor(
     public readonly Type: CustomAttributeType<T>,
     public readonly name: string,
@@ -103,40 +102,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly noMultiBindings: boolean,
     public readonly watches: IWatchDefinition[],
-  ) {
-    let bindable: BindableDefinition | undefined;
-    let prop: string;
-    let hasPrimary: boolean = false;
-    let primary: BindableDefinition | undefined;
-
-    // from all bindables, pick the first primary bindable
-    // if there is no primary, pick the first bindable
-    // if there's no bindables, create a new primary with property value
-    for (prop in bindables) {
-      bindable = bindables[prop];
-      // old: explicitly provided property name has priority over the implicit property name
-      // -----
-      // new: though this probably shouldn't be allowed!
-      // if (bindable.property !== void 0) {
-      //   prop = bindable.property;
-      // }
-      // -----
-      if (bindable.primary === true) {
-        if (hasPrimary) {
-          throw new Error('Primary already exists');
-        }
-        hasPrimary = true;
-        primary = bindable;
-      } else if (!hasPrimary) {
-        primary = bindable;
-      }
-    }
-    if (bindable == null) {
-      // if no bindables are present, default to "value"
-      primary = bindables.value = BindableDefinition.create('value');
-    }
-    this.primary = primary!;
-  }
+  ) {}
 
   public static create<T extends Constructable = Constructable>(
     nameOrDef: string | PartialCustomAttributeDefinition,

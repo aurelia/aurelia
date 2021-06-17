@@ -51,7 +51,7 @@ import {
 } from './renderer.js';
 
 import { IPlatform } from './platform.js';
-import { Bindable } from './bindable.js';
+import { Bindable, BindableDefinition } from './bindable.js';
 import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
 import { AuSlotContentType, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
@@ -64,7 +64,6 @@ import type { Interpolation, IsBindingBehavior, AnyBindingExpression } from '@au
 import type { IProjections } from './resources/custom-elements/au-slot.js';
 import type { ICommandBuildInfo } from './resources/binding-command.js';
 import type { PartialCustomElementDefinition } from './resources/custom-element.js';
-import type { BindableDefinition } from './bindable.js';
 import type { ICompliationInstruction, IInstruction, } from './renderer.js';
 
 class CustomElementCompilationUnit {
@@ -568,6 +567,7 @@ function processLocalTemplates(
 
 interface ICompilationContext {
   readonly parent: ICompilationContext | null;
+  readonly templateFactory: ITemplateElementFactory;
   readonly instruction: ICompliationInstruction;
   readonly logger: ILogger;
   readonly attrParser: IAttributeParser;
@@ -614,6 +614,7 @@ export class ViewCompiler implements ITemplateCompiler {
       logger,
       p,
       parent: null,
+      templateFactory: factory
     };
     const template = typeof definition.template === 'string' || !compilationInstruction.enhance
       ? factory.createTemplate(definition.template)
@@ -653,10 +654,10 @@ export class ViewCompiler implements ITemplateCompiler {
   private surrogate(el: Element, container: IContainer, context: ICompilationContext): IInstruction[] {
     const instructions: IInstruction[] = [];
     const attrs = el.attributes;
-    const ii = attrs.length;
     const attrParser = context.attrParser;
     const exprParser = context.exprParser;
     const attrTransformer = context.attrTransformer;
+    let ii = attrs.length;
     let i = 0;
     let attr: Attr;
     let attrName: string;
@@ -665,6 +666,7 @@ export class ViewCompiler implements ITemplateCompiler {
     let attrDef: CustomAttributeDefinition | null = null;
     let attrInstructions: HydrateAttributeInstruction[] | undefined;
     let attrBindableInstructions: IInstruction[];
+    let bindableAttrsInfo: BindableAttrsInfo;
     let bindingCommand: BindingCommandInstance | null = null;
     let expr: AnyBindingExpression;
     let isMultiBindings: boolean;
@@ -704,6 +706,7 @@ export class ViewCompiler implements ITemplateCompiler {
         if (attrDef.isTemplateController) {
           throw new Error(`Template controller "${attrSyntax.target}" is invalid on surrogate.`);
         }
+        bindableAttrsInfo = BindableAttrsInfo.from(attrDef, true);
         // Custom attributes are always in multiple binding mode,
         // except when they can't be
         // When they cannot be:
@@ -726,8 +729,8 @@ export class ViewCompiler implements ITemplateCompiler {
             expr = exprParser.parse(attrValue, BindingType.Interpolation);
             attrBindableInstructions = [
               expr === null
-                ? new SetPropertyInstruction(attrValue, attrDef.primary.property)
-                : new InterpolationInstruction(expr, attrDef.primary.property)
+                ? new SetPropertyInstruction(attrValue, bindableAttrsInfo.primary.property)
+                : new InterpolationInstruction(expr, bindableAttrsInfo.primary.property)
             ];
           } else {
             // custom attribute with binding command:
@@ -738,7 +741,7 @@ export class ViewCompiler implements ITemplateCompiler {
             commandBuildInfo.node = el;
             commandBuildInfo.attr = attrSyntax;
             commandBuildInfo.expr = expr;
-            commandBuildInfo.bindable = attrDef.primary;
+            commandBuildInfo.bindable = bindableAttrsInfo.primary;
             attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
           }
         }
@@ -751,6 +754,10 @@ export class ViewCompiler implements ITemplateCompiler {
         // access it again to ensure it's fresh
         expr = exprParser.parse(attrSyntax.rawValue, BindingType.Interpolation);
         if (expr != null) {
+          el.removeAttribute(attrName);
+          --i;
+          --ii;
+
           instructions.push(new InterpolationInstruction(
             expr,
             // if not a bindable, then ensure plain attribute are mapped correctly:
@@ -906,13 +913,14 @@ export class ViewCompiler implements ITemplateCompiler {
     const exprParser = context.exprParser;
     const attrSyntaxTransformer = context.attrTransformer;
     const attrs = el.attributes;
-    const instructions: IInstruction[] = [];
+    let instructions: IInstruction[] | undefined;
     let ii = attrs.length;
     let i = 0;
     let attr: Attr;
     let attrName: string;
     let attrValue: string;
     let attrSyntax: AttrSyntax;
+    let plainAttrInstructions: IInstruction[] | undefined;
     let elBindableInstructions: IInstruction[] | undefined;
     let attrDef: CustomAttributeDefinition | null = null;
     let isMultiBindings = false;
@@ -922,9 +930,10 @@ export class ViewCompiler implements ITemplateCompiler {
     let tcInstructions: HydrateTemplateController[] | undefined;
     let tcInstruction: HydrateTemplateController | undefined;
     let expr: AnyBindingExpression;
-    let elementInstruction: HydrateElementInstruction;
+    let elementInstruction: HydrateElementInstruction | undefined;
     let bindingCommand: BindingCommandInstance | null = null;
     let childContext: ICompilationContext & { parent: ICompilationContext; } | undefined;
+    let bindableAttrsInfo: BindableAttrsInfo;
 
     // create 2 arrays
     // 1 array for instructions
@@ -950,7 +959,7 @@ export class ViewCompiler implements ITemplateCompiler {
         commandBuildInfo.attr = attrSyntax;
         commandBuildInfo.expr = expr;
         commandBuildInfo.bindable = null;
-        instructions.push(bindingCommand.build(commandBuildInfo));
+        (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
 
         // to next attribute
         continue;
@@ -962,6 +971,7 @@ export class ViewCompiler implements ITemplateCompiler {
       // when encountering an attribute,
       // custom attribute takes precedence over custom element bindables
       if (attrDef !== null) {
+        bindableAttrsInfo = BindableAttrsInfo.from(attrDef, true);
         // Custom attributes are always in multiple binding mode,
         // except when they can't be
         // When they cannot be:
@@ -982,11 +992,19 @@ export class ViewCompiler implements ITemplateCompiler {
           // my-attr="${}"
           if (bindingCommand === null) {
             expr = exprParser.parse(attrValue, BindingType.Interpolation);
-            attrBindableInstructions = [
-              expr === null
-                ? new SetPropertyInstruction(attrValue, attrDef.primary.property)
-                : new InterpolationInstruction(expr, attrDef.primary.property)
-            ];
+            if (expr === null) {
+              attrBindableInstructions = [
+                new SetPropertyInstruction(attrValue, bindableAttrsInfo.primary.property)
+              ];
+            } else {
+              el.removeAttribute(attrName);
+              --i;
+              --ii;
+
+              attrBindableInstructions = [
+                new InterpolationInstruction(expr, bindableAttrsInfo.primary.property)
+              ];
+            }
           } else {
             // custom attribute with binding command:
             // my-attr.bind="..."
@@ -996,14 +1014,12 @@ export class ViewCompiler implements ITemplateCompiler {
             commandBuildInfo.node = el;
             commandBuildInfo.attr = attrSyntax;
             commandBuildInfo.expr = expr;
-            commandBuildInfo.bindable = attrDef.primary;
+            commandBuildInfo.bindable = bindableAttrsInfo.primary;
             attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
           }
         }
 
         if (attrDef.isTemplateController) {
-          // todo: build hydrate template controller instruction
-          //        and add to a special array of template controller instructions
           el.removeAttribute(attrName);
           --i;
           --ii;
@@ -1025,19 +1041,32 @@ export class ViewCompiler implements ITemplateCompiler {
 
       if (bindingCommand === null) {
         if (elDef !== null) {
-          bindable = elDef.bindables[attrSyntax.target];
+          bindableAttrsInfo = BindableAttrsInfo.from(elDef, false);
+          bindable = bindableAttrsInfo.attrs[attrSyntax.target];
           if (bindable !== void 0) {
             expr = exprParser.parse(attrSyntax.rawValue, BindingType.Interpolation);
-            (elBindableInstructions ??= []).push(new InterpolationInstruction(expr, bindable.property));
+            elBindableInstructions ??= [];
+            if (expr != null) {
+              el.removeAttribute(attrName);
+              --i;
+              --ii;
+
+              elBindableInstructions.push(new InterpolationInstruction(expr, bindable.property));
+            } else {
+              elBindableInstructions.push(new SetPropertyInstruction(attrSyntax.rawValue, bindable.property));
+            }
+
             continue;
           }
         }
 
-        // after transformation, both attrSyntax value & target could have been changed
-        // access it again to ensure it's fresh
         expr = exprParser.parse(attrSyntax.rawValue, BindingType.Interpolation);
         if (expr != null) {
-          instructions.push(new InterpolationInstruction(
+          el.removeAttribute(attrName);
+          --i;
+          --ii;
+
+          (plainAttrInstructions ??= []).push(new InterpolationInstruction(
             expr,
             // if not a bindable, then ensure plain attribute are mapped correctly:
             // e.g: colspan -> colSpan
@@ -1059,7 +1088,8 @@ export class ViewCompiler implements ITemplateCompiler {
       if (elDef !== null) {
         // if the element is a custom element
         // - prioritize bindables on a custom element before plain attributes
-        bindable = elDef.bindables[attrSyntax.target];
+        bindableAttrsInfo = BindableAttrsInfo.from(elDef, false);
+        bindable = bindableAttrsInfo.attrs[attrSyntax.target];
         if (bindable !== void 0) {
           const normalPropCommand = BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand;
           // if it looks like: <my-el value.bind>
@@ -1095,13 +1125,7 @@ export class ViewCompiler implements ITemplateCompiler {
       commandBuildInfo.attr = attrSyntax;
       commandBuildInfo.expr = expr;
       commandBuildInfo.bindable = null;
-      instructions.push(bindingCommand.build(commandBuildInfo));
-    }
-
-    // todo: maybe store instructions in different arrays
-    //       and concat at the end, instead of mutating?
-    if (attrInstructions !== void 0) {
-      instructions.splice(0, 0, ...attrInstructions);
+      (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
     }
 
     if (elDef !== null) {
@@ -1112,7 +1136,17 @@ export class ViewCompiler implements ITemplateCompiler {
         null,
         null,
       );
-      instructions.unshift(elementInstruction);
+    }
+
+    if (plainAttrInstructions != null
+      || elementInstruction != null
+      || attrInstructions != null
+    ) {
+      instructions = emptyArray.concat(
+        elementInstruction ?? emptyArray,
+        attrInstructions ?? emptyArray,
+        plainAttrInstructions ?? emptyArray
+      );
     }
 
     if (tcInstructions != null && tcInstructions.length > 0) {
@@ -1169,14 +1203,8 @@ export class ViewCompiler implements ITemplateCompiler {
 
     }
 
-    if (instructions.length > 0 || tcInstructions !== void 0) {
-      this.mark(el);
-    }
-    context.instructionRows.push(instructions);
-
     const shouldCompileContent = elDef === null
-      || elDef != null
-        && elDef.processContent?.call(elDef.Type, el, container.get(IPlatform)) !== false;
+      || elDef.processContent?.call(elDef.Type, el, container.get(IPlatform)) !== false;
     if (shouldCompileContent) {
       // todo:
       //    if there's a template controller
@@ -1185,13 +1213,39 @@ export class ViewCompiler implements ITemplateCompiler {
       //    if there is NOT a template controller
       //      context here should be the same with the context this method is called with
       // this.projection(el, container, context, elementInstruction!);
-    } else {
       let child = el.firstChild as Node | null;
+      let childEl: Element;
+      let targetSlot: string | null;
+      let projections: IProjections | null = null;
+      // for each child element of a custom element
+      // scan for [au-slot], if there's one
+      // then extract the element into a projection definition
+      // this allows support for [au-slot] declared on the same element with anther template controller
+      // e.g:
+      //
+      // can do:
+      //  <my-el>
+      //    <div au-slot if.bind="..."></div>
+      //    <div if.bind="..." au-slot></div>
+      //  </my-el>
+      //
+      // instead of:
+      //  <my-el>
+      //    <template au-slot><div if.bind="..."></div>
+      //  </my-el>
       while (child !== null) {
         switch (child.nodeType) {
-          case 1:
+          case 1: {
             // if has [au-slot] then it's a projection
+            childEl = (child as Element);
+            targetSlot = childEl.getAttribute('au-slot');
+            if (targetSlot === null) {
+              child = this.element(childEl, container, context);
+            } else {
+              (projections ??= {})[targetSlot] = CustomElementDefinition.create(this.projection(childEl, container, context));
+            }
             break;
+          }
           default:
             child = this.node(child, container, context);
             break;
@@ -1199,60 +1253,24 @@ export class ViewCompiler implements ITemplateCompiler {
       }
     }
 
+    if (instructions != null) {
+      this.mark(el);
+      context.instructionRows.push(instructions);
+    }
+
     return nextSibling;
   }
 
-  private projection(el: Element, container: IContainer, context: ICompilationContext, instruction: HydrateElementInstruction): void {
-    let node = el.firstChild;
-    let hasProjection = false;
-    // for each child element of a custom element
-    // scan for [au-slot], if there's one
-    // then extract the element into a projection definition
-    // this allows support for [au-slot] declared on the same element with anther template controller
-    // e.g:
-    //
-    // can do:
-    //  <my-el>
-    //    <div au-slot if.bind="..."></div>
-    //    <div if.bind="..." au-slot></div>
-    //  </my-el>
-    //
-    // instead of:
-    //  <my-el>
-    //    <template au-slot><div if.bind="..."></div>
-    //  </my-el>
-    const projections: IProjections = createLookup();
-    while (node !== null) {
-      const next = node.nextSibling;
-      switch (node.nodeType) {
-        case 1:
-          const targetedSlot = (node as Element).getAttribute('au-slot');
-          if (targetedSlot !== null) {
-            hasProjection = true;
-            (node as Element).removeAttribute('au-slot');
-            const template = el.insertBefore(document.createElement('template'), node);
-            const auSlotContext: ICompilationContext = {
-              ...context,
-              instructionRows: [],
-              // def: {
-              //   name: CustomElement.generateName(),
-              //   instructions: [],
-              //   template,
-              //   needsCompile: false,
-              // }
-            };
-            template.content.appendChild(node);
-            this.node(template.content, container, auSlotContext);
-            // todo:
-            // projections[targetedSlot] = CustomElementDefinition.create(auSlotContext.def);
-          }
-        default:
-          break;
-      }
-      node = next;
-    }
-
-    instruction.projections = hasProjection ? projections : null;
+  // unlike most of the rest compilation methods
+  // this is a terminating method
+  private projection(el: Element, container: IContainer, context: ICompilationContext): PartialCustomElementDefinition {
+    const template = context.templateFactory.createTemplate(el);
+    const projectionCompilationContext: ICompilationContext = {
+      ...context,
+      instructionRows: [],
+      parent: context,
+    };
+    return this.doCompile(template, container, projectionCompilationContext);
   }
 
   private text() {
@@ -1270,7 +1288,7 @@ export class ViewCompiler implements ITemplateCompiler {
     // my-attr="prop1: literal1 prop2.bind: ...; prop3: literal3"
     // my-attr="prop1.bind: ...; prop2.bind: ..."
     // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
-    const bindables = attrDef.bindables;
+    const bindableAttrsInfo = BindableAttrsInfo.from(attrDef, true);
     const valueLength = attrRawValue.length;
     const instructions: IInstruction[] = [];
 
@@ -1320,7 +1338,7 @@ export class ViewCompiler implements ITemplateCompiler {
         // const attrTarget = camelCase(attrSyntax.target);
         // ================================================
         command = this.getBindingCommand(container, attrSyntax, false);
-        bindable = bindables[attrSyntax.target];
+        bindable = bindableAttrsInfo.attrs[attrSyntax.target];
         if (bindable == null) {
           throw new Error('Invalid usage of multi-binding custom attribute: target attribute/property not found.');
         }
@@ -1515,3 +1533,56 @@ const invalidSurrogateAttribute = Object.assign(createLookup<boolean | undefined
   'au-slot': true,
   'as-element': true,
 });
+
+const bindableAttrsInfoCache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindableAttrsInfo>();
+class BindableAttrsInfo {
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: boolean): BindableAttrsInfo {
+    let info = bindableAttrsInfoCache.get(def);
+    if (info == null) {
+      const bindables = def.bindables;
+      const attrs = createLookup<BindableDefinition>();
+      let bindable: BindableDefinition | undefined;
+      let prop: string;
+      let hasPrimary: boolean = false;
+      let primary: BindableDefinition | undefined;
+  
+      // from all bindables, pick the first primary bindable
+      // if there is no primary, pick the first bindable
+      // if there's no bindables, create a new primary with property value
+      for (prop in bindables) {
+        bindable = bindables[prop];
+        // old: explicitly provided property name has priority over the implicit property name
+        // -----
+        // new: though this probably shouldn't be allowed!
+        // if (bindable.property !== void 0) {
+        //   prop = bindable.property;
+        // }
+        // -----
+        if (bindable.primary === true) {
+          if (hasPrimary) {
+            throw new Error('Primary already exists');
+          }
+          hasPrimary = true;
+          primary = bindable;
+        } else if (!hasPrimary) {
+          primary = bindable;
+        }
+
+        attrs[bindable.attribute] = bindable;
+      }
+      if (bindable == null && autoPrimary) {
+        // if no bindables are present, default to "value"
+        primary = attrs.value = bindables.value = BindableDefinition.create('value');
+      }
+
+      bindableAttrsInfoCache.set(def, info = new BindableAttrsInfo(attrs, bindables, primary!));
+    }
+    return info;
+  }
+
+  protected constructor(
+    public readonly attrs: Record<string, BindableDefinition>,
+    public readonly bindables: Record<string, BindableDefinition>,
+    public readonly primary: BindableDefinition,
+  ) {}
+}

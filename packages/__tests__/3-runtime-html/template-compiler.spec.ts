@@ -45,6 +45,7 @@ import {
   ElementInfo,
   BindableInfo,
   IExpressionParser,
+  CustomAttributeDefinition,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -636,7 +637,11 @@ function createCustomAttribute(
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
-  const outputMarkup = ctx.createElementFromMarkup(`<div ${resName}="${attributeMarkup}">${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
+  // old behavior: keep attribute on the output template as is
+  // const outputMarkup = ctx.createElementFromMarkup(`<div ${resName}="${attributeMarkup}">${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
+
+  // new behavior: if it's custom attribute, remove
+  const outputMarkup = ctx.createElementFromMarkup(`<div>${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
   outputMarkup.classList.add('au');
   const output = {
     ...defaultCustomElementDefinitionProperties,
@@ -885,27 +890,32 @@ describe(`TemplateCompiler - combinations`, function () {
         // TODO: test fallback to attribute name when no matching binding exists (or throw if we don't want to support this)
       ] as ((ctx: TestContext, $1: string, $2: string, $3: Bindables, $4: [string, string]) => [BindableDefinition, string])[]
     ],                       (ctx, pdName, pdProp, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
-      it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
-
+      const title = `div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`;
+      it(title, function () {
+        const FooBar = CustomAttribute.define({ name: 'asdf', bindables }, class FooBar {});
         const { sut, container } = createFixture(
           ctx,
-          CustomAttribute.define({ name: 'asdf', bindables }, class FooBar {})
+          FooBar
         );
 
         const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, true);
 
-        const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[attrName, attrValue]], [instruction], [], []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
+        // IMPORTANT:
+        // ====================================
+        // before template compiler refactoring:
+        // const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[attrName, attrValue]], [instruction], [], []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
 
-        if (attrName.endsWith('.qux')) {
-          let e;
-          try {
-            sut.compile(input, container, null);
-          } catch (err) {
-            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
-            e = err;
-          }
-          assert.instanceOf(e, Error);
+        // after template compiler refactoring:
+        // reason: custom attribute should look & behave like style attribute
+        // we do: style="background-color: red" instead of style="backgroundColor: red"
+        //
+        // if for some reasons, this reasoning causes a lot of unintuitiveness in the template
+        // then consider reverting it
+        const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[kebabCase(attrName), attrValue]], [instruction], [], []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
+        const bindablesInfo = BindablesInfo.from(CustomAttribute.getDefinition(FooBar), true)
+
+        if (!bindablesInfo.attrs[kebabCase(attrName)]) {
+          assert.throws(() => sut.compile(input, container, null), `Bindable ${attrName} not found on asdf.`);
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
@@ -1751,3 +1761,53 @@ describe('TemplateCompiler - au-slot', function () {
     });
   }
 });
+
+class BindablesInfo<T extends 0 | 1 = 0> {
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: true): BindablesInfo<1>;
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: false): BindablesInfo<0>;
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: boolean): BindablesInfo<1 | 0> {
+    const bindables = def.bindables;
+    const attrs: Record<string, BindableDefinition> = {};
+    let bindable: BindableDefinition | undefined;
+    let prop: string;
+    let hasPrimary: boolean = false;
+    let primary: BindableDefinition | undefined;
+
+    // from all bindables, pick the first primary bindable
+    // if there is no primary, pick the first bindable
+    // if there's no bindables, create a new primary with property value
+    for (prop in bindables) {
+      bindable = bindables[prop];
+      // old: explicitly provided property name has priority over the implicit property name
+      // -----
+      // new: though this probably shouldn't be allowed!
+      // if (bindable.property !== void 0) {
+      //   prop = bindable.property;
+      // }
+      // -----
+      if (bindable.primary === true) {
+        if (hasPrimary) {
+          throw new Error(`Primary already exists on ${def.name}`);
+        }
+        hasPrimary = true;
+        primary = bindable;
+      } else if (!hasPrimary) {
+        primary = bindable;
+      }
+
+      attrs[bindable.attribute] = bindable;
+    }
+    if (bindable == null && autoPrimary) {
+      // if no bindables are present, default to "value"
+      primary = attrs.value = bindables.value = BindableDefinition.create('value');
+    }
+
+    return new BindablesInfo(attrs, bindables, primary!);
+  }
+
+  protected constructor(
+    public readonly attrs: Record<string, BindableDefinition>,
+    public readonly bindables: Record<string, BindableDefinition>,
+    public readonly primary: T extends 1 ? BindableDefinition : BindableDefinition | undefined,
+  ) {}
+}

@@ -1199,8 +1199,7 @@ export class ViewCompiler implements ITemplateCompiler {
         ...def,
         template: mostInnerTemplate
       });
-      i -= 1;
-      while (i > 0) {
+      while (i-- > 0) {
         // for each of the template controller from [right] to [left]
         // do create:
         // (1) a template
@@ -1210,8 +1209,6 @@ export class ViewCompiler implements ITemplateCompiler {
         tcInstruction = tcInstructions[i];
         const template = (() => {
           const template = context.p.document.createElement('template');
-          // assumption: el.parentNode is not null
-          // but not always the case: e.g compile/enhance an element without parent with TC on it
           template.content.appendChild(mostInnerTemplate);
           this.marker(mostInnerTemplate, context);
           return template;
@@ -1225,7 +1222,6 @@ export class ViewCompiler implements ITemplateCompiler {
           needsCompile: false,
           instructions: [[tcInstructions[i + 1]]]
         });
-        --i;
       }
       instructions = [tcInstruction];
     } else {
@@ -1302,7 +1298,7 @@ export class ViewCompiler implements ITemplateCompiler {
   private text(node: Text, container: IContainer, context: ICompilationContext): Node | null {
     const text = node.wholeText;
     const expr = context.exprParser.parse(text, BindingType.Interpolation);
-    const parent = node.parentNode!;
+    const parent = node.parentNode/* ever null? */!;
     let nextSibling = node.nextSibling;
     let current = nextSibling;
     let marker: HTMLElement | null = null;
@@ -1383,7 +1379,7 @@ export class ViewCompiler implements ITemplateCompiler {
         command = this.getBindingCommand(container, attrSyntax, false);
         bindable = bindableAttrsInfo.attrs[attrSyntax.target];
         if (bindable == null) {
-          throw new Error('Invalid usage of multi-binding custom attribute: target attribute/property not found.');
+          throw new Error(`Bindable ${attrSyntax.target} not found on ${attrDef.name}.`);
         }
         if (command === null) {
           expr = context.exprParser.parse(attrValue, BindingType.Interpolation);
@@ -1522,11 +1518,9 @@ export class ViewCompiler implements ITemplateCompiler {
    * Replace an element with a marker, and return the marker
    */
   private marker(node: Node, context: ICompilationContext): HTMLElement {
-    // maybe use this one-liner instead?
-    // return this.mark(el.parentNode!.insertBefore(document.createElement('au-m'), el));
+    // todo: assumption made: parentNode won't be null
     const parent = node.parentNode!;
     const marker = context.p.document.createElement('au-m');
-    // todo: assumption made: parentNode won't be null
     this.mark(parent.insertBefore(marker, node));
     parent.removeChild(node);
     return marker;

@@ -755,7 +755,7 @@ export class ViewCompiler implements ITemplateCompiler {
             attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
           }
         }
-        
+
         (attrInstructions ??= []).push(new HydrateAttributeInstruction(attrDef.name, void 0, attrBindableInstructions));
       }
 
@@ -810,7 +810,7 @@ export class ViewCompiler implements ITemplateCompiler {
             return this.element(node as Element, container, context);
         }
       case 3:
-        this.text();
+        return this.text(node as Text, container, context);
       case 11: {
         let current: Node | null = (node as DocumentFragment).firstChild;
         while (current !== null) {
@@ -899,7 +899,7 @@ export class ViewCompiler implements ITemplateCompiler {
     // then just create an instruction straight away
     // no need ot bother with the attributes on it
     // todo: maybe support compilation of the bindings on <au-slot />
-    const marker = this.marker(el);
+    const marker = this.marker(el, context);
     const slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, targetedProjection);
     const instruction = new HydrateElementInstruction(
       'au-slot',
@@ -1170,10 +1170,10 @@ export class ViewCompiler implements ITemplateCompiler {
         instructionRows: [],
       };
       const mostInnerTemplate = (() => {
-        const template = document.createElement('template');
+        const template = context.p.document.createElement('template');
         // assumption: el.parentNode is not null
         // but not always the case: e.g compile/enhance an element without parent with TC on it
-        this.marker(el);
+        this.marker(el, context);
         template.content.appendChild(el);
         return template;
       })();
@@ -1192,11 +1192,11 @@ export class ViewCompiler implements ITemplateCompiler {
         // instruction will be corresponded to the marker
         tcInstruction = tcInstructions[i];
         const template = (() => {
-          const template = document.createElement('template');
+          const template = context.p.document.createElement('template');
           // assumption: el.parentNode is not null
           // but not always the case: e.g compile/enhance an element without parent with TC on it
           template.content.appendChild(mostInnerTemplate);
-          this.marker(mostInnerTemplate);
+          this.marker(mostInnerTemplate, context);
           return template;
         })();
         if (tcInstruction.def !== voidDefinition) {
@@ -1284,8 +1284,20 @@ export class ViewCompiler implements ITemplateCompiler {
     return this.doCompile(template, container, projectionCompilationContext);
   }
 
-  private text() {
-
+  private text(node: Text, container: IContainer, context: ICompilationContext): Node | null {
+    const text = node.wholeText;
+    const expr = context.exprParser.parse(text, BindingType.Interpolation);
+    let nextSibling = node.nextSibling;
+    let marker: HTMLElement | null = null;
+    if (expr !== null) {
+      marker = this.marker(node, context);
+      while (nextSibling !== null && nextSibling.nodeType === 3) {
+        node.parentNode!.removeChild(nextSibling);
+        nextSibling = nextSibling.nextSibling;
+      }
+      context.instructionRows.push([new TextBindingInstruction(expr)]);
+    }
+    return marker ?? nextSibling;
   }
 
   private multiBindings(
@@ -1444,8 +1456,8 @@ export class ViewCompiler implements ITemplateCompiler {
     }
   }
 
-  private parse(template: string): DocumentFragment {
-    const parser = document.createElement('div');
+  private parse(template: string, context: ICompilationContext): DocumentFragment {
+    const parser = context.p.document.createElement('div');
     parser.innerHTML = `<template>${template}</template>`;
     return document.adoptNode((parser.firstElementChild as HTMLTemplateElement).content);
   }
@@ -1489,12 +1501,12 @@ export class ViewCompiler implements ITemplateCompiler {
   /**
    * Replace an element with a marker, and return the marker
    */
-  private marker(el: Element): HTMLElement {
+  private marker(node: Node, context: ICompilationContext): HTMLElement {
     // maybe use this one-liner instead?
     // return this.mark(el.parentNode!.insertBefore(document.createElement('au-m'), el));
-    const marker = document.createElement('au-m');
+    const marker = context.p.document.createElement('au-m');
     // todo: assumption made: parentNode won't be null
-    return this.mark(el.parentNode!.insertBefore(marker, el));
+    return this.mark(node.parentNode!.insertBefore(marker, node));
   }
 }
 
@@ -1546,7 +1558,7 @@ class BindableAttrsInfo<T extends 0 | 1 = 0> {
       let prop: string;
       let hasPrimary: boolean = false;
       let primary: BindableDefinition | undefined;
-  
+
       // from all bindables, pick the first primary bindable
       // if there is no primary, pick the first bindable
       // if there's no bindables, create a new primary with property value

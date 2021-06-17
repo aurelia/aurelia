@@ -284,6 +284,10 @@ export interface ICompliationInstruction {
    * and each value is the definition to render and project
    */
   projections: IProjections | null;
+  /**
+   * Indicates whether this compilation is an enhancement compilation
+   */
+  enhance?: boolean;
 }
 
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler');

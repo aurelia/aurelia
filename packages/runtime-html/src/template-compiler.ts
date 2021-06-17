@@ -571,16 +571,16 @@ function processLocalTemplates(
 }
 
 interface ICompilationContext {
-  parent: ICompilationContext | null;
-  instruction: ICompliationInstruction;
-  logger: ILogger;
-  attrParser: IAttributeParser;
-  attrTransformer: IAttrSyntaxTransformer;
-  exprParser: IExpressionParser;
+  readonly parent: ICompilationContext | null;
+  readonly instruction: ICompliationInstruction;
+  readonly logger: ILogger;
+  readonly attrParser: IAttributeParser;
+  readonly attrTransformer: IAttrSyntaxTransformer;
+  readonly exprParser: IExpressionParser;
   /* an array representing targets of instructions, built on depth first tree walking compilation */
-  instructionRows: IInstruction[][];
-  localElements: Set<string>;
-  p: IPlatform;
+  readonly instructionRows: IInstruction[][];
+  readonly localElements: Set<string>;
+  readonly p: IPlatform;
 }
 
 export class ViewCompiler implements ITemplateCompiler {
@@ -602,6 +602,7 @@ export class ViewCompiler implements ITemplateCompiler {
     }
 
     const factory: ITemplateElementFactory = container.get(ITemplateElementFactory);
+    // todo: attr parser should be retrieved based in resource semantic (current leaf + root + ignore parent)
     const attrParser: IAttributeParser = container.get(IAttributeParser);
     const exprParser: IExpressionParser = container.get(IExpressionParser);
     const attrTransformer: IAttrSyntaxTransformer = container.get(IAttrSyntaxTransformer);
@@ -618,41 +619,44 @@ export class ViewCompiler implements ITemplateCompiler {
       p,
       parent: null,
     };
-    const template = factory.createTemplate(definition.template);
-    return this.doCompile(partialDefinition, template, container, compilationContext);
-
-    // if (typeof template === 'string') {
-    //   template = this.parse(template);
-    // }
-    // let content: Element | DocumentFragment = template;
-    // if (template instanceof HTMLTemplateElement) {
-    //   content = template.content;
-    //   // todo: surrogate
-    // }
-    // content
-
-    // return null!;
+    const template = typeof definition.template === 'string' || !compilationInstruction.enhance
+      ? factory.createTemplate(definition.template)
+      : definition.template as Element;
+    const isTemplateElement = template.nodeName === 'TEMPLATE' && (template as HTMLTemplateElement).content != null;
+    const content = isTemplateElement ? (template as HTMLTemplateElement).content : template;
+    const compiledPartialDef = this.doCompile(content, container, compilationContext);
+    const surrogates = isTemplateElement
+      ? this.surrogate(template.attributes, container, compilationContext)
+      : emptyArray;
+    return CustomElementDefinition.create({
+      ...compiledPartialDef,
+      template,
+      surrogates: surrogates == emptyArray
+        ? compiledPartialDef.surrogates
+        : surrogates.concat(compiledPartialDef.surrogates),
+    });
   }
 
   private doCompile(
-    partialDefinition: PartialCustomElementDefinition,
     template: Element | DocumentFragment,
     container: IContainer,
     context: ICompilationContext
-  ): CustomElementDefinition {
-    let node: Node | null = template.nodeType === 11
-      ? template
-      : template.nodeName === 'TEMPLATE'
-        ? (template as HTMLTemplateElement).content
-        : template;
+  ): PartialCustomElementDefinition {
+    let node: Node | null = template;
     while (node !== null) {
       node = this.node(node, container, context);
     }
-    return CustomElementDefinition.create({
-      ...partialDefinition,
+    return {
+      name: CustomElement.generateName(),
       template,
       instructions: context.instructionRows,
-    });
+      needsCompile: false,
+    };
+  }
+
+  private surrogate(attributes: ArrayLike<Attr>, container: IContainer, context: ICompilationContext): IInstruction[] {
+
+    return [];
   }
 
   // overall flow:
@@ -795,7 +799,8 @@ export class ViewCompiler implements ITemplateCompiler {
     let attrDef: CustomAttributeDefinition | null = null;
     let isMultiBindings = false;
     let bindable: BindableDefinition;
-    let attrInstructions: IInstruction[];
+    let attrInstructions: HydrateAttributeInstruction[] | undefined;
+    let attrBindableInstructions: IInstruction[];
     let tcInstructions: HydrateTemplateController[] | undefined;
     let tcInstruction: HydrateTemplateController | undefined;
     let expr: AnyBindingExpression;
@@ -852,14 +857,14 @@ export class ViewCompiler implements ITemplateCompiler {
           && bindingCommand === null
           && hasInlineBindings(attrValue);
         if (isMultiBindings) {
-          attrInstructions = this.multiBindings(el, attrValue, attrDef, container, context)
+          attrBindableInstructions = this.multiBindings(el, attrValue, attrDef, container, context)
         } else {
           // custom attribute + single value + WITHOUT binding command:
           // my-attr=""
           // my-attr="${}"
           if (bindingCommand === null) {
             expr = context.exprParser.parse(attrValue, BindingType.Interpolation);
-            attrInstructions = [
+            attrBindableInstructions = [
               expr === null
                 ? new SetPropertyInstruction(attrValue, attrDef.primary.property)
                 : new InterpolationInstruction(expr, attrDef.primary.property)
@@ -874,7 +879,7 @@ export class ViewCompiler implements ITemplateCompiler {
             commandBuildInfo.attr = attrSyntax;
             commandBuildInfo.expr = expr;
             commandBuildInfo.bindable = attrDef.primary;
-            attrInstructions = [bindingCommand.build(commandBuildInfo)];
+            attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
           }
         }
 
@@ -889,21 +894,21 @@ export class ViewCompiler implements ITemplateCompiler {
             voidDefinition,
             attrDef.name,
             attrName,
-            attrInstructions,
+            attrBindableInstructions,
           ));
 
           // to next attribute
           continue;
         }
 
-        // todo: create hydrate custom attribute instruction & add to the instruction row
+        (attrInstructions ??= []).push(new HydrateAttributeInstruction(attrDef.name, void 0, attrBindableInstructions));
         continue;
       }
 
       if (bindingCommand === null) {
         if (elDef !== null) {
           bindable = elDef.bindables[attrSyntax.target];
-          if (bindable != null) {
+          if (bindable !== void 0) {
             expr = exprParser.parse(attrSyntax.rawValue, BindingType.Interpolation);
             (elBindableInstructions ??= []).push(new InterpolationInstruction(expr, bindable.property));
             continue;
@@ -913,7 +918,7 @@ export class ViewCompiler implements ITemplateCompiler {
         // after transformation, both attrSyntax value & target could have been changed
         // access it again to ensure it's fresh
         expr = exprParser.parse(attrSyntax.rawValue, BindingType.Interpolation);
-        if (expr !== null) {
+        if (expr != null) {
           instructions.push(new InterpolationInstruction(
             expr,
             // if not a bindable, then ensure plain attribute are mapped correctly:
@@ -937,7 +942,7 @@ export class ViewCompiler implements ITemplateCompiler {
         // if the element is a custom element
         // - prioritize bindables on a custom element before plain attributes
         bindable = elDef.bindables[attrSyntax.target];
-        if (bindable != null) {
+        if (bindable !== void 0) {
           const normalPropCommand = BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand;
           // if it looks like: <my-el value.bind>
           // it means        : <my-el value.bind="value">
@@ -975,10 +980,13 @@ export class ViewCompiler implements ITemplateCompiler {
       instructions.push(bindingCommand.build(commandBuildInfo));
     }
 
-    if (
-      // not null is not needed, though for avoiding non-null assertion
-      elDef !== null
-    ) {
+    // todo: maybe store instructions in different arrays
+    //       and concat at the end, instead of mutating?
+    if (attrInstructions !== void 0) {
+      instructions.splice(0, 0, ...attrInstructions);
+    }
+
+    if (elDef !== null) {
       elementInstruction = new HydrateElementInstruction(
         elDef.name,
         void 0,
@@ -1006,7 +1014,11 @@ export class ViewCompiler implements ITemplateCompiler {
         template.content.appendChild(el);
         return template;
       })();
-      tcInstruction.def = this.doCompile(tcInstruction.def, mostInnerTemplate, container, childContext);
+      tcInstruction.def = CustomElementDefinition.create(this.doCompile(
+        mostInnerTemplate,
+        container,
+        childContext
+      ));
       i -= 1;
       while (i > 0) {
         // for each of the template controller from [right] to [left]
@@ -1024,6 +1036,9 @@ export class ViewCompiler implements ITemplateCompiler {
           this.marker(mostInnerTemplate);
           return template;
         })();
+        if (tcInstruction.def !== voidDefinition) {
+          throw new Error('Invalid definition assigned before process.');
+        }
         tcInstruction.def = CustomElementDefinition.create({
           name: CustomElement.generateName(),
           template,
@@ -1036,7 +1051,7 @@ export class ViewCompiler implements ITemplateCompiler {
 
     }
 
-    if (instructions.length > 0 || tcInstructions != null) {
+    if (instructions.length > 0 || tcInstructions !== void 0) {
       this.mark(el);
     }
     context.instructionRows.push(instructions);

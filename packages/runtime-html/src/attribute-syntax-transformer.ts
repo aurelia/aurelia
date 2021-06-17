@@ -111,8 +111,8 @@ export class AttrSyntaxTransformer {
       || this.fns.length > 0 && this.fns.some(fn => fn(node, attrName));
   }
 
-  public map(node: Element, attr: string): string {
-    return this.tagAttrMap[node.tagName]?.[attr] as string
+  public map(node: Element, attr: string): string | null {
+    return this.tagAttrMap[node.nodeName]?.[attr] as string
       ?? this.globalAttrMap[attr]
       ?? (isDataAttribute(node, attr, this.svg)
         ? attr
@@ -136,17 +136,16 @@ export class AttrSyntaxTransformer {
       attrSyntax.command = 'two-way';
     }
     const attr = attrSyntax.target;
-    attrSyntax.target = this.tagAttrMap[node.tagName]?.[attr] as string
+    attrSyntax.target = this.tagAttrMap[node.nodeName]?.[attr] as string
       ?? this.globalAttrMap[attr]
       ?? (isDataAttribute(node, attr, this.svg)
         ? attr
         : camelCase(attr));
-    // attrSyntax.target = this.map(node.tagName, attrSyntax.target);
   }
 }
 
 function shouldDefaultToTwoWay(element: Element, attr: string): boolean {
-  switch (element.tagName) {
+  switch (element.nodeName) {
     case 'INPUT':
       switch ((element as HTMLInputElement).type) {
         case 'checkbox':

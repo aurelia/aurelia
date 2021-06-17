@@ -621,16 +621,18 @@ export class ViewCompiler implements ITemplateCompiler {
       : definition.template as Element;
     const isTemplateElement = template.nodeName === 'TEMPLATE' && (template as HTMLTemplateElement).content != null;
     const content = isTemplateElement ? (template as HTMLTemplateElement).content : template;
+
+    this.local(content, container, compilationContext);
+
     const compiledPartialDef = this.doCompile(content, container, compilationContext);
     const surrogates = isTemplateElement
       ? this.surrogate(template, container, compilationContext)
       : emptyArray;
+
     return CustomElementDefinition.create({
       ...compiledPartialDef,
       template,
-      surrogates: surrogates == emptyArray
-        ? compiledPartialDef.surrogates
-        : surrogates.concat(compiledPartialDef.surrogates),
+      surrogates,
     });
   }
 
@@ -666,7 +668,7 @@ export class ViewCompiler implements ITemplateCompiler {
     let attrDef: CustomAttributeDefinition | null = null;
     let attrInstructions: HydrateAttributeInstruction[] | undefined;
     let attrBindableInstructions: IInstruction[];
-    let bindableAttrsInfo: BindableAttrsInfo;
+    let bindableAttrsInfo: BindableAttrsInfo<0> | BindableAttrsInfo<1>;
     let bindingCommand: BindingCommandInstance | null = null;
     let expr: AnyBindingExpression;
     let isMultiBindings: boolean;
@@ -727,11 +729,19 @@ export class ViewCompiler implements ITemplateCompiler {
           // my-attr="${}"
           if (bindingCommand === null) {
             expr = exprParser.parse(attrValue, BindingType.Interpolation);
-            attrBindableInstructions = [
-              expr === null
-                ? new SetPropertyInstruction(attrValue, bindableAttrsInfo.primary.property)
-                : new InterpolationInstruction(expr, bindableAttrsInfo.primary.property)
-            ];
+            if (expr === null) {
+              attrBindableInstructions = [
+                new SetPropertyInstruction(attrValue, bindableAttrsInfo.primary.property)
+              ];
+            } else {
+              el.removeAttribute(attrName);
+              --i;
+              --ii;
+
+              attrBindableInstructions = [
+                new InterpolationInstruction(expr, bindableAttrsInfo.primary.property)
+              ];
+            }
           } else {
             // custom attribute with binding command:
             // my-attr.bind="..."
@@ -781,6 +791,7 @@ export class ViewCompiler implements ITemplateCompiler {
         instructions.push(bindingCommand.build(commandBuildInfo));
       }
     }
+
     return instructions;
   }
 
@@ -933,7 +944,7 @@ export class ViewCompiler implements ITemplateCompiler {
     let elementInstruction: HydrateElementInstruction | undefined;
     let bindingCommand: BindingCommandInstance | null = null;
     let childContext: ICompilationContext & { parent: ICompilationContext; } | undefined;
-    let bindableAttrsInfo: BindableAttrsInfo;
+    let bindableAttrsInfo: BindableAttrsInfo<0> | BindableAttrsInfo<1>;
 
     // create 2 arrays
     // 1 array for instructions
@@ -1370,51 +1381,9 @@ export class ViewCompiler implements ITemplateCompiler {
     return [];
   }
 
-  private parse(template: string): DocumentFragment {
-    const parser = document.createElement('div');
-    parser.innerHTML = `<template>${template}</template>`;
-    return document.adoptNode((parser.firstElementChild as HTMLTemplateElement).content);
-  }
-
-  private readonly commandLookup: Record<string, BindingCommandInstance | null | undefined> = createLookup();
-  /**
-   * Retrieve a binding command resource.
-   *
-   * @param name - The parsed `AttrSyntax`
-   *
-   * @returns An instance of the command if it exists, or `null` if it does not exist.
-   */
-  private getBindingCommand(container: IContainer, syntax: AttrSyntax, optional: boolean): BindingCommandInstance | null {
-    const name = syntax.command;
-    if (name === null) {
-      return null;
-    }
-    let result = this.commandLookup[name];
-    if (result === void 0) {
-      result = container.create(BindingCommand, name) as BindingCommandInstance;
-      if (result === null) {
-        if (optional) {
-          return null;
-        }
-        throw new Error(`Unknown binding command: ${name}`);
-      }
-      this.commandLookup[name] = result;
-    }
-    return result;
-  }
-
-  private local(template: Element, container: IContainer, context: ICompilationContext) {
+  private local(template: Element | DocumentFragment, container: IContainer, context: ICompilationContext) {
     const dependencies: PartialCustomElementDefinition[] = [];
-    let root: HTMLElement | DocumentFragment;
-
-    if (template.nodeName === 'TEMPLATE') {
-      if (template.hasAttribute(localTemplateIdentifier)) {
-        throw new Error('The root cannot be a local template itself.');
-      }
-      root = (template as HTMLTemplateElement).content;
-    } else {
-      root = template as HTMLElement;
-    }
+    const root: Element | DocumentFragment = template;
     const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) as HTMLTemplateElement[];
     const numLocalTemplates = localTemplates.length;
     if (numLocalTemplates === 0) { return; }
@@ -1429,10 +1398,10 @@ export class ViewCompiler implements ITemplateCompiler {
       }
       const name = processTemplateName(localTemplate, localTemplateNames);
 
-      const localTemplateType = class LocalTemplate { };
+      const LocalTemplateType = class LocalTemplate { };
       const content = localTemplate.content;
       const bindableEls = toArray(content.querySelectorAll('bindable'));
-      const bindableInstructions = Bindable.for(localTemplateType);
+      const bindableInstructions = Bindable.for(LocalTemplateType);
       const properties = new Set<string>();
       const attributes = new Set<string>();
       for (const bindableEl of bindableEls) {
@@ -1466,13 +1435,46 @@ export class ViewCompiler implements ITemplateCompiler {
         content.removeChild(bindableEl);
       }
 
-      const localTemplateDefinition = CustomElement.define({ name, template: localTemplate }, localTemplateType);
+      const localTemplateDefinition = CustomElement.define({ name, template: localTemplate }, LocalTemplateType);
       // the casting is needed here as the dependencies are typed as readonly array
       dependencies.push(localTemplateDefinition);
       container.register(localTemplateDefinition);
 
       root.removeChild(localTemplate);
     }
+  }
+
+  private parse(template: string): DocumentFragment {
+    const parser = document.createElement('div');
+    parser.innerHTML = `<template>${template}</template>`;
+    return document.adoptNode((parser.firstElementChild as HTMLTemplateElement).content);
+  }
+
+  private readonly commandLookup: Record<string, BindingCommandInstance | null | undefined> = createLookup();
+  /**
+   * Retrieve a binding command resource.
+   *
+   * @param name - The parsed `AttrSyntax`
+   *
+   * @returns An instance of the command if it exists, or `null` if it does not exist.
+   */
+  private getBindingCommand(container: IContainer, syntax: AttrSyntax, optional: boolean): BindingCommandInstance | null {
+    const name = syntax.command;
+    if (name === null) {
+      return null;
+    }
+    let result = this.commandLookup[name];
+    if (result === void 0) {
+      result = container.create(BindingCommand, name) as BindingCommandInstance;
+      if (result === null) {
+        if (optional) {
+          return null;
+        }
+        throw new Error(`Unknown binding command: ${name}`);
+      }
+      this.commandLookup[name] = result;
+    }
+    return result;
   }
 
   /**
@@ -1495,10 +1497,6 @@ export class ViewCompiler implements ITemplateCompiler {
     return this.mark(el.parentNode!.insertBefore(marker, el));
   }
 }
-
-// class CompilationContext implements ICompilationContext {
-  
-// }
 
 function hasInlineBindings(rawValue: string): boolean {
   const len = rawValue.length;
@@ -1530,13 +1528,16 @@ const commandBuildInfo: ICommandBuildInfo = {
 
 const invalidSurrogateAttribute = Object.assign(createLookup<boolean | undefined>(), {
   'id': true,
+  'name': true,
   'au-slot': true,
   'as-element': true,
 });
 
 const bindableAttrsInfoCache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindableAttrsInfo>();
-class BindableAttrsInfo {
-  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: boolean): BindableAttrsInfo {
+class BindableAttrsInfo<T extends 0 | 1 = 0> {
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: true): BindableAttrsInfo<1>;
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: false): BindableAttrsInfo<0>;
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: boolean): BindableAttrsInfo<1 | 0> {
     let info = bindableAttrsInfoCache.get(def);
     if (info == null) {
       const bindables = def.bindables;
@@ -1583,6 +1584,6 @@ class BindableAttrsInfo {
   protected constructor(
     public readonly attrs: Record<string, BindableDefinition>,
     public readonly bindables: Record<string, BindableDefinition>,
-    public readonly primary: BindableDefinition,
+    public readonly primary: T extends 1 ? BindableDefinition : BindableDefinition | undefined,
   ) {}
 }

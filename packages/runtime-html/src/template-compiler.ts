@@ -945,6 +945,9 @@ export class ViewCompiler implements ITemplateCompiler {
     let bindingCommand: BindingCommandInstance | null = null;
     let childContext: ICompilationContext & { parent: ICompilationContext; } | undefined;
     let bindableAttrsInfo: BindableAttrsInfo<0> | BindableAttrsInfo<1>;
+    // when a template controller is assigned value with an interpolation expression
+    // use this to avoid double removal call (incorrect i/ii)
+    let attrRemoved: boolean;
 
     // create 2 arrays
     // 1 array for instructions
@@ -956,6 +959,7 @@ export class ViewCompiler implements ITemplateCompiler {
       attrName = attr.name;
       attrValue = attr.value;
       attrSyntax = attrParser.parse(attrName, attrValue);
+      attrRemoved = false;
 
       bindingCommand = this.getBindingCommand(container, attrSyntax, false);
       if (bindingCommand !== null && bindingCommand.bindingType & BindingType.IgnoreAttr) {
@@ -1011,6 +1015,7 @@ export class ViewCompiler implements ITemplateCompiler {
               el.removeAttribute(attrName);
               --i;
               --ii;
+              attrRemoved = true;
 
               attrBindableInstructions = [
                 new InterpolationInstruction(expr, bindableAttrsInfo.primary.property)
@@ -1031,14 +1036,16 @@ export class ViewCompiler implements ITemplateCompiler {
         }
 
         if (attrDef.isTemplateController) {
-          el.removeAttribute(attrName);
-          --i;
-          --ii;
+          if (!attrRemoved) {
+            el.removeAttribute(attrName);
+            --i;
+            --ii;
+          }
 
           (tcInstructions ??= []).push(new HydrateTemplateController(
             voidDefinition,
             attrDef.name,
-            attrName,
+            void 0,
             attrBindableInstructions,
           ));
 
@@ -1156,32 +1163,42 @@ export class ViewCompiler implements ITemplateCompiler {
       instructions = emptyArray.concat(
         elementInstruction ?? emptyArray,
         attrInstructions ?? emptyArray,
-        plainAttrInstructions ?? emptyArray
+        plainAttrInstructions ?? emptyArray,
       );
+      this.mark(el);
     }
 
-    if (tcInstructions != null && tcInstructions.length > 0) {
-      ii = tcInstructions.length;
-      i = ii - 1;
+    if (tcInstructions != null) {
+      ii = tcInstructions.length - 1;
+      i = ii;
       tcInstruction = tcInstructions[i];
       childContext = {
         ...context,
         parent: context,
-        instructionRows: [],
+        instructionRows: instructions == null ? [] : [instructions],
       };
       const mostInnerTemplate = (() => {
-        const template = context.p.document.createElement('template');
         // assumption: el.parentNode is not null
         // but not always the case: e.g compile/enhance an element without parent with TC on it
         this.marker(el, context);
-        template.content.appendChild(el);
+        let template: HTMLTemplateElement;
+        if (el.nodeName === 'TEMPLATE') {
+          template = el as HTMLTemplateElement;
+        } else {
+          template = context.p.document.createElement('template');
+          template.content.appendChild(el);
+        }
         return template;
       })();
-      tcInstruction.def = CustomElementDefinition.create(this.doCompile(
-        mostInnerTemplate,
+      const def = this.doCompile(
+        mostInnerTemplate.content,
         container,
         childContext
-      ));
+      );
+      tcInstruction.def = CustomElementDefinition.create({
+        ...def,
+        template: mostInnerTemplate
+      });
       i -= 1;
       while (i > 0) {
         // for each of the template controller from [right] to [left]
@@ -1210,62 +1227,60 @@ export class ViewCompiler implements ITemplateCompiler {
         });
         --i;
       }
+      instructions = [tcInstruction];
     } else {
-
-    }
-
-    const shouldCompileContent = elDef === null
-      || elDef.processContent?.call(elDef.Type, el, container.get(IPlatform)) !== false;
-    if (shouldCompileContent) {
-      // todo:
-      //    if there's a template controller
-      //      context here should be created from the most inner template controller
-      //      not the context this compile method is called with
-      //    if there is NOT a template controller
-      //      context here should be the same with the context this method is called with
-      // this.projection(el, container, context, elementInstruction!);
-      let child = el.firstChild as Node | null;
-      let childEl: Element;
-      let targetSlot: string | null;
-      let projections: IProjections | null = null;
-      // for each child element of a custom element
-      // scan for [au-slot], if there's one
-      // then extract the element into a projection definition
-      // this allows support for [au-slot] declared on the same element with anther template controller
-      // e.g:
-      //
-      // can do:
-      //  <my-el>
-      //    <div au-slot if.bind="..."></div>
-      //    <div if.bind="..." au-slot></div>
-      //  </my-el>
-      //
-      // instead of:
-      //  <my-el>
-      //    <template au-slot><div if.bind="..."></div>
-      //  </my-el>
-      while (child !== null) {
-        switch (child.nodeType) {
-          case 1: {
-            // if has [au-slot] then it's a projection
-            childEl = (child as Element);
-            targetSlot = childEl.getAttribute('au-slot');
-            if (targetSlot === null) {
-              child = this.element(childEl, container, context);
-            } else {
-              (projections ??= {})[targetSlot] = CustomElementDefinition.create(this.projection(childEl, container, context));
+      const shouldCompileContent = elDef === null
+        || elDef.processContent?.call(elDef.Type, el, container.get(IPlatform)) !== false;
+      if (shouldCompileContent && el.childNodes.length > 0) {
+        // todo:
+        //    if there's a template controller
+        //      context here should be created from the most inner template controller
+        //      not the context this compile method is called with
+        //    if there is NOT a template controller
+        //      context here should be the same with the context this method is called with
+        // this.projection(el, container, context, elementInstruction!);
+        let child = el.firstChild as Node | null;
+        let childEl: Element;
+        let targetSlot: string | null;
+        let projections: IProjections | null = null;
+        // for each child element of a custom element
+        // scan for [au-slot], if there's one
+        // then extract the element into a projection definition
+        // this allows support for [au-slot] declared on the same element with anther template controller
+        // e.g:
+        //
+        // can do:
+        //  <my-el>
+        //    <div au-slot if.bind="..."></div>
+        //    <div if.bind="..." au-slot></div>
+        //  </my-el>
+        //
+        // instead of:
+        //  <my-el>
+        //    <template au-slot><div if.bind="..."></div>
+        //  </my-el>
+        while (child !== null) {
+          switch (child.nodeType) {
+            case 1: {
+              // if has [au-slot] then it's a projection
+              childEl = (child as Element);
+              targetSlot = childEl.getAttribute('au-slot');
+              if (targetSlot === null) {
+                child = this.element(childEl, container, context);
+              } else {
+                (projections ??= {})[targetSlot] = CustomElementDefinition.create(this.projection(childEl, container, context));
+              }
+              break;
             }
-            break;
+            default:
+              child = this.node(child, container, context);
+              break;
           }
-          default:
-            child = this.node(child, container, context);
-            break;
         }
       }
     }
 
     if (instructions != null) {
-      this.mark(el);
       context.instructionRows.push(instructions);
     }
 
@@ -1287,15 +1302,20 @@ export class ViewCompiler implements ITemplateCompiler {
   private text(node: Text, container: IContainer, context: ICompilationContext): Node | null {
     const text = node.wholeText;
     const expr = context.exprParser.parse(text, BindingType.Interpolation);
+    const parent = node.parentNode!;
     let nextSibling = node.nextSibling;
+    let current = nextSibling;
     let marker: HTMLElement | null = null;
     if (expr !== null) {
       marker = this.marker(node, context);
-      while (nextSibling !== null && nextSibling.nodeType === 3) {
-        node.parentNode!.removeChild(nextSibling);
-        nextSibling = nextSibling.nextSibling;
-      }
       context.instructionRows.push([new TextBindingInstruction(expr)]);
+    }
+    while (current !== null && current.nodeType === 3) {
+      nextSibling = current.nextSibling;
+      if (expr !== null) {
+        parent.removeChild(current);
+      }
+      current = nextSibling;
     }
     return marker ?? nextSibling;
   }
@@ -1504,9 +1524,12 @@ export class ViewCompiler implements ITemplateCompiler {
   private marker(node: Node, context: ICompilationContext): HTMLElement {
     // maybe use this one-liner instead?
     // return this.mark(el.parentNode!.insertBefore(document.createElement('au-m'), el));
+    const parent = node.parentNode!;
     const marker = context.p.document.createElement('au-m');
     // todo: assumption made: parentNode won't be null
-    return this.mark(node.parentNode!.insertBefore(marker, node));
+    this.mark(parent.insertBefore(marker, node));
+    parent.removeChild(node);
+    return marker;
   }
 }
 

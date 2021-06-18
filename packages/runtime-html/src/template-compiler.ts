@@ -909,18 +909,22 @@ export class ViewCompiler implements ITemplateCompiler {
 
   private auSlot(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     const slotName = el.getAttribute('name') || 'default';
-    const targetedProjection = context.inst.projections?.[slotName];
-    let firstNode: Node | null;
+    const providedProjection = context.inst.projections?.[slotName];
+    const parent = el.parentNode!;
+    const nextSibling = el.nextSibling;
+    const firstNode: Node | null = el.firstChild;
+    let node = firstNode;
     // if there's no projection for an <au-slot/>
     // there's no need to treat it in any special way
     // inline all the fallback content into the parent template
-    if (targetedProjection == null) {
-      firstNode = el.firstChild;
-      while (el.firstChild !== null) {
+    if (providedProjection == null) {
+      while (node !== null) {
         // todo: assumption made: parent is not null
-        el.parentNode!.insertBefore(el.firstChild, el);
+        parent.insertBefore(node, el);
+        node = el.firstChild;
       }
-      return firstNode;
+      parent.removeChild(el);
+      return firstNode ?? nextSibling;
     }
 
     // if there's actual projection for this <au-slot/>
@@ -928,7 +932,7 @@ export class ViewCompiler implements ITemplateCompiler {
     // no need ot bother with the attributes on it
     // todo: maybe support compilation of the bindings on <au-slot />
     const marker = this.marker(el, context);
-    const slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, targetedProjection);
+    const slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, providedProjection);
     const instruction = new HydrateElementInstruction(
       'au-slot',
       void 0,
@@ -937,7 +941,7 @@ export class ViewCompiler implements ITemplateCompiler {
       slotInfo,
     );
     context.instructionRows.push([instruction]);
-    return marker;
+    return marker.nextSibling;
   }
 
   private element(el: Element, container: IContainer, context: ICompilationContext): Node | null {
@@ -1240,6 +1244,7 @@ export class ViewCompiler implements ITemplateCompiler {
       let targetSlot: string | null;
       let projections: IProjections | null = null;
       let marker: HTMLElement;
+      let projectionCompilationContext: ICompilationContext;
       if (shouldCompileContent) {
         if (elDef !== null) {
           // for each child element of a custom element
@@ -1269,7 +1274,25 @@ export class ViewCompiler implements ITemplateCompiler {
                 if (elDef === null) {
                   throw new Error(`Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
                 }
-                (projections ??= {})[targetSlot] = CustomElementDefinition.create(this.projection(childEl, container, context));
+                if (targetSlot === '') {
+                  targetSlot = 'default';
+                }
+                childEl.removeAttribute('au-slot');
+                template = context.p.document.createElement('template');
+                template.content.appendChild(childEl);
+                context.p.document.adoptNode(template.content);
+                projectionCompilationContext = {
+                  ...context,
+                  parent: context,
+                  instructionRows: [],
+                };
+                this.node(template.content, container, projectionCompilationContext);
+                (projections ??= {})[targetSlot] = CustomElementDefinition.create({
+                  name: CustomElement.generateName(),
+                  template,
+                  instructions: projectionCompilationContext.instructionRows,
+                  needsCompile: false,
+                });
               }
               // if not a targeted slot then use the common node method
               // todo: in the future, there maybe more special case for a content of a custom element
@@ -1277,6 +1300,10 @@ export class ViewCompiler implements ITemplateCompiler {
             } else {
               child = child.nextSibling;
             }
+          }
+
+          if (projections != null) {
+            elementInstruction!.projections = projections;
           }
         }
         if (el.nodeName === 'TEMPLATE') {
@@ -1333,6 +1360,8 @@ export class ViewCompiler implements ITemplateCompiler {
         let childEl: Element;
         let targetSlot: string | null;
         let projections: IProjections | null = null;
+        let template: HTMLTemplateElement;
+        let projectionCompilationContext: ICompilationContext;
         // for each child element of a custom element
         // scan for [au-slot], if there's one
         // then extract the element into a projection definition
@@ -1350,25 +1379,45 @@ export class ViewCompiler implements ITemplateCompiler {
         //    <template au-slot><div if.bind="..."></div>
         //  </my-el>
         while (child !== null) {
-          switch (child.nodeType) {
-            case 1: {
-              // if has [au-slot] then it's a projection
-              childEl = (child as Element);
-              targetSlot = childEl.getAttribute('au-slot');
-              if (targetSlot === null) {
-                child = this.element(childEl, container, context);
-              } else {
-                if (elDef === null) {
-                  throw new Error(`Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
-                }
-                (projections ??= {})[targetSlot] = CustomElementDefinition.create(this.projection(childEl, container, context));
+          if (child.nodeType === 1) {
+            // if has [au-slot] then it's a projection
+            childEl = (child as Element);
+            child = child.nextSibling;
+            targetSlot = childEl.getAttribute('au-slot');
+            if (targetSlot !== null) {
+              if (elDef === null) {
+                throw new Error(`Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
               }
-              break;
+              if (targetSlot === '') {
+                targetSlot = 'default';
+              }
+              childEl.removeAttribute('au-slot');
+              template = context.p.document.createElement('template');
+              template.content.appendChild(childEl);
+              context.p.document.adoptNode(template.content);
+              projectionCompilationContext = {
+                ...context,
+                parent: context,
+                instructionRows: [],
+              };
+              this.node(template.content, container, projectionCompilationContext);
+              (projections ??= {})[targetSlot] = CustomElementDefinition.create({
+                name: CustomElement.generateName(),
+                template,
+                instructions: projectionCompilationContext.instructionRows,
+                needsCompile: false,
+              });
             }
-            default:
-              child = this.node(child, container, context);
-              break;
+            // if not a targeted slot then use the common node method
+            // todo: in the future, there maybe more special case for a content of a custom element
+            //       it can be all done here
+          } else {
+            child = child.nextSibling;
           }
+        }
+
+        if (projections != null) {
+          elementInstruction!.projections = projections;
         }
       }
     }

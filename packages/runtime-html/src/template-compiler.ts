@@ -1195,33 +1195,85 @@ export class ViewCompiler implements ITemplateCompiler {
       ii = tcInstructions.length - 1;
       i = ii;
       tcInstruction = tcInstructions[i];
+
+      let template: HTMLTemplateElement;
+      // assumption: el.parentNode is not null
+      // but not always the case: e.g compile/enhance an element without parent with TC on it
+      this.marker(el, context);
+      if (el.nodeName === 'TEMPLATE') {
+        template = el as HTMLTemplateElement;
+      } else {
+        template = context.p.document.createElement('template');
+        context.p.document.adoptNode(template.content);
+        template.content.appendChild(el);
+      }
+      const mostInnerTemplate = template;
       const childContext = {
         ...context,
         parent: context,
         instructionRows: instructions == null ? [] : [instructions],
       };
-      const mostInnerTemplate = (() => {
-        // assumption: el.parentNode is not null
-        // but not always the case: e.g compile/enhance an element without parent with TC on it
-        this.marker(el, context);
-        let template: HTMLTemplateElement;
-        if (el.nodeName === 'TEMPLATE') {
-          template = el as HTMLTemplateElement;
-        } else {
-          template = context.p.document.createElement('template');
-          context.p.document.adoptNode(template.content);
-          template.content.appendChild(el);
+      const shouldCompileContent = elDef === null
+        || elDef.processContent?.call(elDef.Type, el, container.get(IPlatform)) !== false;
+
+      let child: Node | null;
+      let childEl: Element;
+      let targetSlot: string | null;
+      let projections: IProjections | null = null;
+      let marker: HTMLElement;
+      if (shouldCompileContent) {
+        if (elDef !== null) {
+          // for each child element of a custom element
+          // scan for [au-slot], if there's one
+          // then extract the element into a projection definition
+          // this allows support for [au-slot] declared on the same element with anther template controller
+          // e.g:
+          //
+          // can do:
+          //  <my-el>
+          //    <div au-slot if.bind="..."></div>
+          //    <div if.bind="..." au-slot></div>
+          //  </my-el>
+          //
+          // instead of:
+          //  <my-el>
+          //    <template au-slot><div if.bind="..."></div>
+          //  </my-el>
+          child = el.firstChild;
+          while (child !== null) {
+            if (child.nodeType === 1) {
+              // if has [au-slot] then it's a projection
+              childEl = (child as Element);
+              child = child.nextSibling;
+              targetSlot = childEl.getAttribute('au-slot');
+              if (targetSlot !== null) {
+                if (elDef === null) {
+                  throw new Error(`Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
+                }
+                (projections ??= {})[targetSlot] = CustomElementDefinition.create(this.projection(childEl, container, context));
+              }
+              // if not a targeted slot then use the common node method
+              // todo: in the future, there maybe more special case for a content of a custom element
+              //       it can be all done here
+            } else {
+              child = child.nextSibling;
+            }
+          }
         }
-        return template;
-      })();
-      const def = this.doCompile(
-        mostInnerTemplate.content,
-        container,
-        childContext
-      );
+        if (el.nodeName === 'TEMPLATE') {
+          this.node((el as HTMLTemplateElement).content, container, childContext);
+        } else {
+          child = el.firstChild;
+          while (child !== null) {
+            child = this.node(child, container, childContext);
+          }
+        }
+      }
       tcInstruction.def = CustomElementDefinition.create({
-        ...def,
-        template: mostInnerTemplate
+        name: CustomElement.generateName(),
+        template: mostInnerTemplate,
+        instructions: childContext.instructionRows,
+        needsCompile: false,
       });
       while (i-- > 0) {
         // for each of the template controller from [right] to [left]
@@ -1230,13 +1282,19 @@ export class ViewCompiler implements ITemplateCompiler {
         // (2) add a marker to the template
         // (3) an instruction
         // instruction will be corresponded to the marker
+        // =========================
+
         tcInstruction = tcInstructions[i];
-        const template = (() => {
-          const template = context.p.document.createElement('template');
-          template.content.appendChild(mostInnerTemplate);
-          this.marker(mostInnerTemplate, context);
-          return template;
-        })();
+        template = context.p.document.createElement('template');
+        // appending most inner template is inaccurate, as the most outer one
+        // is not really the parent of the most inner one
+        // but it's only for the purpose of creating a marker,
+        // so it's just an optimization hack
+        marker = context.p.document.createElement('au-m');
+        marker.classList.add('au');
+        context.p.document.adoptNode(template.content);
+        template.content.appendChild(marker);
+
         if (tcInstruction.def !== voidDefinition) {
           throw new Error(`Invalid definition for processing ${tcInstruction.res}.`);
         }

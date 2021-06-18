@@ -1619,7 +1619,7 @@ describe('TemplateCompiler - local templates', function () {
       assert.throws(() =>
         new Aurelia(container)
           .app({ host: ctx.doc.createElement('div'), component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) }),
-        /Cannot have template controller on surrogate element./
+        `Template controller ${attr.split('.')[0]} is invalid on surrogate`
       );
     });
   }

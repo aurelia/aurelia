@@ -783,9 +783,18 @@ export class ViewCompiler implements ITemplateCompiler {
             attrTransformer.map(el, attrSyntax.target) ?? camelCase(attrSyntax.target)
           ));
         } else {
-          // if not a custom attribute + no binding command + not a bindable + not an interpolation
-          // then it's just a plain attribute
-          instructions.push(new SetAttributeInstruction(attrValue, attrName));
+          switch (attrName) {
+            case 'class':
+              instructions.push(new SetClassAttributeInstruction(attrValue));
+              break;
+            case 'style':
+              instructions.push(new SetStyleAttributeInstruction(attrValue));
+              break;
+            default:
+              // if not a custom attribute + no binding command + not a bindable + not an interpolation
+              // then it's just a plain attribute
+              instructions.push(new SetAttributeInstruction(attrValue, attrName));
+          }
         }
       } else {
         expr = exprParser.parse(attrSyntax.rawValue, bindingCommand.bindingType);

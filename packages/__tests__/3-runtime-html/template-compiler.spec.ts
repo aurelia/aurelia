@@ -106,7 +106,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
 
       describe('compiles surrogate', function () {
 
-        it('compiles surrogate', function () {
+        it('compiles surrogate plain class attribute', function () {
           const { instructions, surrogates } = compileWith(
             `<template class="h-100"></template>`,
             []
@@ -115,6 +115,18 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           verifyInstructions(
             surrogates,
             [{ toVerify: ['type', 'value'], type: HTT.setClassAttribute, value: 'h-100' }]
+          );
+        });
+
+        it('compiles surrogate plain style attribute', function () {
+          const { instructions, surrogates } = compileWith(
+            `<template style="background: red"></template>`,
+            []
+          );
+          verifyInstructions(instructions, []);
+          verifyInstructions(
+            surrogates,
+            [{ toVerify: ['type', 'value'], type: HTT.setStyleAttribute, value: 'background: red' }]
           );
         });
 

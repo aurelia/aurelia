@@ -627,6 +627,9 @@ export class ViewCompiler implements ITemplateCompiler {
     const isTemplateElement = template.nodeName === 'TEMPLATE' && (template as HTMLTemplateElement).content != null;
     const content = isTemplateElement ? (template as HTMLTemplateElement).content : template;
 
+    if (template.hasAttribute(localTemplateIdentifier)) {
+      throw new Error('The root cannot be a local template itself.');
+    }
     (compilationContext as Writable<ICompilationContext>).root = compilationContext;
     this.local(content, container, compilationContext);
 

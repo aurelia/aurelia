@@ -1270,6 +1270,7 @@ export class ViewCompiler implements ITemplateCompiler {
                 childEl.removeAttribute('au-slot');
                 if (childEl.nodeName === 'TEMPLATE') {
                   template = childEl as HTMLTemplateElement;
+                  el.removeChild(childEl);
                 } else {
                   template = context.p.document.createElement('template');
                   template.content.appendChild(childEl);
@@ -1390,10 +1391,15 @@ export class ViewCompiler implements ITemplateCompiler {
               if (targetSlot === '') {
                 targetSlot = 'default';
               }
+              if (childEl.nodeName === 'TEMPLATE') {
+                template = childEl as HTMLTemplateElement;
+                el.removeChild(childEl);
+              } else {
+                template = context.p.document.createElement('template');
+                template.content.appendChild(childEl);
+                context.p.document.adoptNode(template.content);
+              }
               childEl.removeAttribute('au-slot');
-              template = context.p.document.createElement('template');
-              template.content.appendChild(childEl);
-              context.p.document.adoptNode(template.content);
               projectionCompilationContext = {
                 ...context,
                 parent: context,

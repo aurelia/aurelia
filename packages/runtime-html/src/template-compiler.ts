@@ -7,6 +7,7 @@ import {
   ILogger,
   camelCase,
   Writable,
+  emptyObject,
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
@@ -590,7 +591,7 @@ export class ViewCompiler implements ITemplateCompiler {
   public compile(
     partialDefinition: PartialCustomElementDefinition,
     container: IContainer,
-    compilationInstruction: ICompliationInstruction,
+    compilationInstruction: ICompliationInstruction | null,
   ): CustomElementDefinition {
     const definition = CustomElementDefinition.getOrCreate(partialDefinition);
     if (definition.template === null || definition.template === void 0) {
@@ -599,6 +600,7 @@ export class ViewCompiler implements ITemplateCompiler {
     if (definition.needsCompile === false) {
       return definition;
     }
+    compilationInstruction ??= emptyObject;
 
     const factory: ITemplateElementFactory = container.get(ITemplateElementFactory);
     // todo: attr parser should be retrieved based in resource semantic (current leaf + root + ignore parent)
@@ -609,7 +611,7 @@ export class ViewCompiler implements ITemplateCompiler {
     const p: IPlatform = container.get(IPlatform);
     const compilationContext: ICompilationContext = {
       root: null!,
-      inst: compilationInstruction,
+      inst: compilationInstruction!,
       attrParser,
       exprParser,
       attrTransformer,
@@ -621,7 +623,7 @@ export class ViewCompiler implements ITemplateCompiler {
       templateFactory: factory,
       hasSlot: false,
     };
-    const template = typeof definition.template === 'string' || !compilationInstruction.enhance
+    const template = typeof definition.template === 'string' || !compilationInstruction!.enhance
       ? factory.createTemplate(definition.template)
       : definition.template as Element;
     const isTemplateElement = template.nodeName === 'TEMPLATE' && (template as HTMLTemplateElement).content != null;
@@ -810,8 +812,16 @@ export class ViewCompiler implements ITemplateCompiler {
         switch (node.nodeName) {
           case 'LET':
             return this.declare(node as Element, container, context);
-          case 'AU-SLOT':
-            return this.auSlot(node as Element, container, context);
+          // ------------------------------------
+          // todo: possible optimization:
+          // when:
+          // 1. there's no attribute on au slot,
+          // 2. there's no projection
+          // -> flatten the au-slot into children
+          //    as this is just a static template
+          // ------------------------------------
+          // case 'AU-SLOT':
+          //   return this.auSlot(node as Element, container, context);
           default:
             return this.element(node as Element, container, context);
         }
@@ -1193,12 +1203,43 @@ export class ViewCompiler implements ITemplateCompiler {
       = commandBuildInfo.def = null!;
 
     if (elDef !== null) {
+      let slotInfo: SlotInfo | null = null;
+      if (isAuSlot) {
+        const slotName = el.getAttribute('name') || /* name="" is the same with no name */'default';
+        const projection = context.inst.projections?.[slotName];
+        if (projection == null) {
+          const template = context.p.document.createElement('template');
+          let node: Node | null = el.firstChild;
+          while (node !== null) {
+            if (node.nodeType === 1 && (node as Element).hasAttribute('au-slot')) {
+              (node as Element).removeAttribute('au-slot');
+            }
+            template.content.appendChild(node);
+            node = el.firstChild;
+          }
+          const auSlotContext: ICompilationContext = {
+            ...context,
+            parent: context,
+            instructionRows: []
+          };
+          this.node(template.content, container, auSlotContext);
+          slotInfo = new SlotInfo(slotName, AuSlotContentType.Fallback, CustomElementDefinition.create({
+            name: CustomElement.generateName(),
+            template,
+            instructions: auSlotContext.instructionRows,
+            needsCompile: false,
+          }));
+        } else {
+          slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, projection);
+        }
+        el = this.marker(el, context);
+      }
       elementInstruction = new HydrateElementInstruction(
         elDef.name,
         void 0,
         (elBindableInstructions ?? emptyArray) as IInstruction[],
         null,
-        null,
+        slotInfo,
       );
     }
 
@@ -1248,6 +1289,7 @@ export class ViewCompiler implements ITemplateCompiler {
       let slotTemplate: Element | DocumentFragment;
       let marker: HTMLElement;
       let projectionCompilationContext: ICompilationContext;
+      let j = 0, jj = 0;
       if (shouldCompileContent) {
         if (elDef !== null) {
           // for each child element of a custom element
@@ -1307,8 +1349,8 @@ export class ViewCompiler implements ITemplateCompiler {
             for (targetSlot in slotTemplateRecord) {
               template = context.p.document.createElement('template');
               slotTemplates = slotTemplateRecord[targetSlot];
-              for (i = 0, ii = slotTemplates.length; ii > i; ++i) {
-                slotTemplate = slotTemplates[i];
+              for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
+                slotTemplate = slotTemplates[j];
                 if (slotTemplate.nodeName === 'TEMPLATE') {
                   // this means user has some thing more than [au-slot] on a template
                   // consider this intentional, and use it as is
@@ -1329,13 +1371,11 @@ export class ViewCompiler implements ITemplateCompiler {
               }
               projectionCompilationContext = {
                 ...context,
-                // important:
-                // ---------
-                // it is the template controller that owns this compilation
-                // it may not matter for now, but a clear distinction between
-                // the context compilation, and parent compilation should be maintained
-                // at least for the least amount of ambiguity
-                parent: childContext,
+                // technically, the most inner template controller compilation context
+                // is the parent of this compilation context
+                // but for simplicity in compilation, maybe start with a flatter hierarchy
+                // also, it wouldn't have any real uses
+                parent: context,
                 instructionRows: [],
               };
               this.node(template.content, container, projectionCompilationContext);
@@ -1413,6 +1453,7 @@ export class ViewCompiler implements ITemplateCompiler {
         let slotTemplate: Element | DocumentFragment;
         let template: HTMLTemplateElement;
         let projectionCompilationContext: ICompilationContext;
+        let j = 0, jj = 0;
         // for each child element of a custom element
         // scan for [au-slot], if there's one
         // then extract the element into a projection definition
@@ -1469,8 +1510,8 @@ export class ViewCompiler implements ITemplateCompiler {
           for (targetSlot in slotTemplateRecord) {
             template = context.p.document.createElement('template');
             slotTemplates = slotTemplateRecord[targetSlot];
-            for (i = 0, ii = slotTemplates.length; ii > i; ++i) {
-              slotTemplate = slotTemplates[i];
+            for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
+              slotTemplate = slotTemplates[j];
               if (slotTemplate.nodeName === 'TEMPLATE') {
                 // this means user has some thing more than [au-slot] on a template
                 // consider this intentional, and use it as is

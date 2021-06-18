@@ -6,7 +6,6 @@ import {
   toArray,
   ILogger,
   camelCase,
-  Writable,
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
@@ -569,7 +568,7 @@ function processLocalTemplates(
 interface ICompilationContext {
   readonly parent: ICompilationContext | null;
   readonly templateFactory: ITemplateElementFactory;
-  readonly instruction: ICompliationInstruction;
+  readonly inst: ICompliationInstruction;
   readonly logger: ILogger;
   readonly attrParser: IAttributeParser;
   readonly attrTransformer: IAttrSyntaxTransformer;
@@ -606,7 +605,7 @@ export class ViewCompiler implements ITemplateCompiler {
     const logger: ILogger = container.get(ILogger);
     const p: IPlatform = container.get(IPlatform);
     const compilationContext: ICompilationContext = {
-      instruction: compilationInstruction,
+      inst: compilationInstruction,
       attrParser,
       exprParser,
       attrTransformer,
@@ -700,6 +699,7 @@ export class ViewCompiler implements ITemplateCompiler {
         commandBuildInfo.attr = attrSyntax;
         commandBuildInfo.expr = expr;
         commandBuildInfo.bindable = null;
+        commandBuildInfo.def = null;
         instructions.push(bindingCommand.build(commandBuildInfo));
 
         // to next attribute
@@ -747,6 +747,7 @@ export class ViewCompiler implements ITemplateCompiler {
             commandBuildInfo.attr = attrSyntax;
             commandBuildInfo.expr = expr;
             commandBuildInfo.bindable = primaryBindable;
+            commandBuildInfo.def = attrDef;
             attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
           }
         }
@@ -786,6 +787,7 @@ export class ViewCompiler implements ITemplateCompiler {
         commandBuildInfo.attr = attrSyntax;
         commandBuildInfo.expr = expr;
         commandBuildInfo.bindable = null;
+        commandBuildInfo.def = null;
         instructions.push(bindingCommand.build(commandBuildInfo));
       }
     }
@@ -867,6 +869,12 @@ export class ViewCompiler implements ITemplateCompiler {
       }
 
       expr = exprParser.parse(realAttrValue, BindingType.Interpolation);
+      if (expr === null) {
+        context.logger.info(
+          `Property ${realAttrTarget} is declared with literal string ${realAttrValue}. ` +
+          `Did you mean ${realAttrTarget}.bind="${realAttrValue}"?`
+        );
+      }
       letInstructions.push(new LetBindingInstruction(
         expr === null ? new PrimitiveLiteralExpression(realAttrValue) : expr,
         realAttrTarget
@@ -881,7 +889,7 @@ export class ViewCompiler implements ITemplateCompiler {
 
   private auSlot(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     const slotName = el.getAttribute('name') || 'default';
-    const targetedProjection = context.instruction.projections?.[slotName];
+    const targetedProjection = context.inst.projections?.[slotName];
     let firstNode: Node | null;
     // if there's no projection for an <au-slot/>
     // there's no need to treat it in any special way
@@ -943,9 +951,10 @@ export class ViewCompiler implements ITemplateCompiler {
     let expr: AnyBindingExpression;
     let elementInstruction: HydrateElementInstruction | undefined;
     let bindingCommand: BindingCommandInstance | null = null;
-    let childContext: ICompilationContext & { parent: ICompilationContext; } | undefined;
     let bindablesInfo: BindablesInfo<0> | BindablesInfo<1>;
     let primaryBindable: BindableDefinition;
+    let realAttrTarget: string;
+    let realAttrValue: string;
 
     // create 2 arrays
     // 1 array for instructions
@@ -957,6 +966,8 @@ export class ViewCompiler implements ITemplateCompiler {
       attrName = attr.name;
       attrValue = attr.value;
       attrSyntax = attrParser.parse(attrName, attrValue);
+      realAttrTarget = attrSyntax.target;
+      realAttrValue = attrSyntax.rawValue;
 
       bindingCommand = this.getBindingCommand(container, attrSyntax, false);
       if (bindingCommand !== null && bindingCommand.bindingType & BindingType.IgnoreAttr) {
@@ -980,7 +991,7 @@ export class ViewCompiler implements ITemplateCompiler {
 
       // if not a ignore attribute binding command
       // then process with the next possibilities
-      attrDef = container.find(CustomAttribute, attrSyntax.target) as CustomAttributeDefinition | null;
+      attrDef = container.find(CustomAttribute, realAttrTarget) as CustomAttributeDefinition | null;
       // when encountering an attribute,
       // custom attribute takes precedence over custom element bindables
       if (attrDef !== null) {
@@ -1047,11 +1058,15 @@ export class ViewCompiler implements ITemplateCompiler {
       }
 
       if (bindingCommand === null) {
+        // reaching here means:
+        // + maybe a bindable attribute with interpolation
+        // + maybe a plain attribute with interpolation
+        // + maybe a plain attribute
         if (elDef !== null) {
           bindablesInfo = BindablesInfo.from(elDef, false);
-          bindable = bindablesInfo.attrs[attrSyntax.target];
+          bindable = bindablesInfo.attrs[realAttrTarget];
           if (bindable !== void 0) {
-            expr = exprParser.parse(attrSyntax.rawValue, BindingType.Interpolation);
+            expr = exprParser.parse(realAttrValue, BindingType.Interpolation);
             elBindableInstructions ??= [];
             if (expr != null) {
               // if it's an interpolation, remove the attribute
@@ -1061,7 +1076,7 @@ export class ViewCompiler implements ITemplateCompiler {
 
               elBindableInstructions.push(new InterpolationInstruction(expr, bindable.property));
             } else {
-              elBindableInstructions.push(new SetPropertyInstruction(attrSyntax.rawValue, bindable.property));
+              elBindableInstructions.push(new SetPropertyInstruction(realAttrValue, bindable.property));
             }
 
             continue;
@@ -1071,7 +1086,7 @@ export class ViewCompiler implements ITemplateCompiler {
         // reaching here means:
         // + maybe a plain attribute with interpolation
         // + maybe a plain attribute
-        expr = exprParser.parse(attrSyntax.rawValue, BindingType.Interpolation);
+        expr = exprParser.parse(realAttrValue, BindingType.Interpolation);
         if (expr != null) {
           // if it's an interpolation, remove the attribute
           el.removeAttribute(attrName);
@@ -1084,7 +1099,7 @@ export class ViewCompiler implements ITemplateCompiler {
             // e.g: colspan -> colSpan
             //      innerhtml -> innerHTML
             //      minlength -> minLengt etc...
-            attrSyntaxTransformer.map(el, attrSyntax.target) ?? camelCase(attrSyntax.target)
+            attrSyntaxTransformer.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
           ));
         }
         // if not a custom attribute + no binding command + not a bindable + not an interpolation
@@ -1101,7 +1116,7 @@ export class ViewCompiler implements ITemplateCompiler {
         // if the element is a custom element
         // - prioritize bindables on a custom element before plain attributes
         bindablesInfo = BindablesInfo.from(elDef, false);
-        bindable = bindablesInfo.attrs[attrSyntax.target];
+        bindable = bindablesInfo.attrs[realAttrTarget];
         if (bindable !== void 0) {
           // if it looks like: <my-el value.bind>
           // it means        : <my-el value.bind="value">
@@ -1138,7 +1153,7 @@ export class ViewCompiler implements ITemplateCompiler {
 
       // new: map attr syntax target during building instruction
 
-      expr = exprParser.parse(attrSyntax.rawValue, bindingCommand.bindingType);
+      expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
 
       commandBuildInfo.node = el;
       commandBuildInfo.attr = attrSyntax;
@@ -1180,7 +1195,7 @@ export class ViewCompiler implements ITemplateCompiler {
       ii = tcInstructions.length - 1;
       i = ii;
       tcInstruction = tcInstructions[i];
-      childContext = {
+      const childContext = {
         ...context,
         parent: context,
         instructionRows: instructions == null ? [] : [instructions],
@@ -1194,6 +1209,7 @@ export class ViewCompiler implements ITemplateCompiler {
           template = el as HTMLTemplateElement;
         } else {
           template = context.p.document.createElement('template');
+          context.p.document.adoptNode(template.content);
           template.content.appendChild(el);
         }
         return template;
@@ -1265,6 +1281,9 @@ export class ViewCompiler implements ITemplateCompiler {
               if (targetSlot === null) {
                 child = this.element(childEl, container, context);
               } else {
+                if (elDef === null) {
+                  throw new Error(`Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
+                }
                 (projections ??= {})[targetSlot] = CustomElementDefinition.create(this.projection(childEl, container, context));
               }
               break;
@@ -1547,10 +1566,7 @@ function hasInlineBindings(rawValue: string): boolean {
   return false;
 }
 
-const voidDefinition: CustomElementDefinition = {
-  name: CustomElement.generateName(),
-} as CustomElementDefinition;
-
+const voidDefinition = { name: 'unnamed' } as CustomElementDefinition;
 const commandBuildInfo: ICommandBuildInfo = {
   node: null!,
   expr: null!,
@@ -1558,7 +1574,6 @@ const commandBuildInfo: ICommandBuildInfo = {
   bindable: null,
   def: null,
 };
-
 const invalidSurrogateAttribute = Object.assign(createLookup<boolean | undefined>(), {
   'id': true,
   'name': true,
@@ -1618,14 +1633,15 @@ class BindablesInfo<T extends 0 | 1 = 0> {
         }
 
         // hack with casting, avoid additional object creation
-        (attrs[attr] = BindableDefinition.create(prop, bindable) as Writable<BindableDefinition>).mode = mode;
+        attrs[attr] = BindableDefinition.create(prop, bindable);
+        // (attrs[attr] = BindableDefinition.create(prop, bindable) as Writable<BindableDefinition>).mode = mode;
       }
       if (bindable == null && isAttr) {
         // if no bindables are present, default to "value"
         primary = attrs.value = BindableDefinition.create('value', { mode: defaultBindingMode });
       }
 
-      bindableAttrsInfoCache.set(def, info = new BindablesInfo(attrs, bindables, primary!));
+      bindableAttrsInfoCache.set(def, info = new BindablesInfo(attrs, bindables, primary));
     }
     return info;
   }
@@ -1634,13 +1650,5 @@ class BindablesInfo<T extends 0 | 1 = 0> {
     public readonly attrs: Record<string, BindableDefinition>,
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly primary: T extends 1 ? BindableDefinition : BindableDefinition | undefined,
-  ) {}
-}
-
-class BindableInfo {
-  public constructor(
-    public readonly attr: string,
-    public readonly prop: string,
-    public readonly mode: BindingMode,
   ) {}
 }

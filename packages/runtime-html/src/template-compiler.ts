@@ -648,6 +648,7 @@ export class ViewCompiler implements ITemplateCompiler {
     });
   }
 
+  /** @internal */
   private surrogate(el: Element, container: IContainer, context: ICompilationContext): IInstruction[] {
     const instructions: IInstruction[] = [];
     const attrs = el.attributes;
@@ -802,6 +803,7 @@ export class ViewCompiler implements ITemplateCompiler {
   // overall flow:
   // each of the method will be responsible for compiling its corresponding node type
   // and it should return the next node to be compiled
+  /** @internal */
   private node(node: Node, container: IContainer, context: ICompilationContext): Node | null {
     switch (node.nodeType) {
       case 1:
@@ -826,6 +828,7 @@ export class ViewCompiler implements ITemplateCompiler {
     return node.nextSibling;
   }
 
+  /** @internal */
   private declare(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     const attrs = el.attributes;
     const ii = attrs.length;
@@ -892,9 +895,10 @@ export class ViewCompiler implements ITemplateCompiler {
     return this.mark(el).nextSibling;
   }
 
+  /** @internal */
   private auSlot(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     const slotName = el.getAttribute('name') || 'default';
-    const providedProjection = context.inst.projections?.[slotName];
+    const providedProjection = context.root.inst.projections?.[slotName];
     const parent = el.parentNode!;
     const nextSibling = el.nextSibling;
     const firstNode: Node | null = el.firstChild;
@@ -929,6 +933,7 @@ export class ViewCompiler implements ITemplateCompiler {
     return marker.nextSibling;
   }
 
+  /** @internal */
   private element(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     // instructions sort:
     // 1. hydrate custom element instruction
@@ -1263,9 +1268,13 @@ export class ViewCompiler implements ITemplateCompiler {
                   targetSlot = 'default';
                 }
                 childEl.removeAttribute('au-slot');
-                template = context.p.document.createElement('template');
-                template.content.appendChild(childEl);
-                context.p.document.adoptNode(template.content);
+                if (childEl.nodeName === 'TEMPLATE') {
+                  template = childEl as HTMLTemplateElement;
+                } else {
+                  template = context.p.document.createElement('template');
+                  template.content.appendChild(childEl);
+                  context.p.document.adoptNode(template.content);
+                }
                 projectionCompilationContext = {
                   ...context,
                   parent: context,
@@ -1423,6 +1432,7 @@ export class ViewCompiler implements ITemplateCompiler {
     return nextSibling;
   }
 
+  /** @internal */
   private text(node: Text, container: IContainer, context: ICompilationContext): Node | null {
     const text = node.wholeText;
     const expr = context.exprParser.parse(text, BindingType.Interpolation);
@@ -1444,6 +1454,7 @@ export class ViewCompiler implements ITemplateCompiler {
     return marker ?? nextSibling;
   }
 
+  /** @internal */
   private multiBindings(
     node: Element,
     attrRawValue: string,
@@ -1539,6 +1550,7 @@ export class ViewCompiler implements ITemplateCompiler {
     return instructions;
   }
 
+  /** @internal */
   private local(template: Element | DocumentFragment, container: IContainer, context: ICompilationContext) {
     const dependencies: PartialCustomElementDefinition[] = [];
     const root: Element | DocumentFragment = template;
@@ -1602,14 +1614,11 @@ export class ViewCompiler implements ITemplateCompiler {
     }
   }
 
-  private parse(template: string, context: ICompilationContext): DocumentFragment {
-    const parser = context.p.document.createElement('div');
-    parser.innerHTML = `<template>${template}</template>`;
-    return document.adoptNode((parser.firstElementChild as HTMLTemplateElement).content);
-  }
-
+  /** @internal */
   private readonly commandLookup: Record<string, BindingCommandInstance | null | undefined> = createLookup();
   /**
+   * @internal
+   *
    * Retrieve a binding command resource.
    *
    * @param name - The parsed `AttrSyntax`
@@ -1638,6 +1647,8 @@ export class ViewCompiler implements ITemplateCompiler {
   /**
    * Mark an element as target with a special css class
    * and return it
+   *
+   * @internal
    */
   private mark<T extends Element>(el: T): T {
     el.classList.add('au');
@@ -1646,6 +1657,8 @@ export class ViewCompiler implements ITemplateCompiler {
 
   /**
    * Replace an element with a marker, and return the marker
+   *
+   * @internal
    */
   private marker(node: Node, context: ICompilationContext): HTMLElement {
     // todo: assumption made: parentNode won't be null

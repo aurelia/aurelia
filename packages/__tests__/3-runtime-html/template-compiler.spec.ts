@@ -132,7 +132,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           attrs.forEach(attr => {
             assert.throws(
               () => compileWith(`<template ${attr}="${attr}"></template>`, []),
-              /Invalid surrogate attribute/,
+              /Attribute id is invalid on surrogate/,
             );
           });
         });

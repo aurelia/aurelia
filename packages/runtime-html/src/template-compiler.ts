@@ -857,11 +857,13 @@ export class ViewCompiler implements ITemplateCompiler {
         // Onetime means it will not have appropriate value, but it's also a good thing,
         // since often one it's just a simple declaration
         // todo: consider supporting one-time for <let>
-        if (bindingCommand.bindingType !== BindingType.ToViewCommand) {
-          throw new Error('Invalid binding command for <let>. Only to-view supported.');
+        if (bindingCommand.bindingType === BindingType.ToViewCommand
+          || bindingCommand.bindingType === BindingType.BindCommand
+        ) {
+          letInstructions.push(new LetBindingInstruction(exprParser.parse(realAttrValue, bindingCommand.bindingType), realAttrTarget));
+          continue;
         }
-        letInstructions.push(new LetBindingInstruction(exprParser.parse(realAttrValue, bindingCommand.bindingType), realAttrTarget));
-        continue;
+        throw new Error('Invalid binding command for <let>. Only to-view supported.');
       }
 
       expr = exprParser.parse(realAttrValue, BindingType.Interpolation);

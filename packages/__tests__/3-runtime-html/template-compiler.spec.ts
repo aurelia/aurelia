@@ -8,6 +8,7 @@ import {
   DefaultLogger,
   LogLevel,
   camelCase,
+  Writable,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -811,7 +812,7 @@ describe(`TemplateCompiler - combinations`, function () {
       ] as ((ctx: TestContext) => BindingMode | undefined)[],
       [
         (ctx, [, , to], [attr, value]) => [`${attr}`,           { type: TT.setProperty, to, value }],
-        (ctx, [, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        (ctx, [, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: (mode && mode !== void 0 && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.toView }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.oneTime }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.from-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.fromView }],
@@ -820,8 +821,9 @@ describe(`TemplateCompiler - combinations`, function () {
     ],                       (ctx, [bindables], [attr, value, ctor], defaultBindingMode, [name, childInstruction]) => {
       const def = { name: attr, defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
+      const title = `${markup}  CustomAttribute=${JSON.stringify(def)}`;
 
-      it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, function () {
+      it(title, function () {
         const input: PartialCustomElementDefinition = {
           template: markup,
           instructions: [],
@@ -834,7 +836,11 @@ describe(`TemplateCompiler - combinations`, function () {
         };
         const expected = {
           ...defaultCustomElementDefinitionProperties,
-          template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`),
+          // old behavior:
+          // template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`),
+          // new behavior
+          // todo: ability to configure whether attr should be removed
+          template: ctx.createElementFromMarkup(`<template><div class="au"></div></template>`),
           instructions: [[instruction]],
           surrogates: [],
           needsCompile: false,
@@ -1763,21 +1769,31 @@ describe('TemplateCompiler - au-slot', function () {
 });
 
 class BindablesInfo<T extends 0 | 1 = 0> {
-  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: true): BindablesInfo<1>;
-  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: false): BindablesInfo<0>;
-  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: boolean): BindablesInfo<1 | 0> {
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: true): BindablesInfo<1>;
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: false): BindablesInfo<0>;
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: boolean): BindablesInfo<1 | 0> {
+    type CA = CustomAttributeDefinition;
     const bindables = def.bindables;
     const attrs: Record<string, BindableDefinition> = {};
     let bindable: BindableDefinition | undefined;
     let prop: string;
     let hasPrimary: boolean = false;
     let primary: BindableDefinition | undefined;
+    let defaultBindingMode: BindingMode = isAttr
+      ? (def as CA).defaultBindingMode === void 0
+        ? BindingMode.default
+        : (def as CA).defaultBindingMode
+      : BindingMode.default;
+    let mode: BindingMode;
+    let attr: string;
 
     // from all bindables, pick the first primary bindable
     // if there is no primary, pick the first bindable
     // if there's no bindables, create a new primary with property value
     for (prop in bindables) {
       bindable = bindables[prop];
+      attr = bindable.attribute;
+      mode = bindable.mode;
       // old: explicitly provided property name has priority over the implicit property name
       // -----
       // new: though this probably shouldn't be allowed!
@@ -1785,6 +1801,11 @@ class BindablesInfo<T extends 0 | 1 = 0> {
       //   prop = bindable.property;
       // }
       // -----
+      // for attribute, mode should be derived from default binding mode
+      // if it's not set or set to default
+      if (isAttr && (mode === void 0 || mode === BindingMode.default)) {
+        mode = defaultBindingMode;
+      }
       if (bindable.primary === true) {
         if (hasPrimary) {
           throw new Error(`Primary already exists on ${def.name}`);
@@ -1795,11 +1816,13 @@ class BindablesInfo<T extends 0 | 1 = 0> {
         primary = bindable;
       }
 
-      attrs[bindable.attribute] = bindable;
+      attrs[attr] = BindableDefinition.create(prop, bindable);
+      // hack with casting, avoid additional object creation
+      (attrs[attr] as Writable<BindableDefinition>).mode = mode;
     }
-    if (bindable == null && autoPrimary) {
+    if (bindable == null && isAttr) {
       // if no bindables are present, default to "value"
-      primary = attrs.value = bindables.value = BindableDefinition.create('value');
+      primary = attrs.value = BindableDefinition.create('value', { mode: defaultBindingMode });
     }
 
     return new BindablesInfo(attrs, bindables, primary!);

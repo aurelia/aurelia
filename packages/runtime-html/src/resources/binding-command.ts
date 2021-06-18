@@ -32,6 +32,8 @@ import type { AnyBindingExpression, ForOfStatement, IsBindingBehavior } from '@a
 import type { PlainAttributeSymbol } from '../semantic-model.js';
 import type { AttrSyntax } from './attribute-pattern.js';
 import type { BindableDefinition } from '../bindable.js';
+import type { CustomAttributeDefinition } from './custom-attribute.js';
+import type { CustomElementDefinition } from './custom-element.js';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition<{
   readonly type?: string | null;
@@ -42,6 +44,7 @@ export interface ICommandBuildInfo {
   attr: AttrSyntax;
   expr: AnyBindingExpression;
   bindable: BindableDefinition | null;
+  def: CustomAttributeDefinition | CustomElementDefinition | null;
 }
 
 export type BindingCommandInstance<T extends {} = {}> = {
@@ -288,8 +291,10 @@ export class DefaultBindingCommand implements BindingCommandInstance {
   }
 
   public build(info: ICommandBuildInfo): IInstruction {
+    type CA = CustomAttributeDefinition;
     const attrName = info.attr.target;
     const bindable = info.bindable;
+    let defaultMode: BindingMode;
     let mode: BindingMode;
     let target: string;
     if (bindable == null) {
@@ -299,7 +304,12 @@ export class DefaultBindingCommand implements BindingCommandInstance {
         // use the default behavior, which is camel-casing
         ?? camelCase(attrName);
     } else {
-      mode = bindable.mode === BindingMode.default ? BindingMode.toView : bindable.mode;
+      defaultMode = (info.def as CA).defaultBindingMode;
+      mode = bindable.mode === BindingMode.default || bindable.mode == null
+        ? defaultMode == null || defaultMode === BindingMode.default
+          ? BindingMode.toView
+          : defaultMode
+        : bindable.mode;
       target = bindable.property;
     }
     return new PropertyBindingInstruction(info.expr as IsBindingBehavior, target, mode);

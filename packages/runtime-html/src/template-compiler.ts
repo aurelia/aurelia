@@ -6,6 +6,7 @@ import {
   toArray,
   ILogger,
   camelCase,
+  Writable,
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
@@ -968,6 +969,7 @@ export class ViewCompiler implements ITemplateCompiler {
         commandBuildInfo.attr = attrSyntax;
         commandBuildInfo.expr = expr;
         commandBuildInfo.bindable = null;
+        commandBuildInfo.def = null;
         (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
 
         // to next attribute
@@ -1017,6 +1019,7 @@ export class ViewCompiler implements ITemplateCompiler {
             commandBuildInfo.attr = attrSyntax;
             commandBuildInfo.expr = expr;
             commandBuildInfo.bindable = primaryBindable;
+            commandBuildInfo.def = attrDef;
             attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
           }
         }
@@ -1098,19 +1101,26 @@ export class ViewCompiler implements ITemplateCompiler {
         bindablesInfo = BindablesInfo.from(elDef, false);
         bindable = bindablesInfo.attrs[attrSyntax.target];
         if (bindable !== void 0) {
-          const normalPropCommand = BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand;
           // if it looks like: <my-el value.bind>
           // it means        : <my-el value.bind="value">
           // this is a shortcut
-          const realAttrValue = attrValue.length === 0 && (bindingCommand.bindingType & normalPropCommand) > 0
-            ? camelCase(attrName)
-            : attrValue;
-          expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
+          // and reuse attrValue variable
+          attrValue = attrValue.length === 0
+            && (bindingCommand.bindingType & (
+              BindingType.BindCommand
+              | BindingType.OneTimeCommand
+              | BindingType.ToViewCommand
+              | BindingType.TwoWayCommand
+            )) > 0
+              ? camelCase(attrName)
+              : attrValue;
+          expr = exprParser.parse(attrValue, bindingCommand.bindingType);
 
           commandBuildInfo.node = el;
           commandBuildInfo.attr = attrSyntax;
           commandBuildInfo.expr = expr;
           commandBuildInfo.bindable = bindable;
+          commandBuildInfo.def = elDef;
           (elBindableInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
           continue;
         }
@@ -1132,8 +1142,15 @@ export class ViewCompiler implements ITemplateCompiler {
       commandBuildInfo.attr = attrSyntax;
       commandBuildInfo.expr = expr;
       commandBuildInfo.bindable = null;
+      commandBuildInfo.def = null;
       (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
     }
+
+    commandBuildInfo.node
+      = commandBuildInfo.attr
+      = commandBuildInfo.expr
+      = commandBuildInfo.bindable
+      = commandBuildInfo.def = null!;
 
     if (elDef !== null) {
       elementInstruction = new HydrateElementInstruction(
@@ -1375,6 +1392,7 @@ export class ViewCompiler implements ITemplateCompiler {
           commandBuildInfo.attr = attrSyntax;
           commandBuildInfo.expr = expr;
           commandBuildInfo.bindable = bindable;
+          commandBuildInfo.def = attrDef;
           // instructions.push(command.compile(new BindingSymbol(command, bindable, expr, attrValue, attrName)));
           instructions.push(command.build(commandBuildInfo));
         }
@@ -1536,6 +1554,7 @@ const commandBuildInfo: ICommandBuildInfo = {
   expr: null!,
   attr: null!,
   bindable: null,
+  def: null,
 };
 
 const invalidSurrogateAttribute = Object.assign(createLookup<boolean | undefined>(), {
@@ -1547,23 +1566,33 @@ const invalidSurrogateAttribute = Object.assign(createLookup<boolean | undefined
 
 const bindableAttrsInfoCache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();
 class BindablesInfo<T extends 0 | 1 = 0> {
-  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: true): BindablesInfo<1>;
-  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: false): BindablesInfo<0>;
-  public static from(def: CustomElementDefinition | CustomAttributeDefinition, autoPrimary: boolean): BindablesInfo<1 | 0> {
+  public static from(def: CustomAttributeDefinition, isAttr: true): BindablesInfo<1>;
+  public static from(def: CustomElementDefinition, isAttr: false): BindablesInfo<0>;
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: boolean): BindablesInfo<1 | 0> {
     let info = bindableAttrsInfoCache.get(def);
     if (info == null) {
+      type CA = CustomAttributeDefinition;
       const bindables = def.bindables;
       const attrs = createLookup<BindableDefinition>();
       let bindable: BindableDefinition | undefined;
       let prop: string;
       let hasPrimary: boolean = false;
       let primary: BindableDefinition | undefined;
+      let defaultBindingMode: BindingMode = isAttr
+        ? (def as CA).defaultBindingMode === void 0
+          ? BindingMode.default
+          : (def as CA).defaultBindingMode
+        : BindingMode.default;
+      let mode: BindingMode;
+      let attr: string;
 
       // from all bindables, pick the first primary bindable
       // if there is no primary, pick the first bindable
       // if there's no bindables, create a new primary with property value
       for (prop in bindables) {
         bindable = bindables[prop];
+        attr = bindable.attribute;
+        mode = bindable.mode;
         // old: explicitly provided property name has priority over the implicit property name
         // -----
         // new: though this probably shouldn't be allowed!
@@ -1571,6 +1600,11 @@ class BindablesInfo<T extends 0 | 1 = 0> {
         //   prop = bindable.property;
         // }
         // -----
+        // for attribute, mode should be derived from default binding mode
+        // if it's not set or set to default
+        if (isAttr && (mode === void 0 || mode === BindingMode.default)) {
+          mode = defaultBindingMode;
+        }
         if (bindable.primary === true) {
           if (hasPrimary) {
             throw new Error(`Primary already exists on ${def.name}`);
@@ -1581,11 +1615,12 @@ class BindablesInfo<T extends 0 | 1 = 0> {
           primary = bindable;
         }
 
-        attrs[bindable.attribute] = bindable;
+        // hack with casting, avoid additional object creation
+        (attrs[attr] = BindableDefinition.create(prop, bindable) as Writable<BindableDefinition>).mode = mode;
       }
-      if (bindable == null && autoPrimary) {
+      if (bindable == null && isAttr) {
         // if no bindables are present, default to "value"
-        primary = attrs.value = bindables.value = BindableDefinition.create('value');
+        primary = attrs.value = BindableDefinition.create('value', { mode: defaultBindingMode });
       }
 
       bindableAttrsInfoCache.set(def, info = new BindablesInfo(attrs, bindables, primary!));
@@ -1597,5 +1632,13 @@ class BindablesInfo<T extends 0 | 1 = 0> {
     public readonly attrs: Record<string, BindableDefinition>,
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly primary: T extends 1 ? BindableDefinition : BindableDefinition | undefined,
+  ) {}
+}
+
+class BindableInfo {
+  public constructor(
+    public readonly attr: string,
+    public readonly prop: string,
+    public readonly mode: BindingMode,
   ) {}
 }

@@ -895,6 +895,15 @@ export class ViewCompiler implements ITemplateCompiler {
     return this.mark(el).nextSibling;
   }
 
+  // TODO:
+  // ====
+  // one important feature that is not support right now, is the ability
+  // to detect whenever the projection is on/off
+  // sometimes this is crucial for toggling between projection & fallback views
+  // Though during this first go of a refactoring, put this feature on hold
+  //
+  // TODO(related): ability to work with @children deco
+  // v1 supports both of these features with ease, because of the viewslot abstraction
   /** @internal */
   private auSlot(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     const slotName = el.getAttribute('name') || 'default';
@@ -942,6 +951,7 @@ export class ViewCompiler implements ITemplateCompiler {
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = container.find(CustomElement, elName) as CustomElementDefinition | null;
+    const isAuSlot = elName === 'au-slot';
     const attrParser = context.attrParser;
     const exprParser = context.exprParser;
     const attrSyntaxTransformer = context.attrTransformer;
@@ -1232,7 +1242,10 @@ export class ViewCompiler implements ITemplateCompiler {
       let child: Node | null;
       let childEl: Element;
       let targetSlot: string | null;
-      let projections: IProjections | null = null;
+      let projections: IProjections | undefined;
+      let slotTemplateRecord: Record<string, (Element | DocumentFragment)[]> | undefined;
+      let slotTemplates: (Element | DocumentFragment)[];
+      let slotTemplate: Element | DocumentFragment;
       let marker: HTMLElement;
       let projectionCompilationContext: ICompilationContext;
       if (shouldCompileContent) {
@@ -1276,18 +1289,7 @@ export class ViewCompiler implements ITemplateCompiler {
                   template.content.appendChild(childEl);
                   context.p.document.adoptNode(template.content);
                 }
-                projectionCompilationContext = {
-                  ...context,
-                  parent: context,
-                  instructionRows: [],
-                };
-                this.node(template.content, container, projectionCompilationContext);
-                (projections ??= {})[targetSlot] = CustomElementDefinition.create({
-                  name: CustomElement.generateName(),
-                  template,
-                  instructions: projectionCompilationContext.instructionRows,
-                  needsCompile: false,
-                });
+                ((slotTemplateRecord ??= {})[targetSlot] ??= []).push(template);
               }
               // if not a targeted slot then use the common node method
               // todo: in the future, there maybe more special case for a content of a custom element
@@ -1297,7 +1299,53 @@ export class ViewCompiler implements ITemplateCompiler {
             }
           }
 
-          if (projections != null) {
+          if (slotTemplateRecord != null) {
+            projections = {};
+            // aggregate all content targeting the same slot
+            // into a single template
+            // with some special rule around <template> element
+            for (targetSlot in slotTemplateRecord) {
+              template = context.p.document.createElement('template');
+              slotTemplates = slotTemplateRecord[targetSlot];
+              for (i = 0, ii = slotTemplates.length; ii > i; ++i) {
+                slotTemplate = slotTemplates[i];
+                if (slotTemplate.nodeName === 'TEMPLATE') {
+                  // this means user has some thing more than [au-slot] on a template
+                  // consider this intentional, and use it as is
+                  // e.g:
+                  // <my-element>
+                  //   <template au-slot repeat.for="i of items">
+                  // ----vs----
+                  // <my-element>
+                  //   <template au-slot>this is just some static stuff <b>And a b</b></template>
+                  if ((slotTemplate as Element).attributes.length > 0) {
+                    template.content.appendChild(slotTemplate);
+                  } else {
+                    template.content.appendChild((slotTemplate as HTMLTemplateElement).content);
+                  }
+                } else {
+                  template.content.appendChild(slotTemplate);
+                }
+              }
+              projectionCompilationContext = {
+                ...context,
+                // important:
+                // ---------
+                // it is the template controller that owns this compilation
+                // it may not matter for now, but a clear distinction between
+                // the context compilation, and parent compilation should be maintained
+                // at least for the least amount of ambiguity
+                parent: childContext,
+                instructionRows: [],
+              };
+              this.node(template.content, container, projectionCompilationContext);
+              projections[targetSlot] = CustomElementDefinition.create({
+                name: CustomElement.generateName(),
+                template,
+                instructions: projectionCompilationContext.instructionRows,
+                needsCompile: false,
+              });
+            }
             elementInstruction!.projections = projections;
           }
         }
@@ -1360,6 +1408,9 @@ export class ViewCompiler implements ITemplateCompiler {
         let childEl: Element;
         let targetSlot: string | null;
         let projections: IProjections | null = null;
+        let slotTemplateRecord: Record<string, (Element | DocumentFragment)[]> | undefined;
+        let slotTemplates: (Element | DocumentFragment)[];
+        let slotTemplate: Element | DocumentFragment;
         let template: HTMLTemplateElement;
         let projectionCompilationContext: ICompilationContext;
         // for each child element of a custom element
@@ -1400,18 +1451,7 @@ export class ViewCompiler implements ITemplateCompiler {
                 context.p.document.adoptNode(template.content);
               }
               childEl.removeAttribute('au-slot');
-              projectionCompilationContext = {
-                ...context,
-                parent: context,
-                instructionRows: [],
-              };
-              this.node(template.content, container, projectionCompilationContext);
-              (projections ??= {})[targetSlot] = CustomElementDefinition.create({
-                name: CustomElement.generateName(),
-                template,
-                instructions: projectionCompilationContext.instructionRows,
-                needsCompile: false,
-              });
+              ((slotTemplateRecord ??= {})[targetSlot] ??= []).push(template);
             }
             // if not a targeted slot then use the common node method
             // todo: in the future, there maybe more special case for a content of a custom element
@@ -1420,13 +1460,54 @@ export class ViewCompiler implements ITemplateCompiler {
             child = child.nextSibling;
           }
         }
+
+        if (slotTemplateRecord != null) {
+          projections = {};
+          // aggregate all content targeting the same slot
+          // into a single template
+          // with some special rule around <template> element
+          for (targetSlot in slotTemplateRecord) {
+            template = context.p.document.createElement('template');
+            slotTemplates = slotTemplateRecord[targetSlot];
+            for (i = 0, ii = slotTemplates.length; ii > i; ++i) {
+              slotTemplate = slotTemplates[i];
+              if (slotTemplate.nodeName === 'TEMPLATE') {
+                // this means user has some thing more than [au-slot] on a template
+                // consider this intentional, and use it as is
+                // e.g:
+                // <my-element>
+                //   <template au-slot repeat.for="i of items">
+                // ----vs----
+                // <my-element>
+                //   <template au-slot>this is just some static stuff <b>And a b</b></template>
+                if ((slotTemplate as Element).attributes.length > 0) {
+                  template.content.appendChild(slotTemplate);
+                } else {
+                  template.content.appendChild((slotTemplate as HTMLTemplateElement).content);
+                }
+              } else {
+                template.content.appendChild(slotTemplate);
+              }
+            }
+            projectionCompilationContext = {
+              ...context,
+              parent: context,
+              instructionRows: [],
+            };
+            this.node(template.content, container, projectionCompilationContext);
+            projections[targetSlot] = CustomElementDefinition.create({
+              name: CustomElement.generateName(),
+              template,
+              instructions: projectionCompilationContext.instructionRows,
+              needsCompile: false,
+            });
+          }
+          elementInstruction!.projections = projections;
+        }
+
         child = el.firstChild;
         while (child !== null) {
           child = this.node(child, container, context);
-        }
-
-        if (projections != null) {
-          elementInstruction!.projections = projections;
         }
       }
     }

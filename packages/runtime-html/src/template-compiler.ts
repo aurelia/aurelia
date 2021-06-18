@@ -6,6 +6,7 @@ import {
   toArray,
   ILogger,
   camelCase,
+  Writable,
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
@@ -566,6 +567,7 @@ function processLocalTemplates(
 }
 
 interface ICompilationContext {
+  readonly root: ICompilationContext;
   readonly parent: ICompilationContext | null;
   readonly templateFactory: ITemplateElementFactory;
   readonly inst: ICompliationInstruction;
@@ -577,6 +579,7 @@ interface ICompilationContext {
   readonly instructionRows: IInstruction[][];
   readonly localElements: Set<string>;
   readonly p: IPlatform;
+  hasSlot: boolean;
 }
 
 export class ViewCompiler implements ITemplateCompiler {
@@ -605,6 +608,7 @@ export class ViewCompiler implements ITemplateCompiler {
     const logger: ILogger = container.get(ILogger);
     const p: IPlatform = container.get(IPlatform);
     const compilationContext: ICompilationContext = {
+      root: null!,
       inst: compilationInstruction,
       attrParser,
       exprParser,
@@ -614,7 +618,8 @@ export class ViewCompiler implements ITemplateCompiler {
       logger,
       p,
       parent: null,
-      templateFactory: factory
+      templateFactory: factory,
+      hasSlot: false,
     };
     const template = typeof definition.template === 'string' || !compilationInstruction.enhance
       ? factory.createTemplate(definition.template)
@@ -622,6 +627,7 @@ export class ViewCompiler implements ITemplateCompiler {
     const isTemplateElement = template.nodeName === 'TEMPLATE' && (template as HTMLTemplateElement).content != null;
     const content = isTemplateElement ? (template as HTMLTemplateElement).content : template;
 
+    (compilationContext as Writable<ICompilationContext>).root = compilationContext;
     this.local(content, container, compilationContext);
 
     const compiledPartialDef = this.doCompile(content, container, compilationContext);
@@ -633,6 +639,7 @@ export class ViewCompiler implements ITemplateCompiler {
       ...compiledPartialDef,
       template,
       surrogates,
+      hasSlots: compilationContext.hasSlot
     });
   }
 
@@ -837,6 +844,7 @@ export class ViewCompiler implements ITemplateCompiler {
     let realAttrTarget: string;
     let realAttrValue: string;
     let expr: AnyBindingExpression;
+
     for (; ii > i; ++i) {
       attr = attrs[i];
       attrName = attr.name;
@@ -956,10 +964,9 @@ export class ViewCompiler implements ITemplateCompiler {
     let realAttrTarget: string;
     let realAttrValue: string;
 
-    // create 2 arrays
-    // 1 array for instructions
-    // 1 array for template controllers
-    // custom element instruction is separate
+    if (elName === 'slot') {
+      context.root.hasSlot = true;
+    }
 
     for (; ii > i; ++i) {
       attr = attrs[i];

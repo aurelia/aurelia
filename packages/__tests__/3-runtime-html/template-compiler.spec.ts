@@ -77,12 +77,29 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   });
 
   describe('compileElement()', function () {
+    describe('with <slot/>', function () {
+      it('set hasSlots to true <slot/>', function () {
+        const definition = compileWith('<template><slot></slot></template>', []);
+        assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
+  
+        // test this with nested slot inside template controller
+      });
 
-    it('set hasSlots to true <slot/>', function () {
-      const definition = compileWith('<template><slot></slot></template>', []);
-      assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
+      it('recognizes slot in nested <template>', function () {
+        const definition = compileWith('<template><template if.bind="true"><slot></slot></template></template>', []);
+        assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
+      });
 
-      // test this with nested slot inside template controller
+      it('does not discriminate slot name', function () {
+        const definition = compileWith('<template><slot name="slot"></slot></template>', []);
+        assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
+      });
+
+      // <template> shouldn't be compiled 
+      it('does not recognize slot in <template> without template controller', function () {
+        const definition = compileWith('<template><template ><slot></slot></template></template>', []);
+        assert.strictEqual(definition.hasSlots, false, `definition.hasSlots`);
+      });
     });
 
     describe('with custom element', function () {

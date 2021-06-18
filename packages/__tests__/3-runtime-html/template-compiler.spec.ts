@@ -102,6 +102,13 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
       });
     });
 
+    describe('with nested <template> without template controller', function () {
+      it('does not compile <template> without template controller', function () {
+        const definition = compileWith('<template><template>${prop}</template></template>', []);
+        assert.deepStrictEqual(definition.instructions, [], `definition.instructions`);
+      });
+    });
+
     describe('with custom element', function () {
 
       describe('compiles surrogate', function () {
@@ -1736,8 +1743,11 @@ describe('TemplateCompiler - au-slot', function () {
       [],
       null,
       [
-        new ExpectedSlotInfo('s1', AuSlotContentType.Fallback, 's1fb'),
-        new ExpectedSlotInfo('s2', AuSlotContentType.Fallback, '<div>s2fb</div>'),
+        // old behavior: compile <au-slot> without projection to fallback behavior
+        // new ExpectedSlotInfo('s1', AuSlotContentType.Fallback, 's1fb'),
+        // new ExpectedSlotInfo('s2', AuSlotContentType.Fallback, '<div>s2fb</div>'),
+        //
+        // new behavior: flaten content of <au-slot> without projection
       ],
     );
     const scope1 = createScopeForTest();
@@ -1747,7 +1757,10 @@ describe('TemplateCompiler - au-slot', function () {
       [scope1, { s1: '<span>s1p</span>' }],
       [
         new ExpectedSlotInfo('s1', AuSlotContentType.Projection, '<span>s1p</span>', scope1),
-        new ExpectedSlotInfo('s2', AuSlotContentType.Fallback, '<div>s2fb</div>'),
+        // old behavior: compile <au-slot> without projection to fallback behavior
+        // new ExpectedSlotInfo('s2', AuSlotContentType.Fallback, '<div>s2fb</div>'),
+        //
+        // new behavior: flaten content of <au-slot> without projection
       ],
     );
     yield new TestData(

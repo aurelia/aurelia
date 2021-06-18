@@ -632,35 +632,20 @@ export class ViewCompiler implements ITemplateCompiler {
     }
     (compilationContext as Writable<ICompilationContext>).root = compilationContext;
     this.local(content, container, compilationContext);
+    this.node(content, container, compilationContext);
 
-    const compiledPartialDef = this.doCompile(content, container, compilationContext);
     const surrogates = isTemplateElement
       ? this.surrogate(template, container, compilationContext)
       : emptyArray;
 
     return CustomElementDefinition.create({
-      ...compiledPartialDef,
-      template,
-      surrogates,
-      hasSlots: compilationContext.hasSlot
-    });
-  }
-
-  private doCompile(
-    template: Element | DocumentFragment,
-    container: IContainer,
-    context: ICompilationContext
-  ): PartialCustomElementDefinition {
-    let node: Node | null = template;
-    while (node !== null) {
-      node = this.node(node, container, context);
-    }
-    return {
       name: CustomElement.generateName(),
+      instructions: compilationContext.instructionRows,
+      surrogates,
       template,
-      instructions: context.instructionRows,
+      hasSlots: compilationContext.hasSlot,
       needsCompile: false,
-    };
+    });
   }
 
   private surrogate(el: Element, container: IContainer, context: ICompilationContext): IInstruction[] {
@@ -1306,6 +1291,11 @@ export class ViewCompiler implements ITemplateCompiler {
             elementInstruction!.projections = projections;
           }
         }
+
+        // important:
+        // ======================
+        // only goes inside a template, if there is a template controller on it
+        // otherwise, leave it alone
         if (el.nodeName === 'TEMPLATE') {
           this.node((el as HTMLTemplateElement).content, container, childContext);
         } else {
@@ -1415,6 +1405,10 @@ export class ViewCompiler implements ITemplateCompiler {
             child = child.nextSibling;
           }
         }
+        child = el.firstChild;
+        while (child !== null) {
+          child = this.node(child, container, context);
+        }
 
         if (projections != null) {
           elementInstruction!.projections = projections;
@@ -1427,18 +1421,6 @@ export class ViewCompiler implements ITemplateCompiler {
     }
 
     return nextSibling;
-  }
-
-  // unlike most of the rest compilation methods
-  // this is a terminating method
-  private projection(el: Element, container: IContainer, context: ICompilationContext): PartialCustomElementDefinition {
-    const template = context.templateFactory.createTemplate(el);
-    const projectionCompilationContext: ICompilationContext = {
-      ...context,
-      instructionRows: [],
-      parent: context,
-    };
-    return this.doCompile(template, container, projectionCompilationContext);
   }
 
   private text(node: Text, container: IContainer, context: ICompilationContext): Node | null {

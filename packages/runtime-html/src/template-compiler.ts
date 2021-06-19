@@ -756,7 +756,11 @@ export class ViewCompiler implements ITemplateCompiler {
         el.removeAttribute(attrName);
         --i;
         --ii;
-        (attrInstructions ??= []).push(new HydrateAttributeInstruction(attrDef.name, attrSyntax.target, attrBindableInstructions));
+        (attrInstructions ??= []).push(new HydrateAttributeInstruction(
+          attrDef.name,
+          attrDef.aliases != null && attrDef.aliases.includes(attrSyntax.target) ? attrSyntax.target : void 0,
+          attrBindableInstructions
+        ));
       }
 
       if (bindingCommand === null) {
@@ -1043,7 +1047,11 @@ export class ViewCompiler implements ITemplateCompiler {
           continue;
         }
 
-        (attrInstructions ??= []).push(new HydrateAttributeInstruction(attrDef.name, realAttrTarget, attrBindableInstructions));
+        (attrInstructions ??= []).push(new HydrateAttributeInstruction(
+          attrDef.name,
+          attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
+          attrBindableInstructions
+        ));
         continue;
       }
 

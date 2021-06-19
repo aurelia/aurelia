@@ -1843,13 +1843,11 @@ class BindablesInfo<T extends 0 | 1 = 0> {
           }
           hasPrimary = true;
           primary = bindable;
-        } else if (!hasPrimary) {
+        } else if (!hasPrimary && primary == null) {
           primary = bindable;
         }
 
-        // hack with casting, avoid additional object creation
         attrs[attr] = BindableDefinition.create(prop, bindable);
-        // (attrs[attr] = BindableDefinition.create(prop, bindable) as Writable<BindableDefinition>).mode = mode;
       }
       if (bindable == null && isAttr) {
         // if no bindables are present, default to "value"

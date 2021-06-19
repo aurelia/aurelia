@@ -1854,7 +1854,7 @@ class BindablesInfo<T extends 0 | 1 = 0> {
         }
         hasPrimary = true;
         primary = bindable;
-      } else if (!hasPrimary) {
+      } else if (!hasPrimary && primary == null) {
         primary = bindable;
       }
 

@@ -666,6 +666,7 @@ export class ViewCompiler implements ITemplateCompiler {
     let attrDef: CustomAttributeDefinition | null = null;
     let attrInstructions: HydrateAttributeInstruction[] | undefined;
     let attrBindableInstructions: IInstruction[];
+    // eslint-disable-next-line
     let bindableInfo: BindablesInfo<0> | BindablesInfo<1>;
     let primaryBindable: BindableDefinition;
     let bindingCommand: BindingCommandInstance | null = null;
@@ -905,53 +906,6 @@ export class ViewCompiler implements ITemplateCompiler {
     return this.mark(el).nextSibling;
   }
 
-  // TODO:
-  // ====
-  // one important feature that is not support right now, is the ability
-  // to detect whenever the projection is on/off
-  // sometimes this is crucial for toggling between projection & fallback views
-  // Though during this first go of a refactoring, put this feature on hold
-  //
-  // TODO(related): ability to work with @children deco
-  // v1 supports both of these features with ease, because of the viewslot abstraction
-  /** @internal */
-  private auSlot(el: Element, container: IContainer, context: ICompilationContext): Node | null {
-    const slotName = el.getAttribute('name') || 'default';
-    const providedProjection = context.root.inst.projections?.[slotName];
-    const parent = el.parentNode!;
-    const nextSibling = el.nextSibling;
-    const firstNode: Node | null = el.firstChild;
-    let node = firstNode;
-    // if there's no projection for an <au-slot/>
-    // there's no need to treat it in any special way
-    // inline all the fallback content into the parent template
-    if (providedProjection == null) {
-      while (node !== null) {
-        // todo: assumption made: parent is not null
-        parent.insertBefore(node, el);
-        node = el.firstChild;
-      }
-      parent.removeChild(el);
-      return firstNode ?? nextSibling;
-    }
-
-    // if there's actual projection for this <au-slot/>
-    // then just create an instruction straight away
-    // no need ot bother with the attributes on it
-    // todo: maybe support compilation of the bindings on <au-slot />
-    const marker = this.marker(el, context);
-    const slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, providedProjection);
-    const instruction = new HydrateElementInstruction(
-      'au-slot',
-      void 0,
-      emptyArray,
-      null,
-      slotInfo,
-    );
-    context.instructionRows.push([instruction]);
-    return marker.nextSibling;
-  }
-
   /** @internal */
   private element(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     // instructions sort:
@@ -985,6 +939,7 @@ export class ViewCompiler implements ITemplateCompiler {
     let expr: AnyBindingExpression;
     let elementInstruction: HydrateElementInstruction | undefined;
     let bindingCommand: BindingCommandInstance | null = null;
+    // eslint-disable-next-line
     let bindablesInfo: BindablesInfo<0> | BindablesInfo<1>;
     let primaryBindable: BindableDefinition;
     let realAttrTarget: string;
@@ -1323,15 +1278,8 @@ export class ViewCompiler implements ITemplateCompiler {
                   targetSlot = 'default';
                 }
                 childEl.removeAttribute('au-slot');
-                if (childEl.nodeName === 'TEMPLATE') {
-                  template = childEl as HTMLTemplateElement;
-                  el.removeChild(childEl);
-                } else {
-                  template = context.p.document.createElement('template');
-                  template.content.appendChild(childEl);
-                  context.p.document.adoptNode(template.content);
-                }
-                ((slotTemplateRecord ??= {})[targetSlot] ??= []).push(template);
+                el.removeChild(childEl);
+                ((slotTemplateRecord ??= {})[targetSlot] ??= []).push(childEl);
               }
               // if not a targeted slot then use the common node method
               // todo: in the future, there maybe more special case for a content of a custom element
@@ -1368,23 +1316,26 @@ export class ViewCompiler implements ITemplateCompiler {
                 } else {
                   template.content.appendChild(slotTemplate);
                 }
-                projectionCompilationContext = {
-                  ...context,
-                  // technically, the most inner template controller compilation context
-                  // is the parent of this compilation context
-                  // but for simplicity in compilation, maybe start with a flatter hierarchy
-                  // also, it wouldn't have any real uses
-                  parent: context,
-                  instructionRows: [],
-                };
-                this.node(template.content, container, projectionCompilationContext);
-                projections[targetSlot] = CustomElementDefinition.create({
-                  name: CustomElement.generateName(),
-                  template,
-                  instructions: projectionCompilationContext.instructionRows,
-                  needsCompile: false,
-                });
               }
+
+              // after aggregating all the [au-slot] templates into a single one
+              // compile it
+              projectionCompilationContext = {
+                ...context,
+                // technically, the most inner template controller compilation context
+                // is the parent of this compilation context
+                // but for simplicity in compilation, maybe start with a flatter hierarchy
+                // also, it wouldn't have any real uses
+                parent: context,
+                instructionRows: [],
+              };
+              this.node(template.content, container, projectionCompilationContext);
+              projections[targetSlot] = CustomElementDefinition.create({
+                name: CustomElement.generateName(),
+                template,
+                instructions: projectionCompilationContext.instructionRows,
+                needsCompile: false,
+              });
             }
             elementInstruction!.projections = projections;
           }
@@ -1500,16 +1451,9 @@ export class ViewCompiler implements ITemplateCompiler {
               if (targetSlot === '') {
                 targetSlot = 'default';
               }
-              if (childEl.nodeName === 'TEMPLATE') {
-                template = childEl as HTMLTemplateElement;
-                el.removeChild(childEl);
-              } else {
-                template = context.p.document.createElement('template');
-                template.content.appendChild(childEl);
-                context.p.document.adoptNode(template.content);
-              }
+              el.removeChild(childEl);
               childEl.removeAttribute('au-slot');
-              ((slotTemplateRecord ??= {})[targetSlot] ??= []).push(template);
+              ((slotTemplateRecord ??= {})[targetSlot] ??= []).push(childEl);
             }
             // if not a targeted slot then use the common node method
             // todo: in the future, there maybe more special case for a content of a custom element
@@ -1546,20 +1490,22 @@ export class ViewCompiler implements ITemplateCompiler {
               } else {
                 template.content.appendChild(slotTemplate);
               }
-
-              projectionCompilationContext = {
-                ...context,
-                parent: context,
-                instructionRows: [],
-              };
-              this.node(template.content, container, projectionCompilationContext);
-              projections[targetSlot] = CustomElementDefinition.create({
-                name: CustomElement.generateName(),
-                template,
-                instructions: projectionCompilationContext.instructionRows,
-                needsCompile: false,
-              });
             }
+
+            // after aggregating all the [au-slot] templates into a single one
+            // compile it
+            projectionCompilationContext = {
+              ...context,
+              parent: context,
+              instructionRows: [],
+            };
+            this.node(template.content, container, projectionCompilationContext);
+            projections[targetSlot] = CustomElementDefinition.create({
+              name: CustomElement.generateName(),
+              template,
+              instructions: projectionCompilationContext.instructionRows,
+              needsCompile: false,
+            });
           }
           elementInstruction!.projections = projections;
         }

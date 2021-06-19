@@ -186,6 +186,15 @@ describe('au-slot', function () {
       { 'my-element': [`static default <div>p11</div><div>root</div> <div>root</div><div>p21</div>`, new AuSlotsInfo(['s2', 's1'])] },
     );
 
+    yield new TestData(
+      'supports interpolations inside <template>',
+      `<my-element> <template au-slot="s2">\${message}</template> <template au-slot="s1">p11</template> <template au-slot="s2">p21</template> <template au-slot="s1">\${message}</template> </my-element>`,
+      [
+        createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
+      ],
+      { 'my-element': [`static default p11root rootp21`, new AuSlotsInfo(['s2', 's1'])] },
+    );
+
     {
       class MyElement {
         public readonly message: string = 'inner';

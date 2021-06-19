@@ -1166,10 +1166,16 @@ export class ViewCompiler implements ITemplateCompiler {
           const template = context.p.document.createElement('template');
           let node: Node | null = el.firstChild;
           while (node !== null) {
+            // a special case:
+            // <au-slot> doesn't have its own template
+            // so anything attempting to project into it is discarded
+            // doing so during compilation via removing the node,
+            // instead of considering it as part of the fallback view
             if (node.nodeType === 1 && (node as Element).hasAttribute('au-slot')) {
-              (node as Element).removeAttribute('au-slot');
+              el.removeChild(node);
+            } else {
+              template.content.appendChild(node);
             }
-            template.content.appendChild(node);
             node = el.firstChild;
           }
           const auSlotContext: ICompilationContext = {

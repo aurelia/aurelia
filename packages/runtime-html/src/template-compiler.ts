@@ -193,7 +193,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       for (let i = 0; i < ii; ++i) {
         childNode = childNodes[i];
         if ((childNode.flags & SymbolFlags.isText) > 0) {
-          instructionRows.push([new TextBindingInstruction((childNode as TextSymbol).interpolation)]);
+          instructionRows.push([new TextBindingInstruction((childNode as TextSymbol).interpolation, false)]);
         } else if ((childNode.flags & SymbolFlags.isLetElement) > 0) {
           const bindings = (childNode as LetElementSymbol).bindings;
           const instructions: LetBindingInstruction[] = [];
@@ -568,6 +568,7 @@ function processLocalTemplates(
 }
 
 interface ICompilationContext {
+  readonly def: PartialCustomElementDefinition;
   readonly root: ICompilationContext;
   readonly parent: ICompilationContext | null;
   readonly templateFactory: ITemplateElementFactory;
@@ -611,6 +612,7 @@ export class ViewCompiler implements ITemplateCompiler {
     const p: IPlatform = container.get(IPlatform);
     const compilationContext: ICompilationContext = {
       root: null!,
+      def: partialDefinition,
       inst: compilationInstruction!,
       attrParser,
       exprParser,
@@ -754,7 +756,7 @@ export class ViewCompiler implements ITemplateCompiler {
         el.removeAttribute(attrName);
         --i;
         --ii;
-        (attrInstructions ??= []).push(new HydrateAttributeInstruction(attrDef.name, void 0, attrBindableInstructions));
+        (attrInstructions ??= []).push(new HydrateAttributeInstruction(attrDef.name, attrSyntax.target, attrBindableInstructions));
       }
 
       if (bindingCommand === null) {
@@ -1041,7 +1043,7 @@ export class ViewCompiler implements ITemplateCompiler {
           continue;
         }
 
-        (attrInstructions ??= []).push(new HydrateAttributeInstruction(attrDef.name, void 0, attrBindableInstructions));
+        (attrInstructions ??= []).push(new HydrateAttributeInstruction(attrDef.name, realAttrTarget, attrBindableInstructions));
         continue;
       }
 
@@ -1532,20 +1534,21 @@ export class ViewCompiler implements ITemplateCompiler {
     const expr = context.exprParser.parse(text, BindingType.Interpolation);
     const parent = node.parentNode/* ever null? */!;
     let nextSibling = node.nextSibling;
-    let current = nextSibling;
-    let marker: HTMLElement | null = null;
+    let marker: HTMLElement;
     if (expr !== null) {
       marker = this.marker(node, context);
-      context.instructionRows.push([new TextBindingInstruction(expr)]);
-    }
-    while (current !== null && current.nodeType === 3) {
-      nextSibling = current.nextSibling;
-      if (expr !== null) {
-        parent.removeChild(current);
+      nextSibling = marker.nextSibling;
+      while (nextSibling !== null && nextSibling.nodeType === 3) {
+        parent.removeChild(nextSibling);
+        nextSibling = marker.nextSibling;
       }
-      current = nextSibling;
+      context.instructionRows.push([new TextBindingInstruction(expr, !!context.def.isStrictBinding)]);
+      return nextSibling;
     }
-    return marker === null ? nextSibling : marker.nextSibling;
+    while (nextSibling !== null && nextSibling.nodeType === 3) {
+      nextSibling = nextSibling.nextSibling;
+    }
+    return nextSibling;
   }
 
   /** @internal */

@@ -206,6 +206,13 @@ export class TextBindingInstruction {
 
   public constructor(
     public from: string | Interpolation,
+    /**
+     * Indicates whether the value of the expression "from"
+     * should be evaluated in strict mode.
+     *
+     * In none strict mode, "undefined" and "null" are coerced into empty string
+     */
+    public strict: boolean,
   ) {}
 }
 
@@ -284,6 +291,8 @@ export interface ICompliationInstruction {
    * and each value is the definition to render and project
    */
   projections: IProjections | null;
+  /* Indicates whether this compilation should compile root element for surrogate instruction */
+  surrogates?: boolean;
   /**
    * Indicates whether this compilation is an enhancement compilation
    */
@@ -795,6 +804,7 @@ export class TextBindingRenderer implements IRenderer {
           context,
           this.observerLocator,
           this.platform,
+          instruction.strict
         ),
         dynamicParts[i] as unknown as IsBindingBehavior,
         context

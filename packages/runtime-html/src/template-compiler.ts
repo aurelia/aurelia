@@ -1368,23 +1368,23 @@ export class ViewCompiler implements ITemplateCompiler {
                 } else {
                   template.content.appendChild(slotTemplate);
                 }
+                projectionCompilationContext = {
+                  ...context,
+                  // technically, the most inner template controller compilation context
+                  // is the parent of this compilation context
+                  // but for simplicity in compilation, maybe start with a flatter hierarchy
+                  // also, it wouldn't have any real uses
+                  parent: context,
+                  instructionRows: [],
+                };
+                this.node(template.content, container, projectionCompilationContext);
+                projections[targetSlot] = CustomElementDefinition.create({
+                  name: CustomElement.generateName(),
+                  template,
+                  instructions: projectionCompilationContext.instructionRows,
+                  needsCompile: false,
+                });
               }
-              projectionCompilationContext = {
-                ...context,
-                // technically, the most inner template controller compilation context
-                // is the parent of this compilation context
-                // but for simplicity in compilation, maybe start with a flatter hierarchy
-                // also, it wouldn't have any real uses
-                parent: context,
-                instructionRows: [],
-              };
-              this.node(template.content, container, projectionCompilationContext);
-              projections[targetSlot] = CustomElementDefinition.create({
-                name: CustomElement.generateName(),
-                template,
-                instructions: projectionCompilationContext.instructionRows,
-                needsCompile: false,
-              });
             }
             elementInstruction!.projections = projections;
           }
@@ -1439,8 +1439,25 @@ export class ViewCompiler implements ITemplateCompiler {
           instructions: [[tcInstructions[i + 1]]]
         });
       }
-      instructions = [tcInstruction];
+      // the most outer template controller should be
+      // the only instruction for peek instruction of the current context
+      // e.g
+      // <div if.bind="yes" with.bind="scope" repeat.for="i of items" data-id="i.id">
+      // results in:
+      // -----------
+      //
+      //  TC(if-[value=yes])
+      //    | TC(with-[value=scope])
+      //        | TC(repeat-[...])
+      //            | div(data-id-[value=i.id])
+      context.instructionRows.push([tcInstruction]);
     } else {
+      // if there's no template controller
+      // then the instruction built is appropriate to be assigned as the peek row
+      // and before the children compilation
+      if (instructions != null) {
+        context.instructionRows.push(instructions);
+      }
       const shouldCompileContent = elDef === null
         || elDef.processContent?.call(elDef.Type, el, container.get(IPlatform)) !== false;
       if (shouldCompileContent && el.childNodes.length > 0) {
@@ -1529,19 +1546,20 @@ export class ViewCompiler implements ITemplateCompiler {
               } else {
                 template.content.appendChild(slotTemplate);
               }
+
+              projectionCompilationContext = {
+                ...context,
+                parent: context,
+                instructionRows: [],
+              };
+              this.node(template.content, container, projectionCompilationContext);
+              projections[targetSlot] = CustomElementDefinition.create({
+                name: CustomElement.generateName(),
+                template,
+                instructions: projectionCompilationContext.instructionRows,
+                needsCompile: false,
+              });
             }
-            projectionCompilationContext = {
-              ...context,
-              parent: context,
-              instructionRows: [],
-            };
-            this.node(template.content, container, projectionCompilationContext);
-            projections[targetSlot] = CustomElementDefinition.create({
-              name: CustomElement.generateName(),
-              template,
-              instructions: projectionCompilationContext.instructionRows,
-              needsCompile: false,
-            });
           }
           elementInstruction!.projections = projections;
         }
@@ -1551,10 +1569,6 @@ export class ViewCompiler implements ITemplateCompiler {
           child = this.node(child, container, context);
         }
       }
-    }
-
-    if (instructions != null) {
-      context.instructionRows.push(instructions);
     }
 
     return nextSibling;
@@ -1579,7 +1593,7 @@ export class ViewCompiler implements ITemplateCompiler {
       }
       current = nextSibling;
     }
-    return marker ?? nextSibling;
+    return marker === null ? nextSibling : marker.nextSibling;
   }
 
   /** @internal */

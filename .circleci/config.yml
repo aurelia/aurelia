@@ -384,6 +384,7 @@ jobs:
             else
               pr_comment_url=$(echo $pr_response | jq -r ".[]._links.comments.href")
 
+              git reset --hard
               git checkout master
               master_commit=$(git rev-parse HEAD)
 

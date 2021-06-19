@@ -806,6 +806,10 @@ export class ViewCompiler implements ITemplateCompiler {
       }
     }
 
+    if (attrInstructions != null) {
+      instructions.splice(0, 0, ...attrInstructions);
+    }
+
     return instructions;
   }
 

@@ -1232,7 +1232,10 @@ export class ViewCompiler implements ITemplateCompiler {
           slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, projection);
         }
         el = this.marker(el, context);
+      } else if (elDef.containerless) {
+        this.marker(el, context);
       }
+
       elementInstruction = new HydrateElementInstruction(
         elDef.name,
         void 0,

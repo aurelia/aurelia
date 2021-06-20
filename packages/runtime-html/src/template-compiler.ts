@@ -50,6 +50,7 @@ import {
   SetStyleAttributeInstruction,
   TextBindingInstruction,
   ITemplateCompiler,
+  PropertyBindingInstruction,
 } from './renderer.js';
 
 import { IPlatform } from './platform.js';
@@ -935,6 +936,7 @@ export class ViewCompiler implements ITemplateCompiler {
     const attrParser = context.attrParser;
     const exprParser = context.exprParser;
     const attrSyntaxTransformer = context.attrTransformer;
+    const isAttrsOrderSensitive = this.shouldReorderAttrs(el);
     let attrs = el.attributes;
     let instructions: IInstruction[] | undefined;
     let ii = attrs.length;
@@ -1188,6 +1190,10 @@ export class ViewCompiler implements ITemplateCompiler {
       = commandBuildInfo.expr
       = commandBuildInfo.bindable
       = commandBuildInfo.def = null!;
+
+    if (isAttrsOrderSensitive && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
+      this.reorder(el, plainAttrInstructions);
+    }
 
     if (elDef !== null) {
       let slotInfo: SlotInfo | null = null;
@@ -1746,6 +1752,42 @@ export class ViewCompiler implements ITemplateCompiler {
     }
   }
 
+  private shouldReorderAttrs(el: Element): boolean {
+    return el.nodeName === 'INPUT' && orderSensitiveInputType[(el as HTMLInputElement).type] === 1;
+  }
+
+  private reorder(el: Element, instructions: (IInstruction)[]) {
+    switch (el.nodeName) {
+      case 'INPUT': {
+        const _instructions = instructions as (PropertyBindingInstruction | InterpolationInstruction)[];
+        // swap the order of checked and model/value attribute,
+        // so that the required observers are prepared for checked-observer
+        let modelOrValueOrMatcherIndex: number | undefined = void 0;
+        let checkedIndex: number | undefined = void 0;
+        let found = 0;
+        let instruction: PropertyBindingInstruction | InterpolationInstruction;
+        for (let i = 0; i < _instructions.length && found < 3; i++) {
+          instruction = _instructions[i];
+          switch (instruction.to) {
+            case 'model':
+            case 'value':
+            case 'matcher':
+              modelOrValueOrMatcherIndex = i;
+              found++;
+              break;
+            case 'checked':
+              checkedIndex = i;
+              found++;
+              break;
+          }
+        }
+        if (checkedIndex !== void 0 && modelOrValueOrMatcherIndex !== void 0 && checkedIndex < modelOrValueOrMatcherIndex) {
+          [_instructions[modelOrValueOrMatcherIndex], _instructions[checkedIndex]] = [_instructions[checkedIndex], _instructions[modelOrValueOrMatcherIndex]];
+        }
+      }
+    }
+  }
+
   /** @internal */
   private readonly commandLookup: Record<string, BindingCommandInstance | null | undefined> = createLookup();
   /**
@@ -1833,6 +1875,16 @@ const invalidSurrogateAttribute = Object.assign(createLookup<boolean | undefined
   'name': true,
   'au-slot': true,
   'as-element': true,
+});
+const orderSensitiveInputType: Record<string, number> = {
+  checkbox: 1,
+  radio: 1,
+  // todo: range is also sensitive to order, for min/max
+};
+const orderSenstiveInputAttrs = Object.assign(createLookup<number>(), {
+  matcher: 1,
+  model: 1,
+  value: 1,
 });
 
 const bindableAttrsInfoCache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();

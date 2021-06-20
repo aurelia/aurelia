@@ -1,10 +1,10 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
-import { createTransformer as tsCreateTransformer } from 'ts-jest';
+import tsJest from 'ts-jest';
 import type { Config } from '@jest/types';
-import type { TransformOptions, TransformedSource, CacheKeyOptions } from '@jest/transform';
+import type { TransformOptions, TransformedSource } from '@jest/transform';
 import * as path from 'path';
 
-const tsTransformer = tsCreateTransformer();
+const tsTransformer = tsJest.createTransformer();
 
 function _createTransformer(
   conventionsOptions = {},
@@ -17,10 +17,9 @@ function _createTransformer(
   function getCacheKey(
     fileData: string,
     filePath: Config.Path,
-    configStr: string,
-    options: CacheKeyOptions
+    options: TransformOptions
   ): string {
-    const tsKey = tsTransformer.getCacheKey(fileData, filePath, configStr, options);
+    const tsKey = tsTransformer.getCacheKey!(fileData, filePath, options);
     return `${tsKey}:${JSON.stringify(au2Options)}`;
   }
 
@@ -28,9 +27,8 @@ function _createTransformer(
   function process(
     sourceText: string,
     sourcePath: Config.Path,
-    config: Config.ProjectConfig,
-    transformOptions?: TransformOptions
-  ): TransformedSource {
+    transformOptions: TransformOptions
+  ): TransformedSource | string {
     const result = _preprocess(
       { path: sourcePath, contents: sourceText },
       au2Options
@@ -43,9 +41,9 @@ function _createTransformer(
         newSourcePath += '.ts';
         newCode = `// @ts-nocheck\n${newCode}`;
       }
-      return _tsProcess(newCode, newSourcePath, config, transformOptions);
+      return _tsProcess(newCode, newSourcePath, transformOptions);
     }
-    return _tsProcess(sourceText, sourcePath, config, transformOptions);
+    return _tsProcess(sourceText, sourcePath, transformOptions);
   }
 
   return {

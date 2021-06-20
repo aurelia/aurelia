@@ -1,9 +1,11 @@
 import { IFileUnit, IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
 import { _createTransformer } from '@aurelia/babel-jest';
+import { TransformOptions } from '@babel/core';
 import { assert } from '@aurelia/testing';
 import { Config } from '@jest/types';
-import { TransformOptions, TransformedSource } from '@jest/transform';
+import { TransformOptions as TransformOptionsJest, TransformedSource } from '@jest/transform';
 import * as path from 'path';
+import { makeProjectConfig } from '../jest-test-utils/config';
 
 function makePreprocess(_fileExists: (p: string) => boolean) {
   return function (unit: IFileUnit, options: IOptionalPreprocessOptions) {
@@ -13,67 +15,22 @@ function makePreprocess(_fileExists: (p: string) => boolean) {
 
 function babelProcess(
   sourceText: string,
-  sourcePath: Config.Path,
-  config: Config.ProjectConfig,
-  transformOptions?: TransformOptions
+  _sourcePath: Config.Path,
+  _transformOptions: TransformOptionsJest<TransformOptions>
 ): TransformedSource {
   return sourceText;
 }
 
-const config: Config.ProjectConfig = {
-  automock: false,
-  cache: false,
-  cacheDirectory: '/test_cache_dir/',
-  clearMocks: false,
-  coveragePathIgnorePatterns: [],
-  cwd: '/test_root_dir/',
-  detectLeaks: false,
-  detectOpenHandles: false,
-  displayName: undefined,
-  errorOnDeprecated: false,
-  extraGlobals: [],
-  filter: undefined,
-  forceCoverageMatch: [],
-  globalSetup: undefined,
-  globalTeardown: undefined,
-  globals: {},
-  haste: {},
-  injectGlobals: false,
-  moduleDirectories: [],
-  moduleFileExtensions: ['js'],
-  moduleLoader: '/test_module_loader_path',
-  moduleNameMapper: [],
-  modulePathIgnorePatterns: [],
-  modulePaths: [],
-  name: 'test_name',
-  prettierPath: 'prettier',
-  resetMocks: false,
-  resetModules: false,
-  resolver: undefined,
-  restoreMocks: false,
-  rootDir: '/test_root_dir/',
-  roots: [],
-  runner: 'jest-runner',
-  setupFiles: [],
-  setupFilesAfterEnv: [],
-  skipFilter: false,
-  skipNodeResolution: false,
-  slowTestThreshold: 75,
-  snapshotResolver: undefined,
-  snapshotSerializers: [],
-  testEnvironment: 'node',
-  testEnvironmentOptions: {},
-  testLocationInResults: false,
-  testMatch: [],
-  testPathIgnorePatterns: [],
-  testRegex: ['\\.test\\.js$'],
-  testRunner: 'jest-jasmine2',
-  testURL: 'http://localhost',
-  timers: 'real',
-  transform: [],
-  transformIgnorePatterns: [],
-  unmockedModulePathPatterns: undefined,
-  watchPathIgnorePatterns: [],
+const options: TransformOptionsJest<TransformOptions> = {
+  config: makeProjectConfig(),
+  configString: JSON.stringify(makeProjectConfig()),
+  instrument: false,
+  cacheFS: new Map<string, string>(),
+  transformerConfig: {},
+  supportsDynamicImport: false,
+  supportsTopLevelAwait: false,
+  supportsExportNamespaceFrom: true,
+  supportsStaticESM: true,
 };
 
 describe('babel-jest', function () {
@@ -93,7 +50,7 @@ export function register(container) {
 }
 `;
     const t = _createTransformer({}, makePreprocess(() => false), babelProcess);
-    const result = t.process(html, 'src/foo-bar.html', config);
+    const result = t.process(html, 'src/foo-bar.html', options);
     assert.equal(result, expected);
   });
 
@@ -120,7 +77,7 @@ export function register(container) {
       makePreprocess(p => p === path.join('src', 'foo-bar.less')),
       babelProcess
     );
-    const result = t.process(html, 'src/foo-bar.html', config);
+    const result = t.process(html, 'src/foo-bar.html', options);
     assert.equal(result, expected);
   });
 
@@ -146,7 +103,7 @@ export function register(container) {
       makePreprocess(p => p === path.join('src', 'foo-bar.scss')),
       babelProcess
     );
-    const result = t.process(html, 'src/foo-bar.html', config);
+    const result = t.process(html, 'src/foo-bar.html', options);
     assert.equal(result, expected);
   });
 
@@ -162,7 +119,7 @@ export class FooBar {}
       makePreprocess(p => p === path.join('src', 'foo-bar.html')),
       babelProcess
     );
-    const result = t.process(js, 'src/foo-bar.js', config);
+    const result = t.process(js, 'src/foo-bar.js', options);
     assert.equal(result, expected);
   });
 
@@ -171,7 +128,7 @@ export class FooBar {}
     const expected = `export class FooBar {}
 `;
     const t = _createTransformer({}, makePreprocess(() => false), babelProcess);
-    const result = t.process(js, 'src/foo-bar.js', config);
+    const result = t.process(js, 'src/foo-bar.js', options);
     assert.equal(result, expected);
   });
 });

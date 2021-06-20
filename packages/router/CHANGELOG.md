@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.7"></a>
+# 2.0.0-alpha.7 (2021-06-20)
+
+### Bug Fixes:
+
+* **router:** ensure href recognize external ([387c084](https://github.com/aurelia/aurelia/commit/387c084))
+
 <a name="2.0.0-alpha.6"></a>
 # 2.0.0-alpha.6 (2021-06-11)
 

@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.7"></a>
+# 2.0.0-alpha.7 (2021-06-20)
+
+### Bug Fixes:
+
+* **router:** ensure href recognize external ([387c084](https://github.com/aurelia/aurelia/commit/387c084))
+* **new-instance:** correctly invoke a registered interface ([8753b4e](https://github.com/aurelia/aurelia/commit/8753b4e))
+* **s #1166: this commit prepares a test where the most intuitive behavior is show:** ability to invoke an interface without having to declare it, if it has a default registration. Though this is inconsistent with the core, so will have to reconsider ([8753b4e](https://github.com/aurelia/aurelia/commit/8753b4e))
+* **di:** disallow resource key override ([f92ac3b](https://github.com/aurelia/aurelia/commit/f92ac3b))
+
+
+### Refactorings:
+
+* **hydration-compilation:** use an object to carry more than projections information ([39c5497](https://github.com/aurelia/aurelia/commit/39c5497))
+* **au-slot:** remove unused exports, fix tests ([aaf81de](https://github.com/aurelia/aurelia/commit/aaf81de))
+
 <a name="2.0.0-alpha.6"></a>
 # 2.0.0-alpha.6 (2021-06-11)
 

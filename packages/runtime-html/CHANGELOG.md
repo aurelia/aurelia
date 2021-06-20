@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.7"></a>
+# 2.0.0-alpha.7 (2021-06-20)
+
+### Refactorings:
+
+* **hydration-compilation:** use an object to carry more than projections information ([39c5497](https://github.com/aurelia/aurelia/commit/39c5497))
+* **au-slot:** remove unused exports, fix tests ([aaf81de](https://github.com/aurelia/aurelia/commit/aaf81de))
+* **au-slot:** do not associate scope with instruction/definition during compilation ([2fafe21](https://github.com/aurelia/aurelia/commit/2fafe21))
+* **slot:** drop the use of projection provider in <au-slot/> ([560e3c5](https://github.com/aurelia/aurelia/commit/560e3c5))
+* **scope:** rename isComponentBoundary -> isBoundary ([a3a4281](https://github.com/aurelia/aurelia/commit/a3a4281))
+
 <a name="2.0.0-alpha.6"></a>
 # 2.0.0-alpha.6 (2021-06-11)
 

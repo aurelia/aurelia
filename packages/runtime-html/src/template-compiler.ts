@@ -625,7 +625,7 @@ export class ViewCompiler implements ITemplateCompiler {
       templateFactory: factory,
       hasSlot: false,
     };
-    const template = typeof definition.template === 'string' || !compilationInstruction!.enhance
+    const template = typeof definition.template === 'string' || !partialDefinition.enhance
       ? factory.createTemplate(definition.template)
       : definition.template as Element;
     const isTemplateElement = template.nodeName === 'TEMPLATE' && (template as HTMLTemplateElement).content != null;
@@ -761,6 +761,7 @@ export class ViewCompiler implements ITemplateCompiler {
           attrDef.aliases != null && attrDef.aliases.includes(attrSyntax.target) ? attrSyntax.target : void 0,
           attrBindableInstructions
         ));
+        continue;
       }
 
       if (bindingCommand === null) {

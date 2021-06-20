@@ -935,7 +935,7 @@ export class ViewCompiler implements ITemplateCompiler {
     const attrParser = context.attrParser;
     const exprParser = context.exprParser;
     const attrSyntaxTransformer = context.attrTransformer;
-    const attrs = el.attributes;
+    let attrs = el.attributes;
     let instructions: IInstruction[] | undefined;
     let ii = attrs.length;
     let i = 0;
@@ -960,15 +960,27 @@ export class ViewCompiler implements ITemplateCompiler {
     let primaryBindable: BindableDefinition;
     let realAttrTarget: string;
     let realAttrValue: string;
+    let processContentResult: boolean | undefined | void = true;
 
     if (elName === 'slot') {
       context.root.hasSlot = true;
+    }
+    if (elDef !== null) {
+      // todo: this is a bit ... powerful
+      // maybe do not allow it to process its own attributes
+      processContentResult = elDef.processContent?.call(elDef.Type, el, context.p);
+      // might have changed during the process
+      attrs = el.attributes;
+      ii = attrs.length;
     }
 
     for (; ii > i; ++i) {
       attr = attrs[i];
       attrName = attr.name;
       attrValue = attr.value;
+      if (attrName === 'as-element') {
+        continue;
+      }
       attrSyntax = attrParser.parse(attrName, attrValue);
       realAttrTarget = attrSyntax.target;
       realAttrValue = attrSyntax.rawValue;
@@ -1258,8 +1270,7 @@ export class ViewCompiler implements ITemplateCompiler {
         parent: context,
         instructionRows: instructions == null ? [] : [instructions],
       };
-      const shouldCompileContent = elDef === null
-        || elDef.processContent?.call(elDef.Type, el, container.get(IPlatform)) !== false;
+      const shouldCompileContent = elDef === null || processContentResult !== false;
 
       let child: Node | null;
       let childEl: Element;
@@ -1435,8 +1446,7 @@ export class ViewCompiler implements ITemplateCompiler {
       if (instructions != null) {
         context.instructionRows.push(instructions);
       }
-      const shouldCompileContent = elDef === null
-        || elDef.processContent?.call(elDef.Type, el, container.get(IPlatform)) !== false;
+      const shouldCompileContent = elDef === null || processContentResult !== false;
       if (shouldCompileContent && el.childNodes.length > 0) {
         let child = el.firstChild as Node | null;
         let childEl: Element;

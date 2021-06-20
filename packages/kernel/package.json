@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/kernel",
-  "version": "2.0.0-alpha.6",
+  "version": "2.0.0-alpha.7",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
@@ -39,8 +39,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/metadata": "2.0.0-alpha.6",
-    "@aurelia/platform": "2.0.0-alpha.6"
+    "@aurelia/metadata": "2.0.0-alpha.7",
+    "@aurelia/platform": "2.0.0-alpha.7"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

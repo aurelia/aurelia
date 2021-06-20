@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.7"></a>
+# 2.0.0-alpha.7 (2021-06-20)
+
+**Note:** Version bump only for package @aurelia/platform
+
 <a name="2.0.0-alpha.6"></a>
 # 2.0.0-alpha.6 (2021-06-11)
 

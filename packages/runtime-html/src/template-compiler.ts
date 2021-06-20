@@ -892,7 +892,10 @@ export class ViewCompiler implements ITemplateCompiler {
         if (bindingCommand.bindingType === BindingType.ToViewCommand
           || bindingCommand.bindingType === BindingType.BindCommand
         ) {
-          letInstructions.push(new LetBindingInstruction(exprParser.parse(realAttrValue, bindingCommand.bindingType), realAttrTarget));
+          letInstructions.push(new LetBindingInstruction(
+            exprParser.parse(realAttrValue, bindingCommand.bindingType),
+            camelCase(realAttrTarget)
+          ));
           continue;
         }
         throw new Error('Invalid binding command for <let>. Only to-view supported.');
@@ -918,6 +921,7 @@ export class ViewCompiler implements ITemplateCompiler {
   }
 
   /** @internal */
+  // eslint-disable-next-line
   private element(el: Element, container: IContainer, context: ICompilationContext): Node | null {
     // instructions sort:
     // 1. hydrate custom element instruction
@@ -1804,7 +1808,7 @@ function hasInlineBindings(rawValue: string): boolean {
   return false;
 }
 
-const voidDefinition = { name: 'unnamed' } as CustomElementDefinition;
+const voidDefinition: CustomElementDefinition = { name: 'unnamed' } as CustomElementDefinition;
 const commandBuildInfo: ICommandBuildInfo = {
   node: null!,
   expr: null!,
@@ -1822,6 +1826,7 @@ const invalidSurrogateAttribute = Object.assign(createLookup<boolean | undefined
 const bindableAttrsInfoCache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();
 class BindablesInfo<T extends 0 | 1 = 0> {
   public static from(def: CustomAttributeDefinition, isAttr: true): BindablesInfo<1>;
+  // eslint-disble-next-line
   public static from(def: CustomElementDefinition, isAttr: false): BindablesInfo<0>;
   public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: boolean): BindablesInfo<1 | 0> {
     let info = bindableAttrsInfoCache.get(def);
@@ -1829,15 +1834,15 @@ class BindablesInfo<T extends 0 | 1 = 0> {
       type CA = CustomAttributeDefinition;
       const bindables = def.bindables;
       const attrs = createLookup<BindableDefinition>();
-      let bindable: BindableDefinition | undefined;
-      let prop: string;
-      let hasPrimary: boolean = false;
-      let primary: BindableDefinition | undefined;
-      let defaultBindingMode: BindingMode = isAttr
+      const defaultBindingMode: BindingMode = isAttr
         ? (def as CA).defaultBindingMode === void 0
           ? BindingMode.default
           : (def as CA).defaultBindingMode
         : BindingMode.default;
+      let bindable: BindableDefinition | undefined;
+      let prop: string;
+      let hasPrimary: boolean = false;
+      let primary: BindableDefinition | undefined;
       let mode: BindingMode;
       let attr: string;
 

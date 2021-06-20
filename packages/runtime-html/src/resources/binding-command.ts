@@ -168,7 +168,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), BindingMode.oneTime);
   }
 
-  public build(info: ICommandBuildInfo): IInstruction {
+  public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     let target: string;
     if (info.bindable == null) {
       target = this.t.map(info.node, info.attr.target)
@@ -193,7 +193,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), BindingMode.toView);
   }
 
-  public build(info: ICommandBuildInfo): IInstruction {
+  public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     let target: string;
     if (info.bindable == null) {
       target = this.t.map(info.node, info.attr.target)
@@ -218,7 +218,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), BindingMode.fromView);
   }
 
-  public build(info: ICommandBuildInfo): IInstruction {
+  public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     let target: string;
     if (info.bindable == null) {
       target = this.t.map(info.node, info.attr.target)
@@ -243,7 +243,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), BindingMode.twoWay);
   }
 
-  public build(info: ICommandBuildInfo): IInstruction {
+  public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     let target: string;
     if (info.bindable == null) {
       target = this.t.map(info.node, info.attr.target)
@@ -290,7 +290,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), mode === BindingMode.default ? BindingMode.toView : mode);
   }
 
-  public build(info: ICommandBuildInfo): IInstruction {
+  public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     type CA = CustomAttributeDefinition;
     const attrName = info.attr.target;
     const bindable = info.bindable;

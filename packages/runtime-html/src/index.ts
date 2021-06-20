@@ -248,6 +248,7 @@ export {
 } from './resources/attribute-pattern.js';
 export {
   bindingCommand,
+  ICommandBuildInfo,
   BindingCommand ,
   BindingCommandInstance,
   BindingCommandDefinition,

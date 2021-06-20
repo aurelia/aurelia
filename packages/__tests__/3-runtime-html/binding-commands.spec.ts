@@ -7,7 +7,10 @@ import {
   BindingSymbol,
   bindingCommand,
   OneTimeBindingCommand,
+  IInstruction,
+  PropertyBindingInstruction,
 } from '@aurelia/runtime-html';
+import { ICommandBuildInfo } from '@aurelia/runtime-html/dist/resources/binding-command';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('binding-commands', function () {
@@ -16,79 +19,93 @@ describe('binding-commands', function () {
     public value = 'wOOt';
   };
 
-  // describe('01. Aliases', function () {
+  describe('01. Aliases', function () {
 
-  //   @bindingCommand({ name: 'woot1', aliases: ['woot13'] })
-  //   @alias(...['woot11', 'woot12'])
-  //   class WootCommand implements BindingCommandInstance {
-  //     public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
+    @bindingCommand({ name: 'woot1', aliases: ['woot13'] })
+    @alias(...['woot11', 'woot12'])
+    class WootCommand implements BindingCommandInstance {
+      public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
-  //     public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-  //       return OneTimeBindingCommand.prototype.compile(binding);
-  //     }
-  //   }
+      public static inject = [OneTimeBindingCommand];
+      public constructor(private readonly oneTimeCmd: OneTimeBindingCommand) {}
 
-  //   @bindingCommand({ name: 'woot2', aliases: ['woot23'] })
-  //   @alias('woot21', 'woot22')
-  //   class WootCommand2 implements BindingCommandInstance {
-  //     public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
+      public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+        return OneTimeBindingCommand.prototype.compile(binding);
+      }
 
-  //     public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-  //       return OneTimeBindingCommand.prototype.compile(binding);
-  //     }
-  //   }
+      public build(info: ICommandBuildInfo): PropertyBindingInstruction {
+        return this.oneTimeCmd.build(info);
+      }
+    }
 
-  //   const resources: any[] = [WootCommand, WootCommand2];
+    @bindingCommand({ name: 'woot2', aliases: ['woot23'] })
+    @alias('woot21', 'woot22')
+    class WootCommand2 implements BindingCommandInstance {
+      public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
-  //   it('Simple spread Alias doesn\'t break def alias works on binding command', async function () {
-  //     const options = createFixture('<template> <a href.woot1="value"></a> </template>', app, resources);
-  //     assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
-  //     await options.tearDown();
-  //   });
+      public static inject = [OneTimeBindingCommand];
+      public constructor(private readonly oneTimeCmd: OneTimeBindingCommand) {}
 
-  //   it('Simple spread Alias (1st position) works on binding command', async function () {
-  //     const options = createFixture('<template> <a href.woot11="value"></a> </template>', app, resources);
-  //     assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
-  //     await options.tearDown();
-  //   });
+      public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+        return OneTimeBindingCommand.prototype.compile(binding);
+      }
 
-  //   it('Simple spread Alias (2nd position) works on binding command', async function () {
-  //     const options = createFixture('<template> <a href.woot12="value"></a> </template>', app, resources);
-  //     assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
-  //     await options.tearDown();
-  //   });
+      public build(info: ICommandBuildInfo): PropertyBindingInstruction {
+        return this.oneTimeCmd.build(info);
+      }
+    }
 
-  //   it('Simple spread Alias doesn\'t break original binding command', async function () {
-  //     const options = createFixture('<template> <a href.woot13="value"></a> </template>', app, resources);
-  //     assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
-  //     await options.tearDown();
-  //   });
+    const resources: any[] = [WootCommand, WootCommand2];
 
-  //   it('Simple Alias doesn\'t break def alias works on binding command', async function () {
-  //     const options = createFixture('<template> <a href.woot23="value"></a> </template>', app, resources);
-  //     assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
-  //     await options.tearDown();
-  //   });
+    it('Simple spread Alias doesn\'t break def alias works on binding command', async function () {
+      const options = createFixture('<template> <a href.woot1="value"></a> </template>', app, resources);
+      assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+      await options.tearDown();
+    });
 
-  //   it('Simple Alias (1st position) works on binding command', async function () {
-  //     const options = createFixture('<template> <a href.woot21="value"></a> </template>', app, resources);
-  //     assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
-  //     await options.tearDown();
-  //   });
+    it('Simple spread Alias (1st position) works on binding command', async function () {
+      const options = createFixture('<template> <a href.woot11="value"></a> </template>', app, resources);
+      assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+      await options.tearDown();
+    });
 
-  //   it('Simple Alias (2nd position) works on binding command', async function () {
-  //     const options = createFixture('<template> <a href.woot22="value"></a> </template>', app, resources);
-  //     assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
-  //     await options.tearDown();
-  //   });
+    it('Simple spread Alias (2nd position) works on binding command', async function () {
+      const options = createFixture('<template> <a href.woot12="value"></a> </template>', app, resources);
+      assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+      await options.tearDown();
+    });
 
-  //   it('Simple Alias doesn\'t break original binding command', async function () {
-  //     const options = createFixture('<template> <a href.woot2="value"></a> </template>', app, resources);
-  //     assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
-  //     await options.tearDown();
-  //   });
+    it('Simple spread Alias doesn\'t break original binding command', async function () {
+      const options = createFixture('<template> <a href.woot13="value"></a> </template>', app, resources);
+      assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+      await options.tearDown();
+    });
 
-  // });
+    it('Simple Alias doesn\'t break def alias works on binding command', async function () {
+      const options = createFixture('<template> <a href.woot23="value"></a> </template>', app, resources);
+      assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+      await options.tearDown();
+    });
+
+    it('Simple Alias (1st position) works on binding command', async function () {
+      const options = createFixture('<template> <a href.woot21="value"></a> </template>', app, resources);
+      assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+      await options.tearDown();
+    });
+
+    it('Simple Alias (2nd position) works on binding command', async function () {
+      const options = createFixture('<template> <a href.woot22="value"></a> </template>', app, resources);
+      assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+      await options.tearDown();
+    });
+
+    it('Simple Alias doesn\'t break original binding command', async function () {
+      const options = createFixture('<template> <a href.woot2="value"></a> </template>', app, resources);
+      assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+      await options.tearDown();
+    });
+
+  });
 
 });
 

@@ -323,6 +323,46 @@ describe('au-slot', function () {
       );
     }
 
+    // new behavior from the new compiler
+    // template controller on [au-slot]
+    {
+      yield new TestData(
+        'works with template controller(if) - same element (<template/>)',
+        `
+        <my-element><template au-slot if.bind="true"><li>1</li><li>2</li></template></my-element>
+        `,
+        [createMyElement('<ul><au-slot></au-slot></ul>')],
+        {'my-element': [`<ul><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])] },
+      );
+
+      yield new TestData(
+        'works with template controller(if) - same element (<template/>) - TC before [au-slot]',
+        `
+        <my-element><template au-slot if.bind="true"><li>1</li><li>2</li></template></my-element>
+        `,
+        [createMyElement('<ul><au-slot></au-slot></ul>')],
+        {'my-element': [`<ul><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])] },
+      );
+
+      yield new TestData(
+        'works with template controller(repeat) - same element (<template/>)',
+        `
+        <my-element><template au-slot repeat.for="i of 3"><li>\${i}</li></template></my-element>
+        `,
+        [createMyElement('<ul><au-slot></au-slot></ul>')],
+        {'my-element': [`<ul><li>0</li><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])]},
+      );
+
+      yield new TestData(
+        'works with template controller(repeat) - same element (<template/>) - TC before au-slot',
+        `
+        <my-element><template repeat.for="i of 3" au-slot><li>\${i}</li></template></my-element>
+        `,
+        [createMyElement('<ul><au-slot></au-slot></ul>')],
+        {'my-element': [`<ul><li>0</li><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])]},
+      );
+    }
+
     // #region `repeat.for`
     {
       @customElement({

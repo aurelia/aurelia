@@ -1455,7 +1455,7 @@ export class ViewCompiler implements ITemplateCompiler {
       if (instructions != null) {
         context.instructionRows.push(instructions);
       }
-      const shouldCompileContent = elDef === null ||  !elDef.containerless && processContentResult !== false;
+      const shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
       if (elDef?.containerless) {
         this.marker(el, context);
       }

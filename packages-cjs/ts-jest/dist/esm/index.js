@@ -1,17 +1,17 @@
 import { preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
-import { createTransformer as tsCreateTransformer } from 'ts-jest';
+import tsJest from 'ts-jest';
 import * as path from 'path';
-const tsTransformer = tsCreateTransformer();
+const tsTransformer = tsJest.createTransformer();
 function _createTransformer(conventionsOptions = {}, 
 // for testing
 _preprocess = preprocess, _tsProcess = tsTransformer.process.bind(tsTransformer)) {
     const au2Options = preprocessOptions(conventionsOptions);
-    function getCacheKey(fileData, filePath, configStr, options) {
-        const tsKey = tsTransformer.getCacheKey(fileData, filePath, configStr, options);
+    function getCacheKey(fileData, filePath, options) {
+        const tsKey = tsTransformer.getCacheKey(fileData, filePath, options);
         return `${tsKey}:${JSON.stringify(au2Options)}`;
     }
     // Wrap ts-jest process
-    function process(sourceText, sourcePath, config, transformOptions) {
+    function process(sourceText, sourcePath, transformOptions) {
         const result = _preprocess({ path: sourcePath, contents: sourceText }, au2Options);
         let newSourcePath = sourcePath;
         if (result !== undefined) {
@@ -21,9 +21,9 @@ _preprocess = preprocess, _tsProcess = tsTransformer.process.bind(tsTransformer)
                 newSourcePath += '.ts';
                 newCode = `// @ts-nocheck\n${newCode}`;
             }
-            return _tsProcess(newCode, newSourcePath, config, transformOptions);
+            return _tsProcess(newCode, newSourcePath, transformOptions);
         }
-        return _tsProcess(sourceText, sourcePath, config, transformOptions);
+        return _tsProcess(sourceText, sourcePath, transformOptions);
     }
     return {
         canInstrument: false,

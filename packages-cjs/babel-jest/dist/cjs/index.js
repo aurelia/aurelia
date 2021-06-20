@@ -5,22 +5,22 @@ const plugin_conventions_1 = require("@aurelia/plugin-conventions");
 const babel_jest_1 = require("babel-jest");
 function _createTransformer(conventionsOptions = {}, 
 // for testing
-_preprocess = plugin_conventions_1.preprocess, _babelProcess = babel_jest_1.process) {
+_preprocess = plugin_conventions_1.preprocess, _babelProcess = babel_jest_1.default.process.bind(babel_jest_1.default)) {
     const au2Options = plugin_conventions_1.preprocessOptions(conventionsOptions);
-    function getCacheKey(fileData, filePath, configStr, options) {
-        const babelKey = babel_jest_1.getCacheKey(fileData, filePath, configStr, options);
+    function getCacheKey(fileData, filePath, options) {
+        const babelKey = babel_jest_1.default.getCacheKey(fileData, filePath, options);
         return `${babelKey}:${JSON.stringify(au2Options)}`;
     }
     // Wrap babel-jest process
-    function process(sourceText, sourcePath, config, transformOptions) {
+    function process(sourceText, sourcePath, transformOptions) {
         const result = _preprocess({ path: sourcePath, contents: sourceText }, au2Options);
         if (result !== undefined) {
-            return _babelProcess(result.code, sourcePath, config, transformOptions);
+            return _babelProcess(result.code, sourcePath, transformOptions);
         }
-        return _babelProcess(sourceText, sourcePath, config, transformOptions);
+        return _babelProcess(sourceText, sourcePath, transformOptions);
     }
     return {
-        canInstrument: babel_jest_1.canInstrument,
+        canInstrument: babel_jest_1.default.canInstrument,
         getCacheKey,
         process
     };

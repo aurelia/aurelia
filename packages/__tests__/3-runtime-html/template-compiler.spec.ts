@@ -81,8 +81,6 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
       it('set hasSlots to true <slot/>', function () {
         const definition = compileWith('<template><slot></slot></template>', []);
         assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
-  
-        // test this with nested slot inside template controller
       });
 
       it('recognizes slot in nested <template>', function () {
@@ -95,7 +93,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
       });
 
-      // <template> shouldn't be compiled 
+      // <template> shouldn't be compiled
       it('does not recognize slot in <template> without template controller', function () {
         const definition = compileWith('<template><template ><slot></slot></template></template>', []);
         assert.strictEqual(definition.hasSlots, false, `definition.hasSlots`);
@@ -104,7 +102,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
 
     describe('with nested <template> without template controller', function () {
       it('does not compile <template> without template controller', function () {
-        const definition = compileWith('<template><template>${prop}</template></template>', []);
+        const definition = compileWith(`<template><template>\${prop}</template></template>`, []);
         assert.deepStrictEqual(definition.instructions, [], `definition.instructions`);
       });
     });
@@ -954,7 +952,7 @@ describe(`TemplateCompiler - combinations`, function () {
         // if for some reasons, this reasoning causes a lot of unintuitiveness in the template
         // then consider reverting it
         const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[kebabCase(attrName), attrValue]], [instruction], [], []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
-        const bindablesInfo = BindablesInfo.from(CustomAttribute.getDefinition(FooBar), true)
+        const bindablesInfo = BindablesInfo.from(CustomAttribute.getDefinition(FooBar), true);
 
         if (!bindablesInfo.attrs[kebabCase(attrName)]) {
           assert.throws(() => sut.compile(input, container, null), `Bindable ${attrName} not found on asdf.`);
@@ -1812,20 +1810,21 @@ describe('TemplateCompiler - au-slot', function () {
 
 class BindablesInfo<T extends 0 | 1 = 0> {
   public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: true): BindablesInfo<1>;
+  // eslint-disable-next-line
   public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: false): BindablesInfo<0>;
   public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: boolean): BindablesInfo<1 | 0> {
     type CA = CustomAttributeDefinition;
     const bindables = def.bindables;
     const attrs: Record<string, BindableDefinition> = {};
-    let bindable: BindableDefinition | undefined;
-    let prop: string;
-    let hasPrimary: boolean = false;
-    let primary: BindableDefinition | undefined;
-    let defaultBindingMode: BindingMode = isAttr
+    const defaultBindingMode: BindingMode = isAttr
       ? (def as CA).defaultBindingMode === void 0
         ? BindingMode.default
         : (def as CA).defaultBindingMode
       : BindingMode.default;
+    let bindable: BindableDefinition | undefined;
+    let prop: string;
+    let hasPrimary: boolean = false;
+    let primary: BindableDefinition | undefined;
     let mode: BindingMode;
     let attr: string;
 

@@ -1232,8 +1232,6 @@ export class ViewCompiler implements ITemplateCompiler {
           slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, projection);
         }
         el = this.marker(el, context);
-      } else if (elDef.containerless) {
-        this.marker(el, context);
       }
 
       elementInstruction = new HydrateElementInstruction(
@@ -1279,8 +1277,10 @@ export class ViewCompiler implements ITemplateCompiler {
         parent: context,
         instructionRows: instructions == null ? [] : [instructions],
       };
-      const shouldCompileContent = elDef === null || processContentResult !== false;
-
+      const shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
+      if (elDef?.containerless) {
+        this.marker(el, context);
+      }
       let child: Node | null;
       let childEl: Element;
       let targetSlot: string | null;
@@ -1455,7 +1455,10 @@ export class ViewCompiler implements ITemplateCompiler {
       if (instructions != null) {
         context.instructionRows.push(instructions);
       }
-      const shouldCompileContent = elDef === null || processContentResult !== false;
+      const shouldCompileContent = elDef === null ||  !elDef.containerless && processContentResult !== false;
+      if (elDef?.containerless) {
+        this.marker(el, context);
+      }
       if (shouldCompileContent && el.childNodes.length > 0) {
         let child = el.firstChild as Node | null;
         let childEl: Element;

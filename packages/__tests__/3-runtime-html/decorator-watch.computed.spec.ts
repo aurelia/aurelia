@@ -10,7 +10,7 @@ import {
 } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
-describe('3-runtime-html/decorator-watch.spec.ts', function () {
+describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
   it('typings work', function () {
     const symbolMethod = Symbol();
     @watch<App>(app => app.col.has(Symbol), 5)
@@ -140,9 +140,9 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     void tearDown();
 
     component.person.addresses[1].strName = 'Chunpeng Huo';
-    assert.strictEqual(textNode.textContent, '3cp');
+    assert.strictEqual(textNode.textContent, '');
     ctx.platform.domWriteQueue.flush();
-    assert.strictEqual(textNode.textContent, '3cp');
+    assert.strictEqual(textNode.textContent, '');
   });
 
   describe('timing', function () {
@@ -461,21 +461,9 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     assert.strictEqual(appHost.textContent, '');
     component.newDelivery({ id: 5, name: 'gardenware', delivered: true });
     component.delivered(3);
-    assert.strictEqual(
-      textNode.textContent,
-      json([
-        { id: 1, name: 'box', delivered: true },
-        { id: 2, name: 'toy', delivered: true }
-      ])
-    );
+    assert.strictEqual(textNode.textContent, '');
     ctx.platform.domWriteQueue.flush();
-    assert.strictEqual(
-      textNode.textContent,
-      json([
-        { id: 1, name: 'box', delivered: true },
-        { id: 2, name: 'toy', delivered: true }
-      ])
-    );
+    assert.strictEqual(textNode.textContent, '');
     assert.strictEqual(appHost.textContent, '');
   });
 
@@ -540,13 +528,13 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
 
     component.newDelivery({ id: 5, name: 'gardenware', delivered: true });
     component.delivered(3);
-    assert.strictEqual(textNode.textContent, '1');
+    assert.strictEqual(textNode.textContent, '');
     assert.strictEqual(callCount, 1);
     ctx.platform.domWriteQueue.flush();
-    assert.strictEqual(textNode.textContent, '1');
+    assert.strictEqual(textNode.textContent, '');
     component.newDelivery({ id: 6, name: 'box', delivered: true });
     ctx.platform.domWriteQueue.flush();
-    assert.strictEqual(textNode.textContent, '1');
+    assert.strictEqual(textNode.textContent, '');
   });
 
   describe('Array', function () {

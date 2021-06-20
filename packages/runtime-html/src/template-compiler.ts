@@ -826,11 +826,11 @@ export class ViewCompiler implements ITemplateCompiler {
             return this.declare(node as Element, container, context);
           // ------------------------------------
           // todo: possible optimization:
-          // when:
+          // when two conditions below are met:
           // 1. there's no attribute on au slot,
           // 2. there's no projection
-          // -> flatten the au-slot into children
-          //    as this is just a static template
+          //
+          // -> flatten the au-slot into children as this is just a static template
           // ------------------------------------
           // case 'AU-SLOT':
           //   return this.auSlot(node as Element, container, context);
@@ -898,12 +898,12 @@ export class ViewCompiler implements ITemplateCompiler {
           ));
           continue;
         }
-        throw new Error('Invalid binding command for <let>. Only to-view supported.');
+        throw new Error('Invalid binding command for <let>. Only to-view/bind supported.');
       }
 
       expr = exprParser.parse(realAttrValue, BindingType.Interpolation);
       if (expr === null) {
-        context.logger.info(
+        context.logger.warn(
           `Property ${realAttrTarget} is declared with literal string ${realAttrValue}. ` +
           `Did you mean ${realAttrTarget}.bind="${realAttrValue}"?`
         );

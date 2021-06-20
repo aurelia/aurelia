@@ -807,7 +807,7 @@ export class ViewCompiler implements ITemplateCompiler {
     }
 
     if (attrInstructions != null) {
-      instructions.splice(0, 0, ...attrInstructions);
+      return (attrInstructions as IInstruction[]).concat(instructions);
     }
 
     return instructions;
@@ -1542,25 +1542,32 @@ export class ViewCompiler implements ITemplateCompiler {
 
   /** @internal */
   private text(node: Text, container: IContainer, context: ICompilationContext): Node | null {
-    const text = node.wholeText;
+    let text = '';
+    let current: Node | null = node;
+    while (current !== null && current.nodeType === 3) {
+      text += current.textContent!;
+      current = current.nextSibling;
+    }
     const expr = context.exprParser.parse(text, BindingType.Interpolation);
-    const parent = node.parentNode/* ever null? */!;
-    let nextSibling = node.nextSibling;
-    let marker: HTMLElement;
-    if (expr !== null) {
-      marker = this.marker(node, context);
-      nextSibling = marker.nextSibling;
-      while (nextSibling !== null && nextSibling.nodeType === 3) {
-        parent.removeChild(nextSibling);
-        nextSibling = marker.nextSibling;
-      }
-      context.instructionRows.push([new TextBindingInstruction(expr, !!context.def.isStrictBinding)]);
-      return nextSibling;
+    if (expr === null) {
+      return current;
     }
-    while (nextSibling !== null && nextSibling.nodeType === 3) {
-      nextSibling = nextSibling.nextSibling;
+
+    const parent = node.parentNode!;
+    // prepare a marker
+    parent.insertBefore(this.mark(context.p.document.createElement('au-m')), node);
+    // and the corresponding instruction
+    context.instructionRows.push([new TextBindingInstruction(expr, !!context.def.isStrictBinding)]);
+
+    // and cleanup all the DOM for rendering text binding
+    node.textContent = '';
+    current = node.nextSibling;
+    while (current !== null && current.nodeType === 3) {
+      parent.removeChild(current);
+      current = node.nextSibling;
     }
-    return nextSibling;
+
+    return node.nextSibling;
   }
 
   /** @internal */

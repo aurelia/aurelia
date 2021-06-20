@@ -8,7 +8,6 @@ import {
   DefaultLogger,
   LogLevel,
   camelCase,
-  Writable,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -846,7 +845,7 @@ describe(`TemplateCompiler - combinations`, function () {
       ] as ((ctx: TestContext) => BindingMode | undefined)[],
       [
         (ctx, [, , to], [attr, value]) => [`${attr}`,           { type: TT.setProperty, to, value }],
-        (ctx, [, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: (mode && mode !== void 0 && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        (ctx, [, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.toView }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.oneTime }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.from-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.fromView }],
@@ -1825,7 +1824,6 @@ class BindablesInfo<T extends 0 | 1 = 0> {
     let prop: string;
     let hasPrimary: boolean = false;
     let primary: BindableDefinition | undefined;
-    let mode: BindingMode;
     let attr: string;
 
     // from all bindables, pick the first primary bindable
@@ -1834,19 +1832,6 @@ class BindablesInfo<T extends 0 | 1 = 0> {
     for (prop in bindables) {
       bindable = bindables[prop];
       attr = bindable.attribute;
-      mode = bindable.mode;
-      // old: explicitly provided property name has priority over the implicit property name
-      // -----
-      // new: though this probably shouldn't be allowed!
-      // if (bindable.property !== void 0) {
-      //   prop = bindable.property;
-      // }
-      // -----
-      // for attribute, mode should be derived from default binding mode
-      // if it's not set or set to default
-      if (isAttr && (mode === void 0 || mode === BindingMode.default)) {
-        mode = defaultBindingMode;
-      }
       if (bindable.primary === true) {
         if (hasPrimary) {
           throw new Error(`Primary already exists on ${def.name}`);
@@ -1858,8 +1843,6 @@ class BindablesInfo<T extends 0 | 1 = 0> {
       }
 
       attrs[attr] = BindableDefinition.create(prop, bindable);
-      // hack with casting, avoid additional object creation
-      (attrs[attr] as Writable<BindableDefinition>).mode = mode;
     }
     if (bindable == null && isAttr) {
       // if no bindables are present, default to "value"

@@ -21,7 +21,7 @@ import {
   StyleBindingCommand,
   TriggerBindingCommand,
 } from './resources/binding-command.js';
-import { TemplateCompiler, ViewCompiler } from './template-compiler.js';
+import { ViewCompiler } from './template-compiler.js';
 import {
   CallBindingRenderer,
   CustomAttributeRenderer,

@@ -1317,9 +1317,6 @@ export class ViewCompiler implements ITemplateCompiler {
               child = child.nextSibling;
               targetSlot = childEl.getAttribute('au-slot');
               if (targetSlot !== null) {
-                if (elDef === null) {
-                  throw new Error(`Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
-                }
                 if (targetSlot === '') {
                   targetSlot = 'default';
                 }
@@ -1696,7 +1693,6 @@ export class ViewCompiler implements ITemplateCompiler {
 
   /** @internal */
   private local(template: Element | DocumentFragment, container: IContainer, context: ICompilationContext) {
-    const dependencies: PartialCustomElementDefinition[] = [];
     const root: Element | DocumentFragment = template;
     const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) as HTMLTemplateElement[];
     const numLocalTemplates = localTemplates.length;
@@ -1750,8 +1746,6 @@ export class ViewCompiler implements ITemplateCompiler {
       }
 
       const localTemplateDefinition = CustomElement.define({ name, template: localTemplate }, LocalTemplateType);
-      // the casting is needed here as the dependencies are typed as readonly array
-      dependencies.push(localTemplateDefinition);
       container.register(localTemplateDefinition);
 
       root.removeChild(localTemplate);
@@ -1887,11 +1881,6 @@ const orderSensitiveInputType: Record<string, number> = {
   radio: 1,
   // todo: range is also sensitive to order, for min/max
 };
-const orderSenstiveInputAttrs = Object.assign(createLookup<number>(), {
-  matcher: 1,
-  model: 1,
-  value: 1,
-});
 
 const bindableAttrsInfoCache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();
 class BindablesInfo<T extends 0 | 1 = 0> {
@@ -1913,7 +1902,6 @@ class BindablesInfo<T extends 0 | 1 = 0> {
       let prop: string;
       let hasPrimary: boolean = false;
       let primary: BindableDefinition | undefined;
-      let mode: BindingMode;
       let attr: string;
 
       // from all bindables, pick the first primary bindable
@@ -1922,19 +1910,6 @@ class BindablesInfo<T extends 0 | 1 = 0> {
       for (prop in bindables) {
         bindable = bindables[prop];
         attr = bindable.attribute;
-        mode = bindable.mode;
-        // old: explicitly provided property name has priority over the implicit property name
-        // -----
-        // new: though this probably shouldn't be allowed!
-        // if (bindable.property !== void 0) {
-        //   prop = bindable.property;
-        // }
-        // -----
-        // for attribute, mode should be derived from default binding mode
-        // if it's not set or set to default
-        if (isAttr && (mode === void 0 || mode === BindingMode.default)) {
-          mode = defaultBindingMode;
-        }
         if (bindable.primary === true) {
           if (hasPrimary) {
             throw new Error(`Primary already exists on ${def.name}`);

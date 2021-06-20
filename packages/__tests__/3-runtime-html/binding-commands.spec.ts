@@ -7,7 +7,6 @@ import {
   BindingSymbol,
   bindingCommand,
   OneTimeBindingCommand,
-  IInstruction,
   PropertyBindingInstruction,
 } from '@aurelia/runtime-html';
 import { ICommandBuildInfo } from '@aurelia/runtime-html/dist/resources/binding-command';

@@ -643,12 +643,12 @@ export class ViewCompiler implements ITemplateCompiler {
       : emptyArray;
 
     return CustomElementDefinition.create({
+      ...partialDefinition,
       name: partialDefinition.name || CustomElement.generateName(),
       instructions: compilationContext.instructionRows,
       surrogates,
       template,
       hasSlots: compilationContext.hasSlot,
-      enhance: partialDefinition.enhance,
       needsCompile: false,
     });
   }

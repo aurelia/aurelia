@@ -286,7 +286,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       if (shouldConnect) {
         obsRecord.version++;
       }
-      flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0
+      flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
       newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         obsRecord.clear(false);

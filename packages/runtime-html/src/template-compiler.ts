@@ -643,11 +643,12 @@ export class ViewCompiler implements ITemplateCompiler {
       : emptyArray;
 
     return CustomElementDefinition.create({
-      name: CustomElement.generateName(),
+      name: partialDefinition.name || CustomElement.generateName(),
       instructions: compilationContext.instructionRows,
       surrogates,
       template,
       hasSlots: compilationContext.hasSlot,
+      enhance: partialDefinition.enhance,
       needsCompile: false,
     });
   }
@@ -1808,6 +1809,7 @@ function hasInlineBindings(rawValue: string): boolean {
   return false;
 }
 
+// eslint-disable-next-line
 const voidDefinition: CustomElementDefinition = { name: 'unnamed' } as CustomElementDefinition;
 const commandBuildInfo: ICommandBuildInfo = {
   node: null!,
@@ -1826,7 +1828,7 @@ const invalidSurrogateAttribute = Object.assign(createLookup<boolean | undefined
 const bindableAttrsInfoCache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();
 class BindablesInfo<T extends 0 | 1 = 0> {
   public static from(def: CustomAttributeDefinition, isAttr: true): BindablesInfo<1>;
-  // eslint-disble-next-line
+  // eslint-disable-next-line
   public static from(def: CustomElementDefinition, isAttr: false): BindablesInfo<0>;
   public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: boolean): BindablesInfo<1 | 0> {
     let info = bindableAttrsInfoCache.get(def);

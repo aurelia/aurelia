@@ -78,14 +78,25 @@
 
 * [Dialog](plugins/dialog.md)
 
-## Advanced Scenarios
+## Scenarios <a id="scenarios-1"></a>
 
-* [CSS-in-JS with Emotion](advanced-scenarios/css-in-js-with-emotion.md)
-* [TailwindCSS Integration](advanced-scenarios/tailwindcss-integration.md)
-* [Strongly-typed Template](advanced-scenarios/strongly-typed-template.md)
-* [Write Custom Plugins](advanced-scenarios/write-custom-plugin.md)
-* [DOM Style Injection](advanced-scenarios/dom-style-injection.md)
-* [Markdown Integration](advanced-scenarios/markdown-integration.md)
+* [CSS-in-JS with Emotion](scenarios-1/css-in-js-with-emotion.md)
+* [TailwindCSS Integration](scenarios-1/tailwindcss-integration.md)
+* [Strongly-typed Template](scenarios-1/strongly-typed-template.md)
+* [Write Custom Plugins](scenarios-1/write-custom-plugin.md)
+* [DOM Style Injection](scenarios-1/dom-style-injection.md)
+* [Markdown Integration](scenarios-1/markdown-integration.md)
+
+## Examples
+
+* [Binding & Templating](examples/binding-and-templating/README.md)
+  * [Looping with Repeat.for](examples/binding-and-templating/looping-with-repeat.for.md)
+  * [Expression Syntax](examples/binding-and-templating/expression-syntax.md)
+* [Custom Attributes](examples/custom-attributes/README.md)
+  * [Binding to Element Size](examples/custom-attributes/binding-to-element-size.md)
+* [Integration](examples/integration/README.md)
+  * [Microsoft FAST](examples/integration/ms-fast.md)
+  * [Ionic](examples/integration/ionic.md)
 
 ## Side-by-Side Comparison
 
@@ -96,16 +107,6 @@
 * [Logging](side-by-side-comparison/logging.md)
 * [Router](side-by-side-comparison/router.md)
 * [Binding](side-by-side-comparison/binding.md)
-
-## Examples
-
-* [Binding & Templating](examples/binding-and-templating/README.md)
-  * [Expression Syntax](examples/binding-and-templating/expression-syntax.md)
-* [Custom Attributes](examples/custom-attributes/README.md)
-  * [Binding to Element Size](examples/custom-attributes/binding-to-element-size.md)
-* [Integration](examples/integration/README.md)
-  * [Microsoft FAST](examples/integration/ms-fast.md)
-  * [Ionic](examples/integration/ionic.md)
 
 ## Community Contribution
 

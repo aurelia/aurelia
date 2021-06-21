@@ -10,7 +10,7 @@ import {
 } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
-describe('3-runtime-html/decorator-watch.spec.ts', function () {
+describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
   it('typings work', function () {
     const symbolMethod = Symbol();
     @watch<App>(app => app.col.has(Symbol), 5)

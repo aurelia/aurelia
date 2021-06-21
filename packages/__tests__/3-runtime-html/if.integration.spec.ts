@@ -129,7 +129,7 @@ describe(`If/Else`, function () {
             template: textTemplate.content.cloneNode(true),
             instructions: [
               [
-                new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression(ifPropName)])),
+                new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression(ifPropName)]), false),
               ],
             ],
             needsCompile: false,
@@ -142,7 +142,7 @@ describe(`If/Else`, function () {
             template: textTemplate.content.cloneNode(true),
             instructions: [
               [
-                new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression(elsePropName)])),
+                new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression(elsePropName)]), false),
               ],
             ],
             needsCompile: false,

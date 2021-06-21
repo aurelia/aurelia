@@ -45,6 +45,7 @@ import {
   ElementInfo,
   BindableInfo,
   IExpressionParser,
+  CustomAttributeDefinition,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -75,19 +76,41 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   });
 
   describe('compileElement()', function () {
+    describe('with <slot/>', function () {
+      it('set hasSlots to true <slot/>', function () {
+        const definition = compileWith('<template><slot></slot></template>', []);
+        assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
+      });
 
-    it('set hasSlots to true <slot/>', function () {
-      const definition = compileWith('<template><slot></slot></template>', []);
-      assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
+      it('recognizes slot in nested <template>', function () {
+        const definition = compileWith('<template><template if.bind="true"><slot></slot></template></template>', []);
+        assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
+      });
 
-      // test this with nested slot inside template controller
+      it('does not discriminate slot name', function () {
+        const definition = compileWith('<template><slot name="slot"></slot></template>', []);
+        assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
+      });
+
+      // <template> shouldn't be compiled
+      it('does not recognize slot in <template> without template controller', function () {
+        const definition = compileWith('<template><template ><slot></slot></template></template>', []);
+        assert.strictEqual(definition.hasSlots, false, `definition.hasSlots`);
+      });
+    });
+
+    describe('with nested <template> without template controller', function () {
+      it('does not compile <template> without template controller', function () {
+        const definition = compileWith(`<template><template>\${prop}</template></template>`, []);
+        assert.deepStrictEqual(definition.instructions, [], `definition.instructions`);
+      });
     });
 
     describe('with custom element', function () {
 
       describe('compiles surrogate', function () {
 
-        it('compiles surrogate', function () {
+        it('compiles surrogate plain class attribute', function () {
           const { instructions, surrogates } = compileWith(
             `<template class="h-100"></template>`,
             []
@@ -96,6 +119,18 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           verifyInstructions(
             surrogates,
             [{ toVerify: ['type', 'value'], type: HTT.setClassAttribute, value: 'h-100' }]
+          );
+        });
+
+        it('compiles surrogate plain style attribute', function () {
+          const { instructions, surrogates } = compileWith(
+            `<template style="background: red"></template>`,
+            []
+          );
+          verifyInstructions(instructions, []);
+          verifyInstructions(
+            surrogates,
+            [{ toVerify: ['type', 'value'], type: HTT.setStyleAttribute, value: 'background: red' }]
           );
         });
 
@@ -130,7 +165,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           attrs.forEach(attr => {
             assert.throws(
               () => compileWith(`<template ${attr}="${attr}"></template>`, []),
-              /Invalid surrogate attribute/,
+              /Attribute id is invalid on surrogate/,
             );
           });
         });
@@ -636,7 +671,11 @@ function createCustomAttribute(
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
-  const outputMarkup = ctx.createElementFromMarkup(`<div ${resName}="${attributeMarkup}">${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
+  // old behavior: keep attribute on the output template as is
+  // const outputMarkup = ctx.createElementFromMarkup(`<div ${resName}="${attributeMarkup}">${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
+
+  // new behavior: if it's custom attribute, remove
+  const outputMarkup = ctx.createElementFromMarkup(`<div>${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
   outputMarkup.classList.add('au');
   const output = {
     ...defaultCustomElementDefinitionProperties,
@@ -815,8 +854,9 @@ describe(`TemplateCompiler - combinations`, function () {
     ],                       (ctx, [bindables], [attr, value, ctor], defaultBindingMode, [name, childInstruction]) => {
       const def = { name: attr, defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
+      const title = `${markup}  CustomAttribute=${JSON.stringify(def)}`;
 
-      it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, function () {
+      it(title, function () {
         const input: PartialCustomElementDefinition = {
           template: markup,
           instructions: [],
@@ -829,7 +869,11 @@ describe(`TemplateCompiler - combinations`, function () {
         };
         const expected = {
           ...defaultCustomElementDefinitionProperties,
-          template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`),
+          // old behavior:
+          // template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`),
+          // new behavior
+          // todo: ability to configure whether attr should be removed
+          template: ctx.createElementFromMarkup(`<template><div class="au"></div></template>`),
           instructions: [[instruction]],
           surrogates: [],
           needsCompile: false,
@@ -885,27 +929,32 @@ describe(`TemplateCompiler - combinations`, function () {
         // TODO: test fallback to attribute name when no matching binding exists (or throw if we don't want to support this)
       ] as ((ctx: TestContext, $1: string, $2: string, $3: Bindables, $4: [string, string]) => [BindableDefinition, string])[]
     ],                       (ctx, pdName, pdProp, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
-      it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
-
+      const title = `div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`;
+      it(title, function () {
+        const FooBar = CustomAttribute.define({ name: 'asdf', bindables }, class FooBar {});
         const { sut, container } = createFixture(
           ctx,
-          CustomAttribute.define({ name: 'asdf', bindables }, class FooBar {})
+          FooBar
         );
 
         const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, true);
 
-        const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[attrName, attrValue]], [instruction], [], []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
+        // IMPORTANT:
+        // ====================================
+        // before template compiler refactoring:
+        // const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[attrName, attrValue]], [instruction], [], []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
 
-        if (attrName.endsWith('.qux')) {
-          let e;
-          try {
-            sut.compile(input, container, null);
-          } catch (err) {
-            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
-            e = err;
-          }
-          assert.instanceOf(e, Error);
+        // after template compiler refactoring:
+        // reason: custom attribute should look & behave like style attribute
+        // we do: style="background-color: red" instead of style="backgroundColor: red"
+        //
+        // if for some reasons, this reasoning causes a lot of unintuitiveness in the template
+        // then consider reverting it
+        const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[kebabCase(attrName), attrValue]], [instruction], [], []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
+        const bindablesInfo = BindablesInfo.from(CustomAttribute.getDefinition(FooBar), true);
+
+        if (!bindablesInfo.attrs[kebabCase(attrName)]) {
+          assert.throws(() => sut.compile(input, container, null), `Bindable ${attrName} not found on asdf.`);
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
@@ -1603,7 +1652,7 @@ describe('TemplateCompiler - local templates', function () {
       assert.throws(() =>
         new Aurelia(container)
           .app({ host: ctx.doc.createElement('div'), component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) }),
-        /Cannot have template controller on surrogate element./
+        `Template controller ${attr.split('.')[0]} is invalid on surrogate`
       );
     });
   }
@@ -1751,3 +1800,55 @@ describe('TemplateCompiler - au-slot', function () {
     });
   }
 });
+
+class BindablesInfo<T extends 0 | 1 = 0> {
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: true): BindablesInfo<1>;
+  // eslint-disable-next-line
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: false): BindablesInfo<0>;
+  public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: boolean): BindablesInfo<1 | 0> {
+    type CA = CustomAttributeDefinition;
+    const bindables = def.bindables;
+    const attrs: Record<string, BindableDefinition> = {};
+    const defaultBindingMode: BindingMode = isAttr
+      ? (def as CA).defaultBindingMode === void 0
+        ? BindingMode.default
+        : (def as CA).defaultBindingMode
+      : BindingMode.default;
+    let bindable: BindableDefinition | undefined;
+    let prop: string;
+    let hasPrimary: boolean = false;
+    let primary: BindableDefinition | undefined;
+    let attr: string;
+
+    // from all bindables, pick the first primary bindable
+    // if there is no primary, pick the first bindable
+    // if there's no bindables, create a new primary with property value
+    for (prop in bindables) {
+      bindable = bindables[prop];
+      attr = bindable.attribute;
+      if (bindable.primary === true) {
+        if (hasPrimary) {
+          throw new Error(`Primary already exists on ${def.name}`);
+        }
+        hasPrimary = true;
+        primary = bindable;
+      } else if (!hasPrimary && primary == null) {
+        primary = bindable;
+      }
+
+      attrs[attr] = BindableDefinition.create(prop, bindable);
+    }
+    if (bindable == null && isAttr) {
+      // if no bindables are present, default to "value"
+      primary = attrs.value = BindableDefinition.create('value', { mode: defaultBindingMode });
+    }
+
+    return new BindablesInfo(attrs, bindables, primary!);
+  }
+
+  protected constructor(
+    public readonly attrs: Record<string, BindableDefinition>,
+    public readonly bindables: Record<string, BindableDefinition>,
+    public readonly primary: T extends 1 ? BindableDefinition : BindableDefinition | undefined,
+  ) {}
+}

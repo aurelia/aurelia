@@ -10,7 +10,7 @@ import {
   TestContext,
 } from '@aurelia/testing';
 
-describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', function () {
+describe('3-runtime-html/template-compiler.harmony.spec.ts \n\tharmoninous combination', function () {
   interface IHarmoniousCompilationTestCase {
     title: string;
     template: string | HTMLElement;

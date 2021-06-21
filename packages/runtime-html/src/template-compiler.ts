@@ -1,17 +1,5 @@
-import {
-  emptyArray,
-  Registration,
-  toArray,
-  ILogger,
-  camelCase,
-} from '@aurelia/kernel';
-import {
-  IExpressionParser,
-  BindingMode,
-  BindingType,
-  PrimitiveLiteralExpression,
-  Char,
-} from '@aurelia/runtime';
+import { emptyArray, Registration, toArray, ILogger, camelCase } from '@aurelia/kernel';
+import { BindingMode, BindingType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
 import {
@@ -41,12 +29,10 @@ import { createLookup } from './utilities-html.js';
 import type { IContainer, IResolver } from '@aurelia/kernel';
 import type { AnyBindingExpression } from '@aurelia/runtime';
 import type { CustomAttributeType, CustomAttributeDefinition } from './resources/custom-attribute.js';
-import type { CustomElementType } from './resources/custom-element.js';
+import type { CustomElementType, PartialCustomElementDefinition } from './resources/custom-element.js';
 import type { IProjections } from './resources/custom-elements/au-slot.js';
-import type { ICommandBuildInfo } from './resources/binding-command.js';
-import type { PartialCustomElementDefinition } from './resources/custom-element.js';
+import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command.js';
 import type { ICompliationInstruction, IInstruction, } from './renderer.js';
-import type { BindingCommandInstance } from './resources/binding-command.js';
 
 export class ViewCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -133,7 +119,7 @@ export class ViewCompiler implements ITemplateCompiler {
         throw new Error(`Attribute ${attrName} is invalid on surrogate.`);
       }
 
-      bindingCommand = context.createCommand(attrSyntax);
+      bindingCommand = context.command(attrSyntax);
       if (bindingCommand !== null && bindingCommand.bindingType & BindingType.IgnoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
@@ -153,7 +139,7 @@ export class ViewCompiler implements ITemplateCompiler {
         continue;
       }
 
-      attrDef = context.findAttr(realAttrTarget);
+      attrDef = context.attr(realAttrTarget);
       if (attrDef !== null) {
         if (attrDef.isTemplateController) {
           throw new Error(`Template controller ${realAttrTarget} is invalid on surrogate.`);
@@ -325,7 +311,7 @@ export class ViewCompiler implements ITemplateCompiler {
       realAttrTarget = attrSyntax.target;
       realAttrValue = attrSyntax.rawValue;
 
-      bindingCommand = context.createCommand(attrSyntax);
+      bindingCommand = context.command(attrSyntax);
       if (bindingCommand !== null) {
         // supporting one time may not be as simple as it appears
         // as the let expression could compute its value from various expressions,
@@ -374,7 +360,7 @@ export class ViewCompiler implements ITemplateCompiler {
     // 3. rest kept as is (except special cases & to-be-decided)
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
-    const elDef = context.findEl(elName);
+    const elDef = context.el(elName);
     const isAuSlot = elName === 'au-slot';
     const attrParser = context.attrParser;
     const exprParser = context.exprParser;
@@ -428,7 +414,7 @@ export class ViewCompiler implements ITemplateCompiler {
       }
       attrSyntax = attrParser.parse(attrName, attrValue);
 
-      bindingCommand = context.createCommand(attrSyntax);
+      bindingCommand = context.command(attrSyntax);
       if (bindingCommand !== null && bindingCommand.bindingType & BindingType.IgnoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
@@ -452,7 +438,7 @@ export class ViewCompiler implements ITemplateCompiler {
       realAttrValue = attrSyntax.rawValue;
       // if not a ignore attribute binding command
       // then process with the next possibilities
-      attrDef = context.findAttr(realAttrTarget);
+      attrDef = context.attr(realAttrTarget);
       // when encountering an attribute,
       // custom attribute takes precedence over custom element bindables
       if (attrDef !== null) {
@@ -638,9 +624,12 @@ export class ViewCompiler implements ITemplateCompiler {
       if (isAuSlot) {
         const slotName = el.getAttribute('name') || /* name="" is the same with no name */'default';
         const projection = context.ci.projections?.[slotName];
+        let fallbackContentContext: CompilationContext;
+        let template;
+        let node: Node | null;
         if (projection == null) {
-          const template = context.p.document.createElement('template');
-          let node: Node | null = el.firstChild;
+          template = context.h('template');
+          node = el.firstChild;
           while (node !== null) {
             // a special case:
             // <au-slot> doesn't have its own template
@@ -654,12 +643,13 @@ export class ViewCompiler implements ITemplateCompiler {
             }
             node = el.firstChild;
           }
-          const auSlotContext = context.createChild();
-          this.node(template.content, auSlotContext);
+
+          fallbackContentContext = context.child();
+          this.node(template.content, fallbackContentContext);
           slotInfo = new SlotInfo(slotName, AuSlotContentType.Fallback, CustomElementDefinition.create({
             name: CustomElement.generateName(),
             template,
-            instructions: auSlotContext.rows,
+            instructions: fallbackContentContext.rows,
             needsCompile: false,
           }));
         } else {
@@ -689,6 +679,7 @@ export class ViewCompiler implements ITemplateCompiler {
       this.mark(el);
     }
 
+    let shouldCompileContent: boolean;
     if (tcInstructions != null) {
       ii = tcInstructions.length - 1;
       i = ii;
@@ -701,13 +692,14 @@ export class ViewCompiler implements ITemplateCompiler {
       if (el.nodeName === 'TEMPLATE') {
         template = el as HTMLTemplateElement;
       } else {
-        template = context.p.document.createElement('template');
-        context.p.document.adoptNode(template.content);
+        template = context.h('template');
         template.content.appendChild(el);
       }
       const mostInnerTemplate = template;
-      const childContext = context.createChild(instructions == null ? [] : [instructions]);
-      const shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
+      const childContext = context.child(instructions == null ? [] : [instructions]);
+
+      shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
+
       if (elDef?.containerless) {
         this.marker(el, context);
       }
@@ -768,7 +760,7 @@ export class ViewCompiler implements ITemplateCompiler {
             // into a single template
             // with some special rule around <template> element
             for (targetSlot in slotTemplateRecord) {
-              template = context.p.document.createElement('template');
+              template = context.h('template');
               slotTemplates = slotTemplateRecord[targetSlot];
               for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
                 slotTemplate = slotTemplates[j];
@@ -797,7 +789,7 @@ export class ViewCompiler implements ITemplateCompiler {
               // is the parent of this compilation context
               // but for simplicity in compilation, maybe start with a flatter hierarchy
               // also, it wouldn't have any real uses
-              projectionCompilationContext = context.createChild();
+              projectionCompilationContext = context.child();
               this.node(template.content, projectionCompilationContext);
               projections[targetSlot] = CustomElementDefinition.create({
                 name: CustomElement.generateName(),
@@ -839,14 +831,13 @@ export class ViewCompiler implements ITemplateCompiler {
         // =========================
 
         tcInstruction = tcInstructions[i];
-        template = context.p.document.createElement('template');
+        template = context.h('template');
         // appending most inner template is inaccurate, as the most outer one
         // is not really the parent of the most inner one
         // but it's only for the purpose of creating a marker,
         // so it's just an optimization hack
-        marker = context.p.document.createElement('au-m');
+        marker = context.h('au-m');
         marker.classList.add('au');
-        context.p.document.adoptNode(template.content);
         template.content.appendChild(marker);
 
         if (tcInstruction.def !== voidDefinition) {
@@ -878,7 +869,8 @@ export class ViewCompiler implements ITemplateCompiler {
       if (instructions != null) {
         context.rows.push(instructions);
       }
-      const shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
+
+      shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
       if (elDef?.containerless) {
         this.marker(el, context);
       }
@@ -940,7 +932,7 @@ export class ViewCompiler implements ITemplateCompiler {
           // into a single template
           // with some special rule around <template> element
           for (targetSlot in slotTemplateRecord) {
-            template = context.p.document.createElement('template');
+            template = context.h('template');
             slotTemplates = slotTemplateRecord[targetSlot];
             for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
               slotTemplate = slotTemplates[j];
@@ -965,7 +957,7 @@ export class ViewCompiler implements ITemplateCompiler {
 
             // after aggregating all the [au-slot] templates into a single one
             // compile it
-            projectionCompilationContext = context.createChild();
+            projectionCompilationContext = context.child();
             this.node(template.content, projectionCompilationContext);
             projections[targetSlot] = CustomElementDefinition.create({
               name: CustomElement.generateName(),
@@ -1002,7 +994,7 @@ export class ViewCompiler implements ITemplateCompiler {
 
     const parent = node.parentNode!;
     // prepare a marker
-    parent.insertBefore(this.mark(context.p.document.createElement('au-m')), node);
+    parent.insertBefore(this.mark(context.h('au-m')), node);
     // and the corresponding instruction
     context.rows.push([new TextBindingInstruction(expr, !!context.def.isStrictBinding)]);
 
@@ -1077,7 +1069,7 @@ export class ViewCompiler implements ITemplateCompiler {
         // todo: should it always camel case???
         // const attrTarget = camelCase(attrSyntax.target);
         // ================================================
-        command = context.createCommand(attrSyntax);
+        command = context.command(attrSyntax);
         bindable = bindableAttrsInfo.attrs[attrSyntax.target];
         if (bindable == null) {
           throw new Error(`Bindable ${attrSyntax.target} not found on ${attrDef.name}.`);
@@ -1227,7 +1219,7 @@ export class ViewCompiler implements ITemplateCompiler {
   private marker(node: Node, context: CompilationContext): HTMLElement {
     // todo: assumption made: parentNode won't be null
     const parent = node.parentNode!;
-    const marker = context.p.document.createElement('au-m');
+    const marker = context.h('au-m');
     this.mark(parent.insertBefore(marker, node));
     parent.removeChild(node);
     return marker;
@@ -1253,7 +1245,7 @@ class CompilationContext {
   public readonly p: IPlatform;
   // an array representing targets of instructions, built on depth first tree walking compilation
   public readonly rows: IInstruction[][];
-  public readonly localElements: Set<string>;
+  public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
 
   private readonly c: IContainer;
@@ -1279,7 +1271,7 @@ class CompilationContext {
     this.attrTransformer = hasParent ? parent!.attrTransformer : container.get(IAttrSyntaxTransformer);
     this.logger = hasParent ? parent!.logger : container.get(ILogger);
     this.p = hasParent ? parent!.p : container.get(IPlatform);
-    this.localElements = hasParent ? parent!.localElements : new Set();
+    this.localEls = hasParent ? parent!.localEls : new Set();
     this.rows = instructions ?? [];
   }
 
@@ -1288,15 +1280,25 @@ class CompilationContext {
     this.root.c.register(def);
   }
 
-  public findEl(name: string): CustomElementDefinition | null {
+  public h<K extends keyof HTMLElementTagNameMap>(name: K): HTMLElementTagNameMap[K];
+  public h<K extends string>(name: string): HTMLElement;
+  public h(name: string): HTMLElement {
+    const el = this.p.document.createElement(name);
+    if (name === 'template') {
+      this.p.document.adoptNode((el as HTMLTemplateElement).content);
+    }
+    return el;
+  }
+
+  public el(name: string): CustomElementDefinition | null {
     return this.c.find(CustomElement, name) as CustomElementDefinition | null;
   }
 
-  public findAttr(name: string): CustomAttributeDefinition | null {
+  public attr(name: string): CustomAttributeDefinition | null {
     return this.c.find(CustomAttribute, name);
   }
 
-  public createChild(instructions?: IInstruction[][]) {
+  public child(instructions?: IInstruction[][]) {
     return new CompilationContext(this.def, this.c, this.ci, this, this.root, instructions);
   }
 
@@ -1312,9 +1314,9 @@ class CompilationContext {
    *
    * @returns An instance of the command if it exists, or `null` if it does not exist.
    */
-  public createCommand(syntax: AttrSyntax): BindingCommandInstance | null {
+  public command(syntax: AttrSyntax): BindingCommandInstance | null {
     if (this.root !== this) {
-      return this.root.createCommand(syntax);
+      return this.root.command(syntax);
     }
     const name = syntax.command;
     if (name === null) {

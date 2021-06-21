@@ -1,5 +1,6 @@
 import { IFileUnit, IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
-import { _createTransformer } from '@aurelia/ts-jest';
+import tsJest from '@aurelia/ts-jest';
+const { _createTransformer } = tsJest;
 import { assert } from '@aurelia/testing';
 import { Config } from '@jest/types';
 import { TransformOptions, TransformedSource } from '@jest/transform';

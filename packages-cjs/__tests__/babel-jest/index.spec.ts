@@ -1,5 +1,6 @@
 import { IFileUnit, IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
-import { _createTransformer } from '@aurelia/babel-jest';
+import babelJest  from '@aurelia/babel-jest';
+const { _createTransformer } = babelJest;
 import { TransformOptions } from '@babel/core';
 import { assert } from '@aurelia/testing';
 import { Config } from '@jest/types';

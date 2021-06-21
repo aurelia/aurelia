@@ -18,26 +18,24 @@ In most applications, your model is not only composed of objects, but also of va
 
 ## Arrays
 
-Aurelia is able to render elements for each item in an array. Let's look at a basic example:
+Aurelia is able to render elements for each item in an array. Let's look at a basic example.
 
-{% tabs %}
-{% tab title="my-app.html" %}
+Inside of `my-app.html` add in the following:
+
 ```markup
 <h1>My Friends</h1>
 <p repeat.for="friend of friends">Hello, ${friend}!</p>
 ```
-{% endtab %}
 
-{% tab title="my-app.js" %}
+Inside of `my-app.js` add in the following:
+
 ```javascript
-export class MyApp { 
+export class MyApp {  
   constructor() { 
     this.friends = [ 'Alice', 'Bob', 'Carol', 'Dana' ]; 
   } 
 }
 ```
-{% endtab %}
-{% endtabs %}
 
 This template allows us to list out our friends and greet them one by one, rather than attempting to greet all 7 billion inhabitants of the world at once 🤣 Notice that `for="friend of friends"` bears a strong resemblance to the JavaScript equivalent `for(let friend of friends)`. By design, Aurelia matches JavaScript syntax in its templates as much as possible, while still maintaining compatibility with the HTML standard.
 

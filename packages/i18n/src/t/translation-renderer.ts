@@ -11,16 +11,13 @@ import {
   LifecycleFlags,
   IHydratableController,
   AttrSyntax,
-  getTarget,
   IPlatform,
   IAttrSyntaxTransformer,
 } from '@aurelia/runtime-html';
 
 import type {
   CallBindingInstruction,
-  BindingSymbol,
   BindingCommandInstance,
-  PlainAttributeSymbol,
 } from '@aurelia/runtime-html';
 import { ICommandBuildInfo } from '@aurelia/runtime-html/dist/resources/binding-command';
 
@@ -51,10 +48,6 @@ export class TranslationBindingCommand implements BindingCommandInstance {
 
   public static get inject() { return [IAttrSyntaxTransformer]; }
   public constructor(private readonly t: IAttrSyntaxTransformer) {}
-
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): TranslationBindingInstruction {
-    return new TranslationBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
-  }
 
   public build(info: ICommandBuildInfo): TranslationBindingInstruction {
     let target: string;
@@ -126,10 +119,6 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
   public static get inject() { return [IAttrSyntaxTransformer]; }
   public constructor(private readonly t: IAttrSyntaxTransformer) {}
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): TranslationBindBindingInstruction {
-    return new TranslationBindBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
-  }
-
   public build(info: ICommandBuildInfo): TranslationBindingInstruction {
     let target: string;
     if (info.bindable == null) {
@@ -140,7 +129,7 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
     } else {
       target = info.bindable.property;
     }
-    return new TranslationBindingInstruction(info.expr as IsBindingBehavior, target);
+    return new TranslationBindBindingInstruction(info.expr as IsBindingBehavior, target);
   }
 }
 

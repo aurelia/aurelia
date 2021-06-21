@@ -92,7 +92,7 @@ function createAureliaPreprocessor(karmaConfig, logger) {
                 } else {
                   switch (specifier) {
                     case 'i18next': {
-                      const i18nextPath = path.join(basePath, 'base/node_modules/i18next/dist/esm/index.js');
+                      const i18nextPath = path.join(basePath, 'base/node_modules/i18next/dist/esm/i18next.js');
                       // newSpecifier = path.join(basePath, 'node_modules/i18next/dist/esm/index.js').replace(/\\/g, '/');
                       newSpecifier = path.relative(file.path, i18nextPath).replace(/\\/g, '/');
                       break;

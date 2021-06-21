@@ -254,7 +254,6 @@ export {
   BindingCommandDefinition,
   BindingCommandKind,
   BindingCommandType,
-  getTarget,
   CallBindingCommand,
   DefaultBindingCommand,
   ForBindingCommand,
@@ -515,7 +514,7 @@ export {
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
-  AuRenderRegistration as ComposeRegistration,
+  AuRenderRegistration,
 
   DefaultResources,
 
@@ -628,30 +627,6 @@ export {
 export {
   IPlatform,
 } from './platform.js';
-
-export {
-  BindableInfo,
-  ElementInfo,
-  AttrInfo,
-  AnySymbol,
-  BindingSymbol,
-  CustomAttributeSymbol,
-  CustomElementSymbol,
-  ElementSymbol,
-  LetElementSymbol,
-  NodeSymbol,
-  ParentNodeSymbol,
-  PlainAttributeSymbol,
-  PlainElementSymbol,
-  ResourceAttributeSymbol,
-  SymbolFlags,
-  SymbolWithBindings,
-  SymbolWithMarker,
-  SymbolWithTemplate,
-  TemplateControllerSymbol,
-  TextSymbol,
-  ProjectionSymbol,
-} from './semantic-model.js';
 
 export {
   CSSModulesProcessorRegistry,

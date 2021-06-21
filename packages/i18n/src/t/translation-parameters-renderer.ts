@@ -13,16 +13,13 @@ import {
   attributePattern,
   AttrSyntax,
   bindingCommand,
-  getTarget,
   IPlatform,
   IAttrSyntaxTransformer,
 } from '@aurelia/runtime-html';
 
 import type {
   CallBindingInstruction,
-  BindingSymbol,
   BindingCommandInstance,
-  PlainAttributeSymbol,
 } from '@aurelia/runtime-html';
 import { ICommandBuildInfo } from '@aurelia/runtime-html/dist/resources/binding-command';
 
@@ -53,10 +50,6 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
 
   public static get inject() { return [IAttrSyntaxTransformer]; }
   public constructor(private readonly t: IAttrSyntaxTransformer) {}
-
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): TranslationParametersBindingInstruction {
-    return new TranslationParametersBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
-  }
 
   public build(info: ICommandBuildInfo): TranslationParametersBindingInstruction {
     let target: string;

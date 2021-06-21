@@ -746,7 +746,6 @@ export {
   // BindingCommandDefinition,
   // BindingCommandKind,
   // BindingCommandType,
-  getTarget,
 
   // CallBindingCommand,
   // DefaultBindingCommand,

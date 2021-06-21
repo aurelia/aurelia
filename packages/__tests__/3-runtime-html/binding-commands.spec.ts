@@ -1,10 +1,7 @@
 import {
   alias,
   BindingType,
-  AttributeInstruction,
   BindingCommandInstance,
-  PlainAttributeSymbol,
-  BindingSymbol,
   bindingCommand,
   OneTimeBindingCommand,
   PropertyBindingInstruction,
@@ -28,10 +25,6 @@ describe('binding-commands', function () {
       public static inject = [OneTimeBindingCommand];
       public constructor(private readonly oneTimeCmd: OneTimeBindingCommand) {}
 
-      public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-        return OneTimeBindingCommand.prototype.compile(binding);
-      }
-
       public build(info: ICommandBuildInfo): PropertyBindingInstruction {
         return this.oneTimeCmd.build(info);
       }
@@ -44,10 +37,6 @@ describe('binding-commands', function () {
 
       public static inject = [OneTimeBindingCommand];
       public constructor(private readonly oneTimeCmd: OneTimeBindingCommand) {}
-
-      public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-        return OneTimeBindingCommand.prototype.compile(binding);
-      }
 
       public build(info: ICommandBuildInfo): PropertyBindingInstruction {
         return this.oneTimeCmd.build(info);

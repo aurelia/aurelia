@@ -4,20 +4,9 @@ description: 'Get acquainted with Aurelia, the documentation, and how to get sta
 
 # Introduction
 
-So, you've been scouring the internet and have managed to find yourself here, of all places. Now you're wondering, what is this thing called "Aurelia" that everyone's talking about?
-
-{% hint style="success" %}
-**Here's what you'll learn...**
-
-* What is Aurelia?
-* How do I use this documentation?
-* How do I contribute to the community?
-* Where do I begin?
-{% endhint %}
-
 ## What is Aurelia?
 
-Aurelia is an open-source, JavaScript, front-end platform, designed to enable you to easily build even the most demanding web, mobile, or desktop applications. Aurelia stands out for its commitment to open web standards and its no-nonsense, get-out-of-your-way conventions that enable vanilla JavaScript development. Of course, Aurelia is also packed full of features, performs at the highest standards, extensible to its core, and supports a fully-testable component-oriented design. But you knew all that already, didn't you? 😎 
+Aurelia is an open-source, JavaScript, front-end platform, designed to enable you to easily build even the most demanding web, mobile, or desktop applications. Aurelia stands out for its commitment to open web standards and its no-nonsense, get-out-of-your-way conventions that enable vanilla JavaScript development. Of course, Aurelia is also packed full of features, performs at the highest standards, extensible to its core, and supports a fully testable component-oriented design. But you knew all that already, didn't you? 😎 
 
 To get started right now, jump to our Quick Start Guide, or read on to get more of an overview.
 

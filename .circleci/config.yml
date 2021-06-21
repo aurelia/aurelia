@@ -352,22 +352,22 @@ jobs:
     executor: docker-circleci
     steps:
       - checkout
-      - run: git checkout master
       - run: CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
       - run: npm ci
       - run: npm run build
       - run:
-          name: "Run test for the current branch"
+          name: "Prepare cosmos db configuration and run test for the master branch"
+          # TODO(Sayan): remove the duplication of config, which was done for backward compatibility, and can be removed once PR #1094 is merged with master.
           command: |
             cd test/benchmarking-apps/runner
             echo "{\"cosmosEndpoint\": \"https://aurelia.documents.azure.com:443/\",\"cosmosKey\": \"$AZURE_COSMOS_DB_KEY\", \"endpoint\": \"https://aurelia.documents.azure.com:443/\",\"key\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
             set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos
       - run: cd ../../../
       - checkout_install
+      - run: git checkout master
       - run: npm run build
       - run:
-          name: "Prepare cosmos db configuration and run test for the master branch"
-          # TODO(Sayan): remove the duplication of config, which was done for backward compatibility, and can be removed once PR #1094 is merged with master.
+          name: "Run test for the current branch"
           command: |
             cd test/benchmarking-apps/runner
             set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos

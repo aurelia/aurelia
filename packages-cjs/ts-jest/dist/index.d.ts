@@ -11,6 +11,12 @@ declare function createTransformer(conventionsOptions?: {}): {
     getCacheKey: (fileData: string, filePath: string, options: TransformOptions<unknown>) => string;
     process: (sourceText: string, sourcePath: string, transformOptions: TransformOptions<unknown>) => TransformedSource;
 };
-declare const canInstrument: boolean, getCacheKey: (fileData: string, filePath: Config.Path, options: TransformOptions) => string, process: (sourceText: string, sourcePath: Config.Path, transformOptions: TransformOptions) => TransformedSource | string;
-export { canInstrument, getCacheKey, process, createTransformer, _createTransformer };
+declare const _default: {
+    canInstrument: boolean;
+    getCacheKey: (fileData: string, filePath: string, options: TransformOptions<unknown>) => string;
+    process: (sourceText: string, sourcePath: string, transformOptions: TransformOptions<unknown>) => TransformedSource;
+    createTransformer: typeof createTransformer;
+    _createTransformer: typeof _createTransformer;
+};
+export default _default;
 //# sourceMappingURL=index.d.ts.map

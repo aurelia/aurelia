@@ -26,5 +26,5 @@ function createTransformer(conventionsOptions = {}) {
     return _createTransformer(conventionsOptions);
 }
 const { canInstrument, getCacheKey, process } = createTransformer();
-export { canInstrument, getCacheKey, process, createTransformer, _createTransformer };
+export default { canInstrument, getCacheKey, process, createTransformer, _createTransformer };
 //# sourceMappingURL=index.js.map

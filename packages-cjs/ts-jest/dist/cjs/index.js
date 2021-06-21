@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports._createTransformer = exports.createTransformer = exports.process = exports.getCacheKey = exports.canInstrument = void 0;
 const plugin_conventions_1 = require("@aurelia/plugin-conventions");
 const ts_jest_1 = require("ts-jest");
 const path = require("path");
@@ -34,13 +33,9 @@ _preprocess = plugin_conventions_1.preprocess, _tsProcess = tsTransformer.proces
         process
     };
 }
-exports._createTransformer = _createTransformer;
 function createTransformer(conventionsOptions = {}) {
     return _createTransformer(conventionsOptions);
 }
-exports.createTransformer = createTransformer;
 const { canInstrument, getCacheKey, process } = createTransformer();
-exports.canInstrument = canInstrument;
-exports.getCacheKey = getCacheKey;
-exports.process = process;
+exports.default = { canInstrument, getCacheKey, process, createTransformer, _createTransformer };
 //# sourceMappingURL=index.js.map

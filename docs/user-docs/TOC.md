@@ -10,6 +10,7 @@
   * [Creating Your First App](getting-started/quick-start-guide/creating-your-first-app.md)
   * [Your First Component - Part 1: The View-Model](getting-started/quick-start-guide/your-first-component-part-1-the-view-model.md)
   * [Your First Component - Part 2: The View](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
+  * [Running our app](getting-started/quick-start-guide/running-our-app.md)
   * [Next Steps](getting-started/quick-start-guide/next-steps.md)
 * [Template Syntax](getting-started/template-syntax.md)
 * [Bindable Setter](getting-started/bindable-setter.md)

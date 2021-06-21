@@ -30,8 +30,8 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
     Registration.singleton(IDialogDomRenderer, this).register(container);
   }
 
-  private readonly wrapperCss: string = baseWrapperCss;
-  private readonly overlayCss: string = `${baseWrapperCss} display:flex;`;
+  private readonly wrapperCss: string = `${baseWrapperCss} display:flex;`;
+  private readonly overlayCss: string = baseWrapperCss;
   private readonly hostCss: string = 'position:relative;margin:auto;';
 
   public render(dialogHost: HTMLElement): IDialogDom {
@@ -43,7 +43,7 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
     };
     const wrapper = dialogHost.appendChild(h('au-dialog-container', this.wrapperCss));
     const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));
-    const host = overlay.appendChild(h('div', this.hostCss));
+    const host = wrapper.appendChild(h('div', this.hostCss));
     return new DefaultDialogDom(wrapper, overlay, host);
   }
 }

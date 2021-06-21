@@ -543,9 +543,6 @@ export {
   StandardConfiguration
 } from './configuration.js';
 export {
-  TemplateBinder,
-} from './template-binder.js';
-export {
   ITemplateElementFactory
 } from './template-element-factory.js';
 

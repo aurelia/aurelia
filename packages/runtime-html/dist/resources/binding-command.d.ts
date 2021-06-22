@@ -1,13 +1,26 @@
-import { Constructable, IContainer, IResourceKind, ResourceType, ResourceDefinition, PartialResourceDefinition } from '@aurelia/kernel';
 import { BindingType } from '@aurelia/runtime';
-import { IInstruction, AttributeInstruction, RefBindingInstruction } from '../renderer.js';
-import { BindingSymbol, PlainAttributeSymbol } from '../semantic-model.js';
+import { IAttrSyntaxTransformer } from '../attribute-syntax-transformer.js';
+import { PropertyBindingInstruction } from '../renderer.js';
+import type { Constructable, IContainer, IResourceKind, ResourceType, ResourceDefinition, PartialResourceDefinition } from '@aurelia/kernel';
+import type { IInstruction } from '../renderer.js';
+import type { AnyBindingExpression } from '@aurelia/runtime';
+import type { AttrSyntax } from './attribute-pattern.js';
+import type { BindableDefinition } from '../bindable.js';
+import type { CustomAttributeDefinition } from './custom-attribute.js';
+import type { CustomElementDefinition } from './custom-element.js';
 export declare type PartialBindingCommandDefinition = PartialResourceDefinition<{
     readonly type?: string | null;
 }>;
+export interface ICommandBuildInfo {
+    node: Element;
+    attr: AttrSyntax;
+    expr: AnyBindingExpression;
+    bindable: BindableDefinition | null;
+    def: CustomAttributeDefinition | CustomElementDefinition | null;
+}
 export declare type BindingCommandInstance<T extends {} = {}> = {
     bindingType: BindingType;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): IInstruction;
+    build(info: ICommandBuildInfo): IInstruction;
 } & T;
 export declare type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
 export declare type BindingCommandKind = IResourceKind<BindingCommandType, BindingCommandDefinition> & {
@@ -33,73 +46,87 @@ export declare class BindingCommandDefinition<T extends Constructable = Construc
     register(container: IContainer): void;
 }
 export declare const BindingCommand: BindingCommandKind;
-export declare function getTarget(binding: PlainAttributeSymbol | BindingSymbol, makeCamelCase: boolean): string;
 export declare class OneTimeBindingCommand implements BindingCommandInstance {
+    private readonly t;
     readonly bindingType: BindingType.OneTimeCommand;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
+    constructor(t: IAttrSyntaxTransformer);
+    build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class ToViewBindingCommand implements BindingCommandInstance {
+    private readonly t;
     readonly bindingType: BindingType.ToViewCommand;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
+    constructor(t: IAttrSyntaxTransformer);
+    build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class FromViewBindingCommand implements BindingCommandInstance {
+    private readonly t;
     readonly bindingType: BindingType.FromViewCommand;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
+    constructor(t: IAttrSyntaxTransformer);
+    build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class TwoWayBindingCommand implements BindingCommandInstance {
+    private readonly t;
     readonly bindingType: BindingType.TwoWayCommand;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
+    constructor(t: IAttrSyntaxTransformer);
+    build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class DefaultBindingCommand implements BindingCommandInstance {
+    private readonly t;
     readonly bindingType: BindingType.BindCommand;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
+    constructor(t: IAttrSyntaxTransformer);
+    build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class CallBindingCommand implements BindingCommandInstance {
     readonly bindingType: BindingType.CallCommand;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    build(info: ICommandBuildInfo): IInstruction;
 }
 export declare class ForBindingCommand implements BindingCommandInstance {
     readonly bindingType: BindingType.ForCommand;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    build(info: ICommandBuildInfo): IInstruction;
 }
 export declare class TriggerBindingCommand implements BindingCommandInstance {
     readonly bindingType: BindingType.TriggerCommand;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    build(info: ICommandBuildInfo): IInstruction;
 }
 export declare class DelegateBindingCommand implements BindingCommandInstance {
     readonly bindingType: BindingType.DelegateCommand;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    build(info: ICommandBuildInfo): IInstruction;
 }
 export declare class CaptureBindingCommand implements BindingCommandInstance {
     readonly bindingType: BindingType.CaptureCommand;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    build(info: ICommandBuildInfo): IInstruction;
 }
 /**
  * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
  */
 export declare class AttrBindingCommand implements BindingCommandInstance {
     readonly bindingType: BindingType.IsProperty;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    build(info: ICommandBuildInfo): IInstruction;
 }
 /**
  * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
  */
 export declare class StyleBindingCommand implements BindingCommandInstance {
     readonly bindingType: BindingType.IsProperty;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    build(info: ICommandBuildInfo): IInstruction;
 }
 /**
  * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
  */
 export declare class ClassBindingCommand implements BindingCommandInstance {
     readonly bindingType: BindingType.IsProperty;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction;
+    build(info: ICommandBuildInfo): IInstruction;
 }
 /**
  * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
  */
 export declare class RefBindingCommand implements BindingCommandInstance {
     readonly bindingType: BindingType.IsProperty | BindingType.IgnoreAttr;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): RefBindingInstruction;
+    build(info: ICommandBuildInfo): IInstruction;
 }
 //# sourceMappingURL=binding-command.d.ts.map

@@ -10,6 +10,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TranslationParametersBindingRenderer = exports.TranslationParametersBindingCommand = exports.TranslationParametersBindingInstruction = exports.TranslationParametersAttributePattern = exports.TranslationParametersInstructionType = void 0;
+const kernel_1 = require("@aurelia/kernel");
 const translation_binding_js_1 = require("./translation-binding.js");
 const runtime_html_1 = require("@aurelia/runtime-html");
 exports.TranslationParametersInstructionType = 'tpt';
@@ -34,11 +35,21 @@ class TranslationParametersBindingInstruction {
 }
 exports.TranslationParametersBindingInstruction = TranslationParametersBindingInstruction;
 let TranslationParametersBindingCommand = class TranslationParametersBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 53 /* BindCommand */;
     }
-    compile(binding) {
-        return new TranslationParametersBindingInstruction(binding.expression, runtime_html_1.getTarget(binding, false));
+    static get inject() { return [runtime_html_1.IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        let target;
+        if (info.bindable == null) {
+            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
+        }
+        else {
+            target = info.bindable.property;
+        }
+        return new TranslationParametersBindingInstruction(info.expr, target);
     }
 };
 TranslationParametersBindingCommand = __decorate([

@@ -29,6 +29,8 @@ export declare class AttrSyntaxTransformer {
      * - property: the target property name
      */
     useTwoWay(fn: IsTwoWayPredicate): void;
+    isTwoWay(node: Element, attrName: string): boolean;
+    map(node: Element, attr: string): string | null;
 }
 export {};
 //# sourceMappingURL=attribute-syntax-transformer.d.ts.map

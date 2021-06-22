@@ -99,30 +99,20 @@ class AttrSyntaxTransformer {
     useTwoWay(fn) {
         this.fns.push(fn);
     }
-    /**
-     * @internal
-     */
-    transform(node, attrSyntax) {
+    isTwoWay(node, attrName) {
+        return shouldDefaultToTwoWay(node, attrName)
+            || this.fns.length > 0 && this.fns.some(fn => fn(node, attrName));
+    }
+    map(node, attr) {
         var _a, _b, _c;
-        if (attrSyntax.command === 'bind' &&
-            (
-            // note: even though target could possibly be mapped to a different name
-            // the final property name shouldn't affect the two way transformation
-            // as they both should work with original source attribute name
-            shouldDefaultToTwoWay(node, attrSyntax.target) ||
-                this.fns.length > 0 && this.fns.some(fn => fn(node, attrSyntax.target)))) {
-            attrSyntax.command = 'two-way';
-        }
-        const attr = attrSyntax.target;
-        attrSyntax.target = (_c = (_b = (_a = this.tagAttrMap[node.tagName]) === null || _a === void 0 ? void 0 : _a[attr]) !== null && _b !== void 0 ? _b : this.globalAttrMap[attr]) !== null && _c !== void 0 ? _c : (utilities_html_js_1.isDataAttribute(node, attr, this.svg)
+        return (_c = (_b = (_a = this.tagAttrMap[node.nodeName]) === null || _a === void 0 ? void 0 : _a[attr]) !== null && _b !== void 0 ? _b : this.globalAttrMap[attr]) !== null && _c !== void 0 ? _c : (utilities_html_js_1.isDataAttribute(node, attr, this.svg)
             ? attr
-            : kernel_1.camelCase(attr));
-        // attrSyntax.target = this.map(node.tagName, attrSyntax.target);
+            : null);
     }
 }
 exports.AttrSyntaxTransformer = AttrSyntaxTransformer;
 function shouldDefaultToTwoWay(element, attr) {
-    switch (element.tagName) {
+    switch (element.nodeName) {
         case 'INPUT':
             switch (element.type) {
                 case 'checkbox':

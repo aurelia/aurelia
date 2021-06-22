@@ -6,11 +6,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RefBindingCommand = exports.ClassBindingCommand = exports.StyleBindingCommand = exports.AttrBindingCommand = exports.CaptureBindingCommand = exports.DelegateBindingCommand = exports.TriggerBindingCommand = exports.ForBindingCommand = exports.CallBindingCommand = exports.DefaultBindingCommand = exports.TwoWayBindingCommand = exports.FromViewBindingCommand = exports.ToViewBindingCommand = exports.OneTimeBindingCommand = exports.getTarget = exports.BindingCommand = exports.BindingCommandDefinition = exports.bindingCommand = void 0;
+exports.RefBindingCommand = exports.ClassBindingCommand = exports.StyleBindingCommand = exports.AttrBindingCommand = exports.CaptureBindingCommand = exports.DelegateBindingCommand = exports.TriggerBindingCommand = exports.ForBindingCommand = exports.CallBindingCommand = exports.DefaultBindingCommand = exports.TwoWayBindingCommand = exports.FromViewBindingCommand = exports.ToViewBindingCommand = exports.OneTimeBindingCommand = exports.BindingCommand = exports.BindingCommandDefinition = exports.bindingCommand = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const runtime_1 = require("@aurelia/runtime");
+const attribute_syntax_transformer_js_1 = require("../attribute-syntax-transformer.js");
 const renderer_js_1 = require("../renderer.js");
-const semantic_model_js_1 = require("../semantic-model.js");
 function bindingCommand(nameOrDefinition) {
     return function (target) {
         return exports.BindingCommand.define(nameOrDefinition, target);
@@ -75,24 +75,22 @@ exports.BindingCommand = {
         return kernel_1.Metadata.getOwn(kernel_1.Protocol.annotation.keyFor(prop), Type);
     },
 };
-function getTarget(binding, makeCamelCase) {
-    if (binding.flags & 256 /* isBinding */) {
-        return binding.bindable.propName;
-    }
-    else if (makeCamelCase) {
-        return kernel_1.camelCase(binding.syntax.target);
-    }
-    else {
-        return binding.syntax.target;
-    }
-}
-exports.getTarget = getTarget;
 let OneTimeBindingCommand = class OneTimeBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 49 /* OneTimeCommand */;
     }
-    compile(binding) {
-        return new renderer_js_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), runtime_1.BindingMode.oneTime);
+    static get inject() { return [attribute_syntax_transformer_js_1.IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        let target;
+        if (info.bindable == null) {
+            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
+        }
+        else {
+            target = info.bindable.property;
+        }
+        return new renderer_js_1.PropertyBindingInstruction(info.expr, target, runtime_1.BindingMode.oneTime);
     }
 };
 OneTimeBindingCommand = __decorate([
@@ -100,11 +98,21 @@ OneTimeBindingCommand = __decorate([
 ], OneTimeBindingCommand);
 exports.OneTimeBindingCommand = OneTimeBindingCommand;
 let ToViewBindingCommand = class ToViewBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 50 /* ToViewCommand */;
     }
-    compile(binding) {
-        return new renderer_js_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), runtime_1.BindingMode.toView);
+    static get inject() { return [attribute_syntax_transformer_js_1.IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        let target;
+        if (info.bindable == null) {
+            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
+        }
+        else {
+            target = info.bindable.property;
+        }
+        return new renderer_js_1.PropertyBindingInstruction(info.expr, target, runtime_1.BindingMode.toView);
     }
 };
 ToViewBindingCommand = __decorate([
@@ -112,11 +120,21 @@ ToViewBindingCommand = __decorate([
 ], ToViewBindingCommand);
 exports.ToViewBindingCommand = ToViewBindingCommand;
 let FromViewBindingCommand = class FromViewBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 51 /* FromViewCommand */;
     }
-    compile(binding) {
-        return new renderer_js_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), runtime_1.BindingMode.fromView);
+    static get inject() { return [attribute_syntax_transformer_js_1.IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        let target;
+        if (info.bindable == null) {
+            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
+        }
+        else {
+            target = info.bindable.property;
+        }
+        return new renderer_js_1.PropertyBindingInstruction(info.expr, target, runtime_1.BindingMode.fromView);
     }
 };
 FromViewBindingCommand = __decorate([
@@ -124,11 +142,21 @@ FromViewBindingCommand = __decorate([
 ], FromViewBindingCommand);
 exports.FromViewBindingCommand = FromViewBindingCommand;
 let TwoWayBindingCommand = class TwoWayBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 52 /* TwoWayCommand */;
     }
-    compile(binding) {
-        return new renderer_js_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), runtime_1.BindingMode.twoWay);
+    static get inject() { return [attribute_syntax_transformer_js_1.IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        let target;
+        if (info.bindable == null) {
+            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
+        }
+        else {
+            target = info.bindable.property;
+        }
+        return new renderer_js_1.PropertyBindingInstruction(info.expr, target, runtime_1.BindingMode.twoWay);
     }
 };
 TwoWayBindingCommand = __decorate([
@@ -136,33 +164,32 @@ TwoWayBindingCommand = __decorate([
 ], TwoWayBindingCommand);
 exports.TwoWayBindingCommand = TwoWayBindingCommand;
 let DefaultBindingCommand = class DefaultBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 53 /* BindCommand */;
     }
-    compile(binding) {
-        let mode = runtime_1.BindingMode.default;
-        if (binding instanceof semantic_model_js_1.BindingSymbol) {
-            mode = binding.bindable.mode;
+    static get inject() { return [attribute_syntax_transformer_js_1.IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        const attrName = info.attr.target;
+        const bindable = info.bindable;
+        let defaultMode;
+        let mode;
+        let target;
+        if (bindable == null) {
+            mode = this.t.isTwoWay(info.node, attrName) ? runtime_1.BindingMode.twoWay : runtime_1.BindingMode.toView;
+            target = (_a = this.t.map(info.node, attrName)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(attrName);
         }
         else {
-            const command = binding.syntax.command;
-            switch (command) {
-                case 'bind':
-                case 'to-view':
-                    mode = runtime_1.BindingMode.toView;
-                    break;
-                case 'one-time':
-                    mode = runtime_1.BindingMode.oneTime;
-                    break;
-                case 'from-view':
-                    mode = runtime_1.BindingMode.fromView;
-                    break;
-                case 'two-way':
-                    mode = runtime_1.BindingMode.twoWay;
-                    break;
-            }
+            defaultMode = info.def.defaultBindingMode;
+            mode = bindable.mode === runtime_1.BindingMode.default || bindable.mode == null
+                ? defaultMode == null || defaultMode === runtime_1.BindingMode.default
+                    ? runtime_1.BindingMode.toView
+                    : defaultMode
+                : bindable.mode;
+            target = bindable.property;
         }
-        return new renderer_js_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), mode === runtime_1.BindingMode.default ? runtime_1.BindingMode.toView : mode);
+        return new renderer_js_1.PropertyBindingInstruction(info.expr, target, mode);
     }
 };
 DefaultBindingCommand = __decorate([
@@ -173,8 +200,11 @@ let CallBindingCommand = class CallBindingCommand {
     constructor() {
         this.bindingType = 153 /* CallCommand */;
     }
-    compile(binding) {
-        return new renderer_js_1.CallBindingInstruction(binding.expression, getTarget(binding, true));
+    build(info) {
+        const target = info.bindable === null
+            ? kernel_1.camelCase(info.attr.target)
+            : info.bindable.property;
+        return new renderer_js_1.CallBindingInstruction(info.expr, target);
     }
 };
 CallBindingCommand = __decorate([
@@ -185,8 +215,11 @@ let ForBindingCommand = class ForBindingCommand {
     constructor() {
         this.bindingType = 539 /* ForCommand */;
     }
-    compile(binding) {
-        return new renderer_js_1.IteratorBindingInstruction(binding.expression, getTarget(binding, false));
+    build(info) {
+        const target = info.bindable === null
+            ? kernel_1.camelCase(info.attr.target)
+            : info.bindable.property;
+        return new renderer_js_1.IteratorBindingInstruction(info.expr, target);
     }
 };
 ForBindingCommand = __decorate([
@@ -197,8 +230,8 @@ let TriggerBindingCommand = class TriggerBindingCommand {
     constructor() {
         this.bindingType = 4182 /* TriggerCommand */;
     }
-    compile(binding) {
-        return new renderer_js_1.ListenerBindingInstruction(binding.expression, getTarget(binding, false), true, runtime_1.DelegationStrategy.none);
+    build(info) {
+        return new renderer_js_1.ListenerBindingInstruction(info.expr, info.attr.target, true, runtime_1.DelegationStrategy.none);
     }
 };
 TriggerBindingCommand = __decorate([
@@ -209,8 +242,8 @@ let DelegateBindingCommand = class DelegateBindingCommand {
     constructor() {
         this.bindingType = 4184 /* DelegateCommand */;
     }
-    compile(binding) {
-        return new renderer_js_1.ListenerBindingInstruction(binding.expression, getTarget(binding, false), false, runtime_1.DelegationStrategy.bubbling);
+    build(info) {
+        return new renderer_js_1.ListenerBindingInstruction(info.expr, info.attr.target, false, runtime_1.DelegationStrategy.bubbling);
     }
 };
 DelegateBindingCommand = __decorate([
@@ -221,8 +254,8 @@ let CaptureBindingCommand = class CaptureBindingCommand {
     constructor() {
         this.bindingType = 4183 /* CaptureCommand */;
     }
-    compile(binding) {
-        return new renderer_js_1.ListenerBindingInstruction(binding.expression, getTarget(binding, false), false, runtime_1.DelegationStrategy.capturing);
+    build(info) {
+        return new renderer_js_1.ListenerBindingInstruction(info.expr, info.attr.target, false, runtime_1.DelegationStrategy.capturing);
     }
 };
 CaptureBindingCommand = __decorate([
@@ -236,9 +269,8 @@ let AttrBindingCommand = class AttrBindingCommand {
     constructor() {
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
-    compile(binding) {
-        const target = getTarget(binding, false);
-        return new renderer_js_1.AttributeBindingInstruction(target, binding.expression, target);
+    build(info) {
+        return new renderer_js_1.AttributeBindingInstruction(info.attr.target, info.expr, info.attr.target);
     }
 };
 AttrBindingCommand = __decorate([
@@ -252,8 +284,8 @@ let StyleBindingCommand = class StyleBindingCommand {
     constructor() {
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
-    compile(binding) {
-        return new renderer_js_1.AttributeBindingInstruction('style', binding.expression, getTarget(binding, false));
+    build(info) {
+        return new renderer_js_1.AttributeBindingInstruction('style', info.expr, info.attr.target);
     }
 };
 StyleBindingCommand = __decorate([
@@ -267,8 +299,8 @@ let ClassBindingCommand = class ClassBindingCommand {
     constructor() {
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
-    compile(binding) {
-        return new renderer_js_1.AttributeBindingInstruction('class', binding.expression, getTarget(binding, false));
+    build(info) {
+        return new renderer_js_1.AttributeBindingInstruction('class', info.expr, info.attr.target);
     }
 };
 ClassBindingCommand = __decorate([
@@ -282,8 +314,8 @@ let RefBindingCommand = class RefBindingCommand {
     constructor() {
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
-    compile(binding) {
-        return new renderer_js_1.RefBindingInstruction(binding.expression, getTarget(binding, false));
+    build(info) {
+        return new renderer_js_1.RefBindingInstruction(info.expr, info.attr.target);
     }
 };
 RefBindingCommand = __decorate([

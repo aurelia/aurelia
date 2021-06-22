@@ -87,7 +87,7 @@ export declare const ShowRegistration: IRegistry;
  * - Template controllers: `if`/`else`, `repeat`, `with`
  * - Value Converters: `sanitize`
  */
-export declare const DefaultResources: (IRegistry | typeof AuSlot)[];
+export declare const DefaultResources: (typeof AuSlot | IRegistry)[];
 export declare const CallBindingRendererRegistration: IRegistry;
 export declare const CustomAttributeRendererRegistration: IRegistry;
 export declare const CustomElementRendererRegistration: IRegistry;

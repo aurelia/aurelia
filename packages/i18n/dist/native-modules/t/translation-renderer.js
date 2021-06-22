@@ -7,8 +7,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+import { camelCase } from '../../../../kernel/dist/native-modules/index.js';
 import { TranslationBinding } from './translation-binding.js';
-import { BindingMode, IExpressionParser, renderer, IObserverLocator, AttrSyntax, getTarget, IPlatform, } from '../../../../runtime-html/dist/native-modules/index.js';
+import { BindingMode, IExpressionParser, renderer, IObserverLocator, AttrSyntax, IPlatform, IAttrSyntaxTransformer, } from '../../../../runtime-html/dist/native-modules/index.js';
 export const TranslationInstructionType = 'tt';
 export class TranslationAttributePattern {
     static registerAlias(alias) {
@@ -26,11 +27,21 @@ export class TranslationBindingInstruction {
     }
 }
 export class TranslationBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 284 /* CustomCommand */;
     }
-    compile(binding) {
-        return new TranslationBindingInstruction(binding.expression, getTarget(binding, false));
+    static get inject() { return [IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        let target;
+        if (info.bindable == null) {
+            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+        }
+        else {
+            target = info.bindable.property;
+        }
+        return new TranslationBindingInstruction(info.expr, target);
     }
 }
 let TranslationBindingRenderer = class TranslationBindingRenderer {
@@ -76,11 +87,21 @@ export class TranslationBindBindingInstruction {
     }
 }
 export class TranslationBindBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 53 /* BindCommand */;
     }
-    compile(binding) {
-        return new TranslationBindBindingInstruction(binding.expression, getTarget(binding, false));
+    static get inject() { return [IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        let target;
+        if (info.bindable == null) {
+            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+        }
+        else {
+            target = info.bindable.property;
+        }
+        return new TranslationBindBindingInstruction(info.expr, target);
     }
 }
 let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {

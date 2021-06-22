@@ -1,6 +1,6 @@
 import { DI, Registration, Protocol, Metadata, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, emptyArray, } from '../../../../kernel/dist/native-modules/index.js';
-import { registerAliases, } from '../../../../runtime/dist/native-modules/index.js';
-import { Bindable, } from '../bindable.js';
+import { registerAliases } from '../../../../runtime/dist/native-modules/index.js';
+import { Bindable } from '../bindable.js';
 import { getEffectiveParentNode, getRef } from '../dom.js';
 import { Children } from '../templating/children.js';
 import { Watch } from '../watch.js';

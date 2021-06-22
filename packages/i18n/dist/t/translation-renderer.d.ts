@@ -1,6 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
-import { BindingMode, BindingType, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, IHydratableController, AttrSyntax, IPlatform } from '@aurelia/runtime-html';
-import type { CallBindingInstruction, BindingSymbol, BindingCommandInstance, PlainAttributeSymbol } from '@aurelia/runtime-html';
+import { BindingMode, BindingType, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, IHydratableController, AttrSyntax, IPlatform, IAttrSyntaxTransformer } from '@aurelia/runtime-html';
+import type { CallBindingInstruction, BindingCommandInstance } from '@aurelia/runtime-html';
+import { ICommandBuildInfo } from '@aurelia/runtime-html/dist/resources/binding-command';
 export declare const TranslationInstructionType = "tt";
 export declare class TranslationAttributePattern {
     [key: string]: ((rawName: string, rawValue: string, parts: string[]) => AttrSyntax);
@@ -14,8 +15,11 @@ export declare class TranslationBindingInstruction {
     constructor(from: IsBindingBehavior, to: string);
 }
 export declare class TranslationBindingCommand implements BindingCommandInstance {
+    private readonly t;
     readonly bindingType: BindingType.CustomCommand;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): TranslationBindingInstruction;
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
+    constructor(t: IAttrSyntaxTransformer);
+    build(info: ICommandBuildInfo): TranslationBindingInstruction;
 }
 export declare class TranslationBindingRenderer implements IRenderer {
     private readonly parser;
@@ -37,8 +41,11 @@ export declare class TranslationBindBindingInstruction {
     constructor(from: IsBindingBehavior, to: string);
 }
 export declare class TranslationBindBindingCommand implements BindingCommandInstance {
+    private readonly t;
     readonly bindingType: BindingType.BindCommand;
-    compile(binding: PlainAttributeSymbol | BindingSymbol): TranslationBindBindingInstruction;
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
+    constructor(t: IAttrSyntaxTransformer);
+    build(info: ICommandBuildInfo): TranslationBindingInstruction;
 }
 export declare class TranslationBindBindingRenderer implements IRenderer {
     private readonly parser;

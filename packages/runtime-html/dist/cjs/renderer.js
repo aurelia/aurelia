@@ -152,8 +152,16 @@ class LetBindingInstruction {
 }
 exports.LetBindingInstruction = LetBindingInstruction;
 class TextBindingInstruction {
-    constructor(from) {
+    constructor(from, 
+    /**
+     * Indicates whether the value of the expression "from"
+     * should be evaluated in strict mode.
+     *
+     * In none strict mode, "undefined" and "null" are coerced into empty string
+     */
+    strict) {
         this.from = from;
+        this.strict = strict;
     }
     get type() { return "ha" /* textBinding */; }
 }
@@ -605,7 +613,7 @@ class TextBindingRenderer {
             // using a text node instead of comment, as a mean to:
             // support seamless transition between a html node, or a text
             // reduce the noise in the template, caused by html comment
-            parent.insertBefore(doc.createTextNode(''), next), context, this.observerLocator, this.platform), dynamicParts[i], context));
+            parent.insertBefore(doc.createTextNode(''), next), context, this.observerLocator, this.platform, instruction.strict), dynamicParts[i], context));
             // while each of the static part of an interpolation
             // will just be a text node
             text = staticParts[i + 1];

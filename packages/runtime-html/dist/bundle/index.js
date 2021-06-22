@@ -2,7 +2,7 @@ export { Platform, Task, TaskAbortError, TaskQueue, TaskQueuePriority, TaskStatu
 import { BrowserPlatform } from '@aurelia/platform-browser';
 export { BrowserPlatform } from '@aurelia/platform-browser';
 import { Protocol, getPrototypeChain, Metadata, firstDefined, kebabCase, noop, emptyArray, DI, all, Registration, IPlatform as IPlatform$1, fromDefinitionOrDefault, pascalCase, mergeArrays, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, InstanceProvider, IContainer, nextId, ILogger, isObject, onResolve, resolveAll, emptyObject, camelCase, toArray, IServiceLocator, compareNumber, transient } from '@aurelia/kernel';
-import { BindingMode, subscriberCollection, withFlushQueue, connectable, registerAliases, Scope, ConnectableSwitcher, ProxyObservable, IObserverLocator, IExpressionParser, AccessScopeExpression, DelegationStrategy, BindingBehaviorExpression, BindingBehaviorFactory, bindingBehavior, BindingInterceptor, ISignaler, PropertyAccessor, INodeObserverLocator, SetterObserver, IDirtyChecker, alias, applyMutationsToIndices, getCollectionObserver as getCollectionObserver$1, BindingContext, synchronizeIndices, valueConverter } from '@aurelia/runtime';
+import { BindingMode, subscriberCollection, withFlushQueue, connectable, registerAliases, Scope, ConnectableSwitcher, ProxyObservable, IObserverLocator, IExpressionParser, AccessScopeExpression, DelegationStrategy, BindingBehaviorExpression, BindingBehaviorFactory, PrimitiveLiteralExpression, bindingBehavior, BindingInterceptor, ISignaler, PropertyAccessor, INodeObserverLocator, SetterObserver, IDirtyChecker, alias, applyMutationsToIndices, getCollectionObserver as getCollectionObserver$1, BindingContext, synchronizeIndices, valueConverter } from '@aurelia/runtime';
 export { Access, AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, AccessorType, ArrayBindingPattern, ArrayIndexObserver, ArrayLiteralExpression, ArrayObserver, AssignExpression, BinaryExpression, BindingBehavior, BindingBehaviorDefinition, BindingBehaviorExpression, BindingBehaviorFactory, BindingBehaviorStrategy, BindingContext, BindingIdentifier, BindingInterceptor, BindingMediator, BindingMode, BindingType, CallFunctionExpression, CallMemberExpression, CallScopeExpression, Char, CollectionKind, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConditionalExpression, CustomExpression, DelegationStrategy, DirtyCheckProperty, DirtyCheckSettings, ExpressionKind, ForOfStatement, HtmlLiteralExpression, IDirtyChecker, IExpressionParser, INodeObserverLocator, IObserverLocator, ISignaler, Interpolation, LifecycleFlags, MapObserver, ObjectBindingPattern, ObjectLiteralExpression, ObserverLocator, OverrideContext, ParserState, Precedence, PrimitiveLiteralExpression, PrimitiveObserver, PropertyAccessor, Scope, SetObserver, SetterObserver, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverter, ValueConverterDefinition, ValueConverterExpression, alias, applyMutationsToIndices, bindingBehavior, cloneIndexMap, connectable, copyIndexMap, createIndexMap, disableArrayObservation, disableMapObservation, disableSetObservation, enableArrayObservation, enableMapObservation, enableSetObservation, getCollectionObserver, isIndexMap, observable, parse, parseExpression, registerAliases, subscriberCollection, synchronizeIndices, valueConverter } from '@aurelia/runtime';
 
 /*! *****************************************************************************
@@ -735,6 +735,422 @@ AtPrefixedTriggerAttributePattern = __decorate([
     attributePattern({ pattern: '@PART', symbols: '@' })
 ], AtPrefixedTriggerAttributePattern);
 
+const IsDataAttribute = createLookup();
+function isDataAttribute(obj, key, svgAnalyzer) {
+    if (IsDataAttribute[key] === true) {
+        return true;
+    }
+    if (typeof key !== 'string') {
+        return false;
+    }
+    const prefix = key.slice(0, 5);
+    // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
+    // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
+    return IsDataAttribute[key] =
+        prefix === 'aria-' ||
+            prefix === 'data-' ||
+            svgAnalyzer.isStandardSvgAttribute(obj, key);
+}
+function createLookup() {
+    return Object.create(null);
+}
+
+const IPlatform = IPlatform$1;
+
+const ISVGAnalyzer = DI.createInterface('ISVGAnalyzer', x => x.singleton(NoopSVGAnalyzer));
+class NoopSVGAnalyzer {
+    isStandardSvgAttribute(node, attributeName) {
+        return false;
+    }
+}
+function o(keys) {
+    const lookup = Object.create(null);
+    for (const key of keys) {
+        lookup[key] = true;
+    }
+    return lookup;
+}
+class SVGAnalyzer {
+    constructor(platform) {
+        this.svgElements = Object.assign(Object.create(null), {
+            'a': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
+            'altGlyph': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'altglyph': Object.create(null),
+            'altGlyphDef': o(['id', 'xml:base', 'xml:lang', 'xml:space']),
+            'altglyphdef': Object.create(null),
+            'altGlyphItem': o(['id', 'xml:base', 'xml:lang', 'xml:space']),
+            'altglyphitem': Object.create(null),
+            'animate': o(['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
+            'animateColor': o(['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
+            'animateMotion': o(['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
+            'animateTransform': o(['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
+            'circle': o(['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
+            'clipPath': o(['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
+            'color-profile': o(['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
+            'cursor': o(['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'defs': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
+            'desc': o(['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space']),
+            'ellipse': o(['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
+            'feBlend': o(['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feColorMatrix': o(['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feComponentTransfer': o(['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feComposite': o(['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feConvolveMatrix': o(['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feDiffuseLighting': o(['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feDisplacementMap': o(['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector']),
+            'feDistantLight': o(['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space']),
+            'feFlood': o(['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feFuncA': o(['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space']),
+            'feFuncB': o(['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space']),
+            'feFuncG': o(['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space']),
+            'feFuncR': o(['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space']),
+            'feGaussianBlur': o(['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feImage': o(['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feMerge': o(['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feMergeNode': o(['id', 'xml:base', 'xml:lang', 'xml:space']),
+            'feMorphology': o(['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feOffset': o(['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'fePointLight': o(['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z']),
+            'feSpecularLighting': o(['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feSpotLight': o(['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z']),
+            'feTile': o(['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'feTurbulence': o(['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'filter': o(['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'font': o(['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space']),
+            'font-face': o(['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space']),
+            'font-face-format': o(['id', 'string', 'xml:base', 'xml:lang', 'xml:space']),
+            'font-face-name': o(['id', 'name', 'xml:base', 'xml:lang', 'xml:space']),
+            'font-face-src': o(['id', 'xml:base', 'xml:lang', 'xml:space']),
+            'font-face-uri': o(['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
+            'foreignObject': o(['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'g': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
+            'glyph': o(['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space']),
+            'glyphRef': o(['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'glyphref': Object.create(null),
+            'hkern': o(['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space']),
+            'image': o(['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'line': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2']),
+            'linearGradient': o(['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2']),
+            'marker': o(['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space']),
+            'mask': o(['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'metadata': o(['id', 'xml:base', 'xml:lang', 'xml:space']),
+            'missing-glyph': o(['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space']),
+            'mpath': o(['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
+            'path': o(['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
+            'pattern': o(['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'polygon': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
+            'polyline': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
+            'radialGradient': o(['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
+            'rect': o(['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'script': o(['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
+            'set': o(['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
+            'stop': o(['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space']),
+            'style': o(['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space']),
+            'svg': o(['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan']),
+            'switch': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
+            'symbol': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space']),
+            'text': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'textPath': o(['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
+            'title': o(['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space']),
+            'tref': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'tspan': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'use': o(['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
+            'view': o(['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan']),
+            'vkern': o(['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space']),
+        });
+        this.svgPresentationElements = o([
+            'a',
+            'altGlyph',
+            'animate',
+            'animateColor',
+            'circle',
+            'clipPath',
+            'defs',
+            'ellipse',
+            'feBlend',
+            'feColorMatrix',
+            'feComponentTransfer',
+            'feComposite',
+            'feConvolveMatrix',
+            'feDiffuseLighting',
+            'feDisplacementMap',
+            'feFlood',
+            'feGaussianBlur',
+            'feImage',
+            'feMerge',
+            'feMorphology',
+            'feOffset',
+            'feSpecularLighting',
+            'feTile',
+            'feTurbulence',
+            'filter',
+            'font',
+            'foreignObject',
+            'g',
+            'glyph',
+            'glyphRef',
+            'image',
+            'line',
+            'linearGradient',
+            'marker',
+            'mask',
+            'missing-glyph',
+            'path',
+            'pattern',
+            'polygon',
+            'polyline',
+            'radialGradient',
+            'rect',
+            'stop',
+            'svg',
+            'switch',
+            'symbol',
+            'text',
+            'textPath',
+            'tref',
+            'tspan',
+            'use',
+        ]);
+        this.svgPresentationAttributes = o([
+            'alignment-baseline',
+            'baseline-shift',
+            'clip-path',
+            'clip-rule',
+            'clip',
+            'color-interpolation-filters',
+            'color-interpolation',
+            'color-profile',
+            'color-rendering',
+            'color',
+            'cursor',
+            'direction',
+            'display',
+            'dominant-baseline',
+            'enable-background',
+            'fill-opacity',
+            'fill-rule',
+            'fill',
+            'filter',
+            'flood-color',
+            'flood-opacity',
+            'font-family',
+            'font-size-adjust',
+            'font-size',
+            'font-stretch',
+            'font-style',
+            'font-variant',
+            'font-weight',
+            'glyph-orientation-horizontal',
+            'glyph-orientation-vertical',
+            'image-rendering',
+            'kerning',
+            'letter-spacing',
+            'lighting-color',
+            'marker-end',
+            'marker-mid',
+            'marker-start',
+            'mask',
+            'opacity',
+            'overflow',
+            'pointer-events',
+            'shape-rendering',
+            'stop-color',
+            'stop-opacity',
+            'stroke-dasharray',
+            'stroke-dashoffset',
+            'stroke-linecap',
+            'stroke-linejoin',
+            'stroke-miterlimit',
+            'stroke-opacity',
+            'stroke-width',
+            'stroke',
+            'text-anchor',
+            'text-decoration',
+            'text-rendering',
+            'unicode-bidi',
+            'visibility',
+            'word-spacing',
+            'writing-mode',
+        ]);
+        this.SVGElement = platform.globalThis.SVGElement;
+        const div = platform.document.createElement('div');
+        div.innerHTML = '<svg><altGlyph /></svg>';
+        if (div.firstElementChild.nodeName === 'altglyph') {
+            // handle chrome casing inconsistencies.
+            const svg = this.svgElements;
+            let tmp = svg.altGlyph;
+            svg.altGlyph = svg.altglyph;
+            svg.altglyph = tmp;
+            tmp = svg.altGlyphDef;
+            svg.altGlyphDef = svg.altglyphdef;
+            svg.altglyphdef = tmp;
+            tmp = svg.altGlyphItem;
+            svg.altGlyphItem = svg.altglyphitem;
+            svg.altglyphitem = tmp;
+            tmp = svg.glyphRef;
+            svg.glyphRef = svg.glyphref;
+            svg.glyphref = tmp;
+        }
+    }
+    static register(container) {
+        return Registration.singleton(ISVGAnalyzer, this).register(container);
+    }
+    isStandardSvgAttribute(node, attributeName) {
+        var _a;
+        if (!(node instanceof this.SVGElement)) {
+            return false;
+        }
+        return (this.svgPresentationElements[node.nodeName] === true && this.svgPresentationAttributes[attributeName] === true ||
+            ((_a = this.svgElements[node.nodeName]) === null || _a === void 0 ? void 0 : _a[attributeName]) === true);
+    }
+}
+/**
+ * @internal
+ */
+SVGAnalyzer.inject = [IPlatform];
+
+const IAttrSyntaxTransformer = DI
+    .createInterface('IAttrSyntaxTransformer', x => x.singleton(AttrSyntaxTransformer));
+class AttrSyntaxTransformer {
+    constructor(svg) {
+        this.svg = svg;
+        /**
+         * @internal
+         */
+        this.fns = [];
+        /**
+         * @internal
+         */
+        this.tagAttrMap = createLookup();
+        /**
+         * @internal
+         */
+        this.globalAttrMap = createLookup();
+        this.useMapping({
+            LABEL: { for: 'htmlFor' },
+            IMG: { usemap: 'useMap' },
+            INPUT: {
+                maxlength: 'maxLength',
+                minlength: 'minLength',
+                formaction: 'formAction',
+                formenctype: 'formEncType',
+                formmethod: 'formMethod',
+                formnovalidate: 'formNoValidate',
+                formtarget: 'formTarget',
+                inputmode: 'inputMode',
+            },
+            TEXTAREA: { maxlength: 'maxLength' },
+            TD: { rowspan: 'rowSpan', colspan: 'colSpan' },
+            TH: { rowspan: 'rowSpan', colspan: 'colSpan' },
+        });
+        this.useGlobalMapping({
+            accesskey: 'accessKey',
+            contenteditable: 'contentEditable',
+            tabindex: 'tabIndex',
+            textcontent: 'textContent',
+            innerhtml: 'innerHTML',
+            scrolltop: 'scrollTop',
+            scrollleft: 'scrollLeft',
+            readonly: 'readOnly',
+        });
+    }
+    static get inject() { return [ISVGAnalyzer]; }
+    /**
+     * Allow application to teach Aurelia how to define how to map attributes to properties
+     * based on element tagName
+     */
+    useMapping(config) {
+        var _a;
+        var _b;
+        let newAttrMapping;
+        let targetAttrMapping;
+        let tagName;
+        let attr;
+        for (tagName in config) {
+            newAttrMapping = config[tagName];
+            targetAttrMapping = (_a = (_b = this.tagAttrMap)[tagName]) !== null && _a !== void 0 ? _a : (_b[tagName] = createLookup());
+            for (attr in newAttrMapping) {
+                if (targetAttrMapping[attr] !== void 0) {
+                    throw createMappedError(attr, tagName);
+                }
+                targetAttrMapping[attr] = newAttrMapping[attr];
+            }
+        }
+    }
+    /**
+     * Allow applications to teach Aurelia how to define how to map attributes to properties
+     * for all elements
+     */
+    useGlobalMapping(config) {
+        const mapper = this.globalAttrMap;
+        for (const attr in config) {
+            if (mapper[attr] !== void 0) {
+                throw createMappedError(attr, '*');
+            }
+            mapper[attr] = config[attr];
+        }
+    }
+    /**
+     * Add a given function to a list of fns that will be used
+     * to check if `'bind'` command can be transformed to `'two-way'` command.
+     *
+     * If one of those functions in this lists returns true, the `'bind'` command
+     * will be transformed into `'two-way'` command.
+     *
+     * The function will be called with 2 parameters:
+     * - element: the element that the template compiler is currently working with
+     * - property: the target property name
+     */
+    useTwoWay(fn) {
+        this.fns.push(fn);
+    }
+    isTwoWay(node, attrName) {
+        return shouldDefaultToTwoWay(node, attrName)
+            || this.fns.length > 0 && this.fns.some(fn => fn(node, attrName));
+    }
+    map(node, attr) {
+        var _a, _b, _c;
+        return (_c = (_b = (_a = this.tagAttrMap[node.nodeName]) === null || _a === void 0 ? void 0 : _a[attr]) !== null && _b !== void 0 ? _b : this.globalAttrMap[attr]) !== null && _c !== void 0 ? _c : (isDataAttribute(node, attr, this.svg)
+            ? attr
+            : null);
+    }
+}
+function shouldDefaultToTwoWay(element, attr) {
+    switch (element.nodeName) {
+        case 'INPUT':
+            switch (element.type) {
+                case 'checkbox':
+                case 'radio':
+                    return attr === 'checked';
+                // note:
+                // ideally, it should check for corresponding input type first
+                // as 'files' shouldn't be two way on a number input, for example
+                // but doing it this way is acceptable-ish, as the common user expectations,
+                // and the behavior of the control for these properties are the same,
+                // regardless the type of the <input>
+                default:
+                    return attr === 'value' || attr === 'files' || attr === 'value-as-number' || attr === 'value-as-date';
+            }
+        case 'TEXTAREA':
+        case 'SELECT':
+            return attr === 'value';
+        default:
+            switch (attr) {
+                case 'textcontent':
+                case 'innerhtml':
+                    return element.hasAttribute('contenteditable');
+                case 'scrolltop':
+                case 'scrollleft':
+                    return true;
+                default:
+                    return false;
+            }
+    }
+}
+function createMappedError(attr, tagName) {
+    return new Error(`Attribute ${attr} has been already registered for ${tagName === '*' ? 'all elements' : `<${tagName}/>`}`);
+}
+
 class CallBinding {
     constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
         this.sourceExpression = sourceExpression;
@@ -948,8 +1364,6 @@ function invokeHandleMutation(s) {
 // a reusable variable for `.flush()` methods of observers
 // so that there doesn't need to create an env record for every call
 let oV$3 = void 0;
-
-const IPlatform = IPlatform$1;
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding
@@ -1291,12 +1705,13 @@ connectable(InterpolationPartBinding);
  * A binding for handling the element content interpolation
  */
 class ContentBinding {
-    constructor(sourceExpression, target, locator, observerLocator, p) {
+    constructor(sourceExpression, target, locator, observerLocator, p, strict) {
         this.sourceExpression = sourceExpression;
         this.target = target;
         this.locator = locator;
         this.observerLocator = observerLocator;
         this.p = p;
+        this.strict = strict;
         this.interceptor = this;
         // at runtime, mode may be overriden by binding behavior
         // but it wouldn't matter here, just start with something for later check
@@ -1336,6 +1751,7 @@ class ContentBinding {
             if (shouldConnect) {
                 obsRecord.version++;
             }
+            flags |= this.strict ? 1 /* isStrictBindingStrategy */ : 0;
             newValue = sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
             if (shouldConnect) {
                 obsRecord.clear(false);
@@ -1377,6 +1793,7 @@ class ContentBinding {
         if (this.sourceExpression.hasBind) {
             this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
         }
+        flags |= this.strict ? 1 /* isStrictBindingStrategy */ : 0;
         const v = this.value = this.sourceExpression.evaluate(flags, scope, hostScope, this.locator, (this.mode & toView$1) > 0 ? this.interceptor : null);
         if (v instanceof Array) {
             this.observeCollection(v);
@@ -5086,8 +5503,16 @@ class LetBindingInstruction {
     get type() { return "ri" /* letBinding */; }
 }
 class TextBindingInstruction {
-    constructor(from) {
+    constructor(from, 
+    /**
+     * Indicates whether the value of the expression "from"
+     * should be evaluated in strict mode.
+     *
+     * In none strict mode, "undefined" and "null" are coerced into empty string
+     */
+    strict) {
         this.from = from;
+        this.strict = strict;
     }
     get type() { return "ha" /* textBinding */; }
 }
@@ -5175,7 +5600,7 @@ function ensureExpression(parser, srcOrExpr, bindingType) {
     }
     return srcOrExpr;
 }
-function getTarget$1(potentialTarget) {
+function getTarget(potentialTarget) {
     if (potentialTarget.viewModel != null) {
         return potentialTarget.viewModel;
     }
@@ -5212,7 +5637,7 @@ let SetPropertyRenderer =
 /** @internal */
 class SetPropertyRenderer {
     render(flags, context, controller, target, instruction) {
-        const obj = getTarget$1(target);
+        const obj = getTarget(target);
         if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
             obj.$observers[instruction.to].setValue(instruction.value, 2 /* fromBind */);
         }
@@ -5372,7 +5797,7 @@ class CallBindingRenderer {
     }
     render(flags, context, controller, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
-        const binding = applyBindingBehavior(new CallBinding(expr, getTarget$1(target), instruction.to, this.observerLocator, context), expr, context);
+        const binding = applyBindingBehavior(new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context), expr, context);
         controller.addBinding(binding);
     }
 };
@@ -5411,7 +5836,7 @@ class InterpolationBindingRenderer {
     }
     render(flags, context, controller, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-        const binding = new InterpolationBinding(this.observerLocator, expr, getTarget$1(target), instruction.to, BindingMode.toView, context, this.platform.domWriteQueue);
+        const binding = new InterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context, this.platform.domWriteQueue);
         const partBindings = binding.partBindings;
         const ii = partBindings.length;
         let i = 0;
@@ -5441,7 +5866,7 @@ class PropertyBindingRenderer {
     }
     render(flags, context, controller, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
-        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget$1(target), instruction.to, instruction.mode, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
+        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
         controller.addBinding(binding);
     }
 };
@@ -5463,7 +5888,7 @@ class IteratorBindingRenderer {
     }
     render(flags, context, controller, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
-        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget$1(target), instruction.to, BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
+        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
         controller.addBinding(binding);
     }
 };
@@ -5520,7 +5945,7 @@ class TextBindingRenderer {
             // using a text node instead of comment, as a mean to:
             // support seamless transition between a html node, or a text
             // reduce the noise in the template, caused by html comment
-            parent.insertBefore(doc.createTextNode(''), next), context, this.observerLocator, this.platform), dynamicParts[i], context));
+            parent.insertBefore(doc.createTextNode(''), next), context, this.observerLocator, this.platform, instruction.strict), dynamicParts[i], context));
             // while each of the static part of an interpolation
             // will just be a text node
             text = staticParts[i + 1];
@@ -5647,408 +6072,6 @@ function addClasses(classList, className) {
     }
 }
 
-var SymbolFlags;
-(function (SymbolFlags) {
-    SymbolFlags[SymbolFlags["type"] = 1023] = "type";
-    SymbolFlags[SymbolFlags["isTemplateController"] = 1] = "isTemplateController";
-    SymbolFlags[SymbolFlags["isProjection"] = 2] = "isProjection";
-    SymbolFlags[SymbolFlags["isCustomAttribute"] = 4] = "isCustomAttribute";
-    SymbolFlags[SymbolFlags["isPlainAttribute"] = 8] = "isPlainAttribute";
-    SymbolFlags[SymbolFlags["isCustomElement"] = 16] = "isCustomElement";
-    SymbolFlags[SymbolFlags["isLetElement"] = 32] = "isLetElement";
-    SymbolFlags[SymbolFlags["isPlainElement"] = 64] = "isPlainElement";
-    SymbolFlags[SymbolFlags["isText"] = 128] = "isText";
-    SymbolFlags[SymbolFlags["isBinding"] = 256] = "isBinding";
-    SymbolFlags[SymbolFlags["isAuSlot"] = 512] = "isAuSlot";
-    SymbolFlags[SymbolFlags["hasMarker"] = 1024] = "hasMarker";
-    SymbolFlags[SymbolFlags["hasTemplate"] = 2048] = "hasTemplate";
-    SymbolFlags[SymbolFlags["hasAttributes"] = 4096] = "hasAttributes";
-    SymbolFlags[SymbolFlags["hasBindings"] = 8192] = "hasBindings";
-    SymbolFlags[SymbolFlags["hasChildNodes"] = 16384] = "hasChildNodes";
-    SymbolFlags[SymbolFlags["hasProjections"] = 32768] = "hasProjections";
-})(SymbolFlags || (SymbolFlags = {}));
-function createMarker(p) {
-    const marker = p.document.createElement('au-m');
-    marker.className = 'au';
-    return marker;
-}
-/**
- * A html attribute that is associated with a registered resource, specifically a template controller.
- */
-class TemplateControllerSymbol {
-    constructor(p, syntax, info, res = info.name) {
-        this.syntax = syntax;
-        this.info = info;
-        this.res = res;
-        this.flags = 1 /* isTemplateController */ | 1024 /* hasMarker */;
-        this.physicalNode = null;
-        this.template = null;
-        this.templateController = null;
-        this._bindings = null;
-        this.marker = createMarker(p);
-    }
-    get bindings() {
-        if (this._bindings === null) {
-            this._bindings = [];
-            this.flags |= 8192 /* hasBindings */;
-        }
-        return this._bindings;
-    }
-}
-class ProjectionSymbol {
-    constructor(name, template) {
-        this.name = name;
-        this.template = template;
-        this.flags = 2 /* isProjection */;
-    }
-}
-/**
- * A html attribute that is associated with a registered resource, but not a template controller.
- */
-class CustomAttributeSymbol {
-    constructor(syntax, info, res = info.name) {
-        this.syntax = syntax;
-        this.info = info;
-        this.res = res;
-        this.flags = 4 /* isCustomAttribute */;
-        this._bindings = null;
-    }
-    get bindings() {
-        if (this._bindings === null) {
-            this._bindings = [];
-            this.flags |= 8192 /* hasBindings */;
-        }
-        return this._bindings;
-    }
-}
-/**
- * An attribute, with either a binding command or an interpolation, whose target is the html
- * attribute of the element.
- *
- * This will never target a bindable property of a custom attribute or element;
- */
-class PlainAttributeSymbol {
-    constructor(syntax, command, expression) {
-        this.syntax = syntax;
-        this.command = command;
-        this.expression = expression;
-        this.flags = 8 /* isPlainAttribute */;
-    }
-}
-/**
- * Either an attribute on an custom element that maps to a declared bindable property of that element,
- * a single-value bound custom attribute, or one of several bindables that were extracted from the attribute
- * value of a custom attribute with multiple bindings usage.
- *
- * This will always target a bindable property of a custom attribute or element;
- */
-class BindingSymbol {
-    constructor(command, bindable, expression, rawValue, target) {
-        this.command = command;
-        this.bindable = bindable;
-        this.expression = expression;
-        this.rawValue = rawValue;
-        this.target = target;
-        this.flags = 256 /* isBinding */;
-    }
-}
-/**
- * A html element that is associated with a registered resource either via its (lowerCase) `nodeName`
- * or the value of its `as-element` attribute.
- */
-class CustomElementSymbol {
-    constructor(p, physicalNode, info, res = info.name, bindables = info.bindables) {
-        this.physicalNode = physicalNode;
-        this.info = info;
-        this.res = res;
-        this.bindables = bindables;
-        this.flags = 16 /* isCustomElement */;
-        this.isTarget = true;
-        this.templateController = null;
-        this._customAttributes = null;
-        this._plainAttributes = null;
-        this._bindings = null;
-        this._childNodes = null;
-        this._projections = null;
-        if (info.containerless) {
-            this.isContainerless = true;
-            this.marker = createMarker(p);
-            this.flags |= 1024 /* hasMarker */;
-        }
-        else {
-            this.isContainerless = false;
-            this.marker = null;
-        }
-    }
-    get customAttributes() {
-        if (this._customAttributes === null) {
-            this._customAttributes = [];
-            this.flags |= 4096 /* hasAttributes */;
-        }
-        return this._customAttributes;
-    }
-    get plainAttributes() {
-        if (this._plainAttributes === null) {
-            this._plainAttributes = [];
-            this.flags |= 4096 /* hasAttributes */;
-        }
-        return this._plainAttributes;
-    }
-    get bindings() {
-        if (this._bindings === null) {
-            this._bindings = [];
-            this.flags |= 8192 /* hasBindings */;
-        }
-        return this._bindings;
-    }
-    get childNodes() {
-        if (this._childNodes === null) {
-            this._childNodes = [];
-            this.flags |= 16384 /* hasChildNodes */;
-        }
-        return this._childNodes;
-    }
-    get projections() {
-        if (this._projections === null) {
-            this._projections = [];
-            this.flags |= 32768 /* hasProjections */;
-        }
-        return this._projections;
-    }
-}
-class LetElementSymbol {
-    constructor(p, physicalNode, marker = createMarker(p)) {
-        this.physicalNode = physicalNode;
-        this.marker = marker;
-        this.flags = 32 /* isLetElement */ | 1024 /* hasMarker */;
-        this.toBindingContext = false;
-        this._bindings = null;
-    }
-    get bindings() {
-        if (this._bindings === null) {
-            this._bindings = [];
-            this.flags |= 8192 /* hasBindings */;
-        }
-        return this._bindings;
-    }
-}
-/**
- * A normal html element that may or may not have attribute behaviors and/or child node behaviors.
- *
- * It is possible for a PlainElementSymbol to not yield any instructions during compilation.
- */
-class PlainElementSymbol {
-    constructor(physicalNode) {
-        this.physicalNode = physicalNode;
-        this.flags = 64 /* isPlainElement */;
-        this.isTarget = false;
-        this.templateController = null;
-        this.hasSlots = false;
-        this._customAttributes = null;
-        this._plainAttributes = null;
-        this._childNodes = null;
-    }
-    get customAttributes() {
-        if (this._customAttributes === null) {
-            this._customAttributes = [];
-            this.flags |= 4096 /* hasAttributes */;
-        }
-        return this._customAttributes;
-    }
-    get plainAttributes() {
-        if (this._plainAttributes === null) {
-            this._plainAttributes = [];
-            this.flags |= 4096 /* hasAttributes */;
-        }
-        return this._plainAttributes;
-    }
-    get childNodes() {
-        if (this._childNodes === null) {
-            this._childNodes = [];
-            this.flags |= 16384 /* hasChildNodes */;
-        }
-        return this._childNodes;
-    }
-}
-/**
- * A standalone text node that has an interpolation.
- */
-class TextSymbol {
-    constructor(p, physicalNode, interpolation, marker = createMarker(p)) {
-        this.physicalNode = physicalNode;
-        this.interpolation = interpolation;
-        this.marker = marker;
-        this.flags = 128 /* isText */ | 1024 /* hasMarker */;
-    }
-}
-/**
- * A pre-processed piece of information about a defined bindable property on a custom
- * element or attribute, optimized for consumption by the template compiler.
- */
-class BindableInfo {
-    constructor(
-    /**
-     * The pre-processed *property* (not attribute) name of the bindable, which is
-     * (in order of priority):
-     *
-     * 1. The `property` from the description (if defined)
-     * 2. The name of the property of the bindable itself
-     */
-    propName, 
-    /**
-     * The pre-processed (default) bindingMode of the bindable, which is (in order of priority):
-     *
-     * 1. The `mode` from the bindable (if defined and not bindingMode.default)
-     * 2. The `defaultBindingMode` (if it's an attribute, defined, and not bindingMode.default)
-     * 3. `bindingMode.toView`
-     */
-    mode) {
-        this.propName = propName;
-        this.mode = mode;
-    }
-}
-const elementInfoLookup = new WeakMap();
-/**
- * Pre-processed information about a custom element resource, optimized
- * for consumption by the template compiler.
- */
-class ElementInfo {
-    constructor(name, alias, containerless) {
-        this.name = name;
-        this.alias = alias;
-        this.containerless = containerless;
-        /**
-         * A lookup of the bindables of this element, indexed by the (pre-processed)
-         * attribute names as they would be found in parsed markup.
-         */
-        this.bindables = Object.create(null);
-    }
-    static from(def, alias) {
-        if (def === null) {
-            return null;
-        }
-        let rec = elementInfoLookup.get(def);
-        if (rec === void 0) {
-            elementInfoLookup.set(def, rec = Object.create(null));
-        }
-        let info = rec[alias];
-        if (info === void 0) {
-            info = rec[alias] = new ElementInfo(def.name, alias === def.name ? void 0 : alias, def.containerless);
-            const bindables = def.bindables;
-            const defaultBindingMode = BindingMode.toView;
-            let bindable;
-            let prop;
-            let attr;
-            let mode;
-            for (prop in bindables) {
-                bindable = bindables[prop];
-                // explicitly provided property name has priority over the implicit property name
-                if (bindable.property !== void 0) {
-                    prop = bindable.property;
-                }
-                // explicitly provided attribute name has priority over the derived implicit attribute name
-                if (bindable.attribute !== void 0) {
-                    attr = bindable.attribute;
-                }
-                else {
-                    // derive the attribute name from the resolved property name
-                    attr = kebabCase(prop);
-                }
-                if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
-                    mode = bindable.mode;
-                }
-                else {
-                    mode = defaultBindingMode;
-                }
-                info.bindables[attr] = new BindableInfo(prop, mode);
-            }
-        }
-        return info;
-    }
-}
-const attrInfoLookup = new WeakMap();
-/**
- * Pre-processed information about a custom attribute resource, optimized
- * for consumption by the template compiler.
- */
-class AttrInfo {
-    constructor(name, alias, isTemplateController, noMultiBindings) {
-        this.name = name;
-        this.alias = alias;
-        this.isTemplateController = isTemplateController;
-        this.noMultiBindings = noMultiBindings;
-        /**
-         * A lookup of the bindables of this attribute, indexed by the (pre-processed)
-         * bindable names as they would be found in the attribute value.
-         *
-         * Only applicable to multi attribute bindings (semicolon-separated).
-         */
-        this.bindables = Object.create(null);
-        /**
-         * The single or first bindable of this attribute, or a default 'value'
-         * bindable if no bindables were defined on the attribute.
-         *
-         * Only applicable to single attribute bindings (where the attribute value
-         * contains no semicolons)
-         */
-        this.bindable = null;
-    }
-    static from(def, alias) {
-        if (def === null) {
-            return null;
-        }
-        let rec = attrInfoLookup.get(def);
-        if (rec === void 0) {
-            attrInfoLookup.set(def, rec = Object.create(null));
-        }
-        let info = rec[alias];
-        if (info === void 0) {
-            info = rec[alias] = new AttrInfo(def.name, alias === def.name ? void 0 : alias, def.isTemplateController, def.noMultiBindings);
-            const bindables = def.bindables;
-            const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
-                ? def.defaultBindingMode
-                : BindingMode.toView;
-            let bindable;
-            let prop;
-            let mode;
-            let hasPrimary = false;
-            let isPrimary = false;
-            let bindableInfo;
-            for (prop in bindables) {
-                bindable = bindables[prop];
-                // explicitly provided property name has priority over the implicit property name
-                if (bindable.property !== void 0) {
-                    prop = bindable.property;
-                }
-                if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
-                    mode = bindable.mode;
-                }
-                else {
-                    mode = defaultBindingMode;
-                }
-                isPrimary = bindable.primary === true;
-                bindableInfo = info.bindables[prop] = new BindableInfo(prop, mode);
-                if (isPrimary) {
-                    if (hasPrimary) {
-                        throw new Error('primary already exists');
-                    }
-                    hasPrimary = true;
-                    info.bindable = bindableInfo;
-                }
-                // set to first bindable by convention
-                if (info.bindable === null) {
-                    info.bindable = bindableInfo;
-                }
-            }
-            // if no bindables are present, default to "value"
-            if (info.bindable === null) {
-                info.bindable = new BindableInfo('value', defaultBindingMode);
-            }
-        }
-        return info;
-    }
-}
-
 function bindingCommand(nameOrDefinition) {
     return function (target) {
         return BindingCommand.define(nameOrDefinition, target);
@@ -6111,89 +6134,117 @@ const BindingCommand = {
         return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
     },
 };
-function getTarget(binding, makeCamelCase) {
-    if (binding.flags & 256 /* isBinding */) {
-        return binding.bindable.propName;
-    }
-    else if (makeCamelCase) {
-        return camelCase(binding.syntax.target);
-    }
-    else {
-        return binding.syntax.target;
-    }
-}
 let OneTimeBindingCommand = class OneTimeBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 49 /* OneTimeCommand */;
     }
-    compile(binding) {
-        return new PropertyBindingInstruction(binding.expression, getTarget(binding, false), BindingMode.oneTime);
+    static get inject() { return [IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        let target;
+        if (info.bindable == null) {
+            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+        }
+        else {
+            target = info.bindable.property;
+        }
+        return new PropertyBindingInstruction(info.expr, target, BindingMode.oneTime);
     }
 };
 OneTimeBindingCommand = __decorate([
     bindingCommand('one-time')
 ], OneTimeBindingCommand);
 let ToViewBindingCommand = class ToViewBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 50 /* ToViewCommand */;
     }
-    compile(binding) {
-        return new PropertyBindingInstruction(binding.expression, getTarget(binding, false), BindingMode.toView);
+    static get inject() { return [IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        let target;
+        if (info.bindable == null) {
+            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+        }
+        else {
+            target = info.bindable.property;
+        }
+        return new PropertyBindingInstruction(info.expr, target, BindingMode.toView);
     }
 };
 ToViewBindingCommand = __decorate([
     bindingCommand('to-view')
 ], ToViewBindingCommand);
 let FromViewBindingCommand = class FromViewBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 51 /* FromViewCommand */;
     }
-    compile(binding) {
-        return new PropertyBindingInstruction(binding.expression, getTarget(binding, false), BindingMode.fromView);
+    static get inject() { return [IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        let target;
+        if (info.bindable == null) {
+            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+        }
+        else {
+            target = info.bindable.property;
+        }
+        return new PropertyBindingInstruction(info.expr, target, BindingMode.fromView);
     }
 };
 FromViewBindingCommand = __decorate([
     bindingCommand('from-view')
 ], FromViewBindingCommand);
 let TwoWayBindingCommand = class TwoWayBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 52 /* TwoWayCommand */;
     }
-    compile(binding) {
-        return new PropertyBindingInstruction(binding.expression, getTarget(binding, false), BindingMode.twoWay);
+    static get inject() { return [IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        let target;
+        if (info.bindable == null) {
+            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+        }
+        else {
+            target = info.bindable.property;
+        }
+        return new PropertyBindingInstruction(info.expr, target, BindingMode.twoWay);
     }
 };
 TwoWayBindingCommand = __decorate([
     bindingCommand('two-way')
 ], TwoWayBindingCommand);
 let DefaultBindingCommand = class DefaultBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 53 /* BindCommand */;
     }
-    compile(binding) {
-        let mode = BindingMode.default;
-        if (binding instanceof BindingSymbol) {
-            mode = binding.bindable.mode;
+    static get inject() { return [IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        const attrName = info.attr.target;
+        const bindable = info.bindable;
+        let defaultMode;
+        let mode;
+        let target;
+        if (bindable == null) {
+            mode = this.t.isTwoWay(info.node, attrName) ? BindingMode.twoWay : BindingMode.toView;
+            target = (_a = this.t.map(info.node, attrName)) !== null && _a !== void 0 ? _a : camelCase(attrName);
         }
         else {
-            const command = binding.syntax.command;
-            switch (command) {
-                case 'bind':
-                case 'to-view':
-                    mode = BindingMode.toView;
-                    break;
-                case 'one-time':
-                    mode = BindingMode.oneTime;
-                    break;
-                case 'from-view':
-                    mode = BindingMode.fromView;
-                    break;
-                case 'two-way':
-                    mode = BindingMode.twoWay;
-                    break;
-            }
+            defaultMode = info.def.defaultBindingMode;
+            mode = bindable.mode === BindingMode.default || bindable.mode == null
+                ? defaultMode == null || defaultMode === BindingMode.default
+                    ? BindingMode.toView
+                    : defaultMode
+                : bindable.mode;
+            target = bindable.property;
         }
-        return new PropertyBindingInstruction(binding.expression, getTarget(binding, false), mode === BindingMode.default ? BindingMode.toView : mode);
+        return new PropertyBindingInstruction(info.expr, target, mode);
     }
 };
 DefaultBindingCommand = __decorate([
@@ -6203,8 +6254,11 @@ let CallBindingCommand = class CallBindingCommand {
     constructor() {
         this.bindingType = 153 /* CallCommand */;
     }
-    compile(binding) {
-        return new CallBindingInstruction(binding.expression, getTarget(binding, true));
+    build(info) {
+        const target = info.bindable === null
+            ? camelCase(info.attr.target)
+            : info.bindable.property;
+        return new CallBindingInstruction(info.expr, target);
     }
 };
 CallBindingCommand = __decorate([
@@ -6214,8 +6268,11 @@ let ForBindingCommand = class ForBindingCommand {
     constructor() {
         this.bindingType = 539 /* ForCommand */;
     }
-    compile(binding) {
-        return new IteratorBindingInstruction(binding.expression, getTarget(binding, false));
+    build(info) {
+        const target = info.bindable === null
+            ? camelCase(info.attr.target)
+            : info.bindable.property;
+        return new IteratorBindingInstruction(info.expr, target);
     }
 };
 ForBindingCommand = __decorate([
@@ -6225,8 +6282,8 @@ let TriggerBindingCommand = class TriggerBindingCommand {
     constructor() {
         this.bindingType = 4182 /* TriggerCommand */;
     }
-    compile(binding) {
-        return new ListenerBindingInstruction(binding.expression, getTarget(binding, false), true, DelegationStrategy.none);
+    build(info) {
+        return new ListenerBindingInstruction(info.expr, info.attr.target, true, DelegationStrategy.none);
     }
 };
 TriggerBindingCommand = __decorate([
@@ -6236,8 +6293,8 @@ let DelegateBindingCommand = class DelegateBindingCommand {
     constructor() {
         this.bindingType = 4184 /* DelegateCommand */;
     }
-    compile(binding) {
-        return new ListenerBindingInstruction(binding.expression, getTarget(binding, false), false, DelegationStrategy.bubbling);
+    build(info) {
+        return new ListenerBindingInstruction(info.expr, info.attr.target, false, DelegationStrategy.bubbling);
     }
 };
 DelegateBindingCommand = __decorate([
@@ -6247,8 +6304,8 @@ let CaptureBindingCommand = class CaptureBindingCommand {
     constructor() {
         this.bindingType = 4183 /* CaptureCommand */;
     }
-    compile(binding) {
-        return new ListenerBindingInstruction(binding.expression, getTarget(binding, false), false, DelegationStrategy.capturing);
+    build(info) {
+        return new ListenerBindingInstruction(info.expr, info.attr.target, false, DelegationStrategy.capturing);
     }
 };
 CaptureBindingCommand = __decorate([
@@ -6261,9 +6318,8 @@ let AttrBindingCommand = class AttrBindingCommand {
     constructor() {
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
-    compile(binding) {
-        const target = getTarget(binding, false);
-        return new AttributeBindingInstruction(target, binding.expression, target);
+    build(info) {
+        return new AttributeBindingInstruction(info.attr.target, info.expr, info.attr.target);
     }
 };
 AttrBindingCommand = __decorate([
@@ -6276,8 +6332,8 @@ let StyleBindingCommand = class StyleBindingCommand {
     constructor() {
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
-    compile(binding) {
-        return new AttributeBindingInstruction('style', binding.expression, getTarget(binding, false));
+    build(info) {
+        return new AttributeBindingInstruction('style', info.expr, info.attr.target);
     }
 };
 StyleBindingCommand = __decorate([
@@ -6290,8 +6346,8 @@ let ClassBindingCommand = class ClassBindingCommand {
     constructor() {
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
-    compile(binding) {
-        return new AttributeBindingInstruction('class', binding.expression, getTarget(binding, false));
+    build(info) {
+        return new AttributeBindingInstruction('class', info.expr, info.attr.target);
     }
 };
 ClassBindingCommand = __decorate([
@@ -6304,1066 +6360,13 @@ let RefBindingCommand = class RefBindingCommand {
     constructor() {
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
-    compile(binding) {
-        return new RefBindingInstruction(binding.expression, getTarget(binding, false));
+    build(info) {
+        return new RefBindingInstruction(info.expr, info.attr.target);
     }
 };
 RefBindingCommand = __decorate([
     bindingCommand('ref')
 ], RefBindingCommand);
-
-const IsDataAttribute = createLookup();
-function isDataAttribute(obj, key, svgAnalyzer) {
-    if (IsDataAttribute[key] === true) {
-        return true;
-    }
-    if (typeof key !== 'string') {
-        return false;
-    }
-    const prefix = key.slice(0, 5);
-    // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-    // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-    return IsDataAttribute[key] =
-        prefix === 'aria-' ||
-            prefix === 'data-' ||
-            svgAnalyzer.isStandardSvgAttribute(obj, key);
-}
-function createLookup() {
-    return Object.create(null);
-}
-
-const ISVGAnalyzer = DI.createInterface('ISVGAnalyzer', x => x.singleton(NoopSVGAnalyzer));
-class NoopSVGAnalyzer {
-    isStandardSvgAttribute(node, attributeName) {
-        return false;
-    }
-}
-function o(keys) {
-    const lookup = Object.create(null);
-    for (const key of keys) {
-        lookup[key] = true;
-    }
-    return lookup;
-}
-class SVGAnalyzer {
-    constructor(platform) {
-        this.svgElements = Object.assign(Object.create(null), {
-            'a': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
-            'altGlyph': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'altglyph': Object.create(null),
-            'altGlyphDef': o(['id', 'xml:base', 'xml:lang', 'xml:space']),
-            'altglyphdef': Object.create(null),
-            'altGlyphItem': o(['id', 'xml:base', 'xml:lang', 'xml:space']),
-            'altglyphitem': Object.create(null),
-            'animate': o(['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
-            'animateColor': o(['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
-            'animateMotion': o(['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
-            'animateTransform': o(['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
-            'circle': o(['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
-            'clipPath': o(['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
-            'color-profile': o(['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
-            'cursor': o(['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'defs': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
-            'desc': o(['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space']),
-            'ellipse': o(['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
-            'feBlend': o(['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feColorMatrix': o(['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feComponentTransfer': o(['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feComposite': o(['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feConvolveMatrix': o(['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feDiffuseLighting': o(['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feDisplacementMap': o(['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector']),
-            'feDistantLight': o(['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space']),
-            'feFlood': o(['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feFuncA': o(['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space']),
-            'feFuncB': o(['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space']),
-            'feFuncG': o(['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space']),
-            'feFuncR': o(['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space']),
-            'feGaussianBlur': o(['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feImage': o(['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feMerge': o(['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feMergeNode': o(['id', 'xml:base', 'xml:lang', 'xml:space']),
-            'feMorphology': o(['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feOffset': o(['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'fePointLight': o(['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z']),
-            'feSpecularLighting': o(['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feSpotLight': o(['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z']),
-            'feTile': o(['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'feTurbulence': o(['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'filter': o(['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'font': o(['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space']),
-            'font-face': o(['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space']),
-            'font-face-format': o(['id', 'string', 'xml:base', 'xml:lang', 'xml:space']),
-            'font-face-name': o(['id', 'name', 'xml:base', 'xml:lang', 'xml:space']),
-            'font-face-src': o(['id', 'xml:base', 'xml:lang', 'xml:space']),
-            'font-face-uri': o(['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
-            'foreignObject': o(['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'g': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
-            'glyph': o(['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space']),
-            'glyphRef': o(['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'glyphref': Object.create(null),
-            'hkern': o(['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space']),
-            'image': o(['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'line': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2']),
-            'linearGradient': o(['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2']),
-            'marker': o(['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space']),
-            'mask': o(['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'metadata': o(['id', 'xml:base', 'xml:lang', 'xml:space']),
-            'missing-glyph': o(['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space']),
-            'mpath': o(['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
-            'path': o(['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
-            'pattern': o(['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'polygon': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
-            'polyline': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
-            'radialGradient': o(['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
-            'rect': o(['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'script': o(['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
-            'set': o(['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
-            'stop': o(['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space']),
-            'style': o(['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space']),
-            'svg': o(['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan']),
-            'switch': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
-            'symbol': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space']),
-            'text': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'textPath': o(['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
-            'title': o(['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space']),
-            'tref': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'tspan': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'use': o(['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'view': o(['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan']),
-            'vkern': o(['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space']),
-        });
-        this.svgPresentationElements = o([
-            'a',
-            'altGlyph',
-            'animate',
-            'animateColor',
-            'circle',
-            'clipPath',
-            'defs',
-            'ellipse',
-            'feBlend',
-            'feColorMatrix',
-            'feComponentTransfer',
-            'feComposite',
-            'feConvolveMatrix',
-            'feDiffuseLighting',
-            'feDisplacementMap',
-            'feFlood',
-            'feGaussianBlur',
-            'feImage',
-            'feMerge',
-            'feMorphology',
-            'feOffset',
-            'feSpecularLighting',
-            'feTile',
-            'feTurbulence',
-            'filter',
-            'font',
-            'foreignObject',
-            'g',
-            'glyph',
-            'glyphRef',
-            'image',
-            'line',
-            'linearGradient',
-            'marker',
-            'mask',
-            'missing-glyph',
-            'path',
-            'pattern',
-            'polygon',
-            'polyline',
-            'radialGradient',
-            'rect',
-            'stop',
-            'svg',
-            'switch',
-            'symbol',
-            'text',
-            'textPath',
-            'tref',
-            'tspan',
-            'use',
-        ]);
-        this.svgPresentationAttributes = o([
-            'alignment-baseline',
-            'baseline-shift',
-            'clip-path',
-            'clip-rule',
-            'clip',
-            'color-interpolation-filters',
-            'color-interpolation',
-            'color-profile',
-            'color-rendering',
-            'color',
-            'cursor',
-            'direction',
-            'display',
-            'dominant-baseline',
-            'enable-background',
-            'fill-opacity',
-            'fill-rule',
-            'fill',
-            'filter',
-            'flood-color',
-            'flood-opacity',
-            'font-family',
-            'font-size-adjust',
-            'font-size',
-            'font-stretch',
-            'font-style',
-            'font-variant',
-            'font-weight',
-            'glyph-orientation-horizontal',
-            'glyph-orientation-vertical',
-            'image-rendering',
-            'kerning',
-            'letter-spacing',
-            'lighting-color',
-            'marker-end',
-            'marker-mid',
-            'marker-start',
-            'mask',
-            'opacity',
-            'overflow',
-            'pointer-events',
-            'shape-rendering',
-            'stop-color',
-            'stop-opacity',
-            'stroke-dasharray',
-            'stroke-dashoffset',
-            'stroke-linecap',
-            'stroke-linejoin',
-            'stroke-miterlimit',
-            'stroke-opacity',
-            'stroke-width',
-            'stroke',
-            'text-anchor',
-            'text-decoration',
-            'text-rendering',
-            'unicode-bidi',
-            'visibility',
-            'word-spacing',
-            'writing-mode',
-        ]);
-        this.SVGElement = platform.globalThis.SVGElement;
-        const div = platform.document.createElement('div');
-        div.innerHTML = '<svg><altGlyph /></svg>';
-        if (div.firstElementChild.nodeName === 'altglyph') {
-            // handle chrome casing inconsistencies.
-            const svg = this.svgElements;
-            let tmp = svg.altGlyph;
-            svg.altGlyph = svg.altglyph;
-            svg.altglyph = tmp;
-            tmp = svg.altGlyphDef;
-            svg.altGlyphDef = svg.altglyphdef;
-            svg.altglyphdef = tmp;
-            tmp = svg.altGlyphItem;
-            svg.altGlyphItem = svg.altglyphitem;
-            svg.altglyphitem = tmp;
-            tmp = svg.glyphRef;
-            svg.glyphRef = svg.glyphref;
-            svg.glyphref = tmp;
-        }
-    }
-    static register(container) {
-        return Registration.singleton(ISVGAnalyzer, this).register(container);
-    }
-    isStandardSvgAttribute(node, attributeName) {
-        var _a;
-        if (!(node instanceof this.SVGElement)) {
-            return false;
-        }
-        return (this.svgPresentationElements[node.nodeName] === true && this.svgPresentationAttributes[attributeName] === true ||
-            ((_a = this.svgElements[node.nodeName]) === null || _a === void 0 ? void 0 : _a[attributeName]) === true);
-    }
-}
-/**
- * @internal
- */
-SVGAnalyzer.inject = [IPlatform];
-
-const IAttrSyntaxTransformer = DI
-    .createInterface('IAttrSyntaxTransformer', x => x.singleton(AttrSyntaxTransformer));
-class AttrSyntaxTransformer {
-    constructor(svg) {
-        this.svg = svg;
-        /**
-         * @internal
-         */
-        this.fns = [];
-        /**
-         * @internal
-         */
-        this.tagAttrMap = createLookup();
-        /**
-         * @internal
-         */
-        this.globalAttrMap = createLookup();
-        this.useMapping({
-            LABEL: { for: 'htmlFor' },
-            IMG: { usemap: 'useMap' },
-            INPUT: {
-                maxlength: 'maxLength',
-                minlength: 'minLength',
-                formaction: 'formAction',
-                formenctype: 'formEncType',
-                formmethod: 'formMethod',
-                formnovalidate: 'formNoValidate',
-                formtarget: 'formTarget',
-                inputmode: 'inputMode',
-            },
-            TEXTAREA: { maxlength: 'maxLength' },
-            TD: { rowspan: 'rowSpan', colspan: 'colSpan' },
-            TH: { rowspan: 'rowSpan', colspan: 'colSpan' },
-        });
-        this.useGlobalMapping({
-            accesskey: 'accessKey',
-            contenteditable: 'contentEditable',
-            tabindex: 'tabIndex',
-            textcontent: 'textContent',
-            innerhtml: 'innerHTML',
-            scrolltop: 'scrollTop',
-            scrollleft: 'scrollLeft',
-            readonly: 'readOnly',
-        });
-    }
-    static get inject() { return [ISVGAnalyzer]; }
-    /**
-     * Allow application to teach Aurelia how to define how to map attributes to properties
-     * based on element tagName
-     */
-    useMapping(config) {
-        var _a;
-        var _b;
-        let newAttrMapping;
-        let targetAttrMapping;
-        let tagName;
-        let attr;
-        for (tagName in config) {
-            newAttrMapping = config[tagName];
-            targetAttrMapping = (_a = (_b = this.tagAttrMap)[tagName]) !== null && _a !== void 0 ? _a : (_b[tagName] = createLookup());
-            for (attr in newAttrMapping) {
-                if (targetAttrMapping[attr] !== void 0) {
-                    throw createMappedError(attr, tagName);
-                }
-                targetAttrMapping[attr] = newAttrMapping[attr];
-            }
-        }
-    }
-    /**
-     * Allow applications to teach Aurelia how to define how to map attributes to properties
-     * for all elements
-     */
-    useGlobalMapping(config) {
-        const mapper = this.globalAttrMap;
-        for (const attr in config) {
-            if (mapper[attr] !== void 0) {
-                throw createMappedError(attr, '*');
-            }
-            mapper[attr] = config[attr];
-        }
-    }
-    /**
-     * Add a given function to a list of fns that will be used
-     * to check if `'bind'` command can be transformed to `'two-way'` command.
-     *
-     * If one of those functions in this lists returns true, the `'bind'` command
-     * will be transformed into `'two-way'` command.
-     *
-     * The function will be called with 2 parameters:
-     * - element: the element that the template compiler is currently working with
-     * - property: the target property name
-     */
-    useTwoWay(fn) {
-        this.fns.push(fn);
-    }
-    /**
-     * @internal
-     */
-    transform(node, attrSyntax) {
-        var _a, _b, _c;
-        if (attrSyntax.command === 'bind' &&
-            (
-            // note: even though target could possibly be mapped to a different name
-            // the final property name shouldn't affect the two way transformation
-            // as they both should work with original source attribute name
-            shouldDefaultToTwoWay(node, attrSyntax.target) ||
-                this.fns.length > 0 && this.fns.some(fn => fn(node, attrSyntax.target)))) {
-            attrSyntax.command = 'two-way';
-        }
-        const attr = attrSyntax.target;
-        attrSyntax.target = (_c = (_b = (_a = this.tagAttrMap[node.tagName]) === null || _a === void 0 ? void 0 : _a[attr]) !== null && _b !== void 0 ? _b : this.globalAttrMap[attr]) !== null && _c !== void 0 ? _c : (isDataAttribute(node, attr, this.svg)
-            ? attr
-            : camelCase(attr));
-        // attrSyntax.target = this.map(node.tagName, attrSyntax.target);
-    }
-}
-function shouldDefaultToTwoWay(element, attr) {
-    switch (element.tagName) {
-        case 'INPUT':
-            switch (element.type) {
-                case 'checkbox':
-                case 'radio':
-                    return attr === 'checked';
-                // note:
-                // ideally, it should check for corresponding input type first
-                // as 'files' shouldn't be two way on a number input, for example
-                // but doing it this way is acceptable-ish, as the common user expectations,
-                // and the behavior of the control for these properties are the same,
-                // regardless the type of the <input>
-                default:
-                    return attr === 'value' || attr === 'files' || attr === 'value-as-number' || attr === 'value-as-date';
-            }
-        case 'TEXTAREA':
-        case 'SELECT':
-            return attr === 'value';
-        default:
-            switch (attr) {
-                case 'textcontent':
-                case 'innerhtml':
-                    return element.hasAttribute('contenteditable');
-                case 'scrolltop':
-                case 'scrollleft':
-                    return true;
-                default:
-                    return false;
-            }
-    }
-}
-function createMappedError(attr, tagName) {
-    return new Error(`Attribute ${attr} has been already registered for ${tagName === '*' ? 'all elements' : `<${tagName}/>`}`);
-}
-
-const invalidSurrogateAttribute = Object.assign(Object.create(null), {
-    'id': true,
-    'au-slot': true,
-});
-const attributesToIgnore = Object.assign(Object.create(null), {
-    'as-element': true,
-});
-function hasInlineBindings(rawValue) {
-    const len = rawValue.length;
-    let ch = 0;
-    for (let i = 0; i < len; ++i) {
-        ch = rawValue.charCodeAt(i);
-        if (ch === 92 /* Backslash */) {
-            ++i;
-            // Ignore whatever comes next because it's escaped
-        }
-        else if (ch === 58 /* Colon */) {
-            return true;
-        }
-        else if (ch === 36 /* Dollar */ && rawValue.charCodeAt(i + 1) === 123 /* OpenBrace */) {
-            return false;
-        }
-    }
-    return false;
-}
-function processInterpolationText(symbol) {
-    const node = symbol.physicalNode;
-    const parentNode = node.parentNode;
-    while (node.nextSibling !== null && node.nextSibling.nodeType === 3 /* Text */) {
-        parentNode.removeChild(node.nextSibling);
-    }
-    node.textContent = '';
-    parentNode.insertBefore(symbol.marker, node);
-}
-function isTemplateControllerOf(proxy, manifest) {
-    return proxy !== manifest;
-}
-/**
- * A (temporary) standalone function that purely does the DOM processing (lifting) related to template controllers.
- * It's a first refactoring step towards separating DOM parsing/binding from mutations.
- */
-function processTemplateControllers(p, manifestProxy, manifest) {
-    const manifestNode = manifest.physicalNode;
-    let current = manifestProxy;
-    let currentTemplate;
-    while (isTemplateControllerOf(current, manifest)) {
-        if (current.template === manifest) {
-            // the DOM linkage is still in its original state here so we can safely assume the parentNode is non-null
-            manifestNode.parentNode.replaceChild(current.marker, manifestNode);
-            // if the manifest is a template element (e.g. <template repeat.for="...">) then we can skip one lift operation
-            // and simply use the template directly, saving a bit of work
-            if (manifestNode.nodeName === 'TEMPLATE') {
-                current.physicalNode = manifestNode;
-                // the template could safely stay without affecting anything visible, but let's keep the DOM tidy
-                manifestNode.remove();
-            }
-            else {
-                // the manifest is not a template element so we need to wrap it in one
-                currentTemplate = current.physicalNode = p.document.createElement('template');
-                currentTemplate.content.appendChild(manifestNode);
-            }
-        }
-        else {
-            currentTemplate = current.physicalNode = p.document.createElement('template');
-            currentTemplate.content.appendChild(current.marker);
-        }
-        manifestNode.removeAttribute(current.syntax.rawName);
-        current = current.template;
-    }
-}
-// - on binding plain attribute, if there's interpolation
-// the attribute itself should be removed completely
-// otherwise, produce invalid output sometimes.
-// e.g
-// <input value=${value}>
-//    without removing: `<input value="">
-//    with removing: `<input>
-// <circle cx=${x}>
-//    without removing `<circle cx="">
-//    with removing: `<circle>
-//
-// - custom attribute probably should be removed too
-var AttrBindingSignal;
-(function (AttrBindingSignal) {
-    AttrBindingSignal[AttrBindingSignal["none"] = 0] = "none";
-    AttrBindingSignal[AttrBindingSignal["remove"] = 1] = "remove";
-})(AttrBindingSignal || (AttrBindingSignal = {}));
-/**
- * TemplateBinder. Todo: describe goal of this class
- */
-class TemplateBinder {
-    constructor(platform, container, attrParser, exprParser, attrSyntaxTransformer) {
-        this.platform = platform;
-        this.container = container;
-        this.attrParser = attrParser;
-        this.exprParser = exprParser;
-        this.attrSyntaxTransformer = attrSyntaxTransformer;
-        this.commandLookup = Object.create(null);
-    }
-    bind(node) {
-        const surrogate = new PlainElementSymbol(node);
-        const attributes = node.attributes;
-        let i = 0;
-        let attr;
-        let attrSyntax;
-        let bindingCommand = null;
-        let attrInfo = null;
-        while (i < attributes.length) {
-            attr = attributes[i];
-            attrSyntax = this.attrParser.parse(attr.name, attr.value);
-            if (invalidSurrogateAttribute[attrSyntax.target] === true) {
-                throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
-                // TODO: use reporter
-            }
-            bindingCommand = this.getBindingCommand(attrSyntax, true);
-            if (bindingCommand === null || (bindingCommand.bindingType & 4096 /* IgnoreAttr */) === 0) {
-                attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target), attrSyntax.target);
-                if (attrInfo === null) {
-                    // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-                    // NOTE: on surrogate, we don't care about removing the attribute with interpolation
-                    // as the element is not used (cloned)
-                    this.bindPlainAttribute(
-                    /* node       */ node, 
-                    /* attrSyntax */ attrSyntax, 
-                    /* attr       */ attr, 
-                    /* surrogate  */ surrogate, 
-                    /* manifest   */ surrogate);
-                }
-                else if (attrInfo.isTemplateController) {
-                    throw new Error('Cannot have template controller on surrogate element.');
-                    // TODO: use reporter
-                }
-                else {
-                    this.bindCustomAttribute(
-                    /* attrSyntax */ attrSyntax, 
-                    /* attrInfo   */ attrInfo, 
-                    /* command    */ bindingCommand, 
-                    /* manifest   */ surrogate);
-                }
-            }
-            else {
-                // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-                // NOTE: on surrogate, we don't care about removing the attribute with interpolation
-                // as the element is not used (cloned)
-                this.bindPlainAttribute(
-                /* node       */ node, 
-                /* attrSyntax */ attrSyntax, 
-                /* attr       */ attr, 
-                /* surrogate  */ surrogate, 
-                /* manifest   */ surrogate);
-            }
-            ++i;
-        }
-        this.bindChildNodes(
-        /* node               */ node, 
-        /* surrogate          */ surrogate, 
-        /* manifest           */ surrogate, 
-        /* manifestRoot       */ null, 
-        /* parentManifestRoot */ null);
-        return surrogate;
-    }
-    bindManifest(parentManifest, node, surrogate, manifest, manifestRoot, parentManifestRoot) {
-        var _a, _b, _c, _d;
-        switch (node.nodeName) {
-            case 'LET':
-                // let cannot have children and has some different processing rules, so return early
-                this.bindLetElement(
-                /* parentManifest */ parentManifest, 
-                /* node           */ node);
-                return;
-            case 'SLOT':
-                surrogate.hasSlots = true;
-                break;
-        }
-        let name = node.getAttribute('as-element');
-        if (name === null) {
-            name = node.nodeName.toLowerCase();
-        }
-        const isAuSlot = name === 'au-slot';
-        const definition = this.container.find(CustomElement, name);
-        const elementInfo = ElementInfo.from(definition, name);
-        let compileChildren = true;
-        if (elementInfo === null) {
-            // there is no registered custom element with this name
-            manifest = new PlainElementSymbol(node);
-        }
-        else {
-            // it's a custom element so we set the manifestRoot as well (for storing replaces)
-            compileChildren = ((_c = (_b = (_a = definition === null || definition === void 0 ? void 0 : definition.processContent) === null || _a === void 0 ? void 0 : _a.bind(definition.Type)) === null || _b === void 0 ? void 0 : _b(node, this.platform)) !== null && _c !== void 0 ? _c : true);
-            parentManifestRoot = manifestRoot;
-            const ceSymbol = new CustomElementSymbol(this.platform, node, elementInfo);
-            if (isAuSlot) {
-                ceSymbol.flags = 512 /* isAuSlot */;
-                ceSymbol.slotName = (_d = node.getAttribute("name")) !== null && _d !== void 0 ? _d : "default";
-            }
-            manifestRoot = manifest = ceSymbol;
-        }
-        if (compileChildren) {
-            // lifting operations done by template controllers and replaces effectively unlink the nodes, so start at the bottom
-            this.bindChildNodes(
-            /* node               */ node, 
-            /* surrogate          */ surrogate, 
-            /* manifest           */ manifest, 
-            /* manifestRoot       */ manifestRoot, 
-            /* parentManifestRoot */ parentManifestRoot);
-        }
-        // the parentManifest will receive either the direct child nodes, or the template controllers / replaces
-        // wrapping them
-        this.bindAttributes(
-        /* node               */ node, 
-        /* parentManifest     */ parentManifest, 
-        /* surrogate          */ surrogate, 
-        /* manifest           */ manifest, 
-        /* manifestRoot       */ manifestRoot, 
-        /* parentManifestRoot */ parentManifestRoot);
-        if (manifestRoot === manifest && manifest.isContainerless) {
-            node.parentNode.replaceChild(manifest.marker, node);
-        }
-        else if (manifest.isTarget) {
-            node.classList.add('au');
-        }
-    }
-    bindLetElement(parentManifest, node) {
-        const symbol = new LetElementSymbol(this.platform, node);
-        parentManifest.childNodes.push(symbol);
-        const attributes = node.attributes;
-        let i = 0;
-        while (i < attributes.length) {
-            const attr = attributes[i];
-            if (attr.name === 'to-binding-context') {
-                node.removeAttribute('to-binding-context');
-                symbol.toBindingContext = true;
-                continue;
-            }
-            const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-            const command = this.getBindingCommand(attrSyntax, false);
-            const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
-            const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
-            const to = camelCase(attrSyntax.target);
-            const info = new BindableInfo(to, BindingMode.toView);
-            symbol.bindings.push(new BindingSymbol(command, info, expr, attrSyntax.rawValue, to));
-            ++i;
-        }
-        node.parentNode.replaceChild(symbol.marker, node);
-    }
-    bindAttributes(node, parentManifest, surrogate, manifest, manifestRoot, parentManifestRoot) {
-        var _a, _b, _c;
-        // This is the top-level symbol for the current depth.
-        // If there are no template controllers or replaces, it is always the manifest itself.
-        // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
-        let manifestProxy = manifest;
-        let previousController = (void 0);
-        let currentController = (void 0);
-        const attributes = node.attributes;
-        let i = 0;
-        let attr;
-        let bindSignal;
-        let attrSyntax;
-        let bindingCommand = null;
-        let attrInfo = null;
-        while (i < attributes.length) {
-            attr = attributes[i];
-            ++i;
-            if (attributesToIgnore[attr.name] === true) {
-                continue;
-            }
-            attrSyntax = this.attrParser.parse(attr.name, attr.value);
-            bindingCommand = this.getBindingCommand(attrSyntax, true);
-            if (bindingCommand === null || (bindingCommand.bindingType & 4096 /* IgnoreAttr */) === 0) {
-                attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target), attrSyntax.target);
-                if (attrInfo === null) {
-                    // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-                    bindSignal = this.bindPlainAttribute(
-                    /* node       */ node, 
-                    /* attrSyntax */ attrSyntax, 
-                    /* attr       */ attr, 
-                    /* surrogate  */ surrogate, 
-                    /* manifest   */ manifest);
-                    if (bindSignal === 1 /* remove */) {
-                        node.removeAttributeNode(attr);
-                        --i;
-                    }
-                }
-                else if (attrInfo.isTemplateController) {
-                    // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
-                    // so keep setting manifest.templateController to the latest template controller we find
-                    currentController = manifest.templateController = this.declareTemplateController(
-                    /* attrSyntax */ attrSyntax, 
-                    /* attrInfo   */ attrInfo);
-                    // the proxy and the manifest are only identical when we're at the first template controller (since the controller
-                    // is assigned to the proxy), so this evaluates to true at most once per node
-                    if (manifestProxy === manifest) {
-                        currentController.template = manifest;
-                        manifestProxy = currentController;
-                    }
-                    else {
-                        currentController.templateController = previousController;
-                        currentController.template = previousController.template;
-                        previousController.template = currentController;
-                    }
-                    previousController = currentController;
-                }
-                else {
-                    // a regular custom attribute
-                    this.bindCustomAttribute(
-                    /* attrSyntax */ attrSyntax, 
-                    /* attrInfo   */ attrInfo, 
-                    /* command    */ bindingCommand, 
-                    /* manifest   */ manifest);
-                }
-            }
-            else {
-                // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-                bindSignal = this.bindPlainAttribute(
-                /* node       */ node, 
-                /* attrSyntax */ attrSyntax, 
-                /* attr       */ attr, 
-                /* surrogate  */ surrogate, 
-                /* manifest   */ manifest);
-                if (bindSignal === 1 /* remove */) {
-                    node.removeAttributeNode(attr);
-                    --i;
-                }
-            }
-        }
-        if (node.tagName === 'INPUT') {
-            const type = node.type;
-            if (type === 'checkbox' || type === 'radio') {
-                this.ensureAttributeOrder(manifest);
-            }
-        }
-        let projection = node.getAttribute('au-slot');
-        if (projection === '') {
-            projection = 'default';
-        }
-        const hasProjection = projection !== null;
-        if (hasProjection && isTemplateControllerOf(manifestProxy, manifest)) {
-            // prevents <some-el au-slot TEMPLATE.CONTROLLER></some-el>.
-            throw new Error(`Unsupported usage of [au-slot="${projection}"] along with a template controller (if, else, repeat.for etc.) found (example: <some-el au-slot if.bind="true"></some-el>).`);
-            /**
-             * TODO: prevent <template TEMPLATE.CONTROLLER><some-el au-slot></some-el></template>.
-             * But there is not easy way for now, as the attribute binding is done after binding the child nodes.
-             * This means by the time the template controller in the ancestor is processed, the projection is already registered.
-             */
-        }
-        const parentName = (_b = (_a = node.parentElement) === null || _a === void 0 ? void 0 : _a.getAttribute('as-element')) !== null && _b !== void 0 ? _b : (_c = node.parentNode) === null || _c === void 0 ? void 0 : _c.nodeName.toLowerCase();
-        if (hasProjection
-            && (manifestRoot === null
-                || parentName === void 0
-                || this.container.find(CustomElement, parentName) === null)) {
-            /**
-             * Prevents the following cases:
-             * - <template><div au-slot></div></template>
-             * - <my-ce><div><div au-slot></div></div></my-ce>
-             * - <my-ce><div au-slot="s1"><div au-slot="s2"></div></div></my-ce>
-             */
-            throw new Error(`Unsupported usage of [au-slot="${projection}"]. It seems that projection is attempted, but not for a custom element.`);
-        }
-        processTemplateControllers(this.platform, manifestProxy, manifest);
-        const projectionOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
-        if (!hasProjection || projectionOwner === null) {
-            // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
-            parentManifest.childNodes.push(manifestProxy);
-        }
-        else if (hasProjection) {
-            projectionOwner.projections.push(new ProjectionSymbol(projection, manifestProxy));
-            node.removeAttribute('au-slot');
-            node.remove();
-        }
-    }
-    // TODO: refactor to use render priority slots (this logic shouldn't be in the template binder)
-    ensureAttributeOrder(manifest) {
-        // swap the order of checked and model/value attribute, so that the required observers are prepared for checked-observer
-        const attributes = manifest.plainAttributes;
-        let modelOrValueIndex = void 0;
-        let checkedIndex = void 0;
-        let found = 0;
-        for (let i = 0; i < attributes.length && found < 3; i++) {
-            switch (attributes[i].syntax.target) {
-                case 'model':
-                case 'value':
-                case 'matcher':
-                    modelOrValueIndex = i;
-                    found++;
-                    break;
-                case 'checked':
-                    checkedIndex = i;
-                    found++;
-                    break;
-            }
-        }
-        if (checkedIndex !== void 0 && modelOrValueIndex !== void 0 && checkedIndex < modelOrValueIndex) {
-            [attributes[modelOrValueIndex], attributes[checkedIndex]] = [attributes[checkedIndex], attributes[modelOrValueIndex]];
-        }
-    }
-    bindChildNodes(node, surrogate, manifest, manifestRoot, parentManifestRoot) {
-        let childNode;
-        if (node.nodeName === 'TEMPLATE') {
-            childNode = node.content.firstChild;
-        }
-        else {
-            childNode = node.firstChild;
-        }
-        let nextChild;
-        while (childNode !== null) {
-            switch (childNode.nodeType) {
-                case 1 /* Element */:
-                    nextChild = childNode.nextSibling;
-                    this.bindManifest(
-                    /* parentManifest     */ manifest, 
-                    /* node               */ childNode, 
-                    /* surrogate          */ surrogate, 
-                    /* manifest           */ manifest, 
-                    /* manifestRoot       */ manifestRoot, 
-                    /* parentManifestRoot */ parentManifestRoot);
-                    childNode = nextChild;
-                    break;
-                case 3 /* Text */:
-                    childNode = this.bindText(
-                    /* textNode */ childNode, 
-                    /* manifest */ manifest).nextSibling;
-                    break;
-                case 4 /* CDATASection */:
-                case 7 /* ProcessingInstruction */:
-                case 8 /* Comment */:
-                case 10 /* DocumentType */:
-                    childNode = childNode.nextSibling;
-                    break;
-                case 9 /* Document */:
-                case 11 /* DocumentFragment */:
-                    childNode = childNode.firstChild;
-            }
-        }
-    }
-    bindText(textNode, manifest) {
-        const interpolation = this.exprParser.parse(textNode.wholeText, 2048 /* Interpolation */);
-        if (interpolation !== null) {
-            const symbol = new TextSymbol(this.platform, textNode, interpolation);
-            manifest.childNodes.push(symbol);
-            processInterpolationText(symbol);
-        }
-        let next = textNode;
-        while (next.nextSibling !== null && next.nextSibling.nodeType === 3 /* Text */) {
-            next = next.nextSibling;
-        }
-        return next;
-    }
-    declareTemplateController(attrSyntax, attrInfo) {
-        let symbol;
-        const attrRawValue = attrSyntax.rawValue;
-        const command = this.getBindingCommand(attrSyntax, false);
-        // multi-bindings logic here is similar to (and explained in) bindCustomAttribute
-        const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
-        if (isMultiBindings) {
-            symbol = new TemplateControllerSymbol(this.platform, attrSyntax, attrInfo);
-            this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
-        }
-        else {
-            symbol = new TemplateControllerSymbol(this.platform, attrSyntax, attrInfo);
-            const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
-            const expr = this.exprParser.parse(attrRawValue, bindingType);
-            symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));
-        }
-        return symbol;
-    }
-    bindCustomAttribute(attrSyntax, attrInfo, command, manifest) {
-        let symbol;
-        const attrRawValue = attrSyntax.rawValue;
-        // Custom attributes are always in multiple binding mode,
-        // except when they can't be
-        // When they cannot be:
-        //        * has explicit configuration noMultiBindings: false
-        //        * has binding command, ie: <div my-attr.bind="...">.
-        //          In this scenario, the value of the custom attributes is required to be a valid expression
-        //        * has no colon: ie: <div my-attr="abcd">
-        //          In this scenario, it's simply invalid syntax. Consider style attribute rule-value pair: <div style="rule: ruleValue">
-        const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
-        if (isMultiBindings) {
-            // a multiple-bindings attribute usage (semicolon separated binding) is only valid without a binding command;
-            // the binding commands must be declared in each of the property bindings
-            symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
-            this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
-        }
-        else {
-            symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
-            const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
-            const expr = this.exprParser.parse(attrRawValue, bindingType);
-            symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));
-        }
-        manifest.customAttributes.push(symbol);
-        manifest.isTarget = true;
-    }
-    bindMultiAttribute(symbol, attrInfo, value) {
-        const bindables = attrInfo.bindables;
-        const valueLength = value.length;
-        let attrName = void 0;
-        let attrValue = void 0;
-        let start = 0;
-        let ch = 0;
-        for (let i = 0; i < valueLength; ++i) {
-            ch = value.charCodeAt(i);
-            if (ch === 92 /* Backslash */) {
-                ++i;
-                // Ignore whatever comes next because it's escaped
-            }
-            else if (ch === 58 /* Colon */) {
-                attrName = value.slice(start, i);
-                // Skip whitespace after colon
-                while (value.charCodeAt(++i) <= 32 /* Space */)
-                    ;
-                start = i;
-                for (; i < valueLength; ++i) {
-                    ch = value.charCodeAt(i);
-                    if (ch === 92 /* Backslash */) {
-                        ++i;
-                        // Ignore whatever comes next because it's escaped
-                    }
-                    else if (ch === 59 /* Semicolon */) {
-                        attrValue = value.slice(start, i);
-                        break;
-                    }
-                }
-                if (attrValue === void 0) {
-                    // No semicolon found, so just grab the rest of the value
-                    attrValue = value.slice(start);
-                }
-                const attrSyntax = this.attrParser.parse(attrName, attrValue);
-                const attrTarget = camelCase(attrSyntax.target);
-                const command = this.getBindingCommand(attrSyntax, false);
-                const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
-                const expr = this.exprParser.parse(attrValue, bindingType);
-                let bindable = bindables[attrTarget];
-                if (bindable === undefined) {
-                    // everything in a multi-bindings expression must be used,
-                    // so if it's not a bindable then we create one on the spot
-                    bindable = bindables[attrTarget] = new BindableInfo(attrTarget, BindingMode.toView);
-                }
-                symbol.bindings.push(new BindingSymbol(command, bindable, expr, attrValue, attrTarget));
-                // Skip whitespace after semicolon
-                while (i < valueLength && value.charCodeAt(++i) <= 32 /* Space */)
-                    ;
-                start = i;
-                attrName = void 0;
-                attrValue = void 0;
-            }
-        }
-    }
-    bindPlainAttribute(node, attrSyntax, attr, surrogate, manifest) {
-        const attrTarget = attrSyntax.target;
-        const attrRawValue = attrSyntax.rawValue;
-        const command = this.getBindingCommand(attrSyntax, false);
-        const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
-        let isInterpolation = false;
-        let expr;
-        if ((manifest.flags & 16 /* isCustomElement */) > 0) {
-            const bindable = manifest.bindables[attrTarget];
-            if (bindable != null) {
-                // if it looks like this
-                // <my-el value.bind>
-                // it means
-                // <my-el value.bind="value">
-                // this is a shortcut
-                const realAttrValue = attrRawValue.length === 0
-                    && (bindingType
-                        & (53 /* BindCommand */
-                            | 49 /* OneTimeCommand */
-                            | 50 /* ToViewCommand */
-                            | 52 /* TwoWayCommand */)) > 0
-                    ? camelCase(attrTarget)
-                    : attrRawValue;
-                expr = this.exprParser.parse(realAttrValue, bindingType);
-                // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
-                // the template compiler will translate it to the correct instruction
-                manifest.bindings.push(new BindingSymbol(command, bindable, expr, attrRawValue, attrTarget));
-                isInterpolation = bindingType === 2048 /* Interpolation */ && expr != null;
-                manifest.isTarget = true;
-                return isInterpolation
-                    ? 1 /* remove */
-                    : 0 /* none */;
-            }
-        }
-        // plain attribute, on a normal, or a custom element here
-        // regardless, can process the same way
-        expr = this.exprParser.parse(attrRawValue, bindingType);
-        isInterpolation = bindingType === 2048 /* Interpolation */ && expr != null;
-        if ((bindingType & 4096 /* IgnoreAttr */) === 0) {
-            this.attrSyntaxTransformer.transform(node, attrSyntax);
-        }
-        if (expr != null) {
-            // either a binding command, an interpolation, or a ref
-            manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
-            manifest.isTarget = true;
-        }
-        else if (manifest === surrogate) {
-            // any attributes, even if they are plain (no command/interpolation etc), should be added if they
-            // are on the surrogate element
-            manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
-        }
-        return isInterpolation
-            ? 1 /* remove */
-            : 0 /* none */;
-    }
-    /**
-     * Retrieve a binding command resource.
-     *
-     * @param name - The parsed `AttrSyntax`
-     *
-     * @returns An instance of the command if it exists, or `null` if it does not exist.
-     */
-    getBindingCommand(syntax, optional) {
-        const name = syntax.command;
-        if (name === null) {
-            return null;
-        }
-        let result = this.commandLookup[name];
-        if (result === void 0) {
-            result = this.container.create(BindingCommand, name);
-            if (result === null) {
-                if (optional) {
-                    return null;
-                }
-                throw new Error(`Unknown binding command: ${name}`);
-            }
-            this.commandLookup[name] = result;
-        }
-        return result;
-    }
-}
 
 const ITemplateElementFactory = DI.createInterface('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 const markupCache = {};
@@ -7412,24 +6415,1243 @@ TemplateElementFactory = __decorate([
     __param(0, IPlatform)
 ], TemplateElementFactory);
 
-class CustomElementCompilationUnit {
-    constructor(partialDefinition, surrogate, template) {
-        this.partialDefinition = partialDefinition;
-        this.surrogate = surrogate;
-        this.template = template;
-        this.instructions = [];
-        this.surrogates = [];
+class ViewCompiler {
+    static register(container) {
+        return Registration.singleton(ITemplateCompiler, this).register(container);
     }
-    toDefinition() {
-        const def = this.partialDefinition;
+    compile(partialDefinition, container, compilationInstruction) {
+        const definition = CustomElementDefinition.getOrCreate(partialDefinition);
+        if (definition.template === null || definition.template === void 0) {
+            return definition;
+        }
+        if (definition.needsCompile === false) {
+            return definition;
+        }
+        compilationInstruction !== null && compilationInstruction !== void 0 ? compilationInstruction : (compilationInstruction = emptyCompilationInstructions);
+        const context = new CompilationContext(partialDefinition, container, compilationInstruction, null, null, void 0);
+        const template = typeof definition.template === 'string' || !partialDefinition.enhance
+            ? context.templateFactory.createTemplate(definition.template)
+            : definition.template;
+        const isTemplateElement = template.nodeName === 'TEMPLATE' && template.content != null;
+        const content = isTemplateElement ? template.content : template;
+        if (template.hasAttribute(localTemplateIdentifier)) {
+            throw new Error('The root cannot be a local template itself.');
+        }
+        this.local(content, context);
+        this.node(content, context);
+        const surrogates = isTemplateElement
+            ? this.surrogate(template, context)
+            : emptyArray;
         return CustomElementDefinition.create({
-            ...def,
-            instructions: mergeArrays(def.instructions, this.instructions),
-            surrogates: mergeArrays(def.surrogates, this.surrogates),
-            template: this.template,
+            ...partialDefinition,
+            name: partialDefinition.name || CustomElement.generateName(),
+            instructions: context.rows,
+            surrogates,
+            template,
+            hasSlots: context.hasSlot,
             needsCompile: false,
-            hasSlots: this.surrogate.hasSlots,
         });
+    }
+    /** @internal */
+    surrogate(el, context) {
+        var _a;
+        const instructions = [];
+        const attrs = el.attributes;
+        const attrParser = context.attrParser;
+        const exprParser = context.exprParser;
+        const attrTransformer = context.attrTransformer;
+        let ii = attrs.length;
+        let i = 0;
+        let attr;
+        let attrName;
+        let attrValue;
+        let attrSyntax;
+        let attrDef = null;
+        let attrInstructions;
+        let attrBindableInstructions;
+        // eslint-disable-next-line
+        let bindableInfo;
+        let primaryBindable;
+        let bindingCommand = null;
+        let expr;
+        let isMultiBindings;
+        let realAttrTarget;
+        let realAttrValue;
+        for (; ii > i; ++i) {
+            attr = attrs[i];
+            attrName = attr.name;
+            attrValue = attr.value;
+            attrSyntax = attrParser.parse(attrName, attrValue);
+            realAttrTarget = attrSyntax.target;
+            realAttrValue = attrSyntax.rawValue;
+            if (invalidSurrogateAttribute[realAttrTarget]) {
+                throw new Error(`Attribute ${attrName} is invalid on surrogate.`);
+            }
+            bindingCommand = context.command(attrSyntax);
+            if (bindingCommand !== null && bindingCommand.bindingType & 4096 /* IgnoreAttr */) {
+                // when the binding command overrides everything
+                // just pass the target as is to the binding command, and treat it as a normal attribute:
+                // active.class="..."
+                // background.style="..."
+                // my-attr.attr="..."
+                expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
+                commandBuildInfo.node = el;
+                commandBuildInfo.attr = attrSyntax;
+                commandBuildInfo.expr = expr;
+                commandBuildInfo.bindable = null;
+                commandBuildInfo.def = null;
+                instructions.push(bindingCommand.build(commandBuildInfo));
+                // to next attribute
+                continue;
+            }
+            attrDef = context.attr(realAttrTarget);
+            if (attrDef !== null) {
+                if (attrDef.isTemplateController) {
+                    throw new Error(`Template controller ${realAttrTarget} is invalid on surrogate.`);
+                }
+                bindableInfo = BindablesInfo.from(attrDef, true);
+                // Custom attributes are always in multiple binding mode,
+                // except when they can't be
+                // When they cannot be:
+                //        * has explicit configuration noMultiBindings: false
+                //        * has binding command, ie: <div my-attr.bind="...">.
+                //          In this scenario, the value of the custom attributes is required to be a valid expression
+                //        * has no colon: ie: <div my-attr="abcd">
+                //          In this scenario, it's simply invalid syntax.
+                //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
+                isMultiBindings = attrDef.noMultiBindings === false
+                    && bindingCommand === null
+                    && hasInlineBindings(realAttrValue);
+                if (isMultiBindings) {
+                    attrBindableInstructions = this.multiBindings(el, realAttrValue, attrDef, context);
+                }
+                else {
+                    primaryBindable = bindableInfo.primary;
+                    // custom attribute + single value + WITHOUT binding command:
+                    // my-attr=""
+                    // my-attr="${}"
+                    if (bindingCommand === null) {
+                        expr = exprParser.parse(realAttrValue, 2048 /* Interpolation */);
+                        attrBindableInstructions = [
+                            expr === null
+                                ? new SetPropertyInstruction(realAttrValue, primaryBindable.property)
+                                : new InterpolationInstruction(expr, primaryBindable.property)
+                        ];
+                    }
+                    else {
+                        // custom attribute with binding command:
+                        // my-attr.bind="..."
+                        // my-attr.two-way="..."
+                        expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
+                        commandBuildInfo.node = el;
+                        commandBuildInfo.attr = attrSyntax;
+                        commandBuildInfo.expr = expr;
+                        commandBuildInfo.bindable = primaryBindable;
+                        commandBuildInfo.def = attrDef;
+                        attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
+                    }
+                }
+                el.removeAttribute(attrName);
+                --i;
+                --ii;
+                (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new HydrateAttributeInstruction(attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0, attrBindableInstructions));
+                continue;
+            }
+            if (bindingCommand === null) {
+                expr = exprParser.parse(realAttrValue, 2048 /* Interpolation */);
+                if (expr != null) {
+                    el.removeAttribute(attrName);
+                    --i;
+                    --ii;
+                    instructions.push(new InterpolationInstruction(expr, (_a = 
+                    // if not a bindable, then ensure plain attribute are mapped correctly:
+                    // e.g: colspan -> colSpan
+                    //      innerhtml -> innerHTML
+                    //      minlength -> minLengt etc...
+                    attrTransformer.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : camelCase(realAttrTarget)));
+                }
+                else {
+                    switch (attrName) {
+                        case 'class':
+                            instructions.push(new SetClassAttributeInstruction(realAttrValue));
+                            break;
+                        case 'style':
+                            instructions.push(new SetStyleAttributeInstruction(realAttrValue));
+                            break;
+                        default:
+                            // if not a custom attribute + no binding command + not a bindable + not an interpolation
+                            // then it's just a plain attribute
+                            instructions.push(new SetAttributeInstruction(realAttrValue, attrName));
+                    }
+                }
+            }
+            else {
+                expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
+                commandBuildInfo.node = el;
+                commandBuildInfo.attr = attrSyntax;
+                commandBuildInfo.expr = expr;
+                commandBuildInfo.bindable = null;
+                commandBuildInfo.def = null;
+                instructions.push(bindingCommand.build(commandBuildInfo));
+            }
+        }
+        if (attrInstructions != null) {
+            return attrInstructions.concat(instructions);
+        }
+        return instructions;
+    }
+    // overall flow:
+    // each of the method will be responsible for compiling its corresponding node type
+    // and it should return the next node to be compiled
+    /** @internal */
+    node(node, context) {
+        switch (node.nodeType) {
+            case 1:
+                switch (node.nodeName) {
+                    case 'LET':
+                        return this.declare(node, context);
+                    // ------------------------------------
+                    // todo: possible optimization:
+                    // when two conditions below are met:
+                    // 1. there's no attribute on au slot,
+                    // 2. there's no projection
+                    //
+                    // -> flatten the au-slot into children as this is just a static template
+                    // ------------------------------------
+                    // case 'AU-SLOT':
+                    //   return this.auSlot(node as Element, container, context);
+                    default:
+                        return this.element(node, context);
+                }
+            case 3:
+                return this.text(node, context);
+            case 11: {
+                let current = node.firstChild;
+                while (current !== null) {
+                    current = this.node(current, context);
+                }
+                break;
+            }
+        }
+        return node.nextSibling;
+    }
+    /** @internal */
+    declare(el, context) {
+        const attrs = el.attributes;
+        const ii = attrs.length;
+        const letInstructions = [];
+        const exprParser = context.exprParser;
+        let toBindingContext = false;
+        let i = 0;
+        let attr;
+        let attrSyntax;
+        let attrName;
+        let attrValue;
+        let bindingCommand;
+        let realAttrTarget;
+        let realAttrValue;
+        let expr;
+        for (; ii > i; ++i) {
+            attr = attrs[i];
+            attrName = attr.name;
+            attrValue = attr.value;
+            if (attrName === 'to-binding-context') {
+                toBindingContext = true;
+                continue;
+            }
+            attrSyntax = context.attrParser.parse(attrName, attrValue);
+            realAttrTarget = attrSyntax.target;
+            realAttrValue = attrSyntax.rawValue;
+            bindingCommand = context.command(attrSyntax);
+            if (bindingCommand !== null) {
+                // supporting one time may not be as simple as it appears
+                // as the let expression could compute its value from various expressions,
+                // which means some value could be unavailable by the time it computes.
+                //
+                // Onetime means it will not have appropriate value, but it's also a good thing,
+                // since often one it's just a simple declaration
+                // todo: consider supporting one-time for <let>
+                if (bindingCommand.bindingType === 50 /* ToViewCommand */
+                    || bindingCommand.bindingType === 53 /* BindCommand */) {
+                    letInstructions.push(new LetBindingInstruction(exprParser.parse(realAttrValue, bindingCommand.bindingType), camelCase(realAttrTarget)));
+                    continue;
+                }
+                throw new Error('Invalid binding command for <let>. Only to-view/bind supported.');
+            }
+            expr = exprParser.parse(realAttrValue, 2048 /* Interpolation */);
+            if (expr === null) {
+                context.logger.warn(`Property ${realAttrTarget} is declared with literal string ${realAttrValue}. ` +
+                    `Did you mean ${realAttrTarget}.bind="${realAttrValue}"?`);
+            }
+            letInstructions.push(new LetBindingInstruction(expr === null ? new PrimitiveLiteralExpression(realAttrValue) : expr, realAttrTarget));
+        }
+        context.rows.push([new HydrateLetElementInstruction(letInstructions, toBindingContext)]);
+        // probably no need to replace
+        // as the let itself can be used as is
+        // though still need to mark el as target to ensure the instruction is matched with a target
+        return this.mark(el).nextSibling;
+    }
+    /** @internal */
+    // eslint-disable-next-line
+    element(el, context) {
+        var _a, _b, _c, _d, _e, _f;
+        var _g, _h;
+        // instructions sort:
+        // 1. hydrate custom element instruction
+        // 2. hydrate custom attribute instructions
+        // 3. rest kept as is (except special cases & to-be-decided)
+        const nextSibling = el.nextSibling;
+        const elName = ((_a = el.getAttribute('as-element')) !== null && _a !== void 0 ? _a : el.nodeName).toLowerCase();
+        const elDef = context.el(elName);
+        const isAuSlot = elName === 'au-slot';
+        const attrParser = context.attrParser;
+        const exprParser = context.exprParser;
+        const attrSyntaxTransformer = context.attrTransformer;
+        const isAttrsOrderSensitive = this.shouldReorderAttrs(el);
+        let attrs = el.attributes;
+        let instructions;
+        let ii = attrs.length;
+        let i = 0;
+        let attr;
+        let attrName;
+        let attrValue;
+        let attrSyntax;
+        let plainAttrInstructions;
+        let elBindableInstructions;
+        let attrDef = null;
+        let isMultiBindings = false;
+        let bindable;
+        let attrInstructions;
+        let attrBindableInstructions;
+        let tcInstructions;
+        let tcInstruction;
+        let expr;
+        let elementInstruction;
+        let bindingCommand = null;
+        // eslint-disable-next-line
+        let bindablesInfo;
+        let primaryBindable;
+        let realAttrTarget;
+        let realAttrValue;
+        let processContentResult = true;
+        if (elName === 'slot') {
+            context.root.hasSlot = true;
+        }
+        if (elDef !== null) {
+            // todo: this is a bit ... powerful
+            // maybe do not allow it to process its own attributes
+            processContentResult = (_b = elDef.processContent) === null || _b === void 0 ? void 0 : _b.call(elDef.Type, el, context.p);
+            // might have changed during the process
+            attrs = el.attributes;
+            ii = attrs.length;
+        }
+        for (; ii > i; ++i) {
+            attr = attrs[i];
+            attrName = attr.name;
+            attrValue = attr.value;
+            if (attrName === 'as-element') {
+                continue;
+            }
+            attrSyntax = attrParser.parse(attrName, attrValue);
+            bindingCommand = context.command(attrSyntax);
+            if (bindingCommand !== null && bindingCommand.bindingType & 4096 /* IgnoreAttr */) {
+                // when the binding command overrides everything
+                // just pass the target as is to the binding command, and treat it as a normal attribute:
+                // active.class="..."
+                // background.style="..."
+                // my-attr.attr="..."
+                expr = exprParser.parse(attrValue, bindingCommand.bindingType);
+                commandBuildInfo.node = el;
+                commandBuildInfo.attr = attrSyntax;
+                commandBuildInfo.expr = expr;
+                commandBuildInfo.bindable = null;
+                commandBuildInfo.def = null;
+                (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(bindingCommand.build(commandBuildInfo));
+                // to next attribute
+                continue;
+            }
+            realAttrTarget = attrSyntax.target;
+            realAttrValue = attrSyntax.rawValue;
+            // if not a ignore attribute binding command
+            // then process with the next possibilities
+            attrDef = context.attr(realAttrTarget);
+            // when encountering an attribute,
+            // custom attribute takes precedence over custom element bindables
+            if (attrDef !== null) {
+                bindablesInfo = BindablesInfo.from(attrDef, true);
+                // Custom attributes are always in multiple binding mode,
+                // except when they can't be
+                // When they cannot be:
+                //        * has explicit configuration noMultiBindings: false
+                //        * has binding command, ie: <div my-attr.bind="...">.
+                //          In this scenario, the value of the custom attributes is required to be a valid expression
+                //        * has no colon: ie: <div my-attr="abcd">
+                //          In this scenario, it's simply invalid syntax.
+                //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
+                isMultiBindings = attrDef.noMultiBindings === false
+                    && bindingCommand === null
+                    && hasInlineBindings(attrValue);
+                if (isMultiBindings) {
+                    attrBindableInstructions = this.multiBindings(el, attrValue, attrDef, context);
+                }
+                else {
+                    primaryBindable = bindablesInfo.primary;
+                    // custom attribute + single value + WITHOUT binding command:
+                    // my-attr=""
+                    // my-attr="${}"
+                    if (bindingCommand === null) {
+                        expr = exprParser.parse(attrValue, 2048 /* Interpolation */);
+                        attrBindableInstructions = [
+                            expr === null
+                                ? new SetPropertyInstruction(attrValue, primaryBindable.property)
+                                : new InterpolationInstruction(expr, primaryBindable.property)
+                        ];
+                    }
+                    else {
+                        // custom attribute with binding command:
+                        // my-attr.bind="..."
+                        // my-attr.two-way="..."
+                        expr = exprParser.parse(attrValue, bindingCommand.bindingType);
+                        commandBuildInfo.node = el;
+                        commandBuildInfo.attr = attrSyntax;
+                        commandBuildInfo.expr = expr;
+                        commandBuildInfo.bindable = primaryBindable;
+                        commandBuildInfo.def = attrDef;
+                        attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
+                    }
+                }
+                el.removeAttribute(attrName);
+                --i;
+                --ii;
+                if (attrDef.isTemplateController) {
+                    (tcInstructions !== null && tcInstructions !== void 0 ? tcInstructions : (tcInstructions = [])).push(new HydrateTemplateController(voidDefinition, attrDef.name, void 0, attrBindableInstructions));
+                    // to next attribute
+                    continue;
+                }
+                (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new HydrateAttributeInstruction(attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0, attrBindableInstructions));
+                continue;
+            }
+            if (bindingCommand === null) {
+                // reaching here means:
+                // + maybe a bindable attribute with interpolation
+                // + maybe a plain attribute with interpolation
+                // + maybe a plain attribute
+                if (elDef !== null) {
+                    bindablesInfo = BindablesInfo.from(elDef, false);
+                    bindable = bindablesInfo.attrs[realAttrTarget];
+                    if (bindable !== void 0) {
+                        expr = exprParser.parse(realAttrValue, 2048 /* Interpolation */);
+                        elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : (elBindableInstructions = []);
+                        if (expr != null) {
+                            // if it's an interpolation, remove the attribute
+                            el.removeAttribute(attrName);
+                            --i;
+                            --ii;
+                            elBindableInstructions.push(new InterpolationInstruction(expr, bindable.property));
+                        }
+                        else {
+                            elBindableInstructions.push(new SetPropertyInstruction(realAttrValue, bindable.property));
+                        }
+                        continue;
+                    }
+                }
+                // reaching here means:
+                // + maybe a plain attribute with interpolation
+                // + maybe a plain attribute
+                expr = exprParser.parse(realAttrValue, 2048 /* Interpolation */);
+                if (expr != null) {
+                    // if it's an interpolation, remove the attribute
+                    el.removeAttribute(attrName);
+                    --i;
+                    --ii;
+                    (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(new InterpolationInstruction(expr, (_c = 
+                    // if not a bindable, then ensure plain attribute are mapped correctly:
+                    // e.g: colspan -> colSpan
+                    //      innerhtml -> innerHTML
+                    //      minlength -> minLengt etc...
+                    attrSyntaxTransformer.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : camelCase(realAttrTarget)));
+                }
+                // if not a custom attribute + no binding command + not a bindable + not an interpolation
+                // then it's just a plain attribute, do nothing
+                continue;
+            }
+            // reaching here means:
+            // + has binding command
+            // + not an overriding binding command
+            // + not a custom attribute
+            if (elDef !== null) {
+                // if the element is a custom element
+                // - prioritize bindables on a custom element before plain attributes
+                bindablesInfo = BindablesInfo.from(elDef, false);
+                bindable = bindablesInfo.attrs[realAttrTarget];
+                if (bindable !== void 0) {
+                    // if it looks like: <my-el value.bind>
+                    // it means        : <my-el value.bind="value">
+                    // this is a shortcut
+                    // and reuse attrValue variable
+                    attrValue = attrValue.length === 0
+                        && (bindingCommand.bindingType & (53 /* BindCommand */
+                            | 49 /* OneTimeCommand */
+                            | 50 /* ToViewCommand */
+                            | 52 /* TwoWayCommand */)) > 0
+                        ? camelCase(attrName)
+                        : attrValue;
+                    expr = exprParser.parse(attrValue, bindingCommand.bindingType);
+                    commandBuildInfo.node = el;
+                    commandBuildInfo.attr = attrSyntax;
+                    commandBuildInfo.expr = expr;
+                    commandBuildInfo.bindable = bindable;
+                    commandBuildInfo.def = elDef;
+                    (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : (elBindableInstructions = [])).push(bindingCommand.build(commandBuildInfo));
+                    continue;
+                }
+            }
+            // old: mutate attr syntax before building instruction
+            // reaching here means:
+            // + a plain attribute
+            // + has binding command
+            expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
+            commandBuildInfo.node = el;
+            commandBuildInfo.attr = attrSyntax;
+            commandBuildInfo.expr = expr;
+            commandBuildInfo.bindable = null;
+            commandBuildInfo.def = null;
+            (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(bindingCommand.build(commandBuildInfo));
+        }
+        commandBuildInfo.node
+            = commandBuildInfo.attr
+                = commandBuildInfo.expr
+                    = commandBuildInfo.bindable
+                        = commandBuildInfo.def = null;
+        if (isAttrsOrderSensitive && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
+            this.reorder(el, plainAttrInstructions);
+        }
+        if (elDef !== null) {
+            let slotInfo = null;
+            if (isAuSlot) {
+                const slotName = el.getAttribute('name') || /* name="" is the same with no name */ 'default';
+                const projection = (_d = context.ci.projections) === null || _d === void 0 ? void 0 : _d[slotName];
+                let fallbackContentContext;
+                let template;
+                let node;
+                if (projection == null) {
+                    template = context.h('template');
+                    node = el.firstChild;
+                    while (node !== null) {
+                        // a special case:
+                        // <au-slot> doesn't have its own template
+                        // so anything attempting to project into it is discarded
+                        // doing so during compilation via removing the node,
+                        // instead of considering it as part of the fallback view
+                        if (node.nodeType === 1 && node.hasAttribute('au-slot')) {
+                            el.removeChild(node);
+                        }
+                        else {
+                            template.content.appendChild(node);
+                        }
+                        node = el.firstChild;
+                    }
+                    fallbackContentContext = context.child();
+                    this.node(template.content, fallbackContentContext);
+                    slotInfo = new SlotInfo(slotName, AuSlotContentType.Fallback, CustomElementDefinition.create({
+                        name: CustomElement.generateName(),
+                        template,
+                        instructions: fallbackContentContext.rows,
+                        needsCompile: false,
+                    }));
+                }
+                else {
+                    slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, projection);
+                }
+                el = this.marker(el, context);
+            }
+            elementInstruction = new HydrateElementInstruction(elDef.name, void 0, (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : emptyArray), null, slotInfo);
+        }
+        if (plainAttrInstructions != null
+            || elementInstruction != null
+            || attrInstructions != null) {
+            instructions = emptyArray.concat(elementInstruction !== null && elementInstruction !== void 0 ? elementInstruction : emptyArray, attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : emptyArray, plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : emptyArray);
+            this.mark(el);
+        }
+        let shouldCompileContent;
+        if (tcInstructions != null) {
+            ii = tcInstructions.length - 1;
+            i = ii;
+            tcInstruction = tcInstructions[i];
+            let template;
+            // assumption: el.parentNode is not null
+            // but not always the case: e.g compile/enhance an element without parent with TC on it
+            this.marker(el, context);
+            if (el.nodeName === 'TEMPLATE') {
+                template = el;
+            }
+            else {
+                template = context.h('template');
+                template.content.appendChild(el);
+            }
+            const mostInnerTemplate = template;
+            const childContext = context.child(instructions == null ? [] : [instructions]);
+            shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
+            if (elDef === null || elDef === void 0 ? void 0 : elDef.containerless) {
+                this.marker(el, context);
+            }
+            let child;
+            let childEl;
+            let targetSlot;
+            let projections;
+            let slotTemplateRecord;
+            let slotTemplates;
+            let slotTemplate;
+            let marker;
+            let projectionCompilationContext;
+            let j = 0, jj = 0;
+            if (shouldCompileContent) {
+                if (elDef !== null) {
+                    // for each child element of a custom element
+                    // scan for [au-slot], if there's one
+                    // then extract the element into a projection definition
+                    // this allows support for [au-slot] declared on the same element with anther template controller
+                    // e.g:
+                    //
+                    // can do:
+                    //  <my-el>
+                    //    <div au-slot if.bind="..."></div>
+                    //    <div if.bind="..." au-slot></div>
+                    //  </my-el>
+                    //
+                    // instead of:
+                    //  <my-el>
+                    //    <template au-slot><div if.bind="..."></div>
+                    //  </my-el>
+                    child = el.firstChild;
+                    while (child !== null) {
+                        if (child.nodeType === 1) {
+                            // if has [au-slot] then it's a projection
+                            childEl = child;
+                            child = child.nextSibling;
+                            targetSlot = childEl.getAttribute('au-slot');
+                            if (targetSlot !== null) {
+                                if (targetSlot === '') {
+                                    targetSlot = 'default';
+                                }
+                                childEl.removeAttribute('au-slot');
+                                el.removeChild(childEl);
+                                ((_e = (_g = (slotTemplateRecord !== null && slotTemplateRecord !== void 0 ? slotTemplateRecord : (slotTemplateRecord = {})))[targetSlot]) !== null && _e !== void 0 ? _e : (_g[targetSlot] = [])).push(childEl);
+                            }
+                            // if not a targeted slot then use the common node method
+                            // todo: in the future, there maybe more special case for a content of a custom element
+                            //       it can be all done here
+                        }
+                        else {
+                            child = child.nextSibling;
+                        }
+                    }
+                    if (slotTemplateRecord != null) {
+                        projections = {};
+                        // aggregate all content targeting the same slot
+                        // into a single template
+                        // with some special rule around <template> element
+                        for (targetSlot in slotTemplateRecord) {
+                            template = context.h('template');
+                            slotTemplates = slotTemplateRecord[targetSlot];
+                            for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
+                                slotTemplate = slotTemplates[j];
+                                if (slotTemplate.nodeName === 'TEMPLATE') {
+                                    // this means user has some thing more than [au-slot] on a template
+                                    // consider this intentional, and use it as is
+                                    // e.g:
+                                    // <my-element>
+                                    //   <template au-slot repeat.for="i of items">
+                                    // ----vs----
+                                    // <my-element>
+                                    //   <template au-slot>this is just some static stuff <b>And a b</b></template>
+                                    if (slotTemplate.attributes.length > 0) {
+                                        template.content.appendChild(slotTemplate);
+                                    }
+                                    else {
+                                        template.content.appendChild(slotTemplate.content);
+                                    }
+                                }
+                                else {
+                                    template.content.appendChild(slotTemplate);
+                                }
+                            }
+                            // after aggregating all the [au-slot] templates into a single one
+                            // compile it
+                            // technically, the most inner template controller compilation context
+                            // is the parent of this compilation context
+                            // but for simplicity in compilation, maybe start with a flatter hierarchy
+                            // also, it wouldn't have any real uses
+                            projectionCompilationContext = context.child();
+                            this.node(template.content, projectionCompilationContext);
+                            projections[targetSlot] = CustomElementDefinition.create({
+                                name: CustomElement.generateName(),
+                                template,
+                                instructions: projectionCompilationContext.rows,
+                                needsCompile: false,
+                            });
+                        }
+                        elementInstruction.projections = projections;
+                    }
+                }
+                // important:
+                // ======================
+                // only goes inside a template, if there is a template controller on it
+                // otherwise, leave it alone
+                if (el.nodeName === 'TEMPLATE') {
+                    this.node(el.content, childContext);
+                }
+                else {
+                    child = el.firstChild;
+                    while (child !== null) {
+                        child = this.node(child, childContext);
+                    }
+                }
+            }
+            tcInstruction.def = CustomElementDefinition.create({
+                name: CustomElement.generateName(),
+                template: mostInnerTemplate,
+                instructions: childContext.rows,
+                needsCompile: false,
+            });
+            while (i-- > 0) {
+                // for each of the template controller from [right] to [left]
+                // do create:
+                // (1) a template
+                // (2) add a marker to the template
+                // (3) an instruction
+                // instruction will be corresponded to the marker
+                // =========================
+                tcInstruction = tcInstructions[i];
+                template = context.h('template');
+                // appending most inner template is inaccurate, as the most outer one
+                // is not really the parent of the most inner one
+                // but it's only for the purpose of creating a marker,
+                // so it's just an optimization hack
+                marker = context.h('au-m');
+                marker.classList.add('au');
+                template.content.appendChild(marker);
+                if (tcInstruction.def !== voidDefinition) {
+                    throw new Error(`Invalid definition for processing ${tcInstruction.res}.`);
+                }
+                tcInstruction.def = CustomElementDefinition.create({
+                    name: CustomElement.generateName(),
+                    template,
+                    needsCompile: false,
+                    instructions: [[tcInstructions[i + 1]]]
+                });
+            }
+            // the most outer template controller should be
+            // the only instruction for peek instruction of the current context
+            // e.g
+            // <div if.bind="yes" with.bind="scope" repeat.for="i of items" data-id="i.id">
+            // results in:
+            // -----------
+            //
+            //  TC(if-[value=yes])
+            //    | TC(with-[value=scope])
+            //        | TC(repeat-[...])
+            //            | div(data-id-[value=i.id])
+            context.rows.push([tcInstruction]);
+        }
+        else {
+            // if there's no template controller
+            // then the instruction built is appropriate to be assigned as the peek row
+            // and before the children compilation
+            if (instructions != null) {
+                context.rows.push(instructions);
+            }
+            shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
+            if (elDef === null || elDef === void 0 ? void 0 : elDef.containerless) {
+                this.marker(el, context);
+            }
+            if (shouldCompileContent && el.childNodes.length > 0) {
+                let child = el.firstChild;
+                let childEl;
+                let targetSlot;
+                let projections = null;
+                let slotTemplateRecord;
+                let slotTemplates;
+                let slotTemplate;
+                let template;
+                let projectionCompilationContext;
+                let j = 0, jj = 0;
+                // for each child element of a custom element
+                // scan for [au-slot], if there's one
+                // then extract the element into a projection definition
+                // this allows support for [au-slot] declared on the same element with anther template controller
+                // e.g:
+                //
+                // can do:
+                //  <my-el>
+                //    <div au-slot if.bind="..."></div>
+                //    <div if.bind="..." au-slot></div>
+                //  </my-el>
+                //
+                // instead of:
+                //  <my-el>
+                //    <template au-slot><div if.bind="..."></div>
+                //  </my-el>
+                while (child !== null) {
+                    if (child.nodeType === 1) {
+                        // if has [au-slot] then it's a projection
+                        childEl = child;
+                        child = child.nextSibling;
+                        targetSlot = childEl.getAttribute('au-slot');
+                        if (targetSlot !== null) {
+                            if (elDef === null) {
+                                throw new Error(`Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
+                            }
+                            if (targetSlot === '') {
+                                targetSlot = 'default';
+                            }
+                            el.removeChild(childEl);
+                            childEl.removeAttribute('au-slot');
+                            ((_f = (_h = (slotTemplateRecord !== null && slotTemplateRecord !== void 0 ? slotTemplateRecord : (slotTemplateRecord = {})))[targetSlot]) !== null && _f !== void 0 ? _f : (_h[targetSlot] = [])).push(childEl);
+                        }
+                        // if not a targeted slot then use the common node method
+                        // todo: in the future, there maybe more special case for a content of a custom element
+                        //       it can be all done here
+                    }
+                    else {
+                        child = child.nextSibling;
+                    }
+                }
+                if (slotTemplateRecord != null) {
+                    projections = {};
+                    // aggregate all content targeting the same slot
+                    // into a single template
+                    // with some special rule around <template> element
+                    for (targetSlot in slotTemplateRecord) {
+                        template = context.h('template');
+                        slotTemplates = slotTemplateRecord[targetSlot];
+                        for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
+                            slotTemplate = slotTemplates[j];
+                            if (slotTemplate.nodeName === 'TEMPLATE') {
+                                // this means user has some thing more than [au-slot] on a template
+                                // consider this intentional, and use it as is
+                                // e.g:
+                                // <my-element>
+                                //   <template au-slot repeat.for="i of items">
+                                // ----vs----
+                                // <my-element>
+                                //   <template au-slot>this is just some static stuff <b>And a b</b></template>
+                                if (slotTemplate.attributes.length > 0) {
+                                    template.content.appendChild(slotTemplate);
+                                }
+                                else {
+                                    template.content.appendChild(slotTemplate.content);
+                                }
+                            }
+                            else {
+                                template.content.appendChild(slotTemplate);
+                            }
+                        }
+                        // after aggregating all the [au-slot] templates into a single one
+                        // compile it
+                        projectionCompilationContext = context.child();
+                        this.node(template.content, projectionCompilationContext);
+                        projections[targetSlot] = CustomElementDefinition.create({
+                            name: CustomElement.generateName(),
+                            template,
+                            instructions: projectionCompilationContext.rows,
+                            needsCompile: false,
+                        });
+                    }
+                    elementInstruction.projections = projections;
+                }
+                child = el.firstChild;
+                while (child !== null) {
+                    child = this.node(child, context);
+                }
+            }
+        }
+        return nextSibling;
+    }
+    /** @internal */
+    text(node, context) {
+        let text = '';
+        let current = node;
+        while (current !== null && current.nodeType === 3) {
+            text += current.textContent;
+            current = current.nextSibling;
+        }
+        const expr = context.exprParser.parse(text, 2048 /* Interpolation */);
+        if (expr === null) {
+            return current;
+        }
+        const parent = node.parentNode;
+        // prepare a marker
+        parent.insertBefore(this.mark(context.h('au-m')), node);
+        // and the corresponding instruction
+        context.rows.push([new TextBindingInstruction(expr, !!context.def.isStrictBinding)]);
+        // and cleanup all the DOM for rendering text binding
+        node.textContent = '';
+        current = node.nextSibling;
+        while (current !== null && current.nodeType === 3) {
+            parent.removeChild(current);
+            current = node.nextSibling;
+        }
+        return node.nextSibling;
+    }
+    /** @internal */
+    multiBindings(node, attrRawValue, attrDef, context) {
+        // custom attribute + multiple values:
+        // my-attr="prop1: literal1 prop2.bind: ...; prop3: literal3"
+        // my-attr="prop1.bind: ...; prop2.bind: ..."
+        // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
+        const bindableAttrsInfo = BindablesInfo.from(attrDef, true);
+        const valueLength = attrRawValue.length;
+        const instructions = [];
+        let attrName = void 0;
+        let attrValue = void 0;
+        let start = 0;
+        let ch = 0;
+        let expr;
+        let attrSyntax;
+        let command;
+        let bindable;
+        for (let i = 0; i < valueLength; ++i) {
+            ch = attrRawValue.charCodeAt(i);
+            if (ch === 92 /* Backslash */) {
+                ++i;
+                // Ignore whatever comes next because it's escaped
+            }
+            else if (ch === 58 /* Colon */) {
+                attrName = attrRawValue.slice(start, i);
+                // Skip whitespace after colon
+                while (attrRawValue.charCodeAt(++i) <= 32 /* Space */)
+                    ;
+                start = i;
+                for (; i < valueLength; ++i) {
+                    ch = attrRawValue.charCodeAt(i);
+                    if (ch === 92 /* Backslash */) {
+                        ++i;
+                        // Ignore whatever comes next because it's escaped
+                    }
+                    else if (ch === 59 /* Semicolon */) {
+                        attrValue = attrRawValue.slice(start, i);
+                        break;
+                    }
+                }
+                if (attrValue === void 0) {
+                    // No semicolon found, so just grab the rest of the value
+                    attrValue = attrRawValue.slice(start);
+                }
+                attrSyntax = context.attrParser.parse(attrName, attrValue);
+                // ================================================
+                // todo: should it always camel case???
+                // const attrTarget = camelCase(attrSyntax.target);
+                // ================================================
+                command = context.command(attrSyntax);
+                bindable = bindableAttrsInfo.attrs[attrSyntax.target];
+                if (bindable == null) {
+                    throw new Error(`Bindable ${attrSyntax.target} not found on ${attrDef.name}.`);
+                }
+                if (command === null) {
+                    expr = context.exprParser.parse(attrValue, 2048 /* Interpolation */);
+                    instructions.push(expr === null
+                        ? new SetPropertyInstruction(attrValue, bindable.property)
+                        : new InterpolationInstruction(expr, bindable.property));
+                }
+                else {
+                    expr = context.exprParser.parse(attrValue, command.bindingType);
+                    commandBuildInfo.node = node;
+                    commandBuildInfo.attr = attrSyntax;
+                    commandBuildInfo.expr = expr;
+                    commandBuildInfo.bindable = bindable;
+                    commandBuildInfo.def = attrDef;
+                    // instructions.push(command.compile(new BindingSymbol(command, bindable, expr, attrValue, attrName)));
+                    instructions.push(command.build(commandBuildInfo));
+                }
+                // Skip whitespace after semicolon
+                while (i < valueLength && attrRawValue.charCodeAt(++i) <= 32 /* Space */)
+                    ;
+                start = i;
+                attrName = void 0;
+                attrValue = void 0;
+            }
+        }
+        return instructions;
+    }
+    /** @internal */
+    local(template, context) {
+        const root = template;
+        const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]'));
+        const numLocalTemplates = localTemplates.length;
+        if (numLocalTemplates === 0) {
+            return;
+        }
+        if (numLocalTemplates === root.childElementCount) {
+            throw new Error('The custom element does not have any content other than local template(s).');
+        }
+        const localTemplateNames = new Set();
+        for (const localTemplate of localTemplates) {
+            if (localTemplate.parentNode !== root) {
+                throw new Error('Local templates needs to be defined directly under root.');
+            }
+            const name = processTemplateName(localTemplate, localTemplateNames);
+            const LocalTemplateType = class LocalTemplate {
+            };
+            const content = localTemplate.content;
+            const bindableEls = toArray(content.querySelectorAll('bindable'));
+            const bindableInstructions = Bindable.for(LocalTemplateType);
+            const properties = new Set();
+            const attributes = new Set();
+            for (const bindableEl of bindableEls) {
+                if (bindableEl.parentNode !== content) {
+                    throw new Error('Bindable properties of local templates needs to be defined directly under root.');
+                }
+                const property = bindableEl.getAttribute("property" /* property */);
+                if (property === null) {
+                    throw new Error(`The attribute 'property' is missing in ${bindableEl.outerHTML}`);
+                }
+                const attribute = bindableEl.getAttribute("attribute" /* attribute */);
+                if (attribute !== null
+                    && attributes.has(attribute)
+                    || properties.has(property)) {
+                    throw new Error(`Bindable property and attribute needs to be unique; found property: ${property}, attribute: ${attribute}`);
+                }
+                else {
+                    if (attribute !== null) {
+                        attributes.add(attribute);
+                    }
+                    properties.add(property);
+                }
+                bindableInstructions.add({
+                    property,
+                    attribute: attribute !== null && attribute !== void 0 ? attribute : void 0,
+                    mode: getBindingMode(bindableEl),
+                });
+                const ignoredAttributes = bindableEl.getAttributeNames().filter((attrName) => !allowedLocalTemplateBindableAttributes.includes(attrName));
+                if (ignoredAttributes.length > 0) {
+                    context.logger.warn(`The attribute(s) ${ignoredAttributes.join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
+                }
+                content.removeChild(bindableEl);
+            }
+            context.register(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
+            root.removeChild(localTemplate);
+        }
+    }
+    shouldReorderAttrs(el) {
+        return el.nodeName === 'INPUT' && orderSensitiveInputType[el.type] === 1;
+    }
+    reorder(el, instructions) {
+        switch (el.nodeName) {
+            case 'INPUT': {
+                const _instructions = instructions;
+                // swap the order of checked and model/value attribute,
+                // so that the required observers are prepared for checked-observer
+                let modelOrValueOrMatcherIndex = void 0;
+                let checkedIndex = void 0;
+                let found = 0;
+                let instruction;
+                for (let i = 0; i < _instructions.length && found < 3; i++) {
+                    instruction = _instructions[i];
+                    switch (instruction.to) {
+                        case 'model':
+                        case 'value':
+                        case 'matcher':
+                            modelOrValueOrMatcherIndex = i;
+                            found++;
+                            break;
+                        case 'checked':
+                            checkedIndex = i;
+                            found++;
+                            break;
+                    }
+                }
+                if (checkedIndex !== void 0 && modelOrValueOrMatcherIndex !== void 0 && checkedIndex < modelOrValueOrMatcherIndex) {
+                    [_instructions[modelOrValueOrMatcherIndex], _instructions[checkedIndex]] = [_instructions[checkedIndex], _instructions[modelOrValueOrMatcherIndex]];
+                }
+            }
+        }
+    }
+    /**
+     * Mark an element as target with a special css class
+     * and return it
+     *
+     * @internal
+     */
+    mark(el) {
+        el.classList.add('au');
+        return el;
+    }
+    /**
+     * Replace an element with a marker, and return the marker
+     *
+     * @internal
+     */
+    marker(node, context) {
+        // todo: assumption made: parentNode won't be null
+        const parent = node.parentNode;
+        const marker = context.h('au-m');
+        this.mark(parent.insertBefore(marker, node));
+        parent.removeChild(node);
+        return marker;
+    }
+}
+// this class is intended to be an implementation encapsulating the information at the root level of a template
+// this works at the time this is created because everything inside a template should be retrieved
+// from the root itself.
+// if anytime in the future, where it's desirable to retrieve information from somewhere other than root
+// then consider dropping this
+// goal: hide the root container, and all the resources finding calls
+class CompilationContext {
+    constructor(def, container, compilationInstruction, parent, root, instructions) {
+        this.hasSlot = false;
+        // todo: ideally binding command shouldn't have to be cached
+        // it can just be a singleton where it' retrieved
+        // the resources semantic should be defined by the resource itself,
+        // rather than baked in the container
+        this.commands = createLookup();
+        const hasParent = parent !== null;
+        this.c = container;
+        this.root = root === null ? this : root;
+        this.def = def;
+        this.ci = compilationInstruction;
+        this.parent = parent;
+        this.templateFactory = hasParent ? parent.templateFactory : container.get(ITemplateElementFactory);
+        // todo: attr parser should be retrieved based in resource semantic (current leaf + root + ignore parent)
+        this.attrParser = hasParent ? parent.attrParser : container.get(IAttributeParser);
+        this.exprParser = hasParent ? parent.exprParser : container.get(IExpressionParser);
+        this.attrTransformer = hasParent ? parent.attrTransformer : container.get(IAttrSyntaxTransformer);
+        this.logger = hasParent ? parent.logger : container.get(ILogger);
+        this.p = hasParent ? parent.p : container.get(IPlatform);
+        this.localEls = hasParent ? parent.localEls : new Set();
+        this.rows = instructions !== null && instructions !== void 0 ? instructions : [];
+    }
+    // todo: later can be extended to more (AttrPattern, command etc)
+    register(def) {
+        this.root.c.register(def);
+    }
+    h(name) {
+        const el = this.p.document.createElement(name);
+        if (name === 'template') {
+            this.p.document.adoptNode(el.content);
+        }
+        return el;
+    }
+    el(name) {
+        return this.c.find(CustomElement, name);
+    }
+    attr(name) {
+        return this.c.find(CustomAttribute, name);
+    }
+    child(instructions) {
+        return new CompilationContext(this.def, this.c, this.ci, this, this.root, instructions);
+    }
+    /**
+     *Retrieve a binding command resource.
+     *
+     * @param name - The parsed `AttrSyntax`
+     *
+     * @returns An instance of the command if it exists, or `null` if it does not exist.
+     */
+    command(syntax) {
+        if (this.root !== this) {
+            return this.root.command(syntax);
+        }
+        const name = syntax.command;
+        if (name === null) {
+            return null;
+        }
+        let result = this.commands[name];
+        if (result === void 0) {
+            result = this.c.create(BindingCommand, name);
+            if (result === null) {
+                throw new Error(`Unknown binding command: ${name}`);
+            }
+            this.commands[name] = result;
+        }
+        return result;
+    }
+}
+function hasInlineBindings(rawValue) {
+    const len = rawValue.length;
+    let ch = 0;
+    for (let i = 0; i < len; ++i) {
+        ch = rawValue.charCodeAt(i);
+        if (ch === 92 /* Backslash */) {
+            ++i;
+            // Ignore whatever comes next because it's escaped
+        }
+        else if (ch === 58 /* Colon */) {
+            return true;
+        }
+        else if (ch === 36 /* Dollar */ && rawValue.charCodeAt(i + 1) === 123 /* OpenBrace */) {
+            return false;
+        }
+    }
+    return false;
+}
+const emptyCompilationInstructions = { projections: null };
+// eslint-disable-next-line
+const voidDefinition = { name: 'unnamed' };
+const commandBuildInfo = {
+    node: null,
+    expr: null,
+    attr: null,
+    bindable: null,
+    def: null,
+};
+const invalidSurrogateAttribute = Object.assign(createLookup(), {
+    'id': true,
+    'name': true,
+    'au-slot': true,
+    'as-element': true,
+});
+const orderSensitiveInputType = {
+    checkbox: 1,
+    radio: 1,
+};
+const bindableAttrsInfoCache = new WeakMap();
+class BindablesInfo {
+    constructor(attrs, bindables, primary) {
+        this.attrs = attrs;
+        this.bindables = bindables;
+        this.primary = primary;
+    }
+    static from(def, isAttr) {
+        let info = bindableAttrsInfoCache.get(def);
+        if (info == null) {
+            const bindables = def.bindables;
+            const attrs = createLookup();
+            const defaultBindingMode = isAttr
+                ? def.defaultBindingMode === void 0
+                    ? BindingMode.default
+                    : def.defaultBindingMode
+                : BindingMode.default;
+            let bindable;
+            let prop;
+            let hasPrimary = false;
+            let primary;
+            let attr;
+            // from all bindables, pick the first primary bindable
+            // if there is no primary, pick the first bindable
+            // if there's no bindables, create a new primary with property value
+            for (prop in bindables) {
+                bindable = bindables[prop];
+                attr = bindable.attribute;
+                if (bindable.primary === true) {
+                    if (hasPrimary) {
+                        throw new Error(`Primary already exists on ${def.name}`);
+                    }
+                    hasPrimary = true;
+                    primary = bindable;
+                }
+                else if (!hasPrimary && primary == null) {
+                    primary = bindable;
+                }
+                attrs[attr] = BindableDefinition.create(prop, bindable);
+            }
+            if (bindable == null && isAttr) {
+                // if no bindables are present, default to "value"
+                primary = attrs.value = BindableDefinition.create('value', { mode: defaultBindingMode });
+            }
+            bindableAttrsInfoCache.set(def, info = new BindablesInfo(attrs, bindables, primary));
+        }
+        return info;
     }
 }
 var LocalTemplateBindableAttributes;
@@ -7444,289 +7666,6 @@ const allowedLocalTemplateBindableAttributes = Object.freeze([
     "mode" /* mode */
 ]);
 const localTemplateIdentifier = 'as-custom-element';
-/**
- * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
- *
- * @internal
- */
-let TemplateCompiler = class TemplateCompiler {
-    constructor(factory, attrParser, exprParser, attrSyntaxModifier, logger, p) {
-        this.factory = factory;
-        this.attrParser = attrParser;
-        this.exprParser = exprParser;
-        this.attrSyntaxModifier = attrSyntaxModifier;
-        this.p = p;
-        this.logger = logger.scopeTo('TemplateCompiler');
-    }
-    get name() {
-        return 'default';
-    }
-    static register(container) {
-        return Registration.singleton(ITemplateCompiler, this).register(container);
-    }
-    compile(partialDefinition, context, compilationInstruction) {
-        const definition = CustomElementDefinition.getOrCreate(partialDefinition);
-        if (definition.template === null || definition.template === void 0) {
-            return definition;
-        }
-        const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
-        const p = context.get(IPlatform);
-        const binder = new TemplateBinder(p, context, attrParser, exprParser, attrSyntaxModifier);
-        const template = definition.enhance === true
-            ? definition.template
-            : factory.createTemplate(definition.template);
-        processLocalTemplates(template, definition, context, p, this.logger);
-        const surrogate = binder.bind(template);
-        const compilation = this.compilation = new CustomElementCompilationUnit(definition, surrogate, template);
-        const customAttributes = surrogate.customAttributes;
-        const plainAttributes = surrogate.plainAttributes;
-        const customAttributeLength = customAttributes.length;
-        const plainAttributeLength = plainAttributes.length;
-        if (customAttributeLength + plainAttributeLength > 0) {
-            let offset = 0;
-            for (let i = 0; customAttributeLength > i; ++i) {
-                compilation.surrogates[offset] = this.compileCustomAttribute(customAttributes[i]);
-                offset++;
-            }
-            for (let i = 0; i < plainAttributeLength; ++i) {
-                compilation.surrogates[offset] = this.compilePlainAttribute(plainAttributes[i], true);
-                offset++;
-            }
-        }
-        this.compileChildNodes(surrogate, compilation.instructions, compilationInstruction);
-        const compiledDefinition = compilation.toDefinition();
-        this.compilation = null;
-        return compiledDefinition;
-    }
-    compileChildNodes(parent, instructionRows, compilationInstruction) {
-        if ((parent.flags & 16384 /* hasChildNodes */) > 0) {
-            const childNodes = parent.childNodes;
-            const ii = childNodes.length;
-            let childNode;
-            for (let i = 0; i < ii; ++i) {
-                childNode = childNodes[i];
-                if ((childNode.flags & 128 /* isText */) > 0) {
-                    instructionRows.push([new TextBindingInstruction(childNode.interpolation)]);
-                }
-                else if ((childNode.flags & 32 /* isLetElement */) > 0) {
-                    const bindings = childNode.bindings;
-                    const instructions = [];
-                    let binding;
-                    const jj = bindings.length;
-                    for (let j = 0; j < jj; ++j) {
-                        binding = bindings[j];
-                        instructions[j] = new LetBindingInstruction(binding.expression, binding.target);
-                    }
-                    instructionRows.push([new HydrateLetElementInstruction(instructions, childNode.toBindingContext)]);
-                }
-                else {
-                    this.compileParentNode(childNode, instructionRows, compilationInstruction);
-                }
-            }
-        }
-    }
-    compileCustomElement(symbol, instructionRows, compilationInstruction) {
-        var _a;
-        const isAuSlot = (symbol.flags & 512 /* isAuSlot */) > 0;
-        // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
-        const instructionRow = this.compileAttributes(symbol, 1);
-        const slotName = symbol.slotName;
-        let slotInfo = null;
-        if (isAuSlot) {
-            const targetedProjection = (_a = compilationInstruction === null || compilationInstruction === void 0 ? void 0 : compilationInstruction.projections) === null || _a === void 0 ? void 0 : _a[slotName];
-            slotInfo = targetedProjection !== void 0
-                ? new SlotInfo(slotName, AuSlotContentType.Projection, targetedProjection)
-                : new SlotInfo(slotName, AuSlotContentType.Fallback, this.compileProjectionFallback(symbol, compilationInstruction));
-        }
-        instructionRow[0] = new HydrateElementInstruction(symbol.res, symbol.info.alias, this.compileBindings(symbol), this.compileProjections(symbol, compilationInstruction), slotInfo);
-        instructionRows.push(instructionRow);
-        if (!isAuSlot) {
-            this.compileChildNodes(symbol, instructionRows, compilationInstruction);
-        }
-    }
-    compilePlainElement(symbol, instructionRows, compilationInstruction) {
-        const attributes = this.compileAttributes(symbol, 0);
-        if (attributes.length > 0) {
-            instructionRows.push(attributes);
-        }
-        this.compileChildNodes(symbol, instructionRows, compilationInstruction);
-    }
-    compileParentNode(symbol, instructionRows, compilationInstruction) {
-        switch (symbol.flags & 1023 /* type */) {
-            case 16 /* isCustomElement */:
-            case 512 /* isAuSlot */:
-                this.compileCustomElement(symbol, instructionRows, compilationInstruction);
-                break;
-            case 64 /* isPlainElement */:
-                this.compilePlainElement(symbol, instructionRows, compilationInstruction);
-                break;
-            case 1 /* isTemplateController */:
-                this.compileTemplateController(symbol, instructionRows, compilationInstruction);
-        }
-    }
-    compileTemplateController(symbol, instructionRows, compilationInstruction) {
-        var _a;
-        const bindings = this.compileBindings(symbol);
-        const controllerInstructionRows = [];
-        this.compileParentNode(symbol.template, controllerInstructionRows, compilationInstruction);
-        const def = CustomElementDefinition.create({
-            name: (_a = symbol.info.alias) !== null && _a !== void 0 ? _a : symbol.info.name,
-            template: symbol.physicalNode,
-            instructions: controllerInstructionRows,
-            needsCompile: false,
-        });
-        instructionRows.push([new HydrateTemplateController(def, symbol.res, symbol.info.alias, bindings)]);
-    }
-    compileBindings(symbol) {
-        let bindingInstructions;
-        if ((symbol.flags & 8192 /* hasBindings */) > 0) {
-            // either a custom element with bindings, a custom attribute / template controller with dynamic options,
-            // or a single value custom attribute binding
-            const { bindings } = symbol;
-            const len = bindings.length;
-            bindingInstructions = Array(len);
-            let i = 0;
-            for (; i < len; ++i) {
-                bindingInstructions[i] = this.compileBinding(bindings[i]);
-            }
-        }
-        else {
-            bindingInstructions = emptyArray;
-        }
-        return bindingInstructions;
-    }
-    compileBinding(symbol) {
-        if (symbol.command === null) {
-            // either an interpolation or a normal string value assigned to an element or attribute binding
-            if (symbol.expression === null) {
-                // the template binder already filtered out non-bindables, so we know we need a setProperty here
-                return new SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
-            }
-            else {
-                // either an element binding interpolation or a dynamic options attribute binding interpolation
-                return new InterpolationInstruction(symbol.expression, symbol.bindable.propName);
-            }
-        }
-        else {
-            // either an element binding command, dynamic options attribute binding command,
-            // or custom attribute / template controller (single value) binding command
-            return symbol.command.compile(symbol);
-        }
-    }
-    compileAttributes(symbol, offset) {
-        let attributeInstructions;
-        if ((symbol.flags & 4096 /* hasAttributes */) > 0) {
-            // any attributes on a custom element (which are not bindables) or a plain element
-            const customAttributes = symbol.customAttributes;
-            const plainAttributes = symbol.plainAttributes;
-            const customAttributeLength = customAttributes.length;
-            const plainAttributesLength = plainAttributes.length;
-            attributeInstructions = Array(offset + customAttributeLength + plainAttributesLength);
-            for (let i = 0; customAttributeLength > i; ++i) {
-                attributeInstructions[offset] = this.compileCustomAttribute(customAttributes[i]);
-                offset++;
-            }
-            for (let i = 0; plainAttributesLength > i; ++i) {
-                attributeInstructions[offset] = this.compilePlainAttribute(plainAttributes[i], false);
-                offset++;
-            }
-        }
-        else if (offset > 0) {
-            attributeInstructions = Array(offset);
-        }
-        else {
-            attributeInstructions = emptyArray;
-        }
-        return attributeInstructions;
-    }
-    compileCustomAttribute(symbol) {
-        // a normal custom attribute (not template controller)
-        const bindings = this.compileBindings(symbol);
-        return new HydrateAttributeInstruction(symbol.res, symbol.info.alias, bindings);
-    }
-    compilePlainAttribute(symbol, isOnSurrogate) {
-        if (symbol.command === null) {
-            const syntax = symbol.syntax;
-            if (symbol.expression === null) {
-                const attrRawValue = syntax.rawValue;
-                if (isOnSurrogate) {
-                    switch (syntax.target) {
-                        case 'class':
-                            return new SetClassAttributeInstruction(attrRawValue);
-                        case 'style':
-                            return new SetStyleAttributeInstruction(attrRawValue);
-                        // todo:  define how to merge other attribute peacefully
-                        //        this is an existing feature request
-                    }
-                }
-                // a plain attribute on a surrogate
-                return new SetAttributeInstruction(attrRawValue, syntax.target);
-            }
-            else {
-                // a plain attribute with an interpolation
-                return new InterpolationInstruction(symbol.expression, syntax.target);
-            }
-        }
-        else {
-            // a plain attribute with a binding command
-            return symbol.command.compile(symbol);
-        }
-    }
-    // private compileAttribute(symbol: IAttributeSymbol): AttributeInstruction {
-    //   // any attribute on a custom element (which is not a bindable) or a plain element
-    //   if (symbol.flags & SymbolFlags.isCustomAttribute) {
-    //     return this.compileCustomAttribute(symbol as CustomAttributeSymbol);
-    //   } else {
-    //     return this.compilePlainAttribute(symbol as PlainAttributeSymbol);
-    //   }
-    // }
-    compileProjections(symbol, compilationInstruction) {
-        if ((symbol.flags & 32768 /* hasProjections */) === 0) {
-            return null;
-        }
-        const p = this.p;
-        const compiledProjections = Object.create(null);
-        const $projections = symbol.projections;
-        const len = $projections.length;
-        for (let i = 0; i < len; ++i) {
-            const projection = $projections[i];
-            const name = projection.name;
-            const instructions = [];
-            this.compileParentNode(projection.template, instructions, compilationInstruction);
-            const definition = compiledProjections[name];
-            if (definition === void 0) {
-                let template = projection.template.physicalNode;
-                if (template.tagName !== 'TEMPLATE') {
-                    const _template = p.document.createElement('template');
-                    _template.content.appendChild(template);
-                    template = _template;
-                }
-                compiledProjections[name] = CustomElementDefinition.create({ name, template, instructions, needsCompile: false });
-            }
-            else {
-                // consolidate the projections to same slot
-                definition.template.content.appendChild(projection.template.physicalNode);
-                definition.instructions.push(...instructions);
-            }
-        }
-        return compiledProjections;
-    }
-    compileProjectionFallback(symbol, compilationInstruction) {
-        const instructions = [];
-        this.compileChildNodes(symbol, instructions, compilationInstruction);
-        const template = this.p.document.createElement('template');
-        template.content.append(...toArray(symbol.physicalNode.childNodes));
-        return CustomElementDefinition.create({ name: CustomElement.generateName(), template, instructions, needsCompile: false });
-    }
-};
-TemplateCompiler = __decorate([
-    __param(0, ITemplateElementFactory),
-    __param(1, IAttributeParser),
-    __param(2, IExpressionParser),
-    __param(3, IAttrSyntaxTransformer),
-    __param(4, ILogger),
-    __param(5, IPlatform)
-], TemplateCompiler);
 function processTemplateName(localTemplate, localTemplateNames) {
     const name = localTemplate.getAttribute(localTemplateIdentifier);
     if (name === null || name === '') {
@@ -7754,76 +7693,6 @@ function getBindingMode(bindable) {
         case 'default':
         default:
             return BindingMode.default;
-    }
-}
-function processLocalTemplates(template, definition, context, p, logger) {
-    let root;
-    if (template.nodeName === 'TEMPLATE') {
-        if (template.hasAttribute(localTemplateIdentifier)) {
-            throw new Error('The root cannot be a local template itself.');
-        }
-        root = template.content;
-    }
-    else {
-        root = template;
-    }
-    const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]'));
-    const numLocalTemplates = localTemplates.length;
-    if (numLocalTemplates === 0) {
-        return;
-    }
-    if (numLocalTemplates === root.childElementCount) {
-        throw new Error('The custom element does not have any content other than local template(s).');
-    }
-    const localTemplateNames = new Set();
-    for (const localTemplate of localTemplates) {
-        if (localTemplate.parentNode !== root) {
-            throw new Error('Local templates needs to be defined directly under root.');
-        }
-        const name = processTemplateName(localTemplate, localTemplateNames);
-        const localTemplateType = class LocalTemplate {
-        };
-        const content = localTemplate.content;
-        const bindableEls = toArray(content.querySelectorAll('bindable'));
-        const bindableInstructions = Bindable.for(localTemplateType);
-        const properties = new Set();
-        const attributes = new Set();
-        for (const bindableEl of bindableEls) {
-            if (bindableEl.parentNode !== content) {
-                throw new Error('Bindable properties of local templates needs to be defined directly under root.');
-            }
-            const property = bindableEl.getAttribute("property" /* property */);
-            if (property === null) {
-                throw new Error(`The attribute 'property' is missing in ${bindableEl.outerHTML}`);
-            }
-            const attribute = bindableEl.getAttribute("attribute" /* attribute */);
-            if (attribute !== null
-                && attributes.has(attribute)
-                || properties.has(property)) {
-                throw new Error(`Bindable property and attribute needs to be unique; found property: ${property}, attribute: ${attribute}`);
-            }
-            else {
-                if (attribute !== null) {
-                    attributes.add(attribute);
-                }
-                properties.add(property);
-            }
-            bindableInstructions.add({
-                property,
-                attribute: attribute !== null && attribute !== void 0 ? attribute : void 0,
-                mode: getBindingMode(bindableEl),
-            });
-            const ignoredAttributes = bindableEl.getAttributeNames().filter((attrName) => !allowedLocalTemplateBindableAttributes.includes(attrName));
-            if (ignoredAttributes.length > 0) {
-                logger.warn(`The attribute(s) ${ignoredAttributes.join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
-            }
-            content.removeChild(bindableEl);
-        }
-        const localTemplateDefinition = CustomElement.define({ name, template: localTemplate }, localTemplateType);
-        // the casting is needed here as the dependencies are typed as readonly array
-        definition.dependencies.push(localTemplateDefinition);
-        context.register(localTemplateDefinition);
-        root.removeChild(localTemplate);
     }
 }
 
@@ -11428,7 +11297,7 @@ const FromViewBindingBehaviorRegistration = FromViewBindingBehavior;
 const SignalBindingBehaviorRegistration = SignalBindingBehavior;
 const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior;
 const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior;
-const ITemplateCompilerRegistration = TemplateCompiler;
+const ITemplateCompilerRegistration = ViewCompiler;
 const INodeObserverLocatorRegistration = NodeObserverLocator;
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
@@ -12256,5 +12125,5 @@ const DialogDefaultConfiguration = createDialogConfiguration(noop, [
     DefaultDialogDomRenderer,
 ]);
 
-export { AdoptedStyleSheetsStyles, AppRoot, AppTask, AtPrefixedTriggerAttributePattern, AtPrefixedTriggerAttributePatternRegistration, AttrBindingBehavior, AttrBindingBehaviorRegistration, AttrBindingCommand, AttrBindingCommandRegistration, AttrInfo, AttrSyntax, AttributeBinding, AttributeBindingInstruction, AttributeBindingRendererRegistration, AttributeNSAccessor, AttributePattern, AuCompose, AuRender, AuSlot, AuSlotContentType, AuSlotsInfo, Aurelia, Bindable, BindableDefinition, BindableInfo, BindableObserver, BindingCommand, BindingCommandDefinition, BindingModeBehavior, BindingSymbol, Blur, BlurManager, CSSModulesProcessorRegistry, CallBinding, CallBindingCommand, CallBindingCommandRegistration, CallBindingInstruction, CallBindingRendererRegistration, CaptureBindingCommand, CaptureBindingCommandRegistration, Case, CheckedObserver, Children, ChildrenDefinition, ChildrenObserver, ClassAttributeAccessor, ClassBindingCommand, ClassBindingCommandRegistration, ColonPrefixedBindAttributePattern, ColonPrefixedBindAttributePatternRegistration, AuRenderRegistration as ComposeRegistration, ComputedWatcher, Controller, CustomAttribute, CustomAttributeDefinition, CustomAttributeRendererRegistration, CustomAttributeSymbol, CustomElement, CustomElementDefinition, CustomElementRendererRegistration, CustomElementSymbol, DataAttributeAccessor, DebounceBindingBehavior, DebounceBindingBehaviorRegistration, DefaultBindingCommand, DefaultBindingCommandRegistration, DefaultBindingLanguage, DefaultBindingSyntax, DefaultCase, DefaultComponents, DefaultDialogDom, DefaultDialogDomRenderer, DefaultDialogGlobalSettings, DefaultRenderers, DefaultResources, DelegateBindingCommand, DelegateBindingCommandRegistration, DialogCloseResult, DialogConfiguration, DialogController, DialogDeactivationStatuses, DialogDefaultConfiguration, DialogOpenResult, DialogService, DotSeparatedAttributePattern, DotSeparatedAttributePatternRegistration, ElementInfo, Else, ElseRegistration, EventDelegator, EventSubscriber, ExpressionWatcher, Focus, ForBindingCommand, ForBindingCommandRegistration, FragmentNodeSequence, FrequentMutations, FromViewBindingBehavior, FromViewBindingBehaviorRegistration, FromViewBindingCommand, FromViewBindingCommandRegistration, FulfilledTemplateController, HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, IAppRoot, IAppTask, IAttrSyntaxTransformer, IAttributeParser, IAttributePattern, IAuSlotsInfo, IAurelia, IController, IDialogController, IDialogDom, IDialogDomRenderer, IDialogGlobalSettings, IDialogService, IEventDelegator, IEventTarget, IHistory, IInstruction, ILifecycleHooks, ILocation, INode, INodeObserverLocatorRegistration, IPlatform, IProjections, IRenderLocation, IRenderer, ISVGAnalyzer, ISanitizer, IShadowDOMGlobalStyles, IShadowDOMStyleFactory, IShadowDOMStyles, ISyntaxInterpreter, ITemplateCompiler, ITemplateCompilerRegistration, ITemplateElementFactory, IViewFactory, IViewLocator, IWindow, IWorkTracker, If, IfRegistration, InstructionType, InterpolationBinding, InterpolationBindingRendererRegistration, InterpolationInstruction, Interpretation, IteratorBindingInstruction, IteratorBindingRendererRegistration, LetBinding, LetBindingInstruction, LetElementRendererRegistration, LetElementSymbol, LifecycleHooks, LifecycleHooksDefinition, LifecycleHooksEntry, Listener, ListenerBindingInstruction, ListenerBindingRendererRegistration, NodeObserverConfig, NodeObserverLocator, NodeType, NoopSVGAnalyzer, ObserveShallow, OneTimeBindingBehavior, OneTimeBindingBehaviorRegistration, OneTimeBindingCommand, OneTimeBindingCommandRegistration, PendingTemplateController, PlainAttributeSymbol, PlainElementSymbol, Portal, ProjectionSymbol, PromiseTemplateController, PropertyBinding, PropertyBindingInstruction, PropertyBindingRendererRegistration, RefAttributePattern, RefAttributePatternRegistration, RefBinding, RefBindingCommandRegistration, RefBindingInstruction, RefBindingRendererRegistration, RejectedTemplateController, RenderPlan, Repeat, RepeatRegistration, SVGAnalyzer, SVGAnalyzerRegistration, SanitizeValueConverter, SanitizeValueConverterRegistration, SelectValueObserver, SelfBindingBehavior, SelfBindingBehaviorRegistration, SetAttributeInstruction, SetAttributeRendererRegistration, SetClassAttributeInstruction, SetClassAttributeRendererRegistration, SetPropertyInstruction, SetPropertyRendererRegistration, SetStyleAttributeInstruction, SetStyleAttributeRendererRegistration, ShadowDOMRegistry, ShortHandBindingSyntax, SignalBindingBehavior, SignalBindingBehaviorRegistration, SlotInfo, StandardConfiguration, StyleAttributeAccessor, StyleBindingCommand, StyleBindingCommandRegistration, StyleConfiguration, StyleElementStyles, StylePropertyBindingInstruction, StylePropertyBindingRendererRegistration, Switch, SymbolFlags, TemplateBinder, TemplateControllerRendererRegistration, TemplateControllerSymbol, TextBindingInstruction, TextBindingRendererRegistration, TextSymbol, ThrottleBindingBehavior, ThrottleBindingBehaviorRegistration, ToViewBindingBehavior, ToViewBindingBehaviorRegistration, ToViewBindingCommand, ToViewBindingCommandRegistration, TriggerBindingCommand, TriggerBindingCommandRegistration, TwoWayBindingBehavior, TwoWayBindingBehaviorRegistration, TwoWayBindingCommand, TwoWayBindingCommandRegistration, UpdateTriggerBindingBehavior, UpdateTriggerBindingBehaviorRegistration, ValueAttributeObserver, ViewFactory, ViewLocator, ViewModelKind, ViewValueConverter, ViewValueConverterRegistration, Views, Watch, With, WithRegistration, attributePattern, bindable, bindingCommand, children, containerless, convertToRenderLocation, createElement, cssModules, customAttribute, customElement, getEffectiveParentNode, getRef, getRenderContext, getTarget, isCustomElementController, isCustomElementViewModel, isInstruction, isRenderContext, isRenderLocation, lifecycleHooks, processContent, renderer, setEffectiveParentNode, setRef, shadowCSS, templateController, useShadowDOM, view, watch };
+export { AdoptedStyleSheetsStyles, AppRoot, AppTask, AtPrefixedTriggerAttributePattern, AtPrefixedTriggerAttributePatternRegistration, AttrBindingBehavior, AttrBindingBehaviorRegistration, AttrBindingCommand, AttrBindingCommandRegistration, AttrSyntax, AttributeBinding, AttributeBindingInstruction, AttributeBindingRendererRegistration, AttributeNSAccessor, AttributePattern, AuCompose, AuRender, AuRenderRegistration, AuSlot, AuSlotContentType, AuSlotsInfo, Aurelia, Bindable, BindableDefinition, BindableObserver, BindingCommand, BindingCommandDefinition, BindingModeBehavior, Blur, BlurManager, CSSModulesProcessorRegistry, CallBinding, CallBindingCommand, CallBindingCommandRegistration, CallBindingInstruction, CallBindingRendererRegistration, CaptureBindingCommand, CaptureBindingCommandRegistration, Case, CheckedObserver, Children, ChildrenDefinition, ChildrenObserver, ClassAttributeAccessor, ClassBindingCommand, ClassBindingCommandRegistration, ColonPrefixedBindAttributePattern, ColonPrefixedBindAttributePatternRegistration, ComputedWatcher, Controller, CustomAttribute, CustomAttributeDefinition, CustomAttributeRendererRegistration, CustomElement, CustomElementDefinition, CustomElementRendererRegistration, DataAttributeAccessor, DebounceBindingBehavior, DebounceBindingBehaviorRegistration, DefaultBindingCommand, DefaultBindingCommandRegistration, DefaultBindingLanguage, DefaultBindingSyntax, DefaultCase, DefaultComponents, DefaultDialogDom, DefaultDialogDomRenderer, DefaultDialogGlobalSettings, DefaultRenderers, DefaultResources, DelegateBindingCommand, DelegateBindingCommandRegistration, DialogCloseResult, DialogConfiguration, DialogController, DialogDeactivationStatuses, DialogDefaultConfiguration, DialogOpenResult, DialogService, DotSeparatedAttributePattern, DotSeparatedAttributePatternRegistration, Else, ElseRegistration, EventDelegator, EventSubscriber, ExpressionWatcher, Focus, ForBindingCommand, ForBindingCommandRegistration, FragmentNodeSequence, FrequentMutations, FromViewBindingBehavior, FromViewBindingBehaviorRegistration, FromViewBindingCommand, FromViewBindingCommandRegistration, FulfilledTemplateController, HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, IAppRoot, IAppTask, IAttrSyntaxTransformer, IAttributeParser, IAttributePattern, IAuSlotsInfo, IAurelia, IController, IDialogController, IDialogDom, IDialogDomRenderer, IDialogGlobalSettings, IDialogService, IEventDelegator, IEventTarget, IHistory, IInstruction, ILifecycleHooks, ILocation, INode, INodeObserverLocatorRegistration, IPlatform, IProjections, IRenderLocation, IRenderer, ISVGAnalyzer, ISanitizer, IShadowDOMGlobalStyles, IShadowDOMStyleFactory, IShadowDOMStyles, ISyntaxInterpreter, ITemplateCompiler, ITemplateCompilerRegistration, ITemplateElementFactory, IViewFactory, IViewLocator, IWindow, IWorkTracker, If, IfRegistration, InstructionType, InterpolationBinding, InterpolationBindingRendererRegistration, InterpolationInstruction, Interpretation, IteratorBindingInstruction, IteratorBindingRendererRegistration, LetBinding, LetBindingInstruction, LetElementRendererRegistration, LifecycleHooks, LifecycleHooksDefinition, LifecycleHooksEntry, Listener, ListenerBindingInstruction, ListenerBindingRendererRegistration, NodeObserverConfig, NodeObserverLocator, NodeType, NoopSVGAnalyzer, ObserveShallow, OneTimeBindingBehavior, OneTimeBindingBehaviorRegistration, OneTimeBindingCommand, OneTimeBindingCommandRegistration, PendingTemplateController, Portal, PromiseTemplateController, PropertyBinding, PropertyBindingInstruction, PropertyBindingRendererRegistration, RefAttributePattern, RefAttributePatternRegistration, RefBinding, RefBindingCommandRegistration, RefBindingInstruction, RefBindingRendererRegistration, RejectedTemplateController, RenderPlan, Repeat, RepeatRegistration, SVGAnalyzer, SVGAnalyzerRegistration, SanitizeValueConverter, SanitizeValueConverterRegistration, SelectValueObserver, SelfBindingBehavior, SelfBindingBehaviorRegistration, SetAttributeInstruction, SetAttributeRendererRegistration, SetClassAttributeInstruction, SetClassAttributeRendererRegistration, SetPropertyInstruction, SetPropertyRendererRegistration, SetStyleAttributeInstruction, SetStyleAttributeRendererRegistration, ShadowDOMRegistry, ShortHandBindingSyntax, SignalBindingBehavior, SignalBindingBehaviorRegistration, SlotInfo, StandardConfiguration, StyleAttributeAccessor, StyleBindingCommand, StyleBindingCommandRegistration, StyleConfiguration, StyleElementStyles, StylePropertyBindingInstruction, StylePropertyBindingRendererRegistration, Switch, TemplateControllerRendererRegistration, TextBindingInstruction, TextBindingRendererRegistration, ThrottleBindingBehavior, ThrottleBindingBehaviorRegistration, ToViewBindingBehavior, ToViewBindingBehaviorRegistration, ToViewBindingCommand, ToViewBindingCommandRegistration, TriggerBindingCommand, TriggerBindingCommandRegistration, TwoWayBindingBehavior, TwoWayBindingBehaviorRegistration, TwoWayBindingCommand, TwoWayBindingCommandRegistration, UpdateTriggerBindingBehavior, UpdateTriggerBindingBehaviorRegistration, ValueAttributeObserver, ViewFactory, ViewLocator, ViewModelKind, ViewValueConverter, ViewValueConverterRegistration, Views, Watch, With, WithRegistration, attributePattern, bindable, bindingCommand, children, containerless, convertToRenderLocation, createElement, cssModules, customAttribute, customElement, getEffectiveParentNode, getRef, getRenderContext, isCustomElementController, isCustomElementViewModel, isInstruction, isRenderContext, isRenderLocation, lifecycleHooks, processContent, renderer, setEffectiveParentNode, setRef, shadowCSS, templateController, useShadowDOM, view, watch };
 //# sourceMappingURL=index.js.map

@@ -112,8 +112,22 @@ export declare class LetBindingInstruction {
 }
 export declare class TextBindingInstruction {
     from: string | Interpolation;
+    /**
+     * Indicates whether the value of the expression "from"
+     * should be evaluated in strict mode.
+     *
+     * In none strict mode, "undefined" and "null" are coerced into empty string
+     */
+    strict: boolean;
     get type(): InstructionType.textBinding;
-    constructor(from: string | Interpolation);
+    constructor(from: string | Interpolation, 
+    /**
+     * Indicates whether the value of the expression "from"
+     * should be evaluated in strict mode.
+     *
+     * In none strict mode, "undefined" and "null" are coerced into empty string
+     */
+    strict: boolean);
 }
 export declare class ListenerBindingInstruction {
     from: string | IsBindingBehavior;
@@ -175,6 +189,7 @@ export interface ICompliationInstruction {
      * and each value is the definition to render and project
      */
     projections: IProjections | null;
+    surrogates?: boolean;
 }
 export declare const ITemplateCompiler: import("@aurelia/kernel").InterfaceSymbol<ITemplateCompiler>;
 export interface IInstructionTypeClassifier<TType extends string = string> {

@@ -180,12 +180,13 @@ runtime_1.connectable(InterpolationPartBinding);
  * A binding for handling the element content interpolation
  */
 class ContentBinding {
-    constructor(sourceExpression, target, locator, observerLocator, p) {
+    constructor(sourceExpression, target, locator, observerLocator, p, strict) {
         this.sourceExpression = sourceExpression;
         this.target = target;
         this.locator = locator;
         this.observerLocator = observerLocator;
         this.p = p;
+        this.strict = strict;
         this.interceptor = this;
         // at runtime, mode may be overriden by binding behavior
         // but it wouldn't matter here, just start with something for later check
@@ -225,6 +226,7 @@ class ContentBinding {
             if (shouldConnect) {
                 obsRecord.version++;
             }
+            flags |= this.strict ? 1 /* isStrictBindingStrategy */ : 0;
             newValue = sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
             if (shouldConnect) {
                 obsRecord.clear(false);
@@ -266,6 +268,7 @@ class ContentBinding {
         if (this.sourceExpression.hasBind) {
             this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
         }
+        flags |= this.strict ? 1 /* isStrictBindingStrategy */ : 0;
         const v = this.value = this.sourceExpression.evaluate(flags, scope, hostScope, this.locator, (this.mode & toView) > 0 ? this.interceptor : null);
         if (v instanceof Array) {
             this.observeCollection(v);

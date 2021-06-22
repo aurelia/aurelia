@@ -1,11 +1,11 @@
-import { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
-import { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
-import { INode } from '../dom.js';
-import { IInstruction } from '../renderer.js';
-import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children.js';
+import type { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
+import type { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
+import type { INode } from '../dom.js';
+import type { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children.js';
 import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
+import type { IPlatform } from '../platform.js';
+import type { IInstruction } from '../renderer.js';
 import type { IWatchDefinition } from '../watch.js';
-import { IPlatform } from '../platform.js';
 export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly cache?: '*' | number;
     readonly template?: null | string | Node;

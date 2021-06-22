@@ -7,8 +7,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding.js';
-import { BindingMode, IExpressionParser, renderer, IObserverLocator, attributePattern, AttrSyntax, bindingCommand, getTarget, IPlatform, } from '@aurelia/runtime-html';
+import { BindingMode, IExpressionParser, renderer, IObserverLocator, attributePattern, AttrSyntax, bindingCommand, IPlatform, IAttrSyntaxTransformer, } from '@aurelia/runtime-html';
 export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
 const attribute = 't-params.bind';
@@ -30,11 +31,21 @@ export class TranslationParametersBindingInstruction {
     }
 }
 let TranslationParametersBindingCommand = class TranslationParametersBindingCommand {
-    constructor() {
+    constructor(t) {
+        this.t = t;
         this.bindingType = 53 /* BindCommand */;
     }
-    compile(binding) {
-        return new TranslationParametersBindingInstruction(binding.expression, getTarget(binding, false));
+    static get inject() { return [IAttrSyntaxTransformer]; }
+    build(info) {
+        var _a;
+        let target;
+        if (info.bindable == null) {
+            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+        }
+        else {
+            target = info.bindable.property;
+        }
+        return new TranslationParametersBindingInstruction(info.expr, target);
     }
 };
 TranslationParametersBindingCommand = __decorate([

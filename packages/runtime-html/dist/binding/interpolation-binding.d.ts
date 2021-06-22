@@ -55,6 +55,7 @@ export declare class ContentBinding implements ContentBinding, ICollectionSubscr
     readonly locator: IServiceLocator;
     readonly observerLocator: IObserverLocator;
     private readonly p;
+    private readonly strict;
     interceptor: this;
     readonly mode: BindingMode;
     value: unknown;
@@ -62,7 +63,7 @@ export declare class ContentBinding implements ContentBinding, ICollectionSubscr
     $hostScope: Scope | null;
     task: ITask | null;
     isBound: boolean;
-    constructor(sourceExpression: IsExpression, target: Text, locator: IServiceLocator, observerLocator: IObserverLocator, p: IPlatform);
+    constructor(sourceExpression: IsExpression, target: Text, locator: IServiceLocator, observerLocator: IObserverLocator, p: IPlatform, strict: boolean);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     handleCollectionChange(): void;

@@ -248,12 +248,12 @@ export {
 } from './resources/attribute-pattern.js';
 export {
   bindingCommand,
+  ICommandBuildInfo,
   BindingCommand ,
   BindingCommandInstance,
   BindingCommandDefinition,
   BindingCommandKind,
   BindingCommandType,
-  getTarget,
   CallBindingCommand,
   DefaultBindingCommand,
   ForBindingCommand,
@@ -514,7 +514,7 @@ export {
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
-  AuRenderRegistration as ComposeRegistration,
+  AuRenderRegistration,
 
   DefaultResources,
 
@@ -541,9 +541,6 @@ export {
 
   StandardConfiguration
 } from './configuration.js';
-export {
-  TemplateBinder,
-} from './template-binder.js';
 export {
   ITemplateElementFactory
 } from './template-element-factory.js';
@@ -630,30 +627,6 @@ export {
 export {
   IPlatform,
 } from './platform.js';
-
-export {
-  BindableInfo,
-  ElementInfo,
-  AttrInfo,
-  AnySymbol,
-  BindingSymbol,
-  CustomAttributeSymbol,
-  CustomElementSymbol,
-  ElementSymbol,
-  LetElementSymbol,
-  NodeSymbol,
-  ParentNodeSymbol,
-  PlainAttributeSymbol,
-  PlainElementSymbol,
-  ResourceAttributeSymbol,
-  SymbolFlags,
-  SymbolWithBindings,
-  SymbolWithMarker,
-  SymbolWithTemplate,
-  TemplateControllerSymbol,
-  TextSymbol,
-  ProjectionSymbol,
-} from './semantic-model.js';
 
 export {
   CSSModulesProcessorRegistry,

@@ -552,7 +552,7 @@ describe(`Repeat`, function () {
             template: textTemplate.content.cloneNode(true),
             instructions: [
               [
-                new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression('item')])),
+                new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression('item')]), false),
               ],
             ],
             needsCompile: false,

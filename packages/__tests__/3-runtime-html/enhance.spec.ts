@@ -4,7 +4,7 @@ import { CustomElement, ICustomElementViewModel, IPlatform, Aurelia, customEleme
 import { assert, TestContext, eachCartesianJoin } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
-describe('2-runtime/enhance.spec.ts', function () {
+describe('3-runtime/enhance.spec.ts', function () {
   interface TestSetupContext {
     getComponent: () => Constructable | ICustomElementViewModel;
     template: string;

@@ -1,13 +1,12 @@
 import {
   alias,
   BindingType,
-  AttributeInstruction,
   BindingCommandInstance,
-  PlainAttributeSymbol,
-  BindingSymbol,
   bindingCommand,
   OneTimeBindingCommand,
+  PropertyBindingInstruction,
 } from '@aurelia/runtime-html';
+import { ICommandBuildInfo } from '@aurelia/runtime-html/dist/resources/binding-command';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('binding-commands', function () {
@@ -23,8 +22,11 @@ describe('binding-commands', function () {
     class WootCommand implements BindingCommandInstance {
       public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
-      public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-        return OneTimeBindingCommand.prototype.compile(binding);
+      public static inject = [OneTimeBindingCommand];
+      public constructor(private readonly oneTimeCmd: OneTimeBindingCommand) {}
+
+      public build(info: ICommandBuildInfo): PropertyBindingInstruction {
+        return this.oneTimeCmd.build(info);
       }
     }
 
@@ -33,8 +35,11 @@ describe('binding-commands', function () {
     class WootCommand2 implements BindingCommandInstance {
       public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
-      public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-        return OneTimeBindingCommand.prototype.compile(binding);
+      public static inject = [OneTimeBindingCommand];
+      public constructor(private readonly oneTimeCmd: OneTimeBindingCommand) {}
+
+      public build(info: ICommandBuildInfo): PropertyBindingInstruction {
+        return this.oneTimeCmd.build(info);
       }
     }
 

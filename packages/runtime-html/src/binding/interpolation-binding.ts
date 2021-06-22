@@ -253,6 +253,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     public readonly locator: IServiceLocator,
     public readonly observerLocator: IObserverLocator,
     private readonly p: IPlatform,
+    private readonly strict: boolean,
   ) {
 
   }
@@ -285,6 +286,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       if (shouldConnect) {
         obsRecord.version++;
       }
+      flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
       newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         obsRecord.clear(false);
@@ -329,6 +331,8 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     if (this.sourceExpression.hasBind) {
       this.sourceExpression.bind(flags, scope, hostScope, this.interceptor as IIndexable & this);
     }
+
+    flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
 
     const v = this.value = this.sourceExpression.evaluate(
       flags,

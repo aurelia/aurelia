@@ -117,8 +117,8 @@ describe(spec, function () {
       app: App,
       registrations: [Foo],
       template:
-        `<let items.bind="[{p: 1}, {p: 2}, {p: 3}]"></let>
-        <template repeat.for="item of items">
+        `<let items.bind="[{p: 1}, {p: 2}, {p: 3}]"></let>` +
+        `<template repeat.for="item of items">
           <foo prop.bind="item.p"></foo>
         </template>`,
     };

@@ -29,9 +29,7 @@ import {
   AttrSyntax,
   BindingCommand,
   IAttributePattern,
-  PlainAttributeSymbol,
   CallBindingInstruction,
-  AttrBindingCommand,
   IPlatform,
 } from '@aurelia/runtime-html';
 import { assert, PLATFORM, createContainer } from '@aurelia/testing';
@@ -107,14 +105,13 @@ describe('TranslationBindingCommand', function () {
   it('compiles the binding to a TranslationBindingInstruction', function () {
     const [sut] = createFixture();
     const syntax: AttrSyntax = { command: 't', rawName: 't', rawValue: 'obj.key', target: '' };
-    const plainAttributeSymbol: PlainAttributeSymbol = {
-      command: new AttrBindingCommand(),
-      flags: (void 0)!,
-      expression: { syntax } as unknown as AnyBindingExpression,
-      syntax
-    };
-
-    const actual = sut.compile(plainAttributeSymbol);
+    const actual = sut.build({
+      node: { nodeName: 'abc' } as unknown as Element,
+      attr: syntax,
+      bindable: null,
+      def: null,
+      expr: { syntax } as unknown as AnyBindingExpression
+    });
 
     assert.instanceOf(actual, TranslationBindingInstruction);
   });
@@ -251,12 +248,12 @@ describe('TranslationBindBindingCommand', function () {
   it('compiles the binding to a TranslationBindBindingInstruction', function () {
     const [sut] = createFixture();
     const syntax: AttrSyntax = { command: 't.bind', rawName: 't.bind', rawValue: 'obj.key', target: 'bind' };
-
-    const actual = sut.compile({
-      command: new AttrBindingCommand(),
-      flags: (void 0)!,
-      expression: { syntax } as unknown as AnyBindingExpression,
-      syntax
+    const actual = sut.build({
+      node: { nodeName: 'abc' } as unknown as Element,
+      attr: syntax,
+      bindable: null,
+      def: null,
+      expr: { syntax } as unknown as AnyBindingExpression
     });
 
     assert.instanceOf(actual, TranslationBindBindingInstruction);

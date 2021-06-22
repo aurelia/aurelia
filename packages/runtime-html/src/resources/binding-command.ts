@@ -1,37 +1,52 @@
 import {
   camelCase,
-  Constructable,
-  IContainer,
-  IResourceKind,
   Registration,
-  ResourceType,
-  ResourceDefinition,
-  PartialResourceDefinition,
   mergeArrays,
   Protocol,
   firstDefined,
   Metadata
 } from '@aurelia/kernel';
-import { BindingMode, BindingType, DelegationStrategy, ForOfStatement, IsBindingBehavior, registerAliases } from '@aurelia/runtime';
+import { BindingMode, BindingType, DelegationStrategy, registerAliases } from '@aurelia/runtime';
+import { IAttrSyntaxTransformer } from '../attribute-syntax-transformer.js';
 import {
-  IInstruction,
   AttributeBindingInstruction,
   PropertyBindingInstruction,
   CallBindingInstruction,
   IteratorBindingInstruction,
-  AttributeInstruction,
   RefBindingInstruction,
   ListenerBindingInstruction,
 } from '../renderer.js';
-import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from '../semantic-model.js';
+
+import type {
+  Constructable,
+  IContainer,
+  IResourceKind,
+  ResourceType,
+  ResourceDefinition,
+  PartialResourceDefinition,
+} from '@aurelia/kernel';
+import type { IInstruction } from '../renderer.js';
+import type { AnyBindingExpression, ForOfStatement, IsBindingBehavior } from '@aurelia/runtime';
+import type { AttrSyntax } from './attribute-pattern.js';
+import type { BindableDefinition } from '../bindable.js';
+import type { CustomAttributeDefinition } from './custom-attribute.js';
+import type { CustomElementDefinition } from './custom-element.js';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition<{
   readonly type?: string | null;
 }>;
 
+export interface ICommandBuildInfo {
+  node: Element;
+  attr: AttrSyntax;
+  expr: AnyBindingExpression;
+  bindable: BindableDefinition | null;
+  def: CustomAttributeDefinition | CustomElementDefinition | null;
+}
+
 export type BindingCommandInstance<T extends {} = {}> = {
   bindingType: BindingType;
-  compile(binding: PlainAttributeSymbol | BindingSymbol): IInstruction;
+  build(info: ICommandBuildInfo): IInstruction;
 } & T;
 
 export type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
@@ -128,22 +143,24 @@ export const BindingCommand: BindingCommandKind = {
   },
 };
 
-export function getTarget(binding: PlainAttributeSymbol | BindingSymbol, makeCamelCase: boolean): string {
-  if (binding.flags & SymbolFlags.isBinding) {
-    return (binding as BindingSymbol).bindable.propName;
-  } else if (makeCamelCase) {
-    return camelCase((binding as PlainAttributeSymbol).syntax.target);
-  } else {
-    return (binding as PlainAttributeSymbol).syntax.target;
-  }
-}
-
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.OneTimeCommand = BindingType.OneTimeCommand;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), BindingMode.oneTime);
+  public static get inject() { return [IAttrSyntaxTransformer]; }
+  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+
+  public build(info: ICommandBuildInfo): PropertyBindingInstruction {
+    let target: string;
+    if (info.bindable == null) {
+      target = this.t.map(info.node, info.attr.target)
+        // if the transformer doesn't know how to map it
+        // use the default behavior, which is camel-casing
+        ?? camelCase(info.attr.target);
+    } else {
+      target = info.bindable.property;
+    }
+    return new PropertyBindingInstruction(info.expr as IsBindingBehavior, target, BindingMode.oneTime);
   }
 }
 
@@ -151,8 +168,20 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
 export class ToViewBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.ToViewCommand = BindingType.ToViewCommand;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), BindingMode.toView);
+  public static get inject() { return [IAttrSyntaxTransformer]; }
+  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+
+  public build(info: ICommandBuildInfo): PropertyBindingInstruction {
+    let target: string;
+    if (info.bindable == null) {
+      target = this.t.map(info.node, info.attr.target)
+        // if the transformer doesn't know how to map it
+        // use the default behavior, which is camel-casing
+        ?? camelCase(info.attr.target);
+    } else {
+      target = info.bindable.property;
+    }
+    return new PropertyBindingInstruction(info.expr as IsBindingBehavior, target, BindingMode.toView);
   }
 }
 
@@ -160,8 +189,20 @@ export class ToViewBindingCommand implements BindingCommandInstance {
 export class FromViewBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.FromViewCommand = BindingType.FromViewCommand;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), BindingMode.fromView);
+  public static get inject() { return [IAttrSyntaxTransformer]; }
+  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+
+  public build(info: ICommandBuildInfo): PropertyBindingInstruction {
+    let target: string;
+    if (info.bindable == null) {
+      target = this.t.map(info.node, info.attr.target)
+        // if the transformer doesn't know how to map it
+        // use the default behavior, which is camel-casing
+        ?? camelCase(info.attr.target);
+    } else {
+      target = info.bindable.property;
+    }
+    return new PropertyBindingInstruction(info.expr as IsBindingBehavior, target, BindingMode.fromView);
   }
 }
 
@@ -169,8 +210,20 @@ export class FromViewBindingCommand implements BindingCommandInstance {
 export class TwoWayBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.TwoWayCommand = BindingType.TwoWayCommand;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), BindingMode.twoWay);
+  public static get inject() { return [IAttrSyntaxTransformer]; }
+  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+
+  public build(info: ICommandBuildInfo): PropertyBindingInstruction {
+    let target: string;
+    if (info.bindable == null) {
+      target = this.t.map(info.node, info.attr.target)
+        // if the transformer doesn't know how to map it
+        // use the default behavior, which is camel-casing
+        ?? camelCase(info.attr.target);
+    } else {
+      target = info.bindable.property;
+    }
+    return new PropertyBindingInstruction(info.expr as IsBindingBehavior, target, BindingMode.twoWay);
   }
 }
 
@@ -178,30 +231,32 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
 export class DefaultBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    let mode: BindingMode = BindingMode.default;
-    if (binding instanceof BindingSymbol) {
-      mode = binding.bindable.mode;
-    } else {
-      const command = binding.syntax.command;
-      switch (command) {
-        case 'bind':
-        case 'to-view':
-          mode = BindingMode.toView;
-          break;
-        case 'one-time':
-          mode = BindingMode.oneTime;
-          break;
-        case 'from-view':
-          mode = BindingMode.fromView;
-          break;
-        case 'two-way':
-          mode = BindingMode.twoWay;
-          break;
-      }
-    }
+  public static get inject() { return [IAttrSyntaxTransformer]; }
+  public constructor(private readonly t: IAttrSyntaxTransformer) {}
 
-    return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), mode === BindingMode.default ? BindingMode.toView : mode);
+  public build(info: ICommandBuildInfo): PropertyBindingInstruction {
+    type CA = CustomAttributeDefinition;
+    const attrName = info.attr.target;
+    const bindable = info.bindable;
+    let defaultMode: BindingMode;
+    let mode: BindingMode;
+    let target: string;
+    if (bindable == null) {
+      mode = this.t.isTwoWay(info.node, attrName) ? BindingMode.twoWay : BindingMode.toView;
+      target = this.t.map(info.node, attrName)
+        // if the transformer doesn't know how to map it
+        // use the default behavior, which is camel-casing
+        ?? camelCase(attrName);
+    } else {
+      defaultMode = (info.def as CA).defaultBindingMode;
+      mode = bindable.mode === BindingMode.default || bindable.mode == null
+        ? defaultMode == null || defaultMode === BindingMode.default
+          ? BindingMode.toView
+          : defaultMode
+        : bindable.mode;
+      target = bindable.property;
+    }
+    return new PropertyBindingInstruction(info.expr as IsBindingBehavior, target, mode);
   }
 }
 
@@ -209,8 +264,11 @@ export class DefaultBindingCommand implements BindingCommandInstance {
 export class CallBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.CallCommand = BindingType.CallCommand;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new CallBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, true));
+  public build(info: ICommandBuildInfo): IInstruction {
+    const target = info.bindable === null
+      ? camelCase(info.attr.target)
+      : info.bindable.property;
+    return new CallBindingInstruction(info.expr as IsBindingBehavior, target);
   }
 }
 
@@ -218,8 +276,11 @@ export class CallBindingCommand implements BindingCommandInstance {
 export class ForBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.ForCommand = BindingType.ForCommand;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new IteratorBindingInstruction(binding.expression as ForOfStatement, getTarget(binding, false));
+  public build(info: ICommandBuildInfo): IInstruction {
+    const target = info.bindable === null
+      ? camelCase(info.attr.target)
+      : info.bindable.property;
+    return new IteratorBindingInstruction(info.expr as ForOfStatement, target);
   }
 }
 
@@ -227,8 +288,8 @@ export class ForBindingCommand implements BindingCommandInstance {
 export class TriggerBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.TriggerCommand = BindingType.TriggerCommand;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new ListenerBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), true, DelegationStrategy.none);
+  public build(info: ICommandBuildInfo): IInstruction {
+    return new ListenerBindingInstruction(info.expr as IsBindingBehavior, info.attr.target, true, DelegationStrategy.none);
   }
 }
 
@@ -236,8 +297,8 @@ export class TriggerBindingCommand implements BindingCommandInstance {
 export class DelegateBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.DelegateCommand = BindingType.DelegateCommand;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new ListenerBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), false, DelegationStrategy.bubbling);
+  public build(info: ICommandBuildInfo): IInstruction {
+    return new ListenerBindingInstruction(info.expr as IsBindingBehavior, info.attr.target, false, DelegationStrategy.bubbling);
   }
 }
 
@@ -245,8 +306,8 @@ export class DelegateBindingCommand implements BindingCommandInstance {
 export class CaptureBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.CaptureCommand = BindingType.CaptureCommand;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new ListenerBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), false, DelegationStrategy.capturing);
+  public build(info: ICommandBuildInfo): IInstruction {
+    return new ListenerBindingInstruction(info.expr as IsBindingBehavior, info.attr.target, false, DelegationStrategy.capturing);
   }
 }
 
@@ -257,9 +318,8 @@ export class CaptureBindingCommand implements BindingCommandInstance {
 export class AttrBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    const target = getTarget(binding, false);
-    return new AttributeBindingInstruction(target, binding.expression as IsBindingBehavior, target);
+  public build(info: ICommandBuildInfo): IInstruction {
+    return new AttributeBindingInstruction(info.attr.target, info.expr as IsBindingBehavior, info.attr.target);
   }
 }
 
@@ -270,8 +330,8 @@ export class AttrBindingCommand implements BindingCommandInstance {
 export class StyleBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new AttributeBindingInstruction('style', binding.expression as IsBindingBehavior, getTarget(binding, false));
+  public build(info: ICommandBuildInfo): IInstruction {
+    return new AttributeBindingInstruction('style', info.expr as IsBindingBehavior, info.attr.target);
   }
 }
 
@@ -282,8 +342,8 @@ export class StyleBindingCommand implements BindingCommandInstance {
 export class ClassBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new AttributeBindingInstruction('class', binding.expression as IsBindingBehavior, getTarget(binding, false));
+  public build(info: ICommandBuildInfo): IInstruction {
+    return new AttributeBindingInstruction('class', info.expr as IsBindingBehavior, info.attr.target);
   }
 }
 
@@ -294,7 +354,7 @@ export class ClassBindingCommand implements BindingCommandInstance {
 export class RefBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.IsProperty | BindingType.IgnoreAttr = BindingType.IsProperty | BindingType.IgnoreAttr;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): RefBindingInstruction {
-    return new RefBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
+  public build(info: ICommandBuildInfo): IInstruction {
+    return new RefBindingInstruction(info.expr as IsBindingBehavior, info.attr.target);
   }
 }

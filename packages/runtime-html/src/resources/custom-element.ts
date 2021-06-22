@@ -1,41 +1,40 @@
 import {
-  Constructable,
   DI,
-  IContainer,
-  IResourceKind,
-  ResourceType,
   Registration,
   Protocol,
   Metadata,
-  PartialResourceDefinition,
-  Key,
-  ResourceDefinition,
   mergeArrays,
   fromDefinitionOrDefault,
   pascalCase,
   fromAnnotationOrTypeOrDefault,
   fromAnnotationOrDefinitionOrTypeOrDefault,
+  emptyArray,
+} from '@aurelia/kernel';
+import { registerAliases } from '@aurelia/runtime';
+import { Bindable } from '../bindable.js';
+import { getEffectiveParentNode, getRef } from '../dom.js';
+import { Children } from '../templating/children.js';
+import { Watch } from '../watch.js';
+
+import type {
+  Constructable,
+  IContainer,
+  IResourceKind,
+  ResourceType,
+  PartialResourceDefinition,
+  Key,
+  ResourceDefinition,
   Injectable,
   IResolver,
-  emptyArray,
   Writable,
 } from '@aurelia/kernel';
-import {
-  registerAliases,
-} from '@aurelia/runtime';
-import {
-  Bindable,
-  BindableDefinition,
-  PartialBindableDefinition,
-} from '../bindable.js';
-import { INode, getEffectiveParentNode, getRef } from '../dom.js';
-import { IInstruction } from '../renderer.js';
-import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children.js';
-import { Controller } from '../templating/controller.js';
-import { Watch } from '../watch.js';
-import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
+import type { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
+import type { INode } from '../dom.js';
+import type { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children.js';
+import type { Controller, ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
+import type { IPlatform } from '../platform.js';
+import type { IInstruction } from '../renderer.js';
 import type { IWatchDefinition } from '../watch.js';
-import { IPlatform } from '../platform.js';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;

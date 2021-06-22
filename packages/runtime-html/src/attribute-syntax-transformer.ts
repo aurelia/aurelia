@@ -1,7 +1,6 @@
-import { camelCase, DI } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import { createLookup, isDataAttribute } from './utilities-html.js';
 import { ISVGAnalyzer } from './observation/svg-analyzer.js';
-import type { AttrSyntax } from './resources/attribute-pattern.js';
 
 export interface IAttrSyntaxTransformer extends AttrSyntaxTransformer {}
 export const IAttrSyntaxTransformer = DI
@@ -106,34 +105,22 @@ export class AttrSyntaxTransformer {
     this.fns.push(fn);
   }
 
-  /**
-   * @internal
-   */
-  public transform(node: Element, attrSyntax: AttrSyntax): void {
-    if (
-      attrSyntax.command === 'bind' &&
-      (
-        // note: even though target could possibly be mapped to a different name
-        // the final property name shouldn't affect the two way transformation
-        // as they both should work with original source attribute name
-        shouldDefaultToTwoWay(node, attrSyntax.target) ||
-        this.fns.length > 0 && this.fns.some(fn => fn(node, attrSyntax.target))
-      )
-    ) {
-      attrSyntax.command = 'two-way';
-    }
-    const attr = attrSyntax.target;
-    attrSyntax.target = this.tagAttrMap[node.tagName]?.[attr] as string
+  public isTwoWay(node: Element, attrName: string): boolean {
+    return shouldDefaultToTwoWay(node, attrName)
+      || this.fns.length > 0 && this.fns.some(fn => fn(node, attrName));
+  }
+
+  public map(node: Element, attr: string): string | null {
+    return this.tagAttrMap[node.nodeName]?.[attr] as string
       ?? this.globalAttrMap[attr]
       ?? (isDataAttribute(node, attr, this.svg)
         ? attr
-        : camelCase(attr));
-    // attrSyntax.target = this.map(node.tagName, attrSyntax.target);
+        : null);
   }
 }
 
 function shouldDefaultToTwoWay(element: Element, attr: string): boolean {
-  switch (element.tagName) {
+  switch (element.nodeName) {
     case 'INPUT':
       switch ((element as HTMLInputElement).type) {
         case 'checkbox':

@@ -1,7 +1,7 @@
-import { IExpressionParser, CustomAttribute, TemplateBinder, IAttrSyntaxTransformer, ITemplateElementFactory, IAttributeParser, PlainElementSymbol } from '@aurelia/runtime-html';
-import { assert, TestContext } from '@aurelia/testing';
+import { Char } from '@aurelia/runtime';
+import { assert } from '@aurelia/testing';
 
-describe('has-multi-bindings.unit.spec.ts', function () {
+describe('[UNIT]3-runtime-html/has-multi-bindings.unit.spec.ts', function () {
   interface IBindingSpec {
     target: string;
     rawValue: string;
@@ -142,7 +142,7 @@ describe('has-multi-bindings.unit.spec.ts', function () {
       attrValue: 'a.bind:1;b: 2',
       expectedBindings: [
         {
-          target: 'a',
+          target: 'a.bind',
           rawValue: '1',
         },
         {
@@ -159,7 +159,7 @@ describe('has-multi-bindings.unit.spec.ts', function () {
           rawValue: '1',
         },
         {
-          target: 'b',
+          target: 'b.bind',
           rawValue: '2',
         },
       ],
@@ -172,7 +172,7 @@ describe('has-multi-bindings.unit.spec.ts', function () {
           rawValue: '1 | c:d',
         },
         {
-          target: 'b',
+          target: 'b.bind',
           rawValue: '2',
         },
       ],
@@ -181,11 +181,11 @@ describe('has-multi-bindings.unit.spec.ts', function () {
       attrValue: 'a.bind:1 | c:d; b.bind: 2',
       expectedBindings: [
         {
-          target: 'a',
+          target: 'a.bind',
           rawValue: '1 | c:d',
         },
         {
-          target: 'b',
+          target: 'b.bind',
           rawValue: '2',
         },
       ],
@@ -198,7 +198,7 @@ describe('has-multi-bindings.unit.spec.ts', function () {
           rawValue: `\${a | c:d} abcd`,
         },
         {
-          target: 'b',
+          target: 'b.bind',
           rawValue: '2',
         },
       ],
@@ -211,7 +211,7 @@ describe('has-multi-bindings.unit.spec.ts', function () {
           rawValue: 'http\\:/ahbc.def',
         },
         {
-          target: 'b',
+          target: 'b.bind',
           rawValue: '2',
         },
       ],
@@ -224,7 +224,7 @@ describe('has-multi-bindings.unit.spec.ts', function () {
           rawValue: 'mainRoute',
         },
         {
-          target: 'b',
+          target: 'b.bind',
           rawValue: '{ name: name, address, id: userId }',
         },
       ],
@@ -237,7 +237,7 @@ describe('has-multi-bindings.unit.spec.ts', function () {
           rawValue: 'mainRoute',
         },
         {
-          target: 'b',
+          target: 'b.bind',
           rawValue: '{ name: name, address, id: userId }',
         },
       ],
@@ -250,7 +250,7 @@ describe('has-multi-bindings.unit.spec.ts', function () {
           rawValue: 'mainRoute',
         },
         {
-          target: 'b',
+          target: 'b.bind',
           rawValue: '{ name: name, address, id: userId } | normalizeAddress',
         },
       ],
@@ -263,7 +263,7 @@ describe('has-multi-bindings.unit.spec.ts', function () {
           rawValue: 'mainRoute',
         },
         {
-          target: 'b',
+          target: 'b.bind',
           rawValue: '{ name: name, address, id: userId } | normalizeAddress',
         },
       ],
@@ -276,7 +276,7 @@ describe('has-multi-bindings.unit.spec.ts', function () {
           rawValue: 'mainRoute',
         },
         {
-          target: 'b',
+          target: 'b.bind',
           rawValue: '{ name: name, address, id: userId } | normalizeAddress:`en-us`',
         },
       ],
@@ -289,7 +289,7 @@ describe('has-multi-bindings.unit.spec.ts', function () {
           rawValue: 'mainRoute',
         },
         {
-          target: 'b',
+          target: 'b.bind',
           rawValue: '{ name: name, address, id: userId } | normalizeAddress:`en-us`',
         },
       ],
@@ -297,35 +297,91 @@ describe('has-multi-bindings.unit.spec.ts', function () {
   ];
 
   for (const { attrValue, expectedBindings } of specs) {
-    const markup = `<div attr="${attrValue}"></div>`;
-
-    it(markup, function () {
-      const ctx = TestContext.create();
-      const { platform, container } = ctx;
-
-      container.register(CustomAttribute.define({ name: 'attr', bindables: ['a', 'b', 'c'] }, class {}));
-
-      const attrParser = container.get(IAttributeParser);
-      const exprParser = container.get(IExpressionParser);
-      const transformer = container.get(IAttrSyntaxTransformer);
-      const factory = container.get(ITemplateElementFactory);
-
-      const sut = new TemplateBinder(platform, container, attrParser, exprParser, transformer);
-
-      const template = factory.createTemplate(markup);
-      const manifestRoot = sut.bind(template);
-      const div = manifestRoot.childNodes[0] as PlainElementSymbol;
-
-      const { customAttributes } = div;
-      assert.strictEqual(customAttributes.length, 1, 'customAttributes.length');
-
-      const [{ bindings }] = customAttributes;
-      assert.strictEqual(bindings.length, expectedBindings.length, 'bindings.length');
-
-      for (const expectedBinding of expectedBindings) {
-        const binding = bindings.find(b => b.target === expectedBinding.target && b.rawValue === expectedBinding.rawValue);
-        assert.notStrictEqual(binding, void 0, `${JSON.stringify(bindings.map(({ target, rawValue }) => ({ target, rawValue })))}.find(b => b.target === ${expectedBinding.target} && b.rawValue === ${expectedBinding.rawValue})`);
+    it(`attr="${attrValue}"`, function () {
+      if (hasInlineBindings(attrValue)) {
+        parse(attrValue).forEach((pair) => {
+          const expectedBinding = expectedBindings.find(eb => eb.target === pair.target);
+          assert.deepStrictEqual(pair, expectedBinding);
+        });
+      } else {
+        assert.deepStrictEqual({ target: 'attr', rawValue: attrValue }, expectedBindings[0]);
       }
     });
+  }
+
+  // this is an extraction of the core parsing logic inside the template compiler
+  // to be able to unit test an important logic
+  // thanks to @fkleuver
+
+  function hasInlineBindings(value: string): boolean {
+    const len = value.length;
+    let ch = 0;
+    for (let i = 0; i < len; ++i) {
+      ch = value.charCodeAt(i);
+      if (ch === Char.Backslash) {
+        ++i;
+        // Ignore whatever comes next because it's escaped
+      } else if (ch === Char.Colon) {
+        return true;
+      } else if (ch === Char.Dollar && value.charCodeAt(i + 1) === Char.OpenBrace) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  function parse(value: string): { target: string; rawValue: string }[] {
+    const valueLength = value.length;
+    const pairs: { target: string; rawValue: string }[] = [];
+
+    let attrName: string | undefined = void 0;
+    let attrValue: string | undefined = void 0;
+
+    let start = 0;
+    let ch = 0;
+
+    for (let i = 0; i < valueLength; ++i) {
+      ch = value.charCodeAt(i);
+
+      if (ch === Char.Backslash) {
+        ++i;
+        // Ignore whatever comes next because it's escaped
+      } else if (ch === Char.Colon) {
+        attrName = value.slice(start, i);
+
+        // Skip whitespace after colon
+        while (value.charCodeAt(++i) <= Char.Space);
+
+        start = i;
+
+        for (; i < valueLength; ++i) {
+          ch = value.charCodeAt(i);
+          if (ch === Char.Backslash) {
+            ++i;
+            // Ignore whatever comes next because it's escaped
+          } else if (ch === Char.Semicolon) {
+            attrValue = value.slice(start, i);
+            break;
+          }
+        }
+
+        if (attrValue === void 0) {
+          // No semicolon found, so just grab the rest of the value
+          attrValue = value.slice(start);
+        }
+
+        pairs.push({ target: attrName, rawValue: attrValue });
+
+        // Skip whitespace after semicolon
+        while (i < valueLength && value.charCodeAt(++i) <= Char.Space);
+
+        start = i;
+
+        attrName = void 0;
+        attrValue = void 0;
+      }
+    }
+
+    return pairs;
   }
 });

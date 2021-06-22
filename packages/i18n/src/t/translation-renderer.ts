@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { camelCase, IContainer } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding.js';
 import {
   BindingMode,
@@ -11,16 +11,15 @@ import {
   LifecycleFlags,
   IHydratableController,
   AttrSyntax,
-  getTarget,
   IPlatform,
+  IAttrSyntaxTransformer,
 } from '@aurelia/runtime-html';
 
 import type {
   CallBindingInstruction,
-  BindingSymbol,
   BindingCommandInstance,
-  PlainAttributeSymbol,
 } from '@aurelia/runtime-html';
+import { ICommandBuildInfo } from '@aurelia/runtime-html/dist/resources/binding-command';
 
 export const TranslationInstructionType = 'tt';
 
@@ -47,8 +46,20 @@ export class TranslationBindingInstruction {
 export class TranslationBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.CustomCommand = BindingType.CustomCommand;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): TranslationBindingInstruction {
-    return new TranslationBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
+  public static get inject() { return [IAttrSyntaxTransformer]; }
+  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+
+  public build(info: ICommandBuildInfo): TranslationBindingInstruction {
+    let target: string;
+    if (info.bindable == null) {
+      target = this.t.map(info.node, info.attr.target)
+        // if the transformer doesn't know how to map it
+        // use the default behavior, which is camel-casing
+        ?? camelCase(info.attr.target);
+    } else {
+      target = info.bindable.property;
+    }
+    return new TranslationBindingInstruction(info.expr as IsBindingBehavior, target);
   }
 }
 
@@ -105,8 +116,20 @@ export class TranslationBindBindingInstruction {
 export class TranslationBindBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
-  public compile(binding: PlainAttributeSymbol | BindingSymbol): TranslationBindBindingInstruction {
-    return new TranslationBindBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
+  public static get inject() { return [IAttrSyntaxTransformer]; }
+  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+
+  public build(info: ICommandBuildInfo): TranslationBindingInstruction {
+    let target: string;
+    if (info.bindable == null) {
+      target = this.t.map(info.node, info.attr.target)
+        // if the transformer doesn't know how to map it
+        // use the default behavior, which is camel-casing
+        ?? camelCase(info.attr.target);
+    } else {
+      target = info.bindable.property;
+    }
+    return new TranslationBindBindingInstruction(info.expr as IsBindingBehavior, target);
   }
 }
 

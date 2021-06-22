@@ -16,8 +16,6 @@ import {
   BindingCommand,
   BindingCommandInstance,
   IAttributePattern,
-  PlainAttributeSymbol,
-  AttrBindingCommand,
   IPlatform,
 } from '@aurelia/runtime-html';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
@@ -57,14 +55,13 @@ describe('TranslationParametersBindingCommand', function () {
   it('compiles the binding to a TranslationParametersBindingInstruction', function () {
     const sut = createFixture();
     const syntax: AttrSyntax = { command: 't-params.bind', rawName: 't-params.bind', rawValue: '{foo: "bar"}', target: '' };
-    const plainAttributesymbol: PlainAttributeSymbol = {
-      command: new AttrBindingCommand(),
-      flags: (void 0)!,
-      expression: { syntax } as unknown as AnyBindingExpression,
-      syntax
-    };
-
-    const actual = sut.compile(plainAttributesymbol);
+    const actual = sut.build({
+      node: { nodeName: 'abc' } as unknown as Element,
+      attr: syntax,
+      bindable: null,
+      def: null,
+      expr: { syntax } as unknown as AnyBindingExpression
+    });
 
     assert.instanceOf(actual, TranslationParametersBindingInstruction);
   });

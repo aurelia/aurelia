@@ -9,9 +9,9 @@ The following is a code example of how to teach Aurelia to work seamlessly with 
 ```typescript
 export class IonicFramework implements IRegistry {
     register(container: IContainer) {
-        const attrSyntaxTransformer = container.get(IAttrSyntaxTransformer);
+        const attrMapper = container.get(IAttrMapper);
         const nodeObserverLocator = container.get(NodeObserverLocator);
-        attrSyntaxTransformer.useTwoWay((el, property) => {
+        attrMapper.useTwoWay((el, property) => {
             if (el.tagName === 'ION-CHECKBOX' ||
                 el.tagName === 'ION-TOGGLE'
             ) {

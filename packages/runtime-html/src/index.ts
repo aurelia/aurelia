@@ -269,8 +269,8 @@ export {
   StyleBindingCommand,
 } from './resources/binding-command.js';
 export {
-  IAttrSyntaxTransformer,
-} from './attribute-syntax-transformer.js';
+  IAttrMapper,
+} from './attribute-mapper.js';
 export {
   Listener,
 } from './binding/listener.js';

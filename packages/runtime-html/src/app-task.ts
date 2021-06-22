@@ -1,11 +1,5 @@
-import {
-  DI,
-  IContainer,
-  IRegistry,
-  Key,
-  Registration,
-  Resolved,
-} from '@aurelia/kernel';
+import { DI, Registration } from '@aurelia/kernel';
+import type { IContainer, IRegistry, Key, Resolved } from '@aurelia/kernel';
 
 export type TaskSlot = (
   'beforeCreate' |

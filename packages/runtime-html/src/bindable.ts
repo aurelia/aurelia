@@ -1,17 +1,8 @@
-import {
-  Constructable,
-  kebabCase,
-  Metadata,
-  Protocol,
-  firstDefined,
-  getPrototypeChain,
-  Writable,
-  noop,
-} from '@aurelia/kernel';
-import {
-  BindingMode,
-  InterceptorFunc,
-} from '@aurelia/runtime';
+import { kebabCase, Metadata, Protocol, firstDefined, getPrototypeChain, noop } from '@aurelia/kernel';
+import { BindingMode } from '@aurelia/runtime';
+
+import type { Constructable, Writable } from '@aurelia/kernel';
+import type { InterceptorFunc } from '@aurelia/runtime';
 
 export type PartialBindableDefinition = {
   mode?: BindingMode;

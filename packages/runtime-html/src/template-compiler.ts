@@ -1,6 +1,6 @@
 import { emptyArray, Registration, toArray, ILogger, camelCase } from '@aurelia/kernel';
 import { BindingMode, BindingType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
-import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
+import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
 import {
   HydrateAttributeInstruction,
@@ -34,7 +34,7 @@ import type { IProjections } from './resources/custom-elements/au-slot.js';
 import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command.js';
 import type { ICompliationInstruction, IInstruction, } from './renderer.js';
 
-export class ViewCompiler implements ITemplateCompiler {
+export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
     return Registration.singleton(ITemplateCompiler, this).register(container);
   }
@@ -87,7 +87,7 @@ export class ViewCompiler implements ITemplateCompiler {
     const attrs = el.attributes;
     const attrParser = context.attrParser;
     const exprParser = context.exprParser;
-    const attrTransformer = context.attrTransformer;
+    const attrMapper = context.attrMapper;
     let ii = attrs.length;
     let i = 0;
     let attr: Attr;
@@ -210,7 +210,7 @@ export class ViewCompiler implements ITemplateCompiler {
             // e.g: colspan -> colSpan
             //      innerhtml -> innerHTML
             //      minlength -> minLengt etc...
-            attrTransformer.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
+            attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
           ));
         } else {
           switch (attrName) {
@@ -237,6 +237,8 @@ export class ViewCompiler implements ITemplateCompiler {
         instructions.push(bindingCommand.build(commandBuildInfo));
       }
     }
+
+    resetCommandBuildInfo();
 
     if (attrInstructions != null) {
       return (attrInstructions as IInstruction[]).concat(instructions);
@@ -364,7 +366,7 @@ export class ViewCompiler implements ITemplateCompiler {
     const isAuSlot = elName === 'au-slot';
     const attrParser = context.attrParser;
     const exprParser = context.exprParser;
-    const attrSyntaxTransformer = context.attrTransformer;
+    const attrMapper = context.attrMapper;
     const isAttrsOrderSensitive = this.shouldReorderAttrs(el);
     let attrs = el.attributes;
     let instructions: IInstruction[] | undefined;
@@ -550,7 +552,7 @@ export class ViewCompiler implements ITemplateCompiler {
             // e.g: colspan -> colSpan
             //      innerhtml -> innerHTML
             //      minlength -> minLengt etc...
-            attrSyntaxTransformer.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
+            attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
           ));
         }
         // if not a custom attribute + no binding command + not a bindable + not an interpolation
@@ -609,11 +611,7 @@ export class ViewCompiler implements ITemplateCompiler {
       (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
     }
 
-    commandBuildInfo.node
-      = commandBuildInfo.attr
-      = commandBuildInfo.expr
-      = commandBuildInfo.bindable
-      = commandBuildInfo.def = null!;
+    resetCommandBuildInfo();
 
     if (isAttrsOrderSensitive && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
       this.reorder(el, plainAttrInstructions);
@@ -1101,6 +1099,8 @@ export class ViewCompiler implements ITemplateCompiler {
       }
     }
 
+    resetCommandBuildInfo();
+
     return instructions;
   }
 
@@ -1240,7 +1240,7 @@ class CompilationContext {
   public readonly templateFactory: ITemplateElementFactory;
   public readonly logger: ILogger;
   public readonly attrParser: IAttributeParser;
-  public readonly attrTransformer: IAttrSyntaxTransformer;
+  public readonly attrMapper: IAttrMapper;
   public readonly exprParser: IExpressionParser;
   public readonly p: IPlatform;
   // an array representing targets of instructions, built on depth first tree walking compilation
@@ -1248,6 +1248,9 @@ class CompilationContext {
   public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
 
+  /**
+   * @internal
+   */
   private readonly c: IContainer;
 
   public constructor(
@@ -1268,7 +1271,7 @@ class CompilationContext {
     // todo: attr parser should be retrieved based in resource semantic (current leaf + root + ignore parent)
     this.attrParser = hasParent ? parent!.attrParser : container.get(IAttributeParser);
     this.exprParser = hasParent ? parent!.exprParser : container.get(IExpressionParser);
-    this.attrTransformer = hasParent ? parent!.attrTransformer : container.get(IAttrSyntaxTransformer);
+    this.attrMapper = hasParent ? parent!.attrMapper : container.get(IAttrMapper);
     this.logger = hasParent ? parent!.logger : container.get(ILogger);
     this.p = hasParent ? parent!.p : container.get(IPlatform);
     this.localEls = hasParent ? parent!.localEls : new Set();
@@ -1290,14 +1293,23 @@ class CompilationContext {
     return el;
   }
 
+  /**
+   * Find the custom element definition of a given name
+   */
   public el(name: string): CustomElementDefinition | null {
     return this.c.find(CustomElement, name) as CustomElementDefinition | null;
   }
 
+  /**
+   * Find the custom attribute definition of a given name
+   */
   public attr(name: string): CustomAttributeDefinition | null {
     return this.c.find(CustomAttribute, name);
   }
 
+  /**
+   * Create a new child compilation context
+   */
   public child(instructions?: IInstruction[][]) {
     return new CompilationContext(this.def, this.c, this.ci, this, this.root, instructions);
   }
@@ -1308,7 +1320,7 @@ class CompilationContext {
   // rather than baked in the container
   private readonly commands: Record<string, BindingCommandInstance | null | undefined> = createLookup();
   /**
-   *Retrieve a binding command resource.
+   * Retrieve a binding command resource instance.
    *
    * @param name - The parsed `AttrSyntax`
    *
@@ -1349,6 +1361,14 @@ function hasInlineBindings(rawValue: string): boolean {
     }
   }
   return false;
+}
+
+function resetCommandBuildInfo(): void {
+  commandBuildInfo.node
+    = commandBuildInfo.attr
+    = commandBuildInfo.expr
+    = commandBuildInfo.bindable
+    = commandBuildInfo.def = null!;
 }
 
 const emptyCompilationInstructions: ICompliationInstruction = { projections: null };

@@ -1,8 +1,9 @@
 import { AccessorType } from '@aurelia/runtime';
+import { createLookup } from '../utilities-html.js';
 
 import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
 
-const nsMap: Record<string, AttributeNSAccessor> = Object.create(null);
+const nsMap: Record<string, AttributeNSAccessor> = createLookup();
 
 /**
  * Attribute accessor in a XML document/element that can be accessed via a namespace.

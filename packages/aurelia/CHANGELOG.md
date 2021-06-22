@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.8"></a>
+# 2.0.0-alpha.8 (2021-06-22)
+
+### Refactorings:
+
+* **template-compiler:** remove BindingCommand.prototype.compile ([63dee52](https://github.com/aurelia/aurelia/commit/63dee52))
+
 <a name="2.0.0-alpha.7"></a>
 # 2.0.0-alpha.7 (2021-06-20)
 

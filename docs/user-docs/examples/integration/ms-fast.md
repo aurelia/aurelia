@@ -7,12 +7,12 @@ If the example doesn't seem obvious, the following prerequisite reads are recomm
 The following is a code example of how to teach Aurelia to work seamlessly with [Microsoft FAST](https://www.fast.design/):
 
 ```typescript
-import { AppTask, IContainer, IAttrSyntaxTransformer, NodeObserverLocator } from 'aurelia';
+import { AppTask, IContainer, IAttrMapper, NodeObserverLocator } from 'aurelia';
 
 Aurelia.register(AppTask.beforeCreate(IContainer, container => {
-  const attrSyntaxTransformer = container.get(IAttrSyntaxTransformer);
+  const attrMapper = container.get(IAttrMapper);
   const nodeObserverLocator = container.get(NodeObserverLocator);
-  attrSyntaxTransformer.useTwoWay((el, property) => {
+  attrMapper.useTwoWay((el, property) => {
     switch (el.tagName) {
       case 'FAST-SLIDER':
       case 'FAST-TEXT-FIELD':

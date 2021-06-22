@@ -1,5 +1,5 @@
 import { IContainer, IPlatform } from '@aurelia/kernel';
-import { AppTask, BrowserPlatform, CustomElement, IAttrSyntaxTransformer, NodeObserverLocator } from '@aurelia/runtime-html';
+import { AppTask, BrowserPlatform, CustomElement, IAttrMapper, NodeObserverLocator } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
@@ -39,8 +39,8 @@ describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
             }
           });
 
-          const transformer = container.get(IAttrSyntaxTransformer);
-          transformer.useTwoWay((el, property) => {
+          const attrMapper = container.get(IAttrMapper);
+          attrMapper.useTwoWay((el, property) => {
             return el.tagName === elName.toUpperCase() && property === 'value';
           });
 

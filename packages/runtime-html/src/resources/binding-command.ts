@@ -1,13 +1,6 @@
-import {
-  camelCase,
-  Registration,
-  mergeArrays,
-  Protocol,
-  firstDefined,
-  Metadata
-} from '@aurelia/kernel';
+import { camelCase, Registration, mergeArrays, Protocol, firstDefined, Metadata } from '@aurelia/kernel';
 import { BindingMode, BindingType, DelegationStrategy, registerAliases } from '@aurelia/runtime';
-import { IAttrSyntaxTransformer } from '../attribute-syntax-transformer.js';
+import { IAttrMapper } from '../attribute-mapper.js';
 import {
   AttributeBindingInstruction,
   PropertyBindingInstruction,
@@ -147,14 +140,14 @@ export const BindingCommand: BindingCommandKind = {
 export class OneTimeBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.OneTimeCommand = BindingType.OneTimeCommand;
 
-  public static get inject() { return [IAttrSyntaxTransformer]; }
-  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+  public static get inject() { return [IAttrMapper]; }
+  public constructor(private readonly m: IAttrMapper) {}
 
   public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     let target: string;
     if (info.bindable == null) {
-      target = this.t.map(info.node, info.attr.target)
-        // if the transformer doesn't know how to map it
+      target = this.m.map(info.node, info.attr.target)
+        // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
     } else {
@@ -168,14 +161,14 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
 export class ToViewBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.ToViewCommand = BindingType.ToViewCommand;
 
-  public static get inject() { return [IAttrSyntaxTransformer]; }
-  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+  public static get inject() { return [IAttrMapper]; }
+  public constructor(private readonly m: IAttrMapper) {}
 
   public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     let target: string;
     if (info.bindable == null) {
-      target = this.t.map(info.node, info.attr.target)
-        // if the transformer doesn't know how to map it
+      target = this.m.map(info.node, info.attr.target)
+        // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
     } else {
@@ -189,14 +182,14 @@ export class ToViewBindingCommand implements BindingCommandInstance {
 export class FromViewBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.FromViewCommand = BindingType.FromViewCommand;
 
-  public static get inject() { return [IAttrSyntaxTransformer]; }
-  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+  public static get inject() { return [IAttrMapper]; }
+  public constructor(private readonly m: IAttrMapper) {}
 
   public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     let target: string;
     if (info.bindable == null) {
-      target = this.t.map(info.node, info.attr.target)
-        // if the transformer doesn't know how to map it
+      target = this.m.map(info.node, info.attr.target)
+        // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
     } else {
@@ -210,14 +203,14 @@ export class FromViewBindingCommand implements BindingCommandInstance {
 export class TwoWayBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.TwoWayCommand = BindingType.TwoWayCommand;
 
-  public static get inject() { return [IAttrSyntaxTransformer]; }
-  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+  public static get inject() { return [IAttrMapper]; }
+  public constructor(private readonly m: IAttrMapper) {}
 
   public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     let target: string;
     if (info.bindable == null) {
-      target = this.t.map(info.node, info.attr.target)
-        // if the transformer doesn't know how to map it
+      target = this.m.map(info.node, info.attr.target)
+        // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
     } else {
@@ -231,8 +224,8 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
 export class DefaultBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
-  public static get inject() { return [IAttrSyntaxTransformer]; }
-  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+  public static get inject() { return [IAttrMapper]; }
+  public constructor(private readonly m: IAttrMapper) {}
 
   public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     type CA = CustomAttributeDefinition;
@@ -242,9 +235,9 @@ export class DefaultBindingCommand implements BindingCommandInstance {
     let mode: BindingMode;
     let target: string;
     if (bindable == null) {
-      mode = this.t.isTwoWay(info.node, attrName) ? BindingMode.twoWay : BindingMode.toView;
-      target = this.t.map(info.node, attrName)
-        // if the transformer doesn't know how to map it
+      mode = this.m.isTwoWay(info.node, attrName) ? BindingMode.twoWay : BindingMode.toView;
+      target = this.m.map(info.node, attrName)
+        // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(attrName);
     } else {

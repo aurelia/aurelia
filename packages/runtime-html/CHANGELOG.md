@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.8"></a>
+# 2.0.0-alpha.8 (2021-06-22)
+
+### Features:
+
+* **binding-command:** add a build method, and let binding command have access to more raw information. ([240692d](https://github.com/aurelia/aurelia/commit/240692d))
+* **attr-syntax-transformer:** add isTwoWay & map methods. These are lower & purer primitives compared to existing ones, allowing better control in the compilation. ([240692d](https://github.com/aurelia/aurelia/commit/240692d))
+* **au-slot:** ability to use au-slot on the same element with a template controller ([240692d](https://github.com/aurelia/aurelia/commit/240692d))
+
+
+### Bug Fixes:
+
+* **dialog:** correct dialog dom structure ([42ae808](https://github.com/aurelia/aurelia/commit/42ae808))
+* **dialog default imp:** dialog child of wrapper ([3cce8ea](https://github.com/aurelia/aurelia/commit/3cce8ea))
+* **dialog-default-imp:** display flex on overlay ([ce3c91e](https://github.com/aurelia/aurelia/commit/ce3c91e))
+
+
+### Refactorings:
+
+* **template-compiler:** fix linting issues, cleanup method names ([581c1e3](https://github.com/aurelia/aurelia/commit/581c1e3))
+* **template-compiler:** remove BindingCommand.prototype.compile ([63dee52](https://github.com/aurelia/aurelia/commit/63dee52))
+* **template-compiler:** remove existing TemplateCompiler, remove TemplateBinder ([0ab0cde](https://github.com/aurelia/aurelia/commit/0ab0cde))
+* **template-compiler:** use class base impl for compilation context ([6cf1435](https://github.com/aurelia/aurelia/commit/6cf1435))
+* **template-compiler:** merge binder & compiler ([240692d](https://github.com/aurelia/aurelia/commit/240692d))
+
 <a name="2.0.0-alpha.7"></a>
 # 2.0.0-alpha.7 (2021-06-20)
 

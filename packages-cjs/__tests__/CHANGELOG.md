@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.8"></a>
+# 2.0.0-alpha.8 (2021-06-22)
+
+### Bug Fixes:
+
+* **jest:** fix jest v27 exports ([520ab8e](https://github.com/aurelia/aurelia/commit/520ab8e))
+
 <a name="2.0.0-alpha.7"></a>
 # 2.0.0-alpha.7 (2021-06-20)
 

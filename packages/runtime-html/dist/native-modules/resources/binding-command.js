@@ -6,7 +6,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { camelCase, Registration, mergeArrays, Protocol, firstDefined, Metadata } from '../../../../kernel/dist/native-modules/index.js';
 import { BindingMode, DelegationStrategy, registerAliases } from '../../../../runtime/dist/native-modules/index.js';
-import { IAttrSyntaxTransformer } from '../attribute-syntax-transformer.js';
+import { IAttrMapper } from '../attribute-mapper.js';
 import { AttributeBindingInstruction, PropertyBindingInstruction, CallBindingInstruction, IteratorBindingInstruction, RefBindingInstruction, ListenerBindingInstruction, } from '../renderer.js';
 export function bindingCommand(nameOrDefinition) {
     return function (target) {
@@ -71,16 +71,16 @@ export const BindingCommand = {
     },
 };
 let OneTimeBindingCommand = class OneTimeBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 49 /* OneTimeCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -93,16 +93,16 @@ OneTimeBindingCommand = __decorate([
 ], OneTimeBindingCommand);
 export { OneTimeBindingCommand };
 let ToViewBindingCommand = class ToViewBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 50 /* ToViewCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -115,16 +115,16 @@ ToViewBindingCommand = __decorate([
 ], ToViewBindingCommand);
 export { ToViewBindingCommand };
 let FromViewBindingCommand = class FromViewBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 51 /* FromViewCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -137,16 +137,16 @@ FromViewBindingCommand = __decorate([
 ], FromViewBindingCommand);
 export { FromViewBindingCommand };
 let TwoWayBindingCommand = class TwoWayBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 52 /* TwoWayCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -159,11 +159,11 @@ TwoWayBindingCommand = __decorate([
 ], TwoWayBindingCommand);
 export { TwoWayBindingCommand };
 let DefaultBindingCommand = class DefaultBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 53 /* BindCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         const attrName = info.attr.target;
@@ -172,8 +172,8 @@ let DefaultBindingCommand = class DefaultBindingCommand {
         let mode;
         let target;
         if (bindable == null) {
-            mode = this.t.isTwoWay(info.node, attrName) ? BindingMode.twoWay : BindingMode.toView;
-            target = (_a = this.t.map(info.node, attrName)) !== null && _a !== void 0 ? _a : camelCase(attrName);
+            mode = this.m.isTwoWay(info.node, attrName) ? BindingMode.twoWay : BindingMode.toView;
+            target = (_a = this.m.map(info.node, attrName)) !== null && _a !== void 0 ? _a : camelCase(attrName);
         }
         else {
             defaultMode = info.def.defaultBindingMode;

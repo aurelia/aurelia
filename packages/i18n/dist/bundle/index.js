@@ -1,5 +1,5 @@
 import { DI, IEventAggregator, toArray, camelCase, Registration } from '@aurelia/kernel';
-import { ValueConverterExpression as ValueConverterExpression$1, bindingBehavior as bindingBehavior$1, CustomExpression, Interpolation, CustomElement, connectable, AttrSyntax, attributePattern, BindingMode, IAttrSyntaxTransformer, bindingCommand, renderer, IExpressionParser, IObserverLocator, IPlatform, valueConverter as valueConverter$1, AppTask, AttributePattern, BindingCommand } from '@aurelia/runtime-html';
+import { ValueConverterExpression as ValueConverterExpression$1, bindingBehavior as bindingBehavior$1, CustomExpression, Interpolation, CustomElement, connectable, AttrSyntax, attributePattern, BindingMode, IAttrMapper, bindingCommand, renderer, IExpressionParser, IObserverLocator, IPlatform, valueConverter as valueConverter$1, AppTask, AttributePattern, BindingCommand } from '@aurelia/runtime-html';
 import { ValueConverterExpression, bindingBehavior, ISignaler, valueConverter } from '@aurelia/runtime';
 import i18next from 'i18next';
 
@@ -618,16 +618,16 @@ class TranslationParametersBindingInstruction {
     }
 }
 let TranslationParametersBindingCommand = class TranslationParametersBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 53 /* BindCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -672,16 +672,16 @@ class TranslationBindingInstruction {
     }
 }
 class TranslationBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 284 /* CustomCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -731,16 +731,16 @@ class TranslationBindBindingInstruction {
     }
 }
 class TranslationBindBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 53 /* BindCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;

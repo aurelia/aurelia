@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { BindingMode, BindingType, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, IHydratableController, AttrSyntax, IPlatform, IAttrSyntaxTransformer } from '@aurelia/runtime-html';
+import { BindingMode, BindingType, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, IHydratableController, AttrSyntax, IPlatform, IAttrMapper } from '@aurelia/runtime-html';
 import type { CallBindingInstruction, BindingCommandInstance } from '@aurelia/runtime-html';
 import { ICommandBuildInfo } from '@aurelia/runtime-html/dist/resources/binding-command';
 export declare const TranslationInstructionType = "tt";
@@ -15,10 +15,10 @@ export declare class TranslationBindingInstruction {
     constructor(from: IsBindingBehavior, to: string);
 }
 export declare class TranslationBindingCommand implements BindingCommandInstance {
-    private readonly t;
+    private readonly m;
     readonly bindingType: BindingType.CustomCommand;
-    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
-    constructor(t: IAttrSyntaxTransformer);
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>[];
+    constructor(m: IAttrMapper);
     build(info: ICommandBuildInfo): TranslationBindingInstruction;
 }
 export declare class TranslationBindingRenderer implements IRenderer {
@@ -41,10 +41,10 @@ export declare class TranslationBindBindingInstruction {
     constructor(from: IsBindingBehavior, to: string);
 }
 export declare class TranslationBindBindingCommand implements BindingCommandInstance {
-    private readonly t;
+    private readonly m;
     readonly bindingType: BindingType.BindCommand;
-    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
-    constructor(t: IAttrSyntaxTransformer);
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>[];
+    constructor(m: IAttrMapper);
     build(info: ICommandBuildInfo): TranslationBindingInstruction;
 }
 export declare class TranslationBindBindingRenderer implements IRenderer {

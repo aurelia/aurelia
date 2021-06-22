@@ -1,4 +1,4 @@
-import { DI, Registration, } from '../../../kernel/dist/native-modules/index.js';
+import { DI, Registration } from '../../../kernel/dist/native-modules/index.js';
 export const IAppTask = DI.createInterface('IAppTask');
 class $AppTask {
     constructor(slot, key, cb) {

@@ -1,4 +1,4 @@
-import { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
+import type { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
 export interface AttributePatternDefinition {
     pattern: string;
     symbols: string;

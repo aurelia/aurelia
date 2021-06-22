@@ -1,5 +1,5 @@
 import { BindingType } from '@aurelia/runtime';
-import { IAttrSyntaxTransformer } from '../attribute-syntax-transformer.js';
+import { IAttrMapper } from '../attribute-mapper.js';
 import { PropertyBindingInstruction } from '../renderer.js';
 import type { Constructable, IContainer, IResourceKind, ResourceType, ResourceDefinition, PartialResourceDefinition } from '@aurelia/kernel';
 import type { IInstruction } from '../renderer.js';
@@ -47,38 +47,38 @@ export declare class BindingCommandDefinition<T extends Constructable = Construc
 }
 export declare const BindingCommand: BindingCommandKind;
 export declare class OneTimeBindingCommand implements BindingCommandInstance {
-    private readonly t;
+    private readonly m;
     readonly bindingType: BindingType.OneTimeCommand;
-    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
-    constructor(t: IAttrSyntaxTransformer);
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>[];
+    constructor(m: IAttrMapper);
     build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class ToViewBindingCommand implements BindingCommandInstance {
-    private readonly t;
+    private readonly m;
     readonly bindingType: BindingType.ToViewCommand;
-    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
-    constructor(t: IAttrSyntaxTransformer);
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>[];
+    constructor(m: IAttrMapper);
     build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class FromViewBindingCommand implements BindingCommandInstance {
-    private readonly t;
+    private readonly m;
     readonly bindingType: BindingType.FromViewCommand;
-    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
-    constructor(t: IAttrSyntaxTransformer);
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>[];
+    constructor(m: IAttrMapper);
     build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class TwoWayBindingCommand implements BindingCommandInstance {
-    private readonly t;
+    private readonly m;
     readonly bindingType: BindingType.TwoWayCommand;
-    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
-    constructor(t: IAttrSyntaxTransformer);
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>[];
+    constructor(m: IAttrMapper);
     build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class DefaultBindingCommand implements BindingCommandInstance {
-    private readonly t;
+    private readonly m;
     readonly bindingType: BindingType.BindCommand;
-    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
-    constructor(t: IAttrSyntaxTransformer);
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>[];
+    constructor(m: IAttrMapper);
     build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class CallBindingCommand implements BindingCommandInstance {

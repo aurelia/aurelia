@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RefBindingCommand = exports.ClassBindingCommand = exports.StyleBindingCommand = exports.AttrBindingCommand = exports.CaptureBindingCommand = exports.DelegateBindingCommand = exports.TriggerBindingCommand = exports.ForBindingCommand = exports.CallBindingCommand = exports.DefaultBindingCommand = exports.TwoWayBindingCommand = exports.FromViewBindingCommand = exports.ToViewBindingCommand = exports.OneTimeBindingCommand = exports.BindingCommand = exports.BindingCommandDefinition = exports.bindingCommand = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const runtime_1 = require("@aurelia/runtime");
-const attribute_syntax_transformer_js_1 = require("../attribute-syntax-transformer.js");
+const attribute_mapper_js_1 = require("../attribute-mapper.js");
 const renderer_js_1 = require("../renderer.js");
 function bindingCommand(nameOrDefinition) {
     return function (target) {
@@ -76,16 +76,16 @@ exports.BindingCommand = {
     },
 };
 let OneTimeBindingCommand = class OneTimeBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 49 /* OneTimeCommand */;
     }
-    static get inject() { return [attribute_syntax_transformer_js_1.IAttrSyntaxTransformer]; }
+    static get inject() { return [attribute_mapper_js_1.IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -98,16 +98,16 @@ OneTimeBindingCommand = __decorate([
 ], OneTimeBindingCommand);
 exports.OneTimeBindingCommand = OneTimeBindingCommand;
 let ToViewBindingCommand = class ToViewBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 50 /* ToViewCommand */;
     }
-    static get inject() { return [attribute_syntax_transformer_js_1.IAttrSyntaxTransformer]; }
+    static get inject() { return [attribute_mapper_js_1.IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -120,16 +120,16 @@ ToViewBindingCommand = __decorate([
 ], ToViewBindingCommand);
 exports.ToViewBindingCommand = ToViewBindingCommand;
 let FromViewBindingCommand = class FromViewBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 51 /* FromViewCommand */;
     }
-    static get inject() { return [attribute_syntax_transformer_js_1.IAttrSyntaxTransformer]; }
+    static get inject() { return [attribute_mapper_js_1.IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -142,16 +142,16 @@ FromViewBindingCommand = __decorate([
 ], FromViewBindingCommand);
 exports.FromViewBindingCommand = FromViewBindingCommand;
 let TwoWayBindingCommand = class TwoWayBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 52 /* TwoWayCommand */;
     }
-    static get inject() { return [attribute_syntax_transformer_js_1.IAttrSyntaxTransformer]; }
+    static get inject() { return [attribute_mapper_js_1.IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -164,11 +164,11 @@ TwoWayBindingCommand = __decorate([
 ], TwoWayBindingCommand);
 exports.TwoWayBindingCommand = TwoWayBindingCommand;
 let DefaultBindingCommand = class DefaultBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 53 /* BindCommand */;
     }
-    static get inject() { return [attribute_syntax_transformer_js_1.IAttrSyntaxTransformer]; }
+    static get inject() { return [attribute_mapper_js_1.IAttrMapper]; }
     build(info) {
         var _a;
         const attrName = info.attr.target;
@@ -177,8 +177,8 @@ let DefaultBindingCommand = class DefaultBindingCommand {
         let mode;
         let target;
         if (bindable == null) {
-            mode = this.t.isTwoWay(info.node, attrName) ? runtime_1.BindingMode.twoWay : runtime_1.BindingMode.toView;
-            target = (_a = this.t.map(info.node, attrName)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(attrName);
+            mode = this.m.isTwoWay(info.node, attrName) ? runtime_1.BindingMode.twoWay : runtime_1.BindingMode.toView;
+            target = (_a = this.m.map(info.node, attrName)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(attrName);
         }
         else {
             defaultMode = info.def.defaultBindingMode;

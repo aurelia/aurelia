@@ -1,4 +1,4 @@
-import { IContainer, IRegistry, Key, Resolved } from '@aurelia/kernel';
+import type { IContainer, IRegistry, Key, Resolved } from '@aurelia/kernel';
 export declare type TaskSlot = ('beforeCreate' | 'hydrating' | 'hydrated' | 'beforeActivate' | 'afterActivate' | 'beforeDeactivate' | 'afterDeactivate');
 export declare const IAppTask: import("@aurelia/kernel").InterfaceSymbol<IAppTask>;
 export interface IAppTask extends Pick<$AppTask, 'slot' | 'run' | 'register'> {

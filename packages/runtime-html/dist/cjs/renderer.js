@@ -104,9 +104,21 @@ class SetPropertyInstruction {
 }
 exports.SetPropertyInstruction = SetPropertyInstruction;
 class HydrateElementInstruction {
-    constructor(res, alias, instructions, 
+    constructor(
+    /**
+     * The name of the custom element this instruction is associated with
+     */
+    res, alias, 
+    /**
+     * Bindable instructions for the custom element instance
+     */
+    instructions, 
+    /**
+     * Indicates what projections are associated with the element usage
+     */
+    projections, 
     // only not null if this is an au-slot instruction
-    projections, slotInfo) {
+    slotInfo) {
         this.res = res;
         this.alias = alias;
         this.instructions = instructions;
@@ -117,7 +129,11 @@ class HydrateElementInstruction {
 }
 exports.HydrateElementInstruction = HydrateElementInstruction;
 class HydrateAttributeInstruction {
-    constructor(res, alias, instructions) {
+    constructor(res, alias, 
+    /**
+     * Bindable instructions for the custom attribute instance
+     */
+    instructions) {
         this.res = res;
         this.alias = alias;
         this.instructions = instructions;
@@ -126,7 +142,11 @@ class HydrateAttributeInstruction {
 }
 exports.HydrateAttributeInstruction = HydrateAttributeInstruction;
 class HydrateTemplateController {
-    constructor(def, res, alias, instructions) {
+    constructor(def, res, alias, 
+    /**
+     * Bindable instructions for the template controller instance
+     */
+    instructions) {
         this.def = def;
         this.res = res;
         this.alias = alias;

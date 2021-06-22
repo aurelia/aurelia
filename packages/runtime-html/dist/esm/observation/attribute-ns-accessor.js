@@ -1,4 +1,5 @@
-const nsMap = Object.create(null);
+import { createLookup } from '../utilities-html.js';
+const nsMap = createLookup();
 /**
  * Attribute accessor in a XML document/element that can be accessed via a namespace.
  * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).

@@ -764,22 +764,23 @@ class NoopSVGAnalyzer {
     }
 }
 function o(keys) {
-    const lookup = Object.create(null);
-    for (const key of keys) {
+    const lookup = createLookup();
+    let key;
+    for (key of keys) {
         lookup[key] = true;
     }
     return lookup;
 }
 class SVGAnalyzer {
     constructor(platform) {
-        this.svgElements = Object.assign(Object.create(null), {
+        this.svgElements = Object.assign(createLookup(), {
             'a': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
             'altGlyph': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'altglyph': Object.create(null),
+            'altglyph': createLookup(),
             'altGlyphDef': o(['id', 'xml:base', 'xml:lang', 'xml:space']),
-            'altglyphdef': Object.create(null),
+            'altglyphdef': createLookup(),
             'altGlyphItem': o(['id', 'xml:base', 'xml:lang', 'xml:space']),
-            'altglyphitem': Object.create(null),
+            'altglyphitem': createLookup(),
             'animate': o(['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
             'animateColor': o(['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
             'animateMotion': o(['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
@@ -826,7 +827,7 @@ class SVGAnalyzer {
             'g': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space']),
             'glyph': o(['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space']),
             'glyphRef': o(['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
-            'glyphref': Object.create(null),
+            'glyphref': createLookup(),
             'hkern': o(['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space']),
             'image': o(['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
             'line': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2']),
@@ -1009,9 +1010,9 @@ class SVGAnalyzer {
  */
 SVGAnalyzer.inject = [IPlatform];
 
-const IAttrSyntaxTransformer = DI
-    .createInterface('IAttrSyntaxTransformer', x => x.singleton(AttrSyntaxTransformer));
-class AttrSyntaxTransformer {
+const IAttrMapper = DI
+    .createInterface('IAttrMapper', x => x.singleton(AttrMapper));
+class AttrMapper {
     constructor(svg) {
         this.svg = svg;
         /**
@@ -1092,22 +1093,21 @@ class AttrSyntaxTransformer {
     }
     /**
      * Add a given function to a list of fns that will be used
-     * to check if `'bind'` command can be transformed to `'two-way'` command.
-     *
-     * If one of those functions in this lists returns true, the `'bind'` command
-     * will be transformed into `'two-way'` command.
-     *
-     * The function will be called with 2 parameters:
-     * - element: the element that the template compiler is currently working with
-     * - property: the target property name
+     * to check if `'bind'` command can be understood as `'two-way'` command.
      */
     useTwoWay(fn) {
         this.fns.push(fn);
     }
+    /**
+     * Returns true if an attribute should be two way bound based on an element
+     */
     isTwoWay(node, attrName) {
         return shouldDefaultToTwoWay(node, attrName)
             || this.fns.length > 0 && this.fns.some(fn => fn(node, attrName));
     }
+    /**
+     * Retrieves the mapping information this mapper have for an attribute on an element
+     */
     map(node, attr) {
         var _a, _b, _c;
         return (_c = (_b = (_a = this.tagAttrMap[node.nodeName]) === null || _a === void 0 ? void 0 : _a[attr]) !== null && _b !== void 0 ? _b : this.globalAttrMap[attr]) !== null && _c !== void 0 ? _c : (isDataAttribute(node, attr, this.svg)
@@ -5460,9 +5460,21 @@ class SetPropertyInstruction {
     get type() { return "re" /* setProperty */; }
 }
 class HydrateElementInstruction {
-    constructor(res, alias, instructions, 
+    constructor(
+    /**
+     * The name of the custom element this instruction is associated with
+     */
+    res, alias, 
+    /**
+     * Bindable instructions for the custom element instance
+     */
+    instructions, 
+    /**
+     * Indicates what projections are associated with the element usage
+     */
+    projections, 
     // only not null if this is an au-slot instruction
-    projections, slotInfo) {
+    slotInfo) {
         this.res = res;
         this.alias = alias;
         this.instructions = instructions;
@@ -5472,7 +5484,11 @@ class HydrateElementInstruction {
     get type() { return "ra" /* hydrateElement */; }
 }
 class HydrateAttributeInstruction {
-    constructor(res, alias, instructions) {
+    constructor(res, alias, 
+    /**
+     * Bindable instructions for the custom attribute instance
+     */
+    instructions) {
         this.res = res;
         this.alias = alias;
         this.instructions = instructions;
@@ -5480,7 +5496,11 @@ class HydrateAttributeInstruction {
     get type() { return "rb" /* hydrateAttribute */; }
 }
 class HydrateTemplateController {
-    constructor(def, res, alias, instructions) {
+    constructor(def, res, alias, 
+    /**
+     * Bindable instructions for the template controller instance
+     */
+    instructions) {
         this.def = def;
         this.res = res;
         this.alias = alias;
@@ -6135,16 +6155,16 @@ const BindingCommand = {
     },
 };
 let OneTimeBindingCommand = class OneTimeBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 49 /* OneTimeCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -6156,16 +6176,16 @@ OneTimeBindingCommand = __decorate([
     bindingCommand('one-time')
 ], OneTimeBindingCommand);
 let ToViewBindingCommand = class ToViewBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 50 /* ToViewCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -6177,16 +6197,16 @@ ToViewBindingCommand = __decorate([
     bindingCommand('to-view')
 ], ToViewBindingCommand);
 let FromViewBindingCommand = class FromViewBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 51 /* FromViewCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -6198,16 +6218,16 @@ FromViewBindingCommand = __decorate([
     bindingCommand('from-view')
 ], FromViewBindingCommand);
 let TwoWayBindingCommand = class TwoWayBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 52 /* TwoWayCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -6219,11 +6239,11 @@ TwoWayBindingCommand = __decorate([
     bindingCommand('two-way')
 ], TwoWayBindingCommand);
 let DefaultBindingCommand = class DefaultBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 53 /* BindCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         const attrName = info.attr.target;
@@ -6232,8 +6252,8 @@ let DefaultBindingCommand = class DefaultBindingCommand {
         let mode;
         let target;
         if (bindable == null) {
-            mode = this.t.isTwoWay(info.node, attrName) ? BindingMode.twoWay : BindingMode.toView;
-            target = (_a = this.t.map(info.node, attrName)) !== null && _a !== void 0 ? _a : camelCase(attrName);
+            mode = this.m.isTwoWay(info.node, attrName) ? BindingMode.twoWay : BindingMode.toView;
+            target = (_a = this.m.map(info.node, attrName)) !== null && _a !== void 0 ? _a : camelCase(attrName);
         }
         else {
             defaultMode = info.def.defaultBindingMode;
@@ -6415,7 +6435,7 @@ TemplateElementFactory = __decorate([
     __param(0, IPlatform)
 ], TemplateElementFactory);
 
-class ViewCompiler {
+class TemplateCompiler {
     static register(container) {
         return Registration.singleton(ITemplateCompiler, this).register(container);
     }
@@ -6459,7 +6479,7 @@ class ViewCompiler {
         const attrs = el.attributes;
         const attrParser = context.attrParser;
         const exprParser = context.exprParser;
-        const attrTransformer = context.attrTransformer;
+        const attrMapper = context.attrMapper;
         let ii = attrs.length;
         let i = 0;
         let attr;
@@ -6568,7 +6588,7 @@ class ViewCompiler {
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLengt etc...
-                    attrTransformer.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : camelCase(realAttrTarget)));
+                    attrMapper.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : camelCase(realAttrTarget)));
                 }
                 else {
                     switch (attrName) {
@@ -6595,6 +6615,7 @@ class ViewCompiler {
                 instructions.push(bindingCommand.build(commandBuildInfo));
             }
         }
+        resetCommandBuildInfo();
         if (attrInstructions != null) {
             return attrInstructions.concat(instructions);
         }
@@ -6706,7 +6727,7 @@ class ViewCompiler {
         const isAuSlot = elName === 'au-slot';
         const attrParser = context.attrParser;
         const exprParser = context.exprParser;
-        const attrSyntaxTransformer = context.attrTransformer;
+        const attrMapper = context.attrMapper;
         const isAttrsOrderSensitive = this.shouldReorderAttrs(el);
         let attrs = el.attributes;
         let instructions;
@@ -6869,7 +6890,7 @@ class ViewCompiler {
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLengt etc...
-                    attrSyntaxTransformer.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : camelCase(realAttrTarget)));
+                    attrMapper.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : camelCase(realAttrTarget)));
                 }
                 // if not a custom attribute + no binding command + not a bindable + not an interpolation
                 // then it's just a plain attribute, do nothing
@@ -6918,11 +6939,7 @@ class ViewCompiler {
             commandBuildInfo.def = null;
             (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(bindingCommand.build(commandBuildInfo));
         }
-        commandBuildInfo.node
-            = commandBuildInfo.attr
-                = commandBuildInfo.expr
-                    = commandBuildInfo.bindable
-                        = commandBuildInfo.def = null;
+        resetCommandBuildInfo();
         if (isAttrsOrderSensitive && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
             this.reorder(el, plainAttrInstructions);
         }
@@ -7372,6 +7389,7 @@ class ViewCompiler {
                 attrValue = void 0;
             }
         }
+        resetCommandBuildInfo();
         return instructions;
     }
     /** @internal */
@@ -7515,7 +7533,7 @@ class CompilationContext {
         // todo: attr parser should be retrieved based in resource semantic (current leaf + root + ignore parent)
         this.attrParser = hasParent ? parent.attrParser : container.get(IAttributeParser);
         this.exprParser = hasParent ? parent.exprParser : container.get(IExpressionParser);
-        this.attrTransformer = hasParent ? parent.attrTransformer : container.get(IAttrSyntaxTransformer);
+        this.attrMapper = hasParent ? parent.attrMapper : container.get(IAttrMapper);
         this.logger = hasParent ? parent.logger : container.get(ILogger);
         this.p = hasParent ? parent.p : container.get(IPlatform);
         this.localEls = hasParent ? parent.localEls : new Set();
@@ -7532,17 +7550,26 @@ class CompilationContext {
         }
         return el;
     }
+    /**
+     * Find the custom element definition of a given name
+     */
     el(name) {
         return this.c.find(CustomElement, name);
     }
+    /**
+     * Find the custom attribute definition of a given name
+     */
     attr(name) {
         return this.c.find(CustomAttribute, name);
     }
+    /**
+     * Create a new child compilation context
+     */
     child(instructions) {
         return new CompilationContext(this.def, this.c, this.ci, this, this.root, instructions);
     }
     /**
-     *Retrieve a binding command resource.
+     * Retrieve a binding command resource instance.
      *
      * @param name - The parsed `AttrSyntax`
      *
@@ -7584,6 +7611,13 @@ function hasInlineBindings(rawValue) {
         }
     }
     return false;
+}
+function resetCommandBuildInfo() {
+    commandBuildInfo.node
+        = commandBuildInfo.attr
+            = commandBuildInfo.expr
+                = commandBuildInfo.bindable
+                    = commandBuildInfo.def = null;
 }
 const emptyCompilationInstructions = { projections: null };
 // eslint-disable-next-line
@@ -7961,7 +7995,7 @@ SelfBindingBehavior = __decorate([
     bindingBehavior('self')
 ], SelfBindingBehavior);
 
-const nsMap = Object.create(null);
+const nsMap = createLookup();
 /**
  * Attribute accessor in a XML document/element that can be accessed via a namespace.
  * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).
@@ -11297,7 +11331,7 @@ const FromViewBindingBehaviorRegistration = FromViewBindingBehavior;
 const SignalBindingBehaviorRegistration = SignalBindingBehavior;
 const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior;
 const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior;
-const ITemplateCompilerRegistration = ViewCompiler;
+const ITemplateCompilerRegistration = TemplateCompiler;
 const INodeObserverLocatorRegistration = NodeObserverLocator;
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
@@ -12125,5 +12159,5 @@ const DialogDefaultConfiguration = createDialogConfiguration(noop, [
     DefaultDialogDomRenderer,
 ]);
 
-export { AdoptedStyleSheetsStyles, AppRoot, AppTask, AtPrefixedTriggerAttributePattern, AtPrefixedTriggerAttributePatternRegistration, AttrBindingBehavior, AttrBindingBehaviorRegistration, AttrBindingCommand, AttrBindingCommandRegistration, AttrSyntax, AttributeBinding, AttributeBindingInstruction, AttributeBindingRendererRegistration, AttributeNSAccessor, AttributePattern, AuCompose, AuRender, AuRenderRegistration, AuSlot, AuSlotContentType, AuSlotsInfo, Aurelia, Bindable, BindableDefinition, BindableObserver, BindingCommand, BindingCommandDefinition, BindingModeBehavior, Blur, BlurManager, CSSModulesProcessorRegistry, CallBinding, CallBindingCommand, CallBindingCommandRegistration, CallBindingInstruction, CallBindingRendererRegistration, CaptureBindingCommand, CaptureBindingCommandRegistration, Case, CheckedObserver, Children, ChildrenDefinition, ChildrenObserver, ClassAttributeAccessor, ClassBindingCommand, ClassBindingCommandRegistration, ColonPrefixedBindAttributePattern, ColonPrefixedBindAttributePatternRegistration, ComputedWatcher, Controller, CustomAttribute, CustomAttributeDefinition, CustomAttributeRendererRegistration, CustomElement, CustomElementDefinition, CustomElementRendererRegistration, DataAttributeAccessor, DebounceBindingBehavior, DebounceBindingBehaviorRegistration, DefaultBindingCommand, DefaultBindingCommandRegistration, DefaultBindingLanguage, DefaultBindingSyntax, DefaultCase, DefaultComponents, DefaultDialogDom, DefaultDialogDomRenderer, DefaultDialogGlobalSettings, DefaultRenderers, DefaultResources, DelegateBindingCommand, DelegateBindingCommandRegistration, DialogCloseResult, DialogConfiguration, DialogController, DialogDeactivationStatuses, DialogDefaultConfiguration, DialogOpenResult, DialogService, DotSeparatedAttributePattern, DotSeparatedAttributePatternRegistration, Else, ElseRegistration, EventDelegator, EventSubscriber, ExpressionWatcher, Focus, ForBindingCommand, ForBindingCommandRegistration, FragmentNodeSequence, FrequentMutations, FromViewBindingBehavior, FromViewBindingBehaviorRegistration, FromViewBindingCommand, FromViewBindingCommandRegistration, FulfilledTemplateController, HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, IAppRoot, IAppTask, IAttrSyntaxTransformer, IAttributeParser, IAttributePattern, IAuSlotsInfo, IAurelia, IController, IDialogController, IDialogDom, IDialogDomRenderer, IDialogGlobalSettings, IDialogService, IEventDelegator, IEventTarget, IHistory, IInstruction, ILifecycleHooks, ILocation, INode, INodeObserverLocatorRegistration, IPlatform, IProjections, IRenderLocation, IRenderer, ISVGAnalyzer, ISanitizer, IShadowDOMGlobalStyles, IShadowDOMStyleFactory, IShadowDOMStyles, ISyntaxInterpreter, ITemplateCompiler, ITemplateCompilerRegistration, ITemplateElementFactory, IViewFactory, IViewLocator, IWindow, IWorkTracker, If, IfRegistration, InstructionType, InterpolationBinding, InterpolationBindingRendererRegistration, InterpolationInstruction, Interpretation, IteratorBindingInstruction, IteratorBindingRendererRegistration, LetBinding, LetBindingInstruction, LetElementRendererRegistration, LifecycleHooks, LifecycleHooksDefinition, LifecycleHooksEntry, Listener, ListenerBindingInstruction, ListenerBindingRendererRegistration, NodeObserverConfig, NodeObserverLocator, NodeType, NoopSVGAnalyzer, ObserveShallow, OneTimeBindingBehavior, OneTimeBindingBehaviorRegistration, OneTimeBindingCommand, OneTimeBindingCommandRegistration, PendingTemplateController, Portal, PromiseTemplateController, PropertyBinding, PropertyBindingInstruction, PropertyBindingRendererRegistration, RefAttributePattern, RefAttributePatternRegistration, RefBinding, RefBindingCommandRegistration, RefBindingInstruction, RefBindingRendererRegistration, RejectedTemplateController, RenderPlan, Repeat, RepeatRegistration, SVGAnalyzer, SVGAnalyzerRegistration, SanitizeValueConverter, SanitizeValueConverterRegistration, SelectValueObserver, SelfBindingBehavior, SelfBindingBehaviorRegistration, SetAttributeInstruction, SetAttributeRendererRegistration, SetClassAttributeInstruction, SetClassAttributeRendererRegistration, SetPropertyInstruction, SetPropertyRendererRegistration, SetStyleAttributeInstruction, SetStyleAttributeRendererRegistration, ShadowDOMRegistry, ShortHandBindingSyntax, SignalBindingBehavior, SignalBindingBehaviorRegistration, SlotInfo, StandardConfiguration, StyleAttributeAccessor, StyleBindingCommand, StyleBindingCommandRegistration, StyleConfiguration, StyleElementStyles, StylePropertyBindingInstruction, StylePropertyBindingRendererRegistration, Switch, TemplateControllerRendererRegistration, TextBindingInstruction, TextBindingRendererRegistration, ThrottleBindingBehavior, ThrottleBindingBehaviorRegistration, ToViewBindingBehavior, ToViewBindingBehaviorRegistration, ToViewBindingCommand, ToViewBindingCommandRegistration, TriggerBindingCommand, TriggerBindingCommandRegistration, TwoWayBindingBehavior, TwoWayBindingBehaviorRegistration, TwoWayBindingCommand, TwoWayBindingCommandRegistration, UpdateTriggerBindingBehavior, UpdateTriggerBindingBehaviorRegistration, ValueAttributeObserver, ViewFactory, ViewLocator, ViewModelKind, ViewValueConverter, ViewValueConverterRegistration, Views, Watch, With, WithRegistration, attributePattern, bindable, bindingCommand, children, containerless, convertToRenderLocation, createElement, cssModules, customAttribute, customElement, getEffectiveParentNode, getRef, getRenderContext, isCustomElementController, isCustomElementViewModel, isInstruction, isRenderContext, isRenderLocation, lifecycleHooks, processContent, renderer, setEffectiveParentNode, setRef, shadowCSS, templateController, useShadowDOM, view, watch };
+export { AdoptedStyleSheetsStyles, AppRoot, AppTask, AtPrefixedTriggerAttributePattern, AtPrefixedTriggerAttributePatternRegistration, AttrBindingBehavior, AttrBindingBehaviorRegistration, AttrBindingCommand, AttrBindingCommandRegistration, AttrSyntax, AttributeBinding, AttributeBindingInstruction, AttributeBindingRendererRegistration, AttributeNSAccessor, AttributePattern, AuCompose, AuRender, AuRenderRegistration, AuSlot, AuSlotContentType, AuSlotsInfo, Aurelia, Bindable, BindableDefinition, BindableObserver, BindingCommand, BindingCommandDefinition, BindingModeBehavior, Blur, BlurManager, CSSModulesProcessorRegistry, CallBinding, CallBindingCommand, CallBindingCommandRegistration, CallBindingInstruction, CallBindingRendererRegistration, CaptureBindingCommand, CaptureBindingCommandRegistration, Case, CheckedObserver, Children, ChildrenDefinition, ChildrenObserver, ClassAttributeAccessor, ClassBindingCommand, ClassBindingCommandRegistration, ColonPrefixedBindAttributePattern, ColonPrefixedBindAttributePatternRegistration, ComputedWatcher, Controller, CustomAttribute, CustomAttributeDefinition, CustomAttributeRendererRegistration, CustomElement, CustomElementDefinition, CustomElementRendererRegistration, DataAttributeAccessor, DebounceBindingBehavior, DebounceBindingBehaviorRegistration, DefaultBindingCommand, DefaultBindingCommandRegistration, DefaultBindingLanguage, DefaultBindingSyntax, DefaultCase, DefaultComponents, DefaultDialogDom, DefaultDialogDomRenderer, DefaultDialogGlobalSettings, DefaultRenderers, DefaultResources, DelegateBindingCommand, DelegateBindingCommandRegistration, DialogCloseResult, DialogConfiguration, DialogController, DialogDeactivationStatuses, DialogDefaultConfiguration, DialogOpenResult, DialogService, DotSeparatedAttributePattern, DotSeparatedAttributePatternRegistration, Else, ElseRegistration, EventDelegator, EventSubscriber, ExpressionWatcher, Focus, ForBindingCommand, ForBindingCommandRegistration, FragmentNodeSequence, FrequentMutations, FromViewBindingBehavior, FromViewBindingBehaviorRegistration, FromViewBindingCommand, FromViewBindingCommandRegistration, FulfilledTemplateController, HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, IAppRoot, IAppTask, IAttrMapper, IAttributeParser, IAttributePattern, IAuSlotsInfo, IAurelia, IController, IDialogController, IDialogDom, IDialogDomRenderer, IDialogGlobalSettings, IDialogService, IEventDelegator, IEventTarget, IHistory, IInstruction, ILifecycleHooks, ILocation, INode, INodeObserverLocatorRegistration, IPlatform, IProjections, IRenderLocation, IRenderer, ISVGAnalyzer, ISanitizer, IShadowDOMGlobalStyles, IShadowDOMStyleFactory, IShadowDOMStyles, ISyntaxInterpreter, ITemplateCompiler, ITemplateCompilerRegistration, ITemplateElementFactory, IViewFactory, IViewLocator, IWindow, IWorkTracker, If, IfRegistration, InstructionType, InterpolationBinding, InterpolationBindingRendererRegistration, InterpolationInstruction, Interpretation, IteratorBindingInstruction, IteratorBindingRendererRegistration, LetBinding, LetBindingInstruction, LetElementRendererRegistration, LifecycleHooks, LifecycleHooksDefinition, LifecycleHooksEntry, Listener, ListenerBindingInstruction, ListenerBindingRendererRegistration, NodeObserverConfig, NodeObserverLocator, NodeType, NoopSVGAnalyzer, ObserveShallow, OneTimeBindingBehavior, OneTimeBindingBehaviorRegistration, OneTimeBindingCommand, OneTimeBindingCommandRegistration, PendingTemplateController, Portal, PromiseTemplateController, PropertyBinding, PropertyBindingInstruction, PropertyBindingRendererRegistration, RefAttributePattern, RefAttributePatternRegistration, RefBinding, RefBindingCommandRegistration, RefBindingInstruction, RefBindingRendererRegistration, RejectedTemplateController, RenderPlan, Repeat, RepeatRegistration, SVGAnalyzer, SVGAnalyzerRegistration, SanitizeValueConverter, SanitizeValueConverterRegistration, SelectValueObserver, SelfBindingBehavior, SelfBindingBehaviorRegistration, SetAttributeInstruction, SetAttributeRendererRegistration, SetClassAttributeInstruction, SetClassAttributeRendererRegistration, SetPropertyInstruction, SetPropertyRendererRegistration, SetStyleAttributeInstruction, SetStyleAttributeRendererRegistration, ShadowDOMRegistry, ShortHandBindingSyntax, SignalBindingBehavior, SignalBindingBehaviorRegistration, SlotInfo, StandardConfiguration, StyleAttributeAccessor, StyleBindingCommand, StyleBindingCommandRegistration, StyleConfiguration, StyleElementStyles, StylePropertyBindingInstruction, StylePropertyBindingRendererRegistration, Switch, TemplateControllerRendererRegistration, TextBindingInstruction, TextBindingRendererRegistration, ThrottleBindingBehavior, ThrottleBindingBehaviorRegistration, ToViewBindingBehavior, ToViewBindingBehaviorRegistration, ToViewBindingCommand, ToViewBindingCommandRegistration, TriggerBindingCommand, TriggerBindingCommandRegistration, TwoWayBindingBehavior, TwoWayBindingBehaviorRegistration, TwoWayBindingCommand, TwoWayBindingCommandRegistration, UpdateTriggerBindingBehavior, UpdateTriggerBindingBehaviorRegistration, ValueAttributeObserver, ViewFactory, ViewLocator, ViewModelKind, ViewValueConverter, ViewValueConverterRegistration, Views, Watch, With, WithRegistration, attributePattern, bindable, bindingCommand, children, containerless, convertToRenderLocation, createElement, cssModules, customAttribute, customElement, getEffectiveParentNode, getRef, getRenderContext, isCustomElementController, isCustomElementViewModel, isInstruction, isRenderContext, isRenderLocation, lifecycleHooks, processContent, renderer, setEffectiveParentNode, setRef, shadowCSS, templateController, useShadowDOM, view, watch };
 //# sourceMappingURL=index.js.map

@@ -1,5 +1,6 @@
-import { Constructable } from '@aurelia/kernel';
-import { BindingMode, InterceptorFunc } from '@aurelia/runtime';
+import { BindingMode } from '@aurelia/runtime';
+import type { Constructable } from '@aurelia/kernel';
+import type { InterceptorFunc } from '@aurelia/runtime';
 export declare type PartialBindableDefinition = {
     mode?: BindingMode;
     callback?: string;

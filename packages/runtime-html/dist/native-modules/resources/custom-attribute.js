@@ -1,6 +1,6 @@
-import { Registration, Protocol, Metadata, mergeArrays, firstDefined, } from '../../../../kernel/dist/native-modules/index.js';
-import { BindingMode, registerAliases, } from '../../../../runtime/dist/native-modules/index.js';
-import { Bindable, } from '../bindable.js';
+import { Registration, Protocol, Metadata, mergeArrays, firstDefined } from '../../../../kernel/dist/native-modules/index.js';
+import { BindingMode, registerAliases } from '../../../../runtime/dist/native-modules/index.js';
+import { Bindable } from '../bindable.js';
 import { Watch } from '../watch.js';
 import { getRef } from '../dom.js';
 export function customAttribute(nameOrDef) {

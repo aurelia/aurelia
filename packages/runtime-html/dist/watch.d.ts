@@ -1,4 +1,4 @@
-import { Constructable } from '@aurelia/kernel';
+import type { Constructable } from '@aurelia/kernel';
 import type { IConnectable } from '@aurelia/runtime';
 export declare type IDepCollectionFn<TType extends object, TReturn = unknown> = (vm: TType, watcher: IConnectable) => TReturn;
 export declare type IWatcherCallback<TType extends object, TValue = unknown> = (this: TType, newValue: TValue, oldValue: TValue, vm: TType) => unknown;

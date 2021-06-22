@@ -35,16 +35,16 @@ class TranslationParametersBindingInstruction {
 }
 exports.TranslationParametersBindingInstruction = TranslationParametersBindingInstruction;
 let TranslationParametersBindingCommand = class TranslationParametersBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 53 /* BindCommand */;
     }
-    static get inject() { return [runtime_html_1.IAttrSyntaxTransformer]; }
+    static get inject() { return [runtime_html_1.IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;

@@ -9,7 +9,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { camelCase } from '../../../../kernel/dist/native-modules/index.js';
 import { TranslationBinding } from './translation-binding.js';
-import { BindingMode, IExpressionParser, renderer, IObserverLocator, attributePattern, AttrSyntax, bindingCommand, IPlatform, IAttrSyntaxTransformer, } from '../../../../runtime-html/dist/native-modules/index.js';
+import { BindingMode, IExpressionParser, renderer, IObserverLocator, attributePattern, AttrSyntax, bindingCommand, IPlatform, IAttrMapper, } from '../../../../runtime-html/dist/native-modules/index.js';
 export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
 const attribute = 't-params.bind';
@@ -31,16 +31,16 @@ export class TranslationParametersBindingInstruction {
     }
 }
 let TranslationParametersBindingCommand = class TranslationParametersBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 53 /* BindCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;

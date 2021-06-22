@@ -1,6 +1,6 @@
-import { Registration, Protocol, Metadata, mergeArrays, firstDefined, } from '@aurelia/kernel';
-import { BindingMode, registerAliases, } from '@aurelia/runtime';
-import { Bindable, } from '../bindable.js';
+import { Registration, Protocol, Metadata, mergeArrays, firstDefined } from '@aurelia/kernel';
+import { BindingMode, registerAliases } from '@aurelia/runtime';
+import { Bindable } from '../bindable.js';
 import { Watch } from '../watch.js';
 import { getRef } from '../dom.js';
 export function customAttribute(nameOrDef) {

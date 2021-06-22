@@ -9,7 +9,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding.js';
-import { BindingMode, IExpressionParser, renderer, IObserverLocator, AttrSyntax, IPlatform, IAttrSyntaxTransformer, } from '@aurelia/runtime-html';
+import { BindingMode, IExpressionParser, renderer, IObserverLocator, AttrSyntax, IPlatform, IAttrMapper, } from '@aurelia/runtime-html';
 export const TranslationInstructionType = 'tt';
 export class TranslationAttributePattern {
     static registerAlias(alias) {
@@ -27,16 +27,16 @@ export class TranslationBindingInstruction {
     }
 }
 export class TranslationBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 284 /* CustomCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -87,16 +87,16 @@ export class TranslationBindBindingInstruction {
     }
 }
 export class TranslationBindBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 53 /* BindCommand */;
     }
-    static get inject() { return [IAttrSyntaxTransformer]; }
+    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;

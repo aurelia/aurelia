@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { BindingMode, BindingType, IHydratableController, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, AttrSyntax, IPlatform, IAttrSyntaxTransformer } from '@aurelia/runtime-html';
+import { BindingMode, BindingType, IHydratableController, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, AttrSyntax, IPlatform, IAttrMapper } from '@aurelia/runtime-html';
 import type { CallBindingInstruction, BindingCommandInstance } from '@aurelia/runtime-html';
 import { ICommandBuildInfo } from '@aurelia/runtime-html/dist/resources/binding-command';
 export declare const TranslationParametersInstructionType = "tpt";
@@ -15,10 +15,10 @@ export declare class TranslationParametersBindingInstruction {
     constructor(from: IsBindingBehavior, to: string);
 }
 export declare class TranslationParametersBindingCommand implements BindingCommandInstance {
-    private readonly t;
+    private readonly m;
     readonly bindingType: BindingType.BindCommand;
-    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>[];
-    constructor(t: IAttrSyntaxTransformer);
+    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>[];
+    constructor(m: IAttrMapper);
     build(info: ICommandBuildInfo): TranslationParametersBindingInstruction;
 }
 export declare class TranslationParametersBindingRenderer implements IRenderer {

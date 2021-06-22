@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AttributeNSAccessor = void 0;
-const nsMap = Object.create(null);
+const utilities_html_js_1 = require("../utilities-html.js");
+const nsMap = utilities_html_js_1.createLookup();
 /**
  * Attribute accessor in a XML document/element that can be accessed via a namespace.
  * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).

@@ -1,6 +1,6 @@
 import { emptyArray, Registration, toArray, ILogger, camelCase } from '../../../kernel/dist/native-modules/index.js';
 import { BindingMode, IExpressionParser, PrimitiveLiteralExpression } from '../../../runtime/dist/native-modules/index.js';
-import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
+import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
 import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, InterpolationInstruction, LetBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetPropertyInstruction, SetStyleAttributeInstruction, TextBindingInstruction, ITemplateCompiler, } from './renderer.js';
 import { AuSlotContentType, SlotInfo } from './resources/custom-elements/au-slot.js';
@@ -11,7 +11,7 @@ import { CustomAttribute } from './resources/custom-attribute.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import { BindingCommand } from './resources/binding-command.js';
 import { createLookup } from './utilities-html.js';
-export class ViewCompiler {
+export class TemplateCompiler {
     static register(container) {
         return Registration.singleton(ITemplateCompiler, this).register(container);
     }
@@ -55,7 +55,7 @@ export class ViewCompiler {
         const attrs = el.attributes;
         const attrParser = context.attrParser;
         const exprParser = context.exprParser;
-        const attrTransformer = context.attrTransformer;
+        const attrMapper = context.attrMapper;
         let ii = attrs.length;
         let i = 0;
         let attr;
@@ -164,7 +164,7 @@ export class ViewCompiler {
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLengt etc...
-                    attrTransformer.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : camelCase(realAttrTarget)));
+                    attrMapper.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : camelCase(realAttrTarget)));
                 }
                 else {
                     switch (attrName) {
@@ -191,6 +191,7 @@ export class ViewCompiler {
                 instructions.push(bindingCommand.build(commandBuildInfo));
             }
         }
+        resetCommandBuildInfo();
         if (attrInstructions != null) {
             return attrInstructions.concat(instructions);
         }
@@ -302,7 +303,7 @@ export class ViewCompiler {
         const isAuSlot = elName === 'au-slot';
         const attrParser = context.attrParser;
         const exprParser = context.exprParser;
-        const attrSyntaxTransformer = context.attrTransformer;
+        const attrMapper = context.attrMapper;
         const isAttrsOrderSensitive = this.shouldReorderAttrs(el);
         let attrs = el.attributes;
         let instructions;
@@ -465,7 +466,7 @@ export class ViewCompiler {
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLengt etc...
-                    attrSyntaxTransformer.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : camelCase(realAttrTarget)));
+                    attrMapper.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : camelCase(realAttrTarget)));
                 }
                 // if not a custom attribute + no binding command + not a bindable + not an interpolation
                 // then it's just a plain attribute, do nothing
@@ -514,11 +515,7 @@ export class ViewCompiler {
             commandBuildInfo.def = null;
             (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(bindingCommand.build(commandBuildInfo));
         }
-        commandBuildInfo.node
-            = commandBuildInfo.attr
-                = commandBuildInfo.expr
-                    = commandBuildInfo.bindable
-                        = commandBuildInfo.def = null;
+        resetCommandBuildInfo();
         if (isAttrsOrderSensitive && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
             this.reorder(el, plainAttrInstructions);
         }
@@ -968,6 +965,7 @@ export class ViewCompiler {
                 attrValue = void 0;
             }
         }
+        resetCommandBuildInfo();
         return instructions;
     }
     /** @internal */
@@ -1111,7 +1109,7 @@ class CompilationContext {
         // todo: attr parser should be retrieved based in resource semantic (current leaf + root + ignore parent)
         this.attrParser = hasParent ? parent.attrParser : container.get(IAttributeParser);
         this.exprParser = hasParent ? parent.exprParser : container.get(IExpressionParser);
-        this.attrTransformer = hasParent ? parent.attrTransformer : container.get(IAttrSyntaxTransformer);
+        this.attrMapper = hasParent ? parent.attrMapper : container.get(IAttrMapper);
         this.logger = hasParent ? parent.logger : container.get(ILogger);
         this.p = hasParent ? parent.p : container.get(IPlatform);
         this.localEls = hasParent ? parent.localEls : new Set();
@@ -1128,17 +1126,26 @@ class CompilationContext {
         }
         return el;
     }
+    /**
+     * Find the custom element definition of a given name
+     */
     el(name) {
         return this.c.find(CustomElement, name);
     }
+    /**
+     * Find the custom attribute definition of a given name
+     */
     attr(name) {
         return this.c.find(CustomAttribute, name);
     }
+    /**
+     * Create a new child compilation context
+     */
     child(instructions) {
         return new CompilationContext(this.def, this.c, this.ci, this, this.root, instructions);
     }
     /**
-     *Retrieve a binding command resource.
+     * Retrieve a binding command resource instance.
      *
      * @param name - The parsed `AttrSyntax`
      *
@@ -1180,6 +1187,13 @@ function hasInlineBindings(rawValue) {
         }
     }
     return false;
+}
+function resetCommandBuildInfo() {
+    commandBuildInfo.node
+        = commandBuildInfo.attr
+            = commandBuildInfo.expr
+                = commandBuildInfo.bindable
+                    = commandBuildInfo.def = null;
 }
 const emptyCompilationInstructions = { projections: null };
 // eslint-disable-next-line

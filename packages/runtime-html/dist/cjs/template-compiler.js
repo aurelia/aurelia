@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ViewCompiler = void 0;
+exports.TemplateCompiler = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const runtime_1 = require("@aurelia/runtime");
-const attribute_syntax_transformer_js_1 = require("./attribute-syntax-transformer.js");
+const attribute_mapper_js_1 = require("./attribute-mapper.js");
 const template_element_factory_js_1 = require("./template-element-factory.js");
 const renderer_js_1 = require("./renderer.js");
 const au_slot_js_1 = require("./resources/custom-elements/au-slot.js");
@@ -14,7 +14,7 @@ const custom_attribute_js_1 = require("./resources/custom-attribute.js");
 const custom_element_js_1 = require("./resources/custom-element.js");
 const binding_command_js_1 = require("./resources/binding-command.js");
 const utilities_html_js_1 = require("./utilities-html.js");
-class ViewCompiler {
+class TemplateCompiler {
     static register(container) {
         return kernel_1.Registration.singleton(renderer_js_1.ITemplateCompiler, this).register(container);
     }
@@ -58,7 +58,7 @@ class ViewCompiler {
         const attrs = el.attributes;
         const attrParser = context.attrParser;
         const exprParser = context.exprParser;
-        const attrTransformer = context.attrTransformer;
+        const attrMapper = context.attrMapper;
         let ii = attrs.length;
         let i = 0;
         let attr;
@@ -167,7 +167,7 @@ class ViewCompiler {
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLengt etc...
-                    attrTransformer.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(realAttrTarget)));
+                    attrMapper.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(realAttrTarget)));
                 }
                 else {
                     switch (attrName) {
@@ -194,6 +194,7 @@ class ViewCompiler {
                 instructions.push(bindingCommand.build(commandBuildInfo));
             }
         }
+        resetCommandBuildInfo();
         if (attrInstructions != null) {
             return attrInstructions.concat(instructions);
         }
@@ -305,7 +306,7 @@ class ViewCompiler {
         const isAuSlot = elName === 'au-slot';
         const attrParser = context.attrParser;
         const exprParser = context.exprParser;
-        const attrSyntaxTransformer = context.attrTransformer;
+        const attrMapper = context.attrMapper;
         const isAttrsOrderSensitive = this.shouldReorderAttrs(el);
         let attrs = el.attributes;
         let instructions;
@@ -468,7 +469,7 @@ class ViewCompiler {
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLengt etc...
-                    attrSyntaxTransformer.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : kernel_1.camelCase(realAttrTarget)));
+                    attrMapper.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : kernel_1.camelCase(realAttrTarget)));
                 }
                 // if not a custom attribute + no binding command + not a bindable + not an interpolation
                 // then it's just a plain attribute, do nothing
@@ -517,11 +518,7 @@ class ViewCompiler {
             commandBuildInfo.def = null;
             (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(bindingCommand.build(commandBuildInfo));
         }
-        commandBuildInfo.node
-            = commandBuildInfo.attr
-                = commandBuildInfo.expr
-                    = commandBuildInfo.bindable
-                        = commandBuildInfo.def = null;
+        resetCommandBuildInfo();
         if (isAttrsOrderSensitive && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
             this.reorder(el, plainAttrInstructions);
         }
@@ -971,6 +968,7 @@ class ViewCompiler {
                 attrValue = void 0;
             }
         }
+        resetCommandBuildInfo();
         return instructions;
     }
     /** @internal */
@@ -1090,7 +1088,7 @@ class ViewCompiler {
         return marker;
     }
 }
-exports.ViewCompiler = ViewCompiler;
+exports.TemplateCompiler = TemplateCompiler;
 // this class is intended to be an implementation encapsulating the information at the root level of a template
 // this works at the time this is created because everything inside a template should be retrieved
 // from the root itself.
@@ -1115,7 +1113,7 @@ class CompilationContext {
         // todo: attr parser should be retrieved based in resource semantic (current leaf + root + ignore parent)
         this.attrParser = hasParent ? parent.attrParser : container.get(attribute_pattern_js_1.IAttributeParser);
         this.exprParser = hasParent ? parent.exprParser : container.get(runtime_1.IExpressionParser);
-        this.attrTransformer = hasParent ? parent.attrTransformer : container.get(attribute_syntax_transformer_js_1.IAttrSyntaxTransformer);
+        this.attrMapper = hasParent ? parent.attrMapper : container.get(attribute_mapper_js_1.IAttrMapper);
         this.logger = hasParent ? parent.logger : container.get(kernel_1.ILogger);
         this.p = hasParent ? parent.p : container.get(platform_js_1.IPlatform);
         this.localEls = hasParent ? parent.localEls : new Set();
@@ -1132,17 +1130,26 @@ class CompilationContext {
         }
         return el;
     }
+    /**
+     * Find the custom element definition of a given name
+     */
     el(name) {
         return this.c.find(custom_element_js_1.CustomElement, name);
     }
+    /**
+     * Find the custom attribute definition of a given name
+     */
     attr(name) {
         return this.c.find(custom_attribute_js_1.CustomAttribute, name);
     }
+    /**
+     * Create a new child compilation context
+     */
     child(instructions) {
         return new CompilationContext(this.def, this.c, this.ci, this, this.root, instructions);
     }
     /**
-     *Retrieve a binding command resource.
+     * Retrieve a binding command resource instance.
      *
      * @param name - The parsed `AttrSyntax`
      *
@@ -1184,6 +1191,13 @@ function hasInlineBindings(rawValue) {
         }
     }
     return false;
+}
+function resetCommandBuildInfo() {
+    commandBuildInfo.node
+        = commandBuildInfo.attr
+            = commandBuildInfo.expr
+                = commandBuildInfo.bindable
+                    = commandBuildInfo.def = null;
 }
 const emptyCompilationInstructions = { projections: null };
 // eslint-disable-next-line

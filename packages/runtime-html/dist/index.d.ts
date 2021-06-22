@@ -13,7 +13,7 @@ export { ISinglePageApp, AppRoot, IAppRoot, IWorkTracker, } from './app-root.js'
 export { TaskSlot, AppTask, IAppTask, AppTaskCallback, AppTaskCallbackNoArg, } from './app-task.js';
 export { AttrSyntax, IAttributeParser, attributePattern, AttributePatternDefinition, IAttributePattern, AttributePattern, Interpretation, ISyntaxInterpreter, AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, RefAttributePattern, } from './resources/attribute-pattern.js';
 export { bindingCommand, ICommandBuildInfo, BindingCommand, BindingCommandInstance, BindingCommandDefinition, BindingCommandKind, BindingCommandType, CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand, TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, AttrBindingCommand, ClassBindingCommand, StyleBindingCommand, } from './resources/binding-command.js';
-export { IAttrSyntaxTransformer, } from './attribute-syntax-transformer.js';
+export { IAttrMapper, } from './attribute-mapper.js';
 export { Listener, } from './binding/listener.js';
 export { AttributeBinding, } from './binding/attribute.js';
 export { CallBinding, } from './binding/call-binding.js';

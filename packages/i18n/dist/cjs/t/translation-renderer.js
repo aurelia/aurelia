@@ -32,16 +32,16 @@ class TranslationBindingInstruction {
 }
 exports.TranslationBindingInstruction = TranslationBindingInstruction;
 class TranslationBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 284 /* CustomCommand */;
     }
-    static get inject() { return [runtime_html_1.IAttrSyntaxTransformer]; }
+    static get inject() { return [runtime_html_1.IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -95,16 +95,16 @@ class TranslationBindBindingInstruction {
 }
 exports.TranslationBindBindingInstruction = TranslationBindBindingInstruction;
 class TranslationBindBindingCommand {
-    constructor(t) {
-        this.t = t;
+    constructor(m) {
+        this.m = m;
         this.bindingType = 53 /* BindCommand */;
     }
-    static get inject() { return [runtime_html_1.IAttrSyntaxTransformer]; }
+    static get inject() { return [runtime_html_1.IAttrMapper]; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.t.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;

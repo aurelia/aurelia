@@ -75,28 +75,63 @@ export declare class SetPropertyInstruction {
     constructor(value: unknown, to: string);
 }
 export declare class HydrateElementInstruction {
+    /**
+     * The name of the custom element this instruction is associated with
+     */
     res: string;
     alias: string | undefined;
+    /**
+     * Bindable instructions for the custom element instance
+     */
     instructions: IInstruction[];
+    /**
+     * Indicates what projections are associated with the element usage
+     */
     projections: Record<string, CustomElementDefinition> | null;
     slotInfo: SlotInfo | null;
     get type(): InstructionType.hydrateElement;
-    constructor(res: string, alias: string | undefined, instructions: IInstruction[], projections: Record<string, CustomElementDefinition> | null, slotInfo: SlotInfo | null);
+    constructor(
+    /**
+     * The name of the custom element this instruction is associated with
+     */
+    res: string, alias: string | undefined, 
+    /**
+     * Bindable instructions for the custom element instance
+     */
+    instructions: IInstruction[], 
+    /**
+     * Indicates what projections are associated with the element usage
+     */
+    projections: Record<string, CustomElementDefinition> | null, slotInfo: SlotInfo | null);
 }
 export declare class HydrateAttributeInstruction {
     res: string;
     alias: string | undefined;
+    /**
+     * Bindable instructions for the custom attribute instance
+     */
     instructions: IInstruction[];
     get type(): InstructionType.hydrateAttribute;
-    constructor(res: string, alias: string | undefined, instructions: IInstruction[]);
+    constructor(res: string, alias: string | undefined, 
+    /**
+     * Bindable instructions for the custom attribute instance
+     */
+    instructions: IInstruction[]);
 }
 export declare class HydrateTemplateController {
     def: PartialCustomElementDefinition;
     res: string;
     alias: string | undefined;
+    /**
+     * Bindable instructions for the template controller instance
+     */
     instructions: IInstruction[];
     get type(): InstructionType.hydrateTemplateController;
-    constructor(def: PartialCustomElementDefinition, res: string, alias: string | undefined, instructions: IInstruction[]);
+    constructor(def: PartialCustomElementDefinition, res: string, alias: string | undefined, 
+    /**
+     * Bindable instructions for the template controller instance
+     */
+    instructions: IInstruction[]);
 }
 export declare class HydrateLetElementInstruction {
     instructions: LetBindingInstruction[];

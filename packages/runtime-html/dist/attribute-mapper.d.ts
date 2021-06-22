@@ -1,9 +1,9 @@
 import { ISVGAnalyzer } from './observation/svg-analyzer.js';
-export interface IAttrSyntaxTransformer extends AttrSyntaxTransformer {
+export interface IAttrMapper extends AttrMapper {
 }
-export declare const IAttrSyntaxTransformer: import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>;
+export declare const IAttrMapper: import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>;
 declare type IsTwoWayPredicate = (element: Element, attribute: string) => boolean;
-export declare class AttrSyntaxTransformer {
+export declare class AttrMapper {
     private readonly svg;
     static get inject(): import("@aurelia/kernel").InterfaceSymbol<ISVGAnalyzer>[];
     constructor(svg: ISVGAnalyzer);
@@ -19,18 +19,17 @@ export declare class AttrSyntaxTransformer {
     useGlobalMapping(config: Record<string, PropertyKey>): void;
     /**
      * Add a given function to a list of fns that will be used
-     * to check if `'bind'` command can be transformed to `'two-way'` command.
-     *
-     * If one of those functions in this lists returns true, the `'bind'` command
-     * will be transformed into `'two-way'` command.
-     *
-     * The function will be called with 2 parameters:
-     * - element: the element that the template compiler is currently working with
-     * - property: the target property name
+     * to check if `'bind'` command can be understood as `'two-way'` command.
      */
     useTwoWay(fn: IsTwoWayPredicate): void;
+    /**
+     * Returns true if an attribute should be two way bound based on an element
+     */
     isTwoWay(node: Element, attrName: string): boolean;
+    /**
+     * Retrieves the mapping information this mapper have for an attribute on an element
+     */
     map(node: Element, attr: string): string | null;
 }
 export {};
-//# sourceMappingURL=attribute-syntax-transformer.d.ts.map
+//# sourceMappingURL=attribute-mapper.d.ts.map

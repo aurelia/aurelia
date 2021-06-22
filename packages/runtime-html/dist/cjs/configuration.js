@@ -38,7 +38,7 @@ exports.FromViewBindingBehaviorRegistration = binding_mode_js_1.FromViewBindingB
 exports.SignalBindingBehaviorRegistration = signals_js_1.SignalBindingBehavior;
 exports.ThrottleBindingBehaviorRegistration = throttle_js_1.ThrottleBindingBehavior;
 exports.TwoWayBindingBehaviorRegistration = binding_mode_js_1.TwoWayBindingBehavior;
-exports.ITemplateCompilerRegistration = template_compiler_js_1.ViewCompiler;
+exports.ITemplateCompilerRegistration = template_compiler_js_1.TemplateCompiler;
 exports.INodeObserverLocatorRegistration = observer_locator_js_1.NodeObserverLocator;
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:

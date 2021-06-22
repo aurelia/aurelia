@@ -1,4 +1,4 @@
-import { DI, Registration, } from '@aurelia/kernel';
+import { DI, Registration } from '@aurelia/kernel';
 export const IAppTask = DI.createInterface('IAppTask');
 class $AppTask {
     constructor(slot, key, cb) {

@@ -151,11 +151,20 @@ export class HydrateElementInstruction {
   public get type(): InstructionType.hydrateElement { return InstructionType.hydrateElement; }
 
   public constructor(
+    /**
+     * The name of the custom element this instruction is associated with
+     */
     public res: string,
     public alias: string | undefined,
+    /**
+     * Bindable instructions for the custom element instance
+     */
     public instructions: IInstruction[],
-    // only not null if this is an au-slot instruction
+    /**
+     * Indicates what projections are associated with the element usage
+     */
     public projections: Record<string, CustomElementDefinition> | null,
+    // only not null if this is an au-slot instruction
     public slotInfo: SlotInfo | null,
   ) {
   }
@@ -167,6 +176,9 @@ export class HydrateAttributeInstruction {
   public constructor(
     public res: string,
     public alias: string | undefined,
+    /**
+     * Bindable instructions for the custom attribute instance
+     */
     public instructions: IInstruction[],
   ) {}
 }
@@ -178,6 +190,9 @@ export class HydrateTemplateController {
     public def: PartialCustomElementDefinition,
     public res: string,
     public alias: string | undefined,
+    /**
+     * Bindable instructions for the template controller instance
+     */
     public instructions: IInstruction[],
   ) {}
 }

@@ -733,7 +733,7 @@ export {
   // IAttributePatternHandler,
   // Interpretation,
   // ISyntaxInterpreter,
-  IAttrSyntaxTransformer,
+  IAttrMapper,
 
   // AtPrefixedTriggerAttributePattern,
   // ColonPrefixedBindAttributePattern,

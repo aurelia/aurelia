@@ -2,13 +2,13 @@ import { DI } from '@aurelia/kernel';
 import { createLookup, isDataAttribute } from './utilities-html.js';
 import { ISVGAnalyzer } from './observation/svg-analyzer.js';
 
-export interface IAttrSyntaxTransformer extends AttrSyntaxTransformer {}
-export const IAttrSyntaxTransformer = DI
-  .createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer', x => x.singleton(AttrSyntaxTransformer));
+export interface IAttrMapper extends AttrMapper {}
+export const IAttrMapper = DI
+  .createInterface<IAttrMapper>('IAttrMapper', x => x.singleton(AttrMapper));
 
 type IsTwoWayPredicate = (element: Element, attribute: string) => boolean;
 
-export class AttrSyntaxTransformer {
+export class AttrMapper {
   public static get inject() { return [ISVGAnalyzer]; }
   /**
    * @internal
@@ -92,24 +92,23 @@ export class AttrSyntaxTransformer {
 
   /**
    * Add a given function to a list of fns that will be used
-   * to check if `'bind'` command can be transformed to `'two-way'` command.
-   *
-   * If one of those functions in this lists returns true, the `'bind'` command
-   * will be transformed into `'two-way'` command.
-   *
-   * The function will be called with 2 parameters:
-   * - element: the element that the template compiler is currently working with
-   * - property: the target property name
+   * to check if `'bind'` command can be understood as `'two-way'` command.
    */
   public useTwoWay(fn: IsTwoWayPredicate): void {
     this.fns.push(fn);
   }
 
+  /**
+   * Returns true if an attribute should be two way bound based on an element
+   */
   public isTwoWay(node: Element, attrName: string): boolean {
     return shouldDefaultToTwoWay(node, attrName)
       || this.fns.length > 0 && this.fns.some(fn => fn(node, attrName));
   }
 
+  /**
+   * Retrieves the mapping information this mapper have for an attribute on an element
+   */
   public map(node: Element, attr: string): string | null {
     return this.tagAttrMap[node.nodeName]?.[attr] as string
       ?? this.globalAttrMap[attr]

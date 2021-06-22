@@ -12,7 +12,7 @@ import {
   IHydratableController,
   AttrSyntax,
   IPlatform,
-  IAttrSyntaxTransformer,
+  IAttrMapper,
 } from '@aurelia/runtime-html';
 
 import type {
@@ -46,14 +46,14 @@ export class TranslationBindingInstruction {
 export class TranslationBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.CustomCommand = BindingType.CustomCommand;
 
-  public static get inject() { return [IAttrSyntaxTransformer]; }
-  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+  public static get inject() { return [IAttrMapper]; }
+  public constructor(private readonly m: IAttrMapper) {}
 
   public build(info: ICommandBuildInfo): TranslationBindingInstruction {
     let target: string;
     if (info.bindable == null) {
-      target = this.t.map(info.node, info.attr.target)
-        // if the transformer doesn't know how to map it
+      target = this.m.map(info.node, info.attr.target)
+        // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
     } else {
@@ -116,14 +116,14 @@ export class TranslationBindBindingInstruction {
 export class TranslationBindBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
-  public static get inject() { return [IAttrSyntaxTransformer]; }
-  public constructor(private readonly t: IAttrSyntaxTransformer) {}
+  public static get inject() { return [IAttrMapper]; }
+  public constructor(private readonly m: IAttrMapper) {}
 
   public build(info: ICommandBuildInfo): TranslationBindingInstruction {
     let target: string;
     if (info.bindable == null) {
-      target = this.t.map(info.node, info.attr.target)
-        // if the transformer doesn't know how to map it
+      target = this.m.map(info.node, info.attr.target)
+        // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
     } else {

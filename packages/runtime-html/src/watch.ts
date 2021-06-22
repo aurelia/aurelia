@@ -1,4 +1,5 @@
-import { Constructable, Protocol, Metadata, emptyArray } from '@aurelia/kernel';
+import { Protocol, Metadata, emptyArray } from '@aurelia/kernel';
+import type { Constructable } from '@aurelia/kernel';
 import type { IConnectable } from '@aurelia/runtime';
 
 export type IDepCollectionFn<TType extends object, TReturn = unknown> = (vm: TType, watcher: IConnectable) => TReturn;

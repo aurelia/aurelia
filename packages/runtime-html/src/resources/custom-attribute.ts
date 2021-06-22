@@ -1,29 +1,20 @@
-import {
+import { Registration, Protocol, Metadata, mergeArrays, firstDefined } from '@aurelia/kernel';
+import { BindingMode, registerAliases } from '@aurelia/runtime';
+import { Bindable } from '../bindable.js';
+import { Watch } from '../watch.js';
+import { getRef } from '../dom.js';
+
+import type {
   Constructable,
   IContainer,
   IResourceKind,
-  Registration,
-  Protocol,
-  Metadata,
   ResourceDefinition,
   PartialResourceDefinition,
   ResourceType,
-  mergeArrays,
-  firstDefined,
 } from '@aurelia/kernel';
-import {
-  BindingMode,
-  registerAliases,
-} from '@aurelia/runtime';
-import {
-  Bindable,
-  BindableDefinition,
-  PartialBindableDefinition,
-} from '../bindable.js';
-import { Watch } from '../watch.js';
+import type { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
 import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller.js';
 import type { IWatchDefinition } from '../watch.js';
-import { getRef } from '../dom.js';
 
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;

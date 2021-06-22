@@ -12076,7 +12076,7 @@ class DefaultDialogDomRenderer {
         };
         const wrapper = dialogHost.appendChild(h('au-dialog-container', this.wrapperCss));
         const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));
-        const host = overlay.appendChild(h('div', this.hostCss));
+        const host = wrapper.appendChild(h('div', this.hostCss));
         return new DefaultDialogDom(wrapper, overlay, host);
     }
 }

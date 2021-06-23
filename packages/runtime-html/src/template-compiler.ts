@@ -331,7 +331,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           ));
           continue;
         }
-        throw new Error('Invalid binding command for <let>. Only to-view/bind supported.');
+        throw new Error(`Invalid command ${attrSyntax.command} for <let>. Only to-view/bind supported.`);
       }
 
       expr = exprParser.parse(realAttrValue, BindingType.Interpolation);
@@ -341,9 +341,10 @@ export class TemplateCompiler implements ITemplateCompiler {
           `Did you mean ${realAttrTarget}.bind="${realAttrValue}"?`
         );
       }
+
       letInstructions.push(new LetBindingInstruction(
         expr === null ? new PrimitiveLiteralExpression(realAttrValue) : expr,
-        realAttrTarget
+        camelCase(realAttrTarget)
       ));
     }
     context.rows.push([new HydrateLetElementInstruction(letInstructions, toBindingContext)]);

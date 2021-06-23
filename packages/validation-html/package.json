@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/validation-html",
-  "version": "2.0.1-dev.202106220904",
+  "version": "2.0.1-dev.202106230235",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
@@ -39,13 +39,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.1-dev.202106220904",
-    "@aurelia/metadata": "2.0.1-dev.202106220904",
-    "@aurelia/platform": "2.0.1-dev.202106220904",
-    "@aurelia/platform-browser": "2.0.1-dev.202106220904",
-    "@aurelia/runtime": "2.0.1-dev.202106220904",
-    "@aurelia/runtime-html": "2.0.1-dev.202106220904",
-    "@aurelia/validation": "2.0.1-dev.202106220904"
+    "@aurelia/kernel": "2.0.1-dev.202106230235",
+    "@aurelia/metadata": "2.0.1-dev.202106230235",
+    "@aurelia/platform": "2.0.1-dev.202106230235",
+    "@aurelia/platform-browser": "2.0.1-dev.202106230235",
+    "@aurelia/runtime": "2.0.1-dev.202106230235",
+    "@aurelia/runtime-html": "2.0.1-dev.202106230235",
+    "@aurelia/validation": "2.0.1-dev.202106230235"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

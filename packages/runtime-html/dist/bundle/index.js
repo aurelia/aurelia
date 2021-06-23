@@ -6697,14 +6697,14 @@ class TemplateCompiler {
                     letInstructions.push(new LetBindingInstruction(exprParser.parse(realAttrValue, bindingCommand.bindingType), camelCase(realAttrTarget)));
                     continue;
                 }
-                throw new Error('Invalid binding command for <let>. Only to-view/bind supported.');
+                throw new Error(`Invalid command ${attrSyntax.command} for <let>. Only to-view/bind supported.`);
             }
             expr = exprParser.parse(realAttrValue, 2048 /* Interpolation */);
             if (expr === null) {
                 context.logger.warn(`Property ${realAttrTarget} is declared with literal string ${realAttrValue}. ` +
                     `Did you mean ${realAttrTarget}.bind="${realAttrValue}"?`);
             }
-            letInstructions.push(new LetBindingInstruction(expr === null ? new PrimitiveLiteralExpression(realAttrValue) : expr, realAttrTarget));
+            letInstructions.push(new LetBindingInstruction(expr === null ? new PrimitiveLiteralExpression(realAttrValue) : expr, camelCase(realAttrTarget)));
         }
         context.rows.push([new HydrateLetElementInstruction(letInstructions, toBindingContext)]);
         // probably no need to replace

@@ -1,8 +1,8 @@
-# Dependency Injection
+# Dependency injection
 
 A dependency injection container is a tool that can simplify the process of decomposing such a system. Oftentimes, when developers go through the work of destructuring a system, they introduce a new complexity of "re-assembling" the smaller parts again at runtime. This is what a dependency injection container can do for you, using simple declarative hints.
 
-### Registering Services
+### Registering services
 
 | Aurelia 1 | Aurelia 2 | Description |
 | :--- | :--- | :--- |
@@ -15,7 +15,7 @@ A dependency injection container is a tool that can simplify the process of deco
 | container.autoRegister\(key: any, fn?: Function | **✗** | - |
 | **✗** | Registration.alias\(originalKey: any, aliasKey: any\): IRegistration | - |
 
-### Resolving Services
+### Resolving services
 
 | Aurelia 1 | Aurelia 2 | Description |
 | :--- | :--- | :--- |

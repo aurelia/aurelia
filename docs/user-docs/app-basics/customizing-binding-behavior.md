@@ -1,4 +1,0 @@
-# Customizing Binding Behavior
-
-Placeholder...
-

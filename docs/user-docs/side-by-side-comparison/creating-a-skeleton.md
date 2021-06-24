@@ -1,4 +1,4 @@
-# Creating A Skeleton
+# Creating a skeleton
 
 Before getting our hands dirty we should make our basic skeleton.
 

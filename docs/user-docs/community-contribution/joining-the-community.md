@@ -2,7 +2,7 @@
 description: Find out where our community hangs out and how to get connected.
 ---
 
-# Joining the Community
+# Joining the community
 
 **Welcome to the Aurelia community!** 🎊
 

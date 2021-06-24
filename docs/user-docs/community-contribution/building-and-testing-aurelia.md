@@ -2,7 +2,7 @@
 description: Get setup to build and test the Aurelia 2 source!
 ---
 
-# Build and Testing Aurelia
+# Building and testing aurelia
 
 If you're looking to contribute directly to Aurelia or its test suite, you've come to the right place!
 

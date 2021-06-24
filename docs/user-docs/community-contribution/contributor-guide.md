@@ -2,7 +2,7 @@
 description: Learn about our coding rules and contributing process.
 ---
 
-# Contributor Guide
+# Contributor guide
 
 We'd love for you to contribute to Aurelia's source code and help make our projects even better than they are today! ❤ To help you out, we've put together some guidelines we all like to follow.
 

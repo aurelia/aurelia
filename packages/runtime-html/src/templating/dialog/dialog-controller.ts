@@ -76,7 +76,7 @@ export class DialogController implements IDialogController {
 
   /** @internal */
   public activate(settings: IDialogLoadedSettings): Promise<DialogOpenResult> {
-    const { ctn: container } = this;
+    const container = this.ctn.createChild();
     const { model, template, rejectOnCancel } = settings;
     const hostRenderer: IDialogDomRenderer = container.get(IDialogDomRenderer);
     const dialogTargetHost = settings.host ?? this.p.document.body;
@@ -120,6 +120,7 @@ export class DialogController implements IDialogController {
         return onResolve(cmp.activate?.(model), () => {
           const ctrlr = this.controller = Controller.forCustomElement(
             null,
+            container,
             container,
             cmp,
             contentHost,

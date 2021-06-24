@@ -25,6 +25,25 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 * **template-compiler:** use class base impl for compilation context ([6cf1435](https://github.com/aurelia/aurelia/commit/6cf1435))
 * **template-compiler:** merge binder & compiler ([240692d](https://github.com/aurelia/aurelia/commit/240692d))
 
+  A breaking change is that custom attribute bindables are always checked against attribute form of bindables. This means it should be changed
+  from:
+  ```html
+  <form form-expander="isActive: true">
+  ```
+  to:
+  ```html
+  <form form-expander="is-active: true">
+  ```
+  this is to align with the style attribute, and CE bindable.
+
+  It's still possible to have any case for bindable properties inside multi-binding custom attribute usage, via `attribute` configuration of bindables:
+  ```ts
+  class MyAttr {
+    @bindable({ attribute: 'isActive' })
+    isActive: boolean;
+  }
+  ```
+
 <a name="2.0.0-alpha.7"></a>
 # 2.0.0-alpha.7 (2021-06-20)
 
@@ -37,7 +56,8 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 * **router:** ensure href recognize external ([387c084](https://github.com/aurelia/aurelia/commit/387c084))
 * **new-instance:** correctly invoke a registered interface ([8753b4e](https://github.com/aurelia/aurelia/commit/8753b4e))
-* **s #1166: this commit prepares a test where the most intuitive behavior is show:** ability to invoke an interface without having to declare it, if it has a default registration. Though this is inconsistent with the core, so will have to reconsider ([8753b4e](https://github.com/aurelia/aurelia/commit/8753b4e))
+
+  Add a few failling tests (skipped) for the most intuitive behaviors:** ability to invoke an interface without having to declare it, if it has a default registration. ([8753b4e](https://github.com/aurelia/aurelia/commit/8753b4e))
 * **di:** disallow resource key override ([f92ac3b](https://github.com/aurelia/aurelia/commit/f92ac3b))
 
 

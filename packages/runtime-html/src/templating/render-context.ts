@@ -107,43 +107,24 @@ export interface ICompiledRenderContext extends IRenderContext {
   createNodes(): INodeSequence;
 
   /**
-   * Prepare this context context for creating a new component instance.
-   *
-   * All parameters are optional injectable dependencies, that is: only those that are actually needed by the to-be-created component, need to be provided in order for that component to work.
-   *
-   * To avoid possible memory leaks, don't forget to call `dispose()` on the returned `IComponentFactory` after creating a component.
-   *
-   * @param parentController - The `IController` of the immediate parent of the to-be-created component. Not used by any built-in components.
-   * @param host - The DOM node that declared the component, or the node that the component will be mounted to (in case of containerless). Used by some built-in custom attributes.
-   * @param instruction - The hydrate instruction that resulted in the creation of this context context. Only used by `au-compose`.
-   * @param viewFactory - The `IViewFactory` that was created from the template that the template controller was placed on. Only applicable for template controllers. Used by all built-in template controllers.
-   * @param location - The DOM node that the nodes created by the `IViewFactory` should be mounted to. Only applicable for template controllers. Used by all built-in template controllers.
-   */
-  getComponentFactory(
-    parentController?: IController,
-    host?: INode,
-    instruction?: IInstruction,
-    viewFactory?: IViewFactory,
-    location?: IRenderLocation,
-    auSlotsInfo?: IAuSlotsInfo,
-  ): IComponentFactory;
-
-  /**
    * Prepare a new container to associate with a custom element instance
    */
   createElementContainer(
-    parentController?: IController,
-    host?: HTMLElement,
-    instruction?: HydrateElementInstruction,
+    parentController: IController,
+    host: HTMLElement,
+    instruction: HydrateElementInstruction,
     viewFactory?: IViewFactory,
     location?: IRenderLocation,
     auSlotsInfo?: IAuSlotsInfo,
   ): IContainer;
 
+  /**
+   * Instantiate a custom attribute
+   */
   invokeAttribute(
-    parentController?: IController,
-    host?: HTMLElement,
-    instruction?: HydrateAttributeInstruction | HydrateTemplateController,
+    parentController: IController,
+    host: HTMLElement,
+    instruction: HydrateAttributeInstruction | HydrateTemplateController,
     viewFactory?: IViewFactory,
     location?: IRenderLocation,
     auSlotsInfo?: IAuSlotsInfo,
@@ -296,7 +277,6 @@ export class RenderContext implements IComponentFactory {
     public readonly parentContainer: IContainer,
   ) {
     ++renderContextCount;
-    this.root = parentContainer.root;
     const container = this.container = parentContainer;
     // TODO(fkleuver): get contextual + root renderers
     const renderers = container.getAll(IRenderer);
@@ -307,39 +287,14 @@ export class RenderContext implements IComponentFactory {
       this.renderers[renderer.instructionType as string] = renderer;
     }
 
-    container.registerResolver(
-      IViewFactory,
-      this.factoryProvider = new ViewFactoryProvider(),
-      true,
-    );
-    container.registerResolver(
-      IController,
-      this.parentControllerProvider = new InstanceProvider('IController'),
-      true,
-    );
-    container.registerResolver(
-      IInstruction,
-      this.instructionProvider = new InstanceProvider<Instruction>('IInstruction'),
-      true,
-    );
-    container.registerResolver(
-      IRenderLocation,
-      this.renderLocationProvider = new InstanceProvider<IRenderLocation>('IRenderLocation'),
-      true,
-    );
-    container.registerResolver(
-      IAuSlotsInfo,
-      this.auSlotsInfoProvider = new InstanceProvider<IAuSlotsInfo>('IAuSlotsInfo'),
-      true,
-    );
-    const p = this.platform = container.get(IPlatform);
-    const ep = this.elementProvider = new InstanceProvider('ElementResolver');
-    container.registerResolver(INode, ep);
-    container.registerResolver(p.Node, ep);
-    container.registerResolver(p.Element, ep);
-    container.registerResolver(p.HTMLElement, ep);
-
-    // container.register(...definition.dependencies);
+    this.root = parentContainer.root;
+    this.platform = container.get(IPlatform);
+    this.elementProvider = new InstanceProvider('ElementResolver');
+    this.factoryProvider = new ViewFactoryProvider();
+    this.parentControllerProvider = new InstanceProvider('IController');
+    this.instructionProvider = new InstanceProvider<Instruction>('IInstruction');
+    this.renderLocationProvider = new InstanceProvider<IRenderLocation>('IRenderLocation');
+    this.auSlotsInfoProvider = new InstanceProvider<IAuSlotsInfo>('IAuSlotsInfo');
   }
 
   // #region IServiceLocator api
@@ -497,53 +452,6 @@ export class RenderContext implements IComponentFactory {
     }
     return new FragmentNodeSequence(this.platform, this.fragment.cloneNode(true) as DocumentFragment);
   }
-
-  // TODO: split up into 2 methods? getComponentFactory + getSyntheticFactory or something
-  public getComponentFactory(
-    parentController?: IController,
-    host?: HTMLElement,
-    instruction?: Instruction,
-    viewFactory?: IViewFactory,
-    location?: IRenderLocation,
-    auSlotsInfo?: IAuSlotsInfo,
-  ): IComponentFactory {
-    if (parentController !== void 0) {
-      this.parentControllerProvider.prepare(parentController);
-    }
-    if (host !== void 0) {
-      // TODO: fix provider input type, Key is probably not a good constraint
-      this.elementProvider.prepare(host);
-    }
-    if (instruction !== void 0) {
-      this.instructionProvider.prepare(instruction);
-    }
-    if (location !== void 0) {
-      this.renderLocationProvider.prepare(location);
-    }
-    if (viewFactory !== void 0) {
-      this.factoryProvider.prepare(viewFactory);
-    }
-    if (auSlotsInfo !== void 0) {
-      this.auSlotsInfoProvider.prepare(auSlotsInfo);
-    }
-    if (this.resourceInvoker == null) {
-      const container = this.resourceInvoker = this.container.createChild();
-      const p = this.platform;
-      const ep = this.elementProvider;
-
-      container.registerResolver(INode, ep, true);
-      container.registerResolver(p.Node, ep);
-      container.registerResolver(p.Element, ep);
-      container.registerResolver(p.HTMLElement, ep);
-      container.registerResolver(IController, this.parentControllerProvider, true);
-      container.registerResolver(IInstruction, this.instructionProvider, true);
-      container.registerResolver(IRenderLocation, this.renderLocationProvider, true);
-      container.registerResolver(IViewFactory, this.factoryProvider, true);
-      container.registerResolver(IAuSlotsInfo, this.auSlotsInfoProvider, true);
-    }
-
-    return this;
-  }
   // #endregion
 
   public createElementContainer(
@@ -557,36 +465,23 @@ export class RenderContext implements IComponentFactory {
     const ctxContainer = this.container;
     const p = this.platform;
     const container = ctxContainer.createChild();
-    let nodeProvider: InstanceProvider<HTMLElement | INode | Element | Node>;
+
+    const nodeProvider: InstanceProvider<INode> = new InstanceProvider('ElementProvider');
+    const controllerProvider: InstanceProvider<IController> = new InstanceProvider('IController');
+    const instructionProvider: InstanceProvider<IInstruction> = new InstanceProvider('IInstruction');
     let viewFactoryProvider: ViewFactoryProvider;
-    let controllerProvider: InstanceProvider<IController>;
-    let instructionProvider: InstanceProvider<IInstruction>;
     let locationProvider: InstanceProvider<IRenderLocation>;
     let slotInfoProvider: InstanceProvider<AuSlotsInfo>;
 
-    if (parentController == null) {
-      controllerProvider = noControllerProvider;
-    } else {
-      controllerProvider = new InstanceProvider('IController');
-      controllerProvider.prepare(parentController);
-    }
-    if (host == null) {
-      nodeProvider = noHostProvider;
-    } else {
-      nodeProvider = new InstanceProvider('ElementProvider');
-      nodeProvider.prepare(host);
-    }
+    controllerProvider.prepare(parentController);
+    nodeProvider.prepare(host);
+    instructionProvider.prepare(instruction);
+
     if (viewFactory == null) {
       viewFactoryProvider = noViewFactoryProvider;
     } else {
       viewFactoryProvider = new ViewFactoryProvider();
       viewFactoryProvider.prepare(viewFactory!);
-    }
-    if (instruction == null) {
-      instructionProvider = noInstructionProvider;
-    } else {
-      instructionProvider = new InstanceProvider('IInstruction');
-      instructionProvider.prepare(instruction);
     }
     if (location == null) {
       locationProvider = noLocationProvider;
@@ -744,8 +639,5 @@ export class ViewFactoryProvider implements IResolver {
 }
 
 const noLocationProvider = new InstanceProvider<IRenderLocation>('IRenderLocation');
-const noInstructionProvider = new InstanceProvider<IInstruction>('IInstruction');
-const noHostProvider = new InstanceProvider<HTMLElement>('ElementProvider');
 const noViewFactoryProvider = new ViewFactoryProvider();
-const noControllerProvider = new InstanceProvider<IController>('IController');
 const noAuSlotProvider = new InstanceProvider<AuSlotsInfo>('AuSlotsInfo');

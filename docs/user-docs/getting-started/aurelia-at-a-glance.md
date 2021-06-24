@@ -103,5 +103,5 @@ Which in turn, would be used in the following way:
 <div my-attribute></div>
 ```
 
-You can learn more about how to create custom elements and attributes in the [Building Components](components/) section.
+You can learn more about how to create custom elements and attributes in the [Building Components]() section.
 

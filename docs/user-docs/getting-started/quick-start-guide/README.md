@@ -4,7 +4,7 @@ description: >-
   application
 ---
 
-# Hello World
+# Hello world
 
 This guide will take you through creating a hello world app using Aurelia and briefly explain its main concepts. We will be building a simple hello, world example with a text field you can enter a name into and watch the view update. We assume you are familiar with JavaScript, HTML, and CSS.
 

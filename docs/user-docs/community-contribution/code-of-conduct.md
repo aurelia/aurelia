@@ -2,7 +2,7 @@
 description: Our mutual agreement on proper behavior within the Aurelia community.
 ---
 
-# Code of Conduct
+# Code of conduct
 
 **As contributors and maintainers of Aurelia, we pledge to respect every contributor.**
 

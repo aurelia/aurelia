@@ -4,7 +4,7 @@ description: >-
   Follow along as you create your first view-model.
 ---
 
-# Your First Component - Part 1: The View-Model
+# Your first component - part 1: the view model
 
 Aurelia as a default convention works on the premise of a view and view-model, both of which are tied together. The view-model is where your business logic lives and, if you have ever worked with .NET before \(or other frameworks\), you might refer to this as the controller.
 

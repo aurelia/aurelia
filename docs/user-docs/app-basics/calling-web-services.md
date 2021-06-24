@@ -1,4 +1,0 @@
-# Calling Web Services
-
-Placeholder...
-

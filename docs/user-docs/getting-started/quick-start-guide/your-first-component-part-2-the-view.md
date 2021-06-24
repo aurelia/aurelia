@@ -2,11 +2,11 @@
 description: Use a declarative approach to describe how your component should be rendered.
 ---
 
-# Your First Component - Part 2: The View
+# Your first component - part 2: the view
 
-In the previous section, we created a basic view-model, and you are probably sceptical that we are now going to create a view with a text input that updates this value without writing any more Javascript.
+In the previous section, we created a basic view model, and you are probably sceptical that we are now going to create a view with a text input that updates this value without writing any more Javascript.
 
-Inside the `src` directory create a new file called `hello-name.html` this will complicate the view-model you already have \(`hello-name.ts` or `hello-name.js`\).
+Inside the `src` directory create a new file called `hello-name.html` this will complicate the view model you already have \(`hello-name.ts` or `hello-name.js`\).
 
 Firstly, let's write the code to display the value. Notice how we are using interpolation to print the value like the default generated `my-app.html` file was? `${name}` the value inside the curly braces references the class property we defined in the previous section, by the name of `name`.
 

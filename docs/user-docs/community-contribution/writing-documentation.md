@@ -2,7 +2,7 @@
 description: Join us in making Aurelia's docs better for everyone!
 ---
 
-# Writing Documentation
+# Writing documentation
 
 Greetings! We're so glad that you're interested in contributing to Aurelia's documentation. 🙏 We'd love for you to join us in our quest to create great documentation, guidance, code examples, and more. To assist you in this effort, we've created this guide to writing documentation.
 

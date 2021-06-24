@@ -6,7 +6,7 @@ description: >-
 
 # Quick install guide
 
-## Install Node.js
+## Install node.js
 
 To create new Aurelia applications using the Aurelia CLI via Makes, you will need to ensure you have Node.js installed. The latest version of Node is always recommended and preferable. While Node can be installed through different methods, the easiest is to obtain a distributable from the [Node.js website](https://nodejs.org/en/download/).
 

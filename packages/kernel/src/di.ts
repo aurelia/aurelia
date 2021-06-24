@@ -200,76 +200,7 @@ export const DI = {
     }
     return annotationParamtypes;
   },
-  getDependencies(Type: Constructable | Injectable): Key[] {
-    // Note: Every detail of this getDependencies method is pretty deliberate at the moment, and probably not yet 100% tested from every possible angle,
-    // so be careful with making changes here as it can have a huge impact on complex end user apps.
-    // Preferably, only make changes to the dependency resolution process via a RFC.
-
-    const key = Protocol.annotation.keyFor('di:dependencies');
-    let dependencies = Metadata.getOwn(key, Type) as Key[] | undefined;
-    if (dependencies === void 0) {
-      // Type.length is the number of constructor parameters. If this is 0, it could mean the class has an empty constructor
-      // but it could also mean the class has no constructor at all (in which case it inherits the constructor from the prototype).
-
-      // Non-zero constructor length + no paramtypes means emitDecoratorMetadata is off, or the class has no decorator.
-      // We're not doing anything with the above right now, but it's good to keep in mind for any future issues.
-
-      const inject = (Type as Injectable).inject;
-      if (inject === void 0) {
-        // design:paramtypes is set by tsc when emitDecoratorMetadata is enabled.
-        const designParamtypes = DI.getDesignParamtypes(Type);
-        // au:annotation:di:paramtypes is set by the parameter decorator from DI.createInterface or by @inject
-        const annotationParamtypes = DI.getAnnotationParamtypes(Type);
-        if (designParamtypes === void 0) {
-          if (annotationParamtypes === void 0) {
-            // Only go up the prototype if neither static inject nor any of the paramtypes is defined, as
-            // there is no sound way to merge a type's deps with its prototype's deps
-            const Proto = Object.getPrototypeOf(Type);
-            if (typeof Proto === 'function' && Proto !== Function.prototype) {
-              dependencies = cloneArrayWithPossibleProps(DI.getDependencies(Proto));
-            } else {
-              dependencies = [];
-            }
-          } else {
-            // No design:paramtypes so just use the au:annotation:di:paramtypes
-            dependencies = cloneArrayWithPossibleProps(annotationParamtypes);
-          }
-        } else if (annotationParamtypes === void 0) {
-          // No au:annotation:di:paramtypes so just use the design:paramtypes
-          dependencies = cloneArrayWithPossibleProps(designParamtypes);
-        } else {
-          // We've got both, so merge them (in case of conflict on same index, au:annotation:di:paramtypes take precedence)
-          dependencies = cloneArrayWithPossibleProps(designParamtypes);
-          let len = annotationParamtypes.length;
-          let auAnnotationParamtype: Key;
-          for (let i = 0; i < len; ++i) {
-            auAnnotationParamtype = annotationParamtypes[i];
-            if (auAnnotationParamtype !== void 0) {
-              dependencies[i] = auAnnotationParamtype;
-            }
-          }
-
-          const keys = Object.keys(annotationParamtypes);
-          len = keys.length;
-          let key: string;
-          for (let i = 0; i < len; ++i) {
-            key = keys[i];
-            if (!isArrayIndex(key)) {
-              dependencies[key] = annotationParamtypes[key];
-            }
-          }
-        }
-      } else {
-        // Ignore paramtypes if we have static inject
-        dependencies = cloneArrayWithPossibleProps(inject);
-      }
-
-      Metadata.define(key, dependencies, Type);
-      Protocol.annotation.appendTo(Type, key);
-    }
-
-    return dependencies;
-  },
+  getDependencies: getDependencies,
   /**
    * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
    * ```ts
@@ -426,6 +357,79 @@ export const DI = {
     return target as T & RegisterSelf<T>;
   },
 };
+
+function getDependencies(Type: Constructable | Injectable): Key[] {
+  // Note: Every detail of this getDependencies method is pretty deliberate at the moment, and probably not yet 100% tested from every possible angle,
+  // so be careful with making changes here as it can have a huge impact on complex end user apps.
+  // Preferably, only make changes to the dependency resolution process via a RFC.
+
+  const key = Protocol.annotation.keyFor('di:dependencies');
+  let dependencies = Metadata.getOwn(key, Type) as Key[] | undefined;
+  if (dependencies === void 0) {
+    // Type.length is the number of constructor parameters. If this is 0, it could mean the class has an empty constructor
+    // but it could also mean the class has no constructor at all (in which case it inherits the constructor from the prototype).
+
+    // Non-zero constructor length + no paramtypes means emitDecoratorMetadata is off, or the class has no decorator.
+    // We're not doing anything with the above right now, but it's good to keep in mind for any future issues.
+
+    const inject = (Type as Injectable).inject;
+    if (inject === void 0) {
+      // design:paramtypes is set by tsc when emitDecoratorMetadata is enabled.
+      const designParamtypes = DI.getDesignParamtypes(Type);
+      // au:annotation:di:paramtypes is set by the parameter decorator from DI.createInterface or by @inject
+      const annotationParamtypes = DI.getAnnotationParamtypes(Type);
+      if (designParamtypes === void 0) {
+        if (annotationParamtypes === void 0) {
+          // Only go up the prototype if neither static inject nor any of the paramtypes is defined, as
+          // there is no sound way to merge a type's deps with its prototype's deps
+          const Proto = Object.getPrototypeOf(Type);
+          if (typeof Proto === 'function' && Proto !== Function.prototype) {
+            dependencies = cloneArrayWithPossibleProps(getDependencies(Proto));
+          } else {
+            dependencies = [];
+          }
+        } else {
+          // No design:paramtypes so just use the au:annotation:di:paramtypes
+          dependencies = cloneArrayWithPossibleProps(annotationParamtypes);
+        }
+      } else if (annotationParamtypes === void 0) {
+        // No au:annotation:di:paramtypes so just use the design:paramtypes
+        dependencies = cloneArrayWithPossibleProps(designParamtypes);
+      } else {
+        // We've got both, so merge them (in case of conflict on same index, au:annotation:di:paramtypes take precedence)
+        dependencies = cloneArrayWithPossibleProps(designParamtypes);
+        let len = annotationParamtypes.length;
+        let auAnnotationParamtype: Key;
+        let i = 0;
+        for (; i < len; ++i) {
+          auAnnotationParamtype = annotationParamtypes[i];
+          if (auAnnotationParamtype !== void 0) {
+            dependencies[i] = auAnnotationParamtype;
+          }
+        }
+
+        const keys = Object.keys(annotationParamtypes);
+        let key: string;
+        i = 0;
+        len = keys.length;
+        for (i = 0; i < len; ++i) {
+          key = keys[i];
+          if (!isArrayIndex(key)) {
+            dependencies[key] = annotationParamtypes[key];
+          }
+        }
+      }
+    } else {
+      // Ignore paramtypes if we have static inject
+      dependencies = cloneArrayWithPossibleProps(inject);
+    }
+
+    Metadata.define(key, dependencies, Type);
+    Protocol.annotation.appendTo(Type, key);
+  }
+
+  return dependencies;
+}
 
 export const IContainer = DI.createInterface<IContainer>('IContainer');
 export const IServiceLocator = IContainer as unknown as InterfaceSymbol<IServiceLocator>;
@@ -618,11 +622,9 @@ ignore.$isResolver = true;
 ignore.resolve = () => undefined;
 export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
   const instance = createNewInstance(key, handler, requestor);
-
   const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key));
   instanceProvider.prepare(instance);
-
-  requestor.registerResolver(key, instanceProvider, true);
+  requestor.registerResolver(key, instanceProvider);
 
   return instance;
 });
@@ -1132,7 +1134,11 @@ export class Container implements IContainer {
     if (isNativeFunction(Type)) {
       throw createNativeInvocationError(Type);
     }
-    return new Factory<Constructable<T>>(Type, DI.getDependencies(Type)).construct(this, dynamicDependencies) as T;
+    if (dynamicDependencies === void 0) {
+      return new Type(...getDependencies(Type).map(containerGetKey, this));
+    } else {
+      return new Type(...getDependencies(Type).map(containerGetKey, this), ...dynamicDependencies);
+    }
   }
 
   public getFactory<K extends Constructable>(Type: K): IFactory<K> {
@@ -1141,7 +1147,7 @@ export class Container implements IContainer {
       if (isNativeFunction(Type)) {
         throw createNativeInvocationError(Type);
       }
-      this.factories.set(Type, factory = new Factory<K>(Type, DI.getDependencies(Type)));
+      this.factories.set(Type, factory = new Factory<K>(Type, getDependencies(Type)));
     }
     return factory;
   }

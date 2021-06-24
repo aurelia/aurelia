@@ -175,6 +175,7 @@ export class AuCompose {
         const controller = Controller.forCustomElement(
           null,
           container,
+          container.createChild(),
           comp,
           host,
           null,
@@ -198,7 +199,7 @@ export class AuCompose {
           name: CustomElement.generateName(),
           template: view
         });
-        const renderContext = getRenderContext(targetDef, container);
+        const renderContext = getRenderContext(targetDef, container.createChild());
         const viewFactory = renderContext.getViewFactory();
         const controller = Controller.forSyntheticView(
           contextFactory.isFirst(context) ? $controller.root : null,

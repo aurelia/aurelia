@@ -1,78 +1,48 @@
 import { DI, newInstanceForScope } from '@aurelia/kernel';
 import {
   customElement,
-  bindable
+  bindable,
+  IHydratedCustomElementViewModel,
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/di-registration.spec.ts', function () {
   describe('@newInstanceForScope', function () {
-    it('resolves dependency with: interface + @newInstanceForScope + registration at the parent of requestor', async function () {
-      // arrange
-      let contextCallCount = 0;
-      const IListboxContext = DI.createInterface<IListboxContext>(
-        'IListboxContext',
-        x => x.singleton(class ListboxContext {
-          public open = false;
-          public constructor() {
-            contextCallCount++;
-          }
-        })
-      );
-      interface IListboxContext {
-        open: boolean;
+    it('resolves different instances for each scoped registration', async function () {
+      let id = 0;
+      class Model { public id = ++id; }
+
+      @customElement({ name: 'list-item', template: `\${model.id}` })
+      class ListItem {
+        public static inject = [Model];
+        public constructor(public readonly model: Model) { }
       }
 
-      @customElement({
-        name: 'listbox-item',
-        template: `listbox item \${i}`,
-      })
-      class ListboxItem {
-        @bindable
-        public value: number;
-        public constructor(
-          @IListboxContext public readonly context: IListboxContext
-        ) {}
-      }
-
-      @customElement({
-        name: 'list-box',
-        template: '<listbox-item repeat.for="i of 5" value.bind="i">',
-        dependencies: [ListboxItem]
-      })
-      class Listbox {
-        public constructor(
-          @newInstanceForScope(IListboxContext) public readonly context: IListboxContext
-        ) {}
+      @customElement({ name: 'list', template: '<list-item>', dependencies: [ListItem] })
+      class List {
+        public constructor(@newInstanceForScope(Model) public readonly context: Model) { }
       }
 
       // act
       const { component, startPromise, tearDown } = createFixture(
-        `<list-box view-model.ref="listbox">`,
+        `<list view-model.ref="list1"></list><list view-model.ref="list2"></list>`,
         class App {
-          public readonly listbox: Listbox;
+          public readonly list1: IHydratedCustomElementViewModel & List;
+          public readonly list2: IHydratedCustomElementViewModel & List;
         },
-        [Listbox, IListboxContext]
+        [List]
       );
 
       await startPromise;
-
-      // assert
-      assert.strictEqual(component.listbox.context.open, false);
-      assert.strictEqual(contextCallCount, 1);
+      const listEl1 = component.list1.$controller.host;
+      const listEl2 = component.list2.$controller.host;
+      assert.strictEqual(id, 2);
+      assert.visibleTextEqual(listEl1, '1');
+      assert.visibleTextEqual(listEl2, '2');
 
       await tearDown();
     });
 
-    // TODO
-    // a slightly different version of the above test,
-    // where an interface is register right at the custom element level,
-    // and will be used to create a new instance for itself
-    // instead of having to rely on the interface being registered in a parent level
-    //
-    // this is quite messy due to the way container is constructed for custom element
-    // it's inappropriate in timing, resulting in difficult scoping behavior for dependencies
-    // will take a few steps to fix
     it.skip('resolves dependency with: interface + @newInstanceForScope + registration at requestor', async function () {
       // arrange
       let contextCallCount = 0;
@@ -90,33 +60,21 @@ describe('3-runtime-html/di-registration.spec.ts', function () {
       }
 
       @customElement({
-        name: 'listbox-item',
-        template: `listbox item \${i}`,
-      })
-      class ListboxItem {
-        @bindable
-        public value: number;
-        public constructor(
-          @IListboxContext public readonly context: IListboxContext
-        ) {}
-      }
-
-      @customElement({
         name: 'list-box',
         template: '<listbox-item repeat.for="i of 5" value.bind="i">',
-        dependencies: [IListboxContext, ListboxItem]
+        dependencies: []
       })
       class Listbox {
         public constructor(
           @newInstanceForScope(IListboxContext) public readonly context: IListboxContext
-        ) {}
+        ) { }
       }
 
       // act
       const { component, startPromise, tearDown } = createFixture(
         `<list-box view-model.ref="listbox">`,
         class App {
-          public readonly listbox: Listbox;
+          public readonly listbox: IHydratedCustomElementViewModel & Listbox;
         },
         [Listbox]
       );
@@ -124,6 +82,9 @@ describe('3-runtime-html/di-registration.spec.ts', function () {
       await startPromise;
 
       // assert
+      assert.strictEqual(component.$controller!.context.getResolver(IListboxContext, false), null);
+      assert.strictEqual(component.listbox.$controller.context.has(IListboxContext, false), true);
+      assert.strictEqual(component.listbox.$controller.context.get(IListboxContext), component.listbox.context);
       assert.strictEqual(component.listbox.context.open, false);
       assert.strictEqual(contextCallCount, 1);
 
@@ -163,7 +124,7 @@ describe('3-runtime-html/di-registration.spec.ts', function () {
         public value: number;
         public constructor(
           @IListboxContext public readonly context: IListboxContext
-        ) {}
+        ) { }
       }
 
       @customElement({
@@ -174,7 +135,7 @@ describe('3-runtime-html/di-registration.spec.ts', function () {
       class Listbox {
         public constructor(
           @newInstanceForScope(IListboxContext) public readonly context: IListboxContext
-        ) {}
+        ) { }
       }
 
       // act

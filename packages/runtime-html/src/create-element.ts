@@ -33,6 +33,7 @@ export function createElement<C extends Constructable = Constructable>(
  */
 export class RenderPlan {
   private lazyDefinition?: CustomElementDefinition = void 0;
+  private readonly childFor: WeakMap<IContainer, IContainer> = new WeakMap();
 
   public constructor(
     private readonly node: Node,
@@ -53,8 +54,13 @@ export class RenderPlan {
     return this.lazyDefinition;
   }
 
-  public getContext(parentContainer: IContainer): IRenderContext {
-    return getRenderContext(this.definition, parentContainer);
+  public getContext(container: IContainer): IRenderContext {
+    const childFor = this.childFor;
+    let childContainer: IContainer | undefined = childFor.get(container);
+    if (childContainer == null) {
+      childFor.set(container, (childContainer = container.createChild()).register(...this.dependencies));
+    }
+    return getRenderContext(this.definition, childContainer);
   }
 
   public createView(parentContainer: IContainer): ISyntheticView {

@@ -133,6 +133,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public constructor(
     public root: IAppRoot | null,
+    public ctxCt: IContainer,
     public container: IContainer,
     public readonly vmKind: ViewModelKind,
     public flags: LifecycleFlags,
@@ -183,7 +184,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(
     root: IAppRoot | null,
-    container: IContainer,
+    contextCt: IContainer,
+    ownCt: IContainer,
     viewModel: C,
     host: HTMLElement,
     hydrationInst: IControllerElementHydrationInstruction | null,
@@ -202,7 +204,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     const controller = new Controller<C>(
       /* root           */root,
-      /* container      */container,
+      /* context ct     */contextCt,
+      /* own ct         */ownCt,
       /* vmKind         */ViewModelKind.customElement,
       /* flags          */flags,
       /* definition     */definition,
@@ -211,18 +214,19 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* host           */host,
     );
 
+    ownCt.register(...definition.dependencies);
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrate) {
-      controller.hydrateCustomElement(container, hydrationInst);
+      controller.hydrateCustomElement(contextCt, hydrationInst);
     }
 
-    return controller as unknown as ICustomElementController<C>;
+    return controller as ICustomElementController<C>;
   }
 
   public static forCustomAttribute<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(
     root: IAppRoot | null,
-    container: IContainer,
+    context: IContainer,
     viewModel: C,
     host: HTMLElement,
     flags: LifecycleFlags = LifecycleFlags.none,
@@ -235,7 +239,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     const controller = new Controller<C>(
       /* root           */root,
-      /* container      */container,
+      /* context ct     */context,
+      // CA does not have its own container
+      /* own ct         */context,
       /* vmKind         */ViewModelKind.customAttribute,
       /* flags          */flags,
       /* definition     */definition,
@@ -260,6 +266,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): ISyntheticView {
     const controller = new Controller(
       /* root           */root,
+      // todo: context container
+      /* container      */context,
       /* container      */context,
       /* vmKind         */ViewModelKind.synthetic,
       /* flags          */flags,
@@ -277,10 +285,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public hydrateCustomElement(
-    parentContainer: IContainer,
+    contextCt: IContainer,
     hydrationInst: IControllerElementHydrationInstruction | null
   ): void {
-    this.logger = parentContainer.get(ILogger).root;
+    this.logger = contextCt.get(ILogger).root;
     this.debug = this.logger.config.level <= LogLevel.debug;
     if (this.debug) {
       this.logger = this.logger.scopeTo(this.name);
@@ -301,7 +309,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       if (this.debug) { this.logger.trace(`invoking define() hook`); }
       const result = instance.define(
         /* controller      */this as ICustomElementController,
-        /* parentContainer */parentContainer,
+        /* parentContainer */contextCt,
         /* definition      */definition,
       );
       if (result !== void 0 && result !== definition) {
@@ -310,7 +318,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     // todo: make projections not influential on the render context construction
-    const context = this.context = getRenderContext(definition, parentContainer, hydrationInst?.projections) as RenderContext;
+    const context = this.context = getRenderContext(definition, this.container, hydrationInst?.projections) as RenderContext;
     // todo: should register a resolver resolving to a IContextElement/IContextComponent
     //       so that component directly under this template can easily distinguish its owner/parent
     // context.register(Registration.instance(IContextElement))

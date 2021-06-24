@@ -159,7 +159,7 @@ export class AuRender implements ICustomElementViewModel {
     }
 
     if ('createView' in subject) { // RenderPlan
-      return subject.createView(this.$controller.context!);
+      return subject.createView(this.$controller.context!.container);
     }
 
     if ('create' in subject) { // IViewFactory
@@ -168,7 +168,7 @@ export class AuRender implements ICustomElementViewModel {
 
     if ('template' in subject) { // Raw Template Definition
       const definition = CustomElementDefinition.getOrCreate(subject);
-      return getRenderContext(definition, this.$controller.context!).getViewFactory().create(flags);
+      return getRenderContext(definition, this.$controller.context!.container).getViewFactory().create(flags);
     }
 
     // Constructable (Custom Element Constructor)
@@ -177,7 +177,7 @@ export class AuRender implements ICustomElementViewModel {
       subject,
       this.properties,
       this.$controller.host.childNodes,
-    ).createView(this.$controller.context!);
+    ).createView(this.$controller.context!.container);
   }
 
   public dispose(): void {

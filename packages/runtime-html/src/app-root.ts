@@ -78,9 +78,9 @@ export class AppRoot implements IDisposable {
     this.host = config.host;
     this.work = container.get(IWorkTracker);
     rootProvider.prepare(this);
-    if (container.has(INode, false) && container.get(INode) !== config.host) {
-      this.container = container.createChild();
-    }
+    // if (container.has(INode, false) && container.get(INode) !== config.host) {
+    //   this.container = container.createChild();
+    // }
     this.container.register(Registration.instance(INode, config.host));
 
     if (enhance) {
@@ -93,13 +93,19 @@ export class AppRoot implements IDisposable {
     }
 
     this.hydratePromise = onResolve(this.runAppTasks('beforeCreate'), () => {
-      const instance = CustomElement.isType(config.component as Constructable)
-        ? this.container.get(config.component as Constructable | {}) as ICustomElementViewModel
-        : config.component as ICustomElementViewModel;
+      const component = config.component as Constructable | ICustomElementViewModel;
+      const ownContainer = container.createChild();
+      let instance: object;
+      if (CustomElement.isType(component)) {
+        instance = this.container.get(component);
+      } else {
+        instance = config.component as ICustomElementViewModel;
+      }
 
       const controller = (this.controller = Controller.forCustomElement(
         this,
         container,
+        ownContainer,
         instance,
         this.host,
         null,

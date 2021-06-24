@@ -1,20 +1,12 @@
-import { Metadata, IServiceLocator, IContainer, Registration, Class, DI, IRegistry, emptyObject } from '@aurelia/kernel';
+import { Metadata, Registration, DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
   IExpressionParser,
   IObserverLocator,
-  Interpolation,
-  IsBindingBehavior,
   LifecycleFlags,
-  AnyBindingExpression,
   BindingBehaviorExpression,
-  BindingBehaviorInstance,
-  IInterceptableBinding,
-  IObservable,
   BindingBehaviorFactory,
-  ForOfStatement,
-  DelegationStrategy,
 } from '@aurelia/runtime';
 import { CallBinding } from './binding/call-binding.js';
 import { AttributeBinding } from './binding/attribute.js';
@@ -24,15 +16,30 @@ import { PropertyBinding } from './binding/property-binding.js';
 import { RefBinding } from './binding/ref-binding.js';
 import { Listener } from './binding/listener.js';
 import { IEventDelegator } from './observation/event-delegator.js';
-import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
-import { getRenderContext, ICompiledRenderContext } from './templating/render-context.js';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
+import { getRenderContext } from './templating/render-context.js';
 import { AuSlotsInfo, IProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
-import { convertToRenderLocation, INode, setRef } from './dom.js';
+import { convertToRenderLocation, setRef } from './dom.js';
 import { Controller } from './templating/controller.js';
-import { IViewFactory } from './templating/view.js';
 import { IPlatform } from './platform.js';
-import type { IHydratableController, IController, ICustomAttributeViewModel, ICustomElementViewModel } from './templating/controller.js';
+
+import type { IServiceLocator, IContainer, Class, IRegistry } from '@aurelia/kernel';
+import type {
+  Interpolation,
+  IsBindingBehavior,
+  AnyBindingExpression,
+  BindingBehaviorInstance,
+  IInterceptableBinding,
+  IObservable,
+  ForOfStatement,
+  DelegationStrategy,
+} from '@aurelia/runtime';
+import type { IHydratableController, IController } from './templating/controller.js';
+import type { IViewFactory } from './templating/view.js';
+import type { PartialCustomElementDefinition } from './resources/custom-element.js';
+import type { ICompiledRenderContext } from './templating/render-context.js';
+import type { INode } from './dom.js';
 
 export const enum InstructionType {
   hydrateElement = 'ra',
@@ -433,7 +440,6 @@ export class CustomElementRenderer implements IRenderer {
     target: HTMLElement,
     instruction: HydrateElementInstruction,
   ): void {
-
     let viewFactory: IViewFactory | undefined;
 
     const slotInfo = instruction.slotInfo;
@@ -442,21 +448,26 @@ export class CustomElementRenderer implements IRenderer {
     }
 
     const projections = instruction.projections;
-    const factory = context.getComponentFactory(
+    const container = context.createElementContainer(
       /* parentController */controller,
       /* host             */target,
       /* instruction      */instruction,
       /* viewFactory      */viewFactory,
       /* location         */target,
-      /* auSlotsInfo      */new AuSlotsInfo(Object.keys(projections ?? emptyObject)),
+      /* auSlotsInfo      */new AuSlotsInfo(projections == null ? emptyArray : Object.keys(projections)),
     );
-
+    const definition = context.find(CustomElement, instruction.res) as CustomElementDefinition;
+    const Ctor = definition.Type;
+    const component = container.invoke(Ctor);
+    const provider = new InstanceProvider<typeof Ctor>();
     const key = CustomElement.keyFrom(instruction.res);
-    const component = factory.createComponent<ICustomElementViewModel>(key);
+    provider.prepare(component);
+    container.registerResolver(Ctor, provider);
 
     const childController = Controller.forCustomElement(
       /* root                */controller.root,
-      /* container           */context,
+      /* context ct          */context,
+      /* own container       */container,
       /* viewModel           */component,
       /* host                */target,
       /* instructions        */instruction,
@@ -474,8 +485,6 @@ export class CustomElementRenderer implements IRenderer {
     );
 
     controller.addController(childController);
-
-    factory.dispose();
   }
 }
 
@@ -489,24 +498,21 @@ export class CustomAttributeRenderer implements IRenderer {
     target: HTMLElement,
     instruction: HydrateAttributeInstruction,
   ): void {
-    const factory = context.getComponentFactory(
+    const component = context.invokeAttribute(
       /* parentController */controller,
       /* host             */target,
       /* instruction      */instruction,
       /* viewFactory      */void 0,
       /* location         */void 0,
     );
-
-    const key = CustomAttribute.keyFrom(instruction.res);
-    const component = factory.createComponent<ICustomAttributeViewModel>(key);
-
     const childController = Controller.forCustomAttribute(
-      /* root      */controller.root,
-      /* container */context,
-      /* viewModel */component,
-      /* host      */target,
-      /* flags     */flags,
+      /* root       */controller.root,
+      /* context ct */context,
+      /* viewModel  */component,
+      /* host       */target,
+      /* flags      */flags,
     );
+    const key = CustomAttribute.keyFrom(instruction.res);
 
     setRef(target, key, childController);
 
@@ -518,8 +524,6 @@ export class CustomAttributeRenderer implements IRenderer {
     );
 
     controller.addController(childController);
-
-    factory.dispose();
   }
 }
 
@@ -533,28 +537,23 @@ export class TemplateControllerRenderer implements IRenderer {
     target: HTMLElement,
     instruction: HydrateTemplateController,
   ): void {
-
-    const viewFactory = getRenderContext(instruction.def, context).getViewFactory();
+    const viewFactory = getRenderContext(instruction.def, context.container).getViewFactory();
     const renderLocation = convertToRenderLocation(target);
-
-    const componentFactory = context.getComponentFactory(
+    const component = context.invokeAttribute(
       /* parentController */controller,
       /* host             */target,
       /* instruction      */instruction,
       /* viewFactory      */viewFactory,
       /* location         */renderLocation,
     );
-
-    const key = CustomAttribute.keyFrom(instruction.res);
-    const component = componentFactory.createComponent<ICustomAttributeViewModel>(key);
-
     const childController = Controller.forCustomAttribute(
-      /* root      */controller.root,
-      /* container */context,
-      /* viewModel */component,
-      /* host      */target,
-      /* flags     */flags,
+      /* root         */controller.root,
+      /* container ct */context,
+      /* viewModel    */component,
+      /* host         */target,
+      /* flags        */flags,
     );
+    const key = CustomAttribute.keyFrom(instruction.res);
 
     setRef(renderLocation, key, childController);
 
@@ -568,8 +567,6 @@ export class TemplateControllerRenderer implements IRenderer {
     );
 
     controller.addController(childController);
-
-    componentFactory.dispose();
   }
 }
 

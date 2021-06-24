@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { Constructable, IContainer } from '@aurelia/kernel';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -26,19 +26,26 @@ describe('local dependency inheritance', function () {
     assert.strictEqual(outerHtmlAfterStop1, outerHtmlAfterStop2, 'outerHTML after stop #1 / #2');
   }
 
-  function verifyResourceRegistrations(container: IContainer, ...keys: any[]) {
+  function verifyResourceRegistrations(container: IContainer, ...keys: Constructable[]) {
     for (const key of keys) {
       verifyResourceRegistration(container, key);
-      verifyResourceRegistration(container, CustomElement.getDefinition(key).key);
+      const resourceKey = CustomElement.getDefinition(key).key;
+      if (container.has(resourceKey, true)) {
+        verifyResourceRegistration(container, CustomElement.getDefinition(key).key);
+      }
     }
   }
 
-  function verifyResourceRegistration(container: IContainer, key: any) {
+  function verifyResourceRegistration(container: IContainer, key: string | Constructable) {
     const instance1 = container.get(key);
     const instance2 = container.get(key);
     assert.isCustomElementType(instance1.constructor);
     assert.isCustomElementType(instance2.constructor);
-    assert.notStrictEqual(instance1, instance2, `two resolved resources should not be the same instance since they're transient`);
+    assert.notStrictEqual(
+      instance1,
+      instance2,
+      `two resolved resources should not be the same instance since they're transient (${key})`
+    );
   }
 
   it('only compiles resources that were registered in the root, but can still resolve all inherited ones directly', async function () {
@@ -49,12 +56,17 @@ describe('local dependency inheritance', function () {
         name: 'c-7',
         template: `7<c-1></c-1><c-2></c-2><c-3></c-3><c-4></c-4><c-5></c-5><c-6></c-6>`, // c1-c6 don't propagate here, so they should equate empty text
       },
-      class {
+      class C7 {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
         public binding() {
-          verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
+          // C4 is spawned from C1, so it should see C1 in its path
+          assert.strictEqual(this.container.get(C1), this.container.get(C1));
+          // C7 is spawn from C4, so it should see a single C4 in its path
+          assert.strictEqual(this.container.get(C4), this.container.get(C4));
+          assert.strictEqual(this.container.get(C7), this.container.get(C7));
+          verifyResourceRegistrations(this.container, C2, C3, C5, C6, C8, C9);
         }
       },
     );
@@ -63,12 +75,17 @@ describe('local dependency inheritance', function () {
         name: 'c-8',
         template: `8<c-1></c-1><c-2></c-2><c-3></c-3><c-4></c-4><c-5></c-5><c-6></c-6>`, // c1-c6 don't propagate here, so they should equate empty text
       },
-      class {
+      class C8 {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
         public binding() {
-          verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
+          // C5 is used from C2, so it should see C2 in its path
+          assert.strictEqual(this.container.get(C2), this.container.get(C2));
+          // C8 is spawn from C5, so it should see a single C5 in its path
+          assert.strictEqual(this.container.get(C5), this.container.get(C5));
+          assert.strictEqual(this.container.get(C8), this.container.get(C8));
+          verifyResourceRegistrations(this.container, C1, C3, C4, C6, C7, C9);
         }
       },
     );
@@ -77,12 +94,17 @@ describe('local dependency inheritance', function () {
         name: 'c-9',
         template: `9<c-1></c-1><c-2></c-2><c-3></c-3><c-4></c-4><c-5></c-5><c-6></c-6>`, // c1-c6 don't propagate here, so they should equate empty text
       },
-      class {
+      class C9 {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
         public binding() {
-          verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
+          // C9 is used from C3, so it should see C3 in its path
+          assert.strictEqual(this.container.get(C3), this.container.get(C3));
+          // C9 is used from C6, so it should see C6 in its path
+          assert.strictEqual(this.container.get(C6), this.container.get(C6));
+          assert.strictEqual(this.container.get(C9), this.container.get(C9));
+          verifyResourceRegistrations(this.container, C1, C2, C4, C5, C7, C8);
         }
       },
     );
@@ -92,12 +114,16 @@ describe('local dependency inheritance', function () {
         name: 'c-4',
         template: `4<c-7></c-7><c-1></c-1><c-2></c-2><c-3></c-3><c-5></c-5><c-6></c-6>`, // c1-c3 + c5-c6 don't propagate here, so they should equate empty text
       },
-      class {
+      class C4 {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
         public binding() {
-          verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
+          // C4 is spawned from C1, so it should see C1 in its path
+          assert.strictEqual(this.container.get(C1), this.container.get(C1));
+          // C4 should see itself
+          assert.strictEqual(this.container.get(C4), this.container.get(C4));
+          verifyResourceRegistrations(this.container, C2, C3, C5, C6, C7, C8, C9);
         }
       },
     );
@@ -106,12 +132,15 @@ describe('local dependency inheritance', function () {
         name: 'c-5',
         template: `5<c-8></c-8><c-1></c-1><c-2></c-2><c-3></c-3><c-4></c-4><c-6></c-6>`, // c1-c4 + c6 don't propagate here, so they should equate empty text
       },
-      class {
+      class C5 {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
         public binding() {
-          verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
+          // C5 is used from C2, so it should see C2 in its path
+          assert.strictEqual(this.container.get(C2), this.container.get(C2));
+          assert.strictEqual(this.container.get(C5), this.container.get(C5));
+          verifyResourceRegistrations(this.container, C1, C3, C4, C6, C7, C8, C9);
         }
       },
     );
@@ -120,12 +149,15 @@ describe('local dependency inheritance', function () {
         name: 'c-6',
         template: `6<c-9></c-9><c-1></c-1><c-2></c-2><c-3></c-3><c-4></c-4><c-5></c-5>`, // c1-c5 don't propagate here, so they should equate empty text
       },
-      class {
+      class C6 {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
         public binding() {
-          verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
+          // C6 is spawned from C3, so it should see C3 in its path
+          assert.strictEqual(this.container.get(C3), this.container.get(C3));
+          assert.strictEqual(this.container.get(C6), this.container.get(C6));
+          verifyResourceRegistrations(this.container, C1, C2, C4, C5, C7, C8, C9);
         }
       },
     );
@@ -136,12 +168,13 @@ describe('local dependency inheritance', function () {
         template: `1<c-4></c-4><c-2></c-2><c-3></c-3>`, // c2-c3 don't propagate here, so they should equate empty text
         dependencies: [C4],
       },
-      class {
+      class C1 {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
         public binding() {
-          verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
+          assert.strictEqual(this.container.get(C1), this.container.get(C1));
+          verifyResourceRegistrations(this.container, C2, C3, C4, C5, C6, C7, C8, C9);
         }
       },
     );
@@ -151,12 +184,13 @@ describe('local dependency inheritance', function () {
         template: `2<c-5></c-5><c-1></c-1><c-3></c-3>`, // c1 + c3 don't propagate here, so they should equate empty text
         dependencies: [C5],
       },
-      class {
+      class C2 {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
         public binding() {
-          verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
+          assert.strictEqual(this.container.get(C2), this.container.get(C2));
+          verifyResourceRegistrations(this.container, C1, C3, C4, C5, C6, C7, C8, C9);
         }
       },
     );
@@ -166,12 +200,13 @@ describe('local dependency inheritance', function () {
         template: `3<c-6></c-6><c-1></c-1><c-2></c-2>`, // c1-c2 don't propagate here, so they should equate empty text
         dependencies: [C6],
       },
-      class {
+      class C3 {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
         public binding() {
-          verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
+          assert.strictEqual(this.container.get(C3), this.container.get(C3));
+          verifyResourceRegistrations(this.container, C1, C2, C4, C5, C6, C7, C8, C9);
         }
       },
     );

@@ -117,7 +117,7 @@ let AuCompose = class AuCompose {
             // custom element based composition
             if (srcDef !== null) {
                 const targetDef = CustomElementDefinition.create(srcDef !== null && srcDef !== void 0 ? srcDef : { name: CustomElement.generateName(), template: view });
-                const controller = Controller.forCustomElement(null, container, comp, host, null, 0 /* none */, true, targetDef);
+                const controller = Controller.forCustomElement(null, container, container.createChild(), comp, host, null, 0 /* none */, true, targetDef);
                 return new CompositionController(controller, () => controller.activate(initiator !== null && initiator !== void 0 ? initiator : controller, $controller, 2 /* fromBind */), 
                 // todo: call deactivate on the component view model
                 (deactachInitiator) => controller.deactivate(deactachInitiator !== null && deactachInitiator !== void 0 ? deactachInitiator : controller, $controller, 4 /* fromUnbind */), 
@@ -130,7 +130,7 @@ let AuCompose = class AuCompose {
                     name: CustomElement.generateName(),
                     template: view
                 });
-                const renderContext = getRenderContext(targetDef, container);
+                const renderContext = getRenderContext(targetDef, container.createChild());
                 const viewFactory = renderContext.getViewFactory();
                 const controller = Controller.forSyntheticView(contextFactory.isFirst(context) ? $controller.root : null, renderContext, viewFactory, 2 /* fromBind */, $controller);
                 const scope = this.scopeBehavior === 'auto'

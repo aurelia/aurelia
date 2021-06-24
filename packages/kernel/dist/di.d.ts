@@ -97,7 +97,7 @@ export declare const DI: {
     getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined;
     getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined;
     getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[];
-    getDependencies(Type: Constructable | Injectable): Key[];
+    getDependencies: typeof getDependencies;
     /**
      * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
      * ```ts
@@ -179,6 +179,7 @@ export declare const DI: {
      */
     singleton<T_1 extends Constructable<{}>>(target: T_1 & Partial<RegisterSelf<T_1>>, options?: SingletonOptions): T_1 & RegisterSelf<T_1>;
 };
+declare function getDependencies(Type: Constructable | Injectable): Key[];
 export declare const IContainer: InterfaceSymbol<IContainer>;
 export declare const IServiceLocator: InterfaceSymbol<IServiceLocator>;
 export declare const inject: (...dependencies: Key[]) => (target: Injectable, key?: string | number | undefined, descriptor?: number | PropertyDescriptor | undefined) => void;

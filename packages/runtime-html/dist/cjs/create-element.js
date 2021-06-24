@@ -25,6 +25,7 @@ class RenderPlan {
         this.instructions = instructions;
         this.dependencies = dependencies;
         this.lazyDefinition = void 0;
+        this.childFor = new WeakMap();
     }
     get definition() {
         if (this.lazyDefinition === void 0) {
@@ -38,8 +39,13 @@ class RenderPlan {
         }
         return this.lazyDefinition;
     }
-    getContext(parentContainer) {
-        return render_context_js_1.getRenderContext(this.definition, parentContainer);
+    getContext(container) {
+        const childFor = this.childFor;
+        let childContainer = childFor.get(container);
+        if (childContainer == null) {
+            childFor.set(container, (childContainer = container.createChild()).register(...this.dependencies));
+        }
+        return render_context_js_1.getRenderContext(this.definition, childContainer);
     }
     createView(parentContainer) {
         return this.getViewFactory(parentContainer).create();

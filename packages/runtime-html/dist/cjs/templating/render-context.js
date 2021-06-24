@@ -5,6 +5,7 @@ const kernel_1 = require("@aurelia/kernel");
 const dom_js_1 = require("../dom.js");
 const renderer_js_1 = require("../renderer.js");
 const custom_element_js_1 = require("../resources/custom-element.js");
+const custom_attribute_js_1 = require("../resources/custom-attribute.js");
 const view_js_1 = require("./view.js");
 const au_slot_js_1 = require("../resources/custom-elements/au-slot.js");
 const platform_js_1 = require("../platform.js");
@@ -16,20 +17,21 @@ function isRenderContext(value) {
     return value instanceof RenderContext;
 }
 exports.isRenderContext = isRenderContext;
-function getRenderContext(partialDefinition, parentContainer, projections) {
+let renderContextCount = 0;
+function getRenderContext(partialDefinition, container, projections) {
     const definition = custom_element_js_1.CustomElementDefinition.getOrCreate(partialDefinition);
     // injectable completely prevents caching, ensuring that each instance gets a new context context
     if (definition.injectable !== null) {
-        return new RenderContext(definition, parentContainer);
+        return new RenderContext(definition, container);
     }
     if (projections == null) {
         let containerLookup = definitionContainerLookup.get(definition);
         if (containerLookup === void 0) {
             definitionContainerLookup.set(definition, containerLookup = new WeakMap());
         }
-        let context = containerLookup.get(parentContainer);
+        let context = containerLookup.get(container);
         if (context === void 0) {
-            containerLookup.set(parentContainer, context = new RenderContext(definition, parentContainer));
+            containerLookup.set(container, context = new RenderContext(definition, container));
         }
         return context;
     }
@@ -37,17 +39,22 @@ function getRenderContext(partialDefinition, parentContainer, projections) {
     if (containerProjectionsLookup === void 0) {
         definitionContainerProjectionsLookup.set(definition, containerProjectionsLookup = new WeakMap());
     }
-    let projectionsLookup = containerProjectionsLookup.get(parentContainer);
+    let projectionsLookup = containerProjectionsLookup.get(container);
     if (projectionsLookup === void 0) {
-        containerProjectionsLookup.set(parentContainer, projectionsLookup = new WeakMap());
+        containerProjectionsLookup.set(container, projectionsLookup = new WeakMap());
     }
     let context = projectionsLookup.get(projections);
     if (context === void 0) {
-        projectionsLookup.set(projections, context = new RenderContext(definition, parentContainer));
+        projectionsLookup.set(projections, context = new RenderContext(definition, container));
     }
     return context;
 }
 exports.getRenderContext = getRenderContext;
+getRenderContext.count = 0;
+// A simple counter for debugging purposes only
+Reflect.defineProperty(getRenderContext, 'count', {
+    get: () => renderContextCount
+});
 const emptyNodeCache = new WeakMap();
 class RenderContext {
     constructor(definition, parentContainer) {
@@ -59,8 +66,9 @@ class RenderContext {
         this.isCompiled = false;
         this.renderers = Object.create(null);
         this.compiledDefinition = (void 0);
-        this.root = parentContainer.root;
-        const container = this.container = parentContainer.createChild();
+        this.resourceInvoker = null;
+        ++renderContextCount;
+        const container = this.container = parentContainer;
         // TODO(fkleuver): get contextual + root renderers
         const renderers = container.getAll(renderer_js_1.IRenderer);
         let i = 0;
@@ -69,18 +77,14 @@ class RenderContext {
             renderer = renderers[i];
             this.renderers[renderer.instructionType] = renderer;
         }
-        container.registerResolver(view_js_1.IViewFactory, this.factoryProvider = new ViewFactoryProvider(), true);
-        container.registerResolver(controller_js_1.IController, this.parentControllerProvider = new kernel_1.InstanceProvider('IController'), true);
-        container.registerResolver(renderer_js_1.IInstruction, this.instructionProvider = new kernel_1.InstanceProvider('IInstruction'), true);
-        container.registerResolver(dom_js_1.IRenderLocation, this.renderLocationProvider = new kernel_1.InstanceProvider('IRenderLocation'), true);
-        container.registerResolver(au_slot_js_1.IAuSlotsInfo, this.auSlotsInfoProvider = new kernel_1.InstanceProvider('IAuSlotsInfo'), true);
-        const p = this.platform = container.get(platform_js_1.IPlatform);
-        const ep = this.elementProvider = new kernel_1.InstanceProvider('ElementResolver');
-        container.registerResolver(dom_js_1.INode, ep);
-        container.registerResolver(p.Node, ep);
-        container.registerResolver(p.Element, ep);
-        container.registerResolver(p.HTMLElement, ep);
-        container.register(...definition.dependencies);
+        this.root = parentContainer.root;
+        this.platform = container.get(platform_js_1.IPlatform);
+        this.elementProvider = new kernel_1.InstanceProvider('ElementResolver');
+        this.factoryProvider = new ViewFactoryProvider();
+        this.parentControllerProvider = new kernel_1.InstanceProvider('IController');
+        this.instructionProvider = new kernel_1.InstanceProvider('IInstruction');
+        this.renderLocationProvider = new kernel_1.InstanceProvider('IRenderLocation');
+        this.auSlotsInfoProvider = new kernel_1.InstanceProvider('IAuSlotsInfo');
     }
     get id() {
         return this.container.id;
@@ -216,30 +220,89 @@ class RenderContext {
         }
         return new dom_js_1.FragmentNodeSequence(this.platform, this.fragment.cloneNode(true));
     }
-    // TODO: split up into 2 methods? getComponentFactory + getSyntheticFactory or something
-    getComponentFactory(parentController, host, instruction, viewFactory, location, auSlotsInfo) {
-        if (parentController !== void 0) {
-            this.parentControllerProvider.prepare(parentController);
-        }
-        if (host !== void 0) {
-            // TODO: fix provider input type, Key is probably not a good constraint
-            this.elementProvider.prepare(host);
-        }
-        if (instruction !== void 0) {
-            this.instructionProvider.prepare(instruction);
-        }
-        if (location !== void 0) {
-            this.renderLocationProvider.prepare(location);
-        }
-        if (viewFactory !== void 0) {
-            this.factoryProvider.prepare(viewFactory);
-        }
-        if (auSlotsInfo !== void 0) {
-            this.auSlotsInfoProvider.prepare(auSlotsInfo);
-        }
-        return this;
-    }
     // #endregion
+    createElementContainer(parentController, host, instruction, viewFactory, location, auSlotsInfo) {
+        const ctxContainer = this.container;
+        const p = this.platform;
+        const container = ctxContainer.createChild();
+        const nodeProvider = new kernel_1.InstanceProvider('ElementProvider');
+        const controllerProvider = new kernel_1.InstanceProvider('IController');
+        const instructionProvider = new kernel_1.InstanceProvider('IInstruction');
+        let viewFactoryProvider;
+        let locationProvider;
+        let slotInfoProvider;
+        controllerProvider.prepare(parentController);
+        nodeProvider.prepare(host);
+        instructionProvider.prepare(instruction);
+        if (viewFactory == null) {
+            viewFactoryProvider = noViewFactoryProvider;
+        }
+        else {
+            viewFactoryProvider = new ViewFactoryProvider();
+            viewFactoryProvider.prepare(viewFactory);
+        }
+        if (location == null) {
+            locationProvider = noLocationProvider;
+        }
+        else {
+            locationProvider = new kernel_1.InstanceProvider('IRenderLocation');
+            locationProvider.prepare(location);
+        }
+        if (auSlotsInfo == null) {
+            slotInfoProvider = noAuSlotProvider;
+        }
+        else {
+            slotInfoProvider = new kernel_1.InstanceProvider('AuSlotInfo');
+            slotInfoProvider.prepare(auSlotsInfo);
+        }
+        container.registerResolver(dom_js_1.INode, nodeProvider);
+        container.registerResolver(p.Node, nodeProvider);
+        container.registerResolver(p.Element, nodeProvider);
+        container.registerResolver(p.HTMLElement, nodeProvider);
+        container.registerResolver(controller_js_1.IController, controllerProvider);
+        container.registerResolver(renderer_js_1.IInstruction, instructionProvider);
+        container.registerResolver(dom_js_1.IRenderLocation, locationProvider);
+        container.registerResolver(view_js_1.IViewFactory, viewFactoryProvider);
+        container.registerResolver(au_slot_js_1.IAuSlotsInfo, slotInfoProvider);
+        return container;
+    }
+    invokeAttribute(parentController, host, instruction, viewFactory, location, auSlotsInfo) {
+        const p = this.platform;
+        const eProvider = this.elementProvider;
+        const pcProvider = this.parentControllerProvider;
+        const iProvider = this.instructionProvider;
+        const fProvider = this.factoryProvider;
+        const rlProvider = this.renderLocationProvider;
+        const siProvider = this.auSlotsInfoProvider;
+        const container = this.container;
+        const definition = container.find(custom_attribute_js_1.CustomAttribute, instruction.res);
+        const Ctor = definition.Type;
+        let invoker = this.resourceInvoker;
+        if (invoker == null) {
+            invoker = container.createChild();
+            invoker.registerResolver(dom_js_1.INode, eProvider, true);
+            invoker.registerResolver(p.Node, eProvider);
+            invoker.registerResolver(p.Element, eProvider);
+            invoker.registerResolver(p.HTMLElement, eProvider);
+            invoker.registerResolver(controller_js_1.IController, pcProvider, true);
+            invoker.registerResolver(renderer_js_1.IInstruction, iProvider, true);
+            invoker.registerResolver(dom_js_1.IRenderLocation, rlProvider, true);
+            invoker.registerResolver(view_js_1.IViewFactory, fProvider, true);
+            invoker.registerResolver(au_slot_js_1.IAuSlotsInfo, siProvider, true);
+        }
+        eProvider.prepare(host);
+        pcProvider.prepare(parentController);
+        iProvider.prepare(instruction);
+        // null or undefined wouldn't matter
+        // as it can just throw if trying to inject something non-existant
+        fProvider.prepare(viewFactory);
+        rlProvider.prepare(location);
+        siProvider.prepare(auSlotsInfo);
+        const instance = invoker.invoke(Ctor);
+        invoker.dispose();
+        return instance;
+    }
+    // public create
     // #region IComponentFactory api
     createComponent(resourceKey) {
         return this.container.get(resourceKey);
@@ -283,7 +346,7 @@ class ViewFactoryProvider {
         this.factory = factory;
     }
     get $isResolver() { return true; }
-    resolve(_handler, _requestor) {
+    resolve() {
         const factory = this.factory;
         if (factory === null) {
             throw new Error('Cannot resolve ViewFactory before the provider was prepared.');
@@ -298,4 +361,7 @@ class ViewFactoryProvider {
     }
 }
 exports.ViewFactoryProvider = ViewFactoryProvider;
+const noLocationProvider = new kernel_1.InstanceProvider('IRenderLocation');
+const noViewFactoryProvider = new ViewFactoryProvider();
+const noAuSlotProvider = new kernel_1.InstanceProvider('AuSlotsInfo');
 //# sourceMappingURL=render-context.js.map

@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Metadata, Registration, DI, emptyObject } from '@aurelia/kernel';
+import { Metadata, Registration, DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
 import { BindingMode, IExpressionParser, IObserverLocator, BindingBehaviorExpression, BindingBehaviorFactory, } from '@aurelia/runtime';
 import { CallBinding } from './binding/call-binding.js';
 import { AttributeBinding } from './binding/attribute.js';
@@ -315,18 +315,24 @@ class CustomElementRenderer {
             viewFactory = getRenderContext(slotInfo.content, context).getViewFactory(void 0);
         }
         const projections = instruction.projections;
-        const factory = context.getComponentFactory(
+        const container = context.createElementContainer(
         /* parentController */ controller, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ viewFactory, 
         /* location         */ target, 
-        /* auSlotsInfo      */ new AuSlotsInfo(Object.keys(projections !== null && projections !== void 0 ? projections : emptyObject)));
+        /* auSlotsInfo      */ new AuSlotsInfo(projections == null ? emptyArray : Object.keys(projections)));
+        const definition = context.find(CustomElement, instruction.res);
+        const Ctor = definition.Type;
+        const component = container.invoke(Ctor);
+        const provider = new InstanceProvider();
         const key = CustomElement.keyFrom(instruction.res);
-        const component = factory.createComponent(key);
+        provider.prepare(component);
+        container.registerResolver(Ctor, provider);
         const childController = Controller.forCustomElement(
         /* root                */ controller.root, 
-        /* container           */ context, 
+        /* context ct          */ context, 
+        /* own container       */ container, 
         /* viewModel           */ component, 
         /* host                */ target, 
         /* instructions        */ instruction, 
@@ -339,7 +345,6 @@ class CustomElementRenderer {
         /* controller   */ controller, 
         /* target       */ childController);
         controller.addController(childController);
-        factory.dispose();
     }
 };
 CustomElementRenderer = __decorate([
@@ -351,20 +356,19 @@ let CustomAttributeRenderer =
 /** @internal */
 class CustomAttributeRenderer {
     render(flags, context, controller, target, instruction) {
-        const factory = context.getComponentFactory(
+        const component = context.invokeAttribute(
         /* parentController */ controller, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ void 0, 
         /* location         */ void 0);
-        const key = CustomAttribute.keyFrom(instruction.res);
-        const component = factory.createComponent(key);
         const childController = Controller.forCustomAttribute(
-        /* root      */ controller.root, 
-        /* container */ context, 
-        /* viewModel */ component, 
-        /* host      */ target, 
-        /* flags     */ flags);
+        /* root       */ controller.root, 
+        /* context ct */ context, 
+        /* viewModel  */ component, 
+        /* host       */ target, 
+        /* flags      */ flags);
+        const key = CustomAttribute.keyFrom(instruction.res);
         setRef(target, key, childController);
         context.renderChildren(
         /* flags        */ flags, 
@@ -372,7 +376,6 @@ class CustomAttributeRenderer {
         /* controller   */ controller, 
         /* target       */ childController);
         controller.addController(childController);
-        factory.dispose();
     }
 };
 CustomAttributeRenderer = __decorate([
@@ -385,22 +388,21 @@ let TemplateControllerRenderer =
 class TemplateControllerRenderer {
     render(flags, context, controller, target, instruction) {
         var _a;
-        const viewFactory = getRenderContext(instruction.def, context).getViewFactory();
+        const viewFactory = getRenderContext(instruction.def, context.container).getViewFactory();
         const renderLocation = convertToRenderLocation(target);
-        const componentFactory = context.getComponentFactory(
+        const component = context.invokeAttribute(
         /* parentController */ controller, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ viewFactory, 
         /* location         */ renderLocation);
-        const key = CustomAttribute.keyFrom(instruction.res);
-        const component = componentFactory.createComponent(key);
         const childController = Controller.forCustomAttribute(
-        /* root      */ controller.root, 
-        /* container */ context, 
-        /* viewModel */ component, 
-        /* host      */ target, 
-        /* flags     */ flags);
+        /* root         */ controller.root, 
+        /* container ct */ context, 
+        /* viewModel    */ component, 
+        /* host         */ target, 
+        /* flags        */ flags);
+        const key = CustomAttribute.keyFrom(instruction.res);
         setRef(renderLocation, key, childController);
         (_a = component.link) === null || _a === void 0 ? void 0 : _a.call(component, flags, context, controller, childController, target, instruction);
         context.renderChildren(
@@ -409,7 +411,6 @@ class TemplateControllerRenderer {
         /* controller   */ controller, 
         /* target       */ childController);
         controller.addController(childController);
-        componentFactory.dispose();
     }
 };
 TemplateControllerRenderer = __decorate([

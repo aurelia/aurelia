@@ -21,6 +21,7 @@ export declare const enum MountTarget {
 }
 export declare class Controller<C extends IViewModel = IViewModel> implements IController<C> {
     root: IAppRoot | null;
+    ctxCt: IContainer;
     container: IContainer;
     readonly vmKind: ViewModelKind;
     flags: LifecycleFlags;
@@ -69,7 +70,7 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     private childrenObs;
     readonly platform: IPlatform;
     readonly hooks: HooksDefinition;
-    constructor(root: IAppRoot | null, container: IContainer, vmKind: ViewModelKind, flags: LifecycleFlags, definition: CustomElementDefinition | CustomAttributeDefinition | null, 
+    constructor(root: IAppRoot | null, ctxCt: IContainer, container: IContainer, vmKind: ViewModelKind, flags: LifecycleFlags, definition: CustomElementDefinition | CustomAttributeDefinition | null, 
     /**
      * The viewFactory. Only present for synthetic views.
      */
@@ -88,8 +89,8 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     host: HTMLElement | null);
     static getCached<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C> | undefined;
     static getCachedOrThrow<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C>;
-    static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(root: IAppRoot | null, container: IContainer, viewModel: C, host: HTMLElement, hydrationInst: IControllerElementHydrationInstruction | null, flags?: LifecycleFlags, hydrate?: boolean, definition?: CustomElementDefinition | undefined): ICustomElementController<C>;
-    static forCustomAttribute<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(root: IAppRoot | null, container: IContainer, viewModel: C, host: HTMLElement, flags?: LifecycleFlags): ICustomAttributeController<C>;
+    static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(root: IAppRoot | null, contextCt: IContainer, ownCt: IContainer, viewModel: C, host: HTMLElement, hydrationInst: IControllerElementHydrationInstruction | null, flags?: LifecycleFlags, hydrate?: boolean, definition?: CustomElementDefinition | undefined): ICustomElementController<C>;
+    static forCustomAttribute<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(root: IAppRoot | null, context: IContainer, viewModel: C, host: HTMLElement, flags?: LifecycleFlags): ICustomAttributeController<C>;
     static forSyntheticView(root: IAppRoot | null, context: IRenderContext, viewFactory: IViewFactory, flags?: LifecycleFlags, parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
     private hydrateCustomAttribute;
     private hydrateSynthetic;

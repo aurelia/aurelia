@@ -27,7 +27,7 @@ export class ComponentAgent {
         let componentAgent = componentAgentLookup.get(componentInstance);
         if (componentAgent === void 0) {
             const definition = RouteDefinition.resolve(componentInstance.constructor);
-            const controller = Controller.forCustomElement(ctx.get(IAppRoot), ctx, componentInstance, hostController.host, null);
+            const controller = Controller.forCustomElement(ctx.get(IAppRoot), ctx, ctx, componentInstance, hostController.host, null);
             componentAgentLookup.set(componentInstance, componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx));
         }
         return componentAgent;

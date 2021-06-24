@@ -30,7 +30,7 @@ class ComponentAgent {
         let componentAgent = componentAgentLookup.get(componentInstance);
         if (componentAgent === void 0) {
             const definition = route_definition_js_1.RouteDefinition.resolve(componentInstance.constructor);
-            const controller = runtime_html_1.Controller.forCustomElement(ctx.get(runtime_html_1.IAppRoot), ctx, componentInstance, hostController.host, null);
+            const controller = runtime_html_1.Controller.forCustomElement(ctx.get(runtime_html_1.IAppRoot), ctx, ctx, componentInstance, hostController.host, null);
             componentAgentLookup.set(componentInstance, componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx));
         }
         return componentAgent;

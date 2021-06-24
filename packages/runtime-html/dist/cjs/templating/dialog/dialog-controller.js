@@ -23,7 +23,7 @@ class DialogController {
     /** @internal */
     activate(settings) {
         var _a;
-        const { ctn: container } = this;
+        const container = this.ctn.createChild();
         const { model, template, rejectOnCancel } = settings;
         const hostRenderer = container.get(dialog_interfaces_js_1.IDialogDomRenderer);
         const dialogTargetHost = (_a = settings.host) !== null && _a !== void 0 ? _a : this.p.document.body;
@@ -60,7 +60,7 @@ class DialogController {
             const cmp = this.cmp;
             return kernel_1.onResolve((_a = cmp.activate) === null || _a === void 0 ? void 0 : _a.call(cmp, model), () => {
                 var _a;
-                const ctrlr = this.controller = controller_js_1.Controller.forCustomElement(null, container, cmp, contentHost, null, 0 /* none */, true, custom_element_js_1.CustomElementDefinition.create((_a = this.getDefinition(cmp)) !== null && _a !== void 0 ? _a : { name: custom_element_js_1.CustomElement.generateName(), template }));
+                const ctrlr = this.controller = controller_js_1.Controller.forCustomElement(null, container, container, cmp, contentHost, null, 0 /* none */, true, custom_element_js_1.CustomElementDefinition.create((_a = this.getDefinition(cmp)) !== null && _a !== void 0 ? _a : { name: custom_element_js_1.CustomElement.generateName(), template }));
                 return kernel_1.onResolve(ctrlr.activate(ctrlr, null, 2 /* fromBind */), () => {
                     var _a;
                     dom.overlay.addEventListener((_a = settings.mouseEvent) !== null && _a !== void 0 ? _a : 'click', this);

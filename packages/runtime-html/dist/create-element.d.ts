@@ -14,9 +14,10 @@ export declare class RenderPlan {
     private readonly instructions;
     private readonly dependencies;
     private lazyDefinition?;
+    private readonly childFor;
     constructor(node: Node, instructions: IInstruction[][], dependencies: Key[]);
     get definition(): CustomElementDefinition;
-    getContext(parentContainer: IContainer): IRenderContext;
+    getContext(container: IContainer): IRenderContext;
     createView(parentContainer: IContainer): ISyntheticView;
     getViewFactory(parentContainer: IContainer): IViewFactory;
 }

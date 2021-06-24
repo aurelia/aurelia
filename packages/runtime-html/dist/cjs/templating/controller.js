@@ -28,7 +28,7 @@ var MountTarget;
 const optional = { optional: true };
 const controllerLookup = new WeakMap();
 class Controller {
-    constructor(root, container, vmKind, flags, definition, 
+    constructor(root, ctxCt, container, vmKind, flags, definition, 
     /**
      * The viewFactory. Only present for synthetic views.
      */
@@ -46,6 +46,7 @@ class Controller {
      */
     host) {
         this.root = root;
+        this.ctxCt = ctxCt;
         this.container = container;
         this.vmKind = vmKind;
         this.flags = flags;
@@ -138,7 +139,7 @@ class Controller {
         }
         return controller;
     }
-    static forCustomElement(root, container, viewModel, host, hydrationInst, flags = 0 /* none */, hydrate = true, 
+    static forCustomElement(root, contextCt, ownCt, viewModel, host, hydrationInst, flags = 0 /* none */, hydrate = true, 
     // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
     definition = void 0) {
         if (controllerLookup.has(viewModel)) {
@@ -149,26 +150,30 @@ class Controller {
         definition = definition !== null && definition !== void 0 ? definition : custom_element_js_1.CustomElement.getDefinition(viewModel.constructor);
         const controller = new Controller(
         /* root           */ root, 
-        /* container      */ container, 0 /* customElement */, 
+        /* context ct     */ contextCt, 
+        /* own ct         */ ownCt, 0 /* customElement */, 
         /* flags          */ flags, 
         /* definition     */ definition, 
         /* viewFactory    */ null, 
         /* viewModel      */ viewModel, 
         /* host           */ host);
+        ownCt.register(...definition.dependencies);
         controllerLookup.set(viewModel, controller);
         if (hydrate) {
-            controller.hydrateCustomElement(container, hydrationInst);
+            controller.hydrateCustomElement(contextCt, hydrationInst);
         }
         return controller;
     }
-    static forCustomAttribute(root, container, viewModel, host, flags = 0 /* none */) {
+    static forCustomAttribute(root, context, viewModel, host, flags = 0 /* none */) {
         if (controllerLookup.has(viewModel)) {
             return controllerLookup.get(viewModel);
         }
         const definition = custom_attribute_js_1.CustomAttribute.getDefinition(viewModel.constructor);
         const controller = new Controller(
         /* root           */ root, 
-        /* container      */ container, 1 /* customAttribute */, 
+        /* context ct     */ context, 
+        // CA does not have its own container
+        /* own ct         */ context, 1 /* customAttribute */, 
         /* flags          */ flags, 
         /* definition     */ definition, 
         /* viewFactory    */ null, 
@@ -181,6 +186,8 @@ class Controller {
     static forSyntheticView(root, context, viewFactory, flags = 0 /* none */, parentController = void 0) {
         const controller = new Controller(
         /* root           */ root, 
+        // todo: context container
+        /* container      */ context, 
         /* container      */ context, 2 /* synthetic */, 
         /* flags          */ flags, 
         /* definition     */ null, 
@@ -192,9 +199,9 @@ class Controller {
         return controller;
     }
     /** @internal */
-    hydrateCustomElement(parentContainer, hydrationInst) {
+    hydrateCustomElement(contextCt, hydrationInst) {
         var _a;
-        this.logger = parentContainer.get(kernel_1.ILogger).root;
+        this.logger = contextCt.get(kernel_1.ILogger).root;
         this.debug = this.logger.config.level <= 1 /* debug */;
         if (this.debug) {
             this.logger = this.logger.scopeTo(this.name);
@@ -214,14 +221,14 @@ class Controller {
             }
             const result = instance.define(
             /* controller      */ this, 
-            /* parentContainer */ parentContainer, 
+            /* parentContainer */ contextCt, 
             /* definition      */ definition);
             if (result !== void 0 && result !== definition) {
                 definition = custom_element_js_1.CustomElementDefinition.getOrCreate(result);
             }
         }
         // todo: make projections not influential on the render context construction
-        const context = this.context = render_context_js_1.getRenderContext(definition, parentContainer, hydrationInst === null || hydrationInst === void 0 ? void 0 : hydrationInst.projections);
+        const context = this.context = render_context_js_1.getRenderContext(definition, this.container, hydrationInst === null || hydrationInst === void 0 ? void 0 : hydrationInst.projections);
         // todo: should register a resolver resolving to a IContextElement/IContextComponent
         //       so that component directly under this template can easily distinguish its owner/parent
         // context.register(Registration.instance(IContextElement))

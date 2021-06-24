@@ -66,9 +66,9 @@ class AppRoot {
         this.host = config.host;
         this.work = container.get(exports.IWorkTracker);
         rootProvider.prepare(this);
-        if (container.has(dom_js_1.INode, false) && container.get(dom_js_1.INode) !== config.host) {
-            this.container = container.createChild();
-        }
+        // if (container.has(INode, false) && container.get(INode) !== config.host) {
+        //   this.container = container.createChild();
+        // }
         this.container.register(kernel_1.Registration.instance(dom_js_1.INode, config.host));
         if (enhance) {
             const component = config.component;
@@ -77,10 +77,16 @@ class AppRoot {
                 : custom_element_js_1.CustomElement.define({ name: (void 0), template: this.host, enhance: true }));
         }
         this.hydratePromise = kernel_1.onResolve(this.runAppTasks('beforeCreate'), () => {
-            const instance = custom_element_js_1.CustomElement.isType(config.component)
-                ? this.container.get(config.component)
-                : config.component;
-            const controller = (this.controller = controller_js_1.Controller.forCustomElement(this, container, instance, this.host, null, 0 /* none */, false, this.enhanceDefinition));
+            const component = config.component;
+            const ownContainer = container.createChild();
+            let instance;
+            if (custom_element_js_1.CustomElement.isType(component)) {
+                instance = this.container.get(component);
+            }
+            else {
+                instance = config.component;
+            }
+            const controller = (this.controller = controller_js_1.Controller.forCustomElement(this, container, ownContainer, instance, this.host, null, 0 /* none */, false, this.enhanceDefinition));
             controller.hydrateCustomElement(container, null);
             return kernel_1.onResolve(this.runAppTasks('hydrating'), () => {
                 controller.hydrate(null);

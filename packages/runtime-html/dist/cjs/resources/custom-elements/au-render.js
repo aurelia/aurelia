@@ -101,17 +101,17 @@ let AuRender = class AuRender {
             return subject;
         }
         if ('createView' in subject) { // RenderPlan
-            return subject.createView(this.$controller.context);
+            return subject.createView(this.$controller.context.container);
         }
         if ('create' in subject) { // IViewFactory
             return subject.create(flags);
         }
         if ('template' in subject) { // Raw Template Definition
             const definition = custom_element_js_1.CustomElementDefinition.getOrCreate(subject);
-            return render_context_js_1.getRenderContext(definition, this.$controller.context).getViewFactory().create(flags);
+            return render_context_js_1.getRenderContext(definition, this.$controller.context.container).getViewFactory().create(flags);
         }
         // Constructable (Custom Element Constructor)
-        return create_element_js_1.createElement(this.p, subject, this.properties, this.$controller.host.childNodes).createView(this.$controller.context);
+        return create_element_js_1.createElement(this.p, subject, this.properties, this.$controller.host.childNodes).createView(this.$controller.context.container);
     }
     dispose() {
         var _a;

@@ -1,12 +1,14 @@
-import { IServiceLocator, IContainer, Class, IRegistry } from '@aurelia/kernel';
-import { BindingMode, IExpressionParser, IObserverLocator, Interpolation, IsBindingBehavior, LifecycleFlags, IInterceptableBinding, ForOfStatement, DelegationStrategy } from '@aurelia/runtime';
+import { BindingMode, IExpressionParser, IObserverLocator, LifecycleFlags } from '@aurelia/runtime';
 import { IEventDelegator } from './observation/event-delegator.js';
-import { CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
-import { ICompiledRenderContext } from './templating/render-context.js';
+import { CustomElementDefinition } from './resources/custom-element.js';
 import { IProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
-import { INode } from './dom.js';
 import { IPlatform } from './platform.js';
+import type { IServiceLocator, IContainer, Class, IRegistry } from '@aurelia/kernel';
+import type { Interpolation, IsBindingBehavior, IInterceptableBinding, ForOfStatement, DelegationStrategy } from '@aurelia/runtime';
 import type { IHydratableController, IController } from './templating/controller.js';
+import type { PartialCustomElementDefinition } from './resources/custom-element.js';
+import type { ICompiledRenderContext } from './templating/render-context.js';
+import type { INode } from './dom.js';
 export declare const enum InstructionType {
     hydrateElement = "ra",
     hydrateAttribute = "rb",

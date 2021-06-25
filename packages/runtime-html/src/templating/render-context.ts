@@ -61,13 +61,6 @@ export interface IRenderContext extends IContainer {
   readonly container: IContainer;
 
   /**
-   * Prepare this factory for creating child controllers. Only applicable for custom elements.
-   *
-   * @param instance - The component instance to make available to child components if this context's definition has `injectable` set to `true`.
-   */
-  beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext;
-
-  /**
    * Compiles the backing `CustomElementDefinition` (if needed) and returns the compiled `IRenderContext` that exposes the compiled `CustomElementDefinition` as well as composing operations.
    *
    * This operation is idempotent.
@@ -227,7 +220,6 @@ export class RenderContext implements ICompiledRenderContext {
   private readonly renderLocationProvider: InstanceProvider<IRenderLocation>;
   private readonly auSlotsInfoProvider: InstanceProvider<IAuSlotsInfo>;
 
-  private viewModelProvider: InstanceProvider<ICustomElementViewModel> | undefined = void 0;
   private fragment: Node | null = null;
   private factory: IViewFactory | undefined = void 0;
   private isCompiled: boolean = false;
@@ -384,22 +376,6 @@ export class RenderContext implements ICompiledRenderContext {
     }
     return factory;
   }
-
-  public beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext {
-    const definition = this.definition;
-    if (definition.injectable !== null) {
-      if (this.viewModelProvider === void 0) {
-        this.container.registerResolver(
-          definition.injectable,
-          this.viewModelProvider = new InstanceProvider<ICustomElementViewModel>('definition.injectable'),
-        );
-      }
-      this.viewModelProvider!.prepare(instance);
-    }
-
-    return this;
-  }
-
   // #endregion
 
   // #region ICompiledRenderContext api
@@ -574,8 +550,7 @@ export class RenderContext implements ICompiledRenderContext {
   // #endregion
 }
 
-/** @internal */
-export class ViewFactoryProvider implements IResolver {
+class ViewFactoryProvider implements IResolver {
   private factory: IViewFactory | null = null;
 
   public prepare(factory: IViewFactory): void {

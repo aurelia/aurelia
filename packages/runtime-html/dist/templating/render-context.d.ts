@@ -5,7 +5,7 @@ import { IViewFactory } from './view.js';
 import { IAuSlotsInfo, IProjections } from '../resources/custom-elements/au-slot.js';
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
-import type { Constructable, IContainer, IDisposable, IFactory, IResolver, IResourceKind, Key, Resolved, ResourceDefinition, ResourceType, Transformer } from '@aurelia/kernel';
+import type { Constructable, IContainer, IFactory, IResolver, IResourceKind, Key, Resolved, ResourceDefinition, ResourceType, Transformer } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
 import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller.js';
 import type { HydrateAttributeInstruction, HydrateTemplateController, HydrateElementInstruction } from '../renderer.js';
@@ -78,43 +78,11 @@ export interface ICompiledRenderContext extends IRenderContext {
     render(flags: LifecycleFlags, controller: IController, targets: ArrayLike<INode>, templateDefinition: CustomElementDefinition, host: INode | null | undefined): void;
     renderChildren(flags: LifecycleFlags, instructions: readonly IInstruction[], controller: IController, target: unknown): void;
 }
-/**
- * A compiled `IRenderContext` that is ready to be used for creating component instances, and composing them.
- */
-export interface IComponentFactory extends ICompiledRenderContext, IDisposable {
-    /**
-     * Creates a new component instance based on the provided `resourceKey`.
-     *
-     * It is only safe to override the generic type argument if you know / own the component type associated with the name.
-     *
-     * @param resourceKey - The (full) resource key as returned from the `keyFrom` helper.
-     *
-     * @returns A new instance of the requested component. Will throw an error if the registration does not exist.
-     *
-     * @example
-     *
-     * ```ts
-     * // Create a new instance of the 'au-compose' custom element
-     * const elementInstance = factory.createComponent<Compose>(CustomElement.keyFrom('au-compose'));
-     *
-     * // Create a new instance of the 'if' template controller
-     * const attributeInstance = factory.createComponent<If>(CustomAttribute.keyFrom('if'));
-     *
-     * // Dynamically create a new instance of a custom element
-     * const attributeInstance = factory.createComponent(CustomElement.keyFrom(name));
-     * ```
-     */
-    createComponent<TViewModel = ICustomAttributeViewModel | ICustomElementViewModel>(resourceKey: string): TViewModel;
-    /**
-     * Release any resources that were stored by `getComponentFactory()`.
-     */
-    dispose(): void;
-}
 export declare function getRenderContext(partialDefinition: PartialCustomElementDefinition, container: IContainer, projections?: IProjections | null): IRenderContext;
 export declare namespace getRenderContext {
     var count: number;
 }
-export declare class RenderContext implements IComponentFactory {
+export declare class RenderContext implements ICompiledRenderContext {
     readonly definition: CustomElementDefinition;
     readonly parentContainer: IContainer;
     get id(): number;
@@ -155,7 +123,6 @@ export declare class RenderContext implements IComponentFactory {
     createElementContainer(parentController: IController, host: HTMLElement, instruction: HydrateElementInstruction, viewFactory?: IViewFactory, location?: IRenderLocation, auSlotsInfo?: IAuSlotsInfo): IContainer;
     resourceInvoker: IContainer | null;
     invokeAttribute(parentController: IController, host: HTMLElement, instruction: HydrateAttributeInstruction | HydrateTemplateController, viewFactory?: IViewFactory, location?: IRenderLocation, auSlotsInfo?: IAuSlotsInfo): ICustomAttributeViewModel;
-    createComponent<TViewModel = ICustomElementViewModel>(resourceKey: string): TViewModel;
     render(flags: LifecycleFlags, controller: IHydratableController, targets: ArrayLike<INode>, definition: CustomElementDefinition, host: INode | null | undefined): void;
     renderChildren(flags: LifecycleFlags, instructions: readonly IInstruction[], controller: IHydratableController, target: unknown): void;
     dispose(): void;

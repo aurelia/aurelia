@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-import { nextId, isObject, ILogger, DI, emptyArray, } from '../../../../kernel/dist/native-modules/index.js';
+import { nextId, isObject, ILogger, DI, emptyArray, InstanceProvider, } from '../../../../kernel/dist/native-modules/index.js';
 import { AccessScopeExpression, Scope, IObserverLocator, IExpressionParser, } from '../../../../runtime/dist/native-modules/index.js';
 import { BindableObserver } from '../observation/bindable-observer.js';
 import { convertToRenderLocation, setRef } from '../dom.js';
@@ -12,9 +12,6 @@ import { IPlatform } from '../platform.js';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
 import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
 import { LifecycleHooks } from './lifecycle-hooks.js';
-function callDispose(disposable) {
-    disposable.dispose();
-}
 export var MountTarget;
 (function (MountTarget) {
     MountTarget[MountTarget["none"] = 0] = "none";
@@ -137,13 +134,12 @@ export class Controller {
         return controller;
     }
     static forCustomElement(root, contextCt, ownCt, viewModel, host, hydrationInst, flags = 0 /* none */, hydrate = true, 
-    // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
+    // Use this when `instance.constructor` is not a custom element type
+    // to pass on the CustomElement definition
     definition = void 0) {
         if (controllerLookup.has(viewModel)) {
             return controllerLookup.get(viewModel);
         }
-        // todo: the caching behavior from CustomElement.getDefinition here will stip us time to time
-        //       when combined with au-slot. Consider a way to not allow this
         definition = definition !== null && definition !== void 0 ? definition : CustomElement.getDefinition(viewModel.constructor);
         const controller = new Controller(
         /* root           */ root, 
@@ -154,7 +150,10 @@ export class Controller {
         /* viewFactory    */ null, 
         /* viewModel      */ viewModel, 
         /* host           */ host);
+        const hydrationContextProvider = new InstanceProvider();
+        hydrationContextProvider.prepare(new HydrationContext(controller, hydrationInst));
         ownCt.register(...definition.dependencies);
+        ownCt.registerResolver(IHydrationContext, hydrationContextProvider);
         controllerLookup.set(viewModel, controller);
         if (hydrate) {
             controller.hydrateCustomElement(contextCt, hydrationInst);
@@ -1058,4 +1057,14 @@ export function stringifyState(state) {
     return names.length === 0 ? 'none' : names.join('|');
 }
 export const IController = DI.createInterface('IController');
+export const IHydrationContext = DI.createInterface('IHydrationContext');
+class HydrationContext {
+    constructor(controller, instruction) {
+        this.instruction = instruction;
+        this.controller = controller;
+    }
+}
+function callDispose(disposable) {
+    disposable.dispose();
+}
 //# sourceMappingURL=controller.js.map

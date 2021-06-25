@@ -829,7 +829,7 @@
   "version" "0.8.0"
   dependencies:
     "aurelia" "2.0.0-alpha.8"
-    "marked" "^1.2.7"
+    "marked" "^1.2.7 || ^2.0.0"
 
 "@examples/sierpinski-triangle@file:/home/circleci/repo/examples/sierpinski-triangle":
   "resolved" "file:examples/sierpinski-triangle"
@@ -5963,7 +5963,7 @@
   dependencies:
     "object-visit" "^1.0.0"
 
-"marked@^1.2.7":
+"marked@^1.2.7", "marked@^1.2.7 || ^2.0.0":
   "integrity" "sha512-H8lIX2SvyitGX+TRdtS06m1jHMijKN/XjfH6Ooii9fvxMlh8QdqBfBDkGUpMWH2kQNrtixjzYUa3SH8ROTgRRw=="
   "resolved" "https://registry.npmjs.org/marked/-/marked-1.2.9.tgz"
   "version" "1.2.9"

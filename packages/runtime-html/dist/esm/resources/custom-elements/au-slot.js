@@ -1,6 +1,7 @@
 import { DI } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom.js';
 import { IInstruction } from '../../renderer.js';
+import { IHydrationContext } from '../../templating/controller.js';
 import { IViewFactory } from '../../templating/view.js';
 import { customElement } from '../custom-element.js';
 export const IProjections = DI.createInterface("IProjections");
@@ -17,29 +18,20 @@ export class SlotInfo {
     }
 }
 export class AuSlot {
-    constructor(instruction, factory, location) {
+    constructor(factory, location, instruction, hdrContext) {
         this.instruction = instruction;
+        this.hdrContext = hdrContext;
         this.hostScope = null;
         this.outerScope = null;
         this.view = factory.create().setLocation(location);
     }
     /** @internal */
-    static get inject() { return [IInstruction, IViewFactory, IRenderLocation]; }
+    static get inject() { return [IViewFactory, IRenderLocation, IInstruction, IHydrationContext]; }
     binding(_initiator, _parent, _flags) {
-        var _a, _b;
+        var _a;
         this.hostScope = this.$controller.scope.parentScope;
-        if (this.instruction.slotInfo.type === AuSlotContentType.Projection) {
-            // todo: replace the following block with an IContextController injection
-            let contextController = this.$controller.parent;
-            while (contextController != null) {
-                if (contextController.vmKind === 0 /* customElement */
-                    && !(contextController.viewModel instanceof AuSlot)) {
-                    break;
-                }
-                contextController = contextController.parent;
-            }
-            this.outerScope = (_b = (_a = contextController === null || contextController === void 0 ? void 0 : contextController.parent) === null || _a === void 0 ? void 0 : _a.scope) !== null && _b !== void 0 ? _b : null;
-        }
+        this.outerScope = this.instruction.slotInfo.type === AuSlotContentType.Projection
+            ? (_a = this.hdrContext.controller.scope.parentScope) !== null && _a !== void 0 ? _a : null : this.hostScope;
     }
     attaching(initiator, parent, flags) {
         var _a;

@@ -304,9 +304,6 @@ class RenderContext {
     }
     // public create
     // #region IComponentFactory api
-    createComponent(resourceKey) {
-        return this.container.get(resourceKey);
-    }
     render(flags, controller, targets, definition, host) {
         if (targets.length !== definition.instructions.length) {
             throw new Error(`The compiled template is not aligned with the render instructions. There are ${targets.length} targets and ${definition.instructions.length} instructions.`);
@@ -333,7 +330,7 @@ class RenderContext {
         }
     }
     dispose() {
-        this.elementProvider.dispose();
+        throw new Error('Cannot dispose a render context');
     }
 }
 exports.RenderContext = RenderContext;

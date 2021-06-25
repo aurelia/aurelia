@@ -55,7 +55,7 @@ export { ITemplateCompilerRegistration, INodeObserverLocatorRegistration, Defaul
 export { ITemplateElementFactory } from './template-element-factory.js';
 export { ChildrenDefinition, Children, children, ChildrenObserver, } from './templating/children.js';
 // These exports are temporary until we have a proper way to unit test them
-export { Controller, isCustomElementController, isCustomElementViewModel, ViewModelKind, IController, } from './templating/controller.js';
+export { Controller, isCustomElementController, isCustomElementViewModel, ViewModelKind, IController, IHydrationContext, } from './templating/controller.js';
 export { ILifecycleHooks, LifecycleHooksEntry, LifecycleHooksDefinition, LifecycleHooks, lifecycleHooks, } from './templating/lifecycle-hooks.js';
 export { getRenderContext, isRenderContext, } from './templating/render-context.js';
 export { ViewFactory, IViewFactory, IViewLocator, ViewLocator, view, Views, } from './templating/view.js';

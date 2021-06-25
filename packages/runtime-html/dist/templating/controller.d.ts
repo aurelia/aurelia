@@ -1,17 +1,17 @@
-import { IContainer } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
-import { INode, INodeSequence, IRenderLocation } from '../dom.js';
-import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
+import { CustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition } from '../resources/custom-attribute.js';
 import { IRenderContext, RenderContext, ICompiledRenderContext } from './render-context.js';
 import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
-import type { Writable, IDisposable } from '@aurelia/kernel';
+import type { IContainer, Writable, IDisposable } from '@aurelia/kernel';
 import type { IBinding, AccessorOrObserver } from '@aurelia/runtime';
-import { IProjections } from '../resources/custom-elements/au-slot.js';
-import { LifecycleHooksLookup } from './lifecycle-hooks.js';
+import type { IProjections } from '../resources/custom-elements/au-slot.js';
+import type { LifecycleHooksLookup } from './lifecycle-hooks.js';
+import type { INode, INodeSequence, IRenderLocation } from '../dom.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
+import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 declare type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 export declare const enum MountTarget {
     none = 0,
@@ -411,6 +411,14 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
     deactivate(initiator: IHydratedController, parent: IHydratedController | null, flags: LifecycleFlags): void | Promise<void>;
 }
 export declare const IController: import("@aurelia/kernel").InterfaceSymbol<IController<IViewModel>>;
+export declare const IHydrationContext: import("@aurelia/kernel").InterfaceSymbol<IHydrationContext<unknown>>;
+export interface IHydrationContext<T = unknown> extends HydrationContext<T> {
+}
+declare class HydrationContext<T extends ICustomElementViewModel> {
+    readonly instruction: IControllerElementHydrationInstruction | null;
+    readonly controller: ICustomElementController<T>;
+    constructor(controller: Controller, instruction: IControllerElementHydrationInstruction | null);
+}
 export interface IActivationHooks<TParent> {
     binding?(initiator: IHydratedController, parent: TParent, flags: LifecycleFlags): void | Promise<void>;
     bound?(initiator: IHydratedController, parent: TParent, flags: LifecycleFlags): void | Promise<void>;

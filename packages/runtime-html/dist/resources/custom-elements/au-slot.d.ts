@@ -1,4 +1,5 @@
 import { IRenderLocation } from '../../dom.js';
+import { IHydrationContext } from '../../templating/controller.js';
 import { IViewFactory } from '../../templating/view.js';
 import type { LifecycleFlags } from '@aurelia/runtime';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
@@ -18,11 +19,12 @@ export declare class SlotInfo {
 }
 export declare class AuSlot implements ICustomElementViewModel {
     private readonly instruction;
+    private readonly hdrContext;
     readonly view: ISyntheticView;
     readonly $controller: ICustomElementController<this>;
     private hostScope;
     private outerScope;
-    constructor(instruction: HydrateElementInstruction, factory: IViewFactory, location: IRenderLocation);
+    constructor(factory: IViewFactory, location: IRenderLocation, instruction: HydrateElementInstruction, hdrContext: IHydrationContext);
     binding(_initiator: IHydratedController, _parent: IHydratedParentController, _flags: LifecycleFlags): void | Promise<void>;
     attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;

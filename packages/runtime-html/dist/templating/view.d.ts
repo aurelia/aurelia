@@ -1,8 +1,9 @@
-import { Constructable, ConstructableClass } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
-import { PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element.js';
-import { IRenderContext } from './render-context.js';
+import { CustomElementDefinition } from '../resources/custom-element.js';
+import type { Constructable, ConstructableClass } from '@aurelia/kernel';
+import type { LifecycleFlags } from '@aurelia/runtime';
 import type { ICustomElementViewModel, ISyntheticView, ICustomElementController, ICustomAttributeController } from './controller.js';
+import type { IRenderContext } from './render-context.js';
+import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 export interface IViewFactory extends ViewFactory {
 }
 export declare const IViewFactory: import("@aurelia/kernel").InterfaceSymbol<IViewFactory>;

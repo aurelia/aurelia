@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.IController = exports.stringifyState = exports.State = exports.ViewModelKind = exports.HooksDefinition = exports.isCustomElementViewModel = exports.isCustomElementController = exports.Controller = exports.MountTarget = void 0;
+exports.IHydrationContext = exports.IController = exports.stringifyState = exports.State = exports.ViewModelKind = exports.HooksDefinition = exports.isCustomElementViewModel = exports.isCustomElementController = exports.Controller = exports.MountTarget = void 0;
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 const kernel_1 = require("@aurelia/kernel");
 const runtime_1 = require("@aurelia/runtime");
@@ -15,9 +15,6 @@ const platform_js_1 = require("../platform.js");
 const styles_js_1 = require("./styles.js");
 const watchers_js_1 = require("./watchers.js");
 const lifecycle_hooks_js_1 = require("./lifecycle-hooks.js");
-function callDispose(disposable) {
-    disposable.dispose();
-}
 var MountTarget;
 (function (MountTarget) {
     MountTarget[MountTarget["none"] = 0] = "none";
@@ -140,13 +137,12 @@ class Controller {
         return controller;
     }
     static forCustomElement(root, contextCt, ownCt, viewModel, host, hydrationInst, flags = 0 /* none */, hydrate = true, 
-    // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
+    // Use this when `instance.constructor` is not a custom element type
+    // to pass on the CustomElement definition
     definition = void 0) {
         if (controllerLookup.has(viewModel)) {
             return controllerLookup.get(viewModel);
         }
-        // todo: the caching behavior from CustomElement.getDefinition here will stip us time to time
-        //       when combined with au-slot. Consider a way to not allow this
         definition = definition !== null && definition !== void 0 ? definition : custom_element_js_1.CustomElement.getDefinition(viewModel.constructor);
         const controller = new Controller(
         /* root           */ root, 
@@ -157,7 +153,10 @@ class Controller {
         /* viewFactory    */ null, 
         /* viewModel      */ viewModel, 
         /* host           */ host);
+        const hydrationContextProvider = new kernel_1.InstanceProvider();
+        hydrationContextProvider.prepare(new HydrationContext(controller, hydrationInst));
         ownCt.register(...definition.dependencies);
+        ownCt.registerResolver(exports.IHydrationContext, hydrationContextProvider);
         controllerLookup.set(viewModel, controller);
         if (hydrate) {
             controller.hydrateCustomElement(contextCt, hydrationInst);
@@ -1066,4 +1065,14 @@ function stringifyState(state) {
 }
 exports.stringifyState = stringifyState;
 exports.IController = kernel_1.DI.createInterface('IController');
+exports.IHydrationContext = kernel_1.DI.createInterface('IHydrationContext');
+class HydrationContext {
+    constructor(controller, instruction) {
+        this.instruction = instruction;
+        this.controller = controller;
+    }
+}
+function callDispose(disposable) {
+    disposable.dispose();
+}
 //# sourceMappingURL=controller.js.map

@@ -21,7 +21,7 @@ import type {
   Transformer,
 } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
-import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller.js';
+import type { ICustomAttributeViewModel, IHydratableController } from './controller.js';
 import type {
   Instruction,
   InstructionTypeName,

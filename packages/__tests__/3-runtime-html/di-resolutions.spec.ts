@@ -284,7 +284,6 @@ describe('CustomElement.createInjectable', function () {
   });
 });
 
-
 describe('local dependency inheritance', function () {
   function createFixture() {
     const ctx = TestContext.create();
@@ -509,7 +508,6 @@ describe('local dependency inheritance', function () {
     au.dispose();
   });
 });
-
 
 // it('from within a type whose child has registered it, which is a parent via recursion', function () {
 //   const { au, host } = createFixture();

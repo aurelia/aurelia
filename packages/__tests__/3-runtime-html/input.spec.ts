@@ -46,6 +46,23 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       await tearDown();
     });
+
+    it('treats file input ".bind" to as ".from-view"', async function () {
+      const { startPromise, tearDown, component, ctx } = createFixture(
+        `<input type=file files.bind="file">`,
+        class App {
+          public file = '';
+        }
+      );
+      await startPromise;
+
+      assert.doesNotThrow(() => {
+        component.file = 'c:/my-file.txt';
+        ctx.platform.domWriteQueue.flush();
+      });
+
+      await tearDown();
+    });
   }
 
   it('works: textarea + value.bind', async function () {

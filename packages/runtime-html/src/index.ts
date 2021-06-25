@@ -566,6 +566,7 @@ export {
   IContextualCustomElementController,
   IControllerElementHydrationInstruction,
   IHydratableController,
+  IHydrationContext,
   IDryCustomElementController,
   ICustomAttributeController,
   IHydratedController,
@@ -593,7 +594,6 @@ export {
   isRenderContext,
   IRenderContext,
   ICompiledRenderContext,
-  IComponentFactory,
 } from './templating/render-context.js';
 export {
   ViewFactory,

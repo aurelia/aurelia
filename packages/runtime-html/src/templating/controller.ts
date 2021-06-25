@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
-  IContainer,
   nextId,
   isObject,
   ILogger,
   LogLevel,
   DI,
   emptyArray,
+  InstanceProvider,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -17,8 +17,8 @@ import {
   IExpressionParser,
 } from '@aurelia/runtime';
 import { BindableObserver } from '../observation/bindable-observer.js';
-import { convertToRenderLocation, INode, INodeSequence, IRenderLocation, setRef } from '../dom.js';
-import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element.js';
+import { convertToRenderLocation, setRef } from '../dom.js';
+import { CustomElementDefinition, CustomElement } from '../resources/custom-element.js';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute.js';
 import { IRenderContext, getRenderContext, RenderContext, ICompiledRenderContext } from './render-context.js';
 import { ChildrenDefinition, ChildrenObserver } from './children.js';
@@ -26,8 +26,10 @@ import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
 import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
+import { LifecycleHooks } from './lifecycle-hooks.js';
 
 import type {
+  IContainer,
   IIndexable,
   Writable,
   Constructable,
@@ -40,18 +42,15 @@ import type {
   AccessorOrObserver,
   IsBindingBehavior,
 } from '@aurelia/runtime';
-import { IProjections } from '../resources/custom-elements/au-slot.js';
-import { LifecycleHooks, LifecycleHooksLookup } from './lifecycle-hooks.js';
-
+import type { IProjections } from '../resources/custom-elements/au-slot.js';
 import type { BindableDefinition } from '../bindable.js';
 import type { PropertyBinding } from '../binding/property-binding.js';
+import type { LifecycleHooksLookup } from './lifecycle-hooks.js';
+import type { INode, INodeSequence, IRenderLocation } from '../dom.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
 import type { IWatchDefinition, IWatcherCallback } from '../watch.js';
-
-function callDispose(disposable: IDisposable): void {
-  disposable.dispose();
-}
+import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 
 type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 
@@ -191,15 +190,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     hydrationInst: IControllerElementHydrationInstruction | null,
     flags: LifecycleFlags = LifecycleFlags.none,
     hydrate: boolean = true,
-    // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
+    // Use this when `instance.constructor` is not a custom element type
+    // to pass on the CustomElement definition
     definition: CustomElementDefinition | undefined = void 0,
   ): ICustomElementController<C> {
     if (controllerLookup.has(viewModel)) {
       return controllerLookup.get(viewModel) as unknown as ICustomElementController<C>;
     }
 
-    // todo: the caching behavior from CustomElement.getDefinition here will stip us time to time
-    //       when combined with au-slot. Consider a way to not allow this
     definition = definition ?? CustomElement.getDefinition(viewModel.constructor as Constructable);
 
     const controller = new Controller<C>(
@@ -213,8 +211,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* viewModel      */viewModel as BindingContext<C>,
       /* host           */host,
     );
+    const hydrationContextProvider = new InstanceProvider<IHydrationContext>();
+    hydrationContextProvider.prepare(new HydrationContext(controller, hydrationInst));
 
     ownCt.register(...definition.dependencies);
+    ownCt.registerResolver(IHydrationContext, hydrationContextProvider);
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrate) {
@@ -1607,6 +1608,20 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
 
 export const IController = DI.createInterface<IController>('IController');
 
+export const IHydrationContext = DI.createInterface<IHydrationContext>('IHydrationContext');
+export interface IHydrationContext<T = unknown> extends HydrationContext<T> {
+}
+
+class HydrationContext<T extends ICustomElementViewModel> {
+  public readonly controller: ICustomElementController<T>;
+  public constructor(
+    controller: Controller,
+    public readonly instruction: IControllerElementHydrationInstruction | null,
+  ) {
+    this.controller = controller as ICustomElementController<T>;
+  }
+}
+
 export interface IActivationHooks<TParent> {
   binding?(
     initiator: IHydratedController,
@@ -1707,4 +1722,8 @@ export interface IHydratedCustomAttributeViewModel extends ICustomAttributeViewM
 
 export interface IControllerElementHydrationInstruction {
   readonly projections: IProjections | null;
+}
+
+function callDispose(disposable: IDisposable): void {
+  disposable.dispose();
 }

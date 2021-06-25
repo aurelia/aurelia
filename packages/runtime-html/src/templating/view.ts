@@ -1,9 +1,23 @@
-import { Constructable, ConstructableClass, DI, IContainer, Metadata, Protocol } from '@aurelia/kernel';
-import { LifecycleFlags, Scope } from '@aurelia/runtime';
-import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element.js';
+import { DI, Metadata, Protocol } from '@aurelia/kernel';
+import { Scope } from '@aurelia/runtime';
+import { CustomElement, CustomElementDefinition } from '../resources/custom-element.js';
 import { Controller } from './controller.js';
-import { IRenderContext } from './render-context.js';
-import type { ICustomElementViewModel, ISyntheticView, IDryCustomElementController, IContextualCustomElementController, ICompiledCustomElementController, ICustomElementController, ICustomAttributeController, IHydratedController, IHydratedParentController } from './controller.js';
+
+import type { Constructable, ConstructableClass, IContainer } from '@aurelia/kernel';
+import type { LifecycleFlags } from '@aurelia/runtime';
+import type {
+  ICustomElementViewModel,
+  ISyntheticView,
+  IDryCustomElementController,
+  IContextualCustomElementController,
+  ICompiledCustomElementController,
+  ICustomElementController,
+  ICustomAttributeController,
+  IHydratedController,
+  IHydratedParentController,
+} from './controller.js';
+import type { IRenderContext } from './render-context.js';
+import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 
 export interface IViewFactory extends ViewFactory {}
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory');

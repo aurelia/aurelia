@@ -1,9 +1,11 @@
-import { IContainer, IRegistry, Registration, DI, noop } from '@aurelia/kernel';
+import { IContainer, Registration, DI, noop } from '@aurelia/kernel';
 import { AppTask } from '../app-task.js';
 import { INode } from '../dom.js';
 import { getClassesToAdd } from '../observation/class-attribute-accessor.js';
 import { IPlatform } from '../platform.js';
 import { CustomAttribute } from '../resources/custom-attribute.js';
+
+import type { IRegistry } from '@aurelia/kernel';
 
 export function cssModules(...modules: (Record<string, string>)[]): CSSModulesProcessorRegistry {
   return new CSSModulesProcessorRegistry(modules);

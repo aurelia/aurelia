@@ -11,7 +11,6 @@ import { IController } from './controller.js';
 import type {
   Constructable,
   IContainer,
-  IDisposable,
   IFactory,
   IResolver,
   IResourceKind,
@@ -146,40 +145,6 @@ export interface ICompiledRenderContext extends IRenderContext {
   ): void;
 }
 
-/**
- * A compiled `IRenderContext` that is ready to be used for creating component instances, and composing them.
- */
-export interface IComponentFactory extends ICompiledRenderContext, IDisposable {
-  /**
-   * Creates a new component instance based on the provided `resourceKey`.
-   *
-   * It is only safe to override the generic type argument if you know / own the component type associated with the name.
-   *
-   * @param resourceKey - The (full) resource key as returned from the `keyFrom` helper.
-   *
-   * @returns A new instance of the requested component. Will throw an error if the registration does not exist.
-   *
-   * @example
-   *
-   * ```ts
-   * // Create a new instance of the 'au-compose' custom element
-   * const elementInstance = factory.createComponent<Compose>(CustomElement.keyFrom('au-compose'));
-   *
-   * // Create a new instance of the 'if' template controller
-   * const attributeInstance = factory.createComponent<If>(CustomAttribute.keyFrom('if'));
-   *
-   * // Dynamically create a new instance of a custom element
-   * const attributeInstance = factory.createComponent(CustomElement.keyFrom(name));
-   * ```
-   */
-  createComponent<TViewModel = ICustomAttributeViewModel | ICustomElementViewModel>(resourceKey: string): TViewModel;
-
-  /**
-   * Release any resources that were stored by `getComponentFactory()`.
-   */
-  dispose(): void;
-}
-
 let renderContextCount = 0;
 export function getRenderContext(
   partialDefinition: PartialCustomElementDefinition,
@@ -247,7 +212,7 @@ Reflect.defineProperty(getRenderContext, 'count', {
 
 const emptyNodeCache = new WeakMap<IPlatform, FragmentNodeSequence>();
 
-export class RenderContext implements IComponentFactory {
+export class RenderContext implements ICompiledRenderContext {
   public get id(): number {
     return this.container.id;
   }
@@ -561,10 +526,6 @@ export class RenderContext implements IComponentFactory {
 
   // #region IComponentFactory api
 
-  public createComponent<TViewModel = ICustomElementViewModel>(resourceKey: string): TViewModel {
-    return this.container.get(resourceKey) as unknown as TViewModel;
-  }
-
   public render(
     flags: LifecycleFlags,
     controller: IHydratableController,
@@ -608,7 +569,7 @@ export class RenderContext implements IComponentFactory {
   }
 
   public dispose(): void {
-    this.elementProvider.dispose();
+    throw new Error('Cannot dispose a render context');
   }
   // #endregion
 }

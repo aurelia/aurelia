@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.9"></a>
+# 2.0.0-alpha.9 (2021-06-25)
+
+### Performance Improvements:
+
+* **di:** do not create a new factory in .invoke() ([23c0405](https://github.com/aurelia/aurelia/commit/23c0405))
+* **di:** minification friendlier di code ([23c0405](https://github.com/aurelia/aurelia/commit/23c0405))
+
+
+### Refactorings:
+
+* **templating:** change timing of the container of a CE ([23c0405](https://github.com/aurelia/aurelia/commit/23c0405))
+
 <a name="2.0.0-alpha.8"></a>
 # 2.0.0-alpha.8 (2021-06-22)
 

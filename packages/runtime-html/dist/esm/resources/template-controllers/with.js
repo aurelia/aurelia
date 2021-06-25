@@ -22,22 +22,24 @@ let With = class With {
         this.view = this.factory.create().setLocation(location);
     }
     valueChanged(newValue, oldValue, flags) {
-        if (this.$controller.isActive) {
-            // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            this.activateView(this.view, 2 /* fromBind */);
+        const $controller = this.$controller;
+        const bindings = this.view.bindings;
+        let scope;
+        let i = 0, ii = 0;
+        if ($controller.isActive && bindings != null) {
+            scope = Scope.fromParent($controller.scope, newValue === void 0 ? {} : newValue);
+            for (ii = bindings.length; ii > i; ++i) {
+                bindings[i].$bind(2 /* fromBind */, scope, $controller.hostScope);
+            }
         }
     }
     attaching(initiator, parent, flags) {
-        return this.activateView(initiator, flags);
-    }
-    detaching(initiator, parent, flags) {
-        return this.view.deactivate(initiator, this.$controller, flags);
-    }
-    activateView(initiator, flags) {
         const { $controller, value } = this;
         const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
         return this.view.activate(initiator, $controller, flags, scope, $controller.hostScope);
+    }
+    detaching(initiator, parent, flags) {
+        return this.view.deactivate(initiator, this.$controller, flags);
     }
     dispose() {
         this.view.dispose();

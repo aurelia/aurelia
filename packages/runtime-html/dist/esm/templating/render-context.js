@@ -55,7 +55,6 @@ export class RenderContext {
     constructor(definition, parentContainer) {
         this.definition = definition;
         this.parentContainer = parentContainer;
-        this.viewModelProvider = void 0;
         this.fragment = null;
         this.factory = void 0;
         this.isCompiled = false;
@@ -190,16 +189,6 @@ export class RenderContext {
         }
         return factory;
     }
-    beginChildComponentOperation(instance) {
-        const definition = this.definition;
-        if (definition.injectable !== null) {
-            if (this.viewModelProvider === void 0) {
-                this.container.registerResolver(definition.injectable, this.viewModelProvider = new InstanceProvider('definition.injectable'));
-            }
-            this.viewModelProvider.prepare(instance);
-        }
-        return this;
-    }
     // #endregion
     // #region ICompiledRenderContext api
     createNodes() {
@@ -328,8 +317,7 @@ export class RenderContext {
         throw new Error('Cannot dispose a render context');
     }
 }
-/** @internal */
-export class ViewFactoryProvider {
+class ViewFactoryProvider {
     constructor() {
         this.factory = null;
     }

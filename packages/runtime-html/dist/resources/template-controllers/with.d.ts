@@ -13,7 +13,6 @@ export declare class With implements ICustomAttributeViewModel {
     valueChanged(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
-    private activateView;
     dispose(): void;
     accept(visitor: ControllerVisitor): void | true;
 }

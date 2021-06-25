@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ViewFactoryProvider = exports.RenderContext = exports.getRenderContext = exports.isRenderContext = void 0;
+exports.RenderContext = exports.getRenderContext = exports.isRenderContext = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const dom_js_1 = require("../dom.js");
 const renderer_js_1 = require("../renderer.js");
@@ -60,7 +60,6 @@ class RenderContext {
     constructor(definition, parentContainer) {
         this.definition = definition;
         this.parentContainer = parentContainer;
-        this.viewModelProvider = void 0;
         this.fragment = null;
         this.factory = void 0;
         this.isCompiled = false;
@@ -195,16 +194,6 @@ class RenderContext {
         }
         return factory;
     }
-    beginChildComponentOperation(instance) {
-        const definition = this.definition;
-        if (definition.injectable !== null) {
-            if (this.viewModelProvider === void 0) {
-                this.container.registerResolver(definition.injectable, this.viewModelProvider = new kernel_1.InstanceProvider('definition.injectable'));
-            }
-            this.viewModelProvider.prepare(instance);
-        }
-        return this;
-    }
     // #endregion
     // #region ICompiledRenderContext api
     createNodes() {
@@ -334,7 +323,6 @@ class RenderContext {
     }
 }
 exports.RenderContext = RenderContext;
-/** @internal */
 class ViewFactoryProvider {
     constructor() {
         this.factory = null;
@@ -357,7 +345,6 @@ class ViewFactoryProvider {
         this.factory = null;
     }
 }
-exports.ViewFactoryProvider = ViewFactoryProvider;
 const noLocationProvider = new kernel_1.InstanceProvider('IRenderLocation');
 const noViewFactoryProvider = new ViewFactoryProvider();
 const noAuSlotProvider = new kernel_1.InstanceProvider('AuSlotsInfo');

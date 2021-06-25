@@ -7,7 +7,7 @@ import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
 import type { Constructable, IContainer, IFactory, IResolver, IResourceKind, Key, Resolved, ResourceDefinition, ResourceType, Transformer } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
-import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller.js';
+import type { ICustomAttributeViewModel, IHydratableController } from './controller.js';
 import type { HydrateAttributeInstruction, HydrateTemplateController, HydrateElementInstruction } from '../renderer.js';
 import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 export declare function isRenderContext(value: unknown): value is IRenderContext;
@@ -27,12 +27,6 @@ export interface IRenderContext extends IContainer {
      */
     readonly parentContainer: IContainer;
     readonly container: IContainer;
-    /**
-     * Prepare this factory for creating child controllers. Only applicable for custom elements.
-     *
-     * @param instance - The component instance to make available to child components if this context's definition has `injectable` set to `true`.
-     */
-    beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext;
     /**
      * Compiles the backing `CustomElementDefinition` (if needed) and returns the compiled `IRenderContext` that exposes the compiled `CustomElementDefinition` as well as composing operations.
      *
@@ -94,7 +88,6 @@ export declare class RenderContext implements ICompiledRenderContext {
     private readonly factoryProvider;
     private readonly renderLocationProvider;
     private readonly auSlotsInfoProvider;
-    private viewModelProvider;
     private fragment;
     private factory;
     private isCompiled;
@@ -118,7 +111,6 @@ export declare class RenderContext implements ICompiledRenderContext {
     disposeResolvers(): void;
     compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext;
     getViewFactory(name?: string): IViewFactory;
-    beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext;
     createNodes(): INodeSequence;
     createElementContainer(parentController: IController, host: HTMLElement, instruction: HydrateElementInstruction, viewFactory?: IViewFactory, location?: IRenderLocation, auSlotsInfo?: IAuSlotsInfo): IContainer;
     resourceInvoker: IContainer | null;

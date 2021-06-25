@@ -205,12 +205,14 @@ class Controller {
         if (this.debug) {
             this.logger = this.logger.scopeTo(this.name);
         }
-        let definition = this.definition;
+        const container = this.container;
         const flags = this.flags;
         const instance = this.viewModel;
+        let definition = this.definition;
+        let vmProvider;
         this.scope = runtime_1.Scope.create(instance, null, true);
         if (definition.watches.length > 0) {
-            createWatchers(this, this.container, definition, instance);
+            createWatchers(this, container, definition, instance);
         }
         createObservers(this, definition, flags, instance);
         this.childrenObs = createChildrenObservers(this, definition, flags, instance);
@@ -227,7 +229,7 @@ class Controller {
             }
         }
         // todo: make projections not influential on the render context construction
-        const context = this.context = render_context_js_1.getRenderContext(definition, this.container, hydrationInst === null || hydrationInst === void 0 ? void 0 : hydrationInst.projections);
+        const context = this.context = render_context_js_1.getRenderContext(definition, container, hydrationInst === null || hydrationInst === void 0 ? void 0 : hydrationInst.projections);
         // todo: should register a resolver resolving to a IContextElement/IContextComponent
         //       so that component directly under this template can easily distinguish its owner/parent
         // context.register(Registration.instance(IContextElement))
@@ -235,8 +237,8 @@ class Controller {
         // Support Recursive Components by adding self to own context
         definition.register(context);
         if (definition.injectable !== null) {
-            // If the element is registered as injectable, support injecting the instance into children
-            context.beginChildComponentOperation(instance);
+            container.registerResolver(definition.injectable, vmProvider = new kernel_1.InstanceProvider('definition.injectable'));
+            vmProvider.prepare(instance);
         }
         // If this is the root controller, then the AppRoot will invoke things in the following order:
         // - Controller.hydrateCustomElement

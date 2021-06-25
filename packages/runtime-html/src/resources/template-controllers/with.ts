@@ -30,10 +30,15 @@ export class With implements ICustomAttributeViewModel {
     oldValue: unknown,
     flags: LifecycleFlags,
   ): void {
-    if (this.$controller.isActive) {
-      // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.activateView(this.view, LifecycleFlags.fromBind);
+    const $controller = this.$controller;
+    const bindings = this.view.bindings;
+    let scope: Scope;
+    let i = 0, ii = 0;
+    if ($controller.isActive && bindings != null) {
+      scope = Scope.fromParent($controller.scope, newValue === void 0 ? {} : newValue as object);
+      for (ii = bindings.length; ii > i; ++i) {
+        bindings[i].$bind(LifecycleFlags.fromBind, scope, $controller.hostScope);
+      }
     }
   }
 
@@ -42,7 +47,9 @@ export class With implements ICustomAttributeViewModel {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this.activateView(initiator, flags);
+    const { $controller, value } = this;
+    const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
+    return this.view.activate(initiator, $controller, flags, scope, $controller.hostScope);
   }
 
   public detaching(
@@ -51,15 +58,6 @@ export class With implements ICustomAttributeViewModel {
     flags: LifecycleFlags,
   ): void | Promise<void> {
     return this.view.deactivate(initiator, this.$controller, flags);
-  }
-
-  private activateView(
-    initiator: IHydratedController,
-    flags: LifecycleFlags,
-  ): void | Promise<void> {
-    const { $controller, value } = this;
-    const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
-    return this.view.activate(initiator, $controller, flags, scope, $controller.hostScope);
   }
 
   public dispose(): void {

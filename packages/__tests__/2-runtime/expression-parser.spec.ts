@@ -369,12 +369,21 @@ describe('ExpressionParser', function () {
     ...SimpleLogicalORList
   ];
 
+  // This forms the group Precedence.Coalesce
+  const SimpleShortCircuitList: [string, any][] = [
+    [`$38??$39`, new BinaryExpression('??', new AccessScopeExpression('$38'), new AccessScopeExpression('$39'))]
+  ];
+  const SimpleIsShortCircuitList: [string, any][] = [
+    ...SimpleIsLogicalORList,
+    ...SimpleShortCircuitList
+  ];
+
   // This forms the group Precedence.Conditional
   const SimpleConditionalList: [string, any][] = [
     [`a?b:c`, new ConditionalExpression($a, $b, new AccessScopeExpression('c'))]
   ];
   const SimpleIsConditionalList: [string, any][] = [
-    ...SimpleIsLogicalORList,
+    ...SimpleIsShortCircuitList,
     ...SimpleConditionalList
   ];
 
@@ -591,6 +600,14 @@ describe('ExpressionParser', function () {
 
       describe('parse SimpleLogicalORList', function () {
         for (const [input, expected] of SimpleLogicalORList) {
+          it(input, function () {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
+      });
+
+      describe('parse SimpleShortCircuitList', function () {
+        for (const [input, expected] of SimpleShortCircuitList) {
           it(input, function () {
             verifyResultOrError(input, expected, null, bindingType);
           });

@@ -1,7 +1,7 @@
 import { TestContext, assert } from '@aurelia/testing';
-import { CustomElement, Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia, CustomAttribute, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 
-describe('template-compiler.ce_and_surrogate.spec.ts', function () {
+describe('3-runtime-html/template-compiler.ce_and_surrogate.spec.ts', function () {
   interface ISurrogateIntegrationTestCase {
     title: string;
     template: string;
@@ -149,6 +149,58 @@ describe('template-compiler.ce_and_surrogate.spec.ts', function () {
           const [rule, value] = expectedValuePair;
           assert.strictEqual(foo.style[rule], value, `<foo/> should have had style [${rule}] with value [${value}]`);
         });
+      }
+    },
+    {
+      title: 'Custom attribute + Multi bindings + binding commands',
+      template: '<template foo="value1.bind: v1; value2.bind: v2">',
+      root: class App {
+        public v1 = 'abc1';
+        public v2 = 'abc2';
+      },
+      resources: [
+        CustomAttribute.define({
+          name: 'foo',
+          bindables: { value1: {}, value2: {} }
+        }, class Foo {
+          public value1: unknown;
+          public value2: unknown;
+          public attached() {
+            const host = (this as ICustomAttributeViewModel).$controller!.host;
+            host.setAttribute('v1', String(this.value1));
+            host.setAttribute('v2', String(this.value2));
+          }
+        })
+      ],
+      assertFn: (ctx, host, _comp) => {
+        assert.strictEqual(host.getAttribute('v1'), 'abc1');
+        assert.strictEqual(host.getAttribute('v2'), 'abc2');
+      }
+    },
+    {
+      title: 'Custom attribute + Multi bindings + interpolation',
+      template: `<template foo="value1: abc1-\${v1}; value2: abc2-\${v2}">`,
+      root: class App {
+        public v1 = 'abc1';
+        public v2 = 'abc2';
+      },
+      resources: [
+        CustomAttribute.define({
+          name: 'foo',
+          bindables: { value1: {}, value2: {} }
+        }, class Foo {
+          public value1: unknown;
+          public value2: unknown;
+          public attached() {
+            const host = (this as ICustomAttributeViewModel).$controller!.host;
+            host.setAttribute('v1', String(this.value1));
+            host.setAttribute('v2', String(this.value2));
+          }
+        })
+      ],
+      assertFn: (ctx, host, _comp) => {
+        assert.strictEqual(host.getAttribute('v1'), 'abc1-abc1');
+        assert.strictEqual(host.getAttribute('v2'), 'abc2-abc2');
       }
     },
   ];

@@ -295,13 +295,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.logger = this.logger.scopeTo(this.name);
     }
 
-    let definition = this.definition as CustomElementDefinition;
+    const container = this.container;
     const flags = this.flags;
     const instance = this.viewModel as BindingContext<C>;
+    let definition = this.definition as CustomElementDefinition;
+    let vmProvider: InstanceProvider<ICustomElementViewModel>;
+
     this.scope = Scope.create(instance, null, true);
 
     if (definition.watches.length > 0) {
-      createWatchers(this, this.container, definition, instance);
+      createWatchers(this, container, definition, instance);
     }
     createObservers(this, definition, flags, instance);
     this.childrenObs = createChildrenObservers(this as Controller, definition, flags, instance);
@@ -319,7 +322,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     // todo: make projections not influential on the render context construction
-    const context = this.context = getRenderContext(definition, this.container, hydrationInst?.projections) as RenderContext;
+    const context = this.context = getRenderContext(definition, container, hydrationInst?.projections) as RenderContext;
     // todo: should register a resolver resolving to a IContextElement/IContextComponent
     //       so that component directly under this template can easily distinguish its owner/parent
     // context.register(Registration.instance(IContextElement))
@@ -328,8 +331,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // Support Recursive Components by adding self to own context
     definition.register(context);
     if (definition.injectable !== null) {
-      // If the element is registered as injectable, support injecting the instance into children
-      context.beginChildComponentOperation(instance as ICustomElementViewModel);
+      container.registerResolver(
+        definition.injectable,
+        vmProvider = new InstanceProvider<ICustomElementViewModel>('definition.injectable'),
+      );
+      vmProvider.prepare(instance as ICustomElementViewModel);
     }
 
     // If this is the root controller, then the AppRoot will invoke things in the following order:

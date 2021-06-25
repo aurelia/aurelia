@@ -1,7 +1,7 @@
 import { DI } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom.js';
 import { IInstruction } from '../../renderer.js';
-import { ViewModelKind } from '../../templating/controller.js';
+import { IHydrationContext } from '../../templating/controller.js';
 import { IViewFactory } from '../../templating/view.js';
 import { customElement } from '../custom-element.js';
 
@@ -29,7 +29,7 @@ export class SlotInfo {
 
 export class AuSlot implements ICustomElementViewModel {
   /** @internal */
-  public static get inject() { return [IInstruction, IViewFactory, IRenderLocation]; }
+  public static get inject() { return [IViewFactory, IRenderLocation, IInstruction, IHydrationContext]; }
 
   public readonly view: ISyntheticView;
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
@@ -38,9 +38,10 @@ export class AuSlot implements ICustomElementViewModel {
   private outerScope: Scope | null = null;
 
   public constructor(
-    private readonly instruction: HydrateElementInstruction,
     factory: IViewFactory,
     location: IRenderLocation,
+    private readonly instruction: HydrateElementInstruction,
+    private readonly hdrContext: IHydrationContext,
   ) {
     this.view = factory.create().setLocation(location);
   }
@@ -51,19 +52,9 @@ export class AuSlot implements ICustomElementViewModel {
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hostScope = this.$controller.scope.parentScope!;
-    if (this.instruction.slotInfo!.type === AuSlotContentType.Projection) {
-      // todo: replace the following block with an IContextController injection
-      let contextController = this.$controller.parent;
-      while (contextController != null) {
-        if (contextController.vmKind === ViewModelKind.customElement
-          && !(contextController.viewModel instanceof AuSlot)
-        ) {
-          break;
-        }
-        contextController = contextController.parent;
-      }
-      this.outerScope =  contextController?.parent?.scope ?? null;
-    }
+    this.outerScope = this.instruction.slotInfo!.type === AuSlotContentType.Projection
+      ? this.hdrContext.controller.scope.parentScope! ?? null
+      : this.hostScope;
   }
 
   public attaching(

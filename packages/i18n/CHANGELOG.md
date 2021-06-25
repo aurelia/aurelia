@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.9"></a>
+# 2.0.0-alpha.9 (2021-06-25)
+
+### Refactorings:
+
+* **attr-syntax-transformer:** rename IAttrSyntaxTransformer ([71f5ceb](https://github.com/aurelia/aurelia/commit/71f5ceb))
+* **all:** separate value from typing imports ([71f5ceb](https://github.com/aurelia/aurelia/commit/71f5ceb))
+
 <a name="2.0.0-alpha.8"></a>
 # 2.0.0-alpha.8 (2021-06-22)
 

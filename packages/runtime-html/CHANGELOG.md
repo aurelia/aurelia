@@ -3,6 +3,34 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.9"></a>
+# 2.0.0-alpha.9 (2021-06-25)
+
+### Features:
+
+* **templating:** add a injectable hydration token ([52f11c4](https://github.com/aurelia/aurelia/commit/52f11c4))
+
+
+### Bug Fixes:
+
+* **with:** update bindings scope properly when value change ([906105d](https://github.com/aurelia/aurelia/commit/906105d))
+* **let:** camel-case let target when using with interpolation/literal ([bee73cc](https://github.com/aurelia/aurelia/commit/bee73cc))
+
+
+### Performance Improvements:
+
+* **templating:** inline injectable preparation ([2f0ea95](https://github.com/aurelia/aurelia/commit/2f0ea95))
+* **di:** do not create a new factory in .invoke() ([23c0405](https://github.com/aurelia/aurelia/commit/23c0405))
+* **di:** minification friendlier di code ([23c0405](https://github.com/aurelia/aurelia/commit/23c0405))
+
+
+### Refactorings:
+
+* **au-slot:** use new hydration context token ([52f11c4](https://github.com/aurelia/aurelia/commit/52f11c4))
+* **templating:** change timing of the container of a CE ([23c0405](https://github.com/aurelia/aurelia/commit/23c0405))
+* **attr-syntax-transformer:** rename IAttrSyntaxTransformer ([71f5ceb](https://github.com/aurelia/aurelia/commit/71f5ceb))
+* **all:** separate value from typing imports ([71f5ceb](https://github.com/aurelia/aurelia/commit/71f5ceb))
+
 <a name="2.0.0-alpha.8"></a>
 # 2.0.0-alpha.8 (2021-06-22)
 

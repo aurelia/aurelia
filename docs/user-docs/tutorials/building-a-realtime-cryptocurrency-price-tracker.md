@@ -158,3 +158,7 @@ Finally, update the `binding` method with the following. We want to make sure yo
   }
 ```
 
+## Run the app
+
+We have a functional application, visually it isn't exciting, but you should see the prices updating every so often. To run the app, `cd` into your application and run `npm start` to start the development server. A browser window should open automatically.
+

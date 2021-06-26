@@ -12,6 +12,11 @@ A cryptocurrency dashboard that updates in real-time whenever the price of crypt
 
 We will be interacting with the very generous Coingecko API to get the price data which allows 10 calls per second. For this tutorial, we will be calling the API once per second.
 
+## Prerequisites
+
+* You are familiar with [Aurelia's templating syntax](../getting-to-know-aurelia/introduction/).
+* You have a little familiarity with TypeScript \(not essential\)
+
 ## Create the app
 
 We will be using TypeScript & Webpack for this tutorial as well as enabling Shadow DOM to keep our styles encapsulated. Don't worry if you're not familiar with these concepts yet, you will learn as we go. For this, we will be using the Aurelia makes command-line tool to create a new Aurelia application and to save time, passing in the options we want.
@@ -73,7 +78,7 @@ Let's go over this line-by-line. Firstly, this is TypeScript and it looks/works 
 * We import the the `IHttpClient` interface which we will inject into our app on the `constructor` method. The benefit of using TypeScript is you get auto injection instead of needing to manually inject the client. The Aurelia Fetch Client wraps the native Fetch API and makes it more "Aureliafied".
 * We create a `getPrices` method which accepts an array of strings \(our cryptocurrencies\). We make this method async to make working with the promises that Fetch returns a lot cleaner then it would be chaining `.then` and `.catch` functions in our code.
 * When dealing with `async/await`, it is good practice to wrap your calls in a `try/catch` to catch any errors that might occur \(timeouts, erreonous requests, missing credentials\).
-* We then make a request to the Coingecko API passing in our cryptocurrencies. By calling the `Array.toString()` method, it will automatically create a comma separated string of values like the API expects. You could also use `.join` to do this as well.
+* We then make a request to the Coingecko API passing in our cryptocurrencies. By calling the `Array.toString()` method, it will automatically create a comma-separated string of values like the API expects. You could also use `.join` to do this as well.
 * When making Fetch requests, the resulting Fetch call with allow us to get the response value, we know we are going to be getting JSON, so we return the `request.json()` call which is a promise.
 
 As for errors, if we encounter them, the `catch` will capture those and we return the error value. We have everything we need now.

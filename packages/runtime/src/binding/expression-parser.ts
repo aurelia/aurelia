@@ -1378,7 +1378,9 @@ CharScanners[Char.Question] =  s => {
   if (nextChar(s) !== Char.Question) {
     return Token.Question;
   }
-  nextChar(s);
+  if (nextChar(s) === Char.Equals) {
+    throw new Error('Operator ??= is not supported.');
+  }
   return Token.QuestionQuestion;
 };
 CharScanners[Char.OpenBracket]  = returnToken(Token.OpenBracket);

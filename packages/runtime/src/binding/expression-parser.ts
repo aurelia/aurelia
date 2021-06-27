@@ -707,29 +707,28 @@ TPrec extends Precedence.Unary ? IsUnary :
    * CoalesceExpression : (local precedence 1)
    * CoalesceExpressionHead ?? BitwiseORExpression
    */
+  let prevToken: Token | undefined;
+  let opToken: Token;
   while ((state.currentToken & Token.BinaryOp) > 0) {
-    const opToken = state.currentToken;
-    if ((opToken & Token.Precedence) <= minPrecedence) {
-      break;
-    }
-    nextToken(state);
+    opToken = state.currentToken;
     if (
-      (
-        opToken === Token.QuestionQuestion &&
-        (
-          state.currentToken === Token.AmpersandAmpersand ||
-          state.currentToken === Token.BarBar
+      prevToken !== void 0
+      && (
+        (opToken === Token.QuestionQuestion
+          && (prevToken === Token.AmpersandAmpersand || prevToken === Token.BarBar)
         )
-      ) || (
-        state.currentToken === Token.QuestionQuestion &&
-        (
-          opToken === Token.AmpersandAmpersand ||
-          opToken === Token.BarBar
+        || (prevToken === Token.QuestionQuestion
+          && (opToken === Token.AmpersandAmpersand || opToken === Token.BarBar)
         )
       )
     ) {
       throw new Error(`Unexpected token: '${TokenValues[state.currentToken & Token.Type]}'`);
     }
+    prevToken = opToken;
+    if ((opToken & Token.Precedence) <= minPrecedence) {
+      break;
+    }
+    nextToken(state);
     result = new BinaryExpression(TokenValues[opToken & Token.Type] as BinaryOperator, result as IsBinary, parse(state, access, opToken & Token.Precedence, bindingType));
     state.assignable = false;
   }

@@ -171,6 +171,7 @@ export class ViewportContent extends EndpointContent {
     return Controller.forCustomElement(
       null,
       connectedCE.container,
+      connectedCE.container.createChild(),
       this.instruction.component.instance as ICustomElementViewModel,
       connectedCE.element,
       null,

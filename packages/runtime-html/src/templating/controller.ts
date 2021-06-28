@@ -213,7 +213,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     );
 
     ownCt.register(...definition.dependencies);
-    ownCt.registerResolver(IHydrationContext, new InstanceProvider<IHydrationContext>(
+    ownCt.registerResolver(IHydrationContext, new InstanceProvider(
       'IHydrationContext',
       new HydrationContext(controller, hydrationInst)
     ));
@@ -333,10 +333,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.injectable !== null) {
       container.registerResolver(
         definition.injectable,
-        new InstanceProvider<ICustomElementViewModel>(
-          'definition.injectable',
-          instance as ICustomElementViewModel
-        ),
+        new InstanceProvider('definition.injectable', instance as ICustomElementViewModel),
       );
     }
 

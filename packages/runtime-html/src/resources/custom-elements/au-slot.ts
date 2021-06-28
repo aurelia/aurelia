@@ -1,9 +1,10 @@
 import { DI } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom.js';
+import { customElement } from '../custom-element.js';
 import { IInstruction } from '../../renderer.js';
 import { IHydrationContext } from '../../templating/controller.js';
+import { getRenderContext } from '../../templating/render-context.js';
 import { IViewFactory } from '../../templating/view.js';
-import { customElement } from '../custom-element.js';
 
 import type { Writable } from '@aurelia/kernel';
 import type { LifecycleFlags, Scope } from '@aurelia/runtime';
@@ -29,21 +30,32 @@ export class SlotInfo {
 
 export class AuSlot implements ICustomElementViewModel {
   /** @internal */
-  public static get inject() { return [IViewFactory, IRenderLocation, IInstruction, IHydrationContext]; }
+  public static get inject() { return [/* IViewFactory, */ IRenderLocation, IInstruction, IHydrationContext]; }
 
-  public readonly view: ISyntheticView;
+  public readonly view!: ISyntheticView;
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
   private hostScope: Scope | null = null;
   private outerScope: Scope | null = null;
+  private hasProjection: boolean = false;
 
   public constructor(
-    factory: IViewFactory,
+    // factory: IViewFactory,
     location: IRenderLocation,
     private readonly instruction: HydrateElementInstruction,
     private readonly hdrContext: IHydrationContext,
   ) {
+    let factory: IViewFactory;
+    const slotInfo = instruction.auSlot!;
+    const projection = hdrContext.instruction?.projections?.[slotInfo.name];
+    if (projection == null) {
+      factory = getRenderContext(slotInfo.fallback, hdrContext.controller.context.container).getViewFactory()
+    } else {
+      factory = getRenderContext(projection, hdrContext.parent!.controller.context.container).getViewFactory();
+      this.hasProjection = true;
+    }
     this.view = factory.create().setLocation(location);
+    // this.view = factory.create().setLocation(location);
   }
 
   public binding(
@@ -52,9 +64,10 @@ export class AuSlot implements ICustomElementViewModel {
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hostScope = this.$controller.scope.parentScope!;
-    this.outerScope = this.instruction.slotInfo!.type === AuSlotContentType.Projection
-      ? this.hdrContext.controller.scope.parentScope! ?? null
-      : this.hostScope;
+    this.outerScope = /* this.instruction.slotInfo!.type === AuSlotContentType.Projection */
+      this.hasProjection
+        ? this.hdrContext.controller.scope.parentScope! ?? null
+        : this.hostScope;
   }
 
   public attaching(

@@ -156,6 +156,10 @@ export class SetPropertyInstruction {
 
 export class HydrateElementInstruction {
   public get type(): InstructionType.hydrateElement { return InstructionType.hydrateElement; }
+  public auSlot: {
+    name: string;
+    fallback: CustomElementDefinition;
+  } | null = null;
 
   public constructor(
     /**
@@ -443,9 +447,9 @@ export class CustomElementRenderer implements IRenderer {
     let viewFactory: IViewFactory | undefined;
 
     const slotInfo = instruction.slotInfo;
-    if (instruction.res === 'au-slot' && slotInfo !== null) {
-      viewFactory = getRenderContext(slotInfo.content, context).getViewFactory(void 0);
-    }
+    // if (instruction.res === 'au-slot' && slotInfo !== null) {
+    //   viewFactory = getRenderContext(slotInfo.content, context.container).getViewFactory(void 0);
+    // }
 
     const projections = instruction.projections;
     const container = context.createElementContainer(

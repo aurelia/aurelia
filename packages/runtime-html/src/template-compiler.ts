@@ -209,7 +209,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             // if not a bindable, then ensure plain attribute are mapped correctly:
             // e.g: colspan -> colSpan
             //      innerhtml -> innerHTML
-            //      minlength -> minLengt etc...
+            //      minlength -> minLength etc...
             attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
           ));
         } else {
@@ -364,7 +364,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = context.el(elName);
-    const isAuSlot = elName === 'au-slot';
     const attrParser = context.attrParser;
     const exprParser = context.exprParser;
     const attrMapper = context.attrMapper;
@@ -552,7 +551,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             // if not a bindable, then ensure plain attribute are mapped correctly:
             // e.g: colspan -> colSpan
             //      innerhtml -> innerHTML
-            //      minlength -> minLengt etc...
+            //      minlength -> minLength etc...
             attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
           ));
         }
@@ -619,51 +618,59 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     if (elDef !== null) {
-      let slotInfo: SlotInfo | null = null;
-      if (isAuSlot) {
-        const slotName = el.getAttribute('name') || /* name="" is the same with no name */'default';
-        const projection = context.ci.projections?.[slotName];
-        let fallbackContentContext: CompilationContext;
-        let template;
-        let node: Node | null;
-        if (projection == null) {
-          template = context.h('template');
-          node = el.firstChild;
-          while (node !== null) {
-            // a special case:
-            // <au-slot> doesn't have its own template
-            // so anything attempting to project into it is discarded
-            // doing so during compilation via removing the node,
-            // instead of considering it as part of the fallback view
-            if (node.nodeType === 1 && (node as Element).hasAttribute('au-slot')) {
-              el.removeChild(node);
-            } else {
-              template.content.appendChild(node);
-            }
-            node = el.firstChild;
-          }
-
-          fallbackContentContext = context.child();
-          this.node(template.content, fallbackContentContext);
-          slotInfo = new SlotInfo(slotName, AuSlotContentType.Fallback, CustomElementDefinition.create({
-            name: CustomElement.generateName(),
-            template,
-            instructions: fallbackContentContext.rows,
-            needsCompile: false,
-          }));
-        } else {
-          slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, projection);
-        }
-        el = this.marker(el, context);
-      }
-
       elementInstruction = new HydrateElementInstruction(
         elDef.name,
         void 0,
         (elBindableInstructions ?? emptyArray) as IInstruction[],
         null,
-        slotInfo,
+        null
       );
+
+      if (elName === 'au-slot') {
+        const slotName = el.getAttribute('name') || /* name="" is the same with no name */'default';
+        // const projection = context.ci.projections?.[slotName];
+        let fallbackContentContext: CompilationContext;
+        let template;
+        let node: Node | null;
+        let fallbackDef: CustomElementDefinition;
+        // if (projection == null) {
+        template = context.h('template');
+        node = el.firstChild;
+        while (node !== null) {
+          // a special case:
+          // <au-slot> doesn't have its own template
+          // so anything attempting to project into it is discarded
+          // doing so during compilation via removing the node,
+          // instead of considering it as part of the fallback view
+          if (node.nodeType === 1 && (node as Element).hasAttribute('au-slot')) {
+            el.removeChild(node);
+          } else {
+            template.content.appendChild(node);
+          }
+          node = el.firstChild;
+        }
+
+        fallbackContentContext = context.child();
+        this.node(template.content, fallbackContentContext);
+        elementInstruction.slotInfo = new SlotInfo(
+          slotName,
+          AuSlotContentType.Fallback,
+          fallbackDef = CustomElementDefinition.create({
+            name: CustomElement.generateName(),
+            template,
+            instructions: fallbackContentContext.rows,
+            needsCompile: false,
+          })
+        );
+        elementInstruction.auSlot = {
+          name: slotName,
+          fallback: fallbackDef,
+        };
+        // } else {
+        //   elementInstruction.slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, projection);
+        // }
+        el = this.marker(el, context);
+      }
     }
 
     if (plainAttrInstructions != null
@@ -699,9 +706,6 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
 
-      if (elDef?.containerless) {
-        this.marker(el, context);
-      }
       let child: Node | null;
       let childEl: Element;
       let targetSlot: string | null;
@@ -870,9 +874,6 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
-      if (elDef?.containerless) {
-        this.marker(el, context);
-      }
       if (shouldCompileContent && el.childNodes.length > 0) {
         let child = el.firstChild as Node | null;
         let childEl: Element;

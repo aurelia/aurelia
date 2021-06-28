@@ -44,7 +44,6 @@ describe('3-runtime-html/template-compiler.harmony.spec.ts \n\tharmoninous combi
       template: `<template
         focus.bind="hasFocus"
         focus.trigger="focus = (focus || 0) + 1"
-        blur.bind="hasFocus"
         blur.trigger="blur = (blur || 0) + 1"
         tabindex=-1>
         <div></div>
@@ -154,19 +153,6 @@ describe('3-runtime-html/template-compiler.harmony.spec.ts \n\tharmoninous combi
         }
       };
     }) as IHarmoniousCompilationTestCase[],
-    {
-      title: 'basic custom attr + event binding command',
-      template: `<input blur.bind="hasFocus" blur.trigger="hasFocus = true">`,
-      resources: [],
-      browserOnly: true,
-      assertFn: (ctx, host, comp: { hasFocus: boolean }) => {
-        assert.equal(comp.hasFocus, undefined, 'should have worked and had focus===undefined initially');
-        host.querySelector('input').focus();
-        assert.equal(comp.hasFocus, undefined, 'focusing input should not have changed "hasFocus"');
-        host.querySelector('input').blur();
-        assert.equal(comp.hasFocus, true, 'should have worked and had focus===true after blurred');
-      }
-    },
     {
       title: 'basic custom attribute focus + focus trigger binding command',
       template: `<input focus.bind="hasFocus" focus.trigger="focusCount = (focusCount || 0) + 1" blur.trigger="blurCount = (blurCount || 0) + 1" >`,

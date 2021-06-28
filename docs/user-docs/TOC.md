@@ -92,6 +92,7 @@
 * [Building a widget-based dashboard](tutorials/create-a-dashboard-using-dynamic-composition.md)
 * [Building a drag & drop Kanban board](tutorials/building-a-drag-and-drop-kanban-board.md)
 * [Building a form with validation](tutorials/building-a-form-with-validation.md)
+* [Using Aurelia with headless WordPress](tutorials/using-aurelia-with-headless-wordpress.md)
 
 ## Reference
 

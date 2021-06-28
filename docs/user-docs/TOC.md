@@ -89,6 +89,8 @@
 ## Tutorials
 
 * [Building a realtime cryptocurrency price tracker](tutorials/building-a-realtime-cryptocurrency-price-tracker.md)
+* [Building a widget-based dashboard](tutorials/create-a-dashboard-using-dynamic-composition.md)
+* [Building a drag & drop Kanban board](tutorials/building-a-drag-and-drop-kanban-board.md)
 * [Building a form with validation](tutorials/building-a-form-with-validation.md)
 
 ## Reference

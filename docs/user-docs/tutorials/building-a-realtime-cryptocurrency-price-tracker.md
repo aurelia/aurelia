@@ -18,6 +18,12 @@ A cryptocurrency dashboard that updates in real-time whenever the price of crypt
 
 We will be interacting with the very generous Coingecko API to get the price data which allows 10 calls per second. For this tutorial, we will be calling the API once per second.
 
+This tutorial will teach you how to work with Aurelia's binding system, briefly touch on Dependency Injection, show you how to make an API request, how to organize your code and how to create a value converter to format some currency values for display.
+
+{% hint style="success" %}
+A demo of the application you will be building can be found [here](https://vheissu.github.io/aurelia-crypto-prices/dist/).
+{% endhint %}
+
 ## Prerequisites
 
 Before going any further, you should be familiar with some basic Aurelia concepts as well as some fundamental Javascript ones as well. While these are not hard prerequisites, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
@@ -334,4 +340,8 @@ You just created an Aurelia application that utilized a few common concepts. All
 * How to transform values in your view using value converters \(taking one value and making it something else\)
 * How to work with Shadow DOM and specifically, what to do in the case of global style packages like Bootstrap
 * How to work with the Fetch client to make requests as well as `async/await` to work with promises in a cleaner way.
+
+{% hint style="success" %}
+A working example of this tutorial can be found [here](https://vheissu.github.io/aurelia-crypto-prices/dist/).
+{% endhint %}
 

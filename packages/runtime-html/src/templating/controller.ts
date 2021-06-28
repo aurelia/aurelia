@@ -7,6 +7,7 @@ import {
   DI,
   emptyArray,
   InstanceProvider,
+  optional,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -61,7 +62,7 @@ export const enum MountTarget {
   location = 3,
 }
 
-const optional = { optional: true } as const;
+const optionalCeFind = { optional: true } as const;
 
 const controllerLookup: WeakMap<object, Controller> = new WeakMap();
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
@@ -211,11 +212,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* viewModel      */viewModel as BindingContext<C>,
       /* host           */host,
     );
-    const hydrationContextProvider = new InstanceProvider<IHydrationContext>();
-    hydrationContextProvider.prepare(new HydrationContext(controller, hydrationInst));
 
     ownCt.register(...definition.dependencies);
-    ownCt.registerResolver(IHydrationContext, hydrationContextProvider);
+    ownCt.registerResolver(IHydrationContext, new InstanceProvider(
+      'IHydrationContext',
+      new HydrationContext(
+        controller,
+        hydrationInst,
+        /* parent context */contextCt.get(optional(IHydrationContext)),
+      )
+    ));
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrate) {
@@ -299,7 +305,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const flags = this.flags;
     const instance = this.viewModel as BindingContext<C>;
     let definition = this.definition as CustomElementDefinition;
-    let vmProvider: InstanceProvider<ICustomElementViewModel>;
 
     this.scope = Scope.create(instance, null, true);
 
@@ -333,9 +338,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.injectable !== null) {
       container.registerResolver(
         definition.injectable,
-        vmProvider = new InstanceProvider<ICustomElementViewModel>('definition.injectable'),
+        new InstanceProvider('definition.injectable', instance as ICustomElementViewModel),
       );
-      vmProvider.prepare(instance as ICustomElementViewModel);
     }
 
     // If this is the root controller, then the AppRoot will invoke things in the following order:
@@ -354,7 +358,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   public hydrate(hydrationInst: IControllerElementHydrationInstruction | null): void {
     if (this.hooks.hasHydrating) {
-      if (this.debug) { this.logger!.trace(`invoking hasHydrating() hook`); }
+      if (this.debug) { this.logger!.trace(`invoking hydrating() hook`); }
       (this.viewModel as BindingContext<C>).hydrating(this as ICustomElementController);
     }
 
@@ -363,7 +367,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     this.isStrictBinding = isStrictBinding;
 
-    if ((this.hostController = CustomElement.for(this.host!, optional) as Controller | null) !== null) {
+    if ((this.hostController = CustomElement.for(this.host!, optionalCeFind) as Controller | null) !== null) {
       this.host = this.platform.document.createElement(this.context!.definition.name);
     }
 
@@ -386,7 +390,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.nodes = compiledContext.createNodes();
 
     if (this.hooks.hasHydrated) {
-      if (this.debug) { this.logger!.trace(`invoking hasHydrated() hook`); }
+      if (this.debug) { this.logger!.trace(`invoking hydrated() hook`); }
       (this.viewModel as BindingContext<C>).hydrated(this as ICustomElementController);
     }
   }
@@ -1623,6 +1627,7 @@ class HydrationContext<T extends ICustomElementViewModel> {
   public constructor(
     controller: Controller,
     public readonly instruction: IControllerElementHydrationInstruction | null,
+    public readonly parent: IHydrationContext | undefined,
   ) {
     this.controller = controller as ICustomElementController<T>;
   }

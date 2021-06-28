@@ -622,8 +622,7 @@ ignore.$isResolver = true;
 ignore.resolve = () => undefined;
 export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
   const instance = createNewInstance(key, handler, requestor);
-  const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key));
-  instanceProvider.prepare(instance);
+  const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key), instance);
   requestor.registerResolver(key, instanceProvider);
 
   return instance;
@@ -1425,7 +1424,16 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
 
   public constructor(
     public readonly friendlyName?: string,
-  ) {}
+    /**
+     * if not undefined, then this is the value this provider will resolve to
+     * until overridden by explicit prepare call
+     */
+    instance?: Resolved<K> | null,
+  ) {
+    if (instance !== void 0) {
+      this.instance = instance;
+    }
+  }
 
   public prepare(instance: Resolved<K>): void {
     this.instance = instance;

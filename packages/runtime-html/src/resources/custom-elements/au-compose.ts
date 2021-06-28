@@ -245,9 +245,8 @@ export class AuCompose {
     }
 
     const p = this.p;
-    const ep = new InstanceProvider('ElementResolver');
+    const ep = new InstanceProvider('ElementResolver', host);
 
-    ep.prepare(host);
     container.registerResolver(INode, ep);
     container.registerResolver(p.Node, ep);
     container.registerResolver(p.Element, ep);

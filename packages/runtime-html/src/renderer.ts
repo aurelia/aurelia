@@ -459,10 +459,8 @@ export class CustomElementRenderer implements IRenderer {
     const definition = context.find(CustomElement, instruction.res) as CustomElementDefinition;
     const Ctor = definition.Type;
     const component = container.invoke(Ctor);
-    const provider = new InstanceProvider<typeof Ctor>();
     const key = CustomElement.keyFrom(instruction.res);
-    provider.prepare(component);
-    container.registerResolver(Ctor, provider);
+    container.registerResolver(Ctor, new InstanceProvider<typeof Ctor>(key, component));
 
     const childController = Controller.forCustomElement(
       /* root                */controller.root,

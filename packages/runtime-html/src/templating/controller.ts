@@ -211,11 +211,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* viewModel      */viewModel as BindingContext<C>,
       /* host           */host,
     );
-    const hydrationContextProvider = new InstanceProvider<IHydrationContext>();
-    hydrationContextProvider.prepare(new HydrationContext(controller, hydrationInst));
 
     ownCt.register(...definition.dependencies);
-    ownCt.registerResolver(IHydrationContext, hydrationContextProvider);
+    ownCt.registerResolver(IHydrationContext, new InstanceProvider<IHydrationContext>(
+      'IHydrationContext',
+      new HydrationContext(controller, hydrationInst)
+    ));
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrate) {
@@ -299,7 +300,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const flags = this.flags;
     const instance = this.viewModel as BindingContext<C>;
     let definition = this.definition as CustomElementDefinition;
-    let vmProvider: InstanceProvider<ICustomElementViewModel>;
 
     this.scope = Scope.create(instance, null, true);
 
@@ -333,9 +333,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.injectable !== null) {
       container.registerResolver(
         definition.injectable,
-        vmProvider = new InstanceProvider<ICustomElementViewModel>('definition.injectable'),
+        new InstanceProvider<ICustomElementViewModel>(
+          'definition.injectable',
+          instance as ICustomElementViewModel
+        ),
       );
-      vmProvider.prepare(instance as ICustomElementViewModel);
     }
 
     // If this is the root controller, then the AppRoot will invoke things in the following order:
@@ -354,7 +356,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   public hydrate(hydrationInst: IControllerElementHydrationInstruction | null): void {
     if (this.hooks.hasHydrating) {
-      if (this.debug) { this.logger!.trace(`invoking hasHydrating() hook`); }
+      if (this.debug) { this.logger!.trace(`invoking hydrating() hook`); }
       (this.viewModel as BindingContext<C>).hydrating(this as ICustomElementController);
     }
 
@@ -386,7 +388,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.nodes = compiledContext.createNodes();
 
     if (this.hooks.hasHydrated) {
-      if (this.debug) { this.logger!.trace(`invoking hasHydrated() hook`); }
+      if (this.debug) { this.logger!.trace(`invoking hydrated() hook`); }
       (this.viewModel as BindingContext<C>).hydrated(this as ICustomElementController);
     }
   }

@@ -7,6 +7,7 @@ import {
   DI,
   emptyArray,
   InstanceProvider,
+  optional,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -61,7 +62,7 @@ export const enum MountTarget {
   location = 3,
 }
 
-const optional = { optional: true } as const;
+const optionalCeFind = { optional: true } as const;
 
 const controllerLookup: WeakMap<object, Controller> = new WeakMap();
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
@@ -215,7 +216,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     ownCt.register(...definition.dependencies);
     ownCt.registerResolver(IHydrationContext, new InstanceProvider(
       'IHydrationContext',
-      new HydrationContext(controller, hydrationInst)
+      new HydrationContext(
+        controller,
+        hydrationInst,
+        /* parent context */contextCt.get(optional(IHydrationContext)),
+      )
     ));
     controllerLookup.set(viewModel, controller as Controller);
 
@@ -362,7 +367,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     this.isStrictBinding = isStrictBinding;
 
-    if ((this.hostController = CustomElement.for(this.host!, optional) as Controller | null) !== null) {
+    if ((this.hostController = CustomElement.for(this.host!, optionalCeFind) as Controller | null) !== null) {
       this.host = this.platform.document.createElement(this.context!.definition.name);
     }
 
@@ -1622,6 +1627,7 @@ class HydrationContext<T extends ICustomElementViewModel> {
   public constructor(
     controller: Controller,
     public readonly instruction: IControllerElementHydrationInstruction | null,
+    public readonly parent: IHydrationContext | undefined,
   ) {
     this.controller = controller as ICustomElementController<T>;
   }

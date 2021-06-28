@@ -416,8 +416,9 @@ export interface IHydrationContext<T = unknown> extends HydrationContext<T> {
 }
 declare class HydrationContext<T extends ICustomElementViewModel> {
     readonly instruction: IControllerElementHydrationInstruction | null;
+    readonly parent: IHydrationContext | undefined;
     readonly controller: ICustomElementController<T>;
-    constructor(controller: Controller, instruction: IControllerElementHydrationInstruction | null);
+    constructor(controller: Controller, instruction: IControllerElementHydrationInstruction | null, parent: IHydrationContext | undefined);
 }
 export interface IActivationHooks<TParent> {
     binding?(initiator: IHydratedController, parent: TParent, flags: LifecycleFlags): void | Promise<void>;

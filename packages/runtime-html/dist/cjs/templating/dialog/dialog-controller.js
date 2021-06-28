@@ -164,8 +164,7 @@ class DialogController {
             return Component;
         }
         const p = this.p;
-        const ep = new kernel_1.InstanceProvider('ElementResolver');
-        ep.prepare(host);
+        const ep = new kernel_1.InstanceProvider('ElementResolver', host);
         container.registerResolver(dom_js_1.INode, ep);
         container.registerResolver(p.Node, ep);
         container.registerResolver(p.Element, ep);

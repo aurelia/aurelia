@@ -3,7 +3,6 @@ import { BindingMode, IExpressionParser, PrimitiveLiteralExpression } from '@aur
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
 import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, InterpolationInstruction, LetBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetPropertyInstruction, SetStyleAttributeInstruction, TextBindingInstruction, ITemplateCompiler, } from './renderer.js';
-import { AuSlotContentType, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { IPlatform } from './platform.js';
 import { Bindable, BindableDefinition } from './bindable.js';
 import { IAttributeParser } from './resources/attribute-pattern.js';
@@ -163,7 +162,7 @@ export class TemplateCompiler {
                     // if not a bindable, then ensure plain attribute are mapped correctly:
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
-                    //      minlength -> minLengt etc...
+                    //      minlength -> minLength etc...
                     attrMapper.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : camelCase(realAttrTarget)));
                 }
                 else {
@@ -291,8 +290,8 @@ export class TemplateCompiler {
     /** @internal */
     // eslint-disable-next-line
     element(el, context) {
-        var _a, _b, _c, _d, _e, _f;
-        var _g, _h;
+        var _a, _b, _c, _d, _e;
+        var _f, _g;
         // instructions sort:
         // 1. hydrate custom element instruction
         // 2. hydrate custom attribute instructions
@@ -300,7 +299,6 @@ export class TemplateCompiler {
         const nextSibling = el.nextSibling;
         const elName = ((_a = el.getAttribute('as-element')) !== null && _a !== void 0 ? _a : el.nodeName).toLowerCase();
         const elDef = context.el(elName);
-        const isAuSlot = elName === 'au-slot';
         const attrParser = context.attrParser;
         const exprParser = context.exprParser;
         const attrMapper = context.attrMapper;
@@ -465,7 +463,7 @@ export class TemplateCompiler {
                     // if not a bindable, then ensure plain attribute are mapped correctly:
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
-                    //      minlength -> minLengt etc...
+                    //      minlength -> minLength etc...
                     attrMapper.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : camelCase(realAttrTarget)));
                 }
                 // if not a custom attribute + no binding command + not a bindable + not an interpolation
@@ -520,45 +518,38 @@ export class TemplateCompiler {
             this.reorder(el, plainAttrInstructions);
         }
         if (elDef !== null) {
-            let slotInfo = null;
-            if (isAuSlot) {
+            elementInstruction = new HydrateElementInstruction(elDef.name, void 0, (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : emptyArray), null);
+            if (elName === 'au-slot') {
                 const slotName = el.getAttribute('name') || /* name="" is the same with no name */ 'default';
-                const projection = (_d = context.ci.projections) === null || _d === void 0 ? void 0 : _d[slotName];
-                let fallbackContentContext;
-                let template;
-                let node;
-                if (projection == null) {
-                    template = context.h('template');
-                    node = el.firstChild;
-                    while (node !== null) {
-                        // a special case:
-                        // <au-slot> doesn't have its own template
-                        // so anything attempting to project into it is discarded
-                        // doing so during compilation via removing the node,
-                        // instead of considering it as part of the fallback view
-                        if (node.nodeType === 1 && node.hasAttribute('au-slot')) {
-                            el.removeChild(node);
-                        }
-                        else {
-                            template.content.appendChild(node);
-                        }
-                        node = el.firstChild;
+                const template = context.h('template');
+                const fallbackContentContext = context.child();
+                let node = el.firstChild;
+                while (node !== null) {
+                    // a special case:
+                    // <au-slot> doesn't have its own template
+                    // so anything attempting to project into it is discarded
+                    // doing so during compilation via removing the node,
+                    // instead of considering it as part of the fallback view
+                    if (node.nodeType === 1 && node.hasAttribute('au-slot')) {
+                        el.removeChild(node);
                     }
-                    fallbackContentContext = context.child();
-                    this.node(template.content, fallbackContentContext);
-                    slotInfo = new SlotInfo(slotName, AuSlotContentType.Fallback, CustomElementDefinition.create({
+                    else {
+                        template.content.appendChild(node);
+                    }
+                    node = el.firstChild;
+                }
+                this.node(template.content, fallbackContentContext);
+                elementInstruction.auSlot = {
+                    name: slotName,
+                    fallback: CustomElementDefinition.create({
                         name: CustomElement.generateName(),
                         template,
                         instructions: fallbackContentContext.rows,
                         needsCompile: false,
-                    }));
-                }
-                else {
-                    slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, projection);
-                }
+                    }),
+                };
                 el = this.marker(el, context);
             }
-            elementInstruction = new HydrateElementInstruction(elDef.name, void 0, (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : emptyArray), null, slotInfo);
         }
         if (plainAttrInstructions != null
             || elementInstruction != null
@@ -629,7 +620,7 @@ export class TemplateCompiler {
                                 }
                                 childEl.removeAttribute('au-slot');
                                 el.removeChild(childEl);
-                                ((_e = (_g = (slotTemplateRecord !== null && slotTemplateRecord !== void 0 ? slotTemplateRecord : (slotTemplateRecord = {})))[targetSlot]) !== null && _e !== void 0 ? _e : (_g[targetSlot] = [])).push(childEl);
+                                ((_d = (_f = (slotTemplateRecord !== null && slotTemplateRecord !== void 0 ? slotTemplateRecord : (slotTemplateRecord = {})))[targetSlot]) !== null && _d !== void 0 ? _d : (_f[targetSlot] = [])).push(childEl);
                             }
                             // if not a targeted slot then use the common node method
                             // todo: in the future, there maybe more special case for a content of a custom element
@@ -800,7 +791,7 @@ export class TemplateCompiler {
                             }
                             el.removeChild(childEl);
                             childEl.removeAttribute('au-slot');
-                            ((_f = (_h = (slotTemplateRecord !== null && slotTemplateRecord !== void 0 ? slotTemplateRecord : (slotTemplateRecord = {})))[targetSlot]) !== null && _f !== void 0 ? _f : (_h[targetSlot] = [])).push(childEl);
+                            ((_e = (_g = (slotTemplateRecord !== null && slotTemplateRecord !== void 0 ? slotTemplateRecord : (slotTemplateRecord = {})))[targetSlot]) !== null && _e !== void 0 ? _e : (_g[targetSlot] = [])).push(childEl);
                         }
                         // if not a targeted slot then use the common node method
                         // todo: in the future, there maybe more special case for a content of a custom element

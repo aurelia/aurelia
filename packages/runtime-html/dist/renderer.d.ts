@@ -1,7 +1,7 @@
 import { BindingMode, IExpressionParser, IObserverLocator, LifecycleFlags } from '@aurelia/runtime';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElementDefinition } from './resources/custom-element.js';
-import { IProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { IProjections } from './resources/custom-elements/au-slot.js';
 import { IPlatform } from './platform.js';
 import type { IServiceLocator, IContainer, Class, IRegistry } from '@aurelia/kernel';
 import type { Interpolation, IsBindingBehavior, IInterceptableBinding, ForOfStatement, DelegationStrategy } from '@aurelia/runtime';
@@ -90,8 +90,11 @@ export declare class HydrateElementInstruction {
      * Indicates what projections are associated with the element usage
      */
     projections: Record<string, CustomElementDefinition> | null;
-    slotInfo: SlotInfo | null;
     get type(): InstructionType.hydrateElement;
+    auSlot?: {
+        name: string;
+        fallback: CustomElementDefinition;
+    };
     constructor(
     /**
      * The name of the custom element this instruction is associated with
@@ -104,7 +107,7 @@ export declare class HydrateElementInstruction {
     /**
      * Indicates what projections are associated with the element usage
      */
-    projections: Record<string, CustomElementDefinition> | null, slotInfo: SlotInfo | null);
+    projections: Record<string, CustomElementDefinition> | null);
 }
 export declare class HydrateAttributeInstruction {
     res: string;

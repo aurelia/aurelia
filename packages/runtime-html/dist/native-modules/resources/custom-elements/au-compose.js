@@ -163,8 +163,7 @@ let AuCompose = class AuCompose {
             return comp;
         }
         const p = this.p;
-        const ep = new InstanceProvider('ElementResolver');
-        ep.prepare(host);
+        const ep = new InstanceProvider('ElementResolver', host);
         container.registerResolver(INode, ep);
         container.registerResolver(p.Node, ep);
         container.registerResolver(p.Element, ep);

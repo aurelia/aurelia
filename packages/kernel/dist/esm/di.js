@@ -428,8 +428,7 @@ ignore.$isResolver = true;
 ignore.resolve = () => undefined;
 export const newInstanceForScope = createResolver((key, handler, requestor) => {
     const instance = createNewInstance(key, handler, requestor);
-    const instanceProvider = new InstanceProvider(String(key));
-    instanceProvider.prepare(instance);
+    const instanceProvider = new InstanceProvider(String(key), instance);
     requestor.registerResolver(key, instanceProvider);
     return instance;
 });
@@ -1133,9 +1132,17 @@ export const Registration = {
     }
 };
 export class InstanceProvider {
-    constructor(friendlyName) {
+    constructor(friendlyName, 
+    /**
+     * if not undefined, then this is the value this provider will resolve to
+     * until overridden by explicit prepare call
+     */
+    instance) {
         this.friendlyName = friendlyName;
         this.instance = null;
+        if (instance !== void 0) {
+            this.instance = instance;
+        }
     }
     prepare(instance) {
         this.instance = instance;

@@ -22,7 +22,7 @@ var MountTarget;
     MountTarget[MountTarget["shadowRoot"] = 2] = "shadowRoot";
     MountTarget[MountTarget["location"] = 3] = "location";
 })(MountTarget = exports.MountTarget || (exports.MountTarget = {}));
-const optional = { optional: true };
+const optionalCeFind = { optional: true };
 const controllerLookup = new WeakMap();
 class Controller {
     constructor(root, ctxCt, container, vmKind, flags, definition, 
@@ -153,10 +153,9 @@ class Controller {
         /* viewFactory    */ null, 
         /* viewModel      */ viewModel, 
         /* host           */ host);
-        const hydrationContextProvider = new kernel_1.InstanceProvider();
-        hydrationContextProvider.prepare(new HydrationContext(controller, hydrationInst));
         ownCt.register(...definition.dependencies);
-        ownCt.registerResolver(exports.IHydrationContext, hydrationContextProvider);
+        ownCt.registerResolver(exports.IHydrationContext, new kernel_1.InstanceProvider('IHydrationContext', new HydrationContext(controller, hydrationInst, 
+        /* parent context */ contextCt.get(kernel_1.optional(exports.IHydrationContext)))));
         controllerLookup.set(viewModel, controller);
         if (hydrate) {
             controller.hydrateCustomElement(contextCt, hydrationInst);
@@ -209,7 +208,6 @@ class Controller {
         const flags = this.flags;
         const instance = this.viewModel;
         let definition = this.definition;
-        let vmProvider;
         this.scope = runtime_1.Scope.create(instance, null, true);
         if (definition.watches.length > 0) {
             createWatchers(this, container, definition, instance);
@@ -237,8 +235,7 @@ class Controller {
         // Support Recursive Components by adding self to own context
         definition.register(context);
         if (definition.injectable !== null) {
-            container.registerResolver(definition.injectable, vmProvider = new kernel_1.InstanceProvider('definition.injectable'));
-            vmProvider.prepare(instance);
+            container.registerResolver(definition.injectable, new kernel_1.InstanceProvider('definition.injectable', instance));
         }
         // If this is the root controller, then the AppRoot will invoke things in the following order:
         // - Controller.hydrateCustomElement
@@ -256,14 +253,14 @@ class Controller {
     hydrate(hydrationInst) {
         if (this.hooks.hasHydrating) {
             if (this.debug) {
-                this.logger.trace(`invoking hasHydrating() hook`);
+                this.logger.trace(`invoking hydrating() hook`);
             }
             this.viewModel.hydrating(this);
         }
         const compiledContext = this.context.compile(hydrationInst);
         const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
         this.isStrictBinding = isStrictBinding;
-        if ((this.hostController = custom_element_js_1.CustomElement.for(this.host, optional)) !== null) {
+        if ((this.hostController = custom_element_js_1.CustomElement.for(this.host, optionalCeFind)) !== null) {
             this.host = this.platform.document.createElement(this.context.definition.name);
         }
         dom_js_1.setRef(this.host, custom_element_js_1.CustomElement.name, this);
@@ -288,7 +285,7 @@ class Controller {
         this.nodes = compiledContext.createNodes();
         if (this.hooks.hasHydrated) {
             if (this.debug) {
-                this.logger.trace(`invoking hasHydrated() hook`);
+                this.logger.trace(`invoking hydrated() hook`);
             }
             this.viewModel.hydrated(this);
         }
@@ -1069,8 +1066,9 @@ exports.stringifyState = stringifyState;
 exports.IController = kernel_1.DI.createInterface('IController');
 exports.IHydrationContext = kernel_1.DI.createInterface('IHydrationContext');
 class HydrationContext {
-    constructor(controller, instruction) {
+    constructor(controller, instruction, parent) {
         this.instruction = instruction;
+        this.parent = parent;
         this.controller = controller;
     }
 }

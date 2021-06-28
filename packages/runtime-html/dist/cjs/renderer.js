@@ -116,14 +116,11 @@ class HydrateElementInstruction {
     /**
      * Indicates what projections are associated with the element usage
      */
-    projections, 
-    // only not null if this is an au-slot instruction
-    slotInfo) {
+    projections) {
         this.res = res;
         this.alias = alias;
         this.instructions = instructions;
         this.projections = projections;
-        this.slotInfo = slotInfo;
     }
     get type() { return "ra" /* hydrateElement */; }
 }
@@ -332,26 +329,19 @@ let CustomElementRenderer =
 /** @internal */
 class CustomElementRenderer {
     render(flags, context, controller, target, instruction) {
-        let viewFactory;
-        const slotInfo = instruction.slotInfo;
-        if (instruction.res === 'au-slot' && slotInfo !== null) {
-            viewFactory = render_context_js_1.getRenderContext(slotInfo.content, context).getViewFactory(void 0);
-        }
         const projections = instruction.projections;
         const container = context.createElementContainer(
         /* parentController */ controller, 
         /* host             */ target, 
         /* instruction      */ instruction, 
-        /* viewFactory      */ viewFactory, 
+        /* viewFactory      */ void 0, 
         /* location         */ target, 
         /* auSlotsInfo      */ new au_slot_js_1.AuSlotsInfo(projections == null ? kernel_1.emptyArray : Object.keys(projections)));
         const definition = context.find(custom_element_js_1.CustomElement, instruction.res);
         const Ctor = definition.Type;
         const component = container.invoke(Ctor);
-        const provider = new kernel_1.InstanceProvider();
         const key = custom_element_js_1.CustomElement.keyFrom(instruction.res);
-        provider.prepare(component);
-        container.registerResolver(Ctor, provider);
+        container.registerResolver(Ctor, new kernel_1.InstanceProvider(key, component));
         const childController = controller_js_1.Controller.forCustomElement(
         /* root                */ controller.root, 
         /* context ct          */ context, 

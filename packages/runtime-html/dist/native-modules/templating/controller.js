@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-import { nextId, isObject, ILogger, DI, emptyArray, InstanceProvider, } from '../../../../kernel/dist/native-modules/index.js';
+import { nextId, isObject, ILogger, DI, emptyArray, InstanceProvider, optional, } from '../../../../kernel/dist/native-modules/index.js';
 import { AccessScopeExpression, Scope, IObserverLocator, IExpressionParser, } from '../../../../runtime/dist/native-modules/index.js';
 import { BindableObserver } from '../observation/bindable-observer.js';
 import { convertToRenderLocation, setRef } from '../dom.js';
@@ -19,7 +19,7 @@ export var MountTarget;
     MountTarget[MountTarget["shadowRoot"] = 2] = "shadowRoot";
     MountTarget[MountTarget["location"] = 3] = "location";
 })(MountTarget || (MountTarget = {}));
-const optional = { optional: true };
+const optionalCeFind = { optional: true };
 const controllerLookup = new WeakMap();
 export class Controller {
     constructor(root, ctxCt, container, vmKind, flags, definition, 
@@ -150,10 +150,9 @@ export class Controller {
         /* viewFactory    */ null, 
         /* viewModel      */ viewModel, 
         /* host           */ host);
-        const hydrationContextProvider = new InstanceProvider();
-        hydrationContextProvider.prepare(new HydrationContext(controller, hydrationInst));
         ownCt.register(...definition.dependencies);
-        ownCt.registerResolver(IHydrationContext, hydrationContextProvider);
+        ownCt.registerResolver(IHydrationContext, new InstanceProvider('IHydrationContext', new HydrationContext(controller, hydrationInst, 
+        /* parent context */ contextCt.get(optional(IHydrationContext)))));
         controllerLookup.set(viewModel, controller);
         if (hydrate) {
             controller.hydrateCustomElement(contextCt, hydrationInst);
@@ -206,7 +205,6 @@ export class Controller {
         const flags = this.flags;
         const instance = this.viewModel;
         let definition = this.definition;
-        let vmProvider;
         this.scope = Scope.create(instance, null, true);
         if (definition.watches.length > 0) {
             createWatchers(this, container, definition, instance);
@@ -234,8 +232,7 @@ export class Controller {
         // Support Recursive Components by adding self to own context
         definition.register(context);
         if (definition.injectable !== null) {
-            container.registerResolver(definition.injectable, vmProvider = new InstanceProvider('definition.injectable'));
-            vmProvider.prepare(instance);
+            container.registerResolver(definition.injectable, new InstanceProvider('definition.injectable', instance));
         }
         // If this is the root controller, then the AppRoot will invoke things in the following order:
         // - Controller.hydrateCustomElement
@@ -253,14 +250,14 @@ export class Controller {
     hydrate(hydrationInst) {
         if (this.hooks.hasHydrating) {
             if (this.debug) {
-                this.logger.trace(`invoking hasHydrating() hook`);
+                this.logger.trace(`invoking hydrating() hook`);
             }
             this.viewModel.hydrating(this);
         }
         const compiledContext = this.context.compile(hydrationInst);
         const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
         this.isStrictBinding = isStrictBinding;
-        if ((this.hostController = CustomElement.for(this.host, optional)) !== null) {
+        if ((this.hostController = CustomElement.for(this.host, optionalCeFind)) !== null) {
             this.host = this.platform.document.createElement(this.context.definition.name);
         }
         setRef(this.host, CustomElement.name, this);
@@ -285,7 +282,7 @@ export class Controller {
         this.nodes = compiledContext.createNodes();
         if (this.hooks.hasHydrated) {
             if (this.debug) {
-                this.logger.trace(`invoking hasHydrated() hook`);
+                this.logger.trace(`invoking hydrated() hook`);
             }
             this.viewModel.hydrated(this);
         }
@@ -1061,8 +1058,9 @@ export function stringifyState(state) {
 export const IController = DI.createInterface('IController');
 export const IHydrationContext = DI.createInterface('IHydrationContext');
 class HydrationContext {
-    constructor(controller, instruction) {
+    constructor(controller, instruction, parent) {
         this.instruction = instruction;
+        this.parent = parent;
         this.controller = controller;
     }
 }

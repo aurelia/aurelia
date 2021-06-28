@@ -401,7 +401,12 @@ export declare const Registration: {
 export declare class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
     readonly friendlyName?: string | undefined;
     private instance;
-    constructor(friendlyName?: string | undefined);
+    constructor(friendlyName?: string | undefined, 
+    /**
+     * if not undefined, then this is the value this provider will resolve to
+     * until overridden by explicit prepare call
+     */
+    instance?: Resolved<K> | null);
     prepare(instance: Resolved<K>): void;
     get $isResolver(): true;
     resolve(): Resolved<K> | null;

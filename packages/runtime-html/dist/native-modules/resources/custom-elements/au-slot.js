@@ -1,36 +1,35 @@
 import { DI } from '../../../../../kernel/dist/native-modules/index.js';
 import { IRenderLocation } from '../../dom.js';
+import { customElement } from '../custom-element.js';
 import { IInstruction } from '../../renderer.js';
 import { IHydrationContext } from '../../templating/controller.js';
-import { IViewFactory } from '../../templating/view.js';
-import { customElement } from '../custom-element.js';
+import { getRenderContext } from '../../templating/render-context.js';
 export const IProjections = DI.createInterface("IProjections");
-export var AuSlotContentType;
-(function (AuSlotContentType) {
-    AuSlotContentType[AuSlotContentType["Projection"] = 0] = "Projection";
-    AuSlotContentType[AuSlotContentType["Fallback"] = 1] = "Fallback";
-})(AuSlotContentType || (AuSlotContentType = {}));
-export class SlotInfo {
-    constructor(name, type, content) {
-        this.name = name;
-        this.type = type;
-        this.content = content;
-    }
-}
 export class AuSlot {
-    constructor(factory, location, instruction, hdrContext) {
-        this.instruction = instruction;
+    constructor(location, instruction, hdrContext) {
+        var _a, _b;
         this.hdrContext = hdrContext;
         this.hostScope = null;
         this.outerScope = null;
+        this.hasProjection = false;
+        let factory;
+        const slotInfo = instruction.auSlot;
+        const projection = (_b = (_a = hdrContext.instruction) === null || _a === void 0 ? void 0 : _a.projections) === null || _b === void 0 ? void 0 : _b[slotInfo.name];
+        if (projection == null) {
+            factory = getRenderContext(slotInfo.fallback, hdrContext.controller.context.container).getViewFactory();
+        }
+        else {
+            factory = getRenderContext(projection, hdrContext.parent.controller.context.container).getViewFactory();
+            this.hasProjection = true;
+        }
         this.view = factory.create().setLocation(location);
     }
     /** @internal */
-    static get inject() { return [IViewFactory, IRenderLocation, IInstruction, IHydrationContext]; }
+    static get inject() { return [IRenderLocation, IInstruction, IHydrationContext]; }
     binding(_initiator, _parent, _flags) {
         var _a;
         this.hostScope = this.$controller.scope.parentScope;
-        this.outerScope = this.instruction.slotInfo.type === AuSlotContentType.Projection
+        this.outerScope = this.hasProjection
             ? (_a = this.hdrContext.controller.scope.parentScope) !== null && _a !== void 0 ? _a : null : this.hostScope;
     }
     attaching(initiator, parent, flags) {

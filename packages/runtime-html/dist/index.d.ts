@@ -45,7 +45,7 @@ export { PromiseTemplateController, FulfilledTemplateController, PendingTemplate
 export { Blur, BlurManager, } from './resources/custom-attributes/blur.js';
 export { Focus, } from './resources/custom-attributes/focus.js';
 export { Portal, PortalTarget, PortalLifecycleCallback, } from './resources/template-controllers/portal.js';
-export { AuSlot, IProjections, SlotInfo, AuSlotContentType, AuSlotsInfo, IAuSlotsInfo, } from './resources/custom-elements/au-slot.js';
+export { AuSlot, IProjections, AuSlotsInfo, IAuSlotsInfo, } from './resources/custom-elements/au-slot.js';
 export { containerless, customElement, CustomElement, CustomElementDecorator, CustomElementKind, CustomElementType, CustomElementDefinition, PartialCustomElementDefinition, useShadowDOM, processContent, } from './resources/custom-element.js';
 export { Subject, AuRender, } from './resources/custom-elements/au-render.js';
 export { AuCompose, IDynamicComponentActivate, } from './resources/custom-elements/au-compose.js';

@@ -1665,7 +1665,69 @@ describe('au-slot', function () {
         },
       );
     }
+
+    {
+      yield new TestData(
+        'works with 2 layers of slot[default] pass through',
+        `<mdc-tab-bar
+          ><template au-slot
+            ><mdc-tab click.trigger="fn()">\${callCount}`,
+        [
+          CustomElement.define({ name: 'mdc-tab-scroller', template: '<au-slot>' }),
+          CustomElement.define({ name: 'mdc-tab-bar', template: '<mdc-tab-scroller><template au-slot><au-slot></au-slot></template></mdc-tab-scroller>' }),
+          CustomElement.define({ name: 'mdc-tab', template: '<button>Tab</button>' }),
+        ],
+        {
+          'mdc-tab': ['0<button>Tab</button>', undefined]
+        },
+        function ({ host, platform }) {
+          host.querySelector<HTMLElement>('mdc-tab').click();
+          platform.domWriteQueue.flush();
+          assert.html.innerEqual(host.querySelector('mdc-tab'), '1<button>Tab</button>');
+        }
+      );
+    }
+
+    {
+      yield new TestData(
+        'works with 3 layers of slot[default] pass through, no projections',
+        `<mdc></mdc><mdc></mdc>`,
+        [
+          CustomElement.define({ name: 'mdc', template:
+          `<mdc-tab-bar
+            ><template au-slot
+              ><mdc-tab id="mdc-\${id}" click.trigger="increase()">\${count}</mdc-tab>`
+          }, class Mdc {
+            public static id = 0;
+            public id = Mdc.id++;
+            public count = 0;
+            public increase() {
+              this.count++;
+            }
+          }),
+            CustomElement.define({ name: 'mdc-tab-scroller', template: '<au-slot>' }),
+            CustomElement.define({ name: 'mdc-tab-bar', template: '<mdc-tab-scroller><template au-slot><au-slot></au-slot></template></mdc-tab-scroller>' }),
+            CustomElement.define({ name: 'mdc-tab', template: '<button>Tab</button>' }),
+        ],
+        {
+          '#mdc-0': ['0<button>Tab</button>', undefined],
+          '#mdc-1': ['0<button>Tab</button>', undefined]
+        },
+        function ({ host, platform }) {
+          host.querySelector<HTMLElement>('#mdc-0').click();
+          platform.domWriteQueue.flush();
+          assert.html.innerEqual(host.querySelector('#mdc-0'), '1<button>Tab</button>');
+          assert.html.innerEqual(host.querySelector('#mdc-1'), '0<button>Tab</button>');
+
+          host.querySelector<HTMLElement>('#mdc-1').click();
+          platform.domWriteQueue.flush();
+          assert.html.innerEqual(host.querySelector('#mdc-0'), '1<button>Tab</button>');
+          assert.html.innerEqual(host.querySelector('#mdc-1'), '1<button>Tab</button>');
+        },
+      );
+    }
   }
+
   for (const { spec, template, expected, registrations, additionalAssertion, only } of getTestData()) {
     (only ? $it.only : $it)(spec,
       async function (ctx) {

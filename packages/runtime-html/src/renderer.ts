@@ -18,7 +18,7 @@ import { Listener } from './binding/listener.js';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import { getRenderContext } from './templating/render-context.js';
-import { AuSlotsInfo, IProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { AuSlotsInfo, IProjections } from './resources/custom-elements/au-slot.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
 import { convertToRenderLocation, setRef } from './dom.js';
 import { Controller } from './templating/controller.js';
@@ -36,7 +36,6 @@ import type {
   DelegationStrategy,
 } from '@aurelia/runtime';
 import type { IHydratableController, IController } from './templating/controller.js';
-import type { IViewFactory } from './templating/view.js';
 import type { PartialCustomElementDefinition } from './resources/custom-element.js';
 import type { ICompiledRenderContext } from './templating/render-context.js';
 import type { INode } from './dom.js';
@@ -156,10 +155,10 @@ export class SetPropertyInstruction {
 
 export class HydrateElementInstruction {
   public get type(): InstructionType.hydrateElement { return InstructionType.hydrateElement; }
-  public auSlot: {
+  public auSlot?: {
     name: string;
     fallback: CustomElementDefinition;
-  } | null = null;
+  };
 
   public constructor(
     /**
@@ -175,8 +174,6 @@ export class HydrateElementInstruction {
      * Indicates what projections are associated with the element usage
      */
     public projections: Record<string, CustomElementDefinition> | null,
-    // only not null if this is an au-slot instruction
-    public slotInfo: SlotInfo | null,
   ) {
   }
 }
@@ -444,19 +441,12 @@ export class CustomElementRenderer implements IRenderer {
     target: HTMLElement,
     instruction: HydrateElementInstruction,
   ): void {
-    let viewFactory: IViewFactory | undefined;
-
-    const slotInfo = instruction.slotInfo;
-    // if (instruction.res === 'au-slot' && slotInfo !== null) {
-    //   viewFactory = getRenderContext(slotInfo.content, context.container).getViewFactory(void 0);
-    // }
-
     const projections = instruction.projections;
     const container = context.createElementContainer(
       /* parentController */controller,
       /* host             */target,
       /* instruction      */instruction,
-      /* viewFactory      */viewFactory,
+      /* viewFactory      */void 0,
       /* location         */target,
       /* auSlotsInfo      */new AuSlotsInfo(projections == null ? emptyArray : Object.keys(projections)),
     );

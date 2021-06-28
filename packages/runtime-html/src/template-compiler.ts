@@ -17,7 +17,6 @@ import {
   ITemplateCompiler,
   PropertyBindingInstruction,
 } from './renderer.js';
-import { AuSlotContentType, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { IPlatform } from './platform.js';
 import { Bindable, BindableDefinition } from './bindable.js';
 import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
@@ -623,19 +622,13 @@ export class TemplateCompiler implements ITemplateCompiler {
         void 0,
         (elBindableInstructions ?? emptyArray) as IInstruction[],
         null,
-        null
       );
 
       if (elName === 'au-slot') {
         const slotName = el.getAttribute('name') || /* name="" is the same with no name */'default';
-        // const projection = context.ci.projections?.[slotName];
-        let fallbackContentContext: CompilationContext;
-        let template;
-        let node: Node | null;
-        let fallbackDef: CustomElementDefinition;
-        // if (projection == null) {
-        template = context.h('template');
-        node = el.firstChild;
+        const template = context.h('template');
+        const fallbackContentContext = context.child();
+        let node: Node | null = el.firstChild;
         while (node !== null) {
           // a special case:
           // <au-slot> doesn't have its own template
@@ -650,25 +643,16 @@ export class TemplateCompiler implements ITemplateCompiler {
           node = el.firstChild;
         }
 
-        fallbackContentContext = context.child();
         this.node(template.content, fallbackContentContext);
-        elementInstruction.slotInfo = new SlotInfo(
-          slotName,
-          AuSlotContentType.Fallback,
-          fallbackDef = CustomElementDefinition.create({
+        elementInstruction.auSlot = {
+          name: slotName,
+          fallback: CustomElementDefinition.create({
             name: CustomElement.generateName(),
             template,
             instructions: fallbackContentContext.rows,
             needsCompile: false,
-          })
-        );
-        elementInstruction.auSlot = {
-          name: slotName,
-          fallback: fallbackDef,
+          }),
         };
-        // } else {
-        //   elementInstruction.slotInfo = new SlotInfo(slotName, AuSlotContentType.Projection, projection);
-        // }
         el = this.marker(el, context);
       }
     }
@@ -705,6 +689,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       const childContext = context.child(instructions == null ? [] : [instructions]);
 
       shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
+      if (elDef?.containerless) {
+        this.marker(el, context);
+      }
 
       let child: Node | null;
       let childEl: Element;
@@ -874,6 +861,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
+      if (elDef?.containerless) {
+        this.marker(el, context);
+      }
       if (shouldCompileContent && el.childNodes.length > 0) {
         let child = el.firstChild as Node | null;
         let childEl: Element;

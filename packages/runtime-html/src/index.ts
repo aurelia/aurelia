@@ -435,8 +435,6 @@ export {
 export {
   AuSlot,
   IProjections,
-  SlotInfo,
-  AuSlotContentType,
   AuSlotsInfo,
   IAuSlotsInfo,
 } from './resources/custom-elements/au-slot.js';

@@ -1726,6 +1726,58 @@ describe('au-slot', function () {
         },
       );
     }
+
+    {
+      yield new TestData(
+        'works with 3 layers of slot[default] pass through + template controller',
+        `<mdc></mdc><mdc></mdc>`,
+        [
+          CustomElement.define({ name: 'mdc', template:
+          `<mdc-tab-bar
+            ><mdc-tab au-slot repeat.for="i of 3" id="mdc-\${id}-\${i}" click.trigger="increase()">\${count + i}</mdc-tab>`
+          }, class Mdc {
+            public static id = 0;
+            public id = Mdc.id++;
+            public count = 0;
+            public increase() {
+              this.count++;
+            }
+          }),
+            CustomElement.define({ name: 'mdc-tab-scroller', template: '<au-slot>' }),
+            CustomElement.define({ name: 'mdc-tab-bar', template: '<mdc-tab-scroller><au-slot au-slot></au-slot></mdc-tab-scroller>' }),
+            CustomElement.define({ name: 'mdc-tab', template: '<button>Tab</button>' }),
+        ],
+        {
+          '#mdc-0-0': ['0<button>Tab</button>', undefined],
+          '#mdc-0-1': ['1<button>Tab</button>', undefined],
+          '#mdc-0-2': ['2<button>Tab</button>', undefined],
+          '#mdc-1-0': ['0<button>Tab</button>', undefined],
+          '#mdc-1-1': ['1<button>Tab</button>', undefined],
+          '#mdc-1-2': ['2<button>Tab</button>', undefined],
+        },
+        function ({ host, platform }) {
+          const [tab00, tab01, tab02, tab10, tab11, tab12] = Array.from(host.querySelectorAll<HTMLElement>('mdc-tab'));
+
+          tab00.click();
+          platform.domWriteQueue.flush();
+          assert.html.innerEqual(tab00, '1<button>Tab</button>');
+          assert.html.innerEqual(tab01, '2<button>Tab</button>');
+          assert.html.innerEqual(tab02, '3<button>Tab</button>');
+          assert.html.innerEqual(tab10, '0<button>Tab</button>');
+          assert.html.innerEqual(tab11, '1<button>Tab</button>');
+          assert.html.innerEqual(tab12, '2<button>Tab</button>');
+
+          tab10.click();
+          platform.domWriteQueue.flush();
+          assert.html.innerEqual(tab00, '1<button>Tab</button>');
+          assert.html.innerEqual(tab01, '2<button>Tab</button>');
+          assert.html.innerEqual(tab02, '3<button>Tab</button>');
+          assert.html.innerEqual(tab10, '1<button>Tab</button>');
+          assert.html.innerEqual(tab11, '2<button>Tab</button>');
+          assert.html.innerEqual(tab12, '3<button>Tab</button>');
+        },
+      );
+    }
   }
 
   for (const { spec, template, expected, registrations, additionalAssertion, only } of getTestData()) {

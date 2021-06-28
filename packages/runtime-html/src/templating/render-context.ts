@@ -403,49 +403,28 @@ export class RenderContext implements ICompiledRenderContext {
     location?: IRenderLocation,
     auSlotsInfo?: IAuSlotsInfo,
   ): IContainer {
-    const ctxContainer = this.container;
     const p = this.platform;
-    const container = ctxContainer.createChild();
-
-    const nodeProvider: InstanceProvider<INode> = new InstanceProvider('ElementProvider');
-    const controllerProvider: InstanceProvider<IController> = new InstanceProvider('IController');
-    const instructionProvider: InstanceProvider<IInstruction> = new InstanceProvider('IInstruction');
-    let viewFactoryProvider: ViewFactoryProvider;
-    let locationProvider: InstanceProvider<IRenderLocation>;
-    let slotInfoProvider: InstanceProvider<AuSlotsInfo>;
-
-    controllerProvider.prepare(parentController);
-    nodeProvider.prepare(host);
-    instructionProvider.prepare(instruction);
-
-    if (viewFactory == null) {
-      viewFactoryProvider = noViewFactoryProvider;
-    } else {
-      viewFactoryProvider = new ViewFactoryProvider();
-      viewFactoryProvider.prepare(viewFactory!);
-    }
-    if (location == null) {
-      locationProvider = noLocationProvider;
-    } else {
-      locationProvider = new InstanceProvider('IRenderLocation');
-      locationProvider.prepare(location);
-    }
-    if (auSlotsInfo == null) {
-      slotInfoProvider = noAuSlotProvider;
-    } else {
-      slotInfoProvider = new InstanceProvider('AuSlotInfo');
-      slotInfoProvider.prepare(auSlotsInfo);
-    }
+    const container = this.container.createChild();
+    const nodeProvider: InstanceProvider<INode> = new InstanceProvider('ElementProvider', host);
 
     container.registerResolver(INode, nodeProvider);
     container.registerResolver(p.Node, nodeProvider);
     container.registerResolver(p.Element, nodeProvider);
     container.registerResolver(p.HTMLElement, nodeProvider);
-    container.registerResolver(IController, controllerProvider);
-    container.registerResolver(IInstruction, instructionProvider);
-    container.registerResolver(IRenderLocation, locationProvider);
-    container.registerResolver(IViewFactory, viewFactoryProvider);
-    container.registerResolver(IAuSlotsInfo, slotInfoProvider);
+    container.registerResolver(IController, new InstanceProvider('IController', parentController));
+    container.registerResolver(IInstruction, new InstanceProvider('IInstruction', instruction));
+    container.registerResolver(IRenderLocation, location == null
+      ? noLocationProvider
+      : new InstanceProvider('IRenderLocation', location)
+    );
+    container.registerResolver(IViewFactory, viewFactory == null
+      ? noViewFactoryProvider
+      : new ViewFactoryProvider(viewFactory)
+    );
+    container.registerResolver(IAuSlotsInfo, auSlotsInfo == null
+      ? noAuSlotProvider
+      : new InstanceProvider('AuSlotInfo', auSlotsInfo)
+    );
 
     return container;
   }
@@ -552,6 +531,18 @@ export class RenderContext implements ICompiledRenderContext {
 
 class ViewFactoryProvider implements IResolver {
   private factory: IViewFactory | null = null;
+
+  public constructor(
+    /**
+     * The factory instance that this provider will resolves to,
+     * until explicitly overridden by prepare call
+     */
+    factory?: IViewFactory | null
+  ) {
+    if (factory !== void 0) {
+      this.factory = factory;
+    }
+  }
 
   public prepare(factory: IViewFactory): void {
     this.factory = factory;

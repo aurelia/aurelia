@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateTriggerBindingBehaviorRegistration = exports.SelfBindingBehaviorRegistration = exports.AttrBindingBehaviorRegistration = exports.RejectedTemplateControllerRegistration = exports.FulfilledTemplateControllerRegistration = exports.PendingTemplateControllerRegistration = exports.PromiseTemplateControllerRegistration = exports.DefaultCaseRegistration = exports.CaseRegistration = exports.SwitchRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.FrequentMutationsRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.DefaultBindingLanguage = exports.StyleBindingCommandRegistration = exports.ClassBindingCommandRegistration = exports.AttrBindingCommandRegistration = exports.CaptureBindingCommandRegistration = exports.DelegateBindingCommandRegistration = exports.TriggerBindingCommandRegistration = exports.RefBindingCommandRegistration = exports.TwoWayBindingCommandRegistration = exports.ToViewBindingCommandRegistration = exports.OneTimeBindingCommandRegistration = exports.FromViewBindingCommandRegistration = exports.ForBindingCommandRegistration = exports.DefaultBindingCommandRegistration = exports.CallBindingCommandRegistration = exports.ShortHandBindingSyntax = exports.DefaultBindingSyntax = exports.DotSeparatedAttributePatternRegistration = exports.RefAttributePatternRegistration = exports.ColonPrefixedBindAttributePatternRegistration = exports.AtPrefixedTriggerAttributePatternRegistration = exports.SVGAnalyzerRegistration = exports.DefaultComponents = exports.INodeObserverLocatorRegistration = exports.ITemplateCompilerRegistration = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = void 0;
-exports.StandardConfiguration = exports.DefaultRenderers = exports.TextBindingRendererRegistration = exports.StylePropertyBindingRendererRegistration = exports.SetStyleAttributeRendererRegistration = exports.SetClassAttributeRendererRegistration = exports.SetAttributeRendererRegistration = exports.AttributeBindingRendererRegistration = exports.ListenerBindingRendererRegistration = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.ShowRegistration = exports.BlurRegistration = exports.FocusRegistration = exports.PortalRegistration = exports.AuComposeRegistration = exports.AuRenderRegistration = void 0;
+exports.StandardConfiguration = exports.DefaultRenderers = exports.TextBindingRendererRegistration = exports.StylePropertyBindingRendererRegistration = exports.SetStyleAttributeRendererRegistration = exports.SetClassAttributeRendererRegistration = exports.SetAttributeRendererRegistration = exports.AttributeBindingRendererRegistration = exports.ListenerBindingRendererRegistration = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.ShowRegistration = exports.FocusRegistration = exports.PortalRegistration = exports.AuComposeRegistration = exports.AuRenderRegistration = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const attribute_pattern_js_1 = require("./resources/attribute-pattern.js");
 const binding_command_js_1 = require("./resources/binding-command.js");
@@ -15,7 +15,6 @@ const svg_analyzer_js_1 = require("./observation/svg-analyzer.js");
 const attr_js_1 = require("./resources/binding-behaviors/attr.js");
 const self_js_1 = require("./resources/binding-behaviors/self.js");
 const update_trigger_js_1 = require("./resources/binding-behaviors/update-trigger.js");
-const blur_js_1 = require("./resources/custom-attributes/blur.js");
 const focus_js_1 = require("./resources/custom-attributes/focus.js");
 const show_js_1 = require("./resources/custom-attributes/show.js");
 const portal_js_1 = require("./resources/template-controllers/portal.js");
@@ -136,7 +135,6 @@ exports.AuRenderRegistration = au_render_js_1.AuRender;
 exports.AuComposeRegistration = au_compose_js_1.AuCompose;
 exports.PortalRegistration = portal_js_1.Portal;
 exports.FocusRegistration = focus_js_1.Focus;
-exports.BlurRegistration = blur_js_1.Blur;
 exports.ShowRegistration = show_js_1.Show;
 /**
  * Default HTML-specific (but environment-agnostic) resources:
@@ -180,7 +178,6 @@ exports.DefaultResources = [
     exports.AuComposeRegistration,
     exports.PortalRegistration,
     exports.FocusRegistration,
-    exports.BlurRegistration,
     exports.ShowRegistration,
     au_slot_js_1.AuSlot,
 ];

@@ -518,11 +518,11 @@ function connectTo(settings) {
     return function (target) {
         const originalSetup = typeof settings === 'object' && settings.setup
             ? target.prototype[settings.setup]
-            : target.prototype.beforeBind;
+            : target.prototype.binding;
         const originalTeardown = typeof settings === 'object' && settings.teardown
             ? target.prototype[settings.teardown]
-            : target.prototype.afterUnbind;
-        target.prototype[typeof settings === 'object' && settings.setup !== undefined ? settings.setup : 'beforeBind'] = function () {
+            : target.prototype.bound;
+        target.prototype[typeof settings === 'object' && settings.setup !== undefined ? settings.setup : 'binding'] = function () {
             if (typeof settings === 'object' &&
                 typeof settings.onChanged === 'string' &&
                 !(settings.onChanged in this)) {
@@ -551,7 +551,7 @@ function connectTo(settings) {
                 return originalSetup.apply(this, arguments);
             }
         };
-        target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'afterUnbind'] = function () {
+        target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'bound'] = function () {
             if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) {
                 this._stateSubscriptions.forEach((sub) => {
                     if (sub instanceof Subscription && sub.closed === false) {

@@ -97,7 +97,7 @@ function createElementForType(p, Type, props, children) {
     if (!dependencies.includes(Type)) {
         dependencies.push(Type);
     }
-    instructions.push(new HydrateElementInstruction(tagName, void 0, childInstructions, null));
+    instructions.push(new HydrateElementInstruction(tagName, void 0, childInstructions, null, false));
     if (props) {
         Object.keys(props)
             .forEach(to => {

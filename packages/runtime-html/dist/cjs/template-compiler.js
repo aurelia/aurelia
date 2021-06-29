@@ -302,10 +302,7 @@ class TemplateCompiler {
         const nextSibling = el.nextSibling;
         const elName = ((_a = el.getAttribute('as-element')) !== null && _a !== void 0 ? _a : el.nodeName).toLowerCase();
         const elDef = context.el(elName);
-        const attrParser = context.attrParser;
         const exprParser = context.exprParser;
-        const attrMapper = context.attrMapper;
-        const isAttrsOrderSensitive = this.shouldReorderAttrs(el);
         let attrs = el.attributes;
         let instructions;
         let ii = attrs.length;
@@ -332,6 +329,7 @@ class TemplateCompiler {
         let realAttrTarget;
         let realAttrValue;
         let processContentResult = true;
+        let hasContainerless = false;
         if (elName === 'slot') {
             context.root.hasSlot = true;
         }
@@ -347,10 +345,18 @@ class TemplateCompiler {
             attr = attrs[i];
             attrName = attr.name;
             attrValue = attr.value;
-            if (attrName === 'as-element') {
-                continue;
+            switch (attrName) {
+                case 'as-element':
+                case 'containerless':
+                    el.removeAttribute(attrName);
+                    --i;
+                    --ii;
+                    if (!hasContainerless) {
+                        hasContainerless = attrName === 'containerless';
+                    }
+                    continue;
             }
-            attrSyntax = attrParser.parse(attrName, attrValue);
+            attrSyntax = context.attrParser.parse(attrName, attrValue);
             bindingCommand = context.command(attrSyntax);
             if (bindingCommand !== null && bindingCommand.bindingType & 4096 /* IgnoreAttr */) {
                 // when the binding command overrides everything
@@ -467,7 +473,7 @@ class TemplateCompiler {
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLength etc...
-                    attrMapper.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : kernel_1.camelCase(realAttrTarget)));
+                    context.attrMapper.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : kernel_1.camelCase(realAttrTarget)));
                 }
                 // if not a custom attribute + no binding command + not a bindable + not an interpolation
                 // then it's just a plain attribute, do nothing
@@ -504,7 +510,6 @@ class TemplateCompiler {
                     continue;
                 }
             }
-            // old: mutate attr syntax before building instruction
             // reaching here means:
             // + a plain attribute
             // + has binding command
@@ -517,11 +522,11 @@ class TemplateCompiler {
             (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(bindingCommand.build(commandBuildInfo));
         }
         resetCommandBuildInfo();
-        if (isAttrsOrderSensitive && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
+        if (this.shouldReorderAttrs(el) && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
             this.reorder(el, plainAttrInstructions);
         }
         if (elDef !== null) {
-            elementInstruction = new renderer_js_1.HydrateElementInstruction(elDef.name, void 0, (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : kernel_1.emptyArray), null);
+            elementInstruction = new renderer_js_1.HydrateElementInstruction(elDef.name, void 0, (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : kernel_1.emptyArray), null, hasContainerless);
             if (elName === 'au-slot') {
                 const slotName = el.getAttribute('name') || /* name="" is the same with no name */ 'default';
                 const template = context.h('template');
@@ -551,6 +556,8 @@ class TemplateCompiler {
                         needsCompile: false,
                     }),
                 };
+                // todo: shouldn't have to eagerly replace everything like this
+                // this is a leftover refactoring work from the old binder
                 el = this.marker(el, context);
             }
         }
@@ -578,8 +585,10 @@ class TemplateCompiler {
             }
             const mostInnerTemplate = template;
             const childContext = context.child(instructions == null ? [] : [instructions]);
-            shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
-            if (elDef === null || elDef === void 0 ? void 0 : elDef.containerless) {
+            shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
+            // todo: shouldn't have to eagerly replace with a marker like this
+            //       this should be the job of the renderer
+            if (elDef !== null && elDef.containerless) {
                 this.marker(el, context);
             }
             let child;
@@ -748,8 +757,10 @@ class TemplateCompiler {
             if (instructions != null) {
                 context.rows.push(instructions);
             }
-            shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
-            if (elDef === null || elDef === void 0 ? void 0 : elDef.containerless) {
+            shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
+            // todo: shouldn't have to eagerly replace with a marker like this
+            //       this should be the job of the renderer
+            if (elDef !== null && elDef.containerless) {
                 this.marker(el, context);
             }
             if (shouldCompileContent && el.childNodes.length > 0) {

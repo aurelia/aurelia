@@ -77,7 +77,6 @@ export declare const AuRenderRegistration: IRegistry;
 export declare const AuComposeRegistration: IRegistry;
 export declare const PortalRegistration: IRegistry;
 export declare const FocusRegistration: IRegistry;
-export declare const BlurRegistration: IRegistry;
 export declare const ShowRegistration: IRegistry;
 /**
  * Default HTML-specific (but environment-agnostic) resources:

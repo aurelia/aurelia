@@ -90,11 +90,12 @@ export declare class HydrateElementInstruction {
      * Indicates what projections are associated with the element usage
      */
     projections: Record<string, CustomElementDefinition> | null;
+    containerless: boolean;
     get type(): InstructionType.hydrateElement;
-    auSlot?: {
+    auSlot: {
         name: string;
         fallback: CustomElementDefinition;
-    };
+    } | null;
     constructor(
     /**
      * The name of the custom element this instruction is associated with
@@ -107,7 +108,7 @@ export declare class HydrateElementInstruction {
     /**
      * Indicates what projections are associated with the element usage
      */
-    projections: Record<string, CustomElementDefinition> | null);
+    projections: Record<string, CustomElementDefinition> | null, containerless: boolean);
 }
 export declare class HydrateAttributeInstruction {
     res: string;
@@ -229,7 +230,6 @@ export interface ICompliationInstruction {
      * and each value is the definition to render and project
      */
     projections: IProjections | null;
-    surrogates?: boolean;
 }
 export declare const ITemplateCompiler: import("@aurelia/kernel").InterfaceSymbol<ITemplateCompiler>;
 export interface IInstructionTypeClassifier<TType extends string = string> {

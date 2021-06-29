@@ -522,8 +522,6 @@ Object.defineProperty(exports, "NodeObserverLocator", { enumerable: true, get: f
 // UpdateTriggerBindingBehavior,
 // UpdateTriggerableBinding,
 // UpdateTriggerableObserver,
-// Blur,
-// BlurManager,
 // Focus,
 // Portal,
 // PortalTarget,

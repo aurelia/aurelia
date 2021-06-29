@@ -36,6 +36,7 @@ let AuCompose = class AuCompose {
         this.task = null;
         /** @internal */
         this.c = void 0;
+        this.loc = instruction.containerless ? dom_js_1.convertToRenderLocation(this.host) : void 0;
     }
     /** @internal */
     static get inject() {
@@ -109,21 +110,49 @@ let AuCompose = class AuCompose {
     }
     /** @internal */
     compose(context) {
+        let comp;
+        let compositionHost;
+        let removeCompositionHost;
         // todo: when both view model and view are empty
         //       should it throw or try it best to proceed?
         //       current: proceed
         const { view, viewModel, model, initiator } = context.change;
-        const { container, host, $controller, contextFactory } = this;
-        const comp = this.getOrCreateVm(container, viewModel, host);
+        const { container, host, $controller, contextFactory, loc } = this;
+        const srcDef = this.getDef(viewModel);
+        const childContainer = container.createChild();
+        const parentNode = loc == null ? host.parentNode : loc.parentNode;
+        if (srcDef !== null) {
+            if (srcDef.containerless) {
+                throw new Error('Containerless custom element is not supported by <au-compose/>');
+            }
+            if (loc == null) {
+                compositionHost = host;
+                removeCompositionHost = () => {
+                    // This is a normal composition, the content template is removed by deactivation process
+                    // but the host remains
+                };
+            }
+            else {
+                compositionHost = parentNode.insertBefore(this.p.document.createElement(srcDef.name), loc);
+                removeCompositionHost = () => {
+                    compositionHost.remove();
+                };
+            }
+            comp = this.getVm(childContainer, viewModel, compositionHost);
+        }
+        else {
+            compositionHost = loc == null
+                ? host
+                : loc;
+            comp = this.getVm(childContainer, viewModel, compositionHost);
+        }
         const compose = () => {
-            const srcDef = this.getDefinition(comp);
             // custom element based composition
             if (srcDef !== null) {
-                const targetDef = custom_element_js_1.CustomElementDefinition.create(srcDef !== null && srcDef !== void 0 ? srcDef : { name: custom_element_js_1.CustomElement.generateName(), template: view });
-                const controller = controller_js_1.Controller.forCustomElement(null, container, container.createChild(), comp, host, null, 0 /* none */, true, targetDef);
+                const controller = controller_js_1.Controller.forCustomElement(null, container, childContainer, comp, compositionHost, null, 0 /* none */, true, srcDef);
                 return new CompositionController(controller, () => controller.activate(initiator !== null && initiator !== void 0 ? initiator : controller, $controller, 2 /* fromBind */), 
                 // todo: call deactivate on the component view model
-                (deactachInitiator) => controller.deactivate(deactachInitiator !== null && deactachInitiator !== void 0 ? deactachInitiator : controller, $controller, 4 /* fromUnbind */), 
+                (deactachInitiator) => kernel_1.onResolve(controller.deactivate(deactachInitiator !== null && deactachInitiator !== void 0 ? deactachInitiator : controller, $controller, 4 /* fromUnbind */), removeCompositionHost), 
                 // casting is technically incorrect
                 // but it's ignored in the caller anyway
                 (model) => { var _a; return (_a = comp.activate) === null || _a === void 0 ? void 0 : _a.call(comp, model); }, context);
@@ -131,17 +160,24 @@ let AuCompose = class AuCompose {
             else {
                 const targetDef = custom_element_js_1.CustomElementDefinition.create({
                     name: custom_element_js_1.CustomElement.generateName(),
-                    template: view
+                    template: view,
                 });
-                const renderContext = render_context_js_1.getRenderContext(targetDef, container.createChild());
+                const renderContext = render_context_js_1.getRenderContext(targetDef, childContainer);
                 const viewFactory = renderContext.getViewFactory();
                 const controller = controller_js_1.Controller.forSyntheticView(contextFactory.isFirst(context) ? $controller.root : null, renderContext, viewFactory, 2 /* fromBind */, $controller);
                 const scope = this.scopeBehavior === 'auto'
                     ? runtime_1.Scope.fromParent(this.parent.scope, comp)
                     : runtime_1.Scope.create(comp);
-                controller.setHost(host);
+                if (dom_js_1.isRenderLocation(compositionHost)) {
+                    controller.setLocation(compositionHost);
+                }
+                else {
+                    controller.setHost(compositionHost);
+                }
                 return new CompositionController(controller, () => controller.activate(initiator !== null && initiator !== void 0 ? initiator : controller, $controller, 2 /* fromBind */, scope, null), 
                 // todo: call deactivate on the component view model
+                // a difference with composing custom element is that we leave render location/host alone
+                // as they all share the same host/render location
                 (detachInitiator) => controller.deactivate(detachInitiator !== null && detachInitiator !== void 0 ? detachInitiator : controller, $controller, 4 /* fromUnbind */), 
                 // casting is technically incorrect
                 // but it's ignored in the caller anyway
@@ -158,7 +194,7 @@ let AuCompose = class AuCompose {
         }
     }
     /** @internal */
-    getOrCreateVm(container, comp, host) {
+    getVm(container, comp, host) {
         if (comp == null) {
             return new EmptyComponent();
         }
@@ -166,15 +202,19 @@ let AuCompose = class AuCompose {
             return comp;
         }
         const p = this.p;
-        const ep = new kernel_1.InstanceProvider('ElementResolver', host);
-        container.registerResolver(dom_js_1.INode, ep);
-        container.registerResolver(p.Node, ep);
-        container.registerResolver(p.Element, ep);
-        container.registerResolver(p.HTMLElement, ep);
-        return container.invoke(comp);
+        const isLocation = dom_js_1.isRenderLocation(host);
+        const nodeProvider = new kernel_1.InstanceProvider('ElementResolver', isLocation ? null : host);
+        container.registerResolver(dom_js_1.INode, nodeProvider);
+        container.registerResolver(p.Node, nodeProvider);
+        container.registerResolver(p.Element, nodeProvider);
+        container.registerResolver(p.HTMLElement, nodeProvider);
+        container.registerResolver(dom_js_1.IRenderLocation, new kernel_1.InstanceProvider('IRenderLocation', isLocation ? host : null));
+        const instance = container.invoke(comp);
+        container.registerResolver(comp, new kernel_1.InstanceProvider('au-compose.viewModel', instance));
+        return instance;
     }
     /** @internal */
-    getDefinition(component) {
+    getDef(component) {
         const Ctor = (typeof component === 'function'
             ? component
             : component === null || component === void 0 ? void 0 : component.constructor);

@@ -116,11 +116,13 @@ class HydrateElementInstruction {
     /**
      * Indicates what projections are associated with the element usage
      */
-    projections) {
+    projections, containerless) {
         this.res = res;
         this.alias = alias;
         this.instructions = instructions;
         this.projections = projections;
+        this.containerless = containerless;
+        this.auSlot = null;
     }
     get type() { return "ra" /* hydrateElement */; }
 }

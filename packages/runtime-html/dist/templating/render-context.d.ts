@@ -2,7 +2,7 @@ import { INode, INodeSequence, IRenderLocation } from '../dom.js';
 import { IInstruction, ICompliationInstruction } from '../renderer.js';
 import { CustomElementDefinition } from '../resources/custom-element.js';
 import { IViewFactory } from './view.js';
-import { IAuSlotsInfo, IProjections } from '../resources/custom-elements/au-slot.js';
+import { IAuSlotsInfo } from '../resources/custom-elements/au-slot.js';
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
 import type { Constructable, IContainer, IFactory, IResolver, IResourceKind, Key, Resolved, ResourceDefinition, ResourceType, Transformer } from '@aurelia/kernel';
@@ -72,7 +72,7 @@ export interface ICompiledRenderContext extends IRenderContext {
     render(flags: LifecycleFlags, controller: IController, targets: ArrayLike<INode>, templateDefinition: CustomElementDefinition, host: INode | null | undefined): void;
     renderChildren(flags: LifecycleFlags, instructions: readonly IInstruction[], controller: IController, target: unknown): void;
 }
-export declare function getRenderContext(partialDefinition: PartialCustomElementDefinition, container: IContainer, projections?: IProjections | null): IRenderContext;
+export declare function getRenderContext(partialDefinition: PartialCustomElementDefinition, container: IContainer): IRenderContext;
 export declare namespace getRenderContext {
     var count: number;
 }

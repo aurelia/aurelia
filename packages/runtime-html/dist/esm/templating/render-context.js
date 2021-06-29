@@ -8,40 +8,24 @@ import { IAuSlotsInfo } from '../resources/custom-elements/au-slot.js';
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
 const definitionContainerLookup = new WeakMap();
-const definitionContainerProjectionsLookup = new WeakMap();
 const fragmentCache = new WeakMap();
 export function isRenderContext(value) {
     return value instanceof RenderContext;
 }
 let renderContextCount = 0;
-export function getRenderContext(partialDefinition, container, projections) {
+export function getRenderContext(partialDefinition, container) {
     const definition = CustomElementDefinition.getOrCreate(partialDefinition);
     // injectable completely prevents caching, ensuring that each instance gets a new context context
     if (definition.injectable !== null) {
         return new RenderContext(definition, container);
     }
-    if (projections == null) {
-        let containerLookup = definitionContainerLookup.get(definition);
-        if (containerLookup === void 0) {
-            definitionContainerLookup.set(definition, containerLookup = new WeakMap());
-        }
-        let context = containerLookup.get(container);
-        if (context === void 0) {
-            containerLookup.set(container, context = new RenderContext(definition, container));
-        }
-        return context;
+    let containerLookup = definitionContainerLookup.get(definition);
+    if (containerLookup === void 0) {
+        definitionContainerLookup.set(definition, containerLookup = new WeakMap());
     }
-    let containerProjectionsLookup = definitionContainerProjectionsLookup.get(definition);
-    if (containerProjectionsLookup === void 0) {
-        definitionContainerProjectionsLookup.set(definition, containerProjectionsLookup = new WeakMap());
-    }
-    let projectionsLookup = containerProjectionsLookup.get(container);
-    if (projectionsLookup === void 0) {
-        containerProjectionsLookup.set(container, projectionsLookup = new WeakMap());
-    }
-    let context = projectionsLookup.get(projections);
+    let context = containerLookup.get(container);
     if (context === void 0) {
-        projectionsLookup.set(projections, context = new RenderContext(definition, container));
+        containerLookup.set(container, context = new RenderContext(definition, container));
     }
     return context;
 }
@@ -209,6 +193,11 @@ export class RenderContext {
         const p = this.platform;
         const container = this.container.createChild();
         const nodeProvider = new InstanceProvider('ElementProvider', host);
+        // todo:
+        // both node provider and location provider may not be allowed to throw
+        // if there's no value associated, unlike InstanceProvider
+        // reason being some custom element can have `containerless` attribute on them
+        // causing the host to disappear, and replace by a location instead
         container.registerResolver(INode, nodeProvider);
         container.registerResolver(p.Node, nodeProvider);
         container.registerResolver(p.Element, nodeProvider);

@@ -54,7 +54,6 @@ import { SVGAnalyzer } from './observation/svg-analyzer.js';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr.js';
 import { SelfBindingBehavior } from './resources/binding-behaviors/self.js';
 import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger.js';
-import { Blur } from './resources/custom-attributes/blur.js';
 import { Focus } from './resources/custom-attributes/focus.js';
 import { Show } from './resources/custom-attributes/show.js';
 import { Portal } from './resources/template-controllers/portal.js';
@@ -194,7 +193,6 @@ export const AuRenderRegistration = AuRender as unknown as IRegistry;
 export const AuComposeRegistration = AuCompose as unknown as IRegistry;
 export const PortalRegistration = Portal as unknown as IRegistry;
 export const FocusRegistration = Focus as unknown as IRegistry;
-export const BlurRegistration = Blur as unknown as IRegistry;
 export const ShowRegistration = Show as unknown as IRegistry;
 
 /**
@@ -239,7 +237,6 @@ export const DefaultResources = [
   AuComposeRegistration,
   PortalRegistration,
   FocusRegistration,
-  BlurRegistration,
   ShowRegistration,
   AuSlot,
 ];

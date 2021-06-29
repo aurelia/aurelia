@@ -788,7 +788,8 @@ function createCustomElement(
     type: TT.hydrateElement,
     res: tagName,
     instructions: childInstructions as IInstruction[],
-    auSlot: void 0,
+    auSlot: null,
+    containerless: false,
     projections: null,
   };
   const exprParser = ctx.container.get(IExpressionParser);

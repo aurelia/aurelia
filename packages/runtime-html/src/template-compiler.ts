@@ -363,10 +363,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = context.el(elName);
-    const attrParser = context.attrParser;
     const exprParser = context.exprParser;
-    const attrMapper = context.attrMapper;
-    const isAttrsOrderSensitive = this.shouldReorderAttrs(el);
     let attrs = el.attributes;
     let instructions: IInstruction[] | undefined;
     let ii = attrs.length;
@@ -393,6 +390,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let realAttrTarget: string;
     let realAttrValue: string;
     let processContentResult: boolean | undefined | void = true;
+    let hasContainerless = false;
 
     if (elName === 'slot') {
       context.root.hasSlot = true;
@@ -410,10 +408,18 @@ export class TemplateCompiler implements ITemplateCompiler {
       attr = attrs[i];
       attrName = attr.name;
       attrValue = attr.value;
-      if (attrName === 'as-element') {
-        continue;
+      switch (attrName) {
+        case 'as-element':
+        case 'containerless':
+          el.removeAttribute(attrName);
+          --i;
+          --ii;
+          if (!hasContainerless) {
+            hasContainerless = attrName === 'containerless';
+          }
+          continue;
       }
-      attrSyntax = attrParser.parse(attrName, attrValue);
+      attrSyntax = context.attrParser.parse(attrName, attrValue);
 
       bindingCommand = context.command(attrSyntax);
       if (bindingCommand !== null && bindingCommand.bindingType & BindingType.IgnoreAttr) {
@@ -551,7 +557,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             // e.g: colspan -> colSpan
             //      innerhtml -> innerHTML
             //      minlength -> minLength etc...
-            attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
+            context.attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
           ));
         }
         // if not a custom attribute + no binding command + not a bindable + not an interpolation
@@ -595,7 +601,6 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
       }
 
-      // old: mutate attr syntax before building instruction
       // reaching here means:
       // + a plain attribute
       // + has binding command
@@ -612,7 +617,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     resetCommandBuildInfo();
 
-    if (isAttrsOrderSensitive && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
+    if (this.shouldReorderAttrs(el) && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
       this.reorder(el, plainAttrInstructions);
     }
 
@@ -622,6 +627,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         void 0,
         (elBindableInstructions ?? emptyArray) as IInstruction[],
         null,
+        hasContainerless,
       );
 
       if (elName === 'au-slot') {
@@ -653,6 +659,8 @@ export class TemplateCompiler implements ITemplateCompiler {
             needsCompile: false,
           }),
         };
+        // todo: shouldn't have to eagerly replace everything like this
+        // this is a leftover refactoring work from the old binder
         el = this.marker(el, context);
       }
     }
@@ -688,8 +696,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       const mostInnerTemplate = template;
       const childContext = context.child(instructions == null ? [] : [instructions]);
 
-      shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
-      if (elDef?.containerless) {
+      shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
+      // todo: shouldn't have to eagerly replace with a marker like this
+      //       this should be the job of the renderer
+      if (elDef !== null && elDef.containerless) {
         this.marker(el, context);
       }
 
@@ -860,8 +870,10 @@ export class TemplateCompiler implements ITemplateCompiler {
         context.rows.push(instructions);
       }
 
-      shouldCompileContent = elDef === null || !elDef.containerless && processContentResult !== false;
-      if (elDef?.containerless) {
+      shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
+      // todo: shouldn't have to eagerly replace with a marker like this
+      //       this should be the job of the renderer
+      if (elDef !== null && elDef.containerless) {
         this.marker(el, context);
       }
       if (shouldCompileContent && el.childNodes.length > 0) {

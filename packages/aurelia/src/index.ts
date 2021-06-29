@@ -691,9 +691,6 @@ export {
   // UpdateTriggerableBinding,
   // UpdateTriggerableObserver,
 
-  // Blur,
-  // BlurManager,
-
   // Focus,
 
   // Portal,

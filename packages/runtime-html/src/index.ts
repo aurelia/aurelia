@@ -418,11 +418,6 @@ export {
 } from './resources/template-controllers/promise.js';
 
 export {
-  Blur,
-  BlurManager,
-} from './resources/custom-attributes/blur.js';
-
-export {
   Focus,
 } from './resources/custom-attributes/focus.js';
 

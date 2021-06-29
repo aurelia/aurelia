@@ -155,10 +155,8 @@ export class SetPropertyInstruction {
 
 export class HydrateElementInstruction {
   public get type(): InstructionType.hydrateElement { return InstructionType.hydrateElement; }
-  public auSlot?: {
-    name: string;
-    fallback: CustomElementDefinition;
-  };
+
+  public auSlot: { name: string; fallback: CustomElementDefinition } | null = null;
 
   public constructor(
     /**
@@ -174,6 +172,7 @@ export class HydrateElementInstruction {
      * Indicates what projections are associated with the element usage
      */
     public projections: Record<string, CustomElementDefinition> | null,
+    public containerless: boolean,
   ) {
   }
 }
@@ -313,10 +312,6 @@ export interface ICompliationInstruction {
    * and each value is the definition to render and project
    */
   projections: IProjections | null;
-  /*
-   * Indicates whether this compilation should compile root element for surrogate instruction
-   */
-  surrogates?: boolean;
 }
 
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler');

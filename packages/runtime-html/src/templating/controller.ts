@@ -327,7 +327,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     // todo: make projections not influential on the render context construction
-    const context = this.context = getRenderContext(definition, container, hydrationInst?.projections) as RenderContext;
+    const context = this.context = getRenderContext(definition, container) as RenderContext;
     // todo: should register a resolver resolving to a IContextElement/IContextComponent
     //       so that component directly under this template can easily distinguish its owner/parent
     // context.register(Registration.instance(IContextElement))

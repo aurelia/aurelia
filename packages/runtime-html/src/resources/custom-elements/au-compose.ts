@@ -1,7 +1,7 @@
 import { Constructable, IContainer, InstanceProvider, ITask, onResolve, transient } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable.js';
-import { INode } from '../../dom.js';
+import { convertToRenderLocation, INode, IRenderLocation, isRenderLocation } from '../../dom.js';
 import { IPlatform } from '../../platform.js';
 import { HydrateElementInstruction, IInstruction } from '../../renderer.js';
 import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller.js';
@@ -76,6 +76,9 @@ export class AuCompose {
     return this.c;
   }
 
+  /** @internal */
+  private readonly loc: IRenderLocation | undefined;
+
   public constructor(
     private readonly container: IContainer,
     private readonly parent: ISyntheticView | ICustomElementController,
@@ -86,6 +89,7 @@ export class AuCompose {
     private readonly instruction: HydrateElementInstruction,
     private readonly contextFactory: CompositionContextFactory,
   ) {
+    this.loc = instruction.containerless ? convertToRenderLocation(this.host) : void 0;
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
@@ -159,36 +163,64 @@ export class AuCompose {
 
   /** @internal */
   private compose(context: CompositionContext): MaybePromise<ICompositionController> {
+    let comp: IDynamicComponentActivate<unknown>;
+    let compositionHost: HTMLElement | IRenderLocation;
+    let removeCompositionHost: () => void;
     // todo: when both view model and view are empty
     //       should it throw or try it best to proceed?
     //       current: proceed
     const { view, viewModel, model, initiator } = context.change;
-    const { container, host, $controller, contextFactory } = this;
-    const comp = this.getOrCreateVm(container, viewModel, host);
+    const { container, host, $controller, contextFactory, loc } = this;
+    const srcDef = this.getDef(viewModel);
+    const childContainer: IContainer = container.createChild();
+    const parentNode = loc == null ? host.parentNode : loc.parentNode;
+
+    if (srcDef !== null) {
+      if (srcDef.containerless) {
+        throw new Error('Containerless custom element is not supported by <au-compose/>');
+      }
+      if (loc == null) {
+        compositionHost = host;
+        removeCompositionHost = () => {
+          // This is a normal composition, the content template is removed by deactivation process
+          // but the host remains
+        };
+      } else {
+        compositionHost = parentNode!.insertBefore(this.p.document.createElement(srcDef.name), loc);
+        removeCompositionHost = () => {
+          compositionHost.remove();
+        };
+      }
+      comp = this.getVm(childContainer, viewModel, compositionHost);
+    } else {
+      compositionHost = loc == null
+        ? host
+        : loc;
+      comp = this.getVm(childContainer, viewModel, compositionHost);
+    }
     const compose: () => ICompositionController = () => {
-      const srcDef = this.getDefinition(comp);
-      // custom element based composition
+          // custom element based composition
       if (srcDef !== null) {
-        const targetDef = CustomElementDefinition.create(
-          srcDef ?? { name: CustomElement.generateName(), template: view }
-        );
         const controller = Controller.forCustomElement(
           null,
           container,
-          container.createChild(),
+          childContainer,
           comp,
-          host,
+          compositionHost as HTMLElement,
           null,
           LifecycleFlags.none,
           true,
-          targetDef,
+          srcDef,
         );
 
         return new CompositionController(
           controller,
           () => controller.activate(initiator ?? controller, $controller, LifecycleFlags.fromBind),
           // todo: call deactivate on the component view model
-          (deactachInitiator) => controller.deactivate(deactachInitiator ?? controller, $controller, LifecycleFlags.fromUnbind),
+          (deactachInitiator) => onResolve(
+            controller.deactivate(deactachInitiator ?? controller, $controller, LifecycleFlags.fromUnbind),
+            removeCompositionHost
+          ),
           // casting is technically incorrect
           // but it's ignored in the caller anyway
           (model) => comp.activate?.(model) as MaybePromise<void>,
@@ -197,9 +229,9 @@ export class AuCompose {
       } else {
         const targetDef = CustomElementDefinition.create({
           name: CustomElement.generateName(),
-          template: view
+          template: view,
         });
-        const renderContext = getRenderContext(targetDef, container.createChild());
+        const renderContext = getRenderContext(targetDef, childContainer);
         const viewFactory = renderContext.getViewFactory();
         const controller = Controller.forSyntheticView(
           contextFactory.isFirst(context) ? $controller.root : null,
@@ -212,12 +244,18 @@ export class AuCompose {
           ? Scope.fromParent(this.parent.scope, comp)
           : Scope.create(comp);
 
-        controller.setHost(host);
+        if (isRenderLocation(compositionHost)) {
+          controller.setLocation(compositionHost);
+        } else {
+          controller.setHost(compositionHost);
+        }
 
         return new CompositionController(
           controller,
           () => controller.activate(initiator ?? controller, $controller, LifecycleFlags.fromBind, scope, null),
           // todo: call deactivate on the component view model
+          // a difference with composing custom element is that we leave render location/host alone
+          // as they all share the same host/render location
           (detachInitiator) => controller.deactivate(detachInitiator ?? controller, $controller, LifecycleFlags.fromUnbind),
           // casting is technically incorrect
           // but it's ignored in the caller anyway
@@ -236,7 +274,7 @@ export class AuCompose {
   }
 
   /** @internal */
-  private getOrCreateVm(container: IContainer, comp: Constructable | object | undefined, host: HTMLElement): IDynamicComponentActivate<unknown> {
+  private getVm(container: IContainer, comp: Constructable | object | undefined, host: HTMLElement | IRenderLocation): IDynamicComponentActivate<unknown> {
     if (comp == null) {
       return new EmptyComponent();
     }
@@ -245,18 +283,25 @@ export class AuCompose {
     }
 
     const p = this.p;
-    const ep = new InstanceProvider('ElementResolver', host);
+    const isLocation = isRenderLocation(host);
+    const nodeProvider = new InstanceProvider('ElementResolver', isLocation ? null : host as HTMLElement);
+    container.registerResolver(INode, nodeProvider);
+    container.registerResolver(p.Node, nodeProvider);
+    container.registerResolver(p.Element, nodeProvider);
+    container.registerResolver(p.HTMLElement, nodeProvider);
+    container.registerResolver(
+      IRenderLocation,
+      new InstanceProvider('IRenderLocation', isLocation ? host as IRenderLocation : null)
+    );
 
-    container.registerResolver(INode, ep);
-    container.registerResolver(p.Node, ep);
-    container.registerResolver(p.Element, ep);
-    container.registerResolver(p.HTMLElement, ep);
+    const instance = container.invoke(comp);
+    container.registerResolver(comp, new InstanceProvider('au-compose.viewModel', instance));
 
-    return container.invoke(comp);
+    return instance;
   }
 
   /** @internal */
-  private getDefinition(component?: object | Constructable) {
+  private getDef(component?: object | Constructable) {
     const Ctor = (typeof component === 'function'
       ? component
       : component?.constructor) as Constructable;

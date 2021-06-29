@@ -118,10 +118,10 @@ Now, we create a `dog-component.html` file inside of the `components` directory:
 
 ```markup
 <div class="component dog-component" promise.bind="fetchDog()">
-    <span pending>Fetching doggo...</span>
-    <div then.from-view="dog">
+    <template pending>Fetching doggo...</template>
+    <template then.from-view="dog">
         <img src.bind="dog.url" loading="lazy">
-    </div>
+    </template>
 </div>
 ```
 

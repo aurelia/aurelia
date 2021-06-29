@@ -233,7 +233,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public static forCustomAttribute<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(
     root: IAppRoot | null,
-    context: IContainer,
+    contextCt: IContainer,
     viewModel: C,
     host: HTMLElement,
     flags: LifecycleFlags = LifecycleFlags.none,
@@ -246,9 +246,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     const controller = new Controller<C>(
       /* root           */root,
-      /* context ct     */context,
-      // CA does not have its own container
-      /* own ct         */context,
+      /* context ct     */contextCt,
+      /* own ct         */contextCt,
       /* vmKind         */ViewModelKind.customAttribute,
       /* flags          */flags,
       /* definition     */definition,
@@ -273,9 +272,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): ISyntheticView {
     const controller = new Controller(
       /* root           */root,
-      // todo: context container
-      /* container      */context,
-      /* container      */context,
+      /* ctx container  */context,
+      /* own container  */context,
       /* vmKind         */ViewModelKind.synthetic,
       /* flags          */flags,
       /* definition     */null,
@@ -326,11 +324,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    const context = this.context = getRenderContext(definition, container) as RenderContext;
-
-    this.lifecycleHooks = LifecycleHooks.resolve(context);
+    this.context = getRenderContext(definition, container) as RenderContext;
+    this.lifecycleHooks = LifecycleHooks.resolve(container);
     // Support Recursive Components by adding self to own context
-    definition.register(context);
+    definition.register(container);
     if (definition.injectable !== null) {
       container.registerResolver(
         definition.injectable,
@@ -479,7 +476,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.parent = parent;
     if (this.debug && !this.fullyNamed) {
       this.fullyNamed = true;
-      this.logger = this.context!.get(ILogger).root.scopeTo(this.name);
+      this.logger = this.container.get(ILogger).root.scopeTo(this.name);
       this.logger!.trace(`activate()`);
     }
     this.hostScope = hostScope ?? null;
@@ -610,9 +607,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.nodes!.appendTo(this.host!, (this.definition as CustomElementDefinition | null)?.enhance);
         break;
       case MountTarget.shadowRoot: {
-        const styles = this.context!.has(IShadowDOMStyles, false)
-          ? this.context!.get(IShadowDOMStyles)
-          : this.context!.get(IShadowDOMGlobalStyles);
+        const styles = this.container.has(IShadowDOMStyles, false)
+          ? this.container.get(IShadowDOMStyles)
+          : this.container.get(IShadowDOMGlobalStyles);
         styles.applyTo(this.shadowRoot!);
         this.nodes!.appendTo(this.shadowRoot!);
         break;
@@ -639,9 +636,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     // attaching() and child activation run in parallel, and attached() is called when both are finished
     if (this.children !== null) {
-      for (let i = 0; i < this.children.length; ++i) {
+      let i = 0;
+      const children = this.children;
+      for (; i < children.length; ++i) {
         // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
-        void this.children[i].activate(this.$initiator, this as IHydratedController, this.$flags, this.scope, this.hostScope);
+        void children[i].activate(this.$initiator, this as IHydratedController, this.$flags, this.scope, this.hostScope);
       }
     }
 
@@ -654,6 +653,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     parent: IHydratedController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    let i = 0;
     switch ((this.state & ~State.released)) {
       case State.activated:
         // We're fully activated, so proceed with normal deactivation.
@@ -682,13 +682,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // reason: avoid queueing a callback from the mutation observer, caused by the changes of nodes by repeat/if etc...
     // todo: is this appropriate timing?
     if (this.childrenObs.length) {
-      for (let i = 0; i < this.childrenObs.length; ++i) {
+      for (i = 0; i < this.childrenObs.length; ++i) {
         this.childrenObs[i].stop();
       }
     }
 
     if (this.children !== null) {
-      for (let i = 0; i < this.children.length; ++i) {
+      for (i = 0; i < this.children.length; ++i) {
         // Child promise results are tracked by enter/leave combo's
         void this.children[i].deactivate(initiator, this as IHydratedController, flags);
       }
@@ -1729,6 +1729,7 @@ export interface IHydratedCustomAttributeViewModel extends ICustomAttributeViewM
 
 export interface IControllerElementHydrationInstruction {
   readonly projections: IProjections | null;
+  readonly containerless: boolean;
 }
 
 function callDispose(disposable: IDisposable): void {

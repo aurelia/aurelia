@@ -374,8 +374,13 @@ export class RenderContext implements ICompiledRenderContext {
   ): IContainer {
     const p = this.platform;
     const container = this.container.createChild();
-    const nodeProvider: InstanceProvider<INode> = new InstanceProvider('ElementProvider', host);
+    const nodeProvider = new InstanceProvider('ElementProvider', host);
 
+    // todo:
+    // both node provider and location provider may not be allowed to throw
+    // if there's no value associated, unlike InstanceProvider
+    // reason being some custom element can have `containerless` attribute on them
+    // causing the host to disappear, and replace by a location instead
     container.registerResolver(INode, nodeProvider);
     container.registerResolver(p.Node, nodeProvider);
     container.registerResolver(p.Element, nodeProvider);

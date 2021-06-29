@@ -132,7 +132,7 @@ function createElementForType(
     dependencies.push(Type);
   }
 
-  instructions.push(new HydrateElementInstruction(tagName, void 0, childInstructions, null));
+  instructions.push(new HydrateElementInstruction(tagName, void 0, childInstructions, null, false));
 
   if (props) {
     Object.keys(props)

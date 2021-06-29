@@ -156,7 +156,7 @@ export class SetPropertyInstruction {
 export class HydrateElementInstruction {
   public get type(): InstructionType.hydrateElement { return InstructionType.hydrateElement; }
 
-  public auSlot: { name: string; fallback: CustomElementDefinition; } | null = null;
+  public auSlot: { name: string; fallback: CustomElementDefinition } | null = null;
 
   public constructor(
     /**

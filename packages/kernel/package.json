@@ -26,7 +26,6 @@
     "CHANGELOG.md",
     "LICENSE"
   ],
-  "sideEffects": false,
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",

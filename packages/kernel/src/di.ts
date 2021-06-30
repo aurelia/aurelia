@@ -191,15 +191,7 @@ export const DI = {
     const key = Protocol.annotation.keyFor('di:paramtypes');
     return Metadata.getOwn(key, Type);
   },
-  getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[] {
-    const key = Protocol.annotation.keyFor('di:paramtypes');
-    let annotationParamtypes = Metadata.getOwn(key, Type);
-    if (annotationParamtypes === void 0) {
-      Metadata.define(key, annotationParamtypes = [], Type);
-      Protocol.annotation.appendTo(Type, key);
-    }
-    return annotationParamtypes;
-  },
+  getOrCreateAnnotationParamTypes: getOrCreateAnnotationParamTypes,
   getDependencies: getDependencies,
   /**
    * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
@@ -250,7 +242,7 @@ export const DI = {
       if (target == null || new.target !== undefined) {
         throw new Error(`No registration for interface: '${Interface.friendlyName}'`); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
       }
-      const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+      const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
       annotationParamtypes[index] = Interface;
     };
     Interface.$isInterface = true;
@@ -271,20 +263,20 @@ export const DI = {
   inject(...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void {
     return function (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
-        const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+        const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
         const dep = dependencies[0];
         if (dep !== void 0) {
           annotationParamtypes[descriptor] = dep;
         }
       } else if (key) { // It's a property decorator. Not supported by the container without plugins.
-        const annotationParamtypes = DI.getOrCreateAnnotationParamTypes((target as unknown as { constructor: Injectable }).constructor);
+        const annotationParamtypes = getOrCreateAnnotationParamTypes((target as unknown as { constructor: Injectable }).constructor);
         const dep = dependencies[0];
         if (dep !== void 0) {
           annotationParamtypes[key as number] = dep;
         }
       } else if (descriptor) { // It's a function decorator (not a Class constructor)
         const fn = descriptor.value;
-        const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(fn);
+        const annotationParamtypes = getOrCreateAnnotationParamTypes(fn);
         let dep: Key;
         for (let i = 0; i < dependencies.length; ++i) {
           dep = dependencies[i];
@@ -293,7 +285,7 @@ export const DI = {
           }
         }
       } else { // It's a class decorator.
-        const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+        const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
         let dep: Key;
         for (let i = 0; i < dependencies.length; ++i) {
           dep = dependencies[i];
@@ -429,6 +421,16 @@ function getDependencies(Type: Constructable | Injectable): Key[] {
   }
 
   return dependencies;
+}
+
+function getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[] {
+  const key = Protocol.annotation.keyFor('di:paramtypes');
+  let annotationParamtypes = Metadata.getOwn(key, Type);
+  if (annotationParamtypes === void 0) {
+    Metadata.define(key, annotationParamtypes = [], Type);
+    Protocol.annotation.appendTo(Type, key);
+  }
+  return annotationParamtypes;
 }
 
 export const IContainer = DI.createInterface<IContainer>('IContainer');
@@ -620,6 +622,7 @@ export function ignore(target: Injectable, property?: string | number, descripto
 }
 ignore.$isResolver = true;
 ignore.resolve = () => undefined;
+
 export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
   const instance = createNewInstance(key, handler, requestor);
   const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key), instance);
@@ -631,28 +634,7 @@ export const newInstanceForScope = createResolver((key: any, handler: IContainer
 export const newInstanceOf = createResolver((key: any, handler: IContainer, requestor: IContainer) => createNewInstance(key, handler, requestor));
 
 function createNewInstance(key: any, handler: IContainer, requestor: IContainer) {
-  const resolver = handler.getResolver(key, false);
-  let factory: IFactory<typeof key> | null;
-  if (typeof resolver?.getFactory === 'function') {
-    factory = resolver.getFactory(handler);
-      // 2 scenarios:
-      //
-      // 1. if construct is invoked with handler
-      // then anew instance of something registered from parent
-      // will not have information of some dependencies registered in child, even child is the requestor
-      //
-      // 2. if construct is invoked with requestor
-      // then a new instance of something registered from parent
-      // will have the information of something registered in child shadowing the samething registered in parent
-      //
-      // choice: No. (2), as it makes more sense in terms of WYSIWYG
-      //         and if anyone wants to avoid shadowing behavior, they can use parent() resolver
-      //         todo: implement parent resolver
-    if (factory != null) {
-      return factory.construct(requestor);
-    }
-  }
-  return handler.getFactory(key).construct(handler);
+  return handler.getFactory(key).construct(requestor);
 }
 
 /** @internal */

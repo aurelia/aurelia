@@ -1,5 +1,7 @@
 import {
+  Constructable,
   DI,
+  IContainer,
   inject,
   newInstanceForScope,
   newInstanceOf,
@@ -573,7 +575,15 @@ describe('1-kernel/di.spec.ts/@newInstanceOf', function () {
     assert.throws(() => container.get(newInstanceOf(I)), `No registration for interface: 'I'`);
   });
 
-  it('creates new instance everytime', function () {
+  it('throws when there is NOT factory registration for an instance', function () {
+    const container = DI.createContainer();
+    const I = DI.createInterface('I');
+    class IImpl {}
+    container.register(Registration.singleton(I, IImpl));
+    assert.throws(() => container.get(newInstanceOf(I)), `No registration for interface: 'I'`);
+  });
+
+  it('does not throw when there is factory registration for an instance', function () {
     const container = DI.createContainer();
     const I = DI.createInterface('I');
     let iCallCount = 0;
@@ -582,14 +592,21 @@ describe('1-kernel/di.spec.ts/@newInstanceOf', function () {
         iCallCount++;
       }
     }
-    container.register(Registration.singleton(I, IImpl));
-    const instance = container.get(newInstanceOf(I));
-    assert.strictEqual(iCallCount, 1);
-    assert.instanceOf(instance, IImpl);
+    container.registerFactory(I as unknown as Constructable, {
+      Type: IImpl,
+      construct(c: IContainer) {
+        return c.getFactory(this.Type).construct(c);
+      },
+      registerTransformer() {
+        return false;
+      }
+    });
 
+    const instance1 = container.get(newInstanceOf(I));
+    assert.strictEqual(iCallCount, 1);
     const instance2 = container.get(newInstanceOf(I));
     assert.strictEqual(iCallCount, 2);
-    assert.instanceOf(instance2, IImpl);
+    assert.notStrictEqual(instance1, instance2);
   });
 
   it('resolves dependencies from requestor', function () {
@@ -607,18 +624,41 @@ describe('1-kernel/di.spec.ts/@newInstanceOf', function () {
     }
     let parentDepCallCount = 0;
     let childDepCallCount = 0;
-    container.register(Registration.singleton(I, IImpl));
-    container.register(Registration.singleton(IDep, class {
-      public constructor() {
-        parentDepCallCount++;
+    container.registerFactory(I as unknown as Constructable, {
+      Type: IImpl,
+      construct(c: IContainer) {
+        return c.getFactory(this.Type).construct(c);
+      },
+      registerTransformer() {
+        return false;
       }
-    }));
+    });
+
+    container.registerFactory(IDep as unknown as Constructable, {
+      Type: class {
+        public constructor() {
+          parentDepCallCount++;
+        }
+      },
+      construct(c: IContainer) {
+        return c.getFactory(this.Type).construct(c);
+      },
+      registerTransformer() {}
+    });
     const childContainer = container.createChild();
-    childContainer.register(Registration.singleton(IDep, class {
+    class DepImpl {
       public constructor() {
         childDepCallCount++;
       }
-    }));
+    }
+    childContainer.register(Registration.singleton(IDep, DepImpl));
+    childContainer.registerFactory(IDep as unknown as Constructable, {
+      Type: DepImpl,
+      construct(c: IContainer) {
+        return c.getFactory(this.Type).construct(c);
+      },
+      registerTransformer() {}
+    });
     const instance = childContainer.get(newInstanceOf(I));
     assert.strictEqual(iCallCount, 1);
     assert.strictEqual(parentDepCallCount, 0);
@@ -645,6 +685,15 @@ describe('1-kernel/di.spec.ts/@newInstanceForScope', function () {
       }
     }
     container.register(Registration.singleton(I, IImpl));
+    container.registerFactory(I as unknown as Constructable, {
+      Type: IImpl,
+      construct(c: IContainer) {
+        return c.getFactory(this.Type).construct(c);
+      },
+      registerTransformer() {
+        return false;
+      }
+    });
     const childContainer = container.createChild();
     const instance = childContainer.get(newInstanceForScope(I));
     assert.strictEqual(iCallCount, 1);

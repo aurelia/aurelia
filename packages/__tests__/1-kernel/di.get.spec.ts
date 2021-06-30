@@ -1,4 +1,4 @@
-import { all, DI, IContainer, inject, lazy, optional, Registration, singleton } from '@aurelia/kernel';
+import { all, Constructable, DI, factory, IContainer, inject, IResolvedFactory, lazy, newInstanceForScope, newInstanceOf, optional, Registration, singleton } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('DI.get', function () {
@@ -542,5 +542,224 @@ describe('DI.get', function () {
         assert.deepStrictEqual(container.get(Foo).test, 'test');
       });
     });
+  });
+
+  describe('@newInstanceOf', function () {
+    it('throws when there is no registration for interface', function () {
+      const container = DI.createContainer();
+      const I = DI.createInterface('I');
+      assert.throws(() => container.get(newInstanceOf(I)), `No registration for interface: 'I'`);
+    });
+
+    it('throws when there is NOT factory registration for an instance', function () {
+      const container = DI.createContainer();
+      const I = DI.createInterface('I');
+      class IImpl {}
+      container.register(Registration.singleton(I, IImpl));
+      assert.throws(() => container.get(newInstanceOf(I)), `No registration for interface: 'I'`);
+    });
+
+    it('does not throw when there is factory registration for an instance', function () {
+      const container = DI.createContainer();
+      const I = DI.createInterface('I');
+      let iCallCount = 0;
+      class IImpl {
+        public constructor() {
+          iCallCount++;
+        }
+      }
+      container.registerFactory(I as unknown as Constructable, {
+        Type: IImpl,
+        construct(c: IContainer) {
+          return c.getFactory(this.Type).construct(c);
+        },
+        registerTransformer() {
+          return false;
+        }
+      });
+
+      const instance1 = container.get(newInstanceOf(I));
+      assert.strictEqual(iCallCount, 1);
+      const instance2 = container.get(newInstanceOf(I));
+      assert.strictEqual(iCallCount, 2);
+      assert.notStrictEqual(instance1, instance2);
+    });
+
+    it('resolves dependencies from requestor', function () {
+      const container = DI.createContainer();
+      const I = DI.createInterface('I');
+      const IDep = DI.createInterface('IDep');
+      let iCallCount = 0;
+      class IImpl {
+        public static get inject() {
+          return [IDep];
+        }
+        public constructor() {
+          iCallCount++;
+        }
+      }
+      let parentDepCallCount = 0;
+      let childDepCallCount = 0;
+      container.registerFactory(I as unknown as Constructable, {
+        Type: IImpl,
+        construct(c: IContainer) {
+          return c.getFactory(this.Type).construct(c);
+        },
+        registerTransformer() {
+          return false;
+        }
+      });
+
+      container.registerFactory(IDep as unknown as Constructable, {
+        Type: class {
+          public constructor() {
+            parentDepCallCount++;
+          }
+        },
+        construct(c: IContainer) {
+          return c.getFactory(this.Type).construct(c);
+        },
+        registerTransformer() {/* empty */}
+      });
+      const childContainer = container.createChild();
+      class DepImpl {
+        public constructor() {
+          childDepCallCount++;
+        }
+      }
+      childContainer.register(Registration.singleton(IDep, DepImpl));
+      childContainer.registerFactory(IDep as unknown as Constructable, {
+        Type: DepImpl,
+        construct(c: IContainer) {
+          return c.getFactory(this.Type).construct(c);
+        },
+        registerTransformer() {/* empty */}
+      });
+      const instance = childContainer.get(newInstanceOf(I));
+      assert.strictEqual(iCallCount, 1);
+      assert.strictEqual(parentDepCallCount, 0);
+      assert.strictEqual(childDepCallCount, 1);
+      assert.instanceOf(instance, IImpl);
+    });
+  });
+
+  describe('@newInstanceForScope', function () {
+    // the following test tests a more common, expected scenario,
+    // where some instance is scoped to a child container,
+    // instead of the container registering the interface itself.
+    //
+    // for the container that registers the interface itself,
+    // the first registration is always a different resolver,
+    // with the actual resolver that resolves the instance of the interface
+    it('creates new instance once in child container', function () {
+      const container = DI.createContainer();
+      const I = DI.createInterface('I');
+      let iCallCount = 0;
+      class IImpl {
+        public constructor() {
+          iCallCount++;
+        }
+      }
+      container.register(Registration.singleton(I, IImpl));
+      container.registerFactory(I as unknown as Constructable, {
+        Type: IImpl,
+        construct(c: IContainer) {
+          return c.getFactory(this.Type).construct(c);
+        },
+        registerTransformer() {
+          return false;
+        }
+      });
+      const childContainer = container.createChild();
+      const instance = childContainer.get(newInstanceForScope(I));
+      assert.strictEqual(iCallCount, 1);
+      assert.instanceOf(instance, IImpl);
+
+      const instance2 = childContainer.get(I);
+      assert.strictEqual(iCallCount, 1);
+      assert.instanceOf(instance2, IImpl);
+      assert.strictEqual(instance, instance2);
+    });
+  });
+
+  describe('@factory', function () {
+    it('resolves different factories', function () {
+      const container = DI.createContainer();
+      const I = DI.createInterface('I');
+      const resolver = factory(I);
+      const factory1 = container.get(resolver);
+      const factory2 = container.get(resolver);
+
+      assert.notStrictEqual(factory1, factory2);
+    });
+
+    it('invokes new instance when calling the factory', function () {
+      const container = DI.createContainer();
+      const f  = container.get(factory(class MyClass {
+        public constructor() {
+          callCount++;
+        }
+      }));
+      let callCount = 0;
+      const instance1 = f();
+      const instance2 = f();
+      assert.strictEqual(callCount, 2);
+      assert.notStrictEqual(instance1, instance2);
+    });
+
+    it('resolves with decorator usages', function () {
+      const container = DI.createContainer();
+      class MyClass {
+        public constructor() {
+          callCount++;
+        }
+      }
+      class MyClassBuilder {
+        public constructor(
+          @factory(MyClass) public readonly myClassFactory: IResolvedFactory<MyClass>
+        ) {}
+
+        public build() {
+          return this.myClassFactory();
+        }
+      }
+      let callCount = 0;
+      const builder = container.get(MyClassBuilder);
+      const instance1 = builder.build();
+      const instance2 = builder.build();
+      assert.strictEqual(callCount, 2);
+      assert.notStrictEqual(instance1, instance2);
+    });
+
+    it('passes the dynamic parameters', function () {
+      const container = DI.createContainer();
+      class MyClass {
+        public params: unknown[];
+        public constructor(...params: unknown[]) {
+          callCount++;
+          this.params = params;
+        }
+      }
+      class MyClassBuilder {
+        public constructor(
+          @factory(MyClass) public readonly myClassFactory: IResolvedFactory<MyClass>
+        ) {}
+
+        public build(...args: unknown[]) {
+          return this.myClassFactory(...args);
+        }
+      }
+      let callCount = 0;
+      const builder = container.get(MyClassBuilder);
+      const instance1 = builder.build(1, 2, { a: 1, b: 2 });
+      const instance2 = builder.build(3, 4, { a: 3, b: 4 });
+      assert.strictEqual(callCount, 2);
+      assert.notStrictEqual(instance1, instance2);
+      assert.deepStrictEqual(instance1.params, [1, 2, { a: 1, b: 2 }]);
+      assert.deepStrictEqual(instance2.params, [3, 4, { a: 3, b: 4 }]);
+    });
+
+    // guess we can add a test for factory resolving to a factory resolving to a factory
+    // to see if things work smoothly... TODO?
   });
 });

@@ -40,6 +40,9 @@ export interface IFactory<T extends Constructable = any> {
 
 export interface IServiceLocator {
   has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
+  get<K extends Key>(key: INewInstanceResolver<K>): Resolved<K>;
+  get<K extends Key>(key: ILazyResolver<K>): IResolvedLazy<K>;
+  get<K extends Key>(key: IFactoryResolver<K>): IResolvedFactory<K>;
   get<K extends Key>(key: K): Resolved<K>;
   get<K extends Key>(key: Key): Resolved<K>;
   get<K extends Key>(key: K | Key): Resolved<K>;
@@ -584,6 +587,12 @@ export const all = createAllResolver(
 export const lazy = createResolver((key: Key, handler: IContainer, requestor: IContainer) =>  {
   return () => requestor.get(key);
 });
+export type ILazyResolver<K = any> = IResolver<K>
+  // type only hack
+  & { __isLazy: undefined }
+  // any is needed for decorator usages
+  & ((...args: unknown[]) => any);
+export type IResolvedLazy<K> = () => Resolved<K>;
 
 /**
  * Allows you to optionally inject a dependency depending on whether the [[`Key`]] is present, for example
@@ -623,15 +632,33 @@ export function ignore(target: Injectable, property?: string | number, descripto
 ignore.$isResolver = true;
 ignore.resolve = () => undefined;
 
+export const factory = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
+  return (...args: unknown[]) => handler.getFactory(key).construct(requestor, args);
+}) as <K>(key: K) => IFactoryResolver<K>;
+export type IFactoryResolver<K = any> = IResolver<K>
+  // type only hack
+  & { __isFactory: undefined }
+  // any is needed for decorator usage
+  & ((...args: unknown[]) => any);
+export type IResolvedFactory<K> = (...args: unknown[]) => Resolved<K>;
+
 export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
   const instance = createNewInstance(key, handler, requestor);
   const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key), instance);
   requestor.registerResolver(key, instanceProvider);
 
   return instance;
-});
+}) as <K>(key: K) => INewInstanceResolver<K>;
 
-export const newInstanceOf = createResolver((key: any, handler: IContainer, requestor: IContainer) => createNewInstance(key, handler, requestor));
+export const newInstanceOf = createResolver(
+  (key: any, handler: IContainer, requestor: IContainer) => createNewInstance(key, handler, requestor)
+) as <K>(key: K) => INewInstanceResolver<K>;
+
+export type INewInstanceResolver<T> = {
+  __newInstance: undefined;
+  // any is needed for decorator usage
+  (...args: unknown[]): any;
+};
 
 function createNewInstance(key: any, handler: IContainer, requestor: IContainer) {
   return handler.getFactory(key).construct(requestor);

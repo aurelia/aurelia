@@ -11,7 +11,7 @@ A dependency injection container is a tool that can simplify the process of deco
 | container.registerTransient\(key: any, fn?: Function\) | Registration.transient\(key: any, value: Function\): IRegistration | - |
 | container.registerInstance\(key: any, instance?: any\) | Registration.transient\(key: any, value: any\): IRegistration | - |
 | container.registerHandler\(key, handler\) | Registration.callback\(key: any, value: ResolveCallback\): IRegistration | - |
-| container.registerResolver\(key: any, resolver: Resolver\) | **✗** | - |
+| container.registerResolver\(key: any, resolver: Resolver\) | container.registerResolver\(key: any, resolver: IResolver\) | - |
 | container.autoRegister\(key: any, fn?: Function | **✗** | - |
 | **✗** | Registration.alias\(originalKey: any, aliasKey: any\): IRegistration | - |
 
@@ -33,7 +33,7 @@ A dependency injection container is a tool that can simplify the process of deco
 
 ```typescript
 // Aurelia 2
-import { inject, lazy, all, optional, newInstanceOf } from "@aurelia/kernel";
+import { inject, lazy, all, optional, newInstanceOf, factory } from "@aurelia/kernel";
 ```
 
 | Aurelia 1 | Aurelia 2 | Description |
@@ -44,7 +44,7 @@ import { inject, lazy, all, optional, newInstanceOf } from "@aurelia/kernel";
 | @inject\(All.of\(MyService\)\) | @inject\(all\(MyService\)\) | - |
 | @inject\(Optional.of\(MyService\)\) | @inject\(optional\(MyService\)\) | - |
 | @inject\(Parent.of\(MyService\)\) | **✗** | - |
-| @inject\(Factory.of\(MyService\)\) | **✗** | - |
-| @inject\(NewInstance.of\(MyService\)\) | @inject\(newInstanceOf\(MyService\)\) | - |
-| **✗** | @inject\(newInstanceForScope\(MyService\)\) | - |
+| @inject\(Factory.of\(MyService\)\) | @inject\(factory\(MyService\)\) | - |
+| @inject\(NewInstance.of\(MyService\)\) | @inject\(newInstanceForScope\(MyService\)\) | - |
+| **✗** | @inject\(newInstanceOf\(MyService\)\) | - |
 

@@ -20,22 +20,22 @@ class ConsoleMock implements IConsoleLike {
 
   public debug(...args: unknown[]): void {
     this.calls.push(['debug', args]);
-    console.debug(...args);
+    // console.debug(...args);
   }
 
   public info(...args: unknown[]): void {
     this.calls.push(['info', args]);
-    console.info(...args);
+    // console.info(...args);
   }
 
   public warn(...args: unknown[]): void {
     this.calls.push(['warn', args]);
-    console.warn(...args);
+    // console.warn(...args);
   }
 
   public error(...args: unknown[]): void {
     this.calls.push(['error', args]);
-    console.error(...args);
+    // console.error(...args);
   }
 }
 

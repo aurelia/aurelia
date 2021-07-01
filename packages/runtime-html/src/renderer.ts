@@ -297,6 +297,7 @@ export class AttributeBindingInstruction {
   ) {}
 }
 
+export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler');
 export interface ITemplateCompiler {
   compile(
     partialDefinition: PartialCustomElementDefinition,
@@ -313,8 +314,6 @@ export interface ICompliationInstruction {
    */
   projections: IProjections | null;
 }
-
-export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler');
 
 export interface IInstructionTypeClassifier<TType extends string = string> {
   instructionType: TType;

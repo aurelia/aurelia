@@ -10,7 +10,7 @@ Sometimes you will see the following template in an Aurelia application:
 
 Aurelia understands that `value.bind="message"` means `value.two-way="message"`, and later creates a two way binding between view model `message` property, and input `value` property. How does Aurelia know this?
 
-By default, Aurelia is taught how to interpret a `bind` binding command on a property of an element via a Attribute Syntax Transformer. Application can also tap into this class to teach Aurelia some extra knowledge so that it understands more than just `value.bind` on an `<input/>` element.
+By default, Aurelia is taught how to interpret a `bind` binding command on a property of an element via a Attribute Syntax Mapper. Application can also tap into this class to teach Aurelia some extra knowledge so that it understands more than just `value.bind` on an `<input/>` element.
 
 ## Examples
 
@@ -39,25 +39,25 @@ should be treated as:
 
 In the next section, we will look into how to teach Aurelia such knowledge.
 
-## Using the Attribute Syntax Transformer
+## Using the Attribute Syntax Mapper
 
-As mentioned earlier, the Attribute Syntax Transformer will be used to transform `value.bind` into `value.two-way`. Every Aurelia application uses a single instance of this class. The instance can be retrieved via the injection of interface `IAttrSyntaxTransformer`, like the following example:
+As mentioned earlier, the Attribute Syntax Mapper will be used to map `value.bind` into `value.two-way`. Every Aurelia application uses a single instance of this class. The instance can be retrieved via the injection of interface `IAttrMapper`, like the following example:
 
 ```typescript
-import { inject, IAttrSyntaxTransformer } from '@aurelia/runtime-html';
+import { inject, IAttrMapper } from '@aurelia/runtime-html';
 
-@inject(IAttrSyntaxTransformer)
+@inject(IAttrMapper)
 export class MyCustomElement {
-  constructor(attrTransformer) {
-    // do something with the attrTransformer
+  constructor(attrMapper) {
+    // do something with the attr mapper
   }
 }
 ```
 
-After grabbing the `IAttrSyntaxTransformer` instance, we can use the method `useTwoWay(fn)` of it to extend its knowledge. Following is an example of teaching it that the `bind` command on `value` property of the custom input elements above should be transformed to `two-way`:
+After grabbing the `IAttrMapper` instance, we can use the method `useTwoWay(fn)` of it to extend its knowledge. Following is an example of teaching it that the `bind` command on `value` property of the custom input elements above should be mapped to `two-way`:
 
 ```typescript
-attrTransformer.useTwoWay(function(element, property) {
+attrMapper.useTwoWay(function(element, property) {
   switch (element.tagName) {
     // <fast-text-field value.bind="message">
     case 'FAST-TEXT-FIELD': return property === 'value';
@@ -65,16 +65,16 @@ attrTransformer.useTwoWay(function(element, property) {
     case 'ION-INPUT': return property === 'value';
     // <paper-input value.bind="message">
     case 'PAPER-INPUT': return property === 'value';
-    // let other two way transformer check the validity
+    // let other two way mapper check the validity
     default:
       return false;
   }
 })
 ```
 
-## Combining the attribute syntax transformer with the node observer locator
+## Combining the attribute syntax mapper with the node observer locator
 
-Teaching Aurelia to transform `value.bind` to `value.two-way` is the first half of the story. The second half is about how we can teach Aurelia to observe the `value` property for changes on those custom input elements. We can do this via the Node Observer Locator. Every Aurelia application uses a single instance of this class, and this instance can be retrieved via the injection of interface `INodeObserverLocator` like the following example:
+Teaching Aurelia to map `value.bind` to `value.two-way` is the first half of the story. The second half is about how we can teach Aurelia to observe the `value` property for changes on those custom input elements. We can do this via the Node Observer Locator. Every Aurelia application uses a single instance of this class, and this instance can be retrieved via the injection of interface `INodeObserverLocator` like the following example:
 
 ```typescript
 import { inject, INodeObserverLocator } from '@aurelia/runtime-html';
@@ -121,14 +121,14 @@ nodeObserverLocator.useConfig({
 Combining the examples in the two sections above into some more complete code block example, for [Microsoft FAST components](https://explore.fast.design/components/fast-text-field):
 
 ```typescript
-import { inject, IContainer, IAttrSyntaxTransformer, INodeObserverLocator, AppTask, Aurelia } from 'aurelia';
+import { inject, IContainer, IAttrMapper, INodeObserverLocator, AppTask, Aurelia } from 'aurelia';
 
 Aurelia
   .register(
     AppTask.beforeCreate(IContainer, container => {
-      const attrSyntaxTransformer = container.get(IAttrSyntaxTransformer);
+      const attrMapper = container.get(IAttrMapper);
       const nodeObserverLocator = container.get(INodeObserverLocator);
-      attrSyntaxTransformer.useTwoWay((el, property) => {
+      attrMapper.useTwoWay((el, property) => {
         switch (el.tagName) {
           case 'FAST-TEXT-FIELD': return property === 'value';
           case 'FAST-TEXT-AREA': return property === 'value';
@@ -160,4 +160,3 @@ And with the above, your Aurelia application will get two way binding flow seaml
 <fast-text-area value.bind="description"></fast-text-area>
 <fast-slider value.bind="fontSize"></fast-slider>
 ```
-

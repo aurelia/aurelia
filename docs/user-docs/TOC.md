@@ -85,6 +85,7 @@
   * [DOM Style Injection](developer-guides/scenarios/dom-style-injection.md)
   * [Markdown Integration](developer-guides/scenarios/markdown-integration.md)
 * [Extending templating syntax](developer-guides/extending-templating-syntax.md)
+* [Template Compiler Hooks](developer-guides/template-compiler-hooks.md)
 * [Components revisited](developer-guides/components-revisited.md)
 
 ## Tutorials

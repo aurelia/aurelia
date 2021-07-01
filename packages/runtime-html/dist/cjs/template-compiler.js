@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TemplateCompiler = void 0;
+exports.templateCompilerHooks = exports.TemplateCompilerHooks = exports.ITemplateCompilerHooks = exports.BindablesInfo = exports.TemplateCompiler = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const runtime_1 = require("@aurelia/runtime");
 const attribute_mapper_js_1 = require("./attribute-mapper.js");
@@ -13,11 +13,13 @@ const custom_attribute_js_1 = require("./resources/custom-attribute.js");
 const custom_element_js_1 = require("./resources/custom-element.js");
 const binding_command_js_1 = require("./resources/binding-command.js");
 const utilities_html_js_1 = require("./utilities-html.js");
+const utilities_di_js_1 = require("./utilities-di.js");
 class TemplateCompiler {
     static register(container) {
         return kernel_1.Registration.singleton(renderer_js_1.ITemplateCompiler, this).register(container);
     }
     compile(partialDefinition, container, compilationInstruction) {
+        var _a, _b;
         const definition = custom_element_js_1.CustomElementDefinition.getOrCreate(partialDefinition);
         if (definition.template === null || definition.template === void 0) {
             return definition;
@@ -32,19 +34,27 @@ class TemplateCompiler {
             : definition.template;
         const isTemplateElement = template.nodeName === 'TEMPLATE' && template.content != null;
         const content = isTemplateElement ? template.content : template;
+        const hooks = container.get(utilities_di_js_1.allResources(exports.ITemplateCompilerHooks));
+        const ii = hooks.length;
+        let i = 0;
+        if (ii > 0) {
+            while (ii > i) {
+                (_b = (_a = hooks[i]).beforeCompile) === null || _b === void 0 ? void 0 : _b.call(_a, template);
+                ++i;
+            }
+        }
         if (template.hasAttribute(localTemplateIdentifier)) {
             throw new Error('The root cannot be a local template itself.');
         }
         this.local(content, context);
         this.node(content, context);
-        const surrogates = isTemplateElement
-            ? this.surrogate(template, context)
-            : kernel_1.emptyArray;
         return custom_element_js_1.CustomElementDefinition.create({
             ...partialDefinition,
             name: partialDefinition.name || custom_element_js_1.CustomElement.generateName(),
             instructions: context.rows,
-            surrogates,
+            surrogates: isTemplateElement
+                ? this.surrogate(template, context)
+                : kernel_1.emptyArray,
             template,
             hasSlots: context.hasSlot,
             needsCompile: false,
@@ -55,9 +65,7 @@ class TemplateCompiler {
         var _a;
         const instructions = [];
         const attrs = el.attributes;
-        const attrParser = context.attrParser;
         const exprParser = context.exprParser;
-        const attrMapper = context.attrMapper;
         let ii = attrs.length;
         let i = 0;
         let attr;
@@ -79,7 +87,7 @@ class TemplateCompiler {
             attr = attrs[i];
             attrName = attr.name;
             attrValue = attr.value;
-            attrSyntax = attrParser.parse(attrName, attrValue);
+            attrSyntax = context.attrParser.parse(attrName, attrValue);
             realAttrTarget = attrSyntax.target;
             realAttrValue = attrSyntax.rawValue;
             if (invalidSurrogateAttribute[realAttrTarget]) {
@@ -166,7 +174,7 @@ class TemplateCompiler {
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLength etc...
-                    attrMapper.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(realAttrTarget)));
+                    context.attrMapper.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : kernel_1.camelCase(realAttrTarget)));
                 }
                 else {
                     switch (attrName) {
@@ -1270,6 +1278,7 @@ class BindablesInfo {
         return info;
     }
 }
+exports.BindablesInfo = BindablesInfo;
 var LocalTemplateBindableAttributes;
 (function (LocalTemplateBindableAttributes) {
     LocalTemplateBindableAttributes["property"] = "property";
@@ -1311,4 +1320,53 @@ function getBindingMode(bindable) {
             return runtime_1.BindingMode.default;
     }
 }
+/**
+ * An interface describing the hooks a compilation process should invoke.
+ *
+ * A feature available to the default template compiler.
+ */
+exports.ITemplateCompilerHooks = kernel_1.DI.createInterface('ITemplateCompilerHooks');
+const typeToHooksDefCache = new WeakMap();
+const compilerHooksResourceName = kernel_1.Protocol.resource.keyFor('compiler-hooks');
+exports.TemplateCompilerHooks = Object.freeze({
+    name: compilerHooksResourceName,
+    /**
+     * @param def - Placeholder for future extensions. Currently always an empty object.
+     */
+    define(Type) {
+        let def = typeToHooksDefCache.get(Type);
+        if (def === void 0) {
+            typeToHooksDefCache.set(Type, def = new TemplateCompilerHooksDefinition(Type));
+            kernel_1.Metadata.define(compilerHooksResourceName, def, Type);
+            kernel_1.Protocol.resource.appendTo(Type, compilerHooksResourceName);
+        }
+        return Type;
+    }
+});
+class TemplateCompilerHooksDefinition {
+    constructor(Type) {
+        this.Type = Type;
+    }
+    get name() { return ''; }
+    register(c) {
+        c.register(kernel_1.Registration.singleton(exports.ITemplateCompilerHooks, this.Type));
+    }
+}
+/**
+ * Decorator: Indicates that the decorated class is a template compiler hooks.
+ *
+ * An instance of this class will be created and appropriate compilation hooks will be invoked
+ * at different phases of the default compiler.
+ */
+/* eslint-disable */
+// deepscan-disable-next-line
+const templateCompilerHooks = (target) => {
+    return target === void 0 ? decorator : decorator(target);
+    function decorator(t) {
+        return exports.TemplateCompilerHooks.define(t);
+    }
+    ;
+};
+exports.templateCompilerHooks = templateCompilerHooks;
+/* eslint-enable */
 //# sourceMappingURL=template-compiler.js.map

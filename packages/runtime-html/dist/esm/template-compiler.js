@@ -1,4 +1,4 @@
-import { emptyArray, Registration, toArray, ILogger, camelCase } from '@aurelia/kernel';
+import { DI, emptyArray, Registration, toArray, ILogger, camelCase, Protocol, Metadata } from '@aurelia/kernel';
 import { BindingMode, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
@@ -10,11 +10,13 @@ import { CustomAttribute } from './resources/custom-attribute.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import { BindingCommand } from './resources/binding-command.js';
 import { createLookup } from './utilities-html.js';
+import { allResources } from './utilities-di.js';
 export class TemplateCompiler {
     static register(container) {
         return Registration.singleton(ITemplateCompiler, this).register(container);
     }
     compile(partialDefinition, container, compilationInstruction) {
+        var _a, _b;
         const definition = CustomElementDefinition.getOrCreate(partialDefinition);
         if (definition.template === null || definition.template === void 0) {
             return definition;
@@ -29,19 +31,27 @@ export class TemplateCompiler {
             : definition.template;
         const isTemplateElement = template.nodeName === 'TEMPLATE' && template.content != null;
         const content = isTemplateElement ? template.content : template;
+        const hooks = container.get(allResources(ITemplateCompilerHooks));
+        const ii = hooks.length;
+        let i = 0;
+        if (ii > 0) {
+            while (ii > i) {
+                (_b = (_a = hooks[i]).beforeCompile) === null || _b === void 0 ? void 0 : _b.call(_a, template);
+                ++i;
+            }
+        }
         if (template.hasAttribute(localTemplateIdentifier)) {
             throw new Error('The root cannot be a local template itself.');
         }
         this.local(content, context);
         this.node(content, context);
-        const surrogates = isTemplateElement
-            ? this.surrogate(template, context)
-            : emptyArray;
         return CustomElementDefinition.create({
             ...partialDefinition,
             name: partialDefinition.name || CustomElement.generateName(),
             instructions: context.rows,
-            surrogates,
+            surrogates: isTemplateElement
+                ? this.surrogate(template, context)
+                : emptyArray,
             template,
             hasSlots: context.hasSlot,
             needsCompile: false,
@@ -52,9 +62,7 @@ export class TemplateCompiler {
         var _a;
         const instructions = [];
         const attrs = el.attributes;
-        const attrParser = context.attrParser;
         const exprParser = context.exprParser;
-        const attrMapper = context.attrMapper;
         let ii = attrs.length;
         let i = 0;
         let attr;
@@ -76,7 +84,7 @@ export class TemplateCompiler {
             attr = attrs[i];
             attrName = attr.name;
             attrValue = attr.value;
-            attrSyntax = attrParser.parse(attrName, attrValue);
+            attrSyntax = context.attrParser.parse(attrName, attrValue);
             realAttrTarget = attrSyntax.target;
             realAttrValue = attrSyntax.rawValue;
             if (invalidSurrogateAttribute[realAttrTarget]) {
@@ -163,7 +171,7 @@ export class TemplateCompiler {
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLength etc...
-                    attrMapper.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : camelCase(realAttrTarget)));
+                    context.attrMapper.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : camelCase(realAttrTarget)));
                 }
                 else {
                     switch (attrName) {
@@ -1218,7 +1226,7 @@ const orderSensitiveInputType = {
     radio: 1,
 };
 const bindableAttrsInfoCache = new WeakMap();
-class BindablesInfo {
+export class BindablesInfo {
     constructor(attrs, bindables, primary) {
         this.attrs = attrs;
         this.bindables = bindables;
@@ -1307,4 +1315,52 @@ function getBindingMode(bindable) {
             return BindingMode.default;
     }
 }
+/**
+ * An interface describing the hooks a compilation process should invoke.
+ *
+ * A feature available to the default template compiler.
+ */
+export const ITemplateCompilerHooks = DI.createInterface('ITemplateCompilerHooks');
+const typeToHooksDefCache = new WeakMap();
+const compilerHooksResourceName = Protocol.resource.keyFor('compiler-hooks');
+export const TemplateCompilerHooks = Object.freeze({
+    name: compilerHooksResourceName,
+    /**
+     * @param def - Placeholder for future extensions. Currently always an empty object.
+     */
+    define(Type) {
+        let def = typeToHooksDefCache.get(Type);
+        if (def === void 0) {
+            typeToHooksDefCache.set(Type, def = new TemplateCompilerHooksDefinition(Type));
+            Metadata.define(compilerHooksResourceName, def, Type);
+            Protocol.resource.appendTo(Type, compilerHooksResourceName);
+        }
+        return Type;
+    }
+});
+class TemplateCompilerHooksDefinition {
+    constructor(Type) {
+        this.Type = Type;
+    }
+    get name() { return ''; }
+    register(c) {
+        c.register(Registration.singleton(ITemplateCompilerHooks, this.Type));
+    }
+}
+/**
+ * Decorator: Indicates that the decorated class is a template compiler hooks.
+ *
+ * An instance of this class will be created and appropriate compilation hooks will be invoked
+ * at different phases of the default compiler.
+ */
+/* eslint-disable */
+// deepscan-disable-next-line
+export const templateCompilerHooks = (target) => {
+    return target === void 0 ? decorator : decorator(target);
+    function decorator(t) {
+        return TemplateCompilerHooks.define(t);
+    }
+    ;
+};
+/* eslint-enable */
 //# sourceMappingURL=template-compiler.js.map

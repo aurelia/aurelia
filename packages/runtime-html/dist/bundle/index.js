@@ -6463,11 +6463,49 @@ TemplateElementFactory = __decorate([
     __param(0, IPlatform)
 ], TemplateElementFactory);
 
+// todo: replace existing resource code with this resolver
+// ===================
+// export const resource = function <T extends Key>(key: T) {
+//   function Resolver(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number) {
+//     DI.inject(Resolver)(target, property, descriptor);
+//   }
+//   Resolver.$isResolver = true;
+//   Resolver.resolve = function (handler: IContainer, requestor: IContainer) {
+//     if (/* is root? */requestor.root === requestor) {
+//       return requestor.get(key);
+//     }
+//     return requestor.has(key, false)
+//       ? requestor.get(key)
+//       : requestor.root.get(key);
+//   };
+//   return Resolver as IResolver<T> & ((...args: unknown[]) => any);
+// };
+/**
+ * A resolver builder for resolving all registrations of a key
+ * with resource semantic (leaf + root + ignore middle layer container)
+ */
+const allResources = function (key) {
+    function Resolver(target, property, descriptor) {
+        DI.inject(Resolver)(target, property, descriptor);
+    }
+    Resolver.$isResolver = true;
+    Resolver.resolve = function (handler, requestor) {
+        if ( /* is root? */requestor.root === requestor) {
+            return requestor.getAll(key, false);
+        }
+        return requestor.has(key, false)
+            ? requestor.getAll(key, false).concat(requestor.root.getAll(key, false))
+            : requestor.root.getAll(key, false);
+    };
+    return Resolver;
+};
+
 class TemplateCompiler {
     static register(container) {
         return Registration.singleton(ITemplateCompiler, this).register(container);
     }
     compile(partialDefinition, container, compilationInstruction) {
+        var _a, _b;
         const definition = CustomElementDefinition.getOrCreate(partialDefinition);
         if (definition.template === null || definition.template === void 0) {
             return definition;
@@ -6482,19 +6520,27 @@ class TemplateCompiler {
             : definition.template;
         const isTemplateElement = template.nodeName === 'TEMPLATE' && template.content != null;
         const content = isTemplateElement ? template.content : template;
+        const hooks = container.get(allResources(ITemplateCompilerHooks));
+        const ii = hooks.length;
+        let i = 0;
+        if (ii > 0) {
+            while (ii > i) {
+                (_b = (_a = hooks[i]).beforeCompile) === null || _b === void 0 ? void 0 : _b.call(_a, template);
+                ++i;
+            }
+        }
         if (template.hasAttribute(localTemplateIdentifier)) {
             throw new Error('The root cannot be a local template itself.');
         }
         this.local(content, context);
         this.node(content, context);
-        const surrogates = isTemplateElement
-            ? this.surrogate(template, context)
-            : emptyArray;
         return CustomElementDefinition.create({
             ...partialDefinition,
             name: partialDefinition.name || CustomElement.generateName(),
             instructions: context.rows,
-            surrogates,
+            surrogates: isTemplateElement
+                ? this.surrogate(template, context)
+                : emptyArray,
             template,
             hasSlots: context.hasSlot,
             needsCompile: false,
@@ -6505,9 +6551,7 @@ class TemplateCompiler {
         var _a;
         const instructions = [];
         const attrs = el.attributes;
-        const attrParser = context.attrParser;
         const exprParser = context.exprParser;
-        const attrMapper = context.attrMapper;
         let ii = attrs.length;
         let i = 0;
         let attr;
@@ -6529,7 +6573,7 @@ class TemplateCompiler {
             attr = attrs[i];
             attrName = attr.name;
             attrValue = attr.value;
-            attrSyntax = attrParser.parse(attrName, attrValue);
+            attrSyntax = context.attrParser.parse(attrName, attrValue);
             realAttrTarget = attrSyntax.target;
             realAttrValue = attrSyntax.rawValue;
             if (invalidSurrogateAttribute[realAttrTarget]) {
@@ -6616,7 +6660,7 @@ class TemplateCompiler {
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLength etc...
-                    attrMapper.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : camelCase(realAttrTarget)));
+                    context.attrMapper.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : camelCase(realAttrTarget)));
                 }
                 else {
                     switch (attrName) {
@@ -7760,6 +7804,53 @@ function getBindingMode(bindable) {
             return BindingMode.default;
     }
 }
+/**
+ * An interface describing the hooks a compilation process should invoke.
+ *
+ * A feature available to the default template compiler.
+ */
+const ITemplateCompilerHooks = DI.createInterface('ITemplateCompilerHooks');
+const typeToHooksDefCache = new WeakMap();
+const compilerHooksResourceName = Protocol.resource.keyFor('compiler-hooks');
+const TemplateCompilerHooks = Object.freeze({
+    name: compilerHooksResourceName,
+    /**
+     * @param def - Placeholder for future extensions. Currently always an empty object.
+     */
+    define(Type) {
+        let def = typeToHooksDefCache.get(Type);
+        if (def === void 0) {
+            typeToHooksDefCache.set(Type, def = new TemplateCompilerHooksDefinition(Type));
+            Metadata.define(compilerHooksResourceName, def, Type);
+            Protocol.resource.appendTo(Type, compilerHooksResourceName);
+        }
+        return Type;
+    }
+});
+class TemplateCompilerHooksDefinition {
+    constructor(Type) {
+        this.Type = Type;
+    }
+    get name() { return ''; }
+    register(c) {
+        c.register(Registration.singleton(ITemplateCompilerHooks, this.Type));
+    }
+}
+/**
+ * Decorator: Indicates that the decorated class is a template compiler hooks.
+ *
+ * An instance of this class will be created and appropriate compilation hooks will be invoked
+ * at different phases of the default compiler.
+ */
+/* eslint-disable */
+// deepscan-disable-next-line
+const templateCompilerHooks = (target) => {
+    return target === void 0 ? decorator : decorator(target);
+    function decorator(t) {
+        return TemplateCompilerHooks.define(t);
+    }
+};
+/* eslint-enable */
 
 class BindingModeBehavior {
     constructor(mode) {
@@ -11923,5 +12014,5 @@ const DialogDefaultConfiguration = createDialogConfiguration(noop, [
     DefaultDialogDomRenderer,
 ]);
 
-export { AdoptedStyleSheetsStyles, AppRoot, AppTask, AtPrefixedTriggerAttributePattern, AtPrefixedTriggerAttributePatternRegistration, AttrBindingBehavior, AttrBindingBehaviorRegistration, AttrBindingCommand, AttrBindingCommandRegistration, AttrSyntax, AttributeBinding, AttributeBindingInstruction, AttributeBindingRendererRegistration, AttributeNSAccessor, AttributePattern, AuCompose, AuRender, AuRenderRegistration, AuSlot, AuSlotsInfo, Aurelia, Bindable, BindableDefinition, BindableObserver, BindingCommand, BindingCommandDefinition, BindingModeBehavior, CSSModulesProcessorRegistry, CallBinding, CallBindingCommand, CallBindingCommandRegistration, CallBindingInstruction, CallBindingRendererRegistration, CaptureBindingCommand, CaptureBindingCommandRegistration, Case, CheckedObserver, Children, ChildrenDefinition, ChildrenObserver, ClassAttributeAccessor, ClassBindingCommand, ClassBindingCommandRegistration, ColonPrefixedBindAttributePattern, ColonPrefixedBindAttributePatternRegistration, ComputedWatcher, Controller, CustomAttribute, CustomAttributeDefinition, CustomAttributeRendererRegistration, CustomElement, CustomElementDefinition, CustomElementRendererRegistration, DataAttributeAccessor, DebounceBindingBehavior, DebounceBindingBehaviorRegistration, DefaultBindingCommand, DefaultBindingCommandRegistration, DefaultBindingLanguage, DefaultBindingSyntax, DefaultCase, DefaultComponents, DefaultDialogDom, DefaultDialogDomRenderer, DefaultDialogGlobalSettings, DefaultRenderers, DefaultResources, DelegateBindingCommand, DelegateBindingCommandRegistration, DialogCloseResult, DialogConfiguration, DialogController, DialogDeactivationStatuses, DialogDefaultConfiguration, DialogOpenResult, DialogService, DotSeparatedAttributePattern, DotSeparatedAttributePatternRegistration, Else, ElseRegistration, EventDelegator, EventSubscriber, ExpressionWatcher, Focus, ForBindingCommand, ForBindingCommandRegistration, FragmentNodeSequence, FrequentMutations, FromViewBindingBehavior, FromViewBindingBehaviorRegistration, FromViewBindingCommand, FromViewBindingCommandRegistration, FulfilledTemplateController, HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, IAppRoot, IAppTask, IAttrMapper, IAttributeParser, IAttributePattern, IAuSlotsInfo, IAurelia, IController, IDialogController, IDialogDom, IDialogDomRenderer, IDialogGlobalSettings, IDialogService, IEventDelegator, IEventTarget, IHistory, IHydrationContext, IInstruction, ILifecycleHooks, ILocation, INode, INodeObserverLocatorRegistration, IPlatform, IProjections, IRenderLocation, IRenderer, ISVGAnalyzer, ISanitizer, IShadowDOMGlobalStyles, IShadowDOMStyleFactory, IShadowDOMStyles, ISyntaxInterpreter, ITemplateCompiler, ITemplateCompilerRegistration, ITemplateElementFactory, IViewFactory, IViewLocator, IWindow, IWorkTracker, If, IfRegistration, InstructionType, InterpolationBinding, InterpolationBindingRendererRegistration, InterpolationInstruction, Interpretation, IteratorBindingInstruction, IteratorBindingRendererRegistration, LetBinding, LetBindingInstruction, LetElementRendererRegistration, LifecycleHooks, LifecycleHooksDefinition, LifecycleHooksEntry, Listener, ListenerBindingInstruction, ListenerBindingRendererRegistration, NodeObserverConfig, NodeObserverLocator, NodeType, NoopSVGAnalyzer, ObserveShallow, OneTimeBindingBehavior, OneTimeBindingBehaviorRegistration, OneTimeBindingCommand, OneTimeBindingCommandRegistration, PendingTemplateController, Portal, PromiseTemplateController, PropertyBinding, PropertyBindingInstruction, PropertyBindingRendererRegistration, RefAttributePattern, RefAttributePatternRegistration, RefBinding, RefBindingCommandRegistration, RefBindingInstruction, RefBindingRendererRegistration, RejectedTemplateController, RenderPlan, Repeat, RepeatRegistration, SVGAnalyzer, SVGAnalyzerRegistration, SanitizeValueConverter, SanitizeValueConverterRegistration, SelectValueObserver, SelfBindingBehavior, SelfBindingBehaviorRegistration, SetAttributeInstruction, SetAttributeRendererRegistration, SetClassAttributeInstruction, SetClassAttributeRendererRegistration, SetPropertyInstruction, SetPropertyRendererRegistration, SetStyleAttributeInstruction, SetStyleAttributeRendererRegistration, ShadowDOMRegistry, ShortHandBindingSyntax, SignalBindingBehavior, SignalBindingBehaviorRegistration, StandardConfiguration, StyleAttributeAccessor, StyleBindingCommand, StyleBindingCommandRegistration, StyleConfiguration, StyleElementStyles, StylePropertyBindingInstruction, StylePropertyBindingRendererRegistration, Switch, TemplateControllerRendererRegistration, TextBindingInstruction, TextBindingRendererRegistration, ThrottleBindingBehavior, ThrottleBindingBehaviorRegistration, ToViewBindingBehavior, ToViewBindingBehaviorRegistration, ToViewBindingCommand, ToViewBindingCommandRegistration, TriggerBindingCommand, TriggerBindingCommandRegistration, TwoWayBindingBehavior, TwoWayBindingBehaviorRegistration, TwoWayBindingCommand, TwoWayBindingCommandRegistration, UpdateTriggerBindingBehavior, UpdateTriggerBindingBehaviorRegistration, ValueAttributeObserver, ViewFactory, ViewLocator, ViewModelKind, ViewValueConverter, ViewValueConverterRegistration, Views, Watch, With, WithRegistration, attributePattern, bindable, bindingCommand, children, containerless, convertToRenderLocation, createElement, cssModules, customAttribute, customElement, getEffectiveParentNode, getRef, getRenderContext, isCustomElementController, isCustomElementViewModel, isInstruction, isRenderContext, isRenderLocation, lifecycleHooks, processContent, renderer, setEffectiveParentNode, setRef, shadowCSS, templateController, useShadowDOM, view, watch };
+export { AdoptedStyleSheetsStyles, AppRoot, AppTask, AtPrefixedTriggerAttributePattern, AtPrefixedTriggerAttributePatternRegistration, AttrBindingBehavior, AttrBindingBehaviorRegistration, AttrBindingCommand, AttrBindingCommandRegistration, AttrSyntax, AttributeBinding, AttributeBindingInstruction, AttributeBindingRendererRegistration, AttributeNSAccessor, AttributePattern, AuCompose, AuRender, AuRenderRegistration, AuSlot, AuSlotsInfo, Aurelia, Bindable, BindableDefinition, BindableObserver, BindablesInfo, BindingCommand, BindingCommandDefinition, BindingModeBehavior, CSSModulesProcessorRegistry, CallBinding, CallBindingCommand, CallBindingCommandRegistration, CallBindingInstruction, CallBindingRendererRegistration, CaptureBindingCommand, CaptureBindingCommandRegistration, Case, CheckedObserver, Children, ChildrenDefinition, ChildrenObserver, ClassAttributeAccessor, ClassBindingCommand, ClassBindingCommandRegistration, ColonPrefixedBindAttributePattern, ColonPrefixedBindAttributePatternRegistration, ComputedWatcher, Controller, CustomAttribute, CustomAttributeDefinition, CustomAttributeRendererRegistration, CustomElement, CustomElementDefinition, CustomElementRendererRegistration, DataAttributeAccessor, DebounceBindingBehavior, DebounceBindingBehaviorRegistration, DefaultBindingCommand, DefaultBindingCommandRegistration, DefaultBindingLanguage, DefaultBindingSyntax, DefaultCase, DefaultComponents, DefaultDialogDom, DefaultDialogDomRenderer, DefaultDialogGlobalSettings, DefaultRenderers, DefaultResources, DelegateBindingCommand, DelegateBindingCommandRegistration, DialogCloseResult, DialogConfiguration, DialogController, DialogDeactivationStatuses, DialogDefaultConfiguration, DialogOpenResult, DialogService, DotSeparatedAttributePattern, DotSeparatedAttributePatternRegistration, Else, ElseRegistration, EventDelegator, EventSubscriber, ExpressionWatcher, Focus, ForBindingCommand, ForBindingCommandRegistration, FragmentNodeSequence, FrequentMutations, FromViewBindingBehavior, FromViewBindingBehaviorRegistration, FromViewBindingCommand, FromViewBindingCommandRegistration, FulfilledTemplateController, HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, IAppRoot, IAppTask, IAttrMapper, IAttributeParser, IAttributePattern, IAuSlotsInfo, IAurelia, IController, IDialogController, IDialogDom, IDialogDomRenderer, IDialogGlobalSettings, IDialogService, IEventDelegator, IEventTarget, IHistory, IHydrationContext, IInstruction, ILifecycleHooks, ILocation, INode, INodeObserverLocatorRegistration, IPlatform, IProjections, IRenderLocation, IRenderer, ISVGAnalyzer, ISanitizer, IShadowDOMGlobalStyles, IShadowDOMStyleFactory, IShadowDOMStyles, ISyntaxInterpreter, ITemplateCompiler, ITemplateCompilerHooks, ITemplateCompilerRegistration, ITemplateElementFactory, IViewFactory, IViewLocator, IWindow, IWorkTracker, If, IfRegistration, InstructionType, InterpolationBinding, InterpolationBindingRendererRegistration, InterpolationInstruction, Interpretation, IteratorBindingInstruction, IteratorBindingRendererRegistration, LetBinding, LetBindingInstruction, LetElementRendererRegistration, LifecycleHooks, LifecycleHooksDefinition, LifecycleHooksEntry, Listener, ListenerBindingInstruction, ListenerBindingRendererRegistration, NodeObserverConfig, NodeObserverLocator, NodeType, NoopSVGAnalyzer, ObserveShallow, OneTimeBindingBehavior, OneTimeBindingBehaviorRegistration, OneTimeBindingCommand, OneTimeBindingCommandRegistration, PendingTemplateController, Portal, PromiseTemplateController, PropertyBinding, PropertyBindingInstruction, PropertyBindingRendererRegistration, RefAttributePattern, RefAttributePatternRegistration, RefBinding, RefBindingCommandRegistration, RefBindingInstruction, RefBindingRendererRegistration, RejectedTemplateController, RenderPlan, Repeat, RepeatRegistration, SVGAnalyzer, SVGAnalyzerRegistration, SanitizeValueConverter, SanitizeValueConverterRegistration, SelectValueObserver, SelfBindingBehavior, SelfBindingBehaviorRegistration, SetAttributeInstruction, SetAttributeRendererRegistration, SetClassAttributeInstruction, SetClassAttributeRendererRegistration, SetPropertyInstruction, SetPropertyRendererRegistration, SetStyleAttributeInstruction, SetStyleAttributeRendererRegistration, ShadowDOMRegistry, ShortHandBindingSyntax, SignalBindingBehavior, SignalBindingBehaviorRegistration, StandardConfiguration, StyleAttributeAccessor, StyleBindingCommand, StyleBindingCommandRegistration, StyleConfiguration, StyleElementStyles, StylePropertyBindingInstruction, StylePropertyBindingRendererRegistration, Switch, TemplateCompiler, TemplateCompilerHooks, TemplateControllerRendererRegistration, TextBindingInstruction, TextBindingRendererRegistration, ThrottleBindingBehavior, ThrottleBindingBehaviorRegistration, ToViewBindingBehavior, ToViewBindingBehaviorRegistration, ToViewBindingCommand, ToViewBindingCommandRegistration, TriggerBindingCommand, TriggerBindingCommandRegistration, TwoWayBindingBehavior, TwoWayBindingBehaviorRegistration, TwoWayBindingCommand, TwoWayBindingCommandRegistration, UpdateTriggerBindingBehavior, UpdateTriggerBindingBehaviorRegistration, ValueAttributeObserver, ViewFactory, ViewLocator, ViewModelKind, ViewValueConverter, ViewValueConverterRegistration, Views, Watch, With, WithRegistration, allResources, attributePattern, bindable, bindingCommand, children, containerless, convertToRenderLocation, createElement, cssModules, customAttribute, customElement, getEffectiveParentNode, getRef, getRenderContext, isCustomElementController, isCustomElementViewModel, isInstruction, isRenderContext, isRenderLocation, lifecycleHooks, processContent, renderer, setEffectiveParentNode, setRef, shadowCSS, templateCompilerHooks, templateController, useShadowDOM, view, watch };
 //# sourceMappingURL=index.js.map

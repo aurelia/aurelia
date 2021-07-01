@@ -220,6 +220,7 @@ export declare class AttributeBindingInstruction {
      */
     attr: string, from: string | IsBindingBehavior, to: string);
 }
+export declare const ITemplateCompiler: import("@aurelia/kernel").InterfaceSymbol<ITemplateCompiler>;
 export interface ITemplateCompiler {
     compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, compilationInstruction: ICompliationInstruction | null): CustomElementDefinition;
 }
@@ -231,7 +232,6 @@ export interface ICompliationInstruction {
      */
     projections: IProjections | null;
 }
-export declare const ITemplateCompiler: import("@aurelia/kernel").InterfaceSymbol<ITemplateCompiler>;
 export interface IInstructionTypeClassifier<TType extends string = string> {
     instructionType: TType;
 }

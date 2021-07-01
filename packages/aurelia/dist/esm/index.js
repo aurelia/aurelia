@@ -492,6 +492,7 @@ IAuSlotsInfo, AuSlotsInfo,
 // ITemplate,
 // ITemplateCompiler,
 // ITemplateFactory,
+ITemplateCompilerHooks, TemplateCompilerHooks, templateCompilerHooks, 
 // RenderContext
 // AttrSyntax,
 // IAttributeParser,

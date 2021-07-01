@@ -1025,6 +1025,35 @@ function ignore(target, property, descriptor) {
 }
 ignore.$isResolver = true;
 ignore.resolve = () => undefined;
+/**
+ * Inject a function that will return a resolved instance of the [[key]] given.
+ * Also supports passing extra parameters to the invocation of the resolved constructor of [[key]]
+ *
+ * For typings, it's a function that take 0 or more arguments and return an instance. Example:
+ * ```ts
+ * class Foo {
+ *   constructor( @factory(MyService) public createService: (...args: unknown[]) => MyService)
+ * }
+ * const foo = container.get(Foo); // instanceof Foo
+ * const myService_1 = foo.createService('user service')
+ * const myService_2 = foo.createService('content service')
+ * ```
+ *
+ * ```ts
+ * class Foo {
+ *   constructor( @factory('random') public createRandomizer: () => Randomizer)
+ * }
+ * container.get(Foo).createRandomizer(); // create a randomizer
+ * ```
+ * would throw an exception because you haven't registered `'random'` before calling the method. This, would give you a
+ * new instance of Randomizer each time.
+ *
+ * `@factory` does not manage the lifecycle of the underlying key. If you want a singleton, you have to register as a
+ * `singleton`, `transient` would also behave as you would expect, providing you a new instance each time.
+ *
+ * - @param key [[`Key`]]
+ * see { @link DI.createInterface } on interactions with interfaces
+ */
 const factory = createResolver((key, handler, requestor) => {
     return (...args) => handler.getFactory(key).construct(requestor, args);
 });
@@ -1236,7 +1265,10 @@ class Container {
         let value;
         let j;
         let jj;
-        for (let i = 0, ii = params.length; i < ii; ++i) {
+        let i = 0;
+        // eslint-disable-next-line
+        let ii = params.length;
+        for (; i < ii; ++i) {
             current = params[i];
             if (!isObject(current)) {
                 continue;
@@ -1251,9 +1283,11 @@ class Container {
                     defs[0].register(this);
                 }
                 else {
-                    const len = defs.length;
-                    for (let d = 0; d < len; ++d) {
-                        defs[d].register(this);
+                    j = 0;
+                    jj = defs.length;
+                    while (jj > j) {
+                        defs[j].register(this);
+                        ++j;
                     }
                 }
             }

@@ -26,6 +26,7 @@ export interface IServiceLocator {
     get<K extends Key>(key: INewInstanceResolver<K>): Resolved<K>;
     get<K extends Key>(key: ILazyResolver<K>): IResolvedLazy<K>;
     get<K extends Key>(key: IFactoryResolver<K>): IResolvedFactory<K>;
+    get<K extends Key>(key: IResolver<K>): Resolved<K>;
     get<K extends Key>(key: K): Resolved<K>;
     get<K extends Key>(key: Key): Resolved<K>;
     get<K extends Key>(key: K | Key): Resolved<K>;
@@ -301,6 +302,35 @@ export declare namespace ignore {
     var $isResolver: boolean;
     var resolve: () => undefined;
 }
+/**
+ * Inject a function that will return a resolved instance of the [[key]] given.
+ * Also supports passing extra parameters to the invocation of the resolved constructor of [[key]]
+ *
+ * For typings, it's a function that take 0 or more arguments and return an instance. Example:
+ * ```ts
+ * class Foo {
+ *   constructor( @factory(MyService) public createService: (...args: unknown[]) => MyService)
+ * }
+ * const foo = container.get(Foo); // instanceof Foo
+ * const myService_1 = foo.createService('user service')
+ * const myService_2 = foo.createService('content service')
+ * ```
+ *
+ * ```ts
+ * class Foo {
+ *   constructor( @factory('random') public createRandomizer: () => Randomizer)
+ * }
+ * container.get(Foo).createRandomizer(); // create a randomizer
+ * ```
+ * would throw an exception because you haven't registered `'random'` before calling the method. This, would give you a
+ * new instance of Randomizer each time.
+ *
+ * `@factory` does not manage the lifecycle of the underlying key. If you want a singleton, you have to register as a
+ * `singleton`, `transient` would also behave as you would expect, providing you a new instance each time.
+ *
+ * - @param key [[`Key`]]
+ * see { @link DI.createInterface } on interactions with interfaces
+ */
 export declare const factory: <K>(key: K) => IFactoryResolver<K>;
 export declare type IFactoryResolver<K = any> = IResolver<K> & {
     __isFactory: undefined;

@@ -1,6 +1,6 @@
 export { IPlatform, } from './platform.js';
 export { Platform, TaskQueue, Task, TaskAbortError, TaskQueuePriority, TaskStatus, } from '../../../platform/dist/native-modules/index.js';
-export { all, DI, IContainer, inject, IServiceLocator, lazy, optional, ignore, Registration, singleton, transient, InstanceProvider, newInstanceForScope, newInstanceOf, ContainerConfiguration, DefaultResolver, } from './di.js';
+export { all, factory, DI, IContainer, inject, IServiceLocator, lazy, optional, ignore, Registration, singleton, transient, InstanceProvider, newInstanceForScope, newInstanceOf, ContainerConfiguration, DefaultResolver, } from './di.js';
 export { metadata, Metadata, isNullOrUndefined, isObject, applyMetadataPolyfill, } from '../../../metadata/dist/native-modules/index.js';
 export { LogLevel, ColorOptions, ILogConfig, ILogEventFactory, ISink, ILogger, LogConfig, DefaultLogEvent, DefaultLogEventFactory, DefaultLogger, ConsoleSink, LoggerConfiguration, format, sink, } from './logger.js';
 export { IModuleLoader, AnalyzedModule, ModuleItem, } from './module-loader.js';

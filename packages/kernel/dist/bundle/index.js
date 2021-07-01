@@ -677,15 +677,7 @@ const DI = {
         const key = Protocol.annotation.keyFor('di:paramtypes');
         return Metadata.getOwn(key, Type);
     },
-    getOrCreateAnnotationParamTypes(Type) {
-        const key = Protocol.annotation.keyFor('di:paramtypes');
-        let annotationParamtypes = Metadata.getOwn(key, Type);
-        if (annotationParamtypes === void 0) {
-            Metadata.define(key, annotationParamtypes = [], Type);
-            Protocol.annotation.appendTo(Type, key);
-        }
-        return annotationParamtypes;
-    },
+    getOrCreateAnnotationParamTypes: getOrCreateAnnotationParamTypes,
     getDependencies: getDependencies,
     /**
      * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
@@ -735,7 +727,7 @@ const DI = {
             if (target == null || new.target !== undefined) {
                 throw new Error(`No registration for interface: '${Interface.friendlyName}'`); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
             }
-            const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+            const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
             annotationParamtypes[index] = Interface;
         };
         Interface.$isInterface = true;
@@ -753,14 +745,14 @@ const DI = {
     inject(...dependencies) {
         return function (target, key, descriptor) {
             if (typeof descriptor === 'number') { // It's a parameter decorator.
-                const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+                const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
                 const dep = dependencies[0];
                 if (dep !== void 0) {
                     annotationParamtypes[descriptor] = dep;
                 }
             }
             else if (key) { // It's a property decorator. Not supported by the container without plugins.
-                const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target.constructor);
+                const annotationParamtypes = getOrCreateAnnotationParamTypes(target.constructor);
                 const dep = dependencies[0];
                 if (dep !== void 0) {
                     annotationParamtypes[key] = dep;
@@ -768,7 +760,7 @@ const DI = {
             }
             else if (descriptor) { // It's a function decorator (not a Class constructor)
                 const fn = descriptor.value;
-                const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(fn);
+                const annotationParamtypes = getOrCreateAnnotationParamTypes(fn);
                 let dep;
                 for (let i = 0; i < dependencies.length; ++i) {
                     dep = dependencies[i];
@@ -778,7 +770,7 @@ const DI = {
                 }
             }
             else { // It's a class decorator.
-                const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+                const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
                 let dep;
                 for (let i = 0; i < dependencies.length; ++i) {
                     dep = dependencies[i];
@@ -912,6 +904,15 @@ function getDependencies(Type) {
     }
     return dependencies;
 }
+function getOrCreateAnnotationParamTypes(Type) {
+    const key = Protocol.annotation.keyFor('di:paramtypes');
+    let annotationParamtypes = Metadata.getOwn(key, Type);
+    if (annotationParamtypes === void 0) {
+        Metadata.define(key, annotationParamtypes = [], Type);
+        Protocol.annotation.appendTo(Type, key);
+    }
+    return annotationParamtypes;
+}
 const IContainer = DI.createInterface('IContainer');
 const IServiceLocator = IContainer;
 function createResolver(getter) {
@@ -1024,6 +1025,9 @@ function ignore(target, property, descriptor) {
 }
 ignore.$isResolver = true;
 ignore.resolve = () => undefined;
+const factory = createResolver((key, handler, requestor) => {
+    return (...args) => handler.getFactory(key).construct(requestor, args);
+});
 const newInstanceForScope = createResolver((key, handler, requestor) => {
     const instance = createNewInstance(key, handler, requestor);
     const instanceProvider = new InstanceProvider(String(key), instance);
@@ -1032,28 +1036,7 @@ const newInstanceForScope = createResolver((key, handler, requestor) => {
 });
 const newInstanceOf = createResolver((key, handler, requestor) => createNewInstance(key, handler, requestor));
 function createNewInstance(key, handler, requestor) {
-    const resolver = handler.getResolver(key, false);
-    let factory;
-    if (typeof (resolver === null || resolver === void 0 ? void 0 : resolver.getFactory) === 'function') {
-        factory = resolver.getFactory(handler);
-        // 2 scenarios:
-        //
-        // 1. if construct is invoked with handler
-        // then anew instance of something registered from parent
-        // will not have information of some dependencies registered in child, even child is the requestor
-        //
-        // 2. if construct is invoked with requestor
-        // then a new instance of something registered from parent
-        // will have the information of something registered in child shadowing the samething registered in parent
-        //
-        // choice: No. (2), as it makes more sense in terms of WYSIWYG
-        //         and if anyone wants to avoid shadowing behavior, they can use parent() resolver
-        //         todo: implement parent resolver
-        if (factory != null) {
-            return factory.construct(requestor);
-        }
-    }
-    return handler.getFactory(key).construct(handler);
+    return handler.getFactory(key).construct(requestor);
 }
 /** @internal */
 var ResolverStrategy;
@@ -2437,5 +2420,5 @@ class EventAggregator {
     }
 }
 
-export { AnalyzedModule, ColorOptions, ConsoleSink, ContainerConfiguration, DI, DefaultLogEvent, DefaultLogEventFactory, DefaultLogger, DefaultResolver, EventAggregator, IContainer, IEventAggregator, ILogConfig, ILogEventFactory, ILogger, IModuleLoader, IPlatform, IServiceLocator, ISink, InstanceProvider, LogConfig, LogLevel, LoggerConfiguration, ModuleItem, Protocol, Registration, all, bound, camelCase, compareNumber, emptyArray, emptyObject, firstDefined, format, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, getPrototypeChain, ignore, inject, isArrayIndex, isNativeFunction, isNumberOrBigInt, isStringOrDate, kebabCase, lazy, mergeArrays, mergeDistinct, mergeObjects, newInstanceForScope, newInstanceOf, nextId, noop, onResolve, optional, pascalCase, resetId, resolveAll, singleton, sink, toArray, transient };
+export { AnalyzedModule, ColorOptions, ConsoleSink, ContainerConfiguration, DI, DefaultLogEvent, DefaultLogEventFactory, DefaultLogger, DefaultResolver, EventAggregator, IContainer, IEventAggregator, ILogConfig, ILogEventFactory, ILogger, IModuleLoader, IPlatform, IServiceLocator, ISink, InstanceProvider, LogConfig, LogLevel, LoggerConfiguration, ModuleItem, Protocol, Registration, all, bound, camelCase, compareNumber, emptyArray, emptyObject, factory, firstDefined, format, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, getPrototypeChain, ignore, inject, isArrayIndex, isNativeFunction, isNumberOrBigInt, isStringOrDate, kebabCase, lazy, mergeArrays, mergeDistinct, mergeObjects, newInstanceForScope, newInstanceOf, nextId, noop, onResolve, optional, pascalCase, resetId, resolveAll, singleton, sink, toArray, transient };
 //# sourceMappingURL=index.js.map

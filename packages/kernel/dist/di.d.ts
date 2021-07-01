@@ -23,6 +23,9 @@ export interface IFactory<T extends Constructable = any> {
 }
 export interface IServiceLocator {
     has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
+    get<K extends Key>(key: INewInstanceResolver<K>): Resolved<K>;
+    get<K extends Key>(key: ILazyResolver<K>): IResolvedLazy<K>;
+    get<K extends Key>(key: IFactoryResolver<K>): IResolvedFactory<K>;
     get<K extends Key>(key: K): Resolved<K>;
     get<K extends Key>(key: Key): Resolved<K>;
     get<K extends Key>(key: K | Key): Resolved<K>;
@@ -96,7 +99,7 @@ export declare const DI: {
     createContainer(config?: Partial<IContainerConfiguration> | undefined): IContainer;
     getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined;
     getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined;
-    getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[];
+    getOrCreateAnnotationParamTypes: typeof getOrCreateAnnotationParamTypes;
     getDependencies: typeof getDependencies;
     /**
      * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
@@ -180,6 +183,7 @@ export declare const DI: {
     singleton<T_1 extends Constructable<{}>>(target: T_1 & Partial<RegisterSelf<T_1>>, options?: SingletonOptions): T_1 & RegisterSelf<T_1>;
 };
 declare function getDependencies(Type: Constructable | Injectable): Key[];
+declare function getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[];
 export declare const IContainer: InterfaceSymbol<IContainer>;
 export declare const IServiceLocator: InterfaceSymbol<IServiceLocator>;
 export declare const inject: (...dependencies: Key[]) => (target: Injectable, key?: string | number | undefined, descriptor?: number | PropertyDescriptor | undefined) => void;
@@ -262,6 +266,10 @@ export declare const all: (key: any, searchAncestors?: boolean | undefined) => R
  * see { @link DI.createInterface } on interactions with interfaces
  */
 export declare const lazy: (key: any) => any;
+export declare type ILazyResolver<K = any> = IResolver<K> & {
+    __isLazy: undefined;
+} & ((...args: unknown[]) => any);
+export declare type IResolvedLazy<K> = () => Resolved<K>;
 /**
  * Allows you to optionally inject a dependency depending on whether the [[`Key`]] is present, for example
  * ```ts
@@ -293,8 +301,17 @@ export declare namespace ignore {
     var $isResolver: boolean;
     var resolve: () => undefined;
 }
-export declare const newInstanceForScope: (key: any) => any;
-export declare const newInstanceOf: (key: any) => any;
+export declare const factory: <K>(key: K) => IFactoryResolver<K>;
+export declare type IFactoryResolver<K = any> = IResolver<K> & {
+    __isFactory: undefined;
+} & ((...args: unknown[]) => any);
+export declare type IResolvedFactory<K> = (...args: unknown[]) => Resolved<K>;
+export declare const newInstanceForScope: <K>(key: K) => INewInstanceResolver<K>;
+export declare const newInstanceOf: <K>(key: K) => INewInstanceResolver<K>;
+export declare type INewInstanceResolver<T> = {
+    __newInstance: undefined;
+    (...args: unknown[]): any;
+};
 /**
  * An implementation of IRegistry that delegates registration to a
  * separately registered class. The ParameterizedRegistry facilitates the

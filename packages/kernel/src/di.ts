@@ -43,6 +43,7 @@ export interface IServiceLocator {
   get<K extends Key>(key: INewInstanceResolver<K>): Resolved<K>;
   get<K extends Key>(key: ILazyResolver<K>): IResolvedLazy<K>;
   get<K extends Key>(key: IFactoryResolver<K>): IResolvedFactory<K>;
+  get<K extends Key>(key: IResolver<K>): Resolved<K>;
   get<K extends Key>(key: K): Resolved<K>;
   get<K extends Key>(key: Key): Resolved<K>;
   get<K extends Key>(key: K | Key): Resolved<K>;

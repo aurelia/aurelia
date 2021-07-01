@@ -537,6 +537,15 @@ export {
 export {
   ITemplateElementFactory
 } from './template-element-factory.js';
+export {
+  BindablesInfo,
+  TemplateCompiler,
+  ITemplateCompilerHooks,
+} from './template-compiler.js';
+
+export {
+  allResources,
+} from './utilities-di.js';
 
 export {
   PartialChildrenDefinition,

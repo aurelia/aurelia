@@ -1,4 +1,4 @@
-import { emptyArray, Registration, toArray, ILogger, camelCase } from '@aurelia/kernel';
+import { DI, emptyArray, Registration, toArray, ILogger, camelCase } from '@aurelia/kernel';
 import { BindingMode, BindingType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
@@ -24,6 +24,7 @@ import { CustomAttribute } from './resources/custom-attribute.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import { BindingCommand } from './resources/binding-command.js';
 import { createLookup } from './utilities-html.js';
+import { allResources } from './utilities-di.js';
 
 import type { IContainer, IResolver } from '@aurelia/kernel';
 import type { AnyBindingExpression } from '@aurelia/runtime';
@@ -32,6 +33,19 @@ import type { CustomElementType, PartialCustomElementDefinition } from './resour
 import type { IProjections } from './resources/custom-elements/au-slot.js';
 import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command.js';
 import type { ICompliationInstruction, IInstruction, } from './renderer.js';
+
+/**
+ * An interface describing the hooks a compilation process should invoke.
+ *
+ * A feature available to the default template compiler.
+ */
+ export const ITemplateCompilerHooks = DI.createInterface<ITemplateCompilerHooks>('ITemplateCompilerHooks');
+ export interface ITemplateCompilerHooks {
+   /**
+    * Should be invoked immediately before a template gets compiled
+    */
+   beforeCompile?(template: HTMLElement): void;
+ }
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -55,9 +69,18 @@ export class TemplateCompiler implements ITemplateCompiler {
     const context = new CompilationContext(partialDefinition, container, compilationInstruction, null, null, void 0);
     const template = typeof definition.template === 'string' || !partialDefinition.enhance
       ? context.templateFactory.createTemplate(definition.template)
-      : definition.template as Element;
+      : definition.template as HTMLElement;
     const isTemplateElement = template.nodeName === 'TEMPLATE' && (template as HTMLTemplateElement).content != null;
     const content = isTemplateElement ? (template as HTMLTemplateElement).content : template;
+    const hooks = container.get(allResources(ITemplateCompilerHooks));
+    const ii = hooks.length;
+    let i = 0;
+    if (ii > 0) {
+      while (ii > i) {
+        hooks[i].beforeCompile?.(template);
+        ++i;
+      }
+    }
 
     if (template.hasAttribute(localTemplateIdentifier)) {
       throw new Error('The root cannot be a local template itself.');
@@ -65,15 +88,13 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.local(content, context);
     this.node(content, context);
 
-    const surrogates = isTemplateElement
-      ? this.surrogate(template, context)
-      : emptyArray;
-
     return CustomElementDefinition.create({
       ...partialDefinition,
       name: partialDefinition.name || CustomElement.generateName(),
       instructions: context.rows,
-      surrogates,
+      surrogates: isTemplateElement
+        ? this.surrogate(template, context)
+        : emptyArray,
       template,
       hasSlots: context.hasSlot,
       needsCompile: false,
@@ -84,9 +105,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   private surrogate(el: Element, context: CompilationContext): IInstruction[] {
     const instructions: IInstruction[] = [];
     const attrs = el.attributes;
-    const attrParser = context.attrParser;
     const exprParser = context.exprParser;
-    const attrMapper = context.attrMapper;
     let ii = attrs.length;
     let i = 0;
     let attr: Attr;
@@ -109,7 +128,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       attr = attrs[i];
       attrName = attr.name;
       attrValue = attr.value;
-      attrSyntax = attrParser.parse(attrName, attrValue);
+      attrSyntax = context.attrParser.parse(attrName, attrValue);
 
       realAttrTarget = attrSyntax.target;
       realAttrValue = attrSyntax.rawValue;
@@ -209,7 +228,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             // e.g: colspan -> colSpan
             //      innerhtml -> innerHTML
             //      minlength -> minLength etc...
-            attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
+            context.attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
           ));
         } else {
           switch (attrName) {
@@ -1398,7 +1417,7 @@ const orderSensitiveInputType: Record<string, number> = {
 };
 
 const bindableAttrsInfoCache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();
-class BindablesInfo<T extends 0 | 1 = 0> {
+export class BindablesInfo<T extends 0 | 1 = 0> {
   public static from(def: CustomAttributeDefinition, isAttr: true): BindablesInfo<1>;
   // eslint-disable-next-line
   public static from(def: CustomElementDefinition, isAttr: false): BindablesInfo<0>;

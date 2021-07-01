@@ -25,6 +25,7 @@
   * [Event binding](getting-to-know-aurelia/introduction/event-binding.md)
   * [Two-way binding](getting-to-know-aurelia/introduction/two-way-binding.md)
   * [Template references and variables](getting-to-know-aurelia/introduction/template-references-and-variables.md)
+  * [Portalling elements](getting-to-know-aurelia/introduction/portalling-elements.md)
   * [Templating - Local Template](getting-to-know-aurelia/introduction/local-templates.md)
 * [Components](getting-to-know-aurelia/components/README.md)
   * [Component lifecycles](getting-to-know-aurelia/components/component-lifecycles.md)
@@ -90,6 +91,7 @@
 
 * [Building a realtime cryptocurrency price tracker](tutorials/building-a-realtime-cryptocurrency-price-tracker.md)
 * [Building a widget-based dashboard](tutorials/create-a-dashboard-using-dynamic-composition.md)
+* [Building a todo application](tutorials/building-a-todo-application.md)
 * [Building a drag & drop Kanban board](tutorials/building-a-drag-and-drop-kanban-board.md)
 * [Building a form with validation](tutorials/building-a-form-with-validation.md)
 * [Using Aurelia with headless WordPress](tutorials/using-aurelia-with-headless-wordpress.md)

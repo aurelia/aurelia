@@ -4,9 +4,9 @@ You already know components are just enhanced HTML with view models \(sometimes 
 
 In this section, you will learn how you can style components using conventions as well as with Shadow DOM to encapsulate your CSS styles.
 
-## Working with component styles
+## Working with style conventions
 
-Not always, but sometimes when you are creating components you also want styles for your component. Default conventions for custom elements mean that if you create a custom element and a CSS file with the a matching filename, it will be imported automatically.
+Not always, but sometimes when you are creating components you also want styles for your component. Default conventions for custom elements mean that if you create a custom element and a CSS file with a matching filename, it will be imported automatically.
 
 {% tabs %}
 {% tab title="my-component.ts" %}
@@ -32,5 +32,5 @@ export class MyComponent {
 {% endtab %}
 {% endtabs %}
 
-
+Notice how we didn't import `my-component.css` but when we run the app, it gets imported automatically? That is Aurelia's intuitive conventions at work.
 

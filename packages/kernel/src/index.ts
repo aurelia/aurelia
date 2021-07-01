@@ -15,6 +15,9 @@ export {
 
 export {
   all,
+  factory,
+  IFactoryResolver,
+  IResolvedFactory,
   DI,
   IContainer,
   IFactory,
@@ -25,6 +28,8 @@ export {
   IServiceLocator,
   Key,
   lazy,
+  ILazyResolver,
+  IResolvedLazy,
   optional,
   ignore,
   RegisterSelf,

@@ -1514,8 +1514,8 @@ function getBindingMode(bindable: Element): BindingMode {
 export const ITemplateCompilerHooks = DI.createInterface<ITemplateCompilerHooks>('ITemplateCompilerHooks');
 export interface ITemplateCompilerHooks {
   /**
-  * Should be invoked immediately before a template gets compiled
-  */
+   * Should be invoked immediately before a template gets compiled
+   */
   beforeCompile?(template: HTMLElement): void;
 }
 

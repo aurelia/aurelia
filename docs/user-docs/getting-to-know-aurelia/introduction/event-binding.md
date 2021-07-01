@@ -16,6 +16,18 @@ To listen to a `click` event on a button, for example, you would do something li
 
 Inside of the quotation marks, you specify the name of a function to be called inside of your view model.
 
+## Common events
+
+There are several events that you will bind onto in your Aurelia applications.
+
+### click
+
+You will listen to the `click` event on buttons and links using either `click.trigger` or `click.delegate`
+
+### keypress
+
+The native `keypress` event using `keypress.trigger` will allow you to listen to keypress events on inputs and other elements.
+
 ## Delegate vs Trigger vs Capture
 
 Aurelia supports three different means of working with event bindings. In most situations, you will use `trigger` as it does not suffer from side effects and is generally the recommended approach for working with events.

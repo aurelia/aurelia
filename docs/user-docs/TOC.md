@@ -25,6 +25,7 @@
   * [Event binding](getting-to-know-aurelia/introduction/event-binding.md)
   * [Two-way binding](getting-to-know-aurelia/introduction/two-way-binding.md)
   * [Template references and variables](getting-to-know-aurelia/introduction/template-references-and-variables.md)
+  * [Portalling elements](getting-to-know-aurelia/introduction/portalling-elements.md)
   * [Templating - Local Template](getting-to-know-aurelia/introduction/local-templates.md)
 * [Components](getting-to-know-aurelia/components/README.md)
   * [Component lifecycles](getting-to-know-aurelia/components/component-lifecycles.md)

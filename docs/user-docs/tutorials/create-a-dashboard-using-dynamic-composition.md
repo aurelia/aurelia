@@ -277,7 +277,7 @@ The missing piece is now adding in the actual dynamic composition to our view. O
 
 If you were to run this app using `npm start` you would see something like this so far:
 
-![](../.gitbook/assets/image.png)
+![](../.gitbook/assets/image%20%282%29.png)
 
 ## Component \#3 - GeoIP component
 

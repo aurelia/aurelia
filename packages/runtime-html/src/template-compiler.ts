@@ -1,4 +1,4 @@
-import { DI, emptyArray, Registration, toArray, ILogger, camelCase } from '@aurelia/kernel';
+import { DI, emptyArray, Registration, toArray, ILogger, camelCase, Protocol, ResourceDefinition, ResourceType, Metadata } from '@aurelia/kernel';
 import { BindingMode, BindingType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
@@ -26,26 +26,17 @@ import { BindingCommand } from './resources/binding-command.js';
 import { createLookup } from './utilities-html.js';
 import { allResources } from './utilities-di.js';
 
-import type { IContainer, IResolver } from '@aurelia/kernel';
+import type {
+  IContainer,
+  IResolver,
+  Constructable,
+} from '@aurelia/kernel';
 import type { AnyBindingExpression } from '@aurelia/runtime';
 import type { CustomAttributeType, CustomAttributeDefinition } from './resources/custom-attribute.js';
 import type { CustomElementType, PartialCustomElementDefinition } from './resources/custom-element.js';
 import type { IProjections } from './resources/custom-elements/au-slot.js';
 import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command.js';
 import type { ICompliationInstruction, IInstruction, } from './renderer.js';
-
-/**
- * An interface describing the hooks a compilation process should invoke.
- *
- * A feature available to the default template compiler.
- */
- export const ITemplateCompilerHooks = DI.createInterface<ITemplateCompilerHooks>('ITemplateCompilerHooks');
- export interface ITemplateCompilerHooks {
-   /**
-    * Should be invoked immediately before a template gets compiled
-    */
-   beforeCompile?(template: HTMLElement): void;
- }
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -1514,3 +1505,62 @@ function getBindingMode(bindable: Element): BindingMode {
       return BindingMode.default;
   }
 }
+
+/**
+ * An interface describing the hooks a compilation process should invoke.
+ *
+ * A feature available to the default template compiler.
+ */
+export const ITemplateCompilerHooks = DI.createInterface<ITemplateCompilerHooks>('ITemplateCompilerHooks');
+export interface ITemplateCompilerHooks {
+  /**
+  * Should be invoked immediately before a template gets compiled
+  */
+  beforeCompile?(template: HTMLElement): void;
+}
+
+const typeToHooksDefCache = new WeakMap<Constructable, TemplateCompilerHooksDefinition<unknown>>();
+const compilerHooksResourceName = Protocol.resource.keyFor('compiler-hooks');
+export const TemplateCompilerHooks = Object.freeze({
+  name: compilerHooksResourceName,
+  /**
+   * @param def - Placeholder for future extensions. Currently always an empty object.
+   */
+  define<K extends ITemplateCompilerHooks, T extends Constructable<K>>(Type: T): T {
+    let def = typeToHooksDefCache.get(Type);
+    if (def === void 0) {
+      typeToHooksDefCache.set(Type, def = new TemplateCompilerHooksDefinition(Type));
+      Metadata.define(compilerHooksResourceName, def, Type);
+      Protocol.resource.appendTo(Type, compilerHooksResourceName);
+    }
+    return Type;
+  }
+});
+
+class TemplateCompilerHooksDefinition<T> implements ResourceDefinition<Constructable<T>, ITemplateCompilerHooks> {
+  public get name(): string { return ''; }
+
+  public constructor(
+    public readonly Type: ResourceType<Constructable<T>, ITemplateCompilerHooks>,
+  ) {}
+
+  public register(c: IContainer) {
+    c.register(Registration.singleton(ITemplateCompilerHooks, this.Type));
+  }
+}
+
+/**
+ * Decorator: Indicates that the decorated class is a template compiler hooks.
+ *
+ * An instance of this class will be created and appropriate compilation hooks will be invoked
+ * at different phases of the default compiler.
+ */
+/* eslint-disable */
+// deepscan-disable-next-line
+export const templateCompilerHooks = (target?: Function) => {
+  return target === void 0 ? decorator : decorator(target);
+  function decorator(t: Function): any {
+    return TemplateCompilerHooks.define(t as Constructable) as unknown as void;
+  };
+}
+/* eslint-enable */

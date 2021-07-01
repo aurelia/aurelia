@@ -41,7 +41,7 @@ export const allResources = function <T extends Key>(key: T) {
     }
 
     return requestor.has(key, false)
-      ? requestor.root.getAll(key, false).concat(requestor.getAll(key, false))
+      ? requestor.getAll(key, false).concat(requestor.root.getAll(key, false))
       : requestor.root.getAll(key, false);
   };
   return Resolver as IResolver<Resolved<T>[]> & ((...args: unknown[]) => any);

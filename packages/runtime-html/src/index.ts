@@ -541,6 +541,8 @@ export {
   BindablesInfo,
   TemplateCompiler,
   ITemplateCompilerHooks,
+  TemplateCompilerHooks,
+  templateCompilerHooks,
 } from './template-compiler.js';
 
 export {

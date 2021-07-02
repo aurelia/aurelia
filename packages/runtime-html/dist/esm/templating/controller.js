@@ -362,7 +362,9 @@ export class Controller {
             this.logger = this.context.get(ILogger).root.scopeTo(this.name);
             this.logger.trace(`activate()`);
         }
-        this.hostScope = hostScope !== null && hostScope !== void 0 ? hostScope : null;
+        if (this.vmKind === 2 /* synthetic */) {
+            this.hostScope = hostScope !== null && hostScope !== void 0 ? hostScope : null;
+        }
         flags |= 2 /* fromBind */;
         switch (this.vmKind) {
             case 0 /* customElement */:

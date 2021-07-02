@@ -27,15 +27,14 @@ export class AuSlot {
     /** @internal */
     static get inject() { return [IRenderLocation, IInstruction, IHydrationContext]; }
     binding(_initiator, _parent, _flags) {
-        var _a;
         this.hostScope = this.$controller.scope.parentScope;
         this.outerScope = this.hasProjection
-            ? (_a = this.hdrContext.controller.scope.parentScope) !== null && _a !== void 0 ? _a : null : this.hostScope;
+            ? this.hdrContext.controller.scope.parentScope
+            : this.hostScope;
     }
     attaching(initiator, parent, flags) {
         var _a;
-        const { $controller } = this;
-        return this.view.activate(initiator, $controller, flags, (_a = this.outerScope) !== null && _a !== void 0 ? _a : this.hostScope, this.hostScope);
+        return this.view.activate(initiator, this.$controller, flags, (_a = this.outerScope) !== null && _a !== void 0 ? _a : this.hostScope, this.hostScope);
     }
     detaching(initiator, parent, flags) {
         return this.view.deactivate(initiator, this.$controller, flags);

@@ -48,7 +48,6 @@ export interface IBatchable {
     flushBatch(flags: LifecycleFlags): void;
 }
 export interface ISubscriber<TValue = unknown> {
-    id?: number;
     handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
 }
 export interface ICollectionSubscriber {

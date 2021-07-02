@@ -156,6 +156,9 @@ export class SetPropertyInstruction {
 export class HydrateElementInstruction {
   public get type(): InstructionType.hydrateElement { return InstructionType.hydrateElement; }
 
+  /**
+   * A special property that can be used to store <au-slot/> usage information
+   */
   public auSlot: { name: string; fallback: CustomElementDefinition } | null = null;
 
   public constructor(
@@ -299,6 +302,12 @@ export class AttributeBindingInstruction {
 
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler');
 export interface ITemplateCompiler {
+  /**
+   * Indicates whether this compiler should compile template in debug mode
+   *
+   * For the default compiler, this means all expressions are kept as is on the template
+   */
+  debug: boolean;
   compile(
     partialDefinition: PartialCustomElementDefinition,
     context: IContainer,

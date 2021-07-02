@@ -104,7 +104,7 @@ describe(spec, function () {
       const q = platform.domWriteQueue;
       await q.yield();
 
-      assert.html.innerEqual(host, '<foo prop.bind="i" class="au">0</foo> <foo prop.bind="i" class="au">1</foo> <foo prop.bind="i" class="au">2</foo>', `host.textContent`);
+      assert.html.innerEqual(host, '<foo class="au">0</foo> <foo class="au">1</foo> <foo class="au">2</foo>', `host.textContent`);
     }, setup);
   }
   {
@@ -126,7 +126,7 @@ describe(spec, function () {
       const q = platform.domWriteQueue;
       await q.yield();
 
-      assert.html.innerEqual(host, '<foo prop.bind="item.p" class="au">1</foo> <foo prop.bind="item.p" class="au">2</foo> <foo prop.bind="item.p" class="au">3</foo>', `host.textContent`);
+      assert.html.innerEqual(host, '<foo class="au">1</foo> <foo class="au">2</foo> <foo class="au">3</foo>', `host.textContent`);
     }, setup);
   }
   {
@@ -156,7 +156,7 @@ describe(spec, function () {
       const q = platform.domWriteQueue;
       await q.yield();
 
-      assert.html.innerEqual(host, '<bar id.from-view="id" class="au">bar</bar> <foo prop.bind="id" class="au">1</foo> <bar id.from-view="id" class="au">bar</bar> <foo prop.bind="id" class="au">2</foo>', `host.textContent`);
+      assert.html.innerEqual(host, '<bar class="au">bar</bar> <foo class="au">1</foo> <bar class="au">bar</bar> <foo class="au">2</foo>', `host.textContent`);
     }, setup);
   }
 

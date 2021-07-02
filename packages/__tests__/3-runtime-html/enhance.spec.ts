@@ -319,7 +319,7 @@ describe('3-runtime/enhance.spec.ts', function () {
           .enhance({ host: _host, component: CustomElement.define({ name: 'enhance' }, class EnhanceRoot { }) })
           .start();
 
-        assert.html.innerEqual(_host, '<my-element value.bind="42.toString()" class="au"><span>42</span></my-element>', 'enhanced.innerHtml');
+        assert.html.innerEqual(_host, '<my-element class="au"><span>42</span></my-element>', 'enhanced.innerHtml');
         assert.html.innerEqual(this.container, '', 'container.innerHtml - before attach');
       }
 
@@ -330,8 +330,8 @@ describe('3-runtime/enhance.spec.ts', function () {
       // The inverse order of the stop and detaching is intentional
       public async detaching() {
         await this.enhanceAu.stop();
-        assert.html.innerEqual(this.enhancedHost, '<my-element value.bind="42.toString()" class="au"></my-element>', 'enhanced.innerHtml');
-        assert.html.innerEqual(this.container, '<div><my-element value.bind="42.toString()" class="au"></my-element></div>', 'enhanced.innerHtml');
+        assert.html.innerEqual(this.enhancedHost, '<my-element class="au"></my-element>', 'enhanced.innerHtml');
+        assert.html.innerEqual(this.container, '<div><my-element class="au"></my-element></div>', 'enhanced.innerHtml');
       }
 
       public unbinding() {
@@ -349,7 +349,7 @@ describe('3-runtime/enhance.spec.ts', function () {
       .app({ host, component: App })
       .start();
 
-    assert.html.innerEqual(host.querySelector('#container'), '<div><my-element value.bind="42.toString()" class="au"><span>42</span></my-element></div>', 'container.innerHTML - after attach');
+    assert.html.innerEqual(host.querySelector('#container'), '<div><my-element class="au"><span>42</span></my-element></div>', 'container.innerHTML - after attach');
 
     await au.stop();
 

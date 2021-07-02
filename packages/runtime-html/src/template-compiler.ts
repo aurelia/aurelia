@@ -1,4 +1,4 @@
-import { DI, emptyArray, Registration, toArray, ILogger, camelCase, Protocol, ResourceDefinition, ResourceType, Metadata } from '@aurelia/kernel';
+import { DI, emptyArray, Registration, toArray, ILogger, camelCase, Protocol, ResourceDefinition, ResourceType, Metadata, noop } from '@aurelia/kernel';
 import { BindingMode, BindingType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
@@ -42,6 +42,8 @@ export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
     return Registration.singleton(ITemplateCompiler, this).register(container);
   }
+
+  public debug: boolean = false;
 
   public compile(
     partialDefinition: PartialCustomElementDefinition,
@@ -374,6 +376,13 @@ export class TemplateCompiler implements ITemplateCompiler {
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = context.el(elName);
     const exprParser = context.exprParser;
+    const removeAttr = this.debug
+      ? noop
+      : () => {
+        el.removeAttribute(attrName);
+        --i;
+        --ii;
+      };
     let attrs = el.attributes;
     let instructions: IInstruction[] | undefined;
     let ii = attrs.length;
@@ -421,9 +430,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       switch (attrName) {
         case 'as-element':
         case 'containerless':
-          el.removeAttribute(attrName);
-          --i;
-          --ii;
+          removeAttr();
           if (!hasContainerless) {
             hasContainerless = attrName === 'containerless';
           }
@@ -447,6 +454,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         commandBuildInfo.def = null;
         (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
 
+        removeAttr();
         // to next attribute
         continue;
       }
@@ -501,9 +509,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
 
-        el.removeAttribute(attrName);
-        --i;
-        --ii;
+        removeAttr();
 
         if (attrDef.isTemplateController) {
           (tcInstructions ??= []).push(new HydrateTemplateController(
@@ -512,16 +518,13 @@ export class TemplateCompiler implements ITemplateCompiler {
             void 0,
             attrBindableInstructions,
           ));
-
-          // to next attribute
-          continue;
+        } else {
+          (attrInstructions ??= []).push(new HydrateAttributeInstruction(
+            attrDef.name,
+            attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
+            attrBindableInstructions
+          ));
         }
-
-        (attrInstructions ??= []).push(new HydrateAttributeInstruction(
-          attrDef.name,
-          attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
-          attrBindableInstructions
-        ));
         continue;
       }
 
@@ -535,18 +538,13 @@ export class TemplateCompiler implements ITemplateCompiler {
           bindable = bindablesInfo.attrs[realAttrTarget];
           if (bindable !== void 0) {
             expr = exprParser.parse(realAttrValue, BindingType.Interpolation);
-            elBindableInstructions ??= [];
-            if (expr != null) {
-              // if it's an interpolation, remove the attribute
-              el.removeAttribute(attrName);
-              --i;
-              --ii;
+            (elBindableInstructions ??= []).push(
+              expr == null
+                ? new SetPropertyInstruction(realAttrValue, bindable.property)
+                : new InterpolationInstruction(expr, bindable.property)
+            );
 
-              elBindableInstructions.push(new InterpolationInstruction(expr, bindable.property));
-            } else {
-              elBindableInstructions.push(new SetPropertyInstruction(realAttrValue, bindable.property));
-            }
-
+            removeAttr();
             continue;
           }
         }
@@ -557,9 +555,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         expr = exprParser.parse(realAttrValue, BindingType.Interpolation);
         if (expr != null) {
           // if it's an interpolation, remove the attribute
-          el.removeAttribute(attrName);
-          --i;
-          --ii;
+          removeAttr();
 
           (plainAttrInstructions ??= []).push(new InterpolationInstruction(
             expr,
@@ -579,6 +575,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       // + has binding command
       // + not an overriding binding command
       // + not a custom attribute
+      removeAttr();
 
       if (elDef !== null) {
         // if the element is a custom element
@@ -1311,7 +1308,7 @@ class CompilationContext {
    * Find the custom element definition of a given name
    */
   public el(name: string): CustomElementDefinition | null {
-    return this.c.find(CustomElement, name) as CustomElementDefinition | null;
+    return this.c.find(CustomElement, name);
   }
 
   /**

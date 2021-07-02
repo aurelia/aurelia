@@ -703,7 +703,7 @@ describe('3-runtime-html/compose.spec.ts/au-compose', function () {
       assert.visibleTextEqual(appHost, 'Hello');
       assert.html.innerEqual(
         appHost,
-        '<au-compose view-model.bind="El" view="<div>Hello</div>" model.bind="{ index: 0 }" class="au"><div>Hello</div></au-compose>'
+        '<au-compose class="au"><div>Hello</div></au-compose>'
       );
 
       assert.strictEqual(node, appHost.querySelector('au-compose'));

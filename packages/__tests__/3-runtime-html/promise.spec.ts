@@ -431,15 +431,15 @@ describe('promise template-controller', function () {
     return wait;
   }
 
-  function* getTestData() {
-    function wrap(content: string, type: 'p' | 'f' | 'r') {
+  function *getTestData() {
+    function wrap(content: string, type: 'p' | 'f' | 'r', debugMode = false) {
       switch (type) {
         case 'p':
-          return `<${phost} p.bind="promise" class="au">${content}</${phost}>`;
+          return `<${phost} ${debugMode ? `p.bind="promise" ` : ''}class="au">${content}</${phost}>`;
         case 'f':
-          return `<${fhost} data.bind="data" class="au">${content}</${fhost}>`;
+          return `<${fhost} ${debugMode ? `data.bind="data" ` : ''}class="au">${content}</${fhost}>`;
         case 'r':
-          return `<${rhost} err.bind="err" class="au">${content}</${rhost}>`;
+          return `<${rhost} ${debugMode ? `err.bind="err" ` : ''}class="au">${content}</${rhost}>`;
       }
     }
 
@@ -1285,7 +1285,7 @@ describe('promise template-controller', function () {
             </template>`
             },
             config(),
-            '<rejected-host err.bind="updateError(err)" class="au">rejected with foo-bar1</rejected-host>',
+            '<rejected-host class="au">rejected with foo-bar1</rejected-host>',
             getActivationSequenceFor(`${rhost}-1`),
             getDeactivationSequenceFor(`${rhost}-1`),
           );
@@ -1449,7 +1449,7 @@ describe('promise template-controller', function () {
             );
 
             {
-              const staticPart = '<my-el prop.bind="fooBar" class="au">Fizz Bazz</my-el>';
+              const staticPart = '<my-el class="au">Fizz Bazz</my-el>';
               let resolve: (value: unknown) => void;
               let reject: (value: unknown) => void;
               yield new TestData(
@@ -1623,7 +1623,7 @@ describe('promise template-controller', function () {
                 registrations,
               },
               config(),
-              '<rej-host err.bind="err" class="au">rejected with 42</rej-host><rej-host err.bind="err" class="au">rejected with forty-two</rej-host>',
+              '<rej-host class="au">rejected with 42</rej-host><rej-host class="au">rejected with forty-two</rej-host>',
               getActivationSequenceFor(['rej-host-1', 'rej-host-2']),
               getDeactivationSequenceFor(['rej-host-1', 'rej-host-2']),
             );
@@ -1643,7 +1643,7 @@ describe('promise template-controller', function () {
                 registrations,
               },
               config(),
-              '<rej-host err.bind="err" class="au">rejected with 42</rej-host><rej-host err.bind="err" class="au">rejected with forty-two</rej-host>',
+              '<rej-host class="au">rejected with 42</rej-host><rej-host class="au">rejected with forty-two</rej-host>',
               getActivationSequenceFor(['rej-host-1', 'rej-host-2']),
               getDeactivationSequenceFor(['rej-host-1', 'rej-host-2']),
             );
@@ -1924,7 +1924,7 @@ describe('promise template-controller', function () {
           </template>`,
             },
             config(),
-            '<fulfilled-host data="unknown" class="au">resolved with unknown</fulfilled-host>',
+            '<fulfilled-host class="au">resolved with unknown</fulfilled-host>',
             getActivationSequenceFor(`${fhost}-2`),
             getDeactivationSequenceFor(`${fhost}-1`),
             async (ctx) => {
@@ -1939,7 +1939,7 @@ describe('promise template-controller', function () {
               await q.yield();
               await waitSwitch($switch);
 
-              assert.html.innerEqual(ctx.host, '<fulfilled-host data="processing" class="au">resolved with processing</fulfilled-host>');
+              assert.html.innerEqual(ctx.host, '<fulfilled-host class="au">resolved with processing</fulfilled-host>');
               ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-2`), ...getActivationSequenceFor(`${fhost}-1`)]);
             },
           );
@@ -1960,7 +1960,7 @@ describe('promise template-controller', function () {
           </template>`,
             },
             config(),
-            '<fulfilled-host data="processing" class="au">resolved with processing</fulfilled-host>',
+            '<fulfilled-host class="au">resolved with processing</fulfilled-host>',
             getActivationSequenceFor(`${fhost}-1`),
             getDeactivationSequenceFor(`${fhost}-2`),
             async (ctx) => {
@@ -1971,7 +1971,7 @@ describe('promise template-controller', function () {
               const $switch = tc['fulfilled'].view.children.find((c) => c.viewModel instanceof Switch).viewModel as Switch;
               controller.scope.overrideContext.status = 'foo';
               await waitSwitch($switch);
-              assert.html.innerEqual(ctx.host, '<fulfilled-host data="unknown" class="au">resolved with unknown</fulfilled-host>');
+              assert.html.innerEqual(ctx.host, '<fulfilled-host class="au">resolved with unknown</fulfilled-host>');
               ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${fhost}-2`)]);
             }
           );
@@ -1993,7 +1993,7 @@ describe('promise template-controller', function () {
           </template>`,
             },
             config(),
-            '<rejected-host err.bind="{message: \'unknown\'}" class="au">rejected with unknown</rejected-host>',
+            '<rejected-host class="au">rejected with unknown</rejected-host>',
             getActivationSequenceFor(`${rhost}-2`),
             getDeactivationSequenceFor(`${rhost}-1`),
             async (ctx) => {
@@ -2012,7 +2012,10 @@ describe('promise template-controller', function () {
               await q.yield();
               await waitSwitch($switch);
 
-              assert.html.innerEqual(ctx.host, '<rejected-host err.bind="{message: \'processing\'}" class="au">rejected with processing</rejected-host>');
+              assert.html.innerEqual(
+                ctx.host,
+                '<rejected-host class="au">rejected with processing</rejected-host>'
+              );
               ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-2`), ...getActivationSequenceFor(`${rhost}-1`)]);
             },
           );
@@ -2033,7 +2036,7 @@ describe('promise template-controller', function () {
           </template>`,
             },
             config(),
-            '<rejected-host err.bind="{message: \'processing\'}" class="au">rejected with processing</rejected-host>',
+            '<rejected-host class="au">rejected with processing</rejected-host>',
             getActivationSequenceFor(`${rhost}-1`),
             getDeactivationSequenceFor(`${rhost}-2`),
             async (ctx) => {
@@ -2044,7 +2047,7 @@ describe('promise template-controller', function () {
               const $switch = tc['rejected'].view.children.find((c) => c.viewModel instanceof Switch).viewModel as Switch;
               controller.scope.overrideContext.status = 'foo';
               await waitSwitch($switch);
-              assert.html.innerEqual(ctx.host, '<rejected-host err.bind="{message: \'unknown\'}" class="au">rejected with unknown</rejected-host>');
+              assert.html.innerEqual(ctx.host, '<rejected-host class="au">rejected with unknown</rejected-host>');
               ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-1`), ...getActivationSequenceFor(`${rhost}-2`)]);
             }
           );
@@ -2072,7 +2075,7 @@ describe('promise template-controller', function () {
           </template>`,
             },
             config(),
-            '<foo-bar p.bind="42|promisify:true" class="au"> <div>f1</div> </foo-bar> <foo-bar p.bind="\'forty-two\'|promisify:false" class="au"> <div>r2</div> </foo-bar>',
+            '<foo-bar class="au"> <div>f1</div> </foo-bar> <foo-bar class="au"> <div>r2</div> </foo-bar>',
             [],
             [],
           );
@@ -2868,7 +2871,7 @@ describe('promise template-controller', function () {
     ) { }
   }
 
-  function* getNegativeTestData() {
+  function *getNegativeTestData() {
     yield new NegativeTestData(
       `pending cannot be used in isolation`,
       `<template><template pending>pending</template></template>`

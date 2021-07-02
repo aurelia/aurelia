@@ -42,6 +42,7 @@ import {
   IExpressionParser,
   CustomAttributeDefinition,
   ITemplateCompilerHooks,
+  IAttributeParser,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -785,6 +786,7 @@ function createCustomElement(
   nestedElInstructions: readonly any[],
   childOutput?,
   childInput?,
+  debugMode?: boolean
 ): [PartialCustomElementDefinition, PartialCustomElementDefinition] {
   const instruction: Partial<HydrateElementInstruction> = {
     type: TT.hydrateElement,
@@ -795,6 +797,7 @@ function createCustomElement(
     projections: null,
   };
   const exprParser = ctx.container.get(IExpressionParser);
+  const attrParser = ctx.container.get(IAttributeParser);
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
   const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${tagName}>`;
   const input = {
@@ -802,8 +805,28 @@ function createCustomElement(
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
-  const outputAttributeMarkup = attributes.map(a => exprParser.parse(a[1], BindingType.Interpolation) !== null ? '' : `${a[0]}="${a[1]}"`).join(' ');
-  const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${outputAttributeMarkup.replace(/\$\{.*\}/, '')}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
+  const def = ctx.container.find(CustomElement, tagName);
+  const outputAttributeMarkup = debugMode
+    ? attributes
+      .map(a => `${a[0]}="${a[1]}"`)
+      .join(' ')
+    : attributes
+      .filter((a) => {
+        const syntax = attrParser.parse(a[0], a[1]);
+        // if not with a binding command,
+        const canStay = syntax.command === null
+          // nor a custom attribute,
+          && !ctx.container.find(CustomAttribute, syntax.target)
+          // nor with interpolation
+          && exprParser.parse(a[1], BindingType.Interpolation) === null
+          // nor a bindable
+          && !(BindablesInfo.from(def, false).attrs[a[0]]);
+        // then can stay in the template
+        return canStay;
+      })
+      .map(a => `${a[0]}="${a[1]}"`)
+      .join(' ');
+  const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${outputAttributeMarkup}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
   outputMarkup.classList.add('au');
   const output = {
     ...defaultCustomElementDefinitionProperties,
@@ -959,9 +982,65 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, $1, [attr, to, value]) => [`${attr}.call`,      value, { type: TT.callBinding,      from: new AccessScopeExpression(value), to }]
       ] as ((ctx: TestContext, $1: [string], $2: [string, string, string]) => [string, string, any])[]
     ],                       (ctx, [el], $2, [n1, v1, i1]) => {
-      const markup = `<${el} ${n1}="${v1}"></${el}>`;
+      const markup = `<${el} plain data-attr="value" ${n1}="${v1}"></${el}>`;
 
-      it(markup, function () {
+      for (const debugMode of [true, false]) {
+        it(`[Debug: ${debugMode}] ${markup} + [class] attribute`, function () {
+          const markup = `<${el} plain data-attr="value" class="abc" ${n1}="${v1}"></${el}>`;
+          const input: PartialCustomElementDefinition = {
+            template: markup,
+            instructions: [],
+            surrogates: [],
+          } as unknown as PartialCustomElementDefinition;
+          const expected = {
+            ...defaultCustomElementDefinitionProperties,
+            template: ctx.createElementFromMarkup(`<template><${el} plain data-attr="value" class="abc au" ${debugMode ? `${n1}="${v1}" ` : ''}></${el}></template>`),
+            instructions: [[i1]],
+            surrogates: [],
+            needsCompile: false,
+            enhance: false,
+            processContent: null,
+          };
+
+          const { sut, container } = createFixture(ctx);
+          sut.debug = debugMode;
+
+          const actual = sut.compile(input, container, null);
+
+          verifyBindingInstructionsEqual(actual, expected);
+        });
+
+        it(`[Debug: ${debugMode}] ${markup}`, function () {
+          const markup = `<${el} plain data-attr="value" ${n1}="${v1}"></${el}>`;
+          const input: PartialCustomElementDefinition = {
+            template: markup,
+            instructions: [],
+            surrogates: [],
+          } as unknown as PartialCustomElementDefinition;
+          const expected = {
+            ...defaultCustomElementDefinitionProperties,
+            template: ctx.createElementFromMarkup(`<template><${el} plain data-attr="value" ${debugMode ? `${n1}="${v1}" ` : ''}class="au"></${el}></template>`),
+            instructions: [[i1]],
+            surrogates: [],
+            needsCompile: false,
+            enhance: false,
+            processContent: null,
+          };
+
+          const { sut, container } = createFixture(ctx);
+          sut.debug = debugMode;
+
+          const actual = sut.compile(input, container, null);
+
+          verifyBindingInstructionsEqual(actual, expected);
+        });
+      }
+    });
+
+    for (const debugMode of [true, false]) {
+      it(`[Debug: ${debugMode}] [class] attribute + \${interpolation}`, function () {
+        const ctx = TestContext.create();
+        const markup = `<span plain data-attr="value" class="abc-\${value}"></span>`;
         const input: PartialCustomElementDefinition = {
           template: markup,
           instructions: [],
@@ -969,8 +1048,22 @@ describe(`TemplateCompiler - combinations`, function () {
         } as unknown as PartialCustomElementDefinition;
         const expected = {
           ...defaultCustomElementDefinitionProperties,
-          template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`),
-          instructions: [[i1]],
+          template: ctx.createElementFromMarkup(
+            `<template><span plain data-attr="value" class="${debugMode ? `abc-\${value} ` : ''}au"></span></template>`
+          ),
+          instructions: [[
+            {
+              "from": {
+                "parts": ["abc-",""],
+                "expressions": [
+                  {"name":"value","ancestor":0,"accessHostScope":false}
+                ],
+                "isMulti": false,
+                "firstExpression": {"name":"value","ancestor":0,"accessHostScope":false}
+              },
+              "to":"class"
+            }
+          ]],
           surrogates: [],
           needsCompile: false,
           enhance: false,
@@ -978,12 +1071,13 @@ describe(`TemplateCompiler - combinations`, function () {
         };
 
         const { sut, container } = createFixture(ctx);
+        sut.debug = debugMode;
 
         const actual = sut.compile(input, container, null);
 
         verifyBindingInstructionsEqual(actual, expected);
       });
-    });
+    }
   });
 
   describe('custom attributes', function () {
@@ -1384,45 +1478,59 @@ describe(`TemplateCompiler - combinations`, function () {
       ] as ((ctx: TestContext) => string)[]
     ],
     (ctx, pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
-      it(`customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
+      for (const debugMode of [true, false]) {
+        it(`[Debug: ${debugMode}] customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
-        const { sut, container } = createFixture(
-          ctx,
-          CustomElement.define({ name: 'foobar', bindables }, class FooBar {})
-        );
+          const { sut, container } = createFixture(
+            ctx,
+            CustomElement.define({ name: 'foobar', bindables }, class FooBar {})
+          );
+          sut.debug = debugMode;
 
-        const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, false);
-        const instructions = instruction == null ? [] : [instruction];
-        const childInstructions = !!bindableDescription ? instructions : [];
-        const siblingInstructions = !bindableDescription ? instructions : [];
+          const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, false);
+          const instructions = instruction == null ? [] : [instruction];
+          const childInstructions = !!bindableDescription ? instructions : [];
+          const siblingInstructions = !bindableDescription ? instructions : [];
 
-        const [input, output] = createCustomElement(ctx, 'foobar', true, [[attrName, attrValue]], childInstructions, siblingInstructions, []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
+          const [input, output] = createCustomElement(
+            ctx,
+            'foobar',
+            true,
+            [[attrName, attrValue]],
+            childInstructions,
+            siblingInstructions,
+            [],
+            void 0,
+            void 0,
+            debugMode
+          ) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
 
-        if (attrName.endsWith('.qux')) {
-          let e;
-          try {
-            sut.compile(input, container, null);
-          } catch (err) {
-            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
-            e = err;
+          if (attrName.endsWith('.qux')) {
+            let e;
+            try {
+              sut.compile(input, container, null);
+            } catch (err) {
+              // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+              // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+              e = err;
+            }
+            assert.instanceOf(e, Error);
+          } else {
+            // enableTracing();
+            // Tracer.enableLiveLogging(SymbolTraceWriter);
+            const actual = sut.compile(input, container, null);
+            // console.log('\n'+stringifyTemplateDefinition(actual, 0));
+            // disableTracing();
+            try {
+              verifyBindingInstructionsEqual(actual, output);
+            } catch (err) {
+              // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+              // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+              throw err;
+            }
           }
-          assert.instanceOf(e, Error);
-        } else {
-          // enableTracing();
-          // Tracer.enableLiveLogging(SymbolTraceWriter);
-          const actual = sut.compile(input, container, null);
-          // console.log('\n'+stringifyTemplateDefinition(actual, 0));
-          // disableTracing();
-          try {
-            verifyBindingInstructionsEqual(actual, output);
-          } catch (err) {
-            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
-            throw err;
-          }
-        }
-      });
+        });
+      }
     });
   });
 

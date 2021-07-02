@@ -36,6 +36,12 @@ import type { IPlatform } from '../platform.js';
 import type { IInstruction } from '../renderer.js';
 import type { IWatchDefinition } from '../watch.js';
 
+declare module '@aurelia/kernel' {
+  interface IContainer {
+    find<T>(kind: CustomElementKind, name: string): CustomElementDefinition<Constructable<T>> | null;
+  }
+}
+
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
   readonly template?: null | string | Node;

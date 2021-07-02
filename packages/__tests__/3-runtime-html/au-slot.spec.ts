@@ -1778,6 +1778,34 @@ describe('au-slot', function () {
         },
       );
     }
+
+    {
+      yield new TestData(
+        'picks the right scope of component [ref] bindings',
+        `<my-component>
+          <template au-slot>
+            <my-component>
+            </my-component>
+          </template>
+        </my-component>`,
+        [
+          CustomElement.define({
+            name: 'my-component',
+            template: `<div ref="container" id="div-\${id}"> ref.id=\${container.id} <au-slot></au-slot></div>`
+          }, class MyComponent {
+            public static count = 0;
+            public id: number = MyComponent.count++;
+          })
+        ],
+        {},
+        function ({ host }) {
+          assert.notStrictEqual(host.querySelector('#div-0'), null);
+          assert.notStrictEqual(host.querySelector('#div-1'), null);
+          assert.strictEqual(host.querySelector('#div-0').textContent.replace(/\s/g, ''), 'ref.id=div-0ref.id=div-1');
+          assert.strictEqual(host.querySelector('#div-1').textContent.replace(/\s/g, ''), 'ref.id=div-1');
+        },
+      );
+    }
   }
 
   for (const { spec, template, expected, registrations, additionalAssertion, only } of getTestData()) {

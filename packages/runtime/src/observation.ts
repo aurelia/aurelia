@@ -76,7 +76,6 @@ export interface IBatchable {
 }
 
 export interface ISubscriber<TValue = unknown> {
-  id?: number;
   handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
 }
 

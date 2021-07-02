@@ -50,7 +50,7 @@ export class AuSlot implements ICustomElementViewModel {
   ): void | Promise<void> {
     this.hostScope = this.$controller.scope.parentScope!;
     this.outerScope = this.hasProjection
-      ? this.hdrContext.controller.scope.parentScope! ?? null
+      ? this.hdrContext.controller.scope.parentScope
       : this.hostScope;
   }
 
@@ -59,8 +59,7 @@ export class AuSlot implements ICustomElementViewModel {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    const { $controller } = this;
-    return this.view.activate(initiator, $controller, flags, this.outerScope ?? this.hostScope!, this.hostScope);
+    return this.view.activate(initiator, this.$controller, flags, this.outerScope ?? this.hostScope!, this.hostScope);
   }
 
   public detaching(

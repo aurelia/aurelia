@@ -486,7 +486,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.logger = this.context!.get(ILogger).root.scopeTo(this.name);
       this.logger!.trace(`activate()`);
     }
-    this.hostScope = hostScope ?? null;
+    if (this.vmKind === ViewModelKind.synthetic) {
+      this.hostScope = hostScope ?? null;
+    }
     flags |= LifecycleFlags.fromBind;
 
     switch (this.vmKind) {

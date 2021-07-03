@@ -92,6 +92,9 @@ export declare class HydrateElementInstruction {
     projections: Record<string, CustomElementDefinition> | null;
     containerless: boolean;
     get type(): InstructionType.hydrateElement;
+    /**
+     * A special property that can be used to store <au-slot/> usage information
+     */
     auSlot: {
         name: string;
         fallback: CustomElementDefinition;
@@ -222,6 +225,12 @@ export declare class AttributeBindingInstruction {
 }
 export declare const ITemplateCompiler: import("@aurelia/kernel").InterfaceSymbol<ITemplateCompiler>;
 export interface ITemplateCompiler {
+    /**
+     * Indicates whether this compiler should compile template in debug mode
+     *
+     * For the default compiler, this means all expressions are kept as is on the template
+     */
+    debug: boolean;
     compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, compilationInstruction: ICompliationInstruction | null): CustomElementDefinition;
 }
 export interface ICompliationInstruction {

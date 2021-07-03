@@ -112,6 +112,9 @@ export class HydrateElementInstruction {
         this.instructions = instructions;
         this.projections = projections;
         this.containerless = containerless;
+        /**
+         * A special property that can be used to store <au-slot/> usage information
+         */
         this.auSlot = null;
     }
     get type() { return "ra" /* hydrateElement */; }

@@ -1,4 +1,4 @@
-import { DI, emptyArray, Registration, toArray, ILogger, camelCase, Protocol, Metadata } from '@aurelia/kernel';
+import { DI, emptyArray, Registration, toArray, ILogger, camelCase, Protocol, Metadata, noop } from '@aurelia/kernel';
 import { BindingMode, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
@@ -12,6 +12,9 @@ import { BindingCommand } from './resources/binding-command.js';
 import { createLookup } from './utilities-html.js';
 import { allResources } from './utilities-di.js';
 export class TemplateCompiler {
+    constructor() {
+        this.debug = false;
+    }
     static register(container) {
         return Registration.singleton(ITemplateCompiler, this).register(container);
     }
@@ -308,6 +311,13 @@ export class TemplateCompiler {
         const elName = ((_a = el.getAttribute('as-element')) !== null && _a !== void 0 ? _a : el.nodeName).toLowerCase();
         const elDef = context.el(elName);
         const exprParser = context.exprParser;
+        const removeAttr = this.debug
+            ? noop
+            : () => {
+                el.removeAttribute(attrName);
+                --i;
+                --ii;
+            };
         let attrs = el.attributes;
         let instructions;
         let ii = attrs.length;
@@ -353,9 +363,7 @@ export class TemplateCompiler {
             switch (attrName) {
                 case 'as-element':
                 case 'containerless':
-                    el.removeAttribute(attrName);
-                    --i;
-                    --ii;
+                    removeAttr();
                     if (!hasContainerless) {
                         hasContainerless = attrName === 'containerless';
                     }
@@ -376,6 +384,7 @@ export class TemplateCompiler {
                 commandBuildInfo.bindable = null;
                 commandBuildInfo.def = null;
                 (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(bindingCommand.build(commandBuildInfo));
+                removeAttr();
                 // to next attribute
                 continue;
             }
@@ -429,15 +438,13 @@ export class TemplateCompiler {
                         attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
                     }
                 }
-                el.removeAttribute(attrName);
-                --i;
-                --ii;
+                removeAttr();
                 if (attrDef.isTemplateController) {
                     (tcInstructions !== null && tcInstructions !== void 0 ? tcInstructions : (tcInstructions = [])).push(new HydrateTemplateController(voidDefinition, attrDef.name, void 0, attrBindableInstructions));
-                    // to next attribute
-                    continue;
                 }
-                (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new HydrateAttributeInstruction(attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0, attrBindableInstructions));
+                else {
+                    (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new HydrateAttributeInstruction(attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0, attrBindableInstructions));
+                }
                 continue;
             }
             if (bindingCommand === null) {
@@ -450,17 +457,10 @@ export class TemplateCompiler {
                     bindable = bindablesInfo.attrs[realAttrTarget];
                     if (bindable !== void 0) {
                         expr = exprParser.parse(realAttrValue, 2048 /* Interpolation */);
-                        elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : (elBindableInstructions = []);
-                        if (expr != null) {
-                            // if it's an interpolation, remove the attribute
-                            el.removeAttribute(attrName);
-                            --i;
-                            --ii;
-                            elBindableInstructions.push(new InterpolationInstruction(expr, bindable.property));
-                        }
-                        else {
-                            elBindableInstructions.push(new SetPropertyInstruction(realAttrValue, bindable.property));
-                        }
+                        (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : (elBindableInstructions = [])).push(expr == null
+                            ? new SetPropertyInstruction(realAttrValue, bindable.property)
+                            : new InterpolationInstruction(expr, bindable.property));
+                        removeAttr();
                         continue;
                     }
                 }
@@ -470,9 +470,7 @@ export class TemplateCompiler {
                 expr = exprParser.parse(realAttrValue, 2048 /* Interpolation */);
                 if (expr != null) {
                     // if it's an interpolation, remove the attribute
-                    el.removeAttribute(attrName);
-                    --i;
-                    --ii;
+                    removeAttr();
                     (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(new InterpolationInstruction(expr, (_c = 
                     // if not a bindable, then ensure plain attribute are mapped correctly:
                     // e.g: colspan -> colSpan
@@ -488,6 +486,7 @@ export class TemplateCompiler {
             // + has binding command
             // + not an overriding binding command
             // + not a custom attribute
+            removeAttr();
             if (elDef !== null) {
                 // if the element is a custom element
                 // - prioritize bindables on a custom element before plain attributes

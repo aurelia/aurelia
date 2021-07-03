@@ -170,6 +170,59 @@ The view is the most simple part of our application. Inside of `todo-component.h
   * `index.bind="$index"` another bindable property defined in the `todo-item` element, we pass in the current loop index denoted by its special simple prefix `$index`
   * `delete-todo.call="deleteTodo($index)"` this is a callback function that will call `deleteTodo` when a todo is deleted from inside of the `todo-item`
 
+Let's now quickly add in some styling for our todo component. Open up `todo-component.css` and add in the following. This will make our todo items pretty and sit nicely. We are using CSS Grid for this part.
+
+```css
+.todo-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    display: grid;
+    grid-template-rows: 60px 1fr;
+    grid-column: 2;
+    grid-row: 2;
+    overflow: auto;
+    margin-right: -18px;
+    margin-left: -18px;
+}
+
+.todo-compose {
+    align-items: stretch;
+    box-shadow: 0 -1px 6px rgba(0, 0, 0, 0.19);
+    border-bottom: 1px solid #e6e6e6;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 60px;
+}
+
+    .todo-compose button {
+        color: #e6e6e6;
+        justify-self: stretch;
+        text-align: center;
+    }
+
+    .todo-compose input {
+        border: none;
+        border-bottom: 1px solid #e6e6e6;
+        font-size: 18px;
+        outline: none;
+        padding: 15px;
+    }
+
+.todo-items {
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-rows: max-content;
+    list-style-type: none;
+    overflow: auto;
+}
+
+::placeholder {
+    color: #e6e6e6;
+    font-style: italic;
+  }
+```
+
 ## Create the todo item component using HTML only
 
 We have created our main todo component, but you might have noticed we were importing a file that doesn't exist yet `todo-item.html`. Let's create that right now.

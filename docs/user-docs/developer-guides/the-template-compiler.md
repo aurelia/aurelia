@@ -1,4 +1,4 @@
-# The Default Template Compiler
+# The Template Compiler
 
 ## Hooks
 
@@ -11,7 +11,6 @@ An example of declaring global hooks, that will be called for every template:
 1. With vanillajs
 
 ```typescript
-
 import Aurelia, { TemplateCompilerHooks } from 'aurelia';
 
 Aurelia
@@ -22,7 +21,7 @@ Aurelia
   }))
 ```
 
-2. With decorator
+1. With decorator
 
 ```typescript
 import Aurelia, { templateCompilerHooks } from 'aurelia';
@@ -67,10 +66,12 @@ Aurelia
 ```
 
 List of attributes that are considered expressions:
-- containerless
-- as-element
-- ref
-- attr with binding expression (`attr.command="..."`)
-- attr with interpolation (`attr="${someExpression}"`)
-- custom attribute
-- custom element bindables
+
+* containerless
+* as-element
+* ref
+* attr with binding expression \(`attr.command="..."`\)
+* attr with interpolation \(`attr="${someExpression}"`\)
+* custom attribute
+* custom element bindables
+

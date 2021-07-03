@@ -351,7 +351,7 @@ describe('processContent', function () {
           class MyElement { }
         )
       ],
-      { 'my-element': '<div><span-ce value="foo" class="au"><span>foo</span></span-ce><strong-ce value="bar" class="au"><strong>bar</strong></strong-ce></div>' },
+      { 'my-element': '<div><span-ce class="au"><span>foo</span></span-ce><strong-ce class="au"><strong>bar</strong></strong-ce></div>' },
     );
 
     function processContentWithNewBinding(compile: boolean) {
@@ -462,7 +462,7 @@ describe('processContent', function () {
           class MyElement { }
         )
       ],
-      { 'my-element': `<div><span-ce value="foo" class="au"><span>foo</span></span-ce><strong-ce value="bar" class="au"><strong>bar</strong></strong-ce></div>` },
+      { 'my-element': `<div><span-ce class="au"><span>foo</span></span-ce><strong-ce class="au"><strong>bar</strong></strong-ce></div>` },
       noop,
       true,
     );

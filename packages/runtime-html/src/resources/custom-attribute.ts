@@ -16,6 +16,12 @@ import type { BindableDefinition, PartialBindableDefinition } from '../bindable.
 import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller.js';
 import type { IWatchDefinition } from '../watch.js';
 
+declare module '@aurelia/kernel' {
+  interface IContainer {
+    find<T>(kind: CustomAttributeKind, name: string): CustomAttributeDefinition<Constructable<T>> | null;
+  }
+}
+
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
   readonly isTemplateController?: boolean;

@@ -905,7 +905,7 @@ describe('switch', function () {
           registrations: [MyEcho],
         },
         config(),
-        `${wrap('Delivered.')} <span>foobar</span> <span>foo</span> <span>bar</span> <span>0</span><span>1</span><span>2</span> <my-echo message="awesome possum" class="au">Echoed 'awesome possum'</my-echo>`,
+        `${wrap('Delivered.')} <span>foobar</span> <span>foo</span> <span>bar</span> <span>0</span><span>1</span><span>2</span> <my-echo class="au">Echoed 'awesome possum'</my-echo>`,
         [...getActivationSequenceFor('my-echo-1'), 1, 2, 3, 4, ...getActivationSequenceFor('case-host-4')],
         getDeactivationSequenceFor(['case-host-4', 'my-echo-1']),
       );
@@ -1263,7 +1263,7 @@ describe('switch', function () {
       `,
         },
         config(),
-        `<foo-bar status.bind="status" class="au"> <div> ${wrap('Delivered.')} </div> </foo-bar>`,
+        `<foo-bar class="au"> <div> ${wrap('Delivered.')} </div> </foo-bar>`,
         null,
         getDeactivationSequenceFor('case-host-4'),
         (ctx) => {
@@ -1297,7 +1297,7 @@ describe('switch', function () {
       `,
         },
         config(),
-        '<foo-bar status.bind="status" class="au"> <div> <span>Projection</span> </div> </foo-bar>',
+        '<foo-bar class="au"> <div> <span>Projection</span> </div> </foo-bar>',
         null,
         [],
         async (ctx) => {
@@ -1308,7 +1308,7 @@ describe('switch', function () {
           await ctx.assertChange(
             $switch,
             () => { ctx.app.status = Status.delivered; },
-            '<foo-bar status.bind="status" class="au"> <div> Delivered. </div> </foo-bar>',
+            '<foo-bar class="au"> <div> Delivered. </div> </foo-bar>',
             new Array(4).fill(0).map((_, i) => `Case-#${$switch['cases'][i].id}.isMatch()`),
           );
         }
@@ -1338,7 +1338,7 @@ describe('switch', function () {
           await ctx.assertChange(
             $switch,
             () => { ctx.app.status = Status.delivered; },
-            '<my-echo message="Delivered." class="au">Echoed \'Delivered.\'</my-echo>',
+            '<my-echo class="au">Echoed \'Delivered.\'</my-echo>',
             [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('my-echo-1')]
           );
         }

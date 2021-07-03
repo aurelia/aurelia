@@ -23,6 +23,7 @@ Aurelia
 ```
 
 2. With decorator
+
 ```typescript
 import Aurelia, { templateCompilerHooks } from 'aurelia';
 
@@ -55,7 +56,7 @@ Though this is not always desirable for debugging, as it could be hard to figure
 
 This property can be set early in an application lifecycle, via `AppTask`, so that all the rendered HTML will keep their original form. An example of doing this is:
 
-```ts
+```typescript
 import Aurelia, { AppTask, ITemplateCompiler } from 'aurelia';
 import { MyApp } from './my-app';
 

@@ -1192,11 +1192,15 @@ function createWatchers(
   const observerLocator = context!.get(IObserverLocator);
   const expressionParser = context.get(IExpressionParser);
   const watches = definition.watches;
+  const scope: Scope = controller.vmKind === ViewModelKind.customElement
+    ? controller.scope!
+    : Scope.create(instance, null, true);
   const ii = watches.length;
   let expression: IWatchDefinition['expression'];
   let callback: IWatchDefinition['callback'];
   let ast: IsBindingBehavior;
   let i = 0;
+  // custom attribute does not have own scope
 
   for (; ii > i; ++i) {
     ({ expression, callback } = watches[i]);
@@ -1222,7 +1226,7 @@ function createWatchers(
         : AccessScopeAst.for(expression);
 
       controller.addBinding(new ExpressionWatcher(
-        controller.scope!,
+        scope,
         context,
         observerLocator,
         ast,

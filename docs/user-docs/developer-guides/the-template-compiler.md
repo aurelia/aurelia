@@ -10,15 +10,20 @@ An example of declaring global hooks, that will be called for every template:
 
 1. With vanillajs
 
-   \`\`\`ts
+```typescript
 
-   import Aurelia, { TemplateCompilerHooks } from 'aurelia';
+import Aurelia, { TemplateCompilerHooks } from 'aurelia';
 
-Aurelia.register\(TemplateCompilerHooks.define\(class { beforeCompile\(template: HTMLElement\) { element.querySelector\('table'\).setAttribute\(someAttribute, someValue\); } }\)\)
+Aurelia
+  .register(TemplateCompilerHooks.define(class {
+    beforeCompile(template: HTMLElement) {
+      element.querySelector('table').setAttribute(someAttribute, someValue);
+    }
+  }))
+```
 
-```text
 2. With decorator
-```ts
+```typescript
 import Aurelia, { templateCompilerHooks } from 'aurelia';
 
 @templateCompilerHooks

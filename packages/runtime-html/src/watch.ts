@@ -2,6 +2,9 @@ import { Protocol, Metadata, emptyArray } from '@aurelia/kernel';
 import type { Constructable } from '@aurelia/kernel';
 import type { IConnectable } from '@aurelia/runtime';
 
+import { CustomAttribute } from './resources/custom-attribute.js';
+import { CustomElement } from './resources/custom-element.js';
+
 export type IDepCollectionFn<TType extends object, TReturn = unknown> = (vm: TType, watcher: IConnectable) => TReturn;
 export type IWatcherCallback<TType extends object, TValue = unknown>
   = (this: TType, newValue: TValue, oldValue: TValue, vm: TType) => unknown;
@@ -64,6 +67,7 @@ export function watch<T extends object = object>(
   ): void {
     const isClassDecorator = key == null;
     const Type = isClassDecorator ? target : target.constructor;
+    const watchDef = new WatchDefinition(expressionOrPropertyAccessFn, isClassDecorator ? changeHandlerOrCallback : descriptor!.value);
 
     // basic validation
     if (isClassDecorator) {
@@ -76,10 +80,24 @@ export function watch<T extends object = object>(
       throw new Error(`decorated target ${String(key)} is not a class method.`);
     }
 
-    Watch.add(
-      Type,
-      new WatchDefinition(expressionOrPropertyAccessFn, isClassDecorator ? changeHandlerOrCallback : descriptor!.value)
-    );
+    Watch.add(Type, watchDef);
+
+    // if the code looks like this:
+    // @watch(...)
+    // @customAttribute(...)
+    // class Abc {}
+    //
+    // then @watch is called after @customAttribute
+    // which means the attribute definition won't have the watch definition
+    //
+    // temporarily works around this order sensitivity by manually add the watch def
+    // manual
+    if (CustomAttribute.isType(Type)) {
+      CustomAttribute.getDefinition(Type).watches.push(watchDef);
+    }
+    if (CustomElement.isType(Type)) {
+      CustomElement.getDefinition(Type).watches.push(watchDef);
+    }
   };
 }
 

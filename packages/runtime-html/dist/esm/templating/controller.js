@@ -966,11 +966,15 @@ function createWatchers(controller, context, definition, instance) {
     const observerLocator = context.get(IObserverLocator);
     const expressionParser = context.get(IExpressionParser);
     const watches = definition.watches;
+    const scope = controller.vmKind === 0 /* customElement */
+        ? controller.scope
+        : Scope.create(instance, null, true);
     const ii = watches.length;
     let expression;
     let callback;
     let ast;
     let i = 0;
+    // custom attribute does not have own scope
     for (; ii > i; ++i) {
         ({ expression, callback } = watches[i]);
         callback = typeof callback === 'function'
@@ -989,7 +993,7 @@ function createWatchers(controller, context, definition, instance) {
             ast = typeof expression === 'string'
                 ? expressionParser.parse(expression, 53 /* BindCommand */)
                 : AccessScopeAst.for(expression);
-            controller.addBinding(new ExpressionWatcher(controller.scope, context, observerLocator, ast, callback));
+            controller.addBinding(new ExpressionWatcher(scope, context, observerLocator, ast, callback));
         }
     }
 }

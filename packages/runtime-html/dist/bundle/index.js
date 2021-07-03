@@ -1,7 +1,7 @@
 export { Platform, Task, TaskAbortError, TaskQueue, TaskQueuePriority, TaskStatus } from '@aurelia/platform';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 export { BrowserPlatform } from '@aurelia/platform-browser';
-import { Protocol, getPrototypeChain, Metadata, firstDefined, kebabCase, noop, emptyArray, DI, all, Registration, IPlatform as IPlatform$1, fromDefinitionOrDefault, pascalCase, mergeArrays, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, InstanceProvider, IContainer, nextId, optional, ILogger, isObject, onResolve, resolveAll, camelCase, toArray, emptyObject, IServiceLocator, compareNumber, transient } from '@aurelia/kernel';
+import { Protocol, getPrototypeChain, Metadata, firstDefined, kebabCase, noop, emptyArray, DI, all, Registration, IPlatform as IPlatform$1, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, InstanceProvider, IContainer, nextId, optional, ILogger, isObject, onResolve, resolveAll, camelCase, toArray, emptyObject, IServiceLocator, compareNumber, transient } from '@aurelia/kernel';
 import { BindingMode, subscriberCollection, withFlushQueue, connectable, registerAliases, Scope, ConnectableSwitcher, ProxyObservable, IObserverLocator, IExpressionParser, AccessScopeExpression, DelegationStrategy, BindingBehaviorExpression, BindingBehaviorFactory, PrimitiveLiteralExpression, bindingBehavior, BindingInterceptor, ISignaler, PropertyAccessor, INodeObserverLocator, SetterObserver, IDirtyChecker, alias, applyMutationsToIndices, getCollectionObserver as getCollectionObserver$1, BindingContext, synchronizeIndices, valueConverter } from '@aurelia/runtime';
 export { Access, AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, AccessorType, ArrayBindingPattern, ArrayIndexObserver, ArrayLiteralExpression, ArrayObserver, AssignExpression, BinaryExpression, BindingBehavior, BindingBehaviorDefinition, BindingBehaviorExpression, BindingBehaviorFactory, BindingBehaviorStrategy, BindingContext, BindingIdentifier, BindingInterceptor, BindingMediator, BindingMode, BindingType, CallFunctionExpression, CallMemberExpression, CallScopeExpression, Char, CollectionKind, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConditionalExpression, CustomExpression, DelegationStrategy, DirtyCheckProperty, DirtyCheckSettings, ExpressionKind, ForOfStatement, HtmlLiteralExpression, IDirtyChecker, IExpressionParser, INodeObserverLocator, IObserverLocator, ISignaler, Interpolation, LifecycleFlags, MapObserver, ObjectBindingPattern, ObjectLiteralExpression, ObserverLocator, OverrideContext, ParserState, Precedence, PrimitiveLiteralExpression, PrimitiveObserver, PropertyAccessor, Scope, SetObserver, SetterObserver, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverter, ValueConverterDefinition, ValueConverterExpression, alias, applyMutationsToIndices, bindingBehavior, cloneIndexMap, connectable, copyIndexMap, createIndexMap, disableArrayObservation, disableMapObservation, disableSetObservation, enableArrayObservation, enableMapObservation, enableSetObservation, getCollectionObserver, isIndexMap, observable, parse, parseExpression, registerAliases, subscriberCollection, synchronizeIndices, valueConverter } from '@aurelia/runtime';
 
@@ -2328,6 +2328,84 @@ function filterChildren(controller, query, filter, map) {
     return children;
 }
 
+function customAttribute(nameOrDef) {
+    return function (target) {
+        return CustomAttribute.define(nameOrDef, target);
+    };
+}
+function templateController(nameOrDef) {
+    return function (target) {
+        return CustomAttribute.define(typeof nameOrDef === 'string'
+            ? { isTemplateController: true, name: nameOrDef }
+            : { isTemplateController: true, ...nameOrDef }, target);
+    };
+}
+class CustomAttributeDefinition {
+    constructor(Type, name, aliases, key, defaultBindingMode, isTemplateController, bindables, noMultiBindings, watches) {
+        this.Type = Type;
+        this.name = name;
+        this.aliases = aliases;
+        this.key = key;
+        this.defaultBindingMode = defaultBindingMode;
+        this.isTemplateController = isTemplateController;
+        this.bindables = bindables;
+        this.noMultiBindings = noMultiBindings;
+        this.watches = watches;
+    }
+    static create(nameOrDef, Type) {
+        let name;
+        let def;
+        if (typeof nameOrDef === 'string') {
+            name = nameOrDef;
+            def = { name };
+        }
+        else {
+            name = nameOrDef.name;
+            def = nameOrDef;
+        }
+        return new CustomAttributeDefinition(Type, firstDefined(CustomAttribute.getAnnotation(Type, 'name'), name), mergeArrays(CustomAttribute.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), firstDefined(CustomAttribute.getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView), firstDefined(CustomAttribute.getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(...Bindable.getAll(Type), CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables), firstDefined(CustomAttribute.getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), mergeArrays(Watch.getAnnotation(Type), Type.watches));
+    }
+    register(container) {
+        const { Type, key, aliases } = this;
+        Registration.transient(key, Type).register(container);
+        Registration.aliasTo(key, Type).register(container);
+        registerAliases(aliases, CustomAttribute, key, container);
+    }
+}
+const CustomAttribute = {
+    name: Protocol.resource.keyFor('custom-attribute'),
+    keyFrom(name) {
+        return `${CustomAttribute.name}:${name}`;
+    },
+    isType(value) {
+        return typeof value === 'function' && Metadata.hasOwn(CustomAttribute.name, value);
+    },
+    for(node, name) {
+        var _a;
+        return ((_a = getRef(node, CustomAttribute.keyFrom(name))) !== null && _a !== void 0 ? _a : void 0);
+    },
+    define(nameOrDef, Type) {
+        const definition = CustomAttributeDefinition.create(nameOrDef, Type);
+        Metadata.define(CustomAttribute.name, definition, definition.Type);
+        Metadata.define(CustomAttribute.name, definition, definition);
+        Protocol.resource.appendTo(Type, CustomAttribute.name);
+        return definition.Type;
+    },
+    getDefinition(Type) {
+        const def = Metadata.getOwn(CustomAttribute.name, Type);
+        if (def === void 0) {
+            throw new Error(`No definition found for type ${Type.name}`);
+        }
+        return def;
+    },
+    annotate(Type, prop, value) {
+        Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+    },
+    getAnnotation(Type, prop) {
+        return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
+    },
+};
+
 function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
     if (!expressionOrPropertyAccessFn) {
         throw new Error('Invalid watch config. Expected an expression or a fn');
@@ -2335,6 +2413,7 @@ function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
     return function decorator(target, key, descriptor) {
         const isClassDecorator = key == null;
         const Type = isClassDecorator ? target : target.constructor;
+        const watchDef = new WatchDefinition(expressionOrPropertyAccessFn, isClassDecorator ? changeHandlerOrCallback : descriptor.value);
         // basic validation
         if (isClassDecorator) {
             if (typeof changeHandlerOrCallback !== 'function'
@@ -2345,7 +2424,23 @@ function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
         else if (typeof (descriptor === null || descriptor === void 0 ? void 0 : descriptor.value) !== 'function') {
             throw new Error(`decorated target ${String(key)} is not a class method.`);
         }
-        Watch.add(Type, new WatchDefinition(expressionOrPropertyAccessFn, isClassDecorator ? changeHandlerOrCallback : descriptor.value));
+        Watch.add(Type, watchDef);
+        // if the code looks like this:
+        // @watch(...)
+        // @customAttribute(...)
+        // class Abc {}
+        //
+        // then @watch is called after @customAttribute
+        // which means the attribute definition won't have the watch definition
+        //
+        // temporarily works around this order sensitivity by manually add the watch def
+        // manual
+        if (CustomAttribute.isType(Type)) {
+            CustomAttribute.getDefinition(Type).watches.push(watchDef);
+        }
+        if (CustomElement.isType(Type)) {
+            CustomElement.getDefinition(Type).watches.push(watchDef);
+        }
     };
 }
 class WatchDefinition {
@@ -2636,84 +2731,6 @@ function ensureHook(target, hook) {
     }
     return hook;
 }
-
-function customAttribute(nameOrDef) {
-    return function (target) {
-        return CustomAttribute.define(nameOrDef, target);
-    };
-}
-function templateController(nameOrDef) {
-    return function (target) {
-        return CustomAttribute.define(typeof nameOrDef === 'string'
-            ? { isTemplateController: true, name: nameOrDef }
-            : { isTemplateController: true, ...nameOrDef }, target);
-    };
-}
-class CustomAttributeDefinition {
-    constructor(Type, name, aliases, key, defaultBindingMode, isTemplateController, bindables, noMultiBindings, watches) {
-        this.Type = Type;
-        this.name = name;
-        this.aliases = aliases;
-        this.key = key;
-        this.defaultBindingMode = defaultBindingMode;
-        this.isTemplateController = isTemplateController;
-        this.bindables = bindables;
-        this.noMultiBindings = noMultiBindings;
-        this.watches = watches;
-    }
-    static create(nameOrDef, Type) {
-        let name;
-        let def;
-        if (typeof nameOrDef === 'string') {
-            name = nameOrDef;
-            def = { name };
-        }
-        else {
-            name = nameOrDef.name;
-            def = nameOrDef;
-        }
-        return new CustomAttributeDefinition(Type, firstDefined(CustomAttribute.getAnnotation(Type, 'name'), name), mergeArrays(CustomAttribute.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), firstDefined(CustomAttribute.getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView), firstDefined(CustomAttribute.getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(...Bindable.getAll(Type), CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables), firstDefined(CustomAttribute.getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), mergeArrays(Watch.getAnnotation(Type), Type.watches));
-    }
-    register(container) {
-        const { Type, key, aliases } = this;
-        Registration.transient(key, Type).register(container);
-        Registration.aliasTo(key, Type).register(container);
-        registerAliases(aliases, CustomAttribute, key, container);
-    }
-}
-const CustomAttribute = {
-    name: Protocol.resource.keyFor('custom-attribute'),
-    keyFrom(name) {
-        return `${CustomAttribute.name}:${name}`;
-    },
-    isType(value) {
-        return typeof value === 'function' && Metadata.hasOwn(CustomAttribute.name, value);
-    },
-    for(node, name) {
-        var _a;
-        return ((_a = getRef(node, CustomAttribute.keyFrom(name))) !== null && _a !== void 0 ? _a : void 0);
-    },
-    define(nameOrDef, Type) {
-        const definition = CustomAttributeDefinition.create(nameOrDef, Type);
-        Metadata.define(CustomAttribute.name, definition, definition.Type);
-        Metadata.define(CustomAttribute.name, definition, definition);
-        Protocol.resource.appendTo(Type, CustomAttribute.name);
-        return definition.Type;
-    },
-    getDefinition(Type) {
-        const def = Metadata.getOwn(CustomAttribute.name, Type);
-        if (def === void 0) {
-            throw new Error(`No definition found for type ${Type.name}`);
-        }
-        return def;
-    },
-    annotate(Type, prop, value) {
-        Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
-    },
-    getAnnotation(Type, prop) {
-        return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
-    },
-};
 
 const IViewFactory = DI.createInterface('IViewFactory');
 class ViewFactory {
@@ -4722,11 +4739,15 @@ function createWatchers(controller, context, definition, instance) {
     const observerLocator = context.get(IObserverLocator);
     const expressionParser = context.get(IExpressionParser);
     const watches = definition.watches;
+    const scope = controller.vmKind === 0 /* customElement */
+        ? controller.scope
+        : Scope.create(instance, null, true);
     const ii = watches.length;
     let expression;
     let callback;
     let ast;
     let i = 0;
+    // custom attribute does not have own scope
     for (; ii > i; ++i) {
         ({ expression, callback } = watches[i]);
         callback = typeof callback === 'function'
@@ -4745,7 +4766,7 @@ function createWatchers(controller, context, definition, instance) {
             ast = typeof expression === 'string'
                 ? expressionParser.parse(expression, 53 /* BindCommand */)
                 : AccessScopeAst.for(expression);
-            controller.addBinding(new ExpressionWatcher(controller.scope, context, observerLocator, ast, callback));
+            controller.addBinding(new ExpressionWatcher(scope, context, observerLocator, ast, callback));
         }
     }
 }

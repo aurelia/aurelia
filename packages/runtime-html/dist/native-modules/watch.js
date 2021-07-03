@@ -1,4 +1,6 @@
 import { Protocol, Metadata, emptyArray } from '../../../kernel/dist/native-modules/index.js';
+import { CustomAttribute } from './resources/custom-attribute.js';
+import { CustomElement } from './resources/custom-element.js';
 export function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
     if (!expressionOrPropertyAccessFn) {
         throw new Error('Invalid watch config. Expected an expression or a fn');
@@ -6,6 +8,7 @@ export function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
     return function decorator(target, key, descriptor) {
         const isClassDecorator = key == null;
         const Type = isClassDecorator ? target : target.constructor;
+        const watchDef = new WatchDefinition(expressionOrPropertyAccessFn, isClassDecorator ? changeHandlerOrCallback : descriptor.value);
         // basic validation
         if (isClassDecorator) {
             if (typeof changeHandlerOrCallback !== 'function'
@@ -16,7 +19,23 @@ export function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
         else if (typeof (descriptor === null || descriptor === void 0 ? void 0 : descriptor.value) !== 'function') {
             throw new Error(`decorated target ${String(key)} is not a class method.`);
         }
-        Watch.add(Type, new WatchDefinition(expressionOrPropertyAccessFn, isClassDecorator ? changeHandlerOrCallback : descriptor.value));
+        Watch.add(Type, watchDef);
+        // if the code looks like this:
+        // @watch(...)
+        // @customAttribute(...)
+        // class Abc {}
+        //
+        // then @watch is called after @customAttribute
+        // which means the attribute definition won't have the watch definition
+        //
+        // temporarily works around this order sensitivity by manually add the watch def
+        // manual
+        if (CustomAttribute.isType(Type)) {
+            CustomAttribute.getDefinition(Type).watches.push(watchDef);
+        }
+        if (CustomElement.isType(Type)) {
+            CustomElement.getDefinition(Type).watches.push(watchDef);
+        }
     };
 }
 class WatchDefinition {

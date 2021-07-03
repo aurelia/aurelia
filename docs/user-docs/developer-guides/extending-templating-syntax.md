@@ -160,3 +160,4 @@ And with the above, your Aurelia application will get two way binding flow seaml
 <fast-text-area value.bind="description"></fast-text-area>
 <fast-slider value.bind="fontSize"></fast-slider>
 ```
+

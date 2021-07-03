@@ -1,4 +1,4 @@
-import { watch } from '@aurelia/runtime-html';
+import { bindable, BindingMode, customAttribute, customElement, watch } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
@@ -110,6 +110,70 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
       disposed?.(component, ctx, 1);
     });
 
+    $it(`${title} on class, before @customElement decorator`, function () {
+      @watch<IPost>(get, (v, o, a) => a.log())
+      @customElement({ name: 'post' })
+      class Post implements IPost {
+        public runner: IPerson = {
+          first: 'first',
+          last: 'last',
+          phone: 'phone'
+        };
+        public deliveries: IDelivery[] = [];
+        public selectedItem: unknown;
+        public counter: number = 0;
+        public deliveryCount = 0;
+
+        public log() {
+          this.deliveryCount++;
+        }
+      }
+
+      const { ctx, component, tearDown } = createFixture(
+        '<post view-model.ref="post">',
+        class App {
+          public post: Post;
+        },
+        [Post]
+      );
+      const post = component.post;
+      created(post, ctx, 1);
+      void tearDown();
+      disposed?.(post, ctx, 1);
+    });
+
+    $it(`${title} on class, after @customElement decorator`, function () {
+      @customElement({ name: 'post' })
+      @watch<IPost>(get, (v, o, a) => a.log())
+      class Post implements IPost {
+        public runner: IPerson = {
+          first: 'first',
+          last: 'last',
+          phone: 'phone'
+        };
+        public deliveries: IDelivery[] = [];
+        public selectedItem: unknown;
+        public counter: number = 0;
+        public deliveryCount = 0;
+
+        public log() {
+          this.deliveryCount++;
+        }
+      }
+
+      const { ctx, component, tearDown } = createFixture(
+        '<post view-model.ref="post">',
+        class App {
+          public post: Post;
+        },
+        [Post]
+      );
+      const post = component.post;
+      created(post, ctx, 1);
+      void tearDown();
+      disposed?.(post, ctx, 1);
+    });
+
     $it(`${title} on both class and method`, function () {
       @watch<IPost>(get, (v, o, a) => a.log())
       class Post implements IPost {
@@ -135,6 +199,149 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
       disposed?.(component, ctx, 2);
     });
   }
+
+  describe('on Custom attribute', function () {
+    it('works when decorating on class [before @customAttribute]', async function () {
+      let callCount = 0;
+      @watch('items.length', (_: number, __: number, x: ListActiveIndicator) => x.filterChanged())
+      @customAttribute('list-active')
+      class ListActiveIndicator {
+        @bindable
+        public items: { active: boolean }[];
+        @bindable({ mode: BindingMode.fromView })
+        public active: boolean;
+
+        public filterChanged() {
+          callCount++;
+          this.active = this.items?.some(i => i.active);
+        }
+      }
+
+      const { component, startPromise, tearDown } = createFixture(
+        `<div list-active="items.bind: items; active.bind: active" active.class="active">`,
+        class App {
+          public active: boolean;
+          public items = [{ active: false }, { active: false }];
+        },
+        [ListActiveIndicator]
+      );
+
+      await startPromise;
+
+      assert.strictEqual(component.active, undefined);
+      component.items.push({ active: true });
+      assert.strictEqual(component.active, true);
+      assert.strictEqual(callCount, 1);
+
+      await tearDown();
+    });
+
+    it('works when decorating on class [after @customAttribute]', async function () {
+      let callCount = 0;
+      @customAttribute('list-active')
+      @watch('items.length', (_: number, __: number, x: ListActiveIndicator) => x.filterChanged())
+      class ListActiveIndicator {
+        @bindable
+        public items: { active: boolean }[];
+        @bindable({ mode: BindingMode.fromView })
+        public active: boolean;
+
+        public filterChanged() {
+          callCount++;
+          this.active = this.items?.some(i => i.active);
+        }
+      }
+
+      const { component, startPromise, tearDown } = createFixture(
+        `<div list-active="items.bind: items; active.bind: active" active.class="active">`,
+        class App {
+          public active: boolean;
+          public items = [{ active: false }, { active: false }];
+        },
+        [ListActiveIndicator]
+      );
+
+      await startPromise;
+
+      assert.strictEqual(component.active, undefined);
+      component.items.push({ active: true });
+      assert.strictEqual(component.active, true);
+      assert.strictEqual(callCount, 1);
+
+      await tearDown();
+    });
+
+    it('works when decorating on method', async function () {
+      let callCount = 0;
+      @customAttribute('list-active')
+      class ListActiveIndicator {
+        @bindable
+        public items: { active: boolean }[];
+        @bindable({ mode: BindingMode.fromView })
+        public active: boolean;
+
+        @watch('items.length')
+        public filterChanged() {
+          callCount++;
+          this.active = this.items?.some(i => i.active);
+        }
+      }
+
+      const { component, startPromise, tearDown } = createFixture(
+        `<div list-active="items.bind: items; active.bind: active" active.class="active">`,
+        class App {
+          public active: boolean;
+          public items = [{ active: false }, { active: false }];
+        },
+        [ListActiveIndicator]
+      );
+
+      await startPromise;
+
+      assert.strictEqual(component.active, undefined);
+      component.items.push({ active: true });
+      assert.strictEqual(component.active, true);
+      assert.strictEqual(callCount, 1);
+
+      await tearDown();
+    });
+
+    it('works when decorating on both class + method ', async function () {
+      let callCount = 0;
+      @customAttribute('list-active')
+      @watch('items.length', (_, __, x: ListActiveIndicator) => x.filterChanged())
+      class ListActiveIndicator {
+        @bindable
+        public items: { active: boolean }[];
+        @bindable({ mode: BindingMode.fromView })
+        public active: boolean;
+
+        @watch('items.length')
+        public filterChanged() {
+          callCount++;
+          this.active = this.items?.some(i => i.active);
+        }
+      }
+
+      const { component, startPromise, tearDown } = createFixture(
+        `<div list-active="items.bind: items; active.bind: active" active.class="active">`,
+        class App {
+          public active: boolean;
+          public items = [{ active: false }, { active: false }];
+        },
+        [ListActiveIndicator]
+      );
+
+      await startPromise;
+
+      assert.strictEqual(component.active, undefined);
+      component.items.push({ active: true });
+      assert.strictEqual(component.active, true);
+      assert.strictEqual(callCount, 2);
+
+      await tearDown();
+    });
+  });
 
   interface IDelivery {
     id: number;

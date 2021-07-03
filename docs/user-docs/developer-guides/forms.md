@@ -760,7 +760,7 @@ class MyApp {
 
 Validation is an important part of creating good forms. Aurelia provides a robust validation plugin that allows you to validate forms, create custom validation rules and configure every facet of validation in your Aurelia applications.
 
-{% page-ref page="validating-form-input/" %}
+{% page-ref page="validation/" %}
 
 
 

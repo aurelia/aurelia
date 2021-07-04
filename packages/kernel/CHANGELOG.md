@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.10"></a>
+# 2.0.0-alpha.10 (2021-07-04)
+
+### Features:
+
+* **template-compiler:** add hooks decorator support, more integration tests ([dd3698d](https://github.com/aurelia/aurelia/commit/dd3698d))
+* **template-compiler:** add beforeCompile hooks ([5e42b76](https://github.com/aurelia/aurelia/commit/5e42b76))
+* **di:** add @factory resolver ([3c1bef8](https://github.com/aurelia/aurelia/commit/3c1bef8))
+* **di:** instance-provider now accepts predefined instance in 2nd param ([54edac9](https://github.com/aurelia/aurelia/commit/54edac9))
+
+
+### Refactorings:
+
+* **di:** no longer tries to instantiate interface ([e757eb6](https://github.com/aurelia/aurelia/commit/e757eb6))
+
 <a name="2.0.0-alpha.9"></a>
 # 2.0.0-alpha.9 (2021-06-25)
 

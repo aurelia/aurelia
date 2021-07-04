@@ -3,6 +3,34 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.10"></a>
+# 2.0.0-alpha.10 (2021-07-04)
+
+### Features:
+
+* **template-compiler:** ability to toggle expressions removal ([93272a2](https://github.com/aurelia/aurelia/commit/93272a2))
+* **template-compiler:** add hooks decorator support, more integration tests ([dd3698d](https://github.com/aurelia/aurelia/commit/dd3698d))
+* **template-compiler:** add beforeCompile hooks ([5e42b76](https://github.com/aurelia/aurelia/commit/5e42b76))
+* **au-compose:** add support for composition with containerless on au-compose ([dec8a5a](https://github.com/aurelia/aurelia/commit/dec8a5a))
+* **t-compiler:** add ability to recognize containerless attr ([23ec6cd](https://github.com/aurelia/aurelia/commit/23ec6cd))
+* **hydration:** add hydration context hierarchy ([9afb70c](https://github.com/aurelia/aurelia/commit/9afb70c))
+* **di:** instance-provider now accepts predefined instance in 2nd param ([54edac9](https://github.com/aurelia/aurelia/commit/54edac9))
+
+
+### Bug Fixes:
+
+* **watch:** construct scope properly for custom attr + expression watch ([cb26b0c](https://github.com/aurelia/aurelia/commit/cb26b0c))
+* **scope:** disable host scope on CE controller ([ac0ff15](https://github.com/aurelia/aurelia/commit/ac0ff15))
+
+
+### Refactorings:
+
+* **templating:** remove projections param from getRenderContext ([cf34e40](https://github.com/aurelia/aurelia/commit/cf34e40))
+* **templating:** remove blur CA, tweak doc/tests ([1286b3b](https://github.com/aurelia/aurelia/commit/1286b3b))
+* **au-slot:** remove unused exports ([58cc0b5](https://github.com/aurelia/aurelia/commit/58cc0b5))
+* **au-slot:** lazily determine view factory at runtime ([5d3fa25](https://github.com/aurelia/aurelia/commit/5d3fa25))
+* **controller:** remove unneccessary typings ([39ed707](https://github.com/aurelia/aurelia/commit/39ed707))
+
 <a name="2.0.0-alpha.9"></a>
 # 2.0.0-alpha.9 (2021-06-25)
 

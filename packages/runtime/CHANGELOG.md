@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.10"></a>
+# 2.0.0-alpha.10 (2021-07-04)
+
+### Bug Fixes:
+
+* **scope:** disable host scope on CE controller ([ac0ff15](https://github.com/aurelia/aurelia/commit/ac0ff15))
+
 <a name="2.0.0-alpha.9"></a>
 # 2.0.0-alpha.9 (2021-06-25)
 

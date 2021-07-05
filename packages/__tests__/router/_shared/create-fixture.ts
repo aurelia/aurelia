@@ -24,7 +24,7 @@ export async function createFixture<T extends Constructable>(
   deps: Constructable[],
   createHIAConfig: () => IHIAConfig,
   createRouterOptions: () => IRouterOptions,
-  level: LogLevel = LogLevel.warn,
+  level: LogLevel = LogLevel.fatal,
 ) {
   const hiaConfig = createHIAConfig();
   const routerOptions = createRouterOptions();
@@ -34,7 +34,7 @@ export async function createFixture<T extends Constructable>(
   container.register(Registration.instance(IHIAConfig, hiaConfig));
   container.register(TestRouterConfiguration.for(ctx, level));
   container.register(RouterConfiguration.customize(routerOptions));
-  container.register(LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.warn }));
+  container.register(LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.fatal }));
   container.register(...deps);
 
   const activityTracker = container.get(IActivityTracker);

@@ -27,7 +27,7 @@ const RESIDUE = 'au$residue' as const;
  * - The `RouteDefinition` for a type is overridden manually via `Route.define`
  * - Different components (with different `RenderContext`s) reference the same component via a child route config
  */
-export class RouteContext implements IContainer {
+export class RouteContext {
   public get id(): number {
     return this.container.id;
   }
@@ -137,7 +137,7 @@ export class RouteContext implements IContainer {
 
     this.moduleLoader = parentContainer.get(IModuleLoader);
 
-    const container = this.container = parentContainer.createChild({ inheritParentResources: true });
+    const container = this.container = parentContainer.createChild();
 
     container.registerResolver(
       IController,

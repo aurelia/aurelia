@@ -36,7 +36,7 @@ function assertIsActive(
 async function createFixture<T extends Constructable>(
   Component: T,
   deps: Constructable[],
-  level: LogLevel = LogLevel.warn,
+  level: LogLevel = LogLevel.fatal,
 ) {
   const ctx = TestContext.create();
   const { container, platform } = ctx;

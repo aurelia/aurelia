@@ -1,4 +1,4 @@
-import { camelCase, IContainer } from '@aurelia/kernel';
+import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding.js';
 import {
   BindingMode,
@@ -13,6 +13,7 @@ import {
   AttrSyntax,
   IPlatform,
   IAttrMapper,
+  ICompiledRenderContext,
 } from '@aurelia/runtime-html';
 
 import type {
@@ -73,7 +74,7 @@ export class TranslationBindingRenderer implements IRenderer {
 
   public render(
     flags: LifecycleFlags,
-    context: IContainer,
+    context: ICompiledRenderContext,
     controller: IHydratableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
@@ -81,7 +82,7 @@ export class TranslationBindingRenderer implements IRenderer {
     TranslationBinding.create({
       parser: this.parser,
       observerLocator: this.observerLocator,
-      context,
+      context: context.container,
       controller,
       target,
       instruction,
@@ -143,7 +144,7 @@ export class TranslationBindBindingRenderer implements IRenderer {
 
   public render(
     flags: LifecycleFlags,
-    context: IContainer,
+    context: ICompiledRenderContext,
     controller: IHydratableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
@@ -151,7 +152,7 @@ export class TranslationBindBindingRenderer implements IRenderer {
     TranslationBinding.create({
       parser: this.parser,
       observerLocator: this.observerLocator,
-      context,
+      context: context.container,
       controller,
       target,
       instruction,

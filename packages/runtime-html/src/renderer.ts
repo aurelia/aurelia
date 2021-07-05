@@ -453,7 +453,7 @@ export class CustomElementRenderer implements IRenderer {
       /* location         */target,
       /* auSlotsInfo      */new AuSlotsInfo(projections == null ? emptyArray : Object.keys(projections)),
     );
-    const definition = context.find(CustomElement, instruction.res) as CustomElementDefinition;
+    const definition = context.container.find(CustomElement, instruction.res) as CustomElementDefinition;
     const Ctor = definition.Type;
     const component = container.invoke(Ctor);
     const key = CustomElement.keyFrom(instruction.res);
@@ -461,7 +461,7 @@ export class CustomElementRenderer implements IRenderer {
 
     const childController = Controller.forCustomElement(
       /* root                */controller.root,
-      /* context ct          */context,
+      /* context ct          */context.container,
       /* own container       */container,
       /* viewModel           */component,
       /* host                */target,
@@ -502,7 +502,7 @@ export class CustomAttributeRenderer implements IRenderer {
     );
     const childController = Controller.forCustomAttribute(
       /* root       */controller.root,
-      /* context ct */context,
+      /* context ct */context.container,
       /* viewModel  */component,
       /* host       */target,
       /* flags      */flags,
@@ -543,7 +543,7 @@ export class TemplateControllerRenderer implements IRenderer {
     );
     const childController = Controller.forCustomAttribute(
       /* root         */controller.root,
-      /* container ct */context,
+      /* container ct */context.container,
       /* viewModel    */component,
       /* host         */target,
       /* flags        */flags,
@@ -591,9 +591,9 @@ export class LetElementRenderer implements IRenderer {
       childInstruction = childInstructions[i];
       expr = ensureExpression(this.parser, childInstruction.from, BindingType.IsPropertyCommand);
       binding = applyBindingBehavior(
-        new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext),
+        new LetBinding(expr, childInstruction.to, this.observerLocator, context.container, toBindingContext),
         expr as unknown as IsBindingBehavior,
-        context,
+        context.container,
       ) as LetBinding;
       controller.addBinding(binding);
     }
@@ -617,9 +617,9 @@ export class CallBindingRenderer implements IRenderer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
     const binding = applyBindingBehavior(
-      new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context),
+      new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context.container),
       expr,
-      context,
+      context.container,
     );
     controller.addBinding(binding);
   }
@@ -641,9 +641,9 @@ export class RefBindingRenderer implements IRenderer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
     const binding = applyBindingBehavior(
-      new RefBinding(expr, getRefTarget(target, instruction.to), context),
+      new RefBinding(expr, getRefTarget(target, instruction.to), context.container),
       expr,
-      context,
+      context.container,
     );
     controller.addBinding(binding);
   }
@@ -672,7 +672,7 @@ export class InterpolationBindingRenderer implements IRenderer {
       getTarget(target),
       instruction.to,
       BindingMode.toView,
-      context,
+      context.container,
       this.platform.domWriteQueue,
     );
     const partBindings = binding.partBindings;
@@ -684,7 +684,7 @@ export class InterpolationBindingRenderer implements IRenderer {
       partBindings[i] = applyBindingBehavior(
         partBinding,
         partBinding.sourceExpression as unknown as IsBindingBehavior,
-        context
+        context.container
       ) as InterpolationPartBinding;
     }
     controller.addBinding(binding);
@@ -709,9 +709,9 @@ export class PropertyBindingRenderer implements IRenderer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
     const binding = applyBindingBehavior(
-      new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context, this.platform.domWriteQueue),
+      new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context.container, this.platform.domWriteQueue),
       expr,
-      context,
+      context.container,
     );
     controller.addBinding(binding);
   }
@@ -735,9 +735,9 @@ export class IteratorBindingRenderer implements IRenderer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
     const binding = applyBindingBehavior(
-      new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue),
+      new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context.container, this.platform.domWriteQueue),
       expr as unknown as IsBindingBehavior,
-      context,
+      context.container,
     );
     controller.addBinding(binding);
   }
@@ -805,13 +805,13 @@ export class TextBindingRenderer implements IRenderer {
           // support seamless transition between a html node, or a text
           // reduce the noise in the template, caused by html comment
           parent.insertBefore(doc.createTextNode(''), next),
-          context,
+          context.container,
           this.observerLocator,
           this.platform,
           instruction.strict
         ),
         dynamicParts[i] as unknown as IsBindingBehavior,
-        context
+        context.container
       ) as ContentBinding);
       // while each of the static part of an interpolation
       // will just be a text node
@@ -843,9 +843,9 @@ export class ListenerBindingRenderer implements IRenderer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const binding = applyBindingBehavior(
-      new Listener(context.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context),
+      new Listener(context.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context.container),
       expr,
-      context,
+      context.container,
     );
     controller.addBinding(binding);
   }
@@ -909,9 +909,9 @@ export class StylePropertyBindingRenderer implements IRenderer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const binding = applyBindingBehavior(
-      new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue),
+      new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context.container, this.platform.domWriteQueue),
       expr,
-      context,
+      context.container,
     );
     controller.addBinding(binding);
   }
@@ -941,10 +941,10 @@ export class AttributeBindingRenderer implements IRenderer {
         instruction.to/* targetKey */,
         BindingMode.toView,
         this.observerLocator,
-        context
+        context.container
       ),
       expr,
-      context,
+      context.container,
     );
     controller.addBinding(binding);
   }

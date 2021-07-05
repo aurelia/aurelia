@@ -61,7 +61,7 @@ for (const parentSpec of specs) {
 
             public created(controller: ICustomElementController<this>): void {
               const context = controller.context;
-              this.childController = Controller.forCustomElement(null, context, context, context.get(CustomElement.keyFrom('the-child')), controller.host, null);
+              this.childController = Controller.forCustomElement(null, context.container, context.container, context.container.get(CustomElement.keyFrom('the-child')), controller.host, null);
             }
             public attaching(initiator: IHydratedController): void {
               // No async hooks so all of these are synchronous.

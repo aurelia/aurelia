@@ -77,7 +77,7 @@ describe('TranslationBindingCommand', function () {
   function createFixture(aliases?: string[]) {
     aliases = aliases || [];
     const container = createContainer().register(
-      BindingCommand.define({name: 't', aliases}, TranslationBindingCommand)
+      BindingCommand.define({ name: 't', aliases }, TranslationBindingCommand)
     );
     if (!aliases.includes('t')) {
       aliases.push('t');
@@ -139,7 +139,7 @@ describe('TranslationBindingRenderer', function () {
     const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      { container } as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -160,7 +160,7 @@ describe('TranslationBindingRenderer', function () {
     const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      { container } as unknown as ICompiledRenderContext,
       controller,
       targetElement,
       callBindingInstruction,
@@ -220,7 +220,7 @@ describe('TranslationBindBindingCommand', function () {
     aliases = aliases || [];
     aliases = aliases.map(alias => `${alias}.bind`);
     const container = createContainer().register(
-      BindingCommand.define({name: 't.bind', aliases}, TranslationBindBindingCommand)
+      BindingCommand.define({ name: 't.bind', aliases }, TranslationBindBindingCommand)
     );
     if (!aliases.includes('t.bind')) {
       aliases.push('t.bind');
@@ -284,7 +284,7 @@ describe('TranslationBindBindingRenderer', function () {
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      { container } as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -303,7 +303,7 @@ describe('TranslationBindBindingRenderer', function () {
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      { container } as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -324,7 +324,7 @@ describe('TranslationBindBindingRenderer', function () {
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      { container } as unknown as ICompiledRenderContext,
       controller,
       targetElement,
       callBindingInstruction,

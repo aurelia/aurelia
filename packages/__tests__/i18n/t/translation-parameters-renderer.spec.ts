@@ -85,12 +85,12 @@ describe('TranslationParametersBindingRenderer', function () {
     const container = createFixture();
     const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator), container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
-    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); }} as unknown as IHydratableController);
+    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
     const callBindingInstruction: CallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as unknown as CallBindingInstruction;
 
     sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      { container } as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -111,7 +111,7 @@ describe('TranslationParametersBindingRenderer', function () {
 
     sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      { container } as unknown as ICompiledRenderContext,
       hydratable,
       targetElement,
       callBindingInstruction,

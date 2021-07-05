@@ -225,7 +225,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrate) {
-      controller.hydrateCustomElement(contextCt, hydrationInst);
+      controller.hydrateCustomElement(hydrationInst);
     }
 
     return controller as ICustomElementController<C>;
@@ -274,8 +274,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const controller = new Controller(
       /* root           */root,
       // todo: context container
-      /* container      */context,
-      /* container      */context,
+      /* container      */context.container,
+      /* container      */context.container,
       /* vmKind         */ViewModelKind.synthetic,
       /* flags          */flags,
       /* definition     */null,
@@ -292,10 +292,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public hydrateCustomElement(
-    contextCt: IContainer,
     hydrationInst: IControllerElementHydrationInstruction | null
   ): void {
-    this.logger = contextCt.get(ILogger).root;
+    this.logger = this.container.get(ILogger).root;
     this.debug = this.logger.config.level <= LogLevel.debug;
     if (this.debug) {
       this.logger = this.logger.scopeTo(this.name);
@@ -318,7 +317,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       if (this.debug) { this.logger.trace(`invoking define() hook`); }
       const result = instance.define(
         /* controller      */this as ICustomElementController,
-        /* parentContainer */contextCt,
+        /* parentContainer */this.ctxCt,
         /* definition      */definition,
       );
       if (result !== void 0 && result !== definition) {
@@ -326,15 +325,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    // todo: make projections not influential on the render context construction
-    const context = this.context = getRenderContext(definition, container) as RenderContext;
-    // todo: should register a resolver resolving to a IContextElement/IContextComponent
-    //       so that component directly under this template can easily distinguish its owner/parent
-    // context.register(Registration.instance(IContextElement))
-
-    this.lifecycleHooks = LifecycleHooks.resolve(context);
+    this.context = getRenderContext(definition, container) as RenderContext;
+    this.lifecycleHooks = LifecycleHooks.resolve(container);
     // Support Recursive Components by adding self to own context
-    definition.register(context);
+    definition.register(container);
+
     if (definition.injectable !== null) {
       container.registerResolver(
         definition.injectable,

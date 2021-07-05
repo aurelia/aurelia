@@ -254,7 +254,7 @@ export class RouteContext implements IContainer {
         // This also gives us a set point in the future to potentially handle supported scenarios where this could occur.
         const controller = CustomElement.for(context, { searchParents: true });
         logger.trace(`resolve(context:Node(nodeName:'${context.nodeName}'),controller:'${controller.context.definition.name}') - resolving RouteContext from controller's RenderContext`);
-        return controller.context.get(IRouteContext);
+        return controller.context.container.get(IRouteContext);
       } catch (err) {
         logger.error(`Failed to resolve RouteContext from Node(nodeName:'${context.nodeName}')`, err);
         throw err;
@@ -264,13 +264,13 @@ export class RouteContext implements IContainer {
     if (isCustomElementViewModel(context)) {
       const controller = context.$controller!;
       logger.trace(`resolve(context:CustomElementViewModel(name:'${controller.context.definition.name}')) - resolving RouteContext from controller's RenderContext`);
-      return controller.context.get(IRouteContext);
+      return controller.context.container.get(IRouteContext);
     }
 
     if (isCustomElementController(context)) {
       const controller = context;
       logger.trace(`resolve(context:CustomElementController(name:'${controller.context.definition.name}')) - resolving RouteContext from controller's RenderContext`);
-      return controller.context.get(IRouteContext);
+      return controller.context.container.get(IRouteContext);
     }
 
     logAndThrow(new Error(`Invalid context type: ${Object.prototype.toString.call(context)}`), logger);

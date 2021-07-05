@@ -41,7 +41,7 @@ export function isRenderContext(value: unknown): value is IRenderContext {
 /**
  * A render context that wraps an `IContainer` and must be compiled before it can be used for composing.
  */
-export interface IRenderContext extends IContainer {
+export interface IRenderContext {
   readonly platform: IPlatform;
 
   /**
@@ -54,7 +54,7 @@ export interface IRenderContext extends IContainer {
   /**
    * The `IContainer` (which may be, but is not guaranteed to be, an `IRenderContext`) that this `IRenderContext` was created with.
    */
-  readonly parentContainer: IContainer;
+  // readonly parentContainer: IContainer;
 
   readonly container: IContainer;
 
@@ -143,11 +143,6 @@ export function getRenderContext(
 ): IRenderContext {
   const definition = CustomElementDefinition.getOrCreate(partialDefinition);
 
-  // injectable completely prevents caching, ensuring that each instance gets a new context context
-  if (definition.injectable !== null) {
-    return new RenderContext(definition, container);
-  }
-
   let containerLookup = definitionContainerLookup.get(definition);
   if (containerLookup === void 0) {
     definitionContainerLookup.set(
@@ -200,10 +195,10 @@ export class RenderContext implements ICompiledRenderContext {
 
   public constructor(
     public readonly definition: CustomElementDefinition,
-    public readonly parentContainer: IContainer,
+    container: IContainer,
   ) {
     ++renderContextCount;
-    const container = this.container = parentContainer;
+    this.container = container;
     // TODO(fkleuver): get contextual + root renderers
     const renderers = container.getAll(IRenderer);
     let i = 0;
@@ -213,7 +208,7 @@ export class RenderContext implements ICompiledRenderContext {
       this.renderers[renderer.instructionType as string] = renderer;
     }
 
-    this.root = parentContainer.root;
+    this.root = container.root;
     this.platform = container.get(IPlatform);
     this.elementProvider = new InstanceProvider('ElementResolver');
     this.factoryProvider = new ViewFactoryProvider();

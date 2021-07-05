@@ -162,6 +162,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     switch (vmKind) {
       case ViewModelKind.customAttribute:
       case ViewModelKind.customElement:
+        // todo: cache-able based on constructor type
         this.hooks = new HooksDefinition(viewModel!);
         break;
       case ViewModelKind.synthetic:
@@ -478,7 +479,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.parent = parent;
     if (this.debug && !this.fullyNamed) {
       this.fullyNamed = true;
-      (this.logger = this.container.get(ILogger).root.scopeTo(this.name))
+      (this.logger ??= this.container.get(ILogger).root.scopeTo(this.name))
         .trace(`activate()`);
     }
     if (this.vmKind === ViewModelKind.synthetic) {
@@ -1330,6 +1331,12 @@ export type ControllerVisitor = (controller: IHydratedController) => void | true
  */
 export interface IController<C extends IViewModel = IViewModel> extends IDisposable {
   /** @internal */readonly id: number;
+  /**
+   * The container associated with this controller.
+   * By default, CE should have their own container while custom attribute & synthetic view
+   * will use the parent container one, since they do not need to manage one
+   */
+  readonly container: IContainer;
   readonly platform: IPlatform;
   readonly root: IAppRoot | null;
   readonly flags: LifecycleFlags;

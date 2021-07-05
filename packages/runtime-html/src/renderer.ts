@@ -333,7 +333,10 @@ export interface IRenderer<
   render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    /**
+     * The controller that is current invoking this renderer
+     */
+    renderingController: IHydratableController,
     target: unknown,
     instruction: IInstruction,
   ): void;
@@ -421,7 +424,7 @@ export class SetPropertyRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: IController,
     instruction: SetPropertyInstruction,
   ): void {
@@ -440,13 +443,13 @@ export class CustomElementRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: HTMLElement,
     instruction: HydrateElementInstruction,
   ): void {
     const projections = instruction.projections;
     const container = context.createElementContainer(
-      /* parentController */controller,
+      /* parentController */renderingController,
       /* host             */target,
       /* instruction      */instruction,
       /* viewFactory      */void 0,
@@ -460,8 +463,8 @@ export class CustomElementRenderer implements IRenderer {
     container.registerResolver(Ctor, new InstanceProvider<typeof Ctor>(key, component));
 
     const childController = Controller.forCustomElement(
-      /* root                */controller.root,
-      /* context ct          */context.container,
+      /* root                */renderingController.root,
+      /* context ct          */renderingController.container,
       /* own container       */container,
       /* viewModel           */component,
       /* host                */target,
@@ -475,11 +478,11 @@ export class CustomElementRenderer implements IRenderer {
     context.renderChildren(
       /* flags        */flags,
       /* instructions */instruction.instructions,
-      /* controller   */controller,
+      /* controller   */renderingController,
       /* target       */childController,
     );
 
-    controller.addController(childController);
+    renderingController.addController(childController);
   }
 }
 
@@ -489,19 +492,22 @@ export class CustomAttributeRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    /**
+     * The cotroller that is currently invoking this renderer
+     */
+    renderingController: IHydratableController,
     target: HTMLElement,
     instruction: HydrateAttributeInstruction,
   ): void {
     const component = context.invokeAttribute(
-      /* parentController */controller,
+      /* parentController */renderingController,
       /* host             */target,
       /* instruction      */instruction,
       /* viewFactory      */void 0,
       /* location         */void 0,
     );
     const childController = Controller.forCustomAttribute(
-      /* root       */controller.root,
+      /* root       */renderingController.root,
       /* context ct */context.container,
       /* viewModel  */component,
       /* host       */target,
@@ -514,11 +520,11 @@ export class CustomAttributeRenderer implements IRenderer {
     context.renderChildren(
       /* flags        */flags,
       /* instructions */instruction.instructions,
-      /* controller   */controller,
+      /* controller   */renderingController,
       /* target       */childController,
     );
 
-    controller.addController(childController);
+    renderingController.addController(childController);
   }
 }
 
@@ -528,21 +534,21 @@ export class TemplateControllerRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: HTMLElement,
     instruction: HydrateTemplateController,
   ): void {
     const viewFactory = getRenderContext(instruction.def, context.container).getViewFactory();
     const renderLocation = convertToRenderLocation(target);
     const component = context.invokeAttribute(
-      /* parentController */controller,
+      /* parentController */renderingController,
       /* host             */target,
       /* instruction      */instruction,
       /* viewFactory      */viewFactory,
       /* location         */renderLocation,
     );
     const childController = Controller.forCustomAttribute(
-      /* root         */controller.root,
+      /* root         */renderingController.root,
       /* container ct */context.container,
       /* viewModel    */component,
       /* host         */target,
@@ -552,16 +558,16 @@ export class TemplateControllerRenderer implements IRenderer {
 
     setRef(renderLocation, key, childController);
 
-    component.link?.(flags, context, controller, childController, target, instruction);
+    component.link?.(flags, context, renderingController, childController, target, instruction);
 
     context.renderChildren(
       /* flags        */flags,
       /* instructions */instruction.instructions,
-      /* controller   */controller,
+      /* controller   */renderingController,
       /* target       */childController,
     );
 
-    controller.addController(childController);
+    renderingController.addController(childController);
   }
 }
 
@@ -576,7 +582,7 @@ export class LetElementRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    rendererController: IHydratableController,
     target: Node & ChildNode,
     instruction: HydrateLetElementInstruction,
   ): void {
@@ -591,11 +597,11 @@ export class LetElementRenderer implements IRenderer {
       childInstruction = childInstructions[i];
       expr = ensureExpression(this.parser, childInstruction.from, BindingType.IsPropertyCommand);
       binding = applyBindingBehavior(
-        new LetBinding(expr, childInstruction.to, this.observerLocator, context.container, toBindingContext),
+        new LetBinding(expr, childInstruction.to, this.observerLocator, rendererController.container, toBindingContext),
         expr as unknown as IsBindingBehavior,
-        context.container,
+        rendererController.container,
       ) as LetBinding;
-      controller.addBinding(binding);
+      rendererController.addBinding(binding);
     }
   }
 }
@@ -611,17 +617,17 @@ export class CallBindingRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    rendererController: IHydratableController,
     target: IController,
     instruction: CallBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
     const binding = applyBindingBehavior(
-      new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context.container),
+      new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, rendererController.container),
       expr,
-      context.container,
+      rendererController.container,
     );
-    controller.addBinding(binding);
+    rendererController.addBinding(binding);
   }
 }
 
@@ -635,17 +641,17 @@ export class RefBindingRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    rendererController: IHydratableController,
     target: INode,
     instruction: RefBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
     const binding = applyBindingBehavior(
-      new RefBinding(expr, getRefTarget(target, instruction.to), context.container),
+      new RefBinding(expr, getRefTarget(target, instruction.to), rendererController.container),
       expr,
-      context.container,
+      rendererController.container,
     );
-    controller.addBinding(binding);
+    rendererController.addBinding(binding);
   }
 }
 
@@ -661,7 +667,7 @@ export class InterpolationBindingRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: IController,
     instruction: InterpolationInstruction,
   ): void {
@@ -672,7 +678,7 @@ export class InterpolationBindingRenderer implements IRenderer {
       getTarget(target),
       instruction.to,
       BindingMode.toView,
-      context.container,
+      renderingController.container,
       this.platform.domWriteQueue,
     );
     const partBindings = binding.partBindings;
@@ -684,10 +690,10 @@ export class InterpolationBindingRenderer implements IRenderer {
       partBindings[i] = applyBindingBehavior(
         partBinding,
         partBinding.sourceExpression as unknown as IsBindingBehavior,
-        context.container
+        renderingController.container
       ) as InterpolationPartBinding;
     }
-    controller.addBinding(binding);
+    renderingController.addBinding(binding);
   }
 }
 
@@ -703,7 +709,7 @@ export class PropertyBindingRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: IController,
     instruction: PropertyBindingInstruction,
   ): void {
@@ -713,7 +719,7 @@ export class PropertyBindingRenderer implements IRenderer {
       expr,
       context.container,
     );
-    controller.addBinding(binding);
+    renderingController.addBinding(binding);
   }
 }
 
@@ -729,17 +735,17 @@ export class IteratorBindingRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: IController,
     instruction: IteratorBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
     const binding = applyBindingBehavior(
-      new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context.container, this.platform.domWriteQueue),
+      new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, renderingController.container, this.platform.domWriteQueue),
       expr as unknown as IsBindingBehavior,
-      context.container,
+      renderingController.container,
     );
-    controller.addBinding(binding);
+    renderingController.addBinding(binding);
   }
 }
 
@@ -778,7 +784,7 @@ export class TextBindingRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: ChildNode,
     instruction: TextBindingInstruction,
   ): void {
@@ -798,20 +804,20 @@ export class TextBindingRenderer implements IRenderer {
     for (; ii > i; ++i) {
       // each of the dynamic expression of an interpolation
       // will be mapped to a ContentBinding
-      controller.addBinding(applyBindingBehavior(
+      renderingController.addBinding(applyBindingBehavior(
         new ContentBinding(
           dynamicParts[i],
           // using a text node instead of comment, as a mean to:
           // support seamless transition between a html node, or a text
           // reduce the noise in the template, caused by html comment
           parent.insertBefore(doc.createTextNode(''), next),
-          context.container,
+          renderingController.container,
           this.observerLocator,
           this.platform,
           instruction.strict
         ),
         dynamicParts[i] as unknown as IsBindingBehavior,
-        context.container
+        renderingController.container
       ) as ContentBinding);
       // while each of the static part of an interpolation
       // will just be a text node
@@ -837,17 +843,17 @@ export class ListenerBindingRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: HTMLElement,
     instruction: ListenerBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const binding = applyBindingBehavior(
-      new Listener(context.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context.container),
+      new Listener(renderingController.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, renderingController.container),
       expr,
-      context.container,
+      renderingController.container,
     );
-    controller.addBinding(binding);
+    renderingController.addBinding(binding);
   }
 }
 
@@ -857,7 +863,7 @@ export class SetAttributeRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: HTMLElement,
     instruction: SetAttributeInstruction,
   ): void {
@@ -870,7 +876,7 @@ export class SetClassAttributeRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: HTMLElement,
     instruction: SetClassAttributeInstruction,
   ): void {
@@ -883,7 +889,7 @@ export class SetStyleAttributeRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: HTMLElement,
     instruction: SetStyleAttributeInstruction,
   ): void {
@@ -903,17 +909,17 @@ export class StylePropertyBindingRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: HTMLElement,
     instruction: StylePropertyBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const binding = applyBindingBehavior(
-      new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context.container, this.platform.domWriteQueue),
+      new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, renderingController.container, this.platform.domWriteQueue),
       expr,
-      context.container,
+      renderingController.container,
     );
-    controller.addBinding(binding);
+    renderingController.addBinding(binding);
   }
 }
 
@@ -928,7 +934,7 @@ export class AttributeBindingRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: HTMLElement,
     instruction: AttributeBindingInstruction,
   ): void {
@@ -941,12 +947,12 @@ export class AttributeBindingRenderer implements IRenderer {
         instruction.to/* targetKey */,
         BindingMode.toView,
         this.observerLocator,
-        context.container
+        renderingController.container
       ),
       expr,
-      context.container,
+      renderingController.container,
     );
-    controller.addBinding(binding);
+    renderingController.addBinding(binding);
   }
 }
 

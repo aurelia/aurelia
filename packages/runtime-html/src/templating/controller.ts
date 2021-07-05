@@ -478,8 +478,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.parent = parent;
     if (this.debug && !this.fullyNamed) {
       this.fullyNamed = true;
-      this.logger = this.context!.get(ILogger).root.scopeTo(this.name);
-      this.logger!.trace(`activate()`);
+      (this.logger = this.container.get(ILogger).root.scopeTo(this.name))
+        .trace(`activate()`);
     }
     if (this.vmKind === ViewModelKind.synthetic) {
       this.hostScope = hostScope ?? null;
@@ -611,9 +611,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.nodes!.appendTo(this.host!, (this.definition as CustomElementDefinition | null)?.enhance);
         break;
       case MountTarget.shadowRoot: {
-        const styles = this.context!.has(IShadowDOMStyles, false)
-          ? this.context!.get(IShadowDOMStyles)
-          : this.context!.get(IShadowDOMGlobalStyles);
+        const container = this.context!.container;
+        const styles = container.has(IShadowDOMStyles, false)
+          ? container.get(IShadowDOMStyles)
+          : container.get(IShadowDOMGlobalStyles);
         styles.applyTo(this.shadowRoot!);
         this.nodes!.appendTo(this.shadowRoot!);
         break;

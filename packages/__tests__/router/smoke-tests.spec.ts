@@ -1,4 +1,4 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig, ILogger } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params } from '@aurelia/router';
 import { Aurelia, customElement, CustomElement } from '@aurelia/runtime-html';

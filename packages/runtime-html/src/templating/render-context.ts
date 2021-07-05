@@ -8,18 +8,7 @@ import { AuSlotsInfo, IAuSlotsInfo } from '../resources/custom-elements/au-slot.
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
 
-import type {
-  Constructable,
-  IContainer,
-  IFactory,
-  IResolver,
-  IResourceKind,
-  Key,
-  Resolved,
-  ResourceDefinition,
-  ResourceType,
-  Transformer,
-} from '@aurelia/kernel';
+import type { IContainer, IResolver } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
 import type { ICustomAttributeViewModel, IHydratableController } from './controller.js';
 import type {
@@ -218,70 +207,6 @@ export class RenderContext implements ICompiledRenderContext {
     this.auSlotsInfoProvider = new InstanceProvider<IAuSlotsInfo>('IAuSlotsInfo');
   }
 
-  // #region IServiceLocator api
-  public has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean {
-    return this.container.has(key, searchAncestors);
-  }
-
-  public get<K extends Key>(key: K | Key): Resolved<K> {
-    return this.container.get(key);
-  }
-
-  public getAll<K extends Key>(key: K | Key): readonly Resolved<K>[] {
-    return this.container.getAll(key);
-  }
-  // #endregion
-
-  // #region IContainer api
-  public register(...params: unknown[]): IContainer {
-    return this.container.register(...params);
-  }
-
-  public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T> {
-    return this.container.registerResolver(key, resolver);
-  }
-
-  // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
-  //   this.container.deregisterResolverFor(key);
-  // }
-
-  public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
-    return this.container.registerTransformer(key, transformer);
-  }
-
-  public getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null {
-    return this.container.getResolver(key, autoRegister);
-  }
-
-  public invoke<T, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T {
-    return this.container.invoke(key, dynamicDependencies);
-  }
-
-  public getFactory<T extends Constructable>(key: T): IFactory<T> {
-    return this.container.getFactory(key);
-  }
-
-  public registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void {
-    this.container.registerFactory(key, factory);
-  }
-
-  public createChild(): IContainer {
-    return this.container.createChild();
-  }
-
-  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
-    return this.container.find(kind, name);
-  }
-
-  public create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
-    return this.container.create(kind, name);
-  }
-
-  public disposeResolvers() {
-    this.container.disposeResolvers();
-  }
-  // #endregion
-
   // #region IRenderContext api
   public compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext {
     let compiledDefinition: CustomElementDefinition;
@@ -301,7 +226,7 @@ export class RenderContext implements ICompiledRenderContext {
     }
 
     // Support Recursive Components by adding self to own context
-    compiledDefinition.register(this);
+    compiledDefinition.register(this.container);
 
     if (fragmentCache.has(compiledDefinition)) {
       this.fragment = fragmentCache.get(compiledDefinition)!;

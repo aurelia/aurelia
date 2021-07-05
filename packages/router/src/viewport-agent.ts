@@ -64,7 +64,7 @@ export class ViewportAgent {
     public readonly hostController: ICustomElementController,
     public readonly ctx: IRouteContext,
   ) {
-    this.logger = ctx.get(ILogger).scopeTo(`ViewportAgent<${ctx.friendlyPath}>`);
+    this.logger = ctx.container.get(ILogger).scopeTo(`ViewportAgent<${ctx.friendlyPath}>`);
 
     this.logger.trace(`constructor()`);
   }

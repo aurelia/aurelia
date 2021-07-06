@@ -44,6 +44,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   public debug: boolean = false;
+  public resolveResources: boolean = true;
 
   public compile(
     partialDefinition: PartialCustomElementDefinition,
@@ -631,7 +632,10 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     if (elDef !== null) {
       elementInstruction = new HydrateElementInstruction(
-        elDef.name,
+        // todo: elDef.Type or elDef.name should be configurable
+        //       example: AOT/runtime can use elDef.Type, but there are situation
+        //       where instructions need to be serialized, elDef.name should be used
+        this.resolveResources ? elDef.Type : elDef.name,
         void 0,
         (elBindableInstructions ?? emptyArray) as IInstruction[],
         null,

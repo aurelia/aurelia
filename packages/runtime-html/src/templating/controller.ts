@@ -183,6 +183,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(
     root: IAppRoot | null,
+    // todo: it's not a great API that both parent and child containers
+    //       are required to instantiate a controller
+    //       though refactoring this won't be simple. Should be done after other refactorings
     contextCt: IContainer,
     ownCt: IContainer,
     viewModel: C,
@@ -610,7 +613,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.nodes!.appendTo(this.host!, (this.definition as CustomElementDefinition | null)?.enhance);
         break;
       case MountTarget.shadowRoot: {
-        const container = this.context!.container;
+        const container = this.container;
         const styles = container.has(IShadowDOMStyles, false)
           ? container.get(IShadowDOMStyles)
           : container.get(IShadowDOMGlobalStyles);

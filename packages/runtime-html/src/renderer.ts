@@ -1,4 +1,4 @@
-import { Metadata, Registration, DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
+import { Metadata, Registration, DI, emptyArray, InstanceProvider, Constructable } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
@@ -21,7 +21,7 @@ import { getRenderContext } from './templating/render-context.js';
 import { AuSlotsInfo, IProjections } from './resources/custom-elements/au-slot.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
 import { convertToRenderLocation, setRef } from './dom.js';
-import { Controller } from './templating/controller.js';
+import { Controller, ICustomElementController, ICustomElementViewModel } from './templating/controller.js';
 import { IPlatform } from './platform.js';
 
 import type { IServiceLocator, IContainer, Class, IRegistry } from '@aurelia/kernel';
@@ -165,7 +165,7 @@ export class HydrateElementInstruction {
     /**
      * The name of the custom element this instruction is associated with
      */
-    public res: string,
+    public res: string | Constructable,
     public alias: string | undefined,
     /**
      * Bindable instructions for the custom element instance
@@ -308,6 +308,13 @@ export interface ITemplateCompiler {
    * For the default compiler, this means all expressions are kept as is on the template
    */
   debug: boolean;
+  /**
+   * Experimental API, for optimization.
+   *
+   * `true` to create CustomElement/CustomAttribute instructions
+   * with resolved resources constructor during compilation, instead of name
+   */
+  resolveResources: boolean;
   compile(
     partialDefinition: PartialCustomElementDefinition,
     context: IContainer,
@@ -447,7 +454,14 @@ export class CustomElementRenderer implements IRenderer {
     target: HTMLElement,
     instruction: HydrateElementInstruction,
   ): void {
+    let def: CustomElementDefinition | null;
+    let Ctor: Constructable<ICustomElementViewModel>;
+    let component: ICustomElementViewModel;
+    let key: string;
+    let childController: ICustomElementController;
+    const res = instruction.res;
     const projections = instruction.projections;
+    const ctxContainer = renderingController.container;
     const container = context.createElementContainer(
       /* parentController */renderingController,
       /* host             */target,
@@ -456,20 +470,32 @@ export class CustomElementRenderer implements IRenderer {
       /* location         */target,
       /* auSlotsInfo      */new AuSlotsInfo(projections == null ? emptyArray : Object.keys(projections)),
     );
-    const definition = renderingController.container.find(CustomElement, instruction.res) as CustomElementDefinition;
-    const Ctor = definition.Type;
-    const component = container.invoke(Ctor);
-    const key = CustomElement.keyFrom(instruction.res);
+    if (typeof res === 'string') {
+      def = ctxContainer.find(CustomElement, res);
+      if (def == null) {
+        throw new Error(`Element ${res} is not registered in ${(renderingController as Controller)['name']}.`);
+      }
+      Ctor = def.Type;
+      component = container.invoke(Ctor);
+      key = CustomElement.keyFrom(res);
+    } else {
+      def = CustomElement.getDefinition(res);
+      Ctor = res;
+      component = container.invoke(Ctor);
+      key = def.key;
+    }
     container.registerResolver(Ctor, new InstanceProvider<typeof Ctor>(key, component));
-
-    const childController = Controller.forCustomElement(
+    // eslint-disable-next-line
+    childController = Controller.forCustomElement(
       /* root                */renderingController.root,
-      /* context ct          */renderingController.container,
+      /* context ct          */context.container,
       /* own container       */container,
       /* viewModel           */component,
       /* host                */target,
       /* instructions        */instruction,
       /* flags               */flags,
+      /* hydrate             */true,
+      /* definition          */def,
     );
 
     flags = childController.flags;

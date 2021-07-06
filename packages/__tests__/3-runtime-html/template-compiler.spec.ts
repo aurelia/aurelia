@@ -216,7 +216,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         );
         const rootInstructions = actual.instructions[0];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'res'], type: TT.hydrateElement, res: 'el' }
+          { toVerify: ['type', 'res'], type: TT.hydrateElement, res: El }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
 
@@ -335,7 +335,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
             const { instructions } = compileWith('<template><div as-element="not-div"></div></template>', [NotDiv]);
             verifyInstructions(instructions[0], [
               { toVerify: ['type', 'res'],
-                type: TT.hydrateElement, res: 'not-div' }
+                type: TT.hydrateElement, res: NotDiv }
             ]);
           });
 
@@ -365,7 +365,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
               const [hydrateNotDivInstruction] = templateControllerInst.def.instructions[0] as [HydrateElementInstruction];
               verifyInstructions([hydrateNotDivInstruction], [
                 { toVerify: ['type', 'res'],
-                  type: TT.hydrateElement, res: 'not-div' }
+                  type: TT.hydrateElement, res: NotDiv }
               ]);
               verifyInstructions(hydrateNotDivInstruction.instructions, []);
             });
@@ -778,7 +778,7 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
 
 function createCustomElement(
   ctx: TestContext,
-  tagName: string,
+  tagName: string | Constructable,
   finalize: boolean,
   attributes: readonly [string, string][],
   childInstructions: readonly any[],
@@ -796,16 +796,18 @@ function createCustomElement(
     containerless: false,
     projections: null,
   };
+  const def = typeof tagName === 'string'
+    ? ctx.container.find(CustomElement, tagName)
+    : CustomElement.getDefinition(tagName);
   const exprParser = ctx.container.get(IExpressionParser);
   const attrParser = ctx.container.get(IAttributeParser);
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
-  const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${tagName}>`;
+  const rawMarkup = `<${def.name} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${def.name}>`;
   const input = {
     name: 'unnamed',
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
-  const def = ctx.container.find(CustomElement, tagName);
   const outputAttributeMarkup = debugMode
     ? attributes
       .map(a => `${a[0]}="${a[1]}"`)
@@ -826,7 +828,7 @@ function createCustomElement(
       })
       .map(a => `${a[0]}="${a[1]}"`)
       .join(' ');
-  const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${outputAttributeMarkup}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
+  const outputMarkup = ctx.createElementFromMarkup(`<${def.name} ${outputAttributeMarkup}>${(childOutput && childOutput.template.outerHTML) || ''}</${def.name}>`);
   outputMarkup.classList.add('au');
   const output = {
     ...defaultCustomElementDefinitionProperties,
@@ -1466,7 +1468,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => [`.one-time`,  `''`],
         (ctx) => [`.to-view`,   `''`],
         (ctx) => [`.from-view`, `''`],
-        (ctx) => [`.two-way`,   `''`]
+        (ctx) => [`.two-way`,   `''`],
       ] as ((ctx: TestContext) => [string, string])[],
       [
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}${cmd}`],
@@ -1478,72 +1480,88 @@ describe(`TemplateCompiler - combinations`, function () {
       ] as ((ctx: TestContext) => string)[]
     ],
     (ctx, pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
-      for (const debugMode of [true, false]) {
-        it(`[Debug: ${debugMode}] customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
+      for (const resolveResources of [true, false]) {
+        for (const debugMode of [true, false]) {
+          it(`[Resolve resources: ${resolveResources}] [Debug: ${debugMode}] customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
-          const { sut, container } = createFixture(
-            ctx,
-            CustomElement.define({ name: 'foobar', bindables }, class FooBar {})
-          );
-          sut.debug = debugMode;
+            const FooBar = CustomElement.define({ name: 'foobar', bindables }, class FooBar {});
+            const { sut, container } = createFixture(
+              ctx,
+              FooBar
+            );
+            sut.resolveResources = resolveResources;
+            sut.debug = debugMode;
 
-          const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, false);
-          const instructions = instruction == null ? [] : [instruction];
-          const childInstructions = !!bindableDescription ? instructions : [];
-          const siblingInstructions = !bindableDescription ? instructions : [];
+            const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, false);
+            const instructions = instruction == null ? [] : [instruction];
+            const childInstructions = !!bindableDescription ? instructions : [];
+            const siblingInstructions = !bindableDescription ? instructions : [];
 
-          const [input, output] = createCustomElement(
-            ctx,
-            'foobar',
-            true,
-            [[attrName, attrValue]],
-            childInstructions,
-            siblingInstructions,
-            [],
-            void 0,
-            void 0,
-            debugMode
-          ) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
+            const [input, output] = createCustomElement(
+              ctx,
+              resolveResources ? FooBar : 'foobar',
+              true,
+              [[attrName, attrValue]],
+              childInstructions,
+              siblingInstructions,
+              [],
+              void 0,
+              void 0,
+              debugMode
+            ) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
 
-          if (attrName.endsWith('.qux')) {
-            let e;
-            try {
-              sut.compile(input, container, null);
-            } catch (err) {
-              // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-              // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
-              e = err;
+            if (attrName.endsWith('.qux')) {
+              let e;
+              try {
+                sut.compile(input, container, null);
+              } catch (err) {
+                // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+                // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+                e = err;
+              }
+              assert.instanceOf(e, Error);
+            } else {
+              // enableTracing();
+              // Tracer.enableLiveLogging(SymbolTraceWriter);
+              const actual = sut.compile(input, container, null);
+              // console.log('\n'+stringifyTemplateDefinition(actual, 0));
+              // disableTracing();
+              try {
+                verifyBindingInstructionsEqual(actual, output);
+              } catch (err) {
+                // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+                // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+                throw err;
+              }
             }
-            assert.instanceOf(e, Error);
-          } else {
-            // enableTracing();
-            // Tracer.enableLiveLogging(SymbolTraceWriter);
-            const actual = sut.compile(input, container, null);
-            // console.log('\n'+stringifyTemplateDefinition(actual, 0));
-            // disableTracing();
-            try {
-              verifyBindingInstructionsEqual(actual, output);
-            } catch (err) {
-              // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-              // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
-              throw err;
-            }
-          }
-        });
+          });
+        }
       }
     });
   });
 
   describe('custom elements', function () {
+    const Foo = CustomElement.define({ name: 'foo' }, class Foo {});
+    const Bar = CustomElement.define({ name: 'bar' }, class Bar {});
+    const Baz = CustomElement.define({ name: 'baz' }, class Baz {});
+
+    function prepareElements(ctx: TestContext) {
+      ctx.container.register(Foo, Bar, Baz);
+      return ctx;
+    }
     eachCartesianJoinFactory([
       [
-        TestContext.create
+        () => prepareElements(TestContext.create())
       ],
       [
-        (ctx) => createCustomElement(ctx, `foo`, true, [], [], [], []),
-        (ctx) => createCustomElement(ctx, `bar`, true, [], [], [], []),
-        (ctx) => createCustomElement(ctx, `baz`, true, [], [], [], [])
-      ] as ((ctx: TestContext) => CTCResult)[]
+        (ctx) => true,
+        (ctx) => false,
+      ],
+      [
+        (ctx, resolveResources) => createCustomElement(ctx, resolveResources ? Foo : `foo`, true, [], [], [], []),
+        (ctx, resolveResources) => createCustomElement(ctx, resolveResources ? Bar : `bar`, true, [], [], [], []),
+        (ctx, resolveResources) => createCustomElement(ctx, resolveResources ? Baz : `baz`, true, [], [], [], [])
+      ] as ((ctx: TestContext, resolveResources: boolean) => CTCResult)[]
       // <(($1: CTCResult) => CTCResult)[]>[
       //   ([input, output]) => createCustomElement(`foo`, false, [], [], [], output.instructions, output, input),
       //   ([input, output]) => createCustomElement(`bar`, false, [], [], [], output.instructions, output, input),
@@ -1556,15 +1574,11 @@ describe(`TemplateCompiler - combinations`, function () {
       // ]
       // ], ($1, $2, [input, output]) => {
     ],
-    (ctx, [input, output]) => {
-      it(`${input.template}`, function () {
+    (ctx, resolveRes, [input, output]) => {
+      it(`[Resolve res: ${resolveRes}] ${input.template}`, function () {
 
-        const { sut, container } = createFixture(
-          ctx,
-          CustomElement.define({ name: 'foo' }, class Foo {}),
-          CustomElement.define({ name: 'bar' }, class Bar {}),
-          CustomElement.define({ name: 'baz' }, class Baz {})
-        );
+        const { sut, container } = createFixture(ctx);
+        sut.resolveResources = resolveRes;
 
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);
@@ -1700,6 +1714,7 @@ describe('TemplateCompiler - local templates', function () {
   for (const { template, verifyDefinition, expectedContent } of getLocalTemplateTestData()) {
     it(template, function () {
       const { container, sut } = createFixture();
+      sut.resolveResources = false;
       const definition = sut.compile({ name: 'lorem-ipsum', template }, container, null);
       verifyDefinition(definition, container);
     });
@@ -2059,11 +2074,14 @@ describe('TemplateCompiler - au-slot', function () {
         { projections: null }
       );
 
+      type HEI = HydrateElementInstruction;
       const allInstructions = compiledDefinition.instructions.flat();
       for (const expectedSlotInfo of expectedSlotInfos) {
         const actualInstruction = allInstructions.find((i) =>
           i.type === InstructionType.hydrateElement
-          && (i as HydrateElementInstruction).res.includes('au-slot')
+          && (typeof (i as HEI).res === 'string' && ((i as HEI).res as string).includes('au-slot')
+            || (i as HEI).res === AuSlot
+          )
           && (i as HydrateElementInstruction).auSlot.name === expectedSlotInfo.slotName
         ) as HydrateElementInstruction;
         assert.notEqual(actualInstruction, void 0, 'instruction');
@@ -2081,7 +2099,9 @@ describe('TemplateCompiler - au-slot', function () {
       for (const [elName, projections] of allExpectedProjections) {
         const elementInstruction = allInstructions.find(i =>
           i.type === InstructionType.hydrateElement
-          && (i as HydrateElementInstruction).res === elName
+          && (typeof (i as HEI).res === 'string' && ((i as HEI).res as string) === elName
+            || (i as HEI).res === container.find(CustomElement, elName).Type
+          )
         ) as HydrateElementInstruction;
         assert.notEqual(elementInstruction, void 0, `Instruction for element "${elName}" missing`);
         const actualProjections = elementInstruction.projections;

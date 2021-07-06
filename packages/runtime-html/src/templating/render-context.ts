@@ -8,18 +8,7 @@ import { AuSlotsInfo, IAuSlotsInfo } from '../resources/custom-elements/au-slot.
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
 
-import type {
-  Constructable,
-  IContainer,
-  IFactory,
-  IResolver,
-  IResourceKind,
-  Key,
-  Resolved,
-  ResourceDefinition,
-  ResourceType,
-  Transformer,
-} from '@aurelia/kernel';
+import type { IContainer, IResolver } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
 import type { ICustomAttributeViewModel, IHydratableController } from './controller.js';
 import type {
@@ -41,7 +30,7 @@ export function isRenderContext(value: unknown): value is IRenderContext {
 /**
  * A render context that wraps an `IContainer` and must be compiled before it can be used for composing.
  */
-export interface IRenderContext extends IContainer {
+export interface IRenderContext {
   readonly platform: IPlatform;
 
   /**
@@ -54,7 +43,7 @@ export interface IRenderContext extends IContainer {
   /**
    * The `IContainer` (which may be, but is not guaranteed to be, an `IRenderContext`) that this `IRenderContext` was created with.
    */
-  readonly parentContainer: IContainer;
+  // readonly parentContainer: IContainer;
 
   readonly container: IContainer;
 
@@ -143,11 +132,6 @@ export function getRenderContext(
 ): IRenderContext {
   const definition = CustomElementDefinition.getOrCreate(partialDefinition);
 
-  // injectable completely prevents caching, ensuring that each instance gets a new context context
-  if (definition.injectable !== null) {
-    return new RenderContext(definition, container);
-  }
-
   let containerLookup = definitionContainerLookup.get(definition);
   if (containerLookup === void 0) {
     definitionContainerLookup.set(
@@ -173,6 +157,8 @@ Reflect.defineProperty(getRenderContext, 'count', {
 });
 
 const emptyNodeCache = new WeakMap<IPlatform, FragmentNodeSequence>();
+const getRenderersSymb = Symbol();
+const compiledDefCache = new WeakMap<IContainer, WeakMap<PartialCustomElementDefinition, CustomElementDefinition>>();
 
 export class RenderContext implements ICompiledRenderContext {
   public get id(): number {
@@ -200,12 +186,14 @@ export class RenderContext implements ICompiledRenderContext {
 
   public constructor(
     public readonly definition: CustomElementDefinition,
-    public readonly parentContainer: IContainer,
+    container: IContainer,
   ) {
     ++renderContextCount;
-    const container = this.container = parentContainer;
-    // TODO(fkleuver): get contextual + root renderers
-    const renderers = container.getAll(IRenderer);
+    this.container = container;
+    // note: it's incorrect to get rendereres only from root,
+    //       as they could also be considered normal resources
+    //       though it's highly practical for limiting renderers to the global scope
+    const renderers = (container.root as any)[getRenderersSymb] ??= container.root.getAll(IRenderer);
     let i = 0;
     let renderer: IRenderer;
     for (; i < renderers.length; ++i) {
@@ -213,7 +201,7 @@ export class RenderContext implements ICompiledRenderContext {
       this.renderers[renderer.instructionType as string] = renderer;
     }
 
-    this.root = parentContainer.root;
+    this.root = container.root;
     this.platform = container.get(IPlatform);
     this.elementProvider = new InstanceProvider('ElementResolver');
     this.factoryProvider = new ViewFactoryProvider();
@@ -222,70 +210,6 @@ export class RenderContext implements ICompiledRenderContext {
     this.renderLocationProvider = new InstanceProvider<IRenderLocation>('IRenderLocation');
     this.auSlotsInfoProvider = new InstanceProvider<IAuSlotsInfo>('IAuSlotsInfo');
   }
-
-  // #region IServiceLocator api
-  public has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean {
-    return this.container.has(key, searchAncestors);
-  }
-
-  public get<K extends Key>(key: K | Key): Resolved<K> {
-    return this.container.get(key);
-  }
-
-  public getAll<K extends Key>(key: K | Key): readonly Resolved<K>[] {
-    return this.container.getAll(key);
-  }
-  // #endregion
-
-  // #region IContainer api
-  public register(...params: unknown[]): IContainer {
-    return this.container.register(...params);
-  }
-
-  public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T> {
-    return this.container.registerResolver(key, resolver);
-  }
-
-  // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
-  //   this.container.deregisterResolverFor(key);
-  // }
-
-  public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
-    return this.container.registerTransformer(key, transformer);
-  }
-
-  public getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null {
-    return this.container.getResolver(key, autoRegister);
-  }
-
-  public invoke<T, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T {
-    return this.container.invoke(key, dynamicDependencies);
-  }
-
-  public getFactory<T extends Constructable>(key: T): IFactory<T> {
-    return this.container.getFactory(key);
-  }
-
-  public registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void {
-    this.container.registerFactory(key, factory);
-  }
-
-  public createChild(): IContainer {
-    return this.container.createChild();
-  }
-
-  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
-    return this.container.find(kind, name);
-  }
-
-  public create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
-    return this.container.create(kind, name);
-  }
-
-  public disposeResolvers() {
-    this.container.disposeResolvers();
-  }
-  // #endregion
 
   // #region IRenderContext api
   public compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext {
@@ -299,14 +223,23 @@ export class RenderContext implements ICompiledRenderContext {
     if (definition.needsCompile) {
       const container = this.container;
       const compiler = container.get(ITemplateCompiler);
-
-      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, compilationInstruction);
+      let compiledMap = compiledDefCache.get(container.root);
+      if (compiledMap == null) {
+        compiledDefCache.set(container.root, compiledMap = new WeakMap());
+      }
+      let compiled = compiledMap.get(definition);
+      if (compiled == null) {
+        compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction));
+      } else {
+        container.register(...compiled.dependencies);
+      }
+      compiledDefinition = this.compiledDefinition = compiled;
     } else {
       compiledDefinition = this.compiledDefinition = definition;
     }
 
     // Support Recursive Components by adding self to own context
-    compiledDefinition.register(this);
+    compiledDefinition.register(this.container);
 
     if (fragmentCache.has(compiledDefinition)) {
       this.fragment = fragmentCache.get(compiledDefinition)!;

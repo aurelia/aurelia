@@ -4,8 +4,8 @@ import {
   isInstruction,
   SetAttributeInstruction,
   IInstruction,
-  InstructionType,
   Instruction,
+  SetPropertyInstruction,
 } from './renderer.js';
 import { IPlatform } from './platform.js';
 import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element.js';
@@ -142,16 +142,10 @@ function createElementForType(
         if (isInstruction(value)) {
           childInstructions.push(value);
         } else {
-          const bindable = bindables[to];
-
-          if (bindable !== void 0) {
-            childInstructions.push({
-              type: InstructionType.setProperty,
-              to,
-              value
-            });
-          } else {
+          if (bindables[to] === void 0) {
             childInstructions.push(new SetAttributeInstruction(value, to));
+          } else {
+            childInstructions.push(new SetPropertyInstruction(value, to));
           }
         }
       });

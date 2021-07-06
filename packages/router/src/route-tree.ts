@@ -314,7 +314,7 @@ export function updateRouteTree(
   vit: ViewportInstructionTree,
   ctx: IRouteContext,
 ): Promise<void> | void {
-  const log = ctx.get(ILogger).scopeTo('RouteTree');
+  const log = ctx.container.get(ILogger).scopeTo('RouteTree');
 
   // The root of the routing tree is always the CompositionRoot of the Aurelia app.
   // From a routing perspective it's simply a "marker": it does not need to be loaded,
@@ -386,7 +386,7 @@ function updateNode(
 
 export function processResidue(node: RouteNode): Promise<void> | void {
   const ctx = node.context;
-  const log = ctx.get(ILogger).scopeTo('RouteTree');
+  const log = ctx.container.get(ILogger).scopeTo('RouteTree');
 
   const suffix = ctx.resolved instanceof Promise ? ' - awaiting promise' : '';
   log.trace(`processResidue(node:%s)${suffix}`, node);
@@ -408,7 +408,7 @@ export function processResidue(node: RouteNode): Promise<void> | void {
 
 export function getDynamicChildren(node: RouteNode): Promise<readonly RouteNode[]> | readonly RouteNode[] {
   const ctx = node.context;
-  const log = ctx.get(ILogger).scopeTo('RouteTree');
+  const log = ctx.container.get(ILogger).scopeTo('RouteTree');
 
   const suffix = ctx.resolved instanceof Promise ? ' - awaiting promise' : '';
   log.trace(`getDynamicChildren(node:%s)${suffix}`, node);
@@ -495,7 +495,7 @@ function createNode(
   const rr = ctx.recognize(path);
   if (rr === null) {
     const name = vi.component.value;
-    let ced: CustomElementDefinition | null = ctx.find(CustomElement, name);
+    let ced: CustomElementDefinition | null = ctx.container.find(CustomElement, name);
     switch (node.tree.options.routingMode) {
       case 'configured-only':
         if (ced === null) {
@@ -517,7 +517,7 @@ function createNode(
             throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' and no fallback was provided for viewport '${vpName}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
           }
           const fallback = fallbackVPA.viewport.fallback;
-          ced = ctx.find(CustomElement, fallback);
+          ced = ctx.container.find(CustomElement, fallback);
           if (ced === null) {
             throw new Error(`the requested component '${name}' and the fallback '${fallback}' at viewport '${vpName}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
           }
@@ -559,7 +559,7 @@ function createConfiguredNode(
         resolution: rt.options.resolutionMode,
       }));
 
-      const router = ctx.get(IRouter);
+      const router = ctx.container.get(IRouter);
       const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.context);
 
       childCtx.node = RouteNode.create({
@@ -666,7 +666,7 @@ function createConfiguredNode(
     const redirRR = ctx.recognize(newPath);
     if (redirRR === null) {
       const name = newPath;
-      const ced: CustomElementDefinition | null = ctx.find(CustomElement, newPath);
+      const ced: CustomElementDefinition | null = ctx.container.find(CustomElement, newPath);
       switch (rt.options.routingMode) {
         case 'configured-only':
           if (ced === null) {
@@ -703,7 +703,7 @@ function createDirectNode(
     resolution: rt.options.resolutionMode,
   }));
 
-  const router = ctx.get(IRouter);
+  const router = ctx.container.get(IRouter);
   const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.context);
 
   // TODO(fkleuver): process redirects in direct routing (?)

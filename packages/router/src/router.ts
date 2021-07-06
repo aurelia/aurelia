@@ -617,7 +617,8 @@ export class Router {
     component: CustomElementDefinition,
     renderContext: ICompiledRenderContext,
   ): IRouteContext {
-    const logger = renderContext.get(ILogger).scopeTo('RouteContext');
+    const container = renderContext.container;
+    const logger = container.get(ILogger).scopeTo('RouteContext');
 
     const routeDefinition = RouteDefinition.resolve(component.Type);
     let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
@@ -629,7 +630,7 @@ export class Router {
     if (routeContext === void 0) {
       logger.trace(`creating new RouteContext for %s`, routeDefinition);
 
-      const parent = renderContext.has(IRouteContext, true) ? renderContext.get(IRouteContext) : null;
+      const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
 
       routeDefinitionLookup.set(
         routeDefinition,
@@ -638,7 +639,7 @@ export class Router {
           parent,
           component,
           routeDefinition,
-          renderContext,
+          container,
         ),
       );
     } else {

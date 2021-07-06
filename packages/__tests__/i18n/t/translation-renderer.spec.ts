@@ -77,7 +77,7 @@ describe('TranslationBindingCommand', function () {
   function createFixture(aliases?: string[]) {
     aliases = aliases || [];
     const container = createContainer().register(
-      BindingCommand.define({name: 't', aliases}, TranslationBindingCommand)
+      BindingCommand.define({ name: 't', aliases }, TranslationBindingCommand)
     );
     if (!aliases.includes('t')) {
       aliases.push('t');
@@ -133,13 +133,13 @@ describe('TranslationBindingRenderer', function () {
     const container = createFixture();
     const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
-    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
+    const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
     const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      { container } as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -154,13 +154,13 @@ describe('TranslationBindingRenderer', function () {
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container, container.get(IPlatform));
-    const controller = ({ bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
+    const controller = ({ container, bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
     const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      { container } as unknown as ICompiledRenderContext,
       controller,
       targetElement,
       callBindingInstruction,
@@ -220,7 +220,7 @@ describe('TranslationBindBindingCommand', function () {
     aliases = aliases || [];
     aliases = aliases.map(alias => `${alias}.bind`);
     const container = createContainer().register(
-      BindingCommand.define({name: 't.bind', aliases}, TranslationBindBindingCommand)
+      BindingCommand.define({ name: 't.bind', aliases }, TranslationBindBindingCommand)
     );
     if (!aliases.includes('t.bind')) {
       aliases.push('t.bind');
@@ -278,13 +278,13 @@ describe('TranslationBindBindingRenderer', function () {
     const container = createFixture();
     const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
-    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
+    const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      { container } as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -297,13 +297,13 @@ describe('TranslationBindBindingRenderer', function () {
     const container = createFixture();
     const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
-    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
+    const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      { container } as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -318,13 +318,13 @@ describe('TranslationBindBindingRenderer', function () {
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container, container.get(IPlatform));
-    const controller = ({ bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
+    const controller = ({ container, bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      { container } as unknown as ICompiledRenderContext,
       controller,
       targetElement,
       callBindingInstruction,

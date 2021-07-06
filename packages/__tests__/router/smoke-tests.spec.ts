@@ -1,4 +1,4 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig, ILogger } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params } from '@aurelia/router';
 import { Aurelia, customElement, CustomElement } from '@aurelia/runtime-html';
@@ -36,7 +36,7 @@ function assertIsActive(
 async function createFixture<T extends Constructable>(
   Component: T,
   deps: Constructable[],
-  level: LogLevel = LogLevel.warn,
+  level: LogLevel = LogLevel.fatal,
 ) {
   const ctx = TestContext.create();
   const { container, platform } = ctx;

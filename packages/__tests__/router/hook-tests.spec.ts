@@ -484,7 +484,7 @@ async function createFixture<T extends Constructable>(
   Component: T,
   deps: Constructable[],
   routerOptions: IRouterOptions,
-  level: LogLevel = LogLevel.warn,
+  level: LogLevel = LogLevel.fatal,
 ) {
   const ctx = TestContext.create();
   const cfg = new NotifierConfig([], 100);

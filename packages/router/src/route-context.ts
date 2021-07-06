@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Constructable, ResourceType, IContainer, IResourceKind, ResourceDefinition, Key, IResolver, Resolved, IFactory, Transformer, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModule, onResolve, noop } from '@aurelia/kernel';
+import { IContainer, ResourceDefinition, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModule, onResolve, noop } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
 import { RouteRecognizer, RecognizedRoute } from '@aurelia/route-recognizer';
 
@@ -27,7 +27,7 @@ const RESIDUE = 'au$residue' as const;
  * - The `RouteDefinition` for a type is overridden manually via `Route.define`
  * - Different components (with different `RenderContext`s) reference the same component via a child route config
  */
-export class RouteContext implements IContainer {
+export class RouteContext {
   public get id(): number {
     return this.container.id;
   }
@@ -108,10 +108,10 @@ export class RouteContext implements IContainer {
       this.logger.trace(`ViewportAgent changed from %s to %s`, prev, value);
     }
   }
+  public readonly container: IContainer;
 
   private readonly moduleLoader: IModuleLoader;
   private readonly logger: ILogger;
-  private readonly container: IContainer;
   private readonly hostControllerProvider: InstanceProvider<ICustomElementController>;
   private readonly recognizer: RouteRecognizer<RouteDefinition | Promise<RouteDefinition>>;
 
@@ -137,7 +137,7 @@ export class RouteContext implements IContainer {
 
     this.moduleLoader = parentContainer.get(IModuleLoader);
 
-    const container = this.container = parentContainer.createChild({ inheritParentResources: true });
+    const container = this.container = parentContainer.createChild();
 
     container.registerResolver(
       IController,
@@ -233,7 +233,8 @@ export class RouteContext implements IContainer {
   }
 
   public static resolve(root: IRouteContext, context: unknown): IRouteContext {
-    const logger = root.get(ILogger).scopeTo('RouteContext');
+    const rootContainer = root.container;
+    const logger = rootContainer.get(ILogger).scopeTo('RouteContext');
 
     if (context === null || context === void 0) {
       logger.trace(`resolve(context:%s) - returning root RouteContext`, context);
@@ -245,7 +246,7 @@ export class RouteContext implements IContainer {
       return context;
     }
 
-    if (context instanceof root.get(IPlatform).Node) {
+    if (context instanceof rootContainer.get(IPlatform).Node) {
       try {
         // CustomElement.for can theoretically throw in (as of yet) unknown situations.
         // If that happens, we want to know about the situation and *not* just fall back to the root context, as that might make
@@ -254,7 +255,7 @@ export class RouteContext implements IContainer {
         // This also gives us a set point in the future to potentially handle supported scenarios where this could occur.
         const controller = CustomElement.for(context, { searchParents: true });
         logger.trace(`resolve(context:Node(nodeName:'${context.nodeName}'),controller:'${controller.context.definition.name}') - resolving RouteContext from controller's RenderContext`);
-        return controller.context.get(IRouteContext);
+        return controller.container.get(IRouteContext);
       } catch (err) {
         logger.error(`Failed to resolve RouteContext from Node(nodeName:'${context.nodeName}')`, err);
         throw err;
@@ -264,88 +265,16 @@ export class RouteContext implements IContainer {
     if (isCustomElementViewModel(context)) {
       const controller = context.$controller!;
       logger.trace(`resolve(context:CustomElementViewModel(name:'${controller.context.definition.name}')) - resolving RouteContext from controller's RenderContext`);
-      return controller.context.get(IRouteContext);
+      return controller.container.get(IRouteContext);
     }
 
     if (isCustomElementController(context)) {
       const controller = context;
       logger.trace(`resolve(context:CustomElementController(name:'${controller.context.definition.name}')) - resolving RouteContext from controller's RenderContext`);
-      return controller.context.get(IRouteContext);
+      return controller.container.get(IRouteContext);
     }
 
     logAndThrow(new Error(`Invalid context type: ${Object.prototype.toString.call(context)}`), logger);
-  }
-
-  // #region IServiceLocator api
-  public has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean {
-    // this.logger.trace(`has(key:${String(key)},searchAncestors:${searchAncestors})`);
-    return this.container.has(key, searchAncestors);
-  }
-
-  public get<K extends Key>(key: K | Key): Resolved<K> {
-    // this.logger.trace(`get(key:${String(key)})`);
-    return this.container.get(key);
-  }
-
-  public getAll<K extends Key>(key: K | Key): readonly Resolved<K>[] {
-    // this.logger.trace(`getAll(key:${String(key)})`);
-    return this.container.getAll(key);
-  }
-  // #endregion
-
-  // #region IContainer api
-  public register(...params: unknown[]): IContainer {
-    // this.logger.trace(`register(params:[${params.map(String).join(',')}])`);
-    return this.container.register(...params);
-  }
-
-  public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T> {
-    // this.logger.trace(`registerResolver(key:${String(key)})`);
-    return this.container.registerResolver(key, resolver);
-  }
-
-  public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
-    // this.logger.trace(`registerTransformer(key:${String(key)})`);
-    return this.container.registerTransformer(key, transformer);
-  }
-
-  public getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null {
-    // this.logger.trace(`getResolver(key:${String(key)})`);
-    return this.container.getResolver(key, autoRegister);
-  }
-
-  public invoke<T, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T {
-    return this.container.invoke(key, dynamicDependencies);
-  }
-
-  public getFactory<T extends Constructable>(key: T): IFactory<T> {
-    // this.logger.trace(`getFactory(key:${String(key)})`);
-    return this.container.getFactory(key);
-  }
-
-  public registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void {
-    // this.logger.trace(`registerFactory(key:${String(key)})`);
-    this.container.registerFactory(key, factory);
-  }
-
-  public createChild(): IContainer {
-    // this.logger.trace(`createChild()`);
-    return this.container.createChild();
-  }
-
-  public disposeResolvers() {
-    // this.logger.trace(`disposeResolvers()`);
-    this.container.disposeResolvers();
-  }
-
-  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
-    // this.logger.trace(`findResource(kind:${kind.name},name:'${name}')`);
-    return this.container.find(kind, name);
-  }
-
-  public create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
-    // this.logger.trace(`createResource(kind:${kind.name},name:'${name}')`);
-    return this.container.create(kind, name);
   }
 
   public dispose(): void {

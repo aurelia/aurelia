@@ -36,7 +36,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     public readonly routeNode: RouteNode,
     public readonly ctx: IRouteContext,
   ) {
-    this.logger = ctx.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
+    this.logger = ctx.container.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
 
     this.logger.trace(`constructor()`);
 
@@ -59,8 +59,9 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   ): ComponentAgent<T> {
     let componentAgent = componentAgentLookup.get(componentInstance);
     if (componentAgent === void 0) {
+      const container = ctx.container;
       const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable);
-      const controller = Controller.forCustomElement(ctx.get(IAppRoot), ctx, ctx, componentInstance, hostController.host, null);
+      const controller = Controller.forCustomElement(container.get(IAppRoot), container, container, componentInstance, hostController.host, null);
 
       componentAgentLookup.set(
         componentInstance,

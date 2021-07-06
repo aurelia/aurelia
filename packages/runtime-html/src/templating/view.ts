@@ -24,6 +24,7 @@ export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory');
 export class ViewFactory implements IViewFactory {
   public static maxCacheSize: number = 0xFFFF;
 
+  public readonly container: IContainer;
   public isCaching: boolean = false;
 
   private cache: ISyntheticView[] = null!;
@@ -32,7 +33,9 @@ export class ViewFactory implements IViewFactory {
   public constructor(
     public name: string,
     public readonly context: IRenderContext,
-  ) {}
+  ) {
+    this.container = context.container;
+  }
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
     if (size) {

@@ -157,6 +157,8 @@ Reflect.defineProperty(getRenderContext, 'count', {
 });
 
 const emptyNodeCache = new WeakMap<IPlatform, FragmentNodeSequence>();
+const getRenderersSymb = Symbol();
+const compiledDefCache = new WeakMap<IContainer, WeakMap<PartialCustomElementDefinition, CustomElementDefinition>>();
 
 export class RenderContext implements ICompiledRenderContext {
   public get id(): number {
@@ -188,8 +190,10 @@ export class RenderContext implements ICompiledRenderContext {
   ) {
     ++renderContextCount;
     this.container = container;
-    // TODO(fkleuver): get contextual + root renderers
-    const renderers = container.getAll(IRenderer);
+    // note: it's incorrect to get rendereres only from root,
+    //       as they could also be considered normal resources
+    //       though it's highly practical for limiting renderers to the global scope
+    const renderers = (container.root as any)[getRenderersSymb] ??= container.root.getAll(IRenderer);
     let i = 0;
     let renderer: IRenderer;
     for (; i < renderers.length; ++i) {
@@ -219,8 +223,17 @@ export class RenderContext implements ICompiledRenderContext {
     if (definition.needsCompile) {
       const container = this.container;
       const compiler = container.get(ITemplateCompiler);
-
-      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, compilationInstruction);
+      let compiledMap = compiledDefCache.get(container.root);
+      if (compiledMap == null) {
+        compiledDefCache.set(container.root, compiledMap = new WeakMap());
+      }
+      let compiled = compiledMap.get(definition);
+      if (compiled == null) {
+        compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction));
+      } else {
+        container.register(...compiled.dependencies);
+      }
+      compiledDefinition = this.compiledDefinition = compiled;
     } else {
       compiledDefinition = this.compiledDefinition = definition;
     }

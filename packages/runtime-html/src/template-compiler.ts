@@ -32,8 +32,8 @@ import type {
   Constructable,
 } from '@aurelia/kernel';
 import type { AnyBindingExpression } from '@aurelia/runtime';
-import type { CustomAttributeType, CustomAttributeDefinition } from './resources/custom-attribute.js';
-import type { CustomElementType, PartialCustomElementDefinition } from './resources/custom-element.js';
+import type { CustomAttributeDefinition } from './resources/custom-attribute.js';
+import type { PartialCustomElementDefinition } from './resources/custom-element.js';
 import type { IProjections } from './resources/custom-elements/au-slot.js';
 import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command.js';
 import type { ICompliationInstruction, IInstruction, } from './renderer.js';
@@ -84,6 +84,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return CustomElementDefinition.create({
       ...partialDefinition,
       name: partialDefinition.name || CustomElement.generateName(),
+      dependencies: (partialDefinition.dependencies ?? emptyArray).concat(context.deps ?? emptyArray),
       instructions: context.rows,
       surrogates: isTemplateElement
         ? this.surrogate(template, context)
@@ -1169,7 +1170,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         content.removeChild(bindableEl);
       }
 
-      context.register(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
+      context.addDep(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
 
       root.removeChild(localTemplate);
     }
@@ -1258,10 +1259,9 @@ class CompilationContext {
   public readonly rows: IInstruction[][];
   public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
+  public deps: unknown[] | undefined;
 
-  /**
-   * @internal
-   */
+  /** @internal */
   private readonly c: IContainer;
 
   public constructor(
@@ -1289,9 +1289,9 @@ class CompilationContext {
     this.rows = instructions ?? [];
   }
 
-  // todo: later can be extended to more (AttrPattern, command etc)
-  public register(def: CustomElementType | CustomAttributeType) {
-    this.root.c.register(def);
+  public addDep(dep: unknown) {
+    (this.root.deps ??= []).push(dep);
+    this.root.c.register(dep);
   }
 
   public h<K extends keyof HTMLElementTagNameMap>(name: K): HTMLElementTagNameMap[K];

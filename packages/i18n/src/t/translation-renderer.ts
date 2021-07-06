@@ -75,15 +75,15 @@ export class TranslationBindingRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {
     TranslationBinding.create({
       parser: this.parser,
       observerLocator: this.observerLocator,
-      context: context.container,
-      controller,
+      context: renderingController.container,
+      controller: renderingController,
       target,
       instruction,
       platform: this.platform,
@@ -145,15 +145,15 @@ export class TranslationBindBindingRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {
     TranslationBinding.create({
       parser: this.parser,
       observerLocator: this.observerLocator,
-      context: context.container,
-      controller,
+      context: renderingController.container,
+      controller: renderingController,
       target,
       instruction,
       platform: this.platform

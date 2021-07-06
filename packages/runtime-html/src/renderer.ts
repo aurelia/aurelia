@@ -456,7 +456,7 @@ export class CustomElementRenderer implements IRenderer {
       /* location         */target,
       /* auSlotsInfo      */new AuSlotsInfo(projections == null ? emptyArray : Object.keys(projections)),
     );
-    const definition = context.container.find(CustomElement, instruction.res) as CustomElementDefinition;
+    const definition = renderingController.container.find(CustomElement, instruction.res) as CustomElementDefinition;
     const Ctor = definition.Type;
     const component = container.invoke(Ctor);
     const key = CustomElement.keyFrom(instruction.res);
@@ -482,7 +482,7 @@ export class CustomElementRenderer implements IRenderer {
       /* target       */childController,
     );
 
-    renderingController.addController(childController);
+    renderingController.addChild(childController);
   }
 }
 
@@ -508,7 +508,7 @@ export class CustomAttributeRenderer implements IRenderer {
     );
     const childController = Controller.forCustomAttribute(
       /* root       */renderingController.root,
-      /* context ct */context.container,
+      /* context ct */renderingController.container,
       /* viewModel  */component,
       /* host       */target,
       /* flags      */flags,
@@ -524,7 +524,7 @@ export class CustomAttributeRenderer implements IRenderer {
       /* target       */childController,
     );
 
-    renderingController.addController(childController);
+    renderingController.addChild(childController);
   }
 }
 
@@ -538,7 +538,7 @@ export class TemplateControllerRenderer implements IRenderer {
     target: HTMLElement,
     instruction: HydrateTemplateController,
   ): void {
-    const viewFactory = getRenderContext(instruction.def, context.container).getViewFactory();
+    const viewFactory = getRenderContext(instruction.def, renderingController.container).getViewFactory();
     const renderLocation = convertToRenderLocation(target);
     const component = context.invokeAttribute(
       /* parentController */renderingController,
@@ -549,7 +549,7 @@ export class TemplateControllerRenderer implements IRenderer {
     );
     const childController = Controller.forCustomAttribute(
       /* root         */renderingController.root,
-      /* container ct */context.container,
+      /* container ct */renderingController.container,
       /* viewModel    */component,
       /* host         */target,
       /* flags        */flags,
@@ -567,7 +567,7 @@ export class TemplateControllerRenderer implements IRenderer {
       /* target       */childController,
     );
 
-    renderingController.addController(childController);
+    renderingController.addChild(childController);
   }
 }
 
@@ -715,9 +715,9 @@ export class PropertyBindingRenderer implements IRenderer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
     const binding = applyBindingBehavior(
-      new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context.container, this.platform.domWriteQueue),
+      new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, renderingController.container, this.platform.domWriteQueue),
       expr,
-      context.container,
+      renderingController.container,
     );
     renderingController.addBinding(binding);
   }

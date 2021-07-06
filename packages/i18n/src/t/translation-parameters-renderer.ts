@@ -77,10 +77,19 @@ export class TranslationParametersBindingRenderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IHydratableController,
+    renderingController: IHydratableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {
-    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context: context.container, controller: controller, target, instruction, isParameterContext: true, platform: this.platform });
+    TranslationBinding.create({
+      parser: this.parser,
+      observerLocator: this.observerLocator,
+      context: renderingController.container,
+      controller: renderingController,
+      target,
+      instruction,
+      isParameterContext: true,
+      platform: this.platform
+    });
   }
 }

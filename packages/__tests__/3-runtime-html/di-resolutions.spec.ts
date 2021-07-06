@@ -38,56 +38,6 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
 
       await tearDown();
     });
-
-    it.skip('resolves dependency with: interface + @newInstanceForScope + registration at requestor', async function () {
-      // arrange
-      let contextCallCount = 0;
-      const IListboxContext = DI.createInterface<IListboxContext>(
-        'IListboxContext',
-        x => x.singleton(class ListboxContext {
-          public open = false;
-          public constructor() {
-            contextCallCount++;
-          }
-        })
-      );
-      interface IListboxContext {
-        open: boolean;
-      }
-
-      @customElement({
-        name: 'list-box',
-        template: '<listbox-item repeat.for="i of 5" value.bind="i">',
-        dependencies: []
-      })
-      class Listbox {
-        public constructor(
-          @newInstanceForScope(IListboxContext) public readonly context: IListboxContext
-        ) { }
-      }
-
-      // act
-      const { component, startPromise, tearDown } = createFixture(
-        `<list-box view-model.ref="listbox">`,
-        class App {
-          public readonly listbox: IHydratedCustomElementViewModel & Listbox;
-        },
-        [Listbox]
-      );
-
-      await startPromise;
-
-      // assert
-      const container = component.$controller!.context.container;
-      assert.strictEqual(container.getResolver(IListboxContext, false), null);
-      assert.strictEqual(container.has(IListboxContext, false), true);
-      assert.strictEqual(container.get(IListboxContext), component.listbox.context);
-      assert.strictEqual(component.listbox.context.open, false);
-      assert.strictEqual(contextCallCount, 1);
-
-      await tearDown();
-    });
-
     // TODO
     // A skipped test for the most intuitive behavior: @newInstanceForScope(Interface_With_Default)
     //

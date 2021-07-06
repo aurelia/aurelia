@@ -40,12 +40,10 @@ import type {
 import type {
   IBinding,
   IObservable,
-  AccessorOrObserver,
   IsBindingBehavior,
 } from '@aurelia/runtime';
 import type { IProjections } from '../resources/custom-elements/au-slot.js';
 import type { BindableDefinition } from '../bindable.js';
-import type { PropertyBinding } from '../binding/property-binding.js';
 import type { LifecycleHooksLookup } from './lifecycle-hooks.js';
 import type { INode, INodeSequence, IRenderLocation } from '../dom.js';
 import type { IViewFactory } from './view.js';
@@ -274,7 +272,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): ISyntheticView {
     const controller = new Controller(
       /* root           */root,
-      // todo: context container
+      // todo: view factory should carry its own container
       /* container      */context.container,
       /* container      */context.container,
       /* vmKind         */ViewModelKind.synthetic,
@@ -951,7 +949,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
-  public addController(controller: Controller): void {
+  public addChild(controller: Controller): void {
     if (this.children === null) {
       this.children = [controller];
     } else {
@@ -1065,17 +1063,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         }
       }
     }
-  }
-
-  public getTargetAccessor(propertyName: string): AccessorOrObserver | undefined {
-    const { bindings } = this;
-    if (bindings !== null) {
-      const binding = bindings.find(b => (b as PropertyBinding).targetProperty === propertyName) as PropertyBinding;
-      if (binding !== void 0) {
-        return binding.targetObserver;
-      }
-    }
-    return void 0;
   }
 }
 
@@ -1389,10 +1376,8 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
   readonly bindings: readonly IBinding[] | null;
   readonly children: readonly IHydratedController[] | null;
 
-  getTargetAccessor(propertyName: string): AccessorOrObserver | null;
-
   addBinding(binding: IBinding): void;
-  addController(controller: IController): void;
+  addChild(controller: IController): void;
 }
 
 export const enum State {

@@ -35,9 +35,9 @@ export class AuSlot implements ICustomElementViewModel {
     const slotInfo = instruction.auSlot!;
     const projection = hdrContext.instruction?.projections?.[slotInfo.name];
     if (projection == null) {
-      factory = getRenderContext(slotInfo.fallback, hdrContext.controller.context.container).getViewFactory();
+      factory = getRenderContext(slotInfo.fallback, hdrContext.controller.container).getViewFactory();
     } else {
-      factory = getRenderContext(projection, hdrContext.parent!.controller.context.container).getViewFactory();
+      factory = getRenderContext(projection, hdrContext.parent!.controller.container).getViewFactory();
       this.hasProjection = true;
     }
     this.view = factory.create().setLocation(location);

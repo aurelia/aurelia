@@ -87,7 +87,7 @@ class AppRoot {
                 instance = config.component;
             }
             const controller = (this.controller = controller_js_1.Controller.forCustomElement(this, container, ownContainer, instance, this.host, null, 0 /* none */, false, this.enhanceDefinition));
-            controller.hydrateCustomElement(container, null);
+            controller.hydrateCustomElement(null);
             return kernel_1.onResolve(this.runAppTasks('hydrating'), () => {
                 controller.hydrate(null);
                 return kernel_1.onResolve(this.runAppTasks('hydrated'), () => {

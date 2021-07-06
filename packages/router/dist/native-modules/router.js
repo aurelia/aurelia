@@ -394,7 +394,8 @@ let Router = class Router {
      *
      */
     getRouteContext(viewportAgent, component, renderContext) {
-        const logger = renderContext.get(ILogger).scopeTo('RouteContext');
+        const container = renderContext.container;
+        const logger = container.get(ILogger).scopeTo('RouteContext');
         const routeDefinition = RouteDefinition.resolve(component.Type);
         let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
         if (routeDefinitionLookup === void 0) {
@@ -403,8 +404,8 @@ let Router = class Router {
         let routeContext = routeDefinitionLookup.get(routeDefinition);
         if (routeContext === void 0) {
             logger.trace(`creating new RouteContext for %s`, routeDefinition);
-            const parent = renderContext.has(IRouteContext, true) ? renderContext.get(IRouteContext) : null;
-            routeDefinitionLookup.set(routeDefinition, routeContext = new RouteContext(viewportAgent, parent, component, routeDefinition, renderContext));
+            const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
+            routeDefinitionLookup.set(routeDefinition, routeContext = new RouteContext(viewportAgent, parent, component, routeDefinition, container));
         }
         else {
             logger.trace(`returning existing RouteContext for %s`, routeDefinition);

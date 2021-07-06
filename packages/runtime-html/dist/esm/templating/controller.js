@@ -90,6 +90,7 @@ export class Controller {
         switch (vmKind) {
             case 1 /* customAttribute */:
             case 0 /* customElement */:
+                // todo: cache-able based on constructor type
                 this.hooks = new HooksDefinition(viewModel);
                 break;
             case 2 /* synthetic */:
@@ -155,7 +156,7 @@ export class Controller {
         /* parent context */ contextCt.get(optional(IHydrationContext)))));
         controllerLookup.set(viewModel, controller);
         if (hydrate) {
-            controller.hydrateCustomElement(contextCt, hydrationInst);
+            controller.hydrateCustomElement(hydrationInst);
         }
         return controller;
     }
@@ -181,9 +182,9 @@ export class Controller {
     static forSyntheticView(root, context, viewFactory, flags = 0 /* none */, parentController = void 0) {
         const controller = new Controller(
         /* root           */ root, 
-        // todo: context container
-        /* container      */ context, 
-        /* container      */ context, 2 /* synthetic */, 
+        // todo: view factory should carry its own container
+        /* container      */ context.container, 
+        /* container      */ context.container, 2 /* synthetic */, 
         /* flags          */ flags, 
         /* definition     */ null, 
         /* viewFactory    */ viewFactory, 
@@ -194,9 +195,9 @@ export class Controller {
         return controller;
     }
     /** @internal */
-    hydrateCustomElement(contextCt, hydrationInst) {
+    hydrateCustomElement(hydrationInst) {
         var _a;
-        this.logger = contextCt.get(ILogger).root;
+        this.logger = this.container.get(ILogger).root;
         this.debug = this.logger.config.level <= 1 /* debug */;
         if (this.debug) {
             this.logger = this.logger.scopeTo(this.name);
@@ -217,20 +218,16 @@ export class Controller {
             }
             const result = instance.define(
             /* controller      */ this, 
-            /* parentContainer */ contextCt, 
+            /* parentContainer */ this.ctxCt, 
             /* definition      */ definition);
             if (result !== void 0 && result !== definition) {
                 definition = CustomElementDefinition.getOrCreate(result);
             }
         }
-        // todo: make projections not influential on the render context construction
-        const context = this.context = getRenderContext(definition, container);
-        // todo: should register a resolver resolving to a IContextElement/IContextComponent
-        //       so that component directly under this template can easily distinguish its owner/parent
-        // context.register(Registration.instance(IContextElement))
-        this.lifecycleHooks = LifecycleHooks.resolve(context);
+        this.context = getRenderContext(definition, container);
+        this.lifecycleHooks = LifecycleHooks.resolve(container);
         // Support Recursive Components by adding self to own context
-        definition.register(context);
+        definition.register(container);
         if (definition.injectable !== null) {
             container.registerResolver(definition.injectable, new InstanceProvider('definition.injectable', instance));
         }
@@ -334,6 +331,7 @@ export class Controller {
         /* host       */ void 0);
     }
     activate(initiator, parent, flags, scope, hostScope) {
+        var _a;
         switch (this.state) {
             case 0 /* none */:
             case 8 /* deactivated */:
@@ -359,8 +357,8 @@ export class Controller {
         this.parent = parent;
         if (this.debug && !this.fullyNamed) {
             this.fullyNamed = true;
-            this.logger = this.context.get(ILogger).root.scopeTo(this.name);
-            this.logger.trace(`activate()`);
+            ((_a = this.logger) !== null && _a !== void 0 ? _a : (this.logger = this.container.get(ILogger).root.scopeTo(this.name)))
+                .trace(`activate()`);
         }
         if (this.vmKind === 2 /* synthetic */) {
             this.hostScope = hostScope !== null && hostScope !== void 0 ? hostScope : null;
@@ -483,9 +481,10 @@ export class Controller {
                 this.nodes.appendTo(this.host, (_a = this.definition) === null || _a === void 0 ? void 0 : _a.enhance);
                 break;
             case 2 /* shadowRoot */: {
-                const styles = this.context.has(IShadowDOMStyles, false)
-                    ? this.context.get(IShadowDOMStyles)
-                    : this.context.get(IShadowDOMGlobalStyles);
+                const container = this.context.container;
+                const styles = container.has(IShadowDOMStyles, false)
+                    ? container.get(IShadowDOMStyles)
+                    : container.get(IShadowDOMGlobalStyles);
                 styles.applyTo(this.shadowRoot);
                 this.nodes.appendTo(this.shadowRoot);
                 break;
@@ -785,7 +784,7 @@ export class Controller {
             this.bindings[this.bindings.length] = binding;
         }
     }
-    addController(controller) {
+    addChild(controller) {
         if (this.children === null) {
             this.children = [controller];
         }
@@ -886,16 +885,6 @@ export class Controller {
                 }
             }
         }
-    }
-    getTargetAccessor(propertyName) {
-        const { bindings } = this;
-        if (bindings !== null) {
-            const binding = bindings.find(b => b.targetProperty === propertyName);
-            if (binding !== void 0) {
-                return binding.targetObserver;
-            }
-        }
-        return void 0;
     }
 }
 function getLookup(instance) {

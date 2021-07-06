@@ -14,7 +14,7 @@ class ComponentAgent {
         this.definition = definition;
         this.routeNode = routeNode;
         this.ctx = ctx;
-        this.logger = ctx.get(kernel_1.ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
+        this.logger = ctx.container.get(kernel_1.ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
         this.logger.trace(`constructor()`);
         const lifecycleHooks = controller.lifecycleHooks;
         this.canLoadHooks = ((_a = lifecycleHooks.canLoad) !== null && _a !== void 0 ? _a : []).map(x => x.instance);
@@ -29,8 +29,9 @@ class ComponentAgent {
     static for(componentInstance, hostController, routeNode, ctx) {
         let componentAgent = componentAgentLookup.get(componentInstance);
         if (componentAgent === void 0) {
+            const container = ctx.container;
             const definition = route_definition_js_1.RouteDefinition.resolve(componentInstance.constructor);
-            const controller = runtime_html_1.Controller.forCustomElement(ctx.get(runtime_html_1.IAppRoot), ctx, ctx, componentInstance, hostController.host, null);
+            const controller = runtime_html_1.Controller.forCustomElement(container.get(runtime_html_1.IAppRoot), container, container, componentInstance, hostController.host, null);
             componentAgentLookup.set(componentInstance, componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx));
         }
         return componentAgent;

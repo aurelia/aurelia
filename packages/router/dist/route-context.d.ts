@@ -1,4 +1,4 @@
-import { Constructable, ResourceType, IContainer, IResourceKind, ResourceDefinition, Key, IResolver, Resolved, IFactory, Transformer, IModule } from '@aurelia/kernel';
+import { IContainer, IModule } from '@aurelia/kernel';
 import { CustomElementDefinition, ICustomElementController } from '@aurelia/runtime-html';
 import { RecognizedRoute } from '@aurelia/route-recognizer';
 import { RouteDefinition } from './route-definition.js';
@@ -20,7 +20,7 @@ export declare const IRouteContext: import("@aurelia/kernel").InterfaceSymbol<IR
  * - The `RouteDefinition` for a type is overridden manually via `Route.define`
  * - Different components (with different `RenderContext`s) reference the same component via a child route config
  */
-export declare class RouteContext implements IContainer {
+export declare class RouteContext {
     readonly parent: IRouteContext | null;
     readonly component: CustomElementDefinition;
     readonly definition: RouteDefinition;
@@ -57,9 +57,9 @@ export declare class RouteContext implements IContainer {
      */
     get vpa(): ViewportAgent;
     set vpa(value: ViewportAgent);
+    readonly container: IContainer;
     private readonly moduleLoader;
     private readonly logger;
-    private readonly container;
     private readonly hostControllerProvider;
     private readonly recognizer;
     constructor(viewportAgent: ViewportAgent | null, parent: IRouteContext | null, component: CustomElementDefinition, definition: RouteDefinition, parentContainer: IContainer);
@@ -72,20 +72,6 @@ export declare class RouteContext implements IContainer {
      */
     static setRoot(container: IContainer): void;
     static resolve(root: IRouteContext, context: unknown): IRouteContext;
-    has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
-    get<K extends Key>(key: K | Key): Resolved<K>;
-    getAll<K extends Key>(key: K | Key): readonly Resolved<K>[];
-    register(...params: unknown[]): IContainer;
-    registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
-    registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
-    getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
-    invoke<T, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T;
-    getFactory<T extends Constructable>(key: T): IFactory<T>;
-    registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void;
-    createChild(): IContainer;
-    disposeResolvers(): void;
-    find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
-    create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null;
     dispose(): void;
     resolveViewportAgent(req: ViewportRequest): ViewportAgent;
     getAvailableViewportAgents(resolution: ResolutionMode): readonly ViewportAgent[];

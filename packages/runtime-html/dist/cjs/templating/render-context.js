@@ -19,10 +19,6 @@ exports.isRenderContext = isRenderContext;
 let renderContextCount = 0;
 function getRenderContext(partialDefinition, container) {
     const definition = custom_element_js_1.CustomElementDefinition.getOrCreate(partialDefinition);
-    // injectable completely prevents caching, ensuring that each instance gets a new context context
-    if (definition.injectable !== null) {
-        return new RenderContext(definition, container);
-    }
     let containerLookup = definitionContainerLookup.get(definition);
     if (containerLookup === void 0) {
         definitionContainerLookup.set(definition, containerLookup = new WeakMap());
@@ -40,10 +36,13 @@ Reflect.defineProperty(getRenderContext, 'count', {
     get: () => renderContextCount
 });
 const emptyNodeCache = new WeakMap();
+const getRenderersSymb = Symbol();
+const compiledDefCache = new WeakMap();
 class RenderContext {
-    constructor(definition, parentContainer) {
+    constructor(definition, container) {
+        var _a;
+        var _b;
         this.definition = definition;
-        this.parentContainer = parentContainer;
         this.fragment = null;
         this.factory = void 0;
         this.isCompiled = false;
@@ -51,16 +50,18 @@ class RenderContext {
         this.compiledDefinition = (void 0);
         this.resourceInvoker = null;
         ++renderContextCount;
-        const container = this.container = parentContainer;
-        // TODO(fkleuver): get contextual + root renderers
-        const renderers = container.getAll(renderer_js_1.IRenderer);
+        this.container = container;
+        // note: it's incorrect to get rendereres only from root,
+        //       as they could also be considered normal resources
+        //       though it's highly practical for limiting renderers to the global scope
+        const renderers = (_a = (_b = container.root)[getRenderersSymb]) !== null && _a !== void 0 ? _a : (_b[getRenderersSymb] = container.root.getAll(renderer_js_1.IRenderer));
         let i = 0;
         let renderer;
         for (; i < renderers.length; ++i) {
             renderer = renderers[i];
             this.renderers[renderer.instructionType] = renderer;
         }
-        this.root = parentContainer.root;
+        this.root = container.root;
         this.platform = container.get(platform_js_1.IPlatform);
         this.elementProvider = new kernel_1.InstanceProvider('ElementResolver');
         this.factoryProvider = new ViewFactoryProvider();
@@ -72,55 +73,6 @@ class RenderContext {
     get id() {
         return this.container.id;
     }
-    // #region IServiceLocator api
-    has(key, searchAncestors) {
-        return this.container.has(key, searchAncestors);
-    }
-    get(key) {
-        return this.container.get(key);
-    }
-    getAll(key) {
-        return this.container.getAll(key);
-    }
-    // #endregion
-    // #region IContainer api
-    register(...params) {
-        return this.container.register(...params);
-    }
-    registerResolver(key, resolver) {
-        return this.container.registerResolver(key, resolver);
-    }
-    // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
-    //   this.container.deregisterResolverFor(key);
-    // }
-    registerTransformer(key, transformer) {
-        return this.container.registerTransformer(key, transformer);
-    }
-    getResolver(key, autoRegister) {
-        return this.container.getResolver(key, autoRegister);
-    }
-    invoke(key, dynamicDependencies) {
-        return this.container.invoke(key, dynamicDependencies);
-    }
-    getFactory(key) {
-        return this.container.getFactory(key);
-    }
-    registerFactory(key, factory) {
-        this.container.registerFactory(key, factory);
-    }
-    createChild() {
-        return this.container.createChild();
-    }
-    find(kind, name) {
-        return this.container.find(kind, name);
-    }
-    create(kind, name) {
-        return this.container.create(kind, name);
-    }
-    disposeResolvers() {
-        this.container.disposeResolvers();
-    }
-    // #endregion
     // #region IRenderContext api
     compile(compilationInstruction) {
         let compiledDefinition;
@@ -132,13 +84,24 @@ class RenderContext {
         if (definition.needsCompile) {
             const container = this.container;
             const compiler = container.get(renderer_js_1.ITemplateCompiler);
-            compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, compilationInstruction);
+            let compiledMap = compiledDefCache.get(container.root);
+            if (compiledMap == null) {
+                compiledDefCache.set(container.root, compiledMap = new WeakMap());
+            }
+            let compiled = compiledMap.get(definition);
+            if (compiled == null) {
+                compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction));
+            }
+            else {
+                container.register(...compiled.dependencies);
+            }
+            compiledDefinition = this.compiledDefinition = compiled;
         }
         else {
             compiledDefinition = this.compiledDefinition = definition;
         }
         // Support Recursive Components by adding self to own context
-        compiledDefinition.register(this);
+        compiledDefinition.register(this.container);
         if (fragmentCache.has(compiledDefinition)) {
             this.fragment = fragmentCache.get(compiledDefinition);
         }

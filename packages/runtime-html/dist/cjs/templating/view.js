@@ -13,6 +13,7 @@ class ViewFactory {
         this.isCaching = false;
         this.cache = null;
         this.cacheSize = -1;
+        this.container = context.container;
     }
     setCacheSize(size, doNotOverrideIfAlreadySet) {
         if (size) {

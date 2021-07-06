@@ -1,4 +1,4 @@
-import { HydrateElementInstruction, isInstruction, SetAttributeInstruction, } from './renderer.js';
+import { HydrateElementInstruction, isInstruction, SetAttributeInstruction, SetPropertyInstruction, } from './renderer.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import { getRenderContext } from './templating/render-context.js';
 export function createElement(p, tagOrType, props, children) {
@@ -106,16 +106,11 @@ function createElementForType(p, Type, props, children) {
                 childInstructions.push(value);
             }
             else {
-                const bindable = bindables[to];
-                if (bindable !== void 0) {
-                    childInstructions.push({
-                        type: "re" /* setProperty */,
-                        to,
-                        value
-                    });
+                if (bindables[to] === void 0) {
+                    childInstructions.push(new SetAttributeInstruction(value, to));
                 }
                 else {
-                    childInstructions.push(new SetAttributeInstruction(value, to));
+                    childInstructions.push(new SetPropertyInstruction(value, to));
                 }
             }
         });

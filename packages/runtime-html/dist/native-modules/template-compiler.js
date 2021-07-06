@@ -19,7 +19,7 @@ export class TemplateCompiler {
         return Registration.singleton(ITemplateCompiler, this).register(container);
     }
     compile(partialDefinition, container, compilationInstruction) {
-        var _a, _b;
+        var _a, _b, _c, _d;
         const definition = CustomElementDefinition.getOrCreate(partialDefinition);
         if (definition.template === null || definition.template === void 0) {
             return definition;
@@ -51,6 +51,7 @@ export class TemplateCompiler {
         return CustomElementDefinition.create({
             ...partialDefinition,
             name: partialDefinition.name || CustomElement.generateName(),
+            dependencies: ((_c = partialDefinition.dependencies) !== null && _c !== void 0 ? _c : emptyArray).concat((_d = context.deps) !== null && _d !== void 0 ? _d : emptyArray),
             instructions: context.rows,
             surrogates: isTemplateElement
                 ? this.surrogate(template, context)
@@ -1032,7 +1033,7 @@ export class TemplateCompiler {
                 }
                 content.removeChild(bindableEl);
             }
-            context.register(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
+            context.addDep(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
             root.removeChild(localTemplate);
         }
     }
@@ -1124,9 +1125,11 @@ class CompilationContext {
         this.localEls = hasParent ? parent.localEls : new Set();
         this.rows = instructions !== null && instructions !== void 0 ? instructions : [];
     }
-    // todo: later can be extended to more (AttrPattern, command etc)
-    register(def) {
-        this.root.c.register(def);
+    addDep(dep) {
+        var _a;
+        var _b;
+        ((_a = (_b = this.root).deps) !== null && _a !== void 0 ? _a : (_b.deps = [])).push(dep);
+        this.root.c.register(dep);
     }
     h(name) {
         const el = this.p.document.createElement(name);

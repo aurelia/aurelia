@@ -315,7 +315,7 @@ function getRefTarget(refHost, refTargetName) {
 let SetPropertyRenderer = 
 /** @internal */
 class SetPropertyRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const obj = getTarget(target);
         if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
             obj.$observers[instruction.to].setValue(instruction.value, 2 /* fromBind */);
@@ -333,23 +333,23 @@ exports.SetPropertyRenderer = SetPropertyRenderer;
 let CustomElementRenderer = 
 /** @internal */
 class CustomElementRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const projections = instruction.projections;
         const container = context.createElementContainer(
-        /* parentController */ controller, 
+        /* parentController */ renderingController, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ void 0, 
         /* location         */ target, 
         /* auSlotsInfo      */ new au_slot_js_1.AuSlotsInfo(projections == null ? kernel_1.emptyArray : Object.keys(projections)));
-        const definition = context.find(custom_element_js_1.CustomElement, instruction.res);
+        const definition = renderingController.container.find(custom_element_js_1.CustomElement, instruction.res);
         const Ctor = definition.Type;
         const component = container.invoke(Ctor);
         const key = custom_element_js_1.CustomElement.keyFrom(instruction.res);
         container.registerResolver(Ctor, new kernel_1.InstanceProvider(key, component));
         const childController = controller_js_1.Controller.forCustomElement(
-        /* root                */ controller.root, 
-        /* context ct          */ context, 
+        /* root                */ renderingController.root, 
+        /* context ct          */ renderingController.container, 
         /* own container       */ container, 
         /* viewModel           */ component, 
         /* host                */ target, 
@@ -360,9 +360,9 @@ class CustomElementRenderer {
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
-        /* controller   */ controller, 
+        /* controller   */ renderingController, 
         /* target       */ childController);
-        controller.addController(childController);
+        renderingController.addChild(childController);
     }
 };
 CustomElementRenderer = __decorate([
@@ -373,16 +373,20 @@ exports.CustomElementRenderer = CustomElementRenderer;
 let CustomAttributeRenderer = 
 /** @internal */
 class CustomAttributeRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, 
+    /**
+     * The cotroller that is currently invoking this renderer
+     */
+    renderingController, target, instruction) {
         const component = context.invokeAttribute(
-        /* parentController */ controller, 
+        /* parentController */ renderingController, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ void 0, 
         /* location         */ void 0);
         const childController = controller_js_1.Controller.forCustomAttribute(
-        /* root       */ controller.root, 
-        /* context ct */ context, 
+        /* root       */ renderingController.root, 
+        /* context ct */ renderingController.container, 
         /* viewModel  */ component, 
         /* host       */ target, 
         /* flags      */ flags);
@@ -391,9 +395,9 @@ class CustomAttributeRenderer {
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
-        /* controller   */ controller, 
+        /* controller   */ renderingController, 
         /* target       */ childController);
-        controller.addController(childController);
+        renderingController.addChild(childController);
     }
 };
 CustomAttributeRenderer = __decorate([
@@ -404,31 +408,31 @@ exports.CustomAttributeRenderer = CustomAttributeRenderer;
 let TemplateControllerRenderer = 
 /** @internal */
 class TemplateControllerRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         var _a;
-        const viewFactory = render_context_js_1.getRenderContext(instruction.def, context.container).getViewFactory();
+        const viewFactory = render_context_js_1.getRenderContext(instruction.def, renderingController.container).getViewFactory();
         const renderLocation = dom_js_1.convertToRenderLocation(target);
         const component = context.invokeAttribute(
-        /* parentController */ controller, 
+        /* parentController */ renderingController, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ viewFactory, 
         /* location         */ renderLocation);
         const childController = controller_js_1.Controller.forCustomAttribute(
-        /* root         */ controller.root, 
-        /* container ct */ context, 
+        /* root         */ renderingController.root, 
+        /* container ct */ renderingController.container, 
         /* viewModel    */ component, 
         /* host         */ target, 
         /* flags        */ flags);
         const key = custom_attribute_js_1.CustomAttribute.keyFrom(instruction.res);
         dom_js_1.setRef(renderLocation, key, childController);
-        (_a = component.link) === null || _a === void 0 ? void 0 : _a.call(component, flags, context, controller, childController, target, instruction);
+        (_a = component.link) === null || _a === void 0 ? void 0 : _a.call(component, flags, context, renderingController, childController, target, instruction);
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
-        /* controller   */ controller, 
+        /* controller   */ renderingController, 
         /* target       */ childController);
-        controller.addController(childController);
+        renderingController.addChild(childController);
     }
 };
 TemplateControllerRenderer = __decorate([
@@ -443,7 +447,7 @@ class LetElementRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, rendererController, target, instruction) {
         target.remove();
         const childInstructions = instruction.instructions;
         const toBindingContext = instruction.toBindingContext;
@@ -453,8 +457,8 @@ class LetElementRenderer {
         for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
             childInstruction = childInstructions[i];
             expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
-            binding = applyBindingBehavior(new let_binding_js_1.LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext), expr, context);
-            controller.addBinding(binding);
+            binding = applyBindingBehavior(new let_binding_js_1.LetBinding(expr, childInstruction.to, this.observerLocator, rendererController.container, toBindingContext), expr, rendererController.container);
+            rendererController.addBinding(binding);
         }
     }
 };
@@ -473,10 +477,10 @@ class CallBindingRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, rendererController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
-        const binding = applyBindingBehavior(new call_binding_js_1.CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new call_binding_js_1.CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, rendererController.container), expr, rendererController.container);
+        rendererController.addBinding(binding);
     }
 };
 CallBindingRenderer = __decorate([
@@ -493,10 +497,10 @@ class RefBindingRenderer {
     constructor(parser) {
         this.parser = parser;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, rendererController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 5376 /* IsRef */);
-        const binding = applyBindingBehavior(new ref_binding_js_1.RefBinding(expr, getRefTarget(target, instruction.to), context), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new ref_binding_js_1.RefBinding(expr, getRefTarget(target, instruction.to), rendererController.container), expr, rendererController.container);
+        rendererController.addBinding(binding);
     }
 };
 RefBindingRenderer = __decorate([
@@ -514,18 +518,18 @@ class InterpolationBindingRenderer {
         this.observerLocator = observerLocator;
         this.platform = platform;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-        const binding = new interpolation_binding_js_1.InterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, runtime_1.BindingMode.toView, context, this.platform.domWriteQueue);
+        const binding = new interpolation_binding_js_1.InterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, runtime_1.BindingMode.toView, renderingController.container, this.platform.domWriteQueue);
         const partBindings = binding.partBindings;
         const ii = partBindings.length;
         let i = 0;
         let partBinding;
         for (; ii > i; ++i) {
             partBinding = partBindings[i];
-            partBindings[i] = applyBindingBehavior(partBinding, partBinding.sourceExpression, context);
+            partBindings[i] = applyBindingBehavior(partBinding, partBinding.sourceExpression, renderingController.container);
         }
-        controller.addBinding(binding);
+        renderingController.addBinding(binding);
     }
 };
 InterpolationBindingRenderer = __decorate([
@@ -545,10 +549,10 @@ class PropertyBindingRenderer {
         this.observerLocator = observerLocator;
         this.platform = platform;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
-        const binding = applyBindingBehavior(new property_binding_js_1.PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new property_binding_js_1.PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, renderingController.container, this.platform.domWriteQueue), expr, renderingController.container);
+        renderingController.addBinding(binding);
     }
 };
 PropertyBindingRenderer = __decorate([
@@ -568,10 +572,10 @@ class IteratorBindingRenderer {
         this.observerLocator = observerLocator;
         this.platform = platform;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
-        const binding = applyBindingBehavior(new property_binding_js_1.PropertyBinding(expr, getTarget(target), instruction.to, runtime_1.BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new property_binding_js_1.PropertyBinding(expr, getTarget(target), instruction.to, runtime_1.BindingMode.toView, this.observerLocator, renderingController.container, this.platform.domWriteQueue), expr, renderingController.container);
+        renderingController.addBinding(binding);
     }
 };
 IteratorBindingRenderer = __decorate([
@@ -609,7 +613,7 @@ class TextBindingRenderer {
         this.observerLocator = observerLocator;
         this.platform = platform;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const next = target.nextSibling;
         const parent = target.parentNode;
         const doc = this.platform.document;
@@ -625,11 +629,11 @@ class TextBindingRenderer {
         for (; ii > i; ++i) {
             // each of the dynamic expression of an interpolation
             // will be mapped to a ContentBinding
-            controller.addBinding(applyBindingBehavior(new interpolation_binding_js_1.ContentBinding(dynamicParts[i], 
+            renderingController.addBinding(applyBindingBehavior(new interpolation_binding_js_1.ContentBinding(dynamicParts[i], 
             // using a text node instead of comment, as a mean to:
             // support seamless transition between a html node, or a text
             // reduce the noise in the template, caused by html comment
-            parent.insertBefore(doc.createTextNode(''), next), context, this.observerLocator, this.platform, instruction.strict), dynamicParts[i], context));
+            parent.insertBefore(doc.createTextNode(''), next), renderingController.container, this.observerLocator, this.platform, instruction.strict), dynamicParts[i], renderingController.container));
             // while each of the static part of an interpolation
             // will just be a text node
             text = staticParts[i + 1];
@@ -658,10 +662,10 @@ class ListenerBindingRenderer {
         this.parser = parser;
         this.eventDelegator = eventDelegator;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
-        const binding = applyBindingBehavior(new listener_js_1.Listener(context.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new listener_js_1.Listener(renderingController.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, renderingController.container), expr, renderingController.container);
+        renderingController.addBinding(binding);
     }
 };
 ListenerBindingRenderer = __decorate([
@@ -675,7 +679,7 @@ exports.ListenerBindingRenderer = ListenerBindingRenderer;
 let SetAttributeRenderer = 
 /** @internal */
 class SetAttributeRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         target.setAttribute(instruction.to, instruction.value);
     }
 };
@@ -685,7 +689,7 @@ SetAttributeRenderer = __decorate([
 ], SetAttributeRenderer);
 exports.SetAttributeRenderer = SetAttributeRenderer;
 let SetClassAttributeRenderer = class SetClassAttributeRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         addClasses(target.classList, instruction.value);
     }
 };
@@ -694,7 +698,7 @@ SetClassAttributeRenderer = __decorate([
 ], SetClassAttributeRenderer);
 exports.SetClassAttributeRenderer = SetClassAttributeRenderer;
 let SetStyleAttributeRenderer = class SetStyleAttributeRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         target.style.cssText += instruction.value;
     }
 };
@@ -710,10 +714,10 @@ class StylePropertyBindingRenderer {
         this.observerLocator = observerLocator;
         this.platform = platform;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime_1.BindingMode.toView);
-        const binding = applyBindingBehavior(new property_binding_js_1.PropertyBinding(expr, target.style, instruction.to, runtime_1.BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new property_binding_js_1.PropertyBinding(expr, target.style, instruction.to, runtime_1.BindingMode.toView, this.observerLocator, renderingController.container, this.platform.domWriteQueue), expr, renderingController.container);
+        renderingController.addBinding(binding);
     }
 };
 StylePropertyBindingRenderer = __decorate([
@@ -732,10 +736,10 @@ class AttributeBindingRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime_1.BindingMode.toView);
-        const binding = applyBindingBehavior(new attribute_js_1.AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, runtime_1.BindingMode.toView, this.observerLocator, context), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new attribute_js_1.AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, runtime_1.BindingMode.toView, this.observerLocator, renderingController.container), expr, renderingController.container);
+        renderingController.addBinding(binding);
     }
 };
 AttributeBindingRenderer = __decorate([

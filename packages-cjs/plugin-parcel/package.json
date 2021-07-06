@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/plugin-parcel",
-  "version": "2.0.1-dev.202107041157",
+  "version": "2.0.1-dev.202107061117",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
@@ -37,10 +37,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.1-dev.202107041157",
-    "@aurelia/metadata": "2.0.1-dev.202107041157",
-    "@aurelia/platform": "2.0.1-dev.202107041157",
-    "@aurelia/runtime": "2.0.1-dev.202107041157"
+    "@aurelia/kernel": "2.0.1-dev.202107061117",
+    "@aurelia/metadata": "2.0.1-dev.202107061117",
+    "@aurelia/platform": "2.0.1-dev.202107061117",
+    "@aurelia/runtime": "2.0.1-dev.202107061117"
   },
   "devDependencies": {
     "@types/node": "^14.11.5",

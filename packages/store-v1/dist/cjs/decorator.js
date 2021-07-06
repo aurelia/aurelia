@@ -56,7 +56,7 @@ function connectTo(settings) {
                 throw new Error('Provided onChanged handler does not exist on target VM');
             }
             const store = runtime_html_1.Controller.getCached(this)
-                ? runtime_html_1.Controller.getCached(this).context.get(store_js_1.Store)
+                ? runtime_html_1.Controller.getCached(this).container.get(store_js_1.Store)
                 : store_js_1.STORE.container.get(store_js_1.Store); // TODO: need to get rid of this helper for classic unit tests
             this._stateSubscriptions = createSelectors().map(s => getSource(store, s.selector).subscribe((state) => {
                 const lastTargetIdx = s.targets.length - 1;

@@ -1,5 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
-import { BindingMode, BindingType, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, IHydratableController, AttrSyntax, IPlatform, IAttrMapper } from '@aurelia/runtime-html';
+import { BindingMode, BindingType, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, IHydratableController, AttrSyntax, IPlatform, IAttrMapper, ICompiledRenderContext } from '@aurelia/runtime-html';
 import type { CallBindingInstruction, BindingCommandInstance } from '@aurelia/runtime-html';
 import { ICommandBuildInfo } from '@aurelia/runtime-html/dist/resources/binding-command';
 export declare const TranslationInstructionType = "tt";
@@ -26,7 +25,7 @@ export declare class TranslationBindingRenderer implements IRenderer {
     private readonly observerLocator;
     private readonly platform;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator, platform: IPlatform);
-    render(flags: LifecycleFlags, context: IContainer, controller: IHydratableController, target: HTMLElement, instruction: CallBindingInstruction): void;
+    render(flags: LifecycleFlags, context: ICompiledRenderContext, renderingController: IHydratableController, target: HTMLElement, instruction: CallBindingInstruction): void;
 }
 export declare const TranslationBindInstructionType = "tbt";
 export declare class TranslationBindAttributePattern {
@@ -52,6 +51,6 @@ export declare class TranslationBindBindingRenderer implements IRenderer {
     private readonly observerLocator;
     private readonly platform;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator, platform: IPlatform);
-    render(flags: LifecycleFlags, context: IContainer, controller: IHydratableController, target: HTMLElement, instruction: CallBindingInstruction): void;
+    render(flags: LifecycleFlags, context: ICompiledRenderContext, renderingController: IHydratableController, target: HTMLElement, instruction: CallBindingInstruction): void;
 }
 //# sourceMappingURL=translation-renderer.d.ts.map

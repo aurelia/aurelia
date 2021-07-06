@@ -39,7 +39,7 @@ class ViewportAgent {
         this.nextNode = null;
         this.currTransition = null;
         this.prevTransition = null;
-        this.logger = ctx.get(kernel_1.ILogger).scopeTo(`ViewportAgent<${ctx.friendlyPath}>`);
+        this.logger = ctx.container.get(kernel_1.ILogger).scopeTo(`ViewportAgent<${ctx.friendlyPath}>`);
         this.logger.trace(`constructor()`);
     }
     get $state() { return $state(this.state); }

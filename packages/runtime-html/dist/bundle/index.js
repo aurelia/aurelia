@@ -2740,6 +2740,7 @@ class ViewFactory {
         this.isCaching = false;
         this.cache = null;
         this.cacheSize = -1;
+        this.container = context.container;
     }
     setCacheSize(size, doNotOverrideIfAlreadySet) {
         if (size) {
@@ -2973,10 +2974,10 @@ class AuSlot {
         const slotInfo = instruction.auSlot;
         const projection = (_b = (_a = hdrContext.instruction) === null || _a === void 0 ? void 0 : _a.projections) === null || _b === void 0 ? void 0 : _b[slotInfo.name];
         if (projection == null) {
-            factory = getRenderContext(slotInfo.fallback, hdrContext.controller.context.container).getViewFactory();
+            factory = getRenderContext(slotInfo.fallback, hdrContext.controller.container).getViewFactory();
         }
         else {
-            factory = getRenderContext(projection, hdrContext.parent.controller.context.container).getViewFactory();
+            factory = getRenderContext(projection, hdrContext.parent.controller.container).getViewFactory();
             this.hasProjection = true;
         }
         this.view = factory.create().setLocation(location);
@@ -3026,10 +3027,6 @@ function isRenderContext(value) {
 let renderContextCount = 0;
 function getRenderContext(partialDefinition, container) {
     const definition = CustomElementDefinition.getOrCreate(partialDefinition);
-    // injectable completely prevents caching, ensuring that each instance gets a new context context
-    if (definition.injectable !== null) {
-        return new RenderContext(definition, container);
-    }
     let containerLookup = definitionContainerLookup.get(definition);
     if (containerLookup === void 0) {
         definitionContainerLookup.set(definition, containerLookup = new WeakMap());
@@ -3046,10 +3043,13 @@ Reflect.defineProperty(getRenderContext, 'count', {
     get: () => renderContextCount
 });
 const emptyNodeCache = new WeakMap();
+const getRenderersSymb = Symbol();
+const compiledDefCache = new WeakMap();
 class RenderContext {
-    constructor(definition, parentContainer) {
+    constructor(definition, container) {
+        var _a;
+        var _b;
         this.definition = definition;
-        this.parentContainer = parentContainer;
         this.fragment = null;
         this.factory = void 0;
         this.isCompiled = false;
@@ -3057,16 +3057,18 @@ class RenderContext {
         this.compiledDefinition = (void 0);
         this.resourceInvoker = null;
         ++renderContextCount;
-        const container = this.container = parentContainer;
-        // TODO(fkleuver): get contextual + root renderers
-        const renderers = container.getAll(IRenderer);
+        this.container = container;
+        // note: it's incorrect to get rendereres only from root,
+        //       as they could also be considered normal resources
+        //       though it's highly practical for limiting renderers to the global scope
+        const renderers = (_a = (_b = container.root)[getRenderersSymb]) !== null && _a !== void 0 ? _a : (_b[getRenderersSymb] = container.root.getAll(IRenderer));
         let i = 0;
         let renderer;
         for (; i < renderers.length; ++i) {
             renderer = renderers[i];
             this.renderers[renderer.instructionType] = renderer;
         }
-        this.root = parentContainer.root;
+        this.root = container.root;
         this.platform = container.get(IPlatform);
         this.elementProvider = new InstanceProvider('ElementResolver');
         this.factoryProvider = new ViewFactoryProvider();
@@ -3078,55 +3080,6 @@ class RenderContext {
     get id() {
         return this.container.id;
     }
-    // #region IServiceLocator api
-    has(key, searchAncestors) {
-        return this.container.has(key, searchAncestors);
-    }
-    get(key) {
-        return this.container.get(key);
-    }
-    getAll(key) {
-        return this.container.getAll(key);
-    }
-    // #endregion
-    // #region IContainer api
-    register(...params) {
-        return this.container.register(...params);
-    }
-    registerResolver(key, resolver) {
-        return this.container.registerResolver(key, resolver);
-    }
-    // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
-    //   this.container.deregisterResolverFor(key);
-    // }
-    registerTransformer(key, transformer) {
-        return this.container.registerTransformer(key, transformer);
-    }
-    getResolver(key, autoRegister) {
-        return this.container.getResolver(key, autoRegister);
-    }
-    invoke(key, dynamicDependencies) {
-        return this.container.invoke(key, dynamicDependencies);
-    }
-    getFactory(key) {
-        return this.container.getFactory(key);
-    }
-    registerFactory(key, factory) {
-        this.container.registerFactory(key, factory);
-    }
-    createChild() {
-        return this.container.createChild();
-    }
-    find(kind, name) {
-        return this.container.find(kind, name);
-    }
-    create(kind, name) {
-        return this.container.create(kind, name);
-    }
-    disposeResolvers() {
-        this.container.disposeResolvers();
-    }
-    // #endregion
     // #region IRenderContext api
     compile(compilationInstruction) {
         let compiledDefinition;
@@ -3138,13 +3091,24 @@ class RenderContext {
         if (definition.needsCompile) {
             const container = this.container;
             const compiler = container.get(ITemplateCompiler);
-            compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, compilationInstruction);
+            let compiledMap = compiledDefCache.get(container.root);
+            if (compiledMap == null) {
+                compiledDefCache.set(container.root, compiledMap = new WeakMap());
+            }
+            let compiled = compiledMap.get(definition);
+            if (compiled == null) {
+                compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction));
+            }
+            else {
+                container.register(...compiled.dependencies);
+            }
+            compiledDefinition = this.compiledDefinition = compiled;
         }
         else {
             compiledDefinition = this.compiledDefinition = definition;
         }
         // Support Recursive Components by adding self to own context
-        compiledDefinition.register(this);
+        compiledDefinition.register(this.container);
         if (fragmentCache.has(compiledDefinition)) {
             this.fragment = fragmentCache.get(compiledDefinition);
         }
@@ -3863,6 +3827,7 @@ class Controller {
         switch (vmKind) {
             case 1 /* customAttribute */:
             case 0 /* customElement */:
+                // todo: cache-able based on constructor type
                 this.hooks = new HooksDefinition(viewModel);
                 break;
             case 2 /* synthetic */:
@@ -3928,7 +3893,7 @@ class Controller {
         /* parent context */ contextCt.get(optional(IHydrationContext)))));
         controllerLookup.set(viewModel, controller);
         if (hydrate) {
-            controller.hydrateCustomElement(contextCt, hydrationInst);
+            controller.hydrateCustomElement(hydrationInst);
         }
         return controller;
     }
@@ -3954,9 +3919,9 @@ class Controller {
     static forSyntheticView(root, context, viewFactory, flags = 0 /* none */, parentController = void 0) {
         const controller = new Controller(
         /* root           */ root, 
-        // todo: context container
-        /* container      */ context, 
-        /* container      */ context, 2 /* synthetic */, 
+        // todo: view factory should carry its own container
+        /* container      */ context.container, 
+        /* container      */ context.container, 2 /* synthetic */, 
         /* flags          */ flags, 
         /* definition     */ null, 
         /* viewFactory    */ viewFactory, 
@@ -3967,9 +3932,9 @@ class Controller {
         return controller;
     }
     /** @internal */
-    hydrateCustomElement(contextCt, hydrationInst) {
+    hydrateCustomElement(hydrationInst) {
         var _a;
-        this.logger = contextCt.get(ILogger).root;
+        this.logger = this.container.get(ILogger).root;
         this.debug = this.logger.config.level <= 1 /* debug */;
         if (this.debug) {
             this.logger = this.logger.scopeTo(this.name);
@@ -3990,20 +3955,16 @@ class Controller {
             }
             const result = instance.define(
             /* controller      */ this, 
-            /* parentContainer */ contextCt, 
+            /* parentContainer */ this.ctxCt, 
             /* definition      */ definition);
             if (result !== void 0 && result !== definition) {
                 definition = CustomElementDefinition.getOrCreate(result);
             }
         }
-        // todo: make projections not influential on the render context construction
-        const context = this.context = getRenderContext(definition, container);
-        // todo: should register a resolver resolving to a IContextElement/IContextComponent
-        //       so that component directly under this template can easily distinguish its owner/parent
-        // context.register(Registration.instance(IContextElement))
-        this.lifecycleHooks = LifecycleHooks.resolve(context);
+        this.context = getRenderContext(definition, container);
+        this.lifecycleHooks = LifecycleHooks.resolve(container);
         // Support Recursive Components by adding self to own context
-        definition.register(context);
+        definition.register(container);
         if (definition.injectable !== null) {
             container.registerResolver(definition.injectable, new InstanceProvider('definition.injectable', instance));
         }
@@ -4107,6 +4068,7 @@ class Controller {
         /* host       */ void 0);
     }
     activate(initiator, parent, flags, scope, hostScope) {
+        var _a;
         switch (this.state) {
             case 0 /* none */:
             case 8 /* deactivated */:
@@ -4132,8 +4094,8 @@ class Controller {
         this.parent = parent;
         if (this.debug && !this.fullyNamed) {
             this.fullyNamed = true;
-            this.logger = this.context.get(ILogger).root.scopeTo(this.name);
-            this.logger.trace(`activate()`);
+            ((_a = this.logger) !== null && _a !== void 0 ? _a : (this.logger = this.container.get(ILogger).root.scopeTo(this.name)))
+                .trace(`activate()`);
         }
         if (this.vmKind === 2 /* synthetic */) {
             this.hostScope = hostScope !== null && hostScope !== void 0 ? hostScope : null;
@@ -4256,9 +4218,10 @@ class Controller {
                 this.nodes.appendTo(this.host, (_a = this.definition) === null || _a === void 0 ? void 0 : _a.enhance);
                 break;
             case 2 /* shadowRoot */: {
-                const styles = this.context.has(IShadowDOMStyles, false)
-                    ? this.context.get(IShadowDOMStyles)
-                    : this.context.get(IShadowDOMGlobalStyles);
+                const container = this.context.container;
+                const styles = container.has(IShadowDOMStyles, false)
+                    ? container.get(IShadowDOMStyles)
+                    : container.get(IShadowDOMGlobalStyles);
                 styles.applyTo(this.shadowRoot);
                 this.nodes.appendTo(this.shadowRoot);
                 break;
@@ -4558,7 +4521,7 @@ class Controller {
             this.bindings[this.bindings.length] = binding;
         }
     }
-    addController(controller) {
+    addChild(controller) {
         if (this.children === null) {
             this.children = [controller];
         }
@@ -4659,16 +4622,6 @@ class Controller {
                 }
             }
         }
-    }
-    getTargetAccessor(propertyName) {
-        const { bindings } = this;
-        if (bindings !== null) {
-            const binding = bindings.find(b => b.targetProperty === propertyName);
-            if (binding !== void 0) {
-                return binding.targetObserver;
-            }
-        }
-        return void 0;
     }
 }
 function getLookup(instance) {
@@ -4918,7 +4871,7 @@ class AppRoot {
                 instance = config.component;
             }
             const controller = (this.controller = Controller.forCustomElement(this, container, ownContainer, instance, this.host, null, 0 /* none */, false, this.enhanceDefinition));
-            controller.hydrateCustomElement(container, null);
+            controller.hydrateCustomElement(null);
             return onResolve(this.runAppTasks('hydrating'), () => {
                 controller.hydrate(null);
                 return onResolve(this.runAppTasks('hydrated'), () => {
@@ -5715,7 +5668,7 @@ function getRefTarget(refHost, refTargetName) {
 let SetPropertyRenderer = 
 /** @internal */
 class SetPropertyRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const obj = getTarget(target);
         if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
             obj.$observers[instruction.to].setValue(instruction.value, 2 /* fromBind */);
@@ -5732,23 +5685,23 @@ SetPropertyRenderer = __decorate([
 let CustomElementRenderer = 
 /** @internal */
 class CustomElementRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const projections = instruction.projections;
         const container = context.createElementContainer(
-        /* parentController */ controller, 
+        /* parentController */ renderingController, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ void 0, 
         /* location         */ target, 
         /* auSlotsInfo      */ new AuSlotsInfo(projections == null ? emptyArray : Object.keys(projections)));
-        const definition = context.find(CustomElement, instruction.res);
+        const definition = renderingController.container.find(CustomElement, instruction.res);
         const Ctor = definition.Type;
         const component = container.invoke(Ctor);
         const key = CustomElement.keyFrom(instruction.res);
         container.registerResolver(Ctor, new InstanceProvider(key, component));
         const childController = Controller.forCustomElement(
-        /* root                */ controller.root, 
-        /* context ct          */ context, 
+        /* root                */ renderingController.root, 
+        /* context ct          */ renderingController.container, 
         /* own container       */ container, 
         /* viewModel           */ component, 
         /* host                */ target, 
@@ -5759,9 +5712,9 @@ class CustomElementRenderer {
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
-        /* controller   */ controller, 
+        /* controller   */ renderingController, 
         /* target       */ childController);
-        controller.addController(childController);
+        renderingController.addChild(childController);
     }
 };
 CustomElementRenderer = __decorate([
@@ -5771,16 +5724,20 @@ CustomElementRenderer = __decorate([
 let CustomAttributeRenderer = 
 /** @internal */
 class CustomAttributeRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, 
+    /**
+     * The cotroller that is currently invoking this renderer
+     */
+    renderingController, target, instruction) {
         const component = context.invokeAttribute(
-        /* parentController */ controller, 
+        /* parentController */ renderingController, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ void 0, 
         /* location         */ void 0);
         const childController = Controller.forCustomAttribute(
-        /* root       */ controller.root, 
-        /* context ct */ context, 
+        /* root       */ renderingController.root, 
+        /* context ct */ renderingController.container, 
         /* viewModel  */ component, 
         /* host       */ target, 
         /* flags      */ flags);
@@ -5789,9 +5746,9 @@ class CustomAttributeRenderer {
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
-        /* controller   */ controller, 
+        /* controller   */ renderingController, 
         /* target       */ childController);
-        controller.addController(childController);
+        renderingController.addChild(childController);
     }
 };
 CustomAttributeRenderer = __decorate([
@@ -5801,31 +5758,31 @@ CustomAttributeRenderer = __decorate([
 let TemplateControllerRenderer = 
 /** @internal */
 class TemplateControllerRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         var _a;
-        const viewFactory = getRenderContext(instruction.def, context.container).getViewFactory();
+        const viewFactory = getRenderContext(instruction.def, renderingController.container).getViewFactory();
         const renderLocation = convertToRenderLocation(target);
         const component = context.invokeAttribute(
-        /* parentController */ controller, 
+        /* parentController */ renderingController, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ viewFactory, 
         /* location         */ renderLocation);
         const childController = Controller.forCustomAttribute(
-        /* root         */ controller.root, 
-        /* container ct */ context, 
+        /* root         */ renderingController.root, 
+        /* container ct */ renderingController.container, 
         /* viewModel    */ component, 
         /* host         */ target, 
         /* flags        */ flags);
         const key = CustomAttribute.keyFrom(instruction.res);
         setRef(renderLocation, key, childController);
-        (_a = component.link) === null || _a === void 0 ? void 0 : _a.call(component, flags, context, controller, childController, target, instruction);
+        (_a = component.link) === null || _a === void 0 ? void 0 : _a.call(component, flags, context, renderingController, childController, target, instruction);
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
-        /* controller   */ controller, 
+        /* controller   */ renderingController, 
         /* target       */ childController);
-        controller.addController(childController);
+        renderingController.addChild(childController);
     }
 };
 TemplateControllerRenderer = __decorate([
@@ -5839,7 +5796,7 @@ class LetElementRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, rendererController, target, instruction) {
         target.remove();
         const childInstructions = instruction.instructions;
         const toBindingContext = instruction.toBindingContext;
@@ -5849,8 +5806,8 @@ class LetElementRenderer {
         for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
             childInstruction = childInstructions[i];
             expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
-            binding = applyBindingBehavior(new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext), expr, context);
-            controller.addBinding(binding);
+            binding = applyBindingBehavior(new LetBinding(expr, childInstruction.to, this.observerLocator, rendererController.container, toBindingContext), expr, rendererController.container);
+            rendererController.addBinding(binding);
         }
     }
 };
@@ -5868,10 +5825,10 @@ class CallBindingRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, rendererController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
-        const binding = applyBindingBehavior(new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, rendererController.container), expr, rendererController.container);
+        rendererController.addBinding(binding);
     }
 };
 CallBindingRenderer = __decorate([
@@ -5887,10 +5844,10 @@ class RefBindingRenderer {
     constructor(parser) {
         this.parser = parser;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, rendererController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 5376 /* IsRef */);
-        const binding = applyBindingBehavior(new RefBinding(expr, getRefTarget(target, instruction.to), context), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new RefBinding(expr, getRefTarget(target, instruction.to), rendererController.container), expr, rendererController.container);
+        rendererController.addBinding(binding);
     }
 };
 RefBindingRenderer = __decorate([
@@ -5907,18 +5864,18 @@ class InterpolationBindingRenderer {
         this.observerLocator = observerLocator;
         this.platform = platform;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-        const binding = new InterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context, this.platform.domWriteQueue);
+        const binding = new InterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, renderingController.container, this.platform.domWriteQueue);
         const partBindings = binding.partBindings;
         const ii = partBindings.length;
         let i = 0;
         let partBinding;
         for (; ii > i; ++i) {
             partBinding = partBindings[i];
-            partBindings[i] = applyBindingBehavior(partBinding, partBinding.sourceExpression, context);
+            partBindings[i] = applyBindingBehavior(partBinding, partBinding.sourceExpression, renderingController.container);
         }
-        controller.addBinding(binding);
+        renderingController.addBinding(binding);
     }
 };
 InterpolationBindingRenderer = __decorate([
@@ -5937,10 +5894,10 @@ class PropertyBindingRenderer {
         this.observerLocator = observerLocator;
         this.platform = platform;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
-        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, renderingController.container, this.platform.domWriteQueue), expr, renderingController.container);
+        renderingController.addBinding(binding);
     }
 };
 PropertyBindingRenderer = __decorate([
@@ -5959,10 +5916,10 @@ class IteratorBindingRenderer {
         this.observerLocator = observerLocator;
         this.platform = platform;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
-        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, renderingController.container, this.platform.domWriteQueue), expr, renderingController.container);
+        renderingController.addBinding(binding);
     }
 };
 IteratorBindingRenderer = __decorate([
@@ -5998,7 +5955,7 @@ class TextBindingRenderer {
         this.observerLocator = observerLocator;
         this.platform = platform;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const next = target.nextSibling;
         const parent = target.parentNode;
         const doc = this.platform.document;
@@ -6014,11 +5971,11 @@ class TextBindingRenderer {
         for (; ii > i; ++i) {
             // each of the dynamic expression of an interpolation
             // will be mapped to a ContentBinding
-            controller.addBinding(applyBindingBehavior(new ContentBinding(dynamicParts[i], 
+            renderingController.addBinding(applyBindingBehavior(new ContentBinding(dynamicParts[i], 
             // using a text node instead of comment, as a mean to:
             // support seamless transition between a html node, or a text
             // reduce the noise in the template, caused by html comment
-            parent.insertBefore(doc.createTextNode(''), next), context, this.observerLocator, this.platform, instruction.strict), dynamicParts[i], context));
+            parent.insertBefore(doc.createTextNode(''), next), renderingController.container, this.observerLocator, this.platform, instruction.strict), dynamicParts[i], renderingController.container));
             // while each of the static part of an interpolation
             // will just be a text node
             text = staticParts[i + 1];
@@ -6046,10 +6003,10 @@ class ListenerBindingRenderer {
         this.parser = parser;
         this.eventDelegator = eventDelegator;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
-        const binding = applyBindingBehavior(new Listener(context.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new Listener(renderingController.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, renderingController.container), expr, renderingController.container);
+        renderingController.addBinding(binding);
     }
 };
 ListenerBindingRenderer = __decorate([
@@ -6062,7 +6019,7 @@ ListenerBindingRenderer = __decorate([
 let SetAttributeRenderer = 
 /** @internal */
 class SetAttributeRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         target.setAttribute(instruction.to, instruction.value);
     }
 };
@@ -6071,7 +6028,7 @@ SetAttributeRenderer = __decorate([
     /** @internal */
 ], SetAttributeRenderer);
 let SetClassAttributeRenderer = class SetClassAttributeRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         addClasses(target.classList, instruction.value);
     }
 };
@@ -6079,7 +6036,7 @@ SetClassAttributeRenderer = __decorate([
     renderer("hf" /* setClassAttribute */)
 ], SetClassAttributeRenderer);
 let SetStyleAttributeRenderer = class SetStyleAttributeRenderer {
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         target.style.cssText += instruction.value;
     }
 };
@@ -6094,10 +6051,10 @@ class StylePropertyBindingRenderer {
         this.observerLocator = observerLocator;
         this.platform = platform;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
-        const binding = applyBindingBehavior(new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, renderingController.container, this.platform.domWriteQueue), expr, renderingController.container);
+        renderingController.addBinding(binding);
     }
 };
 StylePropertyBindingRenderer = __decorate([
@@ -6115,10 +6072,10 @@ class AttributeBindingRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
-        const binding = applyBindingBehavior(new AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, BindingMode.toView, this.observerLocator, context), expr, context);
-        controller.addBinding(binding);
+        const binding = applyBindingBehavior(new AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, BindingMode.toView, this.observerLocator, renderingController.container), expr, renderingController.container);
+        renderingController.addBinding(binding);
     }
 };
 AttributeBindingRenderer = __decorate([
@@ -6533,7 +6490,7 @@ class TemplateCompiler {
         return Registration.singleton(ITemplateCompiler, this).register(container);
     }
     compile(partialDefinition, container, compilationInstruction) {
-        var _a, _b;
+        var _a, _b, _c, _d;
         const definition = CustomElementDefinition.getOrCreate(partialDefinition);
         if (definition.template === null || definition.template === void 0) {
             return definition;
@@ -6565,6 +6522,7 @@ class TemplateCompiler {
         return CustomElementDefinition.create({
             ...partialDefinition,
             name: partialDefinition.name || CustomElement.generateName(),
+            dependencies: ((_c = partialDefinition.dependencies) !== null && _c !== void 0 ? _c : emptyArray).concat((_d = context.deps) !== null && _d !== void 0 ? _d : emptyArray),
             instructions: context.rows,
             surrogates: isTemplateElement
                 ? this.surrogate(template, context)
@@ -7546,7 +7504,7 @@ class TemplateCompiler {
                 }
                 content.removeChild(bindableEl);
             }
-            context.register(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
+            context.addDep(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
             root.removeChild(localTemplate);
         }
     }
@@ -7638,9 +7596,11 @@ class CompilationContext {
         this.localEls = hasParent ? parent.localEls : new Set();
         this.rows = instructions !== null && instructions !== void 0 ? instructions : [];
     }
-    // todo: later can be extended to more (AttrPattern, command etc)
-    register(def) {
-        this.root.c.register(def);
+    addDep(dep) {
+        var _a;
+        var _b;
+        ((_a = (_b = this.root).deps) !== null && _a !== void 0 ? _a : (_b.deps = [])).push(dep);
+        this.root.c.register(dep);
     }
     h(name) {
         const el = this.p.document.createElement(name);
@@ -10696,16 +10656,11 @@ function createElementForType(p, Type, props, children) {
                 childInstructions.push(value);
             }
             else {
-                const bindable = bindables[to];
-                if (bindable !== void 0) {
-                    childInstructions.push({
-                        type: "re" /* setProperty */,
-                        to,
-                        value
-                    });
+                if (bindables[to] === void 0) {
+                    childInstructions.push(new SetAttributeInstruction(value, to));
                 }
                 else {
-                    childInstructions.push(new SetAttributeInstruction(value, to));
+                    childInstructions.push(new SetPropertyInstruction(value, to));
                 }
             }
         });

@@ -241,7 +241,7 @@ export class RouteTree {
  * This means that a `RouteTree` can (and often will) be built incrementally during the loading process.
  */
 export function updateRouteTree(rt, vit, ctx) {
-    const log = ctx.get(ILogger).scopeTo('RouteTree');
+    const log = ctx.container.get(ILogger).scopeTo('RouteTree');
     // The root of the routing tree is always the CompositionRoot of the Aurelia app.
     // From a routing perspective it's simply a "marker": it does not need to be loaded,
     // nor put in a viewport, have its hooks invoked, or any of that. The router does not touch it,
@@ -299,7 +299,7 @@ function updateNode(log, vit, ctx, node) {
 }
 export function processResidue(node) {
     const ctx = node.context;
-    const log = ctx.get(ILogger).scopeTo('RouteTree');
+    const log = ctx.container.get(ILogger).scopeTo('RouteTree');
     const suffix = ctx.resolved instanceof Promise ? ' - awaiting promise' : '';
     log.trace(`processResidue(node:%s)${suffix}`, node);
     return onResolve(ctx.resolved, () => {
@@ -316,7 +316,7 @@ export function processResidue(node) {
 }
 export function getDynamicChildren(node) {
     const ctx = node.context;
-    const log = ctx.get(ILogger).scopeTo('RouteTree');
+    const log = ctx.container.get(ILogger).scopeTo('RouteTree');
     const suffix = ctx.resolved instanceof Promise ? ' - awaiting promise' : '';
     log.trace(`getDynamicChildren(node:%s)${suffix}`, node);
     return onResolve(ctx.resolved, () => {
@@ -384,7 +384,7 @@ function createNode(log, node, vi, append) {
     const rr = ctx.recognize(path);
     if (rr === null) {
         const name = vi.component.value;
-        let ced = ctx.find(CustomElement, name);
+        let ced = ctx.container.find(CustomElement, name);
         switch (node.tree.options.routingMode) {
             case 'configured-only':
                 if (ced === null) {
@@ -406,7 +406,7 @@ function createNode(log, node, vi, append) {
                         throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' and no fallback was provided for viewport '${vpName}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
                     }
                     const fallback = fallbackVPA.viewport.fallback;
-                    ced = ctx.find(CustomElement, fallback);
+                    ced = ctx.container.find(CustomElement, fallback);
                     if (ced === null) {
                         throw new Error(`the requested component '${name}' and the fallback '${fallback}' at viewport '${vpName}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
                     }
@@ -436,7 +436,7 @@ function createConfiguredNode(log, node, vi, append, rr, route = rr.route.endpoi
                 append,
                 resolution: rt.options.resolutionMode,
             }));
-            const router = ctx.get(IRouter);
+            const router = ctx.container.get(IRouter);
             const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.context);
             childCtx.node = RouteNode.create({
                 path: rr.route.endpoint.route.path,
@@ -542,7 +542,7 @@ function createConfiguredNode(log, node, vi, append, rr, route = rr.route.endpoi
         const redirRR = ctx.recognize(newPath);
         if (redirRR === null) {
             const name = newPath;
-            const ced = ctx.find(CustomElement, newPath);
+            const ced = ctx.container.find(CustomElement, newPath);
             switch (rt.options.routingMode) {
                 case 'configured-only':
                     if (ced === null) {
@@ -570,7 +570,7 @@ function createDirectNode(log, node, vi, append, ced) {
         append,
         resolution: rt.options.resolutionMode,
     }));
-    const router = ctx.get(IRouter);
+    const router = ctx.container.get(IRouter);
     const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.context);
     // TODO(fkleuver): process redirects in direct routing (?)
     const rd = RouteDefinition.resolve(ced);

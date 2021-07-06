@@ -1,5 +1,5 @@
 import { CustomElementDefinition } from '../resources/custom-element.js';
-import type { Constructable, ConstructableClass } from '@aurelia/kernel';
+import type { Constructable, ConstructableClass, IContainer } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
 import type { ICustomElementViewModel, ISyntheticView, ICustomElementController, ICustomAttributeController } from './controller.js';
 import type { IRenderContext } from './render-context.js';
@@ -11,6 +11,7 @@ export declare class ViewFactory implements IViewFactory {
     name: string;
     readonly context: IRenderContext;
     static maxCacheSize: number;
+    readonly container: IContainer;
     isCaching: boolean;
     private cache;
     private cacheSize;

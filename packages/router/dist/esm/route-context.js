@@ -50,7 +50,7 @@ export class RouteContext {
         this.logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this.friendlyPath}>`);
         this.logger.trace('constructor()');
         this.moduleLoader = parentContainer.get(IModuleLoader);
-        const container = this.container = parentContainer.createChild({ inheritParentResources: true });
+        const container = this.container = parentContainer.createChild();
         container.registerResolver(IController, this.hostControllerProvider = new InstanceProvider(), true);
         // We don't need to store it here but we use an InstanceProvider so that it can be disposed indirectly via the container.
         const contextProvider = new InstanceProvider();
@@ -181,7 +181,8 @@ export class RouteContext {
         routeContext.node = router.routeTree.root;
     }
     static resolve(root, context) {
-        const logger = root.get(ILogger).scopeTo('RouteContext');
+        const rootContainer = root.container;
+        const logger = rootContainer.get(ILogger).scopeTo('RouteContext');
         if (context === null || context === void 0) {
             logger.trace(`resolve(context:%s) - returning root RouteContext`, context);
             return root;
@@ -190,7 +191,7 @@ export class RouteContext {
             logger.trace(`resolve(context:%s) - returning provided RouteContext`, context);
             return context;
         }
-        if (context instanceof root.get(IPlatform).Node) {
+        if (context instanceof rootContainer.get(IPlatform).Node) {
             try {
                 // CustomElement.for can theoretically throw in (as of yet) unknown situations.
                 // If that happens, we want to know about the situation and *not* just fall back to the root context, as that might make
@@ -199,7 +200,7 @@ export class RouteContext {
                 // This also gives us a set point in the future to potentially handle supported scenarios where this could occur.
                 const controller = CustomElement.for(context, { searchParents: true });
                 logger.trace(`resolve(context:Node(nodeName:'${context.nodeName}'),controller:'${controller.context.definition.name}') - resolving RouteContext from controller's RenderContext`);
-                return controller.context.get(IRouteContext);
+                return controller.container.get(IRouteContext);
             }
             catch (err) {
                 logger.error(`Failed to resolve RouteContext from Node(nodeName:'${context.nodeName}')`, err);
@@ -209,72 +210,14 @@ export class RouteContext {
         if (isCustomElementViewModel(context)) {
             const controller = context.$controller;
             logger.trace(`resolve(context:CustomElementViewModel(name:'${controller.context.definition.name}')) - resolving RouteContext from controller's RenderContext`);
-            return controller.context.get(IRouteContext);
+            return controller.container.get(IRouteContext);
         }
         if (isCustomElementController(context)) {
             const controller = context;
             logger.trace(`resolve(context:CustomElementController(name:'${controller.context.definition.name}')) - resolving RouteContext from controller's RenderContext`);
-            return controller.context.get(IRouteContext);
+            return controller.container.get(IRouteContext);
         }
         logAndThrow(new Error(`Invalid context type: ${Object.prototype.toString.call(context)}`), logger);
-    }
-    // #region IServiceLocator api
-    has(key, searchAncestors) {
-        // this.logger.trace(`has(key:${String(key)},searchAncestors:${searchAncestors})`);
-        return this.container.has(key, searchAncestors);
-    }
-    get(key) {
-        // this.logger.trace(`get(key:${String(key)})`);
-        return this.container.get(key);
-    }
-    getAll(key) {
-        // this.logger.trace(`getAll(key:${String(key)})`);
-        return this.container.getAll(key);
-    }
-    // #endregion
-    // #region IContainer api
-    register(...params) {
-        // this.logger.trace(`register(params:[${params.map(String).join(',')}])`);
-        return this.container.register(...params);
-    }
-    registerResolver(key, resolver) {
-        // this.logger.trace(`registerResolver(key:${String(key)})`);
-        return this.container.registerResolver(key, resolver);
-    }
-    registerTransformer(key, transformer) {
-        // this.logger.trace(`registerTransformer(key:${String(key)})`);
-        return this.container.registerTransformer(key, transformer);
-    }
-    getResolver(key, autoRegister) {
-        // this.logger.trace(`getResolver(key:${String(key)})`);
-        return this.container.getResolver(key, autoRegister);
-    }
-    invoke(key, dynamicDependencies) {
-        return this.container.invoke(key, dynamicDependencies);
-    }
-    getFactory(key) {
-        // this.logger.trace(`getFactory(key:${String(key)})`);
-        return this.container.getFactory(key);
-    }
-    registerFactory(key, factory) {
-        // this.logger.trace(`registerFactory(key:${String(key)})`);
-        this.container.registerFactory(key, factory);
-    }
-    createChild() {
-        // this.logger.trace(`createChild()`);
-        return this.container.createChild();
-    }
-    disposeResolvers() {
-        // this.logger.trace(`disposeResolvers()`);
-        this.container.disposeResolvers();
-    }
-    find(kind, name) {
-        // this.logger.trace(`findResource(kind:${kind.name},name:'${name}')`);
-        return this.container.find(kind, name);
-    }
-    create(kind, name) {
-        // this.logger.trace(`createResource(kind:${kind.name},name:'${name}')`);
-        return this.container.create(kind, name);
     }
     dispose() {
         this.container.dispose();

@@ -56,12 +56,12 @@ let TranslationBindingRenderer = class TranslationBindingRenderer {
         this.observerLocator = observerLocator;
         this.platform = platform;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         translation_binding_js_1.TranslationBinding.create({
             parser: this.parser,
             observerLocator: this.observerLocator,
-            context,
-            controller,
+            context: renderingController.container,
+            controller: renderingController,
             target,
             instruction,
             platform: this.platform,
@@ -119,12 +119,12 @@ let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
         this.observerLocator = observerLocator;
         this.platform = platform;
     }
-    render(flags, context, controller, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         translation_binding_js_1.TranslationBinding.create({
             parser: this.parser,
             observerLocator: this.observerLocator,
-            context,
-            controller,
+            context: renderingController.container,
+            controller: renderingController,
             target,
             instruction,
             platform: this.platform

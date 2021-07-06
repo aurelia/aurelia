@@ -111,16 +111,11 @@ function createElementForType(p, Type, props, children) {
                 childInstructions.push(value);
             }
             else {
-                const bindable = bindables[to];
-                if (bindable !== void 0) {
-                    childInstructions.push({
-                        type: "re" /* setProperty */,
-                        to,
-                        value
-                    });
+                if (bindables[to] === void 0) {
+                    childInstructions.push(new renderer_js_1.SetAttributeInstruction(value, to));
                 }
                 else {
-                    childInstructions.push(new renderer_js_1.SetAttributeInstruction(value, to));
+                    childInstructions.push(new renderer_js_1.SetPropertyInstruction(value, to));
                 }
             }
         });

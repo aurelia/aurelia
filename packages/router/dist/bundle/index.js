@@ -633,7 +633,7 @@ class ViewportAgent {
         this.nextNode = null;
         this.currTransition = null;
         this.prevTransition = null;
-        this.logger = ctx.get(ILogger).scopeTo(`ViewportAgent<${ctx.friendlyPath}>`);
+        this.logger = ctx.container.get(ILogger).scopeTo(`ViewportAgent<${ctx.friendlyPath}>`);
         this.logger.trace(`constructor()`);
     }
     get $state() { return $state(this.state); }
@@ -2224,7 +2224,7 @@ class RouteTree {
  * This means that a `RouteTree` can (and often will) be built incrementally during the loading process.
  */
 function updateRouteTree(rt, vit, ctx) {
-    const log = ctx.get(ILogger).scopeTo('RouteTree');
+    const log = ctx.container.get(ILogger).scopeTo('RouteTree');
     // The root of the routing tree is always the CompositionRoot of the Aurelia app.
     // From a routing perspective it's simply a "marker": it does not need to be loaded,
     // nor put in a viewport, have its hooks invoked, or any of that. The router does not touch it,
@@ -2282,7 +2282,7 @@ function updateNode(log, vit, ctx, node) {
 }
 function processResidue(node) {
     const ctx = node.context;
-    const log = ctx.get(ILogger).scopeTo('RouteTree');
+    const log = ctx.container.get(ILogger).scopeTo('RouteTree');
     const suffix = ctx.resolved instanceof Promise ? ' - awaiting promise' : '';
     log.trace(`processResidue(node:%s)${suffix}`, node);
     return onResolve(ctx.resolved, () => {
@@ -2299,7 +2299,7 @@ function processResidue(node) {
 }
 function getDynamicChildren(node) {
     const ctx = node.context;
-    const log = ctx.get(ILogger).scopeTo('RouteTree');
+    const log = ctx.container.get(ILogger).scopeTo('RouteTree');
     const suffix = ctx.resolved instanceof Promise ? ' - awaiting promise' : '';
     log.trace(`getDynamicChildren(node:%s)${suffix}`, node);
     return onResolve(ctx.resolved, () => {
@@ -2367,7 +2367,7 @@ function createNode(log, node, vi, append) {
     const rr = ctx.recognize(path);
     if (rr === null) {
         const name = vi.component.value;
-        let ced = ctx.find(CustomElement, name);
+        let ced = ctx.container.find(CustomElement, name);
         switch (node.tree.options.routingMode) {
             case 'configured-only':
                 if (ced === null) {
@@ -2389,7 +2389,7 @@ function createNode(log, node, vi, append) {
                         throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' and no fallback was provided for viewport '${vpName}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
                     }
                     const fallback = fallbackVPA.viewport.fallback;
-                    ced = ctx.find(CustomElement, fallback);
+                    ced = ctx.container.find(CustomElement, fallback);
                     if (ced === null) {
                         throw new Error(`the requested component '${name}' and the fallback '${fallback}' at viewport '${vpName}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
                     }
@@ -2419,7 +2419,7 @@ function createConfiguredNode(log, node, vi, append, rr, route = rr.route.endpoi
                 append,
                 resolution: rt.options.resolutionMode,
             }));
-            const router = ctx.get(IRouter);
+            const router = ctx.container.get(IRouter);
             const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.context);
             childCtx.node = RouteNode.create({
                 path: rr.route.endpoint.route.path,
@@ -2525,7 +2525,7 @@ function createConfiguredNode(log, node, vi, append, rr, route = rr.route.endpoi
         const redirRR = ctx.recognize(newPath);
         if (redirRR === null) {
             const name = newPath;
-            const ced = ctx.find(CustomElement, newPath);
+            const ced = ctx.container.find(CustomElement, newPath);
             switch (rt.options.routingMode) {
                 case 'configured-only':
                     if (ced === null) {
@@ -2553,7 +2553,7 @@ function createDirectNode(log, node, vi, append, ced) {
         append,
         resolution: rt.options.resolutionMode,
     }));
-    const router = ctx.get(IRouter);
+    const router = ctx.container.get(IRouter);
     const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.context);
     // TODO(fkleuver): process redirects in direct routing (?)
     const rd = RouteDefinition.resolve(ced);
@@ -2965,7 +2965,8 @@ let Router = class Router {
      *
      */
     getRouteContext(viewportAgent, component, renderContext) {
-        const logger = renderContext.get(ILogger).scopeTo('RouteContext');
+        const container = renderContext.container;
+        const logger = container.get(ILogger).scopeTo('RouteContext');
         const routeDefinition = RouteDefinition.resolve(component.Type);
         let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
         if (routeDefinitionLookup === void 0) {
@@ -2974,8 +2975,8 @@ let Router = class Router {
         let routeContext = routeDefinitionLookup.get(routeDefinition);
         if (routeContext === void 0) {
             logger.trace(`creating new RouteContext for %s`, routeDefinition);
-            const parent = renderContext.has(IRouteContext, true) ? renderContext.get(IRouteContext) : null;
-            routeDefinitionLookup.set(routeDefinition, routeContext = new RouteContext(viewportAgent, parent, component, routeDefinition, renderContext));
+            const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
+            routeDefinitionLookup.set(routeDefinition, routeContext = new RouteContext(viewportAgent, parent, component, routeDefinition, container));
         }
         else {
             logger.trace(`returning existing RouteContext for %s`, routeDefinition);
@@ -3764,7 +3765,7 @@ class RouteDefinition {
                 if (context === void 0) {
                     throw new Error(`When retrieving the RouteDefinition for a component name, a RouteContext (that can resolve it) must be provided`);
                 }
-                const component = context.find(CustomElement, typedInstruction.value);
+                const component = context.container.find(CustomElement, typedInstruction.value);
                 if (component === null) {
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     throw new Error(`Could not find a CustomElement named '${typedInstruction.value}' in the current container scope of ${context}. This means the component is neither registered at Aurelia startup nor via the 'dependencies' decorator or static property.`);
@@ -3811,7 +3812,7 @@ class ComponentAgent {
         this.definition = definition;
         this.routeNode = routeNode;
         this.ctx = ctx;
-        this.logger = ctx.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
+        this.logger = ctx.container.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
         this.logger.trace(`constructor()`);
         const lifecycleHooks = controller.lifecycleHooks;
         this.canLoadHooks = ((_a = lifecycleHooks.canLoad) !== null && _a !== void 0 ? _a : []).map(x => x.instance);
@@ -3826,8 +3827,9 @@ class ComponentAgent {
     static for(componentInstance, hostController, routeNode, ctx) {
         let componentAgent = componentAgentLookup.get(componentInstance);
         if (componentAgent === void 0) {
+            const container = ctx.container;
             const definition = RouteDefinition.resolve(componentInstance.constructor);
-            const controller = Controller.forCustomElement(ctx.get(IAppRoot), ctx, ctx, componentInstance, hostController.host, null);
+            const controller = Controller.forCustomElement(container.get(IAppRoot), container, container, componentInstance, hostController.host, null);
             componentAgentLookup.set(componentInstance, componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx));
         }
         return componentAgent;
@@ -3998,7 +4000,7 @@ class RouteContext {
         this.logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this.friendlyPath}>`);
         this.logger.trace('constructor()');
         this.moduleLoader = parentContainer.get(IModuleLoader);
-        const container = this.container = parentContainer.createChild({ inheritParentResources: true });
+        const container = this.container = parentContainer.createChild();
         container.registerResolver(IController, this.hostControllerProvider = new InstanceProvider(), true);
         // We don't need to store it here but we use an InstanceProvider so that it can be disposed indirectly via the container.
         const contextProvider = new InstanceProvider();
@@ -4129,7 +4131,8 @@ class RouteContext {
         routeContext.node = router.routeTree.root;
     }
     static resolve(root, context) {
-        const logger = root.get(ILogger).scopeTo('RouteContext');
+        const rootContainer = root.container;
+        const logger = rootContainer.get(ILogger).scopeTo('RouteContext');
         if (context === null || context === void 0) {
             logger.trace(`resolve(context:%s) - returning root RouteContext`, context);
             return root;
@@ -4138,7 +4141,7 @@ class RouteContext {
             logger.trace(`resolve(context:%s) - returning provided RouteContext`, context);
             return context;
         }
-        if (context instanceof root.get(IPlatform).Node) {
+        if (context instanceof rootContainer.get(IPlatform).Node) {
             try {
                 // CustomElement.for can theoretically throw in (as of yet) unknown situations.
                 // If that happens, we want to know about the situation and *not* just fall back to the root context, as that might make
@@ -4147,7 +4150,7 @@ class RouteContext {
                 // This also gives us a set point in the future to potentially handle supported scenarios where this could occur.
                 const controller = CustomElement.for(context, { searchParents: true });
                 logger.trace(`resolve(context:Node(nodeName:'${context.nodeName}'),controller:'${controller.context.definition.name}') - resolving RouteContext from controller's RenderContext`);
-                return controller.context.get(IRouteContext);
+                return controller.container.get(IRouteContext);
             }
             catch (err) {
                 logger.error(`Failed to resolve RouteContext from Node(nodeName:'${context.nodeName}')`, err);
@@ -4157,72 +4160,14 @@ class RouteContext {
         if (isCustomElementViewModel(context)) {
             const controller = context.$controller;
             logger.trace(`resolve(context:CustomElementViewModel(name:'${controller.context.definition.name}')) - resolving RouteContext from controller's RenderContext`);
-            return controller.context.get(IRouteContext);
+            return controller.container.get(IRouteContext);
         }
         if (isCustomElementController(context)) {
             const controller = context;
             logger.trace(`resolve(context:CustomElementController(name:'${controller.context.definition.name}')) - resolving RouteContext from controller's RenderContext`);
-            return controller.context.get(IRouteContext);
+            return controller.container.get(IRouteContext);
         }
         logAndThrow(new Error(`Invalid context type: ${Object.prototype.toString.call(context)}`), logger);
-    }
-    // #region IServiceLocator api
-    has(key, searchAncestors) {
-        // this.logger.trace(`has(key:${String(key)},searchAncestors:${searchAncestors})`);
-        return this.container.has(key, searchAncestors);
-    }
-    get(key) {
-        // this.logger.trace(`get(key:${String(key)})`);
-        return this.container.get(key);
-    }
-    getAll(key) {
-        // this.logger.trace(`getAll(key:${String(key)})`);
-        return this.container.getAll(key);
-    }
-    // #endregion
-    // #region IContainer api
-    register(...params) {
-        // this.logger.trace(`register(params:[${params.map(String).join(',')}])`);
-        return this.container.register(...params);
-    }
-    registerResolver(key, resolver) {
-        // this.logger.trace(`registerResolver(key:${String(key)})`);
-        return this.container.registerResolver(key, resolver);
-    }
-    registerTransformer(key, transformer) {
-        // this.logger.trace(`registerTransformer(key:${String(key)})`);
-        return this.container.registerTransformer(key, transformer);
-    }
-    getResolver(key, autoRegister) {
-        // this.logger.trace(`getResolver(key:${String(key)})`);
-        return this.container.getResolver(key, autoRegister);
-    }
-    invoke(key, dynamicDependencies) {
-        return this.container.invoke(key, dynamicDependencies);
-    }
-    getFactory(key) {
-        // this.logger.trace(`getFactory(key:${String(key)})`);
-        return this.container.getFactory(key);
-    }
-    registerFactory(key, factory) {
-        // this.logger.trace(`registerFactory(key:${String(key)})`);
-        this.container.registerFactory(key, factory);
-    }
-    createChild() {
-        // this.logger.trace(`createChild()`);
-        return this.container.createChild();
-    }
-    disposeResolvers() {
-        // this.logger.trace(`disposeResolvers()`);
-        this.container.disposeResolvers();
-    }
-    find(kind, name) {
-        // this.logger.trace(`findResource(kind:${kind.name},name:'${name}')`);
-        return this.container.find(kind, name);
-    }
-    create(kind, name) {
-        // this.logger.trace(`createResource(kind:${kind.name},name:'${name}')`);
-        return this.container.create(kind, name);
     }
     dispose() {
         this.container.dispose();

@@ -58,7 +58,7 @@ class RouteDefinition {
                 if (context === void 0) {
                     throw new Error(`When retrieving the RouteDefinition for a component name, a RouteContext (that can resolve it) must be provided`);
                 }
-                const component = context.find(runtime_html_1.CustomElement, typedInstruction.value);
+                const component = context.container.find(runtime_html_1.CustomElement, typedInstruction.value);
                 if (component === null) {
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     throw new Error(`Could not find a CustomElement named '${typedInstruction.value}' in the current container scope of ${context}. This means the component is neither registered at Aurelia startup nor via the 'dependencies' decorator or static property.`);

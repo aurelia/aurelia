@@ -5,7 +5,7 @@ import { IRenderContext, RenderContext, ICompiledRenderContext } from './render-
 import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import type { IContainer, Writable, IDisposable } from '@aurelia/kernel';
-import type { IBinding, AccessorOrObserver } from '@aurelia/runtime';
+import type { IBinding } from '@aurelia/runtime';
 import type { IProjections } from '../resources/custom-elements/au-slot.js';
 import type { LifecycleHooksLookup } from './lifecycle-hooks.js';
 import type { INode, INodeSequence, IRenderLocation } from '../dom.js';
@@ -119,7 +119,7 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     private enterUnbinding;
     private leaveUnbinding;
     addBinding(binding: IBinding): void;
-    addController(controller: Controller): void;
+    addChild(controller: Controller): void;
     is(name: string): boolean;
     lockScope(scope: Writable<Scope>): void;
     setHost(host: HTMLElement): this;
@@ -128,7 +128,6 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     release(): void;
     dispose(): void;
     accept(visitor: ControllerVisitor): void | true;
-    getTargetAccessor(propertyName: string): AccessorOrObserver | undefined;
 }
 export declare function isCustomElementController<C extends ICustomElementViewModel = ICustomElementViewModel>(value: unknown): value is ICustomElementController<C>;
 export declare function isCustomElementViewModel(value: unknown): value is ICustomElementViewModel;
@@ -190,6 +189,12 @@ export declare type ControllerVisitor = (controller: IHydratedController) => voi
  * Every controller, regardless of their type and state, will have at least the properties/methods in this interface.
  */
 export interface IController<C extends IViewModel = IViewModel> extends IDisposable {
+    /**
+     * The container associated with this controller.
+     * By default, CE should have their own container while custom attribute & synthetic view
+     * will use the parent container one, since they do not need to manage one
+     */
+    readonly container: IContainer;
     readonly platform: IPlatform;
     readonly root: IAppRoot | null;
     readonly flags: LifecycleFlags;
@@ -231,9 +236,8 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
     readonly definition: CustomElementDefinition | null;
     readonly bindings: readonly IBinding[] | null;
     readonly children: readonly IHydratedController[] | null;
-    getTargetAccessor(propertyName: string): AccessorOrObserver | null;
     addBinding(binding: IBinding): void;
-    addController(controller: IController): void;
+    addChild(controller: IController): void;
 }
 export declare const enum State {
     none = 0,

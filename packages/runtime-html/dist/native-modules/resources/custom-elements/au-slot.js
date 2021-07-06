@@ -16,10 +16,10 @@ export class AuSlot {
         const slotInfo = instruction.auSlot;
         const projection = (_b = (_a = hdrContext.instruction) === null || _a === void 0 ? void 0 : _a.projections) === null || _b === void 0 ? void 0 : _b[slotInfo.name];
         if (projection == null) {
-            factory = getRenderContext(slotInfo.fallback, hdrContext.controller.context.container).getViewFactory();
+            factory = getRenderContext(slotInfo.fallback, hdrContext.controller.container).getViewFactory();
         }
         else {
-            factory = getRenderContext(projection, hdrContext.parent.controller.context.container).getViewFactory();
+            factory = getRenderContext(projection, hdrContext.parent.controller.container).getViewFactory();
             this.hasProjection = true;
         }
         this.view = factory.create().setLocation(location);

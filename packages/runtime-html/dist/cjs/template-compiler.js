@@ -22,7 +22,7 @@ class TemplateCompiler {
         return kernel_1.Registration.singleton(renderer_js_1.ITemplateCompiler, this).register(container);
     }
     compile(partialDefinition, container, compilationInstruction) {
-        var _a, _b;
+        var _a, _b, _c, _d;
         const definition = custom_element_js_1.CustomElementDefinition.getOrCreate(partialDefinition);
         if (definition.template === null || definition.template === void 0) {
             return definition;
@@ -54,6 +54,7 @@ class TemplateCompiler {
         return custom_element_js_1.CustomElementDefinition.create({
             ...partialDefinition,
             name: partialDefinition.name || custom_element_js_1.CustomElement.generateName(),
+            dependencies: ((_c = partialDefinition.dependencies) !== null && _c !== void 0 ? _c : kernel_1.emptyArray).concat((_d = context.deps) !== null && _d !== void 0 ? _d : kernel_1.emptyArray),
             instructions: context.rows,
             surrogates: isTemplateElement
                 ? this.surrogate(template, context)
@@ -1035,7 +1036,7 @@ class TemplateCompiler {
                 }
                 content.removeChild(bindableEl);
             }
-            context.register(custom_element_js_1.CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
+            context.addDep(custom_element_js_1.CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
             root.removeChild(localTemplate);
         }
     }
@@ -1128,9 +1129,11 @@ class CompilationContext {
         this.localEls = hasParent ? parent.localEls : new Set();
         this.rows = instructions !== null && instructions !== void 0 ? instructions : [];
     }
-    // todo: later can be extended to more (AttrPattern, command etc)
-    register(def) {
-        this.root.c.register(def);
+    addDep(dep) {
+        var _a;
+        var _b;
+        ((_a = (_b = this.root).deps) !== null && _a !== void 0 ? _a : (_b.deps = [])).push(dep);
+        this.root.c.register(dep);
     }
     h(name) {
         const el = this.p.document.createElement(name);

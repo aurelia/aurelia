@@ -3,7 +3,7 @@ const { resolve } = require('path');
 module.exports = function () {
   return {
     target: 'web',
-    mode: 'development',
+    mode: 'production',
     entry: {
       app: ['./app.js']
     },

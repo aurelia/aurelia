@@ -88,7 +88,7 @@ try {
               }
 
               this.cursors = cursors;
-              requestAnimationFrame(this.render);
+              requestIdleCallback(this.render);
             };
           }
 

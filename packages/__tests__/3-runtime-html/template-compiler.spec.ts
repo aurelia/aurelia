@@ -188,8 +188,8 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         assert.strictEqual(actual.instructions[0].length, 3, `actual.instructions[0].length`);
         const siblingInstructions = actual.instructions[0].slice(1);
         const expectedSiblingInstructions = [
-          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' },
-          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' }
+          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: CustomAttribute.getDefinition(Prop) },
+          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: CustomAttribute.getDefinition(Prop) }
         ];
         verifyInstructions(siblingInstructions, expectedSiblingInstructions);
         const rootInstructions = actual.instructions[0][0]['instructions'];
@@ -216,7 +216,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         );
         const rootInstructions = actual.instructions[0];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'res'], type: TT.hydrateElement, res: El }
+          { toVerify: ['type', 'res'], type: TT.hydrateElement, res: CustomElement.getDefinition(El) }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
 
@@ -335,7 +335,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
             const { instructions } = compileWith('<template><div as-element="not-div"></div></template>', [NotDiv]);
             verifyInstructions(instructions[0], [
               { toVerify: ['type', 'res'],
-                type: TT.hydrateElement, res: NotDiv }
+                type: TT.hydrateElement, res: CustomElement.getDefinition(NotDiv) }
             ]);
           });
 
@@ -355,7 +355,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
 
               verifyInstructions(instructions[0], [
                 { toVerify: ['type', 'res', 'to'],
-                  type: TT.hydrateTemplateController, res: 'if' }
+                  type: TT.hydrateTemplateController, res: container.find(CustomAttribute, 'if') }
               ]);
               const templateControllerInst = instructions[0][0] as HydrateTemplateController;
               verifyInstructions(templateControllerInst.instructions, [
@@ -365,7 +365,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
               const [hydrateNotDivInstruction] = templateControllerInst.def.instructions[0] as [HydrateElementInstruction];
               verifyInstructions([hydrateNotDivInstruction], [
                 { toVerify: ['type', 'res'],
-                  type: TT.hydrateElement, res: NotDiv }
+                  type: TT.hydrateElement, res: CustomElement.getDefinition(NotDiv) }
               ]);
               verifyInstructions(hydrateNotDivInstruction.instructions, []);
             });
@@ -690,7 +690,7 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
   }
 }
 
-function createTemplateController(ctx: TestContext, attr: string, target: string, value: string, tagName: string, finalize: boolean, childInstr?, childTpl?): CTCResult {
+function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: string, target: string, value: string, tagName: string, finalize: boolean, childInstr?, childTpl?): CTCResult {
   // multiple template controllers per element
   if (tagName == null) {
     const node = ctx.createElementFromMarkup(childTpl);
@@ -708,7 +708,7 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
     const rawMarkup = node.outerHTML;
     const instruction = {
       type: TT.hydrateTemplateController,
-      res: target,
+      res: resolveRes ? ctx.container.find(CustomAttribute, target)! : target,
       def: {
         ...defaultCustomElementDefinitionProperties,
         name: stringOrUnnamed(target),
@@ -746,7 +746,7 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
     }
     const instruction = {
       type: TT.hydrateTemplateController,
-      res: target,
+      res: resolveRes ? ctx.container.find(CustomAttribute, target)! : target,
       def: {
         ...defaultCustomElementDefinitionProperties,
         name: stringOrUnnamed(target),
@@ -778,7 +778,7 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
 
 function createCustomElement(
   ctx: TestContext,
-  tagName: string | Constructable,
+  tagNameOrDef: string | CustomElementDefinition,
   finalize: boolean,
   attributes: readonly [string, string][],
   childInstructions: readonly any[],
@@ -790,15 +790,15 @@ function createCustomElement(
 ): [PartialCustomElementDefinition, PartialCustomElementDefinition] {
   const instruction: Partial<HydrateElementInstruction> = {
     type: TT.hydrateElement,
-    res: tagName,
+    res: tagNameOrDef,
     instructions: childInstructions as IInstruction[],
     auSlot: null,
     containerless: false,
     projections: null,
   };
-  const def = typeof tagName === 'string'
-    ? ctx.container.find(CustomElement, tagName)
-    : CustomElement.getDefinition(tagName);
+  const def = typeof tagNameOrDef === 'string'
+    ? ctx.container.find(CustomElement, tagNameOrDef)
+    : tagNameOrDef;
   const exprParser = ctx.container.get(IExpressionParser);
   const attrParser = ctx.container.get(IAttributeParser);
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
@@ -846,7 +846,7 @@ function createCustomElement(
 
 function createCustomAttribute(
   ctx: TestContext,
-  resName: string,
+  attrNameOrDef: string | CustomAttributeDefinition,
   finalize: boolean,
   attributes: readonly [string, string][],
   childInstructions: readonly any[],
@@ -855,9 +855,10 @@ function createCustomAttribute(
   childOutput?,
   childInput?,
 ): [PartialCustomAttributeDefinition, PartialCustomAttributeDefinition] {
+  const resName = typeof attrNameOrDef === 'string' ? attrNameOrDef : attrNameOrDef.name;
   const instruction = {
     type: TT.hydrateAttribute,
-    res: resName,
+    res: attrNameOrDef,
     instructions: childInstructions
   };
   const attributeMarkup = attributes.map(a => `${a[0]}: ${a[1]};`).join('');
@@ -1097,10 +1098,10 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default }), BindingMode.default, 'bazBaz']
       ] as ((ctx: TestContext) => [Record<string, BindableDefinition> | undefined, BindingMode | undefined, string])[],
       [
-        (ctx) => ['foo',     '', class Foo {}],
+        (ctx) => ['foo',     '', class Foo1 {}],
         (ctx) => ['foo-foo', '', class FooFoo {}],
-        (ctx) => ['foo',     'bar', class Foo {}],
-        (ctx) => ['foo-foo', 'bar', class Foo {}]
+        (ctx) => ['foo',     'bar', class Foo2 {}],
+        (ctx) => ['foo-foo', 'bar', class Foo3 {}]
       ] as ((ctx: TestContext) => [string, string, Constructable])[],
       // PartialCustomAttributeDefinition.defaultBindingMode
       [
@@ -1119,48 +1120,50 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, [, , to],      [attr, value]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.twoWay }]
       ] as ((ctx: TestContext, $1: [Record<string, BindableDefinition>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]
     ],                       (ctx, [bindables], [attr, value, ctor], defaultBindingMode, [name, childInstruction]) => {
-      const def = { name: attr, defaultBindingMode, bindables };
-      const markup = `<div ${name}="${value}"></div>`;
-      const title = `${markup}  CustomAttribute=${JSON.stringify(def)}`;
-
-      it(title, function () {
-        const input: PartialCustomElementDefinition = {
-          template: markup,
-          instructions: [],
-          surrogates: [],
-        } as unknown as PartialCustomElementDefinition;
-        const instruction = {
-          type: TT.hydrateAttribute,
-          res: def.name,
-          instructions: [childInstruction],
-        };
-        const expected = {
-          ...defaultCustomElementDefinitionProperties,
-          // old behavior:
-          // template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`),
-          // new behavior
-          // todo: ability to configure whether attr should be removed
-          template: ctx.createElementFromMarkup(`<template><div class="au"></div></template>`),
-          instructions: [[instruction]],
-          surrogates: [],
-          needsCompile: false,
-          enhance: false,
-          watches: [],
-          processContent: null,
-        };
-
+      for (const resolveResources of [true, false]) {
+        const def = { name: attr, defaultBindingMode, bindables };
         const $def = CustomAttribute.define(def, ctor);
-        const { sut, container } = createFixture(ctx, $def);
+        const markup = `<div ${name}="${value}"></div>`;
+        const title = `${markup} [Resolve res: ${resolveResources}] CustomAttribute=${JSON.stringify(def)}`;
 
-        const actual = sut.compile(input, container, null);
+        it(title, function () {
+          const input: PartialCustomElementDefinition = {
+            template: markup,
+            instructions: [],
+            surrogates: [],
+          } as unknown as PartialCustomElementDefinition;
+          const instruction = {
+            type: TT.hydrateAttribute,
+            res: resolveResources ? CustomAttribute.getDefinition($def) : attr,
+            instructions: [childInstruction],
+          };
+          const expected = {
+            ...defaultCustomElementDefinitionProperties,
+            // old behavior:
+            // template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`),
+            // new behavior
+            // todo: ability to configure whether attr should be removed
+            template: ctx.createElementFromMarkup(`<template><div class="au"></div></template>`),
+            instructions: [[instruction]],
+            surrogates: [],
+            needsCompile: false,
+            enhance: false,
+            watches: [],
+            processContent: null,
+          };
 
-        verifyBindingInstructionsEqual(actual, expected);
-      });
+          const { sut, container } = createFixture(ctx, $def);
+          sut.resolveResources = resolveResources;
+
+          const actual = sut.compile(input, container, null);
+
+          verifyBindingInstructionsEqual(actual, expected);
+        });
+      }
     });
   });
 
   describe('custom attributes with multiple bindings', function () {
-
     eachCartesianJoinFactory([
       [
         TestContext.create
@@ -1196,91 +1199,113 @@ describe(`TemplateCompiler - combinations`, function () {
         // TODO: test fallback to attribute name when no matching binding exists (or throw if we don't want to support this)
       ] as ((ctx: TestContext, $1: string, $2: string, $3: Bindables, $4: [string, string]) => [BindableDefinition, string])[]
     ],                       (ctx, pdName, pdProp, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
-      const title = `div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`;
-      it(title, function () {
-        const FooBar = CustomAttribute.define({ name: 'asdf', bindables }, class FooBar {});
-        const { sut, container } = createFixture(
-          ctx,
-          FooBar
-        );
+      for (const resolveResources of [true, false]) {
+        const title = `[Resolve res: ${resolveResources}] div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`;
 
-        const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, true);
+        it(title, function () {
+          const FooBar = CustomAttribute.define({ name: 'asdf', bindables }, class FooBar {});
+          const FooBarDef = CustomAttribute.getDefinition(FooBar);
+          const { sut, container } = createFixture(
+            ctx,
+            FooBar
+          );
+          sut.resolveResources = resolveResources;
 
-        // IMPORTANT:
-        // ====================================
-        // before template compiler refactoring:
-        // const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[attrName, attrValue]], [instruction], [], []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
+          const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, true);
 
-        // after template compiler refactoring:
-        // reason: custom attribute should look & behave like style attribute
-        // we do: style="background-color: red" instead of style="backgroundColor: red"
-        //
-        // if for some reasons, this reasoning causes a lot of unintuitiveness in the template
-        // then consider reverting it
-        const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[kebabCase(attrName), attrValue]], [instruction], [], []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
-        const bindablesInfo = BindablesInfo.from(CustomAttribute.getDefinition(FooBar), true);
+          // IMPORTANT:
+          // ====================================
+          // before template compiler refactoring:
+          // const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[attrName, attrValue]], [instruction], [], []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
 
-        if (!bindablesInfo.attrs[kebabCase(attrName)]) {
-          assert.throws(() => sut.compile(input, container, null), `Bindable ${attrName} not found on asdf.`);
-        } else {
-          // enableTracing();
-          // Tracer.enableLiveLogging(SymbolTraceWriter);
-          const actual = sut.compile(input, container, null);
-          // console.log('\n'+stringifyTemplateDefinition(actual, 0));
-          // disableTracing();
-          try {
-            verifyBindingInstructionsEqual(actual, output);
-          } catch (err) {
-            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
-            throw err;
+          // after template compiler refactoring:
+          // reason: custom attribute should look & behave like style attribute
+          // we do: style="background-color: red" instead of style="backgroundColor: red"
+          //
+          // if for some reasons, this reasoning causes a lot of unintuitiveness in the template
+          // then consider reverting it
+          const [input, output] = createCustomAttribute(
+            ctx,
+            resolveResources ? FooBarDef : 'asdf',
+            true,
+            [[kebabCase(attrName), attrValue]],
+            [instruction],
+            [],
+            []
+          ) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
+          const bindablesInfo = BindablesInfo.from(CustomAttribute.getDefinition(FooBar), true);
+
+          if (!bindablesInfo.attrs[kebabCase(attrName)]) {
+            assert.throws(() => sut.compile(input, container, null), `Bindable ${attrName} not found on asdf.`);
+          } else {
+            // enableTracing();
+            // Tracer.enableLiveLogging(SymbolTraceWriter);
+            const actual = sut.compile(input, container, null);
+            // console.log('\n'+stringifyTemplateDefinition(actual, 0));
+            // disableTracing();
+            try {
+              verifyBindingInstructionsEqual(actual, output);
+            } catch (err) {
+              // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+              // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+              throw err;
+            }
           }
-        }
-      });
+        });
+      }
     });
   });
 
   describe('nested template controllers (one per element)', function () {
+    const Foo = CustomAttribute.define({ name: 'foo', isTemplateController: true }, class Foo {});
+    const Bar = CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar {});
+    const Baz = CustomAttribute.define({ name: 'baz', isTemplateController: true }, class Baz {});
+    const Qux = CustomAttribute.define({ name: 'qux', isTemplateController: true }, class Qux {});
 
     eachCartesianJoinFactory([
       [
-        TestContext.create
+        () => {
+          const ctx = TestContext.create();
+          ctx.container.register(Foo, Bar, Baz, Qux);
+          return ctx;
+        }
       ],
+      [() => true, () => false],
       [
-        (ctx) => createTemplateController(ctx, 'foo',        'foo',    '',              'div',      false),
-        (ctx) => createTemplateController(ctx, 'foo',        'foo',    'bar',           'div',      false),
-        (ctx) => createTemplateController(ctx, 'if.bind',    'if',     'show',          'div',      false),
-        (ctx) => createTemplateController(ctx, 'if.bind',    'if',     'show',          'template', false),
-        (ctx) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      false),
-        (ctx) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false)
+        (ctx, resolveRes) => createTemplateController(ctx, resolveRes, 'foo',        'foo',    '',              'div',      false),
+        (ctx, resolveRes) => createTemplateController(ctx, resolveRes, 'foo',        'foo',    'bar',           'div',      false),
+        (ctx, resolveRes) => createTemplateController(ctx, resolveRes, 'if.bind',    'if',     'show',          'div',      false),
+        (ctx, resolveRes) => createTemplateController(ctx, resolveRes, 'if.bind',    'if',     'show',          'template', false),
+        (ctx, resolveRes) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'div',      false),
+        (ctx, resolveRes) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'template', false)
       ] as ((ctx: TestContext) => CTCResult)[],
       [
-        (ctx, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.template),
-        (ctx, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.template),
-        (ctx, [input, output]) => createTemplateController(ctx, 'if.bind',    'if',     'show',          'div',      false, output.instructions[0][0], input.template),
-        (ctx, [input, output]) => createTemplateController(ctx, 'else',       'else',   '',              'div',      false, output.instructions[0][0], input.template),
-        (ctx, [input, output]) => createTemplateController(ctx, 'else',       'else',   '',              'template', false, output.instructions[0][0], input.template),
-        (ctx, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
-        (ctx, [input, output]) => createTemplateController(ctx, 'with.bind',  'with',   'foo',           'div',      false, output.instructions[0][0], input.template),
-        (ctx, [input, output]) => createTemplateController(ctx, 'with.bind',  'with',   'foo',           'template', false, output.instructions[0][0], input.template)
-      ] as ((ctx: TestContext, $1: CTCResult) => CTCResult)[],
+        (ctx, resolveRes, [input, output]) => createTemplateController(ctx, resolveRes, 'foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, [input, output]) => createTemplateController(ctx, resolveRes, 'foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, [input, output]) => createTemplateController(ctx, resolveRes, 'if.bind',    'if',     'show',          'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, [input, output]) => createTemplateController(ctx, resolveRes, 'else',       'else',   '',              'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, [input, output]) => createTemplateController(ctx, resolveRes, 'else',       'else',   '',              'template', false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, [input, output]) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, [input, output]) => createTemplateController(ctx, resolveRes, 'with.bind',  'with',   'foo',           'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, [input, output]) => createTemplateController(ctx, resolveRes, 'with.bind',  'with',   'foo',           'template', false, output.instructions[0][0], input.template)
+      ] as ((ctx: TestContext, resolveRes: boolean, $1: CTCResult) => CTCResult)[],
       [
-        (ctx, $1, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.template),
-        (ctx, $1, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.template),
-        (ctx, $1, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    'bar',           'template', false, output.instructions[0][0], input.template),
-        (ctx, $1, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
-        (ctx, $1, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.template)
-      ] as ((ctx: TestContext, $1: CTCResult, $2: CTCResult) => CTCResult)[],
+        (ctx, resolveRes, $1, [input, output]) => createTemplateController(ctx, resolveRes, 'foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, [input, output]) => createTemplateController(ctx, resolveRes, 'foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, [input, output]) => createTemplateController(ctx, resolveRes, 'foo',        'foo',    'bar',           'template', false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, [input, output]) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, [input, output]) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.template)
+      ] as ((ctx: TestContext, resolveRes: boolean, $1: CTCResult, $2: CTCResult) => CTCResult)[],
       [
-        (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'bar',        'bar',    '',              'div',      true, output.instructions[0][0], input.template),
-        (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'bar',        'bar',    'baz',           'div',      true, output.instructions[0][0], input.template),
-        (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'bar',        'bar',    'baz',           'template', true, output.instructions[0][0], input.template),
-        (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      true, output.instructions[0][0], input.template),
-        (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', true, output.instructions[0][0], input.template)
-      ] as ((ctx: TestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[]
-    ],                       (ctx, $1, $2, $3, [input, output]) => {
+        (ctx, resolveRes, $1, $2, [input, output]) => createTemplateController(ctx, resolveRes, 'bar',        'bar',    '',              'div',      true, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, $2, [input, output]) => createTemplateController(ctx, resolveRes, 'bar',        'bar',    'baz',           'div',      true, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, $2, [input, output]) => createTemplateController(ctx, resolveRes, 'bar',        'bar',    'baz',           'template', true, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, $2, [input, output]) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'div',      true, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, $2, [input, output]) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'template', true, output.instructions[0][0], input.template)
+      ] as ((ctx: TestContext, resolveRes: boolean, $1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[]
+    ],                       (ctx, resolveRes, $1, $2, $3, [input, output]) => {
 
-      it(`${input.template}`, function () {
+      it(`[Resolve res: ${resolveRes}] ${input.template}`, function () {
 
         const { sut, container } = createFixture(
           ctx,
@@ -1289,6 +1314,7 @@ describe(`TemplateCompiler - combinations`, function () {
           CustomAttribute.define({ name: 'baz', isTemplateController: true }, class Baz {}),
           CustomAttribute.define({ name: 'qux', isTemplateController: true }, class Qux {})
         );
+        sut.resolveResources = resolveRes;
 
         const actual = sut.compile(input, container, null);
         try {
@@ -1303,57 +1329,58 @@ describe(`TemplateCompiler - combinations`, function () {
   });
 
   describe('nested template controllers (multiple per element)', function () {
-
+    const Foo = CustomAttribute.define({ name: 'foo',  isTemplateController: true }, class Foo {});
+    const Bar = CustomAttribute.define({ name: 'bar',  isTemplateController: true }, class Bar {});
+    const Baz = CustomAttribute.define({ name: 'baz',  isTemplateController: true }, class Baz {});
+    const Qux = CustomAttribute.define({ name: 'qux',  isTemplateController: true }, class Qux {});
+    const Quux = CustomAttribute.define({ name: 'quux', isTemplateController: true }, class Quux {});
     eachCartesianJoinFactory([
       [
-        TestContext.create
+        () => {
+          const ctx = TestContext.create();
+          ctx.container.register(Foo, Bar, Baz, Qux, Quux);
+          return ctx;
+        }
       ],
+      [() => true, () => false],
       [
-        (ctx) => createTemplateController(ctx, 'foo',        'foo',    '',              'div',      false),
-        (ctx) => createTemplateController(ctx, 'foo',        'foo',    'bar',           'div',      false),
-        (ctx) => createTemplateController(ctx, 'if.bind',    'if',     'show',          'div',      false),
-        (ctx) => createTemplateController(ctx, 'if.bind',    'if',     'show',          'template', false),
-        (ctx) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      false),
-        (ctx) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false)
-      ] as ((ctx: TestContext) => CTCResult)[],
+        (ctx, resolveRes) => createTemplateController(ctx, resolveRes, 'foo',        'foo',    '',              'div',      false),
+        (ctx, resolveRes) => createTemplateController(ctx, resolveRes, 'foo',        'foo',    'bar',           'div',      false),
+        (ctx, resolveRes) => createTemplateController(ctx, resolveRes, 'if.bind',    'if',     'show',          'div',      false),
+        (ctx, resolveRes) => createTemplateController(ctx, resolveRes, 'if.bind',    'if',     'show',          'template', false),
+        (ctx, resolveRes) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'div',      false),
+        (ctx, resolveRes) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'template', false)
+      ] as ((ctx: TestContext, resolveRes: boolean) => CTCResult)[],
       [
-        (ctx, [input, output]) => createTemplateController(ctx, 'bar',        'bar',    '',              null,       false, output.instructions[0][0], input.template),
-        (ctx, [input, output]) => createTemplateController(ctx, 'else',       'else',   '',              null,       false, output.instructions[0][0], input.template),
-        (ctx, [input, output]) => createTemplateController(ctx, 'with.bind',  'with',   'foo',           null,       false, output.instructions[0][0], input.template)
-      ] as ((ctx: TestContext, $1: CTCResult) => CTCResult)[],
+        (ctx, resolveRes, [input, output]) => createTemplateController(ctx, resolveRes, 'bar',        'bar',    '',              null,       false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, [input, output]) => createTemplateController(ctx, resolveRes, 'else',       'else',   '',              null,       false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, [input, output]) => createTemplateController(ctx, resolveRes, 'with.bind',  'with',   'foo',           null,       false, output.instructions[0][0], input.template)
+      ] as ((ctx: TestContext, resolveRes: boolean, $1: CTCResult) => CTCResult)[],
       [
-        (ctx, $1, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.template),
-        (ctx, $1, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.template),
-        (ctx, $1, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    'bar',           'template', false, output.instructions[0][0], input.template),
-        (ctx, $1, [input, output]) => createTemplateController(ctx, 'baz',        'baz',    '',              null,       false, output.instructions[0][0], input.template),
-        (ctx, $1, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
-        (ctx, $1, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.template)
-      ] as ((ctx: TestContext, $1: CTCResult, $2: CTCResult) => CTCResult)[],
+        (ctx, resolveRes, $1, [input, output]) => createTemplateController(ctx, resolveRes, 'foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, [input, output]) => createTemplateController(ctx, resolveRes, 'foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, [input, output]) => createTemplateController(ctx, resolveRes, 'foo',        'foo',    'bar',           'template', false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, [input, output]) => createTemplateController(ctx, resolveRes, 'baz',        'baz',    '',              null,       false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, [input, output]) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, [input, output]) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.template)
+      ] as ((ctx: TestContext, resolveRes: boolean, $1: CTCResult, $2: CTCResult) => CTCResult)[],
       [
-        (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'qux',        'qux',    '',              null,       false, output.instructions[0][0], input.template),
-        (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'if.bind',    'if',     '',              'template', false, output.instructions[0][0], input.template),
-        (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'if.bind',    'if',     '',              'div',      false, output.instructions[0][0], input.template),
-        (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
-        (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.template)
-      ] as ((ctx: TestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[],
+        (ctx, resolveRes, $1, $2, [input, output]) => createTemplateController(ctx, resolveRes, 'qux',        'qux',    '',              null,       false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, $2, [input, output]) => createTemplateController(ctx, resolveRes, 'if.bind',    'if',     '',              'template', false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, $2, [input, output]) => createTemplateController(ctx, resolveRes, 'if.bind',    'if',     '',              'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, $2, [input, output]) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
+        (ctx, resolveRes, $1, $2, [input, output]) => createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.template)
+      ] as ((ctx: TestContext, resolveRes: boolean, $1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[],
       [
-        (ctx, $1, $2, $3, [input, output]) => createTemplateController(ctx, 'quux',       'quux',   '',              null,       true, output.instructions[0][0], input.template)
-      ] as ((ctx: TestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult, $4: CTCResult) => CTCResult)[]
+        (ctx, resolveRes, $1, $2, $3, [input, output]) => createTemplateController(ctx, resolveRes, 'quux',       'quux',   '',              null,       true, output.instructions[0][0], input.template)
+      ] as ((ctx: TestContext, resolveRes: boolean, $1: CTCResult, $2: CTCResult, $3: CTCResult, $4: CTCResult) => CTCResult)[]
     ],
-    (ctx, $1, $2, $3, $4, [input, output]) => {
-
-      it(`${input.template}`, function () {
-
-        const { sut, container } = createFixture(
-          ctx,
-          CustomAttribute.define({ name: 'foo',  isTemplateController: true }, class Foo {}),
-          CustomAttribute.define({ name: 'bar',  isTemplateController: true }, class Bar {}),
-          CustomAttribute.define({ name: 'baz',  isTemplateController: true }, class Baz {}),
-          CustomAttribute.define({ name: 'qux',  isTemplateController: true }, class Qux {}),
-          CustomAttribute.define({ name: 'quux', isTemplateController: true }, class Quux {})
-        );
-
+    (ctx, resolveRes, $1, $2, $3, $4, [input, output]) => {
+      it(`[Resolve res: ${resolveRes}] ${input.template}`, function () {
+        const { sut, container } = createFixture(ctx);
+        sut.resolveResources = resolveRes;
         const actual = sut.compile(input, container, null);
+
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch (err) {
@@ -1366,51 +1393,57 @@ describe(`TemplateCompiler - combinations`, function () {
   });
 
   describe('sibling template controllers', function () {
+    const Foo = CustomAttribute.define({ name: 'foo', isTemplateController: true }, class Foo {});
+    const Bar = CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar {});
+    const Baz = CustomAttribute.define({ name: 'baz', isTemplateController: true }, class Baz {});
 
     eachCartesianJoinFactory([
       [
-        TestContext.create
+        () => {
+          const ctx = TestContext.create();
+          ctx.container.register(Foo, Bar, Baz);
+          return ctx;
+        }
       ],
+      [() => true, () => false],
       [
-        (ctx) => []
+        (ctx, resolveRes) => []
       ] as ((ctx: TestContext) => CTCResult[])[],
       [
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    '',              'div', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    '',              'template', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    'bar',           'div', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'if.bind',    'if',     'show',          'div', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div', false)); }
-      ] as ((ctx: TestContext, results: CTCResult[]) => void)[],
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'foo',        'foo',    '',              'div', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'foo',        'foo',    '',              'template', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'foo',        'foo',    'bar',           'div', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'if.bind',    'if',     'show',          'div', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'div', false)); },
+      ] as ((ctx: TestContext, resolveResources: boolean, results: CTCResult[]) => void)[],
       [
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    '',              'div', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    'bar',           'div', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'if.bind',    'if',     'show',          'div', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'if.bind',    'if',     'show',          'template', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'else',       'else',   '',              'div', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'with.bind',  'with',   'bar',           'div', false)); }
-      ] as ((ctx: TestContext, results: CTCResult[]) => void)[],
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'foo',        'foo',    '',              'div', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'foo',        'foo',    'bar',           'div', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'if.bind',    'if',     'show',          'div', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'if.bind',    'if',     'show',          'template', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'else',       'else',   '',              'div', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'div', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'template', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'with.bind',  'with',   'bar',           'div', false)); }
+      ] as ((ctx: TestContext, resolveResources: boolean, results: CTCResult[]) => void)[],
       [
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    '',              'div', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    'bar',           'div', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div', false)); },
-        (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false)); }
-      ] as ((ctx: TestContext, results: CTCResult[]) => void)[]
-    ],                       (ctx, [[input1, output1], [input2, output2], [input3, output3]]) => {
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'foo',        'foo',    '',              'div', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'foo',        'foo',    'bar',           'div', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'div', false)); },
+        (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'repeat.for', 'repeat', 'item of items', 'template', false)); }
+      ] as ((ctx: TestContext, resolveResources: boolean, results: CTCResult[]) => void)[]
+    ],                       (ctx, resolveRes, [[input1, output1], [input2, output2], [input3, output3]]) => {
       const input: PartialCustomElementDefinition = {
         template: `<div>${input1.template}${input2.template}${input3.template}</div>`,
         instructions: []
       } as unknown as PartialCustomElementDefinition;
 
-      it(`${input.template}`, function () {
+      it(`[Resolve res: ${resolveRes}] ${input.template}`, function () {
 
         const { sut, container } = createFixture(
           ctx,
-          CustomAttribute.define({ name: 'foo', isTemplateController: true }, class Foo {}),
-          CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar {}),
-          CustomAttribute.define({ name: 'baz', isTemplateController: true }, class Baz {})
         );
+        sut.resolveResources = resolveRes;
 
         const output = {
           ...defaultCustomElementDefinitionProperties,
@@ -1499,7 +1532,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
             const [input, output] = createCustomElement(
               ctx,
-              resolveResources ? FooBar : 'foobar',
+              resolveResources ? CustomElement.getDefinition(FooBar) : 'foobar',
               true,
               [[attrName, attrValue]],
               childInstructions,
@@ -1544,6 +1577,9 @@ describe(`TemplateCompiler - combinations`, function () {
     const Foo = CustomElement.define({ name: 'foo' }, class Foo {});
     const Bar = CustomElement.define({ name: 'bar' }, class Bar {});
     const Baz = CustomElement.define({ name: 'baz' }, class Baz {});
+    const FooDef = CustomElement.getDefinition(Foo);
+    const BarDef = CustomElement.getDefinition(Bar);
+    const BazDef = CustomElement.getDefinition(Baz);
 
     function prepareElements(ctx: TestContext) {
       ctx.container.register(Foo, Bar, Baz);
@@ -1558,9 +1594,9 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => false,
       ],
       [
-        (ctx, resolveResources) => createCustomElement(ctx, resolveResources ? Foo : `foo`, true, [], [], [], []),
-        (ctx, resolveResources) => createCustomElement(ctx, resolveResources ? Bar : `bar`, true, [], [], [], []),
-        (ctx, resolveResources) => createCustomElement(ctx, resolveResources ? Baz : `baz`, true, [], [], [], [])
+        (ctx, resolveResources) => createCustomElement(ctx, resolveResources ? FooDef : `foo`, true, [], [], [], []),
+        (ctx, resolveResources) => createCustomElement(ctx, resolveResources ? BarDef : `bar`, true, [], [], [], []),
+        (ctx, resolveResources) => createCustomElement(ctx, resolveResources ? BazDef : `baz`, true, [], [], [], [])
       ] as ((ctx: TestContext, resolveResources: boolean) => CTCResult)[]
       // <(($1: CTCResult) => CTCResult)[]>[
       //   ([input, output]) => createCustomElement(`foo`, false, [], [], [], output.instructions, output, input),
@@ -2080,7 +2116,7 @@ describe('TemplateCompiler - au-slot', function () {
         const actualInstruction = allInstructions.find((i) =>
           i.type === InstructionType.hydrateElement
           && (typeof (i as HEI).res === 'string' && ((i as HEI).res as string).includes('au-slot')
-            || (i as HEI).res === AuSlot
+            || (i as HEI).res === CustomElement.getDefinition(AuSlot)
           )
           && (i as HydrateElementInstruction).auSlot.name === expectedSlotInfo.slotName
         ) as HydrateElementInstruction;
@@ -2100,7 +2136,7 @@ describe('TemplateCompiler - au-slot', function () {
         const elementInstruction = allInstructions.find(i =>
           i.type === InstructionType.hydrateElement
           && (typeof (i as HEI).res === 'string' && ((i as HEI).res as string) === elName
-            || (i as HEI).res === container.find(CustomElement, elName).Type
+            || (i as HEI).res === container.find(CustomElement, elName)
           )
         ) as HydrateElementInstruction;
         assert.notEqual(elementInstruction, void 0, `Instruction for element "${elName}" missing`);

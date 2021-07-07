@@ -203,7 +203,10 @@ export class TemplateCompiler implements ITemplateCompiler {
         --i;
         --ii;
         (attrInstructions ??= []).push(new HydrateAttributeInstruction(
-          attrDef.name,
+          // todo: def/ def.Type or def.name should be configurable
+          //       example: AOT/runtime can use def.Type, but there are situation
+          //       where instructions need to be serialized, def.name should be used
+          this.resolveResources ? attrDef : attrDef.name,
           attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
           attrBindableInstructions
         ));
@@ -516,13 +519,19 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (attrDef.isTemplateController) {
           (tcInstructions ??= []).push(new HydrateTemplateController(
             voidDefinition,
-            attrDef.name,
+            // todo: def/ def.Type or def.name should be configurable
+            //       example: AOT/runtime can use def.Type, but there are situation
+            //       where instructions need to be serialized, def.name should be used
+            this.resolveResources ? attrDef : attrDef.name,
             void 0,
             attrBindableInstructions,
           ));
         } else {
           (attrInstructions ??= []).push(new HydrateAttributeInstruction(
-            attrDef.name,
+            // todo: def/ def.Type or def.name should be configurable
+            //       example: AOT/runtime can use def.Type, but there are situation
+            //       where instructions need to be serialized, def.name should be used
+            this.resolveResources ? attrDef : attrDef.name,
             attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
             attrBindableInstructions
           ));
@@ -632,10 +641,10 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     if (elDef !== null) {
       elementInstruction = new HydrateElementInstruction(
-        // todo: elDef.Type or elDef.name should be configurable
-        //       example: AOT/runtime can use elDef.Type, but there are situation
-        //       where instructions need to be serialized, elDef.name should be used
-        this.resolveResources ? elDef.Type : elDef.name,
+        // todo: def/ def.Type or def.name should be configurable
+        //       example: AOT/runtime can use def.Type, but there are situation
+        //       where instructions need to be serialized, def.name should be used
+        this.resolveResources ? elDef : elDef.name,
         void 0,
         (elBindableInstructions ?? emptyArray) as IInstruction[],
         null,

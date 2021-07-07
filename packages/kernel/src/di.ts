@@ -1216,9 +1216,9 @@ export class Container implements IContainer {
   }
 
   public disposeResolvers() {
-    const disposables = Array.from(this.disposableResolvers);
-    while (disposables.length > 0) {
-      disposables.pop()?.dispose();
+    let disposeable: IDisposable;
+    for (disposeable of this.disposableResolvers) {
+      disposeable.dispose();
     }
   }
 
@@ -1269,7 +1269,9 @@ export class Container implements IContainer {
   }
 
   public dispose(): void {
-    this.disposeResolvers();
+    if (this.disposableResolvers.size > 0) {
+      this.disposeResolvers();
+    }
     this.resolvers.clear();
   }
 

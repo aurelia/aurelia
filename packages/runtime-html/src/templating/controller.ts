@@ -1164,16 +1164,14 @@ function createChildrenObservers(
   return emptyArray;
 }
 
-const AccessScopeAst = {
-  map: new Map<PropertyKey, AccessScopeExpression>(),
-  for(key: PropertyKey) {
-    let ast = AccessScopeAst.map.get(key);
-    if (ast == null) {
-      ast = new AccessScopeExpression(key as string, 0);
-      AccessScopeAst.map.set(key, ast);
-    }
-    return ast;
-  },
+const AccessScopeAstMap = new Map<PropertyKey, AccessScopeExpression>();
+const getAccessScopeAst = (key: PropertyKey) => {
+  let ast = AccessScopeAstMap.get(key);
+  if (ast == null) {
+    ast = new AccessScopeExpression(key as string, 0);
+    AccessScopeAstMap.set(key, ast);
+  }
+  return ast;
 };
 
 function createWatchers(
@@ -1187,13 +1185,13 @@ function createWatchers(
   const watches = definition.watches;
   const scope: Scope = controller.vmKind === ViewModelKind.customElement
     ? controller.scope!
+    // custom attribute does not have own scope
     : Scope.create(instance, null, true);
   const ii = watches.length;
   let expression: IWatchDefinition['expression'];
   let callback: IWatchDefinition['callback'];
   let ast: IsBindingBehavior;
   let i = 0;
-  // custom attribute does not have own scope
 
   for (; ii > i; ++i) {
     ({ expression, callback } = watches[i]);
@@ -1216,7 +1214,7 @@ function createWatchers(
     } else {
       ast = typeof expression === 'string'
         ? expressionParser.parse(expression, BindingType.BindCommand)
-        : AccessScopeAst.for(expression);
+        : getAccessScopeAst(expression);
 
       controller.addBinding(new ExpressionWatcher(
         scope,

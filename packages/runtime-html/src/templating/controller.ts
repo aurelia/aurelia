@@ -239,12 +239,18 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     viewModel: C,
     host: HTMLElement,
     flags: LifecycleFlags = LifecycleFlags.none,
+    /**
+     * The definition that will be used to hydrate the custom attribute view model
+     *
+     * If not given, will be the one associated with the constructor of the attribute view model given.
+     */
+    definition?: CustomAttributeDefinition,
   ): ICustomAttributeController<C> {
     if (controllerLookup.has(viewModel)) {
       return controllerLookup.get(viewModel) as unknown as ICustomAttributeController<C>;
     }
 
-    const definition = CustomAttribute.getDefinition(viewModel.constructor as Constructable);
+    definition = definition ?? CustomAttribute.getDefinition(viewModel.constructor as Constructable);
 
     const controller = new Controller<C>(
       /* root           */root,

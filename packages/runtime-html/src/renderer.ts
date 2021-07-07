@@ -475,6 +475,7 @@ export class CustomElementRenderer implements IRenderer {
       /* parentController */renderingController,
       /* host             */target,
       /* instruction      */instruction,
+      /* location         */target,
       /* auSlotsInfo      */projections == null ? void 0 : new AuSlotsInfo(Object.keys(projections)),
     );
     switch (typeof res) {
@@ -1064,6 +1065,7 @@ function createElementContainer(
   renderingController: IController,
   host: HTMLElement,
   instruction: HydrateElementInstruction,
+  location?: IRenderLocation,
   auSlotsInfo?: IAuSlotsInfo,
 ): IContainer {
   const p = renderingController.platform;
@@ -1083,7 +1085,9 @@ function createElementContainer(
   );
   container.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingController));
   container.registerResolver(IInstruction, new InstanceProvider(instructionProviderName, instruction));
-  container.registerResolver(IRenderLocation, noLocationProvider);
+  container.registerResolver(IRenderLocation, location == null
+    ? noLocationProvider
+    : new InstanceProvider(locationProviderName, location));
   container.registerResolver(IViewFactory, noViewFactoryProvider);
   container.registerResolver(IAuSlotsInfo, auSlotsInfo == null
     ? noAuSlotProvider
@@ -1094,7 +1098,7 @@ function createElementContainer(
 }
 
 class ViewFactoryProvider implements IResolver {
-  private f: IViewFactory | null;
+  private readonly f: IViewFactory | null;
   public get $isResolver(): true { return true; }
 
   public constructor(

@@ -139,7 +139,7 @@ export class BindingBehaviorFactory<T extends Constructable = Constructable> {
       case 4:
         return new this.Type(container.get(deps[0]), container.get(deps[1]), binding, expr) as unknown as IInterceptableBinding;
       default:
-        return new this.Type(...deps.map(d => container.get(d)), binding, expr) as unknown as IInterceptableBinding;
+        return new this.Type(...deps.map(d => container.get(d) as unknown), binding, expr) as unknown as IInterceptableBinding;
     }
   }
 }
@@ -200,13 +200,13 @@ export class BindingInterceptor implements IInterceptableBinding {
     return this.binding.callSource!(args);
   }
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    this.binding.handleChange!(newValue, previousValue, flags);
+    this.binding.handleChange(newValue, previousValue, flags);
   }
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
     this.binding.handleCollectionChange(indexMap, flags);
   }
   public observeProperty(obj: object, key: string): void {
-    this.binding.observeProperty!(obj, key as string);
+    this.binding.observeProperty(obj, key);
   }
   public observeCollection(observer: Collection): void {
     this.binding.observeCollection(observer);
@@ -237,7 +237,7 @@ export const BindingBehavior: BindingBehaviorKind = {
     return definition.Type as BindingBehaviorType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T> {
-    const def = Metadata.getOwn(BindingBehavior.name, Type);
+    const def = Metadata.getOwn(BindingBehavior.name, Type) as BindingBehaviorDefinition<T>;
     if (def === void 0) {
       throw new Error(`No definition found for type ${Type.name}`);
     }
@@ -248,6 +248,6 @@ export const BindingBehavior: BindingBehaviorKind = {
     Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
   },
   getAnnotation<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K): PartialBindingBehaviorDefinition[K] {
-    return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
+    return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type) as PartialBindingBehaviorDefinition[K];
   },
 };

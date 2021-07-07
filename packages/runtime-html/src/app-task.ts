@@ -65,6 +65,7 @@ export type AppTaskCallbackNoArg = () => void | Promise<void>;
 export type AppTaskCallback<T> = (arg: Resolved<T>) => void | Promise<void>;
 
 function createAppTaskSlotHook(slotName: TaskSlot) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function appTaskFactory<T extends Key = Key>(callback: AppTaskCallbackNoArg): IRegistry;
   function appTaskFactory<T extends Key = Key>(key: T, callback: AppTaskCallback<T>): IRegistry;
   function appTaskFactory<T extends Key = Key>(keyOrCallback: T | AppTaskCallback<T> | AppTaskCallbackNoArg, callback?: AppTaskCallback<T>): IRegistry {

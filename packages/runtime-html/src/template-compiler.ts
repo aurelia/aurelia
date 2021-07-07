@@ -34,7 +34,7 @@ import type {
 import type { AnyBindingExpression } from '@aurelia/runtime';
 import type { CustomAttributeDefinition } from './resources/custom-attribute.js';
 import type { PartialCustomElementDefinition } from './resources/custom-element.js';
-import type { IProjections } from './resources/custom-elements/au-slot.js';
+import type { IProjections } from './resources/slot-injectables.js';
 import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command.js';
 import type { ICompliationInstruction, IInstruction, } from './renderer.js';
 
@@ -44,6 +44,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   public debug: boolean = false;
+  public resolveResources: boolean = true;
 
   public compile(
     partialDefinition: PartialCustomElementDefinition,
@@ -202,7 +203,10 @@ export class TemplateCompiler implements ITemplateCompiler {
         --i;
         --ii;
         (attrInstructions ??= []).push(new HydrateAttributeInstruction(
-          attrDef.name,
+          // todo: def/ def.Type or def.name should be configurable
+          //       example: AOT/runtime can use def.Type, but there are situation
+          //       where instructions need to be serialized, def.name should be used
+          this.resolveResources ? attrDef : attrDef.name,
           attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
           attrBindableInstructions
         ));
@@ -515,13 +519,19 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (attrDef.isTemplateController) {
           (tcInstructions ??= []).push(new HydrateTemplateController(
             voidDefinition,
-            attrDef.name,
+            // todo: def/ def.Type or def.name should be configurable
+            //       example: AOT/runtime can use def.Type, but there are situation
+            //       where instructions need to be serialized, def.name should be used
+            this.resolveResources ? attrDef : attrDef.name,
             void 0,
             attrBindableInstructions,
           ));
         } else {
           (attrInstructions ??= []).push(new HydrateAttributeInstruction(
-            attrDef.name,
+            // todo: def/ def.Type or def.name should be configurable
+            //       example: AOT/runtime can use def.Type, but there are situation
+            //       where instructions need to be serialized, def.name should be used
+            this.resolveResources ? attrDef : attrDef.name,
             attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
             attrBindableInstructions
           ));
@@ -631,7 +641,10 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     if (elDef !== null) {
       elementInstruction = new HydrateElementInstruction(
-        elDef.name,
+        // todo: def/ def.Type or def.name should be configurable
+        //       example: AOT/runtime can use def.Type, but there are situation
+        //       where instructions need to be serialized, def.name should be used
+        this.resolveResources ? elDef : elDef.name,
         void 0,
         (elBindableInstructions ?? emptyArray) as IInstruction[],
         null,

@@ -1,19 +1,14 @@
-import { DI } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom.js';
 import { customElement } from '../custom-element.js';
 import { IInstruction } from '../../renderer.js';
 import { IHydrationContext } from '../../templating/controller.js';
 import { getRenderContext } from '../../templating/render-context.js';
-import { IViewFactory } from '../../templating/view.js';
 
 import type { Writable } from '@aurelia/kernel';
 import type { LifecycleFlags, Scope } from '@aurelia/runtime';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
-import type { CustomElementDefinition } from '../custom-element.js';
+import type { IViewFactory } from '../../templating/view.js';
 import type { HydrateElementInstruction } from '../../renderer.js';
-
-export type IProjections = Record<string, CustomElementDefinition>;
-export const IProjections = DI.createInterface<IProjections>("IProjections");
 
 export class AuSlot implements ICustomElementViewModel {
   /** @internal */
@@ -83,14 +78,3 @@ export class AuSlot implements ICustomElementViewModel {
 }
 
 customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
-
-export interface IAuSlotsInfo extends AuSlotsInfo { }
-export const IAuSlotsInfo = DI.createInterface<IAuSlotsInfo>('AuSlotsInfo');
-export class AuSlotsInfo {
-  /**
-   * @param {string[]} projectedSlots - Name of the slots to which content are projected.
-   */
-  public constructor(
-    public readonly projectedSlots: string[],
-  ) { }
-}

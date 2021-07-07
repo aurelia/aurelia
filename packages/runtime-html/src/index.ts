@@ -429,10 +429,12 @@ export {
 
 export {
   AuSlot,
+} from './resources/custom-elements/au-slot.js';
+export {
   IProjections,
   AuSlotsInfo,
   IAuSlotsInfo,
-} from './resources/custom-elements/au-slot.js';
+} from './resources/slot-injectables.js';
 
 export {
   containerless,

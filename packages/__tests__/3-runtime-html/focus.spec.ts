@@ -3,10 +3,16 @@ import { CustomElement, Aurelia, Focus } from '@aurelia/runtime-html';
 import { PLATFORM, assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
 
 describe('focus.spec.ts', function () {
-
-  // if (!PLATFORM.isBrowserLike) {
-  //   return;
-  // }
+  // there are focus/blur API that won't work with JSDOM
+  // example of error thrown:
+  // Error: Not implemented: window.blur
+  // at module.exports (/home/circleci/repo/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+  // at Window.blur (/home/circleci/repo/node_modules/jsdom/lib/jsdom/browser/Window.js:563:7)
+  // at assertionFn (file:///home/circleci/repo/packages/__tests__/dist/esm/__tests__/3-runtime-html/focus.spec.js:231:25)
+  // at Context.<anonymous> (file:///home/circleci/repo/packages/__tests__/dist/esm/__tests__/3-runtime-html/focus.spec.js:282:23) undefined
+  if (typeof process !== 'undefined') {
+    return;
+  }
 
   interface IApp {
     hasFocus?: boolean;

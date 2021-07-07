@@ -42,7 +42,7 @@ import type {
   IObservable,
   IsBindingBehavior,
 } from '@aurelia/runtime';
-import type { IProjections } from '../resources/custom-elements/au-slot.js';
+import type { IProjections } from '../resources/slot-injectables.js';
 import type { BindableDefinition } from '../bindable.js';
 import type { LifecycleHooksLookup } from './lifecycle-hooks.js';
 import type { INode, INodeSequence, IRenderLocation } from '../dom.js';
@@ -183,6 +183,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(
     root: IAppRoot | null,
+    // todo: it's not a great API that both parent and child containers
+    //       are required to instantiate a controller
+    //       though refactoring this won't be simple. Should be done after other refactorings
     contextCt: IContainer,
     ownCt: IContainer,
     viewModel: C,
@@ -236,12 +239,18 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     viewModel: C,
     host: HTMLElement,
     flags: LifecycleFlags = LifecycleFlags.none,
+    /**
+     * The definition that will be used to hydrate the custom attribute view model
+     *
+     * If not given, will be the one associated with the constructor of the attribute view model given.
+     */
+    definition?: CustomAttributeDefinition,
   ): ICustomAttributeController<C> {
     if (controllerLookup.has(viewModel)) {
       return controllerLookup.get(viewModel) as unknown as ICustomAttributeController<C>;
     }
 
-    const definition = CustomAttribute.getDefinition(viewModel.constructor as Constructable);
+    definition = definition ?? CustomAttribute.getDefinition(viewModel.constructor as Constructable);
 
     const controller = new Controller<C>(
       /* root           */root,
@@ -610,7 +619,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.nodes!.appendTo(this.host!, (this.definition as CustomElementDefinition | null)?.enhance);
         break;
       case MountTarget.shadowRoot: {
-        const container = this.context!.container;
+        const container = this.container;
         const styles = container.has(IShadowDOMStyles, false)
           ? container.get(IShadowDOMStyles)
           : container.get(IShadowDOMGlobalStyles);
@@ -1155,16 +1164,14 @@ function createChildrenObservers(
   return emptyArray;
 }
 
-const AccessScopeAst = {
-  map: new Map<PropertyKey, AccessScopeExpression>(),
-  for(key: PropertyKey) {
-    let ast = AccessScopeAst.map.get(key);
-    if (ast == null) {
-      ast = new AccessScopeExpression(key as string, 0);
-      AccessScopeAst.map.set(key, ast);
-    }
-    return ast;
-  },
+const AccessScopeAstMap = new Map<PropertyKey, AccessScopeExpression>();
+const getAccessScopeAst = (key: PropertyKey) => {
+  let ast = AccessScopeAstMap.get(key);
+  if (ast == null) {
+    ast = new AccessScopeExpression(key as string, 0);
+    AccessScopeAstMap.set(key, ast);
+  }
+  return ast;
 };
 
 function createWatchers(
@@ -1178,13 +1185,13 @@ function createWatchers(
   const watches = definition.watches;
   const scope: Scope = controller.vmKind === ViewModelKind.customElement
     ? controller.scope!
+    // custom attribute does not have own scope
     : Scope.create(instance, null, true);
   const ii = watches.length;
   let expression: IWatchDefinition['expression'];
   let callback: IWatchDefinition['callback'];
   let ast: IsBindingBehavior;
   let i = 0;
-  // custom attribute does not have own scope
 
   for (; ii > i; ++i) {
     ({ expression, callback } = watches[i]);
@@ -1207,7 +1214,7 @@ function createWatchers(
     } else {
       ast = typeof expression === 'string'
         ? expressionParser.parse(expression, BindingType.BindCommand)
-        : AccessScopeAst.for(expression);
+        : getAccessScopeAst(expression);
 
       controller.addBinding(new ExpressionWatcher(
         scope,

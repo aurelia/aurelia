@@ -1,14 +1,12 @@
-import { INode, INodeSequence, IRenderLocation } from '../dom.js';
+import { INode, INodeSequence } from '../dom.js';
 import { IInstruction, ICompliationInstruction } from '../renderer.js';
 import { CustomElementDefinition } from '../resources/custom-element.js';
 import { IViewFactory } from './view.js';
-import { IAuSlotsInfo } from '../resources/custom-elements/au-slot.js';
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
 import type { IContainer } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
-import type { ICustomAttributeViewModel, IHydratableController } from './controller.js';
-import type { HydrateAttributeInstruction, HydrateTemplateController, HydrateElementInstruction } from '../renderer.js';
+import type { IHydratableController } from './controller.js';
 import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 export declare function isRenderContext(value: unknown): value is IRenderContext;
 /**
@@ -60,14 +58,6 @@ export interface ICompiledRenderContext extends IRenderContext {
      * @returns An new instance of `INodeSequence` if there is a template, otherwise a shared empty instance.
      */
     createNodes(): INodeSequence;
-    /**
-     * Prepare a new container to associate with a custom element instance
-     */
-    createElementContainer(parentController: IController, host: HTMLElement, instruction: HydrateElementInstruction, viewFactory?: IViewFactory, location?: IRenderLocation, auSlotsInfo?: IAuSlotsInfo): IContainer;
-    /**
-     * Instantiate a custom attribute
-     */
-    invokeAttribute(parentController: IController, host: HTMLElement, instruction: HydrateAttributeInstruction | HydrateTemplateController, viewFactory?: IViewFactory, location?: IRenderLocation, auSlotsInfo?: IAuSlotsInfo): ICustomAttributeViewModel;
     render(flags: LifecycleFlags, controller: IController, targets: ArrayLike<INode>, templateDefinition: CustomElementDefinition, host: INode | null | undefined): void;
     renderChildren(flags: LifecycleFlags, instructions: readonly IInstruction[], controller: IController, target: unknown): void;
 }
@@ -80,12 +70,6 @@ export declare class RenderContext implements ICompiledRenderContext {
     get id(): number;
     readonly root: IContainer;
     readonly container: IContainer;
-    private readonly parentControllerProvider;
-    private readonly elementProvider;
-    private readonly instructionProvider;
-    private readonly factoryProvider;
-    private readonly renderLocationProvider;
-    private readonly auSlotsInfoProvider;
     private fragment;
     private factory;
     private isCompiled;
@@ -96,9 +80,6 @@ export declare class RenderContext implements ICompiledRenderContext {
     compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext;
     getViewFactory(name?: string): IViewFactory;
     createNodes(): INodeSequence;
-    createElementContainer(parentController: IController, host: HTMLElement, instruction: HydrateElementInstruction, viewFactory?: IViewFactory, location?: IRenderLocation, auSlotsInfo?: IAuSlotsInfo): IContainer;
-    resourceInvoker: IContainer | null;
-    invokeAttribute(parentController: IController, host: HTMLElement, instruction: HydrateAttributeInstruction | HydrateTemplateController, viewFactory?: IViewFactory, location?: IRenderLocation, auSlotsInfo?: IAuSlotsInfo): ICustomAttributeViewModel;
     render(flags: LifecycleFlags, controller: IHydratableController, targets: ArrayLike<INode>, definition: CustomElementDefinition, host: INode | null | undefined): void;
     renderChildren(flags: LifecycleFlags, instructions: readonly IInstruction[], controller: IHydratableController, target: unknown): void;
     dispose(): void;

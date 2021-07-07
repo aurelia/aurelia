@@ -1509,10 +1509,9 @@ class Container {
         return new Container(this, ContainerConfiguration.from(config !== null && config !== void 0 ? config : this.config));
     }
     disposeResolvers() {
-        var _a;
-        const disposables = Array.from(this.disposableResolvers);
-        while (disposables.length > 0) {
-            (_a = disposables.pop()) === null || _a === void 0 ? void 0 : _a.dispose();
+        let disposeable;
+        for (disposeable of this.disposableResolvers) {
+            disposeable.dispose();
         }
     }
     find(kind, name) {
@@ -1556,7 +1555,9 @@ class Container {
         return (_b = resolver.resolve(this, this)) !== null && _b !== void 0 ? _b : null;
     }
     dispose() {
-        this.disposeResolvers();
+        if (this.disposableResolvers.size > 0) {
+            this.disposeResolvers();
+        }
         this.resolvers.clear();
     }
     jitRegister(keyAsValue, handler) {

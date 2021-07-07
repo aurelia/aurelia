@@ -1,14 +1,16 @@
 import { BindingMode, IExpressionParser, IObserverLocator, LifecycleFlags } from '@aurelia/runtime';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElementDefinition } from './resources/custom-element.js';
-import { IProjections } from './resources/custom-elements/au-slot.js';
+import { IProjections } from './resources/slot-injectables.js';
+import { CustomAttributeDefinition } from './resources/custom-attribute.js';
+import { INode } from './dom.js';
+import { IController } from './templating/controller.js';
 import { IPlatform } from './platform.js';
 import type { IServiceLocator, IContainer, Class, IRegistry } from '@aurelia/kernel';
 import type { Interpolation, IsBindingBehavior, IInterceptableBinding, ForOfStatement, DelegationStrategy } from '@aurelia/runtime';
-import type { IHydratableController, IController } from './templating/controller.js';
+import type { IHydratableController } from './templating/controller.js';
 import type { PartialCustomElementDefinition } from './resources/custom-element.js';
 import type { ICompiledRenderContext } from './templating/render-context.js';
-import type { INode } from './dom.js';
 export declare const enum InstructionType {
     hydrateElement = "ra",
     hydrateAttribute = "rb",
@@ -80,7 +82,7 @@ export declare class HydrateElementInstruction {
     /**
      * The name of the custom element this instruction is associated with
      */
-    res: string;
+    res: string | /* Constructable |  */ CustomElementDefinition;
     alias: string | undefined;
     /**
      * Bindable instructions for the custom element instance
@@ -90,6 +92,9 @@ export declare class HydrateElementInstruction {
      * Indicates what projections are associated with the element usage
      */
     projections: Record<string, CustomElementDefinition> | null;
+    /**
+     * Indicates whether the usage of the custom element was with a containerless attribute or not
+     */
     containerless: boolean;
     get type(): InstructionType.hydrateElement;
     /**
@@ -103,7 +108,7 @@ export declare class HydrateElementInstruction {
     /**
      * The name of the custom element this instruction is associated with
      */
-    res: string, alias: string | undefined, 
+    res: string | /* Constructable |  */ CustomElementDefinition, alias: string | undefined, 
     /**
      * Bindable instructions for the custom element instance
      */
@@ -111,17 +116,21 @@ export declare class HydrateElementInstruction {
     /**
      * Indicates what projections are associated with the element usage
      */
-    projections: Record<string, CustomElementDefinition> | null, containerless: boolean);
+    projections: Record<string, CustomElementDefinition> | null, 
+    /**
+     * Indicates whether the usage of the custom element was with a containerless attribute or not
+     */
+    containerless: boolean);
 }
 export declare class HydrateAttributeInstruction {
-    res: string;
+    res: string | /* Constructable |  */ CustomAttributeDefinition;
     alias: string | undefined;
     /**
      * Bindable instructions for the custom attribute instance
      */
     instructions: IInstruction[];
     get type(): InstructionType.hydrateAttribute;
-    constructor(res: string, alias: string | undefined, 
+    constructor(res: string | /* Constructable |  */ CustomAttributeDefinition, alias: string | undefined, 
     /**
      * Bindable instructions for the custom attribute instance
      */
@@ -129,14 +138,14 @@ export declare class HydrateAttributeInstruction {
 }
 export declare class HydrateTemplateController {
     def: PartialCustomElementDefinition;
-    res: string;
+    res: string | /* Constructable |  */ CustomAttributeDefinition;
     alias: string | undefined;
     /**
      * Bindable instructions for the template controller instance
      */
     instructions: IInstruction[];
     get type(): InstructionType.hydrateTemplateController;
-    constructor(def: PartialCustomElementDefinition, res: string, alias: string | undefined, 
+    constructor(def: PartialCustomElementDefinition, res: string | /* Constructable |  */ CustomAttributeDefinition, alias: string | undefined, 
     /**
      * Bindable instructions for the template controller instance
      */
@@ -231,6 +240,13 @@ export interface ITemplateCompiler {
      * For the default compiler, this means all expressions are kept as is on the template
      */
     debug: boolean;
+    /**
+     * Experimental API, for optimization.
+     *
+     * `true` to create CustomElement/CustomAttribute instructions
+     * with resolved resources constructor during compilation, instead of name
+     */
+    resolveResources: boolean;
     compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, compilationInstruction: ICompliationInstruction | null): CustomElementDefinition;
 }
 export interface ICompliationInstruction {

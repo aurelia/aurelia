@@ -1,10 +1,8 @@
-import { DI } from '../../../../../kernel/dist/native-modules/index.js';
 import { IRenderLocation } from '../../dom.js';
 import { customElement } from '../custom-element.js';
 import { IInstruction } from '../../renderer.js';
 import { IHydrationContext } from '../../templating/controller.js';
 import { getRenderContext } from '../../templating/render-context.js';
-export const IProjections = DI.createInterface("IProjections");
 export class AuSlot {
     constructor(location, instruction, hdrContext) {
         var _a, _b;
@@ -51,13 +49,4 @@ export class AuSlot {
     }
 }
 customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
-export const IAuSlotsInfo = DI.createInterface('AuSlotsInfo');
-export class AuSlotsInfo {
-    /**
-     * @param {string[]} projectedSlots - Name of the slots to which content are projected.
-     */
-    constructor(projectedSlots) {
-        this.projectedSlots = projectedSlots;
-    }
-}
 //# sourceMappingURL=au-slot.js.map

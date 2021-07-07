@@ -44,7 +44,8 @@ export { Switch, Case, DefaultCase, } from './resources/template-controllers/swi
 export { PromiseTemplateController, FulfilledTemplateController, PendingTemplateController, RejectedTemplateController, } from './resources/template-controllers/promise.js';
 export { Focus, } from './resources/custom-attributes/focus.js';
 export { Portal, PortalTarget, PortalLifecycleCallback, } from './resources/template-controllers/portal.js';
-export { AuSlot, IProjections, AuSlotsInfo, IAuSlotsInfo, } from './resources/custom-elements/au-slot.js';
+export { AuSlot, } from './resources/custom-elements/au-slot.js';
+export { IProjections, AuSlotsInfo, IAuSlotsInfo, } from './resources/slot-injectables.js';
 export { containerless, customElement, CustomElement, CustomElementDecorator, CustomElementKind, CustomElementType, CustomElementDefinition, PartialCustomElementDefinition, useShadowDOM, processContent, } from './resources/custom-element.js';
 export { Subject, AuRender, } from './resources/custom-elements/au-render.js';
 export { AuCompose, IDynamicComponentActivate, } from './resources/custom-elements/au-compose.js';

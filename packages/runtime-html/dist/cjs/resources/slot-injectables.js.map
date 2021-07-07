@@ -1,0 +1,1 @@
+{"version":3,"file":"slot-injectables.js","sourceRoot":"","sources":["../../../src/resources/slot-injectables.ts"],"names":[],"mappings":";;;AAAA,0EAA0E;AAC1E,4CAAqC;AAIxB,QAAA,YAAY,GAAG,WAAE,CAAC,eAAe,CAAe,cAAc,CAAC,CAAC;AAGhE,QAAA,YAAY,GAAG,WAAE,CAAC,eAAe,CAAe,cAAc,CAAC,CAAC;AAC7E,MAAa,WAAW;IACtB;;OAEG;IACH,YACkB,cAAwB;QAAxB,mBAAc,GAAd,cAAc,CAAU;IACtC,CAAC;CACN;AAPD,kCAOC"}

@@ -1,15 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RenderContext = exports.getRenderContext = exports.isRenderContext = void 0;
-const kernel_1 = require("@aurelia/kernel");
 const dom_js_1 = require("../dom.js");
 const renderer_js_1 = require("../renderer.js");
 const custom_element_js_1 = require("../resources/custom-element.js");
-const custom_attribute_js_1 = require("../resources/custom-attribute.js");
 const view_js_1 = require("./view.js");
-const au_slot_js_1 = require("../resources/custom-elements/au-slot.js");
 const platform_js_1 = require("../platform.js");
-const controller_js_1 = require("./controller.js");
 const definitionContainerLookup = new WeakMap();
 const fragmentCache = new WeakMap();
 function isRenderContext(value) {
@@ -48,7 +44,6 @@ class RenderContext {
         this.isCompiled = false;
         this.renderers = Object.create(null);
         this.compiledDefinition = (void 0);
-        this.resourceInvoker = null;
         ++renderContextCount;
         this.container = container;
         // note: it's incorrect to get rendereres only from root,
@@ -63,12 +58,6 @@ class RenderContext {
         }
         this.root = container.root;
         this.platform = container.get(platform_js_1.IPlatform);
-        this.elementProvider = new kernel_1.InstanceProvider('ElementResolver');
-        this.factoryProvider = new ViewFactoryProvider();
-        this.parentControllerProvider = new kernel_1.InstanceProvider('IController');
-        this.instructionProvider = new kernel_1.InstanceProvider('IInstruction');
-        this.renderLocationProvider = new kernel_1.InstanceProvider('IRenderLocation');
-        this.auSlotsInfoProvider = new kernel_1.InstanceProvider('IAuSlotsInfo');
     }
     get id() {
         return this.container.id;
@@ -157,68 +146,6 @@ class RenderContext {
         return new dom_js_1.FragmentNodeSequence(this.platform, this.fragment.cloneNode(true));
     }
     // #endregion
-    createElementContainer(parentController, host, instruction, viewFactory, location, auSlotsInfo) {
-        const p = this.platform;
-        const container = this.container.createChild();
-        const nodeProvider = new kernel_1.InstanceProvider('ElementProvider', host);
-        // todo:
-        // both node provider and location provider may not be allowed to throw
-        // if there's no value associated, unlike InstanceProvider
-        // reason being some custom element can have `containerless` attribute on them
-        // causing the host to disappear, and replace by a location instead
-        container.registerResolver(dom_js_1.INode, nodeProvider);
-        container.registerResolver(p.Node, nodeProvider);
-        container.registerResolver(p.Element, nodeProvider);
-        container.registerResolver(p.HTMLElement, nodeProvider);
-        container.registerResolver(controller_js_1.IController, new kernel_1.InstanceProvider('IController', parentController));
-        container.registerResolver(renderer_js_1.IInstruction, new kernel_1.InstanceProvider('IInstruction', instruction));
-        container.registerResolver(dom_js_1.IRenderLocation, location == null
-            ? noLocationProvider
-            : new kernel_1.InstanceProvider('IRenderLocation', location));
-        container.registerResolver(view_js_1.IViewFactory, viewFactory == null
-            ? noViewFactoryProvider
-            : new ViewFactoryProvider(viewFactory));
-        container.registerResolver(au_slot_js_1.IAuSlotsInfo, auSlotsInfo == null
-            ? noAuSlotProvider
-            : new kernel_1.InstanceProvider('AuSlotInfo', auSlotsInfo));
-        return container;
-    }
-    invokeAttribute(parentController, host, instruction, viewFactory, location, auSlotsInfo) {
-        const p = this.platform;
-        const eProvider = this.elementProvider;
-        const pcProvider = this.parentControllerProvider;
-        const iProvider = this.instructionProvider;
-        const fProvider = this.factoryProvider;
-        const rlProvider = this.renderLocationProvider;
-        const siProvider = this.auSlotsInfoProvider;
-        const container = this.container;
-        const definition = container.find(custom_attribute_js_1.CustomAttribute, instruction.res);
-        const Ctor = definition.Type;
-        let invoker = this.resourceInvoker;
-        if (invoker == null) {
-            invoker = container.createChild();
-            invoker.registerResolver(dom_js_1.INode, eProvider, true);
-            invoker.registerResolver(p.Node, eProvider);
-            invoker.registerResolver(p.Element, eProvider);
-            invoker.registerResolver(p.HTMLElement, eProvider);
-            invoker.registerResolver(controller_js_1.IController, pcProvider, true);
-            invoker.registerResolver(renderer_js_1.IInstruction, iProvider, true);
-            invoker.registerResolver(dom_js_1.IRenderLocation, rlProvider, true);
-            invoker.registerResolver(view_js_1.IViewFactory, fProvider, true);
-            invoker.registerResolver(au_slot_js_1.IAuSlotsInfo, siProvider, true);
-        }
-        eProvider.prepare(host);
-        pcProvider.prepare(parentController);
-        iProvider.prepare(instruction);
-        // null or undefined wouldn't matter
-        // as it can just throw if trying to inject something non-existant
-        fProvider.prepare(viewFactory);
-        rlProvider.prepare(location);
-        siProvider.prepare(auSlotsInfo);
-        const instance = invoker.invoke(Ctor);
-        invoker.dispose();
-        return instance;
-    }
     // public create
     // #region IComponentFactory api
     render(flags, controller, targets, definition, host) {
@@ -251,37 +178,4 @@ class RenderContext {
     }
 }
 exports.RenderContext = RenderContext;
-class ViewFactoryProvider {
-    constructor(
-    /**
-     * The factory instance that this provider will resolves to,
-     * until explicitly overridden by prepare call
-     */
-    factory) {
-        this.factory = null;
-        if (factory !== void 0) {
-            this.factory = factory;
-        }
-    }
-    prepare(factory) {
-        this.factory = factory;
-    }
-    get $isResolver() { return true; }
-    resolve() {
-        const factory = this.factory;
-        if (factory === null) {
-            throw new Error('Cannot resolve ViewFactory before the provider was prepared.');
-        }
-        if (typeof factory.name !== 'string' || factory.name.length === 0) {
-            throw new Error('Cannot resolve ViewFactory without a (valid) name.');
-        }
-        return factory;
-    }
-    dispose() {
-        this.factory = null;
-    }
-}
-const noLocationProvider = new kernel_1.InstanceProvider('IRenderLocation');
-const noViewFactoryProvider = new ViewFactoryProvider();
-const noAuSlotProvider = new kernel_1.InstanceProvider('AuSlotsInfo');
 //# sourceMappingURL=render-context.js.map

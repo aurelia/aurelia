@@ -134,7 +134,11 @@ export class Controller {
         }
         return controller;
     }
-    static forCustomElement(root, contextCt, ownCt, viewModel, host, hydrationInst, flags = 0 /* none */, hydrate = true, 
+    static forCustomElement(root, 
+    // todo: it's not a great API that both parent and child containers
+    //       are required to instantiate a controller
+    //       though refactoring this won't be simple. Should be done after other refactorings
+    contextCt, ownCt, viewModel, host, hydrationInst, flags = 0 /* none */, hydrate = true, 
     // Use this when `instance.constructor` is not a custom element type
     // to pass on the CustomElement definition
     definition = void 0) {
@@ -160,11 +164,17 @@ export class Controller {
         }
         return controller;
     }
-    static forCustomAttribute(root, context, viewModel, host, flags = 0 /* none */) {
+    static forCustomAttribute(root, context, viewModel, host, flags = 0 /* none */, 
+    /**
+     * The definition that will be used to hydrate the custom attribute view model
+     *
+     * If not given, will be the one associated with the constructor of the attribute view model given.
+     */
+    definition) {
         if (controllerLookup.has(viewModel)) {
             return controllerLookup.get(viewModel);
         }
-        const definition = CustomAttribute.getDefinition(viewModel.constructor);
+        definition = definition !== null && definition !== void 0 ? definition : CustomAttribute.getDefinition(viewModel.constructor);
         const controller = new Controller(
         /* root           */ root, 
         /* context ct     */ context, 
@@ -481,7 +491,7 @@ export class Controller {
                 this.nodes.appendTo(this.host, (_a = this.definition) === null || _a === void 0 ? void 0 : _a.enhance);
                 break;
             case 2 /* shadowRoot */: {
-                const container = this.context.container;
+                const container = this.container;
                 const styles = container.has(IShadowDOMStyles, false)
                     ? container.get(IShadowDOMStyles)
                     : container.get(IShadowDOMGlobalStyles);
@@ -940,16 +950,14 @@ _flags, instance) {
     }
     return emptyArray;
 }
-const AccessScopeAst = {
-    map: new Map(),
-    for(key) {
-        let ast = AccessScopeAst.map.get(key);
-        if (ast == null) {
-            ast = new AccessScopeExpression(key, 0);
-            AccessScopeAst.map.set(key, ast);
-        }
-        return ast;
-    },
+const AccessScopeAstMap = new Map();
+const getAccessScopeAst = (key) => {
+    let ast = AccessScopeAstMap.get(key);
+    if (ast == null) {
+        ast = new AccessScopeExpression(key, 0);
+        AccessScopeAstMap.set(key, ast);
+    }
+    return ast;
 };
 function createWatchers(controller, context, definition, instance) {
     const observerLocator = context.get(IObserverLocator);
@@ -957,13 +965,13 @@ function createWatchers(controller, context, definition, instance) {
     const watches = definition.watches;
     const scope = controller.vmKind === 0 /* customElement */
         ? controller.scope
+        // custom attribute does not have own scope
         : Scope.create(instance, null, true);
     const ii = watches.length;
     let expression;
     let callback;
     let ast;
     let i = 0;
-    // custom attribute does not have own scope
     for (; ii > i; ++i) {
         ({ expression, callback } = watches[i]);
         callback = typeof callback === 'function'
@@ -981,7 +989,7 @@ function createWatchers(controller, context, definition, instance) {
         else {
             ast = typeof expression === 'string'
                 ? expressionParser.parse(expression, 53 /* BindCommand */)
-                : AccessScopeAst.for(expression);
+                : getAccessScopeAst(expression);
             controller.addBinding(new ExpressionWatcher(scope, context, observerLocator, ast, callback));
         }
     }

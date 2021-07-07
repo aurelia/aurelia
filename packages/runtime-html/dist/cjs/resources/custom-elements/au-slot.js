@@ -1,13 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuSlotsInfo = exports.IAuSlotsInfo = exports.AuSlot = exports.IProjections = void 0;
-const kernel_1 = require("@aurelia/kernel");
+exports.AuSlot = void 0;
 const dom_js_1 = require("../../dom.js");
 const custom_element_js_1 = require("../custom-element.js");
 const renderer_js_1 = require("../../renderer.js");
 const controller_js_1 = require("../../templating/controller.js");
 const render_context_js_1 = require("../../templating/render-context.js");
-exports.IProjections = kernel_1.DI.createInterface("IProjections");
 class AuSlot {
     constructor(location, instruction, hdrContext) {
         var _a, _b;
@@ -55,14 +53,4 @@ class AuSlot {
 }
 exports.AuSlot = AuSlot;
 custom_element_js_1.customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
-exports.IAuSlotsInfo = kernel_1.DI.createInterface('AuSlotsInfo');
-class AuSlotsInfo {
-    /**
-     * @param {string[]} projectedSlots - Name of the slots to which content are projected.
-     */
-    constructor(projectedSlots) {
-        this.projectedSlots = projectedSlots;
-    }
-}
-exports.AuSlotsInfo = AuSlotsInfo;
 //# sourceMappingURL=au-slot.js.map

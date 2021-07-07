@@ -17,6 +17,7 @@ const utilities_di_js_1 = require("./utilities-di.js");
 class TemplateCompiler {
     constructor() {
         this.debug = false;
+        this.resolveResources = true;
     }
     static register(container) {
         return kernel_1.Registration.singleton(renderer_js_1.ITemplateCompiler, this).register(container);
@@ -164,7 +165,11 @@ class TemplateCompiler {
                 el.removeAttribute(attrName);
                 --i;
                 --ii;
-                (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new renderer_js_1.HydrateAttributeInstruction(attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0, attrBindableInstructions));
+                (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new renderer_js_1.HydrateAttributeInstruction(
+                // todo: def/ def.Type or def.name should be configurable
+                //       example: AOT/runtime can use def.Type, but there are situation
+                //       where instructions need to be serialized, def.name should be used
+                this.resolveResources ? attrDef : attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0, attrBindableInstructions));
                 continue;
             }
             if (bindingCommand === null) {
@@ -444,10 +449,18 @@ class TemplateCompiler {
                 }
                 removeAttr();
                 if (attrDef.isTemplateController) {
-                    (tcInstructions !== null && tcInstructions !== void 0 ? tcInstructions : (tcInstructions = [])).push(new renderer_js_1.HydrateTemplateController(voidDefinition, attrDef.name, void 0, attrBindableInstructions));
+                    (tcInstructions !== null && tcInstructions !== void 0 ? tcInstructions : (tcInstructions = [])).push(new renderer_js_1.HydrateTemplateController(voidDefinition, 
+                    // todo: def/ def.Type or def.name should be configurable
+                    //       example: AOT/runtime can use def.Type, but there are situation
+                    //       where instructions need to be serialized, def.name should be used
+                    this.resolveResources ? attrDef : attrDef.name, void 0, attrBindableInstructions));
                 }
                 else {
-                    (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new renderer_js_1.HydrateAttributeInstruction(attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0, attrBindableInstructions));
+                    (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new renderer_js_1.HydrateAttributeInstruction(
+                    // todo: def/ def.Type or def.name should be configurable
+                    //       example: AOT/runtime can use def.Type, but there are situation
+                    //       where instructions need to be serialized, def.name should be used
+                    this.resolveResources ? attrDef : attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0, attrBindableInstructions));
                 }
                 continue;
             }
@@ -534,7 +547,11 @@ class TemplateCompiler {
             this.reorder(el, plainAttrInstructions);
         }
         if (elDef !== null) {
-            elementInstruction = new renderer_js_1.HydrateElementInstruction(elDef.name, void 0, (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : kernel_1.emptyArray), null, hasContainerless);
+            elementInstruction = new renderer_js_1.HydrateElementInstruction(
+            // todo: def/ def.Type or def.name should be configurable
+            //       example: AOT/runtime can use def.Type, but there are situation
+            //       where instructions need to be serialized, def.name should be used
+            this.resolveResources ? elDef : elDef.name, void 0, (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : kernel_1.emptyArray), null, hasContainerless);
             if (elName === 'au-slot') {
                 const slotName = el.getAttribute('name') || /* name="" is the same with no name */ 'default';
                 const template = context.h('template');

@@ -1,7 +1,7 @@
 export { Platform, Task, TaskAbortError, TaskQueue, TaskQueuePriority, TaskStatus } from '@aurelia/platform';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 export { BrowserPlatform } from '@aurelia/platform-browser';
-import { Protocol, getPrototypeChain, Metadata, firstDefined, kebabCase, noop, emptyArray, DI, all, Registration, IPlatform as IPlatform$1, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, InstanceProvider, IContainer, nextId, optional, ILogger, isObject, onResolve, resolveAll, camelCase, toArray, emptyObject, IServiceLocator, compareNumber, transient } from '@aurelia/kernel';
+import { Protocol, getPrototypeChain, Metadata, firstDefined, kebabCase, noop, emptyArray, DI, all, Registration, IPlatform as IPlatform$1, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, IContainer, nextId, InstanceProvider, optional, ILogger, isObject, onResolve, resolveAll, camelCase, toArray, emptyObject, IServiceLocator, compareNumber, transient } from '@aurelia/kernel';
 import { BindingMode, subscriberCollection, withFlushQueue, connectable, registerAliases, Scope, ConnectableSwitcher, ProxyObservable, IObserverLocator, IExpressionParser, AccessScopeExpression, DelegationStrategy, BindingBehaviorExpression, BindingBehaviorFactory, PrimitiveLiteralExpression, bindingBehavior, BindingInterceptor, ISignaler, PropertyAccessor, INodeObserverLocator, SetterObserver, IDirtyChecker, alias, applyMutationsToIndices, getCollectionObserver as getCollectionObserver$1, BindingContext, synchronizeIndices, valueConverter } from '@aurelia/runtime';
 export { Access, AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, AccessorType, ArrayBindingPattern, ArrayIndexObserver, ArrayLiteralExpression, ArrayObserver, AssignExpression, BinaryExpression, BindingBehavior, BindingBehaviorDefinition, BindingBehaviorExpression, BindingBehaviorFactory, BindingBehaviorStrategy, BindingContext, BindingIdentifier, BindingInterceptor, BindingMediator, BindingMode, BindingType, CallFunctionExpression, CallMemberExpression, CallScopeExpression, Char, CollectionKind, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConditionalExpression, CustomExpression, DelegationStrategy, DirtyCheckProperty, DirtyCheckSettings, ExpressionKind, ForOfStatement, HtmlLiteralExpression, IDirtyChecker, IExpressionParser, INodeObserverLocator, IObserverLocator, ISignaler, Interpolation, LifecycleFlags, MapObserver, ObjectBindingPattern, ObjectLiteralExpression, ObserverLocator, OverrideContext, ParserState, Precedence, PrimitiveLiteralExpression, PrimitiveObserver, PropertyAccessor, Scope, SetObserver, SetterObserver, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverter, ValueConverterDefinition, ValueConverterExpression, alias, applyMutationsToIndices, bindingBehavior, cloneIndexMap, connectable, copyIndexMap, createIndexMap, disableArrayObservation, disableMapObservation, disableSetObservation, enableArrayObservation, enableMapObservation, enableSetObservation, getCollectionObserver, isIndexMap, observable, parse, parseExpression, registerAliases, subscriberCollection, synchronizeIndices, valueConverter } from '@aurelia/runtime';
 
@@ -2962,63 +2962,6 @@ class ViewLocator {
     }
 }
 
-const IProjections = DI.createInterface("IProjections");
-class AuSlot {
-    constructor(location, instruction, hdrContext) {
-        var _a, _b;
-        this.hdrContext = hdrContext;
-        this.hostScope = null;
-        this.outerScope = null;
-        this.hasProjection = false;
-        let factory;
-        const slotInfo = instruction.auSlot;
-        const projection = (_b = (_a = hdrContext.instruction) === null || _a === void 0 ? void 0 : _a.projections) === null || _b === void 0 ? void 0 : _b[slotInfo.name];
-        if (projection == null) {
-            factory = getRenderContext(slotInfo.fallback, hdrContext.controller.container).getViewFactory();
-        }
-        else {
-            factory = getRenderContext(projection, hdrContext.parent.controller.container).getViewFactory();
-            this.hasProjection = true;
-        }
-        this.view = factory.create().setLocation(location);
-    }
-    /** @internal */
-    static get inject() { return [IRenderLocation, IInstruction, IHydrationContext]; }
-    binding(_initiator, _parent, _flags) {
-        this.hostScope = this.$controller.scope.parentScope;
-        this.outerScope = this.hasProjection
-            ? this.hdrContext.controller.scope.parentScope
-            : this.hostScope;
-    }
-    attaching(initiator, parent, flags) {
-        var _a;
-        return this.view.activate(initiator, this.$controller, flags, (_a = this.outerScope) !== null && _a !== void 0 ? _a : this.hostScope, this.hostScope);
-    }
-    detaching(initiator, parent, flags) {
-        return this.view.deactivate(initiator, this.$controller, flags);
-    }
-    dispose() {
-        this.view.dispose();
-        this.view = (void 0);
-    }
-    accept(visitor) {
-        var _a;
-        if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
-            return true;
-        }
-    }
-}
-customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
-const IAuSlotsInfo = DI.createInterface('AuSlotsInfo');
-class AuSlotsInfo {
-    /**
-     * @param {string[]} projectedSlots - Name of the slots to which content are projected.
-     */
-    constructor(projectedSlots) {
-        this.projectedSlots = projectedSlots;
-    }
-}
-
 const definitionContainerLookup = new WeakMap();
 const fragmentCache = new WeakMap();
 function isRenderContext(value) {
@@ -3055,7 +2998,6 @@ class RenderContext {
         this.isCompiled = false;
         this.renderers = Object.create(null);
         this.compiledDefinition = (void 0);
-        this.resourceInvoker = null;
         ++renderContextCount;
         this.container = container;
         // note: it's incorrect to get rendereres only from root,
@@ -3070,12 +3012,6 @@ class RenderContext {
         }
         this.root = container.root;
         this.platform = container.get(IPlatform);
-        this.elementProvider = new InstanceProvider('ElementResolver');
-        this.factoryProvider = new ViewFactoryProvider();
-        this.parentControllerProvider = new InstanceProvider('IController');
-        this.instructionProvider = new InstanceProvider('IInstruction');
-        this.renderLocationProvider = new InstanceProvider('IRenderLocation');
-        this.auSlotsInfoProvider = new InstanceProvider('IAuSlotsInfo');
     }
     get id() {
         return this.container.id;
@@ -3164,68 +3100,6 @@ class RenderContext {
         return new FragmentNodeSequence(this.platform, this.fragment.cloneNode(true));
     }
     // #endregion
-    createElementContainer(parentController, host, instruction, viewFactory, location, auSlotsInfo) {
-        const p = this.platform;
-        const container = this.container.createChild();
-        const nodeProvider = new InstanceProvider('ElementProvider', host);
-        // todo:
-        // both node provider and location provider may not be allowed to throw
-        // if there's no value associated, unlike InstanceProvider
-        // reason being some custom element can have `containerless` attribute on them
-        // causing the host to disappear, and replace by a location instead
-        container.registerResolver(INode, nodeProvider);
-        container.registerResolver(p.Node, nodeProvider);
-        container.registerResolver(p.Element, nodeProvider);
-        container.registerResolver(p.HTMLElement, nodeProvider);
-        container.registerResolver(IController, new InstanceProvider('IController', parentController));
-        container.registerResolver(IInstruction, new InstanceProvider('IInstruction', instruction));
-        container.registerResolver(IRenderLocation, location == null
-            ? noLocationProvider
-            : new InstanceProvider('IRenderLocation', location));
-        container.registerResolver(IViewFactory, viewFactory == null
-            ? noViewFactoryProvider
-            : new ViewFactoryProvider(viewFactory));
-        container.registerResolver(IAuSlotsInfo, auSlotsInfo == null
-            ? noAuSlotProvider
-            : new InstanceProvider('AuSlotInfo', auSlotsInfo));
-        return container;
-    }
-    invokeAttribute(parentController, host, instruction, viewFactory, location, auSlotsInfo) {
-        const p = this.platform;
-        const eProvider = this.elementProvider;
-        const pcProvider = this.parentControllerProvider;
-        const iProvider = this.instructionProvider;
-        const fProvider = this.factoryProvider;
-        const rlProvider = this.renderLocationProvider;
-        const siProvider = this.auSlotsInfoProvider;
-        const container = this.container;
-        const definition = container.find(CustomAttribute, instruction.res);
-        const Ctor = definition.Type;
-        let invoker = this.resourceInvoker;
-        if (invoker == null) {
-            invoker = container.createChild();
-            invoker.registerResolver(INode, eProvider, true);
-            invoker.registerResolver(p.Node, eProvider);
-            invoker.registerResolver(p.Element, eProvider);
-            invoker.registerResolver(p.HTMLElement, eProvider);
-            invoker.registerResolver(IController, pcProvider, true);
-            invoker.registerResolver(IInstruction, iProvider, true);
-            invoker.registerResolver(IRenderLocation, rlProvider, true);
-            invoker.registerResolver(IViewFactory, fProvider, true);
-            invoker.registerResolver(IAuSlotsInfo, siProvider, true);
-        }
-        eProvider.prepare(host);
-        pcProvider.prepare(parentController);
-        iProvider.prepare(instruction);
-        // null or undefined wouldn't matter
-        // as it can just throw if trying to inject something non-existant
-        fProvider.prepare(viewFactory);
-        rlProvider.prepare(location);
-        siProvider.prepare(auSlotsInfo);
-        const instance = invoker.invoke(Ctor);
-        invoker.dispose();
-        return instance;
-    }
     // public create
     // #region IComponentFactory api
     render(flags, controller, targets, definition, host) {
@@ -3257,39 +3131,6 @@ class RenderContext {
         throw new Error('Cannot dispose a render context');
     }
 }
-class ViewFactoryProvider {
-    constructor(
-    /**
-     * The factory instance that this provider will resolves to,
-     * until explicitly overridden by prepare call
-     */
-    factory) {
-        this.factory = null;
-        if (factory !== void 0) {
-            this.factory = factory;
-        }
-    }
-    prepare(factory) {
-        this.factory = factory;
-    }
-    get $isResolver() { return true; }
-    resolve() {
-        const factory = this.factory;
-        if (factory === null) {
-            throw new Error('Cannot resolve ViewFactory before the provider was prepared.');
-        }
-        if (typeof factory.name !== 'string' || factory.name.length === 0) {
-            throw new Error('Cannot resolve ViewFactory without a (valid) name.');
-        }
-        return factory;
-    }
-    dispose() {
-        this.factory = null;
-    }
-}
-const noLocationProvider = new InstanceProvider('IRenderLocation');
-const noViewFactoryProvider = new ViewFactoryProvider();
-const noAuSlotProvider = new InstanceProvider('AuSlotsInfo');
 
 class ClassAttributeAccessor {
     constructor(obj) {
@@ -3871,7 +3712,11 @@ class Controller {
         }
         return controller;
     }
-    static forCustomElement(root, contextCt, ownCt, viewModel, host, hydrationInst, flags = 0 /* none */, hydrate = true, 
+    static forCustomElement(root, 
+    // todo: it's not a great API that both parent and child containers
+    //       are required to instantiate a controller
+    //       though refactoring this won't be simple. Should be done after other refactorings
+    contextCt, ownCt, viewModel, host, hydrationInst, flags = 0 /* none */, hydrate = true, 
     // Use this when `instance.constructor` is not a custom element type
     // to pass on the CustomElement definition
     definition = void 0) {
@@ -3897,11 +3742,17 @@ class Controller {
         }
         return controller;
     }
-    static forCustomAttribute(root, context, viewModel, host, flags = 0 /* none */) {
+    static forCustomAttribute(root, context, viewModel, host, flags = 0 /* none */, 
+    /**
+     * The definition that will be used to hydrate the custom attribute view model
+     *
+     * If not given, will be the one associated with the constructor of the attribute view model given.
+     */
+    definition) {
         if (controllerLookup.has(viewModel)) {
             return controllerLookup.get(viewModel);
         }
-        const definition = CustomAttribute.getDefinition(viewModel.constructor);
+        definition = definition !== null && definition !== void 0 ? definition : CustomAttribute.getDefinition(viewModel.constructor);
         const controller = new Controller(
         /* root           */ root, 
         /* context ct     */ context, 
@@ -4218,7 +4069,7 @@ class Controller {
                 this.nodes.appendTo(this.host, (_a = this.definition) === null || _a === void 0 ? void 0 : _a.enhance);
                 break;
             case 2 /* shadowRoot */: {
-                const container = this.context.container;
+                const container = this.container;
                 const styles = container.has(IShadowDOMStyles, false)
                     ? container.get(IShadowDOMStyles)
                     : container.get(IShadowDOMGlobalStyles);
@@ -4677,16 +4528,14 @@ _flags, instance) {
     }
     return emptyArray;
 }
-const AccessScopeAst = {
-    map: new Map(),
-    for(key) {
-        let ast = AccessScopeAst.map.get(key);
-        if (ast == null) {
-            ast = new AccessScopeExpression(key, 0);
-            AccessScopeAst.map.set(key, ast);
-        }
-        return ast;
-    },
+const AccessScopeAstMap = new Map();
+const getAccessScopeAst = (key) => {
+    let ast = AccessScopeAstMap.get(key);
+    if (ast == null) {
+        ast = new AccessScopeExpression(key, 0);
+        AccessScopeAstMap.set(key, ast);
+    }
+    return ast;
 };
 function createWatchers(controller, context, definition, instance) {
     const observerLocator = context.get(IObserverLocator);
@@ -4694,13 +4543,13 @@ function createWatchers(controller, context, definition, instance) {
     const watches = definition.watches;
     const scope = controller.vmKind === 0 /* customElement */
         ? controller.scope
+        // custom attribute does not have own scope
         : Scope.create(instance, null, true);
     const ii = watches.length;
     let expression;
     let callback;
     let ast;
     let i = 0;
-    // custom attribute does not have own scope
     for (; ii > i; ++i) {
         ({ expression, callback } = watches[i]);
         callback = typeof callback === 'function'
@@ -4718,7 +4567,7 @@ function createWatchers(controller, context, definition, instance) {
         else {
             ast = typeof expression === 'string'
                 ? expressionParser.parse(expression, 53 /* BindCommand */)
-                : AccessScopeAst.for(expression);
+                : getAccessScopeAst(expression);
             controller.addBinding(new ExpressionWatcher(scope, context, observerLocator, ast, callback));
         }
     }
@@ -5400,6 +5249,18 @@ class EventDelegator {
     }
 }
 
+// A specific file for primitive of au slot to avoid circular dependencies
+const IProjections = DI.createInterface("IProjections");
+const IAuSlotsInfo = DI.createInterface('IAuSlotsInfo');
+class AuSlotsInfo {
+    /**
+     * @param {string[]} projectedSlots - Name of the slots to which content are projected.
+     */
+    constructor(projectedSlots) {
+        this.projectedSlots = projectedSlots;
+    }
+}
+
 var InstructionType;
 (function (InstructionType) {
     InstructionType["hydrateElement"] = "ra";
@@ -5474,6 +5335,8 @@ class HydrateElementInstruction {
     /**
      * The name of the custom element this instruction is associated with
      */
+    // in theory, Constructor of resources should be accepted too
+    // though it would be unnecessary right now
     res, alias, 
     /**
      * Bindable instructions for the custom element instance
@@ -5482,7 +5345,11 @@ class HydrateElementInstruction {
     /**
      * Indicates what projections are associated with the element usage
      */
-    projections, containerless) {
+    projections, 
+    /**
+     * Indicates whether the usage of the custom element was with a containerless attribute or not
+     */
+    containerless) {
         this.res = res;
         this.alias = alias;
         this.instructions = instructions;
@@ -5496,7 +5363,10 @@ class HydrateElementInstruction {
     get type() { return "ra" /* hydrateElement */; }
 }
 class HydrateAttributeInstruction {
-    constructor(res, alias, 
+    constructor(
+    // in theory, Constructor of resources should be accepted too
+    // though it would be unnecessary right now
+    res, alias, 
     /**
      * Bindable instructions for the custom attribute instance
      */
@@ -5508,7 +5378,10 @@ class HydrateAttributeInstruction {
     get type() { return "rb" /* hydrateAttribute */; }
 }
 class HydrateTemplateController {
-    constructor(def, res, alias, 
+    constructor(def, 
+    // in theory, Constructor of resources should be accepted too
+    // though it would be unnecessary right now
+    res, alias, 
     /**
      * Bindable instructions for the template controller instance
      */
@@ -5686,35 +5559,59 @@ let CustomElementRenderer =
 /** @internal */
 class CustomElementRenderer {
     render(flags, context, renderingController, target, instruction) {
+        /* eslint-disable prefer-const */
+        let def;
+        let Ctor;
+        let component;
+        let childController;
+        const res = instruction.res;
         const projections = instruction.projections;
-        const container = context.createElementContainer(
+        const ctxContainer = renderingController.container;
+        const container = createElementContainer(
         /* parentController */ renderingController, 
         /* host             */ target, 
         /* instruction      */ instruction, 
-        /* viewFactory      */ void 0, 
         /* location         */ target, 
-        /* auSlotsInfo      */ new AuSlotsInfo(projections == null ? emptyArray : Object.keys(projections)));
-        const definition = renderingController.container.find(CustomElement, instruction.res);
-        const Ctor = definition.Type;
-        const component = container.invoke(Ctor);
-        const key = CustomElement.keyFrom(instruction.res);
-        container.registerResolver(Ctor, new InstanceProvider(key, component));
-        const childController = Controller.forCustomElement(
+        /* auSlotsInfo      */ projections == null ? void 0 : new AuSlotsInfo(Object.keys(projections)));
+        switch (typeof res) {
+            case 'string':
+                def = ctxContainer.find(CustomElement, res);
+                if (def == null) {
+                    throw new Error(`Element ${res} is not registered in ${renderingController['name']}.`);
+                }
+                break;
+            // constructor based instruction
+            // will be enabled later if needed.
+            // As both AOT + runtime based can use definition for perf
+            // -----------------
+            // case 'function':
+            //   def = CustomElement.getDefinition(res);
+            //   break;
+            default:
+                def = res;
+        }
+        Ctor = def.Type;
+        component = container.invoke(Ctor);
+        container.registerResolver(Ctor, new InstanceProvider(def.key, component));
+        childController = Controller.forCustomElement(
         /* root                */ renderingController.root, 
         /* context ct          */ renderingController.container, 
         /* own container       */ container, 
         /* viewModel           */ component, 
         /* host                */ target, 
         /* instructions        */ instruction, 
-        /* flags               */ flags);
+        /* flags               */ flags, 
+        /* hydrate             */ true, 
+        /* definition          */ def);
         flags = childController.flags;
-        setRef(target, key, childController);
+        setRef(target, def.key, childController);
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
         /* controller   */ renderingController, 
         /* target       */ childController);
         renderingController.addChild(childController);
+        /* eslint-enable prefer-const */
     }
 };
 CustomElementRenderer = __decorate([
@@ -5729,7 +5626,28 @@ class CustomAttributeRenderer {
      * The cotroller that is currently invoking this renderer
      */
     renderingController, target, instruction) {
-        const component = context.invokeAttribute(
+        /* eslint-disable prefer-const */
+        let ctxContainer = renderingController.container;
+        let def;
+        switch (typeof instruction.res) {
+            case 'string':
+                def = ctxContainer.find(CustomAttribute, instruction.res);
+                if (def == null) {
+                    throw new Error(`Attribute ${instruction.res} is not registered in ${renderingController['name']}.`);
+                }
+                break;
+            // constructor based instruction
+            // will be enabled later if needed.
+            // As both AOT + runtime based can use definition for perf
+            // -----------------
+            // case 'function':
+            //   def = CustomAttribute.getDefinition(instruction.res);
+            //   break;
+            default:
+                def = instruction.res;
+        }
+        const component = invokeAttribute(
+        /* attr definition  */ def, 
         /* parentController */ renderingController, 
         /* host             */ target, 
         /* instruction      */ instruction, 
@@ -5740,15 +5658,16 @@ class CustomAttributeRenderer {
         /* context ct */ renderingController.container, 
         /* viewModel  */ component, 
         /* host       */ target, 
-        /* flags      */ flags);
-        const key = CustomAttribute.keyFrom(instruction.res);
-        setRef(target, key, childController);
+        /* flags      */ flags, 
+        /* definition */ def);
+        setRef(target, def.key, childController);
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
         /* controller   */ renderingController, 
         /* target       */ childController);
         renderingController.addChild(childController);
+        /* eslint-enable prefer-const */
     }
 };
 CustomAttributeRenderer = __decorate([
@@ -5760,9 +5679,30 @@ let TemplateControllerRenderer =
 class TemplateControllerRenderer {
     render(flags, context, renderingController, target, instruction) {
         var _a;
-        const viewFactory = getRenderContext(instruction.def, renderingController.container).getViewFactory();
+        /* eslint-disable prefer-const */
+        let ctxContainer = renderingController.container;
+        let def;
+        switch (typeof instruction.res) {
+            case 'string':
+                def = ctxContainer.find(CustomAttribute, instruction.res);
+                if (def == null) {
+                    throw new Error(`Attribute ${instruction.res} is not registered in ${renderingController['name']}.`);
+                }
+                break;
+            // constructor based instruction
+            // will be enabled later if needed.
+            // As both AOT + runtime based can use definition for perf
+            // -----------------
+            // case 'function':
+            //   def = CustomAttribute.getDefinition(instruction.res);
+            //   break;
+            default:
+                def = instruction.res;
+        }
+        const viewFactory = getRenderContext(instruction.def, ctxContainer).getViewFactory();
         const renderLocation = convertToRenderLocation(target);
-        const component = context.invokeAttribute(
+        const component = invokeAttribute(
+        /* attr definition  */ def, 
         /* parentController */ renderingController, 
         /* host             */ target, 
         /* instruction      */ instruction, 
@@ -5773,9 +5713,9 @@ class TemplateControllerRenderer {
         /* container ct */ renderingController.container, 
         /* viewModel    */ component, 
         /* host         */ target, 
-        /* flags        */ flags);
-        const key = CustomAttribute.keyFrom(instruction.res);
-        setRef(renderLocation, key, childController);
+        /* flags        */ flags, 
+        /* definition   */ def);
+        setRef(renderLocation, def.key, childController);
         (_a = component.link) === null || _a === void 0 ? void 0 : _a.call(component, flags, context, renderingController, childController, target, instruction);
         context.renderChildren(
         /* flags        */ flags, 
@@ -5783,6 +5723,7 @@ class TemplateControllerRenderer {
         /* controller   */ renderingController, 
         /* target       */ childController);
         renderingController.addChild(childController);
+        /* eslint-enable prefer-const */
     }
 };
 TemplateControllerRenderer = __decorate([
@@ -6101,6 +6042,72 @@ function addClasses(classList, className) {
         }
     }
 }
+const elProviderName = 'ElementProvider';
+const controllerProviderName = 'IController';
+const instructionProviderName = 'IInstruction';
+const locationProviderName = 'IRenderLocation';
+const slotInfoProviderName = 'IAuSlotsInfo';
+function createElementContainer(renderingController, host, instruction, location, auSlotsInfo) {
+    const p = renderingController.platform;
+    const container = renderingController.container.createChild();
+    // todo:
+    // both node provider and location provider may not be allowed to throw
+    // if there's no value associated, unlike InstanceProvider
+    // reason being some custom element can have `containerless` attribute on them
+    // causing the host to disappear, and replace by a location instead
+    container.registerResolver(p.HTMLElement, container.registerResolver(p.Element, container.registerResolver(p.Node, container.registerResolver(INode, new InstanceProvider(elProviderName, host)))));
+    container.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingController));
+    container.registerResolver(IInstruction, new InstanceProvider(instructionProviderName, instruction));
+    container.registerResolver(IRenderLocation, location == null
+        ? noLocationProvider
+        : new InstanceProvider(locationProviderName, location));
+    container.registerResolver(IViewFactory, noViewFactoryProvider);
+    container.registerResolver(IAuSlotsInfo, auSlotsInfo == null
+        ? noAuSlotProvider
+        : new InstanceProvider(slotInfoProviderName, auSlotsInfo));
+    return container;
+}
+class ViewFactoryProvider {
+    constructor(
+    /**
+     * The factory instance that this provider will resolves to,
+     * until explicitly overridden by prepare call
+     */
+    factory) {
+        this.f = factory;
+    }
+    get $isResolver() { return true; }
+    resolve() {
+        const f = this.f;
+        if (f === null) {
+            throw new Error('Cannot resolve ViewFactory before the provider was prepared.');
+        }
+        if (typeof f.name !== 'string' || f.name.length === 0) {
+            throw new Error('Cannot resolve ViewFactory without a (valid) name.');
+        }
+        return f;
+    }
+}
+function invokeAttribute(definition, renderingController, host, instruction, viewFactory, location, auSlotsInfo) {
+    const p = renderingController.platform;
+    const container = renderingController.container.createChild();
+    container.registerResolver(p.HTMLElement, container.registerResolver(p.Element, container.registerResolver(p.Node, container.registerResolver(INode, new InstanceProvider(elProviderName, host)))));
+    container.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingController));
+    container.registerResolver(IInstruction, new InstanceProvider(instructionProviderName, instruction));
+    container.registerResolver(IRenderLocation, location == null
+        ? noLocationProvider
+        : new InstanceProvider(locationProviderName, location));
+    container.registerResolver(IViewFactory, viewFactory == null
+        ? noViewFactoryProvider
+        : new ViewFactoryProvider(viewFactory));
+    container.registerResolver(IAuSlotsInfo, auSlotsInfo == null
+        ? noAuSlotProvider
+        : new InstanceProvider(slotInfoProviderName, auSlotsInfo));
+    return container.invoke(definition.Type);
+}
+const noLocationProvider = new InstanceProvider(locationProviderName);
+const noViewFactoryProvider = new ViewFactoryProvider(null);
+const noAuSlotProvider = new InstanceProvider(slotInfoProviderName, new AuSlotsInfo(emptyArray));
 
 function bindingCommand(nameOrDefinition) {
     return function (target) {
@@ -6485,6 +6492,7 @@ const allResources = function (key) {
 class TemplateCompiler {
     constructor() {
         this.debug = false;
+        this.resolveResources = true;
     }
     static register(container) {
         return Registration.singleton(ITemplateCompiler, this).register(container);
@@ -6632,7 +6640,11 @@ class TemplateCompiler {
                 el.removeAttribute(attrName);
                 --i;
                 --ii;
-                (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new HydrateAttributeInstruction(attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0, attrBindableInstructions));
+                (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new HydrateAttributeInstruction(
+                // todo: def/ def.Type or def.name should be configurable
+                //       example: AOT/runtime can use def.Type, but there are situation
+                //       where instructions need to be serialized, def.name should be used
+                this.resolveResources ? attrDef : attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0, attrBindableInstructions));
                 continue;
             }
             if (bindingCommand === null) {
@@ -6912,10 +6924,18 @@ class TemplateCompiler {
                 }
                 removeAttr();
                 if (attrDef.isTemplateController) {
-                    (tcInstructions !== null && tcInstructions !== void 0 ? tcInstructions : (tcInstructions = [])).push(new HydrateTemplateController(voidDefinition, attrDef.name, void 0, attrBindableInstructions));
+                    (tcInstructions !== null && tcInstructions !== void 0 ? tcInstructions : (tcInstructions = [])).push(new HydrateTemplateController(voidDefinition, 
+                    // todo: def/ def.Type or def.name should be configurable
+                    //       example: AOT/runtime can use def.Type, but there are situation
+                    //       where instructions need to be serialized, def.name should be used
+                    this.resolveResources ? attrDef : attrDef.name, void 0, attrBindableInstructions));
                 }
                 else {
-                    (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new HydrateAttributeInstruction(attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0, attrBindableInstructions));
+                    (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new HydrateAttributeInstruction(
+                    // todo: def/ def.Type or def.name should be configurable
+                    //       example: AOT/runtime can use def.Type, but there are situation
+                    //       where instructions need to be serialized, def.name should be used
+                    this.resolveResources ? attrDef : attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0, attrBindableInstructions));
                 }
                 continue;
             }
@@ -7002,7 +7022,11 @@ class TemplateCompiler {
             this.reorder(el, plainAttrInstructions);
         }
         if (elDef !== null) {
-            elementInstruction = new HydrateElementInstruction(elDef.name, void 0, (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : emptyArray), null, hasContainerless);
+            elementInstruction = new HydrateElementInstruction(
+            // todo: def/ def.Type or def.name should be configurable
+            //       example: AOT/runtime can use def.Type, but there are situation
+            //       where instructions need to be serialized, def.name should be used
+            this.resolveResources ? elDef : elDef.name, void 0, (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : emptyArray), null, hasContainerless);
             if (elName === 'au-slot') {
                 const slotName = el.getAttribute('name') || /* name="" is the same with no name */ 'default';
                 const template = context.h('template');
@@ -10771,17 +10795,17 @@ let AuRender = class AuRender {
             return subject;
         }
         if ('createView' in subject) { // RenderPlan
-            return subject.createView(this.$controller.context.container);
+            return subject.createView(this.$controller.container);
         }
         if ('create' in subject) { // IViewFactory
             return subject.create(flags);
         }
         if ('template' in subject) { // Raw Template Definition
             const definition = CustomElementDefinition.getOrCreate(subject);
-            return getRenderContext(definition, this.$controller.context.container).getViewFactory().create(flags);
+            return getRenderContext(definition, this.$controller.container).getViewFactory().create(flags);
         }
         // Constructable (Custom Element Constructor)
-        return createElement(this.p, subject, this.properties, this.$controller.host.childNodes).createView(this.$controller.context.container);
+        return createElement(this.p, subject, this.properties, this.$controller.host.childNodes).createView(this.$controller.container);
     }
     dispose() {
         var _a;
@@ -11117,6 +11141,53 @@ class CompositionController {
         }
     }
 }
+
+class AuSlot {
+    constructor(location, instruction, hdrContext) {
+        var _a, _b;
+        this.hdrContext = hdrContext;
+        this.hostScope = null;
+        this.outerScope = null;
+        this.hasProjection = false;
+        let factory;
+        const slotInfo = instruction.auSlot;
+        const projection = (_b = (_a = hdrContext.instruction) === null || _a === void 0 ? void 0 : _a.projections) === null || _b === void 0 ? void 0 : _b[slotInfo.name];
+        if (projection == null) {
+            factory = getRenderContext(slotInfo.fallback, hdrContext.controller.container).getViewFactory();
+        }
+        else {
+            factory = getRenderContext(projection, hdrContext.parent.controller.container).getViewFactory();
+            this.hasProjection = true;
+        }
+        this.view = factory.create().setLocation(location);
+    }
+    /** @internal */
+    static get inject() { return [IRenderLocation, IInstruction, IHydrationContext]; }
+    binding(_initiator, _parent, _flags) {
+        this.hostScope = this.$controller.scope.parentScope;
+        this.outerScope = this.hasProjection
+            ? this.hdrContext.controller.scope.parentScope
+            : this.hostScope;
+    }
+    attaching(initiator, parent, flags) {
+        var _a;
+        return this.view.activate(initiator, this.$controller, flags, (_a = this.outerScope) !== null && _a !== void 0 ? _a : this.hostScope, this.hostScope);
+    }
+    detaching(initiator, parent, flags) {
+        return this.view.deactivate(initiator, this.$controller, flags);
+    }
+    dispose() {
+        this.view.dispose();
+        this.view = (void 0);
+    }
+    accept(visitor) {
+        var _a;
+        if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
+            return true;
+        }
+    }
+}
+customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
 
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 const ISanitizer = DI.createInterface('ISanitizer', x => x.singleton(class {

@@ -5,7 +5,7 @@ import type { ICustomAttributeViewModel, ICustomAttributeController } from '../t
 import type { IWatchDefinition } from '../watch.js';
 declare module '@aurelia/kernel' {
     interface IContainer {
-        find<T>(kind: CustomAttributeKind, name: string): CustomAttributeDefinition<Constructable<T>> | null;
+        find<T extends ICustomAttributeViewModel>(kind: typeof CustomAttribute, name: string): CustomAttributeDefinition<Constructable<T>> | null;
     }
 }
 export declare type PartialCustomAttributeDefinition = PartialResourceDefinition<{

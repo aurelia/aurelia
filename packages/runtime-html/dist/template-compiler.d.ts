@@ -8,6 +8,7 @@ import type { ICompliationInstruction } from './renderer.js';
 export declare class TemplateCompiler implements ITemplateCompiler {
     static register(container: IContainer): IResolver<ITemplateCompiler>;
     debug: boolean;
+    resolveResources: boolean;
     compile(partialDefinition: PartialCustomElementDefinition, container: IContainer, compilationInstruction: ICompliationInstruction | null): CustomElementDefinition;
     private shouldReorderAttrs;
     private reorder;

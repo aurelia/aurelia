@@ -76,7 +76,7 @@ export class DateComponent {
 
 Seriously, that's all this component is going to do. Now, we need a view for this. Unlike other components, we are not even going to create a separate view file. We can specify an inline template for our view.
 
-We will import the `customElement` decorator and then decorator our component class. We have to specify the name \(the HTML tag\) and the template takes a template string. Take note of the backslash `\` this is being used to escape our interpolation as we only want Aurelia interpreting this, not Javascript.
+We will import the `customElement` decorator and then decorate our component class. We have to specify the name \(the HTML tag\) and the template takes a template string. Take note of the backslash `\` this is being used to escape our interpolation as we only want Aurelia interpreting this, not Javascript.
 
 ```typescript
 import { customElement } from 'aurelia';
@@ -133,7 +133,7 @@ Now, we create a `dog-component.html` file inside of the `components` directory:
 </div>
 ```
 
-If you have [read up on the promise controller](https://docs.aurelia.io/getting-to-know-aurelia/introduction/built-in-template-features#using-promises-in-templates-with-promise-bind), this syntax will be familiar to you. We make the call to our `fetchDog` method, while we wait for it to resolve, the `pending` attribute will show the element it is used on. Once the promise resolves on `then.from-view` we get the return object we can work with. We then bind the returned URL `src` attribute of the image. If there is an error the `catch.from-view` will be triggered and passed our error.
+If you have [read up on the promise controller](https://docs.aurelia.io/getting-to-know-aurelia/introduction/built-in-template-features/promise.bind), this syntax will be familiar to you. We make the call to our `fetchDog` method, while we wait for it to resolve, the `pending` attribute will show the element it is used on. Once the promise resolves on `then.from-view` we get the return object we can work with. We then bind the returned URL `src` attribute of the image. If there is an error the `catch.from-view` will be triggered and pass our error.
 
 ## Base styling
 
@@ -355,7 +355,7 @@ export class MyApp {
 
 Our fourth component will be a note-taking component. It will show a simple list of notes, allow us to delete them and most importantly: allow us to add new notes. This component will not require communicating with a third-party API.
 
-Like all the components we created before it, we start off creating two files in the `components` directory. Let's create `notes-component.ts` first as this is where most of the code will be.
+Like all the components we have created before, we start off creating two files in the `components` directory. Let's create `notes-component.ts` first as this is where most of the code will be.
 
 Inside of `notes-component.ts` add the following:
 
@@ -425,7 +425,7 @@ Inside of `notes-component.css` add in the following styles:
   }
 ```
 
-Let's update our `my-app.ts` file, this time we'll be changing the order slightly and we will also be importing our newly create notes component too.
+Let's update our `my-app.ts` file, this time we'll be changing the order slightly and we will also be importing our newly created notes component too.
 
 ```typescript
 import { NotesComponent } from './components/notes-component';

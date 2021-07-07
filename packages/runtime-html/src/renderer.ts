@@ -18,7 +18,7 @@ import { Listener } from './binding/listener.js';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import { getRenderContext } from './templating/render-context.js';
-import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/custom-elements/au-slot.js';
+import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables.js';
 import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute.js';
 import { convertToRenderLocation, IRenderLocation, INode, setRef } from './dom.js';
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel } from './templating/controller.js';

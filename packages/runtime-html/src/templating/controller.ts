@@ -42,7 +42,7 @@ import type {
   IObservable,
   IsBindingBehavior,
 } from '@aurelia/runtime';
-import type { IProjections } from '../resources/custom-elements/au-slot.js';
+import type { IProjections } from '../resources/slot-injectables.js';
 import type { BindableDefinition } from '../bindable.js';
 import type { LifecycleHooksLookup } from './lifecycle-hooks.js';
 import type { INode, INodeSequence, IRenderLocation } from '../dom.js';

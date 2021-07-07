@@ -34,7 +34,7 @@ import type {
 import type { AnyBindingExpression } from '@aurelia/runtime';
 import type { CustomAttributeDefinition } from './resources/custom-attribute.js';
 import type { PartialCustomElementDefinition } from './resources/custom-element.js';
-import type { IProjections } from './resources/custom-elements/au-slot.js';
+import type { IProjections } from './resources/slot-injectables.js';
 import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command.js';
 import type { ICompliationInstruction, IInstruction, } from './renderer.js';
 

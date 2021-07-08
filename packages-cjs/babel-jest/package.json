@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/babel-jest",
   "version": "2.0.0-alpha.10",
-  "main": "dist/bundle/index.cjs.js",
+  "main": "dist/cjs/index.js",
   "module": "dist/bundle/index.js",
   "type": "commonjs",
   "types": "dist/types/index.d.ts",

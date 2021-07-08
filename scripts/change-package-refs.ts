@@ -6,22 +6,22 @@ const log = createLogger('change-package-refs');
 
 const webRefs = {
   dev: {
-    'main': 'dist/bundle/index.js',
-    'module': 'dist/bundle/index.js',
+    'main': 'dist/esm/index.js',
+    'module': 'dist/esm/index.js',
   },
   release: {
-    'main': 'dist/bundle/index.cjs.js',
-    'module': 'dist/bundle/index.js',
+    'main': 'dist/cjs/index.js',
+    'module': 'dist/esm/index.js',
   }
 };
 const cjsRefs = {
   dev: {
-    'main': 'dist/bundle/index.js',
-    'module': 'dist/bundle/index.js',
+    'main': 'dist/esm/index.js',
+    'module': 'dist/esm/index.js',
   },
   release: {
-    'main': 'dist/bundle/index.cjs.js',
-    'module': 'dist/bundle/index.js',
+    'main': 'dist/cjs/index.js',
+    'module': 'dist/esm/index.js',
   }
 };
 

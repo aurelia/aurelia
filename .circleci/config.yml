@@ -282,6 +282,7 @@ jobs:
             - run: git checkout << parameters.branch >>
             - run: git pull
       - run: sudo npm i -g ts-node
+      - run: npm i @types/node
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc

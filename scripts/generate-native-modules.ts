@@ -22,12 +22,12 @@ const log = createLogger('generate-native-modules');
   for (const pkg of packages) {
     const distPath = path.join(pkg.path, 'dist');
     // old bundling code:
-    // const esmPath = path.join(distPath, 'esm');
-    const bundlePath = path.join(distPath, 'bundle');
+    const esmPath = path.join(distPath, 'esm');
+    // const bundlePath = path.join(distPath, 'bundle');
     const nativeModulesPath = path.join(distPath, 'native-modules');
 
-    log.info(`Processing '${bundlePath}'`);
-    const files = await getFiles(bundlePath);
+    log.info(`Processing '${esmPath}'`);
+    const files = await getFiles(esmPath);
     for (const file of files) {
       log.info(`Processing '${file.path.replace(project.path, '')}'`);
 
@@ -64,7 +64,7 @@ const log = createLogger('generate-native-modules');
         }
       }
 
-      const newPath = file.path.replace(bundlePath, nativeModulesPath);
+      const newPath = file.path.replace(esmPath, nativeModulesPath);
       log.info(`Writing processed file to '${newPath.replace(project.path, '')}'`);
 
       const newDir = path.dirname(newPath);

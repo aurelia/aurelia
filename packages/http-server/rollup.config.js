@@ -12,12 +12,12 @@ export default [
         sourcemap: true
       },
       {
-        file: 'dist/bundle/index.esm.js',
+        file: 'dist/esm/index.js',
         format: 'es',
         sourcemap: true
       },
       {
-        file: 'dist/bundle/index.cjs.js',
+        file: 'dist/cjs/index.js',
         format: 'cjs',
         sourcemap: true
       },

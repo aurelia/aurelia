@@ -1,11 +1,12 @@
 import { Platform, TaskQueue } from '../../../platform/dist/native-modules/index.js';
+
 const lookup = new Map();
 function notImplemented(name) {
     return function notImplemented() {
         throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
     };
 }
-export class BrowserPlatform extends Platform {
+class BrowserPlatform extends Platform {
     constructor(g, overrides = {}) {
         var _a, _b, _c, _d, _e, _f;
         super(g, overrides);
@@ -99,4 +100,6 @@ export class BrowserPlatform extends Platform {
         }
     }
 }
+
+export { BrowserPlatform };
 //# sourceMappingURL=index.js.map

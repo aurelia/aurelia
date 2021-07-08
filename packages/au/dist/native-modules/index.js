@@ -1,8 +1,78 @@
 import { existsSync } from 'fs';
 import { resolve } from 'path';
-import { AuConfigurationOptions } from './au-configuration-options.js';
-import { DevServer } from "./dev-server.js";
-export { AuConfigurationOptions };
+import { HttpServerOptions, RuntimeNodeConfiguration, IHttpServer } from '../../../@aurelia/http-server/dist/native-modules/index.js';
+import { DI, IContainer } from '../../../@aurelia/kernel/dist/native-modules/index.js';
+
+/* eslint-disable prefer-template */
+const space = ' ';
+class AuConfigurationOptions {
+    constructor(server = new HttpServerOptions()) {
+        this.server = server;
+    }
+    /** @internal */
+    applyConfig(config) {
+        const server = config.server;
+        if (server !== void 0 && server !== null) {
+            this.server.applyConfig(server);
+        }
+    }
+    /** @internal */
+    toString() {
+        const indent = space.repeat(2);
+        return 'au server'
+            + `${indent}Starts the dev server`
+            + this.server.toString(indent.repeat(2));
+    }
+}
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+function __decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+
+function __param(paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+}
+
+let DevServer = class DevServer {
+    constructor(container) {
+        this.container = container;
+    }
+    static create(container = DI.createContainer()) {
+        return new DevServer(container);
+    }
+    async run(option) {
+        // wireup
+        const container = this.container.createChild();
+        container.register(RuntimeNodeConfiguration.create(option));
+        // TODO compile/bundle
+        // TODO inject the entry script to index.html template (from user-space)
+        // start the http/file/websocket server
+        const server = container.get(IHttpServer);
+        await server.start();
+    }
+};
+DevServer = __decorate([
+    __param(0, IContainer)
+], DevServer);
+
 class ParsedArgs {
     constructor(cmd, configuration, unknownCommand = undefined, unconsumedArgs = []) {
         this.cmd = cmd;
@@ -69,4 +139,6 @@ async function parseArgs(args) {
     console.error(err);
     process.exit(1);
 });
+
+export { AuConfigurationOptions };
 //# sourceMappingURL=index.js.map

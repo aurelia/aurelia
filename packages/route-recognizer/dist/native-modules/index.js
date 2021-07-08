@@ -1,17 +1,17 @@
-export class ConfigurableRoute {
+class ConfigurableRoute {
     constructor(path, caseSensitive, handler) {
         this.path = path;
         this.caseSensitive = caseSensitive;
         this.handler = handler;
     }
 }
-export class Endpoint {
+class Endpoint {
     constructor(route, paramNames) {
         this.route = route;
         this.paramNames = paramNames;
     }
 }
-export class RecognizedRoute {
+class RecognizedRoute {
     constructor(endpoint, params) {
         this.endpoint = endpoint;
         this.params = params;
@@ -250,7 +250,7 @@ class RecognizeResult {
         }
     }
 }
-export class RouteRecognizer {
+class RouteRecognizer {
     constructor() {
         this.rootState = new State(null, null, '');
         this.cache = new Map();
@@ -484,4 +484,6 @@ class StarSegment {
             b.name === this.name);
     }
 }
+
+export { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer };
 //# sourceMappingURL=index.js.map

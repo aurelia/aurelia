@@ -1015,17 +1015,11 @@ const IAttrMapper = DI
 class AttrMapper {
     constructor(svg) {
         this.svg = svg;
-        /**
-         * @internal
-         */
+        /** @internal */
         this.fns = [];
-        /**
-         * @internal
-         */
+        /** @internal */
         this.tagAttrMap = createLookup();
-        /**
-         * @internal
-         */
+        /** @internal */
         this.globalAttrMap = createLookup();
         this.useMapping({
             LABEL: { for: 'htmlFor' },
@@ -1055,6 +1049,7 @@ class AttrMapper {
             readonly: 'readOnly',
         });
     }
+    /** @internal */
     static get inject() { return [ISVGAnalyzer]; }
     /**
      * Allow application to teach Aurelia how to define how to map attributes to properties
@@ -5733,22 +5728,25 @@ TemplateControllerRenderer = __decorate([
 let LetElementRenderer = 
 /** @internal */
 class LetElementRenderer {
-    constructor(parser, observerLocator) {
+    constructor(parser, oL) {
         this.parser = parser;
-        this.observerLocator = observerLocator;
+        this.oL = oL;
     }
-    render(flags, context, rendererController, target, instruction) {
+    render(flags, context, renderingController, target, instruction) {
         target.remove();
         const childInstructions = instruction.instructions;
         const toBindingContext = instruction.toBindingContext;
+        const container = renderingController.container;
         let childInstruction;
         let expr;
         let binding;
         for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
             childInstruction = childInstructions[i];
             expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
-            binding = applyBindingBehavior(new LetBinding(expr, childInstruction.to, this.observerLocator, rendererController.container, toBindingContext), expr, rendererController.container);
-            rendererController.addBinding(binding);
+            binding = new LetBinding(expr, childInstruction.to, this.oL, container, toBindingContext);
+            renderingController.addBinding(expr.$kind === 38962 /* BindingBehavior */
+                ? applyBindingBehavior(binding, expr, container)
+                : binding);
         }
     }
 };
@@ -5768,8 +5766,10 @@ class CallBindingRenderer {
     }
     render(flags, context, rendererController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
-        const binding = applyBindingBehavior(new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, rendererController.container), expr, rendererController.container);
-        rendererController.addBinding(binding);
+        const binding = new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, rendererController.container);
+        rendererController.addBinding(expr.$kind === 38962 /* BindingBehavior */
+            ? applyBindingBehavior(binding, expr, rendererController.container)
+            : binding);
     }
 };
 CallBindingRenderer = __decorate([
@@ -5787,8 +5787,10 @@ class RefBindingRenderer {
     }
     render(flags, context, rendererController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 5376 /* IsRef */);
-        const binding = applyBindingBehavior(new RefBinding(expr, getRefTarget(target, instruction.to), rendererController.container), expr, rendererController.container);
-        rendererController.addBinding(binding);
+        const binding = new RefBinding(expr, getRefTarget(target, instruction.to), rendererController.container);
+        rendererController.addBinding(expr.$kind === 38962 /* BindingBehavior */
+            ? applyBindingBehavior(binding, expr, rendererController.container)
+            : binding);
     }
 };
 RefBindingRenderer = __decorate([
@@ -5800,21 +5802,24 @@ RefBindingRenderer = __decorate([
 let InterpolationBindingRenderer = 
 /** @internal */
 class InterpolationBindingRenderer {
-    constructor(parser, observerLocator, platform) {
+    constructor(parser, oL, platform) {
         this.parser = parser;
-        this.observerLocator = observerLocator;
+        this.oL = oL;
         this.platform = platform;
     }
     render(flags, context, renderingController, target, instruction) {
+        const container = renderingController.container;
         const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-        const binding = new InterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, renderingController.container, this.platform.domWriteQueue);
+        const binding = new InterpolationBinding(this.oL, expr, getTarget(target), instruction.to, BindingMode.toView, container, this.platform.domWriteQueue);
         const partBindings = binding.partBindings;
         const ii = partBindings.length;
         let i = 0;
         let partBinding;
         for (; ii > i; ++i) {
             partBinding = partBindings[i];
-            partBindings[i] = applyBindingBehavior(partBinding, partBinding.sourceExpression, renderingController.container);
+            if (partBinding.sourceExpression.$kind === 38962 /* BindingBehavior */) {
+                partBindings[i] = applyBindingBehavior(partBinding, partBinding.sourceExpression, container);
+            }
         }
         renderingController.addBinding(binding);
     }
@@ -5830,15 +5835,17 @@ InterpolationBindingRenderer = __decorate([
 let PropertyBindingRenderer = 
 /** @internal */
 class PropertyBindingRenderer {
-    constructor(parser, observerLocator, platform) {
+    constructor(parser, oL, platform) {
         this.parser = parser;
-        this.observerLocator = observerLocator;
+        this.oL = oL;
         this.platform = platform;
     }
     render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
-        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, renderingController.container, this.platform.domWriteQueue), expr, renderingController.container);
-        renderingController.addBinding(binding);
+        const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.oL, renderingController.container, this.platform.domWriteQueue);
+        renderingController.addBinding(expr.$kind === 38962 /* BindingBehavior */
+            ? applyBindingBehavior(binding, expr, renderingController.container)
+            : binding);
     }
 };
 PropertyBindingRenderer = __decorate([
@@ -5852,15 +5859,18 @@ PropertyBindingRenderer = __decorate([
 let IteratorBindingRenderer = 
 /** @internal */
 class IteratorBindingRenderer {
-    constructor(parser, observerLocator, platform) {
+    constructor(parser, oL, p) {
         this.parser = parser;
-        this.observerLocator = observerLocator;
-        this.platform = platform;
+        this.oL = oL;
+        this.p = p;
     }
     render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
-        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, renderingController.container, this.platform.domWriteQueue), expr, renderingController.container);
+        const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.oL, renderingController.container, this.p.domWriteQueue);
         renderingController.addBinding(binding);
+        // renderingController.addBinding(expr.iterable.$kind === ExpressionKind.BindingBehavior
+        //   ? applyBindingBehavior(binding, expr.iterable, renderingController.container)
+        //   : binding);
     }
 };
 IteratorBindingRenderer = __decorate([
@@ -5891,32 +5901,39 @@ function applyBindingBehavior(binding, expression, locator) {
 let TextBindingRenderer = 
 /** @internal */
 class TextBindingRenderer {
-    constructor(parser, observerLocator, platform) {
+    constructor(parser, oL, p) {
         this.parser = parser;
-        this.observerLocator = observerLocator;
-        this.platform = platform;
+        this.oL = oL;
+        this.p = p;
     }
     render(flags, context, renderingController, target, instruction) {
+        const container = renderingController.container;
         const next = target.nextSibling;
         const parent = target.parentNode;
-        const doc = this.platform.document;
+        const doc = this.p.document;
         const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
         const staticParts = expr.parts;
         const dynamicParts = expr.expressions;
         const ii = dynamicParts.length;
         let i = 0;
         let text = staticParts[0];
+        let binding;
+        let part;
         if (text !== '') {
             parent.insertBefore(doc.createTextNode(text), next);
         }
         for (; ii > i; ++i) {
-            // each of the dynamic expression of an interpolation
-            // will be mapped to a ContentBinding
-            renderingController.addBinding(applyBindingBehavior(new ContentBinding(dynamicParts[i], 
+            part = dynamicParts[i];
+            binding = new ContentBinding(part, 
             // using a text node instead of comment, as a mean to:
             // support seamless transition between a html node, or a text
             // reduce the noise in the template, caused by html comment
-            parent.insertBefore(doc.createTextNode(''), next), renderingController.container, this.observerLocator, this.platform, instruction.strict), dynamicParts[i], renderingController.container));
+            parent.insertBefore(doc.createTextNode(''), next), container, this.oL, this.p, instruction.strict);
+            renderingController.addBinding(part.$kind === 38962 /* BindingBehavior */
+                // each of the dynamic expression of an interpolation
+                // will be mapped to a ContentBinding
+                ? applyBindingBehavior(binding, part, container)
+                : binding);
             // while each of the static part of an interpolation
             // will just be a text node
             text = staticParts[i + 1];
@@ -5946,8 +5963,10 @@ class ListenerBindingRenderer {
     }
     render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
-        const binding = applyBindingBehavior(new Listener(renderingController.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, renderingController.container), expr, renderingController.container);
-        renderingController.addBinding(binding);
+        const binding = new Listener(renderingController.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, renderingController.container);
+        renderingController.addBinding(expr.$kind === 38962 /* BindingBehavior */
+            ? applyBindingBehavior(binding, expr, renderingController.container)
+            : binding);
     }
 };
 ListenerBindingRenderer = __decorate([
@@ -5987,15 +6006,17 @@ SetStyleAttributeRenderer = __decorate([
 let StylePropertyBindingRenderer = 
 /** @internal */
 class StylePropertyBindingRenderer {
-    constructor(parser, observerLocator, platform) {
+    constructor(parser, oL, p) {
         this.parser = parser;
-        this.observerLocator = observerLocator;
-        this.platform = platform;
+        this.oL = oL;
+        this.p = p;
     }
     render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
-        const binding = applyBindingBehavior(new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, renderingController.container, this.platform.domWriteQueue), expr, renderingController.container);
-        renderingController.addBinding(binding);
+        const binding = new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.oL, renderingController.container, this.p.domWriteQueue);
+        renderingController.addBinding(expr.$kind === 38962 /* BindingBehavior */
+            ? applyBindingBehavior(binding, expr, renderingController.container)
+            : binding);
     }
 };
 StylePropertyBindingRenderer = __decorate([
@@ -6009,14 +6030,16 @@ StylePropertyBindingRenderer = __decorate([
 let AttributeBindingRenderer = 
 /** @internal */
 class AttributeBindingRenderer {
-    constructor(parser, observerLocator) {
+    constructor(parser, oL) {
         this.parser = parser;
-        this.observerLocator = observerLocator;
+        this.oL = oL;
     }
     render(flags, context, renderingController, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
-        const binding = applyBindingBehavior(new AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, BindingMode.toView, this.observerLocator, renderingController.container), expr, renderingController.container);
-        renderingController.addBinding(binding);
+        const binding = new AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, BindingMode.toView, this.oL, renderingController.container);
+        renderingController.addBinding(expr.$kind === 38962 /* BindingBehavior */
+            ? applyBindingBehavior(binding, expr, renderingController.container)
+            : binding);
     }
 };
 AttributeBindingRenderer = __decorate([
@@ -10660,18 +10683,17 @@ function createElementForTag(p, tagName, props, children) {
 }
 function createElementForType(p, Type, props, children) {
     const definition = CustomElement.getDefinition(Type);
-    const tagName = definition.name;
     const instructions = [];
     const allInstructions = [instructions];
     const dependencies = [];
     const childInstructions = [];
     const bindables = definition.bindables;
-    const element = p.document.createElement(tagName);
+    const element = p.document.createElement(definition.name);
     element.className = 'au';
     if (!dependencies.includes(Type)) {
         dependencies.push(Type);
     }
-    instructions.push(new HydrateElementInstruction(tagName, void 0, childInstructions, null, false));
+    instructions.push(new HydrateElementInstruction(definition, void 0, childInstructions, null, false));
     if (props) {
         Object.keys(props)
             .forEach(to => {
@@ -11479,8 +11501,8 @@ class Aurelia {
     get isStarting() { return this._isStarting; }
     get isStopping() { return this._isStopping; }
     get root() {
-        if (this._root == void 0) {
-            if (this.next == void 0) {
+        if (this._root == null) {
+            if (this.next == null) {
                 throw new Error(`root is not defined`); // TODO: create error code
             }
             return this.next;
@@ -11520,7 +11542,7 @@ class Aurelia {
         return p;
     }
     start(root = this.next) {
-        if (root == void 0) {
+        if (root == null) {
             throw new Error(`There is no composition root`);
         }
         if (this.startPromise instanceof Promise) {

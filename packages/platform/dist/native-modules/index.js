@@ -4,7 +4,7 @@ function notImplemented(name) {
         throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
     };
 }
-export class Platform {
+class Platform {
     constructor(g, overrides = {}) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
         this.macroTaskRequested = false;
@@ -60,7 +60,7 @@ export class Platform {
 function isPersistent(task) {
     return task.persistent;
 }
-export class TaskQueue {
+class TaskQueue {
     constructor(platform, $request, $cancel) {
         this.platform = platform;
         this.$request = $request;
@@ -369,21 +369,21 @@ export class TaskQueue {
         }
     }
 }
-export class TaskAbortError extends Error {
+class TaskAbortError extends Error {
     constructor(task) {
         super('Task was canceled.');
         this.task = task;
     }
 }
 let id = 0;
-export var TaskStatus;
+var TaskStatus;
 (function (TaskStatus) {
     TaskStatus[TaskStatus["pending"] = 0] = "pending";
     TaskStatus[TaskStatus["running"] = 1] = "running";
     TaskStatus[TaskStatus["completed"] = 2] = "completed";
     TaskStatus[TaskStatus["canceled"] = 3] = "canceled";
 })(TaskStatus || (TaskStatus = {}));
-export class Task {
+class Task {
     constructor(tracer, taskQueue, createdTime, queueTime, preempt, persistent, suspend, reusable, callback) {
         this.tracer = tracer;
         this.taskQueue = taskQueue;
@@ -646,7 +646,7 @@ class Tracer {
         }
     }
 }
-export var TaskQueuePriority;
+var TaskQueuePriority;
 (function (TaskQueuePriority) {
     TaskQueuePriority[TaskQueuePriority["render"] = 0] = "render";
     TaskQueuePriority[TaskQueuePriority["macroTask"] = 1] = "macroTask";
@@ -674,4 +674,6 @@ function createExposedPromise() {
     p.reject = $reject;
     return p;
 }
+
+export { Platform, Task, TaskAbortError, TaskQueue, TaskQueuePriority, TaskStatus };
 //# sourceMappingURL=index.js.map

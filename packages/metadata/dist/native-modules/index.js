@@ -49,7 +49,7 @@
  * ```
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
-export function isObject(value) {
+function isObject(value) {
     return typeof value === 'object' && value !== null || typeof value === 'function';
 }
 /**
@@ -59,7 +59,7 @@ export function isObject(value) {
  * @returns `true` if the value is `null` or `undefined`, otherwise `false`.
  * Also performs a type assertion that ensures TypeScript treats the value appropriately in the `if` and `else` branches after this check.
  */
-export function isNullOrUndefined(value) {
+function isNullOrUndefined(value) {
     return value === null || value === void 0;
 }
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -326,7 +326,7 @@ function OrdinaryDeleteMetadata(O, MetadataKey, P) {
  * @param metadataValue - The value for the metadata entry.
  * @returns A decorator function.
  */
-export function metadata(metadataKey, metadataValue) {
+function metadata(metadataKey, metadataValue) {
     function decorator(target, propertyKey) {
         // 1. Assert: F has a [[MetadataKey]] internal slot whose value is an ECMAScript language value, or undefined.
         // 2. Assert: F has a [[MetadataValue]] internal slot whose value is an ECMAScript language value, or undefined.
@@ -460,7 +460,7 @@ function $delete(metadataKey, target, propertyKey) {
     // 2. Return ? target.[[DeleteMetadata]](metadataKey, propertyKey).
     return OrdinaryDeleteMetadata(target, metadataKey, toPropertyKeyOrUndefined(propertyKey));
 }
-export const Metadata = {
+const Metadata = {
     define: $define,
     has: $has,
     hasOwn: $hasOwn,
@@ -497,7 +497,7 @@ function $applyMetadataPolyfill(reflect, writable, configurable) {
     def(reflect, 'getOwnMetadataKeys', $getOwnKeys, writable, configurable);
     def(reflect, 'deleteMetadata', $delete, writable, configurable);
 }
-export function applyMetadataPolyfill(reflect, throwIfConflict = true, forceOverwrite = false, writable = true, configurable = true) {
+function applyMetadataPolyfill(reflect, throwIfConflict = true, forceOverwrite = false, writable = true, configurable = true) {
     if (hasInternalSlot(reflect)) {
         if (reflect[internalSlotName] === metadataInternalSlot) {
             return;
@@ -534,4 +534,6 @@ export function applyMetadataPolyfill(reflect, throwIfConflict = true, forceOver
         $applyMetadataPolyfill(reflect, writable, configurable);
     }
 }
+
+export { Metadata, applyMetadataPolyfill, isNullOrUndefined, isObject, metadata };
 //# sourceMappingURL=index.js.map

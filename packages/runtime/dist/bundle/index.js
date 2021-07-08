@@ -2933,7 +2933,6 @@ function connectableDecorator(target) {
 function connectable(target) {
     return target == null ? connectableDecorator : connectableDecorator(target);
 }
-// @connectable
 class BindingMediator {
     constructor(key, binding, observerLocator, locator) {
         this.key = key;
@@ -2942,10 +2941,10 @@ class BindingMediator {
         this.locator = locator;
         this.interceptor = this;
     }
-    $bind(flags, scope, hostScope, projection) {
+    $bind() {
         throw new Error('Method not implemented.');
     }
-    $unbind(flags) {
+    $unbind() {
         throw new Error('Method not implemented.');
     }
     handleChange(newValue, previousValue, flags) {

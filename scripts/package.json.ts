@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { readFile, writeFile } from 'fs';
 import { join } from 'path';
 import project from './project';

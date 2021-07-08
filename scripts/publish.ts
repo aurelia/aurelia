@@ -1,14 +1,10 @@
-// @ts-nocheck
-// import { createLogger } from './logger';
 import { loadPackageJson } from './package.json';
 import project from './project';
 import { execSync } from 'child_process';
 import { join } from 'path';
 
-// const log = createLogger('publish');
-
 (async function (): Promise<void> {
-  const [, , channel/* dev/latest */] = process.argv;
+  const [, , channel/* dev or latest */] = process.argv;
 
   for (const { name, folder }
     of project.packages
@@ -17,7 +13,7 @@ import { join } from 'path';
         && p.folder.includes('packages')
       )
   ) {
-    console.log(`publishing`);
+    console.log(`publishing [${channel}] ${join(folder, name.kebab)}`);
     const pkg = await loadPackageJson(folder, name.kebab);
     if (pkg.private) {
         continue;

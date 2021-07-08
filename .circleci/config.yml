@@ -281,7 +281,6 @@ jobs:
           steps:
             - run: git checkout << parameters.branch >>
             - run: git pull
-      - run: sudo npm i -g ts-node @types/node
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
@@ -404,20 +403,20 @@ workflows:
   # Triggered by push to master or topic branches
   build_test:
     jobs:
-      # - unit_test_esm:
-      #     <<: *filter_ignore_develop_release
-      #     name: unit_test_esm_chrome
-      #     npm_command: "test-chrome"
-      # - unit_test_esm:
-      #    <<: *filter_ignore_develop_release
-      #    name: unit_test_esm_firefox
-      #    npm_command: "test-firefox"
-      #    coverage: false
-      # - unit_test_esm:
-      #    <<: *filter_ignore_develop_release
-      #    name: unit_test_esm_node
-      #    npm_command: "test-node"
-      #    coverage: false
+      - unit_test_esm:
+          <<: *filter_ignore_develop_release
+          name: unit_test_esm_chrome
+          npm_command: "test-chrome"
+      - unit_test_esm:
+         <<: *filter_ignore_develop_release
+         name: unit_test_esm_firefox
+         npm_command: "test-firefox"
+         coverage: false
+      - unit_test_esm:
+         <<: *filter_ignore_develop_release
+         name: unit_test_esm_node
+         npm_command: "test-node"
+         coverage: false
       - unit_test_cjs:
          <<: *filter_ignore_develop_release
          npm_command: "test-node"
@@ -427,34 +426,34 @@ workflows:
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
-      # - lint_packages:
-      #     <<: *filter_ignore_develop_release
-      # - benchmark_playwright:
-      #     <<: *filter_ignore_develop_release
-      # - e2e_playwright:
-      #     <<: *filter_ignore_develop_release
-      #     name: jit-webpack-conventions-ts
-      #     path: "examples/jit-webpack-conventions-ts"
-      #     requires:
-      #       - lint_packages # not a real requirement but forces long-running jobs to go first
-      # - e2e_playwright:
-      #     <<: *filter_ignore_develop_release
-      #     name: jit-webpack-vanilla-ts
-      #     path: "examples/jit-webpack-vanilla-ts"
-      #     requires:
-      #       - lint_packages # not a real requirement but forces long-running jobs to go first
+      - lint_packages:
+          <<: *filter_ignore_develop_release
+      - benchmark_playwright:
+          <<: *filter_ignore_develop_release
+      - e2e_playwright:
+          <<: *filter_ignore_develop_release
+          name: jit-webpack-conventions-ts
+          path: "examples/jit-webpack-conventions-ts"
+          requires:
+            - lint_packages # not a real requirement but forces long-running jobs to go first
+      - e2e_playwright:
+          <<: *filter_ignore_develop_release
+          name: jit-webpack-vanilla-ts
+          path: "examples/jit-webpack-vanilla-ts"
+          requires:
+            - lint_packages # not a real requirement but forces long-running jobs to go first
       - merge_and_dist:
           <<: *filter_only_master
           name: merge_and_dist_master
           requires:
-            # - unit_test_esm_chrome
-            # - unit_test_esm_firefox
-            # - unit_test_esm_node
+            - unit_test_esm_chrome
+            - unit_test_esm_firefox
+            - unit_test_esm_node
             - unit_test_cjs
             #- test_test262
-            # - lint_packages
-            # - jit-webpack-conventions-ts
-            # - jit-webpack-vanilla-ts
+            - lint_packages
+            - jit-webpack-conventions-ts
+            - jit-webpack-vanilla-ts
           from: master
           to: develop
           channel: dev
@@ -464,13 +463,13 @@ workflows:
           <<: *filter_only_topic
           name: merge_and_dist_topic
           requires:
-            # - unit_test_esm_chrome
-            # - unit_test_esm_firefox
-            # - unit_test_esm_node
+            - unit_test_esm_chrome
+            - unit_test_esm_firefox
+            - unit_test_esm_node
             - unit_test_cjs
-            # - lint_packages
-            # - jit-webpack-conventions-ts
-            # - jit-webpack-vanilla-ts
+            - lint_packages
+            - jit-webpack-conventions-ts
+            - jit-webpack-vanilla-ts
           from: master
           to: develop
           channel: dev

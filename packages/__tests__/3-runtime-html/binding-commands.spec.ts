@@ -5,8 +5,8 @@ import {
   bindingCommand,
   OneTimeBindingCommand,
   PropertyBindingInstruction,
+  ICommandBuildInfo,
 } from '@aurelia/runtime-html';
-import { ICommandBuildInfo } from '@aurelia/runtime-html/dist/resources/binding-command';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('binding-commands', function () {

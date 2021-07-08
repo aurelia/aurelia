@@ -4,8 +4,8 @@
   "main": "dist/bundle/index.cjs.js",
   "module": "dist/bundle/index.js",
   "type": "commonjs",
-  "types": "dist/index.d.ts",
-  "typings": "dist/index.d.ts",
+  "types": "dist/types/index.d.ts",
+  "typings": "dist/types/index.d.ts",
   "license": "MIT",
   "homepage": "https://aurelia.io",
   "repository": {
@@ -36,7 +36,7 @@
     "dev": "rollup -c -w",
     "publish:dev": "npm publish --tag dev",
     "publish:latest": "npm publish --tag latest",
-    "rollup": "-c"
+    "rollup": "rollup -c"
   },
   "publishConfig": {
     "access": "public"

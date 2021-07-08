@@ -4,7 +4,7 @@ import pkg from './package.json';
 export default [
   {
     input: 'src/index.ts',
-    external: Object.keys(pkg.dependencies).concat('os', 'path', 'fs', 'http', 'https', 'http2', 'url'),
+    external: Object.keys(pkg.dependencies).concat('os', 'path', 'fs', 'http', 'https', 'http2', 'url', 'stream'),
     output: [
       {
         file: 'dist/bundle/index.js',
@@ -31,7 +31,7 @@ export default [
   },
   {
     input: 'src/cli.ts',
-    external: Object.keys(pkg.dependencies).concat('os', 'path', 'fs', 'http', 'https', 'http2', 'url'),
+    external: Object.keys(pkg.dependencies).concat('os', 'path', 'fs', 'http', 'https', 'http2', 'url', 'stream'),
     output: [
       {
         file: 'dist/bundle/cli.js',

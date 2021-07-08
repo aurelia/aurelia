@@ -3,7 +3,7 @@
 // example:
 // import {} from '@aurelia/kernel'
 // ->
-// import {} from '../../kernel/dist/bundle/index.js'
+// import {} from '../../kernel/dist/esm/index.js'
 // this works with CDN well, though it wouldn't have the proper sourcemap
 // todo: consider make this step part of the rollup build
 // ------------------------

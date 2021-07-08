@@ -29,7 +29,7 @@ export default [
     external: Object.keys(pkg.dependencies).concat('os', 'path', 'fs', 'http', 'https', 'http2', 'url', 'stream'),
     output: [
       {
-        file: 'dist/bundle/cli.js',
+        file: 'dist/esm/cli.js',
         format: 'es',
         sourcemap: true
       },

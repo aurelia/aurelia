@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es2018",
+    "lib": ["esnext"],
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "project.ts",
+    "package.json.ts",
+    "publish.ts",
+  ]
+}

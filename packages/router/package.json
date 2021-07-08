@@ -1,10 +1,10 @@
 {
   "name": "@aurelia/router",
   "version": "2.0.0-alpha.10",
-  "main": "dist/esm/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/index.d.ts",
-  "typings": "dist/index.d.ts",
+  "main": "dist/bundle/index.js",
+  "module": "dist/bundle/index.js",
+  "types": "dist/types/index.d.ts",
+  "typings": "dist/types/index.d.ts",
   "license": "MIT",
   "type": "module",
   "homepage": "https://aurelia.io",
@@ -30,8 +30,11 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
-    "build": "tsc -b",
-    "dev": "tsc -b -w --preserveWatchOutput",
+    "build:tsc": "tsc -b",
+    "build": "rollup -c",
+    "postbuild": "tsc --emitDeclarationOnly",
+    "dev:tsc": "tsc -b -w --preserveWatchOutput",
+    "dev": "rollup -c -w",
     "publish:dev": "npm publish --tag dev",
     "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c"

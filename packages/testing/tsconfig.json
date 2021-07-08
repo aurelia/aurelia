@@ -3,7 +3,7 @@
   "compilerOptions": {
     "rootDir": "src",
     "lib": ["esnext", "dom"],
-    "declarationDir": "dist",
+    "declarationDir": "dist/types",
     "outDir": "dist/esm",
 
     "types": [

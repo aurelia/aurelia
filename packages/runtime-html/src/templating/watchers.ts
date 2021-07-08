@@ -97,7 +97,9 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
 }
 
 /**
- * @internal The interface describes methods added by `connectable` & `subscriberCollection` decorators
+ * The interface describes methods added by `connectable` & `subscriberCollection` decorators
+ *
+ * @internal
  */
 export interface ExpressionWatcher extends IConnectableBinding { }
 

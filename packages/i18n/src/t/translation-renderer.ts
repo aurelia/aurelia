@@ -14,13 +14,13 @@ import {
   IPlatform,
   IAttrMapper,
   ICompiledRenderContext,
+  ICommandBuildInfo,
 } from '@aurelia/runtime-html';
 
 import type {
   CallBindingInstruction,
   BindingCommandInstance,
 } from '@aurelia/runtime-html';
-import { ICommandBuildInfo } from '@aurelia/runtime-html/dist/resources/binding-command';
 
 export const TranslationInstructionType = 'tt';
 

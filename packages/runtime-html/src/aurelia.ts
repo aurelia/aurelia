@@ -16,8 +16,8 @@ export class Aurelia implements IDisposable {
 
   private _root: IAppRoot | undefined = void 0;
   public get root(): IAppRoot {
-    if (this._root == void 0) {
-      if (this.next == void 0) {
+    if (this._root == null) {
+      if (this.next == null) {
         throw new Error(`root is not defined`); // TODO: create error code
       }
       return this.next;
@@ -78,7 +78,7 @@ export class Aurelia implements IDisposable {
 
   private startPromise: Promise<void> | void = void 0;
   public start(root: IAppRoot | undefined = this.next): void | Promise<void> {
-    if (root == void 0) {
+    if (root == null) {
       throw new Error(`There is no composition root`);
     }
 

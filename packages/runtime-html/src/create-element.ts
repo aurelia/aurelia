@@ -119,20 +119,19 @@ function createElementForType(
   children?: ArrayLike<unknown>,
 ): RenderPlan {
   const definition = CustomElement.getDefinition(Type);
-  const tagName = definition.name;
   const instructions: IInstruction[] = [];
   const allInstructions = [instructions];
   const dependencies: Key[] = [];
   const childInstructions: Instruction[] = [];
   const bindables = definition.bindables;
-  const element = p.document.createElement(tagName);
+  const element = p.document.createElement(definition.name);
   element.className = 'au';
 
   if (!dependencies.includes(Type)) {
     dependencies.push(Type);
   }
 
-  instructions.push(new HydrateElementInstruction(tagName, void 0, childInstructions, null, false));
+  instructions.push(new HydrateElementInstruction(definition, void 0, childInstructions, null, false));
 
   if (props) {
     Object.keys(props)

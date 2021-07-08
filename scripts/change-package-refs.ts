@@ -4,14 +4,24 @@ import project from './project';
 
 const log = createLogger('change-package-refs');
 
-const refs = {
+const webRefs = {
   dev: {
-    'main': 'dist/esm/index.js',
-    'module': 'dist/esm/index.js',
+    'main': 'dist/bundle/index.js',
+    'module': 'dist/bundle/index.js',
   },
   release: {
-    'main': 'dist/cjs/index.js',
-    'module': 'dist/esm/index.js',
+    'main': 'dist/bundle/index.cjs.js',
+    'module': 'dist/bundle/index.js',
+  }
+};
+const cjsRefs = {
+  dev: {
+    'main': 'dist/bundle/index.js',
+    'module': 'dist/bundle/index.js',
+  },
+  release: {
+    'main': 'dist/bundle/index.cjs.js',
+    'module': 'dist/bundle/index.js',
   }
 };
 
@@ -20,9 +30,17 @@ const fields = ['main', 'module'];
 (async function (): Promise<void> {
   const [, , ref, type] = process.argv;
 
-  for (const { name, folder } of project.packages.filter(p => !p.name.kebab.includes('_') && p.folder.includes('packages'))) {
+  for (const { name, folder }
+    of project.packages
+      .filter(
+        p => !p.name.kebab.includes('_')
+        && p.folder.includes('packages')
+      )
+  ) {
     log(`changing package.json fields to ${ref} for: ${c.magentaBright(name.npm)}`);
+    const isCjsPackage = folder.includes('packages-cjs');
     const pkg = await loadPackageJson(folder, name.kebab);
+    const refs = isCjsPackage ? cjsRefs : webRefs;
     for (const field of fields) {
       pkg[field] = refs[ref][field];
     }

@@ -212,7 +212,7 @@ export const Bindable = {
       keys = Protocol.annotation.getKeys(Class).filter(isBindableAnnotation);
       keysLen = keys.length;
       for (let i = 0; i < keysLen; ++i) {
-        defs[iDefs++] = Metadata.getOwn(Bindable.name, Class, keys[i].slice(propStart));
+        defs[iDefs++] = Metadata.getOwn(Bindable.name, Class, keys[i].slice(propStart)) as BindableDefinition;
       }
     }
     return defs;

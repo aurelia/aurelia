@@ -9,18 +9,13 @@ export const IAttrMapper = DI
 type IsTwoWayPredicate = (element: Element, attribute: string) => boolean;
 
 export class AttrMapper {
-  public static get inject() { return [ISVGAnalyzer]; }
-  /**
-   * @internal
-   */
+  /** @internal */
+  public static get inject(): unknown[] { return [ISVGAnalyzer]; }
+  /** @internal */
   private readonly fns: IsTwoWayPredicate[] = [];
-  /**
-   * @internal
-   */
+  /** @internal */
   private readonly tagAttrMap: Record<string, Record<string, PropertyKey>> = createLookup();
-  /**
-   * @internal
-   */
+  /** @internal */
   private readonly globalAttrMap: Record<string, PropertyKey> = createLookup();
 
   public constructor(

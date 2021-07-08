@@ -252,6 +252,7 @@ jobs:
       # - run: set -o pipefail && npm run change-tsconfigs:invert
       # - run: set -o pipefail && npm run build:release
       # - run: set -o pipefail && npm run change-tsconfigs:restore
+      - run: set -o pipefail && npm run build:release-script
       - run: set -o pipefail && npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
@@ -281,7 +282,6 @@ jobs:
           steps:
             - run: git checkout << parameters.branch >>
             - run: git pull
-      - run: sudo npm i -g ts-node @types/node
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc

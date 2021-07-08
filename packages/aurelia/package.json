@@ -1,6 +1,6 @@
 {
   "name": "aurelia",
-  "version": "2.0.1-dev.202107080650",
+  "version": "2.0.1-dev.202107080704",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -41,15 +41,15 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/fetch-client": "2.0.1-dev.202107080650",
-    "@aurelia/kernel": "2.0.1-dev.202107080650",
-    "@aurelia/metadata": "2.0.1-dev.202107080650",
-    "@aurelia/platform": "2.0.1-dev.202107080650",
-    "@aurelia/platform-browser": "2.0.1-dev.202107080650",
-    "@aurelia/route-recognizer": "2.0.1-dev.202107080650",
-    "@aurelia/router": "2.0.1-dev.202107080650",
-    "@aurelia/runtime-html": "2.0.1-dev.202107080650",
-    "@aurelia/runtime": "2.0.1-dev.202107080650"
+    "@aurelia/fetch-client": "2.0.1-dev.202107080704",
+    "@aurelia/kernel": "2.0.1-dev.202107080704",
+    "@aurelia/metadata": "2.0.1-dev.202107080704",
+    "@aurelia/platform": "2.0.1-dev.202107080704",
+    "@aurelia/platform-browser": "2.0.1-dev.202107080704",
+    "@aurelia/route-recognizer": "2.0.1-dev.202107080704",
+    "@aurelia/router": "2.0.1-dev.202107080704",
+    "@aurelia/runtime-html": "2.0.1-dev.202107080704",
+    "@aurelia/runtime": "2.0.1-dev.202107080704"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

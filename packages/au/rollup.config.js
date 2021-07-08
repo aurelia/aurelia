@@ -6,11 +6,6 @@ export default {
   external: Object.keys(pkg.dependencies).concat('fs', 'path'),
   output: [
     {
-      file: 'dist/bundle/index.js',
-      format: 'es',
-      sourcemap: true
-    },
-    {
       file: 'dist/esm/index.js',
       format: 'es',
       sourcemap: true

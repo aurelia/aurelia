@@ -1,8 +1,8 @@
 {
   "name": "aurelia",
   "version": "2.0.0-alpha.10",
-  "main": "dist/bundle/index.js",
-  "module": "dist/bundle/index.js",
+  "main": "dist/esm/index.js",
+  "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
   "typings": "dist/types/index.d.ts",
   "license": "MIT",

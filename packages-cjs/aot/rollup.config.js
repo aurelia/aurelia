@@ -8,11 +8,6 @@ export default {
     .concat('os', 'path', 'fs', 'http', 'https', 'http2', 'url', 'stream'),
   output: [
     {
-      file: 'dist/bundle/index.js',
-      format: 'es',
-      sourcemap: true
-    },
-    {
       file: 'dist/esm/index.js',
       format: 'es',
       sourcemap: true

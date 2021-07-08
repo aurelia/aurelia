@@ -90,8 +90,6 @@ module.exports = function (config) {
     ]),
     ...packageNames.flatMap(name => [
       { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/${name}/dist/esm/**/!(*.$au)*.js` }, // 3.1
-      { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/${name}/dist/bundle/index.js` }, // 3.1
-      { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/${name}/dist/bundle/index.js.map` }, // 3.1
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/${name}/dist/esm/**/*.js.map` }, // 3.2
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/${name}/src/**/*.ts` }, // 3.3
     ]),

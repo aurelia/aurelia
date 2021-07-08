@@ -2,7 +2,7 @@
   "extends": "../tsconfig-build.json",
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
-    "declarationDir": "dist",
+    "declarationDir": "dist/types",
     "outDir": "dist/esm",
     "lib": ["esnext", "dom"],
     "resolveJsonModule": true,

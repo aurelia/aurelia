@@ -281,7 +281,7 @@ jobs:
           steps:
             - run: git checkout << parameters.branch >>
             - run: git pull
-      - run: sudo npm i -g ts-node @types/node
+      - run: sudo npm i -g ts-node
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
@@ -418,17 +418,17 @@ workflows:
       #    name: unit_test_esm_node
       #    npm_command: "test-node"
       #    coverage: false
-      # - unit_test_cjs:
-      #    <<: *filter_ignore_develop_release
-      #    npm_command: "test-node"
+      - unit_test_cjs:
+         <<: *filter_ignore_develop_release
+         npm_command: "test-node"
       #- unit_test:
       #   <<: *filter_ignore_develop_release
       #   name: test_test262
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
-      - lint_packages:
-          <<: *filter_ignore_develop_release
+      # - lint_packages:
+      #     <<: *filter_ignore_develop_release
       # - benchmark_playwright:
       #     <<: *filter_ignore_develop_release
       # - e2e_playwright:
@@ -450,9 +450,9 @@ workflows:
             # - unit_test_esm_chrome
             # - unit_test_esm_firefox
             # - unit_test_esm_node
-            # - unit_test_cjs
+            - unit_test_cjs
             #- test_test262
-            - lint_packages
+            # - lint_packages
             # - jit-webpack-conventions-ts
             # - jit-webpack-vanilla-ts
           from: master
@@ -467,8 +467,8 @@ workflows:
             # - unit_test_esm_chrome
             # - unit_test_esm_firefox
             # - unit_test_esm_node
-            # - unit_test_cjs
-            - lint_packages
+            - unit_test_cjs
+            # - lint_packages
             # - jit-webpack-conventions-ts
             # - jit-webpack-vanilla-ts
           from: master

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createLogger } from './logger';
 import { loadPackageJson } from './package.json';
 import project from './project';

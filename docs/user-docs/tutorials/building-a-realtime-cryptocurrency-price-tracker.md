@@ -167,6 +167,16 @@ priceUpdate() {
 }
 ```
 
+And add the `priceUpdate()` call to binding function.
+
+```typescript
+async binding() {
+    this.prices = await this.api.getPrices(config.coins);
+    
+    this.priceUpdate();
+}
+```
+
 We poll the Coingecko API every second to update prices and store it in the `prices` object. If any of these prices change, they are updated in the view because everything is reactively bound. Aurelia is watching this object and the properties we've bound to in our view. We just use a basic `setInterval` to continuously poll the server, feel free to adjust the frequency.
 
 ## Seeing what we have so far
@@ -185,7 +195,7 @@ You might have noticed our prices are being displayed, but they're not formatted
 
 So, now we are going to create a value converter using the [Internationalization API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl) to format our currency values as properly formed values in our view.
 
-Inside of `src` create a new folder called `resources` and then inside of `resources` another folder called `value-converters`. It is considered best practice to have your resources inside of a resources/components folder like this.
+Inside of `src` create a new folder called `resources` and then inside of `resources` another folder called `value-converters`. It is considered best practice to have your resources inside of a resources/components folder like this. Create a new file called `currency-value-converter.ts`.
 
 To understand what this value converter is doing, you can read about value converters [here](../getting-to-know-aurelia/introduction/value-converters.md).
 
@@ -220,7 +230,7 @@ If you want to learn about other ways you can inject dependencies, consult the d
 Open up `my-app.html` again and add in the following:
 
 ```markup
-<import from="./resources/value-converters/currency"></import>
+<import from="./resources/value-converters/currency-value-converter"></import>
 
 <div class="panels">
     <div class="panel"><h4>Bitcoin</h4> ${prices.bitcoin.usd | currency}</div>

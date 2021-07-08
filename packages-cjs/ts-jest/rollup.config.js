@@ -20,7 +20,8 @@ export default {
     {
       file: 'dist/bundle/index.cjs.js',
       format: 'cjs',
-      sourcemap: true
+      sourcemap: true,
+      exports: 'named'
     },
   ],
   plugins: [

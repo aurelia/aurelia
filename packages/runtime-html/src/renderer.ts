@@ -825,10 +825,10 @@ export class IteratorBindingRenderer implements IRenderer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
     const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.oL, renderingController.container, this.p.domWriteQueue);
-    renderingController.addBinding(expr.iterable.$kind === ExpressionKind.BindingBehavior
-      ? applyBindingBehavior(binding, expr.iterable, renderingController.container)
-      : binding
-    );
+    renderingController.addBinding(binding);
+    // renderingController.addBinding(expr.iterable.$kind === ExpressionKind.BindingBehavior
+    //   ? applyBindingBehavior(binding, expr.iterable, renderingController.container)
+    //   : binding);
   }
 }
 

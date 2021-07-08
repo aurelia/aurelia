@@ -29,8 +29,11 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
-    "build": "tsc -b",
-    "dev": "tsc -b -w --preserveWatchOutput",
+    "build:tsc": "tsc -b",
+    "build": "rollup -c",
+    "postbuild": "tsc --emitDeclarationOnly",
+    "dev:tsc": "tsc -b -w --preserveWatchOutput",
+    "dev": "rollup -c -w",
     "publish:dev": "npm publish --tag dev",
     "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c"

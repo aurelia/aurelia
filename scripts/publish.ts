@@ -1,10 +1,11 @@
-import { createLogger } from './logger';
+// @ts-nocheck
+// import { createLogger } from './logger';
 import { loadPackageJson } from './package.json';
 import project from './project';
 import { execSync } from 'child_process';
 import { join } from 'path';
 
-const log = createLogger('publish');
+// const log = createLogger('publish');
 
 (async function (): Promise<void> {
   const [, , channel/* dev/latest */] = process.argv;
@@ -16,7 +17,7 @@ const log = createLogger('publish');
         && p.folder.includes('packages')
       )
   ) {
-    log(`publishing`);
+    console.log(`publishing`);
     const pkg = await loadPackageJson(folder, name.kebab);
     if (pkg.private) {
         continue;
@@ -25,8 +26,8 @@ const log = createLogger('publish');
     execSync(`cd ${join(folder, name.kebab)} && npm run publish:${channel}`);
   }
 
-  log('Done.');
+  console.log('Done.');
 })().catch(err => {
-  log.error(err);
+  console.error(err);
   process.exit(1);
 });

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { join } from 'path';
 import * as packageJson from '../package.json';
 

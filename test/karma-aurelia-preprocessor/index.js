@@ -83,7 +83,7 @@ function createAureliaPreprocessor(karmaConfig, logger) {
                 let newSpecifier = specifier;
                 if (specifier.startsWith('@aurelia/')) {
                   const packageName = specifier.slice(9 /* '@aurelia/'.length */);
-                  const packageEntryFilePath = path.join(basePath, `base/packages/${packageName}/dist/esm/index.js`);
+                  const packageEntryFilePath = path.join(basePath, `base/packages/${packageName}/dist/${packageName === '__tests__' ? 'esm' : 'bundle'}/index.js`);
                   newSpecifier = path.relative(file.path, packageEntryFilePath).replace(/\\/g, '/');
                 } else if (specifier.startsWith('@babel/')) {
                   const babelModulePath = specifier.slice(7 /* '@babel/runtime/'.length */);

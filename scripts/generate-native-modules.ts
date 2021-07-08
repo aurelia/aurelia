@@ -1,4 +1,12 @@
 /* eslint-disable */
+// convert all import paths into relative paths so it works natively in the browser
+// example:
+// import {} from '@aurelia/kernel'
+// ->
+// import {} from '../../kernel/dist/bundle/index.js'
+// this works with CDN well, though it wouldn't have the proper sourcemap
+// todo: consider make this step part of the rollup build
+// ------------------------
 import * as ts from 'typescript';
 import { File, getFiles } from './files';
 import { createLogger } from './logger';
@@ -13,11 +21,13 @@ const log = createLogger('generate-native-modules');
 
   for (const pkg of packages) {
     const distPath = path.join(pkg.path, 'dist');
-    const esmPath = path.join(distPath, 'esm');
+    // old bundling code:
+    // const esmPath = path.join(distPath, 'esm');
+    const bundlePath = path.join(distPath, 'bundle');
     const nativeModulesPath = path.join(distPath, 'native-modules');
 
-    log.info(`Processing '${esmPath}'`);
-    const files = await getFiles(esmPath);
+    log.info(`Processing '${bundlePath}'`);
+    const files = await getFiles(bundlePath);
     for (const file of files) {
       log.info(`Processing '${file.path.replace(project.path, '')}'`);
 
@@ -54,7 +64,7 @@ const log = createLogger('generate-native-modules');
         }
       }
 
-      const newPath = file.path.replace(esmPath, nativeModulesPath);
+      const newPath = file.path.replace(bundlePath, nativeModulesPath);
       log.info(`Writing processed file to '${newPath.replace(project.path, '')}'`);
 
       const newDir = path.dirname(newPath);

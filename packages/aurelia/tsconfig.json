@@ -4,7 +4,7 @@
     "types": ["node"],
     "lib": ["dom"],
     "rootDir": "src",
-    "declarationDir": "dist",
+    "declarationDir": "dist/types",
     "outDir": "dist/esm"
   },
   "include": ["src"]

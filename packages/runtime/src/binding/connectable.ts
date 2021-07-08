@@ -3,7 +3,7 @@ import { getArrayObserver } from '../observation/array-observer.js';
 import { getSetObserver } from '../observation/set-observer.js';
 import { getMapObserver } from '../observation/map-observer.js';
 
-import type { Class, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
+import type { Class, IServiceLocator } from '@aurelia/kernel';
 import type {
   IConnectable,
   ISubscribable,
@@ -17,7 +17,6 @@ import type {
   LifecycleFlags,
 } from '../observation.js';
 import type { IObserverLocator } from '../observation/observer-locator.js';
-import type { Scope } from '../observation/binding-context.js';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 
@@ -178,7 +177,7 @@ function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TPr
   ensureProto(proto, 'handleChange', noopHandleChange);
   ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);
 
-  return target as DecoratedConnectable<TProto, TClass>;
+  return target;
 }
 
 export function connectable(): typeof connectableDecorator;
@@ -191,8 +190,8 @@ export type MediatedBinding<K extends string> = {
   [key in K]: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface BindingMediator<K extends string> extends IConnectableBinding { }
-// @connectable
 export class BindingMediator<K extends string> implements IConnectableBinding {
   public interceptor = this;
 
@@ -204,11 +203,11 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
   ) {
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null, projection?: ResourceDefinition): void {
+  public $bind(): void {
     throw new Error('Method not implemented.');
   }
 
-  public $unbind(flags: LifecycleFlags): void {
+  public $unbind(): void {
     throw new Error('Method not implemented.');
   }
 

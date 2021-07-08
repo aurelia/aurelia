@@ -8,7 +8,7 @@
 // todo: consider make this step part of the rollup build
 // ------------------------
 import * as ts from 'typescript';
-import { File, getFiles } from './files';
+import { getFiles } from './files';
 import { createLogger } from './logger';
 import project from './project';
 import * as path from 'path';
@@ -21,9 +21,7 @@ const log = createLogger('generate-native-modules');
 
   for (const pkg of packages) {
     const distPath = path.join(pkg.path, 'dist');
-    // old bundling code:
     const esmPath = path.join(distPath, 'esm');
-    // const bundlePath = path.join(distPath, 'bundle');
     const nativeModulesPath = path.join(distPath, 'native-modules');
 
     log.info(`Processing '${esmPath}'`);

@@ -157,7 +157,13 @@ export interface IContainerConfiguration {
 }
 
 export const DefaultResolver = {
-  none(key: Key): IResolver {throw Error(`${key.toString()} not registered, did you forget to add @singleton()?`);},
+  none(key: Key): IResolver {
+    if (__DEV__) {
+      throw Error(`${key.toString()} not registered, did you forget to add @singleton()?`);
+    } else {
+      throw Error(`AUR0002:${key.toString()}`);
+    }
+  },
   singleton(key: Key): IResolver {return new Resolver(key, ResolverStrategy.singleton, key);},
   transient(key: Key): IResolver {return new Resolver(key, ResolverStrategy.transient, key);},
 };
@@ -244,7 +250,11 @@ export const DI = {
 
     const Interface = function (target: Injectable<K>, property: string, index: number): void {
       if (target == null || new.target !== undefined) {
-        throw new Error(`No registration for interface: '${Interface.friendlyName}'`); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
+        if (__DEV__) {
+          throw new Error(`No registration for interface: '${Interface.friendlyName}'`);
+        } else {
+          throw new Error(`AUR0001:${Interface.friendlyName}`);
+        }
       }
       const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
       annotationParamtypes[index] = Interface;
@@ -726,7 +736,11 @@ export class Resolver implements IResolver, IRegistration {
         return this.state;
       case ResolverStrategy.singleton: {
         if (this.resolving) {
-          throw new Error(`Cyclic dependency found: ${this.state.name}`);
+          if (__DEV__) {
+            throw new Error(`Cyclic dependency found: ${this.state.name}`);
+          } else {
+            throw new Error(`AUR0003:${this.state.name}`);
+          }
         }
         this.resolving = true;
         this.state = handler.getFactory(this.state as Constructable).construct(requestor);
@@ -738,7 +752,11 @@ export class Resolver implements IResolver, IRegistration {
         // Always create transients from the requesting container
         const factory = handler.getFactory(this.state as Constructable);
         if (factory === null) {
-          throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
+          if (__DEV__) {
+            throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
+          } else {
+            throw new Error(`AUR0004:${String(this.key)}`);
+          }
         }
         return factory.construct(requestor);
       }
@@ -749,7 +767,11 @@ export class Resolver implements IResolver, IRegistration {
       case ResolverStrategy.alias:
         return requestor.get(this.state);
       default:
-        throw new Error(`Invalid resolver strategy specified: ${this.strategy}.`);
+        if (__DEV__) {
+          throw new Error(`Invalid resolver strategy specified: ${this.strategy}.`);
+        } else {
+          throw new Error(`AUR0005:${this.strategy}`);
+        }
     }
   }
 
@@ -929,10 +951,14 @@ export class Container implements IContainer {
 
   public register(...params: any[]): IContainer {
     if (++this.registerDepth === 100) {
-      throw new Error(`Unable to autoregister dependency: [${params.map(String)}]`);
       // TODO: change to reporter.error and add various possible causes in description.
       // Most likely cause is trying to register a plain object that does not have a
       // register method and is not a class constructor
+      if (__DEV__) {
+        throw new Error(`Unable to autoregister dependency: [${params.map(String)}]`);
+      } else {
+        throw new Error(`AUR0006:${params.map(String)}`);
+      }
     }
     let current: IRegistry | Record<string, IRegistry>;
     let keys: string[];
@@ -997,7 +1023,11 @@ export class Container implements IContainer {
       resolvers.set(key, resolver);
       if (isResourceKey(key)) {
         if (this.resourceResolvers[key] !== void 0) {
-          throw new Error(`Resource key "${key}" already registered`);
+          if (__DEV__) {
+            throw new Error(`Resource key "${key}" already registered`);
+          } else {
+            throw new Error(`AUR0007:${key}`);
+          }
         }
         this.resourceResolvers[key] = resolver;
       }
@@ -1134,7 +1164,11 @@ export class Container implements IContainer {
       }
     }
 
-    throw new Error(`Unable to resolve key: ${key}`);
+    if (__DEV__) {
+      throw new Error(`Unable to resolve key: ${key}`);
+    } else {
+      throw new Error(`AUR0008:${key}`);
+    }
   }
 
   public getAll<K extends Key>(key: K, searchAncestors: boolean = false): readonly Resolved<K>[] {
@@ -1277,10 +1311,18 @@ export class Container implements IContainer {
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {
     if (typeof keyAsValue !== 'function') {
-      throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
+      if (__DEV__) {
+        throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
+      } else {
+        throw new Error(`AUR0009:${keyAsValue}`);
+      }
     }
     if (InstrinsicTypeNames.has(keyAsValue.name)) {
-      throw new Error(`Attempted to jitRegister an intrinsic type: ${keyAsValue.name}. Did you forget to add @inject(Key)`);
+      if (__DEV__) {
+        throw new Error(`Attempted to jitRegister an intrinsic type: ${keyAsValue.name}. Did you forget to add @inject(Key)`);
+      } else {
+        throw new Error(`AUR0010:${keyAsValue.name}`);
+      }
     }
 
     if (isRegistry(keyAsValue)) {
@@ -1290,7 +1332,11 @@ export class Container implements IContainer {
         if (newResolver != void 0) {
           return newResolver;
         }
-        throw new Error(`Invalid resolver returned from the static register method`);
+        if (__DEV__) {
+          throw new Error(`Invalid resolver returned from the static register method`);
+        } else {
+          throw new Error(`AUR0011`);
+        }
       }
       return registrationResolver as IResolver;
     } else if (Protocol.resource.has(keyAsValue)) {
@@ -1308,9 +1354,17 @@ export class Container implements IContainer {
       if (newResolver != void 0) {
         return newResolver;
       }
-      throw new Error(`Invalid resolver returned from the static register method`);
+      if (__DEV__) {
+        throw new Error(`Invalid resolver returned from the static register method`);
+      } else {
+        throw new Error(`AUR0011`);
+      }
     } else if (keyAsValue.$isInterface) {
-      throw new Error(`Attempted to jitRegister an interface: ${keyAsValue.friendlyName}`);
+      if (__DEV__) {
+        throw new Error(`Attempted to jitRegister an interface: ${keyAsValue.friendlyName}`);
+      } else {
+        throw new Error(`AUR0012:${keyAsValue.friendlyName}`);
+      }
     } else {
       const resolver = this.config.defaultResolver(keyAsValue, handler);
       handler.resolvers.set(keyAsValue, resolver);
@@ -1489,7 +1543,11 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
 
   public resolve(): Resolved<K> | null {
     if (this.instance == null) {
-      throw new Error(`Cannot call resolve ${this.friendlyName} before calling prepare or after calling dispose.`);
+      if (__DEV__) {
+        throw new Error(`Cannot call resolve ${this.friendlyName} before calling prepare or after calling dispose.`);
+      } else {
+        throw new Error(`AUR0013:${this.friendlyName}`);
+      }
     }
     return this.instance;
   }
@@ -1502,7 +1560,11 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
 /** @internal */
 export function validateKey(key: any): void {
   if (key === null || key === void 0) {
-    throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+    if (__DEV__) {
+      throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+    } else {
+      throw new Error(`AUR0014`);
+    }
   }
 }
 
@@ -1523,5 +1585,8 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
 }
 
 function createNativeInvocationError(Type: Constructable): Error {
-  return new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
+  if (__DEV__) {
+    return new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
+  }
+  return new Error(`AUR0015:${Type.name}`);
 }

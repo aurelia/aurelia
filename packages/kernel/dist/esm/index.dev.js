@@ -647,7 +647,11 @@ function cloneArrayWithPossibleProps(source) {
     return clone;
 }
 const DefaultResolver = {
-    none(key) { throw Error(`${key.toString()} not registered, did you forget to add @singleton()?`); },
+    none(key) {
+        {
+            throw Error(`${key.toString()} not registered, did you forget to add @singleton()?`);
+        }
+    },
     singleton(key) { return new Resolver(key, 1 /* singleton */, key); },
     transient(key) { return new Resolver(key, 2 /* transient */, key); },
 };
@@ -725,7 +729,9 @@ const DI = {
         const friendlyName = typeof configureOrName === 'string' ? configureOrName : undefined;
         const Interface = function (target, property, index) {
             if (target == null || new.target !== undefined) {
-                throw new Error(`No registration for interface: '${Interface.friendlyName}'`); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
+                {
+                    throw new Error(`No registration for interface: '${Interface.friendlyName}'`);
+                }
             }
             const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
             annotationParamtypes[index] = Interface;
@@ -1095,7 +1101,9 @@ class Resolver {
                 return this.state;
             case 1 /* singleton */: {
                 if (this.resolving) {
-                    throw new Error(`Cyclic dependency found: ${this.state.name}`);
+                    {
+                        throw new Error(`Cyclic dependency found: ${this.state.name}`);
+                    }
                 }
                 this.resolving = true;
                 this.state = handler.getFactory(this.state).construct(requestor);
@@ -1107,7 +1115,9 @@ class Resolver {
                 // Always create transients from the requesting container
                 const factory = handler.getFactory(this.state);
                 if (factory === null) {
-                    throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
+                    {
+                        throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
+                    }
                 }
                 return factory.construct(requestor);
             }
@@ -1118,7 +1128,9 @@ class Resolver {
             case 5 /* alias */:
                 return requestor.get(this.state);
             default:
-                throw new Error(`Invalid resolver strategy specified: ${this.strategy}.`);
+                {
+                    throw new Error(`Invalid resolver strategy specified: ${this.strategy}.`);
+                }
         }
     }
     getFactory(container) {
@@ -1255,10 +1267,12 @@ class Container {
     }
     register(...params) {
         if (++this.registerDepth === 100) {
-            throw new Error(`Unable to autoregister dependency: [${params.map(String)}]`);
             // TODO: change to reporter.error and add various possible causes in description.
             // Most likely cause is trying to register a plain object that does not have a
             // register method and is not a class constructor
+            {
+                throw new Error(`Unable to autoregister dependency: [${params.map(String)}]`);
+            }
         }
         let current;
         let keys;
@@ -1325,7 +1339,9 @@ class Container {
             resolvers.set(key, resolver);
             if (isResourceKey(key)) {
                 if (this.resourceResolvers[key] !== void 0) {
-                    throw new Error(`Resource key "${key}" already registered`);
+                    {
+                        throw new Error(`Resource key "${key}" already registered`);
+                    }
                 }
                 this.resourceResolvers[key] = resolver;
             }
@@ -1438,7 +1454,9 @@ class Container {
                 return resolver.resolve(current, this);
             }
         }
-        throw new Error(`Unable to resolve key: ${key}`);
+        {
+            throw new Error(`Unable to resolve key: ${key}`);
+        }
     }
     getAll(key, searchAncestors = false) {
         validateKey(key);
@@ -1562,10 +1580,14 @@ class Container {
     }
     jitRegister(keyAsValue, handler) {
         if (typeof keyAsValue !== 'function') {
-            throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
+            {
+                throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
+            }
         }
         if (InstrinsicTypeNames.has(keyAsValue.name)) {
-            throw new Error(`Attempted to jitRegister an intrinsic type: ${keyAsValue.name}. Did you forget to add @inject(Key)`);
+            {
+                throw new Error(`Attempted to jitRegister an intrinsic type: ${keyAsValue.name}. Did you forget to add @inject(Key)`);
+            }
         }
         if (isRegistry(keyAsValue)) {
             const registrationResolver = keyAsValue.register(handler, keyAsValue);
@@ -1574,7 +1596,9 @@ class Container {
                 if (newResolver != void 0) {
                     return newResolver;
                 }
-                throw new Error(`Invalid resolver returned from the static register method`);
+                {
+                    throw new Error(`Invalid resolver returned from the static register method`);
+                }
             }
             return registrationResolver;
         }
@@ -1594,10 +1618,14 @@ class Container {
             if (newResolver != void 0) {
                 return newResolver;
             }
-            throw new Error(`Invalid resolver returned from the static register method`);
+            {
+                throw new Error(`Invalid resolver returned from the static register method`);
+            }
         }
         else if (keyAsValue.$isInterface) {
-            throw new Error(`Attempted to jitRegister an interface: ${keyAsValue.friendlyName}`);
+            {
+                throw new Error(`Attempted to jitRegister an interface: ${keyAsValue.friendlyName}`);
+            }
         }
         else {
             const resolver = this.config.defaultResolver(keyAsValue, handler);
@@ -1766,7 +1794,9 @@ class InstanceProvider {
     get $isResolver() { return true; }
     resolve() {
         if (this.instance == null) {
-            throw new Error(`Cannot call resolve ${this.friendlyName} before calling prepare or after calling dispose.`);
+            {
+                throw new Error(`Cannot call resolve ${this.friendlyName} before calling prepare or after calling dispose.`);
+            }
         }
         return this.instance;
     }
@@ -1777,7 +1807,9 @@ class InstanceProvider {
 /** @internal */
 function validateKey(key) {
     if (key === null || key === void 0) {
-        throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+        {
+            throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+        }
     }
 }
 function buildAllResponse(resolver, handler, requestor) {
@@ -1793,7 +1825,9 @@ function buildAllResponse(resolver, handler, requestor) {
     return [resolver.resolve(handler, requestor)];
 }
 function createNativeInvocationError(Type) {
-    return new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
+    {
+        return new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
+    }
 }
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-explicit-any */

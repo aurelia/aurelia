@@ -331,7 +331,7 @@ export class NavigationCoordinator {
    * Finalize the navigation, calling finalizeContentChange in all endpoints.
    */
   public finalize(): void {
-    this.entities.forEach(entity => entity.endpoint.finalizeContentChange(this));
+    this.entities.forEach(entity => entity.endpoint.finalizeContentChange(this, null));
     this.completed = true;
     this.navigation.completed = true;
   }

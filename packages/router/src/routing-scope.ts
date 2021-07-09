@@ -447,16 +447,24 @@ export class RoutingScope {
     }
 
     routes = routes.map(route => this.ensureProperRoute(route));
-    const cRoutes: IConfigurableRoute[] = routes.map(route => ({
-      path: route.path,
-      handler: route,
-    }));
-    for (let i = 0, ii = cRoutes.length; i < ii; ++i) {
-      const cRoute = cRoutes[i];
-      cRoutes.push({
-        ...cRoute,
-        path: `${cRoute.path}/*remainingPath`,
-      });
+
+    const cRoutes: IConfigurableRoute[] = [];
+    for (const route of routes) {
+      const paths = (Array.isArray(route.path) ? route.path : [route.path]);
+      for (const path of paths) {
+        cRoutes.push({
+          ...route,
+          path,
+          handler: route,
+        });
+        if (path !== '') {
+          cRoutes.push({
+            ...route,
+            path: `${path}/*remainingPath`,
+            handler: route,
+          });
+        }
+      }
     }
 
     const found = new FoundRoute();
@@ -506,7 +514,7 @@ export class RoutingScope {
 
   private ensureProperRoute(route: IRoute): Route {
     if (route.id === void 0) {
-      route.id = route.path;
+      route.id = Array.isArray(route.path) ? route.path.join(',') : route.path;
     }
     if (route.instructions === void 0) {
       route.instructions = [{

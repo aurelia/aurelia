@@ -36,7 +36,7 @@ export class Route {
     /**
      * The path to match against the url.
      */
-    public readonly path: string,
+    public readonly path: string | string[],
 
     /**
      * The id for this route, which can be used in the view for generating hrefs.
@@ -152,9 +152,13 @@ export class Route {
 
     Route.validateRouteConfiguration(config);
 
+    let pathId = config.path;
+    if (Array.isArray(pathId)) {
+      pathId = pathId.join(',');
+    }
     return new Route(
       config.path ?? '',
-      config.id ?? config.path ?? null,
+      config.id ?? pathId ?? null,
       config.redirectTo ?? null,
       config.instructions ?? null,
       config.caseSensitive ?? false,

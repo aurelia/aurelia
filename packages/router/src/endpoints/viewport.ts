@@ -424,6 +424,8 @@ export class Viewport extends Endpoint {
   public async transition(coordinator: NavigationCoordinator): Promise<void> {
     // console.log('Viewport transition', this.toString());
 
+    const navigatingPrefix = this.router.configuration.options.indicators.viewportNavigating;
+
     this.coordinators.push(coordinator);
     // If this isn't the first coordinator, a navigation is already in process...
     while (this.coordinators[0] !== coordinator) {
@@ -564,7 +566,8 @@ export class Viewport extends Endpoint {
     lifecycleSteps.push(() => coordinator.addEndpointState(this, 'swapped'));
 
     // Set activity indicator (class) on the connected custom element
-    this.connectedCE?.setActive?.(true);
+    this.connectedCE?.setActivity?.(navigatingPrefix, true);
+    this.connectedCE?.setActivity?.(coordinator.navigation.navigation, true);
 
     // Run the steps and do the transition
     const result = Runner.run(null,
@@ -573,7 +576,10 @@ export class Viewport extends Endpoint {
       ...lifecycleSteps,
       () => coordinator.addEndpointState(this, 'completed'),
       () => coordinator.waitForSyncState('bound'),
-      () => this.connectedCE?.setActive?.(false),
+      () => {
+        this.connectedCE?.setActivity?.(navigatingPrefix, false);
+        this.connectedCE?.setActivity?.(coordinator.navigation.navigation, false);
+      },
     );
 
     if (result instanceof Promise) {
@@ -756,10 +762,11 @@ export class Viewport extends Endpoint {
    * Finalize the change of content by making the next content the current
    * content. The previously current content is deleted.
    */
-  public finalizeContentChange(coordinator: NavigationCoordinator): void {
+  public finalizeContentChange(coordinator: NavigationCoordinator, step: Step<void> | null): void | Step<void> {
     const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
     let nextContent = this.contents[nextContentIndex];
     const previousContent = this.contents[nextContentIndex - 1];
+    // const previousContents = this.contents.slice(0, nextContentIndex);
 
     if (this.clear) {
       const emptyContent = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, void 0, nextContent.navigation);
@@ -772,6 +779,27 @@ export class Viewport extends Endpoint {
 
     previousContent.delete();
 
+    // TODO: Fix this so that multiple removes work!
+    // const freeSteps = [];
+    // for (const previousContent of previousContents) {
+    //   freeSteps.push(
+    //     (innerStep: Step<void>) => {
+    //       console.log('Previous content', previousContent);
+    //       debugger;
+    //       // return previousContent.freeContent(
+    //       //   innerStep,
+    //       //   this.connectedCE,
+    //       //   previousContent.navigation,
+    //       //   this.historyCache,
+    //       //   this.router.statefulHistory || this.options.stateful)
+    //     },
+    //     () => previousContent.delete(),
+    //   );
+    // }
+
+    // return Runner.run(step,
+    //   ...freeSteps,
+    //   () => {
     // if (nextContent !== null) {
     nextContent.completed = true;
     // }
@@ -782,7 +810,9 @@ export class Viewport extends Endpoint {
 
     this.previousViewportState = null;
 
-    this.connectedCE?.setActive?.(false);
+    const navigatingPrefix = this.router.configuration.options.indicators.viewportNavigating;
+    this.connectedCE?.setActivity?.(navigatingPrefix, false);
+    this.connectedCE?.setActivity?.(coordinator.navigation.navigation, false);
 
     let removeable = 0;
     for (let i = 0, ii = nextContentIndex; i < ii; i++) {
@@ -794,6 +824,8 @@ export class Viewport extends Endpoint {
     this.contents.splice(0, removeable);
 
     arrayRemove(this.coordinators, (coord => coord === coordinator));
+    //   }
+    // ) as Step<void>;
   }
 
   /**
@@ -832,7 +864,10 @@ export class Viewport extends Endpoint {
         previousContent.contentStates.delete('checkedUnload');
         previousContent.contentStates.delete('checkedLoad');
 
-        this.connectedCE?.setActive?.(false);
+        const navigatingPrefix = this.router.configuration.options.indicators.viewportNavigating;
+        this.connectedCE?.setActivity?.(navigatingPrefix, false);
+        this.connectedCE?.setActivity?.(coordinator.navigation.navigation, false);
+
         arrayRemove(this.coordinators, (coord => coord === coordinator));
       }) as Step<void>;
   }

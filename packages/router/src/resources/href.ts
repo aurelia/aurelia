@@ -28,11 +28,12 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   }
 
   public binding(): void {
-    if (this.router.configuration.options.useHref && !this.hasLoad()) {
+    if (this.router.configuration.options.useHref && !this.hasLoad() && !this.element.hasAttribute('external')) {
       this.element.addEventListener('click', this.linkHandler);
       this.routerNavigationSubscription = this.ea.subscribe(RouterNavigationEndEvent.eventName, this.navigationEndHandler);
     }
     this.updateValue();
+    this.updateActive();
   }
   public unbinding(): void {
     this.element.removeEventListener('click', this.linkHandler);
@@ -41,6 +42,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
 
   public valueChanged(): void {
     this.updateValue();
+    this.updateActive();
   }
 
   private updateValue(): void {
@@ -48,12 +50,18 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   }
 
   private readonly navigationEndHandler = (_navigation: RouterNavigationEndEvent): void => {
-    const controller = CustomAttribute.for(this.element, 'href')!.parent!;
-    const instructions = getConsideredActiveInstructions(this.router, controller, this.element as HTMLElement, this.value);
-    const element = getLoadIndicator(this.element as HTMLElement);
-
-    element.classList.toggle(this.activeClass, this.router.checkActive(instructions, { context: controller }));
+    this.updateActive();
   };
+
+  private updateActive(): void {
+    if (this.router.configuration.options.useHref && !this.hasLoad() && !this.element.hasAttribute('external')) {
+      const controller = CustomAttribute.for(this.element, 'href')!.parent!;
+      const instructions = getConsideredActiveInstructions(this.router, controller, this.element as HTMLElement, this.value);
+      const element = getLoadIndicator(this.element as HTMLElement);
+
+      element.classList.toggle(this.activeClass, this.router.checkActive(instructions, { context: controller }));
+    }
+  }
 
   private hasLoad(): boolean {
     const parent = this.$controller.parent!;

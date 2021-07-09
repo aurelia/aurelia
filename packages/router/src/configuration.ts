@@ -103,13 +103,13 @@ export class RouterConfiguration {
     RouterConfiguration.options = RouterOptions.create();
 
     // TODO: Old AppTask, remove before beta
-    if (AppTask.with != null) {
+    if ((AppTask as any).with != null) {
       return container.register(
         ...DefaultComponents,
         ...DefaultResources,
-        AppTask.with(IRouter).beforeActivate().call(RouterConfiguration.configurationCall),
-        AppTask.with(IRouter).afterActivate().call((router: IRouter) => router.initialLoad() as Promise<void>),
-        AppTask.with(IRouter).afterDeactivate().call((router: IRouter) => router.stop()),
+        (AppTask as any).with(IRouter).beforeActivate().call(RouterConfiguration.configurationCall),
+        (AppTask as any).with(IRouter).afterActivate().call((router: IRouter) => router.initialLoad() as Promise<void>),
+        (AppTask as any).with(IRouter).afterDeactivate().call((router: IRouter) => router.stop()),
       );
     } else {
       return container.register(

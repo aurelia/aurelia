@@ -171,6 +171,7 @@ export class ViewportContent extends EndpointContent {
     return Controller.forCustomElement(
       null,
       connectedCE.container,
+      connectedCE.container.createChild(),
       this.instruction.component.instance as ICustomElementViewModel,
       connectedCE.element,
       null,
@@ -198,8 +199,8 @@ export class ViewportContent extends EndpointContent {
       } catch (e) {
         // If there's a fallback component...
         if ((fallback ?? '') !== '') {
-          // ...set the failed component as parameter `id`...
-          this.instruction.parameters.set({ id: this.instruction.component.name });
+          // ...set the failed component as the first parameter (0)...
+          this.instruction.parameters.set([this.instruction.component.name]);
           // ...fallback is component...
           this.instruction.component.set(fallback);
           try {

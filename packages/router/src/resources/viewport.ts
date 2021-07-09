@@ -13,7 +13,7 @@ import {
   ISyntheticView,
   IInstruction,
 } from '@aurelia/runtime-html';
-import { IRouter } from '../index.js';
+import { IRouter, NavigationFlags } from '../index.js';
 import { Viewport } from '../endpoints/viewport.js';
 import { IViewportOptions } from '../endpoints/viewport-options.js';
 import { Runner, Step } from '../utilities/runner.js';
@@ -246,7 +246,15 @@ export class ViewportCustomElement implements ICustomElementViewModel {
    *
    * @param active - Whether the viewport is active or not
    */
-  public setActive(active: boolean): void {
-    this.element.classList.toggle(this.router.configuration.options.indicators.viewportActive, active);
+  public setActivity(state: string | NavigationFlags, active: boolean): void {
+    const prefix = this.router.configuration.options.indicators.viewportNavigating;
+
+    if (typeof state === 'string') {
+      this.element.classList.toggle(state, active);
+    } else {
+      for (const key in state) {
+        this.element.classList.toggle(`${prefix}-${key}`, active && state[key as keyof (NavigationFlags)]);
+      }
+    }
   }
 }

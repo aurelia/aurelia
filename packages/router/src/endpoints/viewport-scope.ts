@@ -150,7 +150,7 @@ export class ViewportScope extends Endpoint {
     );
   }
 
-  public finalizeContentChange(coordinator: NavigationCoordinator): void {
+  public finalizeContentChange(coordinator: NavigationCoordinator, _step: Step<void> | null): void {
     const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
     let nextContent = this.contents[nextContentIndex];
 

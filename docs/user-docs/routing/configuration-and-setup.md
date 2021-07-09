@@ -6,14 +6,6 @@ description: >-
 
 # Configuration & Setup
 
-## Getting Started
-
-First of all the Aurelia Direct Router package needs to be installed. Open a command prompt in the root of your Aurelia application and run the command
-```cmd
-npm i aurelia-direct-router
-```
-Once that's finished, you're all set up for using the `aurelia-direct-router` in your application.
-
 {% hint style="success" %}
 **What you will learn in this section**
 
@@ -22,18 +14,6 @@ Once that's finished, you're all set up for using the `aurelia-direct-router` in
 * How to style active router links
 * How to change the application title
 {% endhint %}
-
-To register the plugin in your application, you pass in the router object to the `register` method inside of the file containing your Aurelia initialization code. Then import the `RouterConfiguration` class from the `aurelia-direct-router` package, which allows you to register the router and change configuration settings.
-
-```typescript
-import Aurelia from 'aurelia';
-import { RouterConfiguration } from 'aurelia-direct-router';
-
-Aurelia
-  .register(RouterConfiguration)
-  .app(component)
-  .start();
-```
 
 ## Changing The Router Mode \(hash and pushState routing\)
 

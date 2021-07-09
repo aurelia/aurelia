@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomAttribute, CustomElement, INode } from '@aurelia/runtime-html';
+import { CustomAttribute, CustomElement } from '@aurelia/runtime-html';
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/binding-command.call.spec.ts', function () {
@@ -70,7 +70,6 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
         }, class {})
       ],
       assertFn: ({ ctx, appHost, component }) => {
-        debugger;
         (component as any).attr.value(6);
         ctx.platform.domWriteQueue.flush();
         assert.visibleTextEqual(appHost.querySelector('div'), '6');

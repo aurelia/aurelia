@@ -37,6 +37,7 @@
     "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system aurelia",
     "build:tsc": "tsc -b",
     "build": "rollup -c",
+    "build:release": "npm run build",
     "postbuild": "tsc --emitDeclarationOnly",
     "dev:tsc": "tsc -b -w --preserveWatchOutput",
     "dev": "rollup -c -w",

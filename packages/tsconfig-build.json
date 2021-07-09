@@ -22,5 +22,8 @@
     "strict": true,
 
     "types": []
-  }
+  },
+  "files": [
+    "global.d.ts",
+  ]
 }

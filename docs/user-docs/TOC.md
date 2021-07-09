@@ -114,6 +114,7 @@
 
 ## Reference
 
+* [Distributable](reference/distributable.md)
 * [Error messages](reference/error-messages.md)
 * [Examples](reference/examples/README.md)
   * [Binding & Templating](reference/examples/binding-and-templating/README.md)

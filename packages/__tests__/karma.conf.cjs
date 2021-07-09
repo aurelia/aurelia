@@ -58,6 +58,7 @@ module.exports = function (config) {
   } else {
     browsers = ['Chrome'];
   }
+  const baseUrl = 'packages/__tests__/dist/esm/__tests__';
 
   // Karma config reference: https://karma-runner.github.io/5.2/config/files.html
   // --------------------------------------------------------------------------------
@@ -78,14 +79,14 @@ module.exports = function (config) {
   //
   const files = [
     { type: 'script', watched: false, included: true,  nocache: false, pattern: path.join(smsPath, 'browser-source-map-support.js') },
-    { type: 'module', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/setup-browser.js` }, // 1.1
-    { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/setup-shared.js` }, // 1.2
-    { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/util.js` }, // 1.3
-    { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/Spy.js` }, // 1.4
+    { type: 'module', watched: true,  included: true,  nocache: false, pattern: `${baseUrl}/setup-browser.js` }, // 1.1
+    { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/setup-shared.js` }, // 1.2
+    { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/util.js` }, // 1.3
+    { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/Spy.js` }, // 1.4
     ...testDirs.flatMap(name => [
-      { type: 'module', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/*.spec.js` }, // 2.1
-      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/*.js.map` }, // 2.2
-      { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/!(*.$au)*.js` }, // 2.3
+      { type: 'module', watched: true,  included: true,  nocache: false, pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1
+      { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.js.map` }, // 2.2
+      { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/${name}/**/!(*.$au)*.js` }, // 2.3
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
     ...packageNames.flatMap(name => [

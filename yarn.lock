@@ -1121,6 +1121,14 @@
 "@pnpm/types@6.4.0":
   "version" "6.4.0"
 
+"@rollup/plugin-replace@^2.4.2":
+  "integrity" "sha512-IGcu+cydlUMZ5En85jxHH4qj2hta/11BHq95iHEyb2sbgiN0eCdzvUcHw5gt9pBL5lTi4JDYJ1acCoMGpTvEZg=="
+  "resolved" "https://registry.npmjs.org/@rollup/plugin-replace/-/plugin-replace-2.4.2.tgz"
+  "version" "2.4.2"
+  dependencies:
+    "@rollup/pluginutils" "^3.1.0"
+    "magic-string" "^0.25.7"
+
 "@rollup/plugin-typescript@^8.2.1":
   "integrity" "sha512-Qd2E1pleDR4bwyFxqbjt4eJf+wB0UKVMLc7/BAFDGVdAXQMCsD4DUv5/7/ww47BZCYxWtJqe1Lo0KVNswBJlRw=="
   "resolved" "https://registry.npmjs.org/@rollup/plugin-typescript/-/plugin-typescript-8.2.1.tgz"
@@ -5434,7 +5442,7 @@
     "jest-util" "^27.0.2"
     "string-length" "^4.0.1"
 
-"jest-worker@^26.6.2":
+"jest-worker@^26.2.1", "jest-worker@^26.6.2":
   "version" "26.6.2"
   dependencies:
     "@types/node" "*"
@@ -5916,6 +5924,13 @@
   "version" "6.0.0"
   dependencies:
     "yallist" "^4.0.0"
+
+"magic-string@^0.25.7":
+  "integrity" "sha512-4CrMT5DOHTDk4HYDlzmwu4FVCcIYI8gauveasrdCu2IKIFOJ3f0v/8MDGJCDL9oD2ppz/Av1b0Nj345H9M+XIA=="
+  "resolved" "https://registry.npmjs.org/magic-string/-/magic-string-0.25.7.tgz"
+  "version" "0.25.7"
+  dependencies:
+    "sourcemap-codec" "^1.4.4"
 
 "make-dir@^2.0.0", "make-dir@^2.1.0":
   "version" "2.1.0"
@@ -7306,7 +7321,17 @@
   dependencies:
     "glob" "^7.1.3"
 
-"rollup@^1.20.0||^2.0.0", "rollup@^2.14.0", "rollup@^2.49.0":
+"rollup-plugin-terser@^7.0.2":
+  "integrity" "sha512-w3iIaU4OxcF52UUXiZNsNeuXIMDvFrr+ZXK6bFZ0Q60qyVfq4uLptoS4bbq3paG3x216eQllFZX7zt6TIImguQ=="
+  "resolved" "https://registry.npmjs.org/rollup-plugin-terser/-/rollup-plugin-terser-7.0.2.tgz"
+  "version" "7.0.2"
+  dependencies:
+    "@babel/code-frame" "^7.10.4"
+    "jest-worker" "^26.2.1"
+    "serialize-javascript" "^4.0.0"
+    "terser" "^5.0.0"
+
+"rollup@^1.20.0 || ^2.0.0", "rollup@^1.20.0||^2.0.0", "rollup@^2.0.0", "rollup@^2.14.0", "rollup@^2.49.0":
   "integrity" "sha512-UnrCjMXICx9q0jF8L7OYs7LPk95dW0U5UYp/VANnWqfuhyr66FWi/YVlI34Oy8Tp4ZGLcaUDt4APJm80b9oPWQ=="
   "resolved" "https://registry.npmjs.org/rollup/-/rollup-2.49.0.tgz"
   "version" "2.49.0"
@@ -7641,7 +7666,14 @@
   "version" "0.7.3"
 
 "source-map@~0.7.2":
+  "integrity" "sha512-CkCj6giN3S+n9qrYiBTX5gystlENnRW5jZeNLHpe6aue+SrHcG5VYwujhW9s4dY31mEGsxBDrHR6oI69fTXsaQ=="
+  "resolved" "https://registry.npmjs.org/source-map/-/source-map-0.7.3.tgz"
   "version" "0.7.3"
+
+"sourcemap-codec@^1.4.4":
+  "integrity" "sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA=="
+  "resolved" "https://registry.npmjs.org/sourcemap-codec/-/sourcemap-codec-1.4.8.tgz"
+  "version" "1.4.8"
 
 "spdx-correct@^3.0.0":
   "version" "3.1.1"
@@ -7979,6 +8011,15 @@
     "commander" "^2.20.0"
     "source-map" "~0.6.1"
     "source-map-support" "~0.5.12"
+
+"terser@^5.0.0":
+  "integrity" "sha512-b3e+d5JbHAe/JSjwsC3Zn55wsBIM7AsHLjKxT31kGCldgbpFePaFo+PiddtO6uwRZWRw7sPXmAN8dTW61xmnSg=="
+  "resolved" "https://registry.npmjs.org/terser/-/terser-5.7.1.tgz"
+  "version" "5.7.1"
+  dependencies:
+    "commander" "^2.20.0"
+    "source-map" "~0.7.2"
+    "source-map-support" "~0.5.19"
 
 "terser@^5.5.1":
   "version" "5.5.1"

@@ -23,8 +23,17 @@ export class If implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable public value: unknown = false;
+  /**
+   * `false` to always dispose the existing `view` whenever the value of if changes to false
+   */
+  @bindable({
+    set: v => v === '' || !!v && v !== 'false'
+  })
+  public cache: boolean = true;
   private pending: void | Promise<void> = void 0;
   private wantsDeactivate: boolean = false;
+  private swapId: number = 0;
+  private ctrl!: ICustomAttributeController<If>;
 
   public constructor(
     @IViewFactory private readonly ifFactory: IViewFactory,
@@ -32,11 +41,52 @@ export class If implements ICustomAttributeViewModel {
     @IWorkTracker private readonly work: IWorkTracker,
   ) {}
 
-  public attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+  public created(): void {
+    this.ctrl = this.$controller;
+  }
+
+  public attaching(initiator: IHydratedController, parent: IHydratedController, f: LifecycleFlags): void | Promise<void> {
+    let view: ISyntheticView | undefined;
+    const swapId = this.swapId++;
+    /**
+     * returns true when
+     * 1. entering deactivation of the [if] itself
+     * 2. new swap has started since this change
+     */
+    const isCurrent = () => !this.wantsDeactivate && this.swapId === swapId + 1;
     return onResolve(this.pending, () => {
+      if (!isCurrent()) {
+        return;
+      }
       this.pending = void 0;
+      if (this.value) {
+        view = (this.view = this.ifView = this.cache && this.ifView != null
+          ? this.ifView
+          : this.ifFactory.create(f)
+        );
+      } else {
+        // truthy -> falsy
+        view = (this.view = this.elseView = this.cache && this.elseView != null
+          ? this.elseView
+          : this.elseFactory?.create(f)
+        );
+      }
+      if (view == null) {
+        return;
+      }
+      // todo: else view should set else location
+      view.setLocation(this.location);
+
       // Promise return values from user VM hooks are awaited by the initiator
-      void (this.view = this.updateView(this.value, flags))?.activate(initiator, this.$controller, flags, this.$controller.scope, this.$controller.hostScope);
+      this.pending = onResolve(
+        view.activate(initiator, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope),
+        () => {
+          if (isCurrent()) {
+            this.pending = void 0;
+          }
+        });
+      // old
+      // void (this.view = this.updateView(this.value, f))?.activate(initiator, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope);
     });
   }
 
@@ -46,74 +96,80 @@ export class If implements ICustomAttributeViewModel {
       this.wantsDeactivate = false;
       this.pending = void 0;
       // Promise return values from user VM hooks are awaited by the initiator
-      void this.view?.deactivate(initiator, this.$controller, flags);
+      void this.view?.deactivate(initiator, this.ctrl, flags);
     });
   }
 
-  public valueChanged(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
-    if (!this.$controller.isActive) {
+  public valueChanged(newValue: unknown, oldValue: unknown, f: LifecycleFlags): void | Promise<void> {
+    if (!this.ctrl.isActive) {
       return;
     }
-    this.pending = onResolve(this.pending, () => {
-      return this.swap(flags);
-    });
-  }
-
-  private swap(flags: LifecycleFlags): void | Promise<void> {
-    if (this.view === this.updateView(this.value, flags)) {
+    // change scenarios:
+    // truthy -> truthy (do nothing)
+    // falsy -> falsy (do nothing)
+    // truthy -> falsy (no cache = destroy)
+    // falsy -> truthy (no view = create)
+    newValue = !!newValue;
+    oldValue = !!oldValue;
+    if (newValue === oldValue) {
       return;
     }
     this.work.start();
-    const ctrl = this.$controller;
-    return onResolve(
-      this.view?.deactivate(this.view, ctrl, flags),
-      () => {
-        // return early if detaching was called during the swap
-        if (this.wantsDeactivate) {
-          return;
-        }
-        // value may have changed during deactivate
-        const nextView = this.view = this.updateView(this.value, flags);
-        return onResolve(
-          nextView?.activate(nextView, ctrl, flags, ctrl.scope, ctrl.hostScope),
-          () => {
-            this.work.finish();
-            // only null the pending promise if nothing changed since the activation start
-            if (this.view === this.updateView(this.value, flags)) {
-              this.pending = void 0;
+    const currView = this.view;
+    const swapId = this.swapId++;
+    /**
+     * returns true when
+     * 1. entering deactivation of the [if] itself
+     * 2. new swap has started since this change
+     */
+    const isCurrent = () => !this.wantsDeactivate && this.swapId === swapId + 1;
+    let view: ISyntheticView | undefined;
+    return onResolve(onResolve(this.pending,
+      () => this.pending = onResolve(
+        currView?.deactivate(currView, this.ctrl, f),
+        () => {
+          if (!isCurrent()) {
+            return;
+          }
+          // falsy -> truthy
+          if (newValue) {
+            view = (this.view = this.ifView = this.cache && this.ifView != null
+              ? this.ifView
+              : this.ifFactory.create(f)
+            );
+          } else {
+            // truthy -> falsy
+            view = (this.view = this.elseView = this.cache && this.elseView != null
+              ? this.elseView
+              : this.elseFactory?.create(f)
+            );
+          }
+          if (view == null) {
+            return;
+          }
+          // todo: location should be based on either the [if]/[else] attribute
+          //       instead of always the if
+          view.setLocation(this.location);
+          return onResolve(
+            view.activate(view, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope),
+            () => {
+              if (isCurrent()) {
+                this.pending = void 0;
+              }
             }
-          },
-        );
-      },
-    );
-  }
-
-  /** @internal */
-  public updateView(value: unknown, flags: LifecycleFlags): ISyntheticView | undefined {
-    if (value) {
-      return this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
-    }
-    if (this.elseFactory !== void 0) {
-      return this.elseView = this.ensureView(this.elseView, this.elseFactory, flags);
-    }
-    return void 0;
-  }
-
-  /** @internal */
-  public ensureView(view: ISyntheticView | undefined, factory: IViewFactory, flags: LifecycleFlags): ISyntheticView {
-    if (view === void 0) {
-      view = factory.create(flags);
-      view.setLocation(this.location);
-    }
-    return view;
+          );
+        }
+      )
+    ), () => this.work.finish());
   }
 
   public dispose(): void {
     this.ifView?.dispose();
-    this.ifView = void 0;
     this.elseView?.dispose();
-    this.elseView = void 0;
-    this.view = void 0;
+    this.ifView
+      = this.elseView
+      = this.view
+      = void 0;
   }
 
   public accept(visitor: ControllerVisitor): void | true {

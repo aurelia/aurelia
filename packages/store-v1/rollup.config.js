@@ -3,11 +3,13 @@ import typescript from '@rollup/plugin-typescript';
 import replace from '@rollup/plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 import pkg from './package.json';
+import { exec } from 'child_process';
 
 const BUILD = process.env.BUILD ?? '';
 const isDevBuild = BUILD === 'dev';
 const isProduction = BUILD === 'prod';
 const sourceMap = process.env.MAP === 'true';
+const emitDeclaration = process.env.TYPES === 'true';
 
 export default {
   input: 'src/index.ts',
@@ -47,5 +49,13 @@ export default {
           }
         })
       : null,
+    emitDeclaration
+      ? {
+        closeBundle() {
+          console.log(`building types for ${pkg.name}...`);
+          exec('npm run build:tsc');
+        }
+      }
+      : null
   ].filter(Boolean)
 };

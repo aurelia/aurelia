@@ -113,7 +113,7 @@ export class If implements ICustomAttributeViewModel {
      */
     const isCurrent = () => !this.wantsDeactivate && this.swapId === swapId + 1;
     let view: ISyntheticView | undefined;
-    return onResolve( this.pending,
+    return onResolve(this.pending,
       () => this.pending = onResolve(
         currView?.deactivate(currView, this.ctrl, f),
         () => {
@@ -143,7 +143,7 @@ export class If implements ICustomAttributeViewModel {
             view.activate(view, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope),
             () =>
               this.pending = isCurrent() ? void 0 : this.pending
-          )
+          );
         }
       )
     );

@@ -15,6 +15,7 @@ import {
   TextBindingRendererRegistration,
   TextBindingInstruction,
   Interpolation,
+  IWorkTracker,
   INodeObserverLocatorRegistration,
   CustomAttribute,
 } from '@aurelia/runtime-html';
@@ -151,9 +152,10 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
           container,
         );
 
+        const work = container.get(IWorkTracker);
         const ifFactory = new ViewFactory('if-view', ifContext);
         const elseFactory = new ViewFactory('else-view', elseContext);
-        const sut = new If(ifFactory, ifLoc);
+        const sut = new If(ifFactory, ifLoc, work);
         const elseSut = new Else(elseFactory);
         const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
         elseSut.link(LifecycleFlags.none, void 0!, { children: [ifController] } as unknown as IHydratableController, void 0!, void 0!, void 0!);
@@ -276,18 +278,18 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
             }
           })]
         );
-  
+
         await startPromise;
         assert.visibleTextEqual(appHost, 'hello');
         assert.strictEqual(callCount, 1);
-  
+
         component.condition = false;
         assert.visibleTextEqual(appHost, '');
-  
+
         component.condition = true;
         assert.visibleTextEqual(appHost, 'hello');
         assert.strictEqual(callCount, 2);
-  
+
         await tearDown();
 
         assert.visibleTextEqual(appHost, '');

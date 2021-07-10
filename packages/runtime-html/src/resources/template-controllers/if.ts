@@ -4,6 +4,7 @@ import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
 import { bindable } from '../../bindable.js';
+import { IWorkTracker } from '../../app-root.js';
 
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller.js';
 import type { ICompiledRenderContext } from '../../templating/render-context.js';
@@ -37,6 +38,7 @@ export class If implements ICustomAttributeViewModel {
   public constructor(
     @IViewFactory private readonly ifFactory: IViewFactory,
     @IRenderLocation private readonly location: IRenderLocation,
+    @IWorkTracker private readonly work: IWorkTracker,
   ) {}
 
   public created(): void {
@@ -74,8 +76,16 @@ export class If implements ICustomAttributeViewModel {
       }
       // todo: else view should set else location
       view.setLocation(this.location);
+
       // Promise return values from user VM hooks are awaited by the initiator
-      this.pending = view.activate(initiator, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope);
+      this.pending = onResolve(
+        view.activate(initiator, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope),
+        () => {
+          if (isCurrent()) {
+            this.pending = void 0;
+          }
+        });
+      // old
       // void (this.view = this.updateView(this.value, f))?.activate(initiator, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope);
     });
   }
@@ -104,6 +114,7 @@ export class If implements ICustomAttributeViewModel {
     if (newValue === oldValue) {
       return;
     }
+    this.work.start();
     const currView = this.view;
     const swapId = this.swapId++;
     /**
@@ -113,7 +124,7 @@ export class If implements ICustomAttributeViewModel {
      */
     const isCurrent = () => !this.wantsDeactivate && this.swapId === swapId + 1;
     let view: ISyntheticView | undefined;
-    return onResolve(this.pending,
+    return onResolve(onResolve(this.pending,
       () => this.pending = onResolve(
         currView?.deactivate(currView, this.ctrl, f),
         () => {
@@ -141,12 +152,15 @@ export class If implements ICustomAttributeViewModel {
           view.setLocation(this.location);
           return onResolve(
             view.activate(view, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope),
-            () =>
-              this.pending = isCurrent() ? void 0 : this.pending
+            () => {
+              if (isCurrent()) {
+                this.pending = void 0;
+              }
+            }
           );
         }
       )
-    );
+    ), () => this.work.finish());
   }
 
   public dispose(): void {

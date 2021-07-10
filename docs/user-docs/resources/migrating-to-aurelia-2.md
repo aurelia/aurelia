@@ -4,6 +4,8 @@ Introduction Placeholder...
 
 ## BREAKING CHANGES
 
+### Call binding \(some-prop.call="..."\)
+
 - Call binding no longer assign properties of the first argument pass to the call to the calling override context. This is unreasonably dynamic and could result in hard-to-understand templates. Example:
 
 ```ts
@@ -24,4 +26,18 @@ v1:
 v2:
 ```html
 <my-element on-change.call="elValue = $event.value">
+```
+
+### If attribute \(if.bind="..."\)
+
+- Primary property of `If` has been renamed from `condition` to `value`. If you are using `if.bind`, you are not affected. If you are using the multi prop binding syntax, that the template looks like this:
+
+```html
+<div if="condition.bind: yes">
+```
+
+Change it to:
+
+```html
+<div if="value.bind: yes">
 ```

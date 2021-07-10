@@ -9504,15 +9504,56 @@ let If = class If {
         this.ifView = void 0;
         this.view = void 0;
         this.value = false;
+        /**
+         * `false` to always dispose the existing `view` whenever the value of if changes to false
+         */
+        this.cache = true;
         this.pending = void 0;
         this.wantsDeactivate = false;
+        this.swapId = 0;
     }
-    attaching(initiator, parent, flags) {
+    created() {
+        this.ctrl = this.$controller;
+    }
+    attaching(initiator, parent, f) {
+        let view;
+        const swapId = this.swapId++;
+        /**
+         * returns true when
+         * 1. entering deactivation of the [if] itself
+         * 2. new swap has started since this change
+         */
+        const isCurrent = () => !this.wantsDeactivate && this.swapId === swapId + 1;
         return onResolve(this.pending, () => {
             var _a;
+            if (!isCurrent()) {
+                return;
+            }
             this.pending = void 0;
+            if (this.value) {
+                view = (this.view = this.ifView = this.cache && this.ifView != null
+                    ? this.ifView
+                    : this.ifFactory.create(f));
+            }
+            else {
+                // truthy -> falsy
+                view = (this.view = this.elseView = this.cache && this.elseView != null
+                    ? this.elseView
+                    : (_a = this.elseFactory) === null || _a === void 0 ? void 0 : _a.create(f));
+            }
+            if (view == null) {
+                return;
+            }
+            // todo: else view should set else location
+            view.setLocation(this.location);
             // Promise return values from user VM hooks are awaited by the initiator
-            void ((_a = (this.view = this.updateView(this.value, flags))) === null || _a === void 0 ? void 0 : _a.activate(initiator, this.$controller, flags, this.$controller.scope, this.$controller.hostScope));
+            this.pending = onResolve(view.activate(initiator, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope), () => {
+                if (isCurrent()) {
+                    this.pending = void 0;
+                }
+            });
+            // old
+            // void (this.view = this.updateView(this.value, f))?.activate(initiator, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope);
         });
     }
     detaching(initiator, parent, flags) {
@@ -9522,65 +9563,71 @@ let If = class If {
             this.wantsDeactivate = false;
             this.pending = void 0;
             // Promise return values from user VM hooks are awaited by the initiator
-            void ((_a = this.view) === null || _a === void 0 ? void 0 : _a.deactivate(initiator, this.$controller, flags));
+            void ((_a = this.view) === null || _a === void 0 ? void 0 : _a.deactivate(initiator, this.ctrl, flags));
         });
     }
-    valueChanged(newValue, oldValue, flags) {
-        if (!this.$controller.isActive) {
+    valueChanged(newValue, oldValue, f) {
+        if (!this.ctrl.isActive) {
             return;
         }
-        this.pending = onResolve(this.pending, () => {
-            return this.swap(flags);
-        });
-    }
-    swap(flags) {
-        var _a;
-        if (this.view === this.updateView(this.value, flags)) {
+        // change scenarios:
+        // truthy -> truthy (do nothing)
+        // falsy -> falsy (do nothing)
+        // truthy -> falsy (no cache = destroy)
+        // falsy -> truthy (no view = create)
+        newValue = !!newValue;
+        oldValue = !!oldValue;
+        if (newValue === oldValue) {
             return;
         }
         this.work.start();
-        const ctrl = this.$controller;
-        return onResolve((_a = this.view) === null || _a === void 0 ? void 0 : _a.deactivate(this.view, ctrl, flags), () => {
-            // return early if detaching was called during the swap
-            if (this.wantsDeactivate) {
+        const currView = this.view;
+        const swapId = this.swapId++;
+        /**
+         * returns true when
+         * 1. entering deactivation of the [if] itself
+         * 2. new swap has started since this change
+         */
+        const isCurrent = () => !this.wantsDeactivate && this.swapId === swapId + 1;
+        let view;
+        return onResolve(onResolve(this.pending, () => this.pending = onResolve(currView === null || currView === void 0 ? void 0 : currView.deactivate(currView, this.ctrl, f), () => {
+            var _a;
+            if (!isCurrent()) {
                 return;
             }
-            // value may have changed during deactivate
-            const nextView = this.view = this.updateView(this.value, flags);
-            return onResolve(nextView === null || nextView === void 0 ? void 0 : nextView.activate(nextView, ctrl, flags, ctrl.scope, ctrl.hostScope), () => {
-                this.work.finish();
-                // only null the pending promise if nothing changed since the activation start
-                if (this.view === this.updateView(this.value, flags)) {
+            // falsy -> truthy
+            if (newValue) {
+                view = (this.view = this.ifView = this.cache && this.ifView != null
+                    ? this.ifView
+                    : this.ifFactory.create(f));
+            }
+            else {
+                // truthy -> falsy
+                view = (this.view = this.elseView = this.cache && this.elseView != null
+                    ? this.elseView
+                    : (_a = this.elseFactory) === null || _a === void 0 ? void 0 : _a.create(f));
+            }
+            if (view == null) {
+                return;
+            }
+            // todo: location should be based on either the [if]/[else] attribute
+            //       instead of always the if
+            view.setLocation(this.location);
+            return onResolve(view.activate(view, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope), () => {
+                if (isCurrent()) {
                     this.pending = void 0;
                 }
             });
-        });
-    }
-    /** @internal */
-    updateView(value, flags) {
-        if (value) {
-            return this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
-        }
-        if (this.elseFactory !== void 0) {
-            return this.elseView = this.ensureView(this.elseView, this.elseFactory, flags);
-        }
-        return void 0;
-    }
-    /** @internal */
-    ensureView(view, factory, flags) {
-        if (view === void 0) {
-            view = factory.create(flags);
-            view.setLocation(this.location);
-        }
-        return view;
+        })), () => this.work.finish());
     }
     dispose() {
         var _a, _b;
         (_a = this.ifView) === null || _a === void 0 ? void 0 : _a.dispose();
-        this.ifView = void 0;
         (_b = this.elseView) === null || _b === void 0 ? void 0 : _b.dispose();
-        this.elseView = void 0;
-        this.view = void 0;
+        this.ifView
+            = this.elseView
+                = this.view
+                    = void 0;
     }
     accept(visitor) {
         var _a;
@@ -9592,6 +9639,11 @@ let If = class If {
 __decorate([
     bindable
 ], If.prototype, "value", void 0);
+__decorate([
+    bindable({
+        set: v => v === '' || !!v && v !== 'false'
+    })
+], If.prototype, "cache", void 0);
 If = __decorate([
     templateController('if'),
     __param(0, IViewFactory),

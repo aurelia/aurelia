@@ -17,13 +17,19 @@ export declare class If implements ICustomAttributeViewModel {
     view?: ISyntheticView;
     readonly $controller: ICustomAttributeController<this>;
     value: unknown;
+    /**
+     * `false` to always dispose the existing `view` whenever the value of if changes to false
+     */
+    cache: boolean;
     private pending;
     private wantsDeactivate;
+    private swapId;
+    private ctrl;
     constructor(ifFactory: IViewFactory, location: IRenderLocation, work: IWorkTracker);
-    attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
+    created(): void;
+    attaching(initiator: IHydratedController, parent: IHydratedController, f: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
-    valueChanged(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
-    private swap;
+    valueChanged(newValue: unknown, oldValue: unknown, f: LifecycleFlags): void | Promise<void>;
     dispose(): void;
     accept(visitor: ControllerVisitor): void | true;
 }

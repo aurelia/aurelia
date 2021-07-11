@@ -5,11 +5,11 @@ import { HydrateElementInstruction, IInstruction, Instruction } from '../../rend
 import { IPlatform } from '../../platform.js';
 import { getRenderContext } from '../../templating/render-context.js';
 import { IViewFactory } from '../../templating/view.js';
-import { customElement, CustomElementDefinition } from '../custom-element.js';
+import { CustomElement, customElement, CustomElementDefinition } from '../custom-element.js';
 import { bindable } from '../../bindable.js';
-import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
+import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, IHydrationContext, ISyntheticView } from '../../templating/controller.js';
 
-export type Subject = IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
+export type Subject = string | IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;
 
 function toLookup(
@@ -28,7 +28,7 @@ function toLookup(
 export class AuRender implements ICustomElementViewModel {
   public readonly id: number = nextId('au$component');
 
-  @bindable public subject?: MaybeSubjectPromise = void 0;
+  @bindable public component?: MaybeSubjectPromise = void 0;
   @bindable({ mode: BindingMode.fromView }) public composing: boolean = false;
 
   public view?: ISyntheticView = void 0;
@@ -42,6 +42,7 @@ export class AuRender implements ICustomElementViewModel {
   public constructor(
     @IPlatform private readonly p: IPlatform,
     @IInstruction instruction: HydrateElementInstruction,
+    @IHydrationContext private readonly hdrContext: IHydrationContext,
   ) {
     this.properties = instruction.instructions.reduce(toLookup, {});
   }
@@ -51,15 +52,15 @@ export class AuRender implements ICustomElementViewModel {
     parent: IHydratedParentController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    const { subject, view } = this;
-    if (view === void 0 || this.lastSubject !== subject) {
-      this.lastSubject = subject;
+    const { component, view } = this;
+    if (view === void 0 || this.lastSubject !== component) {
+      this.lastSubject = component;
       this.composing = true;
 
-      return this.compose(void 0, subject, initiator, flags);
+      return this.compose(void 0, component, initiator, flags);
     }
 
-    return this.compose(view, subject, initiator, flags);
+    return this.compose(view, component, initiator, flags);
   }
 
   public detaching(
@@ -70,7 +71,7 @@ export class AuRender implements ICustomElementViewModel {
     return this.deactivate(this.view, initiator, flags);
   }
 
-  public subjectChanged(
+  public componentChanged(
     newValue: Subject | Promise<Subject>,
     previousValue: Subject | Promise<Subject>,
     flags: LifecycleFlags,
@@ -105,13 +106,9 @@ export class AuRender implements ICustomElementViewModel {
   ): void | Promise<void> {
     return onResolve(
       view === void 0
-      ? onResolve(subject, resolvedSubject => {
-        return this.resolveView(resolvedSubject, flags);
-      })
-      : view,
-      resolvedView => {
-        return this.activate(resolvedView, initiator, flags);
-      },
+        ? onResolve(subject, resolvedSubject => this.resolveView(resolvedSubject, flags))
+        : view,
+      resolvedView => this.activate(this.view = resolvedView, initiator, flags),
     );
   }
 
@@ -149,35 +146,46 @@ export class AuRender implements ICustomElementViewModel {
     return void 0;
   }
 
-  private provideViewFor(subject: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
-    if (!subject) {
+  private provideViewFor(comp: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
+    if (!comp) {
       return void 0;
     }
 
-    if (isController(subject)) { // IController
-      return subject;
+    const ctxContainer = this.hdrContext.controller.container;
+    if (typeof comp === 'object') {
+      if (isController(comp)) { // IController
+        return comp;
+      }
+
+      if ('createView' in comp) { // RenderPlan
+        return comp.createView(ctxContainer);
+      }
+
+      if ('create' in comp) { // IViewFactory
+        return comp.create(flags);
+      }
+
+      if ('template' in comp) { // Raw Template Definition
+        const definition = CustomElementDefinition.getOrCreate(comp);
+        return getRenderContext(definition, ctxContainer).getViewFactory().create(flags);
+      }
     }
 
-    if ('createView' in subject) { // RenderPlan
-      return subject.createView(this.$controller.container);
-    }
-
-    if ('create' in subject) { // IViewFactory
-      return subject.create(flags);
-    }
-
-    if ('template' in subject) { // Raw Template Definition
-      const definition = CustomElementDefinition.getOrCreate(subject);
-      return getRenderContext(definition, this.$controller.container).getViewFactory().create(flags);
+    if (typeof comp === 'string') {
+      const def = ctxContainer.find(CustomElement, comp);
+      if (def == null) {
+        throw new Error(`Unable to find custom element ${comp} for <au-render>.`);
+      }
+      comp = def.Type;
     }
 
     // Constructable (Custom Element Constructor)
     return createElement(
       this.p,
-      subject,
+      comp,
       this.properties,
       this.$controller.host.childNodes,
-    ).createView(this.$controller.container);
+    ).createView(ctxContainer);
   }
 
   public dispose(): void {
@@ -192,6 +200,6 @@ export class AuRender implements ICustomElementViewModel {
   }
 }
 
-function isController(subject: Subject): subject is ISyntheticView {
+function isController(subject: Exclude<Subject, string>): subject is ISyntheticView {
   return 'lockScope' in subject;
 }

@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.11"></a>
+# 2.0.0-alpha.11 (2021-07-11)
+
+### Bug Fixes:
+
+* **call-binding:** assign args to event property, fixes #1231 ([fa4c0d4](https://github.com/aurelia/aurelia/commit/fa4c0d4))
+
 <a name="2.0.0-alpha.10"></a>
 # 2.0.0-alpha.10 (2021-07-04)
 

@@ -3,6 +3,35 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.11"></a>
+# 2.0.0-alpha.11 (2021-07-11)
+
+### Features:
+
+* **au-render:** ability to compose element using string as name ([aa466b4](https://github.com/aurelia/aurelia/commit/aa466b4))
+* **if-else:** add ability to disable cache ([600c33f](https://github.com/aurelia/aurelia/commit/600c33f))
+
+
+### Bug Fixes:
+
+* **if:** fix actvation/deactivation timing ([020de51](https://github.com/aurelia/aurelia/commit/020de51))
+* **call-binding:** assign args to event property, fixes #1231 ([fa4c0d4](https://github.com/aurelia/aurelia/commit/fa4c0d4))
+
+
+### Performance Improvements:
+
+* **rendering:** use definition for attrs & els ([3a26b46](https://github.com/aurelia/aurelia/commit/3a26b46))
+* **templating:** avoid retrieving definition unnecessarily ([f0e597f](https://github.com/aurelia/aurelia/commit/f0e597f))
+* **templating:** resolved Type for CE instruction ([0b52d11](https://github.com/aurelia/aurelia/commit/0b52d11))
+
+
+### Refactorings:
+
+* **all:** use container from controller instead of context ([0822330](https://github.com/aurelia/aurelia/commit/0822330))
+* **context:** remove IContainer interface impls out of Render/Route context ([18524de](https://github.com/aurelia/aurelia/commit/18524de))
+* **router:** distinguish between RouteContext and IContainer ([39169bf](https://github.com/aurelia/aurelia/commit/39169bf))
+* **context:** distinguish between render context and its container ([f216e98](https://github.com/aurelia/aurelia/commit/f216e98))
+
 <a name="2.0.0-alpha.10"></a>
 # 2.0.0-alpha.10 (2021-07-04)
 

@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.11"></a>
+# 2.0.0-alpha.11 (2021-07-11)
+
+**Note:** Version bump only for package @aurelia/plugin-gulp
+
 <a name="2.0.0-alpha.10"></a>
 # 2.0.0-alpha.10 (2021-07-04)
 

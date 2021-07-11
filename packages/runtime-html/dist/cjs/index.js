@@ -10789,28 +10789,29 @@ function toLookup(acc, item) {
     return acc;
 }
 exports.AuRender = class AuRender {
-    constructor(p, instruction) {
+    constructor(p, instruction, hdrContext) {
         this.p = p;
+        this.hdrContext = hdrContext;
         this.id = kernel.nextId('au$component');
-        this.subject = void 0;
+        this.component = void 0;
         this.composing = false;
         this.view = void 0;
         this.lastSubject = void 0;
         this.properties = instruction.instructions.reduce(toLookup, {});
     }
     attaching(initiator, parent, flags) {
-        const { subject, view } = this;
-        if (view === void 0 || this.lastSubject !== subject) {
-            this.lastSubject = subject;
+        const { component, view } = this;
+        if (view === void 0 || this.lastSubject !== component) {
+            this.lastSubject = component;
             this.composing = true;
-            return this.compose(void 0, subject, initiator, flags);
+            return this.compose(void 0, component, initiator, flags);
         }
-        return this.compose(view, subject, initiator, flags);
+        return this.compose(view, component, initiator, flags);
     }
     detaching(initiator, parent, flags) {
         return this.deactivate(this.view, initiator, flags);
     }
-    subjectChanged(newValue, previousValue, flags) {
+    componentChanged(newValue, previousValue, flags) {
         const { $controller } = this;
         if (!$controller.isActive) {
             return;
@@ -10831,12 +10832,8 @@ exports.AuRender = class AuRender {
     }
     compose(view, subject, initiator, flags) {
         return kernel.onResolve(view === void 0
-            ? kernel.onResolve(subject, resolvedSubject => {
-                return this.resolveView(resolvedSubject, flags);
-            })
-            : view, resolvedView => {
-            return this.activate(resolvedView, initiator, flags);
-        });
+            ? kernel.onResolve(subject, resolvedSubject => this.resolveView(resolvedSubject, flags))
+            : view, resolvedView => this.activate(this.view = resolvedView, initiator, flags));
     }
     deactivate(view, initiator, flags) {
         return view === null || view === void 0 ? void 0 : view.deactivate(initiator !== null && initiator !== void 0 ? initiator : view, this.$controller, flags);
@@ -10856,25 +10853,35 @@ exports.AuRender = class AuRender {
         }
         return void 0;
     }
-    provideViewFor(subject, flags) {
-        if (!subject) {
+    provideViewFor(comp, flags) {
+        if (!comp) {
             return void 0;
         }
-        if (isController(subject)) { // IController
-            return subject;
+        const ctxContainer = this.hdrContext.controller.container;
+        if (typeof comp === 'object') {
+            if (isController(comp)) { // IController
+                return comp;
+            }
+            if ('createView' in comp) { // RenderPlan
+                return comp.createView(ctxContainer);
+            }
+            if ('create' in comp) { // IViewFactory
+                return comp.create(flags);
+            }
+            if ('template' in comp) { // Raw Template Definition
+                const definition = CustomElementDefinition.getOrCreate(comp);
+                return getRenderContext(definition, ctxContainer).getViewFactory().create(flags);
+            }
         }
-        if ('createView' in subject) { // RenderPlan
-            return subject.createView(this.$controller.container);
-        }
-        if ('create' in subject) { // IViewFactory
-            return subject.create(flags);
-        }
-        if ('template' in subject) { // Raw Template Definition
-            const definition = CustomElementDefinition.getOrCreate(subject);
-            return getRenderContext(definition, this.$controller.container).getViewFactory().create(flags);
+        if (typeof comp === 'string') {
+            const def = ctxContainer.find(CustomElement, comp);
+            if (def == null) {
+                throw new Error(`Unable to find custom element ${comp} for <au-render>.`);
+            }
+            comp = def.Type;
         }
         // Constructable (Custom Element Constructor)
-        return createElement(this.p, subject, this.properties, this.$controller.host.childNodes).createView(this.$controller.container);
+        return createElement(this.p, comp, this.properties, this.$controller.host.childNodes).createView(ctxContainer);
     }
     dispose() {
         var _a;
@@ -10890,14 +10897,15 @@ exports.AuRender = class AuRender {
 };
 __decorate([
     bindable
-], exports.AuRender.prototype, "subject", void 0);
+], exports.AuRender.prototype, "component", void 0);
 __decorate([
     bindable({ mode: runtime.BindingMode.fromView })
 ], exports.AuRender.prototype, "composing", void 0);
 exports.AuRender = __decorate([
     customElement({ name: 'au-render', template: null, containerless: true }),
     __param(0, IPlatform),
-    __param(1, IInstruction)
+    __param(1, IInstruction),
+    __param(2, IHydrationContext)
 ], exports.AuRender);
 function isController(subject) {
     return 'lockScope' in subject;

@@ -16,7 +16,7 @@ describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
           name: 'my-el',
           template: '<input >',
           dependencies: [TemplateCompilerHooks.define(class {
-            public beforeCompile(template: HTMLTemplateElement) {
+            public compiling(template: HTMLTemplateElement) {
               template.content.querySelector('input').setAttribute('value.bind', 'value');
             }
           })]
@@ -45,7 +45,7 @@ describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
           public value = 'hello';
         }),
         TemplateCompilerHooks.define(class {
-          public beforeCompile(template: HTMLTemplateElement) {
+          public compiling(template: HTMLTemplateElement) {
             template.content.querySelector('input')?.setAttribute('value.bind', 'value');
           }
         })
@@ -68,7 +68,7 @@ describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
           template: '<child>',
           dependencies: [
             TemplateCompilerHooks.define(class {
-              public beforeCompile(template: HTMLTemplateElement) {
+              public compiling(template: HTMLTemplateElement) {
                 template.content.querySelector('input')?.setAttribute('value.bind', 'value');
               }
             }),
@@ -77,7 +77,7 @@ describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
               template: '<input>',
               dependencies: [
                 TemplateCompilerHooks.define(class {
-                  public beforeCompile(template: HTMLTemplateElement) {
+                  public compiling(template: HTMLTemplateElement) {
                     assert.strictEqual(template.content.querySelector('input').getAttribute('value.bind'), null);
                     template.content.querySelector('input')?.setAttribute('value.bind', 'value2');
                   }
@@ -109,12 +109,12 @@ describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
           template: '<input >',
           dependencies: [
             TemplateCompilerHooks.define(class {
-              public beforeCompile(template: HTMLTemplateElement) {
+              public compiling(template: HTMLTemplateElement) {
                 template.content.querySelector('input').setAttribute('value.bind', 'value');
               }
             }),
             TemplateCompilerHooks.define(class {
-              public beforeCompile(template: HTMLTemplateElement) {
+              public compiling(template: HTMLTemplateElement) {
                 template.content.querySelector('input').setAttribute('id.bind', 'value');
               }
             }),
@@ -146,12 +146,12 @@ describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
           public value = 'hello';
         }),
         TemplateCompilerHooks.define(class {
-          public beforeCompile(template: HTMLTemplateElement) {
+          public compiling(template: HTMLTemplateElement) {
             template.content.querySelector('input')?.setAttribute('value.bind', 'value');
           }
         }),
         TemplateCompilerHooks.define(class {
-          public beforeCompile(template: HTMLTemplateElement) {
+          public compiling(template: HTMLTemplateElement) {
             template.content.querySelector('input')?.setAttribute('id.bind', 'value');
           }
         }),
@@ -175,12 +175,12 @@ describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
           template: '<input >',
           dependencies: [
             TemplateCompilerHooks.define(class {
-              public beforeCompile(template: HTMLTemplateElement) {
+              public compiling(template: HTMLTemplateElement) {
                 template.content.querySelector('input')?.setAttribute('data-id-1.bind', 'value');
               }
             }),
             TemplateCompilerHooks.define(class {
-              public beforeCompile(template: HTMLTemplateElement) {
+              public compiling(template: HTMLTemplateElement) {
                 template.content.querySelector('input')?.setAttribute('data-id-2.bind', 'value');
               }
             }),
@@ -189,12 +189,12 @@ describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
           public value = 'hello';
         }),
         TemplateCompilerHooks.define(class {
-          public beforeCompile(template: HTMLTemplateElement) {
+          public compiling(template: HTMLTemplateElement) {
             template.content.querySelector('input')?.setAttribute('data-id-3.bind', 'value');
           }
         }),
         TemplateCompilerHooks.define(class {
-          public beforeCompile(template: HTMLTemplateElement) {
+          public compiling(template: HTMLTemplateElement) {
             template.content.querySelector('input')?.setAttribute('data-id-4.bind', 'value');
           }
         }),
@@ -220,7 +220,7 @@ describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
           template: '<input >',
           dependencies: [
             TemplateCompilerHooks.define(class {
-              public beforeCompile(template: HTMLTemplateElement) {
+              public compiling(template: HTMLTemplateElement) {
                 template.content.querySelector('input')?.setAttribute('data-id-2.bind', 'value');
               }
             }),
@@ -229,7 +229,7 @@ describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
           public value = 'hello';
         }),
         TemplateCompilerHooks.define(class {
-          public beforeCompile(template: HTMLTemplateElement) {
+          public compiling(template: HTMLTemplateElement) {
             const input = template.content.querySelector('input');
             input?.setAttribute('data-id-1.bind', 'value');
             if (input) {
@@ -250,7 +250,7 @@ describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
   it('works with decorator @templateCompilerHooks (no paren)', async function () {
     @templateCompilerHooks
     class Hooks {
-      public beforeCompile(template: HTMLTemplateElement) {
+      public compiling(template: HTMLTemplateElement) {
         template.content.querySelector('input').setAttribute('value.bind', 'value');
       }
     }
@@ -277,7 +277,7 @@ describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
   it('works with decorator @templateCompilerHooks() (with paren)', async function () {
     @templateCompilerHooks()
     class Hooks {
-      public beforeCompile(template: HTMLTemplateElement) {
+      public compiling(template: HTMLTemplateElement) {
         template.content.querySelector('input').setAttribute('value.bind', 'value');
       }
     }

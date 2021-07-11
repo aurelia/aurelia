@@ -2166,7 +2166,7 @@ describe('TemplateCompiler - hooks', function () {
     let hookCallCount = 0;
 
     container.register(Registration.instance(ITemplateCompilerHooks, {
-      beforeCompile(template: HTMLElement) {
+      compiling(template: HTMLElement) {
         hookCallCount++;
         template.setAttribute('data-hello', 'world');
       }
@@ -2183,13 +2183,13 @@ describe('TemplateCompiler - hooks', function () {
     let hookCallCount = 0;
 
     container.register(Registration.instance(ITemplateCompilerHooks, {
-      beforeCompile(template: HTMLElement) {
+      compiling(template: HTMLElement) {
         hookCallCount++;
         template.setAttribute('data-hello', 'world');
       }
     }));
     container.register(Registration.instance(ITemplateCompilerHooks, {
-      beforeCompile(template: HTMLElement) {
+      compiling(template: HTMLElement) {
         hookCallCount++;
         template.setAttribute('data-world', 'hello');
       }
@@ -2214,7 +2214,7 @@ describe('TemplateCompiler - hooks', function () {
     const { container, sut } = createFixture();
     let hookCallCount = 0;
     const createResolver = () => Registration.instance(ITemplateCompilerHooks, {
-      beforeCompile(template: HTMLElement) {
+      compiling(template: HTMLElement) {
         hookCallCount++;
         template.setAttribute('data-hello', 'world');
       }
@@ -2234,7 +2234,7 @@ describe('TemplateCompiler - hooks', function () {
     const { container, sut } = createFixture();
     let hookCallCount = 0;
     const createResolver = (value: string) => Registration.instance(ITemplateCompilerHooks, {
-      beforeCompile(template: HTMLElement) {
+      compiling(template: HTMLElement) {
         hookCallCount++;
         template.setAttribute(`data-${value}`, value);
       }

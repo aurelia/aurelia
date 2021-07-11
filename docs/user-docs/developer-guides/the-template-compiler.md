@@ -15,7 +15,7 @@ import Aurelia, { TemplateCompilerHooks } from 'aurelia';
 
 Aurelia
   .register(TemplateCompilerHooks.define(class {
-    beforeCompile(template: HTMLElement) {
+    compiling(template: HTMLElement) {
       element.querySelector('table').setAttribute(someAttribute, someValue);
     }
   }))
@@ -28,12 +28,12 @@ import Aurelia, { templateCompilerHooks } from 'aurelia';
 
 @templateCompilerHooks
 class MyTableHook1 {
-  beforeCompile(template) {...}
+  compiling(template) {...}
 }
 // paren ok too
 @templateCompilerHooks()
 class MyTableHook1 {
-  beforeCompile(template) {...}
+  compiling(template) {...}
 }
 
 Aurelia.register(MyTableHook1);
@@ -41,7 +41,7 @@ Aurelia.register(MyTableHook1);
 
 ### Supported hooks
 
-* **beforeCompile**: this hook will be invoked right before the template compiler starts the compilation. Use this hooks if there needs to be some changes to a template before any compilation.
+* **compiling**: this hook will be invoked right before the template compiler starts the compilation of a template. Use this hooks if there needs to be some changes to a template before any compilation.
 
 ### Hooks invocation order
 

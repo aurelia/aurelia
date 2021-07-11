@@ -71,7 +71,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let i = 0;
     if (ii > 0) {
       while (ii > i) {
-        hooks[i].beforeCompile?.(template);
+        hooks[i].compiling?.(template);
         ++i;
       }
     }
@@ -1526,7 +1526,7 @@ export interface ITemplateCompilerHooks {
   /**
    * Should be invoked immediately before a template gets compiled
    */
-  beforeCompile?(template: HTMLElement): void;
+  compiling?(template: HTMLElement): void;
 }
 
 const typeToHooksDefCache = new WeakMap<Constructable, TemplateCompilerHooksDefinition<unknown>>();

@@ -31,7 +31,7 @@ export interface ITemplateCompilerHooks {
     /**
      * Should be invoked immediately before a template gets compiled
      */
-    beforeCompile?(template: HTMLElement): void;
+    compiling?(template: HTMLElement): void;
 }
 export declare const TemplateCompilerHooks: Readonly<{
     name: string;

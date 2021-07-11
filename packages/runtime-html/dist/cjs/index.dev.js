@@ -6536,7 +6536,7 @@ class TemplateCompiler {
         let i = 0;
         if (ii > 0) {
             while (ii > i) {
-                (_b = (_a = hooks[i]).beforeCompile) === null || _b === void 0 ? void 0 : _b.call(_a, template);
+                (_b = (_a = hooks[i]).compiling) === null || _b === void 0 ? void 0 : _b.call(_a, template);
                 ++i;
             }
         }

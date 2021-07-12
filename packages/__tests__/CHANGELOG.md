@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.12"></a>
+# 2.0.0-alpha.12 (2021-07-11)
+
+### Refactorings:
+
+* **template-compiler:** beforeCompile -> compiling ([d8d8cc5](https://github.com/aurelia/aurelia/commit/d8d8cc5))
+
 <a name="2.0.0-alpha.11"></a>
 # 2.0.0-alpha.11 (2021-07-11)
 

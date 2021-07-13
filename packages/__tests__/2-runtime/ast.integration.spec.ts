@@ -28,7 +28,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const target = { name: '' };
         const binding = new PropertyBinding(accessScopeExpr, target, 'name', BindingMode.toView, observerLocator, container, {} as any);
 
-        binding.$bind(LifecycleFlags.none, createScopeForTest(source), null);
+        binding.$bind(LifecycleFlags.none, createScopeForTest(source));
 
         assert.strictEqual(target.name, 'hello');
 
@@ -59,7 +59,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
             return handleChange.apply(this, args);
           };
         })(binding.handleChange);
-        binding.$bind(LifecycleFlags.none, scope, null);
+        binding.$bind(LifecycleFlags.none, scope);
 
         assert.strictEqual(target.value, 'no');
 
@@ -106,7 +106,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const scope = createScopeForTest(source, oc);
         const binding = new LetBinding(accessScopeExpr, 'value', observerLocator, container, true);
 
-        binding.$bind(LifecycleFlags.none, scope, null);
+        binding.$bind(LifecycleFlags.none, scope);
 
         assert.strictEqual(source.value, 'hello');
 
@@ -137,7 +137,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
             return handleChange.apply(this, args);
           };
         })(binding.handleChange);
-        binding.$bind(LifecycleFlags.none, scope, null);
+        binding.$bind(LifecycleFlags.none, scope);
 
         assert.strictEqual(source.value, 'no');
         assert.strictEqual(handleChangeCallCount, 0);

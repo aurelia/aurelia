@@ -37,7 +37,7 @@ export class With implements ICustomAttributeViewModel {
     if ($controller.isActive && bindings != null) {
       scope = Scope.fromParent($controller.scope, newValue === void 0 ? {} : newValue as object);
       for (ii = bindings.length; ii > i; ++i) {
-        bindings[i].$bind(LifecycleFlags.fromBind, scope, $controller.hostScope);
+        bindings[i].$bind(LifecycleFlags.fromBind, scope);
       }
     }
   }
@@ -49,7 +49,7 @@ export class With implements ICustomAttributeViewModel {
   ): void | Promise<void> {
     const { $controller, value } = this;
     const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
-    return this.view.activate(initiator, $controller, flags, scope, $controller.hostScope);
+    return this.view.activate(initiator, $controller, flags, scope);
   }
 
   public detaching(

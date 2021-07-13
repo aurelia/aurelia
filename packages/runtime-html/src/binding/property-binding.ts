@@ -31,7 +31,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public isBound: boolean = false;
   public $scope?: Scope = void 0;
-  public $hostScope: Scope | null = null;
 
   public targetObserver?: AccessorOrObserver = void 0;
 
@@ -58,7 +57,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags, this.$scope!, this.$hostScope, this.locator, value);
+    this.sourceExpression.assign!(flags, this.$scope!, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -88,7 +87,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator, interceptor);
+      newValue = sourceExpression.evaluate(flags, $scope!, locator, interceptor);
       if (shouldConnect) {
         obsRecord.clear(false);
       }
@@ -107,7 +106,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -122,11 +121,10 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
 
     this.$scope = scope;
-    this.$hostScope = hostScope;
 
     let sourceExpression = this.sourceExpression;
     if (sourceExpression.hasBind) {
-      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
+      sourceExpression.bind(flags, scope, this.interceptor);
     }
 
     const $mode = this.mode;
@@ -149,7 +147,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const shouldConnect = ($mode & toView) > 0;
     if ($mode & toViewOrOneTime) {
       interceptor.updateTarget(
-        sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null),
+        sourceExpression.evaluate(flags, scope, this.locator, shouldConnect ? interceptor : null),
         flags,
       );
     }
@@ -171,11 +169,10 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.persistentFlags = LifecycleFlags.none;
 
     if (this.sourceExpression.hasUnbind) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
+      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;
-    this.$hostScope = null;
 
     const task = this.task;
 

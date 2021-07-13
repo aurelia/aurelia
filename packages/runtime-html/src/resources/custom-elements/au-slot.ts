@@ -19,8 +19,8 @@ export class AuSlot implements ICustomElementViewModel {
   public readonly view: ISyntheticView;
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
-  private hostScope: Scope | null = null;
-  private ownScope: Scope | null = null;
+  private parentScope: Scope | null = null;
+  private outerScope: Scope | null = null;
   private readonly hasProjection: boolean;
 
   @bindable
@@ -49,9 +49,9 @@ export class AuSlot implements ICustomElementViewModel {
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.hostScope = this.$controller.scope.parentScope!;
+    this.parentScope = this.$controller.scope.parentScope!;
     let outerScope: Scope;
-    let ownScope: Scope;
+    let overlayedOuterScope: Scope;
     if (this.hasProjection) {
       // if there is a projection,
       // then the au-slot should connect the outer scope with the inner scope binding context
@@ -59,13 +59,13 @@ export class AuSlot implements ICustomElementViewModel {
       // - binding context & override context pointing to the outer scope binding & override context respectively
       // - override context has the $host pointing to inner scope binding context
       outerScope = this.hdrContext.controller.scope.parentScope!;
-      ownScope = this.ownScope = Scope.create(
+      overlayedOuterScope = this.outerScope = Scope.create(
         outerScope.bindingContext,
         OverrideContext.create(outerScope.bindingContext),
         false
       );
-      ownScope.parentScope = outerScope;
-      ownScope.overrideContext.$host = this.expose ?? this.hostScope.bindingContext;
+      overlayedOuterScope.parentScope = outerScope;
+      overlayedOuterScope.overrideContext.$host = this.expose ?? this.parentScope.bindingContext;
     }
   }
 
@@ -78,8 +78,7 @@ export class AuSlot implements ICustomElementViewModel {
       initiator,
       this.$controller,
       flags,
-      this.hasProjection ? this.ownScope! : this.hostScope!,
-      this.hostScope
+      this.hasProjection ? this.outerScope! : this.parentScope!,
     );
   }
 
@@ -92,8 +91,8 @@ export class AuSlot implements ICustomElementViewModel {
   }
 
   public exposeChanged(v: object): void {
-    if (this.hasProjection && this.ownScope != null) {
-      this.ownScope.overrideContext.$host = v;
+    if (this.hasProjection && this.outerScope != null) {
+      this.outerScope.overrideContext.$host = v;
     }
   }
 

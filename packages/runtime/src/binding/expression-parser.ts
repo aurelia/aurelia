@@ -310,7 +310,6 @@ const $true = PrimitiveLiteralExpression.$true;
 const $null = PrimitiveLiteralExpression.$null;
 const $undefined = PrimitiveLiteralExpression.$undefined;
 const $this = AccessThisExpression.$this;
-const $host = AccessThisExpression.$host;
 const $parent = AccessThisExpression.$parent;
 
 export const enum BindingType {
@@ -642,7 +641,7 @@ TPrec extends Precedence.Unary ? IsUnary :
           }
           consume(state, Token.CloseParen);
           if (access & Access.Scope) {
-            result = new CallScopeExpression(name, args, (result as AccessScopeExpression | AccessThisExpression).ancestor,/*  result === $host */);
+            result = new CallScopeExpression(name, args, (result as AccessScopeExpression | AccessThisExpression).ancestor);
           } else if (access & Access.Member) {
             result = new CallMemberExpression(result as IsLeftHandSide, name, args);
           } else {
@@ -1160,7 +1159,7 @@ function consume(state: ParserState, token: Token): void {
  * Usage: TokenValues[token & Token.Type]
  */
 const TokenValues = [
-  $false, $true, $null, $undefined, '$this', '$host', '$parent',
+  $false, $true, $null, $undefined, '$this', null/* '$host' */, '$parent',
 
   '(', '{', '.', '}', ')', ',', '[', ']', ':', '?', '\'', '"',
 

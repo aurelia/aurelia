@@ -294,10 +294,10 @@ describe('promise template-controller', function () {
 
   @bindingBehavior('noop')
   class NoopBindingBehavior implements BindingBehaviorInstance {
-    public bind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
+    public bind(_flags: LifecycleFlags, _scope: Scope, _binding: IBinding): void {
       return;
     }
-    public unbind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
+    public unbind(_flags: LifecycleFlags, _scope: Scope, _binding: IBinding): void {
       return;
     }
   }

@@ -17,7 +17,7 @@ describe('3-runtime-html/attr-binding-behavior.spec.ts', function () {
     sut = new AttrBindingBehavior();
     container = ctx.container;
     binding = new PropertyBinding(undefined, target, targetProperty, undefined, undefined, container, {} as any);
-    sut.bind(undefined, undefined, null, binding);
+    sut.bind(undefined, undefined, binding);
   });
 
   it('bind()   should put a DataAttributeObserver on the binding', function () {

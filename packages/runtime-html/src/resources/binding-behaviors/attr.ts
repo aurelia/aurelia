@@ -6,11 +6,11 @@ import type { PropertyBinding } from '../../binding/property-binding.js';
 
 @bindingBehavior('attr')
 export class AttrBindingBehavior {
-  public bind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: PropertyBinding): void {
+  public bind(flags: LifecycleFlags, _scope: Scope, binding: PropertyBinding): void {
     binding.targetObserver = attrAccessor;
   }
 
-  public unbind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: PropertyBinding): void {
+  public unbind(flags: LifecycleFlags, _scope: Scope, binding: PropertyBinding): void {
     return;
   }
 }

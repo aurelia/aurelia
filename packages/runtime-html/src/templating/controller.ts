@@ -79,7 +79,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public isStrictBinding: boolean = false;
 
   public scope: Scope | null = null;
-  public hostScope: Scope | null = null;
   public isBound: boolean = false;
 
   // If a host from another custom element was passed in, then this will be the controller for that custom element (could be `au-viewport` for example).
@@ -458,7 +457,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     parent: IHydratedController | null,
     flags: LifecycleFlags,
     scope?: Scope | null,
-    hostScope?: Scope | null,
   ): void | Promise<void> {
     switch (this.state) {
       case State.none:
@@ -488,9 +486,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.fullyNamed = true;
       (this.logger ??= this.container.get(ILogger).root.scopeTo(this.name))
         .trace(`activate()`);
-    }
-    if (this.vmKind === ViewModelKind.synthetic) {
-      this.hostScope = hostScope ?? null;
     }
     flags |= LifecycleFlags.fromBind;
 
@@ -559,7 +554,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     if (this.bindings !== null) {
       for (let i = 0; i < this.bindings.length; ++i) {
-        this.bindings[i].$bind(this.$flags, this.scope!, this.hostScope);
+        this.bindings[i].$bind(this.$flags, this.scope!);
       }
     }
 
@@ -651,7 +646,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this.children !== null) {
       for (let i = 0; i < this.children.length; ++i) {
         // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
-        void this.children[i].activate(this.$initiator, this as IHydratedController, this.$flags, this.scope, this.hostScope);
+        void this.children[i].activate(this.$initiator, this as IHydratedController, this.$flags, this.scope);
       }
     }
 
@@ -1421,7 +1416,6 @@ export interface ISyntheticView extends IHydratableController {
   readonly vmKind: ViewModelKind.synthetic;
   readonly definition: null;
   readonly viewModel: null;
-  hostScope: Scope | null;
   /**
    * The compiled render context used for composing this view. Compilation was done by the `IViewFactory` prior to creating this view.
    */
@@ -1437,7 +1431,6 @@ export interface ISyntheticView extends IHydratableController {
     parent: IHydratedController,
     flags: LifecycleFlags,
     scope: Scope,
-    hostScope?: Scope | null,
   ): void | Promise<void>;
   deactivate(
     initiator: IHydratedController,
@@ -1512,7 +1505,6 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
    * The scope's `bindingContext` will be the same instance as this controller's `viewModel` property.
    */
   readonly scope: Scope;
-  hostScope: Scope | null;
   readonly children: null;
   readonly bindings: null;
   activate(
@@ -1520,7 +1512,6 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
     parent: IHydratedController,
     flags: LifecycleFlags,
     scope: Scope,
-    hostScope?: Scope | null,
   ): void | Promise<void>;
   deactivate(
     initiator: IHydratedController,
@@ -1545,7 +1536,6 @@ export interface IDryCustomElementController<C extends IViewModel = IViewModel> 
    * By default, the scope's `bindingContext` will be the same instance as this controller's `viewModel` property.
    */
   scope: Scope;
-  hostScope: Scope | null;
   /**
    * The original host dom node.
    *
@@ -1608,7 +1598,6 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
     parent: IHydratedController | null,
     flags: LifecycleFlags,
     scope?: Scope,
-    hostScope?: Scope | null,
   ): void | Promise<void>;
   deactivate(
     initiator: IHydratedController,

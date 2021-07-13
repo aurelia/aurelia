@@ -67,7 +67,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
     }
 
-    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator, null) as string;
+    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, binding.locator, null) as string;
   }
 
   public attaching(
@@ -199,7 +199,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     const { $controller, factory, local, location, items } = this;
     const parentScope = $controller.scope;
-    const hostScope = $controller.hostScope;
     const newLen = this.forOf.count(flags, items);
     const views = this.views = Array(newLen);
 
@@ -210,7 +209,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
       setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
 
-      ret = view.activate(initiator ?? view, $controller, flags, viewScope, hostScope);
+      ret = view.activate(initiator ?? view, $controller, flags, viewScope);
       if (ret instanceof Promise) {
         (promises ?? (promises = [])).push(ret);
       }
@@ -311,7 +310,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     const parentScope = $controller.scope;
-    const hostScope = $controller.hostScope;
     const newLen = indexMap.length;
     synchronizeIndices(views, indexMap);
 
@@ -334,7 +332,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.setLocation(location);
 
-        ret = view.activate(view, $controller, flags, viewScope, hostScope);
+        ret = view.activate(view, $controller, flags, viewScope);
         if (ret instanceof Promise) {
           (promises ?? (promises = [])).push(ret);
         }

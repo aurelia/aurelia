@@ -8,7 +8,7 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
     @ISignaler private readonly signaler: ISignaler,
   ) {}
 
-  public bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, binding: IConnectableBinding, ...names: string[]): void {
+  public bind(flags: LifecycleFlags, scope: Scope, binding: IConnectableBinding, ...names: string[]): void {
     if (!('handleChange' in binding)) {
       throw new Error(`The signal behavior can only be used with bindings that have a 'handleChange' method`);
     }
@@ -22,7 +22,7 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
     }
   }
 
-  public unbind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, binding: IConnectableBinding): void {
+  public unbind(flags: LifecycleFlags, scope: Scope, binding: IConnectableBinding): void {
     const names = this.lookup.get(binding)!;
     this.lookup.delete(binding);
     for (const name of names) {

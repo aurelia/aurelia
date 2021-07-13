@@ -210,11 +210,11 @@ describe('Scope', function () {
 describe('BindingContext', function () {
   describe('get', function () {
     it('undefined', function () {
-      assert.throws(() => BindingContext.get(undefined, undefined, undefined, LF.none), 'Scope is undefined and HostScope is undefined', `() => BindingContext.get(undefined, undefined, undefined, LF.none)`);
+      assert.throws(() => BindingContext.get(undefined, undefined, undefined, LF.none), 'Scope is undefined', `() => BindingContext.get(undefined, undefined, undefined, LF.none)`);
     });
 
     it('null', function () {
-      assert.throws(() => BindingContext.get(null, undefined, undefined, LF.none), 'Scope is null and HostScope is undefined', `() => BindingContext.get(null, undefined, undefined, LF.none)`);
+      assert.throws(() => BindingContext.get(null, undefined, undefined, LF.none), 'Scope is null', `() => BindingContext.get(null, undefined, undefined, LF.none)`);
     });
 
     it('{ bindingContext: undefined, overrideContext: undefined }', function () {
@@ -686,40 +686,6 @@ describe('BindingContext', function () {
       const scope4 = Scope.fromParent(scope3, bindingContext4);
       const actual = BindingContext.get(scope4, 'foo', 4, LF.none);
       assert.strictEqual(actual, undefined, `actual`);
-    });
-
-    it('hostScope fallback given property not in scope - BC.get(s, p, 0, LF.none, hs)', function () {
-      const hsbc = { foo: "bar" } as any;
-      const hostScope = Scope.create(hsbc);
-      const scope = Scope.create({});
-      const actual = BindingContext.get(scope, 'foo', 0, LF.none, hostScope);
-      assert.strictEqual(actual, hsbc, 'hsbc');
-    });
-
-    it('hostScope fallback given property not in scope - BC.get(s, p, 0, LF.none, hs) - obc', function () {
-      const hsbc = { } as any;
-      const hsobc = OverrideContext.create(hsbc);
-      hsobc["foo"] = "bar";
-      const hostScope = Scope.create(hsbc, hsobc);
-      const scope = Scope.create({});
-      const actual = BindingContext.get(scope, 'foo', 0, LF.none, hostScope);
-      assert.strictEqual(actual, hsobc, 'hsobc');
-    });
-
-    it('hostScope fallback given property not in scope - BC.get(hs, p, 0, LF.none, hs)', function () {
-      const hsbc = { foo: "bar" } as any;
-      const hostScope = Scope.create(hsbc);
-      const actual = BindingContext.get(hostScope, 'foo', 0, LF.none, hostScope);
-      assert.strictEqual(actual, hsbc, 'hsbc');
-    });
-
-    it('hostScope fallback given property not in scope - BC.get(hs, p, 0, LF.none, hs) - obc', function () {
-      const hsbc = { } as any;
-      const hsobc = OverrideContext.create(hsbc);
-      hsobc["foo"] = "bar";
-      const hostScope = Scope.create(hsbc, hsobc);
-      const actual = BindingContext.get(hostScope, 'foo', 0, LF.none, hostScope);
-      assert.strictEqual(actual, hsobc, 'hsobc');
     });
   });
 });

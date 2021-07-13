@@ -321,7 +321,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
           return handleChange.apply(this, args);
         };
       })(binding.partBindings[0].handleChange);
-      binding.$bind(LifecycleFlags.fromBind, createScopeForTest(source), null);
+      binding.$bind(LifecycleFlags.fromBind, createScopeForTest(source));
 
       assert.strictEqual(target.value, 'no');
       assert.deepStrictEqual(
@@ -418,7 +418,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
           return handleChange.apply(this, args);
         };
       })(binding.partBindings[1].handleChange);
-      binding.$bind(LifecycleFlags.fromBind, createScopeForTest(source), null);
+      binding.$bind(LifecycleFlags.fromBind, createScopeForTest(source));
 
       assert.strictEqual(target.value, 'no1--no2');
       assert.deepStrictEqual(

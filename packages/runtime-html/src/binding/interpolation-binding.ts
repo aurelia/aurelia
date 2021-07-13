@@ -39,7 +39,6 @@ export class InterpolationBinding implements IBinding {
 
   public isBound: boolean = false;
   public $scope?: Scope = void 0;
-  public $hostScope: Scope | null = null;
 
   public partBindings: InterpolationPartBinding[];
 
@@ -96,7 +95,7 @@ export class InterpolationBinding implements IBinding {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -107,7 +106,7 @@ export class InterpolationBinding implements IBinding {
     this.$scope = scope;
     const partBindings = this.partBindings;
     for (let i = 0, ii = partBindings.length; ii > i; ++i) {
-      partBindings[i].$bind(flags, scope, hostScope);
+      partBindings[i].$bind(flags, scope);
     }
     this.updateTarget(void 0, flags);
   }
@@ -139,7 +138,6 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
   public readonly mode: BindingMode = BindingMode.toView;
   public value: unknown = '';
   public $scope?: Scope;
-  public $hostScope: Scope | null = null;
   public task: ITask | null = null;
   public isBound: boolean = false;
 
@@ -166,7 +164,7 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
+      newValue = sourceExpression.evaluate(flags, this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         obsRecord.clear(false);
       }
@@ -184,7 +182,7 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
     this.owner.updateTarget(void 0, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -194,16 +192,14 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
 
     this.isBound = true;
     this.$scope = scope;
-    this.$hostScope = hostScope;
 
     if (this.sourceExpression.hasBind) {
-      this.sourceExpression.bind(flags, scope, hostScope, this.interceptor as IIndexable & this);
+      this.sourceExpression.bind(flags, scope, this.interceptor as IIndexable & this);
     }
 
     const v = this.value = this.sourceExpression.evaluate(
       flags,
       scope,
-      hostScope,
       this.locator,
       (this.mode & toView) > 0 ?  this.interceptor : null,
     );
@@ -219,11 +215,10 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
     this.isBound = false;
 
     if (this.sourceExpression.hasUnbind) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
+      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;
-    this.$hostScope = null;
     this.obs.clear(true);
   }
 }
@@ -243,7 +238,6 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
   public readonly mode: BindingMode = BindingMode.toView;
   public value: unknown = '';
   public $scope?: Scope;
-  public $hostScope: Scope | null = null;
   public task: ITask | null = null;
   public isBound: boolean = false;
 
@@ -287,7 +281,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
         obsRecord.version++;
       }
       flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
-      newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
+      newValue = sourceExpression.evaluate(flags, this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         obsRecord.clear(false);
       }
@@ -316,7 +310,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     this.queueUpdate(this.value, LifecycleFlags.none);
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -326,10 +320,9 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
 
     this.isBound = true;
     this.$scope = scope;
-    this.$hostScope = hostScope;
 
     if (this.sourceExpression.hasBind) {
-      this.sourceExpression.bind(flags, scope, hostScope, this.interceptor as IIndexable & this);
+      this.sourceExpression.bind(flags, scope, this.interceptor as IIndexable & this);
     }
 
     flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
@@ -337,7 +330,6 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     const v = this.value = this.sourceExpression.evaluate(
       flags,
       scope,
-      hostScope,
       this.locator,
       (this.mode & toView) > 0 ?  this.interceptor : null,
     );
@@ -354,14 +346,13 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     this.isBound = false;
 
     if (this.sourceExpression.hasUnbind) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
+      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
 
     // TODO: should existing value (either connected node, or a string)
     // be removed when this binding is unbound?
     // this.updateTarget('', flags);
     this.$scope = void 0;
-    this.$hostScope = null;
     this.obs.clear(true);
     this.task?.cancel();
     this.task = null;

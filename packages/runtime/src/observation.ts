@@ -6,9 +6,8 @@ export interface IBinding {
   interceptor: this;
   readonly locator: IServiceLocator;
   readonly $scope?: Scope;
-  readonly $hostScope: Scope | null;
   readonly isBound: boolean;
-  $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+  $bind(flags: LifecycleFlags, scope: Scope): void;
   $unbind(flags: LifecycleFlags): void;
 }
 

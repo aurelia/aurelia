@@ -577,14 +577,14 @@ describe('processContent', function () {
 
           // add header
           const header = p.document.createElement('button');
-          header.setAttribute('class.bind', `activeTabId=='${i}'?'active':''`);
-          header.setAttribute('click.delegate', `showTab('${i}')`);
+          header.setAttribute('class.bind', `$host.activeTabId=='${i}'?'active':''`);
+          header.setAttribute('click.delegate', `$host.showTab('${i}')`);
           header.appendChild(p.document.createTextNode(tab.getAttribute('header')));
           headerTemplate.content.appendChild(header);
 
           // add content
           const content = p.document.createElement('div');
-          content.setAttribute('if.bind', `activeTabId=='${i}'`);
+          content.setAttribute('if.bind', `$host.activeTabId=='${i}'`);
           content.append(...toArray(tab.childNodes));
           contentTemplate.content.appendChild(content);
 

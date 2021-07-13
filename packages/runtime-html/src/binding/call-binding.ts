@@ -9,7 +9,6 @@ export class CallBinding {
 
   public isBound: boolean = false;
   public $scope?: Scope;
-  public $hostScope: Scope | null = null;
 
   public targetObserver: IAccessor;
 
@@ -26,13 +25,13 @@ export class CallBinding {
   public callSource(args: object): unknown {
     const overrideContext = this.$scope!.overrideContext;
     overrideContext.$event = args;
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.$hostScope, this.locator, null);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.locator, null);
     Reflect.deleteProperty(overrideContext, '$event');
 
     return result;
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -42,10 +41,9 @@ export class CallBinding {
     }
 
     this.$scope = scope;
-    this.$hostScope = hostScope;
 
     if (this.sourceExpression.hasBind) {
-      this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
+      this.sourceExpression.bind(flags, scope, this.interceptor);
     }
 
     this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), flags, this.target, this.targetProperty);
@@ -60,7 +58,7 @@ export class CallBinding {
     }
 
     if (this.sourceExpression.hasUnbind) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
+      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;

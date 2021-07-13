@@ -37,7 +37,7 @@ describe('2-runtime/binding-mode-behavior.spec.ts', function () {
         beforeEach(function () {
           sut = new Behavior();
           binding = new PropertyBinding(undefined, undefined, undefined, initMode, undefined, container as any, {} as any);
-          sut.bind(undefined, undefined, undefined, binding);
+          sut.bind(undefined, undefined, binding);
         });
 
         it(`bind()   should apply  bindingMode ${mode}`, function () {
@@ -45,7 +45,7 @@ describe('2-runtime/binding-mode-behavior.spec.ts', function () {
         });
 
         it(`unbind() should revert bindingMode ${initMode}`, function () {
-          sut.unbind(undefined, undefined, undefined, binding);
+          sut.unbind(undefined, undefined, binding);
           assert.strictEqual(binding.mode, initMode, `binding.mode`);
         });
       });

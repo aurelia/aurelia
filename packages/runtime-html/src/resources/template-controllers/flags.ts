@@ -28,7 +28,7 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { $controller } = this;
-    return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope, $controller.hostScope);
+    return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope);
   }
 
   public detaching(

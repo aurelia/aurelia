@@ -85,7 +85,7 @@ describe('au-slot', function () {
       public readonly only: boolean = false,
     ) { }
   }
-  function* getTestData() {
+  function *getTestData() {
     const createMyElement = (template: string) => {
       class MyElement {
         public constructor(
@@ -373,7 +373,7 @@ describe('au-slot', function () {
           <h4>Last Name</h4>
         </au-slot>
         <template repeat.for="person of people">
-          <au-slot name="content">
+          <au-slot name="content" expose.bind="{ person, $index, $even, $odd }">
             <div>\${person.firstName}</div>
             <div>\${person.lastName}</div>
           </au-slot>
@@ -1663,6 +1663,40 @@ describe('au-slot', function () {
         {
           'div': [`content`, undefined],
         },
+      );
+    }
+
+    {
+      yield new TestData(
+        'updates expose binding on <au-slot/> dynamically',
+        `<my-element><div au-slot>\${$host.value}</div>`,
+        [createMyElement('<input value.bind="message"/><au-slot expose.bind="{ value: message }">')],
+        {
+          'my-element': ['<input class="au"><div>undefined</div>', undefined]
+        },
+        function ({ host, platform }) {
+          const input = host.querySelector('input');
+          input.value = 'hello';
+          input.dispatchEvent(new platform.CustomEvent('change'));
+          platform.domWriteQueue.flush();
+          assert.strictEqual(host.querySelector('div').textContent, 'hello');
+        }
+      );
+
+      yield new TestData(
+        'exposure of host context does not affect inner binding contexts',
+        `<my-element>`,
+        [createMyElement(`<input value.bind="message"/><au-slot expose.bind="{ value: message }">\${message}</au-slot>`)],
+        {
+          'my-element': ['<input class="au">undefined', undefined]
+        },
+        function ({ host, platform }) {
+          const input = host.querySelector('input');
+          input.value = 'hello';
+          input.dispatchEvent(new platform.CustomEvent('change'));
+          platform.domWriteQueue.flush();
+          assert.strictEqual(host.querySelector('my-element').textContent, 'hello');
+        }
       );
     }
 

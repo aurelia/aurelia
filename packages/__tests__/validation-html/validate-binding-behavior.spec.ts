@@ -237,10 +237,10 @@ describe('validate-binding-behavior', function () {
   }
   @bindingBehavior('vanilla')
   class VanillaBindingBehavior implements BindingBehaviorInstance {
-    public bind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
+    public bind(_flags: LifecycleFlags, _scope: Scope, _binding: IBinding): void {
       return;
     }
-    public unbind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
+    public unbind(_flags: LifecycleFlags, _scope: Scope, _binding: IBinding): void {
       return;
     }
   }
@@ -1275,26 +1275,29 @@ describe('validate-binding-behavior', function () {
       template: `<editor><input au-slot="content" id="target" value.two-way="person.name & validate"></editor>`
     }
   );
-  $it('works with au-slot - projected part with $host',
-    async function ({ app, host, platform, ctx }: TestExecutionContext<App>) {
-      const controller = app.controller;
 
-      const target: HTMLInputElement = host.querySelector('editor #target');
-      assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
+  // todo: enable the following tests if we ever allow validating deeper than access 1 property level
+  // ---------------------
+  // $it('works with au-slot - projected part with $host',
+  //   async function ({ app, host, platform, ctx }: TestExecutionContext<App>) {
+  //     const controller = app.controller;
 
-      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
-      await controller.validate();
-      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ['Not foo']);
+  //     const target: HTMLInputElement = host.querySelector('editor #target');
+  //     assertControllerBinding(controller, '$host.person.name', target, app.controllerRegisterBindingSpy);
 
-      target.value = 'foo';
-      await assertEventHandler(target, 'change', 0, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
-      await assertEventHandler(target, 'focusout', 1, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
-      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
-    },
-    {
-      template: `<editor><input au-slot="content" id="target" value.two-way="$host.person.name & validate"></editor>`
-    }
-  );
+  //     assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+  //     await controller.validate();
+  //     assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ['Not foo']);
+
+  //     target.value = 'foo';
+  //     await assertEventHandler(target, 'change', 0, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+  //     await assertEventHandler(target, 'focusout', 1, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+  //     assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+  //   },
+  //   {
+  //     template: `<editor><input au-slot="content" id="target" value.two-way="$host.person.name & validate"></editor>`
+  //   }
+  // );
   $it('works with au-slot - non-projected part',
     async function ({ app, host, platform, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;

@@ -17,7 +17,7 @@ export class BindingContext implements IBindingContext {
       } else {
         // can either be some random object or another bindingContext to clone from
         for (const prop in keyOrObj as IIndexable) {
-          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop)as boolean) {
+          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop) as boolean) {
             this[prop] = (keyOrObj as IIndexable)[prop];
           }
         }
@@ -49,33 +49,44 @@ export class BindingContext implements IBindingContext {
     return new BindingContext(keyOrObj, value);
   }
 
-  public static get(scope: Scope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: Scope | null): IBindingContext | IOverrideContext | IBinding | undefined | null {
-    if (scope == null && hostScope == null) {
-      throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
+  public static get(scope: Scope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBinding | undefined | null {
+    if (scope == null) {
+      throw new Error(`Scope is ${scope}.`);
+    }
+    let overrideContext: IOverrideContext | null = scope.overrideContext;
+    let currentScope: Scope | null = scope;
+
+    if (ancestor > 0) {
+      // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
+      while (ancestor > 0) {
+        ancestor--;
+        currentScope = currentScope.parentScope;
+        if (currentScope?.overrideContext == null) {
+          return void 0;
+        }
+      }
+
+      overrideContext = currentScope.overrideContext;
+      // Here we are giving benefit of doubt considering the dev has used one or more `$parent` token, and thus should know what s/he is targeting.
+      return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
 
-    const hasOtherScope = hostScope !== scope && hostScope != null;
-    /* eslint-disable jsdoc/check-indentation */
-    /**
-     * This fallback is needed to support the following case:
-     * <div au-slot="s1">
-     *  <let outer-host.bind="$host"></let>
-     *  ${outerHost.prop}
-     * </div>
-     * To enable the `let` binding for 'hostScope', the property is added to `hostScope.overrideContext`. That enables us to use such let binding also inside a repeater.
-     * However, as the expression `${outerHost.prop}` does not start with `$host`, it is considered that to evaluate this expression we don't need the access to hostScope.
-     * This artifact raises the need for this fallback.
-     */
-    /* eslint-enable jsdoc/check-indentation */
-    let context = chooseContext(scope, name, ancestor, null);
-    if (
-      context !== null
-      && ((context == null ? false : name in context)
-        || !hasOtherScope)
-    ) { return context; }
-    if (hasOtherScope) {
-      context = chooseContext(hostScope!, name, ancestor, scope);
-      if (context !== null && (context !== undefined && name in context)) { return context; }
+    // traverse the context and it's ancestors, searching for a context that has the name.
+    while (
+      !currentScope?.isBoundary
+      && overrideContext != null
+      && !(name in overrideContext)
+      && !(
+        overrideContext.bindingContext
+        && name in overrideContext.bindingContext
+      )
+    ) {
+      currentScope = currentScope!.parentScope ?? null;
+      overrideContext = currentScope?.overrideContext ?? null;
+    }
+
+    if (overrideContext) {
+      return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
 
     // still nothing found. return the root binding context (or null
@@ -88,60 +99,13 @@ export class BindingContext implements IBindingContext {
   }
 }
 
-function chooseContext(
-  scope: Scope,
-  name: string,
-  ancestor: number,
-  projectionScope: Scope | null,
-): IBindingContext | undefined | null {
-  let overrideContext: IOverrideContext | null = scope.overrideContext;
-  let currentScope: Scope | null = scope;
-
-  if (ancestor > 0) {
-    // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
-    while (ancestor > 0) {
-      ancestor--;
-      currentScope = currentScope.parentScope;
-      if (currentScope?.overrideContext == null) {
-        return void 0;
-      }
-    }
-
-    overrideContext = currentScope!.overrideContext;
-    // Here we are giving benefit of doubt considering the dev has used one or more `$parent` token, and thus should know what s/he is targeting.
-    return name in overrideContext ? overrideContext : overrideContext.bindingContext;
-  }
-
-  // traverse the context and it's ancestors, searching for a context that has the name.
-  while (
-    (!currentScope?.isBoundary
-      || projectionScope !== null && projectionScope !== currentScope
-    )
-    && overrideContext
-    && !(name in overrideContext)
-    && !(
-      overrideContext.bindingContext
-      && name in overrideContext.bindingContext
-    )
-  ) {
-    currentScope = currentScope!.parentScope ?? null;
-    overrideContext = currentScope?.overrideContext ?? null;
-  }
-
-  if (overrideContext) {
-    return name in overrideContext ? overrideContext : overrideContext.bindingContext;
-  }
-
-  return null;
-}
-
 export class Scope {
   private constructor(
     public parentScope: Scope | null,
     public bindingContext: IBindingContext,
     public overrideContext: IOverrideContext,
     public readonly isBoundary: boolean,
-  ) {}
+  ) { }
 
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and a new standalone `OverrideContext`.

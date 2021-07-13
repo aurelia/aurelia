@@ -9,7 +9,6 @@ export declare class MockBinding implements IConnectableBinding {
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
     $scope?: Scope | undefined;
-    $hostScope: Scope | null;
     isBound: boolean;
     value: unknown;
     obs: BindingObserverRecord;

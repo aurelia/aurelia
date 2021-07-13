@@ -13,12 +13,11 @@ export declare class LetBinding implements IPartialConnectableBinding {
     interceptor: this;
     isBound: boolean;
     $scope?: Scope;
-    $hostScope: Scope | null;
     task: ITask | null;
     target: (IObservable & IIndexable) | null;
     constructor(sourceExpression: IsExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toBindingContext?: boolean);
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=let-binding.d.ts.map

@@ -20,7 +20,6 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     isBound: boolean;
     $platform: IPlatform;
     $scope: Scope;
-    $hostScope: Scope | null;
     projection?: CustomElementDefinition;
     task: ITask | null;
     private targetSubscriber;
@@ -35,7 +34,7 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, projection?: CustomElementDefinition): void;
+    $bind(flags: LifecycleFlags, scope: Scope, projection?: CustomElementDefinition): void;
     $unbind(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=attribute.d.ts.map

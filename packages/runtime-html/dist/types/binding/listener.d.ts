@@ -20,12 +20,11 @@ export declare class Listener implements IBinding {
     interceptor: this;
     isBound: boolean;
     $scope: Scope;
-    $hostScope: Scope | null;
     private handler;
     constructor(platform: IPlatform, targetEvent: string, delegationStrategy: DelegationStrategy, sourceExpression: IsBindingBehavior, target: Node, preventDefault: boolean, eventDelegator: IEventDelegator, locator: IServiceLocator);
     callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']>;
     handleEvent(event: Event): void;
-    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
     observeProperty(obj: IIndexable, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;

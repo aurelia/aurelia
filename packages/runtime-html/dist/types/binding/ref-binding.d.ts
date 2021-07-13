@@ -10,9 +10,8 @@ export declare class RefBinding implements IBinding {
     interceptor: this;
     isBound: boolean;
     $scope?: Scope;
-    $hostScope: Scope | null;
     constructor(sourceExpression: IsBindingBehavior, target: object, locator: IServiceLocator);
-    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
     observeProperty(obj: IIndexable, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;

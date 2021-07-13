@@ -52,7 +52,6 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     hasLockedScope: boolean;
     isStrictBinding: boolean;
     scope: Scope | null;
-    hostScope: Scope | null;
     isBound: boolean;
     hostController: Controller | null;
     mountTarget: MountTarget;
@@ -102,7 +101,7 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     private hydrateSynthetic;
     private $initiator;
     private $flags;
-    activate(initiator: IHydratedController, parent: IHydratedController | null, flags: LifecycleFlags, scope?: Scope | null, hostScope?: Scope | null): void | Promise<void>;
+    activate(initiator: IHydratedController, parent: IHydratedController | null, flags: LifecycleFlags, scope?: Scope | null): void | Promise<void>;
     private bind;
     private append;
     private attach;
@@ -266,7 +265,6 @@ export interface ISyntheticView extends IHydratableController {
     readonly vmKind: ViewModelKind.synthetic;
     readonly definition: null;
     readonly viewModel: null;
-    hostScope: Scope | null;
     /**
      * The compiled render context used for composing this view. Compilation was done by the `IViewFactory` prior to creating this view.
      */
@@ -276,7 +274,7 @@ export interface ISyntheticView extends IHydratableController {
      * The physical DOM nodes that will be appended during the attach operation.
      */
     readonly nodes: INodeSequence;
-    activate(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null): void | Promise<void>;
+    activate(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags, scope: Scope): void | Promise<void>;
     deactivate(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
     /**
      * Lock this view's scope to the provided `Scope`. The scope, which is normally set during `activate()`, will then not change anymore.
@@ -341,10 +339,9 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
      * The scope's `bindingContext` will be the same instance as this controller's `viewModel` property.
      */
     readonly scope: Scope;
-    hostScope: Scope | null;
     readonly children: null;
     readonly bindings: null;
-    activate(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null): void | Promise<void>;
+    activate(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags, scope: Scope): void | Promise<void>;
     deactivate(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
 }
 /**
@@ -363,7 +360,6 @@ export interface IDryCustomElementController<C extends IViewModel = IViewModel> 
      * By default, the scope's `bindingContext` will be the same instance as this controller's `viewModel` property.
      */
     scope: Scope;
-    hostScope: Scope | null;
     /**
      * The original host dom node.
      *
@@ -417,7 +413,7 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
      */
     readonly viewModel: C;
     readonly lifecycleHooks: LifecycleHooksLookup;
-    activate(initiator: IHydratedController, parent: IHydratedController | null, flags: LifecycleFlags, scope?: Scope, hostScope?: Scope | null): void | Promise<void>;
+    activate(initiator: IHydratedController, parent: IHydratedController | null, flags: LifecycleFlags, scope?: Scope): void | Promise<void>;
     deactivate(initiator: IHydratedController, parent: IHydratedController | null, flags: LifecycleFlags): void | Promise<void>;
 }
 export declare const IController: import("@aurelia/kernel").InterfaceSymbol<IController<IViewModel>>;

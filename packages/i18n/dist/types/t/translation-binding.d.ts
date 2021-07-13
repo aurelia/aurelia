@@ -25,7 +25,6 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     private readonly contentAttributes;
     private keyExpression;
     private scope;
-    private hostScope;
     private task;
     private isInterpolation;
     private readonly targetAccessors;
@@ -35,7 +34,7 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     constructor(target: INode, observerLocator: IObserverLocator, locator: IServiceLocator, platform: IPlatform);
     static create({ parser, observerLocator, context, controller, target, instruction, platform, isParameterContext, }: TranslationBindingCreationContext): void;
     private static getBinding;
-    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
     handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void;
     handleLocaleChange(): void;

@@ -14,7 +14,6 @@ export declare class PropertyBinding implements IPartialConnectableBinding {
     interceptor: this;
     isBound: boolean;
     $scope?: Scope;
-    $hostScope: Scope | null;
     targetObserver?: AccessorOrObserver;
     persistentFlags: LifecycleFlags;
     private task;
@@ -23,7 +22,7 @@ export declare class PropertyBinding implements IPartialConnectableBinding {
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=property-binding.d.ts.map

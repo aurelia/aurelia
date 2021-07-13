@@ -13,13 +13,12 @@ export declare class InterpolationBinding implements IBinding {
     interceptor: this;
     isBound: boolean;
     $scope?: Scope;
-    $hostScope: Scope | null;
     partBindings: InterpolationPartBinding[];
     private readonly targetObserver;
     private task;
     constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: object, targetProperty: string, mode: BindingMode, locator: IServiceLocator, taskQueue: TaskQueue);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
 }
 export interface InterpolationPartBinding extends IConnectableBinding {
@@ -35,13 +34,12 @@ export declare class InterpolationPartBinding implements InterpolationPartBindin
     readonly mode: BindingMode;
     value: unknown;
     $scope?: Scope;
-    $hostScope: Scope | null;
     task: ITask | null;
     isBound: boolean;
     constructor(sourceExpression: IsExpression, target: object, targetProperty: string, locator: IServiceLocator, observerLocator: IObserverLocator, owner: InterpolationBinding);
     handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
 }
 export interface ContentBinding extends IConnectableBinding {
@@ -60,14 +58,13 @@ export declare class ContentBinding implements ContentBinding, ICollectionSubscr
     readonly mode: BindingMode;
     value: unknown;
     $scope?: Scope;
-    $hostScope: Scope | null;
     task: ITask | null;
     isBound: boolean;
     constructor(sourceExpression: IsExpression, target: Text, locator: IServiceLocator, observerLocator: IObserverLocator, p: IPlatform, strict: boolean);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     handleCollectionChange(): void;
-    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
     private queueUpdate;
 }

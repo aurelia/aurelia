@@ -1156,17 +1156,16 @@ class CallBinding {
         this.locator = locator;
         this.interceptor = this;
         this.isBound = false;
-        this.$hostScope = null;
         this.targetObserver = observerLocator.getAccessor(target, targetProperty);
     }
     callSource(args) {
         const overrideContext = this.$scope.overrideContext;
         overrideContext.$event = args;
-        const result = this.sourceExpression.evaluate(8 /* mustEvaluate */, this.$scope, this.$hostScope, this.locator, null);
+        const result = this.sourceExpression.evaluate(8 /* mustEvaluate */, this.$scope, this.locator, null);
         Reflect.deleteProperty(overrideContext, '$event');
         return result;
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         if (this.isBound) {
             if (this.$scope === scope) {
                 return;
@@ -1174,9 +1173,8 @@ class CallBinding {
             this.interceptor.$unbind(flags | 2 /* fromBind */);
         }
         this.$scope = scope;
-        this.$hostScope = hostScope;
         if (this.sourceExpression.hasBind) {
-            this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
+            this.sourceExpression.bind(flags, scope, this.interceptor);
         }
         this.targetObserver.setValue(($args) => this.interceptor.callSource($args), flags, this.target, this.targetProperty);
         // add isBound flag and remove isBinding flag
@@ -1187,7 +1185,7 @@ class CallBinding {
             return;
         }
         if (this.sourceExpression.hasUnbind) {
-            this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
+            this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         this.$scope = void 0;
         this.targetObserver.setValue(null, flags, this.target, this.targetProperty);
@@ -1365,7 +1363,7 @@ class BindingTargetSubscriber {
     // deepscan-disable-next-line
     handleChange(value, _, flags) {
         const b = this.b;
-        if (value !== b.sourceExpression.evaluate(flags, b.$scope, b.$hostScope, b.locator, null)) {
+        if (value !== b.sourceExpression.evaluate(flags, b.$scope, b.locator, null)) {
             b.updateSource(value, flags);
         }
     }
@@ -1399,7 +1397,6 @@ class AttributeBinding {
         this.interceptor = this;
         this.isBound = false;
         this.$scope = null;
-        this.$hostScope = null;
         this.task = null;
         this.targetSubscriber = null;
         this.persistentFlags = 0 /* none */;
@@ -1413,7 +1410,7 @@ class AttributeBinding {
     }
     updateSource(value, flags) {
         flags |= this.persistentFlags;
-        this.sourceExpression.assign(flags, this.$scope, this.$hostScope, this.locator, value);
+        this.sourceExpression.assign(flags, this.$scope, this.locator, value);
     }
     handleChange(newValue, _previousValue, flags) {
         if (!this.isBound) {
@@ -1436,7 +1433,7 @@ class AttributeBinding {
             if (shouldConnect) {
                 this.obs.version++;
             }
-            newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
+            newValue = sourceExpression.evaluate(flags, $scope, locator, interceptor);
             if (shouldConnect) {
                 this.obs.clear(false);
             }
@@ -1458,7 +1455,7 @@ class AttributeBinding {
             }
         }
     }
-    $bind(flags, scope, hostScope, projection) {
+    $bind(flags, scope, projection) {
         var _a;
         if (this.isBound) {
             if (this.$scope === scope) {
@@ -1470,11 +1467,10 @@ class AttributeBinding {
         // to the AST during evaluate/connect/assign
         this.persistentFlags = flags & 961 /* persistentBindingFlags */;
         this.$scope = scope;
-        this.$hostScope = hostScope;
         this.projection = projection;
         let sourceExpression = this.sourceExpression;
         if (sourceExpression.hasBind) {
-            sourceExpression.bind(flags, scope, hostScope, this.interceptor);
+            sourceExpression.bind(flags, scope, this.interceptor);
         }
         let targetObserver = this.targetObserver;
         if (!targetObserver) {
@@ -1486,7 +1482,7 @@ class AttributeBinding {
         const interceptor = this.interceptor;
         if ($mode & toViewOrOneTime$1) {
             const shouldConnect = ($mode & toView$2) > 0;
-            interceptor.updateTarget(this.value = sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null), flags);
+            interceptor.updateTarget(this.value = sourceExpression.evaluate(flags, scope, this.locator, shouldConnect ? interceptor : null), flags);
         }
         if ($mode & fromView$1) {
             targetObserver.subscribe((_a = this.targetSubscriber) !== null && _a !== void 0 ? _a : (this.targetSubscriber = new BindingTargetSubscriber(interceptor)));
@@ -1501,11 +1497,9 @@ class AttributeBinding {
         // clear persistent flags
         this.persistentFlags = 0 /* none */;
         if (this.sourceExpression.hasUnbind) {
-            this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
+            this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
-        this.$scope
-            = this.$hostScope
-                = null;
+        this.$scope = null;
         this.value = void 0;
         if (this.targetSubscriber) {
             this.targetObserver.unsubscribe(this.targetSubscriber);
@@ -1542,7 +1536,6 @@ class InterpolationBinding {
         this.interceptor = this;
         this.isBound = false;
         this.$scope = void 0;
-        this.$hostScope = null;
         this.task = null;
         this.targetObserver = observerLocator.getAccessor(target, targetProperty);
         const expressions = interpolation.expressions;
@@ -1584,7 +1577,7 @@ class InterpolationBinding {
             targetObserver.setValue(result, flags, this.target, this.targetProperty);
         }
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         if (this.isBound) {
             if (this.$scope === scope) {
                 return;
@@ -1595,7 +1588,7 @@ class InterpolationBinding {
         this.$scope = scope;
         const partBindings = this.partBindings;
         for (let i = 0, ii = partBindings.length; ii > i; ++i) {
-            partBindings[i].$bind(flags, scope, hostScope);
+            partBindings[i].$bind(flags, scope);
         }
         this.updateTarget(void 0, flags);
     }
@@ -1627,7 +1620,6 @@ class InterpolationPartBinding {
         // but it wouldn't matter here, just start with something for later check
         this.mode = runtime.BindingMode.toView;
         this.value = '';
-        this.$hostScope = null;
         this.task = null;
         this.isBound = false;
     }
@@ -1643,7 +1635,7 @@ class InterpolationPartBinding {
             if (shouldConnect) {
                 obsRecord.version++;
             }
-            newValue = sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
+            newValue = sourceExpression.evaluate(flags, this.$scope, this.locator, shouldConnect ? this.interceptor : null);
             if (shouldConnect) {
                 obsRecord.clear(false);
             }
@@ -1659,7 +1651,7 @@ class InterpolationPartBinding {
     handleCollectionChange(indexMap, flags) {
         this.owner.updateTarget(void 0, flags);
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         if (this.isBound) {
             if (this.$scope === scope) {
                 return;
@@ -1668,11 +1660,10 @@ class InterpolationPartBinding {
         }
         this.isBound = true;
         this.$scope = scope;
-        this.$hostScope = hostScope;
         if (this.sourceExpression.hasBind) {
-            this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
+            this.sourceExpression.bind(flags, scope, this.interceptor);
         }
-        const v = this.value = this.sourceExpression.evaluate(flags, scope, hostScope, this.locator, (this.mode & toView$1) > 0 ? this.interceptor : null);
+        const v = this.value = this.sourceExpression.evaluate(flags, scope, this.locator, (this.mode & toView$1) > 0 ? this.interceptor : null);
         if (v instanceof Array) {
             this.observeCollection(v);
         }
@@ -1683,10 +1674,9 @@ class InterpolationPartBinding {
         }
         this.isBound = false;
         if (this.sourceExpression.hasUnbind) {
-            this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
+            this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         this.$scope = void 0;
-        this.$hostScope = null;
         this.obs.clear(true);
     }
 }
@@ -1707,7 +1697,6 @@ class ContentBinding {
         // but it wouldn't matter here, just start with something for later check
         this.mode = runtime.BindingMode.toView;
         this.value = '';
-        this.$hostScope = null;
         this.task = null;
         this.isBound = false;
     }
@@ -1742,7 +1731,7 @@ class ContentBinding {
                 obsRecord.version++;
             }
             flags |= this.strict ? 1 /* isStrictBindingStrategy */ : 0;
-            newValue = sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
+            newValue = sourceExpression.evaluate(flags, this.$scope, this.locator, shouldConnect ? this.interceptor : null);
             if (shouldConnect) {
                 obsRecord.clear(false);
             }
@@ -1770,7 +1759,7 @@ class ContentBinding {
     handleCollectionChange() {
         this.queueUpdate(this.value, 0 /* none */);
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         if (this.isBound) {
             if (this.$scope === scope) {
                 return;
@@ -1779,12 +1768,11 @@ class ContentBinding {
         }
         this.isBound = true;
         this.$scope = scope;
-        this.$hostScope = hostScope;
         if (this.sourceExpression.hasBind) {
-            this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
+            this.sourceExpression.bind(flags, scope, this.interceptor);
         }
         flags |= this.strict ? 1 /* isStrictBindingStrategy */ : 0;
-        const v = this.value = this.sourceExpression.evaluate(flags, scope, hostScope, this.locator, (this.mode & toView$1) > 0 ? this.interceptor : null);
+        const v = this.value = this.sourceExpression.evaluate(flags, scope, this.locator, (this.mode & toView$1) > 0 ? this.interceptor : null);
         if (v instanceof Array) {
             this.observeCollection(v);
         }
@@ -1797,13 +1785,12 @@ class ContentBinding {
         }
         this.isBound = false;
         if (this.sourceExpression.hasUnbind) {
-            this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
+            this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         // TODO: should existing value (either connected node, or a string)
         // be removed when this binding is unbound?
         // this.updateTarget('', flags);
         this.$scope = void 0;
-        this.$hostScope = null;
         this.obs.clear(true);
         (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
         this.task = null;
@@ -1830,7 +1817,6 @@ class LetBinding {
         this.interceptor = this;
         this.isBound = false;
         this.$scope = void 0;
-        this.$hostScope = null;
         this.task = null;
         this.target = null;
     }
@@ -1842,13 +1828,13 @@ class LetBinding {
         const targetProperty = this.targetProperty;
         const previousValue = target[targetProperty];
         this.obs.version++;
-        newValue = this.sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator, this.interceptor);
+        newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.interceptor);
         this.obs.clear(false);
         if (newValue !== previousValue) {
             target[targetProperty] = newValue;
         }
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         if (this.isBound) {
             if (this.$scope === scope) {
                 return;
@@ -1856,15 +1842,14 @@ class LetBinding {
             this.interceptor.$unbind(flags | 2 /* fromBind */);
         }
         this.$scope = scope;
-        this.$hostScope = hostScope;
-        this.target = (this.toBindingContext ? (hostScope !== null && hostScope !== void 0 ? hostScope : scope).bindingContext : (hostScope !== null && hostScope !== void 0 ? hostScope : scope).overrideContext);
+        this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext);
         const sourceExpression = this.sourceExpression;
         if (sourceExpression.hasBind) {
-            sourceExpression.bind(flags, scope, hostScope, this.interceptor);
+            sourceExpression.bind(flags, scope, this.interceptor);
         }
         // sourceExpression might have been changed during bind
         this.target[this.targetProperty]
-            = this.sourceExpression.evaluate(flags | 2 /* fromBind */, scope, hostScope, this.locator, this.interceptor);
+            = this.sourceExpression.evaluate(flags | 2 /* fromBind */, scope, this.locator, this.interceptor);
         // add isBound flag and remove isBinding flag
         this.isBound = true;
     }
@@ -1874,10 +1859,9 @@ class LetBinding {
         }
         const sourceExpression = this.sourceExpression;
         if (sourceExpression.hasUnbind) {
-            sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
+            sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         this.$scope = void 0;
-        this.$hostScope = null;
         this.obs.clear(true);
         // remove isBound and isUnbinding flags
         this.isBound = false;
@@ -1905,7 +1889,6 @@ class PropertyBinding {
         this.interceptor = this;
         this.isBound = false;
         this.$scope = void 0;
-        this.$hostScope = null;
         this.targetObserver = void 0;
         this.persistentFlags = 0 /* none */;
         this.task = null;
@@ -1917,7 +1900,7 @@ class PropertyBinding {
     }
     updateSource(value, flags) {
         flags |= this.persistentFlags;
-        this.sourceExpression.assign(flags, this.$scope, this.$hostScope, this.locator, value);
+        this.sourceExpression.assign(flags, this.$scope, this.locator, value);
     }
     handleChange(newValue, _previousValue, flags) {
         if (!this.isBound) {
@@ -1942,7 +1925,7 @@ class PropertyBinding {
             if (shouldConnect) {
                 obsRecord.version++;
             }
-            newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
+            newValue = sourceExpression.evaluate(flags, $scope, locator, interceptor);
             if (shouldConnect) {
                 obsRecord.clear(false);
             }
@@ -1960,7 +1943,7 @@ class PropertyBinding {
             interceptor.updateTarget(newValue, flags);
         }
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         var _a;
         if (this.isBound) {
             if (this.$scope === scope) {
@@ -1974,10 +1957,9 @@ class PropertyBinding {
         // to the AST during evaluate/connect/assign
         this.persistentFlags = flags & 961 /* persistentBindingFlags */;
         this.$scope = scope;
-        this.$hostScope = hostScope;
         let sourceExpression = this.sourceExpression;
         if (sourceExpression.hasBind) {
-            sourceExpression.bind(flags, scope, hostScope, this.interceptor);
+            sourceExpression.bind(flags, scope, this.interceptor);
         }
         const $mode = this.mode;
         let targetObserver = this.targetObserver;
@@ -1997,7 +1979,7 @@ class PropertyBinding {
         const interceptor = this.interceptor;
         const shouldConnect = ($mode & toView) > 0;
         if ($mode & toViewOrOneTime) {
-            interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null), flags);
+            interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, shouldConnect ? interceptor : null), flags);
         }
         if ($mode & fromView) {
             targetObserver.subscribe((_a = this.targetSubscriber) !== null && _a !== void 0 ? _a : (this.targetSubscriber = new BindingTargetSubscriber(interceptor)));
@@ -2013,10 +1995,9 @@ class PropertyBinding {
         }
         this.persistentFlags = 0 /* none */;
         if (this.sourceExpression.hasUnbind) {
-            this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
+            this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         this.$scope = void 0;
-        this.$hostScope = null;
         const task = this.task;
         if (this.targetSubscriber) {
             this.targetObserver.unsubscribe(this.targetSubscriber);
@@ -2039,9 +2020,8 @@ class RefBinding {
         this.interceptor = this;
         this.isBound = false;
         this.$scope = void 0;
-        this.$hostScope = null;
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         if (this.isBound) {
             if (this.$scope === scope) {
                 return;
@@ -2049,11 +2029,10 @@ class RefBinding {
             this.interceptor.$unbind(flags | 2 /* fromBind */);
         }
         this.$scope = scope;
-        this.$hostScope = hostScope;
         if (this.sourceExpression.hasBind) {
-            this.sourceExpression.bind(flags, scope, hostScope, this);
+            this.sourceExpression.bind(flags, scope, this);
         }
-        this.sourceExpression.assign(flags, this.$scope, hostScope, this.locator, this.target);
+        this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
         // add isBound flag and remove isBinding flag
         this.isBound = true;
     }
@@ -2062,17 +2041,16 @@ class RefBinding {
             return;
         }
         let sourceExpression = this.sourceExpression;
-        if (sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator, null) === this.target) {
-            sourceExpression.assign(flags, this.$scope, this.$hostScope, this.locator, null);
+        if (sourceExpression.evaluate(flags, this.$scope, this.locator, null) === this.target) {
+            sourceExpression.assign(flags, this.$scope, this.locator, null);
         }
         // source expression might have been modified durring assign, via a BB
         // deepscan-disable-next-line
         sourceExpression = this.sourceExpression;
         if (sourceExpression.hasUnbind) {
-            sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
+            sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         this.$scope = void 0;
-        this.$hostScope = null;
         this.isBound = false;
     }
     observeProperty(obj, propertyName) {
@@ -3452,7 +3430,7 @@ class ExpressionWatcher {
         const canOptimize = expr.$kind === 10082 /* AccessScope */ && this.obs.count === 1;
         if (!canOptimize) {
             this.obs.version++;
-            value = expr.evaluate(0, this.scope, null, this.locator, this);
+            value = expr.evaluate(0, this.scope, this.locator, this);
             this.obs.clear(false);
         }
         if (!Object.is(value, oldValue)) {
@@ -3467,7 +3445,7 @@ class ExpressionWatcher {
         }
         this.isBound = true;
         this.obs.version++;
-        this.value = this.expression.evaluate(0 /* none */, this.scope, null, this.locator, this);
+        this.value = this.expression.evaluate(0 /* none */, this.scope, this.locator, this);
         this.obs.clear(false);
     }
     $unbind() {
@@ -3626,7 +3604,6 @@ class Controller {
         this.hasLockedScope = false;
         this.isStrictBinding = false;
         this.scope = null;
-        this.hostScope = null;
         this.isBound = false;
         // If a host from another custom element was passed in, then this will be the controller for that custom element (could be `au-viewport` for example).
         // In that case, this controller will create a new host node (with the definition's name) and use that as the target host for the nodes instead.
@@ -3908,7 +3885,7 @@ class Controller {
         /* definition */ compiledDefinition, 
         /* host       */ void 0);
     }
-    activate(initiator, parent, flags, scope, hostScope) {
+    activate(initiator, parent, flags, scope) {
         var _a;
         switch (this.state) {
             case 0 /* none */:
@@ -3937,9 +3914,6 @@ class Controller {
             this.fullyNamed = true;
             ((_a = this.logger) !== null && _a !== void 0 ? _a : (this.logger = this.container.get(kernel.ILogger).root.scopeTo(this.name)))
                 .trace(`activate()`);
-        }
-        if (this.vmKind === 2 /* synthetic */) {
-            this.hostScope = hostScope !== null && hostScope !== void 0 ? hostScope : null;
         }
         flags |= 2 /* fromBind */;
         switch (this.vmKind) {
@@ -4001,7 +3975,7 @@ class Controller {
         }
         if (this.bindings !== null) {
             for (let i = 0; i < this.bindings.length; ++i) {
-                this.bindings[i].$bind(this.$flags, this.scope, this.hostScope);
+                this.bindings[i].$bind(this.$flags, this.scope);
             }
         }
         if (this.hooks.hasBound) {
@@ -4090,7 +4064,7 @@ class Controller {
         if (this.children !== null) {
             for (let i = 0; i < this.children.length; ++i) {
                 // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
-                void this.children[i].activate(this.$initiator, this, this.$flags, this.scope, this.hostScope);
+                void this.children[i].activate(this.$initiator, this, this.$flags, this.scope);
             }
         }
         // attached() is invoked by Controller#leaveActivating when `activatingStack` reaches 0
@@ -5040,13 +5014,12 @@ class Listener {
         this.locator = locator;
         this.interceptor = this;
         this.isBound = false;
-        this.$hostScope = null;
         this.handler = null;
     }
     callSource(event) {
         const overrideContext = this.$scope.overrideContext;
         overrideContext.$event = event;
-        const result = this.sourceExpression.evaluate(8 /* mustEvaluate */, this.$scope, this.$hostScope, this.locator, null);
+        const result = this.sourceExpression.evaluate(8 /* mustEvaluate */, this.$scope, this.locator, null);
         Reflect.deleteProperty(overrideContext, '$event');
         if (result !== true && this.preventDefault) {
             event.preventDefault();
@@ -5056,7 +5029,7 @@ class Listener {
     handleEvent(event) {
         this.interceptor.callSource(event);
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         if (this.isBound) {
             if (this.$scope === scope) {
                 return;
@@ -5064,10 +5037,9 @@ class Listener {
             this.interceptor.$unbind(flags | 2 /* fromBind */);
         }
         this.$scope = scope;
-        this.$hostScope = hostScope;
         const sourceExpression = this.sourceExpression;
         if (sourceExpression.hasBind) {
-            sourceExpression.bind(flags, scope, hostScope, this.interceptor);
+            sourceExpression.bind(flags, scope, this.interceptor);
         }
         if (this.delegationStrategy === runtime.DelegationStrategy.none) {
             this.target.addEventListener(this.targetEvent, this);
@@ -5085,7 +5057,7 @@ class Listener {
         }
         const sourceExpression = this.sourceExpression;
         if (sourceExpression.hasUnbind) {
-            sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
+            sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         this.$scope = null;
         if (this.delegationStrategy === runtime.DelegationStrategy.none) {
@@ -7883,11 +7855,11 @@ class BindingModeBehavior {
         this.mode = mode;
         this.originalModes = new Map();
     }
-    bind(flags, scope, hostScope, binding) {
+    bind(flags, scope, binding) {
         this.originalModes.set(binding, binding.mode);
         binding.mode = this.mode;
     }
-    unbind(flags, scope, hostScope, binding) {
+    unbind(flags, scope, binding) {
         binding.mode = this.originalModes.get(binding);
         this.originalModes.delete(binding);
     }
@@ -7960,12 +7932,12 @@ class DebounceBindingBehavior extends runtime.BindingInterceptor {
         }, this.opts);
         task === null || task === void 0 ? void 0 : task.cancel();
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         if (this.firstArg !== null) {
-            const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator, null));
+            const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, null));
             this.opts.delay = isNaN(delay) ? defaultDelay$1 : delay;
         }
-        this.binding.$bind(flags, scope, hostScope);
+        this.binding.$bind(flags, scope);
     }
     $unbind(flags) {
         var _a;
@@ -7981,7 +7953,7 @@ exports.SignalBindingBehavior = class SignalBindingBehavior {
         this.signaler = signaler;
         this.lookup = new Map();
     }
-    bind(flags, scope, hostScope, binding, ...names) {
+    bind(flags, scope, binding, ...names) {
         if (!('handleChange' in binding)) {
             throw new Error(`The signal behavior can only be used with bindings that have a 'handleChange' method`);
         }
@@ -7993,7 +7965,7 @@ exports.SignalBindingBehavior = class SignalBindingBehavior {
             this.signaler.addSignalListener(name, binding);
         }
     }
-    unbind(flags, scope, hostScope, binding) {
+    unbind(flags, scope, binding) {
         const names = this.lookup.get(binding);
         this.lookup.delete(binding);
         for (const name of names) {
@@ -8062,12 +8034,12 @@ class ThrottleBindingBehavior extends runtime.BindingInterceptor {
             callback();
         }
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         if (this.firstArg !== null) {
-            const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator, null));
+            const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, null));
             this.opts.delay = this.delay = isNaN(delay) ? defaultDelay : delay;
         }
-        this.binding.$bind(flags, scope, hostScope);
+        this.binding.$bind(flags, scope);
     }
     $unbind(flags) {
         var _a;
@@ -8107,10 +8079,10 @@ class DataAttributeAccessor {
 const attrAccessor = new DataAttributeAccessor();
 
 exports.AttrBindingBehavior = class AttrBindingBehavior {
-    bind(flags, _scope, _hostScope, binding) {
+    bind(flags, _scope, binding) {
         binding.targetObserver = attrAccessor;
     }
-    unbind(flags, _scope, _hostScope, binding) {
+    unbind(flags, _scope, binding) {
         return;
     }
 };
@@ -8127,14 +8099,14 @@ function handleSelfEvent(event) {
     return this.selfEventCallSource(event);
 }
 exports.SelfBindingBehavior = class SelfBindingBehavior {
-    bind(flags, _scope, _hostScope, binding) {
+    bind(flags, _scope, binding) {
         if (!binding.callSource || !binding.targetEvent) {
             throw new Error('Self binding behavior only supports events.');
         }
         binding.selfEventCallSource = binding.callSource;
         binding.callSource = handleSelfEvent;
     }
-    unbind(flags, _scope, _hostScope, binding) {
+    unbind(flags, _scope, binding) {
         binding.callSource = binding.selfEventCallSource;
         binding.selfEventCallSource = null;
     }
@@ -9084,7 +9056,7 @@ exports.UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
     constructor(observerLocator) {
         this.observerLocator = observerLocator;
     }
-    bind(flags, _scope, _hostScope, binding, ...events) {
+    bind(flags, _scope, binding, ...events) {
         if (events.length === 0) {
             throw new Error('The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:\'blur\'">');
         }
@@ -9107,7 +9079,7 @@ exports.UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
             readonly: originalHandler.config.readonly
         }));
     }
-    unbind(flags, _scope, _hostScope, binding) {
+    unbind(flags, _scope, binding) {
         // restore the state of the binding.
         binding.targetObserver.handler.dispose();
         binding.targetObserver.handler = binding.targetObserver.originalHandler;
@@ -9458,7 +9430,7 @@ class FlagsTemplateController {
     }
     attaching(initiator, parent, flags) {
         const { $controller } = this;
-        return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope, $controller.hostScope);
+        return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope);
     }
     detaching(initiator, parent, flags) {
         return this.view.deactivate(initiator, this.$controller, flags);
@@ -9549,13 +9521,13 @@ exports.If = class If {
             // todo: else view should set else location
             view.setLocation(this.location);
             // Promise return values from user VM hooks are awaited by the initiator
-            this.pending = kernel.onResolve(view.activate(initiator, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope), () => {
+            this.pending = kernel.onResolve(view.activate(initiator, this.ctrl, f, this.ctrl.scope), () => {
                 if (isCurrent()) {
                     this.pending = void 0;
                 }
             });
             // old
-            // void (this.view = this.updateView(this.value, f))?.activate(initiator, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope);
+            // void (this.view = this.updateView(this.value, f))?.activate(initiator, this.ctrl, f, this.ctrl.scope);
         });
     }
     detaching(initiator, parent, flags) {
@@ -9615,7 +9587,7 @@ exports.If = class If {
             // todo: location should be based on either the [if]/[else] attribute
             //       instead of always the if
             view.setLocation(this.location);
-            return kernel.onResolve(view.activate(view, this.ctrl, f, this.ctrl.scope, this.ctrl.hostScope), () => {
+            return kernel.onResolve(view.activate(view, this.ctrl, f, this.ctrl.scope), () => {
                 if (isCurrent()) {
                     this.pending = void 0;
                 }
@@ -9702,7 +9674,7 @@ exports.Repeat = class Repeat {
                 break;
             }
         }
-        this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator, null);
+        this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, binding.locator, null);
     }
     attaching(initiator, parent, flags) {
         this.normalizeToArray(flags);
@@ -9808,7 +9780,6 @@ exports.Repeat = class Repeat {
         let viewScope;
         const { $controller, factory, local, location, items } = this;
         const parentScope = $controller.scope;
-        const hostScope = $controller.hostScope;
         const newLen = this.forOf.count(flags, items);
         const views = this.views = Array(newLen);
         this.forOf.iterate(flags, items, (arr, i, item) => {
@@ -9816,7 +9787,7 @@ exports.Repeat = class Repeat {
             view.nodes.unlink();
             viewScope = runtime.Scope.fromParent(parentScope, runtime.BindingContext.create(local, item));
             setContextualProperties(viewScope.overrideContext, i, newLen);
-            ret = view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, viewScope, hostScope);
+            ret = view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, viewScope);
             if (ret instanceof Promise) {
                 (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
             }
@@ -9893,7 +9864,6 @@ exports.Repeat = class Repeat {
             throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
         }
         const parentScope = $controller.scope;
-        const hostScope = $controller.hostScope;
         const newLen = indexMap.length;
         runtime.synchronizeIndices(views, indexMap);
         // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
@@ -9911,7 +9881,7 @@ exports.Repeat = class Repeat {
                 viewScope = runtime.Scope.fromParent(parentScope, runtime.BindingContext.create(local, normalizedItems[i]));
                 setContextualProperties(viewScope.overrideContext, i, newLen);
                 view.setLocation(location);
-                ret = view.activate(view, $controller, flags, viewScope, hostScope);
+                ret = view.activate(view, $controller, flags, viewScope);
                 if (ret instanceof Promise) {
                     (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
                 }
@@ -10049,14 +10019,14 @@ exports.With = class With {
         if ($controller.isActive && bindings != null) {
             scope = runtime.Scope.fromParent($controller.scope, newValue === void 0 ? {} : newValue);
             for (ii = bindings.length; ii > i; ++i) {
-                bindings[i].$bind(2 /* fromBind */, scope, $controller.hostScope);
+                bindings[i].$bind(2 /* fromBind */, scope);
             }
         }
     }
     attaching(initiator, parent, flags) {
         const { $controller, value } = this;
         const scope = runtime.Scope.fromParent($controller.scope, value === void 0 ? {} : value);
-        return this.view.activate(initiator, $controller, flags, scope, $controller.hostScope);
+        return this.view.activate(initiator, $controller, flags, scope);
     }
     detaching(initiator, parent, flags) {
         return this.view.deactivate(initiator, this.$controller, flags);
@@ -10101,7 +10071,7 @@ exports.Switch = class Switch {
     attaching(initiator, parent, flags) {
         const view = this.view;
         const $controller = this.$controller;
-        this.queue(() => view.activate(initiator, $controller, flags, $controller.scope, $controller.hostScope));
+        this.queue(() => view.activate(initiator, $controller, flags, $controller.scope));
         this.queue(() => this.swap(initiator, flags, this.value));
         return this.promise;
     }
@@ -10205,12 +10175,11 @@ exports.Switch = class Switch {
             return;
         }
         const scope = controller.scope;
-        const hostScope = controller.hostScope;
         // most common case
         if (length === 1) {
-            return cases[0].activate(initiator, flags, scope, hostScope);
+            return cases[0].activate(initiator, flags, scope);
         }
-        return kernel.resolveAll(...cases.map(($case) => $case.activate(initiator, flags, scope, hostScope)));
+        return kernel.resolveAll(...cases.map(($case) => $case.activate(initiator, flags, scope)));
     }
     clearActiveCases(initiator, flags, newActiveCases = []) {
         const cases = this.activeCases;
@@ -10312,12 +10281,12 @@ exports.Case = class Case {
     handleCollectionChange(_indexMap, flags) {
         this.$switch.caseChanged(this, flags);
     }
-    activate(initiator, flags, scope, hostScope) {
+    activate(initiator, flags, scope) {
         const view = this.view;
         if (view.isActive) {
             return;
         }
-        return view.activate(initiator !== null && initiator !== void 0 ? initiator : view, this.$controller, flags, scope, hostScope);
+        return view.activate(initiator !== null && initiator !== void 0 ? initiator : view, this.$controller, flags, scope);
     }
     deactivate(initiator, flags) {
         const view = this.view;
@@ -10399,7 +10368,7 @@ exports.PromiseTemplateController = class PromiseTemplateController {
     attaching(initiator, parent, flags) {
         const view = this.view;
         const $controller = this.$controller;
-        return kernel.onResolve(view.activate(initiator, $controller, flags, this.viewScope = runtime.Scope.fromParent($controller.scope, {}), $controller.hostScope), () => this.swap(initiator, flags));
+        return kernel.onResolve(view.activate(initiator, $controller, flags, this.viewScope = runtime.Scope.fromParent($controller.scope, {})), () => this.swap(initiator, flags));
     }
     valueChanged(_newValue, _oldValue, flags) {
         if (!this.$controller.isActive) {
@@ -10418,9 +10387,7 @@ exports.PromiseTemplateController = class PromiseTemplateController {
         const fulfilled = this.fulfilled;
         const rejected = this.rejected;
         const pending = this.pending;
-        const $controller = this.$controller;
         const s = this.viewScope;
-        const hs = $controller.hostScope;
         let preSettlePromise;
         const defaultQueuingOptions = { reusable: false };
         const $swap = () => {
@@ -10430,7 +10397,7 @@ exports.PromiseTemplateController = class PromiseTemplateController {
             // At first deactivate the fulfilled and rejected views, as well as activate the pending view.
             // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
             preSettlePromise = (this.preSettledTask = q.queueTask(() => {
-                return kernel.resolveAll(fulfilled === null || fulfilled === void 0 ? void 0 : fulfilled.deactivate(initiator, flags), rejected === null || rejected === void 0 ? void 0 : rejected.deactivate(initiator, flags), pending === null || pending === void 0 ? void 0 : pending.activate(initiator, flags, s, hs));
+                return kernel.resolveAll(fulfilled === null || fulfilled === void 0 ? void 0 : fulfilled.deactivate(initiator, flags), rejected === null || rejected === void 0 ? void 0 : rejected.deactivate(initiator, flags), pending === null || pending === void 0 ? void 0 : pending.activate(initiator, flags, s));
             }, defaultQueuingOptions)).result, value
                 .then((data) => {
                 if (this.value !== value) {
@@ -10438,7 +10405,7 @@ exports.PromiseTemplateController = class PromiseTemplateController {
                 }
                 const fulfill = () => {
                     // Deactivation of pending view and the activation of the fulfilled view should not necessarily be sequential.
-                    this.postSettlePromise = (this.postSettledTask = q.queueTask(() => kernel.resolveAll(pending === null || pending === void 0 ? void 0 : pending.deactivate(initiator, flags), rejected === null || rejected === void 0 ? void 0 : rejected.deactivate(initiator, flags), fulfilled === null || fulfilled === void 0 ? void 0 : fulfilled.activate(initiator, flags, s, hs, data)), defaultQueuingOptions)).result;
+                    this.postSettlePromise = (this.postSettledTask = q.queueTask(() => kernel.resolveAll(pending === null || pending === void 0 ? void 0 : pending.deactivate(initiator, flags), rejected === null || rejected === void 0 ? void 0 : rejected.deactivate(initiator, flags), fulfilled === null || fulfilled === void 0 ? void 0 : fulfilled.activate(initiator, flags, s, data)), defaultQueuingOptions)).result;
                 };
                 if (this.preSettledTask.status === 1 /* running */) {
                     void preSettlePromise.then(fulfill);
@@ -10453,7 +10420,7 @@ exports.PromiseTemplateController = class PromiseTemplateController {
                 }
                 const reject = () => {
                     // Deactivation of pending view and the activation of the rejected view should also not necessarily be sequential.
-                    this.postSettlePromise = (this.postSettledTask = q.queueTask(() => kernel.resolveAll(pending === null || pending === void 0 ? void 0 : pending.deactivate(initiator, flags), fulfilled === null || fulfilled === void 0 ? void 0 : fulfilled.deactivate(initiator, flags), rejected === null || rejected === void 0 ? void 0 : rejected.activate(initiator, flags, s, hs, err)), defaultQueuingOptions)).result;
+                    this.postSettlePromise = (this.postSettledTask = q.queueTask(() => kernel.resolveAll(pending === null || pending === void 0 ? void 0 : pending.deactivate(initiator, flags), fulfilled === null || fulfilled === void 0 ? void 0 : fulfilled.deactivate(initiator, flags), rejected === null || rejected === void 0 ? void 0 : rejected.activate(initiator, flags, s, err)), defaultQueuingOptions)).result;
                 };
                 if (this.preSettledTask.status === 1 /* running */) {
                     void preSettlePromise.then(reject);
@@ -10504,12 +10471,12 @@ exports.PendingTemplateController = class PendingTemplateController {
     link(flags, parentContext, controller, _childController, _target, _instruction) {
         getPromiseController(controller).pending = this;
     }
-    activate(initiator, flags, scope, hostScope) {
+    activate(initiator, flags, scope) {
         const view = this.view;
         if (view.isActive) {
             return;
         }
-        return view.activate(view, this.$controller, flags, scope, hostScope);
+        return view.activate(view, this.$controller, flags, scope);
     }
     deactivate(initiator, flags) {
         const view = this.view;
@@ -10544,13 +10511,13 @@ exports.FulfilledTemplateController = class FulfilledTemplateController {
     link(flags, parentContext, controller, _childController, _target, _instruction) {
         getPromiseController(controller).fulfilled = this;
     }
-    activate(initiator, flags, scope, hostScope, resolvedValue) {
+    activate(initiator, flags, scope, resolvedValue) {
         this.value = resolvedValue;
         const view = this.view;
         if (view.isActive) {
             return;
         }
-        return view.activate(view, this.$controller, flags, scope, hostScope);
+        return view.activate(view, this.$controller, flags, scope);
     }
     deactivate(initiator, flags) {
         const view = this.view;
@@ -10585,13 +10552,13 @@ exports.RejectedTemplateController = class RejectedTemplateController {
     link(flags, parentContext, controller, _childController, _target, _instruction) {
         getPromiseController(controller).rejected = this;
     }
-    activate(initiator, flags, scope, hostScope, error) {
+    activate(initiator, flags, scope, error) {
         this.value = error;
         const view = this.view;
         if (view.isActive) {
             return;
         }
-        return view.activate(view, this.$controller, flags, scope, hostScope);
+        return view.activate(view, this.$controller, flags, scope);
     }
     deactivate(initiator, flags) {
         const view = this.view;
@@ -10840,7 +10807,7 @@ exports.AuRender = class AuRender {
     }
     activate(view, initiator, flags) {
         const { $controller } = this;
-        return kernel.onResolve(view === null || view === void 0 ? void 0 : view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, $controller.scope, $controller.hostScope), () => {
+        return kernel.onResolve(view === null || view === void 0 ? void 0 : view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, $controller.scope), () => {
             this.composing = false;
         });
     }
@@ -11069,7 +11036,7 @@ exports.AuCompose = class AuCompose {
                 else {
                     controller.setHost(compositionHost);
                 }
-                return new CompositionController(controller, () => controller.activate(initiator !== null && initiator !== void 0 ? initiator : controller, $controller, 2 /* fromBind */, scope, null), 
+                return new CompositionController(controller, () => controller.activate(initiator !== null && initiator !== void 0 ? initiator : controller, $controller, 2 /* fromBind */, scope), 
                 // todo: call deactivate on the component view model
                 // a difference with composing custom element is that we leave render location/host alone
                 // as they all share the same host/render location
@@ -11223,14 +11190,14 @@ class AuSlot {
     constructor(location, instruction, hdrContext) {
         var _a, _b;
         this.hdrContext = hdrContext;
-        this.hostScope = null;
+        this.parentScope = null;
         this.outerScope = null;
-        this.hasProjection = false;
         let factory;
         const slotInfo = instruction.auSlot;
         const projection = (_b = (_a = hdrContext.instruction) === null || _a === void 0 ? void 0 : _a.projections) === null || _b === void 0 ? void 0 : _b[slotInfo.name];
         if (projection == null) {
             factory = getRenderContext(slotInfo.fallback, hdrContext.controller.container).getViewFactory();
+            this.hasProjection = false;
         }
         else {
             factory = getRenderContext(projection, hdrContext.parent.controller.container).getViewFactory();
@@ -11241,17 +11208,32 @@ class AuSlot {
     /** @internal */
     static get inject() { return [IRenderLocation, IInstruction, IHydrationContext]; }
     binding(_initiator, _parent, _flags) {
-        this.hostScope = this.$controller.scope.parentScope;
-        this.outerScope = this.hasProjection
-            ? this.hdrContext.controller.scope.parentScope
-            : this.hostScope;
+        var _a;
+        this.parentScope = this.$controller.scope.parentScope;
+        let outerScope;
+        let overlayedOuterScope;
+        if (this.hasProjection) {
+            // if there is a projection,
+            // then the au-slot should connect the outer scope with the inner scope binding context
+            // via overlaying the outerscope with another scope that has
+            // - binding context & override context pointing to the outer scope binding & override context respectively
+            // - override context has the $host pointing to inner scope binding context
+            outerScope = this.hdrContext.controller.scope.parentScope;
+            overlayedOuterScope = this.outerScope = runtime.Scope.create(outerScope.bindingContext, runtime.OverrideContext.create(outerScope.bindingContext), false);
+            overlayedOuterScope.parentScope = outerScope;
+            overlayedOuterScope.overrideContext.$host = (_a = this.expose) !== null && _a !== void 0 ? _a : this.parentScope.bindingContext;
+        }
     }
     attaching(initiator, parent, flags) {
-        var _a;
-        return this.view.activate(initiator, this.$controller, flags, (_a = this.outerScope) !== null && _a !== void 0 ? _a : this.hostScope, this.hostScope);
+        return this.view.activate(initiator, this.$controller, flags, this.hasProjection ? this.outerScope : this.parentScope);
     }
     detaching(initiator, parent, flags) {
         return this.view.deactivate(initiator, this.$controller, flags);
+    }
+    exposeChanged(v) {
+        if (this.hasProjection && this.outerScope != null) {
+            this.outerScope.overrideContext.$host = v;
+        }
     }
     dispose() {
         this.view.dispose();
@@ -11264,6 +11246,9 @@ class AuSlot {
         }
     }
 }
+__decorate([
+    bindable
+], AuSlot.prototype, "expose", void 0);
 customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
 
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;

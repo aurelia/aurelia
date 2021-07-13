@@ -361,7 +361,7 @@ class PropertyRule {
             value = object;
         }
         else {
-            value = expression.evaluate(flags, scope, null, this.locator, null); // TODO: get proper hostScope?
+            value = expression.evaluate(flags, scope, this.locator, null);
         }
         let isValid = true;
         const validateRuleset = async (rules) => {
@@ -375,7 +375,7 @@ class PropertyRule {
                 let message;
                 if (!isValidOrPromise) {
                     const messageEvaluationScope = Scope.create(new ValidationMessageEvaluationContext(this.messageProvider, this.messageProvider.getDisplayName(name, displayName), name, value, rule, object));
-                    message = this.messageProvider.getMessage(rule).evaluate(flags, messageEvaluationScope, null, null, null);
+                    message = this.messageProvider.getMessage(rule).evaluate(flags, messageEvaluationScope, null, null);
                 }
                 return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
             };
@@ -1294,7 +1294,7 @@ let ModelValidationExpressionHydrator = class ModelValidationExpressionHydrator 
                 const parsed = this.parser.parse(when, 0 /* None */);
                 rule.canExecute = (object) => {
                     const flags = 0 /* none */; // TODO? need to get the flags propagated here?
-                    return parsed.evaluate(flags, Scope.create({ $object: object }), null, this.locator, null); // TODO get hostScope?
+                    return parsed.evaluate(flags, Scope.create({ $object: object }), this.locator, null);
                 };
             }
             else if (typeof when === 'function') {

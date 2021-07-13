@@ -84,15 +84,13 @@ class BindingInfo {
     /**
      * @param {Element} target - The HTMLElement associated with the binding.
      * @param {Scope} scope - The binding scope.
-     * @param {Scope | null} [hostScope] - The host scope.
      * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
      * @param {(PropertyInfo | undefined)} [propertyInfo=void 0] - Information describing the associated property for the binding.
      * @memberof BindingInfo
      */
-    constructor(target, scope, hostScope, rules, propertyInfo = void 0) {
+    constructor(target, scope, rules, propertyInfo = void 0) {
         this.target = target;
         this.scope = scope;
-        this.hostScope = hostScope;
         this.rules = rules;
         this.propertyInfo = propertyInfo;
     }
@@ -109,7 +107,6 @@ function getPropertyInfo(binding, info, flags = 0 /* none */) {
         return propertyInfo;
     }
     const scope = info.scope;
-    const hostScope = info.hostScope;
     let expression = binding.sourceExpression.expression;
     const locator = binding.locator;
     let toCachePropertyName = true;
@@ -129,7 +126,7 @@ function getPropertyInfo(binding, info, flags = 0 /* none */) {
                 if (toCachePropertyName) {
                     toCachePropertyName = keyExpr.$kind === 17925 /* PrimitiveLiteral */;
                 }
-                memberName = `[${keyExpr.evaluate(flags, scope, hostScope, locator, null).toString()}]`;
+                memberName = `[${keyExpr.evaluate(flags, scope, locator, null).toString()}]`;
                 break;
             }
             default:
@@ -145,10 +142,10 @@ function getPropertyInfo(binding, info, flags = 0 /* none */) {
     let object;
     if (propertyName.length === 0) {
         propertyName = expression.name;
-        object = expression.accessHostScope ? hostScope === null || hostScope === void 0 ? void 0 : hostScope.bindingContext : scope.bindingContext;
+        object = scope.bindingContext;
     }
     else {
-        object = expression.evaluate(flags, scope, hostScope, locator, null);
+        object = expression.evaluate(flags, scope, locator, null);
     }
     if (object === null || object === void 0) {
         return (void 0);
@@ -583,7 +580,6 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
         this.propertyBinding = (void 0);
         this.target = (void 0);
         this.isChangeTrigger = false;
-        this.hostScope = null;
         this.triggerMediator = new BindingMediator('handleTriggerChange', this, this.observerLocator, this.locator);
         this.controllerMediator = new BindingMediator('handleControllerChange', this, this.observerLocator, this.locator);
         this.rulesMediator = new BindingMediator('handleRulesChange', this, this.observerLocator, this.locator);
@@ -624,10 +620,9 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
             this.validateBinding();
         }
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         this.scope = scope;
-        this.hostScope = hostScope;
-        this.binding.$bind(flags, scope, hostScope);
+        this.binding.$bind(flags, scope);
         this.setTarget();
         const delta = this.processBindingExpressionArgs(flags);
         this.processDelta(delta);
@@ -663,7 +658,6 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
     }
     processBindingExpressionArgs(flags) {
         const scope = this.scope;
-        const hostScope = this.hostScope;
         const locator = this.locator;
         let rules;
         let trigger;
@@ -678,16 +672,16 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
             const arg = args[i];
             switch (i) {
                 case 0:
-                    trigger = this.ensureTrigger(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.triggerMediator));
+                    trigger = this.ensureTrigger(arg.evaluate(evaluationFlags, scope, locator, this.triggerMediator));
                     break;
                 case 1:
-                    controller = this.ensureController(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.controllerMediator));
+                    controller = this.ensureController(arg.evaluate(evaluationFlags, scope, locator, this.controllerMediator));
                     break;
                 case 2:
-                    rules = this.ensureRules(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.rulesMediator));
+                    rules = this.ensureRules(arg.evaluate(evaluationFlags, scope, locator, this.rulesMediator));
                     break;
                 default:
-                    throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${arg.evaluate(evaluationFlags, scope, hostScope, locator, null)}`);
+                    throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${arg.evaluate(evaluationFlags, scope, locator, null)}`);
             }
         }
         return new ValidateArgumentsDelta(this.ensureController(controller), this.ensureTrigger(trigger), rules);
@@ -791,7 +785,7 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
         return this.triggerEvent = triggerEvent;
     }
     setBindingInfo(rules) {
-        return this.bindingInfo = new BindingInfo(this.target, this.scope, this.hostScope, rules);
+        return this.bindingInfo = new BindingInfo(this.target, this.scope, rules);
     }
 };
 ValidateBindingBehavior = __decorate([

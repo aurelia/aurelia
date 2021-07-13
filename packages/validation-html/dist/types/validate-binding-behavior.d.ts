@@ -43,7 +43,6 @@ export declare class ValidateBindingBehavior extends BindingInterceptor implemen
     private isChangeTrigger;
     private readonly defaultTrigger;
     private scope;
-    private hostScope;
     private readonly triggerMediator;
     private readonly controllerMediator;
     private readonly rulesMediator;
@@ -55,7 +54,7 @@ export declare class ValidateBindingBehavior extends BindingInterceptor implemen
     constructor(binding: BindingWithBehavior, expr: BindingBehaviorExpression);
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleEvent(_event: Event): void;
-    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
     handleTriggerChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void;
     handleControllerChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void;

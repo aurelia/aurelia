@@ -5,8 +5,8 @@ export declare abstract class BindingModeBehavior implements BindingBehaviorInst
     private readonly mode;
     private readonly originalModes;
     constructor(mode: BindingMode);
-    bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, binding: PropertyBinding): void;
-    unbind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, binding: PropertyBinding): void;
+    bind(flags: LifecycleFlags, scope: Scope, binding: PropertyBinding): void;
+    unbind(flags: LifecycleFlags, scope: Scope, binding: PropertyBinding): void;
 }
 export declare class OneTimeBindingBehavior extends BindingModeBehavior {
     constructor();

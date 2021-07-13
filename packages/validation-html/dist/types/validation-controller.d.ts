@@ -64,18 +64,16 @@ export interface ValidationResultsSubscriber {
 export declare class BindingInfo {
     target: Element;
     scope: Scope;
-    hostScope: Scope | null;
     rules?: PropertyRule<IValidateable<any>, unknown>[] | undefined;
     propertyInfo: PropertyInfo | undefined;
     /**
      * @param {Element} target - The HTMLElement associated with the binding.
      * @param {Scope} scope - The binding scope.
-     * @param {Scope | null} [hostScope] - The host scope.
      * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
      * @param {(PropertyInfo | undefined)} [propertyInfo=void 0] - Information describing the associated property for the binding.
      * @memberof BindingInfo
      */
-    constructor(target: Element, scope: Scope, hostScope: Scope | null, rules?: PropertyRule<IValidateable<any>, unknown>[] | undefined, propertyInfo?: PropertyInfo | undefined);
+    constructor(target: Element, scope: Scope, rules?: PropertyRule<IValidateable<any>, unknown>[] | undefined, propertyInfo?: PropertyInfo | undefined);
 }
 declare class PropertyInfo {
     object: any;

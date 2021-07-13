@@ -51,7 +51,7 @@ function createIntlFormatValueConverterExpression(name, binding) {
 }
 
 let DateFormatBindingBehavior = class DateFormatBindingBehavior {
-    bind(flags, _scope, _hostScope, binding) {
+    bind(flags, _scope, binding) {
         createIntlFormatValueConverterExpression("df" /* dateFormatValueConverterName */, binding);
     }
 };
@@ -260,7 +260,7 @@ DateFormatValueConverter = __decorate([
 ], DateFormatValueConverter);
 
 let NumberFormatBindingBehavior = class NumberFormatBindingBehavior {
-    bind(flags, _scope, _hostScope, binding) {
+    bind(flags, _scope, binding) {
         createIntlFormatValueConverterExpression("nf" /* numberFormatValueConverterName */, binding);
     }
 };
@@ -286,7 +286,7 @@ NumberFormatValueConverter = __decorate([
 ], NumberFormatValueConverter);
 
 let RelativeTimeBindingBehavior = class RelativeTimeBindingBehavior {
-    bind(flags, _scope, _hostScope, binding) {
+    bind(flags, _scope, binding) {
         createIntlFormatValueConverterExpression("rt" /* relativeTimeValueConverterName */, binding);
     }
 };
@@ -312,7 +312,7 @@ RelativeTimeValueConverter = __decorate([
 ], RelativeTimeValueConverter);
 
 let TranslationBindingBehavior = class TranslationBindingBehavior {
-    bind(flags, _scope, _hostScope, binding) {
+    bind(flags, _scope, binding) {
         const expression = binding.sourceExpression.expression;
         if (!(expression instanceof ValueConverterExpression$1)) {
             const vcExpression = new ValueConverterExpression$1(expression, "t" /* translationValueConverterName */, binding.sourceExpression.args);
@@ -339,7 +339,6 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         this.interceptor = this;
         this.isBound = false;
         this.contentAttributes = contentAttributes;
-        this.hostScope = null;
         this.task = null;
         this.parameter = null;
         this.target = target;
@@ -369,17 +368,16 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         }
         return binding;
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         var _a;
         if (!this.expr) {
             throw new Error('key expression is missing');
         }
         this.scope = scope;
-        this.hostScope = hostScope;
         this.isInterpolation = this.expr instanceof Interpolation;
-        this.keyExpression = this.expr.evaluate(flags, scope, hostScope, this.locator, this);
+        this.keyExpression = this.expr.evaluate(flags, scope, this.locator, this);
         this.ensureKeyExpression();
-        (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$bind(flags, scope, hostScope);
+        (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$bind(flags, scope);
         this.updateTranslations(flags);
         this.isBound = true;
     }
@@ -389,7 +387,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
             return;
         }
         if (this.expr.hasUnbind) {
-            this.expr.unbind(flags, this.scope, this.hostScope, this);
+            this.expr.unbind(flags, this.scope, this);
         }
         (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$unbind(flags);
         this.targetAccessors.clear();
@@ -403,7 +401,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
     handleChange(newValue, _previousValue, flags) {
         this.obs.version++;
         this.keyExpression = this.isInterpolation
-            ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this)
+            ? this.expr.evaluate(flags, this.scope, this.locator, this)
             : newValue;
         this.obs.clear(false);
         this.ensureKeyExpression();
@@ -561,26 +559,24 @@ let ParameterBinding = class ParameterBinding {
         this.updater = updater;
         this.interceptor = this;
         this.isBound = false;
-        this.hostScope = null;
         this.observerLocator = owner.observerLocator;
         this.locator = owner.locator;
     }
     handleChange(newValue, _previousValue, flags) {
         this.obs.version++;
-        this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this);
+        this.value = this.expr.evaluate(flags, this.scope, this.locator, this);
         this.obs.clear(false);
         this.updater(flags);
     }
-    $bind(flags, scope, hostScope) {
+    $bind(flags, scope) {
         if (this.isBound) {
             return;
         }
         this.scope = scope;
-        this.hostScope = hostScope;
         if (this.expr.hasBind) {
-            this.expr.bind(flags, scope, hostScope, this);
+            this.expr.bind(flags, scope, this);
         }
-        this.value = this.expr.evaluate(flags, scope, hostScope, this.locator, this);
+        this.value = this.expr.evaluate(flags, scope, this.locator, this);
         this.isBound = true;
     }
     $unbind(flags) {
@@ -588,7 +584,7 @@ let ParameterBinding = class ParameterBinding {
             return;
         }
         if (this.expr.hasUnbind) {
-            this.expr.unbind(flags, this.scope, this.hostScope, this);
+            this.expr.unbind(flags, this.scope, this);
         }
         this.scope = (void 0);
         this.obs.clear(true);

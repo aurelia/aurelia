@@ -7,13 +7,15 @@ export declare class AuSlot implements ICustomElementViewModel {
     private readonly hdrContext;
     readonly view: ISyntheticView;
     readonly $controller: ICustomElementController<this>;
-    private hostScope;
+    private parentScope;
     private outerScope;
     private readonly hasProjection;
+    expose: object | undefined;
     constructor(location: IRenderLocation, instruction: HydrateElementInstruction, hdrContext: IHydrationContext);
     binding(_initiator: IHydratedController, _parent: IHydratedParentController, _flags: LifecycleFlags): void | Promise<void>;
     attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
+    exposeChanged(v: object): void;
     dispose(): void;
     accept(visitor: ControllerVisitor): void | true;
 }

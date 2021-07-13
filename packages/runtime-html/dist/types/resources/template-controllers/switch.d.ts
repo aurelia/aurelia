@@ -51,7 +51,7 @@ export declare class Case implements ICustomAttributeViewModel {
     isMatch(value: unknown, flags: LifecycleFlags): boolean;
     valueChanged(newValue: unknown, _oldValue: unknown, flags: LifecycleFlags): void;
     handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags): void;
-    activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void | Promise<void>;
+    activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope): void | Promise<void>;
     deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void>;
     dispose(): void;
     protected linkToSwitch(auSwitch: Switch): void;

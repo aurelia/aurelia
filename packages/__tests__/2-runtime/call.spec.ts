@@ -73,7 +73,7 @@ describe.skip('CallBinding', function () {
         // expr['unbind'] = spy();
 
         // - Act -
-        sut.$bind(flags, scope, null);
+        sut.$bind(flags, scope);
 
         // - Assert -
         // double check we have the correct target observer
@@ -103,7 +103,7 @@ describe.skip('CallBinding', function () {
         // massReset(expr);
 
         // - Act -
-        sut.$bind(flags, scope, null);
+        sut.$bind(flags, scope);
 
         // - Assert -
         assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
@@ -169,7 +169,7 @@ describe.skip('CallBinding', function () {
         // expr['unbind'] = spy();
 
         // - Act -
-        sut.$bind(flags, scope, null);
+        sut.$bind(flags, scope);
 
         // - Assert -
         // double check we have the correct target observer
@@ -270,7 +270,7 @@ describe.skip('CallBinding', function () {
         // massSpy(expr, 'evaluate', 'assign', 'connect');
 
         // - Act -
-        sut.$bind(flags, scope, null);
+        sut.$bind(flags, scope);
 
         // - Assert -
         // double check we have the correct target observer

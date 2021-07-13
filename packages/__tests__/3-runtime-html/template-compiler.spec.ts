@@ -1059,10 +1059,10 @@ describe(`TemplateCompiler - combinations`, function () {
               "from": {
                 "parts": ["abc-",""],
                 "expressions": [
-                  {"name":"value","ancestor":0,"accessHostScope":false}
+                  {"name":"value","ancestor":0}
                 ],
                 "isMulti": false,
-                "firstExpression": {"name":"value","ancestor":0,"accessHostScope":false}
+                "firstExpression": {"name":"value","ancestor":0}
               },
               "to":"class"
             }

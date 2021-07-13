@@ -58,12 +58,12 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     task?.cancel();
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
     if (this.firstArg !== null) {
-      const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator, null));
+      const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, null));
       this.opts.delay = isNaN(delay) ? defaultDelay : delay;
     }
-    this.binding.$bind(flags, scope, hostScope);
+    this.binding.$bind(flags, scope);
   }
 
   public $unbind(flags: LifecycleFlags): void {

@@ -28,7 +28,7 @@ export class UpdateTriggerBindingBehavior {
     @IObserverLocator private readonly observerLocator: IObserverLocator
   ) {}
 
-  public bind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: UpdateTriggerableBinding, ...events: string[]): void {
+  public bind(flags: LifecycleFlags, _scope: Scope, binding: UpdateTriggerableBinding, ...events: string[]): void {
     if (events.length === 0) {
       throw new Error('The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:\'blur\'">');
     }
@@ -57,7 +57,7 @@ export class UpdateTriggerBindingBehavior {
     }));
   }
 
-  public unbind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: UpdateTriggerableBinding): void {
+  public unbind(flags: LifecycleFlags, _scope: Scope, binding: UpdateTriggerableBinding): void {
     // restore the state of the binding.
     binding.targetObserver.handler.dispose();
     (binding.targetObserver as Writable<typeof binding.targetObserver>).handler = binding.targetObserver.originalHandler!;

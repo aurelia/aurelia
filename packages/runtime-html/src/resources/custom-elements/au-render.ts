@@ -127,7 +127,7 @@ export class AuRender implements ICustomElementViewModel {
   ): void | Promise<void> {
     const { $controller } = this;
     return onResolve(
-      view?.activate(initiator ?? view, $controller, flags, $controller.scope, $controller.hostScope),
+      view?.activate(initiator ?? view, $controller, flags, $controller.scope),
       () => {
         this.composing = false;
       },

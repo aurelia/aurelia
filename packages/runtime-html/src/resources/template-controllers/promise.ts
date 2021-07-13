@@ -61,7 +61,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     const $controller = this.$controller;
 
     return onResolve(
-      view.activate(initiator, $controller, flags, this.viewScope = Scope.fromParent($controller.scope, {}), $controller.hostScope),
+      view.activate(initiator, $controller, flags, this.viewScope = Scope.fromParent($controller.scope, {})),
       () => this.swap(initiator, flags)
     );
   }
@@ -81,9 +81,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     const fulfilled = this.fulfilled;
     const rejected = this.rejected;
     const pending = this.pending;
-    const $controller = this.$controller;
     const s = this.viewScope;
-    const hs = $controller.hostScope;
 
     let preSettlePromise: Promise<void>;
     const defaultQueuingOptions = { reusable: false };
@@ -97,7 +95,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
           return resolveAll(
             fulfilled?.deactivate(initiator, flags),
             rejected?.deactivate(initiator, flags),
-            pending?.activate(initiator, flags, s, hs)
+            pending?.activate(initiator, flags, s)
           );
         }, defaultQueuingOptions)).result,
         value
@@ -111,7 +109,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                 this.postSettlePromise = (this.postSettledTask = q.queueTask(() => resolveAll(
                   pending?.deactivate(initiator, flags),
                   rejected?.deactivate(initiator, flags),
-                  fulfilled?.activate(initiator, flags, s, hs, data),
+                  fulfilled?.activate(initiator, flags, s, data),
                 ), defaultQueuingOptions)).result;
               };
               if (this.preSettledTask!.status === TaskStatus.running) {
@@ -130,7 +128,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                 this.postSettlePromise = (this.postSettledTask = q.queueTask(() => resolveAll(
                   pending?.deactivate(initiator, flags),
                   fulfilled?.deactivate(initiator, flags),
-                  rejected?.activate(initiator, flags, s, hs, err),
+                  rejected?.activate(initiator, flags, s, err),
                 ), defaultQueuingOptions)).result;
               };
               if (this.preSettledTask!.status === TaskStatus.running) {
@@ -191,10 +189,10 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
     getPromiseController(controller).pending = this;
   }
 
-  public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void | Promise<void> {
+  public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope): void | Promise<void> {
     const view = this.view;
     if (view.isActive) { return; }
-    return view.activate(view, this.$controller, flags, scope, hostScope);
+    return view.activate(view, this.$controller, flags, scope);
   }
 
   public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
@@ -240,11 +238,11 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
     getPromiseController(controller).fulfilled = this;
   }
 
-  public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, resolvedValue: unknown): void | Promise<void> {
+  public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, resolvedValue: unknown): void | Promise<void> {
     this.value = resolvedValue;
     const view = this.view;
     if (view.isActive) { return; }
-    return view.activate(view, this.$controller, flags, scope, hostScope);
+    return view.activate(view, this.$controller, flags, scope);
   }
 
   public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
@@ -290,11 +288,11 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
     getPromiseController(controller).rejected = this;
   }
 
-  public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, error: unknown): void | Promise<void> {
+  public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, error: unknown): void | Promise<void> {
     this.value = error;
     const view = this.view;
     if (view.isActive) { return; }
-    return view.activate(view, this.$controller, flags, scope, hostScope);
+    return view.activate(view, this.$controller, flags, scope);
   }
 
   public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {

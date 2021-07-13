@@ -63,7 +63,6 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private readonly contentAttributes: readonly string[] = contentAttributes;
   private keyExpression: string | undefined | null;
   private scope!: Scope;
-  private hostScope: Scope | null = null;
   private task: ITask | null = null;
   private isInterpolation!: boolean;
   private readonly targetAccessors: Set<IAccessor>;
@@ -121,15 +120,14 @@ export class TranslationBinding implements IPartialConnectableBinding {
     return binding;
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
     if (!this.expr) { throw new Error('key expression is missing'); }
     this.scope = scope;
-    this.hostScope = hostScope;
     this.isInterpolation = this.expr instanceof Interpolation;
 
-    this.keyExpression = this.expr.evaluate(flags, scope, hostScope, this.locator, this) as string;
+    this.keyExpression = this.expr.evaluate(flags, scope, this.locator, this) as string;
     this.ensureKeyExpression();
-    this.parameter?.$bind(flags, scope, hostScope);
+    this.parameter?.$bind(flags, scope);
 
     this.updateTranslations(flags);
     this.isBound = true;
@@ -141,7 +139,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     }
 
     if (this.expr.hasUnbind) {
-      this.expr.unbind(flags, this.scope, this.hostScope, this as any);
+      this.expr.unbind(flags, this.scope, this as any);
     }
 
     this.parameter?.$unbind(flags);
@@ -158,7 +156,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
     this.obs.version++;
     this.keyExpression = this.isInterpolation
-        ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this) as string
+        ? this.expr.evaluate(flags, this.scope, this.locator, this) as string
         : newValue as string;
     this.obs.clear(false);
     this.ensureKeyExpression();
@@ -338,7 +336,6 @@ class ParameterBinding {
   public isBound: boolean = false;
 
   private scope!: Scope;
-  private hostScope: Scope | null = null;
 
   public constructor(
     public readonly owner: TranslationBinding,
@@ -351,23 +348,22 @@ class ParameterBinding {
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
     this.obs.version++;
-    this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this) as i18next.TOptions;
+    this.value = this.expr.evaluate(flags, this.scope, this.locator, this) as i18next.TOptions;
     this.obs.clear(false);
     this.updater(flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
     if (this.isBound) {
       return;
     }
     this.scope = scope;
-    this.hostScope = hostScope;
 
     if (this.expr.hasBind) {
-      this.expr.bind(flags, scope, hostScope, this);
+      this.expr.bind(flags, scope, this);
     }
 
-    this.value = this.expr.evaluate(flags, scope, hostScope, this.locator, this) as i18next.TOptions;
+    this.value = this.expr.evaluate(flags, scope, this.locator, this) as i18next.TOptions;
     this.isBound = true;
   }
 
@@ -377,7 +373,7 @@ class ParameterBinding {
     }
 
     if (this.expr.hasUnbind) {
-      this.expr.unbind(flags, this.scope, this.hostScope, this);
+      this.expr.unbind(flags, this.scope, this);
     }
 
     this.scope = (void 0)!;

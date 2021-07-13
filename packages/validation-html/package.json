@@ -37,8 +37,7 @@
     "build:prod": "rollup -c --environment BUILD:prod",
     "build:dev": "rollup -c --environment MAP,BUILD:dev",
     "postbuild": "tsc --emitDeclarationOnly",
-    "dev:tsc": "tsc -b -w --preserveWatchOutput",
-    "dev": "rollup -c -w --environment MAP,TYPES",
+    "dev": "tsc -b -w --preserveWatchOutput",
     "publish:dev": "npm publish --tag dev",
     "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c --environment MAP"

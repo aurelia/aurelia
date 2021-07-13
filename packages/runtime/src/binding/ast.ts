@@ -619,15 +619,18 @@ export class AccessScopeExpression {
   public constructor(
     public readonly name: string,
     public readonly ancestor: number = 0,
-    public readonly accessHostScope: boolean = false,
+    // public readonly accessHostScope: boolean = false,
   ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, c: IConnectable | null): IBindingContext | IOverrideContext {
-    const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IBindingContext;
+    const obj = BindingContext.get(s, this.name, this.ancestor, f, hs) as IBindingContext;
     if (c !== null) {
       c.observeProperty(obj, this.name);
     }
     const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
+    if (evaluatedValue == null && this.name === '$host') {
+      throw new Error('Unable to find $host context. Did you forget [au-slot] attribute?');
+    }
     if (f & LF.isStrictBindingStrategy) {
       return evaluatedValue;
     }
@@ -635,7 +638,7 @@ export class AccessScopeExpression {
   }
 
   public assign(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, val: unknown): unknown {
-    const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IObservable;
+    const obj = BindingContext.get(s, this.name, this.ancestor, f, hs) as IObservable;
     if (obj instanceof Object) {
       if (obj.$observers?.[this.name] !== void 0) {
         obj.$observers[this.name].setValue(val, f);
@@ -752,11 +755,11 @@ export class CallScopeExpression {
     public readonly name: string,
     public readonly args: readonly IsAssign[],
     public readonly ancestor: number = 0,
-    public readonly accessHostScope: boolean = false,
+    // public readonly accessHostScope: boolean = false,
   ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
-    s = chooseScope(this.accessHostScope, s, hs);
+    // s = chooseScope(this.accessHostScope, s, hs);
 
     const args = this.args.map(a => a.evaluate(f, s, hs, l, c));
     const context = BindingContext.get(s, this.name, this.ancestor, f, hs)!;

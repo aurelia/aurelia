@@ -265,7 +265,7 @@ const enum Token {
   NullKeyword             = 0b000000000100_000_000010,
   UndefinedKeyword        = 0b000000000100_000_000011,
   ThisScope               = 0b000000000110_000_000100,
-  HostScope               = 0b000000000110_000_000101,
+  // HostScope               = 0b000000000110_000_000101,
   ParentScope             = 0b000000000110_000_000110,
   OpenParen               = 0b010100100000_000_000111,
   OpenBrace               = 0b000100000000_000_001000,
@@ -516,12 +516,6 @@ TPrec extends Precedence.Unary ? IsUnary :
         result = $this;
         access = Access.This;
         break;
-      case Token.HostScope: // $host
-        state.assignable = false;
-        nextToken(state);
-        result = $host;
-        access = Access.This;
-        break;
       case Token.OpenParen: // parenthesized expression
         nextToken(state);
         result = parse(state, Access.Reset, Precedence.Assign, bindingType);
@@ -625,7 +619,7 @@ TPrec extends Precedence.Unary ? IsUnary :
             continue;
           }
           if (access & Access.Scope) {
-            result = new AccessScopeExpression(name, (result as AccessScopeExpression | AccessThisExpression).ancestor, result === $host);
+            result = new AccessScopeExpression(name, (result as AccessScopeExpression | AccessThisExpression).ancestor);
           } else { // if it's not $Scope, it's $Member
             result = new AccessMemberExpression(result as IsLeftHandSide, name);
           }
@@ -648,7 +642,7 @@ TPrec extends Precedence.Unary ? IsUnary :
           }
           consume(state, Token.CloseParen);
           if (access & Access.Scope) {
-            result = new CallScopeExpression(name, args, (result as AccessScopeExpression | AccessThisExpression).ancestor, result === $host);
+            result = new CallScopeExpression(name, args, (result as AccessScopeExpression | AccessThisExpression).ancestor,/*  result === $host */);
           } else if (access & Access.Member) {
             result = new CallMemberExpression(result as IsLeftHandSide, name, args);
           } else {
@@ -1184,7 +1178,6 @@ KeywordLookup.null = Token.NullKeyword;
 KeywordLookup.false = Token.FalseKeyword;
 KeywordLookup.undefined = Token.UndefinedKeyword;
 KeywordLookup.$this = Token.ThisScope;
-KeywordLookup.$host = Token.HostScope;
 KeywordLookup.$parent = Token.ParentScope;
 KeywordLookup.in = Token.InKeyword;
 KeywordLookup.instanceof = Token.InstanceOfKeyword;

@@ -25,6 +25,7 @@ import { convertToRenderLocation, IRenderLocation, INode, setRef } from './dom.j
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel } from './templating/controller.js';
 import { IPlatform } from './platform.js';
 import { IViewFactory } from './templating/view.js';
+import { IRendering } from './templating/rendering.js';
 
 import type { IServiceLocator, IContainer, Class, IRegistry } from '@aurelia/kernel';
 import type {
@@ -457,6 +458,9 @@ export class SetPropertyRenderer implements IRenderer {
 @renderer(InstructionType.hydrateElement)
 /** @internal */
 export class CustomElementRenderer implements IRenderer {
+  public static get inject(): unknown[] { return [IRendering]; }
+  public constructor(private readonly r: IRendering) {}
+
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
@@ -514,12 +518,23 @@ export class CustomElementRenderer implements IRenderer {
     flags = childController.flags;
     setRef(target, def.key, childController);
 
-    context.renderChildren(
-      /* flags        */flags,
-      /* instructions */instruction.instructions,
-      /* controller   */renderingController,
-      /* target       */childController,
-    );
+    const renderers = this.r.renderers;
+    const props = instruction.instructions;
+    const ii = props.length;
+    let i = 0;
+    let propInst: IInstruction;
+    while (ii > i) {
+      propInst = props[i];
+      renderers[propInst.type].render(flags, null!, renderingController, childController, propInst);
+      ++i;
+    }
+
+    // context.renderChildren(
+    //   /* flags        */flags,
+    //   /* instructions */instruction.instructions,
+    //   /* controller   */renderingController,
+    //   /* target       */childController,
+    // );
 
     renderingController.addChild(childController);
     /* eslint-enable prefer-const */
@@ -529,6 +544,9 @@ export class CustomElementRenderer implements IRenderer {
 @renderer(InstructionType.hydrateAttribute)
 /** @internal */
 export class CustomAttributeRenderer implements IRenderer {
+  public static get inject(): unknown[] { return [IRendering]; }
+  public constructor(private readonly r: IRendering) {}
+
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
@@ -578,12 +596,23 @@ export class CustomAttributeRenderer implements IRenderer {
 
     setRef(target, def.key, childController);
 
-    context.renderChildren(
-      /* flags        */flags,
-      /* instructions */instruction.instructions,
-      /* controller   */renderingController,
-      /* target       */childController,
-    );
+    const renderers = this.r.renderers;
+    const props = instruction.instructions;
+    const ii = props.length;
+    let i = 0;
+    let propInst: IInstruction;
+    while (ii > i) {
+      propInst = props[i];
+      renderers[propInst.type].render(flags, null!, renderingController, childController, propInst);
+      ++i;
+    }
+
+    // context.renderChildren(
+    //   /* flags        */flags,
+    //   /* instructions */instruction.instructions,
+    //   /* controller   */renderingController,
+    //   /* target       */childController,
+    // );
 
     renderingController.addChild(childController);
     /* eslint-enable prefer-const */
@@ -593,6 +622,9 @@ export class CustomAttributeRenderer implements IRenderer {
 @renderer(InstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IRenderer {
+  public static get inject(): unknown[] { return [IRendering]; }
+  public constructor(private readonly r: IRendering) {}
+
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
@@ -643,12 +675,23 @@ export class TemplateControllerRenderer implements IRenderer {
 
     component.link?.(flags, context, renderingController, childController, target, instruction);
 
-    context.renderChildren(
-      /* flags        */flags,
-      /* instructions */instruction.instructions,
-      /* controller   */renderingController,
-      /* target       */childController,
-    );
+    const renderers = this.r.renderers;
+    const props = instruction.instructions;
+    const ii = props.length;
+    let i = 0;
+    let propInst: IInstruction;
+    while (ii > i) {
+      propInst = props[i];
+      renderers[propInst.type].render(flags, null!, renderingController, childController, propInst);
+      ++i;
+    }
+
+    // context.renderChildren(
+    //   /* flags        */flags,
+    //   /* instructions */instruction.instructions,
+    //   /* controller   */renderingController,
+    //   /* target       */childController,
+    // );
 
     renderingController.addChild(childController);
     /* eslint-enable prefer-const */

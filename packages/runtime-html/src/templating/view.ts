@@ -34,8 +34,9 @@ export class ViewFactory implements IViewFactory {
   public constructor(
     public name: string,
     public readonly context: IRenderContext,
+    container?: IContainer,
   ) {
-    this.container = context.container;
+    this.container = container == null ? context.container : container;
   }
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {

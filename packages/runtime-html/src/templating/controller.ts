@@ -28,6 +28,7 @@ import { IPlatform } from '../platform.js';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
 import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
 import { LifecycleHooks } from './lifecycle-hooks.js';
+import { IRendering } from './rendering.js';
 
 import type {
   IContainer,
@@ -409,7 +410,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   public hydrateChildren(): void {
     const targets = this.nodes!.findTargets();
-    this.context!.render(
+    this.container.get(IRendering).render(
       /* flags      */this.flags,
       /* controller */this as ICustomElementController,
       /* targets    */targets,
@@ -450,9 +451,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     const nodes = this.nodes = compiledContext.createNodes();
     const targets = nodes.findTargets();
-    compiledContext.render(
+    this.container.get(IRendering).render(
       /* flags      */this.flags,
-      /* controller */this,
+      /* controller */this as ISyntheticView,
       /* targets    */targets,
       /* definition */compiledDefinition,
       /* host       */void 0,

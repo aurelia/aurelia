@@ -15,6 +15,7 @@ import type {
   ICustomAttributeController,
   IHydratedController,
   IHydratedParentController,
+  IHydrationContext,
 } from './controller.js';
 import type { IRenderContext } from './render-context.js';
 import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
@@ -232,14 +233,14 @@ export class ViewLocator {
 
           public define(
             controller: IDryCustomElementController<T>,
-            parentContainer: IContainer,
+            hydrationContext: IHydrationContext,
             definition: CustomElementDefinition,
           ): PartialCustomElementDefinition | void {
             const vm = this.viewModel;
             controller.scope = Scope.fromParent(controller.scope, vm);
 
             if (vm.define !== void 0) {
-              return vm.define(controller, parentContainer, definition);
+              return vm.define(controller, hydrationContext, definition);
             }
           }
         }

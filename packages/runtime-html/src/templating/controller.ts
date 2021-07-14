@@ -213,20 +213,23 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* viewModel      */viewModel as BindingContext<C>,
       /* host           */host,
     );
+    // the hydration context this controller is provided with
+    const hydrationContext = ownCt.get(optional(IHydrationContext));
 
     ownCt.register(...definition.dependencies);
+    // each CE controller provides its own hydration context for its internal template
     ownCt.registerResolver(IHydrationContext, new InstanceProvider(
       'IHydrationContext',
       new HydrationContext(
         controller,
         hydrationInst,
-        /* parent context */contextCt.get(optional(IHydrationContext)),
+        hydrationContext,
       )
     ));
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrate) {
-      controller.hydrateCustomElement(hydrationInst);
+      controller.hydrateCustomElement(hydrationInst, hydrationContext);
     }
 
     return controller as ICustomElementController<C>;
@@ -281,8 +284,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const controller = new Controller(
       /* root           */root,
       // todo: view factory should carry its own container
-      /* container      */context.container,
-      /* container      */context.container,
+      /* container      */null!,
+      /* container      */viewFactory.container,
       /* vmKind         */ViewModelKind.synthetic,
       /* flags          */flags,
       /* definition     */null,
@@ -299,7 +302,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public hydrateCustomElement(
-    hydrationInst: IControllerElementHydrationInstruction | null
+    hydrationInst: IControllerElementHydrationInstruction | null,
+    /**
+     * The context where this custom element is hydrated.
+     *
+     * This is the context controller creating this this controller
+     */
+    hydrationContext: IHydrationContext | null,
   ): void {
     this.logger = this.container.get(ILogger).root;
     this.debug = this.logger.config.level <= LogLevel.debug;
@@ -324,7 +333,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       if (this.debug) { this.logger.trace(`invoking define() hook`); }
       const result = instance.define(
         /* controller      */this as ICustomElementController,
-        /* parentContainer */this.ctxCt,
+        /* parentContainer */hydrationContext,
         /* definition      */definition,
       );
       if (result !== void 0 && result !== definition) {
@@ -1668,7 +1677,12 @@ export interface IActivationHooks<TParent> {
 export interface ICompileHooks {
   define?(
     controller: IDryCustomElementController<this>,
-    parentContainer: IContainer,
+    /**
+     * The context where this element is hydrated.
+     *
+     * This is created by the controller associated with the CE creating this this controller
+     */
+    hydrationContext: IHydrationContext | null,
     definition: CustomElementDefinition,
   ): PartialCustomElementDefinition | void;
   hydrating?(

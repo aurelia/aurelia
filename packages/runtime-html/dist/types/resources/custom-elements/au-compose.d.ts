@@ -26,6 +26,8 @@ export declare class AuCompose {
     viewModel?: Constructable | object | Promise<Constructable | object>;
     model?: unknown;
     scopeBehavior: 'auto' | 'scoped';
+    private _p?;
+    get pending(): Promise<void> | void;
     get composition(): ICompositionController | undefined;
     constructor(container: IContainer, parent: ISyntheticView | ICustomElementController, host: HTMLElement, p: IPlatform, instruction: HydrateElementInstruction, contextFactory: CompositionContextFactory);
     attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
@@ -43,6 +45,7 @@ declare class CompositionContextFactory {
     isFirst(context: CompositionContext): boolean;
     isCurrent(context: CompositionContext): boolean;
     create(changes: ChangeInfo): MaybePromise<CompositionContext>;
+    invalidate(): void;
 }
 declare class ChangeInfo {
     readonly view: MaybePromise<string> | undefined;

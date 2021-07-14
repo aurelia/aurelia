@@ -51,6 +51,7 @@ class BindingContext {
         }
         let overrideContext = scope.overrideContext;
         let currentScope = scope;
+        // let bc: IBindingContext | null;
         if (ancestor > 0) {
             // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
             while (ancestor > 0) {
@@ -64,7 +65,15 @@ class BindingContext {
             // Here we are giving benefit of doubt considering the dev has used one or more `$parent` token, and thus should know what s/he is targeting.
             return name in overrideContext ? overrideContext : overrideContext.bindingContext;
         }
-        // traverse the context and it's ancestors, searching for a context that has the name.
+        // walk the scope hierarchy until
+        // the first scope that has the property in its contexts
+        // or
+        // the closet boundary scope
+        // -------------------------
+        // this behavior is different with v1
+        // where it would fallback to the immediate scope instead of the root one
+        // TODO: maybe avoid immediate loop and return earlier
+        // -------------------------
         while (!(currentScope === null || currentScope === void 0 ? void 0 : currentScope.isBoundary)
             && overrideContext != null
             && !(name in overrideContext)
@@ -76,6 +85,41 @@ class BindingContext {
         if (overrideContext) {
             return name in overrideContext ? overrideContext : overrideContext.bindingContext;
         }
+        // This following code block is the v1 behavior of scope selection
+        // where it would walk the scope hierarchy and stop at the first scope
+        // that has matching property.
+        // if no scope in the hierarchy, until the closest boundary scope has the property
+        // then pick the scope it started with
+        // ------------------
+        // if (currentScope.isBoundary) {
+        //   if (overrideContext != null) {
+        //     if (name in overrideContext) {
+        //       return overrideContext;
+        //     }
+        //     bc = overrideContext.bindingContext;
+        //     if (bc != null && name in bc) {
+        //       return bc;
+        //     }
+        //   }
+        // } else {
+        //   // traverse the context and it's ancestors, searching for a context that has the name.
+        //   do {
+        //     if (overrideContext != null) {
+        //       if (name in overrideContext) {
+        //         return overrideContext;
+        //       }
+        //       bc = overrideContext.bindingContext;
+        //       if (bc != null && name in bc) {
+        //         return bc;
+        //       }
+        //     }
+        //     if (currentScope.isBoundary) {
+        //       break;
+        //     }
+        //     currentScope = currentScope.parentScope;
+        //     overrideContext = currentScope == null ? null : currentScope.overrideContext;
+        //   } while (currentScope != null);
+        // }
         // still nothing found. return the root binding context (or null
         // if this is a parent scope traversal, to ensure we fall back to the
         // correct level)
@@ -815,9 +859,6 @@ class AccessThisExpression {
     get hasUnbind() { return false; }
     evaluate(_f, s, _l, _c) {
         var _a;
-        // if (this === AccessThisExpression.$host) {
-        //   s = chooseScope(true, s, hs);
-        // }
         let oc = s.overrideContext;
         let currentScope = s;
         let i = this.ancestor;

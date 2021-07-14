@@ -1,7 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, IObserver } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
-import { CustomElementDefinition } from '../resources/custom-element.js';
 import type { IConnectableBinding, ForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, ITask, Scope } from '@aurelia/runtime';
 import type { INode } from '../dom.js';
 export interface AttributeBinding extends IConnectableBinding {
@@ -20,7 +19,6 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     isBound: boolean;
     $platform: IPlatform;
     $scope: Scope;
-    projection?: CustomElementDefinition;
     task: ITask | null;
     private targetSubscriber;
     /**
@@ -34,7 +32,7 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: Scope, projection?: CustomElementDefinition): void;
+    $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=attribute.d.ts.map

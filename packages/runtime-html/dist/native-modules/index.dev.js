@@ -2,7 +2,7 @@ export { Platform, Task, TaskAbortError, TaskQueue, TaskQueuePriority, TaskStatu
 import { BrowserPlatform } from '../../../platform-browser/dist/native-modules/index.js';
 export { BrowserPlatform } from '../../../platform-browser/dist/native-modules/index.js';
 import { Protocol, getPrototypeChain, Metadata, firstDefined, kebabCase, noop, emptyArray, DI, all, Registration, IPlatform as IPlatform$1, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, IContainer, nextId, InstanceProvider, optional, ILogger, isObject, onResolve, resolveAll, camelCase, toArray, emptyObject, IServiceLocator, compareNumber, transient } from '../../../kernel/dist/native-modules/index.js';
-import { BindingMode, subscriberCollection, withFlushQueue, connectable, registerAliases, Scope, ConnectableSwitcher, ProxyObservable, IObserverLocator, IExpressionParser, AccessScopeExpression, DelegationStrategy, BindingBehaviorExpression, BindingBehaviorFactory, PrimitiveLiteralExpression, bindingBehavior, BindingInterceptor, ISignaler, PropertyAccessor, INodeObserverLocator, SetterObserver, IDirtyChecker, alias, applyMutationsToIndices, getCollectionObserver as getCollectionObserver$1, BindingContext, synchronizeIndices, OverrideContext, valueConverter } from '../../../runtime/dist/native-modules/index.js';
+import { BindingMode, subscriberCollection, withFlushQueue, connectable, registerAliases, Scope, ConnectableSwitcher, ProxyObservable, IObserverLocator, IExpressionParser, AccessScopeExpression, DelegationStrategy, BindingBehaviorExpression, BindingBehaviorFactory, PrimitiveLiteralExpression, bindingBehavior, BindingInterceptor, ISignaler, PropertyAccessor, INodeObserverLocator, SetterObserver, IDirtyChecker, alias, applyMutationsToIndices, getCollectionObserver as getCollectionObserver$1, BindingContext, synchronizeIndices, valueConverter } from '../../../runtime/dist/native-modules/index.js';
 export { Access, AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, AccessorType, ArrayBindingPattern, ArrayIndexObserver, ArrayLiteralExpression, ArrayObserver, AssignExpression, BinaryExpression, BindingBehavior, BindingBehaviorDefinition, BindingBehaviorExpression, BindingBehaviorFactory, BindingBehaviorStrategy, BindingContext, BindingIdentifier, BindingInterceptor, BindingMediator, BindingMode, BindingType, CallFunctionExpression, CallMemberExpression, CallScopeExpression, Char, CollectionKind, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConditionalExpression, CustomExpression, DelegationStrategy, DirtyCheckProperty, DirtyCheckSettings, ExpressionKind, ForOfStatement, HtmlLiteralExpression, IDirtyChecker, IExpressionParser, INodeObserverLocator, IObserverLocator, ISignaler, Interpolation, LifecycleFlags, MapObserver, ObjectBindingPattern, ObjectLiteralExpression, ObserverLocator, OverrideContext, ParserState, Precedence, PrimitiveLiteralExpression, PrimitiveObserver, PropertyAccessor, Scope, SetObserver, SetterObserver, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverter, ValueConverterDefinition, ValueConverterExpression, alias, applyMutationsToIndices, bindingBehavior, cloneIndexMap, connectable, copyIndexMap, createIndexMap, disableArrayObservation, disableMapObservation, disableSetObservation, enableArrayObservation, enableMapObservation, enableSetObservation, getCollectionObserver, isIndexMap, observable, parse, parseExpression, registerAliases, subscriberCollection, synchronizeIndices, valueConverter } from '../../../runtime/dist/native-modules/index.js';
 
 /*! *****************************************************************************
@@ -1426,8 +1426,10 @@ class AttributeBinding {
         //  (1). determine whether this should be the behavior
         //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
         const shouldQueueFlush = (flags & 2 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
+        let shouldConnect = false;
+        let task;
         if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.obs.count > 1) {
-            const shouldConnect = (mode & oneTime$1) === 0;
+            shouldConnect = (mode & oneTime$1) === 0;
             if (shouldConnect) {
                 this.obs.version++;
             }
@@ -1436,7 +1438,6 @@ class AttributeBinding {
                 this.obs.clear(false);
             }
         }
-        let task;
         if (newValue !== this.value) {
             this.value = newValue;
             if (shouldQueueFlush) {
@@ -1453,7 +1454,7 @@ class AttributeBinding {
             }
         }
     }
-    $bind(flags, scope, projection) {
+    $bind(flags, scope) {
         var _a;
         if (this.isBound) {
             if (this.$scope === scope) {
@@ -1465,7 +1466,6 @@ class AttributeBinding {
         // to the AST during evaluate/connect/assign
         this.persistentFlags = flags & 961 /* persistentBindingFlags */;
         this.$scope = scope;
-        this.projection = projection;
         let sourceExpression = this.sourceExpression;
         if (sourceExpression.hasBind) {
             sourceExpression.bind(flags, scope, this.interceptor);
@@ -1478,8 +1478,9 @@ class AttributeBinding {
         sourceExpression = this.sourceExpression;
         const $mode = this.mode;
         const interceptor = this.interceptor;
+        let shouldConnect = false;
         if ($mode & toViewOrOneTime$1) {
-            const shouldConnect = ($mode & toView$2) > 0;
+            shouldConnect = ($mode & toView$2) > 0;
             interceptor.updateTarget(this.value = sourceExpression.evaluate(flags, scope, this.locator, shouldConnect ? interceptor : null), flags);
         }
         if ($mode & fromView$1) {
@@ -1538,7 +1539,9 @@ class InterpolationBinding {
         this.targetObserver = observerLocator.getAccessor(target, targetProperty);
         const expressions = interpolation.expressions;
         const partBindings = this.partBindings = Array(expressions.length);
-        for (let i = 0, ii = expressions.length; i < ii; ++i) {
+        const ii = expressions.length;
+        let i = 0;
+        for (; ii > i; ++i) {
             partBindings[i] = new InterpolationPartBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
         }
     }
@@ -1547,12 +1550,13 @@ class InterpolationBinding {
         const staticParts = this.interpolation.parts;
         const ii = partBindings.length;
         let result = '';
+        let i = 0;
         if (ii === 1) {
             result = staticParts[0] + partBindings[0].value + staticParts[1];
         }
         else {
             result = staticParts[0];
-            for (let i = 0; ii > i; ++i) {
+            for (; ii > i; ++i) {
                 result += partBindings[i].value + staticParts[i + 1];
             }
         }
@@ -1562,14 +1566,16 @@ class InterpolationBinding {
         //  (1). determine whether this should be the behavior
         //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
         const shouldQueueFlush = (flags & 2 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
+        let task;
         if (shouldQueueFlush) {
             // Queue the new one before canceling the old one, to prevent early yield
-            const task = this.task;
+            task = this.task;
             this.task = this.taskQueue.queueTask(() => {
                 this.task = null;
                 targetObserver.setValue(result, flags, this.target, this.targetProperty);
             }, queueTaskOptions);
             task === null || task === void 0 ? void 0 : task.cancel();
+            task = null;
         }
         else {
             targetObserver.setValue(result, flags, this.target, this.targetProperty);
@@ -1585,7 +1591,9 @@ class InterpolationBinding {
         this.isBound = true;
         this.$scope = scope;
         const partBindings = this.partBindings;
-        for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+        const ii = partBindings.length;
+        let i = 0;
+        for (; ii > i; ++i) {
             partBindings[i].$bind(flags, scope);
         }
         this.updateTarget(void 0, flags);
@@ -1598,7 +1606,9 @@ class InterpolationBinding {
         this.isBound = false;
         this.$scope = void 0;
         const partBindings = this.partBindings;
-        for (let i = 0, ii = partBindings.length; i < ii; ++i) {
+        const ii = partBindings.length;
+        let i = 0;
+        for (; ii > i; ++i) {
             partBindings[i].interceptor.$unbind(flags);
         }
         (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
@@ -1628,8 +1638,9 @@ class InterpolationPartBinding {
         const sourceExpression = this.sourceExpression;
         const obsRecord = this.obs;
         const canOptimize = sourceExpression.$kind === 10082 /* AccessScope */ && obsRecord.count === 1;
+        let shouldConnect = false;
         if (!canOptimize) {
-            const shouldConnect = (this.mode & toView$1) > 0;
+            shouldConnect = (this.mode & toView$1) > 0;
             if (shouldConnect) {
                 obsRecord.version++;
             }
@@ -1661,9 +1672,9 @@ class InterpolationPartBinding {
         if (this.sourceExpression.hasBind) {
             this.sourceExpression.bind(flags, scope, this.interceptor);
         }
-        const v = this.value = this.sourceExpression.evaluate(flags, scope, this.locator, (this.mode & toView$1) > 0 ? this.interceptor : null);
-        if (v instanceof Array) {
-            this.observeCollection(v);
+        this.value = this.sourceExpression.evaluate(flags, scope, this.locator, (this.mode & toView$1) > 0 ? this.interceptor : null);
+        if (this.value instanceof Array) {
+            this.observeCollection(this.value);
         }
     }
     $unbind(flags) {
@@ -1723,8 +1734,9 @@ class ContentBinding {
         const sourceExpression = this.sourceExpression;
         const obsRecord = this.obs;
         const canOptimize = sourceExpression.$kind === 10082 /* AccessScope */ && obsRecord.count === 1;
+        let shouldConnect = false;
         if (!canOptimize) {
-            const shouldConnect = (this.mode & toView$1) > 0;
+            shouldConnect = (this.mode & toView$1) > 0;
             if (shouldConnect) {
                 obsRecord.version++;
             }
@@ -1916,10 +1928,11 @@ class PropertyBinding {
         //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
         const shouldQueueFlush = (flags & 2 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
         const obsRecord = this.obs;
+        let shouldConnect = false;
         // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
         if (sourceExpression.$kind !== 10082 /* AccessScope */ || obsRecord.count > 1) {
             // todo: in VC expressions, from view also requires connect
-            const shouldConnect = this.mode > oneTime;
+            shouldConnect = this.mode > oneTime;
             if (shouldConnect) {
                 obsRecord.version++;
             }
@@ -1930,12 +1943,13 @@ class PropertyBinding {
         }
         if (shouldQueueFlush) {
             // Queue the new one before canceling the old one, to prevent early yield
-            const task = this.task;
+            task = this.task;
             this.task = this.taskQueue.queueTask(() => {
                 interceptor.updateTarget(newValue, flags);
                 this.task = null;
             }, updateTaskOpts);
             task === null || task === void 0 ? void 0 : task.cancel();
+            task = null;
         }
         else {
             interceptor.updateTarget(newValue, flags);
@@ -1959,10 +1973,10 @@ class PropertyBinding {
         if (sourceExpression.hasBind) {
             sourceExpression.bind(flags, scope, this.interceptor);
         }
+        const observerLocator = this.observerLocator;
         const $mode = this.mode;
         let targetObserver = this.targetObserver;
         if (!targetObserver) {
-            const observerLocator = this.observerLocator;
             if ($mode & fromView) {
                 targetObserver = observerLocator.getObserver(this.target, this.targetProperty);
             }
@@ -1996,19 +2010,20 @@ class PropertyBinding {
             this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         this.$scope = void 0;
-        const task = this.task;
+        task = this.task;
         if (this.targetSubscriber) {
             this.targetObserver.unsubscribe(this.targetSubscriber);
         }
         if (task != null) {
             task.cancel();
-            this.task = null;
+            task = this.task = null;
         }
         this.obs.clear(true);
         this.isBound = false;
     }
 }
 connectable(PropertyBinding);
+let task = null;
 
 class RefBinding {
     constructor(sourceExpression, target, locator) {
@@ -5043,8 +5058,7 @@ class Listener {
             this.target.addEventListener(this.targetEvent, this);
         }
         else {
-            const eventTarget = this.locator.get(IEventTarget);
-            this.handler = this.eventDelegator.addEventListener(eventTarget, this.target, this.targetEvent, this, options[this.delegationStrategy]);
+            this.handler = this.eventDelegator.addEventListener(this.locator.get(IEventTarget), this.target, this.targetEvent, this, options[this.delegationStrategy]);
         }
         // add isBound flag and remove isBinding flag
         this.isBound = true;
@@ -10893,8 +10907,6 @@ let AuCompose = class AuCompose {
         this.contextFactory = contextFactory;
         this.scopeBehavior = 'auto';
         /** @internal */
-        this.task = null;
-        /** @internal */
         this.c = void 0;
         this.loc = instruction.containerless ? convertToRenderLocation(this.host) : void 0;
     }
@@ -10902,39 +10914,43 @@ let AuCompose = class AuCompose {
     static get inject() {
         return [IContainer, IController, INode, IPlatform, IInstruction, transient(CompositionContextFactory)];
     }
+    get pending() {
+        return this._p;
+    }
     get composition() {
         return this.c;
     }
     attaching(initiator, parent, flags) {
-        return this.queue(new ChangeInfo(this.view, this.viewModel, this.model, initiator, void 0));
+        return this._p = onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, initiator, void 0)), (context) => {
+            if (this.contextFactory.isCurrent(context)) {
+                this._p = void 0;
+            }
+        });
     }
     detaching(initiator) {
-        var _a;
-        (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
-        this.task = null;
         const cmpstn = this.c;
-        if (cmpstn != null) {
-            this.c = void 0;
-            return cmpstn.deactivate(initiator);
-        }
+        const pending = this._p;
+        this.contextFactory.invalidate();
+        this.c = this._p = void 0;
+        return onResolve(pending, () => cmpstn === null || cmpstn === void 0 ? void 0 : cmpstn.deactivate(initiator));
     }
     /** @internal */
     propertyChanged(name) {
-        const task = this.task;
-        this.task = this.p.domWriteQueue.queueTask(() => {
-            return onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, void 0, name)), () => {
-                this.task = null;
-            });
-        });
-        task === null || task === void 0 ? void 0 : task.cancel();
+        if (name === 'model' && this.c != null) {
+            // eslint-disable-next-line
+            this.c.update(this.model);
+            return;
+        }
+        this._p = onResolve(this._p, () => onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, void 0, name)), (context) => {
+            if (this.contextFactory.isCurrent(context)) {
+                this._p = void 0;
+            }
+        }));
     }
     /** @internal */
     queue(change) {
         const factory = this.contextFactory;
-        const currentComposition = this.c;
-        if (change.src === 'model' && currentComposition != null) {
-            return currentComposition.update(change.model);
-        }
+        const compositionCtrl = this.c;
         // todo: handle consequitive changes that create multiple queues
         return onResolve(factory.create(change), context => {
             // Don't compose [stale] view/view model
@@ -10951,21 +10967,24 @@ let AuCompose = class AuCompose {
                                 // after activation, if the composition context is still the most recent one
                                 // then the job is done
                                 this.c = result;
-                                return currentComposition === null || currentComposition === void 0 ? void 0 : currentComposition.deactivate(change.initiator);
+                                return onResolve(compositionCtrl === null || compositionCtrl === void 0 ? void 0 : compositionCtrl.deactivate(change.initiator), () => context);
                             }
                             else {
                                 // the stale controller should be deactivated
                                 return onResolve(result.controller.deactivate(result.controller, this.$controller, 4 /* fromUnbind */), 
                                 // todo: do we need to deactivate?
-                                () => result.controller.dispose());
+                                () => {
+                                    result.controller.dispose();
+                                    return context;
+                                });
                             }
                         });
                     }
-                    else {
-                        result.controller.dispose();
-                    }
+                    result.controller.dispose();
+                    return context;
                 });
             }
+            return context;
         });
     }
     /** @internal */
@@ -10993,6 +11012,7 @@ let AuCompose = class AuCompose {
                 };
             }
             else {
+                // todo: should the host be appended later, during the activation phase instead?
                 compositionHost = parentNode.insertBefore(this.p.document.createElement(srcDef.name), loc);
                 removeCompositionHost = () => {
                     compositionHost.remove();
@@ -11093,12 +11113,14 @@ __decorate([
     bindable
 ], AuCompose.prototype, "model", void 0);
 __decorate([
-    bindable({ set: v => {
+    bindable({
+        set: v => {
             if (v === 'scoped' || v === 'auto') {
                 return v;
             }
             throw new Error('Invalid scope behavior config. Only "scoped" or "auto" allowed.');
-        } })
+        }
+    })
 ], AuCompose.prototype, "scopeBehavior", void 0);
 AuCompose = __decorate([
     customElement('au-compose')
@@ -11117,6 +11139,10 @@ class CompositionContextFactory {
     }
     create(changes) {
         return onResolve(changes.load(), (loaded) => new CompositionContext(this.id++, loaded));
+    }
+    // simplify increasing the id will invalidate all previously created context
+    invalidate() {
+        this.id++;
     }
 }
 class ChangeInfo {
@@ -11209,7 +11235,6 @@ class AuSlot {
         var _a;
         this.parentScope = this.$controller.scope.parentScope;
         let outerScope;
-        let overlayedOuterScope;
         if (this.hasProjection) {
             // if there is a projection,
             // then the au-slot should connect the outer scope with the inner scope binding context
@@ -11217,9 +11242,8 @@ class AuSlot {
             // - binding context & override context pointing to the outer scope binding & override context respectively
             // - override context has the $host pointing to inner scope binding context
             outerScope = this.hdrContext.controller.scope.parentScope;
-            overlayedOuterScope = this.outerScope = Scope.create(outerScope.bindingContext, OverrideContext.create(outerScope.bindingContext), false);
-            overlayedOuterScope.parentScope = outerScope;
-            overlayedOuterScope.overrideContext.$host = (_a = this.expose) !== null && _a !== void 0 ? _a : this.parentScope.bindingContext;
+            (this.outerScope = Scope.fromParent(outerScope, outerScope.bindingContext))
+                .overrideContext.$host = (_a = this.expose) !== null && _a !== void 0 ? _a : this.parentScope.bindingContext;
         }
     }
     attaching(initiator, parent, flags) {

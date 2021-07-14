@@ -451,7 +451,7 @@ export class FooBar {
 {% endtab %}
 {% endtabs %}
 
-Let's consider another example of `$host` which highlights the necessity of it.
+Let's consider another example of `$host` which highlights the communication between inside and outside of a custom element that employs `<au-slot>`
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -464,7 +464,7 @@ Let's consider another example of `$host` which highlights the necessity of it.
       <h4>Last Name</h4>
     </au-slot>
     <template repeat.for="person of people">
-      <au-slot name="content">
+      <au-slot name="content" expose.bind="{ person, $event, $odd, $index }">
         <div>${person.firstName}</div>
         <div>${person.lastName}</div>
       </au-slot>
@@ -515,7 +515,7 @@ class Person {
 {% endtab %}
 {% endtabs %}
 
-In the example above, we replace the 'content' template of the grid, defined in `my-element`, from `my-app`. While doing so, we can grab the scope of the repeater and use the properties made available by the binding context, and use those in the projection template. Note that `$host` let us access even the contextual properties like `$index`, `$even`, or `$odd`. Without the `$host` it might have been difficult to provide a template for the repeater from outside.
+In the example above, we replace the 'content' template of the grid, defined in `my-element`, from `my-app`. While doing so, we can grab the scope of the `<au-slot name="content" />` and use the properties made available by the binding `expose.bind="{ person, $even, $odd, $index }"`, and use those in the projection template. Note that `$host` allows us to access whatever the `<au-slot/>` element exposes, and this value can be changed to enable powerful scenarios. Without the `$host` it might have been difficult to provide a template for the repeater from outside.
 
 {% hint style="info" %}
 The last example is also interesting from another aspect. It shows that while working with a grid, many parts of the grid can be replaced with projection. This includes, the header of the grid \(`au-slot="header"`\), the template column of the grid \(`au-slot="content"`\), or even the whole grid itself \(`au-slot="grid"`\).

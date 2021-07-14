@@ -1,4 +1,4 @@
-import { OverrideContext, Scope } from '@aurelia/runtime';
+import { Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
 import { bindable } from '../../bindable.js';
 import { customElement } from '../custom-element.js';
@@ -51,7 +51,6 @@ export class AuSlot implements ICustomElementViewModel {
   ): void | Promise<void> {
     this.parentScope = this.$controller.scope.parentScope!;
     let outerScope: Scope;
-    let overlayedOuterScope: Scope;
     if (this.hasProjection) {
       // if there is a projection,
       // then the au-slot should connect the outer scope with the inner scope binding context
@@ -59,13 +58,8 @@ export class AuSlot implements ICustomElementViewModel {
       // - binding context & override context pointing to the outer scope binding & override context respectively
       // - override context has the $host pointing to inner scope binding context
       outerScope = this.hdrContext.controller.scope.parentScope!;
-      overlayedOuterScope = this.outerScope = Scope.create(
-        outerScope.bindingContext,
-        OverrideContext.create(outerScope.bindingContext),
-        false
-      );
-      overlayedOuterScope.parentScope = outerScope;
-      overlayedOuterScope.overrideContext.$host = this.expose ?? this.parentScope.bindingContext;
+      (this.outerScope = Scope.fromParent(outerScope, outerScope.bindingContext))
+        .overrideContext.$host = this.expose ?? this.parentScope.bindingContext;
     }
   }
 

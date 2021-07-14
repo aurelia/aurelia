@@ -76,9 +76,8 @@ export class Listener implements IBinding {
     if (this.delegationStrategy === DelegationStrategy.none) {
       this.target.addEventListener(this.targetEvent, this);
     } else {
-      const eventTarget = this.locator.get(IEventTarget);
       this.handler = this.eventDelegator.addEventListener(
-        eventTarget,
+        this.locator.get(IEventTarget),
         this.target,
         this.targetEvent,
         this,

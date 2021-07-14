@@ -575,9 +575,6 @@ export class AccessThisExpression {
   ) {}
 
   public evaluate(_f: LF, s: Scope, _l: IServiceLocator, _c: IConnectable | null): IBindingContext | undefined {
-    // if (this === AccessThisExpression.$host) {
-    //   s = chooseScope(true, s, hs);
-    // }
     let oc: IOverrideContext | null = s.overrideContext;
     let currentScope: Scope | null = s;
     let i = this.ancestor;

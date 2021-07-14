@@ -43,7 +43,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       const auComponentVm = CustomElement.for(appHost.querySelector('au-compose')).viewModel as AuCompose;
 
       assert.strictEqual(auComponentVm.view, '<div>hello</div>');
-      assert.strictEqual(appHost.textContent, 'hello world');
+      assert.strictEqual(appHost.textContent, 'hello');
       ctx.platform.domWriteQueue.flush();
       assert.strictEqual(appHost.textContent, 'hello');
 
@@ -173,6 +173,8 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       await startPromise;
 
       assert.strictEqual(appHost.textContent, 'hello world');
+      // compose is done changing things
+      // but UI update by message prop change is queued
       ctx.platform.domWriteQueue.flush();
       assert.strictEqual(appHost.textContent, 'Aurelia!!');
 
@@ -617,8 +619,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.html.innerEqual(appHost, '<div>Hello world</div>');
 
       component.view = '<b>Hello</b>';
-      assert.html.innerEqual(appHost, '<div>Hello world</div>');
-      ctx.platform.domWriteQueue.flush();
+      assert.html.innerEqual(appHost, '<b>Hello</b>');
       assert.deepStrictEqual(models, [{ index: 0 }, { index: 0 }]);
       assert.visibleTextEqual(appHost, 'Hello');
       assert.html.innerEqual(appHost, '<b>Hello</b>');
@@ -777,5 +778,243 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
       await tearDown();
     });
+  });
+
+  describe('multi updates + <Promise>', function () {
+    it('works with [multiple successive updates] + [activate<Promise>]', async function () {
+      const baseTimeout = 75;
+      let timeout = baseTimeout;
+      const { appHost, component, startPromise, tearDown } = createFixture(
+        `\${message}<au-compose view-model.bind="{ activate, value: i }" view.bind="view" view-model.ref="auCompose" containerless>`,
+        class App {
+          public i = 0;
+          public message = 'hello world';
+          public view = `<div>\${value}</div>`;
+          public auCompose: AuCompose;
+
+          public activate = () => {
+            if (timeout === baseTimeout) {
+              timeout--;
+              return;
+            }
+            return new Promise(r => setTimeout(r, Math.random() * timeout--));
+          };
+        }
+      );
+
+      await startPromise;
+
+      assert.strictEqual(appHost.textContent, 'hello world0');
+
+      component.i++;
+      component.i++;
+      while (component.i < timeout) {
+        component.i++;
+        timeout--;
+        assert.strictEqual(appHost.textContent, 'hello world0');
+      }
+      const auCompose = component.auCompose;
+      await auCompose.pending;
+      assert.strictEqual(appHost.textContent, `hello world38`);
+      assert.html.innerEqual(appHost, 'hello world<div>38</div>');
+
+      await tearDown();
+      assert.strictEqual(appHost.textContent, '');
+    });
+  });
+
+  it('works with [multiple successive updates] + [binding<Promise>]', async function () {
+    const baseTimeout = 75;
+    let timeout = baseTimeout;
+    const El1 = CustomElement.define({
+      name: 'el1',
+      template: `<div>\${value} 1</div>`
+    }, class El {
+      public value: unknown;
+      public activate(model: unknown) {
+        this.value = model;
+      }
+      public binding() {
+        if (timeout === baseTimeout) {
+          timeout--;
+          return;
+        }
+        return new Promise(r => setTimeout(r, Math.random() * timeout--));
+      }
+    });
+    const El2 = CustomElement.define({
+      name: 'el2',
+      template: `<p>\${value} 2</p>`
+    }, class El {
+      public value: unknown;
+      public activate(model: unknown) {
+        this.value = model;
+      }
+      public binding() {
+        if (timeout === baseTimeout) {
+          timeout--;
+          return;
+        }
+        return new Promise(r => setTimeout(r, Math.random() * timeout--));
+      }
+    });
+    const { appHost, component, startPromise, tearDown } = createFixture(
+      `\${message}<au-compose view-model.bind="vm" model.bind="message" view-model.ref="auCompose" containerless>`,
+      class App {
+        public i = 0;
+        public message = 'hello world';
+        public auCompose: AuCompose;
+        public vm: any = El1;
+      }
+    );
+
+    await startPromise;
+
+    assert.strictEqual(appHost.textContent, 'hello worldhello world 1');
+
+    component.vm = El2;
+    component.vm = El1;
+    component.vm = El2;
+
+    assert.strictEqual(appHost.textContent, `hello worldhello world 1`);
+    // in the interim before a composition is completely disposed, on the fly host created will be in the doc
+    assert.html.innerEqual(appHost, 'hello world<el1><div>hello world 1</div></el1><el2></el2>');
+
+    const auCompose = component.auCompose;
+    await auCompose.pending;
+    assert.strictEqual(appHost.textContent, `hello worldhello world 2`);
+    assert.html.innerEqual(appHost, 'hello world<el2><p>hello world 2</p></el2>');
+
+    await tearDown();
+    assert.strictEqual(appHost.textContent, '');
+  });
+
+  // todo:
+  // in the future, if we ever add ability to control swapping order of compose
+  // this test may need changes
+  it('invokes lifecycle in reasonable manner', async function () {
+    const lifecyclesCalls: string[] = [];
+    const El1 = CustomElement.define({
+      name: 'el1',
+      template: `<div>\${value} 1</div>`
+    }, class El {
+      public activate() {
+        lifecyclesCalls.push('1.activate');
+      }
+      public binding() {
+        lifecyclesCalls.push('1.binding');
+      }
+      public bound() {
+        lifecyclesCalls.push('1.bound');
+      }
+      public attaching() {
+        lifecyclesCalls.push('1.attaching');
+      }
+      public attached() {
+        lifecyclesCalls.push('1.attached');
+      }
+      public detaching() {
+        lifecyclesCalls.push('1.detaching');
+      }
+      public unbinding() {
+        lifecyclesCalls.push('1.unbinding');
+      }
+    });
+    const El2 = CustomElement.define({
+      name: 'el2',
+      template: `<p>\${value} 2</p>`
+    }, class El {
+      public activate() {
+        lifecyclesCalls.push('2.activate');
+      }
+      public binding() {
+        lifecyclesCalls.push('2.binding');
+      }
+      public bound() {
+        lifecyclesCalls.push('2.bound');
+      }
+      public attaching() {
+        lifecyclesCalls.push('2.attaching');
+      }
+      public attached() {
+        lifecyclesCalls.push('2.attached');
+      }
+      public detaching() {
+        lifecyclesCalls.push('2.detaching');
+      }
+      public unbinding() {
+        lifecyclesCalls.push('2.unbinding');
+      }
+    });
+    const { appHost, component, startPromise, tearDown } = createFixture(
+      `\${message}<au-compose view-model.bind="vm" model.bind="message" view-model.ref="auCompose" containerless>`,
+      class App {
+        public i = 0;
+        public message = 'hello world';
+        public auCompose: AuCompose;
+        public vm: any = El1;
+      }
+    );
+
+    await startPromise;
+
+    assert.deepStrictEqual(lifecyclesCalls, [
+      '1.activate',
+      '1.binding',
+      '1.bound',
+      '1.attaching',
+      '1.attached',
+    ]);
+
+    // 1.1
+    component.vm = El2;
+    // 1.2
+    component.vm = El1;
+    // 1.3
+    component.vm = El2;
+
+    assert.deepStrictEqual(lifecyclesCalls, [
+      '1.activate',
+      '1.binding',
+      '1.bound',
+      '1.attaching',
+      '1.attached',
+      // activation before detactivation
+      // 1.1 starts
+      '2.activate',
+      '2.binding',
+      '2.bound',
+      '2.attaching',
+      '2.attached',
+      '1.detaching',
+      '1.unbinding',
+      // 1.1 ends
+
+      // 1.2 starts
+      '1.activate',
+      '1.binding',
+      '1.bound',
+      '1.attaching',
+      '1.attached',
+      '2.detaching',
+      '2.unbinding',
+      // 1.2 ends
+
+      // 1.3 starts
+      '2.activate',
+      '2.binding',
+      '2.bound',
+      '2.attaching',
+      '2.attached',
+      '1.detaching',
+      '1.unbinding',
+      // 1.3 ends
+    ]);
+
+    const auCompose = component.auCompose;
+    await auCompose.pending;
+
+    await tearDown();
+    assert.strictEqual(appHost.textContent, '');
   });
 });

@@ -142,7 +142,7 @@ The router allows you to redirect to other parts of your application using the `
 ```typescript
 @route({
   routes: [
-    { id: 'home', path: '', redirectTo: 'products' },
+    { path: '', redirectTo: 'products' },
     { path: 'products', component: import('./products'), title: 'Products' },
     { path: 'product/:id', component: import('./product'), title: 'Product' }
   ]

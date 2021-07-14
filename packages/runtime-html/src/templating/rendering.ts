@@ -82,15 +82,14 @@ export class Rendering {
         if (template.nodeName === 'TEMPLATE') {
           fragment = doc.adoptNode((template as HTMLTemplateElement).content);
         } else {
-          (fragment = doc.adoptNode(doc.createDocumentFragment())).appendChild(template);
+          (fragment = doc.adoptNode(doc.createDocumentFragment())).appendChild(template.cloneNode(true));
         }
       } else {
         tpl = doc.createElement('template');
-        doc.adoptNode(tpl.content);
         if (typeof template === 'string') {
           tpl.innerHTML = template;
         }
-        fragment = tpl.content;
+        doc.adoptNode(fragment = tpl.content);
       }
       cache.set(definition, fragment);
     }

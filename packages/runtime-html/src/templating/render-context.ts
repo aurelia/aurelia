@@ -70,7 +70,7 @@ export interface ICompiledRenderContext extends IRenderContext {
    *
    * @returns An new instance of `INodeSequence` if there is a template, otherwise a shared empty instance.
    */
-  createNodes(): INodeSequence;
+  // createNodes(): INodeSequence;
 }
 
 export function getRenderContext(
@@ -98,7 +98,7 @@ export function getRenderContext(
   return context;
 }
 
-const emptyNodeCache = new WeakMap<IPlatform, FragmentNodeSequence>();
+// const emptyNodeCache = new WeakMap<IPlatform, FragmentNodeSequence>();
 const compiledDefCache = new WeakMap<IContainer, WeakMap<PartialCustomElementDefinition, CustomElementDefinition>>();
 
 export class RenderContext implements ICompiledRenderContext {
@@ -161,9 +161,9 @@ export class RenderContext implements ICompiledRenderContext {
         this.fragment = null;
       } else if (template instanceof this.platform.Node) {
         if (template.nodeName === 'TEMPLATE') {
-          this.fragment = doc.adoptNode((template as HTMLTemplateElement).content);
+          this.fragment = doc.adoptNode((template as HTMLTemplateElement).content.cloneNode(true));
         } else {
-          (this.fragment = doc.adoptNode(doc.createDocumentFragment())).appendChild(template);
+          (this.fragment = doc.adoptNode(doc.createDocumentFragment())).appendChild(template.cloneNode(true));
         }
       } else {
         const tpl = doc.createElement('template');
@@ -193,19 +193,19 @@ export class RenderContext implements ICompiledRenderContext {
 
   // #region ICompiledRenderContext api
 
-  public createNodes(): INodeSequence {
-    if (this.compiledDefinition.enhance === true) {
-      return new FragmentNodeSequence(this.platform, this.compiledDefinition.template as DocumentFragment);
-    }
-    if (this.fragment === null) {
-      let emptyNodes = emptyNodeCache.get(this.platform);
-      if (emptyNodes === void 0) {
-        emptyNodeCache.set(this.platform, emptyNodes = new FragmentNodeSequence(this.platform, this.platform.document.createDocumentFragment()));
-      }
-      return emptyNodes;
-    }
-    return new FragmentNodeSequence(this.platform, this.fragment.cloneNode(true) as DocumentFragment);
-  }
+  // public createNodes(): INodeSequence {
+  //   if (this.compiledDefinition.enhance === true) {
+  //     return new FragmentNodeSequence(this.platform, this.compiledDefinition.template as DocumentFragment);
+  //   }
+  //   if (this.fragment === null) {
+  //     let emptyNodes = emptyNodeCache.get(this.platform);
+  //     if (emptyNodes === void 0) {
+  //       emptyNodeCache.set(this.platform, emptyNodes = new FragmentNodeSequence(this.platform, this.platform.document.createDocumentFragment()));
+  //     }
+  //     return emptyNodes;
+  //   }
+  //   return new FragmentNodeSequence(this.platform, this.fragment.cloneNode(true) as DocumentFragment);
+  // }
   // #endregion
 
   // public create

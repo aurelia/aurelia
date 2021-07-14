@@ -399,7 +399,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     (this.viewModel as Writable<C>).$controller = this;
-    this.nodes = compiledContext.createNodes();
+    // this.nodes = compiledContext.createNodes();
+    this.nodes = this.container.root.get(IRendering).createNodes(compiledContext.compiledDefinition);
 
     if (this.hooks.hasHydrated) {
       if (this.debug) { this.logger!.trace(`invoking hydrated() hook`); }
@@ -410,7 +411,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   public hydrateChildren(): void {
     const targets = this.nodes!.findTargets();
-    this.container.get(IRendering).render(
+    this.container.root.get(IRendering).render(
       /* flags      */this.flags,
       /* controller */this as ICustomElementController,
       /* targets    */targets,
@@ -446,12 +447,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.context = context as RenderContext;
     const compiledContext = context.compile(null);
     const compiledDefinition = compiledContext.compiledDefinition;
+    const rendering = this.container.root.get(IRendering);
 
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
-    const nodes = this.nodes = compiledContext.createNodes();
+    const nodes = this.nodes = rendering.createNodes(compiledDefinition);
     const targets = nodes.findTargets();
-    this.container.get(IRendering).render(
+    rendering.render(
       /* flags      */this.flags,
       /* controller */this as ISyntheticView,
       /* targets    */targets,

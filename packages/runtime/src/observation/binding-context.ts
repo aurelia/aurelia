@@ -55,6 +55,7 @@ export class BindingContext implements IBindingContext {
     }
     let overrideContext: IOverrideContext | null = scope.overrideContext;
     let currentScope: Scope | null = scope;
+    // let bc: IBindingContext | null;
 
     if (ancestor > 0) {
       // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
@@ -71,7 +72,15 @@ export class BindingContext implements IBindingContext {
       return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
 
-    // traverse the context and it's ancestors, searching for a context that has the name.
+    // walk the scope hierarchy until
+    // the first scope that has the property in its contexts
+    // or
+    // the closet boundary scope
+    // -------------------------
+    // this behavior is different with v1
+    // where it would fallback to the immediate scope instead of the root one
+    // TODO: maybe avoid immediate loop and return earlier
+    // -------------------------
     while (
       !currentScope?.isBoundary
       && overrideContext != null
@@ -88,6 +97,42 @@ export class BindingContext implements IBindingContext {
     if (overrideContext) {
       return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
+
+    // This following code block is the v1 behavior of scope selection
+    // where it would walk the scope hierarchy and stop at the first scope
+    // that has matching property.
+    // if no scope in the hierarchy, until the closest boundary scope has the property
+    // then pick the scope it started with
+    // ------------------
+    // if (currentScope.isBoundary) {
+    //   if (overrideContext != null) {
+    //     if (name in overrideContext) {
+    //       return overrideContext;
+    //     }
+    //     bc = overrideContext.bindingContext;
+    //     if (bc != null && name in bc) {
+    //       return bc;
+    //     }
+    //   }
+    // } else {
+    //   // traverse the context and it's ancestors, searching for a context that has the name.
+    //   do {
+    //     if (overrideContext != null) {
+    //       if (name in overrideContext) {
+    //         return overrideContext;
+    //       }
+    //       bc = overrideContext.bindingContext;
+    //       if (bc != null && name in bc) {
+    //         return bc;
+    //       }
+    //     }
+    //     if (currentScope.isBoundary) {
+    //       break;
+    //     }
+    //     currentScope = currentScope.parentScope;
+    //     overrideContext = currentScope == null ? null : currentScope.overrideContext;
+    //   } while (currentScope != null);
+    // }
 
     // still nothing found. return the root binding context (or null
     // if this is a parent scope traversal, to ensure we fall back to the

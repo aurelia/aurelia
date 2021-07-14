@@ -57,7 +57,9 @@ export class InterpolationBinding implements IBinding {
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
     const expressions = interpolation.expressions;
     const partBindings = this.partBindings = Array(expressions.length);
-    for (let i = 0, ii = expressions.length; i < ii; ++i) {
+    const ii = expressions.length;
+    let i = 0;
+    for (; ii > i; ++i) {
       partBindings[i] = new InterpolationPartBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
     }
   }
@@ -67,11 +69,12 @@ export class InterpolationBinding implements IBinding {
     const staticParts = this.interpolation.parts;
     const ii = partBindings.length;
     let result = '';
+    let i = 0;
     if (ii === 1) {
       result = staticParts[0] + partBindings[0].value + staticParts[1];
     } else {
       result = staticParts[0];
-      for (let i = 0; ii > i; ++i) {
+      for (; ii > i; ++i) {
         result += partBindings[i].value + staticParts[i + 1];
       }
     }
@@ -82,14 +85,16 @@ export class InterpolationBinding implements IBinding {
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+    let task: ITask | null;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
-      const task = this.task;
+      task = this.task;
       this.task = this.taskQueue.queueTask(() => {
         this.task = null;
         targetObserver.setValue(result, flags, this.target, this.targetProperty);
       }, queueTaskOptions);
       task?.cancel();
+      task = null;
     } else {
       targetObserver.setValue(result, flags, this.target, this.targetProperty);
     }
@@ -105,7 +110,9 @@ export class InterpolationBinding implements IBinding {
     this.isBound = true;
     this.$scope = scope;
     const partBindings = this.partBindings;
-    for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+    const ii = partBindings.length;
+    let i = 0;
+    for (; ii > i; ++i) {
       partBindings[i].$bind(flags, scope);
     }
     this.updateTarget(void 0, flags);
@@ -118,7 +125,9 @@ export class InterpolationBinding implements IBinding {
     this.isBound = false;
     this.$scope = void 0;
     const partBindings = this.partBindings;
-    for (let i = 0, ii = partBindings.length; i < ii; ++i) {
+    const ii = partBindings.length;
+    let i = 0;
+    for (; ii > i; ++i) {
       partBindings[i].interceptor.$unbind(flags);
     }
     this.task?.cancel();
@@ -159,8 +168,9 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
     const sourceExpression = this.sourceExpression;
     const obsRecord = this.obs;
     const canOptimize = sourceExpression.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
+    let shouldConnect: boolean = false;
     if (!canOptimize) {
-      const shouldConnect = (this.mode & toView) > 0;
+      shouldConnect = (this.mode & toView) > 0;
       if (shouldConnect) {
         obsRecord.version++;
       }
@@ -197,14 +207,14 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
       this.sourceExpression.bind(flags, scope, this.interceptor as IIndexable & this);
     }
 
-    const v = this.value = this.sourceExpression.evaluate(
+    this.value = this.sourceExpression.evaluate(
       flags,
       scope,
       this.locator,
       (this.mode & toView) > 0 ?  this.interceptor : null,
     );
-    if (v instanceof Array) {
-      this.observeCollection(v);
+    if (this.value instanceof Array) {
+      this.observeCollection(this.value);
     }
   }
 
@@ -275,8 +285,9 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     const sourceExpression = this.sourceExpression;
     const obsRecord = this.obs;
     const canOptimize = sourceExpression.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
+    let shouldConnect: boolean = false;
     if (!canOptimize) {
-      const shouldConnect = (this.mode & toView) > 0;
+      shouldConnect = (this.mode & toView) > 0;
       if (shouldConnect) {
         obsRecord.version++;
       }

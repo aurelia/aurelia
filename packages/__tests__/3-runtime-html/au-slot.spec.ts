@@ -540,6 +540,49 @@ describe('au-slot', function () {
       );
 
       {
+        @customElement({
+          name: 'my-element', isStrictBinding: true, template: `
+        <au-slot name="grid">
+          <au-slot name="header">
+            <h4>First Name</h4>
+            <h4>Last Name</h4>
+          </au-slot>
+          <template repeat.for="person of people">
+            <au-slot name="content" expose.bind="{ p: person, i: $index }">
+              <div>\${person.firstName}</div>
+              <div>\${person.lastName}</div>
+            </au-slot>
+          </template>
+        </au-slot>` })
+        class MyElement {
+          @bindable public people: Person[];
+          public constructor(
+            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          ) { }
+        }
+
+        yield new TestData(
+          'works when <au-slot/> re-defines properties',
+          `<my-element people.bind="people">
+            <template au-slot="header">
+              <h4>Meta</h4>
+              <h4>Surname</h4>
+              <h4>Given name</h4>
+            </template>
+            <template au-slot="content">
+              <div>index: \${$host.i} \${$host.$index}</div>
+              <div>\${$host.p.lastName}</div>
+              <div>\${$host.p.firstName}</div>
+            </template>
+          </my-element>`,
+          [
+            MyElement,
+          ],
+          { 'my-element': [`<h4>Meta</h4> <h4>Surname</h4> <h4>Given name</h4> <div>index: 0 undefined</div> <div>Doe</div> <div>John</div> <div>index: 1 undefined</div> <div>Mustermann</div> <div>Max</div>`, new AuSlotsInfo(['header', 'content'])] },
+        );
+      }
+
+      {
         class MyElement {
           public constructor(
             @IAuSlotsInfo public readonly slots: IAuSlotsInfo,

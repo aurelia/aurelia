@@ -10,7 +10,6 @@ import {
 
 import { AttributeObserver } from '../observation/element-attribute-observer.js';
 import { IPlatform } from '../platform.js';
-import { CustomElementDefinition } from '../resources/custom-element.js';
 import { BindingTargetSubscriber } from './binding-utils.js';
 
 import type {
@@ -48,7 +47,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public isBound: boolean = false;
   public $platform: IPlatform;
   public $scope: Scope = null!;
-  public projection?: CustomElementDefinition;
   public task: ITask | null = null;
   private targetSubscriber: BindingTargetSubscriber | null = null;
 
@@ -109,9 +107,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
-
+    let shouldConnect: boolean = false;
+    let task: ITask | null;
     if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.obs.count > 1) {
-      const shouldConnect = (mode & oneTime) === 0;
+      shouldConnect = (mode & oneTime) === 0;
       if (shouldConnect) {
         this.obs.version++;
       }
@@ -121,7 +120,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
       }
     }
 
-    let task: ITask | null;
     if (newValue !== this.value) {
       this.value = newValue;
       if (shouldQueueFlush) {
@@ -138,7 +136,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -151,7 +149,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
 
     this.$scope = scope;
-    this.projection = projection;
 
     let sourceExpression = this.sourceExpression;
     if (sourceExpression.hasBind) {
@@ -173,9 +170,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
     sourceExpression = this.sourceExpression;
     const $mode = this.mode;
     const interceptor = this.interceptor;
+    let shouldConnect: boolean = false;
 
     if ($mode & toViewOrOneTime) {
-      const shouldConnect = ($mode & toView) > 0;
+      shouldConnect = ($mode & toView) > 0;
       interceptor.updateTarget(
         this.value = sourceExpression.evaluate(flags, scope, this.locator, shouldConnect ? interceptor : null),
         flags

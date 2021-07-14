@@ -79,11 +79,12 @@ export class PropertyBinding implements IPartialConnectableBinding {
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
+    let shouldConnect: boolean = false;
 
     // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
     if (sourceExpression.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
       // todo: in VC expressions, from view also requires connect
-      const shouldConnect = this.mode > oneTime;
+      shouldConnect = this.mode > oneTime;
       if (shouldConnect) {
         obsRecord.version++;
       }
@@ -95,12 +96,13 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
-      const task = this.task;
+      task = this.task;
       this.task = this.taskQueue.queueTask(() => {
         interceptor.updateTarget(newValue, flags);
         this.task = null;
       }, updateTaskOpts);
       task?.cancel();
+      task = null;
     } else {
       interceptor.updateTarget(newValue, flags);
     }
@@ -127,10 +129,10 @@ export class PropertyBinding implements IPartialConnectableBinding {
       sourceExpression.bind(flags, scope, this.interceptor);
     }
 
+    const observerLocator = this.observerLocator;
     const $mode = this.mode;
     let targetObserver = this.targetObserver;
     if (!targetObserver) {
-      const observerLocator = this.observerLocator;
       if ($mode & fromView) {
         targetObserver = observerLocator.getObserver(this.target, this.targetProperty);
       } else {
@@ -143,8 +145,8 @@ export class PropertyBinding implements IPartialConnectableBinding {
     // deepscan-disable-next-line
     sourceExpression = this.sourceExpression;
     const interceptor = this.interceptor;
-
     const shouldConnect = ($mode & toView) > 0;
+
     if ($mode & toViewOrOneTime) {
       interceptor.updateTarget(
         sourceExpression.evaluate(flags, scope, this.locator, shouldConnect ? interceptor : null),
@@ -174,14 +176,13 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
     this.$scope = void 0;
 
-    const task = this.task;
-
+    task = this.task;
     if (this.targetSubscriber) {
       (this.targetObserver as IObserver).unsubscribe(this.targetSubscriber);
     }
     if (task != null) {
       task.cancel();
-      this.task = null;
+      task = this.task = null;
     }
     this.obs.clear(true);
 
@@ -190,3 +191,5 @@ export class PropertyBinding implements IPartialConnectableBinding {
 }
 
 connectable(PropertyBinding);
+
+let task: ITask | null = null;

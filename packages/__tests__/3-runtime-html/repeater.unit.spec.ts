@@ -7,10 +7,8 @@ import {
   Scope,
   LifecycleFlags,
   Repeat,
-  ViewFactory,
   Controller,
   CustomElementDefinition,
-  getRenderContext,
   IHydratableController,
   IRenderLocation,
   PropertyBindingRendererRegistration,
@@ -18,6 +16,7 @@ import {
   TextBindingInstruction,
   Interpolation,
   INodeObserverLocatorRegistration,
+  IRendering,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
@@ -546,21 +545,18 @@ describe(`Repeat`, function () {
         loc.$start = PLATFORM.document.createComment('au-start');
         host.append(loc.$start, loc);
 
-        const itemContext = getRenderContext(
-          CustomElementDefinition.create({
-            name: void 0,
-            template: textTemplate.content.cloneNode(true),
-            instructions: [
-              [
-                new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression('item')]), false),
-              ],
+        const itemDef = CustomElementDefinition.create({
+          name: void 0,
+          template: textTemplate.content.cloneNode(true),
+          instructions: [
+            [
+              new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression('item')]), false),
             ],
-            needsCompile: false,
-          }),
-          container,
-        );
+          ],
+          needsCompile: false,
+        });
 
-        const itemFactory = new ViewFactory(`item-view`, itemContext);
+        const itemFactory = container.get(IRendering).getViewFactory(itemDef, container);
 
         const binding: PropertyBinding = {
           target: null,

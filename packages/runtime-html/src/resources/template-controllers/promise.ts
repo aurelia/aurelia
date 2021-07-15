@@ -13,7 +13,6 @@ import {
   IHydratedParentController,
   ISyntheticView
 } from '../../templating/controller.js';
-import { ICompiledRenderContext } from '../../templating/render-context.js';
 import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
 
@@ -47,7 +46,6 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
 
   public link(
     flags: LifecycleFlags,
-    _parentContext: ICompiledRenderContext,
     _controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
@@ -180,7 +178,6 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 
   public link(
     flags: LifecycleFlags,
-    parentContext: ICompiledRenderContext,
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
@@ -229,7 +226,6 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
   public link(
     flags: LifecycleFlags,
-    parentContext: ICompiledRenderContext,
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
@@ -279,7 +275,6 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
 
   public link(
     flags: LifecycleFlags,
-    parentContext: ICompiledRenderContext,
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,

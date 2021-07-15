@@ -9,8 +9,9 @@ import {
 } from './renderer.js';
 import { IPlatform } from './platform.js';
 import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element.js';
-import { getRenderContext, IRenderContext } from './templating/render-context.js';
 import { IViewFactory } from './templating/view.js';
+import { IRendering } from './templating/rendering.js';
+
 import type { ISyntheticView } from './templating/controller.js';
 
 export function createElement<C extends Constructable = Constructable>(
@@ -32,8 +33,7 @@ export function createElement<C extends Constructable = Constructable>(
  * RenderPlan. Todo: describe goal of this class
  */
 export class RenderPlan {
-  private lazyDefinition?: CustomElementDefinition = void 0;
-  private readonly childFor: WeakMap<IContainer, IContainer> = new WeakMap();
+  private lazyDef?: CustomElementDefinition = void 0;
 
   public constructor(
     private readonly node: Node,
@@ -42,8 +42,8 @@ export class RenderPlan {
   ) {}
 
   public get definition(): CustomElementDefinition {
-    if (this.lazyDefinition === void 0) {
-      this.lazyDefinition = CustomElementDefinition.create({
+    if (this.lazyDef === void 0) {
+      this.lazyDef = CustomElementDefinition.create({
         name: CustomElement.generateName(),
         template: this.node,
         needsCompile: typeof this.node === 'string',
@@ -51,16 +51,7 @@ export class RenderPlan {
         dependencies: this.dependencies,
       });
     }
-    return this.lazyDefinition;
-  }
-
-  public getContext(container: IContainer): IRenderContext {
-    const childFor = this.childFor;
-    let childContainer: IContainer | undefined = childFor.get(container);
-    if (childContainer == null) {
-      childFor.set(container, (childContainer = container.createChild()).register(...this.dependencies));
-    }
-    return getRenderContext(this.definition, childContainer);
+    return this.lazyDef;
   }
 
   public createView(parentContainer: IContainer): ISyntheticView {
@@ -68,7 +59,10 @@ export class RenderPlan {
   }
 
   public getViewFactory(parentContainer: IContainer): IViewFactory {
-    return this.getContext(parentContainer).getViewFactory();
+    return parentContainer.root.get(IRendering).getViewFactory(
+      this.definition,
+      parentContainer.createChild().register(...this.dependencies)
+    );
   }
 
   /** @internal */

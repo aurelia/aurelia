@@ -6,8 +6,8 @@ import { IPlatform } from '../platform.js';
 import { ICompliationInstruction, IInstruction, IRenderer, ITemplateCompiler } from '../renderer.js';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { createLookup } from '../utilities-html.js';
-import type { IHydratableController } from './controller.js';
 import { IViewFactory, ViewFactory } from './view.js';
+import type { IHydratableController } from './controller.js';
 
 export const IRendering = DI.createInterface<IRendering>('IRendering', x => x.singleton(Rendering));
 export interface IRendering extends Rendering { }
@@ -47,7 +47,9 @@ export class Rendering {
       if (compiled == null) {
         compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction));
       } else {
-        // todo: should only registerr if the compiled def resolution is string instead of direct resources
+        // todo:
+        // should only register if the compiled def resolution is string
+        // instead of direct resources
         container.register(...compiled.dependencies);
       }
       return compiled;

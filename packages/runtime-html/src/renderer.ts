@@ -18,7 +18,6 @@ import { RefBinding } from './binding/ref-binding.js';
 import { Listener } from './binding/listener.js';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
-import { getRenderContext } from './templating/render-context.js';
 import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables.js';
 import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute.js';
 import { convertToRenderLocation, IRenderLocation, INode, setRef } from './dom.js';
@@ -529,13 +528,6 @@ export class CustomElementRenderer implements IRenderer {
       ++i;
     }
 
-    // context.renderChildren(
-    //   /* flags        */flags,
-    //   /* instructions */instruction.instructions,
-    //   /* controller   */renderingController,
-    //   /* target       */childController,
-    // );
-
     renderingController.addChild(childController);
     /* eslint-enable prefer-const */
   }
@@ -607,13 +599,6 @@ export class CustomAttributeRenderer implements IRenderer {
       ++i;
     }
 
-    // context.renderChildren(
-    //   /* flags        */flags,
-    //   /* instructions */instruction.instructions,
-    //   /* controller   */renderingController,
-    //   /* target       */childController,
-    // );
-
     renderingController.addChild(childController);
     /* eslint-enable prefer-const */
   }
@@ -652,7 +637,6 @@ export class TemplateControllerRenderer implements IRenderer {
       default:
         def = instruction.res;
     }
-    // const viewFactory = getRenderContext(instruction.def, ctxContainer).getViewFactory();
     const viewFactory = this.r.getViewFactory(instruction.def, ctxContainer);
     const renderLocation = convertToRenderLocation(target);
     const component = invokeAttribute(
@@ -686,13 +670,6 @@ export class TemplateControllerRenderer implements IRenderer {
       renderers[propInst.type].render(flags, null!, renderingController, childController, propInst);
       ++i;
     }
-
-    // context.renderChildren(
-    //   /* flags        */flags,
-    //   /* instructions */instruction.instructions,
-    //   /* controller   */renderingController,
-    //   /* target       */childController,
-    // );
 
     renderingController.addChild(childController);
     /* eslint-enable prefer-const */

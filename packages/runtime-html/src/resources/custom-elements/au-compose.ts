@@ -5,18 +5,8 @@ import { convertToRenderLocation, INode, IRenderLocation, isRenderLocation } fro
 import { IPlatform } from '../../platform.js';
 import { HydrateElementInstruction, IInstruction } from '../../renderer.js';
 import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller.js';
-import { getRenderContext } from '../../templating/render-context.js';
 import { IRendering } from '../../templating/rendering.js';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element.js';
-
-// plan:
-// 0. <au-component/> is containerless
-//    this probably won't work, since it prohibits the use of shadow dom + slot naturally
-//    this probably will still allows au-slot
-// 1. create host element corresponding to the composed component view model
-//    if there's no view model def, then creates a div
-//    if there's no view model at all, then creates a div
-//    this probably has issue related to containerless, since it's sometimes desirable
 
 /**
  * An optional interface describing the dialog activate convention.
@@ -256,8 +246,6 @@ export class AuCompose {
           name: CustomElement.generateName(),
           template: view,
         });
-        // const renderContext = getRenderContext(targetDef, childContainer);
-        // const viewFactory = renderContext.getViewFactory();
         const viewFactory = this.r.getViewFactory(targetDef, childContainer);
         const controller = Controller.forSyntheticView(
           contextFactory.isFirst(context) ? $controller.root : null,

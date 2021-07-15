@@ -37,7 +37,7 @@ export class ViewFactory implements IViewFactory {
     name: string,
     public readonly context: IRenderContext,
     container?: IContainer,
-    def?: PartialCustomElementDefinition,
+    def?: CustomElementDefinition,
   ) {
     this.name = def == null ? name : def.name;
     this.container = container == null ? context.container : container;

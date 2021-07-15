@@ -4,7 +4,6 @@ import {
   IObserverLocator,
   view,
   customElement,
-  getRenderContext,
   Aurelia,
   RenderPlan,
   IPlatform,

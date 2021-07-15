@@ -4,14 +4,13 @@ import { bindable } from '../../bindable.js';
 import { customElement } from '../custom-element.js';
 import { IInstruction } from '../../renderer.js';
 import { IHydrationContext } from '../../templating/controller.js';
-import { getRenderContext } from '../../templating/render-context.js';
+import { IRendering } from '../../templating/rendering.js';
 
 import type { Writable } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 import type { IViewFactory } from '../../templating/view.js';
 import type { HydrateElementInstruction } from '../../renderer.js';
-import { IRendering } from '../../templating/rendering.js';
 
 export class AuSlot implements ICustomElementViewModel {
   /** @internal */
@@ -37,11 +36,9 @@ export class AuSlot implements ICustomElementViewModel {
     const slotInfo = instruction.auSlot!;
     const projection = hdrContext.instruction?.projections?.[slotInfo.name];
     if (projection == null) {
-      // factory = getRenderContext(slotInfo.fallback, hdrContext.controller.container).getViewFactory();
       factory = rendering.getViewFactory(slotInfo.fallback, hdrContext.controller.container);
       this.hasProjection = false;
     } else {
-      // factory = getRenderContext(projection, hdrContext.parent!.controller.container).getViewFactory();
       factory = rendering.getViewFactory(projection, hdrContext.parent!.controller.container);
       this.hasProjection = true;
     }

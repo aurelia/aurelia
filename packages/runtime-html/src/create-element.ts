@@ -9,10 +9,10 @@ import {
 } from './renderer.js';
 import { IPlatform } from './platform.js';
 import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element.js';
-import { getRenderContext, IRenderContext } from './templating/render-context.js';
 import { IViewFactory } from './templating/view.js';
-import type { ISyntheticView } from './templating/controller.js';
 import { IRendering } from './templating/rendering.js';
+
+import type { ISyntheticView } from './templating/controller.js';
 
 export function createElement<C extends Constructable = Constructable>(
   p: IPlatform,
@@ -33,8 +33,7 @@ export function createElement<C extends Constructable = Constructable>(
  * RenderPlan. Todo: describe goal of this class
  */
 export class RenderPlan {
-  private lazyDefinition?: CustomElementDefinition = void 0;
-  private readonly childFor: WeakMap<IContainer, IContainer> = new WeakMap();
+  private lazyDef?: CustomElementDefinition = void 0;
 
   public constructor(
     private readonly node: Node,
@@ -43,8 +42,8 @@ export class RenderPlan {
   ) {}
 
   public get definition(): CustomElementDefinition {
-    if (this.lazyDefinition === void 0) {
-      this.lazyDefinition = CustomElementDefinition.create({
+    if (this.lazyDef === void 0) {
+      this.lazyDef = CustomElementDefinition.create({
         name: CustomElement.generateName(),
         template: this.node,
         needsCompile: typeof this.node === 'string',
@@ -52,20 +51,11 @@ export class RenderPlan {
         dependencies: this.dependencies,
       });
     }
-    return this.lazyDefinition;
+    return this.lazyDef;
   }
 
   public getContainer(parent: IContainer) {
     return parent.createChild().register(...this.dependencies);
-  }
-
-  public getContext(container: IContainer): IRenderContext {
-    const childFor = this.childFor;
-    let childContainer: IContainer | undefined = childFor.get(container);
-    if (childContainer == null) {
-      childFor.set(container, (childContainer = container.createChild()).register(...this.dependencies));
-    }
-    return getRenderContext(this.definition, childContainer);
   }
 
   public createView(parentContainer: IContainer): ISyntheticView {
@@ -77,7 +67,6 @@ export class RenderPlan {
       this.definition,
       parentContainer.createChild().register(...this.dependencies)
     );
-    // return this.getContext(parentContainer).getViewFactory();
   }
 
   /** @internal */

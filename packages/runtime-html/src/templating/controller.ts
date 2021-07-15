@@ -376,8 +376,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     const rendering = this.container.root.get(IRendering);
-    // const compiledContext = this.context!.compile(hydrationInst);
-    // const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
     const compiledDef = this.compiledDef = rendering.compile(this.definition as CustomElementDefinition, this.container, hydrationInst);
     const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledDef;
 
@@ -403,7 +401,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     (this.viewModel as Writable<C>).$controller = this;
-    // this.nodes = compiledContext.createNodes();
     this.nodes = rendering.createNodes(compiledDef);
 
     if (this.hooks.hasHydrated) {
@@ -414,18 +411,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public hydrateChildren(): void {
-    const targets = this.nodes!.findTargets();
-    // this.container.root.get(IRendering).render(
-    //   /* flags      */this.flags,
-    //   /* controller */this as ICustomElementController,
-    //   /* targets    */targets,
-    //   /* definition */this.context!.compiledDefinition,
-    //   /* host       */this.host,
-    // );
     this.container.root.get(IRendering).render(
       /* flags      */this.flags,
       /* controller */this as ICustomElementController,
-      /* targets    */targets,
+      /* targets    */this.nodes!.findTargets(),
       /* definition */this.compiledDef!,
       /* host       */this.host,
     );
@@ -457,8 +446,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private hydrateSynthetic(context: IRenderContext): void {
     this.context = context as RenderContext;
     const rendering = this.container.root.get(IRendering);
-    // const compiledContext = context.compile(null);
-    // const compiledDefinition = compiledContext.compiledDefinition;
     const compiledDefinition = rendering.compile(this.viewFactory!.def!, this.container, null);
     const nodes = this.nodes = rendering.createNodes(compiledDefinition);
     const targets = nodes.findTargets();

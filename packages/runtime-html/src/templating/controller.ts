@@ -130,7 +130,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public constructor(
     public root: IAppRoot | null,
-    public ctxCt: IContainer,
     public container: IContainer,
     public readonly vmKind: ViewModelKind,
     public flags: LifecycleFlags,
@@ -182,11 +181,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(
     root: IAppRoot | null,
-    // todo: it's not a great API that both parent and child containers
-    //       are required to instantiate a controller
-    //       though refactoring this won't be simple. Should be done after other refactorings
-    contextCt: IContainer,
-    ownCt: IContainer,
+    ctn: IContainer,
     viewModel: C,
     host: HTMLElement,
     hydrationInst: IControllerElementHydrationInstruction | null,
@@ -204,8 +199,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     const controller = new Controller<C>(
       /* root           */root,
-      /* context ct     */contextCt,
-      /* own ct         */ownCt,
+      /* container      */ctn,
       /* vmKind         */ViewModelKind.customElement,
       /* flags          */flags,
       /* definition     */definition,
@@ -214,11 +208,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* host           */host,
     );
     // the hydration context this controller is provided with
-    const hydrationContext = ownCt.get(optional(IHydrationContext));
+    const hydrationContext = ctn.get(optional(IHydrationContext));
 
-    ownCt.register(...definition.dependencies);
+    ctn.register(...definition.dependencies);
     // each CE controller provides its own hydration context for its internal template
-    ownCt.registerResolver(IHydrationContext, new InstanceProvider(
+    ctn.registerResolver(IHydrationContext, new InstanceProvider(
       'IHydrationContext',
       new HydrationContext(
         controller,
@@ -237,7 +231,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public static forCustomAttribute<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(
     root: IAppRoot | null,
-    context: IContainer,
+    ctn: IContainer,
     viewModel: C,
     host: HTMLElement,
     flags: LifecycleFlags = LifecycleFlags.none,
@@ -256,9 +250,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     const controller = new Controller<C>(
       /* root           */root,
-      /* context ct     */context,
-      // CA does not have its own container
-      /* own ct         */context,
+      /* own ct         */ctn,
       /* vmKind         */ViewModelKind.customAttribute,
       /* flags          */flags,
       /* definition     */definition,
@@ -282,8 +274,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): ISyntheticView {
     const controller = new Controller(
       /* root           */root,
-      // todo: view factory should carry its own container
-      /* container      */null!,
       /* container      */viewFactory.container,
       /* vmKind         */ViewModelKind.synthetic,
       /* flags          */flags,

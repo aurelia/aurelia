@@ -54,10 +54,6 @@ export class RenderPlan {
     return this.lazyDef;
   }
 
-  public getContainer(parent: IContainer) {
-    return parent.createChild().register(...this.dependencies);
-  }
-
   public createView(parentContainer: IContainer): ISyntheticView {
     return this.getViewFactory(parentContainer).create();
   }

@@ -121,7 +121,6 @@ export class DialogController implements IDialogController {
           const ctrlr = this.controller = Controller.forCustomElement(
             null,
             container,
-            container,
             cmp,
             contentHost,
             null,

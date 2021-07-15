@@ -467,7 +467,7 @@ export class CustomElementRenderer implements IRenderer {
     let def: CustomElementDefinition | null;
     let Ctor: Constructable<ICustomElementViewModel>;
     let component: ICustomElementViewModel;
-    let childController: ICustomElementController;
+    let childCtrl: ICustomElementController;
     const res = instruction.res;
     const projections = instruction.projections;
     const ctxContainer = renderingCtrl.container;
@@ -498,9 +498,8 @@ export class CustomElementRenderer implements IRenderer {
     Ctor = def.Type;
     component = container.invoke(Ctor);
     container.registerResolver(Ctor, new InstanceProvider<typeof Ctor>(def.key, component));
-    childController = Controller.forCustomElement(
+    childCtrl = Controller.forCustomElement(
       /* root                */renderingCtrl.root,
-      /* context ct          */renderingCtrl.container,
       /* own container       */container,
       /* viewModel           */component,
       /* host                */target,
@@ -510,8 +509,8 @@ export class CustomElementRenderer implements IRenderer {
       /* definition          */def,
     );
 
-    f = childController.flags;
-    setRef(target, def.key, childController);
+    f = childCtrl.flags;
+    setRef(target, def.key, childCtrl);
 
     const renderers = this.r.renderers;
     const props = instruction.instructions;
@@ -520,11 +519,11 @@ export class CustomElementRenderer implements IRenderer {
     let propInst: IInstruction;
     while (ii > i) {
       propInst = props[i];
-      renderers[propInst.type].render(f, renderingCtrl, childController, propInst);
+      renderers[propInst.type].render(f, renderingCtrl, childCtrl, propInst);
       ++i;
     }
 
-    renderingCtrl.addChild(childController);
+    renderingCtrl.addChild(childCtrl);
     /* eslint-enable prefer-const */
   }
 }

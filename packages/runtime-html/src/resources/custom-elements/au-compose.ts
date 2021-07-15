@@ -186,7 +186,7 @@ export class AuCompose {
     const { view, viewModel, model, initiator } = context.change;
     const { container, host, $controller, contextFactory, loc } = this;
     const srcDef = this.getDef(viewModel);
-    const childContainer: IContainer = container.createChild();
+    const childCtn: IContainer = container.createChild();
     const parentNode = loc == null ? host.parentNode : loc.parentNode;
 
     if (srcDef !== null) {
@@ -206,20 +206,19 @@ export class AuCompose {
           compositionHost.remove();
         };
       }
-      comp = this.getVm(childContainer, viewModel, compositionHost);
+      comp = this.getVm(childCtn, viewModel, compositionHost);
     } else {
       compositionHost = loc == null
         ? host
         : loc;
-      comp = this.getVm(childContainer, viewModel, compositionHost);
+      comp = this.getVm(childCtn, viewModel, compositionHost);
     }
     const compose: () => ICompositionController = () => {
       // custom element based composition
       if (srcDef !== null) {
         const controller = Controller.forCustomElement(
           null,
-          container,
-          childContainer,
+          childCtn,
           comp,
           compositionHost as HTMLElement,
           null,
@@ -246,7 +245,7 @@ export class AuCompose {
           name: CustomElement.generateName(),
           template: view,
         });
-        const viewFactory = this.r.getViewFactory(targetDef, childContainer);
+        const viewFactory = this.r.getViewFactory(targetDef, childCtn);
         const controller = Controller.forSyntheticView(
           contextFactory.isFirst(context) ? $controller.root : null,
           // null!,

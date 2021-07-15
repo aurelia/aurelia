@@ -635,21 +635,21 @@ TranslationParametersBindingCommand = __decorate([
     bindingCommand(attribute)
 ], TranslationParametersBindingCommand);
 let TranslationParametersBindingRenderer = class TranslationParametersBindingRenderer {
-    constructor(parser, observerLocator, platform) {
+    constructor(parser, oL, p) {
         this.parser = parser;
-        this.observerLocator = observerLocator;
-        this.platform = platform;
+        this.oL = oL;
+        this.p = p;
     }
-    render(flags, context, renderingController, target, instruction) {
+    render(f, renderingCtrl, target, instruction) {
         TranslationBinding.create({
             parser: this.parser,
-            observerLocator: this.observerLocator,
-            context: renderingController.container,
-            controller: renderingController,
+            observerLocator: this.oL,
+            context: renderingCtrl.container,
+            controller: renderingCtrl,
             target,
             instruction,
             isParameterContext: true,
-            platform: this.platform
+            platform: this.p
         });
     }
 };
@@ -695,20 +695,20 @@ class TranslationBindingCommand {
     }
 }
 let TranslationBindingRenderer = class TranslationBindingRenderer {
-    constructor(parser, observerLocator, platform) {
+    constructor(parser, oL, p) {
         this.parser = parser;
-        this.observerLocator = observerLocator;
-        this.platform = platform;
+        this.oL = oL;
+        this.p = p;
     }
-    render(flags, context, renderingController, target, instruction) {
+    render(f, renderingCtrl, target, instruction) {
         TranslationBinding.create({
             parser: this.parser,
-            observerLocator: this.observerLocator,
-            context: renderingController.container,
-            controller: renderingController,
+            observerLocator: this.oL,
+            context: renderingCtrl.container,
+            controller: renderingCtrl,
             target,
             instruction,
-            platform: this.platform,
+            platform: this.p,
         });
     }
 };
@@ -754,20 +754,20 @@ class TranslationBindBindingCommand {
     }
 }
 let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
-    constructor(parser, observerLocator, platform) {
+    constructor(parser, oL, p) {
         this.parser = parser;
-        this.observerLocator = observerLocator;
-        this.platform = platform;
+        this.oL = oL;
+        this.p = p;
     }
-    render(flags, context, renderingController, target, instruction) {
+    render(f, renderingCtrl, target, instruction) {
         TranslationBinding.create({
             parser: this.parser,
-            observerLocator: this.observerLocator,
-            context: renderingController.container,
-            controller: renderingController,
+            observerLocator: this.oL,
+            context: renderingCtrl.container,
+            controller: renderingCtrl,
             target,
             instruction,
-            platform: this.platform
+            platform: this.p
         });
     }
 };

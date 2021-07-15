@@ -35,9 +35,6 @@ export interface ITemplateCompilerHooks {
 }
 export declare const TemplateCompilerHooks: Readonly<{
     name: string;
-    /**
-     * @param def - Placeholder for future extensions. Currently always an empty object.
-     */
     define<K extends ITemplateCompilerHooks, T extends Constructable<K>>(Type: T): T;
 }>;
 /**

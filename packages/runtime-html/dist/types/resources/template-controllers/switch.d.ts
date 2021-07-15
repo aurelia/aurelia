@@ -3,7 +3,6 @@ import { LifecycleFlags, IObserverLocator, IndexMap, Scope } from '@aurelia/runt
 import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller.js';
-import type { ICompiledRenderContext } from '../../templating/render-context.js';
 import type { INode } from '../../dom.js';
 import type { Instruction } from '../../renderer.js';
 export declare class Switch implements ICustomAttributeViewModel {
@@ -20,7 +19,7 @@ export declare class Switch implements ICustomAttributeViewModel {
      */
     readonly promise: Promise<void> | void;
     constructor(factory: IViewFactory, location: IRenderLocation);
-    link(flags: LifecycleFlags, _parentContext: ICompiledRenderContext, _controller: IHydratableController, _childController: ICustomAttributeController, _target: INode, _instruction: Instruction): void;
+    link(flags: LifecycleFlags, _controller: IHydratableController, _childController: ICustomAttributeController, _target: INode, _instruction: Instruction): void;
     attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     dispose(): void;
@@ -46,7 +45,7 @@ export declare class Case implements ICustomAttributeViewModel {
     private readonly logger;
     private observer;
     constructor(factory: IViewFactory, locator: IObserverLocator, location: IRenderLocation, logger: ILogger);
-    link(flags: LifecycleFlags, parentContext: ICompiledRenderContext, controller: IHydratableController, _childController: ICustomAttributeController, _target: INode, _instruction: Instruction): void;
+    link(flags: LifecycleFlags, controller: IHydratableController, _childController: ICustomAttributeController, _target: INode, _instruction: Instruction): void;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     isMatch(value: unknown, flags: LifecycleFlags): boolean;
     valueChanged(newValue: unknown, _oldValue: unknown, flags: LifecycleFlags): void;

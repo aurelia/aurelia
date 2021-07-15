@@ -29,6 +29,7 @@ export declare class AuCompose {
     private _p?;
     get pending(): Promise<void> | void;
     get composition(): ICompositionController | undefined;
+    private readonly r;
     constructor(container: IContainer, parent: ISyntheticView | ICustomElementController, host: HTMLElement, p: IPlatform, instruction: HydrateElementInstruction, contextFactory: CompositionContextFactory);
     attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController): void | Promise<void>;

@@ -2,20 +2,19 @@ import { CustomElementDefinition } from '../resources/custom-element.js';
 import type { Constructable, ConstructableClass, IContainer } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
 import type { ICustomElementViewModel, ISyntheticView, ICustomElementController, ICustomAttributeController } from './controller.js';
-import type { IRenderContext } from './render-context.js';
 import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 export interface IViewFactory extends ViewFactory {
 }
 export declare const IViewFactory: import("@aurelia/kernel").InterfaceSymbol<IViewFactory>;
 export declare class ViewFactory implements IViewFactory {
-    name: string;
-    readonly context: IRenderContext;
     static maxCacheSize: number;
+    name: string;
     readonly container: IContainer;
+    def: PartialCustomElementDefinition;
     isCaching: boolean;
     private cache;
     private cacheSize;
-    constructor(name: string, context: IRenderContext);
+    constructor(container: IContainer, def: CustomElementDefinition);
     setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
     canReturnToCache(controller: ISyntheticView): boolean;
     tryReturnToCache(controller: ISyntheticView): boolean;

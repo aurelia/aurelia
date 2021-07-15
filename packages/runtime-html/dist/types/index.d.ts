@@ -58,7 +58,7 @@ export { allResources, } from './utilities-di.js';
 export { PartialChildrenDefinition, ChildrenDefinition, Children, children, ChildrenObserver, } from './templating/children.js';
 export { Controller, isCustomElementController, isCustomElementViewModel, ViewModelKind, ControllerVisitor, IViewModel, IController, IComponentController, IContextualCustomElementController, IControllerElementHydrationInstruction, IHydratableController, IHydrationContext, IDryCustomElementController, ICustomAttributeController, IHydratedController, IHydratedComponentController, IHydratedParentController, ICompiledCustomElementController, ICustomElementController, ICustomElementViewModel, ICustomAttributeViewModel, IHydratedCustomElementViewModel, IHydratedCustomAttributeViewModel, ISyntheticView, } from './templating/controller.js';
 export { ILifecycleHooks, LifecycleHooksEntry, LifecycleHooksDefinition, LifecycleHooksLookup, LifecycleHook, LifecycleHooks, lifecycleHooks, } from './templating/lifecycle-hooks.js';
-export { getRenderContext, isRenderContext, IRenderContext, ICompiledRenderContext, } from './templating/render-context.js';
+export { IRendering, Rendering, } from './templating/rendering.js';
 export { ViewFactory, IViewFactory, IViewLocator, ViewLocator, view, Views, } from './templating/view.js';
 export { createElement, RenderPlan } from './create-element.js';
 export { INode, IEventTarget, IRenderLocation, INodeSequence, NodeType, FragmentNodeSequence, IHistory, IWindow, ILocation, getEffectiveParentNode, setEffectiveParentNode, convertToRenderLocation, isRenderLocation, getRef, setRef, } from './dom.js';

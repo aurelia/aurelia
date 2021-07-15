@@ -1,5 +1,5 @@
 import { IContainer, ILogger } from '@aurelia/kernel';
-import { CustomElementDefinition, ICompiledRenderContext, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
+import { CustomElementDefinition, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 import { IRouteContext } from './route-context.js';
 import { IRouterEvents } from './router-events.js';
 import { ILocationManager } from './location-manager.js';
@@ -313,7 +313,7 @@ export declare class Router {
      * ```ts
      * // Given an already defined custom element named Greeter
      * const greeter = new Greeter();
-     * Controller.forCustomElement(greeter, this.lifecycle, null, this.context);
+     * Controller.forCustomElement(null, container, greeter, host);
      * router.load(greeter);
      * ```
      */
@@ -355,10 +355,10 @@ export declare class Router {
      *
      * @param viewportAgent - The ViewportAgent hosting the component associated with this RouteContext. If the RouteContext for the component+viewport combination already exists, the ViewportAgent will be updated in case it changed.
      * @param component - The custom element definition.
-     * @param renderContext - The `controller.context` of the component hosting the viewport that the route will be loaded into.
+     * @param container - The `controller.container` of the component hosting the viewport that the route will be loaded into.
      *
      */
-    getRouteContext(viewportAgent: ViewportAgent | null, component: CustomElementDefinition, renderContext: ICompiledRenderContext): IRouteContext;
+    getRouteContext(viewportAgent: ViewportAgent | null, component: CustomElementDefinition, container: IContainer): IRouteContext;
     createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree;
     /**
      * Enqueue an instruction tree to be processed as soon as possible.

@@ -2420,7 +2420,7 @@ function createConfiguredNode(log, node, vi, append, rr, route = rr.route.endpoi
                 resolution: rt.options.resolutionMode,
             }));
             const router = ctx.container.get(IRouter);
-            const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.context);
+            const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.container);
             childCtx.node = RouteNode.create({
                 path: rr.route.endpoint.route.path,
                 finalPath: route.path,
@@ -2554,7 +2554,7 @@ function createDirectNode(log, node, vi, append, ced) {
         resolution: rt.options.resolutionMode,
     }));
     const router = ctx.container.get(IRouter);
-    const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.context);
+    const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.container);
     // TODO(fkleuver): process redirects in direct routing (?)
     const rd = RouteDefinition.resolve(ced);
     // TODO: add ActionExpression state representation to RouteNode
@@ -2961,11 +2961,10 @@ let Router = class Router {
      *
      * @param viewportAgent - The ViewportAgent hosting the component associated with this RouteContext. If the RouteContext for the component+viewport combination already exists, the ViewportAgent will be updated in case it changed.
      * @param component - The custom element definition.
-     * @param renderContext - The `controller.context` of the component hosting the viewport that the route will be loaded into.
+     * @param container - The `controller.container` of the component hosting the viewport that the route will be loaded into.
      *
      */
-    getRouteContext(viewportAgent, component, renderContext) {
-        const container = renderContext.container;
+    getRouteContext(viewportAgent, component, container) {
         const logger = container.get(ILogger).scopeTo('RouteContext');
         const routeDefinition = RouteDefinition.resolve(component.Type);
         let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
@@ -3829,7 +3828,7 @@ class ComponentAgent {
         if (componentAgent === void 0) {
             const container = ctx.container;
             const definition = RouteDefinition.resolve(componentInstance.constructor);
-            const controller = Controller.forCustomElement(container.get(IAppRoot), container, container, componentInstance, hostController.host, null);
+            const controller = Controller.forCustomElement(container.get(IAppRoot), container, componentInstance, hostController.host, null);
             componentAgentLookup.set(componentInstance, componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx));
         }
         return componentAgent;
@@ -4126,7 +4125,7 @@ class RouteContext {
             logAndThrow(new Error(`The provided IAppRoot does not (yet) have a controller. A possible cause is calling this API manually before Aurelia.start() is called`), logger);
         }
         const router = container.get(IRouter);
-        const routeContext = router.getRouteContext(null, controller.context.definition, controller.context);
+        const routeContext = router.getRouteContext(null, controller.definition, controller.container);
         container.register(Registration.instance(IRouteContext, routeContext));
         routeContext.node = router.routeTree.root;
     }
@@ -4149,7 +4148,7 @@ class RouteContext {
                 // That's why we catch, log and re-throw instead of just letting the error bubble up.
                 // This also gives us a set point in the future to potentially handle supported scenarios where this could occur.
                 const controller = CustomElement.for(context, { searchParents: true });
-                logger.trace(`resolve(context:Node(nodeName:'${context.nodeName}'),controller:'${controller.context.definition.name}') - resolving RouteContext from controller's RenderContext`);
+                logger.trace(`resolve(context:Node(nodeName:'${context.nodeName}'),controller:'${controller.definition.name}') - resolving RouteContext from controller's RenderContext`);
                 return controller.container.get(IRouteContext);
             }
             catch (err) {
@@ -4159,12 +4158,12 @@ class RouteContext {
         }
         if (isCustomElementViewModel(context)) {
             const controller = context.$controller;
-            logger.trace(`resolve(context:CustomElementViewModel(name:'${controller.context.definition.name}')) - resolving RouteContext from controller's RenderContext`);
+            logger.trace(`resolve(context:CustomElementViewModel(name:'${controller.definition.name}')) - resolving RouteContext from controller's RenderContext`);
             return controller.container.get(IRouteContext);
         }
         if (isCustomElementController(context)) {
             const controller = context;
-            logger.trace(`resolve(context:CustomElementController(name:'${controller.context.definition.name}')) - resolving RouteContext from controller's RenderContext`);
+            logger.trace(`resolve(context:CustomElementController(name:'${controller.definition.name}')) - resolving RouteContext from controller's RenderContext`);
             return controller.container.get(IRouteContext);
         }
         logAndThrow(new Error(`Invalid context type: ${Object.prototype.toString.call(context)}`), logger);

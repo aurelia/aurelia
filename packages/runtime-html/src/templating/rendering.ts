@@ -40,17 +40,14 @@ export class Rendering {
     container: IContainer,
     compilationInstruction: ICompliationInstruction | null,
   ): CustomElementDefinition {
-    if (definition.needsCompile) {
+    if (definition.needsCompile !== false) {
       const compiledMap = this.compilationCache;
       const compiler = container.get(ITemplateCompiler);
-      // let compiledMap = compilationCache.get(this.c);
-      // if (compiledMap == null) {
-      //   compilationCache.set(container.root, compiledMap = new WeakMap());
-      // }
       let compiled = compiledMap.get(definition);
       if (compiled == null) {
         compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction));
       } else {
+        // todo: should only registerr if the compiled def resolution is string instead of direct resources
         container.register(...compiled.dependencies);
       }
       return compiled;
@@ -59,8 +56,8 @@ export class Rendering {
     return definition as CustomElementDefinition;
   }
 
-  public getViewFactory(definition: CustomElementDefinition, container: IContainer): IViewFactory {
-    return new ViewFactory(definition.name, null!, container);
+  public getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory {
+    return new ViewFactory('', null!, container, CustomElementDefinition.getOrCreate(definition));
   }
 
   public createNodes(definition: CustomElementDefinition): INodeSequence {

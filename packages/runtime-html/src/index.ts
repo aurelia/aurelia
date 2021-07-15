@@ -602,6 +602,10 @@ export {
   ICompiledRenderContext,
 } from './templating/render-context.js';
 export {
+  IRendering,
+  Rendering,
+} from './templating/rendering.js';
+export {
   ViewFactory,
   IViewFactory,
   IViewLocator,

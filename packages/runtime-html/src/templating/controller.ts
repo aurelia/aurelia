@@ -121,6 +121,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  private compiledDef: CustomElementDefinition | undefined;
   private logger: ILogger | null = null;
   private debug: boolean = false;
   private fullyNamed: boolean = false;
@@ -374,8 +375,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       (this.viewModel as BindingContext<C>).hydrating(this as ICustomElementController);
     }
 
-    const compiledContext = this.context!.compile(hydrationInst);
-    const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
+    const rendering = this.container.root.get(IRendering);
+    // const compiledContext = this.context!.compile(hydrationInst);
+    // const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
+    const compiledDef = this.compiledDef = rendering.compile(this.definition as CustomElementDefinition, this.container, hydrationInst);
+    const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledDef;
 
     this.isStrictBinding = isStrictBinding;
 
@@ -400,7 +404,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     (this.viewModel as Writable<C>).$controller = this;
     // this.nodes = compiledContext.createNodes();
-    this.nodes = this.container.root.get(IRendering).createNodes(compiledContext.compiledDefinition);
+    this.nodes = rendering.createNodes(compiledDef);
 
     if (this.hooks.hasHydrated) {
       if (this.debug) { this.logger!.trace(`invoking hydrated() hook`); }
@@ -411,11 +415,18 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   public hydrateChildren(): void {
     const targets = this.nodes!.findTargets();
+    // this.container.root.get(IRendering).render(
+    //   /* flags      */this.flags,
+    //   /* controller */this as ICustomElementController,
+    //   /* targets    */targets,
+    //   /* definition */this.context!.compiledDefinition,
+    //   /* host       */this.host,
+    // );
     this.container.root.get(IRendering).render(
       /* flags      */this.flags,
       /* controller */this as ICustomElementController,
       /* targets    */targets,
-      /* definition */this.context!.compiledDefinition,
+      /* definition */this.compiledDef!,
       /* host       */this.host,
     );
 
@@ -445,14 +456,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   private hydrateSynthetic(context: IRenderContext): void {
     this.context = context as RenderContext;
-    const compiledContext = context.compile(null);
-    const compiledDefinition = compiledContext.compiledDefinition;
     const rendering = this.container.root.get(IRendering);
-
-    this.isStrictBinding = compiledDefinition.isStrictBinding;
-
+    // const compiledContext = context.compile(null);
+    // const compiledDefinition = compiledContext.compiledDefinition;
+    const compiledDefinition = rendering.compile(this.viewFactory!.def!, this.container, null);
     const nodes = this.nodes = rendering.createNodes(compiledDefinition);
     const targets = nodes.findTargets();
+    this.isStrictBinding = compiledDefinition.isStrictBinding;
     rendering.render(
       /* flags      */this.flags,
       /* controller */this as ISyntheticView,

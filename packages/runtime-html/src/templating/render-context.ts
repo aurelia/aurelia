@@ -34,21 +34,21 @@ export interface IRenderContext {
 
   readonly container: IContainer;
 
-  /**
-   * Compiles the backing `CustomElementDefinition` (if needed) and returns the compiled `IRenderContext` that exposes the compiled `CustomElementDefinition` as well as composing operations.
-   *
-   * This operation is idempotent.
-   *
-   * @returns The compiled `IRenderContext`.
-   */
-  compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext;
+  // /**
+  //  * Compiles the backing `CustomElementDefinition` (if needed) and returns the compiled `IRenderContext` that exposes the compiled `CustomElementDefinition` as well as composing operations.
+  //  *
+  //  * This operation is idempotent.
+  //  *
+  //  * @returns The compiled `IRenderContext`.
+  //  */
+  // compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext;
 
-  /**
-   * Creates an (or returns the cached) `IViewFactory` that can be used to create synthetic view controllers.
-   *
-   * @returns Either a new `IViewFactory` (if this is the first call), or a cached one.
-   */
-  getViewFactory(name?: string): IViewFactory;
+  // /**
+  //  * Creates an (or returns the cached) `IViewFactory` that can be used to create synthetic view controllers.
+  //  *
+  //  * @returns Either a new `IViewFactory` (if this is the first call), or a cached one.
+  //  */
+  // getViewFactory(name?: string): IViewFactory;
 }
 
 /**
@@ -99,15 +99,15 @@ export function getRenderContext(
 }
 
 // const emptyNodeCache = new WeakMap<IPlatform, FragmentNodeSequence>();
-const compiledDefCache = new WeakMap<IContainer, WeakMap<PartialCustomElementDefinition, CustomElementDefinition>>();
+// const compiledDefCache = new WeakMap<IContainer, WeakMap<PartialCustomElementDefinition, CustomElementDefinition>>();
 
 export class RenderContext implements ICompiledRenderContext {
   public readonly root: IContainer;
   public readonly container: IContainer;
 
-  private fragment: Node | null = null;
-  private factory: IViewFactory | undefined = void 0;
-  private isCompiled: boolean = false;
+  // private fragment: Node | null = null;
+  // private factory: IViewFactory | undefined = void 0;
+  // private isCompiled: boolean = false;
 
   public readonly platform: IPlatform;
 
@@ -123,72 +123,61 @@ export class RenderContext implements ICompiledRenderContext {
   }
 
   // #region IRenderContext api
-  public compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext {
-    let compiledDefinition: CustomElementDefinition;
-    if (this.isCompiled) {
-      return this;
-    }
-    this.isCompiled = true;
+  // public compile(compilationInstruction: ICompliationInstruction | null): ICompiledRenderContext {
+  //   let compiledDefinition: CustomElementDefinition;
+  //   if (this.isCompiled) {
+  //     return this;
+  //   }
+  //   this.isCompiled = true;
 
-    const definition = this.definition;
-    if (definition.needsCompile) {
-      const container = this.container;
-      const compiler = container.get(ITemplateCompiler);
-      let compiledMap = compiledDefCache.get(container.root);
-      if (compiledMap == null) {
-        compiledDefCache.set(container.root, compiledMap = new WeakMap());
-      }
-      let compiled = compiledMap.get(definition);
-      if (compiled == null) {
-        compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction));
-      } else {
-        container.register(...compiled.dependencies);
-      }
-      compiledDefinition = this.compiledDefinition = compiled;
-    } else {
-      compiledDefinition = this.compiledDefinition = definition;
-    }
+  //   const definition = this.definition;
+  //   if (definition.needsCompile) {
+  //     const container = this.container;
+  //     const compiler = container.get(ITemplateCompiler);
+  //     let compiledMap = compiledDefCache.get(container.root);
+  //     if (compiledMap == null) {
+  //       compiledDefCache.set(container.root, compiledMap = new WeakMap());
+  //     }
+  //     let compiled = compiledMap.get(definition);
+  //     if (compiled == null) {
+  //       compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction));
+  //     } else {
+  //       container.register(...compiled.dependencies);
+  //     }
+  //     compiledDefinition = this.compiledDefinition = compiled;
+  //   } else {
+  //     compiledDefinition = this.compiledDefinition = definition;
+  //   }
 
-    // Support Recursive Components by adding self to own context
-    compiledDefinition.register(this.container);
+  //   // Support Recursive Components by adding self to own context
+  //   compiledDefinition.register(this.container);
 
-    if (fragmentCache.has(compiledDefinition)) {
-      this.fragment = fragmentCache.get(compiledDefinition)!;
-    } else {
-      const doc = this.platform.document;
-      const template = compiledDefinition.template;
-      if (template === null || this.definition.enhance === true) {
-        this.fragment = null;
-      } else if (template instanceof this.platform.Node) {
-        if (template.nodeName === 'TEMPLATE') {
-          this.fragment = doc.adoptNode((template as HTMLTemplateElement).content.cloneNode(true));
-        } else {
-          (this.fragment = doc.adoptNode(doc.createDocumentFragment())).appendChild(template.cloneNode(true));
-        }
-      } else {
-        const tpl = doc.createElement('template');
-        doc.adoptNode(tpl.content);
-        if (typeof template === 'string') {
-          tpl.innerHTML = template;
-        }
-        this.fragment = tpl.content;
-      }
-      fragmentCache.set(compiledDefinition, this.fragment);
-    }
+  //   if (fragmentCache.has(compiledDefinition)) {
+  //     this.fragment = fragmentCache.get(compiledDefinition)!;
+  //   } else {
+  //     const doc = this.platform.document;
+  //     const template = compiledDefinition.template;
+  //     if (template === null || this.definition.enhance === true) {
+  //       this.fragment = null;
+  //     } else if (template instanceof this.platform.Node) {
+  //       if (template.nodeName === 'TEMPLATE') {
+  //         this.fragment = doc.adoptNode((template as HTMLTemplateElement).content.cloneNode(true));
+  //       } else {
+  //         (this.fragment = doc.adoptNode(doc.createDocumentFragment())).appendChild(template.cloneNode(true));
+  //       }
+  //     } else {
+  //       const tpl = doc.createElement('template');
+  //       doc.adoptNode(tpl.content);
+  //       if (typeof template === 'string') {
+  //         tpl.innerHTML = template;
+  //       }
+  //       this.fragment = tpl.content;
+  //     }
+  //     fragmentCache.set(compiledDefinition, this.fragment);
+  //   }
 
-    return this;
-  }
-
-  public getViewFactory(name?: string): IViewFactory {
-    let factory = this.factory;
-    if (factory === void 0) {
-      if (name === void 0) {
-        name = this.definition.name;
-      }
-      factory = this.factory = new ViewFactory(name, this);
-    }
-    return factory;
-  }
+  //   return this;
+  // }
   // #endregion
 
   // #region ICompiledRenderContext api
@@ -210,8 +199,8 @@ export class RenderContext implements ICompiledRenderContext {
 
   // public create
 
-  public dispose(): void {
-    throw new Error('Cannot dispose a render context');
-  }
+  // public dispose(): void {
+  //   throw new Error('Cannot dispose a render context');
+  // }
   // #endregion
 }

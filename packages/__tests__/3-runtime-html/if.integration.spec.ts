@@ -18,6 +18,7 @@ import {
   IWorkTracker,
   INodeObserverLocatorRegistration,
   CustomAttribute,
+  IRendering,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
@@ -125,36 +126,59 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         elseLoc.$start = PLATFORM.document.createComment('au-start');
         host.append(ifLoc.$start, ifLoc, elseLoc.$start, elseLoc);
 
-        const ifContext = getRenderContext(
-          CustomElementDefinition.create({
-            name: void 0,
-            template: textTemplate.content.cloneNode(true),
-            instructions: [
-              [
-                new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression(ifPropName)]), false),
-              ],
+        // const ifContext = getRenderContext(
+        //   CustomElementDefinition.create({
+        //     name: void 0,
+        //     template: textTemplate.content.cloneNode(true),
+        //     instructions: [
+        //       [
+        //         new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression(ifPropName)]), false),
+        //       ],
+        //     ],
+        //     needsCompile: false,
+        //   }),
+        //   container,
+        // );
+        // const elseContext = getRenderContext(
+        //   CustomElementDefinition.create({
+        //     name: void 0,
+        //     template: textTemplate.content.cloneNode(true),
+        //     instructions: [
+        //       [
+        //         new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression(elsePropName)]), false),
+        //       ],
+        //     ],
+        //     needsCompile: false,
+        //   }),
+        //   container,
+        // );
+        const ifDef = CustomElementDefinition.create({
+          name: 'if-view',
+          template: textTemplate.content.cloneNode(true),
+          instructions: [
+            [
+              new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression(ifPropName)]), false),
             ],
-            needsCompile: false,
-          }),
-          container,
-        );
-        const elseContext = getRenderContext(
-          CustomElementDefinition.create({
-            name: void 0,
-            template: textTemplate.content.cloneNode(true),
-            instructions: [
-              [
-                new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression(elsePropName)]), false),
-              ],
+          ],
+          needsCompile: false,
+        });
+        const elseDef = CustomElementDefinition.create({
+          name: 'else-view',
+          template: textTemplate.content.cloneNode(true),
+          instructions: [
+            [
+              new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression(elsePropName)]), false),
             ],
-            needsCompile: false,
-          }),
-          container,
-        );
+          ],
+          needsCompile: false,
+        });
 
         const work = container.get(IWorkTracker);
-        const ifFactory = new ViewFactory('if-view', ifContext);
-        const elseFactory = new ViewFactory('else-view', elseContext);
+        const rendering = container.get(IRendering);
+        // const ifFactory = new ViewFactory('if-view', ifContext);
+        // const elseFactory = new ViewFactory('else-view', elseContext);
+        const ifFactory = rendering.getViewFactory(ifDef, container);
+        const elseFactory = rendering.getViewFactory(elseDef, container);
         const sut = new If(ifFactory, ifLoc, work);
         const elseSut = new Else(elseFactory);
         const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);

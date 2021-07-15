@@ -6,6 +6,7 @@ import { IPlatform } from '../../platform.js';
 import { HydrateElementInstruction, IInstruction } from '../../renderer.js';
 import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller.js';
 import { getRenderContext } from '../../templating/render-context.js';
+import { IRendering } from '../../templating/rendering.js';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element.js';
 
 // plan:
@@ -80,6 +81,8 @@ export class AuCompose {
     return this.c;
   }
 
+  private readonly r: IRendering;
+
   /** @internal */
   private readonly loc: IRenderLocation | undefined;
 
@@ -94,6 +97,7 @@ export class AuCompose {
     private readonly contextFactory: CompositionContextFactory,
   ) {
     this.loc = instruction.containerless ? convertToRenderLocation(this.host) : void 0;
+    this.r = container.get(IRendering);
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
@@ -252,11 +256,12 @@ export class AuCompose {
           name: CustomElement.generateName(),
           template: view,
         });
-        const renderContext = getRenderContext(targetDef, childContainer);
-        const viewFactory = renderContext.getViewFactory();
+        // const renderContext = getRenderContext(targetDef, childContainer);
+        // const viewFactory = renderContext.getViewFactory();
+        const viewFactory = this.r.getViewFactory(targetDef, childContainer);
         const controller = Controller.forSyntheticView(
           contextFactory.isFirst(context) ? $controller.root : null,
-          renderContext,
+          null!,
           viewFactory,
           LifecycleFlags.fromBind,
           $controller

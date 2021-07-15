@@ -12,6 +12,7 @@ import { CustomElement, CustomElementDefinition, CustomElementType } from './res
 import { getRenderContext, IRenderContext } from './templating/render-context.js';
 import { IViewFactory } from './templating/view.js';
 import type { ISyntheticView } from './templating/controller.js';
+import { IRendering } from './templating/rendering.js';
 
 export function createElement<C extends Constructable = Constructable>(
   p: IPlatform,
@@ -54,6 +55,10 @@ export class RenderPlan {
     return this.lazyDefinition;
   }
 
+  public getContainer(parent: IContainer) {
+    return parent.createChild().register(...this.dependencies);
+  }
+
   public getContext(container: IContainer): IRenderContext {
     const childFor = this.childFor;
     let childContainer: IContainer | undefined = childFor.get(container);
@@ -68,7 +73,11 @@ export class RenderPlan {
   }
 
   public getViewFactory(parentContainer: IContainer): IViewFactory {
-    return this.getContext(parentContainer).getViewFactory();
+    return parentContainer.root.get(IRendering).getViewFactory(
+      this.definition,
+      parentContainer.createChild().register(...this.dependencies)
+    );
+    // return this.getContext(parentContainer).getViewFactory();
   }
 
   /** @internal */

@@ -8,6 +8,7 @@ import {
   Aurelia,
   RenderPlan,
   IPlatform,
+  IRendering,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
@@ -17,7 +18,7 @@ import {
   createFixture,
 } from '@aurelia/testing';
 
-describe('3-runtime-html/compose.spec.ts/au-render', function () {
+describe('3-runtime-html/au-render.spec.ts', function () {
   function $createFixture(): SpecContext {
     const ctx = TestContext.create();
     const { container, platform, observerLocator } = ctx;
@@ -67,7 +68,7 @@ describe('3-runtime-html/compose.spec.ts/au-render', function () {
     },
     {
       t: '4',
-      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory(),
+      createSubject: ctx => ctx.container.get(IRendering).getViewFactory({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container),
       expectedText: 'Hello!'
     },
     // {

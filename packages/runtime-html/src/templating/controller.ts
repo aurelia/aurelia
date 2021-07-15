@@ -21,7 +21,6 @@ import { BindableObserver } from '../observation/bindable-observer.js';
 import { convertToRenderLocation, setRef } from '../dom.js';
 import { CustomElementDefinition, CustomElement } from '../resources/custom-element.js';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute.js';
-import { IRenderContext, getRenderContext, RenderContext, ICompiledRenderContext } from './render-context.js';
 import { ChildrenDefinition, ChildrenObserver } from './children.js';
 import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
@@ -89,7 +88,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public mountTarget: MountTarget = MountTarget.none;
   public shadowRoot: ShadowRoot | null = null;
   public nodes: INodeSequence | null = null;
-  public context: RenderContext | null = null;
   public location: IRenderLocation | null = null;
   public lifecycleHooks: LifecycleHooksLookup | null = null;
 
@@ -278,7 +276,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public static forSyntheticView(
     root: IAppRoot | null,
-    context: IRenderContext,
     viewFactory: IViewFactory,
     flags: LifecycleFlags = LifecycleFlags.none,
     parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined = void 0,
@@ -297,7 +294,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     );
     controller.parent = parentController ?? null;
 
-    controller.hydrateSynthetic(context);
+    controller.hydrateSynthetic(/* context */);
 
     return controller as unknown as ISyntheticView;
   }
@@ -343,7 +340,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    this.context = getRenderContext(definition, container) as RenderContext;
     this.lifecycleHooks = LifecycleHooks.resolve(container);
     // Support Recursive Components by adding self to own context
     definition.register(container);
@@ -382,7 +378,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.isStrictBinding = isStrictBinding;
 
     if ((this.hostController = CustomElement.for(this.host!, optionalCeFind) as Controller | null) !== null) {
-      this.host = this.platform.document.createElement(this.context!.definition.name);
+      this.host = this.platform.document.createElement(this.definition!.name);
     }
 
     setRef(this.host!, CustomElement.name, this as IHydratedController);
@@ -426,7 +422,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private hydrateCustomAttribute(): void {
-    const definition = this.definition as CustomElementDefinition;
+    const definition = this.definition as CustomAttributeDefinition;
     const instance = this.viewModel!;
 
     if (definition.watches.length > 0) {
@@ -443,8 +439,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
-  private hydrateSynthetic(context: IRenderContext): void {
-    this.context = context as RenderContext;
+  private hydrateSynthetic(): void {
     const rendering = this.container.root.get(IRendering);
     const compiledDefinition = rendering.compile(this.viewFactory!.def!, this.container, null);
     const nodes = this.nodes = rendering.createNodes(compiledDefinition);
@@ -1045,7 +1040,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.scope = null;
 
     this.nodes = null;
-    this.context = null;
     this.location = null;
 
     this.viewFactory = null;
@@ -1425,10 +1419,6 @@ export interface ISyntheticView extends IHydratableController {
   readonly vmKind: ViewModelKind.synthetic;
   readonly definition: null;
   readonly viewModel: null;
-  /**
-   * The compiled render context used for composing this view. Compilation was done by the `IViewFactory` prior to creating this view.
-   */
-  readonly context: ICompiledRenderContext;
   readonly isStrictBinding: boolean;
   /**
    * The physical DOM nodes that will be appended during the attach operation.
@@ -1561,10 +1551,7 @@ export interface IDryCustomElementController<C extends IViewModel = IViewModel> 
  * It has the same properties as `IDryCustomElementController`, as well as a render context (hence 'contextual').
  */
 export interface IContextualCustomElementController<C extends IViewModel = IViewModel> extends IDryCustomElementController<C> {
-  /**
-   * The non-compiled render context used for compiling this component's `CustomElementDefinition`.
-   */
-  readonly context: IRenderContext;
+
 }
 
 /**
@@ -1573,10 +1560,6 @@ export interface IContextualCustomElementController<C extends IViewModel = IView
  * It has the same properties as `IContextualCustomElementController`, except the context is now compiled (hence 'compiled'), as well as the nodes, and projector.
  */
 export interface ICompiledCustomElementController<C extends IViewModel = IViewModel> extends IContextualCustomElementController<C> {
-  /**
-   * The compiled render context used for hydrating this controller.
-   */
-  readonly context: ICompiledRenderContext;
   readonly isStrictBinding: boolean;
   /**
    * The ShadowRoot, if this custom element uses ShadowDOM.
@@ -1716,7 +1699,6 @@ export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<
   readonly $controller?: ICustomAttributeController<this>;
   link?(
     flags: LifecycleFlags,
-    parentContext: ICompiledRenderContext,
     controller: IHydratableController,
     childController: ICustomAttributeController,
     target: INode,

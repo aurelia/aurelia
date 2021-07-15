@@ -15,7 +15,6 @@ import {
   bindingCommand,
   IPlatform,
   IAttrMapper,
-  ICompiledRenderContext,
   ICommandBuildInfo,
 } from '@aurelia/runtime-html';
 
@@ -70,26 +69,25 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
 export class TranslationParametersBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
-    @IObserverLocator private readonly observerLocator: IObserverLocator,
-    @IPlatform private readonly platform: IPlatform,
+    @IObserverLocator private readonly oL: IObserverLocator,
+    @IPlatform private readonly p: IPlatform,
   ) { }
 
   public render(
-    flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    renderingController: IHydratableController,
+    f: LifecycleFlags,
+    renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {
     TranslationBinding.create({
       parser: this.parser,
-      observerLocator: this.observerLocator,
-      context: renderingController.container,
-      controller: renderingController,
+      observerLocator: this.oL,
+      context: renderingCtrl.container,
+      controller: renderingCtrl,
       target,
       instruction,
       isParameterContext: true,
-      platform: this.platform
+      platform: this.p
     });
   }
 }

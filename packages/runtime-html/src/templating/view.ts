@@ -17,7 +17,6 @@ import type {
   IHydratedParentController,
   IHydrationContext,
 } from './controller.js';
-import type { IRenderContext } from './render-context.js';
 import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 
 export interface IViewFactory extends ViewFactory {}
@@ -34,14 +33,12 @@ export class ViewFactory implements IViewFactory {
   private cacheSize: number = -1;
 
   public constructor(
-    name: string,
-    public readonly context: IRenderContext,
-    container?: IContainer,
-    def?: CustomElementDefinition,
+    container: IContainer,
+    def: CustomElementDefinition,
   ) {
-    this.name = def == null ? name : def.name;
-    this.container = container == null ? context.container : container;
-    this.def = def == null ? context.definition : def;
+    this.name = def.name;
+    this.container = container;
+    this.def = def;
   }
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
@@ -91,7 +88,7 @@ export class ViewFactory implements IViewFactory {
       return controller;
     }
 
-    controller = Controller.forSyntheticView(null, this.context, this, flags, parentController);
+    controller = Controller.forSyntheticView(null, /* null!,  */this, flags, parentController);
     return controller;
   }
 }

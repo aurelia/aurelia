@@ -596,12 +596,6 @@ export {
   lifecycleHooks,
 } from './templating/lifecycle-hooks.js';
 export {
-  getRenderContext,
-  isRenderContext,
-  IRenderContext,
-  ICompiledRenderContext,
-} from './templating/render-context.js';
-export {
   IRendering,
   Rendering,
 } from './templating/rendering.js';

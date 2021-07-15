@@ -249,7 +249,7 @@ export class AuCompose {
         const viewFactory = this.r.getViewFactory(targetDef, childContainer);
         const controller = Controller.forSyntheticView(
           contextFactory.isFirst(context) ? $controller.root : null,
-          null!,
+          // null!,
           viewFactory,
           LifecycleFlags.fromBind,
           $controller

@@ -59,7 +59,7 @@ export class Rendering {
   }
 
   public getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory {
-    return new ViewFactory('', null!, container, CustomElementDefinition.getOrCreate(definition));
+    return new ViewFactory(container, CustomElementDefinition.getOrCreate(definition));
   }
 
   public createNodes(definition: CustomElementDefinition): INodeSequence {
@@ -118,27 +118,30 @@ export class Rendering {
     let instruction: IInstruction;
     let target: INode;
 
-    while (ii > i) {
-      row = rows[i];
-      target = targets[i];
-      j = 0;
-      jj = row.length;
-      while (jj > j) {
-        instruction = row[j];
-        renderers[instruction.type].render(flags, null!, controller, target, instruction);
-        ++j;
+    if (ii > 0) {
+      while (ii > i) {
+        row = rows[i];
+        target = targets[i];
+        j = 0;
+        jj = row.length;
+        while (jj > j) {
+          instruction = row[j];
+          renderers[instruction.type].render(flags, controller, target, instruction);
+          ++j;
+        }
+        ++i;
       }
-      ++i;
     }
 
     if (host !== void 0 && host !== null) {
       row = definition.surrogates;
-      j = 0;
-      jj = row.length;
-      while (jj > j) {
-        instruction = row[j];
-        renderers[instruction.type].render(flags, null!, controller, host, instruction);
-        ++j;
+      if ((jj = row.length) > 0) {
+        j = 0;
+        while (jj > j) {
+          instruction = row[j];
+          renderers[instruction.type].render(flags, controller, host, instruction);
+          ++j;
+        }
       }
     }
   }

@@ -15,8 +15,8 @@ import type {
   ICustomAttributeController,
   IHydratedController,
   IHydratedParentController,
+  IHydrationContext,
 } from './controller.js';
-import type { IRenderContext } from './render-context.js';
 import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 
 export interface IViewFactory extends ViewFactory {}
@@ -24,17 +24,21 @@ export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory');
 export class ViewFactory implements IViewFactory {
   public static maxCacheSize: number = 0xFFFF;
 
+  public name: string;
   public readonly container: IContainer;
+  public def: PartialCustomElementDefinition;
   public isCaching: boolean = false;
 
   private cache: ISyntheticView[] = null!;
   private cacheSize: number = -1;
 
   public constructor(
-    public name: string,
-    public readonly context: IRenderContext,
+    container: IContainer,
+    def: CustomElementDefinition,
   ) {
-    this.container = context.container;
+    this.name = def.name;
+    this.container = container;
+    this.def = def;
   }
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
@@ -84,7 +88,7 @@ export class ViewFactory implements IViewFactory {
       return controller;
     }
 
-    controller = Controller.forSyntheticView(null, this.context, this, flags, parentController);
+    controller = Controller.forSyntheticView(null, /* null!,  */this, flags, parentController);
     return controller;
   }
 }
@@ -232,14 +236,14 @@ export class ViewLocator {
 
           public define(
             controller: IDryCustomElementController<T>,
-            parentContainer: IContainer,
+            hydrationContext: IHydrationContext,
             definition: CustomElementDefinition,
           ): PartialCustomElementDefinition | void {
             const vm = this.viewModel;
             controller.scope = Scope.fromParent(controller.scope, vm);
 
             if (vm.define !== void 0) {
-              return vm.define(controller, parentContainer, definition);
+              return vm.define(controller, hydrationContext, definition);
             }
           }
         }

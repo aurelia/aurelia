@@ -3,11 +3,11 @@ import { BindingMode, LifecycleFlags } from '@aurelia/runtime';
 import { createElement, RenderPlan } from '../../create-element.js';
 import { HydrateElementInstruction, IInstruction, Instruction } from '../../renderer.js';
 import { IPlatform } from '../../platform.js';
-import { getRenderContext } from '../../templating/render-context.js';
 import { IViewFactory } from '../../templating/view.js';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element.js';
 import { bindable } from '../../bindable.js';
 import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, IHydrationContext, ISyntheticView } from '../../templating/controller.js';
+import { IRendering } from '../../templating/rendering.js';
 
 export type Subject = string | IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;
@@ -43,6 +43,7 @@ export class AuRender implements ICustomElementViewModel {
     @IPlatform private readonly p: IPlatform,
     @IInstruction instruction: HydrateElementInstruction,
     @IHydrationContext private readonly hdrContext: IHydrationContext,
+    @IRendering private readonly r: IRendering,
   ) {
     this.properties = instruction.instructions.reduce(toLookup, {});
   }
@@ -166,8 +167,7 @@ export class AuRender implements ICustomElementViewModel {
       }
 
       if ('template' in comp) { // Raw Template Definition
-        const definition = CustomElementDefinition.getOrCreate(comp);
-        return getRenderContext(definition, ctxContainer).getViewFactory().create(flags);
+        return this.r.getViewFactory(CustomElementDefinition.getOrCreate(comp), ctxContainer).create(flags);
       }
     }
 

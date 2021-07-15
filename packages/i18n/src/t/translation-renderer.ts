@@ -13,7 +13,6 @@ import {
   AttrSyntax,
   IPlatform,
   IAttrMapper,
-  ICompiledRenderContext,
   ICommandBuildInfo,
 } from '@aurelia/runtime-html';
 
@@ -68,25 +67,24 @@ export class TranslationBindingCommand implements BindingCommandInstance {
 export class TranslationBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
-    @IObserverLocator private readonly observerLocator: IObserverLocator,
-    @IPlatform private readonly platform: IPlatform,
+    @IObserverLocator private readonly oL: IObserverLocator,
+    @IPlatform private readonly p: IPlatform,
   ) { }
 
   public render(
-    flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    renderingController: IHydratableController,
+    f: LifecycleFlags,
+    renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {
     TranslationBinding.create({
       parser: this.parser,
-      observerLocator: this.observerLocator,
-      context: renderingController.container,
-      controller: renderingController,
+      observerLocator: this.oL,
+      context: renderingCtrl.container,
+      controller: renderingCtrl,
       target,
       instruction,
-      platform: this.platform,
+      platform: this.p,
     });
   }
 }
@@ -138,25 +136,24 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
 export class TranslationBindBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
-    @IObserverLocator private readonly observerLocator: IObserverLocator,
-    @IPlatform private readonly platform: IPlatform,
+    @IObserverLocator private readonly oL: IObserverLocator,
+    @IPlatform private readonly p: IPlatform,
   ) { }
 
   public render(
-    flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    renderingController: IHydratableController,
+    f: LifecycleFlags,
+    renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {
     TranslationBinding.create({
       parser: this.parser,
-      observerLocator: this.observerLocator,
-      context: renderingController.container,
-      controller: renderingController,
+      observerLocator: this.oL,
+      context: renderingCtrl.container,
+      controller: renderingCtrl,
       target,
       instruction,
-      platform: this.platform
+      platform: this.p
     });
   }
 }

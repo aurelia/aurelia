@@ -5,17 +5,8 @@ import { convertToRenderLocation, INode, IRenderLocation, isRenderLocation } fro
 import { IPlatform } from '../../platform.js';
 import { HydrateElementInstruction, IInstruction } from '../../renderer.js';
 import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller.js';
-import { getRenderContext } from '../../templating/render-context.js';
+import { IRendering } from '../../templating/rendering.js';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element.js';
-
-// plan:
-// 0. <au-component/> is containerless
-//    this probably won't work, since it prohibits the use of shadow dom + slot naturally
-//    this probably will still allows au-slot
-// 1. create host element corresponding to the composed component view model
-//    if there's no view model def, then creates a div
-//    if there's no view model at all, then creates a div
-//    this probably has issue related to containerless, since it's sometimes desirable
 
 /**
  * An optional interface describing the dialog activate convention.
@@ -80,6 +71,8 @@ export class AuCompose {
     return this.c;
   }
 
+  private readonly r: IRendering;
+
   /** @internal */
   private readonly loc: IRenderLocation | undefined;
 
@@ -94,6 +87,7 @@ export class AuCompose {
     private readonly contextFactory: CompositionContextFactory,
   ) {
     this.loc = instruction.containerless ? convertToRenderLocation(this.host) : void 0;
+    this.r = container.get(IRendering);
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
@@ -192,7 +186,7 @@ export class AuCompose {
     const { view, viewModel, model, initiator } = context.change;
     const { container, host, $controller, contextFactory, loc } = this;
     const srcDef = this.getDef(viewModel);
-    const childContainer: IContainer = container.createChild();
+    const childCtn: IContainer = container.createChild();
     const parentNode = loc == null ? host.parentNode : loc.parentNode;
 
     if (srcDef !== null) {
@@ -212,20 +206,19 @@ export class AuCompose {
           compositionHost.remove();
         };
       }
-      comp = this.getVm(childContainer, viewModel, compositionHost);
+      comp = this.getVm(childCtn, viewModel, compositionHost);
     } else {
       compositionHost = loc == null
         ? host
         : loc;
-      comp = this.getVm(childContainer, viewModel, compositionHost);
+      comp = this.getVm(childCtn, viewModel, compositionHost);
     }
     const compose: () => ICompositionController = () => {
       // custom element based composition
       if (srcDef !== null) {
         const controller = Controller.forCustomElement(
           null,
-          container,
-          childContainer,
+          childCtn,
           comp,
           compositionHost as HTMLElement,
           null,
@@ -252,11 +245,10 @@ export class AuCompose {
           name: CustomElement.generateName(),
           template: view,
         });
-        const renderContext = getRenderContext(targetDef, childContainer);
-        const viewFactory = renderContext.getViewFactory();
+        const viewFactory = this.r.getViewFactory(targetDef, childCtn);
         const controller = Controller.forSyntheticView(
           contextFactory.isFirst(context) ? $controller.root : null,
-          renderContext,
+          // null!,
           viewFactory,
           LifecycleFlags.fromBind,
           $controller

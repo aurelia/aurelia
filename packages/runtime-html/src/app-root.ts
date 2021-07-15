@@ -94,7 +94,7 @@ export class AppRoot implements IDisposable {
 
     this.hydratePromise = onResolve(this.runAppTasks('beforeCreate'), () => {
       const component = config.component as Constructable | ICustomElementViewModel;
-      const ownContainer = container.createChild();
+      const childCtn = container.createChild();
       let instance: object;
       if (CustomElement.isType(component)) {
         instance = this.container.get(component);
@@ -104,8 +104,7 @@ export class AppRoot implements IDisposable {
 
       const controller = (this.controller = Controller.forCustomElement(
         this,
-        container,
-        ownContainer,
+        childCtn,
         instance,
         this.host,
         null,
@@ -114,7 +113,7 @@ export class AppRoot implements IDisposable {
         this.enhanceDefinition,
       )) as Controller;
 
-      controller.hydrateCustomElement(null);
+      controller.hydrateCustomElement(null, /* root does not have hydration context */null);
       return onResolve(this.runAppTasks('hydrating'), () => {
         controller.hydrate(null);
         return onResolve(this.runAppTasks('hydrated'), () => {

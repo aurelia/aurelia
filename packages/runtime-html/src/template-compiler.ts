@@ -1533,9 +1533,6 @@ const typeToHooksDefCache = new WeakMap<Constructable, TemplateCompilerHooksDefi
 const compilerHooksResourceName = Protocol.resource.keyFor('compiler-hooks');
 export const TemplateCompilerHooks = Object.freeze({
   name: compilerHooksResourceName,
-  /**
-   * @param def - Placeholder for future extensions. Currently always an empty object.
-   */
   define<K extends ITemplateCompilerHooks, T extends Constructable<K>>(Type: T): T {
     let def = typeToHooksDefCache.get(Type);
     if (def === void 0) {

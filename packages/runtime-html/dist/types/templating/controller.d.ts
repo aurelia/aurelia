@@ -59,7 +59,7 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     lifecycleHooks: LifecycleHooksLookup | null;
     state: State;
     get isActive(): boolean;
-    private get name();
+    get name(): string;
     private compiledDef;
     private logger;
     private debug;
@@ -197,6 +197,7 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
      * By default, CE should have their own container while custom attribute & synthetic view
      * will use the parent container one, since they do not need to manage one
      */
+    readonly name: string;
     readonly container: IContainer;
     readonly platform: IPlatform;
     readonly root: IAppRoot | null;

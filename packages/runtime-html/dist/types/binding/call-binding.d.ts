@@ -16,7 +16,7 @@ export declare class CallBinding {
     callSource(args: object): unknown;
     $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
-    observeProperty(obj: object, propertyName: string): void;
+    observe(obj: object, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=call-binding.d.ts.map

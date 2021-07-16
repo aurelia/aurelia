@@ -72,7 +72,7 @@ export declare class BindingInterceptor implements IInterceptableBinding {
     callSource(args: object): unknown;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
-    observeProperty(obj: object, key: string): void;
+    observe(obj: object, key: string): void;
     observeCollection(observer: Collection): void;
     $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;

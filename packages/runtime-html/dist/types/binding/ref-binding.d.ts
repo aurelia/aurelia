@@ -13,7 +13,7 @@ export declare class RefBinding implements IBinding {
     constructor(sourceExpression: IsBindingBehavior, target: object, locator: IServiceLocator);
     $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
-    observeProperty(obj: IIndexable, propertyName: string): void;
+    observe(obj: IIndexable, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=ref-binding.d.ts.map

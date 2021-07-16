@@ -36,6 +36,7 @@ export declare type CustomAttributeKind = IResourceKind<CustomAttributeType, Cus
     define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
     define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
     getDefinition<T extends Constructable>(Type: T): CustomAttributeDefinition<T>;
+    getDefinition<T extends Constructable>(Type: Function): CustomAttributeDefinition<T>;
     annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void;
     getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K): PartialCustomAttributeDefinition[K];
 };

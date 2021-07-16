@@ -34,7 +34,7 @@ export declare const enum LifecycleFlags {
     dispose = 32
 }
 export interface IConnectable {
-    observeProperty(obj: object, key: PropertyKey): void;
+    observe(obj: object, key: PropertyKey): void;
     observeCollection(obj: Collection): void;
     subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
 }

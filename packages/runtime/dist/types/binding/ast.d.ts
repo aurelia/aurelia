@@ -4,8 +4,6 @@ import type { Collection, IBindingContext, IOverrideContext, IConnectable } from
 import type { Scope } from '../observation/binding-context.js';
 import { IConnectableBinding } from './connectable.js';
 export declare const enum ExpressionKind {
-    Connects = 32,
-    Observes = 64,
     CallsFunction = 128,
     HasAncestor = 256,
     IsPrimary = 512,

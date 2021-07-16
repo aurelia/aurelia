@@ -308,8 +308,8 @@ class BindingInterceptor {
     handleCollectionChange(indexMap, flags) {
         this.binding.handleCollectionChange(indexMap, flags);
     }
-    observeProperty(obj, key) {
-        this.binding.observeProperty(obj, key);
+    observe(obj, key) {
+        this.binding.observe(obj, key);
     }
     observeCollection(observer) {
         this.binding.observeCollection(observer);
@@ -416,8 +416,6 @@ const ValueConverter = {
 /* eslint-disable eqeqeq */
 exports.ExpressionKind = void 0;
 (function (ExpressionKind) {
-    ExpressionKind[ExpressionKind["Connects"] = 32] = "Connects";
-    ExpressionKind[ExpressionKind["Observes"] = 64] = "Observes";
     ExpressionKind[ExpressionKind["CallsFunction"] = 128] = "CallsFunction";
     ExpressionKind[ExpressionKind["HasAncestor"] = 256] = "HasAncestor";
     ExpressionKind[ExpressionKind["IsPrimary"] = 512] = "IsPrimary";
@@ -891,7 +889,7 @@ class AccessScopeExpression {
     evaluate(f, s, _l, c) {
         const obj = BindingContext.get(s, this.name, this.ancestor, f);
         if (c !== null) {
-            c.observeProperty(obj, this.name);
+            c.observe(obj, this.name);
         }
         const evaluatedValue = obj[this.name];
         if (evaluatedValue == null && this.name === '$host') {
@@ -941,12 +939,12 @@ class AccessMemberExpression {
                 return instance;
             }
             if (c !== null) {
-                c.observeProperty(instance, this.name);
+                c.observe(instance, this.name);
             }
             return instance[this.name];
         }
         if (c !== null && instance instanceof Object) {
-            c.observeProperty(instance, this.name);
+            c.observe(instance, this.name);
         }
         return instance ? instance[this.name] : '';
     }
@@ -985,7 +983,7 @@ class AccessKeyedExpression {
         if (instance instanceof Object) {
             const key = this.key.evaluate(f, s, l, (f & 128 /* observeLeafPropertiesOnly */) > 0 ? null : c);
             if (c !== null) {
-                c.observeProperty(instance, key);
+                c.observe(instance, key);
             }
             return instance[key];
         }
@@ -1734,32 +1732,32 @@ class SubscriberRecord {
         /**
          * subscriber flags: bits indicating the existence status of the subscribers of this record
          */
-        this._sf = 0 /* None */;
+        this.sf = 0 /* None */;
         this.count = 0;
     }
     add(subscriber) {
         if (this.has(subscriber)) {
             return false;
         }
-        const subscriberFlags = this._sf;
+        const subscriberFlags = this.sf;
         if ((subscriberFlags & 1 /* Subscriber0 */) === 0) {
-            this._s0 = subscriber;
-            this._sf |= 1 /* Subscriber0 */;
+            this.s0 = subscriber;
+            this.sf |= 1 /* Subscriber0 */;
         }
         else if ((subscriberFlags & 2 /* Subscriber1 */) === 0) {
-            this._s1 = subscriber;
-            this._sf |= 2 /* Subscriber1 */;
+            this.s1 = subscriber;
+            this.sf |= 2 /* Subscriber1 */;
         }
         else if ((subscriberFlags & 4 /* Subscriber2 */) === 0) {
-            this._s2 = subscriber;
-            this._sf |= 4 /* Subscriber2 */;
+            this.s2 = subscriber;
+            this.sf |= 4 /* Subscriber2 */;
         }
         else if ((subscriberFlags & 8 /* SubscribersRest */) === 0) {
-            this._sr = [subscriber];
-            this._sf |= 8 /* SubscribersRest */;
+            this.sr = [subscriber];
+            this.sf |= 8 /* SubscribersRest */;
         }
         else {
-            this._sr.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
+            this.sr.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
         }
         ++this.count;
         return true;
@@ -1768,18 +1766,18 @@ class SubscriberRecord {
         // Flags here is just a perf tweak
         // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
         // and minor slow-down when it does, and the former is more common than the latter.
-        const subscriberFlags = this._sf;
-        if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this._s0 === subscriber) {
+        const subscriberFlags = this.sf;
+        if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this.s0 === subscriber) {
             return true;
         }
-        if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this._s1 === subscriber) {
+        if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this.s1 === subscriber) {
             return true;
         }
-        if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this._s2 === subscriber) {
+        if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this.s2 === subscriber) {
             return true;
         }
         if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
-            const subscribers = this._sr; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+            const subscribers = this.sr; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
             const ii = subscribers.length;
             let i = 0;
             for (; i < ii; ++i) {
@@ -1791,37 +1789,37 @@ class SubscriberRecord {
         return false;
     }
     any() {
-        return this._sf !== 0 /* None */;
+        return this.sf !== 0 /* None */;
     }
     remove(subscriber) {
-        const subscriberFlags = this._sf;
-        if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this._s0 === subscriber) {
-            this._s0 = void 0;
-            this._sf = (this._sf | 1 /* Subscriber0 */) ^ 1 /* Subscriber0 */;
+        const subscriberFlags = this.sf;
+        if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this.s0 === subscriber) {
+            this.s0 = void 0;
+            this.sf = (this.sf | 1 /* Subscriber0 */) ^ 1 /* Subscriber0 */;
             --this.count;
             return true;
         }
-        else if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this._s1 === subscriber) {
-            this._s1 = void 0;
-            this._sf = (this._sf | 2 /* Subscriber1 */) ^ 2 /* Subscriber1 */;
+        else if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this.s1 === subscriber) {
+            this.s1 = void 0;
+            this.sf = (this.sf | 2 /* Subscriber1 */) ^ 2 /* Subscriber1 */;
             --this.count;
             return true;
         }
-        else if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this._s2 === subscriber) {
-            this._s2 = void 0;
-            this._sf = (this._sf | 4 /* Subscriber2 */) ^ 4 /* Subscriber2 */;
+        else if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this.s2 === subscriber) {
+            this.s2 = void 0;
+            this.sf = (this.sf | 4 /* Subscriber2 */) ^ 4 /* Subscriber2 */;
             --this.count;
             return true;
         }
         else if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
-            const subscribers = this._sr; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+            const subscribers = this.sr; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
             const ii = subscribers.length;
             let i = 0;
             for (; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     subscribers.splice(i, 1);
                     if (ii === 1) {
-                        this._sf = (this._sf | 8 /* SubscribersRest */) ^ 8 /* SubscribersRest */;
+                        this.sf = (this.sf | 8 /* SubscribersRest */) ^ 8 /* SubscribersRest */;
                     }
                     --this.count;
                     return true;
@@ -1838,10 +1836,10 @@ class SubscriberRecord {
          * Subscribers removed during this invocation will still be invoked (and they also shouldn't be,
          * however this is accounted for via $isBound and similar flags on the subscriber objects)
          */
-        const sub0 = this._s0;
-        const sub1 = this._s1;
-        const sub2 = this._s2;
-        let subs = this._sr;
+        const sub0 = this.s0;
+        const sub1 = this.s1;
+        const sub2 = this.s2;
+        let subs = this.sr;
         if (subs !== void 0) {
             subs = subs.slice();
         }
@@ -1867,10 +1865,10 @@ class SubscriberRecord {
         }
     }
     notifyCollection(indexMap, flags) {
-        const sub0 = this._s0;
-        const sub1 = this._s1;
-        const sub2 = this._s2;
-        let subs = this._sr;
+        const sub0 = this.s0;
+        const sub1 = this.s1;
+        const sub2 = this.s2;
+        let subs = this.sr;
         if (subs !== void 0) {
             subs = subs.slice();
         }
@@ -2208,7 +2206,7 @@ const $reverse = proto$2.reverse;
 const $sort = proto$2.sort;
 const native$2 = { push: $push, unshift: $unshift, pop: $pop, shift: $shift, splice: $splice, reverse: $reverse, sort: $sort };
 const methods$2 = ['push', 'unshift', 'pop', 'shift', 'splice', 'reverse', 'sort'];
-const observe$2 = {
+const observe$3 = {
     // https://tc39.github.io/ecma262/#sec-array.prototype.push
     push: function (...args) {
         const o = observerLookup$2.get(this);
@@ -2374,13 +2372,13 @@ const observe$2 = {
     }
 };
 for (const method of methods$2) {
-    def(observe$2[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+    def(observe$3[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
 let enableArrayObservationCalled = false;
 function enableArrayObservation() {
     for (const method of methods$2) {
         if (proto$2[method].observing !== true) {
-            defineHiddenProp(proto$2, method, observe$2[method]);
+            defineHiddenProp(proto$2, method, observe$3[method]);
         }
     }
 }
@@ -2535,7 +2533,7 @@ const native$1 = { add: $add, clear: $clear$1, delete: $delete$1 };
 const methods$1 = ['add', 'clear', 'delete'];
 // note: we can't really do much with Set due to the internal data structure not being accessible so we're just using the native calls
 // fortunately, add/delete/clear are easy to reconstruct for the indexMap
-const observe$1 = {
+const observe$2 = {
     // https://tc39.github.io/ecma262/#sec-set.prototype.add
     add: function (value) {
         const o = observerLookup$1.get(this);
@@ -2611,13 +2609,13 @@ const descriptorProps$1 = {
     configurable: true
 };
 for (const method of methods$1) {
-    def(observe$1[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+    def(observe$2[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
 let enableSetObservationCalled = false;
 function enableSetObservation() {
     for (const method of methods$1) {
         if (proto$1[method].observing !== true) {
-            def(proto$1, method, { ...descriptorProps$1, value: observe$1[method] });
+            def(proto$1, method, { ...descriptorProps$1, value: observe$2[method] });
         }
     }
 }
@@ -2669,7 +2667,7 @@ const native = { set: $set, clear: $clear, delete: $delete };
 const methods = ['set', 'clear', 'delete'];
 // note: we can't really do much with Map due to the internal data structure not being accessible so we're just using the native calls
 // fortunately, map/delete/clear are easy to reconstruct for the indexMap
-const observe = {
+const observe$1 = {
     // https://tc39.github.io/ecma262/#sec-map.prototype.map
     set: function (key, value) {
         const o = observerLookup.get(this);
@@ -2758,13 +2756,13 @@ const descriptorProps = {
     configurable: true
 };
 for (const method of methods) {
-    def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+    def(observe$1[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
 let enableMapObservationCalled = false;
 function enableMapObservation() {
     for (const method of methods) {
         if (proto[method].observing !== true) {
-            def(proto, method, { ...descriptorProps, value: observe[method] });
+            def(proto, method, { ...descriptorProps, value: observe$1[method] });
         }
     }
 }
@@ -2807,7 +2805,7 @@ function getMapObserver(map) {
     return observer;
 }
 
-function observeProperty(obj, key) {
+function observe(obj, key) {
     const observer = this.observerLocator.getObserver(obj, key);
     /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
      *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
@@ -2869,17 +2867,17 @@ class BindingObserverRecord {
         const observerSlots = this.slots;
         let i = observerSlots;
         // find the slot number of the observer
-        while (i-- && this[`_o${i}`] !== observer)
+        while (i-- && this[`o${i}`] !== observer)
             ;
         // if we are not already observing, put the observer in an open slot and subscribe.
         if (i === -1) {
             i = 0;
             // go from the start, find an open slot number
-            while (this[`_o${i}`] !== void 0) {
+            while (this[`o${i}`] !== void 0) {
                 i++;
             }
             // store the reference to the observer and subscribe
-            this[`_o${i}`] = observer;
+            this[`o${i}`] = observer;
             observer.subscribe(this);
             // increment the slot count.
             if (i === observerSlots) {
@@ -2887,7 +2885,7 @@ class BindingObserverRecord {
             }
             ++this.count;
         }
-        this[`_v${i}`] = this.version;
+        this[`v${i}`] = this.version;
     }
     /**
      * Unsubscribe the observers that are not up to date with the record version
@@ -2899,7 +2897,7 @@ class BindingObserverRecord {
         let i = 0;
         if (all === true) {
             for (; i < slotCount; ++i) {
-                slotName = `_o${i}`;
+                slotName = `o${i}`;
                 observer = this[slotName];
                 if (observer !== void 0) {
                     this[slotName] = void 0;
@@ -2910,8 +2908,8 @@ class BindingObserverRecord {
         }
         else {
             for (; i < slotCount; ++i) {
-                if (this[`_v${i}`] !== this.version) {
-                    slotName = `_o${i}`;
+                if (this[`v${i}`] !== this.version) {
+                    slotName = `o${i}`;
                     observer = this[slotName];
                     if (observer !== void 0) {
                         this[slotName] = void 0;
@@ -2925,7 +2923,7 @@ class BindingObserverRecord {
 }
 function connectableDecorator(target) {
     const proto = target.prototype;
-    ensureProto(proto, 'observeProperty', observeProperty, true);
+    ensureProto(proto, 'observe', observe, true);
     ensureProto(proto, 'observeCollection', observeCollection, true);
     ensureProto(proto, 'subscribeTo', subscribeTo, true);
     def(proto, 'obs', { get: getObserverRecord });
@@ -4304,7 +4302,7 @@ const objectHandler = {
             return R$get(target, key, receiver);
         }
         // todo: static
-        connectable.observeProperty(target, key);
+        connectable.observe(target, key);
         return wrap(R$get(target, key, receiver));
     },
 };
@@ -4320,7 +4318,7 @@ const arrayHandler = {
         }
         switch (key) {
             case 'length':
-                connectable.observeProperty(target, 'length');
+                connectable.observe(target, 'length');
                 return target.length;
             case 'map':
                 return wrappedArrayMap;
@@ -4374,13 +4372,13 @@ const arrayHandler = {
             case 'entries':
                 return wrappedEntries;
         }
-        connectable.observeProperty(target, key);
+        connectable.observe(target, key);
         return wrap(R$get(target, key, receiver));
     },
     // for (let i in array) ...
     ownKeys(target) {
         var _a;
-        (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeProperty(target, 'length');
+        (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observe(target, 'length');
         return Reflect.ownKeys(target);
     },
 };
@@ -4532,7 +4530,7 @@ const collectionHandler = {
         }
         switch (key) {
             case 'size':
-                connectable.observeProperty(target, 'size');
+                connectable.observe(target, 'size');
                 return target.size;
             case 'clear':
                 return wrappedClear;

@@ -307,25 +307,25 @@ export declare class CallBindingRenderer implements IRenderer {
     private readonly parser;
     private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
-    render(flags: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: CallBindingInstruction): void;
+    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: CallBindingInstruction): void;
 }
 export declare class RefBindingRenderer implements IRenderer {
     private readonly parser;
     constructor(parser: IExpressionParser);
-    render(flags: LifecycleFlags, renderingCtrl: IHydratableController, target: INode, instruction: RefBindingInstruction): void;
+    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: INode, instruction: RefBindingInstruction): void;
 }
 export declare class InterpolationBindingRenderer implements IRenderer {
     private readonly parser;
     private readonly oL;
-    private readonly platform;
-    constructor(parser: IExpressionParser, oL: IObserverLocator, platform: IPlatform);
-    render(flags: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: InterpolationInstruction): void;
+    private readonly p;
+    constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
+    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: InterpolationInstruction): void;
 }
 export declare class PropertyBindingRenderer implements IRenderer {
     private readonly parser;
     private readonly oL;
-    private readonly platform;
-    constructor(parser: IExpressionParser, oL: IObserverLocator, platform: IPlatform);
+    private readonly p;
+    constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
     render(flags: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: PropertyBindingInstruction): void;
 }
 export declare class IteratorBindingRenderer implements IRenderer {
@@ -333,7 +333,7 @@ export declare class IteratorBindingRenderer implements IRenderer {
     private readonly oL;
     private readonly p;
     constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
-    render(flags: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: IteratorBindingInstruction): void;
+    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: IteratorBindingInstruction): void;
 }
 export declare function applyBindingBehavior<T extends IInterceptableBinding>(binding: T, expression: IsBindingBehavior, locator: IServiceLocator): T;
 export declare class TextBindingRenderer implements IRenderer {
@@ -341,7 +341,7 @@ export declare class TextBindingRenderer implements IRenderer {
     private readonly oL;
     private readonly p;
     constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
-    render(flags: LifecycleFlags, renderingCtrl: IHydratableController, target: ChildNode, instruction: TextBindingInstruction): void;
+    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: ChildNode, instruction: TextBindingInstruction): void;
 }
 export declare class ListenerBindingRenderer implements IRenderer {
     private readonly parser;

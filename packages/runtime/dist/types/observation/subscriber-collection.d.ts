@@ -6,14 +6,14 @@ export declare class SubscriberRecord<T extends IAnySubscriber> implements ISubs
     /**
      * subscriber flags: bits indicating the existence status of the subscribers of this record
      */
-    private _sf;
-    private _s0?;
-    private _s1?;
-    private _s2?;
+    private sf;
+    private s0?;
+    private s1?;
+    private s2?;
     /**
      * subscriber rest: When there's more than 3 subscribers, use an array to store the subscriber references
      */
-    private _sr?;
+    private sr?;
     count: number;
     add(subscriber: T): boolean;
     has(subscriber: T): boolean;

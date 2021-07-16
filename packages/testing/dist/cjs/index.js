@@ -7690,8 +7690,8 @@ class MockBinding {
     handleCollectionChange(indexMap, flags) {
         this.trace('handleCollectionChange', indexMap, flags);
     }
-    observeProperty(obj, propertyName) {
-        this.trace('observeProperty', obj, propertyName);
+    observe(obj, propertyName) {
+        this.trace('observe', obj, propertyName);
     }
     observeCollection(col) {
         this.trace('observeCollection', col);

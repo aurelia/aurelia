@@ -1191,7 +1191,7 @@ class CallBinding {
         this.targetObserver.setValue(null, flags, this.target, this.targetProperty);
         this.isBound = false;
     }
-    observeProperty(obj, propertyName) {
+    observe(obj, propertyName) {
         return;
     }
     handleChange(newValue, previousValue, flags) {
@@ -2068,7 +2068,7 @@ class RefBinding {
         this.$scope = void 0;
         this.isBound = false;
     }
-    observeProperty(obj, propertyName) {
+    observe(obj, propertyName) {
         return;
     }
     handleChange(newValue, previousValue, flags) {
@@ -3591,6 +3591,7 @@ class Controller {
         if (root === null && container.has(IAppRoot, true)) {
             this.root = container.get(IAppRoot);
         }
+        this.r = container.root.get(IRendering);
         this.platform = container.get(IPlatform);
         switch (vmKind) {
             case 1 /* customAttribute */:
@@ -3764,8 +3765,7 @@ class Controller {
             }
             this.viewModel.hydrating(this);
         }
-        const rendering = this.container.root.get(IRendering);
-        const compiledDef = this.compiledDef = rendering.compile(this.definition, this.container, hydrationInst);
+        const compiledDef = this.compiledDef = this.r.compile(this.definition, this.container, hydrationInst);
         const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledDef;
         this.isStrictBinding = isStrictBinding;
         if ((this.hostController = CustomElement.for(this.host, optionalCeFind)) !== null) {
@@ -3790,7 +3790,7 @@ class Controller {
             this.mountTarget = 1 /* host */;
         }
         this.viewModel.$controller = this;
-        this.nodes = rendering.createNodes(compiledDef);
+        this.nodes = this.r.createNodes(compiledDef);
         if (this.hooks.hasHydrated) {
             if (this.debug) {
                 this.logger.trace(`invoking hydrated() hook`);
@@ -3800,7 +3800,7 @@ class Controller {
     }
     /** @internal */
     hydrateChildren() {
-        this.container.root.get(IRendering).render(
+        this.r.render(
         /* flags      */ this.flags, 
         /* controller */ this, 
         /* targets    */ this.nodes.findTargets(), 
@@ -3830,16 +3830,13 @@ class Controller {
         }
     }
     hydrateSynthetic() {
-        const rendering = this.container.root.get(IRendering);
-        const compiledDefinition = rendering.compile(this.viewFactory.def, this.container, null);
-        const nodes = this.nodes = rendering.createNodes(compiledDefinition);
-        const targets = nodes.findTargets();
-        this.isStrictBinding = compiledDefinition.isStrictBinding;
-        rendering.render(
+        this.compiledDef = this.r.compile(this.viewFactory.def, this.container, null);
+        this.isStrictBinding = this.compiledDef.isStrictBinding;
+        this.r.render(
         /* flags      */ this.flags, 
         /* controller */ this, 
-        /* targets    */ targets, 
-        /* definition */ compiledDefinition, 
+        /* targets    */ (this.nodes = this.r.createNodes(this.compiledDef)).findTargets(), 
+        /* definition */ this.compiledDef, 
         /* host       */ void 0);
     }
     activate(initiator, parent, flags, scope) {
@@ -3920,26 +3917,33 @@ class Controller {
         if (this.debug) {
             this.logger.trace(`bind()`);
         }
+        let i = 0;
+        let ii = this.childrenObs.length;
+        let ret;
         // timing: after binding, before bound
         // reason: needs to start observing before all the bindings finish their $bind phase,
         //         so that changes in one binding can be reflected into the other, regardless the index of the binding
         //
         // todo: is this timing appropriate?
-        if (this.childrenObs.length) {
-            for (let i = 0; i < this.childrenObs.length; ++i) {
+        if (ii > 0) {
+            while (ii > i) {
                 this.childrenObs[i].start();
+                ++i;
             }
         }
         if (this.bindings !== null) {
-            for (let i = 0; i < this.bindings.length; ++i) {
+            i = 0;
+            ii = this.bindings.length;
+            while (ii > i) {
                 this.bindings[i].$bind(this.$flags, this.scope);
+                ++i;
             }
         }
         if (this.hooks.hasBound) {
             if (this.debug) {
                 this.logger.trace(`bound()`);
             }
-            const ret = this.viewModel.bound(this.$initiator, this.parent, this.$flags);
+            ret = this.viewModel.bound(this.$initiator, this.parent, this.$flags);
             if (ret instanceof Promise) {
                 this.ensurePromise();
                 ret.then(() => {
@@ -3962,11 +3966,13 @@ class Controller {
             case 2 /* shadowRoot */:
                 this.shadowRoot.append(...nodes);
                 break;
-            case 3 /* location */:
-                for (let i = 0; i < nodes.length; ++i) {
+            case 3 /* location */: {
+                let i = 0;
+                for (; i < nodes.length; ++i) {
                     this.location.parentNode.insertBefore(nodes[i], this.location);
                 }
                 break;
+            }
         }
     }
     attach() {
@@ -4019,7 +4025,8 @@ class Controller {
         }
         // attaching() and child activation run in parallel, and attached() is called when both are finished
         if (this.children !== null) {
-            for (let i = 0; i < this.children.length; ++i) {
+            let i = 0;
+            for (; i < this.children.length; ++i) {
                 // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
                 void this.children[i].activate(this.$initiator, this, this.$flags, this.scope);
             }
@@ -4050,16 +4057,17 @@ class Controller {
         if (initiator === this) {
             this.enterDetaching();
         }
+        let i = 0;
         // timing: before deactiving
         // reason: avoid queueing a callback from the mutation observer, caused by the changes of nodes by repeat/if etc...
         // todo: is this appropriate timing?
         if (this.childrenObs.length) {
-            for (let i = 0; i < this.childrenObs.length; ++i) {
+            for (; i < this.childrenObs.length; ++i) {
                 this.childrenObs[i].stop();
             }
         }
         if (this.children !== null) {
-            for (let i = 0; i < this.children.length; ++i) {
+            for (i = 0; i < this.children.length; ++i) {
                 // Child promise results are tracked by enter/leave combo's
                 void this.children[i].deactivate(initiator, this, flags);
             }
@@ -4127,8 +4135,9 @@ class Controller {
             this.logger.trace(`unbind()`);
         }
         const flags = this.$flags | 4 /* fromUnbind */;
+        let i = 0;
         if (this.bindings !== null) {
-            for (let i = 0; i < this.bindings.length; ++i) {
+            for (; i < this.bindings.length; ++i) {
                 this.bindings[i].$unbind(flags);
             }
         }
@@ -4304,12 +4313,10 @@ class Controller {
     is(name) {
         switch (this.vmKind) {
             case 1 /* customAttribute */: {
-                const def = CustomAttribute.getDefinition(this.viewModel.constructor);
-                return def.name === name;
+                return CustomAttribute.getDefinition(this.viewModel.constructor).name === name;
             }
             case 0 /* customElement */: {
-                const def = CustomElement.getDefinition(this.viewModel.constructor);
-                return def.name === name;
+                return CustomElement.getDefinition(this.viewModel.constructor).name === name;
             }
             case 2 /* synthetic */:
                 return this.viewFactory.name === name;
@@ -5025,7 +5032,7 @@ class Listener {
         // remove isBound and isUnbinding flags
         this.isBound = false;
     }
-    observeProperty(obj, propertyName) {
+    observe(obj, propertyName) {
         return;
     }
     handleChange(newValue, previousValue, flags) {
@@ -5712,7 +5719,7 @@ class CallBindingRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, renderingCtrl, target, instruction) {
+    render(f, renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
         const binding = new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, renderingCtrl.container);
         renderingCtrl.addBinding(expr.$kind === 38962 /* BindingBehavior */
@@ -5733,7 +5740,7 @@ class RefBindingRenderer {
     constructor(parser) {
         this.parser = parser;
     }
-    render(flags, renderingCtrl, target, instruction) {
+    render(f, renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 5376 /* IsRef */);
         const binding = new RefBinding(expr, getRefTarget(target, instruction.to), renderingCtrl.container);
         renderingCtrl.addBinding(expr.$kind === 38962 /* BindingBehavior */
@@ -5750,15 +5757,15 @@ RefBindingRenderer = __decorate([
 let InterpolationBindingRenderer = 
 /** @internal */
 class InterpolationBindingRenderer {
-    constructor(parser, oL, platform) {
+    constructor(parser, oL, p) {
         this.parser = parser;
         this.oL = oL;
-        this.platform = platform;
+        this.p = p;
     }
-    render(flags, renderingCtrl, target, instruction) {
+    render(f, renderingCtrl, target, instruction) {
         const container = renderingCtrl.container;
         const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-        const binding = new InterpolationBinding(this.oL, expr, getTarget(target), instruction.to, runtime.BindingMode.toView, container, this.platform.domWriteQueue);
+        const binding = new InterpolationBinding(this.oL, expr, getTarget(target), instruction.to, runtime.BindingMode.toView, container, this.p.domWriteQueue);
         const partBindings = binding.partBindings;
         const ii = partBindings.length;
         let i = 0;
@@ -5783,14 +5790,14 @@ InterpolationBindingRenderer = __decorate([
 let PropertyBindingRenderer = 
 /** @internal */
 class PropertyBindingRenderer {
-    constructor(parser, oL, platform) {
+    constructor(parser, oL, p) {
         this.parser = parser;
         this.oL = oL;
-        this.platform = platform;
+        this.p = p;
     }
     render(flags, renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
-        const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.oL, renderingCtrl.container, this.platform.domWriteQueue);
+        const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.oL, renderingCtrl.container, this.p.domWriteQueue);
         renderingCtrl.addBinding(expr.$kind === 38962 /* BindingBehavior */
             ? applyBindingBehavior(binding, expr, renderingCtrl.container)
             : binding);
@@ -5812,7 +5819,7 @@ class IteratorBindingRenderer {
         this.oL = oL;
         this.p = p;
     }
-    render(flags, renderingCtrl, target, instruction) {
+    render(f, renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
         const binding = new PropertyBinding(expr, getTarget(target), instruction.to, runtime.BindingMode.toView, this.oL, renderingCtrl.container, this.p.domWriteQueue);
         renderingCtrl.addBinding(binding);
@@ -5855,7 +5862,7 @@ class TextBindingRenderer {
         this.oL = oL;
         this.p = p;
     }
-    render(flags, renderingCtrl, target, instruction) {
+    render(f, renderingCtrl, target, instruction) {
         const container = renderingCtrl.container;
         const next = target.nextSibling;
         const parent = target.parentNode;
@@ -11153,7 +11160,7 @@ class CompositionController {
     }
     activate() {
         if (this.state !== 0) {
-            throw new Error(`Composition has already been activated/deactivated. Id: ${this.controller.id}`);
+            throw new Error(`Composition has already been activated/deactivated. Id: ${this.controller.name}`);
         }
         this.state = 1;
         return this.start();

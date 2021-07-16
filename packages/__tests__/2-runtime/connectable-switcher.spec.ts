@@ -42,7 +42,7 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
   it('watches', function () {
     const logs = [];
     const loggingWatcher: IConnectable = {
-      observeProperty(obj, key) {
+      observe(obj, key) {
         logs.push([obj, key]);
       },
       observeCollection(collection) {/* empty */},
@@ -72,7 +72,7 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
   it('watches + pause/resume', function () {
     const logs = [];
     const loggingWatcher: IConnectable = {
-      observeProperty(obj, key) {
+      observe(obj, key) {
         logs.push([obj, key]);
       },
       observeCollection(collection) {/* empty */},

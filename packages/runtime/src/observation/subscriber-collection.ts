@@ -36,14 +36,14 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   /**
    * subscriber flags: bits indicating the existence status of the subscribers of this record
    */
-  private _sf: SF = SF.None;
-  private _s0?: T;
-  private _s1?: T;
-  private _s2?: T;
+  private sf: SF = SF.None;
+  private s0?: T;
+  private s1?: T;
+  private s2?: T;
   /**
    * subscriber rest: When there's more than 3 subscribers, use an array to store the subscriber references
    */
-  private _sr?: T[];
+  private sr?: T[];
 
   public count: number = 0;
 
@@ -51,21 +51,21 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     if (this.has(subscriber)) {
       return false;
     }
-    const subscriberFlags = this._sf;
+    const subscriberFlags = this.sf;
     if ((subscriberFlags & SF.Subscriber0) === 0) {
-      this._s0 = subscriber;
-      this._sf |= SF.Subscriber0;
+      this.s0 = subscriber;
+      this.sf |= SF.Subscriber0;
     } else if ((subscriberFlags & SF.Subscriber1) === 0) {
-      this._s1 = subscriber;
-      this._sf |= SF.Subscriber1;
+      this.s1 = subscriber;
+      this.sf |= SF.Subscriber1;
     } else if ((subscriberFlags & SF.Subscriber2) === 0) {
-      this._s2 = subscriber;
-      this._sf |= SF.Subscriber2;
+      this.s2 = subscriber;
+      this.sf |= SF.Subscriber2;
     } else if ((subscriberFlags & SF.SubscribersRest) === 0) {
-      this._sr = [subscriber];
-      this._sf |= SF.SubscribersRest;
+      this.sr = [subscriber];
+      this.sf |= SF.SubscribersRest;
     } else {
-      this._sr!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
+      this.sr!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
     }
     ++this.count;
     return true;
@@ -75,18 +75,18 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     // Flags here is just a perf tweak
     // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
     // and minor slow-down when it does, and the former is more common than the latter.
-    const subscriberFlags = this._sf;
-    if ((subscriberFlags & SF.Subscriber0) > 0 && this._s0 === subscriber) {
+    const subscriberFlags = this.sf;
+    if ((subscriberFlags & SF.Subscriber0) > 0 && this.s0 === subscriber) {
       return true;
     }
-    if ((subscriberFlags & SF.Subscriber1) > 0 && this._s1 === subscriber) {
+    if ((subscriberFlags & SF.Subscriber1) > 0 && this.s1 === subscriber) {
       return true;
     }
-    if ((subscriberFlags & SF.Subscriber2) > 0 && this._s2 === subscriber) {
+    if ((subscriberFlags & SF.Subscriber2) > 0 && this.s2 === subscriber) {
       return true;
     }
     if ((subscriberFlags & SF.SubscribersRest) > 0) {
-      const subscribers = this._sr!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+      const subscribers = this.sr!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
       const ii = subscribers.length;
       let i = 0;
       for (; i < ii; ++i) {
@@ -99,35 +99,35 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   }
 
   public any(): boolean {
-    return this._sf !== SF.None;
+    return this.sf !== SF.None;
   }
 
   public remove(subscriber: T): boolean {
-    const subscriberFlags = this._sf;
-    if ((subscriberFlags & SF.Subscriber0) > 0 && this._s0 === subscriber) {
-      this._s0 = void 0;
-      this._sf = (this._sf | SF.Subscriber0) ^ SF.Subscriber0;
+    const subscriberFlags = this.sf;
+    if ((subscriberFlags & SF.Subscriber0) > 0 && this.s0 === subscriber) {
+      this.s0 = void 0;
+      this.sf = (this.sf | SF.Subscriber0) ^ SF.Subscriber0;
       --this.count;
       return true;
-    } else if ((subscriberFlags & SF.Subscriber1) > 0 && this._s1 === subscriber) {
-      this._s1 = void 0;
-      this._sf = (this._sf | SF.Subscriber1) ^ SF.Subscriber1;
+    } else if ((subscriberFlags & SF.Subscriber1) > 0 && this.s1 === subscriber) {
+      this.s1 = void 0;
+      this.sf = (this.sf | SF.Subscriber1) ^ SF.Subscriber1;
       --this.count;
       return true;
-    } else if ((subscriberFlags & SF.Subscriber2) > 0 && this._s2 === subscriber) {
-      this._s2 = void 0;
-      this._sf = (this._sf | SF.Subscriber2) ^ SF.Subscriber2;
+    } else if ((subscriberFlags & SF.Subscriber2) > 0 && this.s2 === subscriber) {
+      this.s2 = void 0;
+      this.sf = (this.sf | SF.Subscriber2) ^ SF.Subscriber2;
       --this.count;
       return true;
     } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
-      const subscribers = this._sr!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+      const subscribers = this.sr!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
       const ii = subscribers.length;
       let i = 0;
       for (; i < ii; ++i) {
         if (subscribers[i] === subscriber) {
           subscribers.splice(i, 1);
           if (ii === 1) {
-            this._sf = (this._sf | SF.SubscribersRest) ^ SF.SubscribersRest;
+            this.sf = (this.sf | SF.SubscribersRest) ^ SF.SubscribersRest;
           }
           --this.count;
           return true;
@@ -145,10 +145,10 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
      * Subscribers removed during this invocation will still be invoked (and they also shouldn't be,
      * however this is accounted for via $isBound and similar flags on the subscriber objects)
      */
-    const sub0 = this._s0 as ISubscriber;
-    const sub1 = this._s1 as ISubscriber;
-    const sub2 = this._s2 as ISubscriber;
-    let subs = this._sr as ISubscriber[];
+    const sub0 = this.s0 as ISubscriber;
+    const sub1 = this.s1 as ISubscriber;
+    const sub2 = this.s2 as ISubscriber;
+    let subs = this.sr as ISubscriber[];
     if (subs !== void 0) {
       subs = subs.slice();
     }
@@ -176,10 +176,10 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   }
 
   public notifyCollection(indexMap: IndexMap, flags: LF): void {
-    const sub0 = this._s0 as ICollectionSubscriber;
-    const sub1 = this._s1 as ICollectionSubscriber;
-    const sub2 = this._s2 as ICollectionSubscriber;
-    let subs = this._sr as ICollectionSubscriber[];
+    const sub0 = this.s0 as ICollectionSubscriber;
+    const sub1 = this.s1 as ICollectionSubscriber;
+    const sub2 = this.s2 as ICollectionSubscriber;
+    let subs = this.sr as ICollectionSubscriber[];
     if (subs !== void 0) {
       subs = subs.slice();
     }

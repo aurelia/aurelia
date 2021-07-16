@@ -414,7 +414,7 @@ class CompositionController implements ICompositionController {
 
   public activate() {
     if (this.state !== 0) {
-      throw new Error(`Composition has already been activated/deactivated. Id: ${this.controller.id}`);
+      throw new Error(`Composition has already been activated/deactivated. Id: ${this.controller.name}`);
     }
     this.state = 1;
     return this.start();

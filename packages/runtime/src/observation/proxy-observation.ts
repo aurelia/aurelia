@@ -76,7 +76,7 @@ const objectHandler: ProxyHandler<object> = {
     }
 
     // todo: static
-    connectable.observeProperty(target, key);
+    connectable.observe(target, key);
 
     return wrap(R$get(target, key, receiver));
   },
@@ -97,7 +97,7 @@ const arrayHandler: ProxyHandler<unknown[]> = {
 
     switch (key) {
       case 'length':
-        connectable.observeProperty(target, 'length');
+        connectable.observe(target, 'length');
         return target.length;
       case 'map':
         return wrappedArrayMap;
@@ -152,13 +152,13 @@ const arrayHandler: ProxyHandler<unknown[]> = {
         return wrappedEntries;
     }
 
-    connectable.observeProperty(target, key);
+    connectable.observe(target, key);
 
     return wrap(R$get(target, key, receiver));
   },
   // for (let i in array) ...
   ownKeys(target: unknown[]): (string | symbol)[] {
-    currentConnectable()?.observeProperty(target, 'length');
+    currentConnectable()?.observe(target, 'length');
     return Reflect.ownKeys(target) as (string | symbol)[];
   },
 };
@@ -314,7 +314,7 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
 
     switch (key) {
       case 'size':
-        connectable.observeProperty(target, 'size');
+        connectable.observe(target, 'size');
         return target.size;
       case 'clear':
         return wrappedClear;

@@ -51,6 +51,8 @@ export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttri
   define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
   getDefinition<T extends Constructable>(Type: T): CustomAttributeDefinition<T>;
+  // eslint-disable-next-line
+  getDefinition<T extends Constructable>(Type: Function): CustomAttributeDefinition<T>;
   annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K): PartialCustomAttributeDefinition[K];
 };

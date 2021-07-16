@@ -108,17 +108,17 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
     let i = observerSlots;
 
     // find the slot number of the observer
-    while (i-- && this[`_o${i}`] !== observer);
+    while (i-- && this[`o${i}`] !== observer);
 
     // if we are not already observing, put the observer in an open slot and subscribe.
     if (i === -1) {
       i = 0;
       // go from the start, find an open slot number
-      while (this[`_o${i}`] !== void 0) {
+      while (this[`o${i}`] !== void 0) {
         i++;
       }
       // store the reference to the observer and subscribe
-      this[`_o${i}`] = observer;
+      this[`o${i}`] = observer;
       observer.subscribe(this);
       // increment the slot count.
       if (i === observerSlots) {
@@ -126,7 +126,7 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
       }
       ++this.count;
     }
-    this[`_v${i}`] = this.version;
+    this[`v${i}`] = this.version;
   }
 
   /**
@@ -139,7 +139,7 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
     let i = 0;
     if (all === true) {
       for (; i < slotCount; ++i) {
-        slotName = `_o${i}`;
+        slotName = `o${i}`;
         observer = this[slotName] as (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
         if (observer !== void 0) {
           this[slotName] = void 0;
@@ -149,8 +149,8 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
       this.count = this.slots = 0;
     } else {
       for (; i < slotCount; ++i) {
-        if (this[`_v${i}`] !== this.version) {
-          slotName = `_o${i}`;
+        if (this[`v${i}`] !== this.version) {
+          slotName = `o${i}`;
           observer = this[slotName] as (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
           if (observer !== void 0) {
             this[slotName] = void 0;

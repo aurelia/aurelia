@@ -116,6 +116,8 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
   define<C extends Constructable >(def: PartialCustomElementDefinition, Type?: null): CustomElementType<C>;
   define<C extends Constructable >(nameOrDef: string | PartialCustomElementDefinition, Type: C): CustomElementType<C>;
   getDefinition<C extends Constructable>(Type: C): CustomElementDefinition<C>;
+  // eslint-disable-next-line
+  getDefinition<C extends Constructable>(Type: Function): CustomElementDefinition<C>;
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
   generateName(): string;

@@ -31,7 +31,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
   obs: BindingObserverRecord;
 }
 
-function observeProperty(this: IConnectableBinding, obj: object, key: PropertyKey): void {
+function observe(this: IConnectableBinding, obj: object, key: PropertyKey): void {
   const observer = this.observerLocator.getObserver(obj, key);
   /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
    *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
@@ -169,7 +169,7 @@ type DecoratedConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
 
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
-  ensureProto(proto, 'observeProperty', observeProperty, true);
+  ensureProto(proto, 'observe', observe, true);
   ensureProto(proto, 'observeCollection', observeCollection, true);
   ensureProto(proto, 'subscribeTo', subscribeTo, true);
   def(proto, 'obs', { get: getObserverRecord });

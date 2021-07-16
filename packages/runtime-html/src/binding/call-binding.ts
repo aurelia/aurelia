@@ -67,7 +67,7 @@ export class CallBinding {
     this.isBound = false;
   }
 
-  public observeProperty(obj: object, propertyName: string): void {
+  public observe(obj: object, propertyName: string): void {
     return;
   }
 

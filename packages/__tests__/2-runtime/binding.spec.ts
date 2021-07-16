@@ -243,7 +243,7 @@ describe('PropertyBinding', function () {
 
         // massSpy(targetObserver, 'setValue', 'getValue');
         // massSpy(expr, 'evaluate', 'connect');
-        // massSpy(sut, 'addObserver', 'observeProperty');
+        // massSpy(sut, 'addObserver', 'observe');
 
         // ensureNotCalled(sut, 'handleChange');
 
@@ -281,18 +281,18 @@ describe('PropertyBinding', function () {
         // verify the behavior of the sourceExpression (redundant)
         if (expr instanceof AccessMemberExpression) {
           // expect(sut.addObserver, `sut.addObserver #16`).to.have.been.calledTwice;
-          // expect(sut.observeProperty, `sut.observeProperty #17`).to.have.been.calledTwice;
+          // expect(sut.observe, `sut.observe #17`).to.have.been.calledTwice;
 
           const obj = scope.bindingContext[expr.object['name']];
-          // expect(sut.observeProperty, `sut.observeProperty #18`).to.have.been.calledWithExactly(flags , obj, expr.name);
-          // expect(sut.observeProperty, `sut.observeProperty #19`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
+          // expect(sut.observe, `sut.observe #18`).to.have.been.calledWithExactly(flags , obj, expr.name);
+          // expect(sut.observe, `sut.observe #19`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
         } else if (expr instanceof AccessScopeExpression) {
           // expect(sut.addObserver, `sut.addObserver #20`).to.have.been.calledOnce;
-          // expect(sut.observeProperty, `sut.observeProperty #21`).to.have.been.calledOnce;
-          // expect(sut.observeProperty, `sut.observeProperty #22`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
+          // expect(sut.observe, `sut.observe #21`).to.have.been.calledOnce;
+          // expect(sut.observe, `sut.observe #22`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
         } else {
           // expect(sut.addObserver).not.to.have.been.called;
-          // expect(sut.observeProperty).not.to.have.been.called;
+          // expect(sut.observe).not.to.have.been.called;
         }
 
         if (srcVal instanceof Object) {
@@ -313,7 +313,7 @@ describe('PropertyBinding', function () {
             // ensureNotCalled(observer01, 'addSubscriber', 'removeSubscriber');
             // massSpy(observer01, 'setValue', 'getValue');
           }
-          // massSpy(sut, 'handleChange', 'addObserver', 'observeProperty', 'unobserve');
+          // massSpy(sut, 'handleChange', 'addObserver', 'observe', 'unobserve');
           // massSpy(targetObserver, 'setValue', 'getValue');
           // massSpy(expr, 'evaluate', 'connect');
         } else {
@@ -364,7 +364,7 @@ describe('PropertyBinding', function () {
             // expect(expr.connect, `expr.connect #46`).not.to.have.been.called;
             // expect(sut.unobserve, `sut.unobserve #48`).not.to.have.been.called;
             // expect(sut.addObserver, `sut.addObserver #56`).not.to.have.been.called;
-            // expect(sut.observeProperty, `sut.observeProperty #57`).not.to.have.been.called;
+            // expect(sut.observe, `sut.observe #57`).not.to.have.been.called;
             // assert.notStrictEqual(target[prop], newValue, `target[prop] #60`);
             // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #61`);
           } else {
@@ -394,18 +394,18 @@ describe('PropertyBinding', function () {
             // verify the behavior of the sourceExpression (connect) (redundant)
             if (expr instanceof AccessMemberExpression) {
               // expect(sut.addObserver, `sut.addObserver #50`).to.have.been.calledTwice;
-              // expect(sut.observeProperty, `sut.observeProperty #51`).to.have.been.calledTwice;
+              // expect(sut.observe, `sut.observe #51`).to.have.been.calledTwice;
 
               const obj = scope.bindingContext[expr.object['name']];
-              // expect(sut.observeProperty, `sut.observeProperty #52`).to.have.been.calledWithExactly(flags, obj, expr.name);
-              // expect(sut.observeProperty, `sut.observeProperty #53`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
+              // expect(sut.observe, `sut.observe #52`).to.have.been.calledWithExactly(flags, obj, expr.name);
+              // expect(sut.observe, `sut.observe #53`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
 
               // expect(sut.addObserver, `sut.addObserver #54`).to.have.been.calledWithExactly(observer00);
               // expect(sut.addObserver, `sut.addObserver #55`).to.have.been.calledWithExactly(observer01);
             } else if (expr instanceof AccessScopeExpression) {
               // expect(sut.addObserver, `sut.addObserver #56`).to.have.been.calledOnce;
-              // expect(sut.observeProperty, `sut.observeProperty #57`).to.have.been.calledOnce;
-              // expect(sut.observeProperty, `sut.observeProperty #58`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
+              // expect(sut.observe, `sut.observe #57`).to.have.been.calledOnce;
+              // expect(sut.observe, `sut.observe #58`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
 
               // expect(sut.addObserver, `sut.addObserver #59`).to.have.been.calledWithExactly(observer00);
             }
@@ -587,7 +587,7 @@ describe('PropertyBinding', function () {
 
         // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
         // massSpy(expr, 'evaluate', 'connect', 'assign');
-        // massSpy(sut, 'addObserver', 'observeProperty', 'handleChange', 'unobserve');
+        // massSpy(sut, 'addObserver', 'observe', 'handleChange', 'unobserve');
 
         // - Act - Part 1
         sut.$bind(flags, scope);
@@ -635,17 +635,17 @@ describe('PropertyBinding', function () {
         // verify the behavior of the sourceExpression (redundant)
         if (expr instanceof AccessMemberExpression) {
           // expect(sut.addObserver, `sut.addObserver #20`).to.have.been.calledTwice;
-          // expect(sut.observeProperty, `sut.observeProperty #21`).to.have.been.calledTwice;
+          // expect(sut.observe, `sut.observe #21`).to.have.been.calledTwice;
           const obj = scope.bindingContext[expr.object['name']];
-          // expect(sut.observeProperty, `sut.observeProperty #22`).to.have.been.calledWithExactly(flags, obj, expr.name);
-          // expect(sut.observeProperty, `sut.observeProperty #23`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
+          // expect(sut.observe, `sut.observe #22`).to.have.been.calledWithExactly(flags, obj, expr.name);
+          // expect(sut.observe, `sut.observe #23`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
         } else if (expr instanceof AccessScopeExpression) {
           // expect(sut.addObserver, `sut.addObserver #24`).to.have.been.calledOnce;
-          // expect(sut.observeProperty, `sut.observeProperty #25`).to.have.been.calledOnce;
-          // expect(sut.observeProperty, `sut.observeProperty #26`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
+          // expect(sut.observe, `sut.observe #25`).to.have.been.calledOnce;
+          // expect(sut.observe, `sut.observe #26`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
         } else {
           // expect(sut.addObserver).not.to.have.been.called;
-          // expect(sut.observeProperty).not.to.have.been.called;
+          // expect(sut.observe).not.to.have.been.called;
         }
 
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #27`);
@@ -677,12 +677,12 @@ describe('PropertyBinding', function () {
           if (observer01) {
             // massSpy(observer01, 'setValue', 'getValue');
           }
-          // massSpy(sut, 'handleChange', 'addObserver', 'observeProperty', 'unobserve');
+          // massSpy(sut, 'handleChange', 'addObserver', 'observe', 'unobserve');
           // massSpy(targetObserver, 'setValue', 'getValue');
           // massSpy(expr, 'evaluate', 'connect');
         } else {
           // ensureNotCalled(targetObserver, 'setValue');
-          // ensureNotCalled(sut, 'handleChange', 'addObserver', 'observeProperty', 'unobserve');
+          // ensureNotCalled(sut, 'handleChange', 'addObserver', 'observe', 'unobserve');
           // ensureNotCalled(expr, 'evaluate');
         }
 
@@ -739,10 +739,10 @@ describe('PropertyBinding', function () {
             // verify the behavior of the sourceExpression (connect) (redundant)
             if (expr instanceof AccessMemberExpression) {
               // assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 0, `(sut.addObserver as SinonSpy).getCalls().length #68`);
-              // assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 0, `(sut.observeProperty as SinonSpy).getCalls().length #69`);
+              // assert.strictEqual((sut.observe as SinonSpy).getCalls().length, 0, `(sut.observe as SinonSpy).getCalls().length #69`);
             } else if (expr instanceof AccessScopeExpression) {
               // assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 0, `(sut.addObserver as SinonSpy).getCalls().length #74`);
-              // assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 0, `(sut.observeProperty as SinonSpy).getCalls().length #75`);
+              // assert.strictEqual((sut.observe as SinonSpy).getCalls().length, 0, `(sut.observe as SinonSpy).getCalls().length #75`);
             }
             // assert.notStrictEqual(targetObserver.currentValue, newValue1, `targetObserver.currentValue #78`);
             // assert.notStrictEqual(target[prop], newValue1, `target[prop] #79`);
@@ -775,18 +775,18 @@ describe('PropertyBinding', function () {
             // verify the behavior of the sourceExpression (connect) (redundant)
             if (expr instanceof AccessMemberExpression) {
               // assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 2, `(sut.addObserver as SinonSpy).getCalls().length #68`);
-              // assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 2, `(sut.observeProperty as SinonSpy).getCalls().length #69`);
+              // assert.strictEqual((sut.observe as SinonSpy).getCalls().length, 2, `(sut.observe as SinonSpy).getCalls().length #69`);
               const obj = scope.bindingContext[expr.object['name']];
-              // expect(sut.observeProperty, `sut.observeProperty #70`).to.have.been.calledWithExactly(flags, obj, expr.name);
-              // expect(sut.observeProperty, `sut.observeProperty #71`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
+              // expect(sut.observe, `sut.observe #70`).to.have.been.calledWithExactly(flags, obj, expr.name);
+              // expect(sut.observe, `sut.observe #71`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
               // expect(sut.addObserver, `sut.addObserver #72`).to.have.been.calledWithExactly(observer00);
               if (observer01) {
                 // expect(sut.addObserver, `sut.addObserver #73`).to.have.been.calledWithExactly(observer01);
               }
             } else if (expr instanceof AccessScopeExpression) {
               // assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 1, `(sut.addObserver as SinonSpy).getCalls().length #74`);
-              // assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 1, `(sut.observeProperty as SinonSpy).getCalls().length #75`);
-              // expect(sut.observeProperty, `sut.observeProperty #76`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
+              // assert.strictEqual((sut.observe as SinonSpy).getCalls().length, 1, `(sut.observe as SinonSpy).getCalls().length #75`);
+              // expect(sut.observe, `sut.observe #76`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
 
               // expect(sut.addObserver, `sut.addObserver #77`).to.have.been.calledWithExactly(observer00);
             }
@@ -965,7 +965,7 @@ describe('PropertyBinding', function () {
     }
   });
 
-  describe('observeProperty()', function () {
+  describe('observe()', function () {
     return;
   });
 

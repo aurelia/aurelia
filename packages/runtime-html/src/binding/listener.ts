@@ -111,7 +111,7 @@ export class Listener implements IBinding {
     this.isBound = false;
   }
 
-  public observeProperty(obj: IIndexable, propertyName: string): void {
+  public observe(obj: IIndexable, propertyName: string): void {
     return;
   }
 

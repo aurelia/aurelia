@@ -202,8 +202,8 @@ export class BindingInterceptor implements IInterceptableBinding {
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
     this.binding.handleCollectionChange(indexMap, flags);
   }
-  public observeProperty(obj: object, key: string): void {
-    this.binding.observeProperty(obj, key);
+  public observe(obj: object, key: string): void {
+    this.binding.observe(obj, key);
   }
   public observeCollection(observer: Collection): void {
     this.binding.observeCollection(observer);

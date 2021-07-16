@@ -10,6 +10,10 @@ In v2, when trying to bind with a non-existent property, the closest boundary sc
 
 TODO: examples + pros & cons...
 
+### Internal binding property `observeProperty` has been renamed to `observe`
+
+In v1, if you happen to use `.observeProperty` method from bindings in your application/library, then change it to `observe` instead. The parameters of the signature remain the same.
+
 ### Call binding \(some-prop.call="..."\)
 
 - Call binding no longer assign properties of the first argument pass to the call to the calling override context. This is unreasonably dynamic and could result in hard-to-understand templates. Example:

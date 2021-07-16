@@ -96,7 +96,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     return (this.state & (State.activating | State.activated)) > 0 && (this.state & State.deactivating) === 0;
   }
 
-  private get name(): string {
+  public get name(): string {
     if (this.parent === null) {
       switch (this.vmKind) {
         case ViewModelKind.customAttribute:
@@ -124,6 +124,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private debug: boolean = false;
   private fullyNamed: boolean = false;
   private childrenObs: ChildrenObserver[] = emptyArray;
+  /** @internal */
+  private readonly r: IRendering;
 
   public readonly platform: IPlatform;
   public readonly hooks: HooksDefinition;
@@ -154,6 +156,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (root === null && container.has(IAppRoot, true)) {
       this.root = container.get<IAppRoot>(IAppRoot);
     }
+    this.r = container.root.get(IRendering);
     this.platform = container.get(IPlatform);
     switch (vmKind) {
       case ViewModelKind.customAttribute:
@@ -361,8 +364,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       (this.viewModel as BindingContext<C>).hydrating(this as ICustomElementController);
     }
 
-    const rendering = this.container.root.get(IRendering);
-    const compiledDef = this.compiledDef = rendering.compile(this.definition as CustomElementDefinition, this.container, hydrationInst);
+    const compiledDef = this.compiledDef = this.r.compile(this.definition as CustomElementDefinition, this.container, hydrationInst);
     const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledDef;
 
     this.isStrictBinding = isStrictBinding;
@@ -387,7 +389,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     (this.viewModel as Writable<C>).$controller = this;
-    this.nodes = rendering.createNodes(compiledDef);
+    this.nodes = this.r.createNodes(compiledDef);
 
     if (this.hooks.hasHydrated) {
       if (this.debug) { this.logger!.trace(`invoking hydrated() hook`); }
@@ -397,7 +399,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public hydrateChildren(): void {
-    this.container.root.get(IRendering).render(
+    this.r.render(
       /* flags      */this.flags,
       /* controller */this as ICustomElementController,
       /* targets    */this.nodes!.findTargets(),
@@ -430,16 +432,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private hydrateSynthetic(): void {
-    const rendering = this.container.root.get(IRendering);
-    const compiledDefinition = rendering.compile(this.viewFactory!.def!, this.container, null);
-    const nodes = this.nodes = rendering.createNodes(compiledDefinition);
-    const targets = nodes.findTargets();
-    this.isStrictBinding = compiledDefinition.isStrictBinding;
-    rendering.render(
+    this.compiledDef = this.r.compile(this.viewFactory!.def!, this.container, null);
+    this.isStrictBinding = this.compiledDef.isStrictBinding;
+    this.r.render(
       /* flags      */this.flags,
       /* controller */this as ISyntheticView,
-      /* targets    */targets,
-      /* definition */compiledDefinition,
+      /* targets    */(this.nodes = this.r.createNodes(this.compiledDef)).findTargets(),
+      /* definition */this.compiledDef,
       /* host       */void 0,
     );
   }
@@ -535,27 +534,34 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private bind(): void {
     if (this.debug) { this.logger!.trace(`bind()`); }
 
+    let i = 0;
+    let ii = this.childrenObs.length;
+    let ret: void | Promise<void>;
     // timing: after binding, before bound
     // reason: needs to start observing before all the bindings finish their $bind phase,
     //         so that changes in one binding can be reflected into the other, regardless the index of the binding
     //
     // todo: is this timing appropriate?
-    if (this.childrenObs.length) {
-      for (let i = 0; i < this.childrenObs.length; ++i) {
+    if (ii > 0) {
+      while (ii > i) {
         this.childrenObs[i].start();
+        ++i;
       }
     }
 
     if (this.bindings !== null) {
-      for (let i = 0; i < this.bindings.length; ++i) {
+      i = 0;
+      ii = this.bindings.length;
+      while (ii > i) {
         this.bindings[i].$bind(this.$flags, this.scope!);
+        ++i;
       }
     }
 
     if (this.hooks.hasBound) {
       if (this.debug) { this.logger!.trace(`bound()`); }
 
-      const ret = this.viewModel!.bound(this.$initiator, this.parent, this.$flags);
+      ret = this.viewModel!.bound(this.$initiator, this.parent, this.$flags);
       if (ret instanceof Promise) {
         this.ensurePromise();
         ret.then(() => {
@@ -580,11 +586,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       case MountTarget.shadowRoot:
         this.shadowRoot!.append(...nodes);
         break;
-      case MountTarget.location:
-        for (let i = 0; i < nodes.length; ++i) {
+      case MountTarget.location: {
+        let i = 0;
+        for (; i < nodes.length; ++i) {
           this.location!.parentNode!.insertBefore(nodes[i], this.location);
         }
         break;
+      }
     }
   }
 
@@ -638,7 +646,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     // attaching() and child activation run in parallel, and attached() is called when both are finished
     if (this.children !== null) {
-      for (let i = 0; i < this.children.length; ++i) {
+      let i = 0;
+      for (; i < this.children.length; ++i) {
         // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
         void this.children[i].activate(this.$initiator, this as IHydratedController, this.$flags, this.scope);
       }
@@ -677,17 +686,18 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.enterDetaching();
     }
 
+    let i = 0;
     // timing: before deactiving
     // reason: avoid queueing a callback from the mutation observer, caused by the changes of nodes by repeat/if etc...
     // todo: is this appropriate timing?
     if (this.childrenObs.length) {
-      for (let i = 0; i < this.childrenObs.length; ++i) {
+      for (; i < this.childrenObs.length; ++i) {
         this.childrenObs[i].stop();
       }
     }
 
     if (this.children !== null) {
-      for (let i = 0; i < this.children.length; ++i) {
+      for (i = 0; i < this.children.length; ++i) {
         // Child promise results are tracked by enter/leave combo's
         void this.children[i].deactivate(initiator, this as IHydratedController, flags);
       }
@@ -759,9 +769,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this.debug) { this.logger!.trace(`unbind()`); }
 
     const flags = this.$flags | LifecycleFlags.fromUnbind;
+    let i = 0;
 
     if (this.bindings !== null) {
-      for (let i = 0; i < this.bindings.length; ++i) {
+      for (; i < this.bindings.length; ++i) {
         this.bindings[i].$unbind(flags);
       }
     }
@@ -958,12 +969,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public is(name: string): boolean {
     switch (this.vmKind) {
       case ViewModelKind.customAttribute: {
-        const def = CustomAttribute.getDefinition(this.viewModel!.constructor as Constructable);
-        return def.name === name;
+        return CustomAttribute.getDefinition(this.viewModel!.constructor).name === name;
       }
       case ViewModelKind.customElement: {
-        const def = CustomElement.getDefinition(this.viewModel!.constructor as Constructable);
-        return def.name === name;
+        return CustomElement.getDefinition(this.viewModel!.constructor).name === name;
       }
       case ViewModelKind.synthetic:
         return this.viewFactory!.name === name;
@@ -1318,6 +1327,7 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
    * By default, CE should have their own container while custom attribute & synthetic view
    * will use the parent container one, since they do not need to manage one
    */
+  readonly name: string;
   readonly container: IContainer;
   readonly platform: IPlatform;
   readonly root: IAppRoot | null;

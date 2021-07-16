@@ -49,7 +49,7 @@ export const enum LifecycleFlags {
 }
 
 export interface IConnectable {
-  observeProperty(obj: object, key: PropertyKey): void;
+  observe(obj: object, key: PropertyKey): void;
   observeCollection(obj: Collection): void;
   subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
 }

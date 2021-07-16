@@ -131,7 +131,7 @@ describe('2-runtime/subscriber-collection.spec.ts', function () {
         removalCount++;
       }
     }
-    assert.strictEqual(observer['subs']['_sr'].length, subscribers.length - 3 - removalCount, `observer['subs']['_sr'].length`);
+    assert.strictEqual(observer['subs']['sr'].length, subscribers.length - 3 - removalCount, `observer['subs']['_sr'].length`);
 
     assert.strictEqual(observer.subs.remove({} as any), false, `observer.subs.remove({} as any)`);
   });

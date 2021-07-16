@@ -712,7 +712,7 @@ export class CallBindingRenderer implements IRenderer {
   ) {}
 
   public render(
-    flags: LifecycleFlags,
+    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: IController,
     instruction: CallBindingInstruction,
@@ -734,7 +734,7 @@ export class RefBindingRenderer implements IRenderer {
   ) {}
 
   public render(
-    flags: LifecycleFlags,
+    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: INode,
     instruction: RefBindingInstruction,
@@ -754,11 +754,11 @@ export class InterpolationBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly oL: IObserverLocator,
-    @IPlatform private readonly platform: IPlatform,
+    @IPlatform private readonly p: IPlatform,
   ) {}
 
   public render(
-    flags: LifecycleFlags,
+    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: IController,
     instruction: InterpolationInstruction,
@@ -772,7 +772,7 @@ export class InterpolationBindingRenderer implements IRenderer {
       instruction.to,
       BindingMode.toView,
       container,
-      this.platform.domWriteQueue,
+      this.p.domWriteQueue,
     );
     const partBindings = binding.partBindings;
     const ii = partBindings.length;
@@ -798,7 +798,7 @@ export class PropertyBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly oL: IObserverLocator,
-    @IPlatform private readonly platform: IPlatform,
+    @IPlatform private readonly p: IPlatform,
   ) {}
 
   public render(
@@ -808,7 +808,7 @@ export class PropertyBindingRenderer implements IRenderer {
     instruction: PropertyBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
-    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.oL, renderingCtrl.container, this.platform.domWriteQueue);
+    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.oL, renderingCtrl.container, this.p.domWriteQueue);
     renderingCtrl.addBinding(expr.$kind === ExpressionKind.BindingBehavior
       ? applyBindingBehavior(binding, expr, renderingCtrl.container)
       : binding
@@ -826,7 +826,7 @@ export class IteratorBindingRenderer implements IRenderer {
   ) {}
 
   public render(
-    flags: LifecycleFlags,
+    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: IController,
     instruction: IteratorBindingInstruction,
@@ -874,7 +874,7 @@ export class TextBindingRenderer implements IRenderer {
   ) {}
 
   public render(
-    flags: LifecycleFlags,
+    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: ChildNode,
     instruction: TextBindingInstruction,

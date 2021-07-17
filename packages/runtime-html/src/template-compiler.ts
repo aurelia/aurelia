@@ -1373,7 +1373,8 @@ class CompilationContext {
 function hasInlineBindings(rawValue: string): boolean {
   const len = rawValue.length;
   let ch = 0;
-  for (let i = 0; i < len; ++i) {
+  let i = 0;
+  while (len > i) {
     ch = rawValue.charCodeAt(i);
     if (ch === Char.Backslash) {
       ++i;
@@ -1383,6 +1384,7 @@ function hasInlineBindings(rawValue: string): boolean {
     } else if (ch === Char.Dollar && rawValue.charCodeAt(i + 1) === Char.OpenBrace) {
       return false;
     }
+    ++i;
   }
   return false;
 }

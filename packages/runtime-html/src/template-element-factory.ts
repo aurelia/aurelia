@@ -13,10 +13,11 @@ export const ITemplateElementFactory = DI.createInterface<ITemplateElementFactor
 const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 
 export class TemplateElementFactory {
+  public static inject = [IPlatform];
   private template: HTMLTemplateElement;
 
   public constructor(
-    @IPlatform private readonly p: IPlatform,
+    private readonly p: IPlatform,
   ) {
     this.template = p.document.createElement('template');
   }

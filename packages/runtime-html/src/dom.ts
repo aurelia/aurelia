@@ -228,13 +228,15 @@ export class FragmentNodeSequence implements INodeSequence {
     const targetNodeList = fragment.querySelectorAll('.au');
     let i = 0;
     let ii = targetNodeList.length;
-    const targets = this.targets = Array(ii);
+    let target: Element;
+    // eslint-disable-next-line
+    let targets = this.targets = Array(ii);
 
-    while (i < ii) {
+    while (ii > i) {
       // eagerly convert all markers to RenderLocations (otherwise the renderer
       // will do it anyway) and store them in the target list (since the comments
       // can't be queried)
-      const target = targetNodeList[i];
+      target = targetNodeList[i];
 
       if (target.nodeName === 'AU-M') {
         // note the renderer will still call this method, but it will just return the
@@ -248,10 +250,9 @@ export class FragmentNodeSequence implements INodeSequence {
     }
 
     const childNodeList = fragment.childNodes;
+    const childNodes = this.childNodes = Array(ii = childNodeList.length);
     i = 0;
-    ii = childNodeList.length;
-    const childNodes = this.childNodes = Array(ii);
-    while (i < ii) {
+    while (ii > i) {
       childNodes[i] = childNodeList[i] as Writable<Node>;
       ++i;
     }
@@ -271,8 +272,8 @@ export class FragmentNodeSequence implements INodeSequence {
       const parent = refNode.parentNode!;
       if (this.isMounted) {
         let current = this.firstChild;
-        const end = this.lastChild;
         let next: Node;
+        const end = this.lastChild;
 
         while (current != null) {
           next = current.nextSibling!;
@@ -294,8 +295,8 @@ export class FragmentNodeSequence implements INodeSequence {
   public appendTo(parent: Node, enhance: boolean = false): void {
     if (this.isMounted) {
       let current = this.firstChild;
-      const end = this.lastChild;
       let next: Node;
+      const end = this.lastChild;
 
       while (current != null) {
         next = current.nextSibling!;
@@ -342,8 +343,8 @@ export class FragmentNodeSequence implements INodeSequence {
     const parent = refNode.parentNode!;
     if (this.isMounted) {
       let current = this.firstChild;
-      const end = this.lastChild;
       let next: Node;
+      const end = this.lastChild;
 
       while (current != null) {
         next = current.nextSibling!;

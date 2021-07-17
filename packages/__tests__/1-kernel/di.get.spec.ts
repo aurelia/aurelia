@@ -679,6 +679,7 @@ describe('DI.get', function () {
       assert.strictEqual(iCallCount, 1);
       assert.instanceOf(instance2, IImpl);
       assert.strictEqual(instance, instance2);
+      assert.strictEqual(instance, childContainer.createChild().get(I));
     });
   });
 

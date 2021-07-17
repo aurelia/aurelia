@@ -10,6 +10,7 @@ export interface ITemplateElementFactory extends TemplateElementFactory {
 export declare const ITemplateElementFactory: import("@aurelia/kernel").InterfaceSymbol<ITemplateElementFactory>;
 export declare class TemplateElementFactory {
     private readonly p;
+    static inject: import("@aurelia/kernel").InterfaceSymbol<IPlatform>[];
     private template;
     constructor(p: IPlatform);
     createTemplate(markup: string): HTMLTemplateElement;

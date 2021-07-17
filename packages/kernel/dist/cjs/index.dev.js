@@ -30,7 +30,8 @@ function isArrayIndex(value) {
                 return isNumericLookup[value] = false;
             }
             let ch = 0;
-            for (let i = 0; i < length; ++i) {
+            let i = 0;
+            for (; i < length; ++i) {
                 ch = value.charCodeAt(i);
                 if (i === 0 && ch === 0x30 && length > 1 /* must not start with 0 */ || ch < 0x30 /* 0 */ || ch > 0x39 /* 9 */) {
                     return isNumericLookup[value] = false;
@@ -123,7 +124,8 @@ const baseCase = (function () {
         let curKind = 0 /* none */;
         let nextChar = input.charAt(0);
         let nextKind = charToKind(nextChar);
-        for (let i = 0; i < len; ++i) {
+        let i = 0;
+        for (; i < len; ++i) {
             prevKind = curKind;
             curChar = nextChar;
             curKind = nextKind;
@@ -224,7 +226,8 @@ function toArray(input) {
     // benchmark: http://jsben.ch/xjsyF
     const { length } = input;
     const arr = Array(length);
-    for (let i = 0; i < length; ++i) {
+    let i = 0;
+    for (; i < length; ++i) {
         arr[i] = input[i];
     }
     return arr;
@@ -325,11 +328,13 @@ function mergeArrays(...arrays) {
     const arraysLen = arrays.length;
     let arrayLen = 0;
     let array;
-    for (let i = 0; i < arraysLen; ++i) {
+    let i = 0;
+    for (; i < arraysLen; ++i) {
         array = arrays[i];
         if (array !== void 0) {
             arrayLen = array.length;
-            for (let j = 0; j < arrayLen; ++j) {
+            let j = 0;
+            for (; j < arrayLen; ++j) {
                 result[k++] = array[j];
             }
         }
@@ -455,7 +460,10 @@ function resolveAll(...maybePromises) {
     let maybePromise = void 0;
     let firstPromise = void 0;
     let promises = void 0;
-    for (let i = 0, ii = maybePromises.length; i < ii; ++i) {
+    let i = 0;
+    // eslint-disable-next-line
+    let ii = maybePromises.length;
+    for (; i < ii; ++i) {
         maybePromise = maybePromises[i];
         if ((maybePromise = maybePromises[i]) instanceof Promise) {
             if (firstPromise === void 0) {

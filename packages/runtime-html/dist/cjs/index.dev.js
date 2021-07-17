@@ -4815,12 +4815,14 @@ class FragmentNodeSequence {
         const targetNodeList = fragment.querySelectorAll('.au');
         let i = 0;
         let ii = targetNodeList.length;
-        const targets = this.targets = Array(ii);
-        while (i < ii) {
+        let target;
+        // eslint-disable-next-line
+        let targets = this.targets = Array(ii);
+        while (ii > i) {
             // eagerly convert all markers to RenderLocations (otherwise the renderer
             // will do it anyway) and store them in the target list (since the comments
             // can't be queried)
-            const target = targetNodeList[i];
+            target = targetNodeList[i];
             if (target.nodeName === 'AU-M') {
                 // note the renderer will still call this method, but it will just return the
                 // location if it sees it's already a location
@@ -4833,10 +4835,9 @@ class FragmentNodeSequence {
             ++i;
         }
         const childNodeList = fragment.childNodes;
+        const childNodes = this.childNodes = Array(ii = childNodeList.length);
         i = 0;
-        ii = childNodeList.length;
-        const childNodes = this.childNodes = Array(ii);
-        while (i < ii) {
+        while (ii > i) {
             childNodes[i] = childNodeList[i];
             ++i;
         }
@@ -4854,8 +4855,8 @@ class FragmentNodeSequence {
             const parent = refNode.parentNode;
             if (this.isMounted) {
                 let current = this.firstChild;
-                const end = this.lastChild;
                 let next;
+                const end = this.lastChild;
                 while (current != null) {
                     next = current.nextSibling;
                     parent.insertBefore(current, refNode);
@@ -4874,8 +4875,8 @@ class FragmentNodeSequence {
     appendTo(parent, enhance = false) {
         if (this.isMounted) {
             let current = this.firstChild;
-            const end = this.lastChild;
             let next;
+            const end = this.lastChild;
             while (current != null) {
                 next = current.nextSibling;
                 parent.appendChild(current);
@@ -4914,8 +4915,8 @@ class FragmentNodeSequence {
         const parent = refNode.parentNode;
         if (this.isMounted) {
             let current = this.firstChild;
-            const end = this.lastChild;
             let next;
+            const end = this.lastChild;
             while (current != null) {
                 next = current.nextSibling;
                 parent.insertBefore(current, refNode);
@@ -6386,7 +6387,7 @@ RefBindingCommand = __decorate([
 
 const ITemplateElementFactory = kernel.DI.createInterface('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 const markupCache = {};
-let TemplateElementFactory = class TemplateElementFactory {
+class TemplateElementFactory {
     constructor(p) {
         this.p = p;
         this.template = p.document.createElement('template');
@@ -6426,10 +6427,8 @@ let TemplateElementFactory = class TemplateElementFactory {
         (_a = input.parentNode) === null || _a === void 0 ? void 0 : _a.removeChild(input);
         return input.cloneNode(true);
     }
-};
-TemplateElementFactory = __decorate([
-    __param(0, IPlatform)
-], TemplateElementFactory);
+}
+TemplateElementFactory.inject = [IPlatform];
 
 // todo: replace existing resource code with this resolver
 // ===================
@@ -7659,7 +7658,8 @@ class CompilationContext {
 function hasInlineBindings(rawValue) {
     const len = rawValue.length;
     let ch = 0;
-    for (let i = 0; i < len; ++i) {
+    let i = 0;
+    while (len > i) {
         ch = rawValue.charCodeAt(i);
         if (ch === 92 /* Backslash */) {
             ++i;
@@ -7671,6 +7671,7 @@ function hasInlineBindings(rawValue) {
         else if (ch === 36 /* Dollar */ && rawValue.charCodeAt(i + 1) === 123 /* OpenBrace */) {
             return false;
         }
+        ++i;
     }
     return false;
 }
@@ -10602,12 +10603,10 @@ function createElement(p, tagOrType, props, children) {
     if (typeof tagOrType === 'string') {
         return createElementForTag(p, tagOrType, props, children);
     }
-    else if (CustomElement.isType(tagOrType)) {
+    if (CustomElement.isType(tagOrType)) {
         return createElementForType(p, tagOrType, props, children);
     }
-    else {
-        throw new Error(`Invalid tagOrType.`);
-    }
+    throw new Error(`Invalid Tag or Type.`);
 }
 /**
  * RenderPlan. Todo: describe goal of this class

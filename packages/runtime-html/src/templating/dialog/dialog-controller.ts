@@ -119,7 +119,6 @@ export class DialogController implements IDialogController {
 
         return onResolve(cmp.activate?.(model), () => {
           const ctrlr = this.controller = Controller.forCustomElement(
-            null,
             container,
             cmp,
             contentHost,

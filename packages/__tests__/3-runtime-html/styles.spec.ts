@@ -207,7 +207,7 @@ describe('Styles', function () {
       });
 
       const component = new FooBar();
-      const controller = Controller.forCustomElement(null, ctx.container.createChild(), component, host, null, null);
+      const controller = Controller.forCustomElement(ctx.container.createChild(), component, host, null, null);
 
       void controller.activate(controller, null, LifecycleFlags.none);
 

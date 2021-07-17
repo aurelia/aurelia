@@ -22,11 +22,11 @@ export function createElement<C extends Constructable = Constructable>(
 ): RenderPlan {
   if (typeof tagOrType === 'string') {
     return createElementForTag(p, tagOrType, props, children);
-  } else if (CustomElement.isType(tagOrType)) {
-    return createElementForType(p, tagOrType, props, children);
-  } else {
-    throw new Error(`Invalid tagOrType.`);
   }
+  if (CustomElement.isType(tagOrType)) {
+    return createElementForType(p, tagOrType, props, children);
+  }
+  throw new Error(`Invalid Tag or Type.`);
 }
 
 /**

@@ -217,7 +217,6 @@ export class AuCompose {
       // custom element based composition
       if (srcDef !== null) {
         const controller = Controller.forCustomElement(
-          null,
           childCtn,
           comp,
           compositionHost as HTMLElement,
@@ -247,8 +246,6 @@ export class AuCompose {
         });
         const viewFactory = this.r.getViewFactory(targetDef, childCtn);
         const controller = Controller.forSyntheticView(
-          contextFactory.isFirst(context) ? $controller.root : null,
-          // null!,
           viewFactory,
           LifecycleFlags.fromBind,
           $controller

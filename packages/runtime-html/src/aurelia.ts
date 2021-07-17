@@ -100,7 +100,6 @@ export class Aurelia implements IDisposable {
     //        - there's no lifecycles
     // todo: should this be move to a method enhance on Controller?
     const view = Controller.forCustomElement(
-      null,
       childCtn,
       bc,
       host,

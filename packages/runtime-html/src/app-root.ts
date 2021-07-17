@@ -93,7 +93,6 @@ export class AppRoot implements IDisposable {
 
       const hydrationInst = { hydrate: false, projections: null } as Writable<IControllerElementHydrationInstruction>;
       const controller = (this.controller = Controller.forCustomElement(
-        this,
         childCtn,
         instance,
         this.host,

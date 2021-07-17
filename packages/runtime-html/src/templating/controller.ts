@@ -131,8 +131,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public readonly hooks: HooksDefinition;
 
   public constructor(
-    // todo: remove this property along with the root initialization below
-    public root: IAppRoot | null,
     public container: IContainer,
     public readonly vmKind: ViewModelKind,
     public flags: LifecycleFlags,
@@ -154,10 +152,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
      */
     public host: HTMLElement | null,
   ) {
-    // todo: remove this along with the root parameter
-    // if (root === null && container.has(IAppRoot, true)) {
-    //   this.root = container.get<IAppRoot>(IAppRoot);
-    // }
     this.r = container.root.get(IRendering);
     this.platform = container.get(IPlatform);
     switch (vmKind) {
@@ -185,7 +179,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(
-    root: IAppRoot | null,
     ctn: IContainer,
     viewModel: C,
     host: HTMLElement,
@@ -203,7 +196,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     definition = definition ?? CustomElement.getDefinition(viewModel.constructor as Constructable);
 
     const controller = new Controller<C>(
-      /* root           */root,
       /* container      */ctn,
       /* vmKind         */ViewModelKind.customElement,
       /* flags          */flags,
@@ -237,7 +229,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public static forCustomAttribute<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(
-    root: IAppRoot | null,
     ctn: IContainer,
     viewModel: C,
     host: HTMLElement,
@@ -256,7 +247,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     definition = definition ?? CustomAttribute.getDefinition(viewModel.constructor as Constructable);
 
     const controller = new Controller<C>(
-      /* root           */root,
       /* own ct         */ctn,
       /* vmKind         */ViewModelKind.customAttribute,
       /* flags          */flags,
@@ -274,13 +264,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public static forSyntheticView(
-    root: IAppRoot | null,
     viewFactory: IViewFactory,
     flags: LifecycleFlags = LifecycleFlags.none,
     parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined = void 0,
   ): ISyntheticView {
     const controller = new Controller(
-      /* root           */root,
       /* container      */viewFactory.container,
       /* vmKind         */ViewModelKind.synthetic,
       /* flags          */flags,
@@ -355,8 +343,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - runAppTasks('hydrated') // may return a promise
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
-    // if ((this.root?.controller as this | undefined) !== this) {
-    // }
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
       this.hydrate(hydrationInst);
       this.hydrateChildren();
@@ -1055,7 +1041,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.viewModel = null;
     this.host = null;
     this.shadowRoot = null;
-    this.root = null;
   }
 
   public accept(visitor: ControllerVisitor): void | true {
@@ -1336,7 +1321,6 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
   readonly name: string;
   readonly container: IContainer;
   readonly platform: IPlatform;
-  readonly root: IAppRoot | null;
   readonly flags: LifecycleFlags;
   readonly vmKind: ViewModelKind;
   readonly definition: CustomElementDefinition | CustomAttributeDefinition | null;

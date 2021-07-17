@@ -499,7 +499,6 @@ export class CustomElementRenderer implements IRenderer {
     component = container.invoke(Ctor);
     container.registerResolver(Ctor, new InstanceProvider<typeof Ctor>(def.key, component));
     childCtrl = Controller.forCustomElement(
-      /* root                */renderingCtrl.root,
       /* own container       */container,
       /* viewModel           */component,
       /* host                */target,
@@ -572,7 +571,6 @@ export class CustomAttributeRenderer implements IRenderer {
       /* location         */void 0,
     );
     const childController = Controller.forCustomAttribute(
-      /* root       */renderingCtrl.root,
       /* context ct */renderingCtrl.container,
       /* viewModel  */component,
       /* host       */target,
@@ -641,7 +639,6 @@ export class TemplateControllerRenderer implements IRenderer {
       /* location         */renderLocation,
     );
     const childController = Controller.forCustomAttribute(
-      /* root         */renderingCtrl.root,
       /* container ct */renderingCtrl.container,
       /* viewModel    */component,
       /* host         */target,

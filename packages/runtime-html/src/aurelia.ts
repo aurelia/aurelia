@@ -1,7 +1,17 @@
-import { DI, IContainer, Registration, InstanceProvider, IDisposable, onResolve } from '@aurelia/kernel';
+import { DI, Registration, InstanceProvider, onResolve } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
+import { LifecycleFlags } from '@aurelia/runtime';
 import { AppRoot, IAppRoot, ISinglePageApp } from './app-root.js';
+import { IEventTarget, INode } from './dom.js';
 import { IPlatform } from './platform.js';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
+import { Controller, ICustomElementController, IHydratedParentController } from './templating/controller.js';
+
+import type {
+  Constructable,
+  IContainer,
+  IDisposable,
+} from '@aurelia/kernel';
 
 export interface IAurelia extends Aurelia {}
 export const IAurelia = DI.createInterface<IAurelia>('IAurelia');
@@ -14,6 +24,11 @@ export class Aurelia implements IDisposable {
   private _isStopping: boolean = false;
   public get isStopping(): boolean { return this._isStopping; }
 
+  // TODO:
+  // root should just be a controller,
+  // in all other parts of the framework, root of something is always the same type of that thing
+  // i.e: container.root => a container, RouteContext.root => a RouteContext
+  // Aurelia.root of a controller hierarchy should behave similarly
   private _root: IAppRoot | undefined = void 0;
   public get root(): IAppRoot {
     if (this._root == null) {
@@ -36,7 +51,7 @@ export class Aurelia implements IDisposable {
       throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
     }
 
-    container.register(Registration.instance(IAurelia, this));
+    container.registerResolver(IAurelia, new InstanceProvider<IAurelia>('IAurelia', this));
     container.registerResolver(IAppRoot, this.rootProvider = new InstanceProvider('IAppRoot'));
   }
 
@@ -46,13 +61,62 @@ export class Aurelia implements IDisposable {
   }
 
   public app(config: ISinglePageApp): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider, false);
+    this.next = new AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider);
     return this;
   }
 
-  public enhance(config: ISinglePageApp): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider, true);
-    return this;
+  /**
+   * @param parentController The owning controller of the view created by this enhance call
+   */
+  public enhance(config: ISinglePageApp, parentController?: IHydratedParentController | null): IEnhancedView | Promise<IEnhancedView> {
+    const ctn = this.container;
+    const childCtn = ctn.createChild();
+    const host = config.host;
+    const p = this.initPlatform(host);
+    const comp = config.component;
+    let bc: object;
+    if (typeof comp === 'function') {
+      childCtn.registerResolver(
+        p.HTMLElement,
+        childCtn.registerResolver(
+          p.Element,
+          childCtn.registerResolver(
+            p.Node,
+            childCtn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+          )
+        )
+      );
+      bc = childCtn.invoke(comp as Constructable);
+    } else {
+      bc = comp as object;
+    }
+    childCtn.registerResolver(IEventTarget, new InstanceProvider('IEventTarget', host));
+    parentController = parentController ?? null;
+
+    // todo: shouldn't this be just a synthetic view?
+    //       pros of synthetic view:
+    //        - is it feels right-er
+    //       cons of synthetic view:
+    //        - there's no lifecycles
+    // todo: should this be move to a method enhance on Controller?
+    const view = Controller.forCustomElement(
+      null,
+      childCtn,
+      bc,
+      host,
+      null,
+      void 0,
+      void 0,
+      CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }),
+    );
+    const enhancedView: IEnhancedView = {
+      controller: view,
+      deactivate: () => view.deactivate(view, parentController!, LifecycleFlags.fromUnbind)
+    };
+    return onResolve(
+      view.activate(view, parentController, LifecycleFlags.fromBind),
+      () => enhancedView
+    );
   }
 
   public async waitForIdle(): Promise<void> {
@@ -135,4 +199,9 @@ export class Aurelia implements IDisposable {
     const ev = new root.platform.window.CustomEvent(name, { detail: this, bubbles: true, cancelable: true });
     target.dispatchEvent(ev);
   }
+}
+
+export interface IEnhancedView {
+  readonly controller: ICustomElementController;
+  readonly deactivate: () => void | Promise<void>;
 }

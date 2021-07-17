@@ -72,7 +72,6 @@ export class AppRoot implements IDisposable {
     public readonly platform: IPlatform,
     public readonly container: IContainer,
     rootProvider: InstanceProvider<IAppRoot>,
-    enhance = false,
   ) {
     this.host = config.host;
     this.work = container.get(IWorkTracker);

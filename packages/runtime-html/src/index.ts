@@ -218,6 +218,7 @@ export {
 export {
   Aurelia,
   IAurelia,
+  IEnhancedView,
 } from './aurelia.js';
 export {
   ISinglePageApp,

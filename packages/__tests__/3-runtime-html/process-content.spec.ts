@@ -35,16 +35,19 @@ describe('processContent', function () {
     const au = new Aurelia(container);
     let error: Error | null = null;
     let app: App | null = null;
+    let stop;
     try {
       au.register(...registrations);
       if (enhance) {
         host.innerHTML = template;
-        au.enhance({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true }, App) });
+        const { controller, deactivate: $dispose } = await au.enhance({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true }, App) });
+        app = controller.viewModel;
+        stop = $dispose;
       } else {
-        au.app({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App) });
+        await au.app({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App) })
+          .start();
+        app = au.root.controller.viewModel;
       }
-      await au.start();
-      app = au.root.controller.viewModel as App;
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       error = e;
@@ -54,6 +57,7 @@ describe('processContent', function () {
 
     if (error === null) {
       await au.stop();
+      await stop?.();
     }
     ctx.doc.body.removeChild(host);
   }
@@ -70,6 +74,7 @@ describe('processContent', function () {
       public readonly expectedInnerHtmlMap: Record<string, string>,
       public readonly additionalAssertion?: (ctx: TestExecutionContext) => void | Promise<void>,
       public readonly enhance: boolean = false,
+      public readonly only: boolean = false,
     ) { }
   }
   function* getTestData() {
@@ -530,8 +535,8 @@ describe('processContent', function () {
     );
 
   }
-  for (const { spec, template, expectedInnerHtmlMap, registrations, additionalAssertion, enhance } of getTestData()) {
-    $it(spec,
+  for (const { spec, template, expectedInnerHtmlMap, registrations, additionalAssertion, enhance, only } of getTestData()) {
+    (only ? $it.only : $it)(spec,
       async function (ctx) {
         const { host, error } = ctx;
         assert.deepEqual(error, null);

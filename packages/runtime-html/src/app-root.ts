@@ -3,9 +3,9 @@ import { LifecycleFlags } from '@aurelia/runtime';
 import { INode } from './dom.js';
 import { IAppTask } from './app-task.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
-import { Controller } from './templating/controller.js';
+import { Controller, IControllerElementHydrationInstruction } from './templating/controller.js';
 
-import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
+import type { Constructable, IContainer, IDisposable, Writable } from '@aurelia/kernel';
 import type { TaskSlot } from './app-task.js';
 import type { ICustomElementViewModel, ICustomElementController } from './templating/controller.js';
 import type { IPlatform } from './platform.js';
@@ -66,14 +66,13 @@ export class AppRoot implements IDisposable {
   public work: IWorkTracker;
 
   private hydratePromise: Promise<void> | void = void 0;
-  private readonly enhanceDefinition: CustomElementDefinition | undefined;
 
   public constructor(
     public readonly config: ISinglePageApp,
     public readonly platform: IPlatform,
     public readonly container: IContainer,
     rootProvider: InstanceProvider<IAppRoot>,
-    enhance: boolean = false,
+    enhance = false,
   ) {
     this.host = config.host;
     this.work = container.get(IWorkTracker);
@@ -82,15 +81,6 @@ export class AppRoot implements IDisposable {
     //   this.container = container.createChild();
     // }
     this.container.register(Registration.instance(INode, config.host));
-
-    if (enhance) {
-      const component = config.component as Constructable | ICustomElementViewModel;
-      this.enhanceDefinition = CustomElement.getDefinition(
-        CustomElement.isType(component)
-          ? CustomElement.define({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }, component)
-          : CustomElement.define({ name: (void 0)!, template: this.host, enhance: true })
-      );
-    }
 
     this.hydratePromise = onResolve(this.runAppTasks('beforeCreate'), () => {
       const component = config.component as Constructable | ICustomElementViewModel;
@@ -102,18 +92,18 @@ export class AppRoot implements IDisposable {
         instance = config.component as ICustomElementViewModel;
       }
 
+      const hydrationInst = { hydrate: false, projections: null } as Writable<IControllerElementHydrationInstruction>;
       const controller = (this.controller = Controller.forCustomElement(
         this,
         childCtn,
         instance,
         this.host,
-        null,
+        hydrationInst,
         LifecycleFlags.none,
         false,
-        this.enhanceDefinition,
       )) as Controller;
 
-      controller.hydrateCustomElement(null, /* root does not have hydration context */null);
+      controller.hydrateCustomElement(hydrationInst, /* root does not have hydration context */null);
       return onResolve(this.runAppTasks('hydrating'), () => {
         controller.hydrate(null);
         return onResolve(this.runAppTasks('hydrated'), () => {

@@ -131,6 +131,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public readonly hooks: HooksDefinition;
 
   public constructor(
+    // todo: remove this property along with the root initialization below
     public root: IAppRoot | null,
     public container: IContainer,
     public readonly vmKind: ViewModelKind,
@@ -153,9 +154,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
      */
     public host: HTMLElement | null,
   ) {
-    if (root === null && container.has(IAppRoot, true)) {
-      this.root = container.get<IAppRoot>(IAppRoot);
-    }
+    // todo: remove this along with the root parameter
+    // if (root === null && container.has(IAppRoot, true)) {
+    //   this.root = container.get<IAppRoot>(IAppRoot);
+    // }
     this.r = container.root.get(IRendering);
     this.platform = container.get(IPlatform);
     switch (vmKind) {
@@ -213,7 +215,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // the hydration context this controller is provided with
     const hydrationContext = ctn.get(optional(IHydrationContext));
 
-    ctn.register(...definition.dependencies);
+    if (definition.dependencies.length > 0) {
+      ctn.register(...definition.dependencies);
+    }
     // each CE controller provides its own hydration context for its internal template
     ctn.registerResolver(IHydrationContext, new InstanceProvider(
       'IHydrationContext',
@@ -225,7 +229,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     ));
     controllerLookup.set(viewModel, controller as Controller);
 
-    if (hydrate) {
+    if (hydrationInst == null || hydrationInst.hydrate !== false) {
       controller.hydrateCustomElement(hydrationInst, hydrationContext);
     }
 
@@ -351,7 +355,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - runAppTasks('hydrated') // may return a promise
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
-    if ((this.root?.controller as this | undefined) !== this) {
+    // if ((this.root?.controller as this | undefined) !== this) {
+    // }
+    if (hydrationInst == null || hydrationInst.hydrate !== false) {
       this.hydrate(hydrationInst);
       this.hydrateChildren();
     }
@@ -1439,7 +1445,7 @@ export interface ISyntheticView extends IHydratableController {
   /**
    * Lock this view's scope to the provided `Scope`. The scope, which is normally set during `activate()`, will then not change anymore.
    *
-   * This is used by `au-compose` to set the binding context of a view to a particular component instance.
+   * This is used by `au-render` to set the binding context of a view to a particular component instance.
    *
    * @param scope - The scope to lock this view to.
    */
@@ -1718,6 +1724,15 @@ export interface IHydratedCustomAttributeViewModel extends ICustomAttributeViewM
 }
 
 export interface IControllerElementHydrationInstruction {
+  /**
+   * An internal mechanism to manually halt + resume hydration process
+   *
+   * - 0: no hydration
+   * - 1: hydrate until define() lifecycle
+   *
+   * @internal
+   */
+  readonly hydrate?: boolean;
   readonly projections: IProjections | null;
 }
 

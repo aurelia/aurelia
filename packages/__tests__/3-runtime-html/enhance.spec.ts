@@ -368,7 +368,7 @@ describe('3-runtime/enhance.spec.ts', function () {
       component: { i: 1 },
       resources: [
         ValueConverter.define('plus10', class Plus10 {
-          toView(v: any) {
+          public toView(v: any) {
             return Number(v) + 10;
           }
         })

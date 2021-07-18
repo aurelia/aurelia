@@ -109,7 +109,6 @@ export class Aurelia implements IDisposable {
       host,
       null,
       void 0,
-      void 0,
       CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }),
     );
     const enhancedView: IEnhancedView<K> = {

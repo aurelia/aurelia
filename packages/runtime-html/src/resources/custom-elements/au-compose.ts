@@ -222,7 +222,6 @@ export class AuCompose {
           compositionHost as HTMLElement,
           null,
           LifecycleFlags.none,
-          true,
           srcDef,
         );
 

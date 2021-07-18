@@ -502,9 +502,8 @@ export class CustomElementRenderer implements IRenderer {
       /* own container       */container,
       /* viewModel           */component,
       /* host                */target,
-      /* instructions        */instruction,
+      /* instruction         */instruction,
       /* flags               */f,
-      /* hydrate             */true,
       /* definition          */def,
     );
 

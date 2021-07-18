@@ -183,7 +183,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     host: HTMLElement,
     hydrationInst: IControllerElementHydrationInstruction | null,
     flags: LifecycleFlags = LifecycleFlags.none,
-    hydrate: boolean = true,
     // Use this when `instance.constructor` is not a custom element type
     // to pass on the CustomElement definition
     definition: CustomElementDefinition | undefined = void 0,

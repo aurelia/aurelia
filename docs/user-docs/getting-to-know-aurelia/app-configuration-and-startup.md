@@ -108,15 +108,13 @@ The basic syntax of `enhance` matches closely that of the normal startup.
 
 ```typescript
 const au = new Aurelia();
-au.enhance({ host, component: MyComponent });
-await au.start();
+await au.enhance({ host, component: MyComponent });
 ```
 
 There are a few important points to note here.
 
-1. For every enhance root, a new instance of `Aurelia` is needed. To this end, you can also use the static syntax `Aurelia.enhance({...})`. This is to enforce a new root DI container for every enhance root. Importantly, this also means that you can have multiple root nodes in your app \(this is true for `Aurelia.app(...)` as well\), where each one of those roots can be started/stopped independently of each other.
-2. The `host` is usually an existing non-enhanced \(neither by `.app` nor by `.enhance`\) DOM node. Note that `.enhance` does not detach or attach the `host` node to the DOM by itself. If the `host` is truly detached, then it needs to be explicitly attached to the DOM. An important consequence to note is that if there are existing event handlers attached to the `host` node or one of its successor node, then those stays as it is.
-3. Lastly, the component passed in to `Aurelia.enhance` \(`MyComponent` in our example, above\) can be a custom element class, an instance of a class, or an object literal.
+1. Every enhancement is treated as an anonymous custom element hydration, where the node being enhance is the only element inside this anonymous element template.
+2. The component passed in to `Aurelia.enhance` \(`MyComponent` in our example, above\) can be a custom element class, an instance of a class, or an object literal. If it's a class, then it will be instantiated by a container created for this enhancement. `@inject` works like normal view model instantiation.
+3. The `host` is usually an existing non-enhanced \(neither by `.app` nor by `.enhance`\) DOM node. Note that `.enhance` does not detach or attach the `host` node to the DOM by itself. If the `host` is truly detached, then it needs to be explicitly attached to the DOM. An important consequence to note is that if there are existing event handlers attached to the `host` node or one of its successor node, then those stays as it is.
 
 That's it. Those are the main differences between enhance and the normal empty-root startup. In every other aspect, those two are same, because once a node is enhanced, all the data bindings, or change handling will work like a normal Aurelia hydrated empty-root node.
-

@@ -55,12 +55,18 @@ export async function startup(config: StartupConfiguration = {}) {
       break;
   }
 
+  let $deactivate: () => any;
   ctx.doc.body.appendChild(host);
-  au[method]({ host, component });
-  await au.start();
+  if (method === 'app') {
+    au.app({ host, component });
+    await au.start();
+  } else {
+    $deactivate = (await au.enhance({ host, component })).deactivate;
+  }
 
   async function tearDown() {
     await au.stop();
+    await $deactivate?.();
     ctx.doc.body.removeChild(host);
     callCollection.calls.splice(0);
   }

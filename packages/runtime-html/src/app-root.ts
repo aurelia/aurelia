@@ -2,10 +2,10 @@ import { DI, Registration, InstanceProvider, onResolve, resolveAll, ILogger } fr
 import { LifecycleFlags } from '@aurelia/runtime';
 import { INode } from './dom.js';
 import { IAppTask } from './app-task.js';
-import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
+import { CustomElement } from './resources/custom-element.js';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller.js';
 
-import type { Constructable, IContainer, IDisposable, Writable } from '@aurelia/kernel';
+import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 import type { TaskSlot } from './app-task.js';
 import type { ICustomElementViewModel, ICustomElementController } from './templating/controller.js';
 import type { IPlatform } from './platform.js';
@@ -91,7 +91,7 @@ export class AppRoot implements IDisposable {
         instance = config.component as ICustomElementViewModel;
       }
 
-      const hydrationInst = { hydrate: false, projections: null } as Writable<IControllerElementHydrationInstruction>;
+      const hydrationInst: IControllerElementHydrationInstruction = { hydrate: false, projections: null };
       const controller = (this.controller = Controller.forCustomElement(
         childCtn,
         instance,

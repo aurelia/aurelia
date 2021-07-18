@@ -1,11 +1,11 @@
-import { DI, Registration, InstanceProvider, onResolve } from '@aurelia/kernel';
+import { DI, Registration, InstanceProvider, onResolve, emptyArray } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { AppRoot, IAppRoot, ISinglePageApp } from './app-root.js';
 import { IEventTarget, INode } from './dom.js';
 import { IPlatform } from './platform.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
-import { Controller, ICustomElementController, IHydratedParentController } from './templating/controller.js';
+import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller.js';
 
 import type {
   Constructable,
@@ -66,15 +66,16 @@ export class Aurelia implements IDisposable {
   }
 
   /**
-   * @param parentController The owning controller of the view created by this enhance call
+   * @param parentController - The owning controller of the view created by this enhance call
    */
-  public enhance(config: ISinglePageApp, parentController?: IHydratedParentController | null): IEnhancedView | Promise<IEnhancedView> {
-    const ctn = this.container;
+  public enhance<T extends unknown, K = T extends Constructable<infer I> ? I : T>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController | null): IEnhancedView<K> | Promise<IEnhancedView<K>> {
+    const ctn = config.container ?? this.container;
     const childCtn = ctn.createChild();
-    const host = config.host;
+    const host = config.host as HTMLElement;
     const p = this.initPlatform(host);
-    const comp = config.component;
-    let bc: object;
+    const comp = config.component as K;
+    const resources = config.resources ?? emptyArray;
+    let bc: ICustomElementViewModel & K;
     if (typeof comp === 'function') {
       childCtn.registerResolver(
         p.HTMLElement,
@@ -86,11 +87,14 @@ export class Aurelia implements IDisposable {
           )
         )
       );
-      bc = childCtn.invoke(comp as Constructable);
+      bc = childCtn.invoke(comp as unknown as Constructable<ICustomElementViewModel & K>);
     } else {
-      bc = comp as object;
+      bc = comp;
     }
     childCtn.registerResolver(IEventTarget, new InstanceProvider('IEventTarget', host));
+    if (resources.length > 0) {
+      childCtn.register(...resources);
+    }
     parentController = parentController ?? null;
 
     // todo: shouldn't this be just a synthetic view?
@@ -108,7 +112,7 @@ export class Aurelia implements IDisposable {
       void 0,
       CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }),
     );
-    const enhancedView: IEnhancedView = {
+    const enhancedView: IEnhancedView<K> = {
       controller: view,
       deactivate: () => view.deactivate(view, parentController!, LifecycleFlags.fromUnbind)
     };
@@ -200,7 +204,28 @@ export class Aurelia implements IDisposable {
   }
 }
 
-export interface IEnhancedView {
-  readonly controller: ICustomElementController;
+export interface IEnhancedView<T> {
+  readonly controller: ICustomElementController<ICustomElementViewModel & T>;
   readonly deactivate: () => void | Promise<void>;
+}
+
+export interface IEnhancementConfig<T> {
+  host: Element;
+  /**
+   * The binding context of the enhancement. Will be instantiate by DI if a constructor is given
+   */
+  component: T;
+  /**
+   * The parent container of the enhanced view.
+   *
+   * A child contaienr will be spawned from this container for the enhancement.
+   *
+   * Root container should be used if this is not given
+   */
+  container?: IContainer;
+  /**
+   * A list of local resources to use for the enhancement,
+   * only available to the directly enhanced view itself
+   */
+  resources?: unknown[];
 }

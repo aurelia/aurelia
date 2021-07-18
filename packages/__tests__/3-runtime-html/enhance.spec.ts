@@ -13,6 +13,7 @@ import {
   IController,
   ICustomElementController,
   IAurelia,
+  ValueConverter,
 } from '@aurelia/runtime-html';
 import { assert, TestContext, createFixture } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
@@ -126,7 +127,7 @@ describe('3-runtime/enhance.spec.ts', function () {
 
         private async enhance(host = this.r2) {
           await new Aurelia(TestContext.create().container)
-            .enhance({ host: host.querySelector('div'), component: { message } })
+            .enhance({ host: host.querySelector('div'), component: { message } });
         }
       }
       const ctx = TestContext.create();
@@ -213,7 +214,7 @@ describe('3-runtime/enhance.spec.ts', function () {
     })
     class App {
       private enhancedHost: HTMLElement;
-      private enhanceView: IEnhancedView;
+      private enhanceView: IEnhancedView<object>;
       private readonly container!: HTMLDivElement;
 
       public async bound() {
@@ -228,7 +229,7 @@ describe('3-runtime/enhance.spec.ts', function () {
         );
         this.enhanceView = await _au
           .register(MyElement) // in real app, there should be more
-          .enhance({ host: _host, component: CustomElement.define({ name: 'enhance' }, class EnhanceRoot { }) })
+          .enhance({ host: _host, component: CustomElement.define({ name: 'enhance' }, class EnhanceRoot { }) });
 
         assert.html.innerEqual(_host, '<my-element class="au"><span>42</span></my-element>', 'enhanced.innerHtml');
         assert.html.innerEqual(this.container, '', 'container.innerHtml - before attach');
@@ -286,11 +287,11 @@ describe('3-runtime/enhance.spec.ts', function () {
         }, class MyEl {
           public static inject = [IAurelia];
           public div: HTMLDivElement;
-          public enhancedView: IEnhancedView;
+          public enhancedView: IEnhancedView<object>;
           public constructor(private readonly au$: Aurelia) {}
 
-          public attaching() {
-            this.enhancedView = this.au$.enhance(
+          public async attaching() {
+            this.enhancedView = await this.au$.enhance(
               {
                 host: this.div,
                 component: {
@@ -301,11 +302,11 @@ describe('3-runtime/enhance.spec.ts', function () {
                 }
               },
               (this as any).$controller
-            ) as IEnhancedView;
+            );
           }
 
           public detaching() {
-            this.enhancedView.deactivate();
+            void this.enhancedView.deactivate();
             parentController = void 0;
           }
         }),
@@ -325,7 +326,63 @@ describe('3-runtime/enhance.spec.ts', function () {
     assert.html.innerEqual(appHost, '');
   });
 
-  it('warns on node with "au" class', async function () {
+  it('spawns new child controller from a given controller', async function () {
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    const I = DI.createInterface<I>('I');
+    interface I {
+      i_id: number;
+    }
+    const instance: I = { i_id: 1 };
+    host.innerHTML = '<div class="au" data-id.bind="i.i_id"></div>';
+    const { controller, deactivate } = await au.enhance({
+      host,
+      component: class MyComponent {
+        public static inject = [I];
+        public constructor(public i: I) {}
+      },
+      container: container.createChild().register(Registration.instance(I, instance))
+    });
+
+    assert.strictEqual(host.innerHTML, '<div class="au" data-id="1"></div>');
+    assert.strictEqual(controller.viewModel.i, instance);
+    await deactivate();
+  });
+
+  it('uses resources given in the config', async function () {
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    const I = DI.createInterface<I>('I');
+    interface I {
+      i_id: number;
+    }
+    host.innerHTML = '<div class="au" data-id.bind="i | plus10"></div>';
+    const { deactivate } = await au.enhance({
+      host,
+      component: { i: 1 },
+      resources: [
+        ValueConverter.define('plus10', class Plus10 {
+          toView(v: any) {
+            return Number(v) + 10;
+          }
+        })
+      ]
+    });
+
+    assert.strictEqual(host.innerHTML, '<div class="au" data-id="11"></div>');
+    assert.strictEqual(container.find(ValueConverter, 'plus10'), null, 'It should register resources with child contaienr only.');
+    await deactivate();
+  });
+
+  // the following test works locally but not on CI as the tests are running with prod build
+  // should re-enable after the dist enhancement
+  it.skip('warns on node with "au" class', async function () {
     const ctx = TestContext.create();
     const host = ctx.doc.createElement('div');
 
@@ -339,14 +396,16 @@ describe('3-runtime/enhance.spec.ts', function () {
       }
     }));
     host.innerHTML = '<div class="au" data-id.bind="id"></div>';
-    const { deactivate: dispose } = await au.enhance({ host, component: { id: 1 } });
+    const { deactivate } = await au.enhance({ host, component: { id: 1 } });
 
     assert.strictEqual(warnCallCount, 1);
     assert.strictEqual(host.innerHTML, '<div class="au" data-id="1"></div>');
-    await dispose();
+    await deactivate();
   });
 
-  it('throws on invalid template with a predefined "au"', async function () {
+  // the following test works locally but not on CI as the tests are running with prod build
+  // should re-enable after the dist enhancement
+  it.skip('throws on invalid template with a predefined "au"', async function () {
     const ctx = TestContext.create();
     const host = ctx.doc.createElement('div');
 

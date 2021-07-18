@@ -1,7 +1,7 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
 import { StandardConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, CustomElementType, CustomElement, IEnhancedView, IHydratedParentController } from '@aurelia/runtime-html';
-import type { ISinglePageApp } from '@aurelia/runtime-html';
 import { BrowserPlatform } from '@aurelia/platform-browser';
+import type { ISinglePageApp, IEnhancementConfig } from '@aurelia/runtime-html';
 
 export const PLATFORM = BrowserPlatform.getOrCreate(globalThis);
 export { IPlatform };
@@ -27,7 +27,7 @@ export class Aurelia extends $Aurelia {
     return new Aurelia().app(config);
   }
 
-  public static enhance(config: ISinglePageApp, parentController?: IHydratedParentController): IEnhancedView | Promise<IEnhancedView> {
+  public static enhance<T extends unknown>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController): IEnhancedView<T> | Promise<IEnhancedView<T>> {
     return new Aurelia().enhance(config, parentController);
   }
 
@@ -757,6 +757,7 @@ export {
   // TwoWayBindingCommand,
 
   IEnhancedView,
+  IEnhancementConfig,
   IHydratedParentController,
 
   // IExpressionParserRegistration,

@@ -1,4 +1,4 @@
-import { ICustomElementController, Controller, IHydratedController, LifecycleFlags, ICustomElementViewModel, IAppRoot, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
+import { ICustomElementController, Controller, IHydratedController, LifecycleFlags, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 import { Constructable, ILogger } from '@aurelia/kernel';
 
 import { RouteDefinition } from './route-definition.js';

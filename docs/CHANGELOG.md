@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.13"></a>
+# 2.0.0-alpha.13 (2021-07-19)
+
+### Features:
+* **enhance**: Now works similarly like v1, can be used as disconnected enhancement from an existing Aurelia instance.
+
+### Refactorings:
+
+* **controller:** remove unneeded param from Controller.forCustomElement ([4abb1ee](https://github.com/aurelia/aurelia/commit/4abb1ee))
+* **controller:** remove root from IController ([c51ed16](https://github.com/aurelia/aurelia/commit/c51ed16))
+* **bindings:** rename observeProperty -> observe, add doc ([fed517f](https://github.com/aurelia/aurelia/commit/fed517f))
+* **ast:** simplify AST kind enum ([fed517f](https://github.com/aurelia/aurelia/commit/fed517f))
+* **controller:** remove ctx ctrl requirement from .forCustomElement ([7edcef2](https://github.com/aurelia/aurelia/commit/7edcef2))
+* **render-context:** remove render context ([7d38f53](https://github.com/aurelia/aurelia/commit/7d38f53))
+* **scope:** remove host scope ([0349810](https://github.com/aurelia/aurelia/commit/0349810))
+* **au-slot:** make host exposure a normal, explicit prop ([e2ce36c](https://github.com/aurelia/aurelia/commit/e2ce36c))
+
+### Documentation:
+
+* **binding-context:** add comment explaning difference in behavior ([f4bcc9f](https://github.com/aurelia/aurelia/commit/f4bcc9f))
+
 <a name="2.0.0-alpha.12"></a>
 # 2.0.0-alpha.12 (2021-07-11)
 

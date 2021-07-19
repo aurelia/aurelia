@@ -3,6 +3,30 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.13"></a>
+# 2.0.0-alpha.13 (2021-07-19)
+
+### Refactorings:
+
+* **enhance:** incorporate reviews, enhance returns raw controller ([5504ad9](https://github.com/aurelia/aurelia/commit/5504ad9))
+* **controller:** remove unneeded param from Controller.forCustomElement ([4abb1ee](https://github.com/aurelia/aurelia/commit/4abb1ee))
+* ***:** remove root from IController ([c51ed16](https://github.com/aurelia/aurelia/commit/c51ed16))
+* **enhance:** make enhance works in a disconnected way ([52c2c1c](https://github.com/aurelia/aurelia/commit/52c2c1c))
+* **controller:** no longer needs to determine root ([9121240](https://github.com/aurelia/aurelia/commit/9121240))
+* **bindings:** rename observeProperty -> observe, add doc ([fed517f](https://github.com/aurelia/aurelia/commit/fed517f))
+* **ast:** simplify AST kind enum ([fed517f](https://github.com/aurelia/aurelia/commit/fed517f))
+* ***:** avoid creating blocks ([27dcf0b](https://github.com/aurelia/aurelia/commit/27dcf0b))
+* **controller:** remove ctx ctrl requirement from .forCustomElement ([7edcef2](https://github.com/aurelia/aurelia/commit/7edcef2))
+* **render-context:** remove render context ([7d38f53](https://github.com/aurelia/aurelia/commit/7d38f53))
+* **render-context:** remove all main render-context usages ([efc607a](https://github.com/aurelia/aurelia/commit/efc607a))
+* **render-context:** prepare to remove .getViewFactory()/.compile() methods ([db9a9ab](https://github.com/aurelia/aurelia/commit/db9a9ab))
+* **render-context:** prepare to remove .createNodes() method ([747d8cf](https://github.com/aurelia/aurelia/commit/747d8cf))
+* **render-context:** prepare remove .render method ([5852299](https://github.com/aurelia/aurelia/commit/5852299))
+* **render-context:** prepare render context removal ([b0a9515](https://github.com/aurelia/aurelia/commit/b0a9515))
+* **binding-context:** add comment explaning difference in behavior ([f4bcc9f](https://github.com/aurelia/aurelia/commit/f4bcc9f))
+* **scope:** remove host scope ([0349810](https://github.com/aurelia/aurelia/commit/0349810))
+* **au-slot:** make host exposure a normal, explicit prop ([e2ce36c](https://github.com/aurelia/aurelia/commit/e2ce36c))
+
 <a name="2.0.0-alpha.12"></a>
 # 2.0.0-alpha.12 (2021-07-11)
 

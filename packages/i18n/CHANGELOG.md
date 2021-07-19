@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.13"></a>
+# 2.0.0-alpha.13 (2021-07-19)
+
+### Refactorings:
+
+* **render-context:** remove render context ([7d38f53](https://github.com/aurelia/aurelia/commit/7d38f53))
+* **scope:** remove host scope ([0349810](https://github.com/aurelia/aurelia/commit/0349810))
+
 <a name="2.0.0-alpha.12"></a>
 # 2.0.0-alpha.12 (2021-07-11)
 

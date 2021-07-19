@@ -21,6 +21,6 @@ export class RandomGenerator {
   }
 
   public doSomething() {
-    console.log('foobar');
+    console.log('random-generator.ts__doSomething()');
   }
 }

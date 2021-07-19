@@ -62,7 +62,6 @@ for (const parentSpec of specs) {
             public created(controller: ICustomElementController<this>): void {
               const container = controller.container;
               this.childController = Controller.forCustomElement(
-                null,
                 container,
                 container.get(CustomElement.keyFrom('the-child')),
                 controller.host,

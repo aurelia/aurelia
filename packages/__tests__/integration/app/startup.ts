@@ -1,5 +1,5 @@
 import { IRegistration } from '@aurelia/kernel';
-import { Aurelia, CustomElement, FrequentMutations, CustomElementType } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, FrequentMutations, CustomElementType, LifecycleFlags } from '@aurelia/runtime-html';
 import { CallCollection, TestContext } from '@aurelia/testing';
 import { App } from './app.js';
 import { appTemplate as template } from './app-template.js';
@@ -55,12 +55,19 @@ export async function startup(config: StartupConfiguration = {}) {
       break;
   }
 
+  let $deactivate: () => any;
   ctx.doc.body.appendChild(host);
-  au[method]({ host, component });
-  await au.start();
+  if (method === 'app') {
+    au.app({ host, component });
+    await au.start();
+  } else {
+    const controller = (await au.enhance({ host, component }));
+    $deactivate = () => controller.deactivate(controller, null, LifecycleFlags.none);
+  }
 
   async function tearDown() {
     await au.stop();
+    await $deactivate?.();
     ctx.doc.body.removeChild(host);
     callCollection.calls.splice(0);
   }

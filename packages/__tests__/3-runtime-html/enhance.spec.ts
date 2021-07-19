@@ -1,7 +1,21 @@
 // This is to test for some intrinsic properties of enhance which is otherwise difficult to test in Data-driven tests parallel to `.app`
 import { Constructable, DI, IContainer, Registration } from '@aurelia/kernel';
-import { CustomElement, ICustomElementViewModel, IPlatform, Aurelia, customElement, bindable, BrowserPlatform, StandardConfiguration } from '@aurelia/runtime-html';
-import { assert, TestContext, eachCartesianJoin } from '@aurelia/testing';
+import {
+  CustomElement,
+  ICustomElementViewModel,
+  IPlatform,
+  Aurelia,
+  customElement,
+  bindable,
+  BrowserPlatform,
+  StandardConfiguration,
+  IController,
+  ICustomElementController,
+  IAurelia,
+  ValueConverter,
+  LifecycleFlags,
+} from '@aurelia/runtime-html';
+import { assert, TestContext, createFixture } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
 describe('3-runtime/enhance.spec.ts', function () {
@@ -46,13 +60,13 @@ describe('3-runtime/enhance.spec.ts', function () {
 
     const container = ctx.container;
     const au = new Aurelia(container);
-    au.enhance({ host, component: getComponent() });
-    await au.start();
+    const controller = await au.enhance({ host, component: getComponent() });
 
-    const app = au.root.controller.viewModel;
+    const app = controller.scope.bindingContext;
     await testFunction(new EnhanceTestExecutionContext(ctx, container, host, app, child));
 
     await au.stop();
+    await controller.deactivate(controller, null, LifecycleFlags.none);
     ctx.doc.body.removeChild(host);
     au.dispose();
   }
@@ -112,8 +126,7 @@ describe('3-runtime/enhance.spec.ts', function () {
 
         private async enhance(host = this.r2) {
           await new Aurelia(TestContext.create().container)
-            .enhance({ host: host.querySelector('div'), component: { message } })
-            .start();
+            .enhance({ host: host.querySelector('div'), component: { message } });
         }
       }
       const ctx = TestContext.create();
@@ -124,14 +137,16 @@ describe('3-runtime/enhance.spec.ts', function () {
       const container = ctx.container;
       const au = new Aurelia(container);
       let component;
+      let dispose: () => void | Promise<void>;
       if (initialMethod === 'app') {
         component = CustomElement.define({ name: 'app', template }, App2);
+        await au.app({ host, component }).start();
       } else {
         host.innerHTML = template;
         component = CustomElement.define('app', App2);
+        const controller = await au.enhance({ host, component });
+        dispose = () => controller.deactivate(controller, null, LifecycleFlags.none);
       }
-      au[initialMethod]({ host, component });
-      await au.start();
 
       assert.html.textContent('div', message, 'div', host);
 
@@ -141,82 +156,11 @@ describe('3-runtime/enhance.spec.ts', function () {
       assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
 
       await au.stop();
+      await dispose?.();
       ctx.doc.body.removeChild(host);
       au.dispose();
     });
   }
-
-  const enum ContainerType {
-    same = "same",
-    child = "child",
-  }
-
-  eachCartesianJoin(
-    [
-      ['app', 'enhance'],
-      [ContainerType.same, ContainerType.child]
-    ],
-    function (initialMethod, containerType) {
-
-      it(`throws error ${containerType} container is used for enhance - ${initialMethod}`, async function () {
-        const message = "Awesome Possum";
-        const template = `<div ref="r1" innerhtml.bind="'<div>\${message}</div>'"></div>`;
-
-        class App2 {
-          private readonly r1!: HTMLDivElement;
-          public message: string | undefined;
-          public constructor(
-            @IContainer public container: IContainer
-          ) { }
-
-          public async attaching() {
-            await this.enhance(this.r1);
-          }
-
-          private async enhance(host: HTMLElement) {
-            let container: IContainer;
-            switch (containerType) {
-              case ContainerType.same:
-                container = this.container;
-                break;
-              case ContainerType.child:
-                container = this.container.createChild();
-                break;
-            }
-            try {
-              await new Aurelia(container)
-                .enhance({ host: host.querySelector('div'), component: { message } })
-                .start();
-            } catch (e) {
-              this.message = e.message;
-            }
-          }
-        }
-        const ctx = TestContext.create();
-
-        const host = ctx.doc.createElement('div');
-        ctx.doc.body.appendChild(host);
-
-        const container = ctx.container;
-        const au = new Aurelia(container);
-        let component;
-        if (initialMethod === 'app') {
-          component = CustomElement.define({ name: 'app', template }, App2);
-        } else {
-          host.innerHTML = template;
-          component = CustomElement.define('app', App2);
-        }
-        au[initialMethod]({ host, component });
-        await au.start();
-
-        assert.equal((au.root.controller.viewModel as App2).message, 'An instance of Aurelia is already registered with the container or an ancestor of it.');
-
-        await au.stop();
-        ctx.doc.body.removeChild(host);
-        au.dispose();
-      });
-    }
-  );
 
   it(`respects the hooks in raw object component`, async function () {
     const ctx = TestContext.create();
@@ -238,10 +182,10 @@ describe('3-runtime/enhance.spec.ts', function () {
     };
     const container = ctx.container;
     const au = new Aurelia(container);
-    au.enhance({ host, component });
-    await au.start();
+    const controller = await au.enhance({ host, component });
 
     await au.stop();
+    await controller.deactivate(controller, null, LifecycleFlags.none);
     ctx.doc.body.removeChild(host);
 
     assert.deepStrictEqual(component.eventLog, [
@@ -254,37 +198,6 @@ describe('3-runtime/enhance.spec.ts', function () {
       'attaching',
       'attached',
     ]);
-    au.dispose();
-  });
-
-  it(`enhance is idempotent`, async function () {
-    const ctx = TestContext.create();
-
-    const host = ctx.doc.createElement('div');
-    host.innerHTML = `<span>\${foo}</span>`;
-    ctx.doc.body.appendChild(host);
-
-    const component = { foo: 'Bar' };
-    const container = ctx.container;
-    const au = new Aurelia(container);
-    au.enhance({ host, component });
-
-    // round #1
-    await au.start();
-    assert.html.textContent('span', 'Bar', 'span.text - 1', host);
-    await au.stop();
-
-    // round #2
-    await au.start();
-    assert.html.textContent('span', 'Bar', 'span.text - 2', host);
-    await au.stop();
-
-    // round #3
-    component.foo = 'Fiz';
-    await au.start();
-    assert.html.textContent('span', 'Fiz', 'span.text - 3', host);
-    await au.stop();
-    ctx.doc.body.removeChild(host);
     au.dispose();
   });
 
@@ -301,23 +214,22 @@ describe('3-runtime/enhance.spec.ts', function () {
     })
     class App {
       private enhancedHost: HTMLElement;
-      private enhanceAu: Aurelia;
+      private enhanceView: ICustomElementController;
       private readonly container!: HTMLDivElement;
 
       public async bound() {
         const _host = this.enhancedHost = new ctx.DOMParser().parseFromString('<div><my-element value.bind="42.toString()"></my-element></div>', 'text/html').body.firstElementChild as HTMLElement;
         // this.container.appendChild(this.enhancedHost);
-        const _au = this.enhanceAu = new Aurelia(
+        const _au = new Aurelia(
           DI.createContainer()
             .register(
               Registration.instance(IPlatform, BrowserPlatform.getOrCreate(globalThis)),
               StandardConfiguration,
             )
         );
-        await _au
+        this.enhanceView = await _au
           .register(MyElement) // in real app, there should be more
-          .enhance({ host: _host, component: CustomElement.define({ name: 'enhance' }, class EnhanceRoot { }) })
-          .start();
+          .enhance({ host: _host, component: CustomElement.define({ name: 'enhance' }, class EnhanceRoot { }) });
 
         assert.html.innerEqual(_host, '<my-element class="au"><span>42</span></my-element>', 'enhanced.innerHtml');
         assert.html.innerEqual(this.container, '', 'container.innerHtml - before attach');
@@ -329,7 +241,7 @@ describe('3-runtime/enhance.spec.ts', function () {
 
       // The inverse order of the stop and detaching is intentional
       public async detaching() {
-        await this.enhanceAu.stop();
+        await this.enhanceView.deactivate(this.enhanceView, null, LifecycleFlags.none);
         assert.html.innerEqual(this.enhancedHost, '<my-element class="au"></my-element>', 'enhanced.innerHtml');
         assert.html.innerEqual(this.container, '<div><my-element class="au"></my-element></div>', 'enhanced.innerHtml');
       }
@@ -357,5 +269,177 @@ describe('3-runtime/enhance.spec.ts', function () {
 
     ctx.doc.body.removeChild(host);
     au.dispose();
+  });
+
+  it('can re-activate an enhancement result', async function () {
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    host.innerHTML = `<div repeat.for="i of 3">\${i}</div>`;
+    const controller = await au.enhance({ host, component: { message: 'hello world' } });
+    assert.html.textContent(host, '012');
+    assert.strictEqual(host.querySelectorAll('div').length, 3);
+
+    await controller.deactivate(controller, null, LifecycleFlags.none);
+    assert.html.textContent(host, '');
+
+    await controller.activate(controller, null, LifecycleFlags.none);
+    assert.html.textContent(host, '012');
+    assert.strictEqual(host.querySelectorAll('div').length, 3);
+  });
+
+  it('can connect with parent controller if any', async function () {
+    let parentController: IController;
+    const { appHost, component, start, tearDown } = createFixture(
+      '<my-el html.bind="html" controller.ref="myElController">',
+      class App {
+        public html = `<div>\${message}</div>`;
+        public myElController: ICustomElementController;
+      },
+      [
+        CustomElement.define({
+          name: 'my-el',
+          template: '<div innerhtml.bind="html" ref="div">',
+          bindables: ['html']
+        }, class MyEl {
+          public static inject = [IAurelia];
+          public div: HTMLDivElement;
+          public enhancedView: ICustomElementController;
+          public constructor(private readonly au$: Aurelia) {}
+
+          public async attaching() {
+            this.div.removeAttribute('class');
+            this.enhancedView = await this.au$.enhance(
+              {
+                host: this.div,
+                component: {
+                  message: 'Hello _div_',
+                  attaching(_, parent) {
+                    parentController = parent;
+                  }
+                }
+              },
+              (this as any).$controller
+            );
+          }
+
+          public detaching() {
+            void this.enhancedView.deactivate(this.enhancedView, null, LifecycleFlags.none);
+            parentController = void 0;
+          }
+        }),
+      ],
+      false,
+    );
+
+    await start();
+
+    assert.notStrictEqual(parentController, void 0);
+    assert.strictEqual(component.myElController === parentController, true);
+    assert.html.innerEqual(appHost, '<my-el class="au"><div><div>Hello _div_</div></div></my-el>');
+
+    await tearDown();
+    assert.strictEqual(parentController, void 0);
+    assert.strictEqual(component.myElController, null);
+    assert.html.innerEqual(appHost, '');
+  });
+
+  it('uses resources in existing root container', async function () {
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+
+    const container = ctx.container.register(ValueConverter.define('x2', class X2 {
+      public toView(val: any) {
+        return Number(val) * 2;
+      }
+    }));
+    const au = new Aurelia(container);
+    host.innerHTML = '<div data-id.bind="1 | x2 | plus10"></div>';
+    const controller = await au.enhance({
+      host,
+      component: {},
+      container: container.createChild().register(ValueConverter.define('plus10', class Plus10 {
+        public toView(val: any) {
+          return Number(val) + 10;
+        }
+      }))
+    });
+
+    assert.strictEqual(host.innerHTML, '<div class="au" data-id="12"></div>');
+    await controller.deactivate(controller, null, LifecycleFlags.none);
+  });
+
+  it('uses resources given in the container', async function () {
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    const I = DI.createInterface<I>('I');
+    interface I {
+      i_id: number;
+    }
+    host.innerHTML = '<div data-id.bind="i | plus10"></div>';
+    const controller = await au.enhance({
+      host,
+      component: { i: 1 },
+      container: container.createChild().register(
+        ValueConverter.define('plus10', class Plus10 {
+          public toView(v: any) {
+            return Number(v) + 10;
+          }
+        })
+      )
+    });
+
+    assert.strictEqual(host.innerHTML, '<div class="au" data-id="11"></div>');
+    assert.strictEqual(container.find(ValueConverter, 'plus10'), null, 'It should register resources with child contaienr only.');
+    await controller.deactivate(controller, null, LifecycleFlags.none);
+  });
+
+  it('throws on template with a predefined "au"', async function () {
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    host.innerHTML = '<div class="au"></div>';
+    let ex;
+    try {
+      await au.enhance({ host, component: { id: 1 } });
+    } catch (e) {
+      ex = e;
+    }
+    assert.instanceOf(ex, Error);
+    assert.strictEqual(host.innerHTML, '<div class="au"></div>');
+  });
+
+  it('throws on re-enhancement of a node that has an element with class="au"', async function () {
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    host.innerHTML = `<div><div repeat.for="i of 3" data-id.bind="i">\${i}</div></div>`;
+    const controller = await au.enhance({ host, component: { id: 1 } });
+    assert.html.textContent(host, '012');
+    assert.throws(() => au.enhance({ host, component: {} }));
+    await controller.deactivate(controller, null, LifecycleFlags.none);
+  });
+
+  it('does not throw on enhancement that did not result in "au" class', async function () {
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    host.innerHTML = `<div><div repeat.for="i of 3">\${i}</div></div>`;
+    const controller = await au.enhance({ host, component: { id: 1 } });
+    assert.html.textContent(host, '012');
+    const controller2 = await au.enhance({ host, component: {} });
+    await controller2.deactivate(controller2, null, LifecycleFlags.none);
+    await controller.deactivate(controller, null, LifecycleFlags.none);
   });
 });

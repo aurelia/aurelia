@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.13"></a>
+# 2.0.0-alpha.13 (2021-07-19)
+
+**Note:** Version bump only for package @aurelia/validation-i18n
+
 <a name="2.0.0-alpha.12"></a>
 # 2.0.0-alpha.12 (2021-07-11)
 

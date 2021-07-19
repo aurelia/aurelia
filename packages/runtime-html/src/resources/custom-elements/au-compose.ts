@@ -184,7 +184,7 @@ export class AuCompose {
     //       should it throw or try it best to proceed?
     //       current: proceed
     const { view, viewModel, model, initiator } = context.change;
-    const { container, host, $controller, contextFactory, loc } = this;
+    const { container, host, $controller, loc } = this;
     const srcDef = this.getDef(viewModel);
     const childCtn: IContainer = container.createChild();
     const parentNode = loc == null ? host.parentNode : loc.parentNode;
@@ -217,13 +217,11 @@ export class AuCompose {
       // custom element based composition
       if (srcDef !== null) {
         const controller = Controller.forCustomElement(
-          null,
           childCtn,
           comp,
           compositionHost as HTMLElement,
           null,
           LifecycleFlags.none,
-          true,
           srcDef,
         );
 
@@ -247,8 +245,6 @@ export class AuCompose {
         });
         const viewFactory = this.r.getViewFactory(targetDef, childCtn);
         const controller = Controller.forSyntheticView(
-          contextFactory.isFirst(context) ? $controller.root : null,
-          // null!,
           viewFactory,
           LifecycleFlags.fromBind,
           $controller

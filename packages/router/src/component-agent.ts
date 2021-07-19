@@ -1,4 +1,4 @@
-import { ICustomElementController, Controller, IHydratedController, LifecycleFlags, ICustomElementViewModel, IAppRoot, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
+import { ICustomElementController, Controller, IHydratedController, LifecycleFlags, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 import { Constructable, ILogger } from '@aurelia/kernel';
 
 import { RouteDefinition } from './route-definition.js';
@@ -61,7 +61,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (componentAgent === void 0) {
       const container = ctx.container;
       const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable);
-      const controller = Controller.forCustomElement(container.get(IAppRoot), container, componentInstance, hostController.host, null);
+      const controller = Controller.forCustomElement(container, componentInstance, hostController.host, null);
 
       componentAgentLookup.set(
         componentInstance,

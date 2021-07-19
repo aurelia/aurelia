@@ -119,13 +119,11 @@ export class DialogController implements IDialogController {
 
         return onResolve(cmp.activate?.(model), () => {
           const ctrlr = this.controller = Controller.forCustomElement(
-            null,
             container,
             cmp,
             contentHost,
             null,
             LifecycleFlags.none,
-            true,
             CustomElementDefinition.create(
               this.getDefinition(cmp) ?? { name: CustomElement.generateName(), template }
             )

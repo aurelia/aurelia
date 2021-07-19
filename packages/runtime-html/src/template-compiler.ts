@@ -428,6 +428,17 @@ export class TemplateCompiler implements ITemplateCompiler {
       ii = attrs.length;
     }
 
+    if (context.root.def.enhance && el.classList.contains('au')) {
+      if (__DEV__)
+        throw new Error(
+          'Trying to enhance with a template that was probably compiled before. '
+          + 'This is likely going to cause issues. '
+          + 'Consider enhancing only untouched elements.'
+        );
+      else
+        throw new Error(`AUR0710`);
+    }
+
     for (; ii > i; ++i) {
       attr = attrs[i];
       attrName = attr.name;

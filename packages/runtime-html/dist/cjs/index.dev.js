@@ -3219,7 +3219,7 @@ class ViewFactory {
             controller = cache.pop();
             return controller;
         }
-        controller = Controller.forSyntheticView(null, /* null!,  */ this, flags, parentController);
+        controller = Controller.forSyntheticView(this, flags, parentController);
         return controller;
     }
 }
@@ -3530,7 +3530,7 @@ var MountTarget;
 const optionalCeFind = { optional: true };
 const controllerLookup = new WeakMap();
 class Controller {
-    constructor(root, container, vmKind, flags, definition, 
+    constructor(container, vmKind, flags, definition, 
     /**
      * The viewFactory. Only present for synthetic views.
      */
@@ -3547,7 +3547,6 @@ class Controller {
      * For ShadowDOM elements, this will be the original declaring element, NOT the shadow root (the shadow root is stored on the `shadowRoot` property)
      */
     host) {
-        this.root = root;
         this.container = container;
         this.vmKind = vmKind;
         this.flags = flags;
@@ -3588,9 +3587,6 @@ class Controller {
         this.activatingStack = 0;
         this.detachingStack = 0;
         this.unbindingStack = 0;
-        if (root === null && container.has(IAppRoot, true)) {
-            this.root = container.get(IAppRoot);
-        }
         this.r = container.root.get(IRendering);
         this.platform = container.get(IPlatform);
         switch (vmKind) {
@@ -3640,7 +3636,7 @@ class Controller {
         }
         return controller;
     }
-    static forCustomElement(root, ctn, viewModel, host, hydrationInst, flags = 0 /* none */, hydrate = true, 
+    static forCustomElement(ctn, viewModel, host, hydrationInst, flags = 0 /* none */, 
     // Use this when `instance.constructor` is not a custom element type
     // to pass on the CustomElement definition
     definition = void 0) {
@@ -3649,7 +3645,6 @@ class Controller {
         }
         definition = definition !== null && definition !== void 0 ? definition : CustomElement.getDefinition(viewModel.constructor);
         const controller = new Controller(
-        /* root           */ root, 
         /* container      */ ctn, 0 /* customElement */, 
         /* flags          */ flags, 
         /* definition     */ definition, 
@@ -3658,16 +3653,18 @@ class Controller {
         /* host           */ host);
         // the hydration context this controller is provided with
         const hydrationContext = ctn.get(kernel.optional(IHydrationContext));
-        ctn.register(...definition.dependencies);
+        if (definition.dependencies.length > 0) {
+            ctn.register(...definition.dependencies);
+        }
         // each CE controller provides its own hydration context for its internal template
         ctn.registerResolver(IHydrationContext, new kernel.InstanceProvider('IHydrationContext', new HydrationContext(controller, hydrationInst, hydrationContext)));
         controllerLookup.set(viewModel, controller);
-        if (hydrate) {
+        if (hydrationInst == null || hydrationInst.hydrate !== false) {
             controller.hydrateCustomElement(hydrationInst, hydrationContext);
         }
         return controller;
     }
-    static forCustomAttribute(root, ctn, viewModel, host, flags = 0 /* none */, 
+    static forCustomAttribute(ctn, viewModel, host, flags = 0 /* none */, 
     /**
      * The definition that will be used to hydrate the custom attribute view model
      *
@@ -3679,7 +3676,6 @@ class Controller {
         }
         definition = definition !== null && definition !== void 0 ? definition : CustomAttribute.getDefinition(viewModel.constructor);
         const controller = new Controller(
-        /* root           */ root, 
         /* own ct         */ ctn, 1 /* customAttribute */, 
         /* flags          */ flags, 
         /* definition     */ definition, 
@@ -3690,9 +3686,8 @@ class Controller {
         controller.hydrateCustomAttribute();
         return controller;
     }
-    static forSyntheticView(root, viewFactory, flags = 0 /* none */, parentController = void 0) {
+    static forSyntheticView(viewFactory, flags = 0 /* none */, parentController = void 0) {
         const controller = new Controller(
-        /* root           */ root, 
         /* container      */ viewFactory.container, 2 /* synthetic */, 
         /* flags          */ flags, 
         /* definition     */ null, 
@@ -3711,7 +3706,6 @@ class Controller {
      * This is the context controller creating this this controller
      */
     hydrationContext) {
-        var _a;
         this.logger = this.container.get(kernel.ILogger).root;
         this.debug = this.logger.config.level <= 1 /* debug */;
         if (this.debug) {
@@ -3752,7 +3746,7 @@ class Controller {
         // - runAppTasks('hydrated') // may return a promise
         // - Controller.compileChildren
         // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
-        if (((_a = this.root) === null || _a === void 0 ? void 0 : _a.controller) !== this) {
+        if (hydrationInst == null || hydrationInst.hydrate !== false) {
             this.hydrate(hydrationInst);
             this.hydrateChildren();
         }
@@ -4383,7 +4377,6 @@ class Controller {
         this.viewModel = null;
         this.host = null;
         this.shadowRoot = null;
-        this.root = null;
     }
     accept(visitor) {
         if (visitor(this) === true) {
@@ -4617,7 +4610,7 @@ WorkTracker = __decorate([
     __param(0, kernel.ILogger)
 ], WorkTracker);
 class AppRoot {
-    constructor(config, platform, container, rootProvider, enhance = false) {
+    constructor(config, platform, container, rootProvider) {
         this.config = config;
         this.platform = platform;
         this.container = container;
@@ -4630,12 +4623,6 @@ class AppRoot {
         //   this.container = container.createChild();
         // }
         this.container.register(kernel.Registration.instance(INode, config.host));
-        if (enhance) {
-            const component = config.component;
-            this.enhanceDefinition = CustomElement.getDefinition(CustomElement.isType(component)
-                ? CustomElement.define({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }, component)
-                : CustomElement.define({ name: (void 0), template: this.host, enhance: true }));
-        }
         this.hydratePromise = kernel.onResolve(this.runAppTasks('beforeCreate'), () => {
             const component = config.component;
             const childCtn = container.createChild();
@@ -4646,8 +4633,9 @@ class AppRoot {
             else {
                 instance = config.component;
             }
-            const controller = (this.controller = Controller.forCustomElement(this, childCtn, instance, this.host, null, 0 /* none */, false, this.enhanceDefinition));
-            controller.hydrateCustomElement(null, /* root does not have hydration context */ null);
+            const hydrationInst = { hydrate: false, projections: null };
+            const controller = (this.controller = Controller.forCustomElement(childCtn, instance, this.host, hydrationInst, 0 /* none */));
+            controller.hydrateCustomElement(hydrationInst, /* root does not have hydration context */ null);
             return kernel.onResolve(this.runAppTasks('hydrating'), () => {
                 controller.hydrate(null);
                 return kernel.onResolve(this.runAppTasks('hydrated'), () => {
@@ -5523,13 +5511,11 @@ class CustomElementRenderer {
         component = container.invoke(Ctor);
         container.registerResolver(Ctor, new kernel.InstanceProvider(def.key, component));
         childCtrl = Controller.forCustomElement(
-        /* root                */ renderingCtrl.root, 
         /* own container       */ container, 
         /* viewModel           */ component, 
         /* host                */ target, 
-        /* instructions        */ instruction, 
+        /* instruction         */ instruction, 
         /* flags               */ f, 
-        /* hydrate             */ true, 
         /* definition          */ def);
         f = childCtrl.flags;
         setRef(target, def.key, childCtrl);
@@ -5591,7 +5577,6 @@ class CustomAttributeRenderer {
         /* viewFactory      */ void 0, 
         /* location         */ void 0);
         const childController = Controller.forCustomAttribute(
-        /* root       */ renderingCtrl.root, 
         /* context ct */ renderingCtrl.container, 
         /* viewModel  */ component, 
         /* host       */ target, 
@@ -5655,7 +5640,6 @@ class TemplateControllerRenderer {
         /* viewFactory      */ viewFactory, 
         /* location         */ renderLocation);
         const childController = Controller.forCustomAttribute(
-        /* root         */ renderingCtrl.root, 
         /* container ct */ renderingCtrl.container, 
         /* viewModel    */ component, 
         /* host         */ target, 
@@ -6817,6 +6801,11 @@ class TemplateCompiler {
             // might have changed during the process
             attrs = el.attributes;
             ii = attrs.length;
+        }
+        if (context.root.def.enhance && el.classList.contains('au')) {
+            throw new Error('Trying to enhance with a template that was probably compiled before. '
+                    + 'This is likely going to cause issues. '
+                    + 'Consider enhancing only untouched elements.');
         }
         for (; ii > i; ++i) {
             attr = attrs[i];
@@ -10962,7 +10951,7 @@ exports.AuCompose = class AuCompose {
         //       should it throw or try it best to proceed?
         //       current: proceed
         const { view, viewModel, model, initiator } = context.change;
-        const { container, host, $controller, contextFactory, loc } = this;
+        const { container, host, $controller, loc } = this;
         const srcDef = this.getDef(viewModel);
         const childCtn = container.createChild();
         const parentNode = loc == null ? host.parentNode : loc.parentNode;
@@ -10995,7 +10984,7 @@ exports.AuCompose = class AuCompose {
         const compose = () => {
             // custom element based composition
             if (srcDef !== null) {
-                const controller = Controller.forCustomElement(null, childCtn, comp, compositionHost, null, 0 /* none */, true, srcDef);
+                const controller = Controller.forCustomElement(childCtn, comp, compositionHost, null, 0 /* none */, srcDef);
                 return new CompositionController(controller, () => controller.activate(initiator !== null && initiator !== void 0 ? initiator : controller, $controller, 2 /* fromBind */), 
                 // todo: call deactivate on the component view model
                 (deactachInitiator) => kernel.onResolve(controller.deactivate(deactachInitiator !== null && deactachInitiator !== void 0 ? deactachInitiator : controller, $controller, 4 /* fromUnbind */), removeCompositionHost), 
@@ -11009,9 +10998,7 @@ exports.AuCompose = class AuCompose {
                     template: view,
                 });
                 const viewFactory = this.r.getViewFactory(targetDef, childCtn);
-                const controller = Controller.forSyntheticView(contextFactory.isFirst(context) ? $controller.root : null, 
-                // null!,
-                viewFactory, 2 /* fromBind */, $controller);
+                const controller = Controller.forSyntheticView(viewFactory, 2 /* fromBind */, $controller);
                 const scope = this.scopeBehavior === 'auto'
                     ? runtime.Scope.fromParent(this.parent.scope, comp)
                     : runtime.Scope.create(comp);
@@ -11516,6 +11503,11 @@ class Aurelia {
         this._isRunning = false;
         this._isStarting = false;
         this._isStopping = false;
+        // TODO:
+        // root should just be a controller,
+        // in all other parts of the framework, root of something is always the same type of that thing
+        // i.e: container.root => a container, RouteContext.root => a RouteContext
+        // Aurelia.root of a controller hierarchy should behave similarly
         this._root = void 0;
         this.next = void 0;
         this.startPromise = void 0;
@@ -11523,7 +11515,7 @@ class Aurelia {
         if (container.has(IAurelia, true)) {
             throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
         }
-        container.register(kernel.Registration.instance(IAurelia, this));
+        container.registerResolver(IAurelia, new kernel.InstanceProvider('IAurelia', this));
         container.registerResolver(IAppRoot, this.rootProvider = new kernel.InstanceProvider('IAppRoot'));
     }
     get isRunning() { return this._isRunning; }
@@ -11543,12 +11535,30 @@ class Aurelia {
         return this;
     }
     app(config) {
-        this.next = new AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider, false);
+        this.next = new AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider);
         return this;
     }
-    enhance(config) {
-        this.next = new AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider, true);
-        return this;
+    /**
+     * @param parentController - The owning controller of the view created by this enhance call
+     */
+    enhance(config, parentController) {
+        var _a;
+        const ctn = (_a = config.container) !== null && _a !== void 0 ? _a : this.container.createChild();
+        const host = config.host;
+        const p = this.initPlatform(host);
+        const comp = config.component;
+        let bc;
+        if (typeof comp === 'function') {
+            ctn.registerResolver(p.HTMLElement, ctn.registerResolver(p.Element, ctn.registerResolver(p.Node, ctn.registerResolver(INode, new kernel.InstanceProvider('ElementResolver', host)))));
+            bc = ctn.invoke(comp);
+        }
+        else {
+            bc = comp;
+        }
+        ctn.registerResolver(IEventTarget, new kernel.InstanceProvider('IEventTarget', host));
+        parentController = parentController !== null && parentController !== void 0 ? parentController : null;
+        const view = Controller.forCustomElement(ctn, bc, host, null, void 0, CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }));
+        return kernel.onResolve(view.activate(view, parentController, 2 /* fromBind */), () => view);
     }
     async waitForIdle() {
         const platform = this.root.platform;
@@ -11722,7 +11732,7 @@ class DialogController {
             const cmp = this.cmp;
             return kernel.onResolve((_a = cmp.activate) === null || _a === void 0 ? void 0 : _a.call(cmp, model), () => {
                 var _a;
-                const ctrlr = this.controller = Controller.forCustomElement(null, container, cmp, contentHost, null, 0 /* none */, true, CustomElementDefinition.create((_a = this.getDefinition(cmp)) !== null && _a !== void 0 ? _a : { name: CustomElement.generateName(), template }));
+                const ctrlr = this.controller = Controller.forCustomElement(container, cmp, contentHost, null, 0 /* none */, CustomElementDefinition.create((_a = this.getDefinition(cmp)) !== null && _a !== void 0 ? _a : { name: CustomElement.generateName(), template }));
                 return kernel.onResolve(ctrlr.activate(ctrlr, null, 2 /* fromBind */), () => {
                     var _a;
                     dom.overlay.addEventListener((_a = settings.mouseEvent) !== null && _a !== void 0 ? _a : 'click', this);

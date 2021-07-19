@@ -1,7 +1,6 @@
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
 import { CustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition } from '../resources/custom-attribute.js';
-import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import type { IContainer, Writable, IDisposable } from '@aurelia/kernel';
 import type { IBinding } from '@aurelia/runtime';
@@ -19,7 +18,6 @@ export declare const enum MountTarget {
     location = 3
 }
 export declare class Controller<C extends IViewModel = IViewModel> implements IController<C> {
-    root: IAppRoot | null;
     container: IContainer;
     readonly vmKind: ViewModelKind;
     flags: LifecycleFlags;
@@ -67,7 +65,7 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     private childrenObs;
     readonly platform: IPlatform;
     readonly hooks: HooksDefinition;
-    constructor(root: IAppRoot | null, container: IContainer, vmKind: ViewModelKind, flags: LifecycleFlags, definition: CustomElementDefinition | CustomAttributeDefinition | null, 
+    constructor(container: IContainer, vmKind: ViewModelKind, flags: LifecycleFlags, definition: CustomElementDefinition | CustomAttributeDefinition | null, 
     /**
      * The viewFactory. Only present for synthetic views.
      */
@@ -86,15 +84,15 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     host: HTMLElement | null);
     static getCached<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C> | undefined;
     static getCachedOrThrow<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C>;
-    static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(root: IAppRoot | null, ctn: IContainer, viewModel: C, host: HTMLElement, hydrationInst: IControllerElementHydrationInstruction | null, flags?: LifecycleFlags, hydrate?: boolean, definition?: CustomElementDefinition | undefined): ICustomElementController<C>;
-    static forCustomAttribute<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(root: IAppRoot | null, ctn: IContainer, viewModel: C, host: HTMLElement, flags?: LifecycleFlags, 
+    static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(ctn: IContainer, viewModel: C, host: HTMLElement, hydrationInst: IControllerElementHydrationInstruction | null, flags?: LifecycleFlags, definition?: CustomElementDefinition | undefined): ICustomElementController<C>;
+    static forCustomAttribute<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(ctn: IContainer, viewModel: C, host: HTMLElement, flags?: LifecycleFlags, 
     /**
      * The definition that will be used to hydrate the custom attribute view model
      *
      * If not given, will be the one associated with the constructor of the attribute view model given.
      */
     definition?: CustomAttributeDefinition): ICustomAttributeController<C>;
-    static forSyntheticView(root: IAppRoot | null, viewFactory: IViewFactory, flags?: LifecycleFlags, parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
+    static forSyntheticView(viewFactory: IViewFactory, flags?: LifecycleFlags, parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
     private hydrateCustomAttribute;
     private hydrateSynthetic;
     private $initiator;
@@ -200,7 +198,6 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
     readonly name: string;
     readonly container: IContainer;
     readonly platform: IPlatform;
-    readonly root: IAppRoot | null;
     readonly flags: LifecycleFlags;
     readonly vmKind: ViewModelKind;
     readonly definition: CustomElementDefinition | CustomAttributeDefinition | null;
@@ -274,7 +271,7 @@ export interface ISyntheticView extends IHydratableController {
     /**
      * Lock this view's scope to the provided `Scope`. The scope, which is normally set during `activate()`, will then not change anymore.
      *
-     * This is used by `au-compose` to set the binding context of a view to a particular component instance.
+     * This is used by `au-render` to set the binding context of a view to a particular component instance.
      *
      * @param scope - The scope to lock this view to.
      */

@@ -30,8 +30,7 @@ export declare class AppRoot implements IDisposable {
     controller: ICustomElementController;
     work: IWorkTracker;
     private hydratePromise;
-    private readonly enhanceDefinition;
-    constructor(config: ISinglePageApp, platform: IPlatform, container: IContainer, rootProvider: InstanceProvider<IAppRoot>, enhance?: boolean);
+    constructor(config: ISinglePageApp, platform: IPlatform, container: IContainer, rootProvider: InstanceProvider<IAppRoot>);
     activate(): void | Promise<void>;
     deactivate(): void | Promise<void>;
     dispose(): void;

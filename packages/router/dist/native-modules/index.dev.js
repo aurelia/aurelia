@@ -1,5 +1,5 @@
 import { DI, IEventAggregator, ILogger, bound, onResolve, resolveAll, isObject, IContainer, isArrayIndex, Metadata, Protocol, emptyArray, IModuleLoader, InstanceProvider, noop, Registration } from '../../../kernel/dist/native-modules/index.js';
-import { isCustomElementViewModel, IHistory, ILocation, IWindow, Controller, CustomElement, IPlatform, CustomElementDefinition, IAppRoot, IController, isCustomElementController, bindable, customElement, BindingMode, customAttribute, IEventTarget, INode, IEventDelegator, getRef, CustomAttribute, AppTask } from '../../../runtime-html/dist/native-modules/index.js';
+import { isCustomElementViewModel, IHistory, ILocation, IWindow, Controller, CustomElement, IPlatform, CustomElementDefinition, IController, IAppRoot, isCustomElementController, bindable, customElement, BindingMode, customAttribute, IEventTarget, INode, IEventDelegator, getRef, CustomAttribute, AppTask } from '../../../runtime-html/dist/native-modules/index.js';
 import { RouteRecognizer } from '../../../route-recognizer/dist/native-modules/index.js';
 
 class Batch {
@@ -3828,7 +3828,7 @@ class ComponentAgent {
         if (componentAgent === void 0) {
             const container = ctx.container;
             const definition = RouteDefinition.resolve(componentInstance.constructor);
-            const controller = Controller.forCustomElement(container.get(IAppRoot), container, componentInstance, hostController.host, null);
+            const controller = Controller.forCustomElement(container, componentInstance, hostController.host, null);
             componentAgentLookup.set(componentInstance, componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx));
         }
         return componentAgent;

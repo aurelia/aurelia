@@ -1,5 +1,5 @@
 import { DI, IEventAggregator, ILogger, bound, onResolve, resolveAll, isObject, IContainer, isArrayIndex, Metadata, Protocol, emptyArray, IModuleLoader, InstanceProvider, noop, Registration } from '@aurelia/kernel';
-import { isCustomElementViewModel, IHistory, ILocation, IWindow, Controller, CustomElement, IPlatform, CustomElementDefinition, IAppRoot, IController, isCustomElementController, bindable, customElement, BindingMode, customAttribute, IEventTarget, INode, IEventDelegator, getRef, CustomAttribute, AppTask } from '@aurelia/runtime-html';
+import { isCustomElementViewModel, IHistory, ILocation, IWindow, Controller, CustomElement, IPlatform, CustomElementDefinition, IController, IAppRoot, isCustomElementController, bindable, customElement, BindingMode, customAttribute, IEventTarget, INode, IEventDelegator, getRef, CustomAttribute, AppTask } from '@aurelia/runtime-html';
 import { RouteRecognizer } from '@aurelia/route-recognizer';
 
 class Batch {
@@ -3828,7 +3828,7 @@ class ComponentAgent {
         if (componentAgent === void 0) {
             const container = ctx.container;
             const definition = RouteDefinition.resolve(componentInstance.constructor);
-            const controller = Controller.forCustomElement(container.get(IAppRoot), container, componentInstance, hostController.host, null);
+            const controller = Controller.forCustomElement(container, componentInstance, hostController.host, null);
             componentAgentLookup.set(componentInstance, componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx));
         }
         return componentAgent;

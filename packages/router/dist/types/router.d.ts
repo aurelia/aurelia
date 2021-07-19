@@ -313,7 +313,7 @@ export declare class Router {
      * ```ts
      * // Given an already defined custom element named Greeter
      * const greeter = new Greeter();
-     * Controller.forCustomElement(null, container, greeter, host);
+     * Controller.forCustomElement(container, greeter, host);
      * router.load(greeter);
      * ```
      */

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/babel-jest",
-  "version": "2.0.0-alpha.13",
+  "version": "2.0.1-dev.202107191116",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -42,11 +42,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.13",
-    "@aurelia/metadata": "2.0.0-alpha.13",
-    "@aurelia/platform": "2.0.0-alpha.13",
-    "@aurelia/plugin-conventions": "2.0.0-alpha.13",
-    "@aurelia/runtime": "2.0.0-alpha.13",
+    "@aurelia/kernel": "2.0.1-dev.202107191116",
+    "@aurelia/metadata": "2.0.1-dev.202107191116",
+    "@aurelia/platform": "2.0.1-dev.202107191116",
+    "@aurelia/plugin-conventions": "2.0.1-dev.202107191116",
+    "@aurelia/runtime": "2.0.1-dev.202107191116",
     "@babel/core": "^7.12.10",
     "babel-jest": "^27.0.2"
   },

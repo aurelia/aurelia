@@ -23,8 +23,8 @@ class Aurelia extends runtimeHtml.Aurelia {
     static app(config) {
         return new Aurelia().app(config);
     }
-    static enhance(config) {
-        return new Aurelia().enhance(config);
+    static enhance(config, parentController) {
+        return new Aurelia().enhance(config, parentController);
     }
     static register(...params) {
         return new Aurelia().register(...params);

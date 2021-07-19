@@ -126,7 +126,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private readonly r: IRendering;
 
-  public readonly platform: IPlatform;
   public readonly hooks: HooksDefinition;
 
   public constructor(
@@ -152,7 +151,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     public host: HTMLElement | null,
   ) {
     this.r = container.root.get(IRendering);
-    this.platform = container.get(IPlatform);
     switch (vmKind) {
       case ViewModelKind.customAttribute:
       case ViewModelKind.customElement:
@@ -360,7 +358,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.isStrictBinding = isStrictBinding;
 
     if ((this.hostController = CustomElement.for(this.host!, optionalCeFind) as Controller | null) !== null) {
-      this.host = this.platform.document.createElement(this.definition!.name);
+      this.host = this.container.root.get(IPlatform).document.createElement(this.definition!.name);
     }
 
     setRef(this.host!, CustomElement.name, this as IHydratedController);
@@ -1318,7 +1316,6 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
    */
   readonly name: string;
   readonly container: IContainer;
-  readonly platform: IPlatform;
   readonly flags: LifecycleFlags;
   readonly vmKind: ViewModelKind;
   readonly definition: CustomElementDefinition | CustomAttributeDefinition | null;

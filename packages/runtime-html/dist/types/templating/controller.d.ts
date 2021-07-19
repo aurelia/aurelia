@@ -1,7 +1,6 @@
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
 import { CustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition } from '../resources/custom-attribute.js';
-import { IPlatform } from '../platform.js';
 import type { IContainer, Writable, IDisposable } from '@aurelia/kernel';
 import type { IBinding } from '@aurelia/runtime';
 import type { IProjections } from '../resources/slot-injectables.js';
@@ -63,7 +62,6 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     private debug;
     private fullyNamed;
     private childrenObs;
-    readonly platform: IPlatform;
     readonly hooks: HooksDefinition;
     constructor(container: IContainer, vmKind: ViewModelKind, flags: LifecycleFlags, definition: CustomElementDefinition | CustomAttributeDefinition | null, 
     /**
@@ -197,7 +195,6 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
      */
     readonly name: string;
     readonly container: IContainer;
-    readonly platform: IPlatform;
     readonly flags: LifecycleFlags;
     readonly vmKind: ViewModelKind;
     readonly definition: CustomElementDefinition | CustomAttributeDefinition | null;

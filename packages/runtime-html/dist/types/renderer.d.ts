@@ -277,14 +277,16 @@ export declare class SetPropertyRenderer implements IRenderer {
 }
 export declare class CustomElementRenderer implements IRenderer {
     private readonly r;
+    private readonly p;
     static get inject(): unknown[];
-    constructor(r: IRendering);
+    constructor(r: IRendering, p: IPlatform);
     render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: HTMLElement, instruction: HydrateElementInstruction): void;
 }
 export declare class CustomAttributeRenderer implements IRenderer {
     private readonly r;
+    private readonly p;
     static get inject(): unknown[];
-    constructor(r: IRendering);
+    constructor(r: IRendering, p: IPlatform);
     render(f: LifecycleFlags, 
     /**
      * The cotroller that is currently invoking this renderer
@@ -293,8 +295,9 @@ export declare class CustomAttributeRenderer implements IRenderer {
 }
 export declare class TemplateControllerRenderer implements IRenderer {
     private readonly r;
+    private readonly p;
     static get inject(): unknown[];
-    constructor(r: IRendering);
+    constructor(r: IRendering, p: IPlatform);
     render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: HTMLElement, instruction: HydrateTemplateController): void;
 }
 export declare class LetElementRenderer implements IRenderer {
@@ -346,7 +349,8 @@ export declare class TextBindingRenderer implements IRenderer {
 export declare class ListenerBindingRenderer implements IRenderer {
     private readonly parser;
     private readonly eventDelegator;
-    constructor(parser: IExpressionParser, eventDelegator: IEventDelegator);
+    private readonly p;
+    constructor(parser: IExpressionParser, eventDelegator: IEventDelegator, p: IPlatform);
     render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: HTMLElement, instruction: ListenerBindingInstruction): void;
 }
 export declare class SetAttributeRenderer implements IRenderer {

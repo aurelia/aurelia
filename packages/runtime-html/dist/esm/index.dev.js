@@ -3586,7 +3586,6 @@ class Controller {
         this.detachingStack = 0;
         this.unbindingStack = 0;
         this.r = container.root.get(IRendering);
-        this.platform = container.get(IPlatform);
         switch (vmKind) {
             case 1 /* customAttribute */:
             case 0 /* customElement */:
@@ -3761,7 +3760,7 @@ class Controller {
         const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledDef;
         this.isStrictBinding = isStrictBinding;
         if ((this.hostController = CustomElement.for(this.host, optionalCeFind)) !== null) {
-            this.host = this.platform.document.createElement(this.definition.name);
+            this.host = this.container.root.get(IPlatform).document.createElement(this.definition.name);
         }
         setRef(this.host, CustomElement.name, this);
         setRef(this.host, this.definition.key, this);
@@ -4617,10 +4616,7 @@ class AppRoot {
         this.host = config.host;
         this.work = container.get(IWorkTracker);
         rootProvider.prepare(this);
-        // if (container.has(INode, false) && container.get(INode) !== config.host) {
-        //   this.container = container.createChild();
-        // }
-        this.container.register(Registration.instance(INode, config.host));
+        container.registerResolver(INode, container.registerResolver(platform.Element, new InstanceProvider('ElementProvider', config.host)));
         this.hydratePromise = onResolve(this.runAppTasks('beforeCreate'), () => {
             const component = config.component;
             const childCtn = container.createChild();
@@ -5469,10 +5465,11 @@ SetPropertyRenderer = __decorate([
 let CustomElementRenderer = 
 /** @internal */
 class CustomElementRenderer {
-    constructor(r) {
+    constructor(r, p) {
         this.r = r;
+        this.p = p;
     }
-    static get inject() { return [IRendering]; }
+    static get inject() { return [IRendering, IPlatform]; }
     render(f, renderingCtrl, target, instruction) {
         /* eslint-disable prefer-const */
         let def;
@@ -5483,6 +5480,7 @@ class CustomElementRenderer {
         const projections = instruction.projections;
         const ctxContainer = renderingCtrl.container;
         const container = createElementContainer(
+        /* platform         */ this.p, 
         /* parentController */ renderingCtrl, 
         /* host             */ target, 
         /* instruction      */ instruction, 
@@ -5538,10 +5536,11 @@ CustomElementRenderer = __decorate([
 let CustomAttributeRenderer = 
 /** @internal */
 class CustomAttributeRenderer {
-    constructor(r) {
+    constructor(r, p) {
         this.r = r;
+        this.p = p;
     }
-    static get inject() { return [IRendering]; }
+    static get inject() { return [IRendering, IPlatform]; }
     render(f, 
     /**
      * The cotroller that is currently invoking this renderer
@@ -5568,6 +5567,7 @@ class CustomAttributeRenderer {
                 def = instruction.res;
         }
         const component = invokeAttribute(
+        /* platform         */ this.p, 
         /* attr definition  */ def, 
         /* parentController */ renderingCtrl, 
         /* host             */ target, 
@@ -5602,10 +5602,11 @@ CustomAttributeRenderer = __decorate([
 let TemplateControllerRenderer = 
 /** @internal */
 class TemplateControllerRenderer {
-    constructor(r) {
+    constructor(r, p) {
         this.r = r;
+        this.p = p;
     }
-    static get inject() { return [IRendering]; }
+    static get inject() { return [IRendering, IPlatform]; }
     render(f, renderingCtrl, target, instruction) {
         var _a;
         /* eslint-disable prefer-const */
@@ -5631,6 +5632,7 @@ class TemplateControllerRenderer {
         const viewFactory = this.r.getViewFactory(instruction.def, ctxContainer);
         const renderLocation = convertToRenderLocation(target);
         const component = invokeAttribute(
+        /* platform         */ this.p, 
         /* attr definition  */ def, 
         /* parentController */ renderingCtrl, 
         /* host             */ target, 
@@ -5896,13 +5898,14 @@ TextBindingRenderer = __decorate([
 let ListenerBindingRenderer = 
 /** @internal */
 class ListenerBindingRenderer {
-    constructor(parser, eventDelegator) {
+    constructor(parser, eventDelegator, p) {
         this.parser = parser;
         this.eventDelegator = eventDelegator;
+        this.p = p;
     }
     render(f, renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
-        const binding = new Listener(renderingCtrl.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, renderingCtrl.container);
+        const binding = new Listener(this.p, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, renderingCtrl.container);
         renderingCtrl.addBinding(expr.$kind === 38962 /* BindingBehavior */
             ? applyBindingBehavior(binding, expr, renderingCtrl.container)
             : binding);
@@ -5913,7 +5916,8 @@ ListenerBindingRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IEventDelegator)
+    __param(1, IEventDelegator),
+    __param(2, IPlatform)
 ], ListenerBindingRenderer);
 let SetAttributeRenderer = 
 /** @internal */
@@ -6009,25 +6013,24 @@ const controllerProviderName = 'IController';
 const instructionProviderName = 'IInstruction';
 const locationProviderName = 'IRenderLocation';
 const slotInfoProviderName = 'IAuSlotsInfo';
-function createElementContainer(renderingCtrl, host, instruction, location, auSlotsInfo) {
-    const p = renderingCtrl.platform;
-    const container = renderingCtrl.container.createChild();
+function createElementContainer(p, renderingCtrl, host, instruction, location, auSlotsInfo) {
+    const ctn = renderingCtrl.container.createChild();
     // todo:
     // both node provider and location provider may not be allowed to throw
     // if there's no value associated, unlike InstanceProvider
     // reason being some custom element can have `containerless` attribute on them
     // causing the host to disappear, and replace by a location instead
-    container.registerResolver(p.HTMLElement, container.registerResolver(p.Element, container.registerResolver(p.Node, container.registerResolver(INode, new InstanceProvider(elProviderName, host)))));
-    container.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingCtrl));
-    container.registerResolver(IInstruction, new InstanceProvider(instructionProviderName, instruction));
-    container.registerResolver(IRenderLocation, location == null
+    ctn.registerResolver(p.Element, ctn.registerResolver(INode, new InstanceProvider(elProviderName, host)));
+    ctn.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingCtrl));
+    ctn.registerResolver(IInstruction, new InstanceProvider(instructionProviderName, instruction));
+    ctn.registerResolver(IRenderLocation, location == null
         ? noLocationProvider
         : new InstanceProvider(locationProviderName, location));
-    container.registerResolver(IViewFactory, noViewFactoryProvider);
-    container.registerResolver(IAuSlotsInfo, auSlotsInfo == null
+    ctn.registerResolver(IViewFactory, noViewFactoryProvider);
+    ctn.registerResolver(IAuSlotsInfo, auSlotsInfo == null
         ? noAuSlotProvider
         : new InstanceProvider(slotInfoProviderName, auSlotsInfo));
-    return container;
+    return ctn;
 }
 class ViewFactoryProvider {
     constructor(
@@ -6050,22 +6053,21 @@ class ViewFactoryProvider {
         return f;
     }
 }
-function invokeAttribute(definition, renderingController, host, instruction, viewFactory, location, auSlotsInfo) {
-    const p = renderingController.platform;
-    const container = renderingController.container.createChild();
-    container.registerResolver(p.HTMLElement, container.registerResolver(p.Element, container.registerResolver(p.Node, container.registerResolver(INode, new InstanceProvider(elProviderName, host)))));
-    container.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingController));
-    container.registerResolver(IInstruction, new InstanceProvider(instructionProviderName, instruction));
-    container.registerResolver(IRenderLocation, location == null
+function invokeAttribute(p, definition, renderingCtrl, host, instruction, viewFactory, location, auSlotsInfo) {
+    const ctn = renderingCtrl.container.createChild();
+    ctn.registerResolver(p.Element, ctn.registerResolver(INode, new InstanceProvider(elProviderName, host)));
+    ctn.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingCtrl));
+    ctn.registerResolver(IInstruction, new InstanceProvider(instructionProviderName, instruction));
+    ctn.registerResolver(IRenderLocation, location == null
         ? noLocationProvider
         : new InstanceProvider(locationProviderName, location));
-    container.registerResolver(IViewFactory, viewFactory == null
+    ctn.registerResolver(IViewFactory, viewFactory == null
         ? noViewFactoryProvider
         : new ViewFactoryProvider(viewFactory));
-    container.registerResolver(IAuSlotsInfo, auSlotsInfo == null
+    ctn.registerResolver(IAuSlotsInfo, auSlotsInfo == null
         ? noAuSlotProvider
         : new InstanceProvider(slotInfoProviderName, auSlotsInfo));
-    return container.invoke(definition.Type);
+    return ctn.invoke(definition.Type);
 }
 const noLocationProvider = new InstanceProvider(locationProviderName);
 const noViewFactoryProvider = new ViewFactoryProvider(null);
@@ -11035,11 +11037,7 @@ let AuCompose = class AuCompose {
         }
         const p = this.p;
         const isLocation = isRenderLocation(host);
-        const nodeProvider = new InstanceProvider('ElementResolver', isLocation ? null : host);
-        container.registerResolver(INode, nodeProvider);
-        container.registerResolver(p.Node, nodeProvider);
-        container.registerResolver(p.Element, nodeProvider);
-        container.registerResolver(p.HTMLElement, nodeProvider);
+        container.registerResolver(p.Element, container.registerResolver(INode, new InstanceProvider('ElementResolver', isLocation ? null : host)));
         container.registerResolver(IRenderLocation, new InstanceProvider('IRenderLocation', isLocation ? host : null));
         const instance = container.invoke(comp);
         container.registerResolver(comp, new InstanceProvider('au-compose.viewModel', instance));
@@ -11547,7 +11545,7 @@ class Aurelia {
         const comp = config.component;
         let bc;
         if (typeof comp === 'function') {
-            ctn.registerResolver(p.HTMLElement, ctn.registerResolver(p.Element, ctn.registerResolver(p.Node, ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host)))));
+            ctn.registerResolver(p.Element, ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host)));
             bc = ctn.invoke(comp);
         }
         else {
@@ -11834,11 +11832,7 @@ class DialogController {
             return Component;
         }
         const p = this.p;
-        const ep = new InstanceProvider('ElementResolver', host);
-        container.registerResolver(INode, ep);
-        container.registerResolver(p.Node, ep);
-        container.registerResolver(p.Element, ep);
-        container.registerResolver(p.HTMLElement, ep);
+        container.registerResolver(INode, container.registerResolver(p.Element, new InstanceProvider('ElementResolver', host)));
         return container.invoke(Component);
     }
     getDefinition(component) {

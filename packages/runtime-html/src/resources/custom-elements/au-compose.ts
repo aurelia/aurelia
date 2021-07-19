@@ -293,11 +293,13 @@ export class AuCompose {
 
     const p = this.p;
     const isLocation = isRenderLocation(host);
-    const nodeProvider = new InstanceProvider('ElementResolver', isLocation ? null : host as HTMLElement);
-    container.registerResolver(INode, nodeProvider);
-    container.registerResolver(p.Node, nodeProvider);
-    container.registerResolver(p.Element, nodeProvider);
-    container.registerResolver(p.HTMLElement, nodeProvider);
+    container.registerResolver(
+      p.Element,
+      container.registerResolver(
+        INode,
+        new InstanceProvider('ElementResolver', isLocation ? null : host as HTMLElement)
+      )
+    );
     container.registerResolver(
       IRenderLocation,
       new InstanceProvider('IRenderLocation', isLocation ? host as IRenderLocation : null)

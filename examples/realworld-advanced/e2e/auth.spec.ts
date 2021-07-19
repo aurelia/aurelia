@@ -1,4 +1,4 @@
-import { CustomElement, INode, IPlatform, PLATFORM } from 'aurelia';
+import { INode, IPlatform } from 'aurelia';
 import { assert } from '@aurelia/testing';
 import * as playwright from 'playwright';
 
@@ -47,7 +47,7 @@ describe('register', function () {
   async function waitForFramework(): Promise<void> {
     await page.evaluate(async function () {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const p = (document.querySelector('app-root') as INode).$au!['au:resource:custom-element']!.platform;
+      const p = (document.querySelector('app-root') as INode).$au!['au:resource:custom-element']!.container.get(IPlatform);
       await p.taskQueue.yield();
       await p.domWriteQueue.yield();
     });

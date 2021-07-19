@@ -218,7 +218,6 @@ export {
 export {
   Aurelia,
   IAurelia,
-  IEnhancedView,
   IEnhancementConfig,
 } from './aurelia.js';
 export {

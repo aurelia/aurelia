@@ -1,6 +1,6 @@
 /* eslint-disable no-template-curly-in-string */
 import { IContainer, noop, toArray } from '@aurelia/kernel';
-import { Aurelia, bindable, BindingMode, CustomElement, customElement, INode, IPlatform, processContent } from '@aurelia/runtime-html';
+import { Aurelia, bindable, BindingMode, CustomElement, customElement, INode, IPlatform, LifecycleFlags, processContent } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext as $TestExecutionContext, TestFunction } from '../util.js';
 
@@ -40,9 +40,9 @@ describe('processContent', function () {
       au.register(...registrations);
       if (enhance) {
         host.innerHTML = template;
-        const { controller, deactivate: $dispose } = await au.enhance({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true }, App) });
+        const controller = await au.enhance({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true }, App) });
         app = controller.viewModel;
-        stop = $dispose;
+        stop = () => controller.deactivate(controller, null, LifecycleFlags.none);
       } else {
         await au.app({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App) })
           .start();

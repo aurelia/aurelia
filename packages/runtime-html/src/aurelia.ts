@@ -68,33 +68,28 @@ export class Aurelia implements IDisposable {
   /**
    * @param parentController - The owning controller of the view created by this enhance call
    */
-  public enhance<T extends unknown, K = T extends Constructable<infer I> ? I : T>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController | null): IEnhancedView<K> | Promise<IEnhancedView<K>> {
-    const ctn = config.container ?? this.container;
-    const childCtn = ctn.createChild();
+  public enhance<T extends unknown, K = T extends Constructable<infer I> ? I : T>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController | null): ICustomElementController<K> | Promise<ICustomElementController<K>> {
+    const ctn = config.container ?? this.container.createChild();
     const host = config.host as HTMLElement;
     const p = this.initPlatform(host);
     const comp = config.component as K;
-    const resources = config.resources ?? emptyArray;
     let bc: ICustomElementViewModel & K;
     if (typeof comp === 'function') {
-      childCtn.registerResolver(
+      ctn.registerResolver(
         p.HTMLElement,
-        childCtn.registerResolver(
+        ctn.registerResolver(
           p.Element,
-          childCtn.registerResolver(
+          ctn.registerResolver(
             p.Node,
-            childCtn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+            ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
           )
         )
       );
-      bc = childCtn.invoke(comp as unknown as Constructable<ICustomElementViewModel & K>);
+      bc = ctn.invoke(comp as unknown as Constructable<ICustomElementViewModel & K>);
     } else {
       bc = comp;
     }
-    childCtn.registerResolver(IEventTarget, new InstanceProvider('IEventTarget', host));
-    if (resources.length > 0) {
-      childCtn.register(...resources);
-    }
+    ctn.registerResolver(IEventTarget, new InstanceProvider('IEventTarget', host));
     parentController = parentController ?? null;
 
     // todo: shouldn't this be just a synthetic view?
@@ -104,20 +99,16 @@ export class Aurelia implements IDisposable {
     //        - there's no lifecycles
     // todo: should this be move to a method enhance on Controller?
     const view = Controller.forCustomElement(
-      childCtn,
+      ctn,
       bc,
       host,
       null,
       void 0,
       CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }),
     );
-    const enhancedView: IEnhancedView<K> = {
-      controller: view,
-      deactivate: () => view.deactivate(view, parentController!, LifecycleFlags.fromUnbind)
-    };
     return onResolve(
       view.activate(view, parentController, LifecycleFlags.fromBind),
-      () => enhancedView
+      () => view
     );
   }
 
@@ -203,11 +194,6 @@ export class Aurelia implements IDisposable {
   }
 }
 
-export interface IEnhancedView<T> {
-  readonly controller: ICustomElementController<ICustomElementViewModel & T>;
-  readonly deactivate: () => void | Promise<void>;
-}
-
 export interface IEnhancementConfig<T> {
   host: Element;
   /**
@@ -215,16 +201,7 @@ export interface IEnhancementConfig<T> {
    */
   component: T;
   /**
-   * The parent container of the enhanced view.
-   *
-   * A child contaienr will be spawned from this container for the enhancement.
-   *
-   * Root container should be used if this is not given
+   * A predefined container for the enhanced view.
    */
   container?: IContainer;
-  /**
-   * A list of local resources to use for the enhancement,
-   * only available to the directly enhanced view itself
-   */
-  resources?: unknown[];
 }

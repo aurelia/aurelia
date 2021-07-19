@@ -1,5 +1,5 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { StandardConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, CustomElementType, CustomElement, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
+import { StandardConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, CustomElementType, CustomElement, IHydratedParentController } from '@aurelia/runtime-html';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import type { ISinglePageApp, IEnhancementConfig } from '@aurelia/runtime-html';
 

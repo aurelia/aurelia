@@ -1,5 +1,5 @@
 // This is to test for some intrinsic properties of enhance which is otherwise difficult to test in Data-driven tests parallel to `.app`
-import { Constructable, DI, IContainer, ILogEvent, InstanceProvider, ISink, LogLevel, Registration } from '@aurelia/kernel';
+import { Constructable, DI, IContainer, Registration } from '@aurelia/kernel';
 import {
   CustomElement,
   ICustomElementViewModel,
@@ -61,7 +61,6 @@ describe('3-runtime/enhance.spec.ts', function () {
     const container = ctx.container;
     const au = new Aurelia(container);
     const controller = await au.enhance({ host, component: getComponent() });
-    // await au.start();
 
     const app = controller.scope.bindingContext;
     await testFunction(new EnhanceTestExecutionContext(ctx, container, host, app, child));
@@ -279,7 +278,6 @@ describe('3-runtime/enhance.spec.ts', function () {
     const container = ctx.container;
     const au = new Aurelia(container);
     host.innerHTML = `<div repeat.for="i of 3">\${i}</div>`;
-    debugger
     const controller = await au.enhance({ host, component: { message: 'hello world' } });
     assert.html.textContent(host, '012');
     assert.strictEqual(host.querySelectorAll('div').length, 3);

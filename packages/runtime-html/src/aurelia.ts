@@ -1,4 +1,4 @@
-import { DI, Registration, InstanceProvider, onResolve, emptyArray } from '@aurelia/kernel';
+import { DI, Registration, InstanceProvider, onResolve } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { AppRoot, IAppRoot, ISinglePageApp } from './app-root.js';
@@ -92,12 +92,6 @@ export class Aurelia implements IDisposable {
     ctn.registerResolver(IEventTarget, new InstanceProvider('IEventTarget', host));
     parentController = parentController ?? null;
 
-    // todo: shouldn't this be just a synthetic view?
-    //       pros of synthetic view:
-    //        - is it feels right-er
-    //       cons of synthetic view:
-    //        - there's no lifecycles
-    // todo: should this be move to a method enhance on Controller?
     const view = Controller.forCustomElement(
       ctn,
       bc,

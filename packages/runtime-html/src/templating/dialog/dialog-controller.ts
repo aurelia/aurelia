@@ -247,12 +247,11 @@ export class DialogController implements IDialogController {
     }
 
     const p = this.p;
-    const ep = new InstanceProvider('ElementResolver', host);
 
-    container.registerResolver(INode, ep);
-    container.registerResolver(p.Node, ep);
-    container.registerResolver(p.Element, ep);
-    container.registerResolver(p.HTMLElement, ep);
+    container.registerResolver(
+      INode,
+      container.registerResolver(p.Element, new InstanceProvider('ElementResolver', host))
+    );
 
     return container.invoke(Component!);
   }

@@ -1,4 +1,4 @@
-import { DI, Registration, InstanceProvider, onResolve, resolveAll, ILogger } from '@aurelia/kernel';
+import { DI, InstanceProvider, onResolve, resolveAll, ILogger } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { INode } from './dom.js';
 import { IAppTask } from './app-task.js';
@@ -76,10 +76,12 @@ export class AppRoot implements IDisposable {
     this.host = config.host;
     this.work = container.get(IWorkTracker);
     rootProvider.prepare(this);
-    // if (container.has(INode, false) && container.get(INode) !== config.host) {
-    //   this.container = container.createChild();
-    // }
-    this.container.register(Registration.instance(INode, config.host));
+    container.registerResolver(INode,
+      container.registerResolver(
+        platform.Element,
+        new InstanceProvider('ElementProvider', config.host)
+      )
+    );
 
     this.hydratePromise = onResolve(this.runAppTasks('beforeCreate'), () => {
       const component = config.component as Constructable | ICustomElementViewModel;

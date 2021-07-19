@@ -317,7 +317,7 @@ describe('3-runtime/enhance.spec.ts', function () {
     await start();
 
     assert.notStrictEqual(parentController, void 0);
-    assert.strictEqual(component.myElController === parentController, true);
+    assert.strictEqual(component.myElController, parentController);
     assert.html.innerEqual(appHost, '<my-el class="au"><div class="au"><div>Hello _div_</div></div></my-el>');
 
     await tearDown();

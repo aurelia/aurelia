@@ -30,7 +30,8 @@
     "test-chrome:debugger": "karma start karma.conf.cjs --browsers=ChromeDebugging --watch-extensions js,html",
     "test-chrome:debugger:verbose": "karma start karma.conf.cjs --browsers=ChromeDebugging --watch-extensions js,html --reporter=mocha",
     "build": "tsc --build",
-    "dev": "tsc --build -w --preserveWatchOutput"
+    "dev": "tsc --build -w --preserveWatchOutput",
+    "rollup": "npm run build"
   },
   "dependencies": {
     "@aurelia/fetch-client": "2.0.0-alpha.13",

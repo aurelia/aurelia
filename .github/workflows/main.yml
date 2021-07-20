@@ -35,7 +35,7 @@ jobs:
         with:
           node-version: 15
       - run: npm ci
-      - run: npm run build
+      - run: npm run rollup
       - run: npm run test-node:${{matrix.suite}}
         working-directory: packages/__tests__
 
@@ -78,7 +78,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: npm ci
-      - run: npm run build
+      - run: npm run build:test
       - run: npm run test-${{matrix.browser}}
         working-directory: packages/__tests__
 

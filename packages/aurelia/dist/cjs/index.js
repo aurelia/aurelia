@@ -1,648 +1,751 @@
-'use strict';
+"use strict";
 
-Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, "t", {
+    value: true
+});
 
-var kernel = require('@aurelia/kernel');
-var runtimeHtml = require('@aurelia/runtime-html');
-var platformBrowser = require('@aurelia/platform-browser');
-var fetchClient = require('@aurelia/fetch-client');
-var router = require('@aurelia/router');
+var e = require("@aurelia/kernel");
 
-const PLATFORM = platformBrowser.BrowserPlatform.getOrCreate(globalThis);
-function createContainer() {
-    return kernel.DI.createContainer()
-        .register(kernel.Registration.instance(runtimeHtml.IPlatform, PLATFORM), runtimeHtml.StandardConfiguration);
+var t = require("@aurelia/runtime-html");
+
+var r = require("@aurelia/platform-browser");
+
+var n = require("@aurelia/fetch-client");
+
+var u = require("@aurelia/router");
+
+const o = r.BrowserPlatform.getOrCreate(globalThis);
+
+function c() {
+    return e.DI.createContainer().register(e.Registration.instance(t.IPlatform, o), t.StandardConfiguration);
 }
-class Aurelia extends runtimeHtml.Aurelia {
-    constructor(container = createContainer()) {
-        super(container);
+
+class Aurelia extends t.Aurelia {
+    constructor(e = c()) {
+        super(e);
     }
-    static start(root) {
-        return new Aurelia().start(root);
+    static start(e) {
+        return (new Aurelia).start(e);
     }
-    static app(config) {
-        return new Aurelia().app(config);
+    static app(e) {
+        return (new Aurelia).app(e);
     }
-    static enhance(config, parentController) {
-        return new Aurelia().enhance(config, parentController);
+    static enhance(e, t) {
+        return (new Aurelia).enhance(e, t);
     }
-    static register(...params) {
-        return new Aurelia().register(...params);
+    static register(...e) {
+        return (new Aurelia).register(...e);
     }
-    app(config) {
-        if (runtimeHtml.CustomElement.isType(config)) {
-            // Default to custom element element name
-            const definition = runtimeHtml.CustomElement.getDefinition(config);
-            let host = document.querySelector(definition.name);
-            if (host === null) {
-                // When no target is found, default to body.
-                // For example, when user forgot to write <my-app></my-app> in html.
-                host = document.body;
-            }
+    app(e) {
+        if (t.CustomElement.isType(e)) {
+            const r = t.CustomElement.getDefinition(e);
+            let n = document.querySelector(r.name);
+            if (null === n) n = document.body;
             return super.app({
-                host: host,
-                component: config
+                host: n,
+                component: e
             });
         }
-        return super.app(config);
+        return super.app(e);
     }
 }
 
-Object.defineProperty(exports, 'ColorOptions', {
+Object.defineProperty(exports, "ColorOptions", {
     enumerable: true,
-    get: function () {
-        return kernel.ColorOptions;
+    get: function() {
+        return e.ColorOptions;
     }
 });
-Object.defineProperty(exports, 'ConsoleSink', {
+
+Object.defineProperty(exports, "ConsoleSink", {
     enumerable: true,
-    get: function () {
-        return kernel.ConsoleSink;
+    get: function() {
+        return e.ConsoleSink;
     }
 });
-Object.defineProperty(exports, 'DI', {
+
+Object.defineProperty(exports, "DI", {
     enumerable: true,
-    get: function () {
-        return kernel.DI;
+    get: function() {
+        return e.DI;
     }
 });
-Object.defineProperty(exports, 'EventAggregator', {
+
+Object.defineProperty(exports, "EventAggregator", {
     enumerable: true,
-    get: function () {
-        return kernel.EventAggregator;
+    get: function() {
+        return e.EventAggregator;
     }
 });
-Object.defineProperty(exports, 'IContainer', {
+
+Object.defineProperty(exports, "IContainer", {
     enumerable: true,
-    get: function () {
-        return kernel.IContainer;
+    get: function() {
+        return e.IContainer;
     }
 });
-Object.defineProperty(exports, 'IEventAggregator', {
+
+Object.defineProperty(exports, "IEventAggregator", {
     enumerable: true,
-    get: function () {
-        return kernel.IEventAggregator;
+    get: function() {
+        return e.IEventAggregator;
     }
 });
-Object.defineProperty(exports, 'ILogger', {
+
+Object.defineProperty(exports, "ILogger", {
     enumerable: true,
-    get: function () {
-        return kernel.ILogger;
+    get: function() {
+        return e.ILogger;
     }
 });
-Object.defineProperty(exports, 'IServiceLocator', {
+
+Object.defineProperty(exports, "IServiceLocator", {
     enumerable: true,
-    get: function () {
-        return kernel.IServiceLocator;
+    get: function() {
+        return e.IServiceLocator;
     }
 });
-Object.defineProperty(exports, 'InstanceProvider', {
+
+Object.defineProperty(exports, "InstanceProvider", {
     enumerable: true,
-    get: function () {
-        return kernel.InstanceProvider;
+    get: function() {
+        return e.InstanceProvider;
     }
 });
-Object.defineProperty(exports, 'LogLevel', {
+
+Object.defineProperty(exports, "LogLevel", {
     enumerable: true,
-    get: function () {
-        return kernel.LogLevel;
+    get: function() {
+        return e.LogLevel;
     }
 });
-Object.defineProperty(exports, 'LoggerConfiguration', {
+
+Object.defineProperty(exports, "LoggerConfiguration", {
     enumerable: true,
-    get: function () {
-        return kernel.LoggerConfiguration;
+    get: function() {
+        return e.LoggerConfiguration;
     }
 });
-Object.defineProperty(exports, 'Metadata', {
+
+Object.defineProperty(exports, "Metadata", {
     enumerable: true,
-    get: function () {
-        return kernel.Metadata;
+    get: function() {
+        return e.Metadata;
     }
 });
-Object.defineProperty(exports, 'Registration', {
+
+Object.defineProperty(exports, "Registration", {
     enumerable: true,
-    get: function () {
-        return kernel.Registration;
+    get: function() {
+        return e.Registration;
     }
 });
-Object.defineProperty(exports, 'all', {
+
+Object.defineProperty(exports, "all", {
     enumerable: true,
-    get: function () {
-        return kernel.all;
+    get: function() {
+        return e.all;
     }
 });
-Object.defineProperty(exports, 'bound', {
+
+Object.defineProperty(exports, "bound", {
     enumerable: true,
-    get: function () {
-        return kernel.bound;
+    get: function() {
+        return e.bound;
     }
 });
-Object.defineProperty(exports, 'camelCase', {
+
+Object.defineProperty(exports, "camelCase", {
     enumerable: true,
-    get: function () {
-        return kernel.camelCase;
+    get: function() {
+        return e.camelCase;
     }
 });
-Object.defineProperty(exports, 'emptyArray', {
+
+Object.defineProperty(exports, "emptyArray", {
     enumerable: true,
-    get: function () {
-        return kernel.emptyArray;
+    get: function() {
+        return e.emptyArray;
     }
 });
-Object.defineProperty(exports, 'emptyObject', {
+
+Object.defineProperty(exports, "emptyObject", {
     enumerable: true,
-    get: function () {
-        return kernel.emptyObject;
+    get: function() {
+        return e.emptyObject;
     }
 });
-Object.defineProperty(exports, 'inject', {
+
+Object.defineProperty(exports, "inject", {
     enumerable: true,
-    get: function () {
-        return kernel.inject;
+    get: function() {
+        return e.inject;
     }
 });
-Object.defineProperty(exports, 'isArrayIndex', {
+
+Object.defineProperty(exports, "isArrayIndex", {
     enumerable: true,
-    get: function () {
-        return kernel.isArrayIndex;
+    get: function() {
+        return e.isArrayIndex;
     }
 });
-Object.defineProperty(exports, 'kebabCase', {
+
+Object.defineProperty(exports, "kebabCase", {
     enumerable: true,
-    get: function () {
-        return kernel.kebabCase;
+    get: function() {
+        return e.kebabCase;
     }
 });
-Object.defineProperty(exports, 'lazy', {
+
+Object.defineProperty(exports, "lazy", {
     enumerable: true,
-    get: function () {
-        return kernel.lazy;
+    get: function() {
+        return e.lazy;
     }
 });
-Object.defineProperty(exports, 'noop', {
+
+Object.defineProperty(exports, "noop", {
     enumerable: true,
-    get: function () {
-        return kernel.noop;
+    get: function() {
+        return e.noop;
     }
 });
-Object.defineProperty(exports, 'optional', {
+
+Object.defineProperty(exports, "optional", {
     enumerable: true,
-    get: function () {
-        return kernel.optional;
+    get: function() {
+        return e.optional;
     }
 });
-Object.defineProperty(exports, 'pascalCase', {
+
+Object.defineProperty(exports, "pascalCase", {
     enumerable: true,
-    get: function () {
-        return kernel.pascalCase;
+    get: function() {
+        return e.pascalCase;
     }
 });
-Object.defineProperty(exports, 'singleton', {
+
+Object.defineProperty(exports, "singleton", {
     enumerable: true,
-    get: function () {
-        return kernel.singleton;
+    get: function() {
+        return e.singleton;
     }
 });
-Object.defineProperty(exports, 'toArray', {
+
+Object.defineProperty(exports, "toArray", {
     enumerable: true,
-    get: function () {
-        return kernel.toArray;
+    get: function() {
+        return e.toArray;
     }
 });
-Object.defineProperty(exports, 'transient', {
+
+Object.defineProperty(exports, "transient", {
     enumerable: true,
-    get: function () {
-        return kernel.transient;
+    get: function() {
+        return e.transient;
     }
 });
-Object.defineProperty(exports, 'AppTask', {
+
+Object.defineProperty(exports, "AppTask", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.AppTask;
+    get: function() {
+        return t.AppTask;
     }
 });
-Object.defineProperty(exports, 'AuSlotsInfo', {
+
+Object.defineProperty(exports, "AuSlotsInfo", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.AuSlotsInfo;
+    get: function() {
+        return t.AuSlotsInfo;
     }
 });
-Object.defineProperty(exports, 'Bindable', {
+
+Object.defineProperty(exports, "Bindable", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.Bindable;
+    get: function() {
+        return t.Bindable;
     }
 });
-Object.defineProperty(exports, 'BindingBehavior', {
+
+Object.defineProperty(exports, "BindingBehavior", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.BindingBehavior;
+    get: function() {
+        return t.BindingBehavior;
     }
 });
-Object.defineProperty(exports, 'BindingMode', {
+
+Object.defineProperty(exports, "BindingMode", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.BindingMode;
+    get: function() {
+        return t.BindingMode;
     }
 });
-Object.defineProperty(exports, 'ComputedObserver', {
+
+Object.defineProperty(exports, "ComputedObserver", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.ComputedObserver;
+    get: function() {
+        return t.ComputedObserver;
     }
 });
-Object.defineProperty(exports, 'ComputedWatcher', {
+
+Object.defineProperty(exports, "ComputedWatcher", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.ComputedWatcher;
+    get: function() {
+        return t.ComputedWatcher;
     }
 });
-Object.defineProperty(exports, 'Controller', {
+
+Object.defineProperty(exports, "Controller", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.Controller;
+    get: function() {
+        return t.Controller;
     }
 });
-Object.defineProperty(exports, 'CustomAttribute', {
+
+Object.defineProperty(exports, "CustomAttribute", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.CustomAttribute;
+    get: function() {
+        return t.CustomAttribute;
     }
 });
-Object.defineProperty(exports, 'CustomElement', {
+
+Object.defineProperty(exports, "CustomElement", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.CustomElement;
+    get: function() {
+        return t.CustomElement;
     }
 });
-Object.defineProperty(exports, 'ExpressionWatcher', {
+
+Object.defineProperty(exports, "ExpressionWatcher", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.ExpressionWatcher;
+    get: function() {
+        return t.ExpressionWatcher;
     }
 });
-Object.defineProperty(exports, 'IAppRoot', {
+
+Object.defineProperty(exports, "IAppRoot", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.IAppRoot;
+    get: function() {
+        return t.IAppRoot;
     }
 });
-Object.defineProperty(exports, 'IAttrMapper', {
+
+Object.defineProperty(exports, "IAttrMapper", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.IAttrMapper;
+    get: function() {
+        return t.IAttrMapper;
     }
 });
-Object.defineProperty(exports, 'IAttributePattern', {
+
+Object.defineProperty(exports, "IAttributePattern", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.IAttributePattern;
+    get: function() {
+        return t.IAttributePattern;
     }
 });
-Object.defineProperty(exports, 'IAuSlotsInfo', {
+
+Object.defineProperty(exports, "IAuSlotsInfo", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.IAuSlotsInfo;
+    get: function() {
+        return t.IAuSlotsInfo;
     }
 });
-Object.defineProperty(exports, 'IAurelia', {
+
+Object.defineProperty(exports, "IAurelia", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.IAurelia;
+    get: function() {
+        return t.IAurelia;
     }
 });
-Object.defineProperty(exports, 'IEventTarget', {
+
+Object.defineProperty(exports, "IEventTarget", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.IEventTarget;
+    get: function() {
+        return t.IEventTarget;
     }
 });
-Object.defineProperty(exports, 'ILifecycleHooks', {
+
+Object.defineProperty(exports, "ILifecycleHooks", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.ILifecycleHooks;
+    get: function() {
+        return t.ILifecycleHooks;
     }
 });
-Object.defineProperty(exports, 'INode', {
+
+Object.defineProperty(exports, "INode", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.INode;
+    get: function() {
+        return t.INode;
     }
 });
-Object.defineProperty(exports, 'IObserverLocator', {
+
+Object.defineProperty(exports, "IObserverLocator", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.IObserverLocator;
+    get: function() {
+        return t.IObserverLocator;
     }
 });
-Object.defineProperty(exports, 'IPlatform', {
+
+Object.defineProperty(exports, "IPlatform", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.IPlatform;
+    get: function() {
+        return t.IPlatform;
     }
 });
-Object.defineProperty(exports, 'IRenderLocation', {
+
+Object.defineProperty(exports, "IRenderLocation", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.IRenderLocation;
+    get: function() {
+        return t.IRenderLocation;
     }
 });
-Object.defineProperty(exports, 'ISignaler', {
+
+Object.defineProperty(exports, "ISignaler", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.ISignaler;
+    get: function() {
+        return t.ISignaler;
     }
 });
-Object.defineProperty(exports, 'ITemplateCompilerHooks', {
+
+Object.defineProperty(exports, "ITemplateCompilerHooks", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.ITemplateCompilerHooks;
+    get: function() {
+        return t.ITemplateCompilerHooks;
     }
 });
-Object.defineProperty(exports, 'IWorkTracker', {
+
+Object.defineProperty(exports, "IWorkTracker", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.IWorkTracker;
+    get: function() {
+        return t.IWorkTracker;
     }
 });
-Object.defineProperty(exports, 'LifecycleFlags', {
+
+Object.defineProperty(exports, "LifecycleFlags", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.LifecycleFlags;
+    get: function() {
+        return t.LifecycleFlags;
     }
 });
-Object.defineProperty(exports, 'LifecycleHooks', {
+
+Object.defineProperty(exports, "LifecycleHooks", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.LifecycleHooks;
+    get: function() {
+        return t.LifecycleHooks;
     }
 });
-Object.defineProperty(exports, 'NodeObserverLocator', {
+
+Object.defineProperty(exports, "NodeObserverLocator", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.NodeObserverLocator;
+    get: function() {
+        return t.NodeObserverLocator;
     }
 });
-Object.defineProperty(exports, 'ShortHandBindingSyntax', {
+
+Object.defineProperty(exports, "ShortHandBindingSyntax", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.ShortHandBindingSyntax;
+    get: function() {
+        return t.ShortHandBindingSyntax;
     }
 });
-Object.defineProperty(exports, 'StyleConfiguration', {
+
+Object.defineProperty(exports, "StyleConfiguration", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.StyleConfiguration;
+    get: function() {
+        return t.StyleConfiguration;
     }
 });
-Object.defineProperty(exports, 'TaskQueuePriority', {
+
+Object.defineProperty(exports, "TaskQueuePriority", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.TaskQueuePriority;
+    get: function() {
+        return t.TaskQueuePriority;
     }
 });
-Object.defineProperty(exports, 'TemplateCompilerHooks', {
+
+Object.defineProperty(exports, "TemplateCompilerHooks", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.TemplateCompilerHooks;
+    get: function() {
+        return t.TemplateCompilerHooks;
     }
 });
-Object.defineProperty(exports, 'ValueConverter', {
+
+Object.defineProperty(exports, "ValueConverter", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.ValueConverter;
+    get: function() {
+        return t.ValueConverter;
     }
 });
-Object.defineProperty(exports, 'ViewFactory', {
+
+Object.defineProperty(exports, "ViewFactory", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.ViewFactory;
+    get: function() {
+        return t.ViewFactory;
     }
 });
-Object.defineProperty(exports, 'Watch', {
+
+Object.defineProperty(exports, "Watch", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.Watch;
+    get: function() {
+        return t.Watch;
     }
 });
-Object.defineProperty(exports, 'alias', {
+
+Object.defineProperty(exports, "alias", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.alias;
+    get: function() {
+        return t.alias;
     }
 });
-Object.defineProperty(exports, 'attributePattern', {
+
+Object.defineProperty(exports, "attributePattern", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.attributePattern;
+    get: function() {
+        return t.attributePattern;
     }
 });
-Object.defineProperty(exports, 'bindable', {
+
+Object.defineProperty(exports, "bindable", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.bindable;
+    get: function() {
+        return t.bindable;
     }
 });
-Object.defineProperty(exports, 'bindingBehavior', {
+
+Object.defineProperty(exports, "bindingBehavior", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.bindingBehavior;
+    get: function() {
+        return t.bindingBehavior;
     }
 });
-Object.defineProperty(exports, 'bindingCommand', {
+
+Object.defineProperty(exports, "bindingCommand", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.bindingCommand;
+    get: function() {
+        return t.bindingCommand;
     }
 });
-Object.defineProperty(exports, 'children', {
+
+Object.defineProperty(exports, "children", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.children;
+    get: function() {
+        return t.children;
     }
 });
-Object.defineProperty(exports, 'containerless', {
+
+Object.defineProperty(exports, "containerless", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.containerless;
+    get: function() {
+        return t.containerless;
     }
 });
-Object.defineProperty(exports, 'createElement', {
+
+Object.defineProperty(exports, "createElement", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.createElement;
+    get: function() {
+        return t.createElement;
     }
 });
-Object.defineProperty(exports, 'cssModules', {
+
+Object.defineProperty(exports, "cssModules", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.cssModules;
+    get: function() {
+        return t.cssModules;
     }
 });
-Object.defineProperty(exports, 'customAttribute', {
+
+Object.defineProperty(exports, "customAttribute", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.customAttribute;
+    get: function() {
+        return t.customAttribute;
     }
 });
-Object.defineProperty(exports, 'customElement', {
+
+Object.defineProperty(exports, "customElement", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.customElement;
+    get: function() {
+        return t.customElement;
     }
 });
-Object.defineProperty(exports, 'lifecycleHooks', {
+
+Object.defineProperty(exports, "lifecycleHooks", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.lifecycleHooks;
+    get: function() {
+        return t.lifecycleHooks;
     }
 });
-Object.defineProperty(exports, 'registerAliases', {
+
+Object.defineProperty(exports, "registerAliases", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.registerAliases;
+    get: function() {
+        return t.registerAliases;
     }
 });
-Object.defineProperty(exports, 'renderer', {
+
+Object.defineProperty(exports, "renderer", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.renderer;
+    get: function() {
+        return t.renderer;
     }
 });
-Object.defineProperty(exports, 'shadowCSS', {
+
+Object.defineProperty(exports, "shadowCSS", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.shadowCSS;
+    get: function() {
+        return t.shadowCSS;
     }
 });
-Object.defineProperty(exports, 'subscriberCollection', {
+
+Object.defineProperty(exports, "subscriberCollection", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.subscriberCollection;
+    get: function() {
+        return t.subscriberCollection;
     }
 });
-Object.defineProperty(exports, 'templateCompilerHooks', {
+
+Object.defineProperty(exports, "templateCompilerHooks", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.templateCompilerHooks;
+    get: function() {
+        return t.templateCompilerHooks;
     }
 });
-Object.defineProperty(exports, 'templateController', {
+
+Object.defineProperty(exports, "templateController", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.templateController;
+    get: function() {
+        return t.templateController;
     }
 });
-Object.defineProperty(exports, 'useShadowDOM', {
+
+Object.defineProperty(exports, "useShadowDOM", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.useShadowDOM;
+    get: function() {
+        return t.useShadowDOM;
     }
 });
-Object.defineProperty(exports, 'valueConverter', {
+
+Object.defineProperty(exports, "valueConverter", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.valueConverter;
+    get: function() {
+        return t.valueConverter;
     }
 });
-Object.defineProperty(exports, 'watch', {
+
+Object.defineProperty(exports, "watch", {
     enumerable: true,
-    get: function () {
-        return runtimeHtml.watch;
+    get: function() {
+        return t.watch;
     }
 });
-Object.defineProperty(exports, 'HttpClient', {
+
+Object.defineProperty(exports, "HttpClient", {
     enumerable: true,
-    get: function () {
-        return fetchClient.HttpClient;
+    get: function() {
+        return n.HttpClient;
     }
 });
-Object.defineProperty(exports, 'HttpClientConfiguration', {
+
+Object.defineProperty(exports, "HttpClientConfiguration", {
     enumerable: true,
-    get: function () {
-        return fetchClient.HttpClientConfiguration;
+    get: function() {
+        return n.HttpClientConfiguration;
     }
 });
-Object.defineProperty(exports, 'IHttpClient', {
+
+Object.defineProperty(exports, "IHttpClient", {
     enumerable: true,
-    get: function () {
-        return fetchClient.IHttpClient;
+    get: function() {
+        return n.IHttpClient;
     }
 });
-Object.defineProperty(exports, 'json', {
+
+Object.defineProperty(exports, "json", {
     enumerable: true,
-    get: function () {
-        return fetchClient.json;
+    get: function() {
+        return n.json;
     }
 });
-Object.defineProperty(exports, 'IRouteContext', {
+
+Object.defineProperty(exports, "IRouteContext", {
     enumerable: true,
-    get: function () {
-        return router.IRouteContext;
+    get: function() {
+        return u.IRouteContext;
     }
 });
-Object.defineProperty(exports, 'IRouter', {
+
+Object.defineProperty(exports, "IRouter", {
     enumerable: true,
-    get: function () {
-        return router.IRouter;
+    get: function() {
+        return u.IRouter;
     }
 });
-Object.defineProperty(exports, 'IRouterEvents', {
+
+Object.defineProperty(exports, "IRouterEvents", {
     enumerable: true,
-    get: function () {
-        return router.IRouterEvents;
+    get: function() {
+        return u.IRouterEvents;
     }
 });
-Object.defineProperty(exports, 'Route', {
+
+Object.defineProperty(exports, "Route", {
     enumerable: true,
-    get: function () {
-        return router.Route;
+    get: function() {
+        return u.Route;
     }
 });
-Object.defineProperty(exports, 'RouteConfig', {
+
+Object.defineProperty(exports, "RouteConfig", {
     enumerable: true,
-    get: function () {
-        return router.RouteConfig;
+    get: function() {
+        return u.RouteConfig;
     }
 });
-Object.defineProperty(exports, 'RouteNode', {
+
+Object.defineProperty(exports, "RouteNode", {
     enumerable: true,
-    get: function () {
-        return router.RouteNode;
+    get: function() {
+        return u.RouteNode;
     }
 });
-Object.defineProperty(exports, 'Router', {
+
+Object.defineProperty(exports, "Router", {
     enumerable: true,
-    get: function () {
-        return router.Router;
+    get: function() {
+        return u.Router;
     }
 });
-Object.defineProperty(exports, 'RouterConfiguration', {
+
+Object.defineProperty(exports, "RouterConfiguration", {
     enumerable: true,
-    get: function () {
-        return router.RouterConfiguration;
+    get: function() {
+        return u.RouterConfiguration;
     }
 });
-Object.defineProperty(exports, 'RouterOptions', {
+
+Object.defineProperty(exports, "RouterOptions", {
     enumerable: true,
-    get: function () {
-        return router.RouterOptions;
+    get: function() {
+        return u.RouterOptions;
     }
 });
-Object.defineProperty(exports, 'RouterRegistration', {
+
+Object.defineProperty(exports, "RouterRegistration", {
     enumerable: true,
-    get: function () {
-        return router.RouterRegistration;
+    get: function() {
+        return u.RouterRegistration;
     }
 });
-Object.defineProperty(exports, 'route', {
+
+Object.defineProperty(exports, "route", {
     enumerable: true,
-    get: function () {
-        return router.route;
+    get: function() {
+        return u.route;
     }
 });
+
 exports.Aurelia = Aurelia;
-exports.PLATFORM = PLATFORM;
+
+exports.PLATFORM = o;
+
 exports.default = Aurelia;
 //# sourceMappingURL=index.js.map

@@ -6803,9 +6803,7 @@ class TemplateCompiler {
             ii = attrs.length;
         }
         if (context.root.def.enhance && el.classList.contains('au')) {
-            throw new Error('Trying to enhance with a template that was probably compiled before. '
-                    + 'This is likely going to cause issues. '
-                    + 'Consider enhancing only untouched elements.');
+            throw new Error(`AUR0710`);
         }
         for (; ii > i; ++i) {
             attr = attrs[i];

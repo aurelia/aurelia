@@ -1,51 +1,54 @@
-import { DI, Registration } from '../../../@aurelia/kernel/dist/native-modules/index.js';
-export { ColorOptions, ConsoleSink, DI, EventAggregator, IContainer, IEventAggregator, ILogger, IServiceLocator, InstanceProvider, LogLevel, LoggerConfiguration, Metadata, Registration, all, bound, camelCase, emptyArray, emptyObject, inject, isArrayIndex, kebabCase, lazy, noop, optional, pascalCase, singleton, toArray, transient } from '../../../@aurelia/kernel/dist/native-modules/index.js';
-import { Aurelia as Aurelia$1, IPlatform, StandardConfiguration, CustomElement } from '../../../@aurelia/runtime-html/dist/native-modules/index.js';
-export { AppTask, AuSlotsInfo, Bindable, BindingBehavior, BindingMode, ComputedObserver, ComputedWatcher, Controller, CustomAttribute, CustomElement, ExpressionWatcher, IAppRoot, IAttrMapper, IAttributePattern, IAuSlotsInfo, IAurelia, IEventTarget, ILifecycleHooks, INode, IObserverLocator, IPlatform, IRenderLocation, ISignaler, ITemplateCompilerHooks, IWorkTracker, LifecycleFlags, LifecycleHooks, NodeObserverLocator, ShortHandBindingSyntax, StyleConfiguration, TaskQueuePriority, TemplateCompilerHooks, ValueConverter, ViewFactory, Watch, alias, attributePattern, bindable, bindingBehavior, bindingCommand, children, containerless, createElement, cssModules, customAttribute, customElement, lifecycleHooks, registerAliases, renderer, shadowCSS, subscriberCollection, templateCompilerHooks, templateController, useShadowDOM, valueConverter, watch } from '../../../@aurelia/runtime-html/dist/native-modules/index.js';
-import { BrowserPlatform } from '../../../@aurelia/platform-browser/dist/native-modules/index.js';
-export { HttpClient, HttpClientConfiguration, IHttpClient, json } from '../../../@aurelia/fetch-client/dist/native-modules/index.js';
-export { IRouteContext, IRouter, IRouterEvents, Route, RouteConfig, RouteNode, Router, RouterConfiguration, RouterOptions, RouterRegistration, route } from '../../../@aurelia/router/dist/native-modules/index.js';
+import { DI as e, Registration as t } from "../../../@aurelia/kernel/dist/native-modules/index.js";
 
-const PLATFORM = BrowserPlatform.getOrCreate(globalThis);
-function createContainer() {
-    return DI.createContainer()
-        .register(Registration.instance(IPlatform, PLATFORM), StandardConfiguration);
+export { ColorOptions, ConsoleSink, DI, EventAggregator, IContainer, IEventAggregator, ILogger, IServiceLocator, InstanceProvider, LogLevel, LoggerConfiguration, Metadata, Registration, all, bound, camelCase, emptyArray, emptyObject, inject, isArrayIndex, kebabCase, lazy, noop, optional, pascalCase, singleton, toArray, transient } from "../../../@aurelia/kernel/dist/native-modules/index.js";
+
+import { Aurelia as r, IPlatform as o, StandardConfiguration as a, CustomElement as n } from "../../../@aurelia/runtime-html/dist/native-modules/index.js";
+
+export { AppTask, AuSlotsInfo, Bindable, BindingBehavior, BindingMode, ComputedObserver, ComputedWatcher, Controller, CustomAttribute, CustomElement, ExpressionWatcher, IAppRoot, IAttrMapper, IAttributePattern, IAuSlotsInfo, IAurelia, IEventTarget, ILifecycleHooks, INode, IObserverLocator, IPlatform, IRenderLocation, ISignaler, ITemplateCompilerHooks, IWorkTracker, LifecycleFlags, LifecycleHooks, NodeObserverLocator, ShortHandBindingSyntax, StyleConfiguration, TaskQueuePriority, TemplateCompilerHooks, ValueConverter, ViewFactory, Watch, alias, attributePattern, bindable, bindingBehavior, bindingCommand, children, containerless, createElement, cssModules, customAttribute, customElement, lifecycleHooks, registerAliases, renderer, shadowCSS, subscriberCollection, templateCompilerHooks, templateController, useShadowDOM, valueConverter, watch } from "../../../@aurelia/runtime-html/dist/native-modules/index.js";
+
+import { BrowserPlatform as i } from "../../../@aurelia/platform-browser/dist/native-modules/index.js";
+
+export { HttpClient, HttpClientConfiguration, IHttpClient, json } from "../../../@aurelia/fetch-client/dist/native-modules/index.js";
+
+export { IRouteContext, IRouter, IRouterEvents, Route, RouteConfig, RouteNode, Router, RouterConfiguration, RouterOptions, RouterRegistration, route } from "../../../@aurelia/router/dist/native-modules/index.js";
+
+const l = i.getOrCreate(globalThis);
+
+function u() {
+    return e.createContainer().register(t.instance(o, l), a);
 }
-class Aurelia extends Aurelia$1 {
-    constructor(container = createContainer()) {
-        super(container);
+
+class Aurelia extends r {
+    constructor(e = u()) {
+        super(e);
     }
-    static start(root) {
-        return new Aurelia().start(root);
+    static start(e) {
+        return (new Aurelia).start(e);
     }
-    static app(config) {
-        return new Aurelia().app(config);
+    static app(e) {
+        return (new Aurelia).app(e);
     }
-    static enhance(config, parentController) {
-        return new Aurelia().enhance(config, parentController);
+    static enhance(e, t) {
+        return (new Aurelia).enhance(e, t);
     }
-    static register(...params) {
-        return new Aurelia().register(...params);
+    static register(...e) {
+        return (new Aurelia).register(...e);
     }
-    app(config) {
-        if (CustomElement.isType(config)) {
-            // Default to custom element element name
-            const definition = CustomElement.getDefinition(config);
-            let host = document.querySelector(definition.name);
-            if (host === null) {
-                // When no target is found, default to body.
-                // For example, when user forgot to write <my-app></my-app> in html.
-                host = document.body;
-            }
+    app(e) {
+        if (n.isType(e)) {
+            const t = n.getDefinition(e);
+            let r = document.querySelector(t.name);
+            if (null === r) r = document.body;
             return super.app({
-                host: host,
-                component: config
+                host: r,
+                component: e
             });
         }
-        return super.app(config);
+        return super.app(e);
     }
 }
 
 export default Aurelia;
-export { Aurelia, PLATFORM };
+
+export { Aurelia, l as PLATFORM };
 //# sourceMappingURL=index.js.map

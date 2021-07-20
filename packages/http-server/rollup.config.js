@@ -33,6 +33,11 @@ export default [
         format: 'es',
         sourcemap: true
       },
+      {
+        file: 'dist/cjs/cli.js',
+        format: 'cjs',
+        sourcemap: true
+      },
     ],
     plugins: [
       typescript({

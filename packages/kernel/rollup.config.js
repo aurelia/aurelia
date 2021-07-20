@@ -3,59 +3,70 @@ import typescript from '@rollup/plugin-typescript';
 import replace from '@rollup/plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 import pkg from './package.json';
-import { exec } from 'child_process';
 
-const BUILD = process.env.BUILD ?? '';
-const isDevBuild = BUILD === 'dev';
-const isProduction = BUILD === 'prod';
-const sourceMap = process.env.MAP === 'true';
-const emitDeclaration = process.env.TYPES === 'true';
+const tsPluginConfig = typescript({
+  tsconfig: 'tsconfig.build.json',
+  sourceMap: true,
+  include: ['../global.d.ts', 'src/**/*.ts'],
+});
+const replacePluginCfg = replace({
+  values: {
+    __DEV__: String(false)
+  },
+  preventAssignment: true,
+});
+const terserPluginCfg = terser({
+  compress: {
+    defaults: false,
+  },
+  mangle: {
+    properties: {
+      regex: /^_/
+    }
+  },
+  format: {
+    beautify: true,
+  },
+  // when classnames are mangled, there' errors when node trying to load kernel
+  // through au-http-server
+  keep_classnames: true,
+});
 
-export default {
+export default [{
   input: 'src/index.ts',
   external: Object.keys(pkg.dependencies),
   output: [
     {
-      file: `dist/esm/index${BUILD ? `.${BUILD}` : ''}.js`,
+      file: `dist/esm/index.js`,
       format: 'es',
-      sourcemap: sourceMap,
+      sourcemap: true,
+      plugins: [terserPluginCfg],
     },
     {
-      file: `dist/cjs/index${BUILD ? `.${BUILD}` : ''}.js`,
+      file: `dist/cjs/index.js`,
       format: 'cjs',
-      sourcemap: sourceMap,
+      sourcemap: true,
+      esModule: true,
+      externalLiveBindings: false,
+      plugins: [terserPluginCfg]
     },
   ],
-  plugins: [
-    typescript({
-      tsconfig: 'tsconfig.build.json',
-      sourceMap: sourceMap,
-      inlineSources: sourceMap && isDevBuild,
-      include: ['../global.d.ts', 'src/**/*.ts'],
-    }),
-    replace({
-      values: {
-        // @ts-ignore
-        __DEV__: isDevBuild
-      },
-      preventAssignment: true,
-    }),
-    isProduction
-      ? terser({
-          module: true,
-          compress: {
-            ecma: 2015,
-            pure_getters: true
-          }
-        })
-      : null,
-    emitDeclaration
-      ? {
-        closeBundle() {
-          console.log(`building types for ${pkg.name}...`);
-          exec('npm run build:tsc');
-        }
-      }
-      : null
-  ].filter(Boolean)
-};
+  plugins: [tsPluginConfig, replacePluginCfg],
+}, {
+  input: 'src/index.ts',
+  external: Object.keys(pkg.dependencies),
+  output: [
+    {
+      file: `dist/esm/index.dev.js`,
+      format: 'es',
+      sourcemap: true,
+    },
+    {
+      file: `dist/cjs/index.dev.js`,
+      format: 'cjs',
+      sourcemap: true,
+      esModule: true,
+    },
+  ],
+  plugins: [tsPluginConfig, replacePluginCfg],
+}];

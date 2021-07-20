@@ -2020,8 +2020,8 @@ describe('router hooks', function () {
           if (err === void 0) {
             assert.fail(`Expected an error, but no error was thrown`);
           } else {
-            assert.match(err.message, spec.messageMatcher, `Expected message to match`);
-            assert.match(err.stack, spec.stackMatcher, `Expected stack to match`);
+            assert.match(err.message, spec.messageMatcher, `Expected message to match (${err.message}) matches Regexp(${spec.messageMatcher})`);
+            assert.match(err.stack, spec.stackMatcher, `Expected stack to match (${err.stack}) matches Regex(${spec.stackMatcher})`);
           }
 
           try {

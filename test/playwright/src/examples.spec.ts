@@ -11,7 +11,7 @@ describe('examples', function () {
         const browser = await playwright[browserType].launch();
         const context = await browser.newContext();
         const page = await context.newPage();
-        await page.goto('http://127.0.0.1:9000/');
+        await page.goto('http://127.0.0.1:9000');
 
         await page.waitForSelector('app>div');
 

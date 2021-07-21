@@ -59,15 +59,16 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
 
 const containerLookup = new WeakMap<IContainer, LifecycleHooksLookup<any>>();
 
-export const LifecycleHooks = {
-  name: Protocol.annotation.keyFor('lifecycle-hooks'),
+const lhBaseName = Protocol.annotation.keyFor('lifecycle-hooks');
+export const LifecycleHooks = Object.freeze({
+  name: lhBaseName,
   /**
    * @param def - Placeholder for future extensions. Currently always an empty object.
    */
   define<T extends Constructable>(def: {}, Type: T): T {
     const definition = LifecycleHooksDefinition.create(def, Type);
-    Metadata.define(LifecycleHooks.name, definition, Type);
-    Protocol.resource.appendTo(Type, LifecycleHooks.name);
+    Metadata.define(lhBaseName, definition, Type);
+    Protocol.resource.appendTo(Type, lhBaseName);
     return definition.Type;
   },
   resolve(ctx: IContainer): LifecycleHooksLookup {
@@ -90,7 +91,7 @@ export const LifecycleHooks = {
       let entries: LifecycleHooksEntry[];
 
       for (instance of instances) {
-        definition = Metadata.getOwn(LifecycleHooks.name, instance.constructor);
+        definition = Metadata.getOwn(lhBaseName, instance.constructor);
         entry = new LifecycleHooksEntry(definition, instance);
         for (name of definition.propertyNames) {
           entries = lookup[name] as LifecycleHooksEntry[];
@@ -104,7 +105,7 @@ export const LifecycleHooks = {
     }
     return lookup;
   },
-};
+});
 
 class LifecycleHooksLookupImpl implements LifecycleHooksLookup {}
 

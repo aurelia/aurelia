@@ -33,7 +33,7 @@ export function createElement<C extends Constructable = Constructable>(
  * RenderPlan. Todo: describe goal of this class
  */
 export class RenderPlan {
-  private lazyDef?: CustomElementDefinition = void 0;
+  private _lazyDef?: CustomElementDefinition = void 0;
 
   public constructor(
     private readonly node: Node,
@@ -42,8 +42,8 @@ export class RenderPlan {
   ) {}
 
   public get definition(): CustomElementDefinition {
-    if (this.lazyDef === void 0) {
-      this.lazyDef = CustomElementDefinition.create({
+    if (this._lazyDef === void 0) {
+      this._lazyDef = CustomElementDefinition.create({
         name: CustomElement.generateName(),
         template: this.node,
         needsCompile: typeof this.node === 'string',
@@ -51,7 +51,7 @@ export class RenderPlan {
         dependencies: this.dependencies,
       });
     }
-    return this.lazyDef;
+    return this._lazyDef;
   }
 
   public createView(parentContainer: IContainer): ISyntheticView {

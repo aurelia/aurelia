@@ -903,20 +903,30 @@ let containerId = 0;
 /** @internal */
 export class Container implements IContainer {
   public readonly id: number = ++containerId;
-  private registerDepth: number = 0;
+  private _registerDepth: number = 0;
 
   public get depth(): number {
     return this.parent === null ? 0 : this.parent.depth + 1;
   }
   public readonly root: Container;
 
-  private readonly resolvers: Map<Key, IResolver | IDisposableResolver>;
-  // Factories are "global" per container tree
-  private readonly factories: Map<Constructable, Factory>;
+  /**
+   * All own resolvers of this container
+   */
+  private readonly _resolvers: Map<Key, IResolver | IDisposableResolver>;
+  /**
+   * A map of Factory per Constructor (Type) of this container tree.
+   *
+   * Factories are "global" per container tree
+   */
+  private readonly _factories: Map<Constructable, Factory>;
 
-  private resourceResolvers: Record<string, IResolver | IDisposableResolver | undefined>;
+  /**
+   * A map of all resources resolver by their key
+   */
+  private res: Record<string, IResolver | IDisposableResolver | undefined>;
 
-  private readonly disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
+  private readonly _disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
 
   public constructor(
     private readonly parent: Container | null,
@@ -925,32 +935,32 @@ export class Container implements IContainer {
     if (parent === null) {
       this.root = this;
 
-      this.resolvers = new Map();
-      this.factories = new Map<Constructable, Factory>();
+      this._resolvers = new Map();
+      this._factories = new Map<Constructable, Factory>();
 
-      this.resourceResolvers = Object.create(null);
+      this.res = Object.create(null);
     } else {
       this.root = parent.root;
 
-      this.resolvers = new Map();
-      this.factories = parent.factories;
+      this._resolvers = new Map();
+      this._factories = parent._factories;
 
       if (config.inheritParentResources) {
-        this.resourceResolvers = Object.assign(
+        this.res = Object.assign(
           Object.create(null),
-          parent.resourceResolvers,
-          this.root.resourceResolvers,
+          parent.res,
+          this.root.res,
         );
       } else {
-        this.resourceResolvers = Object.create(null);
+        this.res = Object.create(null);
       }
     }
 
-    this.resolvers.set(IContainer, containerResolver);
+    this._resolvers.set(IContainer, containerResolver);
   }
 
   public register(...params: any[]): IContainer {
-    if (++this.registerDepth === 100) {
+    if (++this._registerDepth === 100) {
       // TODO: change to reporter.error and add various possible causes in description.
       // Most likely cause is trying to register a plain object that does not have a
       // register method and is not a class constructor
@@ -1009,27 +1019,27 @@ export class Container implements IContainer {
         }
       }
     }
-    --this.registerDepth;
+    --this._registerDepth;
     return this;
   }
 
   public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable: boolean = false): IResolver<T> {
     validateKey(key);
 
-    const resolvers = this.resolvers;
+    const resolvers = this._resolvers;
     const result = resolvers.get(key);
 
     if (result == null) {
       resolvers.set(key, resolver);
       if (isResourceKey(key)) {
-        if (this.resourceResolvers[key] !== void 0) {
+        if (this.res[key] !== void 0) {
           if (__DEV__) {
             throw new Error(`Resource key "${key}" already registered`);
           } else {
             throw new Error(`AUR0007:${key}`);
           }
         }
-        this.resourceResolvers[key] = resolver;
+        this.res[key] = resolver;
       }
     } else if (result instanceof Resolver && result.strategy === ResolverStrategy.array) {
       (result.state as IResolver[]).push(resolver);
@@ -1038,7 +1048,7 @@ export class Container implements IContainer {
     }
 
     if (isDisposable) {
-      this.disposableResolvers.add(resolver as IDisposableResolver<T>);
+      this._disposableResolvers.add(resolver as IDisposableResolver<T>);
     }
 
     return resolver;
@@ -1113,12 +1123,12 @@ export class Container implements IContainer {
     let resolver: IResolver | undefined;
 
     while (current != null) {
-      resolver = current.resolvers.get(key);
+      resolver = current._resolvers.get(key);
 
       if (resolver == null) {
         if (current.parent == null) {
           const handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
-          return autoRegister ? this.jitRegister(key, handler) : null;
+          return autoRegister ? this._jitRegister(key, handler) : null;
         }
 
         current = current.parent;
@@ -1131,7 +1141,7 @@ export class Container implements IContainer {
   }
 
   public has<K extends Key>(key: K, searchAncestors: boolean = false): boolean {
-    return this.resolvers.has(key)
+    return this._resolvers.has(key)
       ? true
       : searchAncestors && this.parent != null
         ? this.parent.has(key, true)
@@ -1149,12 +1159,12 @@ export class Container implements IContainer {
     let resolver: IResolver | undefined;
 
     while (current != null) {
-      resolver = current.resolvers.get(key);
+      resolver = current._resolvers.get(key);
 
       if (resolver == null) {
         if (current.parent == null) {
           const handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
-          resolver = this.jitRegister(key, handler);
+          resolver = this._jitRegister(key, handler);
           return resolver.resolve(current, this);
         }
 
@@ -1181,7 +1191,7 @@ export class Container implements IContainer {
     if (searchAncestors) {
       let resolutions: any[] = emptyArray;
       while (current != null) {
-        resolver = current.resolvers.get(key);
+        resolver = current._resolvers.get(key);
         if (resolver != null) {
           resolutions = resolutions.concat(buildAllResponse(resolver, current, requestor));
         }
@@ -1190,7 +1200,7 @@ export class Container implements IContainer {
       return resolutions;
     } else {
       while (current != null) {
-        resolver = current.resolvers.get(key);
+        resolver = current._resolvers.get(key);
 
         if (resolver == null) {
           current = current.parent;
@@ -1219,18 +1229,18 @@ export class Container implements IContainer {
   }
 
   public getFactory<K extends Constructable>(Type: K): IFactory<K> {
-    let factory = this.factories.get(Type);
+    let factory = this._factories.get(Type);
     if (factory === void 0) {
       if (isNativeFunction(Type)) {
         throw createNativeInvocationError(Type);
       }
-      this.factories.set(Type, factory = new Factory<K>(Type, getDependencies(Type)));
+      this._factories.set(Type, factory = new Factory<K>(Type, getDependencies(Type)));
     }
     return factory;
   }
 
   public registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void {
-    this.factories.set(key, factory as Factory);
+    this._factories.set(key, factory as Factory);
   }
 
   public createChild(config?: Partial<IContainerConfiguration>): IContainer {
@@ -1251,16 +1261,16 @@ export class Container implements IContainer {
 
   public disposeResolvers() {
     let disposeable: IDisposable;
-    for (disposeable of this.disposableResolvers) {
+    for (disposeable of this._disposableResolvers) {
       disposeable.dispose();
     }
   }
 
   public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
     const key = kind.keyFrom(name);
-    let resolver = this.resourceResolvers[key];
+    let resolver = this.res[key];
     if (resolver === void 0) {
-      resolver = this.root.resourceResolvers[key];
+      resolver = this.root.res[key];
       if (resolver === void 0) {
         return null;
       }
@@ -1291,9 +1301,9 @@ export class Container implements IContainer {
 
   public create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
     const key = kind.keyFrom(name);
-    let resolver = this.resourceResolvers[key];
+    let resolver = this.res[key];
     if (resolver === void 0) {
-      resolver = this.root.resourceResolvers[key];
+      resolver = this.root.res[key];
       if (resolver === void 0) {
         return null;
       }
@@ -1303,13 +1313,13 @@ export class Container implements IContainer {
   }
 
   public dispose(): void {
-    if (this.disposableResolvers.size > 0) {
+    if (this._disposableResolvers.size > 0) {
       this.disposeResolvers();
     }
-    this.resolvers.clear();
+    this._resolvers.clear();
   }
 
-  private jitRegister(keyAsValue: any, handler: Container): IResolver {
+  private _jitRegister(keyAsValue: any, handler: Container): IResolver {
     if (typeof keyAsValue !== 'function') {
       if (__DEV__) {
         throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
@@ -1328,7 +1338,7 @@ export class Container implements IContainer {
     if (isRegistry(keyAsValue)) {
       const registrationResolver = keyAsValue.register(handler, keyAsValue);
       if (!(registrationResolver instanceof Object) || (registrationResolver as IResolver).resolve == null) {
-        const newResolver = handler.resolvers.get(keyAsValue);
+        const newResolver = handler._resolvers.get(keyAsValue);
         if (newResolver != void 0) {
           return newResolver;
         }
@@ -1350,7 +1360,7 @@ export class Container implements IContainer {
           defs[d].register(handler);
         }
       }
-      const newResolver = handler.resolvers.get(keyAsValue);
+      const newResolver = handler._resolvers.get(keyAsValue);
       if (newResolver != void 0) {
         return newResolver;
       }
@@ -1367,7 +1377,7 @@ export class Container implements IContainer {
       }
     } else {
       const resolver = this.config.defaultResolver(keyAsValue, handler);
-      handler.resolvers.set(keyAsValue, resolver);
+      handler._resolvers.set(keyAsValue, resolver);
       return resolver;
     }
   }
@@ -1520,40 +1530,46 @@ export const Registration = {
 };
 
 export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
-  private instance: Resolved<K> | null = null;
+  private _instance: Resolved<K> | null = null;
+
+  private readonly _name?: string;
+  public get friendlyName() {
+    return this._name;
+  }
 
   public constructor(
-    public readonly friendlyName?: string,
+    _name?: string,
     /**
      * if not undefined, then this is the value this provider will resolve to
      * until overridden by explicit prepare call
      */
     instance?: Resolved<K> | null,
   ) {
+    this._name = _name;
     if (instance !== void 0) {
-      this.instance = instance;
+      this._instance = instance;
     }
   }
 
   public prepare(instance: Resolved<K>): void {
-    this.instance = instance;
+    this._instance = instance;
   }
 
   public get $isResolver(): true {return true;}
 
   public resolve(): Resolved<K> | null {
-    if (this.instance == null) {
+    if (this._instance == null) {
       if (__DEV__) {
-        throw new Error(`Cannot call resolve ${this.friendlyName} before calling prepare or after calling dispose.`);
+        throw new Error(`Cannot call resolve ${this._name} before calling prepare or after calling dispose.`);
       } else {
-        throw new Error(`AUR0013:${this.friendlyName}`);
+        throw new Error(`AUR0013:${this._name}`);
       }
     }
-    return this.instance;
+    return this._instance;
   }
 
   public dispose(): void {
-    this.instance = null;
+    this._instance = null;
   }
 }
 

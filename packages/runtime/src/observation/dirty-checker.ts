@@ -54,11 +54,11 @@ export class DirtyChecker implements IWithFlushQueue {
   public readonly queue!: FlushQueue;
   private readonly tracked: DirtyCheckProperty[] = [];
 
-  private task: ITask | null = null;
-  private elapsedFrames: number = 0;
+  private _task: ITask | null = null;
+  private _elapsedFrames: number = 0;
 
   public constructor(
-    private readonly platform: IPlatform,
+    private readonly p: IPlatform,
   ) {}
 
   public createProperty(obj: object, propertyName: string): DirtyCheckProperty {
@@ -72,15 +72,15 @@ export class DirtyChecker implements IWithFlushQueue {
     this.tracked.push(property);
 
     if (this.tracked.length === 1) {
-      this.task = this.platform.taskQueue.queueTask(this.check, queueTaskOpts);
+      this._task = this.p.taskQueue.queueTask(this.check, queueTaskOpts);
     }
   }
 
   public removeProperty(property: DirtyCheckProperty): void {
     this.tracked.splice(this.tracked.indexOf(property), 1);
     if (this.tracked.length === 0) {
-      this.task!.cancel();
-      this.task = null;
+      this._task!.cancel();
+      this._task = null;
     }
   }
 
@@ -88,10 +88,10 @@ export class DirtyChecker implements IWithFlushQueue {
     if (DirtyCheckSettings.disabled) {
       return;
     }
-    if (++this.elapsedFrames < DirtyCheckSettings.timeoutsPerCheck) {
+    if (++this._elapsedFrames < DirtyCheckSettings.timeoutsPerCheck) {
       return;
     }
-    this.elapsedFrames = 0;
+    this._elapsedFrames = 0;
     const tracked = this.tracked;
     const len = tracked.length;
     let current: DirtyCheckProperty;
@@ -114,7 +114,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty, IFlushable {
   public type: AccessorType = AccessorType.None;
 
   public constructor(
-    private readonly dirtyChecker: IDirtyChecker,
+    private readonly _dirtyChecker: IDirtyChecker,
     public obj: IObservable & IIndexable,
     public propertyKey: string,
   ) {}
@@ -144,13 +144,13 @@ export class DirtyCheckProperty implements DirtyCheckProperty, IFlushable {
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.oldValue = this.obj[this.propertyKey];
-      this.dirtyChecker.addProperty(this);
+      this._dirtyChecker.addProperty(this);
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
-      this.dirtyChecker.removeProperty(this);
+      this._dirtyChecker.removeProperty(this);
     }
   }
 }

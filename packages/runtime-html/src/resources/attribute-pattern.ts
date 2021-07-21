@@ -483,25 +483,26 @@ export class AttributePatternResourceDefinition implements ResourceDefinition<Co
   }
 }
 
+const apBaseName = Protocol.resource.keyFor('attribute-pattern');
+const annotationKey = 'attribute-pattern-definitions';
 export const AttributePattern: AttributePattern = Object.freeze({
-  name: Protocol.resource.keyFor('attribute-pattern'),
-  definitionAnnotationKey: 'attribute-pattern-definitions',
+  name: apBaseName,
+  definitionAnnotationKey: annotationKey,
   define<TProto, TClass>(
     patternDefs: AttributePatternDefinition[],
     Type: DecoratableAttributePattern<TProto, TClass>,
   ) {
     const definition = new AttributePatternResourceDefinition(Type);
-    const { name, definitionAnnotationKey } = AttributePattern;
-    Metadata.define(name, definition, Type);
-    Protocol.resource.appendTo(Type, name);
+    Metadata.define(apBaseName, definition, Type);
+    Protocol.resource.appendTo(Type, apBaseName);
 
-    Protocol.annotation.set(Type, definitionAnnotationKey, patternDefs);
-    Protocol.annotation.appendTo(Type, definitionAnnotationKey);
+    Protocol.annotation.set(Type, annotationKey, patternDefs);
+    Protocol.annotation.appendTo(Type, annotationKey);
 
     return Type as DecoratedAttributePattern<TProto, TClass>;
   },
   getPatternDefinitions<TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>) {
-    return Protocol.annotation.get(Type, AttributePattern.definitionAnnotationKey) as AttributePatternDefinition[];
+    return Protocol.annotation.get(Type, annotationKey) as AttributePatternDefinition[];
   }
 });
 

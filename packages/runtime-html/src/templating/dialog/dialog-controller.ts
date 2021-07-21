@@ -31,15 +31,15 @@ export class DialogController implements IDialogController {
   private cmp!: IDialogComponent<object>;
 
   /** @internal */
-  private resolve!: (result: DialogCloseResult) => void;
+  private _resolve!: (result: DialogCloseResult) => void;
 
   /** @internal */
-  private reject!: (reason: unknown) => void;
+  private _reject!: (reason: unknown) => void;
 
   /**
    * @internal
    */
-  private closingPromise: Promise<DialogCloseResult> | undefined;
+  private _closingPromise: Promise<DialogCloseResult> | undefined;
 
   /**
    * The settings used by this controller.
@@ -69,8 +69,8 @@ export class DialogController implements IDialogController {
     this.p = p;
     this.ctn = container;
     this.closed = new Promise((resolve, reject) => {
-      this.resolve = resolve;
-      this.reject = reject;
+      this._resolve = resolve;
+      this._reject = reject;
     });
   }
 
@@ -141,8 +141,8 @@ export class DialogController implements IDialogController {
 
   /** @internal */
   public deactivate<T extends DialogDeactivationStatuses>(status: T, value?: unknown): Promise<DialogCloseResult<T>> {
-    if (this.closingPromise) {
-      return this.closingPromise as Promise<DialogCloseResult<T>>;
+    if (this._closingPromise) {
+      return this._closingPromise as Promise<DialogCloseResult<T>>;
     }
 
     let deactivating = true;
@@ -156,7 +156,7 @@ export class DialogController implements IDialogController {
           if (canDeactivate !== true) {
             // we are done, do not block consecutive calls
             deactivating = false;
-            this.closingPromise = void 0;
+            this._closingPromise = void 0;
             if (rejectOnCancel) {
               throw createDialogCancelError(null, 'Dialog cancellation rejected');
             }
@@ -168,9 +168,9 @@ export class DialogController implements IDialogController {
                 dom.dispose();
                 dom.overlay.removeEventListener(mouseEvent ?? 'click', this);
                 if (!rejectOnCancel && status !== DialogDeactivationStatuses.Error) {
-                  this.resolve(dialogResult);
+                  this._resolve(dialogResult);
                 } else {
-                  this.reject(createDialogCancelError(value, 'Dialog cancelled with a rejection on cancel'));
+                  this._reject(createDialogCancelError(value, 'Dialog cancelled with a rejection on cancel'));
                 }
                 return dialogResult;
               }
@@ -179,13 +179,13 @@ export class DialogController implements IDialogController {
         }
       ));
     }).catch(reason => {
-      this.closingPromise = void 0;
+      this._closingPromise = void 0;
       throw reason;
     });
     // when component canDeactivate is synchronous, and returns something other than true
     // then the below assignment will override
     // the assignment inside the callback without the deactivating variable check
-    this.closingPromise = deactivating ? promise : void 0;
+    this._closingPromise = deactivating ? promise : void 0;
     return promise;
   }
 
@@ -221,7 +221,7 @@ export class DialogController implements IDialogController {
         this.controller.deactivate(this.controller, null!, LifecycleFlags.fromUnbind),
         () => {
           this.dom.dispose();
-          this.reject(closeError);
+          this._reject(closeError);
         }
       )
     )));

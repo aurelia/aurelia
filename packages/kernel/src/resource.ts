@@ -39,12 +39,13 @@ export interface IResourceKind<TType extends ResourceType, TDef extends Resource
   keyFrom(name: string): string;
 }
 
+const annoBaseName = 'au:annotation';
 const annotation = {
   name: 'au:annotation',
   appendTo(target: Constructable, key: string): void {
-    const keys = Metadata.getOwn(annotation.name, target) as string[];
+    const keys = Metadata.getOwn(annoBaseName, target) as string[];
     if (keys === void 0) {
-      Metadata.define(annotation.name, [key], target);
+      Metadata.define(annoBaseName, [key], target);
     } else {
       keys.push(key);
     }
@@ -56,39 +57,40 @@ const annotation = {
     return Metadata.getOwn(annotation.keyFor(prop), target);
   },
   getKeys(target: Constructable): readonly string[] {
-    let keys = Metadata.getOwn(annotation.name, target) as string[];
+    let keys = Metadata.getOwn(annoBaseName, target) as string[];
     if (keys === void 0) {
-      Metadata.define(annotation.name, keys = [], target);
+      Metadata.define(annoBaseName, keys = [], target);
     }
     return keys;
   },
   isKey(key: string): boolean {
-    return key.startsWith(annotation.name);
+    return key.startsWith(annoBaseName);
   },
   keyFor(name: string, context?: string): string {
     if (context === void 0) {
-      return `${annotation.name}:${name}`;
+      return `${annoBaseName}:${name}`;
     }
 
-    return `${annotation.name}:${name}:${context}`;
+    return `${annoBaseName}:${name}:${context}`;
   },
 };
 
-const resource = {
-  name: 'au:resource',
+const resBaseName = 'au:resource';
+const resource = Object.freeze({
+  name: resBaseName,
   appendTo(target: Constructable, key: string): void {
-    const keys = Metadata.getOwn(resource.name, target) as string[];
+    const keys = Metadata.getOwn(resBaseName, target) as string[];
     if (keys === void 0) {
-      Metadata.define(resource.name, [key], target);
+      Metadata.define(resBaseName, [key], target);
     } else {
       keys.push(key);
     }
   },
   has(target: unknown): target is Constructable {
-    return Metadata.hasOwn(resource.name, target);
+    return Metadata.hasOwn(resBaseName, target);
   },
   getAll(target: Constructable): readonly ResourceDefinition[] {
-    const keys = Metadata.getOwn(resource.name, target) as string[];
+    const keys = Metadata.getOwn(resBaseName, target) as string[];
     if (keys === void 0) {
       return emptyArray;
     } else {
@@ -96,23 +98,23 @@ const resource = {
     }
   },
   getKeys(target: Constructable): readonly string[] {
-    let keys = Metadata.getOwn(resource.name, target) as string[];
+    let keys = Metadata.getOwn(resBaseName, target) as string[];
     if (keys === void 0) {
-      Metadata.define(resource.name, keys = [], target);
+      Metadata.define(resBaseName, keys = [], target);
     }
     return keys;
   },
   isKey(key: string): boolean {
-    return key.startsWith(resource.name);
+    return key.startsWith(resBaseName);
   },
   keyFor(name: string, context?: string): string {
     if (context === void 0) {
-      return `${resource.name}:${name}`;
+      return `${resBaseName}:${name}`;
     }
 
-    return `${resource.name}:${name}:${context}`;
+    return `${resBaseName}:${name}:${context}`;
   },
-};
+});
 
 export const Protocol = {
   annotation,

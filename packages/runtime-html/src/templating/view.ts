@@ -102,10 +102,11 @@ function toCustomElementDefinition($view: PartialCustomElementDefinition): Custo
   return CustomElementDefinition.create($view);
 }
 
+const viewsBaseName = Protocol.resource.keyFor('views');
 export const Views = {
-  name: Protocol.resource.keyFor('views'),
+  name: viewsBaseName,
   has(value: object): boolean {
-    return typeof value === 'function' && (Metadata.hasOwn(Views.name, value) || '$views' in value);
+    return typeof value === 'function' && (Metadata.hasOwn(viewsBaseName, value) || '$views' in value);
   },
   get(value: object | Constructable): readonly CustomElementDefinition[] {
     if (typeof value === 'function' && '$views' in value) {
@@ -116,17 +117,17 @@ export const Views = {
         Views.add(value, def);
       }
     }
-    let views = Metadata.getOwn(Views.name, value) as CustomElementDefinition[] | undefined;
+    let views = Metadata.getOwn(viewsBaseName, value) as CustomElementDefinition[] | undefined;
     if (views === void 0) {
-      Metadata.define(Views.name, views = [], value);
+      Metadata.define(viewsBaseName, views = [], value);
     }
     return views;
   },
   add<T extends Constructable>(Type: T, partialDefinition: PartialCustomElementDefinition): readonly CustomElementDefinition[] {
     const definition = CustomElementDefinition.create(partialDefinition);
-    let views = Metadata.getOwn(Views.name, Type) as CustomElementDefinition[] | undefined;
+    let views = Metadata.getOwn(viewsBaseName, Type) as CustomElementDefinition[] | undefined;
     if (views === void 0) {
-      Metadata.define(Views.name, views = [definition], Type);
+      Metadata.define(viewsBaseName, views = [definition], Type);
     } else {
       views.push(definition);
     }
@@ -153,8 +154,8 @@ export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator', x =
 export interface IViewLocator extends ViewLocator {}
 
 export class ViewLocator {
-  private readonly modelInstanceToBoundComponent: WeakMap<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new WeakMap();
-  private readonly modelTypeToUnboundComponent: Map<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new Map();
+  private readonly _modelInstanceToBoundComponent: WeakMap<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new WeakMap();
+  private readonly _modelTypeToUnboundComponent: Map<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new Map();
 
   public getViewComponentForObject<T extends ClassInstance<ICustomElementViewModel>>(
     object: T | null | undefined,
@@ -164,9 +165,9 @@ export class ViewLocator {
       const availableViews = Views.has(object.constructor) ? Views.get(object.constructor) : [];
       const resolvedViewName = typeof viewNameOrSelector === 'function'
         ? viewNameOrSelector(object, availableViews)
-        : this.getViewName(availableViews, viewNameOrSelector);
+        : this._getViewName(availableViews, viewNameOrSelector);
 
-      return this.getOrCreateBoundComponent(
+      return this._getOrCreateBoundComponent(
         object,
         availableViews,
         resolvedViewName
@@ -176,23 +177,23 @@ export class ViewLocator {
     return null;
   }
 
-  private getOrCreateBoundComponent<T extends ClassInstance<ICustomElementViewModel>>(
+  private _getOrCreateBoundComponent<T extends ClassInstance<ICustomElementViewModel>>(
     object: T,
     availableViews: readonly CustomElementDefinition[],
     resolvedViewName: string
   ): ComposableObjectComponentType<T> {
-    let lookup = this.modelInstanceToBoundComponent.get(object);
+    let lookup = this._modelInstanceToBoundComponent.get(object);
     let BoundComponent: ComposableObjectComponentType<T> | undefined;
 
     if (lookup === void 0) {
       lookup = {};
-      this.modelInstanceToBoundComponent.set(object, lookup);
+      this._modelInstanceToBoundComponent.set(object, lookup);
     } else {
       BoundComponent = lookup[resolvedViewName] as ComposableObjectComponentType<T>;
     }
 
     if (BoundComponent === void 0) {
-      const UnboundComponent = this.getOrCreateUnboundComponent(
+      const UnboundComponent = this._getOrCreateUnboundComponent(
         object,
         availableViews,
         resolvedViewName
@@ -213,24 +214,24 @@ export class ViewLocator {
     return BoundComponent;
   }
 
-  private getOrCreateUnboundComponent<T extends ClassInstance<ICustomElementViewModel>>(
+  private _getOrCreateUnboundComponent<T extends ClassInstance<ICustomElementViewModel>>(
     object: T,
     availableViews: readonly CustomElementDefinition[],
     resolvedViewName: string
   ): ComposableObjectComponentType<T> {
-    let lookup = this.modelTypeToUnboundComponent.get(object.constructor);
+    let lookup = this._modelTypeToUnboundComponent.get(object.constructor);
     let UnboundComponent: ComposableObjectComponentType<T> | undefined;
 
     if (lookup === void 0) {
       lookup = {};
-      this.modelTypeToUnboundComponent.set(object.constructor, lookup);
+      this._modelTypeToUnboundComponent.set(object.constructor, lookup);
     } else {
       UnboundComponent = lookup[resolvedViewName] as ComposableObjectComponentType<T>;
     }
 
     if (UnboundComponent === void 0) {
       UnboundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
-        this.getView(availableViews, resolvedViewName),
+        this._getView(availableViews, resolvedViewName),
         class {
           public constructor(public viewModel: T) {}
 
@@ -340,7 +341,7 @@ export class ViewLocator {
     return UnboundComponent;
   }
 
-  private getViewName(views: readonly CustomElementDefinition[], requestedName?: string) {
+  private _getViewName(views: readonly CustomElementDefinition[], requestedName?: string) {
     if (requestedName) {
       return requestedName;
     }
@@ -352,7 +353,7 @@ export class ViewLocator {
     return 'default-view';
   }
 
-  private getView(views: readonly CustomElementDefinition[], name: string): CustomElementDefinition {
+  private _getView(views: readonly CustomElementDefinition[], name: string): CustomElementDefinition {
     const v = views.find(x => x.name === name);
 
     if (v === void 0) {

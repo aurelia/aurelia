@@ -405,17 +405,18 @@ const defaultForOpts: ForOpts = {
   optional: false,
 };
 
-export const CustomElement: CustomElementKind = {
-  name: Protocol.resource.keyFor('custom-element'),
+const ceBaseName = Protocol.resource.keyFor('custom-element');
+export const CustomElement: CustomElementKind = Object.freeze({
+  name: ceBaseName,
   keyFrom(name: string): string {
-    return `${CustomElement.name}:${name}`;
+    return `${ceBaseName}:${name}`;
   },
   isType<C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never) {
-    return typeof value === 'function' && Metadata.hasOwn(CustomElement.name, value);
+    return typeof value === 'function' && Metadata.hasOwn(ceBaseName, value);
   },
   for<C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: ForOpts = defaultForOpts): ICustomElementController<C> {
     if (opts.name === void 0 && opts.searchParents !== true) {
-      const controller = getRef(node, CustomElement.name) as Controller<C> | null;
+      const controller = getRef(node, ceBaseName) as Controller<C> | null;
       if (controller === null) {
         if (opts.optional === true) {
           return null!;
@@ -426,7 +427,7 @@ export const CustomElement: CustomElementKind = {
     }
     if (opts.name !== void 0) {
       if (opts.searchParents !== true) {
-        const controller = getRef(node, CustomElement.name) as Controller<C> | null;
+        const controller = getRef(node, ceBaseName) as Controller<C> | null;
         if (controller === null) {
           throw new Error(`The provided node is not a custom element or containerless host.`);
         }
@@ -441,7 +442,7 @@ export const CustomElement: CustomElementKind = {
       let cur = node as INode | null;
       let foundAController = false;
       while (cur !== null) {
-        const controller = getRef(cur, CustomElement.name) as Controller<C> | null;
+        const controller = getRef(cur, ceBaseName) as Controller<C> | null;
         if (controller !== null) {
           foundAController = true;
           if (controller.is(opts.name)) {
@@ -461,7 +462,7 @@ export const CustomElement: CustomElementKind = {
 
     let cur = node as INode | null;
     while (cur !== null) {
-      const controller = getRef(cur, CustomElement.name) as Controller<C> | null;
+      const controller = getRef(cur, ceBaseName) as Controller<C> | null;
       if (controller !== null) {
         return controller as unknown as ICustomElementController<C>;
       }
@@ -473,14 +474,14 @@ export const CustomElement: CustomElementKind = {
   },
   define<C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C> {
     const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
-    Metadata.define(CustomElement.name, definition, definition.Type);
-    Metadata.define(CustomElement.name, definition, definition);
-    Protocol.resource.appendTo(definition.Type, CustomElement.name);
+    Metadata.define(ceBaseName, definition, definition.Type);
+    Metadata.define(ceBaseName, definition, definition);
+    Protocol.resource.appendTo(definition.Type, ceBaseName);
 
     return definition.Type as CustomElementType<C>;
   },
   getDefinition<C extends Constructable>(Type: C): CustomElementDefinition<C> {
-    const def = Metadata.getOwn(CustomElement.name, Type) as CustomElementDefinition<C>;
+    const def = Metadata.getOwn(ceBaseName, Type) as CustomElementDefinition<C>;
     if (def === void 0) {
       throw new Error(`No definition found for type ${Type.name}`);
     }
@@ -554,7 +555,7 @@ export const CustomElement: CustomElementKind = {
       return Type;
     };
   })(),
-};
+});
 
 type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
 type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
@@ -569,7 +570,7 @@ export function processContent<TClass>(hook?: ProcessContentHook): CustomElement
     }
     : function (target: Constructable<TClass>) {
       hook = ensureHook(target, hook!);
-      const def = Metadata.getOwn(CustomElement.name, target) as CustomElementDefinition<Constructable<TClass>>;
+      const def = Metadata.getOwn(ceBaseName, target) as CustomElementDefinition<Constructable<TClass>>;
       if (def !== void 0) {
         (def as Writable<CustomElementDefinition<Constructable<TClass>>>).processContent = hook;
       } else {

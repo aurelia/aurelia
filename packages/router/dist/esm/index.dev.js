@@ -3828,7 +3828,7 @@ class ComponentAgent {
         if (componentAgent === void 0) {
             const container = ctx.container;
             const definition = RouteDefinition.resolve(componentInstance.constructor);
-            const controller = Controller.forCustomElement(container, componentInstance, hostController.host, null);
+            const controller = Controller.$el(container, componentInstance, hostController.host, null);
             componentAgentLookup.set(componentInstance, componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx));
         }
         return componentAgent;

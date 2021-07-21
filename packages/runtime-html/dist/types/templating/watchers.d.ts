@@ -5,7 +5,6 @@ export interface ComputedWatcher extends IConnectableBinding {
 }
 export declare class ComputedWatcher implements IConnectableBinding, ISubscriber, ICollectionSubscriber {
     readonly obj: IObservable;
-    readonly observerLocator: IObserverLocator;
     readonly get: (obj: object, watcher: IConnectable) => unknown;
     private readonly cb;
     readonly useProxy: boolean;
@@ -24,13 +23,13 @@ export declare class ComputedWatcher implements IConnectableBinding, ISubscriber
 export declare class ExpressionWatcher implements IConnectableBinding {
     scope: Scope;
     locator: IServiceLocator;
-    observerLocator: IObserverLocator;
+    oL: IObserverLocator;
     private readonly expression;
     private readonly callback;
     interceptor: this;
     value: unknown;
     isBound: boolean;
-    constructor(scope: Scope, locator: IServiceLocator, observerLocator: IObserverLocator, expression: IsBindingBehavior, callback: IWatcherCallback<object>);
+    constructor(scope: Scope, locator: IServiceLocator, oL: IObserverLocator, expression: IsBindingBehavior, callback: IWatcherCallback<object>);
     handleChange(value: unknown): void;
     $bind(): void;
     $unbind(): void;

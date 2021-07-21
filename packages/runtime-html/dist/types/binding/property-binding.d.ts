@@ -1,14 +1,13 @@
 import { BindingMode, LifecycleFlags } from '@aurelia/runtime';
 import type { IServiceLocator, TaskQueue } from '@aurelia/kernel';
-import type { AccessorOrObserver, ForOfStatement, IConnectableBinding, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import type { AccessorOrObserver, ForOfStatement, IConnectableBinding, IObserverLocator, IObserverLocatorBasedConnectable, IsBindingBehavior, Scope } from '@aurelia/runtime';
 export interface PropertyBinding extends IConnectableBinding {
 }
-export declare class PropertyBinding implements IPartialConnectableBinding {
+export declare class PropertyBinding implements IObserverLocatorBasedConnectable {
     sourceExpression: IsBindingBehavior | ForOfStatement;
     target: object;
     targetProperty: string;
     mode: BindingMode;
-    observerLocator: IObserverLocator;
     locator: IServiceLocator;
     private readonly taskQueue;
     interceptor: this;

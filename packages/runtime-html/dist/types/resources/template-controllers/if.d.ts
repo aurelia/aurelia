@@ -9,6 +9,7 @@ export declare class If implements ICustomAttributeViewModel {
     private readonly ifFactory;
     private readonly location;
     private readonly work;
+    static inject: (import("@aurelia/kernel").InterfaceSymbol<IViewFactory> | import("@aurelia/kernel").InterfaceSymbol<IRenderLocation<ChildNode>> | import("@aurelia/kernel").InterfaceSymbol<IWorkTracker>)[];
     readonly id: number;
     elseFactory?: IViewFactory;
     elseView?: ISyntheticView;

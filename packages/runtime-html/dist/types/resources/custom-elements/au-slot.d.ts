@@ -5,12 +5,12 @@ import type { LifecycleFlags } from '@aurelia/runtime';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 import type { HydrateElementInstruction } from '../../renderer.js';
 export declare class AuSlot implements ICustomElementViewModel {
-    private readonly hdrContext;
     readonly view: ISyntheticView;
     readonly $controller: ICustomElementController<this>;
     private _parentScope;
     private _outerScope;
     private readonly _hasProjection;
+    private readonly _hdrContext;
     expose: object | undefined;
     constructor(location: IRenderLocation, instruction: HydrateElementInstruction, hdrContext: IHydrationContext, rendering: IRendering);
     binding(_initiator: IHydratedController, _parent: IHydratedParentController, _flags: LifecycleFlags): void | Promise<void>;

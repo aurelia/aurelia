@@ -312,7 +312,6 @@ const m = {
 
 class TranslationBinding {
     constructor(t, s, n, i) {
-        this.observerLocator = s;
         this.locator = n;
         this.interceptor = this;
         this.isBound = false;
@@ -323,6 +322,7 @@ class TranslationBinding {
         this.i18n = this.locator.get(f);
         this.platform = i;
         this.g = new Set;
+        this.oL = s;
         this.i18n.subscribeLocaleChange(this);
     }
     static create({parser: t, observerLocator: n, context: i, controller: e, target: r, instruction: o, platform: a, isParameterContext: h}) {
@@ -397,7 +397,7 @@ class TranslationBinding {
             const o = this.I(n.attributes);
             for (const n of o) if (this.M(n)) e[n] = i; else {
                 const e = s.CustomElement.for(this.target, g);
-                const o = e && e.viewModel ? this.observerLocator.getAccessor(e.viewModel, n) : this.observerLocator.getAccessor(this.target, n);
+                const o = e && e.viewModel ? this.oL.getAccessor(e.viewModel, n) : this.oL.getAccessor(this.target, n);
                 const a = 0 === (2 & t) && (4 & o.type) > 0;
                 if (a) r.push(new AccessorUpdateTask(o, i, t, this.target, n)); else o.setValue(i, t, this.target, n);
                 this.g.add(o);
@@ -483,7 +483,7 @@ class ParameterBinding {
         this.updater = n;
         this.interceptor = this;
         this.isBound = false;
-        this.observerLocator = t.observerLocator;
+        this.oL = t.oL;
         this.locator = t.locator;
     }
     handleChange(t, s, n) {

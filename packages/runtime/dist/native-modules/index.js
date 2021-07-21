@@ -192,8 +192,8 @@ class BindingInterceptor {
             t = r;
         }
     }
-    get observerLocator() {
-        return this.binding.observerLocator;
+    get oL() {
+        return this.binding.oL;
     }
     get locator() {
         return this.binding.locator;
@@ -2647,7 +2647,7 @@ function Gt(t) {
 }
 
 function Zt(t, e) {
-    const r = this.observerLocator.getObserver(t, e);
+    const r = this.oL.getObserver(t, e);
     this.obs.add(r);
 }
 
@@ -2748,7 +2748,7 @@ class BindingMediator {
     constructor(t, e, r, i) {
         this.key = t;
         this.binding = e;
-        this.observerLocator = r;
+        this.oL = r;
         this.locator = i;
         this.interceptor = this;
     }
@@ -4205,13 +4205,13 @@ class ComputedObserver {
         this.get = e;
         this.set = r;
         this.useProxy = i;
-        this.observerLocator = s;
         this.interceptor = this;
         this.type = 1;
         this.value = void 0;
-        this.oldValue = void 0;
+        this.o = void 0;
         this.running = false;
-        this.isDirty = false;
+        this.h = false;
+        this.oL = s;
     }
     static create(t, e, r, i, s) {
         const n = r.get;
@@ -4231,9 +4231,9 @@ class ComputedObserver {
     }
     getValue() {
         if (0 === this.subs.count) return this.get.call(this.obj, this);
-        if (this.isDirty) {
+        if (this.h) {
             this.compute();
-            this.isDirty = false;
+            this.h = false;
         }
         return this.value;
     }
@@ -4248,37 +4248,37 @@ class ComputedObserver {
         } else throw new Error("Property is readonly");
     }
     handleChange() {
-        this.isDirty = true;
+        this.h = true;
         if (this.subs.count > 0) this.run();
     }
     handleCollectionChange() {
-        this.isDirty = true;
+        this.h = true;
         if (this.subs.count > 0) this.run();
     }
     subscribe(t) {
         if (this.subs.add(t) && 1 === this.subs.count) {
             this.compute();
-            this.isDirty = false;
+            this.h = false;
         }
     }
     unsubscribe(t) {
         if (this.subs.remove(t) && 0 === this.subs.count) {
-            this.isDirty = true;
+            this.h = true;
             this.obs.clear(true);
         }
     }
     flush() {
-        Qr = this.oldValue;
-        this.oldValue = this.value;
+        Qr = this.o;
+        this.o = this.value;
         this.subs.notify(this.value, Qr, 0);
     }
     run() {
         if (this.running) return;
         const t = this.value;
         const e = this.compute();
-        this.isDirty = false;
+        this.h = false;
         if (!Object.is(e, t)) {
-            this.oldValue = t;
+            this.o = t;
             this.queue.add(this);
         }
     }
@@ -4325,12 +4325,12 @@ class DirtyChecker {
     constructor(t) {
         this.p = t;
         this.tracked = [];
-        this.o = null;
-        this.h = 0;
+        this.u = null;
+        this.l = 0;
         this.check = () => {
             if (zr.disabled) return;
-            if (++this.h < zr.timeoutsPerCheck) return;
-            this.h = 0;
+            if (++this.l < zr.timeoutsPerCheck) return;
+            this.l = 0;
             const t = this.tracked;
             const e = t.length;
             let r;
@@ -4347,13 +4347,13 @@ class DirtyChecker {
     }
     addProperty(t) {
         this.tracked.push(t);
-        if (1 === this.tracked.length) this.o = this.p.taskQueue.queueTask(this.check, Wr);
+        if (1 === this.tracked.length) this.u = this.p.taskQueue.queueTask(this.check, Wr);
     }
     removeProperty(t) {
         this.tracked.splice(this.tracked.indexOf(t), 1);
         if (0 === this.tracked.length) {
-            this.o.cancel();
-            this.o = null;
+            this.u.cancel();
+            this.u = null;
         }
     }
 }
@@ -4364,7 +4364,7 @@ G(DirtyChecker);
 
 class DirtyCheckProperty {
     constructor(t, e, r) {
-        this.u = t;
+        this.g = t;
         this.obj = e;
         this.propertyKey = r;
         this.oldValue = void 0;
@@ -4388,11 +4388,11 @@ class DirtyCheckProperty {
     subscribe(t) {
         if (this.subs.add(t) && 1 === this.subs.count) {
             this.oldValue = this.obj[this.propertyKey];
-            this.u.addProperty(this);
+            this.g.addProperty(this);
         }
     }
     unsubscribe(t) {
-        if (this.subs.remove(t) && 0 === this.subs.count) this.u.removeProperty(this);
+        if (this.subs.remove(t) && 0 === this.subs.count) this.g.removeProperty(this);
     }
 }
 
@@ -4556,22 +4556,22 @@ class DefaultNodeObserverLocator {
 
 class ObserverLocator {
     constructor(t, e) {
-        this.u = t;
-        this.l = e;
-        this.g = [];
+        this.g = t;
+        this.m = e;
+        this.C = [];
     }
     addAdapter(t) {
-        this.g.push(t);
+        this.C.push(t);
     }
     getObserver(t, e) {
         var r, i;
-        return null !== (i = null === (r = t.$observers) || void 0 === r ? void 0 : r[e]) && void 0 !== i ? i : this.m(t, e, this.createObserver(t, e));
+        return null !== (i = null === (r = t.$observers) || void 0 === r ? void 0 : r[e]) && void 0 !== i ? i : this.O(t, e, this.createObserver(t, e));
     }
     getAccessor(t, e) {
         var r;
         const i = null === (r = t.$observers) || void 0 === r ? void 0 : r[e];
         if (void 0 !== i) return i;
-        if (this.l.handles(t, e, this)) return this.l.getAccessor(t, e, this);
+        if (this.m.handles(t, e, this)) return this.m.getAccessor(t, e, this);
         return Zr;
     }
     getArrayObserver(t) {
@@ -4586,7 +4586,7 @@ class ObserverLocator {
     createObserver(t, e) {
         var r, i, s, n;
         if (!(t instanceof Object)) return new PrimitiveObserver(t, e);
-        if (this.l.handles(t, e, this)) return this.l.getObserver(t, e, this);
+        if (this.m.handles(t, e, this)) return this.m.getObserver(t, e, this);
         switch (e) {
           case "length":
             if (t instanceof Array) return Et(t).getLengthObserver();
@@ -4609,20 +4609,20 @@ class ObserverLocator {
             }
         }
         if (void 0 !== o && !ri.call(o, "value")) {
-            let h = this.C(t, e, o);
+            let h = this.S(t, e, o);
             if (null == h) h = null === (n = null !== (i = null === (r = o.get) || void 0 === r ? void 0 : r.getObserver) && void 0 !== i ? i : null === (s = o.set) || void 0 === s ? void 0 : s.getObserver) || void 0 === n ? void 0 : n(t, this);
-            return null == h ? o.configurable ? ComputedObserver.create(t, e, o, this, true) : this.u.createProperty(t, e) : h;
+            return null == h ? o.configurable ? ComputedObserver.create(t, e, o, this, true) : this.g.createProperty(t, e) : h;
         }
         return new SetterObserver(t, e);
     }
-    C(t, e, r) {
-        if (this.g.length > 0) for (const i of this.g) {
+    S(t, e, r) {
+        if (this.C.length > 0) for (const i of this.C) {
             const s = i.getObserver(t, e, r, this);
             if (null != s) return s;
         }
         return null;
     }
-    m(t, e, r) {
+    O(t, e, r) {
         if (true === r.doNotCache) return r;
         if (void 0 === t.$observers) {
             L(t, "$observers", {
@@ -4654,13 +4654,13 @@ const ii = i.createInterface("IObservation", (t => t.singleton(Observation)));
 
 class Observation {
     constructor(t) {
-        this.observerLocator = t;
+        this.oL = t;
     }
     static get inject() {
         return [ Jr ];
     }
     run(t) {
-        const e = new Effect(this.observerLocator, t);
+        const e = new Effect(this.oL, t);
         e.run();
         return e;
     }
@@ -4668,7 +4668,7 @@ class Observation {
 
 class Effect {
     constructor(t, e) {
-        this.observerLocator = t;
+        this.oL = t;
         this.fn = e;
         this.interceptor = this;
         this.maxRunCount = 10;

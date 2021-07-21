@@ -333,7 +333,6 @@ const taskQueueOpts = {
 };
 class TranslationBinding {
     constructor(target, observerLocator, locator, platform) {
-        this.observerLocator = observerLocator;
         this.locator = locator;
         this.interceptor = this;
         this.isBound = false;
@@ -344,6 +343,7 @@ class TranslationBinding {
         this.i18n = this.locator.get(I18N);
         this.platform = platform;
         this._targetAccessors = new Set();
+        this.oL = observerLocator;
         this.i18n.subscribeLocaleChange(this);
     }
     static create({ parser, observerLocator, context, controller, target, instruction, platform, isParameterContext, }) {
@@ -435,8 +435,8 @@ class TranslationBinding {
                 else {
                     const controller = CustomElement.for(this.target, forOpts);
                     const accessor = controller && controller.viewModel
-                        ? this.observerLocator.getAccessor(controller.viewModel, attribute)
-                        : this.observerLocator.getAccessor(this.target, attribute);
+                        ? this.oL.getAccessor(controller.viewModel, attribute)
+                        : this.oL.getAccessor(this.target, attribute);
                     const shouldQueueUpdate = (flags & 2 /* fromBind */) === 0 && (accessor.type & 4 /* Layout */) > 0;
                     if (shouldQueueUpdate) {
                         accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, flags, this.target, attribute));
@@ -495,7 +495,7 @@ class TranslationBinding {
         }
         const template = this._prepareTemplate(content, marker, fallBackContents);
         // difficult to use the set property approach in this case, as most of the properties of Node is readonly
-        // const observer = this.observerLocator.getAccessor(LifecycleFlags.none, this.target, '??');
+        // const observer = this.oL.getAccessor(LifecycleFlags.none, this.target, '??');
         // observer.setValue(??, flags);
         this.target.innerHTML = '';
         for (const child of toArray(template.content.childNodes)) {
@@ -555,7 +555,7 @@ class ParameterBinding {
         this.updater = updater;
         this.interceptor = this;
         this.isBound = false;
-        this.observerLocator = owner.observerLocator;
+        this.oL = owner.oL;
         this.locator = owner.locator;
     }
     handleChange(newValue, _previousValue, flags) {

@@ -73,7 +73,7 @@ export declare class TestContext {
     get platform(): IPlatform;
     private _templateCompiler;
     get templateCompiler(): ITemplateCompiler;
-    private _observerLocator;
+    private oL;
     get observerLocator(): IObserverLocator;
     private _domParser;
     get domParser(): HTMLDivElement;

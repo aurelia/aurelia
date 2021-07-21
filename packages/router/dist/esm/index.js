@@ -3124,7 +3124,7 @@ class ComponentAgent {
         if (void 0 === n) {
             const o = s.container;
             const r = RouteDefinition.resolve(t.constructor);
-            const a = x.forCustomElement(o, t, e.host, null);
+            const a = x.$el(o, t, e.host, null);
             zt.set(t, n = new ComponentAgent(t, a, r, i, s));
         }
         return n;

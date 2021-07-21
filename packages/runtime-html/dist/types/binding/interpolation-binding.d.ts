@@ -3,7 +3,6 @@ import type { IServiceLocator, ITask, TaskQueue } from '@aurelia/kernel';
 import type { ICollectionSubscriber, IndexMap, Interpolation, IConnectableBinding, IObserverLocator, IsExpression, IBinding, Scope } from '@aurelia/runtime';
 import type { IPlatform } from '../platform';
 export declare class InterpolationBinding implements IBinding {
-    observerLocator: IObserverLocator;
     interpolation: Interpolation;
     target: object;
     targetProperty: string;
@@ -16,6 +15,10 @@ export declare class InterpolationBinding implements IBinding {
     partBindings: InterpolationPartBinding[];
     private readonly targetObserver;
     private task;
+    /**
+     * A semi-private property used by connectable mixin
+     */
+    readonly oL: IObserverLocator;
     constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: object, targetProperty: string, mode: BindingMode, locator: IServiceLocator, taskQueue: TaskQueue);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: Scope): void;
@@ -28,7 +31,6 @@ export declare class InterpolationPartBinding implements InterpolationPartBindin
     readonly target: object;
     readonly targetProperty: string;
     readonly locator: IServiceLocator;
-    readonly observerLocator: IObserverLocator;
     readonly owner: InterpolationBinding;
     interceptor: this;
     readonly mode: BindingMode;
@@ -36,6 +38,10 @@ export declare class InterpolationPartBinding implements InterpolationPartBindin
     $scope?: Scope;
     task: ITask | null;
     isBound: boolean;
+    /**
+     * A semi-private property used by connectable mixin
+     */
+    readonly oL: IObserverLocator;
     constructor(sourceExpression: IsExpression, target: object, targetProperty: string, locator: IServiceLocator, observerLocator: IObserverLocator, owner: InterpolationBinding);
     handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
@@ -51,7 +57,6 @@ export declare class ContentBinding implements ContentBinding, ICollectionSubscr
     readonly sourceExpression: IsExpression;
     readonly target: Text;
     readonly locator: IServiceLocator;
-    readonly observerLocator: IObserverLocator;
     private readonly p;
     private readonly strict;
     interceptor: this;
@@ -60,6 +65,10 @@ export declare class ContentBinding implements ContentBinding, ICollectionSubscr
     $scope?: Scope;
     task: ITask | null;
     isBound: boolean;
+    /**
+     * A semi-private property used by connectable mixin
+     */
+    readonly oL: IObserverLocator;
     constructor(sourceExpression: IsExpression, target: Text, locator: IServiceLocator, observerLocator: IObserverLocator, p: IPlatform, strict: boolean);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;

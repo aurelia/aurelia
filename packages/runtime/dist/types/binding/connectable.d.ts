@@ -1,10 +1,10 @@
 import type { Class, IServiceLocator } from '@aurelia/kernel';
 import type { IConnectable, ISubscribable, ISubscriber, IBinding, ICollectionSubscriber, IndexMap, ICollectionSubscribable, LifecycleFlags } from '../observation.js';
 import type { IObserverLocator } from '../observation/observer-locator.js';
-export interface IPartialConnectableBinding extends IBinding, ISubscriber, ICollectionSubscriber {
-    observerLocator: IObserverLocator;
+export interface IObserverLocatorBasedConnectable extends IBinding, ISubscriber, ICollectionSubscriber {
+    oL: IObserverLocator;
 }
-export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
+export interface IConnectableBinding extends IObserverLocatorBasedConnectable, IConnectable {
     /**
      * A record storing observers that are currently subscribed to by this binding
      */
@@ -48,10 +48,10 @@ export interface BindingMediator<K extends string> extends IConnectableBinding {
 export declare class BindingMediator<K extends string> implements IConnectableBinding {
     readonly key: K;
     readonly binding: MediatedBinding<K>;
-    observerLocator: IObserverLocator;
+    oL: IObserverLocator;
     locator: IServiceLocator;
     interceptor: this;
-    constructor(key: K, binding: MediatedBinding<K>, observerLocator: IObserverLocator, locator: IServiceLocator);
+    constructor(key: K, binding: MediatedBinding<K>, oL: IObserverLocator, locator: IServiceLocator);
     $bind(): void;
     $unbind(): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;

@@ -839,7 +839,7 @@ class TestContext {
         this._container = void 0;
         this._platform = void 0;
         this._templateCompiler = void 0;
-        this._observerLocator = void 0;
+        this.oL = void 0;
         this._domParser = void 0;
     }
     get wnd() { return this.platform.globalThis; }
@@ -879,10 +879,10 @@ class TestContext {
         return this._templateCompiler;
     }
     get observerLocator() {
-        if (this._observerLocator === void 0) {
-            this._observerLocator = this.container.get(IObserverLocator);
+        if (this.oL === void 0) {
+            this.oL = this.container.get(IObserverLocator);
         }
-        return this._observerLocator;
+        return this.oL;
     }
     get domParser() {
         if (this._domParser === void 0) {

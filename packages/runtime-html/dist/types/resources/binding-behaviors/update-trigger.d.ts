@@ -12,7 +12,8 @@ export declare type UpdateTriggerableBinding = PropertyBinding & {
     targetObserver: UpdateTriggerableObserver;
 };
 export declare class UpdateTriggerBindingBehavior {
-    private readonly observerLocator;
+    static inject: import("@aurelia/kernel").InterfaceSymbol<IObserverLocator>[];
+    private readonly oL;
     constructor(observerLocator: IObserverLocator);
     bind(flags: LifecycleFlags, _scope: Scope, binding: UpdateTriggerableBinding, ...events: string[]): void;
     unbind(flags: LifecycleFlags, _scope: Scope, binding: UpdateTriggerableBinding): void;

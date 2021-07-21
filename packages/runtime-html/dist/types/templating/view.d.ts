@@ -20,12 +20,12 @@ export declare class ViewFactory implements IViewFactory {
     tryReturnToCache(controller: ISyntheticView): boolean;
     create(flags?: LifecycleFlags, parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
 }
-export declare const Views: {
+export declare const Views: Readonly<{
     name: string;
     has(value: object): boolean;
     get(value: object | Constructable): readonly CustomElementDefinition[];
     add<T extends Constructable<{}>>(Type: T, partialDefinition: PartialCustomElementDefinition): readonly CustomElementDefinition[];
-};
+}>;
 export declare function view(v: PartialCustomElementDefinition): <T extends Constructable<{}>>(target: T) => void;
 export declare type ClassInstance<T> = T & {
     readonly constructor: Function;

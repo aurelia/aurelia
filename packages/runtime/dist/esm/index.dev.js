@@ -273,8 +273,8 @@ class BindingInterceptor {
             binding = interceptor;
         }
     }
-    get observerLocator() {
-        return this.binding.observerLocator;
+    get oL() {
+        return this.binding.oL;
     }
     get locator() {
         return this.binding.locator;
@@ -2805,7 +2805,7 @@ function getMapObserver(map) {
 }
 
 function observe(obj, key) {
-    const observer = this.observerLocator.getObserver(obj, key);
+    const observer = this.oL.getObserver(obj, key);
     /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
      *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
      *  1. Fail earlier: only let the locator resolve observers from .getObserver, and throw if no branches are left (e.g. it would otherwise return an accessor)
@@ -2933,10 +2933,10 @@ function connectable(target) {
     return target == null ? connectableDecorator : connectableDecorator(target);
 }
 class BindingMediator {
-    constructor(key, binding, observerLocator, locator) {
+    constructor(key, binding, oL, locator) {
         this.key = key;
         this.binding = binding;
-        this.observerLocator = observerLocator;
+        this.oL = oL;
         this.locator = locator;
         this.interceptor = this;
     }
@@ -4669,17 +4669,17 @@ class ComputedObserver {
         this.get = get;
         this.set = set;
         this.useProxy = useProxy;
-        this.observerLocator = observerLocator;
         this.interceptor = this;
         this.type = 1 /* Observer */;
         this.value = void 0;
-        this.oldValue = void 0;
+        this._oldValue = void 0;
         // todo: maybe use a counter allow recursive call to a certain level
         /**
          * @internal
          */
         this.running = false;
-        this.isDirty = false;
+        this._isDirty = false;
+        this.oL = observerLocator;
     }
     static create(obj, key, descriptor, observerLocator, useProxy) {
         const getter = descriptor.get;
@@ -4701,9 +4701,9 @@ class ComputedObserver {
         if (this.subs.count === 0) {
             return this.get.call(this.obj, this);
         }
-        if (this.isDirty) {
+        if (this._isDirty) {
             this.compute();
-            this.isDirty = false;
+            this._isDirty = false;
         }
         return this.value;
     }
@@ -4723,13 +4723,13 @@ class ComputedObserver {
         }
     }
     handleChange() {
-        this.isDirty = true;
+        this._isDirty = true;
         if (this.subs.count > 0) {
             this.run();
         }
     }
     handleCollectionChange() {
-        this.isDirty = true;
+        this._isDirty = true;
         if (this.subs.count > 0) {
             this.run();
         }
@@ -4740,18 +4740,18 @@ class ComputedObserver {
         // though not handling for now, and wait until the merge of normal + collection subscription
         if (this.subs.add(subscriber) && this.subs.count === 1) {
             this.compute();
-            this.isDirty = false;
+            this._isDirty = false;
         }
     }
     unsubscribe(subscriber) {
         if (this.subs.remove(subscriber) && this.subs.count === 0) {
-            this.isDirty = true;
+            this._isDirty = true;
             this.obs.clear(true);
         }
     }
     flush() {
-        oV$1 = this.oldValue;
-        this.oldValue = this.value;
+        oV$1 = this._oldValue;
+        this._oldValue = this.value;
         this.subs.notify(this.value, oV$1, 0 /* none */);
     }
     run() {
@@ -4760,9 +4760,9 @@ class ComputedObserver {
         }
         const oldValue = this.value;
         const newValue = this.compute();
-        this.isDirty = false;
+        this._isDirty = false;
         if (!Object.is(newValue, oldValue)) {
-            this.oldValue = oldValue;
+            this._oldValue = oldValue;
             this.queue.add(this);
         }
     }
@@ -5226,8 +5226,8 @@ const hasOwnProp = Object.prototype.hasOwnProperty;
 
 const IObservation = DI.createInterface('IObservation', x => x.singleton(Observation));
 class Observation {
-    constructor(observerLocator) {
-        this.observerLocator = observerLocator;
+    constructor(oL) {
+        this.oL = oL;
     }
     static get inject() { return [IObserverLocator]; }
     /**
@@ -5235,15 +5235,15 @@ class Observation {
      * to re-run whenever a dependency has changed
      */
     run(fn) {
-        const effect = new Effect(this.observerLocator, fn);
+        const effect = new Effect(this.oL, fn);
         // todo: batch effect run after it's in
         effect.run();
         return effect;
     }
 }
 class Effect {
-    constructor(observerLocator, fn) {
-        this.observerLocator = observerLocator;
+    constructor(oL, fn) {
+        this.oL = oL;
         this.fn = fn;
         this.interceptor = this;
         // to configure this, potentially a 2nd parameter is needed for run

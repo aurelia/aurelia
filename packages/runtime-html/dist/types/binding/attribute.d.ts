@@ -1,23 +1,22 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, IObserver } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
-import type { IConnectableBinding, ForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, ITask, Scope } from '@aurelia/runtime';
+import type { IConnectableBinding, ForOfStatement, IObserverLocator, IObserverLocatorBasedConnectable, IsBindingBehavior, ITask, Scope } from '@aurelia/runtime';
 import type { INode } from '../dom.js';
 export interface AttributeBinding extends IConnectableBinding {
 }
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
-export declare class AttributeBinding implements IPartialConnectableBinding {
+export declare class AttributeBinding implements IObserverLocatorBasedConnectable {
     sourceExpression: IsBindingBehavior | ForOfStatement;
     targetAttribute: string;
     targetProperty: string;
     mode: BindingMode;
-    observerLocator: IObserverLocator;
     locator: IServiceLocator;
     interceptor: this;
     isBound: boolean;
-    $platform: IPlatform;
+    p: IPlatform;
     $scope: Scope;
     task: ITask | null;
     private targetSubscriber;
@@ -28,6 +27,10 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     persistentFlags: LifecycleFlags;
     target: Element;
     value: unknown;
+    /**
+     * A semi-private property used by connectable mixin
+     */
+    oL: IObserverLocator;
     constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: INode, targetAttribute: string, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;

@@ -343,8 +343,8 @@ class Interpretation {
     constructor() {
         this.parts = kernel.emptyArray;
         this._pattern = '';
-        this.currentRecord = {};
-        this.partsRecord = {};
+        this._currentRecord = {};
+        this._partsRecord = {};
     }
     get pattern() {
         const value = this._pattern;
@@ -362,11 +362,11 @@ class Interpretation {
         }
         else {
             this._pattern = value;
-            this.parts = this.partsRecord[value];
+            this.parts = this._partsRecord[value];
         }
     }
     append(pattern, ch) {
-        const { currentRecord } = this;
+        const { _currentRecord: currentRecord } = this;
         if (currentRecord[pattern] === undefined) {
             currentRecord[pattern] = ch;
         }
@@ -375,9 +375,9 @@ class Interpretation {
         }
     }
     next(pattern) {
-        const { currentRecord } = this;
+        const { _currentRecord: currentRecord } = this;
         if (currentRecord[pattern] !== undefined) {
-            const { partsRecord } = this;
+            const { _partsRecord: partsRecord } = this;
             if (partsRecord[pattern] === undefined) {
                 partsRecord[pattern] = [currentRecord[pattern]];
             }
@@ -639,11 +639,11 @@ class AttrSyntax {
 }
 const IAttributePattern = kernel.DI.createInterface('IAttributePattern');
 const IAttributeParser = kernel.DI.createInterface('IAttributeParser', x => x.singleton(AttributeParser));
-let AttributeParser = class AttributeParser {
+class AttributeParser {
     constructor(interpreter, attrPatterns) {
-        this.interpreter = interpreter;
-        this.cache = {};
-        const patterns = this.patterns = {};
+        this._cache = {};
+        this._interpreter = interpreter;
+        const patterns = this._patterns = {};
         attrPatterns.forEach(attrPattern => {
             const defs = AttributePattern.getPatternDefinitions(attrPattern.constructor);
             interpreter.add(defs);
@@ -653,23 +653,20 @@ let AttributeParser = class AttributeParser {
         });
     }
     parse(name, value) {
-        let interpretation = this.cache[name];
+        let interpretation = this._cache[name];
         if (interpretation == null) {
-            interpretation = this.cache[name] = this.interpreter.interpret(name);
+            interpretation = this._cache[name] = this._interpreter.interpret(name);
         }
         const pattern = interpretation.pattern;
         if (pattern == null) {
             return new AttrSyntax(name, value, name, null);
         }
         else {
-            return this.patterns[pattern][pattern](name, value, interpretation.parts);
+            return this._patterns[pattern][pattern](name, value, interpretation.parts);
         }
     }
-};
-AttributeParser = __decorate([
-    __param(0, ISyntaxInterpreter),
-    __param(1, kernel.all(IAttributePattern))
-], AttributeParser);
+}
+AttributeParser.inject = [ISyntaxInterpreter, kernel.all(IAttributePattern)];
 function attributePattern(...patternDefs) {
     return function decorator(target) {
         return AttributePattern.define(patternDefs, target);
@@ -1208,9 +1205,8 @@ class CallBinding {
  * TODO: handle SVG/attributes with namespace
  */
 class AttributeObserver {
-    constructor(platform, observerLocator, obj, propertyKey, targetAttribute) {
+    constructor(platform, obj, propertyKey, targetAttribute) {
         this.platform = platform;
-        this.observerLocator = observerLocator;
         this.obj = obj;
         this.propertyKey = propertyKey;
         this.targetAttribute = targetAttribute;
@@ -1395,7 +1391,6 @@ class AttributeBinding {
         this.targetAttribute = targetAttribute;
         this.targetProperty = targetProperty;
         this.mode = mode;
-        this.observerLocator = observerLocator;
         this.locator = locator;
         this.interceptor = this;
         this.isBound = false;
@@ -1405,7 +1400,8 @@ class AttributeBinding {
         this.persistentFlags = 0 /* none */;
         this.value = void 0;
         this.target = target;
-        this.$platform = locator.get(IPlatform);
+        this.p = locator.get(IPlatform);
+        this.oL = observerLocator;
     }
     updateTarget(value, flags) {
         flags |= this.persistentFlags;
@@ -1448,7 +1444,7 @@ class AttributeBinding {
             if (shouldQueueFlush) {
                 // Queue the new one before canceling the old one, to prevent early yield
                 task = this.task;
-                this.task = this.$platform.domWriteQueue.queueTask(() => {
+                this.task = this.p.domWriteQueue.queueTask(() => {
                     this.task = null;
                     interceptor.updateTarget(newValue, flags);
                 }, taskOptions);
@@ -1477,7 +1473,7 @@ class AttributeBinding {
         }
         let targetObserver = this.targetObserver;
         if (!targetObserver) {
-            targetObserver = this.targetObserver = new AttributeObserver(this.$platform, this.observerLocator, this.target, this.targetProperty, this.targetAttribute);
+            targetObserver = this.targetObserver = new AttributeObserver(this.p, this.target, this.targetProperty, this.targetAttribute);
         }
         // during bind, binding behavior might have changed sourceExpression
         sourceExpression = this.sourceExpression;
@@ -1530,7 +1526,6 @@ const queueTaskOptions = {
 // in which case the renderer will create the TextBinding directly
 class InterpolationBinding {
     constructor(observerLocator, interpolation, target, targetProperty, mode, locator, taskQueue) {
-        this.observerLocator = observerLocator;
         this.interpolation = interpolation;
         this.target = target;
         this.targetProperty = targetProperty;
@@ -1541,6 +1536,7 @@ class InterpolationBinding {
         this.isBound = false;
         this.$scope = void 0;
         this.task = null;
+        this.oL = observerLocator;
         this.targetObserver = observerLocator.getAccessor(target, targetProperty);
         const expressions = interpolation.expressions;
         const partBindings = this.partBindings = Array(expressions.length);
@@ -1626,7 +1622,6 @@ class InterpolationPartBinding {
         this.target = target;
         this.targetProperty = targetProperty;
         this.locator = locator;
-        this.observerLocator = observerLocator;
         this.owner = owner;
         this.interceptor = this;
         // at runtime, mode may be overriden by binding behavior
@@ -1635,6 +1630,7 @@ class InterpolationPartBinding {
         this.value = '';
         this.task = null;
         this.isBound = false;
+        this.oL = observerLocator;
     }
     handleChange(newValue, oldValue, flags) {
         if (!this.isBound) {
@@ -1703,7 +1699,6 @@ class ContentBinding {
         this.sourceExpression = sourceExpression;
         this.target = target;
         this.locator = locator;
-        this.observerLocator = observerLocator;
         this.p = p;
         this.strict = strict;
         this.interceptor = this;
@@ -1713,6 +1708,7 @@ class ContentBinding {
         this.value = '';
         this.task = null;
         this.isBound = false;
+        this.oL = observerLocator;
     }
     updateTarget(value, flags) {
         var _a, _b;
@@ -1826,7 +1822,6 @@ class LetBinding {
     constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
         this.sourceExpression = sourceExpression;
         this.targetProperty = targetProperty;
-        this.observerLocator = observerLocator;
         this.locator = locator;
         this.toBindingContext = toBindingContext;
         this.interceptor = this;
@@ -1834,6 +1829,7 @@ class LetBinding {
         this.$scope = void 0;
         this.task = null;
         this.target = null;
+        this.oL = observerLocator;
     }
     handleChange(newValue, _previousValue, flags) {
         if (!this.isBound) {
@@ -1898,7 +1894,6 @@ class PropertyBinding {
         this.target = target;
         this.targetProperty = targetProperty;
         this.mode = mode;
-        this.observerLocator = observerLocator;
         this.locator = locator;
         this.taskQueue = taskQueue;
         this.interceptor = this;
@@ -1908,6 +1903,7 @@ class PropertyBinding {
         this.persistentFlags = 0 /* none */;
         this.task = null;
         this.targetSubscriber = null;
+        this.oL = observerLocator;
     }
     updateTarget(value, flags) {
         flags |= this.persistentFlags;
@@ -1978,7 +1974,7 @@ class PropertyBinding {
         if (sourceExpression.hasBind) {
             sourceExpression.bind(flags, scope, this.interceptor);
         }
-        const observerLocator = this.observerLocator;
+        const observerLocator = this.oL;
         const $mode = this.mode;
         let targetObserver = this.targetObserver;
         if (!targetObserver) {
@@ -2227,7 +2223,7 @@ class ChildrenDefinition {
  *
  * The controller of a custom element should totally control when this observer starts/stops.
  */
-exports.ChildrenObserver = class ChildrenObserver {
+class ChildrenObserver {
     constructor(controller, obj, propertyKey, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
         this.controller = controller;
         this.obj = obj;
@@ -2279,10 +2275,8 @@ exports.ChildrenObserver = class ChildrenObserver {
     get() {
         return filterChildren(this.controller, this.query, this.filter, this.map);
     }
-};
-exports.ChildrenObserver = __decorate([
-    runtime.subscriberCollection()
-], exports.ChildrenObserver);
+}
+runtime.subscriberCollection()(ChildrenObserver);
 function defaultChildQuery(controller) {
     return controller.host.childNodes;
 }
@@ -2883,7 +2877,7 @@ class ShadowDOMRegistry {
         container.register(kernel.Registration.instance(IShadowDOMStyles, factory.createStyles(this.css, sharedStyles)));
     }
 }
-let AdoptedStyleSheetsStylesFactory = class AdoptedStyleSheetsStylesFactory {
+class AdoptedStyleSheetsStylesFactory {
     constructor(p) {
         this.p = p;
         this.cache = new Map();
@@ -2891,21 +2885,17 @@ let AdoptedStyleSheetsStylesFactory = class AdoptedStyleSheetsStylesFactory {
     createStyles(localStyles, sharedStyles) {
         return new AdoptedStyleSheetsStyles(this.p, localStyles, this.cache, sharedStyles);
     }
-};
-AdoptedStyleSheetsStylesFactory = __decorate([
-    __param(0, IPlatform)
-], AdoptedStyleSheetsStylesFactory);
-let StyleElementStylesFactory = class StyleElementStylesFactory {
+}
+AdoptedStyleSheetsStylesFactory.inject = [IPlatform];
+class StyleElementStylesFactory {
     constructor(p) {
         this.p = p;
     }
     createStyles(localStyles, sharedStyles) {
         return new StyleElementStyles(this.p, localStyles, sharedStyles);
     }
-};
-StyleElementStylesFactory = __decorate([
-    __param(0, IPlatform)
-], StyleElementStylesFactory);
+}
+StyleElementStylesFactory.inject = [IPlatform];
 const IShadowDOMStyles = kernel.DI.createInterface('IShadowDOMStyles');
 const IShadowDOMGlobalStyles = kernel.DI.createInterface('IShadowDOMGlobalStyles', x => x.instance({ applyTo: kernel.noop }));
 class AdoptedStyleSheetsStyles {
@@ -2977,7 +2967,6 @@ const { wrap, unwrap } = runtime.ProxyObservable;
 class ComputedWatcher {
     constructor(obj, observerLocator, get, cb, useProxy) {
         this.obj = obj;
-        this.observerLocator = observerLocator;
         this.get = get;
         this.cb = cb;
         this.useProxy = useProxy;
@@ -2986,6 +2975,7 @@ class ComputedWatcher {
         this.isBound = false;
         // todo: maybe use a counter allow recursive call to a certain level
         this.running = false;
+        this.oL = observerLocator;
     }
     handleChange() {
         this.run();
@@ -3034,10 +3024,10 @@ class ComputedWatcher {
     }
 }
 class ExpressionWatcher {
-    constructor(scope, locator, observerLocator, expression, callback) {
+    constructor(scope, locator, oL, expression, callback) {
         this.scope = scope;
         this.locator = locator;
-        this.observerLocator = observerLocator;
+        this.oL = oL;
         this.expression = expression;
         this.callback = callback;
         this.interceptor = this;
@@ -3226,7 +3216,7 @@ class ViewFactory {
             controller = cache.pop();
             return controller;
         }
-        controller = Controller.forSyntheticView(this, flags, parentController);
+        controller = Controller.$view(this, flags, parentController);
         return controller;
     }
 }
@@ -3240,7 +3230,7 @@ function toCustomElementDefinition($view) {
     return CustomElementDefinition.create($view);
 }
 const viewsBaseName = kernel.Protocol.resource.keyFor('views');
-const Views = {
+const Views = Object.freeze({
     name: viewsBaseName,
     has(value) {
         return typeof value === 'function' && (kernel.Metadata.hasOwn(viewsBaseName, value) || '$views' in value);
@@ -3271,7 +3261,7 @@ const Views = {
         }
         return views;
     },
-};
+});
 function view(v) {
     return function (target) {
         Views.add(target, v);
@@ -3583,8 +3573,6 @@ class Controller {
         this.location = null;
         this.lifecycleHooks = null;
         this.state = 0 /* none */;
-        this.logger = null;
-        this.debug = false;
         this._fullyNamed = false;
         this._childrenObs = kernel.emptyArray;
         this.$initiator = null;
@@ -3595,6 +3583,8 @@ class Controller {
         this._activatingStack = 0;
         this._detachingStack = 0;
         this._unbindingStack = 0;
+        this.logger = null;
+        this.debug = false;
         this._rendering = container.root.get(IRendering);
         switch (vmKind) {
             case 1 /* customAttribute */:
@@ -3637,13 +3627,21 @@ class Controller {
         return controllerLookup.get(viewModel);
     }
     static getCachedOrThrow(viewModel) {
-        const controller = Controller.getCached(viewModel);
-        if (controller === void 0) {
+        const $el = Controller.getCached(viewModel);
+        if ($el === void 0) {
             throw new Error(`There is no cached controller for the provided ViewModel: ${String(viewModel)}`);
         }
-        return controller;
+        return $el;
     }
-    static forCustomElement(ctn, viewModel, host, hydrationInst, flags = 0 /* none */, 
+    /**
+     * Create a controller for a custom element based on a given set of parameters
+     *
+     * @param ctn - The own container of the custom element
+     * @param viewModel - The view model object (can be any object if a definition is specified)
+     *
+     * Semi private API
+     */
+    static $el(ctn, viewModel, host, hydrationInst, flags = 0 /* none */, 
     // Use this when `instance.constructor` is not a custom element type
     // to pass on the CustomElement definition
     definition = void 0) {
@@ -3667,11 +3665,21 @@ class Controller {
         ctn.registerResolver(IHydrationContext, new kernel.InstanceProvider('IHydrationContext', new HydrationContext(controller, hydrationInst, hydrationContext)));
         controllerLookup.set(viewModel, controller);
         if (hydrationInst == null || hydrationInst.hydrate !== false) {
-            controller.hydrateCustomElement(hydrationInst, hydrationContext);
+            controller._hydrateCustomElement(hydrationInst, hydrationContext);
         }
         return controller;
     }
-    static forCustomAttribute(ctn, viewModel, host, flags = 0 /* none */, 
+    /**
+     * Create a controller for a custom attribute based on a given set of parameters
+     *
+     * @param ctn - own container associated with the custom attribute object
+     * @param viewModel - the view model object
+     * @param host - host element where this custom attribute is used
+     * @param flags
+     * @param definition - the definition of the custom attribute,
+     * will be used to override the definition associated with the view model object contructor if given
+     */
+    static $attr(ctn, viewModel, host, flags = 0 /* none */, 
     /**
      * The definition that will be used to hydrate the custom attribute view model
      *
@@ -3693,7 +3701,16 @@ class Controller {
         controller._hydrateCustomAttribute();
         return controller;
     }
-    static forSyntheticView(viewFactory, flags = 0 /* none */, parentController = void 0) {
+    /**
+     * Create a synthetic view (controller) for a given factory
+     *
+     * @param viewFactory
+     * @param flags
+     * @param parentController - the parent controller to connect the created view with. Used in activation
+     *
+     * Semi private API
+     */
+    static $view(viewFactory, flags = 0 /* none */, parentController = void 0) {
         const controller = new Controller(
         /* container      */ viewFactory.container, 2 /* synthetic */, 
         /* flags          */ flags, 
@@ -3706,7 +3723,7 @@ class Controller {
         return controller;
     }
     /** @internal */
-    hydrateCustomElement(hydrationInst, 
+    _hydrateCustomElement(hydrationInst, 
     /**
      * The context where this custom element is hydrated.
      *
@@ -3867,8 +3884,7 @@ class Controller {
         this.parent = parent;
         if (this.debug && !this._fullyNamed) {
             this._fullyNamed = true;
-            ((_a = this.logger) !== null && _a !== void 0 ? _a : (this.logger = this.container.get(kernel.ILogger).root.scopeTo(this.name)))
-                .trace(`activate()`);
+            ((_a = this.logger) !== null && _a !== void 0 ? _a : (this.logger = this.container.get(kernel.ILogger).root.scopeTo(this.name))).trace(`activate()`);
         }
         flags |= 2 /* fromBind */;
         switch (this.vmKind) {
@@ -3949,7 +3965,7 @@ class Controller {
                 this._ensurePromise();
                 ret.then(() => {
                     this.isBound = true;
-                    this.attach();
+                    this._attach();
                 }).catch(err => {
                     this._reject(err);
                 });
@@ -3957,9 +3973,9 @@ class Controller {
             }
         }
         this.isBound = true;
-        this.attach();
+        this._attach();
     }
-    append(...nodes) {
+    _append(...nodes) {
         switch (this.mountTarget) {
             case 1 /* host */:
                 this.host.append(...nodes);
@@ -3976,8 +3992,7 @@ class Controller {
             }
         }
     }
-    attach() {
-        var _a;
+    _attach() {
         if (this.debug) {
             this.logger.trace(`attach()`);
         }
@@ -3985,16 +4000,16 @@ class Controller {
             switch (this.mountTarget) {
                 case 1 /* host */:
                 case 2 /* shadowRoot */:
-                    this.hostController.append(this.host);
+                    this.hostController._append(this.host);
                     break;
                 case 3 /* location */:
-                    this.hostController.append(this.location.$start, this.location);
+                    this.hostController._append(this.location.$start, this.location);
                     break;
             }
         }
         switch (this.mountTarget) {
             case 1 /* host */:
-                this.nodes.appendTo(this.host, (_a = this.definition) === null || _a === void 0 ? void 0 : _a.enhance);
+                this.nodes.appendTo(this.host, this.definition != null && this.definition.enhance);
                 break;
             case 2 /* shadowRoot */: {
                 const container = this.container;
@@ -4453,7 +4468,7 @@ _flags, instance) {
             name = childObserverNames[i];
             if (observers[name] == void 0) {
                 childrenDescription = childrenObservers[name];
-                obs[obs.length] = observers[name] = new exports.ChildrenObserver(controller, instance, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
+                obs[obs.length] = observers[name] = new ChildrenObserver(controller, instance, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
             }
         }
         return obs;
@@ -4644,8 +4659,8 @@ class AppRoot {
                 instance = config.component;
             }
             const hydrationInst = { hydrate: false, projections: null };
-            const controller = (this.controller = Controller.forCustomElement(childCtn, instance, this.host, hydrationInst, 0 /* none */));
-            controller.hydrateCustomElement(hydrationInst, /* root does not have hydration context */ null);
+            const controller = (this.controller = Controller.$el(childCtn, instance, this.host, hydrationInst, 0 /* none */));
+            controller._hydrateCustomElement(hydrationInst, /* root does not have hydration context */ null);
             return kernel.onResolve(this._runAppTasks('hydrating'), () => {
                 controller._hydrate(null);
                 return kernel.onResolve(this._runAppTasks('hydrated'), () => {
@@ -5043,35 +5058,37 @@ const defaultOptions = {
     capture: false,
 };
 class ListenerTracker {
-    constructor(publisher, eventName, options = defaultOptions) {
-        this.publisher = publisher;
-        this.eventName = eventName;
-        this.options = options;
+    constructor(_publisher, _eventName, _options = defaultOptions) {
+        this._publisher = _publisher;
+        this._eventName = _eventName;
+        this._options = _options;
         this.count = 0;
-        this.captureLookups = new Map();
-        this.bubbleLookups = new Map();
+        /** @internal */
+        this._captureLookups = new Map();
+        /** @internal */
+        this._bubbleLookups = new Map();
     }
     increment() {
         if (++this.count === 1) {
-            this.publisher.addEventListener(this.eventName, this, this.options);
+            this._publisher.addEventListener(this._eventName, this, this._options);
         }
     }
     decrement() {
         if (--this.count === 0) {
-            this.publisher.removeEventListener(this.eventName, this, this.options);
+            this._publisher.removeEventListener(this._eventName, this, this._options);
         }
     }
     dispose() {
         if (this.count > 0) {
             this.count = 0;
-            this.publisher.removeEventListener(this.eventName, this, this.options);
+            this._publisher.removeEventListener(this._eventName, this, this._options);
         }
-        this.captureLookups.clear();
-        this.bubbleLookups.clear();
+        this._captureLookups.clear();
+        this._bubbleLookups.clear();
     }
     /** @internal */
     getLookup(target) {
-        const lookups = this.options.capture === true ? this.captureLookups : this.bubbleLookups;
+        const lookups = this._options.capture === true ? this._captureLookups : this._bubbleLookups;
         let lookup = lookups.get(target);
         if (lookup === void 0) {
             lookups.set(target, lookup = Object.create(null));
@@ -5080,9 +5097,9 @@ class ListenerTracker {
     }
     /** @internal */
     handleEvent(event) {
-        const lookups = this.options.capture === true ? this.captureLookups : this.bubbleLookups;
+        const lookups = this._options.capture === true ? this._captureLookups : this._bubbleLookups;
         const path = event.composedPath();
-        if (this.options.capture === true) {
+        if (this._options.capture === true) {
             path.reverse();
         }
         for (const target of path) {
@@ -5090,7 +5107,7 @@ class ListenerTracker {
             if (lookup === void 0) {
                 continue;
             }
-            const listener = lookup[this.eventName];
+            const listener = lookup[this._eventName];
             if (listener === void 0) {
                 continue;
             }
@@ -5110,16 +5127,16 @@ class ListenerTracker {
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
 class DelegateSubscription {
-    constructor(tracker, lookup, eventName, callback) {
-        this.tracker = tracker;
-        this.lookup = lookup;
-        this.eventName = eventName;
-        tracker.increment();
-        lookup[eventName] = callback;
+    constructor(_tracker, _lookup, _eventName, callback) {
+        this._tracker = _tracker;
+        this._lookup = _lookup;
+        this._eventName = _eventName;
+        _tracker.increment();
+        _lookup[_eventName] = callback;
     }
     dispose() {
-        this.tracker.decrement();
-        this.lookup[this.eventName] = void 0;
+        this._tracker.decrement();
+        this._lookup[this._eventName] = void 0;
     }
 }
 class EventSubscriber {
@@ -5147,14 +5164,14 @@ class EventSubscriber {
 }
 const IEventDelegator = kernel.DI.createInterface('IEventDelegator', x => x.singleton(EventDelegator));
 class EventDelegator {
-    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
     constructor() {
-        this.trackerMaps = Object.create(null);
+        /** @internal */
+        this._trackerMaps = Object.create(null);
     }
     addEventListener(publisher, target, eventName, listener, options) {
         var _a;
         var _b;
-        const trackerMap = (_a = (_b = this.trackerMaps)[eventName]) !== null && _a !== void 0 ? _a : (_b[eventName] = new Map());
+        const trackerMap = (_a = (_b = this._trackerMaps)[eventName]) !== null && _a !== void 0 ? _a : (_b[eventName] = new Map());
         let tracker = trackerMap.get(publisher);
         if (tracker === void 0) {
             trackerMap.set(publisher, tracker = new ListenerTracker(publisher, eventName, options));
@@ -5162,8 +5179,8 @@ class EventDelegator {
         return new DelegateSubscription(tracker, tracker.getLookup(target), eventName, listener);
     }
     dispose() {
-        for (const eventName in this.trackerMaps) {
-            const trackerMap = this.trackerMaps[eventName];
+        for (const eventName in this._trackerMaps) {
+            const trackerMap = this._trackerMaps[eventName];
             for (const tracker of trackerMap.values()) {
                 tracker.dispose();
             }
@@ -5522,7 +5539,7 @@ class CustomElementRenderer {
         Ctor = def.Type;
         component = container.invoke(Ctor);
         container.registerResolver(Ctor, new kernel.InstanceProvider(def.key, component));
-        childCtrl = Controller.forCustomElement(
+        childCtrl = Controller.$el(
         /* own container       */ container, 
         /* viewModel           */ component, 
         /* host                */ target, 
@@ -5590,7 +5607,7 @@ class CustomAttributeRenderer {
         /* instruction      */ instruction, 
         /* viewFactory      */ void 0, 
         /* location         */ void 0);
-        const childController = Controller.forCustomAttribute(
+        const childController = Controller.$attr(
         /* context ct */ renderingCtrl.container, 
         /* viewModel  */ component, 
         /* host       */ target, 
@@ -5655,7 +5672,7 @@ class TemplateControllerRenderer {
         /* instruction      */ instruction, 
         /* viewFactory      */ viewFactory, 
         /* location         */ renderLocation);
-        const childController = Controller.forCustomAttribute(
+        const childController = Controller.$attr(
         /* container ct */ renderingCtrl.container, 
         /* viewModel    */ component, 
         /* host         */ target, 
@@ -5693,16 +5710,19 @@ class LetElementRenderer {
         const childInstructions = instruction.instructions;
         const toBindingContext = instruction.toBindingContext;
         const container = renderingCtrl.container;
+        const ii = childInstructions.length;
         let childInstruction;
         let expr;
         let binding;
-        for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
+        let i = 0;
+        while (ii > i) {
             childInstruction = childInstructions[i];
             expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
             binding = new LetBinding(expr, childInstruction.to, this.oL, container, toBindingContext);
             renderingCtrl.addBinding(expr.$kind === 38962 /* BindingBehavior */
                 ? applyBindingBehavior(binding, expr, container)
                 : binding);
+            ++i;
         }
     }
 };
@@ -5718,22 +5738,20 @@ let CallBindingRenderer =
 class CallBindingRenderer {
     constructor(parser, observerLocator) {
         this.parser = parser;
-        this.observerLocator = observerLocator;
+        this.oL = observerLocator;
     }
     render(f, renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
-        const binding = new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, renderingCtrl.container);
+        const binding = new CallBinding(expr, getTarget(target), instruction.to, this.oL, renderingCtrl.container);
         renderingCtrl.addBinding(expr.$kind === 38962 /* BindingBehavior */
             ? applyBindingBehavior(binding, expr, renderingCtrl.container)
             : binding);
     }
 };
+CallBindingRenderer.inject = [runtime.IExpressionParser, runtime.IObserverLocator];
 CallBindingRenderer = __decorate([
     renderer("rh" /* callBinding */)
     /** @internal */
-    ,
-    __param(0, runtime.IExpressionParser),
-    __param(1, runtime.IObserverLocator)
 ], CallBindingRenderer);
 let RefBindingRenderer = 
 /** @internal */
@@ -8082,17 +8100,15 @@ class DataAttributeAccessor {
 }
 const attrAccessor = new DataAttributeAccessor();
 
-exports.AttrBindingBehavior = class AttrBindingBehavior {
+class AttrBindingBehavior {
     bind(flags, _scope, binding) {
         binding.targetObserver = attrAccessor;
     }
     unbind(flags, _scope, binding) {
         return;
     }
-};
-exports.AttrBindingBehavior = __decorate([
-    runtime.bindingBehavior('attr')
-], exports.AttrBindingBehavior);
+}
+runtime.bindingBehavior('attr')(AttrBindingBehavior);
 
 /** @internal */
 function handleSelfEvent(event) {
@@ -8102,7 +8118,7 @@ function handleSelfEvent(event) {
     }
     return this.selfEventCallSource(event);
 }
-exports.SelfBindingBehavior = class SelfBindingBehavior {
+class SelfBindingBehavior {
     bind(flags, _scope, binding) {
         if (!binding.callSource || !binding.targetEvent) {
             throw new Error('Self binding behavior only supports events.');
@@ -8114,10 +8130,8 @@ exports.SelfBindingBehavior = class SelfBindingBehavior {
         binding.callSource = binding.selfEventCallSource;
         binding.selfEventCallSource = null;
     }
-};
-exports.SelfBindingBehavior = __decorate([
-    runtime.bindingBehavior('self')
-], exports.SelfBindingBehavior);
+}
+runtime.bindingBehavior('self')(SelfBindingBehavior);
 
 const nsMap = createLookup();
 /**
@@ -8156,14 +8170,14 @@ class CheckedObserver {
     // deepscan-disable-next-line
     _key, handler, observerLocator) {
         this.handler = handler;
-        this.observerLocator = observerLocator;
         this.value = void 0;
         this.oldValue = void 0;
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
-        this.collectionObserver = void 0;
-        this.valueObserver = void 0;
+        this._collectionObserver = void 0;
+        this._valueObserver = void 0;
         this.f = 0 /* none */;
         this.obj = obj;
+        this.oL = observerLocator;
     }
     getValue() {
         return this.value;
@@ -8340,9 +8354,9 @@ class CheckedObserver {
     stop() {
         var _a, _b;
         this.handler.dispose();
-        (_a = this.collectionObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
-        this.collectionObserver = void 0;
-        (_b = this.valueObserver) === null || _b === void 0 ? void 0 : _b.unsubscribe(this);
+        (_a = this._collectionObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
+        this._collectionObserver = void 0;
+        (_b = this._valueObserver) === null || _b === void 0 ? void 0 : _b.unsubscribe(this);
     }
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
@@ -8362,11 +8376,11 @@ class CheckedObserver {
     observe() {
         var _a, _b, _c, _d, _e, _f, _g;
         const obj = this.obj;
-        (_e = ((_a = this.valueObserver) !== null && _a !== void 0 ? _a : (this.valueObserver = (_c = (_b = obj.$observers) === null || _b === void 0 ? void 0 : _b.model) !== null && _c !== void 0 ? _c : (_d = obj.$observers) === null || _d === void 0 ? void 0 : _d.value))) === null || _e === void 0 ? void 0 : _e.subscribe(this);
-        (_f = this.collectionObserver) === null || _f === void 0 ? void 0 : _f.unsubscribe(this);
-        this.collectionObserver = void 0;
+        (_e = ((_a = this._valueObserver) !== null && _a !== void 0 ? _a : (this._valueObserver = (_c = (_b = obj.$observers) === null || _b === void 0 ? void 0 : _b.model) !== null && _c !== void 0 ? _c : (_d = obj.$observers) === null || _d === void 0 ? void 0 : _d.value))) === null || _e === void 0 ? void 0 : _e.subscribe(this);
+        (_f = this._collectionObserver) === null || _f === void 0 ? void 0 : _f.unsubscribe(this);
+        this._collectionObserver = void 0;
         if (obj.type === 'checkbox') {
-            (_g = (this.collectionObserver = getCollectionObserver(this.value, this.observerLocator))) === null || _g === void 0 ? void 0 : _g.subscribe(this);
+            (_g = (this._collectionObserver = getCollectionObserver(this.value, this.oL))) === null || _g === void 0 ? void 0 : _g.subscribe(this);
         }
     }
 }
@@ -8390,17 +8404,17 @@ class SelectValueObserver {
     // deepscan-disable-next-line
     _key, handler, observerLocator) {
         this.handler = handler;
-        this.observerLocator = observerLocator;
         this.value = void 0;
         this.oldValue = void 0;
         this.hasChanges = false;
         // ObserverType.Layout is not always true
         // but for simplicity, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
-        this.arrayObserver = void 0;
-        this.nodeObserver = void 0;
+        this._arrayObserver = void 0;
+        this._nodeObserver = void 0;
         this.observing = false;
         this.obj = obj;
+        this.oL = observerLocator;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
@@ -8415,7 +8429,7 @@ class SelectValueObserver {
         this.oldValue = this.value;
         this.value = newValue;
         this.hasChanges = newValue !== this.oldValue;
-        this.observeArray(newValue instanceof Array ? newValue : null);
+        this._observeArray(newValue instanceof Array ? newValue : null);
         if ((flags & 256 /* noFlush */) === 0) {
             this.flushChanges(flags);
         }
@@ -8491,10 +8505,11 @@ class SelectValueObserver {
                 }
                 ++i;
             }
+            let a;
             // A.1.b.ii
             i = 0;
             while (i < currentValue.length) {
-                const a = currentValue[i];
+                a = currentValue[i];
                 // Todo: remove arrow fn
                 if (values.findIndex(b => !!matcher(a, b)) === -1) {
                     currentValue.splice(i, 1);
@@ -8506,7 +8521,7 @@ class SelectValueObserver {
             // A.1.b.iii
             i = 0;
             while (i < values.length) {
-                const a = values[i];
+                a = values[i];
                 // Todo: remove arrow fn
                 if (currentValue.findIndex(b => !!matcher(a, b)) === -1) {
                     currentValue.push(a);
@@ -8519,8 +8534,9 @@ class SelectValueObserver {
         // B. single select
         // B.1
         let value = null;
+        let option;
         while (i < len) {
-            const option = options[i];
+            option = options[i];
             if (option.selected) {
                 value = hasOwn.call(option, 'model')
                     ? option.model
@@ -8537,30 +8553,30 @@ class SelectValueObserver {
         return true;
     }
     start() {
-        (this.nodeObserver = new this.obj.ownerDocument.defaultView.MutationObserver(this.handleNodeChange.bind(this)))
+        (this._nodeObserver = new this.obj.ownerDocument.defaultView.MutationObserver(this._handleNodeChange.bind(this)))
             .observe(this.obj, childObserverOptions);
-        this.observeArray(this.value instanceof Array ? this.value : null);
+        this._observeArray(this.value instanceof Array ? this.value : null);
         this.observing = true;
     }
     stop() {
         var _a;
-        this.nodeObserver.disconnect();
-        (_a = this.arrayObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
-        this.nodeObserver
-            = this.arrayObserver
+        this._nodeObserver.disconnect();
+        (_a = this._arrayObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
+        this._nodeObserver
+            = this._arrayObserver
                 = void 0;
         this.observing = false;
     }
     // todo: observe all kind of collection
-    observeArray(array) {
+    _observeArray(array) {
         var _a;
-        (_a = this.arrayObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
-        this.arrayObserver = void 0;
+        (_a = this._arrayObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
+        this._arrayObserver = void 0;
         if (array != null) {
             if (!this.obj.multiple) {
                 throw new Error('Only null or Array instances can be bound to a multi-select.');
             }
-            (this.arrayObserver = this.observerLocator.getArrayObserver(array)).subscribe(this);
+            (this._arrayObserver = this.oL.getArrayObserver(array)).subscribe(this);
         }
     }
     handleEvent() {
@@ -8570,7 +8586,7 @@ class SelectValueObserver {
             // this.subs.notify(this.currentValue, this.oldValue, LF.none);
         }
     }
-    handleNodeChange() {
+    _handleNodeChange() {
         this.syncOptions();
         const shouldNotify = this.syncValue();
         if (shouldNotify) {
@@ -8622,7 +8638,7 @@ class StyleAttributeAccessor {
             this.flushChanges(flags);
         }
     }
-    getStyleTuplesFromString(currentValue) {
+    _getStyleTuplesFromString(currentValue) {
         const styleTuples = [];
         const urlRegexTester = /url\([^)]+$/;
         let offset = 0;
@@ -8651,10 +8667,11 @@ class StyleAttributeAccessor {
         }
         return styleTuples;
     }
-    getStyleTuplesFromObject(currentValue) {
+    _getStyleTuplesFromObject(currentValue) {
         let value;
+        let property;
         const styles = [];
-        for (const property in currentValue) {
+        for (property in currentValue) {
             value = currentValue[property];
             if (value == null) {
                 continue;
@@ -8668,30 +8685,30 @@ class StyleAttributeAccessor {
                 styles.push([kernel.kebabCase(property), value]);
                 continue;
             }
-            styles.push(...this.getStyleTuples(value));
+            styles.push(...this._getStyleTuples(value));
         }
         return styles;
     }
-    getStyleTuplesFromArray(currentValue) {
+    _getStyleTuplesFromArray(currentValue) {
         const len = currentValue.length;
         if (len > 0) {
             const styles = [];
             for (let i = 0; i < len; ++i) {
-                styles.push(...this.getStyleTuples(currentValue[i]));
+                styles.push(...this._getStyleTuples(currentValue[i]));
             }
             return styles;
         }
         return kernel.emptyArray;
     }
-    getStyleTuples(currentValue) {
+    _getStyleTuples(currentValue) {
         if (typeof currentValue === 'string') {
-            return this.getStyleTuplesFromString(currentValue);
+            return this._getStyleTuplesFromString(currentValue);
         }
         if (currentValue instanceof Array) {
-            return this.getStyleTuplesFromArray(currentValue);
+            return this._getStyleTuplesFromArray(currentValue);
         }
         if (currentValue instanceof Object) {
-            return this.getStyleTuplesFromObject(currentValue);
+            return this._getStyleTuplesFromObject(currentValue);
         }
         return kernel.emptyArray;
     }
@@ -8700,15 +8717,16 @@ class StyleAttributeAccessor {
             this.hasChanges = false;
             const currentValue = this.value;
             const styles = this.styles;
-            const styleTuples = this.getStyleTuples(currentValue);
+            const styleTuples = this._getStyleTuples(currentValue);
             let style;
             let version = this.version;
             this.oldValue = currentValue;
             let tuple;
             let name;
             let value;
+            let i = 0;
             const len = styleTuples.length;
-            for (let i = 0; i < len; ++i) {
+            for (; i < len; ++i) {
                 tuple = styleTuples[i];
                 name = tuple[0];
                 value = tuple[1];
@@ -9056,9 +9074,9 @@ function throwMappingExisted(nodeName, key) {
     throw new Error(`Mapping for property ${String(key)} of <${nodeName} /> already exists`);
 }
 
-exports.UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
+class UpdateTriggerBindingBehavior {
     constructor(observerLocator) {
-        this.observerLocator = observerLocator;
+        this.oL = observerLocator;
     }
     bind(flags, _scope, binding, ...events) {
         if (events.length === 0) {
@@ -9068,7 +9086,7 @@ exports.UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
             throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
         }
         // ensure the binding's target observer has been set.
-        const targetObserver = this.observerLocator.getObserver(binding.target, binding.targetProperty);
+        const targetObserver = this.oL.getObserver(binding.target, binding.targetProperty);
         if (!targetObserver.handler) {
             throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
         }
@@ -9089,11 +9107,9 @@ exports.UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
         binding.targetObserver.handler = binding.targetObserver.originalHandler;
         binding.targetObserver.originalHandler = null;
     }
-};
-exports.UpdateTriggerBindingBehavior = __decorate([
-    runtime.bindingBehavior('updateTrigger'),
-    __param(0, runtime.IObserverLocator)
-], exports.UpdateTriggerBindingBehavior);
+}
+UpdateTriggerBindingBehavior.inject = [runtime.IObserverLocator];
+runtime.bindingBehavior('updateTrigger')(UpdateTriggerBindingBehavior);
 
 /**
  * Focus attribute for element focus binding
@@ -9194,10 +9210,10 @@ __decorate([
     bindable({ mode: runtime.BindingMode.twoWay })
 ], exports.Focus.prototype, "value", void 0);
 exports.Focus = __decorate([
-    customAttribute('focus'),
     __param(0, INode),
     __param(1, IPlatform)
 ], exports.Focus);
+customAttribute('focus')(exports.Focus);
 
 let Show = class Show {
     constructor(el, p, instr) {
@@ -9253,64 +9269,62 @@ __decorate([
     bindable
 ], Show.prototype, "value", void 0);
 Show = __decorate([
-    customAttribute('show'),
-    runtime.alias('hide'),
     __param(0, INode),
     __param(1, IPlatform),
     __param(2, IInstruction)
 ], Show);
+runtime.alias('hide')(Show);
+customAttribute('show')(Show);
 
-exports.Portal = class Portal {
+class Portal {
     constructor(factory, originalLoc, p) {
-        this.factory = factory;
-        this.originalLoc = originalLoc;
-        this.p = p;
         this.id = kernel.nextId('au$component');
         this.strict = false;
+        this.p = p;
         // to make the shape of this object consistent.
         // todo: is this necessary
-        this.currentTarget = p.document.createElement('div');
-        this.view = this.factory.create();
+        this._currentTarget = p.document.createElement('div');
+        this.view = factory.create();
         setEffectiveParentNode(this.view.nodes, originalLoc);
     }
     attaching(initiator, parent, flags) {
         if (this.callbackContext == null) {
             this.callbackContext = this.$controller.scope.bindingContext;
         }
-        const newTarget = this.currentTarget = this.resolveTarget();
+        const newTarget = this._currentTarget = this._resolveTarget();
         this.view.setHost(newTarget);
-        return this.$activating(initiator, newTarget, flags);
+        return this._activating(initiator, newTarget, flags);
     }
     detaching(initiator, parent, flags) {
-        return this.$deactivating(initiator, this.currentTarget, flags);
+        return this._deactivating(initiator, this._currentTarget, flags);
     }
     targetChanged() {
         const { $controller } = this;
         if (!$controller.isActive) {
             return;
         }
-        const oldTarget = this.currentTarget;
-        const newTarget = this.currentTarget = this.resolveTarget();
+        const oldTarget = this._currentTarget;
+        const newTarget = this._currentTarget = this._resolveTarget();
         if (oldTarget === newTarget) {
             return;
         }
         this.view.setHost(newTarget);
         // TODO(fkleuver): fix and test possible race condition
-        const ret = kernel.onResolve(this.$deactivating(null, newTarget, $controller.flags), () => {
-            return this.$activating(null, newTarget, $controller.flags);
+        const ret = kernel.onResolve(this._deactivating(null, newTarget, $controller.flags), () => {
+            return this._activating(null, newTarget, $controller.flags);
         });
         if (ret instanceof Promise) {
             ret.catch(err => { throw err; });
         }
     }
-    $activating(initiator, target, flags) {
+    _activating(initiator, target, flags) {
         const { activating, callbackContext, view } = this;
         view.setHost(target);
         return kernel.onResolve(activating === null || activating === void 0 ? void 0 : activating.call(callbackContext, target, view), () => {
-            return this.activate(initiator, target, flags);
+            return this._activate(initiator, target, flags);
         });
     }
-    activate(initiator, target, flags) {
+    _activate(initiator, target, flags) {
         const { $controller, view } = this;
         if (initiator === null) {
             view.nodes.appendTo(target);
@@ -9318,38 +9332,38 @@ exports.Portal = class Portal {
         else {
             // TODO(fkleuver): fix and test possible race condition
             return kernel.onResolve(view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, $controller.scope), () => {
-                return this.$activated(target);
+                return this._activated(target);
             });
         }
-        return this.$activated(target);
+        return this._activated(target);
     }
-    $activated(target) {
+    _activated(target) {
         const { activated, callbackContext, view } = this;
         return activated === null || activated === void 0 ? void 0 : activated.call(callbackContext, target, view);
     }
-    $deactivating(initiator, target, flags) {
+    _deactivating(initiator, target, flags) {
         const { deactivating, callbackContext, view } = this;
         return kernel.onResolve(deactivating === null || deactivating === void 0 ? void 0 : deactivating.call(callbackContext, target, view), () => {
-            return this.deactivate(initiator, target, flags);
+            return this._deactivate(initiator, target, flags);
         });
     }
-    deactivate(initiator, target, flags) {
+    _deactivate(initiator, target, flags) {
         const { $controller, view } = this;
         if (initiator === null) {
             view.nodes.remove();
         }
         else {
             return kernel.onResolve(view.deactivate(initiator, $controller, flags), () => {
-                return this.$deactivated(target);
+                return this._deactivated(target);
             });
         }
-        return this.$deactivated(target);
+        return this._deactivated(target);
     }
-    $deactivated(target) {
+    _deactivated(target) {
         const { deactivated, callbackContext, view } = this;
         return deactivated === null || deactivated === void 0 ? void 0 : deactivated.call(callbackContext, target, view);
     }
-    resolveTarget() {
+    _resolveTarget() {
         const p = this.p;
         // with a $ in front to make it less confusing/error prone
         const $document = p.document;
@@ -9393,37 +9407,33 @@ exports.Portal = class Portal {
             return true;
         }
     }
-};
+}
+Portal.inject = [IViewFactory, IRenderLocation, IPlatform];
 __decorate([
     bindable({ primary: true })
-], exports.Portal.prototype, "target", void 0);
+], Portal.prototype, "target", void 0);
 __decorate([
     bindable({ callback: 'targetChanged' })
-], exports.Portal.prototype, "renderContext", void 0);
+], Portal.prototype, "renderContext", void 0);
 __decorate([
     bindable()
-], exports.Portal.prototype, "strict", void 0);
+], Portal.prototype, "strict", void 0);
 __decorate([
     bindable()
-], exports.Portal.prototype, "deactivating", void 0);
+], Portal.prototype, "deactivating", void 0);
 __decorate([
     bindable()
-], exports.Portal.prototype, "activating", void 0);
+], Portal.prototype, "activating", void 0);
 __decorate([
     bindable()
-], exports.Portal.prototype, "deactivated", void 0);
+], Portal.prototype, "deactivated", void 0);
 __decorate([
     bindable()
-], exports.Portal.prototype, "activated", void 0);
+], Portal.prototype, "activated", void 0);
 __decorate([
     bindable()
-], exports.Portal.prototype, "callbackContext", void 0);
-exports.Portal = __decorate([
-    templateController('portal'),
-    __param(0, IViewFactory),
-    __param(1, IRenderLocation),
-    __param(2, IPlatform)
-], exports.Portal);
+], Portal.prototype, "callbackContext", void 0);
+templateController('portal')(Portal);
 
 class FlagsTemplateController {
     constructor(factory, location, flags) {
@@ -9471,7 +9481,7 @@ ObserveShallow.inject = [IViewFactory, IRenderLocation];
 templateController('frequent-mutations')(FrequentMutations);
 templateController('observe-shallow')(ObserveShallow);
 
-exports.If = class If {
+class If {
     constructor(ifFactory, location, work) {
         this.ifFactory = ifFactory;
         this.location = location;
@@ -9613,21 +9623,17 @@ exports.If = class If {
             return true;
         }
     }
-};
+}
+If.inject = [IViewFactory, IRenderLocation, IWorkTracker];
 __decorate([
     bindable
-], exports.If.prototype, "value", void 0);
+], If.prototype, "value", void 0);
 __decorate([
     bindable({
         set: v => v === '' || !!v && v !== 'false'
     })
-], exports.If.prototype, "cache", void 0);
-exports.If = __decorate([
-    templateController('if'),
-    __param(0, IViewFactory),
-    __param(1, IRenderLocation),
-    __param(2, IWorkTracker)
-], exports.If);
+], If.prototype, "cache", void 0);
+templateController('if')(If);
 exports.Else = class Else {
     constructor(factory) {
         this.factory = factory;
@@ -9636,10 +9642,10 @@ exports.Else = class Else {
     link(flags, controller, _childController, _target, _instruction) {
         const children = controller.children;
         const ifBehavior = children[children.length - 1];
-        if (ifBehavior instanceof exports.If) {
+        if (ifBehavior instanceof If) {
             ifBehavior.elseFactory = this.factory;
         }
-        else if (ifBehavior.viewModel instanceof exports.If) {
+        else if (ifBehavior.viewModel instanceof If) {
             ifBehavior.viewModel.elseFactory = this.factory;
         }
         else {
@@ -9648,14 +9654,14 @@ exports.Else = class Else {
     }
 };
 exports.Else = __decorate([
-    templateController({ name: 'else' }),
     __param(0, IViewFactory)
 ], exports.Else);
+templateController({ name: 'else' })(exports.Else);
 
 function dispose(disposable) {
     disposable.dispose();
 }
-exports.Repeat = class Repeat {
+class Repeat {
     constructor(location, parent, factory) {
         this.location = location;
         this.parent = parent;
@@ -9665,10 +9671,10 @@ exports.Repeat = class Repeat {
         this.observer = void 0;
         this.views = [];
         this.key = void 0;
-        this.normalizedItems = void 0;
+        this._normalizedItems = void 0;
     }
     binding(initiator, parent, flags) {
-        this.checkCollectionObserver(flags);
+        this._checkCollectionObserver(flags);
         const bindings = this.parent.bindings;
         let binding = (void 0);
         for (let i = 0, ii = bindings.length; i < ii; ++i) {
@@ -9681,12 +9687,12 @@ exports.Repeat = class Repeat {
         this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, binding.locator, null);
     }
     attaching(initiator, parent, flags) {
-        this.normalizeToArray(flags);
-        return this.activateAllViews(initiator, flags);
+        this._normalizeToArray(flags);
+        return this._activateAllViews(initiator, flags);
     }
     detaching(initiator, parent, flags) {
-        this.checkCollectionObserver(flags);
-        return this.deactivateAllViews(initiator, flags);
+        this._checkCollectionObserver(flags);
+        return this._deactivateAllViews(initiator, flags);
     }
     // called by SetterObserver
     itemsChanged(flags) {
@@ -9695,11 +9701,11 @@ exports.Repeat = class Repeat {
             return;
         }
         flags |= $controller.flags;
-        this.checkCollectionObserver(flags);
-        this.normalizeToArray(flags);
-        const ret = kernel.onResolve(this.deactivateAllViews(null, flags), () => {
+        this._checkCollectionObserver(flags);
+        this._normalizeToArray(flags);
+        const ret = kernel.onResolve(this._deactivateAllViews(null, flags), () => {
             // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-            return this.activateAllViews(null, flags);
+            return this._activateAllViews(null, flags);
         });
         if (ret instanceof Promise) {
             ret.catch(err => { throw err; });
@@ -9712,11 +9718,11 @@ exports.Repeat = class Repeat {
             return;
         }
         flags |= $controller.flags;
-        this.normalizeToArray(flags);
+        this._normalizeToArray(flags);
         if (indexMap === void 0) {
-            const ret = kernel.onResolve(this.deactivateAllViews(null, flags), () => {
+            const ret = kernel.onResolve(this._deactivateAllViews(null, flags), () => {
                 // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-                return this.activateAllViews(null, flags);
+                return this._activateAllViews(null, flags);
             });
             if (ret instanceof Promise) {
                 ret.catch(err => { throw err; });
@@ -9728,9 +9734,9 @@ exports.Repeat = class Repeat {
             // first detach+unbind+(remove from array) the deleted view indices
             if (indexMap.deletedItems.length > 0) {
                 indexMap.deletedItems.sort(kernel.compareNumber);
-                const ret = kernel.onResolve(this.deactivateAndRemoveViewsByKey(indexMap, flags), () => {
+                const ret = kernel.onResolve(this._deactivateAndRemoveViewsByKey(indexMap, flags), () => {
                     // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-                    return this.createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
+                    return this._createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
                 });
                 if (ret instanceof Promise) {
                     ret.catch(err => { throw err; });
@@ -9739,12 +9745,12 @@ exports.Repeat = class Repeat {
             else {
                 // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
                 // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                this.createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
+                this._createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
             }
         }
     }
     // todo: subscribe to collection from inner expression
-    checkCollectionObserver(flags) {
+    _checkCollectionObserver(flags) {
         const oldObserver = this.observer;
         if ((flags & 4 /* fromUnbind */)) {
             if (oldObserver !== void 0) {
@@ -9761,10 +9767,10 @@ exports.Repeat = class Repeat {
             }
         }
     }
-    normalizeToArray(flags) {
+    _normalizeToArray(flags) {
         const items = this.items;
         if (items instanceof Array) {
-            this.normalizedItems = items;
+            this._normalizedItems = items;
             return;
         }
         const forOf = this.forOf;
@@ -9775,9 +9781,9 @@ exports.Repeat = class Repeat {
         this.forOf.iterate(flags, items, (arr, index, item) => {
             normalizedItems[index] = item;
         });
-        this.normalizedItems = normalizedItems;
+        this._normalizedItems = normalizedItems;
     }
-    activateAllViews(initiator, flags) {
+    _activateAllViews(initiator, flags) {
         let promises = void 0;
         let ret;
         let view;
@@ -9802,7 +9808,7 @@ exports.Repeat = class Repeat {
                 : Promise.all(promises);
         }
     }
-    deactivateAllViews(initiator, flags) {
+    _deactivateAllViews(initiator, flags) {
         let promises = void 0;
         let ret;
         let view;
@@ -9821,7 +9827,7 @@ exports.Repeat = class Repeat {
                 : Promise.all(promises);
         }
     }
-    deactivateAndRemoveViewsByKey(indexMap, flags) {
+    _deactivateAndRemoveViewsByKey(indexMap, flags) {
         let promises = void 0;
         let ret;
         let view;
@@ -9849,13 +9855,13 @@ exports.Repeat = class Repeat {
                 : Promise.all(promises);
         }
     }
-    createAndActivateAndSortViewsByKey(oldLength, indexMap, flags) {
+    _createAndActivateAndSortViewsByKey(oldLength, indexMap, flags) {
         var _a;
         let promises = void 0;
         let ret;
         let view;
         let viewScope;
-        const { $controller, factory, local, normalizedItems, location, views } = this;
+        const { $controller, factory, local, _normalizedItems: normalizedItems, location, views } = this;
         const mapLen = indexMap.length;
         for (let i = 0; i < mapLen; ++i) {
             if (indexMap[i] === -2) {
@@ -9921,16 +9927,12 @@ exports.Repeat = class Repeat {
             }
         }
     }
-};
+}
+Repeat.inject = [IRenderLocation, IController, IViewFactory];
 __decorate([
     bindable
-], exports.Repeat.prototype, "items", void 0);
-exports.Repeat = __decorate([
-    templateController('repeat'),
-    __param(0, IRenderLocation),
-    __param(1, IController),
-    __param(2, IViewFactory)
-], exports.Repeat);
+], Repeat.prototype, "items", void 0);
+templateController('repeat')(Repeat);
 let maxLen = 16;
 let prevIndices = new Int32Array(maxLen);
 let tailIndices = new Int32Array(maxLen);
@@ -10007,7 +10009,7 @@ function setContextualProperties(oc, index, length) {
     oc.$length = length;
 }
 
-exports.With = class With {
+class With {
     constructor(factory, location) {
         this.factory = factory;
         this.location = location;
@@ -10045,15 +10047,12 @@ exports.With = class With {
             return true;
         }
     }
-};
+}
+With.inject = [IViewFactory, IRenderLocation];
 __decorate([
     bindable
-], exports.With.prototype, "value", void 0);
-exports.With = __decorate([
-    templateController('with'),
-    __param(0, IViewFactory),
-    __param(1, IRenderLocation)
-], exports.With);
+], With.prototype, "value", void 0);
+templateController('with')(With);
 
 exports.Switch = class Switch {
     constructor(factory, location) {
@@ -10751,14 +10750,14 @@ function toLookup(acc, item) {
 exports.AuRender = class AuRender {
     constructor(p, instruction, hdrContext, r) {
         this.p = p;
-        this.hdrContext = hdrContext;
         this.r = r;
         this.id = kernel.nextId('au$component');
         this.component = void 0;
         this.composing = false;
         this.view = void 0;
         this.lastSubject = void 0;
-        this.properties = instruction.instructions.reduce(toLookup, {});
+        this._properties = instruction.instructions.reduce(toLookup, {});
+        this._hdrContext = hdrContext;
     }
     attaching(initiator, parent, flags) {
         const { component, view } = this;
@@ -10770,7 +10769,7 @@ exports.AuRender = class AuRender {
         return this.compose(view, component, initiator, flags);
     }
     detaching(initiator, parent, flags) {
-        return this.deactivate(this.view, initiator, flags);
+        return this._deactivate(this.view, initiator, flags);
     }
     componentChanged(newValue, previousValue, flags) {
         const { $controller } = this;
@@ -10783,7 +10782,7 @@ exports.AuRender = class AuRender {
         this.lastSubject = newValue;
         this.composing = true;
         flags |= $controller.flags;
-        const ret = kernel.onResolve(this.deactivate(this.view, null, flags), () => {
+        const ret = kernel.onResolve(this._deactivate(this.view, null, flags), () => {
             // TODO(fkleuver): handle & test race condition
             return this.compose(void 0, newValue, null, flags);
         });
@@ -10793,20 +10792,20 @@ exports.AuRender = class AuRender {
     }
     compose(view, subject, initiator, flags) {
         return kernel.onResolve(view === void 0
-            ? kernel.onResolve(subject, resolvedSubject => this.resolveView(resolvedSubject, flags))
-            : view, resolvedView => this.activate(this.view = resolvedView, initiator, flags));
+            ? kernel.onResolve(subject, resolvedSubject => this._resolveView(resolvedSubject, flags))
+            : view, resolvedView => this._activate(this.view = resolvedView, initiator, flags));
     }
-    deactivate(view, initiator, flags) {
+    _deactivate(view, initiator, flags) {
         return view === null || view === void 0 ? void 0 : view.deactivate(initiator !== null && initiator !== void 0 ? initiator : view, this.$controller, flags);
     }
-    activate(view, initiator, flags) {
+    _activate(view, initiator, flags) {
         const { $controller } = this;
         return kernel.onResolve(view === null || view === void 0 ? void 0 : view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, $controller.scope), () => {
             this.composing = false;
         });
     }
-    resolveView(subject, flags) {
-        const view = this.provideViewFor(subject, flags);
+    _resolveView(subject, flags) {
+        const view = this._provideViewFor(subject, flags);
         if (view) {
             view.setLocation(this.$controller.location);
             view.lockScope(this.$controller.scope);
@@ -10814,11 +10813,11 @@ exports.AuRender = class AuRender {
         }
         return void 0;
     }
-    provideViewFor(comp, flags) {
+    _provideViewFor(comp, flags) {
         if (!comp) {
             return void 0;
         }
-        const ctxContainer = this.hdrContext.controller.container;
+        const ctxContainer = this._hdrContext.controller.container;
         if (typeof comp === 'object') {
             if (isController(comp)) { // IController
                 return comp;
@@ -10841,7 +10840,7 @@ exports.AuRender = class AuRender {
             comp = def.Type;
         }
         // Constructable (Custom Element Constructor)
-        return createElement(this.p, comp, this.properties, this.$controller.host.childNodes).createView(ctxContainer);
+        return createElement(this.p, comp, this._properties, this.$controller.host.childNodes).createView(ctxContainer);
     }
     dispose() {
         var _a;
@@ -10876,22 +10875,22 @@ function isController(subject) {
 // <au-component view.bind="Promise<string>" view-model.bind="" model.bind="" />
 // <au-component view.bind="<string>" model.bind="" />
 //
-exports.AuCompose = class AuCompose {
-    constructor(container, parent, host, p, 
+class AuCompose {
+    constructor(ctn, parent, host, p, 
     // todo: use this to retrieve au-slot instruction
     //        for later enhancement related to <au-slot/> + compose
     instruction, contextFactory) {
-        this.container = container;
+        this.ctn = ctn;
         this.parent = parent;
         this.host = host;
         this.p = p;
-        this.instruction = instruction;
-        this.contextFactory = contextFactory;
         this.scopeBehavior = 'auto';
         /** @internal */
         this.c = void 0;
         this.loc = instruction.containerless ? convertToRenderLocation(this.host) : void 0;
-        this.r = container.get(IRendering);
+        this.r = ctn.get(IRendering);
+        this._instruction = instruction;
+        this._contextFactory = contextFactory;
     }
     /** @internal */
     static get inject() {
@@ -10905,7 +10904,7 @@ exports.AuCompose = class AuCompose {
     }
     attaching(initiator, parent, flags) {
         return this.pd = kernel.onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, initiator, void 0)), (context) => {
-            if (this.contextFactory.isCurrent(context)) {
+            if (this._contextFactory.isCurrent(context)) {
                 this.pd = void 0;
             }
         });
@@ -10913,7 +10912,7 @@ exports.AuCompose = class AuCompose {
     detaching(initiator) {
         const cmpstn = this.c;
         const pending = this.pd;
-        this.contextFactory.invalidate();
+        this._contextFactory.invalidate();
         this.c = this.pd = void 0;
         return kernel.onResolve(pending, () => cmpstn === null || cmpstn === void 0 ? void 0 : cmpstn.deactivate(initiator));
     }
@@ -10925,14 +10924,14 @@ exports.AuCompose = class AuCompose {
             return;
         }
         this.pd = kernel.onResolve(this.pd, () => kernel.onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, void 0, name)), (context) => {
-            if (this.contextFactory.isCurrent(context)) {
+            if (this._contextFactory.isCurrent(context)) {
                 this.pd = void 0;
             }
         }));
     }
     /** @internal */
     queue(change) {
-        const factory = this.contextFactory;
+        const factory = this._contextFactory;
         const compositionCtrl = this.c;
         // todo: handle consequitive changes that create multiple queues
         return kernel.onResolve(factory.create(change), context => {
@@ -10979,7 +10978,7 @@ exports.AuCompose = class AuCompose {
         //       should it throw or try it best to proceed?
         //       current: proceed
         const { view, viewModel, model, initiator } = context.change;
-        const { container, host, $controller, loc } = this;
+        const { ctn: container, host, $controller, loc } = this;
         const srcDef = this.getDef(viewModel);
         const childCtn = container.createChild();
         const parentNode = loc == null ? host.parentNode : loc.parentNode;
@@ -11012,7 +11011,7 @@ exports.AuCompose = class AuCompose {
         const compose = () => {
             // custom element based composition
             if (srcDef !== null) {
-                const controller = Controller.forCustomElement(childCtn, comp, compositionHost, null, 0 /* none */, srcDef);
+                const controller = Controller.$el(childCtn, comp, compositionHost, null, 0 /* none */, srcDef);
                 return new CompositionController(controller, () => controller.activate(initiator !== null && initiator !== void 0 ? initiator : controller, $controller, 2 /* fromBind */), 
                 // todo: call deactivate on the component view model
                 (deactachInitiator) => kernel.onResolve(controller.deactivate(deactachInitiator !== null && deactachInitiator !== void 0 ? deactachInitiator : controller, $controller, 4 /* fromUnbind */), removeCompositionHost), 
@@ -11026,7 +11025,7 @@ exports.AuCompose = class AuCompose {
                     template: view,
                 });
                 const viewFactory = this.r.getViewFactory(targetDef, childCtn);
-                const controller = Controller.forSyntheticView(viewFactory, 2 /* fromBind */, $controller);
+                const controller = Controller.$view(viewFactory, 2 /* fromBind */, $controller);
                 const scope = this.scopeBehavior === 'auto'
                     ? runtime.Scope.fromParent(this.parent.scope, comp)
                     : runtime.Scope.create(comp);
@@ -11080,16 +11079,16 @@ exports.AuCompose = class AuCompose {
             ? CustomElement.getDefinition(Ctor)
             : null;
     }
-};
+}
 __decorate([
     bindable
-], exports.AuCompose.prototype, "view", void 0);
+], AuCompose.prototype, "view", void 0);
 __decorate([
     bindable
-], exports.AuCompose.prototype, "viewModel", void 0);
+], AuCompose.prototype, "viewModel", void 0);
 __decorate([
     bindable
-], exports.AuCompose.prototype, "model", void 0);
+], AuCompose.prototype, "model", void 0);
 __decorate([
     bindable({
         set: v => {
@@ -11099,10 +11098,8 @@ __decorate([
             throw new Error('Invalid scope behavior config. Only "scoped" or "auto" allowed.');
         }
     })
-], exports.AuCompose.prototype, "scopeBehavior", void 0);
-exports.AuCompose = __decorate([
-    customElement('au-compose')
-], exports.AuCompose);
+], AuCompose.prototype, "scopeBehavior", void 0);
+customElement('au-compose')(AuCompose);
 class EmptyComponent$1 {
 }
 class CompositionContextFactory {
@@ -11191,7 +11188,6 @@ class CompositionController {
 class AuSlot {
     constructor(location, instruction, hdrContext, rendering) {
         var _a, _b;
-        this.hdrContext = hdrContext;
         this._parentScope = null;
         this._outerScope = null;
         let factory;
@@ -11205,6 +11201,7 @@ class AuSlot {
             factory = rendering.getViewFactory(projection, hdrContext.parent.controller.container);
             this._hasProjection = true;
         }
+        this._hdrContext = hdrContext;
         this.view = factory.create().setLocation(location);
     }
     /** @internal */
@@ -11219,7 +11216,7 @@ class AuSlot {
             // via overlaying the outerscope with another scope that has
             // - binding context & override context pointing to the outer scope binding & override context respectively
             // - override context has the $host pointing to inner scope binding context
-            outerScope = this.hdrContext.controller.scope.parentScope;
+            outerScope = this._hdrContext.controller.scope.parentScope;
             (this._outerScope = runtime.Scope.fromParent(outerScope, outerScope.bindingContext))
                 .overrideContext.$host = (_a = this.expose) !== null && _a !== void 0 ? _a : this._parentScope.bindingContext;
         }
@@ -11377,10 +11374,10 @@ const SanitizeValueConverterRegistration = exports.SanitizeValueConverter;
 const ViewValueConverterRegistration = exports.ViewValueConverter;
 const FrequentMutationsRegistration = FrequentMutations;
 const ObserveShallowRegistration = ObserveShallow;
-const IfRegistration = exports.If;
+const IfRegistration = If;
 const ElseRegistration = exports.Else;
-const RepeatRegistration = exports.Repeat;
-const WithRegistration = exports.With;
+const RepeatRegistration = Repeat;
+const WithRegistration = With;
 const SwitchRegistration = exports.Switch;
 const CaseRegistration = exports.Case;
 const DefaultCaseRegistration = exports.DefaultCase;
@@ -11392,12 +11389,12 @@ const RejectedTemplateControllerRegistration = exports.RejectedTemplateControlle
 // export const PromiseAttributePatternRegistration = PromiseAttributePattern as unknown as IRegistry;
 // export const FulfilledAttributePatternRegistration = FulfilledAttributePattern as unknown as IRegistry;
 // export const RejectedAttributePatternRegistration = RejectedAttributePattern as unknown as IRegistry;
-const AttrBindingBehaviorRegistration = exports.AttrBindingBehavior;
-const SelfBindingBehaviorRegistration = exports.SelfBindingBehavior;
-const UpdateTriggerBindingBehaviorRegistration = exports.UpdateTriggerBindingBehavior;
+const AttrBindingBehaviorRegistration = AttrBindingBehavior;
+const SelfBindingBehaviorRegistration = SelfBindingBehavior;
+const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior;
 const AuRenderRegistration = exports.AuRender;
-const AuComposeRegistration = exports.AuCompose;
-const PortalRegistration = exports.Portal;
+const AuComposeRegistration = AuCompose;
+const PortalRegistration = Portal;
 const FocusRegistration = exports.Focus;
 const ShowRegistration = Show;
 /**
@@ -11581,7 +11578,7 @@ class Aurelia {
         }
         ctn.registerResolver(IEventTarget, new kernel.InstanceProvider('IEventTarget', host));
         parentController = parentController !== null && parentController !== void 0 ? parentController : null;
-        const view = Controller.forCustomElement(ctn, bc, host, null, void 0, CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }));
+        const view = Controller.$el(ctn, bc, host, null, void 0, CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }));
         return kernel.onResolve(view.activate(view, parentController, 2 /* fromBind */), () => view);
     }
     async waitForIdle() {
@@ -11756,7 +11753,7 @@ class DialogController {
             const cmp = this.cmp;
             return kernel.onResolve((_a = cmp.activate) === null || _a === void 0 ? void 0 : _a.call(cmp, model), () => {
                 var _a;
-                const ctrlr = this.controller = Controller.forCustomElement(container, cmp, contentHost, null, 0 /* none */, CustomElementDefinition.create((_a = this.getDefinition(cmp)) !== null && _a !== void 0 ? _a : { name: CustomElement.generateName(), template }));
+                const ctrlr = this.controller = Controller.$el(container, cmp, contentHost, null, 0 /* none */, CustomElementDefinition.create((_a = this.getDefinition(cmp)) !== null && _a !== void 0 ? _a : { name: CustomElement.generateName(), template }));
                 return kernel.onResolve(ctrlr.activate(ctrlr, null, 2 /* fromBind */), () => {
                     var _a;
                     dom.overlay.addEventListener((_a = settings.mouseEvent) !== null && _a !== void 0 ? _a : 'click', this);
@@ -12713,6 +12710,7 @@ exports.AdoptedStyleSheetsStyles = AdoptedStyleSheetsStyles;
 exports.AppRoot = AppRoot;
 exports.AppTask = AppTask;
 exports.AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePatternRegistration;
+exports.AttrBindingBehavior = AttrBindingBehavior;
 exports.AttrBindingBehaviorRegistration = AttrBindingBehaviorRegistration;
 exports.AttrBindingCommandRegistration = AttrBindingCommandRegistration;
 exports.AttrSyntax = AttrSyntax;
@@ -12721,6 +12719,7 @@ exports.AttributeBindingInstruction = AttributeBindingInstruction;
 exports.AttributeBindingRendererRegistration = AttributeBindingRendererRegistration;
 exports.AttributeNSAccessor = AttributeNSAccessor;
 exports.AttributePattern = AttributePattern;
+exports.AuCompose = AuCompose;
 exports.AuRenderRegistration = AuRenderRegistration;
 exports.AuSlot = AuSlot;
 exports.AuSlotsInfo = AuSlotsInfo;
@@ -12741,6 +12740,7 @@ exports.CaptureBindingCommandRegistration = CaptureBindingCommandRegistration;
 exports.CheckedObserver = CheckedObserver;
 exports.Children = Children;
 exports.ChildrenDefinition = ChildrenDefinition;
+exports.ChildrenObserver = ChildrenObserver;
 exports.ClassAttributeAccessor = ClassAttributeAccessor;
 exports.ClassBindingCommandRegistration = ClassBindingCommandRegistration;
 exports.ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePatternRegistration;
@@ -12827,6 +12827,7 @@ exports.IViewFactory = IViewFactory;
 exports.IViewLocator = IViewLocator;
 exports.IWindow = IWindow;
 exports.IWorkTracker = IWorkTracker;
+exports.If = If;
 exports.IfRegistration = IfRegistration;
 exports.InterpolationBinding = InterpolationBinding;
 exports.InterpolationBindingRendererRegistration = InterpolationBindingRendererRegistration;
@@ -12850,6 +12851,7 @@ exports.ObserveShallow = ObserveShallow;
 exports.OneTimeBindingBehavior = OneTimeBindingBehavior;
 exports.OneTimeBindingBehaviorRegistration = OneTimeBindingBehaviorRegistration;
 exports.OneTimeBindingCommandRegistration = OneTimeBindingCommandRegistration;
+exports.Portal = Portal;
 exports.PropertyBinding = PropertyBinding;
 exports.PropertyBindingInstruction = PropertyBindingInstruction;
 exports.PropertyBindingRendererRegistration = PropertyBindingRendererRegistration;
@@ -12860,11 +12862,13 @@ exports.RefBindingInstruction = RefBindingInstruction;
 exports.RefBindingRendererRegistration = RefBindingRendererRegistration;
 exports.RenderPlan = RenderPlan;
 exports.Rendering = Rendering;
+exports.Repeat = Repeat;
 exports.RepeatRegistration = RepeatRegistration;
 exports.SVGAnalyzer = SVGAnalyzer;
 exports.SVGAnalyzerRegistration = SVGAnalyzerRegistration;
 exports.SanitizeValueConverterRegistration = SanitizeValueConverterRegistration;
 exports.SelectValueObserver = SelectValueObserver;
+exports.SelfBindingBehavior = SelfBindingBehavior;
 exports.SelfBindingBehaviorRegistration = SelfBindingBehaviorRegistration;
 exports.SetAttributeInstruction = SetAttributeInstruction;
 exports.SetAttributeRendererRegistration = SetAttributeRendererRegistration;
@@ -12898,6 +12902,7 @@ exports.TriggerBindingCommandRegistration = TriggerBindingCommandRegistration;
 exports.TwoWayBindingBehavior = TwoWayBindingBehavior;
 exports.TwoWayBindingBehaviorRegistration = TwoWayBindingBehaviorRegistration;
 exports.TwoWayBindingCommandRegistration = TwoWayBindingCommandRegistration;
+exports.UpdateTriggerBindingBehavior = UpdateTriggerBindingBehavior;
 exports.UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehaviorRegistration;
 exports.ValueAttributeObserver = ValueAttributeObserver;
 exports.ViewFactory = ViewFactory;
@@ -12905,6 +12910,7 @@ exports.ViewLocator = ViewLocator;
 exports.ViewValueConverterRegistration = ViewValueConverterRegistration;
 exports.Views = Views;
 exports.Watch = Watch;
+exports.With = With;
 exports.WithRegistration = WithRegistration;
 exports.allResources = allResources;
 exports.attributePattern = attributePattern;

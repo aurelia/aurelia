@@ -10,14 +10,17 @@ export declare class ComputedObserver implements IConnectableBinding, ISubscribe
     readonly get: (watcher: IConnectable) => unknown;
     readonly set: undefined | ((v: unknown) => void);
     readonly useProxy: boolean;
-    readonly observerLocator: IObserverLocator;
     static create(obj: object, key: PropertyKey, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, useProxy: boolean): ComputedObserver;
     interceptor: this;
     type: AccessorType;
     readonly queue: FlushQueue;
     value: unknown;
-    private oldValue;
-    private isDirty;
+    private _oldValue;
+    private _isDirty;
+    /**
+     * A semi-private property used by connectable mixin
+     */
+    readonly oL: IObserverLocator;
     constructor(obj: object, get: (watcher: IConnectable) => unknown, set: undefined | ((v: unknown) => void), useProxy: boolean, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValue(v: unknown, _flags: LifecycleFlags): void;

@@ -1,6 +1,6 @@
 import { LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
-import type { IObserver, IObserverLocator, ISubscriber, ISubscriberCollection, IFlushable, IWithFlushQueue, FlushQueue } from '@aurelia/runtime';
+import type { IObserver, ISubscriber, ISubscriberCollection, IFlushable, IWithFlushQueue, FlushQueue } from '@aurelia/runtime';
 export interface IHtmlElement extends HTMLElement {
     $mObserver: MutationObserver;
     $eMObservers: Set<ElementMutationSubscription>;
@@ -17,7 +17,6 @@ export interface AttributeObserver extends IObserver, ISubscriber, ISubscriberCo
  */
 export declare class AttributeObserver implements AttributeObserver, ElementMutationSubscription, IWithFlushQueue, IFlushable {
     private readonly platform;
-    readonly observerLocator: IObserverLocator;
     readonly obj: IHtmlElement;
     readonly propertyKey: string;
     readonly targetAttribute: string;
@@ -27,7 +26,7 @@ export declare class AttributeObserver implements AttributeObserver, ElementMuta
     type: AccessorType;
     readonly queue: FlushQueue;
     private f;
-    constructor(platform: IPlatform, observerLocator: IObserverLocator, obj: IHtmlElement, propertyKey: string, targetAttribute: string);
+    constructor(platform: IPlatform, obj: IHtmlElement, propertyKey: string, targetAttribute: string);
     getValue(): unknown;
     setValue(value: unknown, flags: LifecycleFlags): void;
     flushChanges(flags: LifecycleFlags): void;

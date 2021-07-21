@@ -3130,7 +3130,7 @@ class ComponentAgent {
         if (void 0 === o) {
             const r = n.container;
             const a = RouteDefinition.resolve(t.constructor);
-            const h = e.Controller.forCustomElement(r, t, i.host, null);
+            const h = e.Controller.$el(r, t, i.host, null);
             at.set(t, o = new ComponentAgent(t, h, a, s, n));
         }
         return o;

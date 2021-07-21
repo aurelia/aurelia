@@ -8,8 +8,8 @@ export declare class Interpretation {
     get pattern(): string | null;
     set pattern(value: string | null);
     private _pattern;
-    private readonly currentRecord;
-    private readonly partsRecord;
+    private readonly _currentRecord;
+    private readonly _partsRecord;
     append(pattern: string, ch: string): void;
     next(pattern: string): void;
 }
@@ -40,9 +40,10 @@ export interface IAttributeParser extends AttributeParser {
 }
 export declare const IAttributeParser: import("@aurelia/kernel").InterfaceSymbol<IAttributeParser>;
 export declare class AttributeParser {
-    private readonly interpreter;
-    private readonly cache;
-    private readonly patterns;
+    static inject: import("@aurelia/kernel").InterfaceSymbol<ISyntaxInterpreter>[];
+    private readonly _cache;
+    private readonly _patterns;
+    private readonly _interpreter;
     constructor(interpreter: ISyntaxInterpreter, attrPatterns: IAttributePattern[]);
     parse(name: string, value: string): AttrSyntax;
 }

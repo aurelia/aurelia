@@ -16,12 +16,10 @@ export interface IDynamicComponentActivate<T> {
 declare type MaybePromise<T> = T | Promise<T>;
 declare type ChangeSource = 'view' | 'viewModel' | 'model' | 'scopeBehavior';
 export declare class AuCompose {
-    private readonly container;
+    private readonly ctn;
     private readonly parent;
     private readonly host;
     private readonly p;
-    private readonly instruction;
-    private readonly contextFactory;
     view?: string | Promise<string>;
     viewModel?: Constructable | object | Promise<Constructable | object>;
     model?: unknown;
@@ -30,7 +28,9 @@ export declare class AuCompose {
     get pending(): Promise<void> | void;
     get composition(): ICompositionController | undefined;
     private readonly r;
-    constructor(container: IContainer, parent: ISyntheticView | ICustomElementController, host: HTMLElement, p: IPlatform, instruction: HydrateElementInstruction, contextFactory: CompositionContextFactory);
+    private readonly _instruction;
+    private readonly _contextFactory;
+    constructor(ctn: IContainer, parent: ISyntheticView | ICustomElementController, host: HTMLElement, p: IPlatform, instruction: HydrateElementInstruction, contextFactory: CompositionContextFactory);
     attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController): void | Promise<void>;
 }

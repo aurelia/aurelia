@@ -4,9 +4,9 @@ export interface IObservation extends Observation {
 }
 export declare const IObservation: import("@aurelia/kernel").InterfaceSymbol<IObservation>;
 export declare class Observation implements IObservation {
-    readonly observerLocator: IObserverLocator;
+    private readonly oL;
     static get inject(): import("@aurelia/kernel").InterfaceSymbol<IObserverLocator>[];
-    constructor(observerLocator: IObserverLocator);
+    constructor(oL: IObserverLocator);
     /**
      * Run an effect function an track the dependencies inside it,
      * to re-run whenever a dependency has changed

@@ -5,6 +5,7 @@ import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewMo
 export declare class With implements ICustomAttributeViewModel {
     private readonly factory;
     private readonly location;
+    static inject: (import("@aurelia/kernel").InterfaceSymbol<IViewFactory> | import("@aurelia/kernel").InterfaceSymbol<IRenderLocation<ChildNode>>)[];
     readonly id: number;
     view: ISyntheticView;
     readonly $controller: ICustomAttributeController<this>;

@@ -687,8 +687,8 @@ class TestContext {
         this.i = void 0;
         this.o = void 0;
         this.l = void 0;
+        this.oL = void 0;
         this.u = void 0;
-        this.h = void 0;
     }
     get wnd() {
         return this.platform.globalThis;
@@ -747,12 +747,12 @@ class TestContext {
         return this.l;
     }
     get observerLocator() {
-        if (void 0 === this.u) this.u = this.container.get(t.IObserverLocator);
-        return this.u;
+        if (void 0 === this.oL) this.oL = this.container.get(t.IObserverLocator);
+        return this.oL;
     }
     get domParser() {
-        if (void 0 === this.h) this.h = this.doc.createElement("div");
-        return this.h;
+        if (void 0 === this.u) this.u = this.doc.createElement("div");
+        return this.u;
     }
     static create() {
         return new TestContext;
@@ -2402,7 +2402,7 @@ const ci = function() {
         const s = t.preempt;
         const o = t.reusable;
         const l = t.persistent;
-        const u = t["p"];
+        const u = t["h"];
         return `    task id=${i} createdTime=${r} queueTime=${a} preempt=${s} reusable=${o} persistent=${l} status=${u}\n` + `    task callback="${null === (n = t.callback) || void 0 === n ? void 0 : n.toString()}"`;
     }
     function i(e, t) {
@@ -3931,18 +3931,18 @@ class ChangeSet {
     constructor(e, t, n, i) {
         this.index = e;
         this.flags = t;
-        this.g = n;
-        this.m = i;
+        this.p = n;
+        this.g = i;
     }
     get newValue() {
-        return this.g;
+        return this.p;
     }
     get oldValue() {
-        return this.m;
+        return this.g;
     }
     dispose() {
+        this.p = void 0;
         this.g = void 0;
-        this.m = void 0;
     }
 }
 
@@ -3951,18 +3951,18 @@ class ProxyChangeSet {
         this.index = e;
         this.flags = t;
         this.key = n;
-        this.g = i;
-        this.m = r;
+        this.p = i;
+        this.g = r;
     }
     get newValue() {
-        return this.g;
+        return this.p;
     }
     get oldValue() {
-        return this.m;
+        return this.g;
     }
     dispose() {
+        this.p = void 0;
         this.g = void 0;
-        this.m = void 0;
     }
 }
 
@@ -3970,57 +3970,61 @@ class CollectionChangeSet {
     constructor(e, t, n) {
         this.index = e;
         this.flags = t;
-        this.v = n;
+        this.m = n;
     }
     get indexMap() {
-        return this.v;
+        return this.m;
     }
     dispose() {
-        this.v = void 0;
+        this.m = void 0;
     }
 }
 
 class SpySubscriber {
     constructor() {
+        this.v = void 0;
         this.$ = void 0;
         this.k = void 0;
-        this.C = void 0;
-        this.S = 0;
+        this.C = 0;
     }
     get changes() {
+        if (void 0 === this.v) return e.emptyArray;
+        return this.v;
+    }
+    get proxyChanges() {
         if (void 0 === this.$) return e.emptyArray;
         return this.$;
     }
-    get proxyChanges() {
+    get collectionChanges() {
         if (void 0 === this.k) return e.emptyArray;
         return this.k;
     }
-    get collectionChanges() {
-        if (void 0 === this.C) return e.emptyArray;
-        return this.C;
-    }
     get hasChanges() {
-        return void 0 !== this.$;
+        return void 0 !== this.v;
     }
     get hasProxyChanges() {
-        return void 0 !== this.k;
+        return void 0 !== this.$;
     }
     get hasCollectionChanges() {
-        return void 0 !== this.C;
+        return void 0 !== this.k;
     }
     get callCount() {
-        return this.S;
+        return this.C;
     }
     handleChange(e, t, n) {
-        if (void 0 === this.$) this.$ = [ new ChangeSet(this.S++, n, e, t) ]; else this.$.push(new ChangeSet(this.S++, n, e, t));
+        if (void 0 === this.v) this.v = [ new ChangeSet(this.C++, n, e, t) ]; else this.v.push(new ChangeSet(this.C++, n, e, t));
     }
     handleProxyChange(e, t, n, i) {
-        if (void 0 === this.k) this.k = [ new ProxyChangeSet(this.S++, i, e, t, n) ]; else this.k.push(new ProxyChangeSet(this.S++, i, e, t, n));
+        if (void 0 === this.$) this.$ = [ new ProxyChangeSet(this.C++, i, e, t, n) ]; else this.$.push(new ProxyChangeSet(this.C++, i, e, t, n));
     }
     handleCollectionChange(e, t) {
-        if (void 0 === this.C) this.C = [ new CollectionChangeSet(this.S++, t, e) ]; else this.C.push(new CollectionChangeSet(this.S++, t, e));
+        if (void 0 === this.k) this.k = [ new CollectionChangeSet(this.C++, t, e) ]; else this.k.push(new CollectionChangeSet(this.C++, t, e));
     }
     dispose() {
+        if (void 0 !== this.v) {
+            this.v.forEach((e => e.dispose()));
+            this.v = void 0;
+        }
         if (void 0 !== this.$) {
             this.$.forEach((e => e.dispose()));
             this.$ = void 0;
@@ -4029,11 +4033,7 @@ class SpySubscriber {
             this.k.forEach((e => e.dispose()));
             this.k = void 0;
         }
-        if (void 0 !== this.C) {
-            this.C.forEach((e => e.dispose()));
-            this.C = void 0;
-        }
-        this.S = 0;
+        this.C = 0;
     }
 }
 

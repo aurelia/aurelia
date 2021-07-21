@@ -1,7 +1,7 @@
 import { LifecycleFlags, IPlatform } from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
-import { Scope, IsExpression, IConnectableBinding, IExpressionParser, IObserverLocator, IPartialConnectableBinding } from '@aurelia/runtime';
+import { Scope, IsExpression, IConnectableBinding, IExpressionParser, IObserverLocator, IObserverLocatorBasedConnectable } from '@aurelia/runtime';
 import type { CallBindingInstruction, IHydratableController, INode } from '@aurelia/runtime-html';
 interface TranslationBindingCreationContext {
     parser: IExpressionParser;
@@ -15,8 +15,7 @@ interface TranslationBindingCreationContext {
 }
 export interface TranslationBinding extends IConnectableBinding {
 }
-export declare class TranslationBinding implements IPartialConnectableBinding {
-    observerLocator: IObserverLocator;
+export declare class TranslationBinding implements IObserverLocatorBasedConnectable {
     locator: IServiceLocator;
     interceptor: this;
     isBound: boolean;
@@ -31,6 +30,10 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     target: HTMLElement;
     private readonly platform;
     private parameter;
+    /**
+     * A semi-private property used by connectable mixin
+     */
+    readonly oL: IObserverLocator;
     constructor(target: INode, observerLocator: IObserverLocator, locator: IServiceLocator, platform: IPlatform);
     static create({ parser, observerLocator, context, controller, target, instruction, platform, isParameterContext, }: TranslationBindingCreationContext): void;
     private static getBinding;

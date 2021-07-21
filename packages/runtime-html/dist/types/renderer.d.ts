@@ -308,7 +308,7 @@ export declare class LetElementRenderer implements IRenderer {
 }
 export declare class CallBindingRenderer implements IRenderer {
     private readonly parser;
-    private readonly observerLocator;
+    static inject: (import("@aurelia/kernel").InterfaceSymbol<IExpressionParser> | import("@aurelia/kernel").InterfaceSymbol<IObserverLocator>)[];
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
     render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: CallBindingInstruction): void;
 }

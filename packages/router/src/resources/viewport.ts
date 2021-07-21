@@ -116,7 +116,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
 
   public hydrated(controller: ICompiledCustomElementController): void | Promise<void> {
     this.controller = controller as ICustomElementController;
-    this.container = controller.context.get(IContainer);
+    this.container = controller.context.container;
 
     const hasDefault = (this.instruction as any).instructions.filter((instr: any) => instr.to === 'default').length > 0;
     if (hasDefault && this.parentViewport != null) {

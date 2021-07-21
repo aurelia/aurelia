@@ -35,13 +35,21 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
   // todo: maybe use a counter allow recursive call to a certain level
   private running: boolean = false;
 
+  /**
+   * A semi-private property used by connectable mixin
+   *
+   * @internal
+   */
+  public readonly oL: IObserverLocator;
+
   public constructor(
     public readonly obj: IObservable,
-    public readonly observerLocator: IObserverLocator,
+    observerLocator: IObserverLocator,
     public readonly get: (obj: object, watcher: IConnectable) => unknown,
     private readonly cb: IWatcherCallback<object>,
     public readonly useProxy: boolean,
   ) {
+    this.oL = observerLocator;
   }
 
   public handleChange(): void {
@@ -116,7 +124,7 @@ export class ExpressionWatcher implements IConnectableBinding {
   public constructor(
     public scope: Scope,
     public locator: IServiceLocator,
-    public observerLocator: IObserverLocator,
+    public oL: IObserverLocator,
     private readonly expression: IsBindingBehavior,
     private readonly callback: IWatcherCallback<object>,
   ) {

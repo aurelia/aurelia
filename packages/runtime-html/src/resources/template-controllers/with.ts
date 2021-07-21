@@ -6,8 +6,8 @@ import { templateController } from '../custom-attribute.js';
 import { bindable } from '../../bindable.js';
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
 
-@templateController('with')
 export class With implements ICustomAttributeViewModel {
+  public static inject = [IViewFactory, IRenderLocation];
   public readonly id: number = nextId('au$component');
 
   public view: ISyntheticView;
@@ -17,8 +17,8 @@ export class With implements ICustomAttributeViewModel {
   @bindable public value?: object;
 
   public constructor(
-    @IViewFactory private readonly factory: IViewFactory,
-    @IRenderLocation private readonly location: IRenderLocation
+    private readonly factory: IViewFactory,
+    private readonly location: IRenderLocation
   ) {
     this.id = nextId('au$component');
 
@@ -71,3 +71,5 @@ export class With implements ICustomAttributeViewModel {
     }
   }
 }
+
+templateController('with')(With);

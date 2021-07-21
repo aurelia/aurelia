@@ -46,20 +46,22 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
 
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
-  public collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
-  public valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
+  private _collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
+  private _valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
   public readonly queue!: FlushQueue;
 
   private f: LifecycleFlags = LifecycleFlags.none;
+  private readonly oL: IObserverLocator;
 
   public constructor(
     obj: INode,
     // deepscan-disable-next-line
     _key: PropertyKey,
     public readonly handler: EventSubscriber,
-    public readonly observerLocator: IObserverLocator,
+    observerLocator: IObserverLocator,
   ) {
     this.obj = obj as IInputElement;
+    this.oL = observerLocator;
   }
 
   public getValue(): unknown {
@@ -239,10 +241,10 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
 
   public stop(): void {
     this.handler.dispose();
-    this.collectionObserver?.unsubscribe(this);
-    this.collectionObserver = void 0;
+    this._collectionObserver?.unsubscribe(this);
+    this._collectionObserver = void 0;
 
-    this.valueObserver?.unsubscribe(this);
+    this._valueObserver?.unsubscribe(this);
   }
 
   public subscribe(subscriber: ISubscriber): void {
@@ -266,13 +268,13 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
   private observe() {
     const obj = this.obj;
 
-    (this.valueObserver ??= obj.$observers?.model ?? obj.$observers?.value)?.subscribe(this);
+    (this._valueObserver ??= obj.$observers?.model ?? obj.$observers?.value)?.subscribe(this);
 
-    this.collectionObserver?.unsubscribe(this);
-    this.collectionObserver = void 0;
+    this._collectionObserver?.unsubscribe(this);
+    this._collectionObserver = void 0;
 
     if (obj.type === 'checkbox') {
-      (this.collectionObserver = getCollectionObserver(this.value, this.observerLocator))?.subscribe(this);
+      (this._collectionObserver = getCollectionObserver(this.value, this.oL))?.subscribe(this);
     }
   }
 }

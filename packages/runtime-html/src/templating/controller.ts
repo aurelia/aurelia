@@ -228,7 +228,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
-      controller.hydrateCustomElement(hydrationInst, hydrationContext);
+      controller._hydrateCustomElement(hydrationInst, hydrationContext);
     }
 
     return controller as ICustomElementController<C>;
@@ -310,7 +310,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   /** @internal */
-  public hydrateCustomElement(
+  public _hydrateCustomElement(
     hydrationInst: IControllerElementHydrationInstruction | null,
     /**
      * The context where this custom element is hydrated.

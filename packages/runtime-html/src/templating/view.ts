@@ -103,7 +103,7 @@ function toCustomElementDefinition($view: PartialCustomElementDefinition): Custo
 }
 
 const viewsBaseName = Protocol.resource.keyFor('views');
-export const Views = {
+export const Views = Object.freeze({
   name: viewsBaseName,
   has(value: object): boolean {
     return typeof value === 'function' && (Metadata.hasOwn(viewsBaseName, value) || '$views' in value);
@@ -133,7 +133,7 @@ export const Views = {
     }
     return views;
   },
-};
+});
 
 export function view(v: PartialCustomElementDefinition) {
   return function<T extends Constructable> (target: T) {

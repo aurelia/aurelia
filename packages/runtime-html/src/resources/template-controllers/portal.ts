@@ -12,8 +12,8 @@ type ResolvedTarget<T extends Node & ParentNode = Node & ParentNode> = T | null;
 
 export type PortalLifecycleCallback = (target: PortalTarget, view: ISyntheticView) => void | Promise<void>;
 
-@templateController('portal')
 export class Portal<T extends Node & ParentNode = Node & ParentNode> implements ICustomAttributeViewModel {
+  public static inject = [IViewFactory, IRenderLocation, IPlatform];
 
   public readonly $controller!: ICustomAttributeController<this>;
 
@@ -45,18 +45,20 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
 
   public view: ISyntheticView;
 
-  private currentTarget?: PortalTarget;
+  private _currentTarget?: PortalTarget;
+  private readonly p: IPlatform;
 
   public constructor(
-    @IViewFactory private readonly factory: IViewFactory,
-    @IRenderLocation private readonly originalLoc: IRenderLocation,
-    @IPlatform private readonly p: IPlatform,
+    factory: IViewFactory,
+    originalLoc: IRenderLocation,
+    p: IPlatform,
   ) {
+    this.p = p;
     // to make the shape of this object consistent.
     // todo: is this necessary
-    this.currentTarget = p.document.createElement('div');
+    this._currentTarget = p.document.createElement('div');
 
-    this.view = this.factory.create();
+    this.view = factory.create();
     setEffectiveParentNode(this.view.nodes!, originalLoc as unknown as Node);
   }
 
@@ -68,10 +70,10 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     if (this.callbackContext == null) {
       this.callbackContext = this.$controller.scope.bindingContext;
     }
-    const newTarget = this.currentTarget = this.resolveTarget();
+    const newTarget = this._currentTarget = this._resolveTarget();
     this.view.setHost(newTarget);
 
-    return this.$activating(initiator, newTarget, flags);
+    return this._activating(initiator, newTarget, flags);
   }
 
   public detaching(
@@ -79,7 +81,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this.$deactivating(initiator, this.currentTarget as T, flags);
+    return this._deactivating(initiator, this._currentTarget as T, flags);
   }
 
   public targetChanged(): void {
@@ -88,8 +90,8 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
       return;
     }
 
-    const oldTarget = this.currentTarget;
-    const newTarget = this.currentTarget = this.resolveTarget();
+    const oldTarget = this._currentTarget;
+    const newTarget = this._currentTarget = this._resolveTarget();
 
     if (oldTarget === newTarget) {
       return;
@@ -98,15 +100,15 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     this.view.setHost(newTarget);
     // TODO(fkleuver): fix and test possible race condition
     const ret = onResolve(
-      this.$deactivating(null, newTarget, $controller.flags),
+      this._deactivating(null, newTarget, $controller.flags),
       () => {
-        return this.$activating(null, newTarget, $controller.flags);
+        return this._activating(null, newTarget, $controller.flags);
       },
     );
     if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
   }
 
-  private $activating(
+  private _activating(
     initiator: IHydratedController | null,
     target: T,
     flags: LifecycleFlags,
@@ -118,12 +120,12 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     return onResolve(
       activating?.call(callbackContext, target, view),
       () => {
-        return this.activate(initiator, target, flags);
+        return this._activate(initiator, target, flags);
       },
     );
   }
 
-  private activate(
+  private _activate(
     initiator: IHydratedController | null,
     target: T,
     flags: LifecycleFlags,
@@ -137,15 +139,15 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
       return onResolve(
         view.activate(initiator ?? view, $controller, flags, $controller.scope),
         () => {
-          return this.$activated(target);
+          return this._activated(target);
         },
       );
     }
 
-    return this.$activated(target);
+    return this._activated(target);
   }
 
-  private $activated(
+  private _activated(
     target: T,
   ): void | Promise<void> {
     const { activated, callbackContext, view } = this;
@@ -153,7 +155,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     return activated?.call(callbackContext, target, view);
   }
 
-  private $deactivating(
+  private _deactivating(
     initiator: IHydratedController | null,
     target: T,
     flags: LifecycleFlags,
@@ -163,12 +165,12 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     return onResolve(
       deactivating?.call(callbackContext, target, view),
       () => {
-        return this.deactivate(initiator, target, flags);
+        return this._deactivate(initiator, target, flags);
       },
     );
   }
 
-  private deactivate(
+  private _deactivate(
     initiator: IHydratedController | null,
     target: T,
     flags: LifecycleFlags,
@@ -181,15 +183,15 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
       return onResolve(
         view.deactivate(initiator, $controller, flags),
         () => {
-          return this.$deactivated(target);
+          return this._deactivated(target);
         },
       );
     }
 
-    return this.$deactivated(target);
+    return this._deactivated(target);
   }
 
-  private $deactivated(
+  private _deactivated(
     target: T,
   ): void | Promise<void> {
     const { deactivated, callbackContext, view } = this;
@@ -197,7 +199,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     return deactivated?.call(callbackContext, target, view);
   }
 
-  private resolveTarget(): T {
+  private _resolveTarget(): T {
     const p = this.p;
     // with a $ in front to make it less confusing/error prone
     const $document = p.document;
@@ -248,3 +250,5 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     }
   }
 }
+
+templateController('portal')(Portal);

@@ -8,39 +8,41 @@ const defaultOptions: AddEventListenerOptions = {
 
 class ListenerTracker implements IDisposable {
   private count: number = 0;
-  private readonly captureLookups: Map<EventTarget, Record<string, EventListenerOrEventListenerObject | undefined>> = new Map();
-  private readonly bubbleLookups: Map<EventTarget, Record<string, EventListenerOrEventListenerObject | undefined>> = new Map();
+  /** @internal */
+  private readonly _captureLookups: Map<EventTarget, Record<string, EventListenerOrEventListenerObject | undefined>> = new Map();
+  /** @internal */
+  private readonly _bubbleLookups: Map<EventTarget, Record<string, EventListenerOrEventListenerObject | undefined>> = new Map();
 
   public constructor(
-    private readonly publisher: EventTarget,
-    private readonly eventName: string,
-    private readonly options: AddEventListenerOptions = defaultOptions,
+    private readonly _publisher: EventTarget,
+    private readonly _eventName: string,
+    private readonly _options: AddEventListenerOptions = defaultOptions,
   ) {}
 
   public increment(): void {
     if (++this.count === 1) {
-      this.publisher.addEventListener(this.eventName, this, this.options);
+      this._publisher.addEventListener(this._eventName, this, this._options);
     }
   }
 
   public decrement(): void {
     if (--this.count === 0) {
-      this.publisher.removeEventListener(this.eventName, this, this.options);
+      this._publisher.removeEventListener(this._eventName, this, this._options);
     }
   }
 
   public dispose(): void {
     if (this.count > 0) {
       this.count = 0;
-      this.publisher.removeEventListener(this.eventName, this, this.options);
+      this._publisher.removeEventListener(this._eventName, this, this._options);
     }
-    this.captureLookups.clear();
-    this.bubbleLookups.clear();
+    this._captureLookups.clear();
+    this._bubbleLookups.clear();
   }
 
   /** @internal */
   public getLookup(target: EventTarget): Record<string, EventListenerOrEventListenerObject | undefined> {
-    const lookups = this.options.capture === true ? this.captureLookups : this.bubbleLookups;
+    const lookups = this._options.capture === true ? this._captureLookups : this._bubbleLookups;
     let lookup = lookups.get(target);
     if (lookup === void 0) {
       lookups.set(target, lookup = Object.create(null) as Record<string, EventListenerOrEventListenerObject | undefined>);
@@ -50,9 +52,9 @@ class ListenerTracker implements IDisposable {
 
   /** @internal */
   public handleEvent(event: Event): void {
-    const lookups = this.options.capture === true ? this.captureLookups : this.bubbleLookups;
+    const lookups = this._options.capture === true ? this._captureLookups : this._bubbleLookups;
     const path = event.composedPath();
-    if (this.options.capture === true) {
+    if (this._options.capture === true) {
       path.reverse();
     }
     for (const target of path) {
@@ -60,7 +62,7 @@ class ListenerTracker implements IDisposable {
       if (lookup === void 0) {
         continue;
       }
-      const listener = lookup[this.eventName];
+      const listener = lookup[this._eventName];
       if (listener === void 0) {
         continue;
       }
@@ -79,20 +81,20 @@ class ListenerTracker implements IDisposable {
 /**
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
-export class DelegateSubscription implements IDisposable {
+class DelegateSubscription implements IDisposable {
   public constructor(
-    private readonly tracker: ListenerTracker,
-    private readonly lookup: Record<string, EventListenerOrEventListenerObject | undefined>,
-    private readonly eventName: string,
+    private readonly _tracker: ListenerTracker,
+    private readonly _lookup: Record<string, EventListenerOrEventListenerObject | undefined>,
+    private readonly _eventName: string,
     callback: EventListenerOrEventListenerObject
   ) {
-    tracker.increment();
-    lookup[eventName] = callback;
+    _tracker.increment();
+    _lookup[_eventName] = callback;
   }
 
   public dispose(): void {
-    this.tracker.decrement();
-    this.lookup[this.eventName] = void 0;
+    this._tracker.decrement();
+    this._lookup[this._eventName] = void 0;
   }
 }
 
@@ -128,10 +130,8 @@ export interface IEventDelegator extends EventDelegator {}
 export const IEventDelegator = DI.createInterface<IEventDelegator>('IEventDelegator', x => x.singleton(EventDelegator));
 
 export class EventDelegator implements IDisposable {
-  private readonly trackerMaps: Record<string, Map<EventTarget, ListenerTracker> | undefined> = Object.create(null);
-
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  public constructor() { /* do not remove, is necessary for fulfilling the TS (new() => ...) type */ }
+  /** @internal */
+  private readonly _trackerMaps: Record<string, Map<EventTarget, ListenerTracker> | undefined> = Object.create(null);
 
   public addEventListener(
     publisher: EventTarget,
@@ -140,7 +140,7 @@ export class EventDelegator implements IDisposable {
     listener: EventListenerOrEventListenerObject,
     options?: AddEventListenerOptions,
   ): IDisposable {
-    const trackerMap = this.trackerMaps[eventName] ??= new Map<EventTarget, ListenerTracker>();
+    const trackerMap = this._trackerMaps[eventName] ??= new Map<EventTarget, ListenerTracker>();
     let tracker = trackerMap.get(publisher);
     if (tracker === void 0) {
       trackerMap.set(publisher, tracker = new ListenerTracker(publisher, eventName, options));
@@ -149,8 +149,8 @@ export class EventDelegator implements IDisposable {
   }
 
   public dispose(): void {
-    for (const eventName in this.trackerMaps) {
-      const trackerMap = this.trackerMaps[eventName]!;
+    for (const eventName in this._trackerMaps) {
+      const trackerMap = this._trackerMaps[eventName]!;
       for (const tracker of trackerMap.values()) {
         tracker.dispose();
       }

@@ -717,10 +717,16 @@ export class LetElementRenderer implements IRenderer {
 @renderer(InstructionType.callBinding)
 /** @internal */
 export class CallBindingRenderer implements IRenderer {
+  public static inject = [IExpressionParser, IObserverLocator];
+  /** @internal */
+  private readonly oL: IObserverLocator;
+
   public constructor(
-    @IExpressionParser private readonly parser: IExpressionParser,
-    @IObserverLocator private readonly observerLocator: IObserverLocator,
-  ) {}
+    private readonly parser: IExpressionParser,
+    observerLocator: IObserverLocator,
+  ) {
+    this.oL = observerLocator;
+  }
 
   public render(
     f: LifecycleFlags,
@@ -729,7 +735,7 @@ export class CallBindingRenderer implements IRenderer {
     instruction: CallBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
-    const binding = new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, renderingCtrl.container);
+    const binding = new CallBinding(expr, getTarget(target), instruction.to, this.oL, renderingCtrl.container);
     renderingCtrl.addBinding(expr.$kind === ExpressionKind.BindingBehavior
       ? applyBindingBehavior(binding, expr, renderingCtrl.container)
       : binding

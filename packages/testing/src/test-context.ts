@@ -53,12 +53,12 @@ export class TestContext {
     }
     return this._templateCompiler;
   }
-  private _observerLocator: IObserverLocator | undefined = void 0;
+  private oL: IObserverLocator | undefined = void 0;
   public get observerLocator(): IObserverLocator {
-    if (this._observerLocator === void 0) {
-      this._observerLocator = this.container.get(IObserverLocator);
+    if (this.oL === void 0) {
+      this.oL = this.container.get(IObserverLocator);
     }
-    return this._observerLocator;
+    return this.oL;
   }
   private _domParser: HTMLDivElement | undefined = void 0;
   public get domParser(): HTMLDivElement {

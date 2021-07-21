@@ -1,3 +1,4 @@
+/* deepscan-disable */
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 var InlineChunkHtmlPlugin = require('inline-chunk-html-plugin');
@@ -58,5 +59,5 @@ module.exports = [{
             inlineSource: '.js$' // embed all javascript and css inline
 		}),
     new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/main/])
-      ]  
+      ]
 }];

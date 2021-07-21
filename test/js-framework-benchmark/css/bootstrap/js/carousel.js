@@ -1,3 +1,4 @@
+/* deepscan-disable */
 /* ========================================================================
  * Bootstrap: carousel.js v3.3.6
  * http://getbootstrap.com/javascript/#carousel

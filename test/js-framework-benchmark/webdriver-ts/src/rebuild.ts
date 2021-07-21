@@ -1,9 +1,10 @@
-import * as _ from 'lodash';
 /* deepscan-disable */
+import * as _ from 'lodash';
 import * as fs from 'fs';
 import * as path from 'path';
 
 import { BenchmarkOptions, FrameworkData, JSONResult, config, initializeFrameworks } from './common'
+
 const ncu = require('npm-check-updates');
 
 var exec = require('child_process').execSync;

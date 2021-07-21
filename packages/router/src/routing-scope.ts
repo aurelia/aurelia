@@ -110,7 +110,7 @@ export class RoutingScope {
         container = origin.$controller!.context;
       } else {
         const controller = CustomElement.for(origin as Node, { searchParents: true });
-        container = controller?.context;
+        container = controller?.container;
       }
     }
     if (container == null) {

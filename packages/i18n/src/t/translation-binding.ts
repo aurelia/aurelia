@@ -19,7 +19,7 @@ import {
   IConnectableBinding,
   IExpressionParser,
   IObserverLocator,
-  IPartialConnectableBinding,
+  IObserverLocatorBasedConnectable,
   IAccessor,
   AccessorType,
 } from '@aurelia/runtime';
@@ -54,7 +54,7 @@ const taskQueueOpts: QueueTaskOptions = {
   preempt: true,
 };
 
-export class TranslationBinding implements IPartialConnectableBinding {
+export class TranslationBinding implements IObserverLocatorBasedConnectable {
   public interceptor: this = this;
   public isBound: boolean = false;
   public expr!: IsExpression;
@@ -69,10 +69,14 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public target: HTMLElement;
   private readonly platform: IPlatform;
   private parameter: ParameterBinding | null = null;
+  /**
+   * A semi-private property used by connectable mixin
+   */
+  public readonly oL: IObserverLocator;
 
   public constructor(
     target: INode,
-    public observerLocator: IObserverLocator,
+    observerLocator: IObserverLocator,
     public locator: IServiceLocator,
     platform: IPlatform,
   ) {
@@ -80,6 +84,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.i18n = this.locator.get(I18N);
     this.platform = platform;
     this._targetAccessors = new Set<IAccessor>();
+    this.oL = observerLocator;
     this.i18n.subscribeLocaleChange(this);
   }
 
@@ -192,8 +197,8 @@ export class TranslationBinding implements IPartialConnectableBinding {
         } else {
           const controller = CustomElement.for(this.target, forOpts);
           const accessor = controller && controller.viewModel
-            ? this.observerLocator.getAccessor(controller.viewModel, attribute)
-            : this.observerLocator.getAccessor(this.target, attribute);
+            ? this.oL.getAccessor(controller.viewModel, attribute)
+            : this.oL.getAccessor(this.target, attribute);
           const shouldQueueUpdate = (flags & LifecycleFlags.fromBind) === 0 && (accessor.type & AccessorType.Layout) > 0;
           if (shouldQueueUpdate) {
             accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, flags, this.target, attribute));
@@ -261,7 +266,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     const template = this._prepareTemplate(content, marker, fallBackContents);
 
     // difficult to use the set property approach in this case, as most of the properties of Node is readonly
-    // const observer = this.observerLocator.getAccessor(LifecycleFlags.none, this.target, '??');
+    // const observer = this.oL.getAccessor(LifecycleFlags.none, this.target, '??');
     // observer.setValue(??, flags);
 
     this.target.innerHTML = '';
@@ -329,7 +334,12 @@ class ParameterBinding {
   public interceptor = this;
 
   public value!: i18next.TOptions;
-  public readonly observerLocator: IObserverLocator;
+  /**
+   * A semi-private property used by connectable mixin
+   *
+   * @internal
+   */
+  public readonly oL: IObserverLocator;
   public readonly locator: IServiceLocator;
   public isBound: boolean = false;
 
@@ -340,7 +350,7 @@ class ParameterBinding {
     public readonly expr: IsExpression,
     public readonly updater: (flags: LifecycleFlags) => void,
   ) {
-    this.observerLocator = owner.observerLocator;
+    this.oL = owner.oL;
     this.locator = owner.locator;
   }
 

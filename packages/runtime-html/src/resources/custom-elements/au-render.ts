@@ -28,12 +28,16 @@ function toLookup(
 export class AuRender implements ICustomElementViewModel {
   public readonly id: number = nextId('au$component');
 
-  @bindable public component?: MaybeSubjectPromise = void 0;
-  @bindable({ mode: BindingMode.fromView }) public composing: boolean = false;
+  @bindable
+  public component?: MaybeSubjectPromise = void 0;
+
+  @bindable({ mode: BindingMode.fromView })
+  public composing: boolean = false;
 
   public view?: ISyntheticView = void 0;
 
-  private readonly properties: Record<string, IInstruction>;
+  private readonly _properties: Record<string, IInstruction>;
+  private readonly _hdrContext: IHydrationContext;
 
   private lastSubject?: MaybeSubjectPromise = void 0;
 
@@ -42,10 +46,11 @@ export class AuRender implements ICustomElementViewModel {
   public constructor(
     @IPlatform private readonly p: IPlatform,
     @IInstruction instruction: HydrateElementInstruction,
-    @IHydrationContext private readonly hdrContext: IHydrationContext,
+    @IHydrationContext hdrContext: IHydrationContext,
     @IRendering private readonly r: IRendering,
   ) {
-    this.properties = instruction.instructions.reduce(toLookup, {});
+    this._properties = instruction.instructions.reduce(toLookup, {});
+    this._hdrContext = hdrContext;
   }
 
   public attaching(
@@ -69,7 +74,7 @@ export class AuRender implements ICustomElementViewModel {
     parent: IHydratedParentController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this.deactivate(this.view, initiator, flags);
+    return this._deactivate(this.view, initiator, flags);
   }
 
   public componentChanged(
@@ -90,7 +95,7 @@ export class AuRender implements ICustomElementViewModel {
 
     flags |= $controller.flags;
     const ret = onResolve(
-      this.deactivate(this.view, null, flags),
+      this._deactivate(this.view, null, flags),
       () => {
         // TODO(fkleuver): handle & test race condition
         return this.compose(void 0, newValue, null, flags);
@@ -107,13 +112,13 @@ export class AuRender implements ICustomElementViewModel {
   ): void | Promise<void> {
     return onResolve(
       view === void 0
-        ? onResolve(subject, resolvedSubject => this.resolveView(resolvedSubject, flags))
+        ? onResolve(subject, resolvedSubject => this._resolveView(resolvedSubject, flags))
         : view,
-      resolvedView => this.activate(this.view = resolvedView, initiator, flags),
+      resolvedView => this._activate(this.view = resolvedView, initiator, flags),
     );
   }
 
-  private deactivate(
+  private _deactivate(
     view: ISyntheticView | undefined,
     initiator: IHydratedController | null,
     flags: LifecycleFlags,
@@ -121,7 +126,7 @@ export class AuRender implements ICustomElementViewModel {
     return view?.deactivate(initiator ?? view, this.$controller, flags);
   }
 
-  private activate(
+  private _activate(
     view: ISyntheticView | undefined,
     initiator: IHydratedController | null,
     flags: LifecycleFlags,
@@ -135,8 +140,8 @@ export class AuRender implements ICustomElementViewModel {
     );
   }
 
-  private resolveView(subject: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
-    const view = this.provideViewFor(subject, flags);
+  private _resolveView(subject: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
+    const view = this._provideViewFor(subject, flags);
 
     if (view) {
       view.setLocation(this.$controller.location!);
@@ -147,12 +152,12 @@ export class AuRender implements ICustomElementViewModel {
     return void 0;
   }
 
-  private provideViewFor(comp: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
+  private _provideViewFor(comp: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
     if (!comp) {
       return void 0;
     }
 
-    const ctxContainer = this.hdrContext.controller.container;
+    const ctxContainer = this._hdrContext.controller.container;
     if (typeof comp === 'object') {
       if (isController(comp)) { // IController
         return comp;
@@ -183,7 +188,7 @@ export class AuRender implements ICustomElementViewModel {
     return createElement(
       this.p,
       comp,
-      this.properties,
+      this._properties,
       this.$controller.host.childNodes,
     ).createView(ctxContainer);
   }

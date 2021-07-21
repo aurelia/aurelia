@@ -10,8 +10,8 @@ import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewMo
 import type { Instruction } from '../../renderer.js';
 import type { INode } from '../../dom.js';
 
-@templateController('if')
 export class If implements ICustomAttributeViewModel {
+  public static inject = [IViewFactory, IRenderLocation, IWorkTracker];
   public readonly id: number = nextId('au$component');
 
   public elseFactory?: IViewFactory = void 0;
@@ -35,9 +35,9 @@ export class If implements ICustomAttributeViewModel {
   private ctrl!: ICustomAttributeController<If>;
 
   public constructor(
-    @IViewFactory private readonly ifFactory: IViewFactory,
-    @IRenderLocation private readonly location: IRenderLocation,
-    @IWorkTracker private readonly work: IWorkTracker,
+    private readonly ifFactory: IViewFactory,
+    private readonly location: IRenderLocation,
+    private readonly work: IWorkTracker,
   ) {}
 
   public created(): void {
@@ -177,8 +177,8 @@ export class If implements ICustomAttributeViewModel {
     }
   }
 }
+templateController('if')(If);
 
-@templateController({ name: 'else' })
 export class Else {
   public readonly id: number = nextId('au$component');
 
@@ -204,3 +204,4 @@ export class Else {
     }
   }
 }
+templateController({ name: 'else' })(Else);

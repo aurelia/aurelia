@@ -20,11 +20,11 @@ import type { IObserverLocator } from '../observation/observer-locator.js';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 
-export interface IPartialConnectableBinding extends IBinding, ISubscriber, ICollectionSubscriber {
-  observerLocator: IObserverLocator;
+export interface IObserverLocatorBasedConnectable extends IBinding, ISubscriber, ICollectionSubscriber {
+  oL: IObserverLocator;
 }
 
-export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
+export interface IConnectableBinding extends IObserverLocatorBasedConnectable, IConnectable {
   /**
    * A record storing observers that are currently subscribed to by this binding
    */
@@ -32,7 +32,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
 }
 
 function observe(this: IConnectableBinding, obj: object, key: PropertyKey): void {
-  const observer = this.observerLocator.getObserver(obj, key);
+  const observer = this.oL.getObserver(obj, key);
   /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
    *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
    *  1. Fail earlier: only let the locator resolve observers from .getObserver, and throw if no branches are left (e.g. it would otherwise return an accessor)
@@ -196,7 +196,7 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
   public constructor(
     public readonly key: K,
     public readonly binding: MediatedBinding<K>,
-    public observerLocator: IObserverLocator,
+    public oL: IObserverLocator,
     public locator: IServiceLocator,
   ) {
   }

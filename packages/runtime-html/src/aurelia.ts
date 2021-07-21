@@ -86,7 +86,7 @@ export class Aurelia implements IDisposable {
     ctn.registerResolver(IEventTarget, new InstanceProvider('IEventTarget', host));
     parentController = parentController ?? null;
 
-    const view = Controller.forCustomElement(
+    const view = Controller.$el(
       ctn,
       bc,
       host,

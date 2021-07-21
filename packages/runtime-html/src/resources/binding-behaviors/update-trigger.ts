@@ -21,12 +21,14 @@ export type UpdateTriggerableBinding = PropertyBinding & {
   targetObserver: UpdateTriggerableObserver;
 };
 
-@bindingBehavior('updateTrigger')
 export class UpdateTriggerBindingBehavior {
-
+  public static inject = [IObserverLocator];
+  private readonly oL: IObserverLocator;
   public constructor(
-    @IObserverLocator private readonly observerLocator: IObserverLocator
-  ) {}
+    observerLocator: IObserverLocator,
+  ) {
+    this.oL = observerLocator;
+  }
 
   public bind(flags: LifecycleFlags, _scope: Scope, binding: UpdateTriggerableBinding, ...events: string[]): void {
     if (events.length === 0) {
@@ -38,7 +40,7 @@ export class UpdateTriggerBindingBehavior {
     }
 
     // ensure the binding's target observer has been set.
-    const targetObserver = this.observerLocator.getObserver(binding.target, binding.targetProperty) as UpdateTriggerableObserver;
+    const targetObserver = this.oL.getObserver(binding.target, binding.targetProperty) as UpdateTriggerableObserver;
     if (!targetObserver.handler) {
       throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
     }
@@ -64,3 +66,5 @@ export class UpdateTriggerBindingBehavior {
     binding.targetObserver.originalHandler = null!;
   }
 }
+
+bindingBehavior('updateTrigger')(UpdateTriggerBindingBehavior);

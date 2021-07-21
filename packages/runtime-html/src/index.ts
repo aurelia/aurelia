@@ -98,7 +98,7 @@ export {
   UnaryOperator,
   IExpressionHydrator,
 
-  IPartialConnectableBinding,
+  IObserverLocatorBasedConnectable,
   IConnectableBinding,
   connectable,
   BindingMediator,

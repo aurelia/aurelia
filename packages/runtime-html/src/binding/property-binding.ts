@@ -8,7 +8,7 @@ import type {
   IConnectableBinding,
   IObserver,
   IObserverLocator,
-  IPartialConnectableBinding,
+  IObserverLocatorBasedConnectable,
   IsBindingBehavior,
   Scope,
 } from '@aurelia/runtime';
@@ -26,7 +26,7 @@ const updateTaskOpts: QueueTaskOptions = {
   preempt: true,
 };
 
-export class PropertyBinding implements IPartialConnectableBinding {
+export class PropertyBinding implements IObserverLocatorBasedConnectable {
   public interceptor: this = this;
 
   public isBound: boolean = false;
@@ -39,15 +39,23 @@ export class PropertyBinding implements IPartialConnectableBinding {
   private task: ITask | null = null;
   private targetSubscriber: BindingTargetSubscriber | null = null;
 
+  /**
+   * A semi-private property used by connectable mixin
+   *
+   * @internal
+   */
+  public readonly oL: IObserverLocator;
+
   public constructor(
     public sourceExpression: IsBindingBehavior | ForOfStatement,
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
-    public observerLocator: IObserverLocator,
+    observerLocator: IObserverLocator,
     public locator: IServiceLocator,
     private readonly taskQueue: TaskQueue,
   ) {
+    this.oL = observerLocator;
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -129,7 +137,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       sourceExpression.bind(flags, scope, this.interceptor);
     }
 
-    const observerLocator = this.observerLocator;
+    const observerLocator = this.oL;
     const $mode = this.mode;
     let targetObserver = this.targetObserver;
     if (!targetObserver) {

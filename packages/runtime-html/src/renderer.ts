@@ -502,7 +502,7 @@ export class CustomElementRenderer implements IRenderer {
     Ctor = def.Type;
     component = container.invoke(Ctor);
     container.registerResolver(Ctor, new InstanceProvider<typeof Ctor>(def.key, component));
-    childCtrl = Controller.forCustomElement(
+    childCtrl = Controller.$el(
       /* own container       */container,
       /* viewModel           */component,
       /* host                */target,
@@ -577,7 +577,7 @@ export class CustomAttributeRenderer implements IRenderer {
       /* viewFactory      */void 0,
       /* location         */void 0,
     );
-    const childController = Controller.forCustomAttribute(
+    const childController = Controller.$attr(
       /* context ct */renderingCtrl.container,
       /* viewModel  */component,
       /* host       */target,
@@ -649,7 +649,7 @@ export class TemplateControllerRenderer implements IRenderer {
       /* viewFactory      */viewFactory,
       /* location         */renderLocation,
     );
-    const childController = Controller.forCustomAttribute(
+    const childController = Controller.$attr(
       /* container ct */renderingCtrl.container,
       /* viewModel    */component,
       /* host         */target,
@@ -695,11 +695,13 @@ export class LetElementRenderer implements IRenderer {
     const childInstructions = instruction.instructions;
     const toBindingContext = instruction.toBindingContext;
     const container = renderingCtrl.container;
+    const ii = childInstructions.length;
 
     let childInstruction: LetBindingInstruction;
     let expr: AnyBindingExpression;
     let binding: LetBinding;
-    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
+    let i = 0;
+    while (ii > i) {
       childInstruction = childInstructions[i];
       expr = ensureExpression(this.parser, childInstruction.from, BindingType.IsPropertyCommand);
       binding = new LetBinding(expr, childInstruction.to, this.oL, container, toBindingContext);
@@ -707,6 +709,7 @@ export class LetElementRenderer implements IRenderer {
         ? applyBindingBehavior(binding, expr, container)
         : binding
       );
+      ++i;
     }
   }
 }

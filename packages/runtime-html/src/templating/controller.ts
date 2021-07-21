@@ -119,8 +119,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private _compiledDef: CustomElementDefinition | undefined;
-  private logger: ILogger | null = null;
-  private debug: boolean = false;
+  private logger!: ILogger;
+  private debug!: boolean;
   private _fullyNamed: boolean = false;
   private _childrenObs: ChildrenObserver[] = emptyArray;
   /** @internal */
@@ -150,6 +150,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
      */
     public host: HTMLElement | null,
   ) {
+    this.logger = null!;
+    this.debug = false;
     this._rendering = container.root.get(IRendering);
     switch (vmKind) {
       case ViewModelKind.customAttribute:
@@ -168,14 +170,22 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public static getCachedOrThrow<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C> {
-    const controller = Controller.getCached(viewModel);
-    if (controller === void 0) {
+    const $el = Controller.getCached(viewModel);
+    if ($el === void 0) {
       throw new Error(`There is no cached controller for the provided ViewModel: ${String(viewModel)}`);
     }
-    return controller as ICustomElementController<C>;
+    return $el as ICustomElementController<C>;
   }
 
-  public static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(
+  /**
+   * Create a controller for a custom element based on a given set of parameters
+   *
+   * @param ctn - The own container of the custom element
+   * @param viewModel - The view model object (can be any object if a definition is specified)
+   *
+   * Semi private API
+   */
+  public static $el<C extends ICustomElementViewModel = ICustomElementViewModel>(
     ctn: IContainer,
     viewModel: C,
     host: HTMLElement,
@@ -224,7 +234,17 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     return controller as ICustomElementController<C>;
   }
 
-  public static forCustomAttribute<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(
+  /**
+   * Create a controller for a custom attribute based on a given set of parameters
+   *
+   * @param ctn - own container associated with the custom attribute object
+   * @param viewModel - the view model object
+   * @param host - host element where this custom attribute is used
+   * @param flags
+   * @param definition - the definition of the custom attribute,
+   * will be used to override the definition associated with the view model object contructor if given
+   */
+  public static $attr<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(
     ctn: IContainer,
     viewModel: C,
     host: HTMLElement,
@@ -259,7 +279,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     return controller as unknown as ICustomAttributeController<C>;
   }
 
-  public static forSyntheticView(
+  /**
+   * Create a synthetic view (controller) for a given factory
+   *
+   * @param viewFactory
+   * @param flags
+   * @param parentController - the parent controller to connect the created view with. Used in activation
+   *
+   * Semi private API
+   */
+  public static $view(
     viewFactory: IViewFactory,
     flags: LifecycleFlags = LifecycleFlags.none,
     parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined = void 0,
@@ -465,8 +494,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.parent = parent;
     if (this.debug && !this._fullyNamed) {
       this._fullyNamed = true;
-      (this.logger ??= this.container.get(ILogger).root.scopeTo(this.name))
-        .trace(`activate()`);
+      (this.logger ??= this.container.get(ILogger).root.scopeTo(this.name)).trace(`activate()`);
     }
     flags |= LifecycleFlags.fromBind;
 
@@ -554,7 +582,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this._ensurePromise();
         ret.then(() => {
           this.isBound = true;
-          this.attach();
+          this._attach();
         }).catch(err => {
           this._reject(err);
         });
@@ -563,10 +591,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     this.isBound = true;
-    this.attach();
+    this._attach();
   }
 
-  private append(...nodes: Node[]): void {
+  private _append(...nodes: Node[]): void {
     switch (this.mountTarget) {
       case MountTarget.host:
         this.host!.append(...nodes);
@@ -584,24 +612,24 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
-  private attach(): void {
+  private _attach(): void {
     if (this.debug) { this.logger!.trace(`attach()`); }
 
     if (this.hostController !== null) {
       switch (this.mountTarget) {
         case MountTarget.host:
         case MountTarget.shadowRoot:
-          this.hostController.append(this.host!);
+          this.hostController._append(this.host!);
           break;
         case MountTarget.location:
-          this.hostController.append(this.location!.$start!, this.location!);
+          this.hostController._append(this.location!.$start!, this.location!);
           break;
       }
     }
 
     switch (this.mountTarget) {
       case MountTarget.host:
-        this.nodes!.appendTo(this.host!, (this.definition as CustomElementDefinition | null)?.enhance);
+        this.nodes!.appendTo(this.host!, this.definition != null && (this.definition as CustomElementDefinition).enhance);
         break;
       case MountTarget.shadowRoot: {
         const container = this.container;

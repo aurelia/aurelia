@@ -88,7 +88,7 @@ export class ViewFactory implements IViewFactory {
       return controller;
     }
 
-    controller = Controller.forSyntheticView(this, flags, parentController);
+    controller = Controller.$view(this, flags, parentController);
     return controller;
   }
 }

@@ -22,6 +22,7 @@ export class AuSlot implements ICustomElementViewModel {
   private _parentScope: Scope | null = null;
   private _outerScope: Scope | null = null;
   private readonly _hasProjection: boolean;
+  private readonly _hdrContext: IHydrationContext;
 
   @bindable
   public expose: object | undefined;
@@ -29,7 +30,7 @@ export class AuSlot implements ICustomElementViewModel {
   public constructor(
     location: IRenderLocation,
     instruction: HydrateElementInstruction,
-    private readonly hdrContext: IHydrationContext,
+    hdrContext: IHydrationContext,
     rendering: IRendering,
   ) {
     let factory: IViewFactory;
@@ -42,6 +43,7 @@ export class AuSlot implements ICustomElementViewModel {
       factory = rendering.getViewFactory(projection, hdrContext.parent!.controller.container);
       this._hasProjection = true;
     }
+    this._hdrContext = hdrContext;
     this.view = factory.create().setLocation(location);
   }
 
@@ -58,7 +60,7 @@ export class AuSlot implements ICustomElementViewModel {
       // via overlaying the outerscope with another scope that has
       // - binding context & override context pointing to the outer scope binding & override context respectively
       // - override context has the $host pointing to inner scope binding context
-      outerScope = this.hdrContext.controller.scope.parentScope!;
+      outerScope = this._hdrContext.controller.scope.parentScope!;
       (this._outerScope = Scope.fromParent(outerScope, outerScope.bindingContext))
         .overrideContext.$host = this.expose ?? this._parentScope.bindingContext;
     }

@@ -1157,11 +1157,11 @@ describe(`The Container class`, function () {
 
       parent.register(Registration.singleton(key, type));
 
-      const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+      const parentHasKey = parent['res'][key] !== void 0;
 
       const child = parent.createChild();
 
-      const childHasKey = child['resourceResolvers'][key] !== void 0;
+      const childHasKey = child['res'][key] !== void 0;
 
       assert.strictEqual(parentHasKey, false, `has@root`);
       assert.strictEqual(childHasKey, false, `has@child`);
@@ -1176,11 +1176,11 @@ describe(`The Container class`, function () {
 
     //   parent.register(Registration.singleton(key, type));
 
-    //   const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+    //   const parentHasKey = parent['res'][key] !== void 0;
 
     //   const child = parent.createChild();
 
-    //   const childHasKey = child['resourceResolvers'][key] !== void 0;
+    //   const childHasKey = child['res'][key] !== void 0;
 
     //   assert.strictEqual(parentHasKey, false, `has@root`);
     //   assert.strictEqual(childHasKey, false, `has@child`);
@@ -1195,11 +1195,11 @@ describe(`The Container class`, function () {
 
     //   parent.register(Registration.singleton(key, type));
 
-    //   const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+    //   const parentHasKey = parent['res'][key] !== void 0;
 
     //   const child = parent.createChild();
 
-    //   const childHasKey = child['resourceResolvers'][key] !== void 0;
+    //   const childHasKey = child['res'][key] !== void 0;
 
     //   assert.strictEqual(parentHasKey, true, `has@root`);
     //   assert.strictEqual(childHasKey, true, `has@child`);
@@ -1327,11 +1327,11 @@ describe(`The Container class`, function () {
 
         parent.register(Registration.singleton(key, type));
 
-        const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+        const parentHasKey = parent['res'][key] !== void 0;
 
         const child = parent.createChild();
 
-        const childHasKey = child['resourceResolvers'][key] !== void 0;
+        const childHasKey = child['res'][key] !== void 0;
 
         assert.strictEqual(parentHasKey, false, `parentHasKey`);
         assert.strictEqual(childHasKey, false, `childHasKey`);
@@ -1346,11 +1346,11 @@ describe(`The Container class`, function () {
 
         parent.register(Registration.singleton(key, type));
 
-        const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+        const parentHasKey = parent['res'][key] !== void 0;
 
         const child = parent.createChild();
 
-        const childHasKey = child['resourceResolvers'][key] !== void 0;
+        const childHasKey = child['res'][key] !== void 0;
 
         assert.strictEqual(parentHasKey, false, `parentHasKey`);
         assert.strictEqual(childHasKey, false, `childHasKey`);
@@ -1365,11 +1365,11 @@ describe(`The Container class`, function () {
 
         parent.register(Registration.singleton(key, type));
 
-        const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+        const parentHasKey = parent['res'][key] !== void 0;
 
         const child = parent.createChild();
 
-        const childHasKey = child['resourceResolvers'][key] !== void 0;
+        const childHasKey = child['res'][key] !== void 0;
 
         assert.strictEqual(parentHasKey, true, `parentHasKey`);
         assert.strictEqual(childHasKey, false, `childHasKey`);
@@ -1392,13 +1392,13 @@ describe(`The Container class`, function () {
 
         parent.register(Registration.singleton(keyFromParent, type));
 
-        const parentHasKeyFromRoot = parent['resourceResolvers'][keyFromRoot] !== void 0;
-        const parentHasKeyFromParent = parent['resourceResolvers'][keyFromParent] !== void 0;
+        const parentHasKeyFromRoot = parent['res'][keyFromRoot] !== void 0;
+        const parentHasKeyFromParent = parent['res'][keyFromParent] !== void 0;
 
         const child = parent.createChild();
 
-        const childHasKeyFromRoot = child['resourceResolvers'][keyFromRoot] !== void 0;
-        const childHasKeyFromParent = child['resourceResolvers'][keyFromParent] !== void 0;
+        const childHasKeyFromRoot = child['res'][keyFromRoot] !== void 0;
+        const childHasKeyFromParent = child['res'][keyFromParent] !== void 0;
 
         assert.strictEqual(parentHasKeyFromRoot, false, `parentHasKeyFromRoot`);
         assert.strictEqual(parentHasKeyFromParent, true, `parentHasKeyFromParent`);

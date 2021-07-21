@@ -388,7 +388,8 @@ export function mergeObjects<T extends object>(...objects: readonly (T | undefin
   const objectsLen = objects.length;
   let object: T | undefined;
   let key: keyof T;
-  for (let i = 0; i < objectsLen; ++i) {
+  let i = 0;
+  for (; objectsLen > i; ++i) {
     object = objects[i];
     if (object !== void 0) {
       for (key in object) {
@@ -402,7 +403,8 @@ export function mergeObjects<T extends object>(...objects: readonly (T | undefin
 export function firstDefined<T>(...values: readonly (T | undefined)[]): T {
   const len = values.length;
   let value: T | undefined;
-  for (let i = 0; i < len; ++i) {
+  let i = 0;
+  for (; len > i; ++i) {
     value = values[i];
     if (value !== void 0) {
       return value;

@@ -68,20 +68,20 @@ export type ObservableSetter = PropertyDescriptor['set'] & {
 export class ObserverLocator {
   protected static readonly inject = [IDirtyChecker, INodeObserverLocator];
 
-  private readonly adapters: IObjectObservationAdapter[] = [];
+  private readonly _adapters: IObjectObservationAdapter[] = [];
 
   public constructor(
-    private readonly dirtyChecker: IDirtyChecker,
-    private readonly nodeObserverLocator: INodeObserverLocator,
+    private readonly _dirtyChecker: IDirtyChecker,
+    private readonly _nodeObserverLocator: INodeObserverLocator,
   ) {}
 
   public addAdapter(adapter: IObjectObservationAdapter): void {
-    this.adapters.push(adapter);
+    this._adapters.push(adapter);
   }
 
   public getObserver(obj: object, key: PropertyKey): IObserver {
     return (obj as IObservable).$observers?.[key as string] as IObserver | undefined
-      ?? this.cache((obj as IObservable), key as string, this.createObserver((obj as IObservable), key as string)) as IObserver;
+      ?? this._cache((obj as IObservable), key as string, this.createObserver((obj as IObservable), key as string)) as IObserver;
   }
 
   public getAccessor(obj: object, key: string): AccessorOrObserver {
@@ -89,8 +89,8 @@ export class ObserverLocator {
     if (cached !== void 0) {
       return cached;
     }
-    if (this.nodeObserverLocator.handles(obj, key, this)) {
-      return this.nodeObserverLocator.getAccessor(obj, key, this) as AccessorOrObserver;
+    if (this._nodeObserverLocator.handles(obj, key, this)) {
+      return this._nodeObserverLocator.getAccessor(obj, key, this) as AccessorOrObserver;
     }
 
     return propertyAccessor;
@@ -113,8 +113,8 @@ export class ObserverLocator {
       return new PrimitiveObserver(obj as unknown as Primitive, key);
     }
 
-    if (this.nodeObserverLocator.handles(obj, key, this)) {
-      return this.nodeObserverLocator.getObserver(obj, key, this) as AccessorOrObserver;
+    if (this._nodeObserverLocator.handles(obj, key, this)) {
+      return this._nodeObserverLocator.getObserver(obj, key, this) as AccessorOrObserver;
     }
 
     switch (key) {
@@ -137,14 +137,14 @@ export class ObserverLocator {
         break;
     }
 
-    let pd = Object.getOwnPropertyDescriptor(obj, key) as ExtendedPropertyDescriptor;
+    let pd = getOwnPropDesc(obj, key) as ExtendedPropertyDescriptor;
     // Only instance properties will yield a descriptor here, otherwise walk up the proto chain
     if (pd === void 0) {
-      let proto = Object.getPrototypeOf(obj) as object | null;
+      let proto = getProto(obj) as object | null;
       while (proto !== null) {
-        pd = Object.getOwnPropertyDescriptor(proto, key) as ExtendedPropertyDescriptor;
+        pd = getOwnPropDesc(proto, key) as ExtendedPropertyDescriptor;
         if (pd === void 0) {
-          proto = Object.getPrototypeOf(proto) as object | null;
+          proto = getProto(proto) as object | null;
         } else {
           break;
         }
@@ -152,8 +152,8 @@ export class ObserverLocator {
     }
 
     // If the descriptor does not have a 'value' prop, it must have a getter and/or setter
-    if (pd !== void 0 && !Object.prototype.hasOwnProperty.call(pd, 'value')) {
-      let obs: AccessorOrObserver | undefined | null = this.getAdapterObserver(obj, key, pd);
+    if (pd !== void 0 && !hasOwnProp.call(pd, 'value')) {
+      let obs: AccessorOrObserver | undefined | null = this._getAdapterObserver(obj, key, pd);
       if (obs == null) {
         obs = (pd.get?.getObserver ?? pd.set?.getObserver)?.(obj, this) as AccessorOrObserver;
       }
@@ -161,7 +161,7 @@ export class ObserverLocator {
       return obs == null
         ? pd.configurable
           ? ComputedObserver.create(obj, key, pd, this, /* AOT: not true for IE11 */ true)
-          : this.dirtyChecker.createProperty(obj, key)
+          : this._dirtyChecker.createProperty(obj, key)
         : obs;
     }
 
@@ -170,9 +170,9 @@ export class ObserverLocator {
     return new SetterObserver(obj, key);
   }
 
-  private getAdapterObserver(obj: IObservable, propertyName: string, pd: PropertyDescriptor): AccessorOrObserver | null {
-    if (this.adapters.length > 0) {
-      for (const adapter of this.adapters) {
+  private _getAdapterObserver(obj: IObservable, propertyName: string, pd: PropertyDescriptor): AccessorOrObserver | null {
+    if (this._adapters.length > 0) {
+      for (const adapter of this._adapters) {
         const observer = adapter.getObserver(obj, propertyName, pd, this);
         if (observer != null) {
           return observer;
@@ -182,7 +182,7 @@ export class ObserverLocator {
     return null;
   }
 
-  private cache(obj: IObservable, key: string, observer: AccessorOrObserver): AccessorOrObserver {
+  private _cache(obj: IObservable, key: string, observer: AccessorOrObserver): AccessorOrObserver {
     if (observer.doNotCache === true) {
       return observer;
     }
@@ -207,3 +207,7 @@ export function getCollectionObserver(collection: RepeatableCollection): Collect
   }
   return obs;
 }
+
+const getProto = Object.getPrototypeOf;
+const getOwnPropDesc = Object.getOwnPropertyDescriptor;
+const hasOwnProp = Object.prototype.hasOwnProperty;

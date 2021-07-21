@@ -139,27 +139,28 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
   }
 }
 
-export const CustomAttribute: CustomAttributeKind = {
-  name: Protocol.resource.keyFor('custom-attribute'),
+const caBaseName = Protocol.resource.keyFor('custom-attribute');
+export const CustomAttribute: CustomAttributeKind = Object.freeze({
+  name: caBaseName,
   keyFrom(name: string): string {
-    return `${CustomAttribute.name}:${name}`;
+    return `${caBaseName}:${name}`;
   },
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never) {
-    return typeof value === 'function' && Metadata.hasOwn(CustomAttribute.name, value);
+    return typeof value === 'function' && Metadata.hasOwn(caBaseName, value);
   },
   for<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(node: Node, name: string): ICustomAttributeController<C> | undefined {
     return (getRef(node, CustomAttribute.keyFrom(name)) ?? void 0) as ICustomAttributeController<C> | undefined;
   },
   define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> {
     const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
-    Metadata.define(CustomAttribute.name, definition, definition.Type);
-    Metadata.define(CustomAttribute.name, definition, definition);
-    Protocol.resource.appendTo(Type, CustomAttribute.name);
+    Metadata.define(caBaseName, definition, definition.Type);
+    Metadata.define(caBaseName, definition, definition);
+    Protocol.resource.appendTo(Type, caBaseName);
 
     return definition.Type as CustomAttributeType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): CustomAttributeDefinition<T> {
-    const def = Metadata.getOwn(CustomAttribute.name, Type) as CustomAttributeDefinition<T>;
+    const def = Metadata.getOwn(caBaseName, Type) as CustomAttributeDefinition<T>;
     if (def === void 0) {
       throw new Error(`No definition found for type ${Type.name}`);
     }
@@ -172,4 +173,4 @@ export const CustomAttribute: CustomAttributeKind = {
   getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K): PartialCustomAttributeDefinition[K] {
     return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
   },
-};
+});

@@ -60,9 +60,9 @@ export class AuCompose {
   /** @internal */
   public readonly $controller!: ICustomElementController<AuCompose>;
 
-  private _p?: Promise<void> | void;
+  private pd?: Promise<void> | void;
   public get pending(): Promise<void> | void {
-    return this._p;
+    return this.pd;
   }
 
   /** @internal */
@@ -91,11 +91,11 @@ export class AuCompose {
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
-    return this._p = onResolve(
+    return this.pd = onResolve(
       this.queue(new ChangeInfo(this.view, this.viewModel, this.model, initiator, void 0)),
       (context) => {
         if (this.contextFactory.isCurrent(context)) {
-          this._p = void 0;
+          this.pd = void 0;
         }
       }
     );
@@ -103,9 +103,9 @@ export class AuCompose {
 
   public detaching(initiator: IHydratedController): void | Promise<void> {
     const cmpstn = this.c;
-    const pending = this._p;
+    const pending = this.pd;
     this.contextFactory.invalidate();
-    this.c = this._p = void 0;
+    this.c = this.pd = void 0;
     return onResolve(pending, () => cmpstn?.deactivate(initiator));
   }
 
@@ -116,12 +116,12 @@ export class AuCompose {
       this.c.update(this.model);
       return;
     }
-    this._p = onResolve(this._p, () =>
+    this.pd = onResolve(this.pd, () =>
       onResolve(
         this.queue(new ChangeInfo(this.view!, this.viewModel, this.model, void 0, name)),
         (context) => {
           if (this.contextFactory.isCurrent(context)) {
-            this._p = void 0;
+            this.pd = void 0;
           }
         }
       )

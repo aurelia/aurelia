@@ -109,16 +109,17 @@ class WatchDefinition<T extends object> implements IWatchDefinition<T> {
 }
 
 const noDefinitions: IWatchDefinition[] = emptyArray;
+const watchBaseName = Protocol.annotation.keyFor('watch');
 export const Watch = {
-  name: Protocol.annotation.keyFor('watch'),
+  name: watchBaseName,
   add(Type: Constructable, definition: IWatchDefinition): void {
-    let watchDefinitions: IWatchDefinition[] = Metadata.getOwn(Watch.name, Type);
+    let watchDefinitions: IWatchDefinition[] = Metadata.getOwn(watchBaseName, Type);
     if (watchDefinitions == null) {
-      Metadata.define(Watch.name, watchDefinitions = [], Type);
+      Metadata.define(watchBaseName, watchDefinitions = [], Type);
     }
     watchDefinitions.push(definition);
   },
   getAnnotation(Type: Constructable): IWatchDefinition[] {
-    return Metadata.getOwn(Watch.name, Type) ?? noDefinitions;
+    return Metadata.getOwn(watchBaseName, Type) ?? noDefinitions;
   },
 };

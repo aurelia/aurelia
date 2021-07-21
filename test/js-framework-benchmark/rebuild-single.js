@@ -1,3 +1,4 @@
+/* deepscan-disable */
 var _ = require('lodash');
 var exec = require('child_process').execSync;
 var fs = require('fs');
@@ -52,7 +53,7 @@ for (f of frameworks) {
     exec(rsync_cmd,
     {
         stdio: 'inherit'
-    });        
+    });
     let rm_cmd = `rm -rf ${ci ? '' : 'package-lock.json'} yarn.lock dist elm-stuff bower_components node_modules output`;
     console.log(rm_cmd);
     exec(rm_cmd, {
@@ -72,14 +73,14 @@ for (f of frameworks) {
 }
 
 let frameworkNames = frameworks.join(" ");
-let bench_cmd = 'npm run bench -- --headless --noResults --exitOnError true --count 1  ' + frameworkNames; 
+let bench_cmd = 'npm run bench -- --headless --noResults --exitOnError true --count 1  ' + frameworkNames;
 console.log(bench_cmd);
 exec(bench_cmd, {
     cwd: 'webdriver-ts',
     stdio: 'inherit'
 });
 
-let keyed_cmd = 'npm run isKeyed -- --headless ' + frameworkNames; 
+let keyed_cmd = 'npm run isKeyed -- --headless ' + frameworkNames;
 console.log(keyed_cmd);
 exec(keyed_cmd, {
     cwd: 'webdriver-ts',

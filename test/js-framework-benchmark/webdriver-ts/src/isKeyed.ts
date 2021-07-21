@@ -1,3 +1,4 @@
+/* deepscan-disable */
 import * as R from 'ramda';
 import * as yargs from 'yargs';
 

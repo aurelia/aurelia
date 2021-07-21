@@ -1,3 +1,4 @@
+/* deepscan-disable */
 export const lhConfig = {
   artifacts: {
     traces: {},

@@ -1,6 +1,7 @@
-import { testTextContains, testTextNotContained, testClassContains, testElementLocatedByXpath, testElementNotLocatedByXPath, testElementLocatedById, clickElementById, clickElementByXPath, getTextByXPath } from './webdriverAccess'
-import { Builder, WebDriver, promise, logging } from 'selenium-webdriver'
-import { config, FrameworkData } from './common'
+import { Builder, WebDriver, logging, promise } from 'selenium-webdriver'
+import { FrameworkData, config } from './common'
+/* deepscan-disable */
+import { clickElementById, clickElementByXPath, getTextByXPath, testClassContains, testElementLocatedById, testElementLocatedByXpath, testElementNotLocatedByXPath, testTextContains, testTextNotContained } from './webdriverAccess'
 
 export enum BenchmarkType { CPU, MEM, STARTUP };
 

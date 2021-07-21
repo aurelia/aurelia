@@ -1,3 +1,4 @@
+/* deepscan-disable */
 var _ = require("lodash");
 var exec = require("child_process").execSync;
 var fs = require("fs");

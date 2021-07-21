@@ -1,3 +1,4 @@
+/* deepscan-disable */
 var _ = require('lodash');
 var exec = require('child_process').execSync;
 var fs = require('fs');
@@ -9,7 +10,7 @@ let args = process.argv.length <= 2 ? [] : process.argv.slice(2, process.argv.le
 /*
 This script rebuilds all frameworks from scratch,
 it deletes all package.json and package-lock.json files
-and invokes npm install and npm run build-prod for all benchmarks 
+and invokes npm install and npm run build-prod for all benchmarks
 
 If building a framework fails you can resume building like
 npm run rebuild-frameworks --restartWith keyed/react
@@ -49,7 +50,7 @@ for (f of buildable) {
     let [keyed,name] = f;
     let path = `frameworks/${keyed}/${name}`;
     if (!fs.existsSync(path+"/package.json")) {
-      console.log("WARN: skipping ", f, " since there's no package.json");    
+      console.log("WARN: skipping ", f, " since there's no package.json");
     } else {
       // if (fs.existsSync(path)) {
       //     console.log("deleting folder ",path);

@@ -1,10 +1,23 @@
+/* deepscan-disable */
 import * as fs from 'fs';
 import * as path from 'path';
-const ncu = require('npm-check-updates');
 import * as semver from 'semver';
 import * as yargs from 'yargs';
-import {loadFrameworkVersionInformation, determineInstalledVersions, FrameworkVersionInformation, FrameworkVersionInformationStatic, FrameworkVersionInformationDynamic, FrameworkVersionInformationError,
-    PackageVersionInformation, PackageVersionInformationValid, PackageVersionInformationErrorUnknownPackage, PackageVersionInformationErrorNoPackageJSONLock, PackageVersionInformationResult} from './common';
+
+import {
+    FrameworkVersionInformation,
+    FrameworkVersionInformationDynamic,
+    FrameworkVersionInformationError,
+    FrameworkVersionInformationStatic,
+    PackageVersionInformation,
+    PackageVersionInformationErrorNoPackageJSONLock,
+    PackageVersionInformationErrorUnknownPackage,
+    PackageVersionInformationResult,
+    PackageVersionInformationValid,
+    determineInstalledVersions,
+    loadFrameworkVersionInformation
+} from './common';
+const ncu = require('npm-check-updates');
 var exec = require('child_process').execSync;
 
 let args: any = yargs(process.argv)

@@ -1,7 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import axios from 'axios';
+
 import { LighthouseData } from './benchmarks';
+import axios from 'axios';
 
 export interface JSONResult {
     framework: string, keyed: boolean, benchmark: string, type: string, min: number,
@@ -37,7 +38,7 @@ export let config = {
     PORT: 8080,
     REMOTE_DEBUGGING_PORT: 9999,
     CHROME_PORT: 9998,
-    NUM_ITERATIONS_FOR_BENCHMARK_CPU: 10, 
+    NUM_ITERATIONS_FOR_BENCHMARK_CPU: 10,
     NUM_ITERATIONS_FOR_BENCHMARK_CPU_DROP_SLOWEST_COUNT: 2, // drop the # of slowest results
     NUM_ITERATIONS_FOR_BENCHMARK_MEM: 1,
     NUM_ITERATIONS_FOR_BENCHMARK_STARTUP: 4,
@@ -76,10 +77,6 @@ interface Options {
 
 type KeyedType = 'keyed' | 'non-keyed';
 
-function computeHash(keyedType: KeyedType, directory: string) {
-    return keyedType+'/'+directory;
-}
-
 export interface FrameworkId {
     keyedType: KeyedType;
     directory: string;
@@ -89,7 +86,7 @@ export interface FrameworkId {
 
 abstract class FrameworkVersionInformationValid implements FrameworkId {
     public url: string;
-    constructor(public keyedType: KeyedType, public directory: string, customURL: string|undefined, public useShadowRoot: boolean, public useRowShadowRoot: boolean,       
+    constructor(public keyedType: KeyedType, public directory: string, customURL: string|undefined, public useShadowRoot: boolean, public useRowShadowRoot: boolean,
       public shadowRootName: string, public buttonsInShadowRoot: boolean, public issues: number[]) {
         this.keyedType = keyedType;
         this.directory = directory;

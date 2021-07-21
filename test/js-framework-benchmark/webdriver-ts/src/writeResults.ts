@@ -1,8 +1,8 @@
-import {TConfig, config as defaultConfig, JSONResult, FrameworkData} from './common'
-import {BenchmarkType, Benchmark, fileName} from './benchmarks'
-const jStat = require('jstat').jStat;
 import * as fs from 'fs';
-import * as path from 'path';
+
+import {Benchmark, BenchmarkType, fileName} from './benchmarks'
+import {FrameworkData, JSONResult, config as defaultConfig} from './common'
+const jStat = require('jstat').jStat;
 
 export interface Result<T> {
     framework: FrameworkData;

@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import * as fs from 'fs';
 
 import {BenchmarkInfo, BenchmarkType, benchmarks, fileName} from './benchmarks'

@@ -1,14 +1,12 @@
-import { BenchmarkType, Benchmark, benchmarks, fileName, LighthouseData } from './benchmarks'
 import * as fs from 'fs';
-import * as yargs from 'yargs';
 import * as path from 'path'
-import { JSONResult, config, FrameworkData, initializeFrameworks, ErrorAndWarning, BenchmarkOptions } from './common'
-import * as R from 'ramda';
+import * as yargs from 'yargs';
+
+import { BenchmarkOptions, ErrorAndWarning, FrameworkData, config, initializeFrameworks } from './common'
+import { BenchmarkType, LighthouseData, benchmarks } from './benchmarks'
+
 import { fork } from 'child_process';
-import { executeBenchmark } from './forkedBenchmarkRunner';
-import mapObjIndexed from 'ramda/es/mapObjIndexed';
 import {writeResults} from './writeResults';
-import { resolve } from 'dns';
 
 function forkAndCallBenchmark(frameworks: FrameworkData[], frameworkName: string, keyed: boolean, benchmarkName: string, benchmarkOptions: BenchmarkOptions): Promise<ErrorAndWarning> {
     return new Promise((resolve, reject) => {
@@ -87,7 +85,7 @@ async function runBenchmakLoop(frameworks: FrameworkData[], frameworkName: strin
             results = results.slice(0, config.NUM_ITERATIONS_FOR_BENCHMARK_CPU)
             // console.log("CPU results after: ", results)
         }
-    
+
         console.log("******* result ", results);
         await writeResults(config, { framework: framework, benchmark: benchmark, results: results });
         return ({errors, warnings})

@@ -3,9 +3,7 @@ import * as yargs from 'yargs';
 
 import {BenchmarkOptions, FrameworkData, config, initializeFrameworks} from './common'
 import { By, WebDriver, WebElement } from 'selenium-webdriver';
-import {buildDriver, clickElementById, clickElementByXPath, findByXPath, getTextByXPath, mainRoot, setButtonsInShadowRoot, setShadowRootName, setUseRowShadowRoot, setUseShadowRoot, testClassContains, testElementLocatedById, testElementLocatedByXpath, testElementNotLocatedByXPath, testTextContains, testTextNotContained} from './webdriverAccess'
-
-import { valid } from 'semver';
+import {buildDriver, clickElementById, clickElementByXPath, findByXPath, getTextByXPath, setButtonsInShadowRoot, setShadowRootName, setUseRowShadowRoot, setUseShadowRoot, testElementLocatedById, testTextContains, testTextNotContained} from './webdriverAccess'
 
 let args: any = yargs(process.argv)
     .usage("$0 [--framework Framework1 Framework2 ...] [--benchmark Benchmark1 Benchmark2 ...]")

@@ -1,10 +1,21 @@
-import * as fs from 'fs';
 import * as path from 'path';
-const ncu = require('npm-check-updates');
 import * as semver from 'semver';
 import * as yargs from 'yargs';
-import {loadFrameworkVersionInformation, determineInstalledVersions, FrameworkVersionInformation, FrameworkVersionInformationStatic, FrameworkVersionInformationDynamic, FrameworkVersionInformationError,
-    PackageVersionInformation, PackageVersionInformationValid, PackageVersionInformationErrorUnknownPackage, PackageVersionInformationErrorNoPackageJSONLock, PackageVersionInformationResult} from './common';
+
+import {
+    FrameworkVersionInformationDynamic,
+    FrameworkVersionInformationError,
+    FrameworkVersionInformationStatic,
+    PackageVersionInformation,
+    PackageVersionInformationErrorNoPackageJSONLock,
+    PackageVersionInformationErrorUnknownPackage,
+    PackageVersionInformationResult,
+    PackageVersionInformationValid,
+    determineInstalledVersions,
+    loadFrameworkVersionInformation
+} from './common';
+
+const ncu = require('npm-check-updates');
 var exec = require('child_process').execSync;
 
 let args: any = yargs(process.argv)
@@ -88,10 +99,6 @@ async function main() {
 
     if (unknownPackages.length > 0) {
         console.log("WARNING: The following frameworks do not have a version for the specified packages in package-lock.json file (maybe you misspelled the package name): ");
-        let unknownPackagesStr = (packageVersionInfo: PackageVersionInformationResult) => packageVersionInfo.versions.filter(pvi => pvi instanceof PackageVersionInformationErrorUnknownPackage).
-            map((packageVersionInfo: PackageVersionInformationErrorUnknownPackage) => packageVersionInfo.packageName).join(', ');
-
-        // console.log(unknownPackages.map(val => val.framework.keyedType +'/' + val.framework.directory + ' for package ' + unknownPackagesStr(val)).join('\n') + '\n');
     }
 
     let checkVersionsFor = packageLockInformations

@@ -1,14 +1,15 @@
+import * as R from 'ramda';
+import * as fs from 'fs';
+import * as path from 'path';
+
+import {Benchmark, BenchmarkType, LighthouseData, benchmarks} from './benchmarks'
+import {BenchmarkOptions, ErrorAndWarning, FrameworkData, TConfig, config as defaultConfig} from './common'
 import {WebDriver, logging} from 'selenium-webdriver'
-import {BenchmarkType, Benchmark, benchmarks, fileName, LighthouseData} from './benchmarks'
-import {setUseShadowRoot, buildDriver, setUseRowShadowRoot, setShadowRootName, setButtonsInShadowRoot} from './webdriverAccess'
+import {buildDriver, setButtonsInShadowRoot, setShadowRootName, setUseRowShadowRoot, setUseShadowRoot} from './webdriverAccess'
 
 const lighthouse = require('lighthouse');
 const chromeLauncher = require('chrome-launcher');
 
-import * as fs from 'fs';
-import * as path from 'path';
-import {TConfig, config as defaultConfig, JSONResult, FrameworkData, ErrorAndWarning, BenchmarkOptions, BenchmarkDriverOptions, TBenchmarkStatus} from './common'
-import * as R from 'ramda';
 
 let config:TConfig = defaultConfig;
 

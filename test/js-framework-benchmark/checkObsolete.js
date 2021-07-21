@@ -18,6 +18,7 @@ let warnings = [];
 let manually = [];
 
 function maybeObsolete(package) {
+  let output;
   try {
     let output = exec(`npm view ${package} time`, {
       stdio: ["ignore", "pipe", "ignore"],

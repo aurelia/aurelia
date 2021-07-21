@@ -1,7 +1,6 @@
-import { FrameworkData, config } from './common'
-import { clickElementById, clickElementByXPath, getTextByXPath, testClassContains, testElementLocatedById, testElementLocatedByXpath, testElementNotLocatedByXPath, testTextContains } from './webdriverAccess'
-
-import { WebDriver } from 'selenium-webdriver'
+import { testTextContains, testTextNotContained, testClassContains, testElementLocatedByXpath, testElementNotLocatedByXPath, testElementLocatedById, clickElementById, clickElementByXPath, getTextByXPath } from './webdriverAccess'
+import { Builder, WebDriver, promise, logging } from 'selenium-webdriver'
+import { config, FrameworkData } from './common'
 
 export enum BenchmarkType { CPU, MEM, STARTUP };
 

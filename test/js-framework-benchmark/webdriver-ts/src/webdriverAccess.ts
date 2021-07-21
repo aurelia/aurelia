@@ -1,7 +1,7 @@
 import * as chrome from 'selenium-webdriver/chrome'
+import {By, until, Builder, Capabilities, WebDriver, Locator, promise, logging, WebElement, Condition} from 'selenium-webdriver'
 
-import {BenchmarkDriverOptions, config} from './common'
-import {By, Capabilities, Condition, WebDriver, WebElement} from 'selenium-webdriver'
+import {config, BenchmarkDriverOptions} from './common'
 
 interface PathPart {
     tagName: string;
@@ -61,7 +61,7 @@ export async function findByXPath(driver: WebDriver, path: string, isInButtonAre
     let paths = convertPath(path);
      let n = root;
      try {
-        for (let p of paths) {
+        for (let p of paths) {  
             let elem;
             if (useRowShadowRoot && p.tagName === 'tr') {
                 try {

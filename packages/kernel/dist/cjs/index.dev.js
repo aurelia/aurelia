@@ -346,7 +346,8 @@ function mergeObjects(...objects) {
     const objectsLen = objects.length;
     let object;
     let key;
-    for (let i = 0; i < objectsLen; ++i) {
+    let i = 0;
+    for (; objectsLen > i; ++i) {
         object = objects[i];
         if (object !== void 0) {
             for (key in object) {
@@ -359,7 +360,8 @@ function mergeObjects(...objects) {
 function firstDefined(...values) {
     const len = values.length;
     let value;
-    for (let i = 0; i < len; ++i) {
+    let i = 0;
+    for (; len > i; ++i) {
         value = values[i];
         if (value !== void 0) {
             return value;
@@ -483,12 +485,13 @@ function resolveAll(...maybePromises) {
     return Promise.all(promises);
 }
 
+const annoBaseName = 'au:annotation';
 const annotation = {
     name: 'au:annotation',
     appendTo(target, key) {
-        const keys = metadata.Metadata.getOwn(annotation.name, target);
+        const keys = metadata.Metadata.getOwn(annoBaseName, target);
         if (keys === void 0) {
-            metadata.Metadata.define(annotation.name, [key], target);
+            metadata.Metadata.define(annoBaseName, [key], target);
         }
         else {
             keys.push(key);
@@ -501,38 +504,39 @@ const annotation = {
         return metadata.Metadata.getOwn(annotation.keyFor(prop), target);
     },
     getKeys(target) {
-        let keys = metadata.Metadata.getOwn(annotation.name, target);
+        let keys = metadata.Metadata.getOwn(annoBaseName, target);
         if (keys === void 0) {
-            metadata.Metadata.define(annotation.name, keys = [], target);
+            metadata.Metadata.define(annoBaseName, keys = [], target);
         }
         return keys;
     },
     isKey(key) {
-        return key.startsWith(annotation.name);
+        return key.startsWith(annoBaseName);
     },
     keyFor(name, context) {
         if (context === void 0) {
-            return `${annotation.name}:${name}`;
+            return `${annoBaseName}:${name}`;
         }
-        return `${annotation.name}:${name}:${context}`;
+        return `${annoBaseName}:${name}:${context}`;
     },
 };
-const resource = {
-    name: 'au:resource',
+const resBaseName = 'au:resource';
+const resource = Object.freeze({
+    name: resBaseName,
     appendTo(target, key) {
-        const keys = metadata.Metadata.getOwn(resource.name, target);
+        const keys = metadata.Metadata.getOwn(resBaseName, target);
         if (keys === void 0) {
-            metadata.Metadata.define(resource.name, [key], target);
+            metadata.Metadata.define(resBaseName, [key], target);
         }
         else {
             keys.push(key);
         }
     },
     has(target) {
-        return metadata.Metadata.hasOwn(resource.name, target);
+        return metadata.Metadata.hasOwn(resBaseName, target);
     },
     getAll(target) {
-        const keys = metadata.Metadata.getOwn(resource.name, target);
+        const keys = metadata.Metadata.getOwn(resBaseName, target);
         if (keys === void 0) {
             return emptyArray;
         }
@@ -541,22 +545,22 @@ const resource = {
         }
     },
     getKeys(target) {
-        let keys = metadata.Metadata.getOwn(resource.name, target);
+        let keys = metadata.Metadata.getOwn(resBaseName, target);
         if (keys === void 0) {
-            metadata.Metadata.define(resource.name, keys = [], target);
+            metadata.Metadata.define(resBaseName, keys = [], target);
         }
         return keys;
     },
     isKey(key) {
-        return key.startsWith(resource.name);
+        return key.startsWith(resBaseName);
     },
     keyFor(name, context) {
         if (context === void 0) {
-            return `${resource.name}:${name}`;
+            return `${resBaseName}:${name}`;
         }
-        return `${resource.name}:${name}:${context}`;
+        return `${resBaseName}:${name}:${context}`;
     },
-};
+});
 const Protocol = {
     annotation,
     resource,
@@ -1252,32 +1256,32 @@ class Container {
         this.parent = parent;
         this.config = config;
         this.id = ++containerId;
-        this.registerDepth = 0;
-        this.disposableResolvers = new Set();
+        this._registerDepth = 0;
+        this._disposableResolvers = new Set();
         if (parent === null) {
             this.root = this;
-            this.resolvers = new Map();
-            this.factories = new Map();
-            this.resourceResolvers = Object.create(null);
+            this._resolvers = new Map();
+            this._factories = new Map();
+            this.res = Object.create(null);
         }
         else {
             this.root = parent.root;
-            this.resolvers = new Map();
-            this.factories = parent.factories;
+            this._resolvers = new Map();
+            this._factories = parent._factories;
             if (config.inheritParentResources) {
-                this.resourceResolvers = Object.assign(Object.create(null), parent.resourceResolvers, this.root.resourceResolvers);
+                this.res = Object.assign(Object.create(null), parent.res, this.root.res);
             }
             else {
-                this.resourceResolvers = Object.create(null);
+                this.res = Object.create(null);
             }
         }
-        this.resolvers.set(IContainer, containerResolver);
+        this._resolvers.set(IContainer, containerResolver);
     }
     get depth() {
         return this.parent === null ? 0 : this.parent.depth + 1;
     }
     register(...params) {
-        if (++this.registerDepth === 100) {
+        if (++this._registerDepth === 100) {
             // TODO: change to reporter.error and add various possible causes in description.
             // Most likely cause is trying to register a plain object that does not have a
             // register method and is not a class constructor
@@ -1339,22 +1343,22 @@ class Container {
                 }
             }
         }
-        --this.registerDepth;
+        --this._registerDepth;
         return this;
     }
     registerResolver(key, resolver, isDisposable = false) {
         validateKey(key);
-        const resolvers = this.resolvers;
+        const resolvers = this._resolvers;
         const result = resolvers.get(key);
         if (result == null) {
             resolvers.set(key, resolver);
             if (isResourceKey(key)) {
-                if (this.resourceResolvers[key] !== void 0) {
+                if (this.res[key] !== void 0) {
                     {
                         throw new Error(`AUR0007:${key}`);
                     }
                 }
-                this.resourceResolvers[key] = resolver;
+                this.res[key] = resolver;
             }
         }
         else if (result instanceof Resolver && result.strategy === 4 /* array */) {
@@ -1364,7 +1368,7 @@ class Container {
             resolvers.set(key, new Resolver(key, 4 /* array */, [result, resolver]));
         }
         if (isDisposable) {
-            this.disposableResolvers.add(resolver);
+            this._disposableResolvers.add(resolver);
         }
         return resolver;
     }
@@ -1423,11 +1427,11 @@ class Container {
         let current = this;
         let resolver;
         while (current != null) {
-            resolver = current.resolvers.get(key);
+            resolver = current._resolvers.get(key);
             if (resolver == null) {
                 if (current.parent == null) {
                     const handler = (isRegisterInRequester(key)) ? this : current;
-                    return autoRegister ? this.jitRegister(key, handler) : null;
+                    return autoRegister ? this._jitRegister(key, handler) : null;
                 }
                 current = current.parent;
             }
@@ -1438,7 +1442,7 @@ class Container {
         return null;
     }
     has(key, searchAncestors = false) {
-        return this.resolvers.has(key)
+        return this._resolvers.has(key)
             ? true
             : searchAncestors && this.parent != null
                 ? this.parent.has(key, true)
@@ -1452,11 +1456,11 @@ class Container {
         let current = this;
         let resolver;
         while (current != null) {
-            resolver = current.resolvers.get(key);
+            resolver = current._resolvers.get(key);
             if (resolver == null) {
                 if (current.parent == null) {
                     const handler = (isRegisterInRequester(key)) ? this : current;
-                    resolver = this.jitRegister(key, handler);
+                    resolver = this._jitRegister(key, handler);
                     return resolver.resolve(current, this);
                 }
                 current = current.parent;
@@ -1477,7 +1481,7 @@ class Container {
         if (searchAncestors) {
             let resolutions = emptyArray;
             while (current != null) {
-                resolver = current.resolvers.get(key);
+                resolver = current._resolvers.get(key);
                 if (resolver != null) {
                     resolutions = resolutions.concat(buildAllResponse(resolver, current, requestor));
                 }
@@ -1487,7 +1491,7 @@ class Container {
         }
         else {
             while (current != null) {
-                resolver = current.resolvers.get(key);
+                resolver = current._resolvers.get(key);
                 if (resolver == null) {
                     current = current.parent;
                     if (current == null) {
@@ -1513,17 +1517,17 @@ class Container {
         }
     }
     getFactory(Type) {
-        let factory = this.factories.get(Type);
+        let factory = this._factories.get(Type);
         if (factory === void 0) {
             if (isNativeFunction(Type)) {
                 throw createNativeInvocationError(Type);
             }
-            this.factories.set(Type, factory = new Factory(Type, getDependencies(Type)));
+            this._factories.set(Type, factory = new Factory(Type, getDependencies(Type)));
         }
         return factory;
     }
     registerFactory(key, factory) {
-        this.factories.set(key, factory);
+        this._factories.set(key, factory);
     }
     createChild(config) {
         if (config === void 0 && this.config.inheritParentResources) {
@@ -1539,15 +1543,15 @@ class Container {
     }
     disposeResolvers() {
         let disposeable;
-        for (disposeable of this.disposableResolvers) {
+        for (disposeable of this._disposableResolvers) {
             disposeable.dispose();
         }
     }
     find(kind, name) {
         const key = kind.keyFrom(name);
-        let resolver = this.resourceResolvers[key];
+        let resolver = this.res[key];
         if (resolver === void 0) {
-            resolver = this.root.resourceResolvers[key];
+            resolver = this.root.res[key];
             if (resolver === void 0) {
                 return null;
             }
@@ -1573,9 +1577,9 @@ class Container {
     create(kind, name) {
         var _a, _b;
         const key = kind.keyFrom(name);
-        let resolver = this.resourceResolvers[key];
+        let resolver = this.res[key];
         if (resolver === void 0) {
-            resolver = this.root.resourceResolvers[key];
+            resolver = this.root.res[key];
             if (resolver === void 0) {
                 return null;
             }
@@ -1584,12 +1588,12 @@ class Container {
         return (_b = resolver.resolve(this, this)) !== null && _b !== void 0 ? _b : null;
     }
     dispose() {
-        if (this.disposableResolvers.size > 0) {
+        if (this._disposableResolvers.size > 0) {
             this.disposeResolvers();
         }
-        this.resolvers.clear();
+        this._resolvers.clear();
     }
-    jitRegister(keyAsValue, handler) {
+    _jitRegister(keyAsValue, handler) {
         if (typeof keyAsValue !== 'function') {
             {
                 throw new Error(`AUR0009:${keyAsValue}`);
@@ -1603,7 +1607,7 @@ class Container {
         if (isRegistry(keyAsValue)) {
             const registrationResolver = keyAsValue.register(handler, keyAsValue);
             if (!(registrationResolver instanceof Object) || registrationResolver.resolve == null) {
-                const newResolver = handler.resolvers.get(keyAsValue);
+                const newResolver = handler._resolvers.get(keyAsValue);
                 if (newResolver != void 0) {
                     return newResolver;
                 }
@@ -1625,7 +1629,7 @@ class Container {
                     defs[d].register(handler);
                 }
             }
-            const newResolver = handler.resolvers.get(keyAsValue);
+            const newResolver = handler._resolvers.get(keyAsValue);
             if (newResolver != void 0) {
                 return newResolver;
             }
@@ -1640,7 +1644,7 @@ class Container {
         }
         else {
             const resolver = this.config.defaultResolver(keyAsValue, handler);
-            handler.resolvers.set(keyAsValue, resolver);
+            handler._resolvers.set(keyAsValue, resolver);
             return resolver;
         }
     }
@@ -1787,32 +1791,35 @@ const Registration = {
     }
 };
 class InstanceProvider {
-    constructor(friendlyName, 
+    constructor(_name, 
     /**
      * if not undefined, then this is the value this provider will resolve to
      * until overridden by explicit prepare call
      */
     instance) {
-        this.friendlyName = friendlyName;
-        this.instance = null;
+        this._instance = null;
+        this._name = _name;
         if (instance !== void 0) {
-            this.instance = instance;
+            this._instance = instance;
         }
     }
+    get friendlyName() {
+        return this._name;
+    }
     prepare(instance) {
-        this.instance = instance;
+        this._instance = instance;
     }
     get $isResolver() { return true; }
     resolve() {
-        if (this.instance == null) {
+        if (this._instance == null) {
             {
-                throw new Error(`AUR0013:${this.friendlyName}`);
+                throw new Error(`AUR0013:${this._name}`);
             }
         }
-        return this.instance;
+        return this._instance;
     }
     dispose() {
-        this.instance = null;
+        this._instance = null;
     }
 }
 /** @internal */
@@ -2311,49 +2318,49 @@ function noTransform(m) {
 class ModuleTransformer {
     constructor($transform) {
         this.$transform = $transform;
-        this.promiseCache = new Map();
-        this.objectCache = new Map();
+        this._promiseCache = new Map();
+        this._objectCache = new Map();
     }
     transform(objOrPromise) {
         if (objOrPromise instanceof Promise) {
-            return this.transformPromise(objOrPromise);
+            return this._transformPromise(objOrPromise);
         }
         else if (typeof objOrPromise === 'object' && objOrPromise !== null) {
-            return this.transformObject(objOrPromise);
+            return this._transformObject(objOrPromise);
         }
         else {
             throw new Error(`Invalid input: ${String(objOrPromise)}. Expected Promise or Object.`);
         }
     }
-    transformPromise(promise) {
-        if (this.promiseCache.has(promise)) {
-            return this.promiseCache.get(promise);
+    _transformPromise(promise) {
+        if (this._promiseCache.has(promise)) {
+            return this._promiseCache.get(promise);
         }
         const ret = promise.then(obj => {
-            return this.transformObject(obj);
+            return this._transformObject(obj);
         });
-        this.promiseCache.set(promise, ret);
+        this._promiseCache.set(promise, ret);
         void ret.then(value => {
             // make it synchronous for future requests
-            this.promiseCache.set(promise, value);
+            this._promiseCache.set(promise, value);
         });
         return ret;
     }
-    transformObject(obj) {
-        if (this.objectCache.has(obj)) {
-            return this.objectCache.get(obj);
+    _transformObject(obj) {
+        if (this._objectCache.has(obj)) {
+            return this._objectCache.get(obj);
         }
-        const ret = this.$transform(this.analyze(obj));
-        this.objectCache.set(obj, ret);
+        const ret = this.$transform(this._analyze(obj));
+        this._objectCache.set(obj, ret);
         if (ret instanceof Promise) {
             void ret.then(value => {
                 // make it synchronous for future requests
-                this.objectCache.set(obj, value);
+                this._objectCache.set(obj, value);
             });
         }
         return ret;
     }
-    analyze(m) {
+    _analyze(m) {
         let value;
         let isRegistry;
         let isConstructable;

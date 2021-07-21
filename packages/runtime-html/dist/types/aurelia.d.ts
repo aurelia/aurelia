@@ -15,7 +15,7 @@ export declare class Aurelia implements IDisposable {
     private _root;
     get root(): IAppRoot;
     private next;
-    private readonly rootProvider;
+    private readonly _rootProvider;
     constructor(container?: IContainer);
     register(...params: any[]): this;
     app(config: ISinglePageApp): Omit<this, 'register' | 'app' | 'enhance'>;
@@ -24,13 +24,13 @@ export declare class Aurelia implements IDisposable {
      */
     enhance<T extends unknown, K = T extends Constructable<infer I> ? I : T>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController | null): ICustomElementController<K> | Promise<ICustomElementController<K>>;
     waitForIdle(): Promise<void>;
-    private initPlatform;
-    private startPromise;
+    private _initPlatform;
+    private _startPromise;
     start(root?: IAppRoot | undefined): void | Promise<void>;
-    private stopPromise;
+    private _stopPromise;
     stop(dispose?: boolean): void | Promise<void>;
     dispose(): void;
-    private dispatchEvent;
+    private _dispatchEvent;
 }
 export interface IEnhancementConfig<T> {
     host: Element;

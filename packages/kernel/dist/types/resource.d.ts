@@ -27,7 +27,7 @@ export declare const Protocol: {
         isKey(key: string): boolean;
         keyFor(name: string, context?: string | undefined): string;
     };
-    resource: {
+    resource: Readonly<{
         name: string;
         appendTo(target: Constructable, key: string): void;
         has(target: unknown): target is Constructable<{}>;
@@ -35,7 +35,7 @@ export declare const Protocol: {
         getKeys(target: Constructable): readonly string[];
         isKey(key: string): boolean;
         keyFor(name: string, context?: string | undefined): string;
-    };
+    }>;
 };
 /**
  * The order in which the values are checked:

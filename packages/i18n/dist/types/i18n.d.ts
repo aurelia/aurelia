@@ -82,7 +82,6 @@ export interface ILocalChangeSubscriber {
  */
 export declare class I18nService implements I18N {
     private readonly ea;
-    private readonly signaler;
     i18next: i18nextCore.i18n;
     /**
      * This is used for i18next initialization and awaited for before the bind phase.
@@ -90,7 +89,8 @@ export declare class I18nService implements I18N {
      */
     readonly initPromise: Promise<void>;
     private options;
-    private readonly localeSubscribers;
+    private readonly _localeSubscribers;
+    private readonly _signaler;
     constructor(i18nextWrapper: I18nextWrapper, options: I18nInitOptions, ea: IEventAggregator, signaler: ISignaler);
     evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[];
     tr(key: string | string[], options?: i18nextCore.TOptions): string;
@@ -105,6 +105,6 @@ export declare class I18nService implements I18N {
     rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string;
     subscribeLocaleChange(subscriber: ILocalChangeSubscriber): void;
     private now;
-    private initializeI18next;
+    private _initializeI18next;
 }
 //# sourceMappingURL=i18n.d.ts.map

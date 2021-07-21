@@ -171,7 +171,8 @@ class Signaler {
         if (listeners === undefined) {
             return;
         }
-        for (const listener of listeners.keys()) {
+        let listener;
+        for (listener of listeners.keys()) {
             listener.handleChange(undefined, undefined, flags);
         }
     }
@@ -240,13 +241,13 @@ class BindingBehaviorDefinition {
     }
 }
 class BindingBehaviorFactory {
-    constructor(container, Type) {
-        this.container = container;
+    constructor(ctn, Type) {
+        this.ctn = ctn;
         this.Type = Type;
         this.deps = kernel.DI.getDependencies(Type);
     }
     construct(binding, expr) {
-        const container = this.container;
+        const container = this.ctn;
         const deps = this.deps;
         switch (deps.length) {
             case 0:
@@ -321,23 +322,24 @@ class BindingInterceptor {
         this.binding.$unbind(flags);
     }
 }
-const BindingBehavior = {
-    name: kernel.Protocol.resource.keyFor('binding-behavior'),
+const bbBaseName = kernel.Protocol.resource.keyFor('binding-behavior');
+const BindingBehavior = Object.freeze({
+    name: bbBaseName,
     keyFrom(name) {
-        return `${BindingBehavior.name}:${name}`;
+        return `${bbBaseName}:${name}`;
     },
     isType(value) {
-        return typeof value === 'function' && kernel.Metadata.hasOwn(BindingBehavior.name, value);
+        return typeof value === 'function' && kernel.Metadata.hasOwn(bbBaseName, value);
     },
     define(nameOrDef, Type) {
         const definition = BindingBehaviorDefinition.create(nameOrDef, Type);
-        kernel.Metadata.define(BindingBehavior.name, definition, definition.Type);
-        kernel.Metadata.define(BindingBehavior.name, definition, definition);
-        kernel.Protocol.resource.appendTo(Type, BindingBehavior.name);
+        kernel.Metadata.define(bbBaseName, definition, definition.Type);
+        kernel.Metadata.define(bbBaseName, definition, definition);
+        kernel.Protocol.resource.appendTo(Type, bbBaseName);
         return definition.Type;
     },
     getDefinition(Type) {
-        const def = kernel.Metadata.getOwn(BindingBehavior.name, Type);
+        const def = kernel.Metadata.getOwn(bbBaseName, Type);
         if (def === void 0) {
             throw new Error(`No definition found for type ${Type.name}`);
         }
@@ -349,7 +351,7 @@ const BindingBehavior = {
     getAnnotation(Type, prop) {
         return kernel.Metadata.getOwn(kernel.Protocol.annotation.keyFor(prop), Type);
     },
-};
+});
 
 function valueConverter(nameOrDef) {
     return function (target) {
@@ -383,23 +385,24 @@ class ValueConverterDefinition {
         registerAliases(aliases, ValueConverter, key, container);
     }
 }
-const ValueConverter = {
-    name: kernel.Protocol.resource.keyFor('value-converter'),
+const vcBaseName = kernel.Protocol.resource.keyFor('value-converter');
+const ValueConverter = Object.freeze({
+    name: vcBaseName,
     keyFrom(name) {
-        return `${ValueConverter.name}:${name}`;
+        return `${vcBaseName}:${name}`;
     },
     isType(value) {
-        return typeof value === 'function' && kernel.Metadata.hasOwn(ValueConverter.name, value);
+        return typeof value === 'function' && kernel.Metadata.hasOwn(vcBaseName, value);
     },
     define(nameOrDef, Type) {
         const definition = ValueConverterDefinition.create(nameOrDef, Type);
-        kernel.Metadata.define(ValueConverter.name, definition, definition.Type);
-        kernel.Metadata.define(ValueConverter.name, definition, definition);
-        kernel.Protocol.resource.appendTo(Type, ValueConverter.name);
+        kernel.Metadata.define(vcBaseName, definition, definition.Type);
+        kernel.Metadata.define(vcBaseName, definition, definition);
+        kernel.Protocol.resource.appendTo(Type, vcBaseName);
         return definition.Type;
     },
     getDefinition(Type) {
-        const def = kernel.Metadata.getOwn(ValueConverter.name, Type);
+        const def = kernel.Metadata.getOwn(vcBaseName, Type);
         if (def === void 0) {
             throw new Error(`No definition found for type ${Type.name}`);
         }
@@ -411,7 +414,7 @@ const ValueConverter = {
     getAnnotation(Type, prop) {
         return kernel.Metadata.getOwn(kernel.Protocol.annotation.keyFor(prop), Type);
     },
-};
+});
 
 /* eslint-disable eqeqeq */
 exports.ExpressionKind = void 0;
@@ -1587,6 +1590,7 @@ function defineHiddenProp(obj, key, value) {
         writable: true,
         value
     });
+    return value;
 }
 function ensureProto(proto, key, defaultValue, force = false) {
     if (force || !Object.prototype.hasOwnProperty.call(proto, key)) {
@@ -1895,9 +1899,7 @@ class SubscriberRecord {
     }
 }
 function getSubscriberRecord() {
-    const record = new SubscriberRecord();
-    defineHiddenProp(this, 'subs', record);
-    return record;
+    return defineHiddenProp(this, 'subs', new SubscriberRecord());
 }
 function addSubscriber(subscriber) {
     return this.subs.add(subscriber);
@@ -1915,19 +1917,19 @@ function queueableDeco(target) {
 }
 class FlushQueue {
     constructor() {
-        this.flushing = false;
-        this.items = new Set();
+        this._flushing = false;
+        this._items = new Set();
     }
     get count() {
-        return this.items.size;
+        return this._items.size;
     }
     add(callable) {
-        this.items.add(callable);
-        if (this.flushing) {
+        this._items.add(callable);
+        if (this._flushing) {
             return;
         }
-        this.flushing = true;
-        const items = this.items;
+        this._flushing = true;
+        const items = this._items;
         let item;
         try {
             for (item of items) {
@@ -1936,12 +1938,12 @@ class FlushQueue {
             }
         }
         finally {
-            this.flushing = false;
+            this._flushing = false;
         }
     }
     clear() {
-        this.items.clear();
-        this.flushing = false;
+        this._items.clear();
+        this._flushing = false;
     }
 }
 FlushQueue.instance = new FlushQueue();
@@ -2817,9 +2819,7 @@ function observe(obj, key) {
     this.obs.add(observer);
 }
 function getObserverRecord() {
-    const record = new BindingObserverRecord(this);
-    defineHiddenProp(this, 'obs', record);
-    return record;
+    return defineHiddenProp(this, 'obs', new BindingObserverRecord(this));
 }
 function observeCollection(collection) {
     let obs;
@@ -4827,19 +4827,19 @@ const queueTaskOpts = {
     persistent: true,
 };
 class DirtyChecker {
-    constructor(platform) {
-        this.platform = platform;
+    constructor(p) {
+        this.p = p;
         this.tracked = [];
-        this.task = null;
-        this.elapsedFrames = 0;
+        this._task = null;
+        this._elapsedFrames = 0;
         this.check = () => {
             if (DirtyCheckSettings.disabled) {
                 return;
             }
-            if (++this.elapsedFrames < DirtyCheckSettings.timeoutsPerCheck) {
+            if (++this._elapsedFrames < DirtyCheckSettings.timeoutsPerCheck) {
                 return;
             }
-            this.elapsedFrames = 0;
+            this._elapsedFrames = 0;
             const tracked = this.tracked;
             const len = tracked.length;
             let current;
@@ -4861,14 +4861,14 @@ class DirtyChecker {
     addProperty(property) {
         this.tracked.push(property);
         if (this.tracked.length === 1) {
-            this.task = this.platform.taskQueue.queueTask(this.check, queueTaskOpts);
+            this._task = this.p.taskQueue.queueTask(this.check, queueTaskOpts);
         }
     }
     removeProperty(property) {
         this.tracked.splice(this.tracked.indexOf(property), 1);
         if (this.tracked.length === 0) {
-            this.task.cancel();
-            this.task = null;
+            this._task.cancel();
+            this._task = null;
         }
     }
 }
@@ -4878,8 +4878,8 @@ class DirtyChecker {
 DirtyChecker.inject = [kernel.IPlatform];
 withFlushQueue(DirtyChecker);
 class DirtyCheckProperty {
-    constructor(dirtyChecker, obj, propertyKey) {
-        this.dirtyChecker = dirtyChecker;
+    constructor(_dirtyChecker, obj, propertyKey) {
+        this._dirtyChecker = _dirtyChecker;
         this.obj = obj;
         this.propertyKey = propertyKey;
         this.oldValue = void 0;
@@ -4905,12 +4905,12 @@ class DirtyCheckProperty {
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
             this.oldValue = this.obj[this.propertyKey];
-            this.dirtyChecker.addProperty(this);
+            this._dirtyChecker.addProperty(this);
         }
     }
     unsubscribe(subscriber) {
         if (this.subs.remove(subscriber) && this.subs.count === 0) {
-            this.dirtyChecker.removeProperty(this);
+            this._dirtyChecker.removeProperty(this);
         }
     }
 }
@@ -5097,17 +5097,17 @@ class DefaultNodeObserverLocator {
     }
 }
 class ObserverLocator {
-    constructor(dirtyChecker, nodeObserverLocator) {
-        this.dirtyChecker = dirtyChecker;
-        this.nodeObserverLocator = nodeObserverLocator;
-        this.adapters = [];
+    constructor(_dirtyChecker, _nodeObserverLocator) {
+        this._dirtyChecker = _dirtyChecker;
+        this._nodeObserverLocator = _nodeObserverLocator;
+        this._adapters = [];
     }
     addAdapter(adapter) {
-        this.adapters.push(adapter);
+        this._adapters.push(adapter);
     }
     getObserver(obj, key) {
         var _a, _b;
-        return (_b = (_a = obj.$observers) === null || _a === void 0 ? void 0 : _a[key]) !== null && _b !== void 0 ? _b : this.cache(obj, key, this.createObserver(obj, key));
+        return (_b = (_a = obj.$observers) === null || _a === void 0 ? void 0 : _a[key]) !== null && _b !== void 0 ? _b : this._cache(obj, key, this.createObserver(obj, key));
     }
     getAccessor(obj, key) {
         var _a;
@@ -5115,8 +5115,8 @@ class ObserverLocator {
         if (cached !== void 0) {
             return cached;
         }
-        if (this.nodeObserverLocator.handles(obj, key, this)) {
-            return this.nodeObserverLocator.getAccessor(obj, key, this);
+        if (this._nodeObserverLocator.handles(obj, key, this)) {
+            return this._nodeObserverLocator.getAccessor(obj, key, this);
         }
         return propertyAccessor;
     }
@@ -5134,8 +5134,8 @@ class ObserverLocator {
         if (!(obj instanceof Object)) {
             return new PrimitiveObserver(obj, key);
         }
-        if (this.nodeObserverLocator.handles(obj, key, this)) {
-            return this.nodeObserverLocator.getObserver(obj, key, this);
+        if (this._nodeObserverLocator.handles(obj, key, this)) {
+            return this._nodeObserverLocator.getObserver(obj, key, this);
         }
         switch (key) {
             case 'length':
@@ -5157,14 +5157,14 @@ class ObserverLocator {
                 }
                 break;
         }
-        let pd = Object.getOwnPropertyDescriptor(obj, key);
+        let pd = getOwnPropDesc(obj, key);
         // Only instance properties will yield a descriptor here, otherwise walk up the proto chain
         if (pd === void 0) {
-            let proto = Object.getPrototypeOf(obj);
+            let proto = getProto(obj);
             while (proto !== null) {
-                pd = Object.getOwnPropertyDescriptor(proto, key);
+                pd = getOwnPropDesc(proto, key);
                 if (pd === void 0) {
-                    proto = Object.getPrototypeOf(proto);
+                    proto = getProto(proto);
                 }
                 else {
                     break;
@@ -5172,24 +5172,24 @@ class ObserverLocator {
             }
         }
         // If the descriptor does not have a 'value' prop, it must have a getter and/or setter
-        if (pd !== void 0 && !Object.prototype.hasOwnProperty.call(pd, 'value')) {
-            let obs = this.getAdapterObserver(obj, key, pd);
+        if (pd !== void 0 && !hasOwnProp.call(pd, 'value')) {
+            let obs = this._getAdapterObserver(obj, key, pd);
             if (obs == null) {
                 obs = (_d = ((_b = (_a = pd.get) === null || _a === void 0 ? void 0 : _a.getObserver) !== null && _b !== void 0 ? _b : (_c = pd.set) === null || _c === void 0 ? void 0 : _c.getObserver)) === null || _d === void 0 ? void 0 : _d(obj, this);
             }
             return obs == null
                 ? pd.configurable
                     ? ComputedObserver.create(obj, key, pd, this, /* AOT: not true for IE11 */ true)
-                    : this.dirtyChecker.createProperty(obj, key)
+                    : this._dirtyChecker.createProperty(obj, key)
                 : obs;
         }
         // Ordinary get/set observation (the common use case)
         // TODO: think about how to handle a data property that does not sit on the instance (should we do anything different?)
         return new SetterObserver(obj, key);
     }
-    getAdapterObserver(obj, propertyName, pd) {
-        if (this.adapters.length > 0) {
-            for (const adapter of this.adapters) {
+    _getAdapterObserver(obj, propertyName, pd) {
+        if (this._adapters.length > 0) {
+            for (const adapter of this._adapters) {
                 const observer = adapter.getObserver(obj, propertyName, pd, this);
                 if (observer != null) {
                     return observer;
@@ -5198,7 +5198,7 @@ class ObserverLocator {
         }
         return null;
     }
-    cache(obj, key, observer) {
+    _cache(obj, key, observer) {
         if (observer.doNotCache === true) {
             return observer;
         }
@@ -5223,6 +5223,9 @@ function getCollectionObserver(collection) {
     }
     return obs;
 }
+const getProto = Object.getPrototypeOf;
+const getOwnPropDesc = Object.getOwnPropertyDescriptor;
+const hasOwnProp = Object.prototype.hasOwnProperty;
 
 const IObservation = kernel.DI.createInterface('IObservation', x => x.singleton(Observation));
 class Observation {

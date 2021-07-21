@@ -12,7 +12,7 @@ export declare class RenderPlan {
     private readonly node;
     private readonly instructions;
     private readonly dependencies;
-    private lazyDef?;
+    private _lazyDef?;
     constructor(node: Node, instructions: IInstruction[][], dependencies: Key[]);
     get definition(): CustomElementDefinition;
     createView(parentContainer: IContainer): ISyntheticView;

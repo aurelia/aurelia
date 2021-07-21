@@ -42,10 +42,10 @@ export declare class BindingBehaviorDefinition<T extends Constructable = Constru
     register(container: IContainer): void;
 }
 export declare class BindingBehaviorFactory<T extends Constructable = Constructable> {
-    private readonly container;
+    private readonly ctn;
     private readonly Type;
     private readonly deps;
-    constructor(container: IContainer, Type: BindingBehaviorType<T>);
+    constructor(ctn: IContainer, Type: BindingBehaviorType<T>);
     construct(binding: IInterceptableBinding, expr: BindingBehaviorExpression): IInterceptableBinding;
 }
 export declare type IInterceptableBinding = Exclude<IConnectableBinding, 'updateTarget' | 'updateSource' | 'callSource' | 'handleChange'> & {

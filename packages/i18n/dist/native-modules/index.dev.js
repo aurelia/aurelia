@@ -102,10 +102,10 @@ const I18N = DI.createInterface('I18N');
 let I18nService = class I18nService {
     constructor(i18nextWrapper, options, ea, signaler) {
         this.ea = ea;
-        this.signaler = signaler;
-        this.localeSubscribers = new Set();
+        this._localeSubscribers = new Set();
         this.i18next = i18nextWrapper.i18next;
-        this.initPromise = this.initializeI18next(options);
+        this.initPromise = this._initializeI18next(options);
+        this._signaler = signaler;
     }
     evaluate(keyExpr, options) {
         const parts = keyExpr.split(';');
@@ -136,8 +136,8 @@ let I18nService = class I18nService {
         const locales = { oldLocale, newLocale };
         await this.i18next.changeLanguage(newLocale);
         this.ea.publish("i18n:locale:changed" /* I18N_EA_CHANNEL */, locales);
-        this.localeSubscribers.forEach(sub => sub.handleLocaleChange(locales));
-        this.signaler.dispatchSignal("aurelia-translation-signal" /* I18N_SIGNAL */);
+        this._localeSubscribers.forEach(sub => sub.handleLocaleChange(locales));
+        this._signaler.dispatchSignal("aurelia-translation-signal" /* I18N_SIGNAL */);
     }
     createNumberFormat(options, locales) {
         return Intl.NumberFormat(locales || this.getLocale(), options);
@@ -205,12 +205,12 @@ let I18nService = class I18nService {
         return formatter.format(Math.round(value), 'second');
     }
     subscribeLocaleChange(subscriber) {
-        this.localeSubscribers.add(subscriber);
+        this._localeSubscribers.add(subscriber);
     }
     now() {
         return new Date().getTime();
     }
-    async initializeI18next(options) {
+    async _initializeI18next(options) {
         const defaultOptions = {
             lng: 'en',
             fallbackLng: ['en'],
@@ -324,7 +324,6 @@ TranslationBindingBehavior = __decorate([
     bindingBehavior$1("t" /* translationValueConverterName */)
 ], TranslationBindingBehavior);
 
-var TranslationBinding_1;
 const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'];
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 const forOpts = { optional: true };
@@ -332,19 +331,19 @@ const taskQueueOpts = {
     reusable: false,
     preempt: true,
 };
-let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
+class TranslationBinding {
     constructor(target, observerLocator, locator, platform) {
         this.observerLocator = observerLocator;
         this.locator = locator;
         this.interceptor = this;
         this.isBound = false;
-        this.contentAttributes = contentAttributes;
+        this._contentAttributes = contentAttributes;
         this.task = null;
         this.parameter = null;
         this.target = target;
         this.i18n = this.locator.get(I18N);
         this.platform = platform;
-        this.targetAccessors = new Set();
+        this._targetAccessors = new Set();
         this.i18n.subscribeLocaleChange(this);
     }
     static create({ parser, observerLocator, context, controller, target, instruction, platform, isParameterContext, }) {
@@ -361,9 +360,9 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         }
     }
     static getBinding({ observerLocator, context, controller, target, platform, }) {
-        let binding = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding_1 && b.target === target);
+        let binding = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target);
         if (!binding) {
-            binding = new TranslationBinding_1(target, observerLocator, context, platform);
+            binding = new TranslationBinding(target, observerLocator, context, platform);
             controller.addBinding(binding);
         }
         return binding;
@@ -374,9 +373,9 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
             throw new Error('key expression is missing');
         }
         this.scope = scope;
-        this.isInterpolation = this.expr instanceof Interpolation;
-        this.keyExpression = this.expr.evaluate(flags, scope, this.locator, this);
-        this.ensureKeyExpression();
+        this._isInterpolation = this.expr instanceof Interpolation;
+        this._keyExpression = this.expr.evaluate(flags, scope, this.locator, this);
+        this._ensureKeyExpression();
         (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$bind(flags, scope);
         this.updateTranslations(flags);
         this.isBound = true;
@@ -390,7 +389,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
             this.expr.unbind(flags, this.scope, this);
         }
         (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$unbind(flags);
-        this.targetAccessors.clear();
+        this._targetAccessors.clear();
         if (this.task !== null) {
             this.task.cancel();
             this.task = null;
@@ -400,11 +399,11 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
     }
     handleChange(newValue, _previousValue, flags) {
         this.obs.version++;
-        this.keyExpression = this.isInterpolation
+        this._keyExpression = this._isInterpolation
             ? this.expr.evaluate(flags, this.scope, this.locator, this)
             : newValue;
         this.obs.clear(false);
-        this.ensureKeyExpression();
+        this._ensureKeyExpression();
         this.updateTranslations(flags);
     }
     handleLocaleChange() {
@@ -421,16 +420,16 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
     }
     updateTranslations(flags) {
         var _a;
-        const results = this.i18n.evaluate(this.keyExpression, (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.value);
+        const results = this.i18n.evaluate(this._keyExpression, (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.value);
         const content = Object.create(null);
         const accessorUpdateTasks = [];
         const task = this.task;
-        this.targetAccessors.clear();
+        this._targetAccessors.clear();
         for (const item of results) {
             const value = item.value;
-            const attributes = this.preprocessAttributes(item.attributes);
+            const attributes = this._preprocessAttributes(item.attributes);
             for (const attribute of attributes) {
-                if (this.isContentAttribute(attribute)) {
+                if (this._isContentAttribute(attribute)) {
                     content[attribute] = value;
                 }
                 else {
@@ -445,7 +444,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
                     else {
                         accessor.setValue(value, flags, this.target, attribute);
                     }
-                    this.targetAccessors.add(accessor);
+                    this._targetAccessors.add(accessor);
                 }
             }
         }
@@ -453,7 +452,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         if (Object.keys(content).length > 0) {
             shouldQueueContent = (flags & 2 /* fromBind */) === 0;
             if (!shouldQueueContent) {
-                this.updateContent(content, flags);
+                this._updateContent(content, flags);
             }
         }
         if (accessorUpdateTasks.length > 0 || shouldQueueContent) {
@@ -463,13 +462,13 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
                     updateTask.run();
                 }
                 if (shouldQueueContent) {
-                    this.updateContent(content, flags);
+                    this._updateContent(content, flags);
                 }
             }, taskQueueOpts);
         }
         task === null || task === void 0 ? void 0 : task.cancel();
     }
-    preprocessAttributes(attributes) {
+    _preprocessAttributes(attributes) {
         if (attributes.length === 0) {
             attributes = this.target.tagName === 'IMG' ? ['src'] : ['textContent'];
         }
@@ -481,10 +480,10 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         }
         return attributes;
     }
-    isContentAttribute(attribute) {
-        return this.contentAttributes.includes(attribute);
+    _isContentAttribute(attribute) {
+        return this._contentAttributes.includes(attribute);
     }
-    updateContent(content, flags) {
+    _updateContent(content, flags) {
         const children = toArray(this.target.childNodes);
         const fallBackContents = [];
         const marker = 'au-i18n';
@@ -494,7 +493,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
                 fallBackContents.push(child);
             }
         }
-        const template = this.prepareTemplate(content, marker, fallBackContents);
+        const template = this._prepareTemplate(content, marker, fallBackContents);
         // difficult to use the set property approach in this case, as most of the properties of Node is readonly
         // const observer = this.observerLocator.getAccessor(LifecycleFlags.none, this.target, '??');
         // observer.setValue(??, flags);
@@ -503,7 +502,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
             this.target.appendChild(child);
         }
     }
-    prepareTemplate(content, marker, fallBackContents) {
+    _prepareTemplate(content, marker, fallBackContents) {
         var _a;
         const template = this.platform.document.createElement('template');
         this.addContentToTemplate(template, content.prepend, marker);
@@ -528,18 +527,15 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         }
         return false;
     }
-    ensureKeyExpression() {
+    _ensureKeyExpression() {
         var _a;
-        const expr = (_a = this.keyExpression) !== null && _a !== void 0 ? _a : (this.keyExpression = '');
+        const expr = (_a = this._keyExpression) !== null && _a !== void 0 ? _a : (this._keyExpression = '');
         const exprType = typeof expr;
         if (exprType !== 'string') {
             throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger
         }
     }
-};
-TranslationBinding = TranslationBinding_1 = __decorate([
-    connectable()
-], TranslationBinding);
+}
 class AccessorUpdateTask {
     constructor(accessor, v, f, el, attr) {
         this.accessor = accessor;
@@ -552,7 +548,7 @@ class AccessorUpdateTask {
         this.accessor.setValue(this.v, this.f, this.el, this.attr);
     }
 }
-let ParameterBinding = class ParameterBinding {
+class ParameterBinding {
     constructor(owner, expr, updater) {
         this.owner = owner;
         this.expr = expr;
@@ -589,10 +585,9 @@ let ParameterBinding = class ParameterBinding {
         this.scope = (void 0);
         this.obs.clear(true);
     }
-};
-ParameterBinding = __decorate([
-    connectable()
-], ParameterBinding);
+}
+connectable(TranslationBinding);
+connectable(ParameterBinding);
 
 const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance

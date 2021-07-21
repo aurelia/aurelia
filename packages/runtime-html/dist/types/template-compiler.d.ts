@@ -10,8 +10,8 @@ export declare class TemplateCompiler implements ITemplateCompiler {
     debug: boolean;
     resolveResources: boolean;
     compile(partialDefinition: PartialCustomElementDefinition, container: IContainer, compilationInstruction: ICompliationInstruction | null): CustomElementDefinition;
-    private shouldReorderAttrs;
-    private reorder;
+    private _shouldReorderAttrs;
+    private _reorder;
 }
 export declare class BindablesInfo<T extends 0 | 1 = 0> {
     readonly attrs: Record<string, BindableDefinition>;

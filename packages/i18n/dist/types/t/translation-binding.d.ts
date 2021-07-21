@@ -22,12 +22,12 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     isBound: boolean;
     expr: IsExpression;
     private readonly i18n;
-    private readonly contentAttributes;
-    private keyExpression;
+    private readonly _contentAttributes;
+    private _keyExpression;
     private scope;
     private task;
-    private isInterpolation;
-    private readonly targetAccessors;
+    private _isInterpolation;
+    private readonly _targetAccessors;
     target: HTMLElement;
     private readonly platform;
     private parameter;
@@ -40,12 +40,12 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     handleLocaleChange(): void;
     useParameter(expr: IsExpression): void;
     private updateTranslations;
-    private preprocessAttributes;
-    private isContentAttribute;
-    private updateContent;
-    private prepareTemplate;
+    private _preprocessAttributes;
+    private _isContentAttribute;
+    private _updateContent;
+    private _prepareTemplate;
     private addContentToTemplate;
-    private ensureKeyExpression;
+    private _ensureKeyExpression;
 }
 export {};
 //# sourceMappingURL=translation-binding.d.ts.map

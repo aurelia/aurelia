@@ -57,11 +57,11 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     state: State;
     get isActive(): boolean;
     get name(): string;
-    private compiledDef;
+    private _compiledDef;
     private logger;
     private debug;
-    private fullyNamed;
-    private childrenObs;
+    private _fullyNamed;
+    private _childrenObs;
     readonly hooks: HooksDefinition;
     constructor(container: IContainer, vmKind: ViewModelKind, flags: LifecycleFlags, definition: CustomElementDefinition | CustomAttributeDefinition | null, 
     /**
@@ -91,8 +91,8 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
      */
     definition?: CustomAttributeDefinition): ICustomAttributeController<C>;
     static forSyntheticView(viewFactory: IViewFactory, flags?: LifecycleFlags, parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
-    private hydrateCustomAttribute;
-    private hydrateSynthetic;
+    private _hydrateCustomAttribute;
+    private _hydrateSynthetic;
     private $initiator;
     private $flags;
     activate(initiator: IHydratedController, parent: IHydratedController | null, flags: LifecycleFlags, scope?: Scope | null): void | Promise<void>;
@@ -105,18 +105,18 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     private $resolve;
     private $reject;
     private $promise;
-    private ensurePromise;
-    private resolve;
-    private reject;
-    private activatingStack;
-    private enterActivating;
-    private leaveActivating;
-    private detachingStack;
-    private enterDetaching;
-    private leaveDetaching;
-    private unbindingStack;
-    private enterUnbinding;
-    private leaveUnbinding;
+    private _ensurePromise;
+    private _resolve;
+    private _reject;
+    private _activatingStack;
+    private _enterActivating;
+    private _leaveActivating;
+    private _detachingStack;
+    private _enterDetaching;
+    private _leaveDetaching;
+    private _unbindingStack;
+    private _enterUnbinding;
+    private _leaveUnbinding;
     addBinding(binding: IBinding): void;
     addChild(controller: Controller): void;
     is(name: string): boolean;

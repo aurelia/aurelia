@@ -26,7 +26,7 @@ export declare class AuCompose {
     viewModel?: Constructable | object | Promise<Constructable | object>;
     model?: unknown;
     scopeBehavior: 'auto' | 'scoped';
-    private _p?;
+    private pd?;
     get pending(): Promise<void> | void;
     get composition(): ICompositionController | undefined;
     private readonly r;

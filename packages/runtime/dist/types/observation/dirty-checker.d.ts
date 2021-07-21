@@ -35,12 +35,12 @@ export declare const DirtyCheckSettings: {
     resetToDefault(): void;
 };
 export declare class DirtyChecker implements IWithFlushQueue {
-    private readonly platform;
+    private readonly p;
     readonly queue: FlushQueue;
     private readonly tracked;
-    private task;
-    private elapsedFrames;
-    constructor(platform: IPlatform);
+    private _task;
+    private _elapsedFrames;
+    constructor(p: IPlatform);
     createProperty(obj: object, propertyName: string): DirtyCheckProperty;
     addProperty(property: DirtyCheckProperty): void;
     removeProperty(property: DirtyCheckProperty): void;
@@ -49,12 +49,12 @@ export declare class DirtyChecker implements IWithFlushQueue {
 export interface DirtyCheckProperty extends IObserver, ISubscriberCollection {
 }
 export declare class DirtyCheckProperty implements DirtyCheckProperty, IFlushable {
-    private readonly dirtyChecker;
+    private readonly _dirtyChecker;
     obj: IObservable & IIndexable;
     propertyKey: string;
     oldValue: unknown;
     type: AccessorType;
-    constructor(dirtyChecker: IDirtyChecker, obj: IObservable & IIndexable, propertyKey: string);
+    constructor(_dirtyChecker: IDirtyChecker, obj: IObservable & IIndexable, propertyKey: string);
     getValue(): unknown;
     setValue(v: unknown, f: LifecycleFlags): void;
     isDirty(): boolean;

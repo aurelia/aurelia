@@ -25,11 +25,11 @@ export declare type ObservableSetter = PropertyDescriptor['set'] & {
     getObserver?(obj: unknown, requestor: IObserverLocator): IObserver;
 };
 export declare class ObserverLocator {
-    private readonly dirtyChecker;
-    private readonly nodeObserverLocator;
+    private readonly _dirtyChecker;
+    private readonly _nodeObserverLocator;
     protected static readonly inject: (import("@aurelia/kernel").InterfaceSymbol<IDirtyChecker> | import("@aurelia/kernel").InterfaceSymbol<INodeObserverLocator>)[];
-    private readonly adapters;
-    constructor(dirtyChecker: IDirtyChecker, nodeObserverLocator: INodeObserverLocator);
+    private readonly _adapters;
+    constructor(_dirtyChecker: IDirtyChecker, _nodeObserverLocator: INodeObserverLocator);
     addAdapter(adapter: IObjectObservationAdapter): void;
     getObserver(obj: object, key: PropertyKey): IObserver;
     getAccessor(obj: object, key: string): AccessorOrObserver;
@@ -37,8 +37,8 @@ export declare class ObserverLocator {
     getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
     getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;
     private createObserver;
-    private getAdapterObserver;
-    private cache;
+    private _getAdapterObserver;
+    private _cache;
 }
 export declare type RepeatableCollection = Collection | null | undefined | number;
 export declare function getCollectionObserver(collection: RepeatableCollection): CollectionObserver | undefined;

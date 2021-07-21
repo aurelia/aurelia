@@ -6,13 +6,13 @@ import { IPlatform } from '../../platform.js';
  * A default implementation for the dialog service allowing for the creation of dialogs.
  */
 export declare class DialogService implements IDialogService {
-    private readonly container;
+    private readonly _ctn;
     private readonly p;
-    private readonly defaultSettings;
+    private readonly _defaultSettings;
     get controllers(): IDialogController[];
     private get top();
     protected static get inject(): (import("@aurelia/kernel").InterfaceSymbol<IPlatform> | import("@aurelia/kernel").InterfaceSymbol<IContainer> | import("@aurelia/kernel").InterfaceSymbol<Pick<IDialogSettings<unknown, object>, "lock" | "startingZIndex" | "rejectOnCancel">>)[];
-    constructor(container: IContainer, p: IPlatform, defaultSettings: IDialogGlobalSettings);
+    constructor(_ctn: IContainer, p: IPlatform, _defaultSettings: IDialogGlobalSettings);
     static register(container: IContainer): void;
     /**
      * Opens a new dialog.

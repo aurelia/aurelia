@@ -11,7 +11,7 @@ export declare const ITemplateElementFactory: import("@aurelia/kernel").Interfac
 export declare class TemplateElementFactory {
     private readonly p;
     static inject: import("@aurelia/kernel").InterfaceSymbol<IPlatform>[];
-    private template;
+    private _template;
     constructor(p: IPlatform);
     createTemplate(markup: string): HTMLTemplateElement;
     createTemplate(node: Node): HTMLTemplateElement;

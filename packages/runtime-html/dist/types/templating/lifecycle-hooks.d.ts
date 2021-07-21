@@ -30,14 +30,14 @@ export declare class LifecycleHooksDefinition<T extends Constructable = Construc
     static create<T extends Constructable>(def: {}, Type: T): LifecycleHooksDefinition<T>;
     register(container: IContainer): void;
 }
-export declare const LifecycleHooks: {
+export declare const LifecycleHooks: Readonly<{
     name: string;
     /**
      * @param def - Placeholder for future extensions. Currently always an empty object.
      */
     define<T extends Constructable<{}>>(def: {}, Type: T): T;
     resolve(ctx: IContainer): LifecycleHooksLookup;
-};
+}>;
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */

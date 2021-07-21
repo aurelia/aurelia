@@ -8,9 +8,9 @@ export declare class AuSlot implements ICustomElementViewModel {
     private readonly hdrContext;
     readonly view: ISyntheticView;
     readonly $controller: ICustomElementController<this>;
-    private parentScope;
-    private outerScope;
-    private readonly hasProjection;
+    private _parentScope;
+    private _outerScope;
+    private readonly _hasProjection;
     expose: object | undefined;
     constructor(location: IRenderLocation, instruction: HydrateElementInstruction, hdrContext: IHydrationContext, rendering: IRendering);
     binding(_initiator: IHydratedController, _parent: IHydratedParentController, _flags: LifecycleFlags): void | Promise<void>;

@@ -169,7 +169,6 @@ export interface ChildrenObserver extends
  *
  * The controller of a custom element should totally control when this observer starts/stops.
  */
-@subscriberCollection()
 export class ChildrenObserver {
   public observing: boolean = false;
 
@@ -239,6 +238,8 @@ export class ChildrenObserver {
     return filterChildren(this.controller, this.query, this.filter, this.map);
   }
 }
+
+subscriberCollection()(ChildrenObserver);
 
 function defaultChildQuery(controller: ICustomElementController): ArrayLike<INode> {
   return controller.host.childNodes;

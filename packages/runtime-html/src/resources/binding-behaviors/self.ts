@@ -18,7 +18,6 @@ export type SelfableBinding = Listener & {
   selfEventCallSource: Listener['callSource'];
 };
 
-@bindingBehavior('self')
 export class SelfBindingBehavior {
   public bind(flags: LifecycleFlags, _scope: Scope, binding: SelfableBinding): void {
     if (!binding.callSource || !binding.targetEvent) {
@@ -34,3 +33,5 @@ export class SelfBindingBehavior {
     binding.selfEventCallSource = null!;
   }
 }
+
+bindingBehavior('self')(SelfBindingBehavior);

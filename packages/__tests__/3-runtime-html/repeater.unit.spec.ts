@@ -567,7 +567,7 @@ describe(`Repeat`, function () {
           bindings: [binding]
         } as any;
         const sut = new Repeat(loc, hydratable, itemFactory);
-        (sut as Writable<Repeat>).$controller = Controller.forCustomAttribute(container, sut, (void 0)!);
+        (sut as Writable<Repeat>).$controller = Controller.$attr(container, sut, (void 0)!);
         binding.target = sut as any;
 
         // -- Round 1 --

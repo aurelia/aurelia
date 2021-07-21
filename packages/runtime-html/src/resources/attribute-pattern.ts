@@ -99,15 +99,15 @@ export class Interpretation {
       this.parts = emptyArray;
     } else {
       this._pattern = value;
-      this.parts = this.partsRecord[value];
+      this.parts = this._partsRecord[value];
     }
   }
   private _pattern: string = '';
-  private readonly currentRecord: Record<string, string> = {};
-  private readonly partsRecord: Record<string, string[]> = {};
+  private readonly _currentRecord: Record<string, string> = {};
+  private readonly _partsRecord: Record<string, string[]> = {};
 
   public append(pattern: string, ch: string): void {
-    const { currentRecord } = this;
+    const { _currentRecord: currentRecord } = this;
     if (currentRecord[pattern] === undefined) {
       currentRecord[pattern] = ch;
     } else {
@@ -116,9 +116,9 @@ export class Interpretation {
   }
 
   public next(pattern: string): void {
-    const { currentRecord } = this;
+    const { _currentRecord: currentRecord } = this;
     if (currentRecord[pattern] !== undefined) {
-      const { partsRecord } = this;
+      const { _partsRecord: partsRecord } = this;
       if (partsRecord[pattern] === undefined) {
         partsRecord[pattern] = [currentRecord[pattern]];
       } else {
@@ -422,14 +422,18 @@ export interface IAttributeParser extends AttributeParser {}
 export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser', x => x.singleton(AttributeParser));
 
 export class AttributeParser {
-  private readonly cache: Record<string, Interpretation> = {};
-  private readonly patterns: Record<string, IAttributePattern>;
+  public static inject = [ISyntaxInterpreter, all(IAttributePattern)];
+
+  private readonly _cache: Record<string, Interpretation> = {};
+  private readonly _patterns: Record<string, IAttributePattern>;
+  private readonly _interpreter: ISyntaxInterpreter;
 
   public constructor(
-    @ISyntaxInterpreter private readonly interpreter: ISyntaxInterpreter,
-    @all(IAttributePattern) attrPatterns: IAttributePattern[],
+    interpreter: ISyntaxInterpreter,
+    attrPatterns: IAttributePattern[],
   ) {
-    const patterns: AttributeParser['patterns'] = this.patterns = {};
+    this._interpreter = interpreter;
+    const patterns: AttributeParser['_patterns'] = this._patterns = {};
     attrPatterns.forEach(attrPattern => {
       const defs = AttributePattern.getPatternDefinitions(attrPattern.constructor as Constructable);
       interpreter.add(defs);
@@ -440,15 +444,15 @@ export class AttributeParser {
   }
 
   public parse(name: string, value: string): AttrSyntax {
-    let interpretation = this.cache[name];
+    let interpretation = this._cache[name];
     if (interpretation == null) {
-      interpretation = this.cache[name] = this.interpreter.interpret(name);
+      interpretation = this._cache[name] = this._interpreter.interpret(name);
     }
     const pattern = interpretation.pattern;
     if (pattern == null) {
       return new AttrSyntax(name, value, name, null);
     } else {
-      return this.patterns[pattern][pattern](name, value, interpretation.parts);
+      return this._patterns[pattern][pattern](name, value, interpretation.parts);
     }
   }
 }

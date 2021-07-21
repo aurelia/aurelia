@@ -27,8 +27,8 @@ function dispose(disposable: IDisposable): void {
   disposable.dispose();
 }
 
-@templateController('repeat')
 export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
+  public static inject = [IRenderLocation, IController, IViewFactory];
   public readonly id: number = nextId('au$component');
 
   public hasPendingInstanceMutation: boolean = false;
@@ -43,12 +43,12 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   @bindable public items: Items<C>;
 
-  private normalizedItems?: unknown[] = void 0;
+  private _normalizedItems?: unknown[] = void 0;
 
   public constructor(
-    @IRenderLocation public location: IRenderLocation,
-    @IController public parent: IHydratableController,
-    @IViewFactory public factory: IViewFactory
+    public location: IRenderLocation,
+    public parent: IHydratableController,
+    public factory: IViewFactory
   ) {}
 
   public binding(
@@ -56,7 +56,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     parent: IHydratedParentController,
     flags: LF,
   ): void | Promise<void> {
-    this.checkCollectionObserver(flags);
+    this._checkCollectionObserver(flags);
     const bindings = this.parent.bindings as PropertyBinding[];
     let binding: PropertyBinding = (void 0)!;
     for (let i = 0, ii = bindings.length; i < ii; ++i) {
@@ -75,9 +75,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     parent: IHydratedParentController,
     flags: LF,
   ): void | Promise<void> {
-    this.normalizeToArray(flags);
+    this._normalizeToArray(flags);
 
-    return this.activateAllViews(initiator, flags);
+    return this._activateAllViews(initiator, flags);
   }
 
   public detaching(
@@ -85,9 +85,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     parent: IHydratedParentController,
     flags: LF,
   ): void | Promise<void> {
-    this.checkCollectionObserver(flags);
+    this._checkCollectionObserver(flags);
 
-    return this.deactivateAllViews(initiator, flags);
+    return this._deactivateAllViews(initiator, flags);
   }
 
   // called by SetterObserver
@@ -97,14 +97,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       return;
     }
     flags |= $controller.flags;
-    this.checkCollectionObserver(flags);
-    this.normalizeToArray(flags);
+    this._checkCollectionObserver(flags);
+    this._normalizeToArray(flags);
 
     const ret = onResolve(
-      this.deactivateAllViews(null, flags),
+      this._deactivateAllViews(null, flags),
       () => {
         // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-        return this.activateAllViews(null, flags);
+        return this._activateAllViews(null, flags);
       },
     );
     if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
@@ -120,14 +120,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       return;
     }
     flags |= $controller.flags;
-    this.normalizeToArray(flags);
+    this._normalizeToArray(flags);
 
     if (indexMap === void 0) {
       const ret = onResolve(
-        this.deactivateAllViews(null, flags),
+        this._deactivateAllViews(null, flags),
         () => {
           // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-          return this.activateAllViews(null, flags);
+          return this._activateAllViews(null, flags);
         },
       );
       if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
@@ -138,23 +138,23 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       if (indexMap.deletedItems.length > 0) {
         indexMap.deletedItems.sort(compareNumber);
         const ret = onResolve(
-          this.deactivateAndRemoveViewsByKey(indexMap, flags),
+          this._deactivateAndRemoveViewsByKey(indexMap, flags),
           () => {
             // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-            return this.createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
+            return this._createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
           },
         );
         if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
       } else {
         // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
+        this._createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
       }
     }
   }
 
   // todo: subscribe to collection from inner expression
-  private checkCollectionObserver(flags: LF): void {
+  private _checkCollectionObserver(flags: LF): void {
     const oldObserver = this.observer;
     if ((flags & LF.fromUnbind)) {
       if (oldObserver !== void 0) {
@@ -171,10 +171,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 
-  private normalizeToArray(flags: LF): void {
+  private _normalizeToArray(flags: LF): void {
     const items: Items<C> = this.items;
     if (items instanceof Array) {
-      this.normalizedItems = items;
+      this._normalizedItems = items;
       return;
     }
     const forOf = this.forOf;
@@ -185,10 +185,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     this.forOf.iterate(flags, items, (arr, index, item) => {
       normalizedItems[index] = item;
     });
-    this.normalizedItems = normalizedItems;
+    this._normalizedItems = normalizedItems;
   }
 
-  private activateAllViews(
+  private _activateAllViews(
     initiator: IHydratedController | null,
     flags: LF,
   ): void | Promise<void> {
@@ -222,7 +222,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 
-  private deactivateAllViews(
+  private _deactivateAllViews(
     initiator: IHydratedController | null,
     flags: LF,
   ): void | Promise<void> {
@@ -248,7 +248,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 
-  private deactivateAndRemoveViewsByKey(
+  private _deactivateAndRemoveViewsByKey(
     indexMap: IndexMap,
     flags: LF,
   ): void | Promise<void> {
@@ -284,7 +284,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 
-  private createAndActivateAndSortViewsByKey(
+  private _createAndActivateAndSortViewsByKey(
     oldLength: number,
     indexMap: IndexMap,
     flags: LF,
@@ -294,7 +294,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let view: ISyntheticView;
     let viewScope: Scope;
 
-    const { $controller, factory, local, normalizedItems, location, views } = this;
+    const { $controller, factory, local, _normalizedItems: normalizedItems, location, views } = this;
     const mapLen = indexMap.length;
 
     for (let i = 0; i < mapLen; ++i) {
@@ -371,6 +371,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 }
+templateController('repeat')(Repeat);
 
 let maxLen = 16;
 let prevIndices = new Int32Array(maxLen);

@@ -64,7 +64,7 @@ export {
   IExpressionHydrator,
 } from './binding/ast.js';
 export {
-  IPartialConnectableBinding,
+  IObserverLocatorBasedConnectable,
   IConnectableBinding,
   connectable,
   BindingMediator,

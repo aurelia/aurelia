@@ -28,20 +28,20 @@ export interface IWithFlushQueue {
 export class FlushQueue {
   public static readonly instance: FlushQueue = new FlushQueue();
 
-  private flushing: boolean = false;
-  private readonly items: Set<IFlushable> = new Set();
+  private _flushing: boolean = false;
+  private readonly _items: Set<IFlushable> = new Set();
 
   public get count(): number {
-    return this.items.size;
+    return this._items.size;
   }
 
   public add(callable: IFlushable): void {
-    this.items.add(callable);
-    if (this.flushing) {
+    this._items.add(callable);
+    if (this._flushing) {
       return;
     }
-    this.flushing = true;
-    const items = this.items;
+    this._flushing = true;
+    const items = this._items;
     let item: IFlushable;
     try {
       for (item of items) {
@@ -49,13 +49,13 @@ export class FlushQueue {
         item.flush();
       }
     } finally {
-      this.flushing = false;
+      this._flushing = false;
     }
   }
 
   public clear(): void {
-    this.items.clear();
-    this.flushing = false;
+    this._items.clear();
+    this._flushing = false;
   }
 }
 

@@ -42,7 +42,7 @@ export class Aurelia implements IDisposable {
 
   private next: IAppRoot | undefined = void 0;
 
-  private readonly rootProvider: InstanceProvider<IAppRoot>;
+  private readonly _rootProvider: InstanceProvider<IAppRoot>;
 
   public constructor(
     public readonly container: IContainer = DI.createContainer(),
@@ -52,7 +52,7 @@ export class Aurelia implements IDisposable {
     }
 
     container.registerResolver(IAurelia, new InstanceProvider<IAurelia>('IAurelia', this));
-    container.registerResolver(IAppRoot, this.rootProvider = new InstanceProvider('IAppRoot'));
+    container.registerResolver(IAppRoot, this._rootProvider = new InstanceProvider('IAppRoot'));
   }
 
   public register(...params: any[]): this {
@@ -61,7 +61,7 @@ export class Aurelia implements IDisposable {
   }
 
   public app(config: ISinglePageApp): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider);
+    this.next = new AppRoot(config, this._initPlatform(config.host), this.container, this._rootProvider);
     return this;
   }
 
@@ -71,7 +71,7 @@ export class Aurelia implements IDisposable {
   public enhance<T extends unknown, K = T extends Constructable<infer I> ? I : T>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController | null): ICustomElementController<K> | Promise<ICustomElementController<K>> {
     const ctn = config.container ?? this.container.createChild();
     const host = config.host as HTMLElement;
-    const p = this.initPlatform(host);
+    const p = this._initPlatform(host);
     const comp = config.component as K;
     let bc: ICustomElementViewModel & K;
     if (typeof comp === 'function') {
@@ -86,7 +86,7 @@ export class Aurelia implements IDisposable {
     ctn.registerResolver(IEventTarget, new InstanceProvider('IEventTarget', host));
     parentController = parentController ?? null;
 
-    const view = Controller.forCustomElement(
+    const view = Controller.$el(
       ctn,
       bc,
       host,
@@ -107,7 +107,7 @@ export class Aurelia implements IDisposable {
     await platform.taskQueue.yield();
   }
 
-  private initPlatform(host: HTMLElement): IPlatform {
+  private _initPlatform(host: HTMLElement): IPlatform {
     let p: IPlatform;
     if (!this.container.has(IPlatform, false)) {
       if (host.ownerDocument.defaultView === null) {
@@ -121,34 +121,34 @@ export class Aurelia implements IDisposable {
     return p;
   }
 
-  private startPromise: Promise<void> | void = void 0;
+  private _startPromise: Promise<void> | void = void 0;
   public start(root: IAppRoot | undefined = this.next): void | Promise<void> {
     if (root == null) {
       throw new Error(`There is no composition root`);
     }
 
-    if (this.startPromise instanceof Promise) {
-      return this.startPromise;
+    if (this._startPromise instanceof Promise) {
+      return this._startPromise;
     }
 
-    return this.startPromise = onResolve(this.stop(), () => {
+    return this._startPromise = onResolve(this.stop(), () => {
       Reflect.set(root.host, '$aurelia', this);
-      this.rootProvider.prepare(this._root = root);
+      this._rootProvider.prepare(this._root = root);
       this._isStarting = true;
 
       return onResolve(root.activate(), () => {
         this._isRunning = true;
         this._isStarting = false;
-        this.startPromise = void 0;
-        this.dispatchEvent(root, 'au-started', root.host);
+        this._startPromise = void 0;
+        this._dispatchEvent(root, 'au-started', root.host);
       });
     });
   }
 
-  private stopPromise: Promise<void> | void = void 0;
+  private _stopPromise: Promise<void> | void = void 0;
   public stop(dispose: boolean = false): void | Promise<void> {
-    if (this.stopPromise instanceof Promise) {
-      return this.stopPromise;
+    if (this._stopPromise instanceof Promise) {
+      return this._stopPromise;
     }
 
     if (this._isRunning === true) {
@@ -156,15 +156,15 @@ export class Aurelia implements IDisposable {
       this._isRunning = false;
       this._isStopping = true;
 
-      return this.stopPromise = onResolve(root.deactivate(), () => {
+      return this._stopPromise = onResolve(root.deactivate(), () => {
         Reflect.deleteProperty(root.host, '$aurelia');
         if (dispose) {
           root.dispose();
         }
         this._root = void 0;
-        this.rootProvider.dispose();
+        this._rootProvider.dispose();
         this._isStopping = false;
-        this.dispatchEvent(root, 'au-stopped', root.host);
+        this._dispatchEvent(root, 'au-stopped', root.host);
       });
     }
   }
@@ -176,7 +176,7 @@ export class Aurelia implements IDisposable {
     this.container.dispose();
   }
 
-  private dispatchEvent(root: IAppRoot, name: string, target: HTMLElement): void {
+  private _dispatchEvent(root: IAppRoot, name: string, target: HTMLElement): void {
     const ev = new root.platform.window.CustomEvent(name, { detail: this, bubbles: true, cancelable: true });
     target.dispatchEvent(ev);
   }

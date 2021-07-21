@@ -45,8 +45,13 @@ export class InterpolationBinding implements IBinding {
   private readonly targetObserver: AccessorOrObserver;
   private task: ITask | null = null;
 
+  /**
+   * A semi-private property used by connectable mixin
+   */
+  public readonly oL: IObserverLocator;
+
   public constructor(
-    public observerLocator: IObserverLocator,
+    observerLocator: IObserverLocator,
     public interpolation: Interpolation,
     public target: object,
     public targetProperty: string,
@@ -54,6 +59,7 @@ export class InterpolationBinding implements IBinding {
     public locator: IServiceLocator,
     private readonly taskQueue: TaskQueue,
   ) {
+    this.oL = observerLocator;
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
     const expressions = interpolation.expressions;
     const partBindings = this.partBindings = Array(expressions.length);
@@ -150,15 +156,20 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
   public task: ITask | null = null;
   public isBound: boolean = false;
 
+  /**
+   * A semi-private property used by connectable mixin
+   */
+  public readonly oL: IObserverLocator;
+
   public constructor(
     public readonly sourceExpression: IsExpression,
     public readonly target: object,
     public readonly targetProperty: string,
     public readonly locator: IServiceLocator,
-    public readonly observerLocator: IObserverLocator,
+    observerLocator: IObserverLocator,
     public readonly owner: InterpolationBinding,
   ) {
-
+    this.oL = observerLocator;
   }
 
   public handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
@@ -251,15 +262,20 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
   public task: ITask | null = null;
   public isBound: boolean = false;
 
+  /**
+   * A semi-private property used by connectable mixin
+   */
+  public readonly oL: IObserverLocator;
+
   public constructor(
     public readonly sourceExpression: IsExpression,
     public readonly target: Text,
     public readonly locator: IServiceLocator,
-    public readonly observerLocator: IObserverLocator,
+    observerLocator: IObserverLocator,
     private readonly p: IPlatform,
     private readonly strict: boolean,
   ) {
-
+    this.oL = observerLocator;
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {

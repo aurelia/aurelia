@@ -11,8 +11,6 @@ import type { ITask } from '@aurelia/runtime';
 import type { ICustomAttributeViewModel } from '../../templating/controller.js';
 import type { HydrateAttributeInstruction } from '../../renderer.js';
 
-@customAttribute('show')
-@alias('hide')
 export class Show implements ICustomAttributeViewModel {
   @bindable public value: unknown;
 
@@ -73,3 +71,6 @@ export class Show implements ICustomAttributeViewModel {
     }
   };
 }
+
+alias('hide')(Show);
+customAttribute('show')(Show);

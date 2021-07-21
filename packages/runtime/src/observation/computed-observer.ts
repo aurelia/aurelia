@@ -28,6 +28,7 @@ export class ComputedObserver implements
   ISubscriberCollection,
   IWithFlushQueue,
   IFlushable {
+
   public static create(
     obj: object,
     key: PropertyKey,
@@ -58,7 +59,7 @@ export class ComputedObserver implements
   public readonly queue!: FlushQueue;
 
   public value: unknown = void 0;
-  private oldValue: unknown = void 0;
+  private _oldValue: unknown = void 0;
 
   // todo: maybe use a counter allow recursive call to a certain level
   /**
@@ -66,24 +67,30 @@ export class ComputedObserver implements
    */
   private running: boolean = false;
 
-  private isDirty: boolean = false;
+  private _isDirty: boolean = false;
+
+  /**
+   * A semi-private property used by connectable mixin
+   */
+  public readonly oL: IObserverLocator;
 
   public constructor(
     public readonly obj: object,
     public readonly get: (watcher: IConnectable) => unknown,
     public readonly set: undefined | ((v: unknown) => void),
     public readonly useProxy: boolean,
-    public readonly observerLocator: IObserverLocator,
+    observerLocator: IObserverLocator,
   ) {
+    this.oL = observerLocator;
   }
 
   public getValue() {
     if (this.subs.count === 0) {
       return this.get.call(this.obj, this);
     }
-    if (this.isDirty) {
+    if (this._isDirty) {
       this.compute();
-      this.isDirty = false;
+      this._isDirty = false;
     }
     return this.value;
   }
@@ -105,14 +112,14 @@ export class ComputedObserver implements
   }
 
   public handleChange(): void {
-    this.isDirty = true;
+    this._isDirty = true;
     if (this.subs.count > 0) {
       this.run();
     }
   }
 
   public handleCollectionChange(): void {
-    this.isDirty = true;
+    this._isDirty = true;
     if (this.subs.count > 0) {
       this.run();
     }
@@ -124,20 +131,20 @@ export class ComputedObserver implements
     // though not handling for now, and wait until the merge of normal + collection subscription
     if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.compute();
-      this.isDirty = false;
+      this._isDirty = false;
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
-      this.isDirty = true;
+      this._isDirty = true;
       this.obs.clear(true);
     }
   }
 
   public flush(): void {
-    oV = this.oldValue;
-    this.oldValue = this.value;
+    oV = this._oldValue;
+    this._oldValue = this.value;
     this.subs.notify(this.value, oV, LifecycleFlags.none);
   }
 
@@ -148,10 +155,10 @@ export class ComputedObserver implements
     const oldValue = this.value;
     const newValue = this.compute();
 
-    this.isDirty = false;
+    this._isDirty = false;
 
     if (!Object.is(newValue, oldValue)) {
-      this.oldValue = oldValue;
+      this._oldValue = oldValue;
       this.queue.add(this);
     }
   }

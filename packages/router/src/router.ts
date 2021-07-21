@@ -550,7 +550,7 @@ export class Router {
    * ```ts
    * // Given an already defined custom element named Greeter
    * const greeter = new Greeter();
-   * Controller.forCustomElement(container, greeter, host);
+   * Controller.$el(container, greeter, host);
    * router.load(greeter);
    * ```
    */

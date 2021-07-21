@@ -14,7 +14,7 @@ export class Observation implements IObservation {
   public static get inject() { return [IObserverLocator]; }
 
   public constructor(
-    public readonly observerLocator: IObserverLocator,
+    private readonly oL: IObserverLocator,
   ) {}
 
   /**
@@ -22,7 +22,7 @@ export class Observation implements IObservation {
    * to re-run whenever a dependency has changed
    */
   public run(fn: EffectFunc): IEffect {
-    const effect = new Effect(this.observerLocator, fn);
+    const effect = new Effect(this.oL, fn);
     // todo: batch effect run after it's in
     effect.run();
     return effect;
@@ -48,7 +48,7 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
   private stopped: boolean = false;
 
   public constructor(
-    public readonly observerLocator: IObserverLocator,
+    public readonly oL: IObserverLocator,
     public readonly fn: EffectFunc,
   ) {
   }

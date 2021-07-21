@@ -19,9 +19,10 @@ export class AuSlot implements ICustomElementViewModel {
   public readonly view: ISyntheticView;
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
-  private parentScope: Scope | null = null;
-  private outerScope: Scope | null = null;
-  private readonly hasProjection: boolean;
+  private _parentScope: Scope | null = null;
+  private _outerScope: Scope | null = null;
+  private readonly _hasProjection: boolean;
+  private readonly _hdrContext: IHydrationContext;
 
   @bindable
   public expose: object | undefined;
@@ -29,7 +30,7 @@ export class AuSlot implements ICustomElementViewModel {
   public constructor(
     location: IRenderLocation,
     instruction: HydrateElementInstruction,
-    private readonly hdrContext: IHydrationContext,
+    hdrContext: IHydrationContext,
     rendering: IRendering,
   ) {
     let factory: IViewFactory;
@@ -37,11 +38,12 @@ export class AuSlot implements ICustomElementViewModel {
     const projection = hdrContext.instruction?.projections?.[slotInfo.name];
     if (projection == null) {
       factory = rendering.getViewFactory(slotInfo.fallback, hdrContext.controller.container);
-      this.hasProjection = false;
+      this._hasProjection = false;
     } else {
       factory = rendering.getViewFactory(projection, hdrContext.parent!.controller.container);
-      this.hasProjection = true;
+      this._hasProjection = true;
     }
+    this._hdrContext = hdrContext;
     this.view = factory.create().setLocation(location);
   }
 
@@ -50,17 +52,17 @@ export class AuSlot implements ICustomElementViewModel {
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.parentScope = this.$controller.scope.parentScope!;
+    this._parentScope = this.$controller.scope.parentScope!;
     let outerScope: Scope;
-    if (this.hasProjection) {
+    if (this._hasProjection) {
       // if there is a projection,
       // then the au-slot should connect the outer scope with the inner scope binding context
       // via overlaying the outerscope with another scope that has
       // - binding context & override context pointing to the outer scope binding & override context respectively
       // - override context has the $host pointing to inner scope binding context
-      outerScope = this.hdrContext.controller.scope.parentScope!;
-      (this.outerScope = Scope.fromParent(outerScope, outerScope.bindingContext))
-        .overrideContext.$host = this.expose ?? this.parentScope.bindingContext;
+      outerScope = this._hdrContext.controller.scope.parentScope!;
+      (this._outerScope = Scope.fromParent(outerScope, outerScope.bindingContext))
+        .overrideContext.$host = this.expose ?? this._parentScope.bindingContext;
     }
   }
 
@@ -73,7 +75,7 @@ export class AuSlot implements ICustomElementViewModel {
       initiator,
       this.$controller,
       flags,
-      this.hasProjection ? this.outerScope! : this.parentScope!,
+      this._hasProjection ? this._outerScope! : this._parentScope!,
     );
   }
 
@@ -86,8 +88,8 @@ export class AuSlot implements ICustomElementViewModel {
   }
 
   public exposeChanged(v: object): void {
-    if (this.hasProjection && this.outerScope != null) {
-      this.outerScope.overrideContext.$host = v;
+    if (this._hasProjection && this._outerScope != null) {
+      this._outerScope.overrideContext.$host = v;
     }
   }
 

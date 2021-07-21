@@ -67,9 +67,9 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   private isChangeTrigger: boolean = false;
   private readonly defaultTrigger: ValidationTrigger;
   private scope!: Scope;
-  private readonly triggerMediator: BindingMediator<'handleTriggerChange'> = new BindingMediator('handleTriggerChange', this, this.observerLocator, this.locator);
-  private readonly controllerMediator: BindingMediator<'handleControllerChange'> = new BindingMediator('handleControllerChange', this, this.observerLocator, this.locator);
-  private readonly rulesMediator: BindingMediator<'handleRulesChange'> = new BindingMediator('handleRulesChange', this, this.observerLocator, this.locator);
+  private readonly triggerMediator: BindingMediator<'handleTriggerChange'> = new BindingMediator('handleTriggerChange', this, this.oL, this.locator);
+  private readonly controllerMediator: BindingMediator<'handleControllerChange'> = new BindingMediator('handleControllerChange', this, this.oL, this.locator);
+  private readonly rulesMediator: BindingMediator<'handleRulesChange'> = new BindingMediator('handleRulesChange', this, this.oL, this.locator);
   private isDirty: boolean = false;
   private validatedOnce: boolean = false;
   private triggerEvent: 'blur' | 'focusout' | null = null;

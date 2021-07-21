@@ -151,7 +151,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         const elseFactory = rendering.getViewFactory(elseDef, container);
         const sut = new If(ifFactory, ifLoc, work);
         const elseSut = new Else(elseFactory);
-        const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(container, sut, (void 0)!);
+        const ifController = (sut as Writable<If>).$controller = Controller.$attr(container, sut, (void 0)!);
         elseSut.link(LifecycleFlags.none, { children: [ifController] } as unknown as IHydratableController, void 0!, void 0!, void 0!);
 
         const firstBindInitialNodesText: string = value1 ? ifText : elseText;

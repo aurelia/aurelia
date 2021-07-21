@@ -21,41 +21,43 @@ export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot');
 export interface IWorkTracker extends WorkTracker {}
 export const IWorkTracker = DI.createInterface<IWorkTracker>('IWorkTracker', x => x.singleton(WorkTracker));
 export class WorkTracker {
-  private stack: number = 0;
-  private promise: Promise<void> | null = null;
-  private resolve: (() => void) | null = null;
+  public static inject = [ILogger];
+  private _stack: number = 0;
+  private _promise: Promise<void> | null = null;
+  private _resolve: (() => void) | null = null;
+  private readonly _logger: ILogger;
 
-  public constructor(@ILogger private readonly logger: ILogger) {
-    this.logger = logger.scopeTo('WorkTracker');
+  public constructor(logger: ILogger) {
+    this._logger = logger.scopeTo('WorkTracker');
   }
 
   public start(): void {
-    this.logger.trace(`start(stack:${this.stack})`);
-    ++this.stack;
+    this._logger.trace(`start(stack:${this._stack})`);
+    ++this._stack;
   }
 
   public finish(): void {
-    this.logger.trace(`finish(stack:${this.stack})`);
-    if (--this.stack === 0) {
-      const resolve = this.resolve;
+    this._logger.trace(`finish(stack:${this._stack})`);
+    if (--this._stack === 0) {
+      const resolve = this._resolve;
       if (resolve !== null) {
-        this.resolve  = this.promise = null;
+        this._resolve  = this._promise = null;
         resolve();
       }
     }
   }
 
   public wait(): Promise<void> {
-    this.logger.trace(`wait(stack:${this.stack})`);
-    if (this.promise === null) {
-      if (this.stack === 0) {
+    this._logger.trace(`wait(stack:${this._stack})`);
+    if (this._promise === null) {
+      if (this._stack === 0) {
         return Promise.resolve();
       }
-      this.promise = new Promise(resolve => {
-        this.resolve = resolve;
+      this._promise = new Promise(resolve => {
+        this._resolve = resolve;
       });
     }
-    return this.promise;
+    return this._promise;
   }
 }
 
@@ -65,7 +67,7 @@ export class AppRoot implements IDisposable {
   public controller: ICustomElementController = (void 0)!;
   public work: IWorkTracker;
 
-  private hydratePromise: Promise<void> | void = void 0;
+  private _hydratePromise: Promise<void> | void = void 0;
 
   public constructor(
     public readonly config: ISinglePageApp,
@@ -83,7 +85,7 @@ export class AppRoot implements IDisposable {
       )
     );
 
-    this.hydratePromise = onResolve(this.runAppTasks('beforeCreate'), () => {
+    this._hydratePromise = onResolve(this._runAppTasks('beforeCreate'), () => {
       const component = config.component as Constructable | ICustomElementViewModel;
       const childCtn = container.createChild();
       let instance: object;
@@ -94,7 +96,7 @@ export class AppRoot implements IDisposable {
       }
 
       const hydrationInst: IControllerElementHydrationInstruction = { hydrate: false, projections: null };
-      const controller = (this.controller = Controller.forCustomElement(
+      const controller = (this.controller = Controller.$el(
         childCtn,
         instance,
         this.host,
@@ -102,37 +104,37 @@ export class AppRoot implements IDisposable {
         LifecycleFlags.none,
       )) as Controller;
 
-      controller.hydrateCustomElement(hydrationInst, /* root does not have hydration context */null);
-      return onResolve(this.runAppTasks('hydrating'), () => {
-        controller.hydrate(null);
-        return onResolve(this.runAppTasks('hydrated'), () => {
-          controller.hydrateChildren();
-          this.hydratePromise = void 0;
+      controller._hydrateCustomElement(hydrationInst, /* root does not have hydration context */null);
+      return onResolve(this._runAppTasks('hydrating'), () => {
+        controller._hydrate(null);
+        return onResolve(this._runAppTasks('hydrated'), () => {
+          controller._hydrateChildren();
+          this._hydratePromise = void 0;
         });
       });
     });
   }
 
   public activate(): void | Promise<void> {
-    return onResolve(this.hydratePromise, () => {
-      return onResolve(this.runAppTasks('beforeActivate'), () => {
+    return onResolve(this._hydratePromise, () => {
+      return onResolve(this._runAppTasks('beforeActivate'), () => {
         return onResolve(this.controller.activate(this.controller, null, LifecycleFlags.fromBind, void 0), () => {
-          return this.runAppTasks('afterActivate');
+          return this._runAppTasks('afterActivate');
         });
       });
     });
   }
 
   public deactivate(): void | Promise<void> {
-    return onResolve(this.runAppTasks('beforeDeactivate'), () => {
+    return onResolve(this._runAppTasks('beforeDeactivate'), () => {
       return onResolve(this.controller.deactivate(this.controller, null, LifecycleFlags.none), () => {
-        return this.runAppTasks('afterDeactivate');
+        return this._runAppTasks('afterDeactivate');
       });
     });
   }
 
   /** @internal */
-  public runAppTasks(slot: TaskSlot): void | Promise<void> {
+  private _runAppTasks(slot: TaskSlot): void | Promise<void> {
     return resolveAll(...this.container.getAll(IAppTask).reduce((results, task) => {
       if (task.slot === slot) {
         results.push(task.run());

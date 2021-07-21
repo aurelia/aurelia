@@ -75,9 +75,10 @@ export class ShadowDOMRegistry implements IRegistry {
 }
 
 class AdoptedStyleSheetsStylesFactory {
+  public static inject = [IPlatform];
   private readonly cache = new Map();
 
-  public constructor(@IPlatform private readonly p: IPlatform) {}
+  public constructor(private readonly p: IPlatform) {}
 
   public createStyles(localStyles: (string | CSSStyleSheet)[], sharedStyles: IShadowDOMStyles | null): IShadowDOMStyles {
     return new AdoptedStyleSheetsStyles(this.p, localStyles, this.cache, sharedStyles);
@@ -85,7 +86,8 @@ class AdoptedStyleSheetsStylesFactory {
 }
 
 class StyleElementStylesFactory {
-  public constructor(@IPlatform private readonly p: IPlatform) {}
+  public static inject = [IPlatform];
+  public constructor(private readonly p: IPlatform) {}
 
   public createStyles(localStyles: string[], sharedStyles: IShadowDOMStyles | null): IShadowDOMStyles {
     return new StyleElementStyles(this.p, localStyles, sharedStyles);

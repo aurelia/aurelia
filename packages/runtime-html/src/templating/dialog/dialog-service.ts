@@ -42,9 +42,9 @@ export class DialogService implements IDialogService {
   protected static get inject() { return [IContainer, IPlatform, IDialogGlobalSettings]; }
 
   public constructor(
-    private readonly container: IContainer,
+    private readonly _ctn: IContainer,
     private readonly p: IPlatform,
-    private readonly defaultSettings: IDialogGlobalSettings,
+    private readonly _defaultSettings: IDialogGlobalSettings,
   ) {}
 
   public static register(container: IContainer) {
@@ -81,8 +81,8 @@ export class DialogService implements IDialogService {
    */
   public open(settings: IDialogSettings): DialogOpenPromise {
     return asDialogOpenPromise(new Promise<DialogOpenResult>(resolve => {
-      const $settings = DialogSettings.from(this.defaultSettings, settings);
-      const container = $settings.container ?? this.container.createChild();
+      const $settings = DialogSettings.from(this._defaultSettings, settings);
+      const container = $settings.container ?? this._ctn.createChild();
 
       resolve(onResolve(
         $settings.load(),

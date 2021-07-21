@@ -104,24 +104,25 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
   }
 }
 
-export const BindingCommand: BindingCommandKind = {
-  name: Protocol.resource.keyFor('binding-command'),
+const cmdBaseName = Protocol.resource.keyFor('binding-command');
+export const BindingCommand: BindingCommandKind = Object.freeze({
+  name: cmdBaseName,
   keyFrom(name: string): string {
-    return `${BindingCommand.name}:${name}`;
+    return `${cmdBaseName}:${name}`;
   },
   isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
-    return typeof value === 'function' && Metadata.hasOwn(BindingCommand.name, value);
+    return typeof value === 'function' && Metadata.hasOwn(cmdBaseName, value);
   },
   define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
     const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
-    Metadata.define(BindingCommand.name, definition, definition.Type);
-    Metadata.define(BindingCommand.name, definition, definition);
-    Protocol.resource.appendTo(Type, BindingCommand.name);
+    Metadata.define(cmdBaseName, definition, definition.Type);
+    Metadata.define(cmdBaseName, definition, definition);
+    Protocol.resource.appendTo(Type, cmdBaseName);
 
     return definition.Type as BindingCommandType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T> {
-    const def = Metadata.getOwn(BindingCommand.name, Type);
+    const def = Metadata.getOwn(cmdBaseName, Type);
     if (def === void 0) {
       throw new Error(`No definition found for type ${Type.name}`);
     }
@@ -134,7 +135,7 @@ export const BindingCommand: BindingCommandKind = {
   getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K] {
     return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
   },
-};
+});
 
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements BindingCommandInstance {

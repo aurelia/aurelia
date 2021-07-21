@@ -14,12 +14,12 @@ const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 
 export class TemplateElementFactory {
   public static inject = [IPlatform];
-  private template: HTMLTemplateElement;
+  private _template: HTMLTemplateElement;
 
   public constructor(
     private readonly p: IPlatform,
   ) {
-    this.template = p.document.createElement('template');
+    this._template = p.document.createElement('template');
   }
 
   public createTemplate(markup: string): HTMLTemplateElement;
@@ -29,13 +29,13 @@ export class TemplateElementFactory {
     if (typeof input === 'string') {
       let result = markupCache[input];
       if (result === void 0) {
-        const template = this.template;
+        const template = this._template;
         template.innerHTML = input;
         const node = template.content.firstElementChild;
         // if the input is either not wrapped in a template or there is more than one node,
         // return the whole template that wraps it/them (and create a new one for the next input)
         if (node == null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling != null) {
-          this.template = this.p.document.createElement('template');
+          this._template = this.p.document.createElement('template');
           result = template;
         } else {
           // the node to return is both a template and the only node, so return just the node

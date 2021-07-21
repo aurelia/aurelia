@@ -6,14 +6,14 @@ import type {
   IConnectableBinding,
   IObservable,
   IObserverLocator,
-  IPartialConnectableBinding,
+  IObserverLocatorBasedConnectable,
   IsExpression,
   Scope,
 } from '@aurelia/runtime';
 
 export interface LetBinding extends IConnectableBinding {}
 
-export class LetBinding implements IPartialConnectableBinding {
+export class LetBinding implements IObserverLocatorBasedConnectable {
   public interceptor: this = this;
 
   public isBound: boolean = false;
@@ -21,14 +21,21 @@ export class LetBinding implements IPartialConnectableBinding {
   public task: ITask | null = null;
 
   public target: (IObservable & IIndexable) | null = null;
+  /**
+   * A semi-private property used by connectable mixin
+   *
+   * @internal
+   */
+  public readonly oL: IObserverLocator;
 
   public constructor(
     public sourceExpression: IsExpression,
     public targetProperty: string,
-    public observerLocator: IObserverLocator,
+    observerLocator: IObserverLocator,
     public locator: IServiceLocator,
     private readonly toBindingContext: boolean = false,
   ) {
+    this.oL = observerLocator;
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {

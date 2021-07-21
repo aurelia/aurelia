@@ -116,7 +116,7 @@ export class BindingBehaviorFactory<T extends Constructable = Constructable> {
   private readonly deps: readonly Key[];
 
   public constructor(
-    private readonly container: IContainer,
+    private readonly ctn: IContainer,
     private readonly Type: BindingBehaviorType<T>,
   ) {
     this.deps = DI.getDependencies(Type);
@@ -126,7 +126,7 @@ export class BindingBehaviorFactory<T extends Constructable = Constructable> {
     binding: IInterceptableBinding,
     expr: BindingBehaviorExpression,
   ): IInterceptableBinding {
-    const container = this.container;
+    const container = this.ctn;
     const deps = this.deps;
     switch (deps.length) {
       case 0:
@@ -156,8 +156,8 @@ export interface BindingInterceptor extends IConnectableBinding {}
 
 export class BindingInterceptor implements IInterceptableBinding {
   public interceptor: this = this;
-  public get observerLocator(): IObserverLocator {
-    return this.binding.observerLocator;
+  public get oL(): IObserverLocator {
+    return this.binding.oL;
   }
   public get locator(): IServiceLocator {
     return this.binding.locator;
@@ -217,24 +217,25 @@ export class BindingInterceptor implements IInterceptableBinding {
   }
 }
 
-export const BindingBehavior: BindingBehaviorKind = {
-  name: Protocol.resource.keyFor('binding-behavior'),
+const bbBaseName = Protocol.resource.keyFor('binding-behavior');
+export const BindingBehavior: BindingBehaviorKind = Object.freeze({
+  name: bbBaseName,
   keyFrom(name: string): string {
-    return `${BindingBehavior.name}:${name}`;
+    return `${bbBaseName}:${name}`;
   },
   isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never) {
-    return typeof value === 'function' && Metadata.hasOwn(BindingBehavior.name, value);
+    return typeof value === 'function' && Metadata.hasOwn(bbBaseName, value);
   },
   define<T extends Constructable<BindingBehaviorInstance>>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
     const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable<BindingBehaviorInstance>);
-    Metadata.define(BindingBehavior.name, definition, definition.Type);
-    Metadata.define(BindingBehavior.name, definition, definition);
-    Protocol.resource.appendTo(Type, BindingBehavior.name);
+    Metadata.define(bbBaseName, definition, definition.Type);
+    Metadata.define(bbBaseName, definition, definition);
+    Protocol.resource.appendTo(Type, bbBaseName);
 
     return definition.Type as BindingBehaviorType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T> {
-    const def = Metadata.getOwn(BindingBehavior.name, Type) as BindingBehaviorDefinition<T>;
+    const def = Metadata.getOwn(bbBaseName, Type) as BindingBehaviorDefinition<T>;
     if (def === void 0) {
       throw new Error(`No definition found for type ${Type.name}`);
     }
@@ -247,4 +248,4 @@ export const BindingBehavior: BindingBehaviorKind = {
   getAnnotation<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K): PartialBindingBehaviorDefinition[K] {
     return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type) as PartialBindingBehaviorDefinition[K];
   },
-};
+});

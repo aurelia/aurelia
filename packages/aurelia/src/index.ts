@@ -309,7 +309,7 @@ export {
 
   // CallBinding,
 
-  // IPartialConnectableBinding,
+  // IObserverLocatorBasedConnectable,
   // IConnectableBinding,
   // connectable,
 

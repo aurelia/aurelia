@@ -3,7 +3,6 @@ import { IPlatform } from '../platform.js';
 
 import type {
   IObserver,
-  IObserverLocator,
   ISubscriber,
   ISubscriberCollection,
   IFlushable,
@@ -44,7 +43,6 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 
   public constructor(
     private readonly platform: IPlatform,
-    public readonly observerLocator: IObserverLocator,
     public readonly obj: IHtmlElement,
     public readonly propertyKey: string,
     public readonly targetAttribute: string,

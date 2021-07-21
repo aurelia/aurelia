@@ -14,9 +14,9 @@ export class AttrMapper {
   /** @internal */
   private readonly fns: IsTwoWayPredicate[] = [];
   /** @internal */
-  private readonly tagAttrMap: Record<string, Record<string, PropertyKey>> = createLookup();
+  private readonly _tagAttrMap: Record<string, Record<string, PropertyKey>> = createLookup();
   /** @internal */
-  private readonly globalAttrMap: Record<string, PropertyKey> = createLookup();
+  private readonly _globalAttrMap: Record<string, PropertyKey> = createLookup();
 
   public constructor(
     private readonly svg: ISVGAnalyzer,
@@ -61,7 +61,7 @@ export class AttrMapper {
     let attr: string;
     for (tagName in config) {
       newAttrMapping = config[tagName];
-      targetAttrMapping = this.tagAttrMap[tagName] ??= createLookup();
+      targetAttrMapping = this._tagAttrMap[tagName] ??= createLookup();
       for (attr in newAttrMapping) {
         if (targetAttrMapping[attr] !== void 0) {
           throw createMappedError(attr, tagName);
@@ -76,7 +76,7 @@ export class AttrMapper {
    * for all elements
    */
   public useGlobalMapping(config: Record<string, PropertyKey>): void {
-    const mapper = this.globalAttrMap;
+    const mapper = this._globalAttrMap;
     for (const attr in config) {
       if (mapper[attr] !== void 0) {
         throw createMappedError(attr, '*');
@@ -105,8 +105,8 @@ export class AttrMapper {
    * Retrieves the mapping information this mapper have for an attribute on an element
    */
   public map(node: Element, attr: string): string | null {
-    return this.tagAttrMap[node.nodeName]?.[attr] as string
-      ?? this.globalAttrMap[attr]
+    return this._tagAttrMap[node.nodeName]?.[attr] as string
+      ?? this._globalAttrMap[attr]
       ?? (isDataAttribute(node, attr, this.svg)
         ? attr
         : null);

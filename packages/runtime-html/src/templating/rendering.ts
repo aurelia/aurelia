@@ -14,16 +14,16 @@ export interface IRendering extends Rendering { }
 
 export class Rendering {
   public static inject: unknown[] = [IContainer];
-  private readonly c: IContainer;
+  private readonly _ctn: IContainer;
   private rs: Record<string, IRenderer> | undefined;
-  private readonly p: IPlatform;
-  private readonly compilationCache: WeakMap<PartialCustomElementDefinition, CustomElementDefinition> = new WeakMap();
-  private readonly fragmentCache: WeakMap<CustomElementDefinition, DocumentFragment | null> = new WeakMap();
-  private readonly empty: INodeSequence;
+  private readonly _p: IPlatform;
+  private readonly _compilationCache: WeakMap<PartialCustomElementDefinition, CustomElementDefinition> = new WeakMap();
+  private readonly _fragmentCache: WeakMap<CustomElementDefinition, DocumentFragment | null> = new WeakMap();
+  private readonly _empty: INodeSequence;
 
   public get renderers(): Record<string, IRenderer> {
     return this.rs == null
-      ? (this.rs = this.c.getAll(IRenderer, false).reduce((all, r) => {
+      ? (this.rs = this._ctn.getAll(IRenderer, false).reduce((all, r) => {
           all[r.instructionType!] = r;
           return all;
         }, createLookup<IRenderer>()))
@@ -31,8 +31,8 @@ export class Rendering {
   }
 
   public constructor(container: IContainer) {
-    this.p = (this.c = container.root).get(IPlatform);
-    this.empty = new FragmentNodeSequence(this.p, this.p.document.createDocumentFragment());
+    this._p = (this._ctn = container.root).get(IPlatform);
+    this._empty = new FragmentNodeSequence(this._p, this._p.document.createDocumentFragment());
   }
 
   public compile(
@@ -41,7 +41,7 @@ export class Rendering {
     compilationInstruction: ICompliationInstruction | null,
   ): CustomElementDefinition {
     if (definition.needsCompile !== false) {
-      const compiledMap = this.compilationCache;
+      const compiledMap = this._compilationCache;
       const compiler = container.get(ITemplateCompiler);
       let compiled = compiledMap.get(definition);
       if (compiled == null) {
@@ -64,14 +64,14 @@ export class Rendering {
 
   public createNodes(definition: CustomElementDefinition): INodeSequence {
     if (definition.enhance === true) {
-      return new FragmentNodeSequence(this.p, definition.template as DocumentFragment);
+      return new FragmentNodeSequence(this._p, definition.template as DocumentFragment);
     }
     let fragment: DocumentFragment | null | undefined;
-    const cache = this.fragmentCache;
+    const cache = this._fragmentCache;
     if (cache.has(definition)) {
       fragment = cache.get(definition);
     } else {
-      const p = this.p;
+      const p = this._p;
       const doc = p.document;
       const template = definition.template;
       let tpl: HTMLTemplateElement;
@@ -93,8 +93,8 @@ export class Rendering {
       cache.set(definition, fragment);
     }
     return fragment == null
-      ? this.empty
-      : new FragmentNodeSequence(this.p, fragment.cloneNode(true) as DocumentFragment);
+      ? this._empty
+      : new FragmentNodeSequence(this._p, fragment.cloneNode(true) as DocumentFragment);
   }
 
   public render(

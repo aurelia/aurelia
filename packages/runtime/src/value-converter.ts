@@ -84,24 +84,25 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
   }
 }
 
-export const ValueConverter: ValueConverterKind = {
-  name: Protocol.resource.keyFor('value-converter'),
+const vcBaseName = Protocol.resource.keyFor('value-converter');
+export const ValueConverter: ValueConverterKind = Object.freeze({
+  name: vcBaseName,
   keyFrom(name: string): string {
-    return `${ValueConverter.name}:${name}`;
+    return `${vcBaseName}:${name}`;
   },
   isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never) {
-    return typeof value === 'function' && Metadata.hasOwn(ValueConverter.name, value);
+    return typeof value === 'function' && Metadata.hasOwn(vcBaseName, value);
   },
   define<T extends Constructable<ValueConverterInstance>>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T> {
     const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable<ValueConverterInstance>);
-    Metadata.define(ValueConverter.name, definition, definition.Type);
-    Metadata.define(ValueConverter.name, definition, definition);
-    Protocol.resource.appendTo(Type, ValueConverter.name);
+    Metadata.define(vcBaseName, definition, definition.Type);
+    Metadata.define(vcBaseName, definition, definition);
+    Protocol.resource.appendTo(Type, vcBaseName);
 
     return definition.Type as ValueConverterType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
-    const def = Metadata.getOwn(ValueConverter.name, Type);
+    const def = Metadata.getOwn(vcBaseName, Type);
     if (def === void 0) {
       throw new Error(`No definition found for type ${Type.name}`);
     }
@@ -114,4 +115,4 @@ export const ValueConverter: ValueConverterKind = {
   getAnnotation<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K): PartialValueConverterDefinition[K] {
     return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
   },
-};
+});

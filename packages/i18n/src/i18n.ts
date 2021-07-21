@@ -112,16 +112,18 @@ export class I18nService implements I18N {
    */
   public readonly initPromise: Promise<void>;
   private options!: I18nInitOptions;
-  private readonly localeSubscribers: Set<ILocalChangeSubscriber> = new Set();
+  private readonly _localeSubscribers: Set<ILocalChangeSubscriber> = new Set();
+  private readonly _signaler: ISignaler;
 
   public constructor(
     @I18nWrapper i18nextWrapper: I18nextWrapper,
     @I18nInitOptions options: I18nInitOptions,
     @IEventAggregator private readonly ea: IEventAggregator,
-    @ISignaler private readonly signaler: ISignaler,
+    @ISignaler signaler: ISignaler,
   ) {
     this.i18next = i18nextWrapper.i18next;
-    this.initPromise = this.initializeI18next(options);
+    this.initPromise = this._initializeI18next(options);
+    this._signaler = signaler;
   }
 
   public evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[] {
@@ -154,8 +156,8 @@ export class I18nService implements I18N {
     const locales = { oldLocale, newLocale };
     await this.i18next.changeLanguage(newLocale);
     this.ea.publish(Signals.I18N_EA_CHANNEL, locales);
-    this.localeSubscribers.forEach(sub => sub.handleLocaleChange(locales));
-    this.signaler.dispatchSignal(Signals.I18N_SIGNAL);
+    this._localeSubscribers.forEach(sub => sub.handleLocaleChange(locales));
+    this._signaler.dispatchSignal(Signals.I18N_SIGNAL);
   }
 
   public createNumberFormat(options?: Intl.NumberFormatOptions, locales?: string | string[]): Intl.NumberFormat {
@@ -243,14 +245,14 @@ export class I18nService implements I18N {
   }
 
   public subscribeLocaleChange(subscriber: ILocalChangeSubscriber): void {
-    this.localeSubscribers.add(subscriber);
+    this._localeSubscribers.add(subscriber);
   }
 
   private now() {
     return new Date().getTime();
   }
 
-  private async initializeI18next(options: I18nInitOptions) {
+  private async _initializeI18next(options: I18nInitOptions) {
     const defaultOptions: I18nInitOptions = {
       lng: 'en',
       fallbackLng: ['en'],

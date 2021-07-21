@@ -208,9 +208,7 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
 }
 
 function getSubscriberRecord(this: ISubscriberCollection) {
-  const record = new SubscriberRecord();
-  defineHiddenProp(this, 'subs', record);
-  return record;
+  return defineHiddenProp(this, 'subs', new SubscriberRecord());
 }
 
 function addSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {

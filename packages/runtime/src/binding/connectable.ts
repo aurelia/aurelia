@@ -43,9 +43,7 @@ function observe(this: IConnectableBinding, obj: object, key: PropertyKey): void
   this.obs.add(observer);
 }
 function getObserverRecord(this: IConnectableBinding): BindingObserverRecord {
-  const record = new BindingObserverRecord(this);
-  defineHiddenProp(this, 'obs', record);
-  return record;
+  return defineHiddenProp(this, 'obs', new BindingObserverRecord(this));
 }
 
 function observeCollection(this: IConnectableBinding, collection: Collection): void {

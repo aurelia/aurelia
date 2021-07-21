@@ -113,8 +113,9 @@ type B345 = B45 & B3<B45>;
 type B2345 = B345 & B2<B345>;
 type B12345 = B2345 & B1<B2345>;
 
+const baseName = Protocol.annotation.keyFor('bindable');
 export const Bindable = {
-  name: Protocol.annotation.keyFor('bindable'),
+  name: baseName,
   keyFrom(name: string): string {
     return `${Bindable.name}:${name}`;
   },
@@ -161,10 +162,10 @@ export const Bindable = {
         }
 
         def = BindableDefinition.create(prop, config) as Writable<BindableDefinition>;
-        if (!Metadata.hasOwn(Bindable.name, Type, prop)) {
+        if (!Metadata.hasOwn(baseName, Type, prop)) {
           Protocol.annotation.appendTo(Type, Bindable.keyFrom(prop));
         }
-        Metadata.define(Bindable.name, def, Type, prop);
+        Metadata.define(baseName, def, Type, prop);
 
         return builder;
       },
@@ -207,12 +208,13 @@ export const Bindable = {
     let keys: string[];
     let keysLen: number;
     let Class: Constructable;
+    let i: number;
     while (--iProto >= 0) {
       Class = prototypeChain[iProto];
       keys = Protocol.annotation.getKeys(Class).filter(isBindableAnnotation);
       keysLen = keys.length;
-      for (let i = 0; i < keysLen; ++i) {
-        defs[iDefs++] = Metadata.getOwn(Bindable.name, Class, keys[i].slice(propStart)) as BindableDefinition;
+      for (i = 0; i < keysLen; ++i) {
+        defs[iDefs++] = Metadata.getOwn(baseName, Class, keys[i].slice(propStart)) as BindableDefinition;
       }
     }
     return defs;

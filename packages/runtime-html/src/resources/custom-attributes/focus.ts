@@ -19,10 +19,10 @@ export class Focus implements ICustomAttributeViewModel {
   /**
    * Indicates whether `apply` should be called when `attached` callback is invoked
    */
-  private needsApply: boolean = false;
+  private _needsApply: boolean = false;
 
   public constructor(
-    @INode private readonly element: INode<HTMLElement>,
+    @INode private readonly _element: INode<HTMLElement>,
     @IPlatform private readonly p: IPlatform,
   ) {}
 
@@ -47,7 +47,7 @@ export class Focus implements ICustomAttributeViewModel {
       // If the element is not currently connect
       // toggle the flag to add pending work for later
       // in attached lifecycle
-      this.needsApply = true;
+      this._needsApply = true;
     }
   }
 
@@ -55,11 +55,11 @@ export class Focus implements ICustomAttributeViewModel {
    * Invoked when the attribute is attached to the DOM.
    */
   public attached(): void {
-    if (this.needsApply) {
-      this.needsApply = false;
+    if (this._needsApply) {
+      this._needsApply = false;
       this.apply();
     }
-    const el = this.element;
+    const el = this._element;
     el.addEventListener('focus', this);
     el.addEventListener('blur', this);
   }
@@ -68,7 +68,7 @@ export class Focus implements ICustomAttributeViewModel {
    * Invoked when the attribute is afterDetachChildren from the DOM.
    */
   public afterDetachChildren(): void {
-    const el = this.element;
+    const el = this._element;
     el.removeEventListener('focus', this);
     el.removeEventListener('blur', this);
   }
@@ -98,7 +98,7 @@ export class Focus implements ICustomAttributeViewModel {
    * Focus/blur based on current value
    */
   private apply(): void {
-    const el = this.element;
+    const el = this._element;
     const isFocused = this.isElFocused;
     const shouldFocus = this.value;
     if (shouldFocus && !isFocused) {
@@ -109,6 +109,6 @@ export class Focus implements ICustomAttributeViewModel {
   }
 
   private get isElFocused(): boolean {
-    return this.element === this.p.document.activeElement;
+    return this._element === this.p.document.activeElement;
   }
 }

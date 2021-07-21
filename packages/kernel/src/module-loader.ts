@@ -21,8 +21,8 @@ function noTransform<TRet = AnalyzedModule>(m: AnalyzedModule): TRet {
 type TransformFn<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>> = (m: AnalyzedModule<TMod>) => TRet | Promise<TRet>;
 
 class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>> {
-  private readonly promiseCache: Map<Promise<IModule>, unknown> = new Map<Promise<IModule>, unknown>();
-  private readonly objectCache: Map<IModule, unknown> = new Map<IModule, unknown>();
+  private readonly _promiseCache: Map<Promise<IModule>, unknown> = new Map<Promise<IModule>, unknown>();
+  private readonly _objectCache: Map<IModule, unknown> = new Map<IModule, unknown>();
 
   public constructor(
     private readonly $transform: TransformFn<TMod, TRet>,
@@ -30,47 +30,47 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
 
   public transform(objOrPromise: TMod | Promise<TMod>): Promise<TRet> | TRet {
     if (objOrPromise instanceof Promise) {
-      return this.transformPromise(objOrPromise);
+      return this._transformPromise(objOrPromise);
     } else if (typeof objOrPromise === 'object' && objOrPromise !== null) {
-      return this.transformObject(objOrPromise);
+      return this._transformObject(objOrPromise);
     } else {
       throw new Error(`Invalid input: ${String(objOrPromise)}. Expected Promise or Object.`);
     }
   }
 
-  private transformPromise(promise: Promise<TMod>): TRet | Promise<TRet> {
-    if (this.promiseCache.has(promise)) {
-      return this.promiseCache.get(promise) as TRet | Promise<TRet>;
+  private _transformPromise(promise: Promise<TMod>): TRet | Promise<TRet> {
+    if (this._promiseCache.has(promise)) {
+      return this._promiseCache.get(promise) as TRet | Promise<TRet>;
     }
 
     const ret = promise.then(obj => {
-      return this.transformObject(obj);
+      return this._transformObject(obj);
     });
-    this.promiseCache.set(promise, ret);
+    this._promiseCache.set(promise, ret);
     void ret.then(value => {
       // make it synchronous for future requests
-      this.promiseCache.set(promise, value);
+      this._promiseCache.set(promise, value);
     });
     return ret;
   }
 
-  private transformObject(obj: TMod): TRet | Promise<TRet> {
-    if (this.objectCache.has(obj)) {
-      return this.objectCache.get(obj) as TRet | Promise<TRet>;
+  private _transformObject(obj: TMod): TRet | Promise<TRet> {
+    if (this._objectCache.has(obj)) {
+      return this._objectCache.get(obj) as TRet | Promise<TRet>;
     }
 
-    const ret = this.$transform(this.analyze(obj));
-    this.objectCache.set(obj, ret);
+    const ret = this.$transform(this._analyze(obj));
+    this._objectCache.set(obj, ret);
     if (ret instanceof Promise) {
       void ret.then(value => {
         // make it synchronous for future requests
-        this.objectCache.set(obj, value);
+        this._objectCache.set(obj, value);
       });
     }
     return ret;
   }
 
-  private analyze(m: TMod): AnalyzedModule<TMod> {
+  private _analyze(m: TMod): AnalyzedModule<TMod> {
     let value: unknown;
     let isRegistry: boolean;
     let isConstructable: boolean;

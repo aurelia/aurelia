@@ -15,7 +15,8 @@ export class Signaler {
     if (listeners === undefined) {
       return;
     }
-    for (const listener of listeners.keys()) {
+    let listener: ISubscriber;
+    for (listener of listeners.keys()) {
       listener.handleChange(undefined, undefined, flags!);
     }
   }

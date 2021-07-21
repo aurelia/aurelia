@@ -168,14 +168,11 @@ export class ViewportContent extends EndpointContent {
    * @param connectedCE - The custom element connected to the viewport
    */
   public contentController(connectedCE: IConnectedCustomElement): ICustomElementController {
-    return Controller.forCustomElement(
-      null,
-      connectedCE.container,
+    return Controller.$el(
       connectedCE.container.createChild(),
       this.instruction.component.instance as ICustomElementViewModel,
       connectedCE.element,
       null,
-      void 0,
     );
   }
 

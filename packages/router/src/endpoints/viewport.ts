@@ -1,4 +1,5 @@
-import { LifecycleFlags, ICompiledRenderContext, CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
+import { IContainer } from '@aurelia/kernel';
+import { LifecycleFlags, CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, ReloadBehavior, RouteableComponentType, LoadInstruction } from '../interfaces.js';
 import { IRouter } from '../router.js';
 import { arrayRemove } from '../utilities/utils.js';
@@ -997,8 +998,8 @@ export class Viewport extends Endpoint {
     let componentType = this.getContentInstruction()!.component.type ?? null;
     if (componentType === null) {
       const controller = CustomElement.for(this.connectedCE!.element);
-      componentType = (controller.context as
-        ICompiledRenderContext & { componentType: RouteableComponentType })
+      componentType = (controller.container as
+        IContainer & { componentType: RouteableComponentType })
         .componentType;
     }
     return componentType ?? null;

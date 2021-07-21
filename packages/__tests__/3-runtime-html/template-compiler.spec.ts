@@ -43,6 +43,7 @@ import {
   CustomAttributeDefinition,
   ITemplateCompilerHooks,
   IAttributeParser,
+  HydrateAttributeInstruction,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -192,7 +193,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: CustomAttribute.getDefinition(Prop) }
         ];
         verifyInstructions(siblingInstructions, expectedSiblingInstructions);
-        const rootInstructions = actual.instructions[0][0]['instructions'];
+        const rootInstructions = actual.instructions[0][0]['props'];
         const expectedRootInstructions = [
           { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop1' },
           { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop2' }
@@ -223,7 +224,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         const expectedElInstructions = [
           { toVerify: ['type', 'to', 'value'], type: TT.setProperty, to: 'name', value: 'name' }
         ];
-        verifyInstructions((rootInstructions[0] as HydrateElementInstruction).instructions, expectedElInstructions);
+        verifyInstructions((rootInstructions[0] as HydrateElementInstruction).props, expectedElInstructions);
       });
 
       it('understands element property casing', function () {
@@ -245,7 +246,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         const expectedElInstructions = [
           { toVerify: ['type', 'value', 'to'], type: TT.setProperty, value: 'label', to: 'backgroundColor' },
         ];
-        verifyInstructions((rootInstructions[0] as HydrateElementInstruction).instructions, expectedElInstructions);
+        verifyInstructions((rootInstructions[0] as HydrateElementInstruction).props, expectedElInstructions);
       });
 
       it('understands binding commands', function () {
@@ -281,7 +282,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           e.type = TT.propertyBinding;
           return e;
         });
-        verifyInstructions((rootInstructions[0] as HydrateElementInstruction).instructions, expectedElInstructions);
+        verifyInstructions((rootInstructions[0] as HydrateElementInstruction).props, expectedElInstructions);
       });
 
       describe('with template controller', function () {
@@ -316,7 +317,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           );
           assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><au-m class="au"></au-m></template>', `(template as HTMLTemplateElement).outerHTML`);
           const [hydratePropAttrInstruction] = instructions[0] as unknown as [HydrateTemplateController];
-          verifyInstructions(hydratePropAttrInstruction.instructions, [
+          verifyInstructions(hydratePropAttrInstruction.props, [
             { toVerify: ['type', 'to', 'from'],
               type: TT.propertyBinding, to: 'value', from: new AccessScopeExpression('p') }
           ]);
@@ -358,7 +359,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
                   type: TT.hydrateTemplateController, res: container.find(CustomAttribute, 'if') }
               ]);
               const templateControllerInst = instructions[0][0] as HydrateTemplateController;
-              verifyInstructions(templateControllerInst.instructions, [
+              verifyInstructions(templateControllerInst.props, [
                 { toVerify: ['type', 'to', 'from'],
                   type: TT.propertyBinding, to: 'value', from: new AccessScopeExpression('value') }
               ]);
@@ -367,7 +368,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
                 { toVerify: ['type', 'res'],
                   type: TT.hydrateElement, res: CustomElement.getDefinition(NotDiv) }
               ]);
-              verifyInstructions(hydrateNotDivInstruction.instructions, []);
+              verifyInstructions(hydrateNotDivInstruction.props, []);
             });
           });
         });
@@ -706,7 +707,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
     }
     node.setAttribute(attr, value);
     const rawMarkup = node.outerHTML;
-    const instruction = {
+    const instruction: Partial<HydrateTemplateController> = {
       type: TT.hydrateTemplateController,
       res: resolveRes ? ctx.container.find(CustomAttribute, target)! : target,
       def: {
@@ -718,8 +719,8 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         needsCompile: false,
         enhance: false,
         processContent: null,
-      },
-      instructions: createTplCtrlAttributeInstruction(attr, value),
+      } as PartialCustomElementDefinition,
+      props: createTplCtrlAttributeInstruction(attr, value),
     };
     const input: PartialCustomElementDefinition = {
       template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
@@ -744,7 +745,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       compiledMarkup = `<${tagName}><au-m class="au"></au-m></${tagName}>`;
       instructions = [[childInstr]];
     }
-    const instruction = {
+    const instruction: Partial<HydrateTemplateController> = {
       type: TT.hydrateTemplateController,
       res: resolveRes ? ctx.container.find(CustomAttribute, target)! : target,
       def: {
@@ -756,8 +757,8 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         needsCompile: false,
         enhance: false,
         processContent: null,
-      },
-      instructions: createTplCtrlAttributeInstruction(attr, value),
+      } as PartialCustomElementDefinition,
+      props: createTplCtrlAttributeInstruction(attr, value),
     };
     const rawMarkup = `<${tagName} ${attr}="${value || ''}">${childTpl || ''}</${tagName}>`;
     const input: PartialCustomElementDefinition = {
@@ -791,7 +792,7 @@ function createCustomElement(
   const instruction: Partial<HydrateElementInstruction> = {
     type: TT.hydrateElement,
     res: tagNameOrDef,
-    instructions: childInstructions as IInstruction[],
+    props: childInstructions as IInstruction[],
     auSlot: null,
     containerless: false,
     projections: null,
@@ -856,10 +857,10 @@ function createCustomAttribute(
   childInput?,
 ): [PartialCustomAttributeDefinition, PartialCustomAttributeDefinition] {
   const resName = typeof attrNameOrDef === 'string' ? attrNameOrDef : attrNameOrDef.name;
-  const instruction = {
+  const instruction: Partial<HydrateAttributeInstruction> | Partial<HydrateTemplateController> = {
     type: TT.hydrateAttribute,
     res: attrNameOrDef,
-    instructions: childInstructions
+    props: childInstructions as any[]
   };
   const attributeMarkup = attributes.map(a => `${a[0]}: ${a[1]};`).join('');
   const rawMarkup = `<div ${resName}="${attributeMarkup}">${(childInput && childInput.template) || ''}</div>`;
@@ -1132,10 +1133,10 @@ describe(`TemplateCompiler - combinations`, function () {
             instructions: [],
             surrogates: [],
           } as unknown as PartialCustomElementDefinition;
-          const instruction = {
+          const instruction: Partial<HydrateAttributeInstruction> = {
             type: TT.hydrateAttribute,
             res: resolveResources ? CustomAttribute.getDefinition($def) : attr,
-            instructions: [childInstruction],
+            props: [childInstruction],
           };
           const expected = {
             ...defaultCustomElementDefinitionProperties,

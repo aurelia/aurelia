@@ -1,9 +1,9 @@
+/* deepscan-disable */
 import * as R from 'ramda';
 import * as fs from 'fs';
 import * as path from 'path'
 import * as yargs from 'yargs';
 
-/* deepscan-disable */
 import { Benchmark, BenchmarkType, LighthouseData, benchmarks, fileName } from './benchmarks'
 import { BenchmarkOptions, ErrorAndWarning, FrameworkData, JSONResult, config, initializeFrameworks } from './common'
 

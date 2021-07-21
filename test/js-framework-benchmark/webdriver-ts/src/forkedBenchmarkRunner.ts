@@ -1,10 +1,10 @@
+/* deepscan-disable */
 import * as R from 'ramda';
 import * as fs from 'fs';
 import * as path from 'path';
 
 import {Benchmark, BenchmarkType, LighthouseData, benchmarks, fileName} from './benchmarks'
 import {BenchmarkDriverOptions, BenchmarkOptions, ErrorAndWarning, FrameworkData, JSONResult, TBenchmarkStatus, TConfig, config as defaultConfig} from './common'
-/* deepscan-disable */
 import {WebDriver, logging} from 'selenium-webdriver'
 import {buildDriver, setButtonsInShadowRoot, setShadowRootName, setUseRowShadowRoot, setUseShadowRoot} from './webdriverAccess'
 

@@ -373,23 +373,52 @@ export class TemplateCompiler implements ITemplateCompiler {
   /** @internal */
   // eslint-disable-next-line
   private _compileElement(el: Element, context: CompilationContext): Node | null {
+    // overall, the template compiler does it job by compiling one node,
+    // and let that the process of compiling that node point to the next node to be compiled.
+    // ----------------------------------------
     // a summary of this 650 line long function:
     // 1. walk through all attributes to put them into their corresponding instruction groups
     //    template controllers      -> list 1
     //    custom attributes         -> list 2
     //    plain attrs with bindings -> list 3
-    //    custom element            -> element instructions (including all bindable attributes)
-    // 2. sort instructions:
+    //    el bindables              -> list 4
+    // 2. ensure element instruction is present
+    //    2.1.
+    //      if element is an <au-slot/> compile its content into auSlot property of the element instruction created
+    // 3. sort instructions:
     //    hydrate custom element instruction
     //    hydrate custom attribute instructions
     //    rest kept as is (except special cases & to-be-decided)
-    // 3. start creating templates, if necessary
-    //    this steps is normally needed if there's one or more template controllers
-    //    A trick employed is: if there' are multiple template controllers on an element,
-    //      only the most inner template controller will have access to the template with the current element
-    //      other "outer" template controller will only need to see a marker pointing to a definition of the inner one
-    // 4. Recursively compiles all the child nodes of this element, either into the current compilation context,
-    //    or the most inner template controller compilation context on this element
+    //    3.1
+    //      mark this element as a target for later hydration
+    // 4. Compiling child nodes of this element
+    //    4.1.
+    //      If 1 or more [Template controller]:
+    //      4.1.1.
+    //          Start processing the most inner (most right TC in list 1) similarly to step 4.2:
+    //          4.1.1.0.
+    //          let innerContext = context.createChild();
+    //          4.1.1.1.
+    //              walks through the child nodes, and perform a [au-slot] check
+    //              - if this is a custom element, then extract all [au-slot] annotated elements into corresponding templates by their target slot name
+    //              - else throw an error as [au-slot] is used on non-custom-element
+    //          4.1.1.2.
+    //              recursively compiles the child nodes into the innerContext
+    //      4.1.2.
+    //          Start processing other Template controllers by walking the TC list (list 1) RIGHT -> LEFT
+    //          Explanation:
+    //              If there' are multiple template controllers on an element,
+    //              only the most inner template controller will have access to the template with the current element
+    //              other "outer" template controller will only need to see a marker pointing to a definition of the inner one
+    //    4.2.
+    //      NO [Template controller]
+    //      4.2.1.
+    //          walks through the child nodes, and perform a [au-slot] check
+    //          - if this is a custom element, then extract all [au-slot] annotated elements into corresponding templates by their target slot name
+    //          - else throw an error as [au-slot] is used on non-custom-element
+    //      4.2.2
+    //          recursively compiles the child nodes into the current context
+    // 5. Returning the next node for the compilation
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = context._findElement(elName);
@@ -446,12 +475,18 @@ export class TemplateCompiler implements ITemplateCompiler {
         throw new Error(
           'Trying to enhance with a template that was probably compiled before. '
           + 'This is likely going to cause issues. '
-          + 'Consider enhancing only untouched elements.'
+          + 'Consider enhancing only untouched elements or first remove all "au" classes.'
         );
       else
         throw new Error(`AUR0710`);
     }
 
+    // 1. walk and compile through all attributes
+    //    for each of them, put in appropriate group.
+    //    ex. plain attr with binding -> plain attr instruction list
+    //        template controller     -> tc instruction list
+    //        custom attribute        -> ca instruction list
+    //        el bindable attribute   -> el bindable instruction list
     for (; ii > i; ++i) {
       attr = attrs[i];
       attrName = attr.name;
@@ -663,6 +698,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       this._reorder(el, plainAttrInstructions);
     }
 
+    // 2. ensure that element instruction is present if this element is a custom element
     if (elDef !== null) {
       elementInstruction = new HydrateElementInstruction(
         // todo: def/ def.Type or def.name should be configurable
@@ -675,6 +711,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         hasContainerless,
       );
 
+      // 2.1 prepare fallback content for <au-slot/>
       if (elName === 'au-slot') {
         const slotName = el.getAttribute('name') || /* name="" is the same with no name */'default';
         const template = context.h('template');
@@ -710,6 +747,8 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     }
 
+    // 3. merge and sort all instructions into a single list
+    //    as instruction list for this element
     if (plainAttrInstructions != null
       || elementInstruction != null
       || attrInstructions != null
@@ -719,11 +758,14 @@ export class TemplateCompiler implements ITemplateCompiler {
         attrInstructions ?? emptyArray,
         plainAttrInstructions ?? emptyArray,
       );
+      // 3.1 mark as template for later hydration
       this._markAsTarget(el);
     }
 
+    // 4. compiling child nodes
     let shouldCompileContent: boolean;
     if (tcInstructions != null) {
+      // 4.1 if there is 1 or more [Template controller]
       ii = tcInstructions.length - 1;
       i = ii;
       tcInstruction = tcInstructions[i];
@@ -739,6 +781,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         template.content.appendChild(el);
       }
       const mostInnerTemplate = template;
+      // 4.1.1.0. prepare child context for the inner template compilation
       const childContext = context._createChild(instructions == null ? [] : [instructions]);
 
       shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
@@ -759,6 +802,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       let projectionCompilationContext: CompilationContext;
       let j = 0, jj = 0;
       if (shouldCompileContent) {
+        // 4.1.1.1.
+        //  walks through the child nodes, and perform [au-slot] check
+        //  note: this is a bit different with the summary above, possibly wrong since it will not throw
+        //        on [au-slot] used on a non-custom-element + with a template controller on it
         if (elDef !== null) {
           // for each child element of a custom element
           // scan for [au-slot], if there's one
@@ -847,6 +894,8 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
 
+        // 4.1.1.2:
+        //  recursively compiles the child nodes into the inner context
         // important:
         // ======================
         // only goes inside a template, if there is a template controller on it
@@ -866,6 +915,9 @@ export class TemplateCompiler implements ITemplateCompiler {
         instructions: childContext.rows,
         needsCompile: false,
       });
+
+      // 4.1.2.
+      //  Start processing other Template controllers by walking the TC list (list 1) RIGHT -> LEFT
       while (i-- > 0) {
         // for each of the template controller from [right] to [left]
         // do create:
@@ -908,6 +960,8 @@ export class TemplateCompiler implements ITemplateCompiler {
       //            | div(data-id-[value=i.id])
       context.rows.push([tcInstruction]);
     } else {
+      // 4.2
+      //
       // if there's no template controller
       // then the instruction built is appropriate to be assigned as the peek row
       // and before the children compilation
@@ -932,6 +986,9 @@ export class TemplateCompiler implements ITemplateCompiler {
         let template: HTMLTemplateElement;
         let projectionCompilationContext: CompilationContext;
         let j = 0, jj = 0;
+        // 4.2.1.
+        //    walks through the child nodes and perform [au-slot] check
+        // --------------------
         // for each child element of a custom element
         // scan for [au-slot], if there's one
         // then extract the element into a projection definition
@@ -1016,6 +1073,8 @@ export class TemplateCompiler implements ITemplateCompiler {
           elementInstruction!.projections = projections;
         }
 
+        // 4.2.2
+        //    recursively compiles the child nodes into current context
         child = el.firstChild;
         while (child !== null) {
           child = this._compileNode(child, context);
@@ -1023,6 +1082,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     }
 
+    // 5. returns the next node to be compiled
     return nextSibling;
   }
 

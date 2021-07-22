@@ -172,7 +172,7 @@ export class HydrateElementInstruction {
     /**
      * Bindable instructions for the custom element instance
      */
-    public instructions: IInstruction[],
+    public props: IInstruction[],
     /**
      * Indicates what projections are associated with the element usage
      */
@@ -196,7 +196,7 @@ export class HydrateAttributeInstruction {
     /**
      * Bindable instructions for the custom attribute instance
      */
-    public instructions: IInstruction[],
+    public props: IInstruction[],
   ) {}
 }
 
@@ -212,7 +212,7 @@ export class HydrateTemplateController {
     /**
      * Bindable instructions for the template controller instance
      */
-    public instructions: IInstruction[],
+    public props: IInstruction[],
   ) {}
 }
 
@@ -515,7 +515,7 @@ export class CustomElementRenderer implements IRenderer {
     setRef(target, def.key, childCtrl);
 
     const renderers = this.r.renderers;
-    const props = instruction.instructions;
+    const props = instruction.props;
     const ii = props.length;
     let i = 0;
     let propInst: IInstruction;
@@ -588,7 +588,7 @@ export class CustomAttributeRenderer implements IRenderer {
     setRef(target, def.key, childController);
 
     const renderers = this.r.renderers;
-    const props = instruction.instructions;
+    const props = instruction.props;
     const ii = props.length;
     let i = 0;
     let propInst: IInstruction;
@@ -662,7 +662,7 @@ export class TemplateControllerRenderer implements IRenderer {
     component.link?.(f, renderingCtrl, childController, target, instruction);
 
     const renderers = this.r.renderers;
-    const props = instruction.instructions;
+    const props = instruction.props;
     const ii = props.length;
     let i = 0;
     let propInst: IInstruction;

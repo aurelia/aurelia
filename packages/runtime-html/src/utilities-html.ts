@@ -1,8 +1,10 @@
 import type { ISVGAnalyzer } from './observation/svg-analyzer';
 
+export const createLookup = <T = unknown>() => Object.create(null) as Record<string, T>;
+export const hasOwnProperty = Object.prototype.hasOwnProperty;
 const IsDataAttribute: Record<string, boolean> = createLookup();
 
-export function isDataAttribute(obj: Node, key: PropertyKey, svgAnalyzer: ISVGAnalyzer): boolean {
+export const isDataAttribute = (obj: Node, key: PropertyKey, svgAnalyzer: ISVGAnalyzer): boolean => {
   if (IsDataAttribute[key as string] === true) {
     return true;
   }
@@ -16,8 +18,4 @@ export function isDataAttribute(obj: Node, key: PropertyKey, svgAnalyzer: ISVGAn
     prefix === 'aria-' ||
     prefix === 'data-' ||
     svgAnalyzer.isStandardSvgAttribute(obj, key);
-}
-
-export function createLookup<T = unknown>(){
-  return Object.create(null) as Record<string, T>;
-}
+};

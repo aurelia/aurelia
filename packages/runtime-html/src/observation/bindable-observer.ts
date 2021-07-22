@@ -66,7 +66,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
 
       const val = obj[propertyKey];
       this.value = hasSetter && val !== void 0 ? set(val) : val;
-      this.createGetterSetter();
+      this._createGetterSetter();
     }
   }
 
@@ -113,7 +113,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
       this.value = this.hasSetter
         ? this.set(currentValue)
         : currentValue;
-      this.createGetterSetter();
+      this._createGetterSetter();
     }
 
     this.subs.add(subscriber);
@@ -125,7 +125,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
     this.subs.notify(this.value, oV, this.f);
   }
 
-  private createGetterSetter(): void {
+  private _createGetterSetter(): void {
     Reflect.defineProperty(
       this.obj,
       this.propertyKey,

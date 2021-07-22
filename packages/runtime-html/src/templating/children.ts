@@ -209,7 +209,7 @@ export class ChildrenObserver {
     if (!this.observing) {
       this.observing = true;
       this.children = this.get();
-      (this.observer ??= new this.controller.host.ownerDocument.defaultView!.MutationObserver(() => { this.onChildrenChanged(); }))
+      (this.observer ??= new this.controller.host.ownerDocument.defaultView!.MutationObserver(() => { this._onChildrenChanged(); }))
         .observe(this.controller.host, this.options);
     }
   }
@@ -222,7 +222,7 @@ export class ChildrenObserver {
     }
   }
 
-  private onChildrenChanged(): void {
+  private _onChildrenChanged(): void {
     this.children = this.get();
 
     if (this.callback !== void 0) {

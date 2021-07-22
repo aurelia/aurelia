@@ -91,7 +91,8 @@ export class StyleAttributeAccessor implements IAccessor {
     const len = currentValue.length;
     if (len > 0) {
       const styles: [string, string][] = [];
-      for (let i = 0; i < len; ++i) {
+      let i = 0;
+      for (; len > i; ++i) {
         styles.push(...this._getStyleTuples(currentValue[i]));
       }
       return styles;

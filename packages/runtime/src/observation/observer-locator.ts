@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer.js';
 import { PropertyAccessor } from './property-accessor.js';
 import { getSetObserver } from './set-observer.js';
 import { SetterObserver } from './setter-observer.js';
-import { def } from '../utilities-objects.js';
+import { def, hasOwnProp } from '../utilities-objects.js';
 
 import type {
   Collection,
@@ -210,4 +210,3 @@ export function getCollectionObserver(collection: RepeatableCollection): Collect
 
 const getProto = Object.getPrototypeOf;
 const getOwnPropDesc = Object.getOwnPropertyDescriptor;
-const hasOwnProp = Object.prototype.hasOwnProperty;

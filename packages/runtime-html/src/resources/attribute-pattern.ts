@@ -29,24 +29,24 @@ export class CharSpec implements ICharSpec {
     if (isInverted) {
       switch (chars.length) {
         case 0:
-          this.has = this.hasOfNoneInverse;
+          this.has = this._hasOfNoneInverse;
           break;
         case 1:
-          this.has = this.hasOfSingleInverse;
+          this.has = this._hasOfSingleInverse;
           break;
         default:
-          this.has = this.hasOfMultipleInverse;
+          this.has = this._hasOfMultipleInverse;
       }
     } else {
       switch (chars.length) {
         case 0:
-          this.has = this.hasOfNone;
+          this.has = this._hasOfNone;
           break;
         case 1:
-          this.has = this.hasOfSingle;
+          this.has = this._hasOfSingle;
           break;
         default:
-          this.has = this.hasOfMultiple;
+          this.has = this._hasOfMultiple;
       }
     }
   }
@@ -58,27 +58,27 @@ export class CharSpec implements ICharSpec {
       && this.isInverted === other.isInverted;
   }
 
-  private hasOfMultiple(char: string): boolean {
+  private _hasOfMultiple(char: string): boolean {
     return this.chars.includes(char);
   }
 
-  private hasOfSingle(char: string): boolean {
+  private _hasOfSingle(char: string): boolean {
     return this.chars === char;
   }
 
-  private hasOfNone(char: string): boolean {
+  private _hasOfNone(char: string): boolean {
     return false;
   }
 
-  private hasOfMultipleInverse(char: string): boolean {
+  private _hasOfMultipleInverse(char: string): boolean {
     return !this.chars.includes(char);
   }
 
-  private hasOfSingleInverse(char: string): boolean {
+  private _hasOfSingleInverse(char: string): boolean {
     return this.chars !== char;
   }
 
-  private hasOfNoneInverse(char: string): boolean {
+  private _hasOfNoneInverse(char: string): boolean {
     return true;
   }
 }

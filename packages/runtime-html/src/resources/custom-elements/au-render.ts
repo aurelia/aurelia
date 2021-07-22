@@ -49,7 +49,7 @@ export class AuRender implements ICustomElementViewModel {
     @IHydrationContext hdrContext: IHydrationContext,
     @IRendering private readonly r: IRendering,
   ) {
-    this._properties = instruction.instructions.reduce(toLookup, {});
+    this._properties = instruction.props.reduce(toLookup, {});
     this._hdrContext = hdrContext;
   }
 

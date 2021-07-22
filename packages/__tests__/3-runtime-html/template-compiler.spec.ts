@@ -707,7 +707,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
     }
     node.setAttribute(attr, value);
     const rawMarkup = node.outerHTML;
-    const instruction: Partial<HydrateTemplateController> = {
+    const instruction: Partial<HydrateTemplateController & { def: PartialCustomElementDefinition & { key: string } }> = {
       type: TT.hydrateTemplateController,
       res: resolveRes ? ctx.container.find(CustomAttribute, target)! : target,
       def: {
@@ -719,7 +719,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         needsCompile: false,
         enhance: false,
         processContent: null,
-      } as PartialCustomElementDefinition,
+      },
       props: createTplCtrlAttributeInstruction(attr, value),
     };
     const input: PartialCustomElementDefinition = {
@@ -745,7 +745,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       compiledMarkup = `<${tagName}><au-m class="au"></au-m></${tagName}>`;
       instructions = [[childInstr]];
     }
-    const instruction: Partial<HydrateTemplateController> = {
+    const instruction: Partial<HydrateTemplateController & { def: PartialCustomElementDefinition & { key: string } }> = {
       type: TT.hydrateTemplateController,
       res: resolveRes ? ctx.container.find(CustomAttribute, target)! : target,
       def: {
@@ -757,7 +757,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         needsCompile: false,
         enhance: false,
         processContent: null,
-      } as PartialCustomElementDefinition,
+      },
       props: createTplCtrlAttributeInstruction(attr, value),
     };
     const rawMarkup = `<${tagName} ${attr}="${value || ''}">${childTpl || ''}</${tagName}>`;

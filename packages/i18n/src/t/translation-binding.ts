@@ -133,7 +133,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     this._ensureKeyExpression();
     this.parameter?.$bind(flags, scope);
 
-    this.updateTranslations(flags);
+    this._updateTranslations(flags);
     this.isBound = true;
   }
 
@@ -164,24 +164,24 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
         : newValue as string;
     this.obs.clear(false);
     this._ensureKeyExpression();
-    this.updateTranslations(flags);
+    this._updateTranslations(flags);
   }
 
   public handleLocaleChange() {
     // todo:
     // no flag passed, so if a locale is updated during binding of a component
     // and the author wants to signal that locale change fromBind, then it's a bug
-    this.updateTranslations(LifecycleFlags.none);
+    this._updateTranslations(LifecycleFlags.none);
   }
 
   public useParameter(expr: IsExpression) {
     if (this.parameter != null) {
       throw new Error('This translation parameter has already been specified.');
     }
-    this.parameter = new ParameterBinding(this, expr, (flags: LifecycleFlags) => this.updateTranslations(flags));
+    this.parameter = new ParameterBinding(this, expr, (flags: LifecycleFlags) => this._updateTranslations(flags));
   }
 
-  private updateTranslations(flags: LifecycleFlags) {
+  private _updateTranslations(flags: LifecycleFlags) {
     const results = this.i18n.evaluate(this._keyExpression!, this.parameter?.value);
     const content: ContentValue = Object.create(null);
     const accessorUpdateTasks: AccessorUpdateTask[] = [];
@@ -278,20 +278,20 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   private _prepareTemplate(content: ContentValue, marker: string, fallBackContents: ChildNode[]) {
     const template = this.platform.document.createElement('template');
 
-    this.addContentToTemplate(template, content.prepend, marker);
+    this._addContentToTemplate(template, content.prepend, marker);
 
     // build content: prioritize [html], then textContent, and falls back to original content
-    if (!this.addContentToTemplate(template, content.innerHTML ?? content.textContent, marker)) {
+    if (!this._addContentToTemplate(template, content.innerHTML ?? content.textContent, marker)) {
       for (const fallbackContent of fallBackContents) {
         template.content.append(fallbackContent);
       }
     }
 
-    this.addContentToTemplate(template, content.append, marker);
+    this._addContentToTemplate(template, content.append, marker);
     return template;
   }
 
-  private addContentToTemplate(template: HTMLTemplateElement, content: string | undefined, marker: string) {
+  private _addContentToTemplate(template: HTMLTemplateElement, content: string | undefined, marker: string) {
     if (content !== void 0 && content !== null) {
       const parser = this.platform.document.createElement('div');
       parser.innerHTML = content;

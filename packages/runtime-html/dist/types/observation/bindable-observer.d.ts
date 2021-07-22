@@ -25,6 +25,6 @@ export declare class BindableObserver implements IFlushable, IWithFlushQueue {
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     subscribe(subscriber: ISubscriber): void;
     flush(): void;
-    private createGetterSetter;
+    private _createGetterSetter;
 }
 //# sourceMappingURL=bindable-observer.d.ts.map

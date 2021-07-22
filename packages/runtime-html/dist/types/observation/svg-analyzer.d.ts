@@ -9,9 +9,9 @@ export declare class NoopSVGAnalyzer {
 }
 export declare class SVGAnalyzer {
     static register(container: IContainer): IResolver<ISVGAnalyzer>;
-    private readonly svgElements;
-    private readonly svgPresentationElements;
-    private readonly svgPresentationAttributes;
+    private readonly _svgElements;
+    private readonly _svgPresentationElements;
+    private readonly _svgPresentationAttributes;
     private readonly SVGElement;
     constructor(platform: IPlatform);
     isStandardSvgAttribute(node: INode, attributeName: string): boolean;

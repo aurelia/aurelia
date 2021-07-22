@@ -1579,6 +1579,11 @@ function $number(result, func) {
     $array(arr, func);
 }
 
+/**
+ * A shortcut to Object.prototype.hasOwnProperty
+ * Needs to do explicit .call
+ */
+const hasOwnProp = Object.prototype.hasOwnProperty;
 const def = Reflect.defineProperty;
 function defineHiddenProp(obj, key, value) {
     def(obj, key, {
@@ -1590,7 +1595,7 @@ function defineHiddenProp(obj, key, value) {
     return value;
 }
 function ensureProto(proto, key, defaultValue, force = false) {
-    if (force || !Object.prototype.hasOwnProperty.call(proto, key)) {
+    if (force || !hasOwnProp.call(proto, key)) {
         defineHiddenProp(proto, key, defaultValue);
     }
 }
@@ -5222,7 +5227,6 @@ function getCollectionObserver(collection) {
 }
 const getProto = Object.getPrototypeOf;
 const getOwnPropDesc = Object.getOwnPropertyDescriptor;
-const hasOwnProp = Object.prototype.hasOwnProperty;
 
 const IObservation = DI.createInterface('IObservation', x => x.singleton(Observation));
 class Observation {

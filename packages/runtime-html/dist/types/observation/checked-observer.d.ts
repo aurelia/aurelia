@@ -30,14 +30,14 @@ export declare class CheckedObserver implements IObserver, IFlushable, IWithFlus
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
-    synchronizeElement(): void;
+    private _synchronizeElement;
     handleEvent(): void;
     start(): void;
     stop(): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
     flush(): void;
-    private observe;
+    private _observe;
 }
 export {};
 //# sourceMappingURL=checked-observer.d.ts.map

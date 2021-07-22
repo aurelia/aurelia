@@ -355,7 +355,7 @@ class TranslationBinding {
         this.B = this.expr.evaluate(t, n, this.locator, this);
         this.C();
         null === (i = this.parameter) || void 0 === i ? void 0 : i.$bind(t, n);
-        this.updateTranslations(t);
+        this.I(t);
         this.isBound = true;
     }
     $unbind(t) {
@@ -376,16 +376,16 @@ class TranslationBinding {
         this.B = this.T ? this.expr.evaluate(n, this.scope, this.locator, this) : t;
         this.obs.clear(false);
         this.C();
-        this.updateTranslations(n);
+        this.I(n);
     }
     handleLocaleChange() {
-        this.updateTranslations(0);
+        this.I(0);
     }
     useParameter(t) {
         if (null != this.parameter) throw new Error("This translation parameter has already been specified.");
-        this.parameter = new ParameterBinding(this, t, (t => this.updateTranslations(t)));
+        this.parameter = new ParameterBinding(this, t, (t => this.I(t)));
     }
-    updateTranslations(t) {
+    I(t) {
         var n;
         const i = this.i18n.evaluate(this.B, null === (n = this.parameter) || void 0 === n ? void 0 : n.value);
         const e = Object.create(null);
@@ -394,8 +394,8 @@ class TranslationBinding {
         this.g.clear();
         for (const n of i) {
             const i = n.value;
-            const o = this.I(n.attributes);
-            for (const n of o) if (this.M(n)) e[n] = i; else {
+            const o = this.M(n.attributes);
+            for (const n of o) if (this.P(n)) e[n] = i; else {
                 const e = s.CustomElement.for(this.target, g);
                 const o = e && e.viewModel ? this.oL.getAccessor(e.viewModel, n) : this.oL.getAccessor(this.target, n);
                 const a = 0 === (2 & t) && (4 & o.type) > 0;
@@ -406,16 +406,16 @@ class TranslationBinding {
         let a = false;
         if (Object.keys(e).length > 0) {
             a = 0 === (2 & t);
-            if (!a) this.P(e, t);
+            if (!a) this.A(e, t);
         }
         if (r.length > 0 || a) this.task = this.platform.domWriteQueue.queueTask((() => {
             this.task = null;
             for (const t of r) t.run();
-            if (a) this.P(e, t);
+            if (a) this.A(e, t);
         }), m);
         null === o || void 0 === o ? void 0 : o.cancel();
     }
-    I(t) {
+    M(t) {
         if (0 === t.length) t = "IMG" === this.target.tagName ? [ "src" ] : [ "textContent" ];
         for (const [s, n] of x) {
             const i = t.findIndex((t => t === s));
@@ -423,27 +423,27 @@ class TranslationBinding {
         }
         return t;
     }
-    M(t) {
+    P(t) {
         return this.u.includes(t);
     }
-    P(s, n) {
+    A(s, n) {
         const i = t.toArray(this.target.childNodes);
         const e = [];
         const r = "au-i18n";
         for (const t of i) if (!Reflect.get(t, r)) e.push(t);
-        const o = this.A(s, r, e);
+        const o = this.L(s, r, e);
         this.target.innerHTML = "";
         for (const s of t.toArray(o.content.childNodes)) this.target.appendChild(s);
     }
-    A(t, s, n) {
+    L(t, s, n) {
         var i;
         const e = this.platform.document.createElement("template");
-        this.addContentToTemplate(e, t.prepend, s);
-        if (!this.addContentToTemplate(e, null !== (i = t.innerHTML) && void 0 !== i ? i : t.textContent, s)) for (const t of n) e.content.append(t);
-        this.addContentToTemplate(e, t.append, s);
+        this.R(e, t.prepend, s);
+        if (!this.R(e, null !== (i = t.innerHTML) && void 0 !== i ? i : t.textContent, s)) for (const t of n) e.content.append(t);
+        this.R(e, t.append, s);
         return e;
     }
-    addContentToTemplate(s, n, i) {
+    R(s, n, i) {
         if (void 0 !== n && null !== n) {
             const e = this.platform.document.createElement("div");
             e.innerHTML = n;

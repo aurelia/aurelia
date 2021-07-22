@@ -212,7 +212,7 @@ class BindableObserver {
             this.observing = true;
             const val = obj[propertyKey];
             this.value = hasSetter && val !== void 0 ? set(val) : val;
-            this.createGetterSetter();
+            this._createGetterSetter();
         }
     }
     get type() { return 1 /* Observer */; }
@@ -256,7 +256,7 @@ class BindableObserver {
             this.value = this.hasSetter
                 ? this.set(currentValue)
                 : currentValue;
-            this.createGetterSetter();
+            this._createGetterSetter();
         }
         this.subs.add(subscriber);
     }
@@ -265,7 +265,7 @@ class BindableObserver {
         this.oldValue = this.value;
         this.subs.notify(this.value, oV$4, this.f);
     }
-    createGetterSetter() {
+    _createGetterSetter() {
         Reflect.defineProperty(this.obj, this.propertyKey, {
             enumerable: true,
             configurable: true,
@@ -292,25 +292,25 @@ class CharSpec {
         if (isInverted) {
             switch (chars.length) {
                 case 0:
-                    this.has = this.hasOfNoneInverse;
+                    this.has = this._hasOfNoneInverse;
                     break;
                 case 1:
-                    this.has = this.hasOfSingleInverse;
+                    this.has = this._hasOfSingleInverse;
                     break;
                 default:
-                    this.has = this.hasOfMultipleInverse;
+                    this.has = this._hasOfMultipleInverse;
             }
         }
         else {
             switch (chars.length) {
                 case 0:
-                    this.has = this.hasOfNone;
+                    this.has = this._hasOfNone;
                     break;
                 case 1:
-                    this.has = this.hasOfSingle;
+                    this.has = this._hasOfSingle;
                     break;
                 default:
-                    this.has = this.hasOfMultiple;
+                    this.has = this._hasOfMultiple;
             }
         }
     }
@@ -320,22 +320,22 @@ class CharSpec {
             && this.isSymbol === other.isSymbol
             && this.isInverted === other.isInverted;
     }
-    hasOfMultiple(char) {
+    _hasOfMultiple(char) {
         return this.chars.includes(char);
     }
-    hasOfSingle(char) {
+    _hasOfSingle(char) {
         return this.chars === char;
     }
-    hasOfNone(char) {
+    _hasOfNone(char) {
         return false;
     }
-    hasOfMultipleInverse(char) {
+    _hasOfMultipleInverse(char) {
         return !this.chars.includes(char);
     }
-    hasOfSingleInverse(char) {
+    _hasOfSingleInverse(char) {
         return this.chars !== char;
     }
-    hasOfNoneInverse(char) {
+    _hasOfNoneInverse(char) {
         return true;
     }
 }
@@ -737,8 +737,10 @@ exports.AtPrefixedTriggerAttributePattern = __decorate([
     attributePattern({ pattern: '@PART', symbols: '@' })
 ], exports.AtPrefixedTriggerAttributePattern);
 
+const createLookup = () => Object.create(null);
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 const IsDataAttribute = createLookup();
-function isDataAttribute(obj, key, svgAnalyzer) {
+const isDataAttribute = (obj, key, svgAnalyzer) => {
     if (IsDataAttribute[key] === true) {
         return true;
     }
@@ -752,10 +754,7 @@ function isDataAttribute(obj, key, svgAnalyzer) {
         prefix === 'aria-' ||
             prefix === 'data-' ||
             svgAnalyzer.isStandardSvgAttribute(obj, key);
-}
-function createLookup() {
-    return Object.create(null);
-}
+};
 
 const IPlatform = kernel.IPlatform;
 
@@ -775,7 +774,7 @@ function o(keys) {
 }
 class SVGAnalyzer {
     constructor(platform) {
-        this.svgElements = Object.assign(createLookup(), {
+        this._svgElements = Object.assign(createLookup(), {
             'a': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
             'altGlyph': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
             'altglyph': createLookup(),
@@ -861,7 +860,7 @@ class SVGAnalyzer {
             'view': o(['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan']),
             'vkern': o(['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space']),
         });
-        this.svgPresentationElements = o([
+        this._svgPresentationElements = o([
             'a',
             'altGlyph',
             'animate',
@@ -914,7 +913,7 @@ class SVGAnalyzer {
             'tspan',
             'use',
         ]);
-        this.svgPresentationAttributes = o([
+        this._svgPresentationAttributes = o([
             'alignment-baseline',
             'baseline-shift',
             'clip-path',
@@ -980,7 +979,7 @@ class SVGAnalyzer {
         div.innerHTML = '<svg><altGlyph /></svg>';
         if (div.firstElementChild.nodeName === 'altglyph') {
             // handle chrome casing inconsistencies.
-            const svg = this.svgElements;
+            const svg = this._svgElements;
             let tmp = svg.altGlyph;
             svg.altGlyph = svg.altglyph;
             svg.altglyph = tmp;
@@ -1003,8 +1002,8 @@ class SVGAnalyzer {
         if (!(node instanceof this.SVGElement)) {
             return false;
         }
-        return (this.svgPresentationElements[node.nodeName] === true && this.svgPresentationAttributes[attributeName] === true ||
-            ((_a = this.svgElements[node.nodeName]) === null || _a === void 0 ? void 0 : _a[attributeName]) === true);
+        return (this._svgPresentationElements[node.nodeName] === true && this._svgPresentationAttributes[attributeName] === true ||
+            ((_a = this._svgElements[node.nodeName]) === null || _a === void 0 ? void 0 : _a[attributeName]) === true);
     }
 }
 /**
@@ -2252,7 +2251,7 @@ class ChildrenObserver {
         if (!this.observing) {
             this.observing = true;
             this.children = this.get();
-            ((_a = this.observer) !== null && _a !== void 0 ? _a : (this.observer = new this.controller.host.ownerDocument.defaultView.MutationObserver(() => { this.onChildrenChanged(); })))
+            ((_a = this.observer) !== null && _a !== void 0 ? _a : (this.observer = new this.controller.host.ownerDocument.defaultView.MutationObserver(() => { this._onChildrenChanged(); })))
                 .observe(this.controller.host, this.options);
         }
     }
@@ -2263,7 +2262,7 @@ class ChildrenObserver {
             this.children = kernel.emptyArray;
         }
     }
-    onChildrenChanged() {
+    _onChildrenChanged() {
         this.children = this.get();
         if (this.callback !== void 0) {
             this.callback.call(this.obj);
@@ -5154,8 +5153,9 @@ class EventSubscriber {
     }
     dispose() {
         const { target, handler } = this;
+        let event;
         if (target !== null && handler !== null) {
-            for (const event of this.config.events) {
+            for (event of this.config.events) {
                 target.removeEventListener(event, handler);
             }
         }
@@ -5281,7 +5281,7 @@ class HydrateElementInstruction {
     /**
      * Bindable instructions for the custom element instance
      */
-    instructions, 
+    props, 
     /**
      * Indicates what projections are associated with the element usage
      */
@@ -5292,7 +5292,7 @@ class HydrateElementInstruction {
     containerless) {
         this.res = res;
         this.alias = alias;
-        this.instructions = instructions;
+        this.props = props;
         this.projections = projections;
         this.containerless = containerless;
         /**
@@ -5310,10 +5310,10 @@ class HydrateAttributeInstruction {
     /**
      * Bindable instructions for the custom attribute instance
      */
-    instructions) {
+    props) {
         this.res = res;
         this.alias = alias;
-        this.instructions = instructions;
+        this.props = props;
     }
     get type() { return "rb" /* hydrateAttribute */; }
 }
@@ -5325,11 +5325,11 @@ class HydrateTemplateController {
     /**
      * Bindable instructions for the template controller instance
      */
-    instructions) {
+    props) {
         this.def = def;
         this.res = res;
         this.alias = alias;
-        this.instructions = instructions;
+        this.props = props;
     }
     get type() { return "rc" /* hydrateTemplateController */; }
 }
@@ -5549,7 +5549,7 @@ class CustomElementRenderer {
         f = childCtrl.flags;
         setRef(target, def.key, childCtrl);
         const renderers = this.r.renderers;
-        const props = instruction.instructions;
+        const props = instruction.props;
         const ii = props.length;
         let i = 0;
         let propInst;
@@ -5615,7 +5615,7 @@ class CustomAttributeRenderer {
         /* definition */ def);
         setRef(target, def.key, childController);
         const renderers = this.r.renderers;
-        const props = instruction.instructions;
+        const props = instruction.props;
         const ii = props.length;
         let i = 0;
         let propInst;
@@ -5681,7 +5681,7 @@ class TemplateControllerRenderer {
         setRef(renderLocation, def.key, childController);
         (_a = component.link) === null || _a === void 0 ? void 0 : _a.call(component, f, renderingCtrl, childController, target, instruction);
         const renderers = this.r.renderers;
-        const props = instruction.instructions;
+        const props = instruction.props;
         const ii = props.length;
         let i = 0;
         let propInst;
@@ -6784,23 +6784,52 @@ class TemplateCompiler {
     _compileElement(el, context) {
         var _a, _b, _c, _d, _e;
         var _f, _g;
+        // overall, the template compiler does it job by compiling one node,
+        // and let that the process of compiling that node point to the next node to be compiled.
+        // ----------------------------------------
         // a summary of this 650 line long function:
         // 1. walk through all attributes to put them into their corresponding instruction groups
         //    template controllers      -> list 1
         //    custom attributes         -> list 2
         //    plain attrs with bindings -> list 3
-        //    custom element            -> element instructions (including all bindable attributes)
-        // 2. sort instructions:
+        //    el bindables              -> list 4
+        // 2. ensure element instruction is present
+        //    2.1.
+        //      if element is an <au-slot/> compile its content into auSlot property of the element instruction created
+        // 3. sort instructions:
         //    hydrate custom element instruction
         //    hydrate custom attribute instructions
         //    rest kept as is (except special cases & to-be-decided)
-        // 3. start creating templates, if necessary
-        //    this steps is normally needed if there's one or more template controllers
-        //    A trick employed is: if there' are multiple template controllers on an element,
-        //      only the most inner template controller will have access to the template with the current element
-        //      other "outer" template controller will only need to see a marker pointing to a definition of the inner one
-        // 4. Recursively compiles all the child nodes of this element, either into the current compilation context,
-        //    or the most inner template controller compilation context on this element
+        //    3.1
+        //      mark this element as a target for later hydration
+        // 4. Compiling child nodes of this element
+        //    4.1.
+        //      If 1 or more [Template controller]:
+        //      4.1.1.
+        //          Start processing the most inner (most right TC in list 1) similarly to step 4.2:
+        //          4.1.1.0.
+        //          let innerContext = context.createChild();
+        //          4.1.1.1.
+        //              walks through the child nodes, and perform a [au-slot] check
+        //              - if this is a custom element, then extract all [au-slot] annotated elements into corresponding templates by their target slot name
+        //              - else throw an error as [au-slot] is used on non-custom-element
+        //          4.1.1.2.
+        //              recursively compiles the child nodes into the innerContext
+        //      4.1.2.
+        //          Start processing other Template controllers by walking the TC list (list 1) RIGHT -> LEFT
+        //          Explanation:
+        //              If there' are multiple template controllers on an element,
+        //              only the most inner template controller will have access to the template with the current element
+        //              other "outer" template controller will only need to see a marker pointing to a definition of the inner one
+        //    4.2.
+        //      NO [Template controller]
+        //      4.2.1.
+        //          walks through the child nodes, and perform a [au-slot] check
+        //          - if this is a custom element, then extract all [au-slot] annotated elements into corresponding templates by their target slot name
+        //          - else throw an error as [au-slot] is used on non-custom-element
+        //      4.2.2
+        //          recursively compiles the child nodes into the current context
+        // 5. Returning the next node for the compilation
         const nextSibling = el.nextSibling;
         const elName = ((_a = el.getAttribute('as-element')) !== null && _a !== void 0 ? _a : el.nodeName).toLowerCase();
         const elDef = context._findElement(elName);
@@ -6853,6 +6882,12 @@ class TemplateCompiler {
         if (context.root.def.enhance && el.classList.contains('au')) {
             throw new Error(`AUR0710`);
         }
+        // 1. walk and compile through all attributes
+        //    for each of them, put in appropriate group.
+        //    ex. plain attr with binding -> plain attr instruction list
+        //        template controller     -> tc instruction list
+        //        custom attribute        -> ca instruction list
+        //        el bindable attribute   -> el bindable instruction list
         for (; ii > i; ++i) {
             attr = attrs[i];
             attrName = attr.name;
@@ -7034,12 +7069,14 @@ class TemplateCompiler {
         if (this._shouldReorderAttrs(el) && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
             this._reorder(el, plainAttrInstructions);
         }
+        // 2. ensure that element instruction is present if this element is a custom element
         if (elDef !== null) {
             elementInstruction = new HydrateElementInstruction(
             // todo: def/ def.Type or def.name should be configurable
             //       example: AOT/runtime can use def.Type, but there are situation
             //       where instructions need to be serialized, def.name should be used
             this.resolveResources ? elDef : elDef.name, void 0, (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : kernel.emptyArray), null, hasContainerless);
+            // 2.1 prepare fallback content for <au-slot/>
             if (elName === 'au-slot') {
                 const slotName = el.getAttribute('name') || /* name="" is the same with no name */ 'default';
                 const template = context.h('template');
@@ -7074,14 +7111,19 @@ class TemplateCompiler {
                 el = this._replaceByMarker(el, context);
             }
         }
+        // 3. merge and sort all instructions into a single list
+        //    as instruction list for this element
         if (plainAttrInstructions != null
             || elementInstruction != null
             || attrInstructions != null) {
             instructions = kernel.emptyArray.concat(elementInstruction !== null && elementInstruction !== void 0 ? elementInstruction : kernel.emptyArray, attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : kernel.emptyArray, plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : kernel.emptyArray);
+            // 3.1 mark as template for later hydration
             this._markAsTarget(el);
         }
+        // 4. compiling child nodes
         let shouldCompileContent;
         if (tcInstructions != null) {
+            // 4.1 if there is 1 or more [Template controller]
             ii = tcInstructions.length - 1;
             i = ii;
             tcInstruction = tcInstructions[i];
@@ -7097,6 +7139,7 @@ class TemplateCompiler {
                 template.content.appendChild(el);
             }
             const mostInnerTemplate = template;
+            // 4.1.1.0. prepare child context for the inner template compilation
             const childContext = context._createChild(instructions == null ? [] : [instructions]);
             shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
             // todo: shouldn't have to eagerly replace with a marker like this
@@ -7115,6 +7158,10 @@ class TemplateCompiler {
             let projectionCompilationContext;
             let j = 0, jj = 0;
             if (shouldCompileContent) {
+                // 4.1.1.1.
+                //  walks through the child nodes, and perform [au-slot] check
+                //  note: this is a bit different with the summary above, possibly wrong since it will not throw
+                //        on [au-slot] used on a non-custom-element + with a template controller on it
                 if (elDef !== null) {
                     // for each child element of a custom element
                     // scan for [au-slot], if there's one
@@ -7203,6 +7250,8 @@ class TemplateCompiler {
                         elementInstruction.projections = projections;
                     }
                 }
+                // 4.1.1.2:
+                //  recursively compiles the child nodes into the inner context
                 // important:
                 // ======================
                 // only goes inside a template, if there is a template controller on it
@@ -7223,6 +7272,8 @@ class TemplateCompiler {
                 instructions: childContext.rows,
                 needsCompile: false,
             });
+            // 4.1.2.
+            //  Start processing other Template controllers by walking the TC list (list 1) RIGHT -> LEFT
             while (i-- > 0) {
                 // for each of the template controller from [right] to [left]
                 // do create:
@@ -7264,6 +7315,8 @@ class TemplateCompiler {
             context.rows.push([tcInstruction]);
         }
         else {
+            // 4.2
+            //
             // if there's no template controller
             // then the instruction built is appropriate to be assigned as the peek row
             // and before the children compilation
@@ -7287,6 +7340,9 @@ class TemplateCompiler {
                 let template;
                 let projectionCompilationContext;
                 let j = 0, jj = 0;
+                // 4.2.1.
+                //    walks through the child nodes and perform [au-slot] check
+                // --------------------
                 // for each child element of a custom element
                 // scan for [au-slot], if there's one
                 // then extract the element into a projection definition
@@ -7371,12 +7427,15 @@ class TemplateCompiler {
                     }
                     elementInstruction.projections = projections;
                 }
+                // 4.2.2
+                //    recursively compiles the child nodes into current context
                 child = el.firstChild;
                 while (child !== null) {
                     child = this._compileNode(child, context);
                 }
             }
         }
+        // 5. returns the next node to be compiled
         return nextSibling;
     }
     /** @internal */
@@ -8012,14 +8071,14 @@ class ThrottleBindingBehavior extends runtime.BindingInterceptor {
         this.task = null;
         this.lastCall = 0;
         this.delay = 0;
-        this.platform = binding.locator.get(kernel.IPlatform);
-        this.taskQueue = this.platform.taskQueue;
+        this._platform = binding.locator.get(kernel.IPlatform);
+        this._taskQueue = this._platform.taskQueue;
         if (expr.args.length > 0) {
             this.firstArg = expr.args[0];
         }
     }
     callSource(args) {
-        this.queueTask(() => this.binding.callSource(args));
+        this._queueTask(() => this.binding.callSource(args));
         return void 0;
     }
     handleChange(newValue, oldValue, flags) {
@@ -8028,22 +8087,22 @@ class ThrottleBindingBehavior extends runtime.BindingInterceptor {
         if (this.task !== null) {
             this.task.cancel();
             this.task = null;
-            this.lastCall = this.platform.performanceNow();
+            this.lastCall = this._platform.performanceNow();
         }
         this.binding.handleChange(newValue, oldValue, flags);
     }
     updateSource(newValue, flags) {
-        this.queueTask(() => this.binding.updateSource(newValue, flags));
+        this._queueTask(() => this.binding.updateSource(newValue, flags));
     }
-    queueTask(callback) {
+    _queueTask(callback) {
         const opts = this.opts;
-        const platform = this.platform;
+        const platform = this._platform;
         const nextDelay = this.lastCall + opts.delay - platform.performanceNow();
         if (nextDelay > 0) {
             // Queue the new one before canceling the old one, to prevent early yield
             const task = this.task;
             opts.delay = nextDelay;
-            this.task = this.taskQueue.queueTask(() => {
+            this.task = this._taskQueue.queueTask(() => {
                 this.lastCall = platform.performanceNow();
                 this.task = null;
                 opts.delay = this.delay;
@@ -8190,20 +8249,20 @@ class CheckedObserver {
         this.value = newValue;
         this.oldValue = currentValue;
         this.f = flags;
-        this.observe();
-        this.synchronizeElement();
+        this._observe();
+        this._synchronizeElement();
         this.queue.add(this);
     }
     handleCollectionChange(indexMap, flags) {
-        this.synchronizeElement();
+        this._synchronizeElement();
     }
     handleChange(newValue, previousValue, flags) {
-        this.synchronizeElement();
+        this._synchronizeElement();
     }
-    synchronizeElement() {
+    _synchronizeElement() {
         const currentValue = this.value;
         const obj = this.obj;
-        const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
+        const elementValue = hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
         const isRadio = obj.type === 'radio';
         const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher$1;
         if (isRadio) {
@@ -8243,7 +8302,7 @@ class CheckedObserver {
     handleEvent() {
         let currentValue = this.oldValue = this.value;
         const obj = this.obj;
-        const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
+        const elementValue = hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
         const isChecked = obj.checked;
         const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher$1;
         if (obj.type === 'checkbox') {
@@ -8349,7 +8408,7 @@ class CheckedObserver {
     }
     start() {
         this.handler.subscribe(this.obj, this);
-        this.observe();
+        this._observe();
     }
     stop() {
         var _a, _b;
@@ -8373,7 +8432,7 @@ class CheckedObserver {
         this.oldValue = this.value;
         this.subs.notify(this.value, oV$2, this.f);
     }
-    observe() {
+    _observe() {
         var _a, _b, _c, _d, _e, _f, _g;
         const obj = this.obj;
         (_e = ((_a = this._valueObserver) !== null && _a !== void 0 ? _a : (this._valueObserver = (_c = (_b = obj.$observers) === null || _b === void 0 ? void 0 : _b.model) !== null && _c !== void 0 ? _c : (_d = obj.$observers) === null || _d === void 0 ? void 0 : _d.value))) === null || _e === void 0 ? void 0 : _e.subscribe(this);
@@ -8693,7 +8752,8 @@ class StyleAttributeAccessor {
         const len = currentValue.length;
         if (len > 0) {
             const styles = [];
-            for (let i = 0; i < len; ++i) {
+            let i = 0;
+            for (; len > i; ++i) {
                 styles.push(...this._getStyleTuples(currentValue[i]));
             }
             return styles;
@@ -10756,7 +10816,7 @@ exports.AuRender = class AuRender {
         this.composing = false;
         this.view = void 0;
         this.lastSubject = void 0;
-        this._properties = instruction.instructions.reduce(toLookup, {});
+        this._properties = instruction.props.reduce(toLookup, {});
         this._hdrContext = hdrContext;
     }
     attaching(initiator, parent, flags) {

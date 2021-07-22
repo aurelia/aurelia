@@ -377,7 +377,7 @@ class TranslationBinding {
         this._keyExpression = this.expr.evaluate(flags, scope, this.locator, this);
         this._ensureKeyExpression();
         (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$bind(flags, scope);
-        this.updateTranslations(flags);
+        this._updateTranslations(flags);
         this.isBound = true;
     }
     $unbind(flags) {
@@ -404,21 +404,21 @@ class TranslationBinding {
             : newValue;
         this.obs.clear(false);
         this._ensureKeyExpression();
-        this.updateTranslations(flags);
+        this._updateTranslations(flags);
     }
     handleLocaleChange() {
         // todo:
         // no flag passed, so if a locale is updated during binding of a component
         // and the author wants to signal that locale change fromBind, then it's a bug
-        this.updateTranslations(0 /* none */);
+        this._updateTranslations(0 /* none */);
     }
     useParameter(expr) {
         if (this.parameter != null) {
             throw new Error('This translation parameter has already been specified.');
         }
-        this.parameter = new ParameterBinding(this, expr, (flags) => this.updateTranslations(flags));
+        this.parameter = new ParameterBinding(this, expr, (flags) => this._updateTranslations(flags));
     }
-    updateTranslations(flags) {
+    _updateTranslations(flags) {
         var _a;
         const results = this.i18n.evaluate(this._keyExpression, (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.value);
         const content = Object.create(null);
@@ -505,17 +505,17 @@ class TranslationBinding {
     _prepareTemplate(content, marker, fallBackContents) {
         var _a;
         const template = this.platform.document.createElement('template');
-        this.addContentToTemplate(template, content.prepend, marker);
+        this._addContentToTemplate(template, content.prepend, marker);
         // build content: prioritize [html], then textContent, and falls back to original content
-        if (!this.addContentToTemplate(template, (_a = content.innerHTML) !== null && _a !== void 0 ? _a : content.textContent, marker)) {
+        if (!this._addContentToTemplate(template, (_a = content.innerHTML) !== null && _a !== void 0 ? _a : content.textContent, marker)) {
             for (const fallbackContent of fallBackContents) {
                 template.content.append(fallbackContent);
             }
         }
-        this.addContentToTemplate(template, content.append, marker);
+        this._addContentToTemplate(template, content.append, marker);
         return template;
     }
-    addContentToTemplate(template, content, marker) {
+    _addContentToTemplate(template, content, marker) {
         if (content !== void 0 && content !== null) {
             const parser = this.platform.document.createElement('div');
             parser.innerHTML = content;

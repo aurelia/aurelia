@@ -87,7 +87,7 @@ export declare class HydrateElementInstruction {
     /**
      * Bindable instructions for the custom element instance
      */
-    instructions: IInstruction[];
+    props: IInstruction[];
     /**
      * Indicates what projections are associated with the element usage
      */
@@ -112,7 +112,7 @@ export declare class HydrateElementInstruction {
     /**
      * Bindable instructions for the custom element instance
      */
-    instructions: IInstruction[], 
+    props: IInstruction[], 
     /**
      * Indicates what projections are associated with the element usage
      */
@@ -128,13 +128,13 @@ export declare class HydrateAttributeInstruction {
     /**
      * Bindable instructions for the custom attribute instance
      */
-    instructions: IInstruction[];
+    props: IInstruction[];
     get type(): InstructionType.hydrateAttribute;
     constructor(res: string | /* Constructable |  */ CustomAttributeDefinition, alias: string | undefined, 
     /**
      * Bindable instructions for the custom attribute instance
      */
-    instructions: IInstruction[]);
+    props: IInstruction[]);
 }
 export declare class HydrateTemplateController {
     def: PartialCustomElementDefinition;
@@ -143,13 +143,13 @@ export declare class HydrateTemplateController {
     /**
      * Bindable instructions for the template controller instance
      */
-    instructions: IInstruction[];
+    props: IInstruction[];
     get type(): InstructionType.hydrateTemplateController;
     constructor(def: PartialCustomElementDefinition, res: string | /* Constructable |  */ CustomAttributeDefinition, alias: string | undefined, 
     /**
      * Bindable instructions for the template controller instance
      */
-    instructions: IInstruction[]);
+    props: IInstruction[]);
 }
 export declare class HydrateLetElementInstruction {
     instructions: LetBindingInstruction[];

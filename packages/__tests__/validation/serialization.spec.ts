@@ -24,7 +24,7 @@ import {
 } from '@aurelia/validation';
 import { Person } from './_test-resources.js';
 
-describe('validation de/serialization', function () {
+describe('validation/serialization.spec.ts/validation de/serialization', function () {
   function setup() {
     const container = TestContext.create().container;
     container.register(ValidationConfiguration.customize((options) => { options.HydratorType = ValidationDeserializer; }));
@@ -283,7 +283,7 @@ describe('validation de/serialization', function () {
     }
   });
 });
-describe('ModelValidationExpressionHydrator', function () {
+describe('validation/serialization.spec.ts/ModelValidationExpressionHydrator', function () {
   function setup() {
     const container = TestContext.create().container;
     container.register(ValidationConfiguration);

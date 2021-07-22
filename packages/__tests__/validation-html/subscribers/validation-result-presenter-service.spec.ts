@@ -15,7 +15,7 @@ import {
 import { Person } from '../../validation/_test-resources.js';
 import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecFunction } from '../../util.js';
 
-describe('validation-result-presenter-service', function () {
+describe('validation-html/subscribers/validation-result-presenter-service.spec.ts/validation-result-presenter-service', function () {
 
   const IValidationResultPresenterService = DI.createInterface<ValidationResultPresenterService>('ValidationResultPresenterService');
 

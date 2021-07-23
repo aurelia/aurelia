@@ -31,8 +31,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public static inject = [IRenderLocation, IController, IViewFactory];
   public readonly id: number = nextId('au$component');
 
-  public hasPendingInstanceMutation: boolean = false;
-  public observer?: CollectionObserver = void 0;
+  private _observer?: CollectionObserver = void 0;
   public views: ISyntheticView[] = [];
   public key?: string = void 0;
 
@@ -58,8 +57,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   ): void | Promise<void> {
     this._checkCollectionObserver(flags);
     const bindings = this.parent.bindings as PropertyBinding[];
+    const ii = bindings.length;
     let binding: PropertyBinding = (void 0)!;
-    for (let i = 0, ii = bindings.length; i < ii; ++i) {
+    let i = 0;
+    for (; ii > i; ++i) {
       binding = bindings[i];
       if (binding.target === this && binding.targetProperty === 'items') {
         this.forOf = binding.sourceExpression as ForOfStatement;
@@ -155,13 +156,13 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   // todo: subscribe to collection from inner expression
   private _checkCollectionObserver(flags: LF): void {
-    const oldObserver = this.observer;
+    const oldObserver = this._observer;
     if ((flags & LF.fromUnbind)) {
       if (oldObserver !== void 0) {
         oldObserver.unsubscribe(this);
       }
     } else if (this.$controller.isActive) {
-      const newObserver = this.observer = getCollectionObserver(this.items);
+      const newObserver = this._observer = getCollectionObserver(this.items);
       if (oldObserver !== newObserver && oldObserver) {
         oldObserver.unsubscribe(this);
       }
@@ -229,10 +230,12 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
     let view: ISyntheticView;
+    let i = 0;
 
     const { views, $controller } = this;
+    const ii = views.length;
 
-    for (let i = 0, ii = views.length; i < ii; ++i) {
+    for (; ii > i; ++i) {
       view = views[i];
       view.release();
       ret = view.deactivate(initiator ?? view, $controller, flags);
@@ -261,7 +264,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const deleted = indexMap.deletedItems;
     const deletedLen = deleted.length;
     let i = 0;
-    for (; i < deletedLen; ++i) {
+    for (; deletedLen > i; ++i) {
       view = views[deleted[i]];
       view.release();
       ret = view.deactivate(view, $controller, flags);
@@ -272,7 +275,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     i = 0;
     let j = 0;
-    for (; i < deletedLen; ++i) {
+    for (; deletedLen > i; ++i) {
       j = deleted[i] - i;
       views.splice(j, 1);
     }
@@ -293,11 +296,12 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let ret: void | Promise<void>;
     let view: ISyntheticView;
     let viewScope: Scope;
+    let i = 0;
 
     const { $controller, factory, local, _normalizedItems: normalizedItems, location, views } = this;
     const mapLen = indexMap.length;
 
-    for (let i = 0; i < mapLen; ++i) {
+    for (; mapLen > i; ++i) {
       if (indexMap[i] === -2) {
         view = factory.create(flags);
         views.splice(i, 0, view);
@@ -305,8 +309,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     if (views.length !== mapLen) {
-      // TODO: create error code and use reporter with more informative message
-      throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
+      if (__DEV__)
+        throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
+      else
+        throw new Error(`AUR0814:${views.length}!=${mapLen}`);
     }
 
     const parentScope = $controller.scope;
@@ -320,7 +326,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     let next: ISyntheticView;
     let j = seqLen - 1;
-    let i = newLen - 1;
+    i = newLen - 1;
     for (; i >= 0; --i) {
       view = views[i];
       next = views[i + 1];

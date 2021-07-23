@@ -240,7 +240,8 @@ describe('3-runtime-html/au-render.spec.ts', function () {
       let ex: unknown;
       await start().catch(e => ex = e);
       assert.instanceOf(ex, Error);
-      assert.includes(String(ex), 'Unable to find custom element one for <au-render>.');
+      // assert.includes(String(ex), 'Unable to find custom element one for <au-render>.');
+      assert.includes(String(ex), 'AUR0809:one');
 
       await tearDown();
     });

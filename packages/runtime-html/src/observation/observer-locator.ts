@@ -296,7 +296,10 @@ export class NodeObserverLocator implements INodeObserverLocator {
       }
       // consider:
       // - maybe add a adapter API to handle unknown obj/key combo
-      throw new Error(`Unable to observe property ${String(key)}. Register observation mapping with .useConfig().`);
+      if (__DEV__)
+        throw new Error(`Unable to observe property ${String(key)}. Register observation mapping with .useConfig().`);
+      else
+        throw new Error(`AUR0752:${String(key)}`);
     } else {
       // todo: probably still needs to get the property descriptor via getOwnPropertyDescriptor
       // but let's start with simplest scenario

@@ -54,3 +54,15 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0714 | This happens when a custom element or attribute definition has more than 1 primary bindable property |
 | AUR0715 | This happens when an `as-local-template` template has the value of `as-local-template` as an empty string |
 | AUR0716 | This happens when a custom element has 2 or more local elements with the same name |
+
+## Templating Errors
+
+| Error Code | Description |
+| - | - |
+| AUR0750 | This happens when there is a binding that looks like this `view.ref="..."`. This likely comes from a v1 template migration. |
+| AUR0751 | This happens when there is a `ref` binding in the template that does not have matching target. Most likely a custom attribute reference |
+| AUR0752 | This happens when a controller renders a custom element instruction that it doesn't have a registration. Normally happens in hand-crafted definition |
+| AUR0753 | This happens when a controller renders a custom attribute instruction that it doesn't have a registration. Normally happens in hand-crafted definition |
+| AUR0754 | This happens when a controller renders a template controller instruction that it doesn't have a registration. Normally happens in hand-crafted definition |
+| AUR0755 | This happens when a view factory provider tries to resolve but does not have a view factory associated |
+| AUR0756 | This happens when a view factory provider tries to resolve but the view factory associated does not have a valid name |

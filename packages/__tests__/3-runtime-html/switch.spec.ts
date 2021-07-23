@@ -1686,14 +1686,16 @@ describe('switch', function () {
   for (const data of getNegativeTestData()) {
     $it(`${data.name} does not work`,
       function (ctx) {
-        assert.match(ctx.error.message, /The parent switch not found; only `\*\[switch\] > \*\[case\|default-case\]` relation is supported\./);
+        // assert.match(ctx.error.message, /The parent switch not found; only `\*\[switch\] > \*\[case\|default-case\]` relation is supported\./);
+        assert.match(ctx.error.message, /AUR0815/);
       },
       data);
   }
 
   $it(`multiple default-cases throws error`,
     function (ctx) {
-      assert.match(ctx.error.message, /Multiple 'default-case's are not allowed./);
+      // assert.match(ctx.error.message, /Multiple 'default-case's are not allowed./);
+      assert.match(ctx.error.message, /AUR0816/);
     },
     {
       template: `

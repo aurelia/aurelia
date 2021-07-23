@@ -134,17 +134,17 @@ describe(`createElement() creates element based on type`, function () {
         assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
         assert.strictEqual(instruction.type, InstructionType.hydrateElement, `instruction.type`);
         assert.strictEqual(instruction.res, definition, `instruction.res`);
-        assert.strictEqual(instruction.instructions.length, 2, `instruction.instructions.length`);
-        assert.strictEqual(instruction.instructions[0].type, InstructionType.setAttribute, `instruction.instructions[0].type`);
-        assert.strictEqual(instruction.instructions[0]['to'], 'title', `instruction.instructions[0]['to']`);
-        assert.strictEqual(instruction.instructions[0]['value'], 'asdf', `instruction.instructions[0]['value']`);
+        assert.strictEqual(instruction.props.length, 2, `instruction.props.length`);
+        assert.strictEqual(instruction.props[0].type, InstructionType.setAttribute, `instruction.props[0].type`);
+        assert.strictEqual(instruction.props[0]['to'], 'title', `instruction.props[0]['to']`);
+        assert.strictEqual(instruction.props[0]['value'], 'asdf', `instruction.props[0]['value']`);
         if (definition.bindables['foo']) {
-          assert.strictEqual(instruction.instructions[1].type, InstructionType.setProperty, `instruction.instructions[1].type`);
+          assert.strictEqual(instruction.props[1].type, InstructionType.setProperty, `instruction.props[1].type`);
         } else {
-          assert.strictEqual(instruction.instructions[1].type, InstructionType.setAttribute, `instruction.instructions[1].type`);
+          assert.strictEqual(instruction.props[1].type, InstructionType.setAttribute, `instruction.props[1].type`);
         }
-        assert.strictEqual(instruction.instructions[1]['to'], 'foo', `instruction.instructions[1]['to']`);
-        assert.strictEqual(instruction.instructions[1]['value'], 'bar', `instruction.instructions[1]['value']`);
+        assert.strictEqual(instruction.props[1]['to'], 'foo', `instruction.props[1]['to']`);
+        assert.strictEqual(instruction.props[1]['value'], 'bar', `instruction.props[1]['value']`);
         assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
       });
 
@@ -159,7 +159,7 @@ describe(`createElement() creates element based on type`, function () {
 
           assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
           assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-          assert.strictEqual(instruction.instructions.length, 0, `instruction.instructions.length`);
+          assert.strictEqual(instruction.props.length, 0, `instruction.props.length`);
           assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
         });
       });
@@ -198,8 +198,8 @@ describe(`createElement() creates element based on type`, function () {
             assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
             assert.strictEqual(instruction.type, InstructionType.hydrateElement, `instruction.type`);
             assert.strictEqual(instruction.res, definition, `instruction.res`);
-            assert.strictEqual(instruction.instructions.length, 1, `instruction.instructions.length`);
-            assert.strictEqual(instruction.instructions[0].type, t, `instruction.instructions[0].type`);
+            assert.strictEqual(instruction.props.length, 1, `instruction.props.length`);
+            assert.strictEqual(instruction.props[0].type, t, `instruction.props[0].type`);
             assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
           });
         });
@@ -231,7 +231,7 @@ describe(`createElement() creates element based on type`, function () {
           assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
           assert.strictEqual(instruction.type, InstructionType.hydrateElement, `instruction.type`);
           assert.strictEqual(instruction.res, definition, `instruction.res`);
-          assert.strictEqual(instruction.instructions.length, 0, `instruction.instructions.length`);
+          assert.strictEqual(instruction.props.length, 0, `instruction.props.length`);
           assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
 
           assert.strictEqual(node.textContent, expected, `node.textContent`);

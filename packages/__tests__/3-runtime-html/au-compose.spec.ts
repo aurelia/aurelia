@@ -706,7 +706,8 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         ex = e;
       }
       assert.instanceOf(ex, Error);
-      assert.includes(String(ex), 'Containerless custom element is not supported by <au-compose/>');
+      // assert.includes(String(ex), 'Containerless custom element is not supported by <au-compose/>');
+      assert.includes(String(ex), 'AUR0806');
 
       appHost.remove();
     });

@@ -49,7 +49,7 @@ export class AuRender implements ICustomElementViewModel {
     @IHydrationContext hdrContext: IHydrationContext,
     @IRendering private readonly r: IRendering,
   ) {
-    this._properties = instruction.instructions.reduce(toLookup, {});
+    this._properties = instruction.props.reduce(toLookup, {});
     this._hdrContext = hdrContext;
   }
 
@@ -179,7 +179,10 @@ export class AuRender implements ICustomElementViewModel {
     if (typeof comp === 'string') {
       const def = ctxContainer.find(CustomElement, comp);
       if (def == null) {
-        throw new Error(`Unable to find custom element ${comp} for <au-render>.`);
+        if (__DEV__)
+          throw new Error(`Unable to find custom element ${comp} for <au-render>.`);
+        else
+          throw new Error(`AUR0809:${comp}`);
       }
       comp = def.Type;
     }

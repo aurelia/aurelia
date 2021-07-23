@@ -249,7 +249,10 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     if (Type === null) {
       const def = nameOrDef;
       if (typeof def === 'string') {
-        throw new Error(`Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
+        if (__DEV__)
+          throw new Error(`Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
+        else
+          throw new Error(`AUR0704:${nameOrDef}`);
       }
 
       const name = fromDefinitionOrDefault('name', def, CustomElement.generateName);
@@ -421,7 +424,10 @@ export const CustomElement: CustomElementKind = Object.freeze({
         if (opts.optional === true) {
           return null!;
         }
-        throw new Error(`The provided node is not a custom element or containerless host.`);
+        if (__DEV__)
+          throw new Error(`The provided node is not a custom element or containerless host.`);
+        else
+          throw new Error('AUR0705');
       }
       return controller as unknown as ICustomElementController<C>;
     }
@@ -429,7 +435,10 @@ export const CustomElement: CustomElementKind = Object.freeze({
       if (opts.searchParents !== true) {
         const controller = getRef(node, ceBaseName) as Controller<C> | null;
         if (controller === null) {
-          throw new Error(`The provided node is not a custom element or containerless host.`);
+          if (__DEV__)
+            throw new Error(`The provided node is not a custom element or containerless host.`);
+          else
+            throw new Error('AUR0706');
         }
 
         if (controller.is(opts.name)) {
@@ -457,7 +466,10 @@ export const CustomElement: CustomElementKind = Object.freeze({
         return (void 0)!;
       }
 
-      throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
+      if (__DEV__)
+        throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
+      else
+        throw new Error('AUR0707');
     }
 
     let cur = node as INode | null;
@@ -483,7 +495,10 @@ export const CustomElement: CustomElementKind = Object.freeze({
   getDefinition<C extends Constructable>(Type: C): CustomElementDefinition<C> {
     const def = Metadata.getOwn(ceBaseName, Type) as CustomElementDefinition<C>;
     if (def === void 0) {
-      throw new Error(`No definition found for type ${Type.name}`);
+      if (__DEV__)
+        throw new Error(`No definition found for type ${Type.name}`);
+      else
+        throw new Error(`AUR0703:${Type.name}`);
     }
 
     return def;
@@ -588,7 +603,10 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
 
   const hookType = typeof hook;
   if (hookType !== 'function') {
-    throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
+    if (__DEV__)
+      throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
+    else
+      throw new Error(`AUR0709:${hookType}`);
   }
   return hook;
 }

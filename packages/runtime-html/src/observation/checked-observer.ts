@@ -7,6 +7,8 @@ import {
   withFlushQueue,
 } from '@aurelia/runtime';
 import { getCollectionObserver } from './observer-locator.js';
+import { hasOwnProperty } from '../utilities-html.js';
+
 import type { INode } from '../dom.js';
 import type { EventSubscriber } from './event-delegator.js';
 import type { ValueAttributeObserver } from './value-attribute-observer.js';
@@ -76,23 +78,23 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     this.value = newValue;
     this.oldValue = currentValue;
     this.f = flags;
-    this.observe();
-    this.synchronizeElement();
+    this._observe();
+    this._synchronizeElement();
     this.queue.add(this);
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    this.synchronizeElement();
+    this._synchronizeElement();
   }
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    this.synchronizeElement();
+    this._synchronizeElement();
   }
 
-  public synchronizeElement(): void {
+  private _synchronizeElement(): void {
     const currentValue = this.value;
     const obj = this.obj;
-    const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') as boolean ? obj.model : obj.value;
+    const elementValue = hasOwnProperty.call(obj, 'model') as boolean ? obj.model : obj.value;
     const isRadio = obj.type === 'radio';
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 
@@ -130,7 +132,7 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
   public handleEvent(): void {
     let currentValue = this.oldValue = this.value;
     const obj = this.obj;
-    const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') as boolean ? obj.model : obj.value;
+    const elementValue = hasOwnProperty.call(obj, 'model') as boolean ? obj.model : obj.value;
     const isChecked = obj.checked;
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 
@@ -236,7 +238,7 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
 
   public start() {
     this.handler.subscribe(this.obj, this);
-    this.observe();
+    this._observe();
   }
 
   public stop(): void {
@@ -265,7 +267,7 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     this.subs.notify(this.value, oV, this.f);
   }
 
-  private observe() {
+  private _observe() {
     const obj = this.obj;
 
     (this._valueObserver ??= obj.$observers?.model ?? obj.$observers?.value)?.subscribe(this);

@@ -1996,17 +1996,17 @@ describe('TemplateCompiler - local templates', function () {
     const { container, sut } = createFixture();
 
     sut.compile({ name: 'lorem-ipsum', template }, container, null);
-    const sinks = container.get(DefaultLogger)['warnSinks'] as ISink[];
-    const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
     if (__DEV__) {
+      const sinks = container.get(DefaultLogger)['warnSinks'] as ISink[];
+      const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
       assert.strictEqual(eventLog.log.length, 1, `eventLog.log.length`);
+      const event = eventLog.log[0];
+      assert.strictEqual(event.severity, LogLevel.warn);
+      assert.includes(
+        event.toString(),
+        'The attribute(s) unknown-attr, who-cares will be ignored for <bindable property="prop" unknown-attr="" who-cares="no one"></bindable>. Only property, attribute, mode are processed.'
+      );
     }
-    const event = eventLog.log[0];
-    assert.strictEqual(event.severity, LogLevel.warn);
-    assert.includes(
-      event.toString(),
-      'The attribute(s) unknown-attr, who-cares will be ignored for <bindable property="prop" unknown-attr="" who-cares="no one"></bindable>. Only property, attribute, mode are processed.'
-    );
   });
 
 });

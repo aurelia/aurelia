@@ -26,7 +26,7 @@ export function $setup(platform: BrowserPlatform) {
 
   // eslint-disable-next-line
   beforeEach(function() {
-    (globalThis as any)['__DEV__'] = true;
+    (globalThis as any)['__DEV__'] = typeof process !== 'undefined' ? !!process.env.__DEV__ : false;
     start = platform.performanceNow();
     if (firstTestStart === 0) {
       firstTestStart = start;

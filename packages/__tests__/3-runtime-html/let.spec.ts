@@ -63,11 +63,11 @@ describe('3-runtime-html/let.spec.ts', function () {
     assert.visibleTextEqual(appHost, '1');
     if (__DEV__) {
       assert.strictEqual(callArgs.length, 1);
+      assert.deepStrictEqual(callArgs[0], [
+        `Property my-prop is declared with literal string 1. ` +
+        `Did you mean my-prop.bind="1"?`
+      ]);
     }
-    assert.deepStrictEqual(callArgs[0], [
-      `Property my-prop is declared with literal string 1. ` +
-      `Did you mean my-prop.bind="1"?`
-    ]);
     await tearDown();
   });
 });

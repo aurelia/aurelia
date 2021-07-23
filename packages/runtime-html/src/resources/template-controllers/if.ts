@@ -198,7 +198,10 @@ export class Else {
     } else if (ifBehavior.viewModel instanceof If) {
       ifBehavior.viewModel.elseFactory = this.factory;
     } else {
-      throw new Error(`Unsupported IfBehavior`); // TODO: create error code
+      if (__DEV__)
+        throw new Error(`Unsupported If behavior`); // TODO: create error code
+      else
+        throw new Error('AUR0810');
     }
   }
 }

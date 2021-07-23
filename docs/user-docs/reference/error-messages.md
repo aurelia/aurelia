@@ -66,3 +66,54 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0754 | This happens when a controller renders a template controller instruction that it doesn't have a registration. Normally happens in hand-crafted definition |
 | AUR0755 | This happens when a view factory provider tries to resolve but does not have a view factory associated |
 | AUR0756 | This happens when a view factory provider tries to resolve but the view factory associated does not have a valid name |
+| AUR0701 | This happens when `BindingCommand.getDefinition` is called on a class/object without any binding command metadata associated |
+| AUR0702 | This happens when `CustomAttribute.getDefinition` is called on a class/object without any custom attribute metadata associated |
+| AUR0703 | This happens when `CustomElement.getDefinition` is called on a class/object without any custom element metadata associated |
+| AUR0704 | This happens when `CustomElementDefinition.create` is called with a string as first parameter |
+| AUR0705 | This happens when `CustomElement.for` is called on an element that does not have any custom element with a given name, without searching in ancestor elements |
+| AUR0706 | This happens when `CustomElement.for` is called and Aurelia isn't able to find any custom element with the given name in the given element, or its ancestors |
+| AUR0707 | This happens when `CustomElement.for` is called on an element with a given name, and Aurelia is unable to find any custom element in the given the element, or its ancestors |
+| AUR0708 | This happens when `CustomElement.for` is called on an element without a given name, and Aurelia is unable to find any custom element in the given element, or its ancestors |
+| AUR0709 | This happens when `@processContent` is called with a string as its first parameter, and Aurelia couldn't find the method on the decorated class |
+
+## HTML observation errors
+
+| Error Code | Description |
+| - | - |
+| AUR0751 | This happens when the binding created `.attr` binding command is forced into two way mode against any attribute other than `class`/`style` |
+| AUR0752 | This happens when the default `NodeObserverLocator.getObserver` is called with an object and property combo that it doesn't know how to observe, and dirty checking is disabled |
+| AUR0753 | This happens when `NodeObserverLocator` property->observation events mapping is getting overridden |
+| AUR0754 | This happens when a `<select>` element is specified `multiple`, but the binding value is not an array |
+
+## Controller errors
+
+| Error Code | Description |
+| - | - |
+| AUR0500 | This happens when `Controller.getCachedOrThrow` throws |
+| AUR0501 | This happens when a custom element is specified `containerless` and has `<slot>` element in its template |
+| AUR0502 | This happens when a disposed controller is being activated |
+| AUR0503 | This happens when the internal state of a controller is corrputed during activation |
+| AUR0504 | This happens when a synthetic view is activated without a proper scope |
+| AUR0505 | This happens when the internal state of a controller is coruppted during deactivation |
+| AUR0506 | This happens when Aurelia fails to resolve a function from the first parameter of a `@watch` decorator |
+
+## Default resources errors
+
+| Error Code | Description |
+| - | - |
+| AUR0801 | This happens when `& self` binding behavior is used on non-event binding |
+| AUR0802 | This happens when `& updateTrigger` binding behavior is used without any arguments |
+| AUR0803 | This happens when `& updateTrigger` binding behavior is used on binding without view -> view model observation |
+| AUR0804 | This happens when `& updateTrigger` binding behavior is used on binding that does not target a DOM element |
+| AUR0805 | This happens when `<au-compose>` `scopeBehavior` property is assigned a value that is not either `auto` or `scoped` |
+| AUR0806 | This happens when `<au-compose>` `view-model` binding is used with a custom element with `containerless = true` |
+| AUR0807 | This happens when there's a corrupted internal state of `<au-compose>` and activation is called twice |
+| AUR0808 | This happens when there's a corrupted internal state of `<au-compose>` and deactivation is called twice |
+| AUR0809 | This happens when `<au-render>` `component` binding is given a string value, and there's no custom element with matching name |
+| AUR0810 | This happens when `else` attribute does not follow an `if` attribute |
+| AUR0811 | This happens when `portal` attribute is a given an empty string as CSS selector for`target`, and `strict` mode is on |
+| AUR0812 | This happens when `portal` attribute couldn't find the target element to portal to, and `strict` mode is on |
+| AUR0813 | This happens when `then`/`catch`/`pending` attributes is used outside of a `promise` attribute |
+| AUR0814 | This happens when the internal of the `repeat` attribute get into a race condition and is corrupted |
+| AUR0815 | This happens when `case`/`default-case` attributes is used outside of a `switch` attribute |
+| AUR0816 | This happens when there are multiple `default-case` attributes inside a `switch` attribute |

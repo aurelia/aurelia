@@ -7,7 +7,6 @@ import {
   ForOfStatement,
   getCollectionObserver,
   IndexMap,
-  IObserverLocator,
   IOverrideContext,
   LifecycleFlags as LF,
   Scope,
@@ -32,8 +31,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public static inject = [IRenderLocation, IController, IViewFactory];
   public readonly id: number = nextId('au$component');
 
-  public hasPendingInstanceMutation: boolean = false;
-  public observer?: CollectionObserver = void 0;
+  private _observer?: CollectionObserver = void 0;
   public views: ISyntheticView[] = [];
   public key?: string = void 0;
 
@@ -158,13 +156,13 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   // todo: subscribe to collection from inner expression
   private _checkCollectionObserver(flags: LF): void {
-    const oldObserver = this.observer;
+    const oldObserver = this._observer;
     if ((flags & LF.fromUnbind)) {
       if (oldObserver !== void 0) {
         oldObserver.unsubscribe(this);
       }
     } else if (this.$controller.isActive) {
-      const newObserver = this.observer = getCollectionObserver(this.items);
+      const newObserver = this._observer = getCollectionObserver(this.items);
       if (oldObserver !== newObserver && oldObserver) {
         oldObserver.unsubscribe(this);
       }
@@ -311,8 +309,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     if (views.length !== mapLen) {
-      // TODO: create error code and use reporter with more informative message
-      throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
+      if (__DEV__)
+        throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
+      else
+        throw new Error(`AUR0814:${views.length}!=${mapLen}`);
     }
 
     const parentScope = $controller.scope;

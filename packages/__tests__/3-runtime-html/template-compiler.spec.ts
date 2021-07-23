@@ -162,7 +162,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           attrs.forEach(attr => {
             assert.throws(
               () => compileWith(`<template ${attr}="${attr}"></template>`, []),
-              /Attribute id is invalid on surrogate/,
+              /(Attribute id is invalid on surrogate)|(AUR0702:id)/,
             );
           });
         });
@@ -1996,15 +1996,17 @@ describe('TemplateCompiler - local templates', function () {
     const { container, sut } = createFixture();
 
     sut.compile({ name: 'lorem-ipsum', template }, container, null);
-    const sinks = container.get(DefaultLogger)['warnSinks'] as ISink[];
-    const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
-    assert.strictEqual(eventLog.log.length, 1, `eventLog.log.length`);
-    const event = eventLog.log[0];
-    assert.strictEqual(event.severity, LogLevel.warn);
-    assert.includes(
-      event.toString(),
-      'The attribute(s) unknown-attr, who-cares will be ignored for <bindable property="prop" unknown-attr="" who-cares="no one"></bindable>. Only property, attribute, mode are processed.'
-    );
+    if (__DEV__) {
+      const sinks = container.get(DefaultLogger)['warnSinks'] as ISink[];
+      const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
+      assert.strictEqual(eventLog.log.length, 1, `eventLog.log.length`);
+      const event = eventLog.log[0];
+      assert.strictEqual(event.severity, LogLevel.warn);
+      assert.includes(
+        event.toString(),
+        'The attribute(s) unknown-attr, who-cares will be ignored for <bindable property="prop" unknown-attr="" who-cares="no one"></bindable>. Only property, attribute, mode are processed.'
+      );
+    }
   });
 
 });

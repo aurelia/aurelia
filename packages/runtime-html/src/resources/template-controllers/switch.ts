@@ -284,7 +284,10 @@ export class Case implements ICustomAttributeViewModel {
       this.$switch = $switch;
       this.linkToSwitch($switch);
     } else {
-      throw new Error('The parent switch not found; only `*[switch] > *[case|default-case]` relation is supported.');
+      if (__DEV__)
+        throw new Error('The parent switch not found; only `*[switch] > *[case|default-case]` relation is supported.');
+      else
+        throw new Error('AUR0815');
     }
   }
 
@@ -361,7 +364,10 @@ export class DefaultCase extends Case {
 
   protected linkToSwitch($switch: Switch): void {
     if ($switch.defaultCase !== void 0) {
-      throw new Error('Multiple \'default-case\'s are not allowed.');
+      if (__DEV__)
+        throw new Error('Multiple \'default-case\'s are not allowed.');
+      else
+        throw new Error('AUR0816');
     }
     $switch.defaultCase = this;
   }

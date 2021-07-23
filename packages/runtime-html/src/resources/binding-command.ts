@@ -124,7 +124,10 @@ export const BindingCommand: BindingCommandKind = Object.freeze({
   getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T> {
     const def = Metadata.getOwn(cmdBaseName, Type);
     if (def === void 0) {
-      throw new Error(`No definition found for type ${Type.name}`);
+      if (__DEV__)
+        throw new Error(`No definition found for type ${Type.name}`);
+      else
+        throw new Error(`AUR0701:${Type.name}`);
     }
 
     return def;

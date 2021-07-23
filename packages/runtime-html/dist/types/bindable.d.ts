@@ -55,13 +55,13 @@ declare type B45 = B5 & B4<B5>;
 declare type B345 = B45 & B3<B45>;
 declare type B2345 = B345 & B2<B345>;
 declare type B12345 = B2345 & B1<B2345>;
-export declare const Bindable: {
+export declare const Bindable: Readonly<{
     name: string;
     keyFrom(name: string): string;
     from(...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition>;
     for(Type: Constructable): BFluent;
     getAll(Type: Constructable): readonly BindableDefinition[];
-};
+}>;
 export declare class BindableDefinition {
     readonly attribute: string;
     readonly callback: string;

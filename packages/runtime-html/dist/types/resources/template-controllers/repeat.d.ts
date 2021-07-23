@@ -1,4 +1,4 @@
-import { Collection, CollectionObserver, ForOfStatement, IndexMap, LifecycleFlags as LF } from '@aurelia/runtime';
+import { Collection, ForOfStatement, IndexMap, LifecycleFlags as LF } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import { IController } from '../../templating/controller.js';
@@ -10,8 +10,7 @@ export declare class Repeat<C extends Collection = unknown[]> implements ICustom
     factory: IViewFactory;
     static inject: (import("@aurelia/kernel").InterfaceSymbol<IViewFactory> | import("@aurelia/kernel").InterfaceSymbol<IController<import("../../templating/controller.js").IViewModel>> | import("@aurelia/kernel").InterfaceSymbol<IRenderLocation<ChildNode>>)[];
     readonly id: number;
-    hasPendingInstanceMutation: boolean;
-    observer?: CollectionObserver;
+    private _observer?;
     views: ISyntheticView[];
     key?: string;
     forOf: ForOfStatement;

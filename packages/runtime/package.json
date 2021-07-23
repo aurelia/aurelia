@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/runtime",
-  "version": "2.0.1-dev.202107220254",
+  "version": "2.0.1-dev.202107231013",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -34,16 +34,15 @@
     "publish:dev": "npm publish --tag dev",
     "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c",
-    "postrollup": "tsc --emitDeclarationOnly",
     "postrollup": "tsc --declaration --emitDeclarationOnly"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.1-dev.202107220254",
-    "@aurelia/metadata": "2.0.1-dev.202107220254",
-    "@aurelia/platform": "2.0.1-dev.202107220254"
+    "@aurelia/kernel": "2.0.1-dev.202107231013",
+    "@aurelia/metadata": "2.0.1-dev.202107231013",
+    "@aurelia/platform": "2.0.1-dev.202107231013"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

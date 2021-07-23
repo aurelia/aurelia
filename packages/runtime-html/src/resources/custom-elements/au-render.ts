@@ -179,7 +179,10 @@ export class AuRender implements ICustomElementViewModel {
     if (typeof comp === 'string') {
       const def = ctxContainer.find(CustomElement, comp);
       if (def == null) {
-        throw new Error(`Unable to find custom element ${comp} for <au-render>.`);
+        if (__DEV__)
+          throw new Error(`Unable to find custom element ${comp} for <au-render>.`);
+        else
+          throw new Error(`AUR0809:${comp}`);
       }
       comp = def.Type;
     }

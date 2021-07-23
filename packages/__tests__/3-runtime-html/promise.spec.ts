@@ -2924,7 +2924,8 @@ describe('promise template-controller', function () {
 
   for (const data of getNegativeTestData()) {
     $it(data.name, async function (ctx: PromiseTestExecutionContext) {
-      assert.match(ctx.error.message, /The parent promise\.resolve not found; only `\*\[promise\.resolve\] > \*\[pending\|then\|catch\]` relation is supported\./);
+      // assert.match(ctx.error.message, /The parent promise\.resolve not found; only `\*\[promise\.resolve\] > \*\[pending\|then\|catch\]` relation is supported\./);
+      assert.match(ctx.error.message, /AUR0813/);
     }, data);
   }
 });

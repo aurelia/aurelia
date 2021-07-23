@@ -172,7 +172,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public static getCachedOrThrow<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C> {
     const $el = Controller.getCached(viewModel);
     if ($el === void 0) {
-      throw new Error(`There is no cached controller for the provided ViewModel: ${String(viewModel)}`);
+      if (__DEV__)
+        throw new Error(`There is no cached controller for the provided ViewModel: ${viewModel}`);
+      else
+        throw new Error(`AUR0500:${viewModel}`);
     }
     return $el as ICustomElementController<C>;
   }
@@ -393,7 +396,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     setRef(this.host!, CustomElement.name, this as IHydratedController);
     setRef(this.host!, this.definition!.key, this as IHydratedController);
     if (shadowOptions !== null || hasSlots) {
-      if (containerless) { throw new Error('You cannot combine the containerless custom element option with Shadow DOM.'); }
+      if (containerless) {
+        if (__DEV__)
+          throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
+        else
+          throw new Error('AUR0501');
+      }
       setRef(this.shadowRoot = this.host!.attachShadow(shadowOptions ?? defaultShadowOptions), CustomElement.name, this as IHydratedController);
       setRef(this.shadowRoot!, this.definition!.key, this as IHydratedController);
       this.mountTarget = MountTarget.shadowRoot;
@@ -486,9 +494,15 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         // If we're already activated, no need to do anything.
         return;
       case State.disposed:
-        throw new Error(`${this.name} trying to activate a controller that is disposed.`);
+        if (__DEV__)
+          throw new Error(`${this.name} trying to activate a controller that is disposed.`);
+        else
+          throw new Error(`AUR0502:${this.name}`);
       default:
-        throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
+        if (__DEV__)
+          throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
+        else
+          throw new Error(`AUR0503:${this.name} ${stringifyState(this.state)}`);
     }
 
     this.parent = parent;
@@ -509,7 +523,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       case ViewModelKind.synthetic:
         // maybe only check when there's not already a scope
         if (scope === void 0 || scope === null) {
-          throw new Error(`Scope is null or undefined`);
+          if (__DEV__)
+            throw new Error(`Scope is null or undefined`);
+          else
+            throw new Error('AUR0504');
         }
 
         if (!this.hasLockedScope) {
@@ -690,7 +707,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         // If we're already deactivated (or even disposed), or never activated in the first place, no need to do anything.
         return;
       default:
-        throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
+        if (__DEV__)
+          throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
+        else
+          throw new Error(`AUR0505:${this.name} ${stringifyState(this.state)}`);
     }
 
     if (this.debug) { this.logger!.trace(`deactivate()`); }
@@ -1216,7 +1236,10 @@ function createWatchers(
       ? callback
       : Reflect.get(instance, callback) as IWatcherCallback<object>;
     if (typeof callback !== 'function') {
-      throw new Error(`Invalid callback for @watch decorator: ${String(callback)}`);
+      if (__DEV__)
+        throw new Error(`Invalid callback for @watch decorator: ${String(callback)}`);
+      else
+        throw new Error(`AUR0506:${String(callback)}`);
     }
     if (typeof expression === 'function') {
       controller.addBinding(new ComputedWatcher(

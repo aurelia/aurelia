@@ -5,14 +5,17 @@ import type { IAccessor } from '@aurelia/runtime';
 const customPropertyPrefix: string = '--';
 
 export class StyleAttributeAccessor implements IAccessor {
+  public type: AccessorType = AccessorType.Node | AccessorType.Layout;
+
   public value: unknown = '';
-  public oldValue: unknown = '';
+  /** @internal */
+  private _oldValue: unknown = '';
 
   public styles: Record<string, number> = {};
   public version: number = 0;
 
-  public hasChanges: boolean = false;
-  public type: AccessorType = AccessorType.Node | AccessorType.Layout;
+  /** @internal */
+  private _hasChanges: boolean = false;
 
   public constructor(
     public readonly obj: HTMLElement,
@@ -25,9 +28,9 @@ export class StyleAttributeAccessor implements IAccessor {
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.value = newValue;
-    this.hasChanges = newValue !== this.oldValue;
+    this._hasChanges = newValue !== this._oldValue;
     if ((flags & LifecycleFlags.noFlush) === 0) {
-      this.flushChanges(flags);
+      this._flushChanges();
     }
   }
 
@@ -116,9 +119,10 @@ export class StyleAttributeAccessor implements IAccessor {
     return emptyArray;
   }
 
-  public flushChanges(flags: LifecycleFlags): void {
-    if (this.hasChanges) {
-      this.hasChanges = false;
+  /** @internal */
+  private _flushChanges(): void {
+    if (this._hasChanges) {
+      this._hasChanges = false;
       const currentValue = this.value;
       const styles = this.styles;
       const styleTuples = this._getStyleTuples(currentValue);
@@ -126,7 +130,7 @@ export class StyleAttributeAccessor implements IAccessor {
       let style: string;
       let version = this.version;
 
-      this.oldValue = currentValue;
+      this._oldValue = currentValue;
 
       let tuple: [string, string];
       let name: string;
@@ -169,6 +173,6 @@ export class StyleAttributeAccessor implements IAccessor {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.value = this.oldValue = this.obj.style.cssText;
+    this.value = this._oldValue = this.obj.style.cssText;
   }
 }

@@ -50,12 +50,16 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
 
   for (const methodName of [Symbol('method'), 'bla', 5]) {
     it(`validates method "${String(methodName)}" not found when decorating on class`, function () {
-      assert.throws(() => {
-        @watch('..', methodName as any)
-        class App {}
+      assert.throws(
+        () => {
+          @watch('..', methodName as any)
+          class App {}
 
-        return new App();
-      }, /Invalid change handler config/);
+          return new App();
+        },
+        // /Invalid change handler config/
+        /AUR0716/
+      );
     });
   }
 

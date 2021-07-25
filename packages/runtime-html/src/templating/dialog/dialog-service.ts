@@ -55,7 +55,10 @@ export class DialogService implements IDialogService {
         (openDialogController) => {
           if (openDialogController.length > 0) {
             // todo: what to do?
-            throw new Error(`There are still ${openDialogController.length} open dialog(s).`);
+            if (__DEV__)
+              throw new Error(`There are still ${openDialogController.length} open dialog(s).`);
+            else
+              throw new Error(`AUR0901:${openDialogController.length}`);
           }
         }
       ))
@@ -90,7 +93,10 @@ export class DialogService implements IDialogService {
           const dialogController = container.invoke(DialogController);
           container.register(Registration.instance(IDialogController, dialogController));
           container.register(Registration.callback(DialogController, () => {
-            throw new Error('Invalid injection of DialogController. Use IDialogController instead.');
+            if (__DEV__)
+              throw new Error('Invalid injection of DialogController. Use IDialogController instead.');
+            else
+              throw new Error('AUR0902');
           }));
 
           return onResolve(
@@ -175,8 +181,8 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
 
   public static from(...srcs: Partial<IDialogSettings>[]): DialogSettings {
     return (Object.assign(new DialogSettings(), ...srcs) as DialogSettings)
-      .validate()
-      .normalize();
+      ._validate()
+      ._normalize();
   }
 
   public load(): IDialogLoadedSettings | Promise<IDialogLoadedSettings> {
@@ -196,14 +202,19 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
       : loaded;
   }
 
-  private validate(): this {
+  /** @internal */
+  private _validate(): this {
     if (this.component == null && this.template == null) {
-      throw new Error('Invalid Dialog Settings. You must provide "component", "template" or both.');
+      if (__DEV__)
+        throw new Error('Invalid Dialog Settings. You must provide "component", "template" or both.');
+      else
+        throw new Error('AUR0903');
     }
     return this;
   }
 
-  private normalize(): DialogSettings {
+  /** @internal */
+  private _normalize(): DialogSettings {
     if (this.keyboard == null) {
       this.keyboard = this.lock ? [] : ['Enter', 'Escape'];
     }

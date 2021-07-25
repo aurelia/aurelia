@@ -1,5 +1,4 @@
 import { LifecycleFlags, subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
-import { IPlatform } from '../platform.js';
 
 import type {
   IObserver,
@@ -9,15 +8,6 @@ import type {
   IWithFlushQueue,
   FlushQueue,
 } from '@aurelia/runtime';
-
-export interface IHtmlElement extends HTMLElement {
-  $mObserver: MutationObserver;
-  $eMObservers: Set<ElementMutationSubscription>;
-}
-
-export interface ElementMutationSubscription {
-  handleMutation(mutationRecords: MutationRecord[]): void;
-}
 
 export interface AttributeObserver extends
   IObserver,
@@ -29,24 +19,27 @@ export interface AttributeObserver extends
  * Has different strategy for class/style and normal attributes
  * TODO: handle SVG/attributes with namespace
  */
-export class AttributeObserver implements AttributeObserver, ElementMutationSubscription, IWithFlushQueue, IFlushable {
-  public value: unknown = null;
-  public oldValue: unknown = null;
-
-  public hasChanges: boolean = false;
+export class AttributeObserver implements AttributeObserver, ElementMutationSubscriber, IWithFlushQueue, IFlushable {
   // layout is not certain, depends on the attribute being flushed to owner element
   // but for simple start, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
+
+  public readonly obj: HTMLElement;
+  public value: unknown = null;
+  /** @internal */
+  private _oldValue: unknown = null;
+  /** @internal */
+  private _hasChanges: boolean = false;
 
   public readonly queue!: FlushQueue;
   private f: LifecycleFlags = LifecycleFlags.none;
 
   public constructor(
-    private readonly platform: IPlatform,
-    public readonly obj: IHtmlElement,
-    public readonly propertyKey: string,
-    public readonly targetAttribute: string,
+    obj: HTMLElement,
+    public readonly prop: string,
+    public readonly attr: string,
   ) {
+    this.obj = obj;
   }
 
   public getValue(): unknown {
@@ -57,18 +50,19 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 
   public setValue(value: unknown, flags: LifecycleFlags): void {
     this.value = value;
-    this.hasChanges = value !== this.oldValue;
+    this._hasChanges = value !== this._oldValue;
     if ((flags & LifecycleFlags.noFlush) === 0) {
-      this.flushChanges(flags);
+      this._flushChanges();
     }
   }
 
-  public flushChanges(flags: LifecycleFlags): void {
-    if (this.hasChanges) {
-      this.hasChanges = false;
+  /** @internal */
+  private _flushChanges(): void {
+    if (this._hasChanges) {
+      this._hasChanges = false;
       const value = this.value;
-      const attr = this.targetAttribute;
-      this.oldValue = value;
+      const attr = this.attr;
+      this._oldValue = value;
       switch (attr) {
         case 'class': {
           // Why does class attribute observer setValue look different with class attribute accessor?
@@ -82,7 +76,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
           // this also comes from syntax, where it would typically be my-class.class="someProperty"
           //
           // so there is no need for separating class by space and add all of them like class accessor
-          this.obj.classList.toggle(this.propertyKey, !!value);
+          this.obj.classList.toggle(this.prop, !!value);
           break;
         }
         case 'style': {
@@ -92,7 +86,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
             priority = 'important';
             newValue = newValue.replace('!important', '');
           }
-          this.obj.style.setProperty(this.propertyKey, newValue, priority);
+          this.obj.style.setProperty(this.prop, newValue, priority);
           break;
         }
         default: {
@@ -110,7 +104,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     let shouldProcess = false;
     for (let i = 0, ii = mutationRecords.length; ii > i; ++i) {
       const record = mutationRecords[i];
-      if (record.type === 'attributes' && record.attributeName === this.propertyKey) {
+      if (record.type === 'attributes' && record.attributeName === this.prop) {
         shouldProcess = true;
         break;
       }
@@ -118,24 +112,24 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 
     if (shouldProcess) {
       let newValue;
-      switch (this.targetAttribute) {
+      switch (this.attr) {
         case 'class':
-          newValue = this.obj.classList.contains(this.propertyKey);
+          newValue = this.obj.classList.contains(this.prop);
           break;
         case 'style':
-          newValue = this.obj.style.getPropertyValue(this.propertyKey);
+          newValue = this.obj.style.getPropertyValue(this.prop);
           break;
         default:
           if (__DEV__)
-            throw new Error(`Unsupported observation of attribute: ${this.targetAttribute}`);
+            throw new Error(`Unsupported observation of attribute: ${this.attr}`);
           else
-            throw new Error(`AUR0751:${this.targetAttribute}`);
+            throw new Error(`AUR0651:${this.attr}`);
       }
 
       if (newValue !== this.value) {
-        this.oldValue = this.value;
+        this._oldValue = this.value;
         this.value = newValue;
-        this.hasChanges = false;
+        this._hasChanges = false;
         this.f = LifecycleFlags.none;
         this.queue.add(this);
       }
@@ -144,20 +138,20 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
-      this.value = this.oldValue = this.obj.getAttribute(this.propertyKey);
-      startObservation(this.obj.ownerDocument.defaultView!.MutationObserver, this.obj, this);
+      this.value = this._oldValue = this.obj.getAttribute(this.prop);
+      startObservation(this.obj.ownerDocument.defaultView!.MutationObserver, this.obj as IHtmlElement, this);
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
-      stopObservation(this.obj, this);
+      stopObservation(this.obj as IHtmlElement, this);
     }
   }
 
   public flush(): void {
-    oV = this.oldValue;
-    this.oldValue = this.value;
+    oV = this._oldValue;
+    this._oldValue = this.value;
     this.subs.notify(this.value, oV, this.f);
   }
 }
@@ -165,22 +159,31 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 subscriberCollection(AttributeObserver);
 withFlushQueue(AttributeObserver);
 
-const startObservation = ($MutationObserver: typeof MutationObserver, element: IHtmlElement, subscription: ElementMutationSubscription): void => {
-  if (element.$eMObservers === undefined) {
-    element.$eMObservers = new Set();
+interface IHtmlElement extends HTMLElement {
+  $mObs: MutationObserver;
+  $eMObs: Set<ElementMutationSubscriber>;
+}
+
+interface ElementMutationSubscriber {
+  handleMutation(mutationRecords: MutationRecord[]): void;
+}
+
+const startObservation = ($MutationObserver: typeof MutationObserver, element: IHtmlElement, subscriber: ElementMutationSubscriber): void => {
+  if (element.$eMObs === undefined) {
+    element.$eMObs = new Set();
   }
-  if (element.$mObserver === undefined) {
-    (element.$mObserver = new $MutationObserver(handleMutation)).observe(element, { attributes: true });
+  if (element.$mObs === undefined) {
+    (element.$mObs = new $MutationObserver(handleMutation)).observe(element, { attributes: true });
   }
-  element.$eMObservers.add(subscription);
+  element.$eMObs.add(subscriber);
 };
 
-const stopObservation = (element: IHtmlElement, subscription: ElementMutationSubscription): boolean => {
-  const $eMObservers = element.$eMObservers;
-  if ($eMObservers && $eMObservers.delete(subscription)) {
+const stopObservation = (element: IHtmlElement, subscriber: ElementMutationSubscriber): boolean => {
+  const $eMObservers = element.$eMObs;
+  if ($eMObservers && $eMObservers.delete(subscriber)) {
     if ($eMObservers.size === 0) {
-      element.$mObserver.disconnect();
-      element.$mObserver = undefined!;
+      element.$mObs.disconnect();
+      element.$mObs = undefined!;
     }
     return true;
   }
@@ -188,10 +191,10 @@ const stopObservation = (element: IHtmlElement, subscription: ElementMutationSub
 };
 
 const handleMutation = (mutationRecords: MutationRecord[]): void => {
-  (mutationRecords[0].target as IHtmlElement).$eMObservers.forEach(invokeHandleMutation, mutationRecords);
+  (mutationRecords[0].target as IHtmlElement).$eMObs.forEach(invokeHandleMutation, mutationRecords);
 };
 
-function invokeHandleMutation(this: MutationRecord[], s: ElementMutationSubscription): void {
+function invokeHandleMutation(this: MutationRecord[], s: ElementMutationSubscriber): void {
   s.handleMutation(this);
 }
 

@@ -48,7 +48,7 @@ export function children(configOrTarget?: PartialChildrenDefinition | {}, prop?:
       config.property = $prop as string;
     }
 
-    Metadata.define(Children.name, ChildrenDefinition.create($prop as string, config), $target.constructor, $prop);
+    Metadata.define(baseName, ChildrenDefinition.create($prop as string, config), $target.constructor, $prop);
     Protocol.annotation.appendTo($target.constructor as Constructable, Children.keyFrom($prop as string));
   }
 
@@ -75,13 +75,14 @@ export function children(configOrTarget?: PartialChildrenDefinition | {}, prop?:
 }
 
 function isChildrenObserverAnnotation(key: string): boolean {
-  return key.startsWith(Children.name);
+  return key.startsWith(baseName);
 }
 
-export const Children = {
+const baseName = Protocol.annotation.keyFor('children-observer');
+export const Children = Object.freeze({
   name: Protocol.annotation.keyFor('children-observer'),
   keyFrom(name: string): string {
-    return `${Children.name}:${name}`;
+    return `${baseName}:${name}`;
   },
   from(...childrenObserverLists: readonly (ChildrenDefinition | Record<string, PartialChildrenDefinition> | readonly string[] | undefined)[]): Record<string, ChildrenDefinition> {
     const childrenObservers: Record<string, ChildrenDefinition> = {};
@@ -111,7 +112,7 @@ export const Children = {
     return childrenObservers;
   },
   getAll(Type: Constructable): readonly ChildrenDefinition[] {
-    const propStart = Children.name.length + 1;
+    const propStart = baseName.length + 1;
     const defs: ChildrenDefinition[] = [];
     const prototypeChain = getPrototypeChain(Type);
 
@@ -125,12 +126,12 @@ export const Children = {
       keys = Protocol.annotation.getKeys(Class).filter(isChildrenObserverAnnotation);
       keysLen = keys.length;
       for (let i = 0; i < keysLen; ++i) {
-        defs[iDefs++] = Metadata.getOwn(Children.name, Class, keys[i].slice(propStart));
+        defs[iDefs++] = Metadata.getOwn(baseName, Class, keys[i].slice(propStart));
       }
     }
     return defs;
   },
-};
+});
 
 const childObserverOptions = { childList: true };
 export class ChildrenDefinition {

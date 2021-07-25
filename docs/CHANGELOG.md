@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.14"></a>
+# 2.0.0-alpha.14 (2021-07-25)
+
+### Refactorings:
+
+* **runtime-html:** more error coded ([928d75e](https://github.com/aurelia/aurelia/commit/928d75e))
+* **template-compiler:** codeify error messages, add more doc ([8004b8c](https://github.com/aurelia/aurelia/commit/8004b8c))
+* **instructions:** rename instructions to props for CE/CA/TC ([ce307f4](https://github.com/aurelia/aurelia/commit/ce307f4))
+* **runtime:** mark more private properties ([8ecf70b](https://github.com/aurelia/aurelia/commit/8ecf70b))
+* **controller:** rename semi public APIs ([c2ee6e9](https://github.com/aurelia/aurelia/commit/c2ee6e9))
+
+### BREAKING CHANGES:
+
+* **controller:** The following static methods of class `Controller` have been renamed as:
+  - `Controller.forCustomElement` -> `Controller.$el`
+  - `Controller.forCustomAttrbite` -> `Controller.$attr`
+  - `Controller.forSyntheticView` -> `Controller.$view`
+
 <a name="2.0.0-alpha.13"></a>
 # 2.0.0-alpha.13 (2021-07-19)
 

@@ -93,14 +93,19 @@ export class NodeObserverConfig {
 }
 
 export class NodeObserverLocator implements INodeObserverLocator {
+  /** @internal */
   protected static readonly inject = [IServiceLocator, IPlatform, IDirtyChecker, ISVGAnalyzer];
 
   public allowDirtyCheck: boolean = true;
 
-  private readonly events: Record<string, Record<string, NodeObserverConfig>> = createLookup();
-  private readonly globalEvents: Record<string, NodeObserverConfig> = createLookup();
-  private readonly overrides: Record<string, Record<string, true>> = createLookup();
-  private readonly globalOverrides: Record<string, true> = createLookup();
+  /** @internal */
+  private readonly _events: Record<string, Record<string, NodeObserverConfig>> = createLookup();
+  /** @internal */
+  private readonly _globalEvents: Record<string, NodeObserverConfig> = createLookup();
+  /** @internal */
+  private readonly _overrides: Record<string, Record<string, true>> = createLookup();
+  /** @internal */
+  private readonly _globalOverrides: Record<string, true> = createLookup();
 
   public constructor(
     private readonly locator: IServiceLocator,
@@ -161,7 +166,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
   public useConfig(config: Record<string, Record<string, INodeObserverConfig>>): void;
   public useConfig(nodeName: string, key: PropertyKey, events: INodeObserverConfig): void;
   public useConfig(nodeNameOrConfig: string | Record<string, Record<string, INodeObserverConfig>>, key?: PropertyKey, eventsConfig?: INodeObserverConfig): void {
-    const lookup = this.events;
+    const lookup = this._events;
     let existingMapping: Record<string, NodeObserverConfig>;
     if (typeof nodeNameOrConfig === 'string') {
       existingMapping = lookup[nodeNameOrConfig] ??= createLookup();
@@ -188,7 +193,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
   public useConfigGlobal(config: Record<string, INodeObserverConfig>): void;
   public useConfigGlobal(key: PropertyKey, events: INodeObserverConfig): void;
   public useConfigGlobal(configOrKey: PropertyKey | Record<string, INodeObserverConfig>, eventsConfig?: INodeObserverConfig): void {
-    const lookup = this.globalEvents;
+    const lookup = this._globalEvents;
     if (typeof configOrKey === 'object') {
       for (const key in configOrKey) {
         if (lookup[key] == null) {
@@ -208,7 +213,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
 
   // deepscan-disable-nextline
   public getAccessor(obj: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver {
-    if (key in this.globalOverrides || (key in (this.overrides[obj.tagName] ?? emptyObject))) {
+    if (key in this._globalOverrides || (key in (this._overrides[obj.tagName] ?? emptyObject))) {
       return this.getObserver(obj, key, requestor);
     }
     switch (key) {
@@ -244,12 +249,12 @@ export class NodeObserverLocator implements INodeObserverLocator {
   public overrideAccessor(tagNameOrOverrides: string | Record<string, string[]>, key?: PropertyKey): void {
     let existingTagOverride: Record<string, true> | undefined;
     if (typeof tagNameOrOverrides === 'string') {
-      existingTagOverride = this.overrides[tagNameOrOverrides] ??= createLookup();
+      existingTagOverride = this._overrides[tagNameOrOverrides] ??= createLookup();
       existingTagOverride[key as string] = true;
     } else {
       for (const tagName in tagNameOrOverrides) {
         for (const key of tagNameOrOverrides[tagName]) {
-          existingTagOverride =this.overrides[tagName] ??= createLookup();
+          existingTagOverride =this._overrides[tagName] ??= createLookup();
           existingTagOverride[key] = true;
         }
       }
@@ -263,7 +268,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
    */
   public overrideAccessorGlobal(...keys: string[]): void {
     for (const key of keys) {
-      this.globalOverrides[key] = true;
+      this._globalOverrides[key] = true;
     }
   }
 
@@ -277,7 +282,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
       case 'style':
         return new StyleAttributeAccessor(el);
     }
-    const eventsConfig: NodeObserverConfig | undefined = this.events[el.tagName]?.[key as string] ?? this.globalEvents[key as string];
+    const eventsConfig: NodeObserverConfig | undefined = this._events[el.tagName]?.[key as string] ?? this._globalEvents[key as string];
     if (eventsConfig != null) {
       return new eventsConfig.type(el, key, new EventSubscriber(eventsConfig), requestor, this.locator);
     }
@@ -299,7 +304,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
       if (__DEV__)
         throw new Error(`Unable to observe property ${String(key)}. Register observation mapping with .useConfig().`);
       else
-        throw new Error(`AUR0752:${String(key)}`);
+        throw new Error(`AUR0652:${String(key)}`);
     } else {
       // todo: probably still needs to get the property descriptor via getOwnPropertyDescriptor
       // but let's start with simplest scenario
@@ -321,5 +326,8 @@ export function getCollectionObserver(collection: unknown, observerLocator: IObs
 }
 
 function throwMappingExisted(nodeName: string, key: PropertyKey): never {
-  throw new Error(`Mapping for property ${String(key)} of <${nodeName} /> already exists`);
+  if (__DEV__)
+    throw new Error(`Mapping for property ${String(key)} of <${nodeName} /> already exists`);
+  else
+    throw new Error(`AUR0653:${String(key)}@${nodeName}`);
 }

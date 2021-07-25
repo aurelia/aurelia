@@ -43,21 +43,26 @@ export interface SelectValueObserver extends
   ISubscriberCollection {}
 
 export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQueue {
-  public value: unknown = void 0;
-  public oldValue: unknown = void 0;
-
-  public readonly obj: ISelectElement;
-
-  public hasChanges: boolean = false;
   // ObserverType.Layout is not always true
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
+  public value: unknown = void 0;
+  /** @internal */
+  private _oldValue: unknown = void 0;
+
+  public readonly obj: ISelectElement;
+
+  /** @internal */
+  private _hasChanges: boolean = false;
+  /** @internal */
   private _arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;
+  /** @internal */
   private _nodeObserver?: MutationObserver = void 0;
   public readonly queue!: FlushQueue;
 
-  private observing: boolean = false;
+  /** @internal */
+  private _observing: boolean = false;
   private readonly oL: IObserverLocator;
 
   public constructor(
@@ -74,7 +79,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   public getValue(): unknown {
     // is it safe to assume the observer has the latest value?
     // todo: ability to turn on/off cache based on type
-    return this.observing
+    return this._observing
       ? this.value
       : this.obj.multiple
         ? Array.from(this.obj.options).map(o => o.value)
@@ -82,18 +87,19 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   }
 
   public setValue(newValue: unknown, flags: LF): void {
-    this.oldValue = this.value;
+    this._oldValue = this.value;
     this.value = newValue;
-    this.hasChanges = newValue !== this.oldValue;
+    this._hasChanges = newValue !== this._oldValue;
     this._observeArray(newValue instanceof Array ? newValue : null);
     if ((flags & LF.noFlush) === 0) {
-      this.flushChanges(flags);
+      this._flushChanges();
     }
   }
 
-  public flushChanges(flags: LF): void {
-    if (this.hasChanges) {
-      this.hasChanges = false;
+  /** @internal */
+  private _flushChanges(): void {
+    if (this._hasChanges) {
+      this._hasChanges = false;
       this.syncOptions();
     }
   }
@@ -207,7 +213,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
       ++i;
     }
     // B.2
-    this.oldValue = this.value;
+    this._oldValue = this.value;
     // B.3
     this.value = value;
     // B.4
@@ -218,7 +224,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
     (this._nodeObserver = new this.obj.ownerDocument.defaultView!.MutationObserver(this._handleNodeChange.bind(this)))
       .observe(this.obj, childObserverOptions);
     this._observeArray(this.value instanceof Array ? this.value : null);
-    this.observing = true;
+    this._observing = true;
   }
 
   private stop(): void {
@@ -227,7 +233,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
     this._nodeObserver
       = this._arrayObserver
       = void 0;
-    this.observing = false;
+    this._observing = false;
   }
 
   // todo: observe all kind of collection
@@ -239,7 +245,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
         if (__DEV__)
           throw new Error('Only null or Array instances can be bound to a multi-select.');
         else
-          throw new Error('AUR0754');
+          throw new Error('AUR0654');
       }
       (this._arrayObserver = this.oL.getArrayObserver(array)).subscribe(this);
     }
@@ -276,8 +282,8 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   }
 
   public flush(): void {
-    oV = this.oldValue;
-    this.oldValue = this.value;
+    oV = this._oldValue;
+    this._oldValue = this.value;
     this.subs.notify(this.value, oV, LifecycleFlags.none);
   }
 }

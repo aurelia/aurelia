@@ -17,10 +17,13 @@ export interface IAurelia extends Aurelia {}
 export const IAurelia = DI.createInterface<IAurelia>('IAurelia');
 
 export class Aurelia implements IDisposable {
+  /** @internal */
   private _isRunning: boolean = false;
   public get isRunning(): boolean { return this._isRunning; }
+  /** @internal */
   private _isStarting: boolean = false;
   public get isStarting(): boolean { return this._isStarting; }
+  /** @internal */
   private _isStopping: boolean = false;
   public get isStopping(): boolean { return this._isStopping; }
 
@@ -29,11 +32,15 @@ export class Aurelia implements IDisposable {
   // in all other parts of the framework, root of something is always the same type of that thing
   // i.e: container.root => a container, RouteContext.root => a RouteContext
   // Aurelia.root of a controller hierarchy should behave similarly
+  /** @internal */
   private _root: IAppRoot | undefined = void 0;
   public get root(): IAppRoot {
     if (this._root == null) {
       if (this.next == null) {
-        throw new Error(`root is not defined`); // TODO: create error code
+        if (__DEV__)
+          throw new Error(`root is not defined`);
+        else
+          throw new Error('AUR0710');
       }
       return this.next;
     }
@@ -42,13 +49,17 @@ export class Aurelia implements IDisposable {
 
   private next: IAppRoot | undefined = void 0;
 
+  /** @internal */
   private readonly _rootProvider: InstanceProvider<IAppRoot>;
 
   public constructor(
     public readonly container: IContainer = DI.createContainer(),
   ) {
     if (container.has(IAurelia, true)) {
-      throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
+      if (__DEV__)
+        throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
+      else
+        throw new Error('AUR0711');
     }
 
     container.registerResolver(IAurelia, new InstanceProvider<IAurelia>('IAurelia', this));
@@ -107,11 +118,15 @@ export class Aurelia implements IDisposable {
     await platform.taskQueue.yield();
   }
 
+  /** @internal */
   private _initPlatform(host: HTMLElement): IPlatform {
     let p: IPlatform;
     if (!this.container.has(IPlatform, false)) {
       if (host.ownerDocument.defaultView === null) {
-        throw new Error(`Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`);
+        if (__DEV__)
+          throw new Error(`Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`);
+        else
+          throw new Error('AUR0712');
       }
       p = new BrowserPlatform(host.ownerDocument.defaultView);
       this.container.register(Registration.instance(IPlatform, p));
@@ -121,10 +136,14 @@ export class Aurelia implements IDisposable {
     return p;
   }
 
+  /** @internal */
   private _startPromise: Promise<void> | void = void 0;
   public start(root: IAppRoot | undefined = this.next): void | Promise<void> {
     if (root == null) {
-      throw new Error(`There is no composition root`);
+      if (__DEV__)
+        throw new Error(`There is no composition root`);
+      else
+        throw new Error('AUR0713');
     }
 
     if (this._startPromise instanceof Promise) {
@@ -145,6 +164,7 @@ export class Aurelia implements IDisposable {
     });
   }
 
+  /** @internal */
   private _stopPromise: Promise<void> | void = void 0;
   public stop(dispose: boolean = false): void | Promise<void> {
     if (this._stopPromise instanceof Promise) {
@@ -171,11 +191,15 @@ export class Aurelia implements IDisposable {
 
   public dispose(): void {
     if (this._isRunning || this._isStopping) {
-      throw new Error(`The aurelia instance must be fully stopped before it can be disposed`);
+      if (__DEV__)
+        throw new Error(`The aurelia instance must be fully stopped before it can be disposed`);
+      else
+        throw new Error('AUR0714');
     }
     this.container.dispose();
   }
 
+  /** @internal */
   private _dispatchEvent(root: IAppRoot, name: string, target: HTMLElement): void {
     const ev = new root.platform.window.CustomEvent(name, { detail: this, bubbles: true, cancelable: true });
     target.dispatchEvent(ev);

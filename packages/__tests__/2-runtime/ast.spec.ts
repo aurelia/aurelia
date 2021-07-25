@@ -392,7 +392,8 @@ describe('AST', function () {
     describe('evaluate() throws when returned converter is nil', function () {
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'evaluate', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyLocatorThatReturnsNull, null);
+          throwsOn(expr, 'evaluate', `AUR0103:b`, LF.none, dummyScope, dummyLocatorThatReturnsNull, null);
+          // throwsOn(expr, 'evaluate', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyLocatorThatReturnsNull, null);
         });
       }
     });
@@ -400,7 +401,8 @@ describe('AST', function () {
     describe('assign() throws when returned converter is null', function () {
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, null`, function () {
-          throwsOn(expr, 'assign', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyLocatorThatReturnsNull, null);
+          throwsOn(expr, 'assign', `AUR0104:b`, LF.none, dummyScope, dummyLocatorThatReturnsNull, null);
+          // throwsOn(expr, 'assign', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyLocatorThatReturnsNull, null);
         });
       }
     });
@@ -408,7 +410,8 @@ describe('AST', function () {
     describe('connect() throws when returned converter is null', function () {
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'evaluate', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyLocator, dummyBindingWithLocatorThatReturnsNull);
+          throwsOn(expr, 'evaluate', `AUR0103:b`, LF.none, dummyScope, dummyLocator, dummyBindingWithLocatorThatReturnsNull);
+          // throwsOn(expr, 'evaluate', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyLocator, dummyBindingWithLocatorThatReturnsNull);
         });
       }
     });
@@ -418,7 +421,8 @@ describe('AST', function () {
     describe('bind() throws when returned behavior is null', function () {
       for (const [text, expr] of SimpleBindingBehaviorList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'bind', `BindingBehavior named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyBindingWithLocatorThatReturnsNull);
+          throwsOn(expr, 'bind', `AUR0101:b`, LF.none, dummyScope, dummyBindingWithLocatorThatReturnsNull);
+          // throwsOn(expr, 'bind', `BindingBehavior named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyBindingWithLocatorThatReturnsNull);
         });
       }
     });

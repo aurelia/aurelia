@@ -17,14 +17,17 @@ export interface ValueAttributeObserver extends ISubscriberCollection {}
  * Observer for non-radio, non-checkbox input.
  */
 export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlushable {
-  public readonly obj: INode & IIndexable;
-  public value: unknown = '';
-  public oldValue: unknown = '';
-
-  public hasChanges: boolean = false;
   // ObserverType.Layout is not always true, it depends on the element & property combo
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
+
+  public readonly obj: INode & IIndexable;
+  public value: unknown = '';
+  /** @internal */
+  private _oldValue: unknown = '';
+
+  /** @internal */
+  private _hasChanges: boolean = false;
   public readonly queue!: FlushQueue;
 
   public constructor(
@@ -45,17 +48,18 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
     if (Object.is(newValue, this.value)) {
       return;
     }
-    this.oldValue = this.value;
+    this._oldValue = this.value;
     this.value = newValue;
-    this.hasChanges = true;
+    this._hasChanges = true;
     if (!this.handler.config.readonly && (flags & LifecycleFlags.noFlush) === 0) {
-      this.flushChanges(flags);
+      this._flushChanges(flags);
     }
   }
 
-  public flushChanges(flags: LifecycleFlags): void {
-    if (this.hasChanges) {
-      this.hasChanges = false;
+  /** @internal */
+  private _flushChanges(flags: LifecycleFlags): void {
+    if (this._hasChanges) {
+      this._hasChanges = false;
       this.obj[this.propertyKey as string] = this.value ?? this.handler.config.default;
 
       if ((flags & LifecycleFlags.fromBind) === 0) {
@@ -65,10 +69,10 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   }
 
   public handleEvent(): void {
-    this.oldValue = this.value;
+    this._oldValue = this.value;
     this.value = this.obj[this.propertyKey as string];
-    if (this.oldValue !== this.value) {
-      this.hasChanges = false;
+    if (this._oldValue !== this.value) {
+      this._hasChanges = false;
       this.queue.add(this);
     }
   }
@@ -76,7 +80,7 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.handler.subscribe(this.obj, this);
-      this.value = this.oldValue = this.obj[this.propertyKey as string];
+      this.value = this._oldValue = this.obj[this.propertyKey as string];
     }
   }
 
@@ -87,8 +91,8 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   }
 
   public flush(): void {
-    oV = this.oldValue;
-    this.oldValue = this.value;
+    oV = this._oldValue;
+    this._oldValue = this.value;
     this.subs.notify(this.value, oV, LifecycleFlags.none);
   }
 }

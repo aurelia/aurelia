@@ -993,10 +993,8 @@ class MockObserver {
   public dispose = createSpy();
   public obj: any;
   public propertyKey?: string | number | symbol;
-  public oldValue?: any;
   public previousValue?: any;
   public value: any;
-  public hasChanges?: boolean;
   public flush = createSpy();
   public getValue = createSpy();
   public setValue = createSpy();

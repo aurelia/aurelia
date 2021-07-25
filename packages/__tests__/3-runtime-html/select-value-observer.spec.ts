@@ -258,8 +258,8 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
 
           const el = select(...optionFactories.map(create => create(ctx)))(ctx);
           const sut = observerLocator.getObserver(el, 'value') as SelectValueObserver;
+          sut.setValue(initialValue, LifecycleFlags.noFlush);
 
-          sut.oldValue = sut.value = initialValue;
           return { ctx, el, sut };
         }
 

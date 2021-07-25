@@ -10,9 +10,6 @@ import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
  * @see ElementPropertyAccessor
  */
 export class DataAttributeAccessor implements IAccessor<string | null> {
-  public readonly obj!: HTMLElement;
-  public readonly propertyKey: string = '';
-
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
@@ -21,7 +18,7 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
     return obj.getAttribute(key);
   }
 
-  public setValue(newValue: string | null, flags: LifecycleFlags, obj: HTMLElement, key: string): void {
+  public setValue(newValue: string | null, f: LifecycleFlags, obj: HTMLElement, key: string): void {
     if (newValue == void 0) {
       obj.removeAttribute(key);
     } else {

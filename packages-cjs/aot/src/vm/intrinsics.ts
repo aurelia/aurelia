@@ -1,48 +1,76 @@
 import {
-  Realm,
-  ExecutionContext,
-} from './realm.js';
-import {
-  $Boolean,
-} from './types/boolean.js';
-import {
-  $Empty,
-} from './types/empty.js';
-import {
-  $Undefined,
-} from './types/undefined.js';
-import {
-  $Null,
-} from './types/null.js';
-import {
-  $Number,
-} from './types/number.js';
-import {
-  $String,
-} from './types/string.js';
-import {
-  $Symbol,
-} from './types/symbol.js';
-import {
-  $Object,
-} from './types/object.js';
-import {
-  $IteratorPrototype,
-  $AsyncIteratorPrototype,
   $AsyncFromSyncIteratorPrototype,
   $AsyncFromSyncIteratorPrototype_next,
   $AsyncFromSyncIteratorPrototype_return,
   $AsyncFromSyncIteratorPrototype_throw,
+  $AsyncIteratorPrototype,
+  $IteratorPrototype,
 } from './globals/iteration.js';
 import {
-  $StringConstructor,
-  $StringPrototype,
-} from './globals/string.js';
+  $AsyncFunctionConstructor,
+  $AsyncFunctionPrototype,
+} from './globals/async-function.js';
 import {
-  $ObjectConstructor,
-  $ObjectPrototype,
+  $AsyncGeneratorFunctionConstructor,
+  $AsyncGeneratorFunctionPrototype,
+  $AsyncGeneratorPrototype,
+  $AsyncGeneratorPrototype_next,
+  $AsyncGeneratorPrototype_return,
+  $AsyncGeneratorPrototype_throw,
+} from './globals/async-generator-function.js';
+import {
+  $BooleanConstructor,
+  $BooleanPrototype,
+} from './globals/boolean.js';
+import {
+  $DecodeURI,
+  $DecodeURIComponent,
+  $EncodeURI,
+  $EncodeURIComponent,
+} from './globals/uri-handling.js';
+import {
+  $ErrorConstructor,
+  $ErrorPrototype,
+  $ErrorPrototype_toString,
+  $EvalErrorConstructor,
+  $EvalErrorPrototype,
+  $RangeErrorConstructor,
+  $RangeErrorPrototype,
+  $ReferenceErrorConstructor,
+  $ReferenceErrorPrototype,
+  $SyntaxErrorConstructor,
+  $SyntaxErrorPrototype,
+  $TypeErrorConstructor,
+  $TypeErrorPrototype,
+  $URIErrorConstructor,
+  $URIErrorPrototype,
+} from './globals/error.js';
+import {
+  $FunctionConstructor,
+  $FunctionPrototype,
+  $FunctionPrototype_apply,
+  $FunctionPrototype_bind,
+  $FunctionPrototype_call,
+  $FunctionPrototype_hasInstance,
+  $FunctionPrototype_toString,
+} from './globals/function.js';
+import {
+  $GeneratorFunctionConstructor,
+  $GeneratorFunctionPrototype,
+  $GeneratorPrototype,
+  $GeneratorPrototype_next,
+  $GeneratorPrototype_return,
+  $GeneratorPrototype_throw,
+} from './globals/generator-function.js';
+import {
+  $NumberConstructor,
+  $NumberPrototype,
+} from './globals/number.js';
+import {
   $ObjProto_toString,
   $ObjProto_valueOf,
+  $ObjectConstructor,
+  $ObjectPrototype,
   $ObjectPrototype_hasOwnProperty,
   $ObjectPrototype_isPrototypeOf,
   $ObjectPrototype_propertyIsEnumerable,
@@ -70,87 +98,16 @@ import {
   $Object_values,
 } from './globals/object.js';
 import {
-  $FunctionPrototype,
-  $FunctionConstructor,
-  $FunctionPrototype_call,
-  $FunctionPrototype_apply,
-  $FunctionPrototype_bind,
-  $FunctionPrototype_toString,
-  $FunctionPrototype_hasInstance,
-} from './globals/function.js';
-import {
-  CompletionType,
-} from './types/_shared.js';
-import {
-  $NumberConstructor,
-  $NumberPrototype,
-} from './globals/number.js';
-import {
-  $BooleanConstructor,
-  $BooleanPrototype,
-} from './globals/boolean.js';
-import {
-  $SymbolConstructor,
-  $SymbolPrototype,
-} from './globals/symbol.js';
-import {
-  $ErrorConstructor,
-  $ErrorPrototype,
-  $ErrorPrototype_toString,
-  $EvalErrorConstructor,
-  $EvalErrorPrototype,
-  $RangeErrorConstructor,
-  $RangeErrorPrototype,
-  $ReferenceErrorConstructor,
-  $ReferenceErrorPrototype,
-  $SyntaxErrorConstructor,
-  $SyntaxErrorPrototype,
-  $TypeErrorConstructor,
-  $TypeErrorPrototype,
-  $URIErrorConstructor,
-  $URIErrorPrototype,
-} from './globals/error.js';
-import {
-  $ThrowTypeError,
-} from './globals/throw-type-error.js';
-import {
-  IDisposable,
-  Writable,
-} from '@aurelia/kernel';
-import {
-  $GeneratorFunctionPrototype,
-  $GeneratorPrototype,
-  $GeneratorFunctionConstructor,
-  $GeneratorPrototype_next,
-  $GeneratorPrototype_return,
-  $GeneratorPrototype_throw,
-} from './globals/generator-function.js';
-import {
   $PromiseConstructor,
+  $PromiseProto_catch,
+  $PromiseProto_finally,
+  $PromiseProto_then,
   $PromisePrototype,
   $Promise_all,
   $Promise_race,
-  $Promise_resolve,
   $Promise_reject,
-  $PromiseProto_then,
-  $PromiseProto_catch,
-  $PromiseProto_finally,
+  $Promise_resolve,
 } from './globals/promise.js';
-import {
-  $GetSpecies,
-} from './globals/_shared.js';
-import {
-  $AsyncFunctionPrototype,
-  $AsyncFunctionConstructor,
-} from './globals/async-function.js';
-import {
-  $AsyncGeneratorFunctionPrototype,
-  $AsyncGeneratorFunctionConstructor,
-  $AsyncGeneratorPrototype,
-  $AsyncGeneratorPrototype_next,
-  $AsyncGeneratorPrototype_return,
-  $AsyncGeneratorPrototype_throw,
-} from './globals/async-generator-function.js';
 import {
   $ProxyConstructor,
   $Proxy_revocable,
@@ -172,8 +129,34 @@ import {
   $Reflect_setPrototypeOf,
 } from './globals/reflect.js';
 import {
+  $StringConstructor,
+  $StringPrototype,
+} from './globals/string.js';
+import {
+  $SymbolConstructor,
+  $SymbolPrototype,
+} from './globals/symbol.js';
+import {
+  ExecutionContext,
+  Realm,
+} from './realm.js';
+import {
+  IDisposable,
+  Writable,
+} from '@aurelia/kernel';
+
+import {
+  $Boolean,
+} from './types/boolean.js';
+import {
+  $Empty,
+} from './types/empty.js';
+import {
   $Eval,
 } from './globals/eval.js';
+import {
+  $GetSpecies,
+} from './globals/_shared.js';
 import {
   $IsFinite,
 } from './globals/is-finite.js';
@@ -181,17 +164,35 @@ import {
   $IsNaN,
 } from './globals/is-nan.js';
 import {
+  $Null,
+} from './types/null.js';
+import {
+  $Number,
+} from './types/number.js';
+import {
+  $Object,
+} from './types/object.js';
+import {
   $ParseFloat,
 } from './globals/parse-float.js';
 import {
   $ParseInt,
 } from './globals/parse-int.js';
 import {
-  $DecodeURI,
-  $DecodeURIComponent,
-  $EncodeURI,
-  $EncodeURIComponent,
-} from './globals/uri-handling.js';
+  $String,
+} from './types/string.js';
+import {
+  $Symbol,
+} from './types/symbol.js';
+import {
+  $ThrowTypeError,
+} from './globals/throw-type-error.js';
+import {
+  $Undefined,
+} from './types/undefined.js';
+import {
+  CompletionType,
+} from './types/_shared.js';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -1250,7 +1251,7 @@ export class Intrinsics implements IDisposable {
 }
 
 export type IntrinsicObjectKey = {
-  [K in keyof Intrinsics]: Intrinsics[K] extends $Object ? K : never;
+  [K in keyof Intrinsics]: Intrinsics[K] extends $Object ? K : keyof Intrinsics;
 } extends {
   [K in keyof Intrinsics]: infer U;
 } ? ({} extends U ? never : U) : never;

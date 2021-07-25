@@ -44,7 +44,7 @@ function bindable(configOrTarget, prop) {
             // - @bindable({...opts})
             config.property = $prop;
         }
-        kernel.Metadata.define(baseName, BindableDefinition.create($prop, config), $target.constructor, $prop);
+        kernel.Metadata.define(baseName$1, BindableDefinition.create($prop, config), $target.constructor, $prop);
         kernel.Protocol.annotation.appendTo($target.constructor, Bindable.keyFrom($prop));
     }
     if (arguments.length > 1) {
@@ -69,13 +69,13 @@ function bindable(configOrTarget, prop) {
     return decorator;
 }
 function isBindableAnnotation(key) {
-    return key.startsWith(baseName);
+    return key.startsWith(baseName$1);
 }
-const baseName = kernel.Protocol.annotation.keyFor('bindable');
+const baseName$1 = kernel.Protocol.annotation.keyFor('bindable');
 const Bindable = Object.freeze({
-    name: baseName,
+    name: baseName$1,
     keyFrom(name) {
-        return `${baseName}:${name}`;
+        return `${baseName$1}:${name}`;
     },
     from(...bindableLists) {
         const bindables = {};
@@ -115,10 +115,10 @@ const Bindable = Object.freeze({
                     config = configOrProp;
                 }
                 def = BindableDefinition.create(prop, config);
-                if (!kernel.Metadata.hasOwn(baseName, Type, prop)) {
+                if (!kernel.Metadata.hasOwn(baseName$1, Type, prop)) {
                     kernel.Protocol.annotation.appendTo(Type, Bindable.keyFrom(prop));
                 }
-                kernel.Metadata.define(baseName, def, Type, prop);
+                kernel.Metadata.define(baseName$1, def, Type, prop);
                 return builder;
             },
             mode(mode) {
@@ -145,7 +145,7 @@ const Bindable = Object.freeze({
         return builder;
     },
     getAll(Type) {
-        const propStart = baseName.length + 1;
+        const propStart = baseName$1.length + 1;
         const defs = [];
         const prototypeChain = kernel.getPrototypeChain(Type);
         let iProto = prototypeChain.length;
@@ -159,7 +159,7 @@ const Bindable = Object.freeze({
             keys = kernel.Protocol.annotation.getKeys(Class).filter(isBindableAnnotation);
             keysLen = keys.length;
             for (i = 0; i < keysLen; ++i) {
-                defs[iDefs++] = kernel.Metadata.getOwn(baseName, Class, keys[i].slice(propStart));
+                defs[iDefs++] = kernel.Metadata.getOwn(baseName$1, Class, keys[i].slice(propStart));
             }
         }
         return defs;
@@ -181,36 +181,37 @@ class BindableDefinition {
 /* eslint-enable @typescript-eslint/no-unused-vars,spaced-comment */
 
 class BindableObserver {
-    constructor(obj, propertyKey, cbName, set, 
+    constructor(obj, key, cbName, set, 
     // todo: a future feature where the observer is not instantiated via a controller
     // this observer can become more static, as in immediately available when used
     // in the form of a decorator
     $controller) {
         this.obj = obj;
-        this.propertyKey = propertyKey;
+        this.key = key;
         this.set = set;
         this.$controller = $controller;
         // todo: name too long. just value/oldValue, or v/oV
         this.value = void 0;
-        this.oldValue = void 0;
+        /** @internal */
+        this._oldValue = void 0;
         this.f = 0 /* none */;
         const cb = obj[cbName];
         const cbAll = obj.propertyChanged;
-        const hasCb = this.hasCb = typeof cb === 'function';
-        const hasCbAll = this.hasCbAll = typeof cbAll === 'function';
-        const hasSetter = this.hasSetter = set !== kernel.noop;
+        const hasCb = this._hasCb = typeof cb === 'function';
+        const hasCbAll = this._hasCbAll = typeof cbAll === 'function';
+        const hasSetter = this._hasSetter = set !== kernel.noop;
         this.cb = hasCb ? cb : kernel.noop;
-        this.cbAll = hasCbAll ? cbAll : kernel.noop;
+        this._cbAll = hasCbAll ? cbAll : kernel.noop;
         // when user declare @bindable({ set })
         // it's expected to work from the start,
         // regardless where the assignment comes from: either direct view model assignment or from binding during render
         // so if either getter/setter config is present, alter the accessor straight await
         if (this.cb === void 0 && !hasCbAll && !hasSetter) {
-            this.observing = false;
+            this._observing = false;
         }
         else {
-            this.observing = true;
-            const val = obj[propertyKey];
+            this._observing = true;
+            const val = obj[key];
             this.value = hasSetter && val !== void 0 ? set(val) : val;
             this._createGetterSetter();
         }
@@ -220,25 +221,25 @@ class BindableObserver {
         return this.value;
     }
     setValue(newValue, flags) {
-        if (this.hasSetter) {
+        if (this._hasSetter) {
             newValue = this.set(newValue);
         }
-        if (this.observing) {
+        if (this._observing) {
             const currentValue = this.value;
             if (Object.is(newValue, currentValue)) {
                 return;
             }
             this.value = newValue;
-            this.oldValue = currentValue;
+            this._oldValue = currentValue;
             this.f = flags;
             // todo: controller (if any) state should determine the invocation instead
             if ( /* either not instantiated via a controller */this.$controller == null
                 /* or the controller instantiating this is bound */ || this.$controller.isBound) {
-                if (this.hasCb) {
+                if (this._hasCb) {
                     this.cb.call(this.obj, newValue, currentValue, flags);
                 }
-                if (this.hasCbAll) {
-                    this.cbAll.call(this.obj, this.propertyKey, newValue, currentValue, flags);
+                if (this._hasCbAll) {
+                    this._cbAll.call(this.obj, this.key, newValue, currentValue, flags);
                 }
             }
             this.queue.add(this);
@@ -246,14 +247,14 @@ class BindableObserver {
         }
         else {
             // See SetterObserver.setValue for explanation
-            this.obj[this.propertyKey] = newValue;
+            this.obj[this.key] = newValue;
         }
     }
     subscribe(subscriber) {
-        if (!this.observing === false) {
-            this.observing = true;
-            const currentValue = this.obj[this.propertyKey];
-            this.value = this.hasSetter
+        if (!this._observing === false) {
+            this._observing = true;
+            const currentValue = this.obj[this.key];
+            this.value = this._hasSetter
                 ? this.set(currentValue)
                 : currentValue;
             this._createGetterSetter();
@@ -261,12 +262,13 @@ class BindableObserver {
         this.subs.add(subscriber);
     }
     flush() {
-        oV$4 = this.oldValue;
-        this.oldValue = this.value;
+        oV$4 = this._oldValue;
+        this._oldValue = this.value;
         this.subs.notify(this.value, oV$4, this.f);
     }
+    /** @internal */
     _createGetterSetter() {
-        Reflect.defineProperty(this.obj, this.propertyKey, {
+        Reflect.defineProperty(this.obj, this.key, {
             enumerable: true,
             configurable: true,
             get: ( /* Bindable Observer */) => this.value,
@@ -1204,18 +1206,19 @@ class CallBinding {
  * TODO: handle SVG/attributes with namespace
  */
 class AttributeObserver {
-    constructor(platform, obj, propertyKey, targetAttribute) {
-        this.platform = platform;
-        this.obj = obj;
-        this.propertyKey = propertyKey;
-        this.targetAttribute = targetAttribute;
-        this.value = null;
-        this.oldValue = null;
-        this.hasChanges = false;
+    constructor(obj, prop, attr) {
+        this.prop = prop;
+        this.attr = attr;
         // layout is not certain, depends on the attribute being flushed to owner element
         // but for simple start, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
+        this.value = null;
+        /** @internal */
+        this._oldValue = null;
+        /** @internal */
+        this._hasChanges = false;
         this.f = 0 /* none */;
+        this.obj = obj;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
@@ -1224,17 +1227,18 @@ class AttributeObserver {
     }
     setValue(value, flags) {
         this.value = value;
-        this.hasChanges = value !== this.oldValue;
+        this._hasChanges = value !== this._oldValue;
         if ((flags & 256 /* noFlush */) === 0) {
-            this.flushChanges(flags);
+            this._flushChanges();
         }
     }
-    flushChanges(flags) {
-        if (this.hasChanges) {
-            this.hasChanges = false;
+    /** @internal */
+    _flushChanges() {
+        if (this._hasChanges) {
+            this._hasChanges = false;
             const value = this.value;
-            const attr = this.targetAttribute;
-            this.oldValue = value;
+            const attr = this.attr;
+            this._oldValue = value;
             switch (attr) {
                 case 'class': {
                     // Why does class attribute observer setValue look different with class attribute accessor?
@@ -1248,7 +1252,7 @@ class AttributeObserver {
                     // this also comes from syntax, where it would typically be my-class.class="someProperty"
                     //
                     // so there is no need for separating class by space and add all of them like class accessor
-                    this.obj.classList.toggle(this.propertyKey, !!value);
+                    this.obj.classList.toggle(this.prop, !!value);
                     break;
                 }
                 case 'style': {
@@ -1258,7 +1262,7 @@ class AttributeObserver {
                         priority = 'important';
                         newValue = newValue.replace('!important', '');
                     }
-                    this.obj.style.setProperty(this.propertyKey, newValue, priority);
+                    this.obj.style.setProperty(this.prop, newValue, priority);
                     break;
                 }
                 default: {
@@ -1276,27 +1280,27 @@ class AttributeObserver {
         let shouldProcess = false;
         for (let i = 0, ii = mutationRecords.length; ii > i; ++i) {
             const record = mutationRecords[i];
-            if (record.type === 'attributes' && record.attributeName === this.propertyKey) {
+            if (record.type === 'attributes' && record.attributeName === this.prop) {
                 shouldProcess = true;
                 break;
             }
         }
         if (shouldProcess) {
             let newValue;
-            switch (this.targetAttribute) {
+            switch (this.attr) {
                 case 'class':
-                    newValue = this.obj.classList.contains(this.propertyKey);
+                    newValue = this.obj.classList.contains(this.prop);
                     break;
                 case 'style':
-                    newValue = this.obj.style.getPropertyValue(this.propertyKey);
+                    newValue = this.obj.style.getPropertyValue(this.prop);
                     break;
                 default:
-                    throw new Error(`AUR0751:${this.targetAttribute}`);
+                    throw new Error(`AUR0651:${this.attr}`);
             }
             if (newValue !== this.value) {
-                this.oldValue = this.value;
+                this._oldValue = this.value;
                 this.value = newValue;
-                this.hasChanges = false;
+                this._hasChanges = false;
                 this.f = 0 /* none */;
                 this.queue.add(this);
             }
@@ -1304,7 +1308,7 @@ class AttributeObserver {
     }
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
-            this.value = this.oldValue = this.obj.getAttribute(this.propertyKey);
+            this.value = this._oldValue = this.obj.getAttribute(this.prop);
             startObservation(this.obj.ownerDocument.defaultView.MutationObserver, this.obj, this);
         }
     }
@@ -1314,35 +1318,35 @@ class AttributeObserver {
         }
     }
     flush() {
-        oV$3 = this.oldValue;
-        this.oldValue = this.value;
+        oV$3 = this._oldValue;
+        this._oldValue = this.value;
         this.subs.notify(this.value, oV$3, this.f);
     }
 }
 runtime.subscriberCollection(AttributeObserver);
 runtime.withFlushQueue(AttributeObserver);
-const startObservation = ($MutationObserver, element, subscription) => {
-    if (element.$eMObservers === undefined) {
-        element.$eMObservers = new Set();
+const startObservation = ($MutationObserver, element, subscriber) => {
+    if (element.$eMObs === undefined) {
+        element.$eMObs = new Set();
     }
-    if (element.$mObserver === undefined) {
-        (element.$mObserver = new $MutationObserver(handleMutation)).observe(element, { attributes: true });
+    if (element.$mObs === undefined) {
+        (element.$mObs = new $MutationObserver(handleMutation)).observe(element, { attributes: true });
     }
-    element.$eMObservers.add(subscription);
+    element.$eMObs.add(subscriber);
 };
-const stopObservation = (element, subscription) => {
-    const $eMObservers = element.$eMObservers;
-    if ($eMObservers && $eMObservers.delete(subscription)) {
+const stopObservation = (element, subscriber) => {
+    const $eMObservers = element.$eMObs;
+    if ($eMObservers && $eMObservers.delete(subscriber)) {
         if ($eMObservers.size === 0) {
-            element.$mObserver.disconnect();
-            element.$mObserver = undefined;
+            element.$mObs.disconnect();
+            element.$mObs = undefined;
         }
         return true;
     }
     return false;
 };
 const handleMutation = (mutationRecords) => {
-    mutationRecords[0].target.$eMObservers.forEach(invokeHandleMutation, mutationRecords);
+    mutationRecords[0].target.$eMObs.forEach(invokeHandleMutation, mutationRecords);
 };
 function invokeHandleMutation(s) {
     s.handleMutation(this);
@@ -1472,7 +1476,7 @@ class AttributeBinding {
         }
         let targetObserver = this.targetObserver;
         if (!targetObserver) {
-            targetObserver = this.targetObserver = new AttributeObserver(this.p, this.target, this.targetProperty, this.targetAttribute);
+            targetObserver = this.targetObserver = new AttributeObserver(this.target, this.targetProperty, this.targetAttribute);
         }
         // during bind, binding behavior might have changed sourceExpression
         sourceExpression = this.sourceExpression;
@@ -2124,7 +2128,7 @@ function children(configOrTarget, prop) {
             // - @children({...opts})
             config.property = $prop;
         }
-        kernel.Metadata.define(Children.name, ChildrenDefinition.create($prop, config), $target.constructor, $prop);
+        kernel.Metadata.define(baseName, ChildrenDefinition.create($prop, config), $target.constructor, $prop);
         kernel.Protocol.annotation.appendTo($target.constructor, Children.keyFrom($prop));
     }
     if (arguments.length > 1) {
@@ -2149,12 +2153,13 @@ function children(configOrTarget, prop) {
     return decorator;
 }
 function isChildrenObserverAnnotation(key) {
-    return key.startsWith(Children.name);
+    return key.startsWith(baseName);
 }
-const Children = {
+const baseName = kernel.Protocol.annotation.keyFor('children-observer');
+const Children = Object.freeze({
     name: kernel.Protocol.annotation.keyFor('children-observer'),
     keyFrom(name) {
-        return `${Children.name}:${name}`;
+        return `${baseName}:${name}`;
     },
     from(...childrenObserverLists) {
         const childrenObservers = {};
@@ -2180,7 +2185,7 @@ const Children = {
         return childrenObservers;
     },
     getAll(Type) {
-        const propStart = Children.name.length + 1;
+        const propStart = baseName.length + 1;
         const defs = [];
         const prototypeChain = kernel.getPrototypeChain(Type);
         let iProto = prototypeChain.length;
@@ -2193,12 +2198,12 @@ const Children = {
             keys = kernel.Protocol.annotation.getKeys(Class).filter(isChildrenObserverAnnotation);
             keysLen = keys.length;
             for (let i = 0; i < keysLen; ++i) {
-                defs[iDefs++] = kernel.Metadata.getOwn(Children.name, Class, keys[i].slice(propStart));
+                defs[iDefs++] = kernel.Metadata.getOwn(baseName, Class, keys[i].slice(propStart));
             }
         }
         return defs;
     },
-};
+});
 const childObserverOptions$1 = { childList: true };
 class ChildrenDefinition {
     constructor(callback, property, options, query, filter, map) {
@@ -2388,7 +2393,7 @@ const CustomAttribute = Object.freeze({
 
 function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
     if (!expressionOrPropertyAccessFn) {
-        throw new Error('Invalid watch config. Expected an expression or a fn');
+        throw new Error('AUR0715');
     }
     return function decorator(target, key, descriptor) {
         const isClassDecorator = key == null;
@@ -2398,11 +2403,11 @@ function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
         if (isClassDecorator) {
             if (typeof changeHandlerOrCallback !== 'function'
                 && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in Type.prototype))) {
-                throw new Error(`Invalid change handler config. Method "${String(changeHandlerOrCallback)}" not found in class ${Type.name}`);
+                throw new Error(`AUR0716:${String(changeHandlerOrCallback)}@${Type.name}}`);
             }
         }
         else if (typeof (descriptor === null || descriptor === void 0 ? void 0 : descriptor.value) !== 'function') {
-            throw new Error(`decorated target ${String(key)} is not a class method.`);
+            throw new Error(`AUR0717:${String(key)}`);
         }
         Watch.add(Type, watchDef);
         // if the code looks like this:
@@ -2609,7 +2614,7 @@ const CustomElement = Object.freeze({
             }
             cur = getEffectiveParentNode(cur);
         }
-        throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
+        throw new Error('AUR0708');
     },
     define(nameOrDef, Type) {
         const definition = CustomElementDefinition.create(nameOrDef, Type);
@@ -2717,14 +2722,17 @@ function ensureHook(target, hook) {
 class ClassAttributeAccessor {
     constructor(obj) {
         this.obj = obj;
-        this.value = '';
-        this.oldValue = '';
-        this.doNotCache = true;
-        this.nameIndex = {};
-        this.version = 0;
-        this.hasChanges = false;
-        this.isActive = false;
         this.type = 2 /* Node */ | 4 /* Layout */;
+        this.value = '';
+        /** @internal */
+        this._oldValue = '';
+        this.doNotCache = true;
+        /** @internal */
+        this._nameIndex = {};
+        /** @internal */
+        this._version = 0;
+        /** @internal */
+        this._hasChanges = false;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
@@ -2733,24 +2741,25 @@ class ClassAttributeAccessor {
     }
     setValue(newValue, flags) {
         this.value = newValue;
-        this.hasChanges = newValue !== this.oldValue;
+        this._hasChanges = newValue !== this._oldValue;
         if ((flags & 256 /* noFlush */) === 0) {
-            this.flushChanges(flags);
+            this._flushChanges();
         }
     }
-    flushChanges(flags) {
-        if (this.hasChanges) {
-            this.hasChanges = false;
+    /** @internal */
+    _flushChanges() {
+        if (this._hasChanges) {
+            this._hasChanges = false;
             const currentValue = this.value;
-            const nameIndex = this.nameIndex;
-            let version = this.version;
-            this.oldValue = currentValue;
+            const nameIndex = this._nameIndex;
             const classesToAdd = getClassesToAdd(currentValue);
+            let version = this._version;
+            this._oldValue = currentValue;
             // Get strings split on a space not including empties
             if (classesToAdd.length > 0) {
                 this._addClassesAndUpdateIndex(classesToAdd);
             }
-            this.version += 1;
+            this._version += 1;
             // First call to setValue?  We're done.
             if (version === 0) {
                 return;
@@ -2769,14 +2778,18 @@ class ClassAttributeAccessor {
             }
         }
     }
+    /** @internal */
     _addClassesAndUpdateIndex(classes) {
         const node = this.obj;
-        for (let i = 0, ii = classes.length; i < ii; i++) {
-            const className = classes[i];
+        const ii = classes.length;
+        let i = 0;
+        let className;
+        for (; i < ii; i++) {
+            className = classes[i];
             if (className.length === 0) {
                 continue;
             }
-            this.nameIndex[className] = this.version;
+            this._nameIndex[className] = this._version;
             node.classList.add(className);
         }
     }
@@ -2792,7 +2805,8 @@ function getClassesToAdd(object) {
         const len = object.length;
         if (len > 0) {
             const classes = [];
-            for (let i = 0; i < len; ++i) {
+            let i = 0;
+            for (; len > i; ++i) {
                 classes.push(...getClassesToAdd(object[i]));
             }
             return classes;
@@ -2802,7 +2816,8 @@ function getClassesToAdd(object) {
         }
     }
     const classes = [];
-    for (const property in object) {
+    let property;
+    for (property in object) {
         // Let non typical values also evaluate true so disable bool check
         if (Boolean(object[property])) {
             // We must do this in case object property has a space in the name which results in two classes
@@ -3479,7 +3494,7 @@ class Rendering {
         const renderers = this.renderers;
         const ii = targets.length;
         if (targets.length !== rows.length) {
-            throw new Error(`The compiled template is not aligned with the render instructions. There are ${ii} targets and ${rows.length} instructions.`);
+            throw new Error(`AUR0757:${ii}<>${rows.length}`);
         }
         let i = 0;
         let j = 0;
@@ -8020,35 +8035,37 @@ class DebounceBindingBehavior extends runtime.BindingInterceptor {
 }
 runtime.bindingBehavior('debounce')(DebounceBindingBehavior);
 
-exports.SignalBindingBehavior = class SignalBindingBehavior {
+class SignalBindingBehavior {
     constructor(signaler) {
-        this.signaler = signaler;
-        this.lookup = new Map();
+        /** @internal */
+        this._lookup = new Map();
+        this._signaler = signaler;
     }
     bind(flags, scope, binding, ...names) {
         if (!('handleChange' in binding)) {
-            throw new Error(`The signal behavior can only be used with bindings that have a 'handleChange' method`);
+            throw new Error('AUR0817');
         }
         if (names.length === 0) {
-            throw new Error(`At least one signal name must be passed to the signal behavior, e.g. \`expr & signal:'my-signal'\``);
+            throw new Error('AUR0818');
         }
-        this.lookup.set(binding, names);
-        for (const name of names) {
-            this.signaler.addSignalListener(name, binding);
+        this._lookup.set(binding, names);
+        let name;
+        for (name of names) {
+            this._signaler.addSignalListener(name, binding);
         }
     }
     unbind(flags, scope, binding) {
-        const names = this.lookup.get(binding);
-        this.lookup.delete(binding);
-        for (const name of names) {
-            this.signaler.removeSignalListener(name, binding);
+        const names = this._lookup.get(binding);
+        this._lookup.delete(binding);
+        let name;
+        for (name of names) {
+            this._signaler.removeSignalListener(name, binding);
         }
     }
-};
-exports.SignalBindingBehavior = __decorate([
-    __param(0, runtime.ISignaler)
-], exports.SignalBindingBehavior);
-runtime.bindingBehavior('signal')(exports.SignalBindingBehavior);
+}
+/** @internal */
+SignalBindingBehavior.inject = [runtime.ISignaler];
+runtime.bindingBehavior('signal')(SignalBindingBehavior);
 
 const defaultDelay = 200;
 // A binding behavior that limits
@@ -8131,7 +8148,6 @@ runtime.bindingBehavior('throttle')(ThrottleBindingBehavior);
  */
 class DataAttributeAccessor {
     constructor() {
-        this.propertyKey = '';
         // ObserverType.Layout is not always true, it depends on the property
         // but for simplicity, always treat as such
         this.type = 2 /* Node */ | 4 /* Layout */;
@@ -8139,7 +8155,7 @@ class DataAttributeAccessor {
     getValue(obj, key) {
         return obj.getAttribute(key);
     }
-    setValue(newValue, flags, obj, key) {
+    setValue(newValue, f, obj, key) {
         if (newValue == void 0) {
             obj.removeAttribute(key);
         }
@@ -8189,8 +8205,12 @@ const nsMap = createLookup();
  * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).
  */
 class AttributeNSAccessor {
-    constructor(namespace) {
-        this.namespace = namespace;
+    constructor(
+    /**
+     * The namespace associated with this accessor
+     */
+    ns) {
+        this.ns = ns;
         // ObserverType.Layout is not always true, it depends on the property
         // but for simplicity, always treat as such
         this.type = 2 /* Node */ | 4 /* Layout */;
@@ -8200,14 +8220,14 @@ class AttributeNSAccessor {
         return (_a = nsMap[ns]) !== null && _a !== void 0 ? _a : (nsMap[ns] = new AttributeNSAccessor(ns));
     }
     getValue(obj, propertyKey) {
-        return obj.getAttributeNS(this.namespace, propertyKey);
+        return obj.getAttributeNS(this.ns, propertyKey);
     }
-    setValue(newValue, flags, obj, key) {
+    setValue(newValue, f, obj, key) {
         if (newValue == void 0) {
-            obj.removeAttributeNS(this.namespace, key);
+            obj.removeAttributeNS(this.ns, key);
         }
         else {
-            obj.setAttributeNS(this.namespace, key, newValue);
+            obj.setAttributeNS(this.ns, key, newValue);
         }
     }
 }
@@ -8220,11 +8240,15 @@ class CheckedObserver {
     // deepscan-disable-next-line
     _key, handler, observerLocator) {
         this.handler = handler;
-        this.value = void 0;
-        this.oldValue = void 0;
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
+        this.value = void 0;
+        /** @internal */
+        this._oldValue = void 0;
+        /** @internal */
         this._collectionObserver = void 0;
+        /** @internal */
         this._valueObserver = void 0;
+        /** @internal */
         this.f = 0 /* none */;
         this.obj = obj;
         this.oL = observerLocator;
@@ -8238,7 +8262,7 @@ class CheckedObserver {
             return;
         }
         this.value = newValue;
-        this.oldValue = currentValue;
+        this._oldValue = currentValue;
         this.f = flags;
         this._observe();
         this._synchronizeElement();
@@ -8250,6 +8274,7 @@ class CheckedObserver {
     handleChange(newValue, previousValue, flags) {
         this._synchronizeElement();
     }
+    /** @internal */
     _synchronizeElement() {
         const currentValue = this.value;
         const obj = this.obj;
@@ -8291,7 +8316,7 @@ class CheckedObserver {
         }
     }
     handleEvent() {
-        let currentValue = this.oldValue = this.value;
+        let currentValue = this._oldValue = this.value;
         const obj = this.obj;
         const elementValue = hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
         const isChecked = obj.checked;
@@ -8419,10 +8444,11 @@ class CheckedObserver {
         }
     }
     flush() {
-        oV$2 = this.oldValue;
-        this.oldValue = this.value;
+        oV$2 = this._oldValue;
+        this._oldValue = this.value;
         this.subs.notify(this.value, oV$2, this.f);
     }
+    /** @internal */
     _observe() {
         var _a, _b, _c, _d, _e, _f, _g;
         const obj = this.obj;
@@ -8454,39 +8480,45 @@ class SelectValueObserver {
     // deepscan-disable-next-line
     _key, handler, observerLocator) {
         this.handler = handler;
-        this.value = void 0;
-        this.oldValue = void 0;
-        this.hasChanges = false;
         // ObserverType.Layout is not always true
         // but for simplicity, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
+        this.value = void 0;
+        /** @internal */
+        this._oldValue = void 0;
+        /** @internal */
+        this._hasChanges = false;
+        /** @internal */
         this._arrayObserver = void 0;
+        /** @internal */
         this._nodeObserver = void 0;
-        this.observing = false;
+        /** @internal */
+        this._observing = false;
         this.obj = obj;
         this.oL = observerLocator;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
         // todo: ability to turn on/off cache based on type
-        return this.observing
+        return this._observing
             ? this.value
             : this.obj.multiple
                 ? Array.from(this.obj.options).map(o => o.value)
                 : this.obj.value;
     }
     setValue(newValue, flags) {
-        this.oldValue = this.value;
+        this._oldValue = this.value;
         this.value = newValue;
-        this.hasChanges = newValue !== this.oldValue;
+        this._hasChanges = newValue !== this._oldValue;
         this._observeArray(newValue instanceof Array ? newValue : null);
         if ((flags & 256 /* noFlush */) === 0) {
-            this.flushChanges(flags);
+            this._flushChanges();
         }
     }
-    flushChanges(flags) {
-        if (this.hasChanges) {
-            this.hasChanges = false;
+    /** @internal */
+    _flushChanges() {
+        if (this._hasChanges) {
+            this._hasChanges = false;
             this.syncOptions();
         }
     }
@@ -8596,7 +8628,7 @@ class SelectValueObserver {
             ++i;
         }
         // B.2
-        this.oldValue = this.value;
+        this._oldValue = this.value;
         // B.3
         this.value = value;
         // B.4
@@ -8606,7 +8638,7 @@ class SelectValueObserver {
         (this._nodeObserver = new this.obj.ownerDocument.defaultView.MutationObserver(this._handleNodeChange.bind(this)))
             .observe(this.obj, childObserverOptions);
         this._observeArray(this.value instanceof Array ? this.value : null);
-        this.observing = true;
+        this._observing = true;
     }
     stop() {
         var _a;
@@ -8615,7 +8647,7 @@ class SelectValueObserver {
         this._nodeObserver
             = this._arrayObserver
                 = void 0;
-        this.observing = false;
+        this._observing = false;
     }
     // todo: observe all kind of collection
     _observeArray(array) {
@@ -8624,7 +8656,7 @@ class SelectValueObserver {
         this._arrayObserver = void 0;
         if (array != null) {
             if (!this.obj.multiple) {
-                throw new Error('AUR0754');
+                throw new Error('AUR0654');
             }
             (this._arrayObserver = this.oL.getArrayObserver(array)).subscribe(this);
         }
@@ -8656,8 +8688,8 @@ class SelectValueObserver {
         }
     }
     flush() {
-        oV$1 = this.oldValue;
-        this.oldValue = this.value;
+        oV$1 = this._oldValue;
+        this._oldValue = this.value;
         this.subs.notify(this.value, oV$1, 0 /* none */);
     }
 }
@@ -8671,21 +8703,23 @@ const customPropertyPrefix = '--';
 class StyleAttributeAccessor {
     constructor(obj) {
         this.obj = obj;
+        this.type = 2 /* Node */ | 4 /* Layout */;
         this.value = '';
-        this.oldValue = '';
+        /** @internal */
+        this._oldValue = '';
         this.styles = {};
         this.version = 0;
-        this.hasChanges = false;
-        this.type = 2 /* Node */ | 4 /* Layout */;
+        /** @internal */
+        this._hasChanges = false;
     }
     getValue() {
         return this.obj.style.cssText;
     }
     setValue(newValue, flags) {
         this.value = newValue;
-        this.hasChanges = newValue !== this.oldValue;
+        this._hasChanges = newValue !== this._oldValue;
         if ((flags & 256 /* noFlush */) === 0) {
-            this.flushChanges(flags);
+            this._flushChanges();
         }
     }
     _getStyleTuplesFromString(currentValue) {
@@ -8763,15 +8797,16 @@ class StyleAttributeAccessor {
         }
         return kernel.emptyArray;
     }
-    flushChanges(flags) {
-        if (this.hasChanges) {
-            this.hasChanges = false;
+    /** @internal */
+    _flushChanges() {
+        if (this._hasChanges) {
+            this._hasChanges = false;
             const currentValue = this.value;
             const styles = this.styles;
             const styleTuples = this._getStyleTuples(currentValue);
             let style;
             let version = this.version;
-            this.oldValue = currentValue;
+            this._oldValue = currentValue;
             let tuple;
             let name;
             let value;
@@ -8807,7 +8842,7 @@ class StyleAttributeAccessor {
         this.obj.style.setProperty(style, value, priority);
     }
     bind(flags) {
-        this.value = this.oldValue = this.obj.style.cssText;
+        this.value = this._oldValue = this.obj.style.cssText;
     }
 }
 
@@ -8818,12 +8853,14 @@ class ValueAttributeObserver {
     constructor(obj, propertyKey, handler) {
         this.propertyKey = propertyKey;
         this.handler = handler;
-        this.value = '';
-        this.oldValue = '';
-        this.hasChanges = false;
         // ObserverType.Layout is not always true, it depends on the element & property combo
         // but for simplicity, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
+        this.value = '';
+        /** @internal */
+        this._oldValue = '';
+        /** @internal */
+        this._hasChanges = false;
         this.obj = obj;
     }
     getValue() {
@@ -8835,17 +8872,18 @@ class ValueAttributeObserver {
         if (Object.is(newValue, this.value)) {
             return;
         }
-        this.oldValue = this.value;
+        this._oldValue = this.value;
         this.value = newValue;
-        this.hasChanges = true;
+        this._hasChanges = true;
         if (!this.handler.config.readonly && (flags & 256 /* noFlush */) === 0) {
-            this.flushChanges(flags);
+            this._flushChanges(flags);
         }
     }
-    flushChanges(flags) {
+    /** @internal */
+    _flushChanges(flags) {
         var _a;
-        if (this.hasChanges) {
-            this.hasChanges = false;
+        if (this._hasChanges) {
+            this._hasChanges = false;
             this.obj[this.propertyKey] = (_a = this.value) !== null && _a !== void 0 ? _a : this.handler.config.default;
             if ((flags & 2 /* fromBind */) === 0) {
                 this.queue.add(this);
@@ -8853,17 +8891,17 @@ class ValueAttributeObserver {
         }
     }
     handleEvent() {
-        this.oldValue = this.value;
+        this._oldValue = this.value;
         this.value = this.obj[this.propertyKey];
-        if (this.oldValue !== this.value) {
-            this.hasChanges = false;
+        if (this._oldValue !== this.value) {
+            this._hasChanges = false;
             this.queue.add(this);
         }
     }
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
             this.handler.subscribe(this.obj, this);
-            this.value = this.oldValue = this.obj[this.propertyKey];
+            this.value = this._oldValue = this.obj[this.propertyKey];
         }
     }
     unsubscribe(subscriber) {
@@ -8872,8 +8910,8 @@ class ValueAttributeObserver {
         }
     }
     flush() {
-        oV = this.oldValue;
-        this.oldValue = this.value;
+        oV = this._oldValue;
+        this._oldValue = this.value;
         this.subs.notify(this.value, oV, 0 /* none */);
     }
 }
@@ -8918,10 +8956,14 @@ class NodeObserverLocator {
         this.dirtyChecker = dirtyChecker;
         this.svgAnalyzer = svgAnalyzer;
         this.allowDirtyCheck = true;
-        this.events = createLookup();
-        this.globalEvents = createLookup();
-        this.overrides = createLookup();
-        this.globalOverrides = createLookup();
+        /** @internal */
+        this._events = createLookup();
+        /** @internal */
+        this._globalEvents = createLookup();
+        /** @internal */
+        this._overrides = createLookup();
+        /** @internal */
+        this._globalOverrides = createLookup();
         // todo: atm, platform is required to be resolved too eagerly for the `.handles()` check
         // also a lot of tests assume default availability of observation
         // those 2 assumptions make it not the right time to extract the following line into a
@@ -8969,7 +9011,7 @@ class NodeObserverLocator {
     }
     useConfig(nodeNameOrConfig, key, eventsConfig) {
         var _a, _b;
-        const lookup = this.events;
+        const lookup = this._events;
         let existingMapping;
         if (typeof nodeNameOrConfig === 'string') {
             existingMapping = (_a = lookup[nodeNameOrConfig]) !== null && _a !== void 0 ? _a : (lookup[nodeNameOrConfig] = createLookup());
@@ -8996,7 +9038,7 @@ class NodeObserverLocator {
         }
     }
     useConfigGlobal(configOrKey, eventsConfig) {
-        const lookup = this.globalEvents;
+        const lookup = this._globalEvents;
         if (typeof configOrKey === 'object') {
             for (const key in configOrKey) {
                 if (lookup[key] == null) {
@@ -9019,7 +9061,7 @@ class NodeObserverLocator {
     // deepscan-disable-nextline
     getAccessor(obj, key, requestor) {
         var _a;
-        if (key in this.globalOverrides || (key in ((_a = this.overrides[obj.tagName]) !== null && _a !== void 0 ? _a : kernel.emptyObject))) {
+        if (key in this._globalOverrides || (key in ((_a = this._overrides[obj.tagName]) !== null && _a !== void 0 ? _a : kernel.emptyObject))) {
             return this.getObserver(obj, key, requestor);
         }
         switch (key) {
@@ -9049,13 +9091,13 @@ class NodeObserverLocator {
         var _c, _d;
         let existingTagOverride;
         if (typeof tagNameOrOverrides === 'string') {
-            existingTagOverride = (_a = (_c = this.overrides)[tagNameOrOverrides]) !== null && _a !== void 0 ? _a : (_c[tagNameOrOverrides] = createLookup());
+            existingTagOverride = (_a = (_c = this._overrides)[tagNameOrOverrides]) !== null && _a !== void 0 ? _a : (_c[tagNameOrOverrides] = createLookup());
             existingTagOverride[key] = true;
         }
         else {
             for (const tagName in tagNameOrOverrides) {
                 for (const key of tagNameOrOverrides[tagName]) {
-                    existingTagOverride = (_b = (_d = this.overrides)[tagName]) !== null && _b !== void 0 ? _b : (_d[tagName] = createLookup());
+                    existingTagOverride = (_b = (_d = this._overrides)[tagName]) !== null && _b !== void 0 ? _b : (_d[tagName] = createLookup());
                     existingTagOverride[key] = true;
                 }
             }
@@ -9068,7 +9110,7 @@ class NodeObserverLocator {
      */
     overrideAccessorGlobal(...keys) {
         for (const key of keys) {
-            this.globalOverrides[key] = true;
+            this._globalOverrides[key] = true;
         }
     }
     getObserver(el, key, requestor) {
@@ -9082,7 +9124,7 @@ class NodeObserverLocator {
             case 'style':
                 return new StyleAttributeAccessor(el);
         }
-        const eventsConfig = (_b = (_a = this.events[el.tagName]) === null || _a === void 0 ? void 0 : _a[key]) !== null && _b !== void 0 ? _b : this.globalEvents[key];
+        const eventsConfig = (_b = (_a = this._events[el.tagName]) === null || _a === void 0 ? void 0 : _a[key]) !== null && _b !== void 0 ? _b : this._globalEvents[key];
         if (eventsConfig != null) {
             return new eventsConfig.type(el, key, new EventSubscriber(eventsConfig), requestor, this.locator);
         }
@@ -9100,7 +9142,7 @@ class NodeObserverLocator {
             }
             // consider:
             // - maybe add a adapter API to handle unknown obj/key combo
-            throw new Error(`AUR0752:${String(key)}`);
+            throw new Error(`AUR0652:${String(key)}`);
         }
         else {
             // todo: probably still needs to get the property descriptor via getOwnPropertyDescriptor
@@ -9109,6 +9151,7 @@ class NodeObserverLocator {
         }
     }
 }
+/** @internal */
 NodeObserverLocator.inject = [kernel.IServiceLocator, IPlatform, runtime.IDirtyChecker, ISVGAnalyzer];
 function getCollectionObserver(collection, observerLocator) {
     if (collection instanceof Array) {
@@ -9122,7 +9165,7 @@ function getCollectionObserver(collection, observerLocator) {
     }
 }
 function throwMappingExisted(nodeName, key) {
-    throw new Error(`Mapping for property ${String(key)} of <${nodeName} /> already exists`);
+    throw new Error(`AUR0653:${String(key)}@${nodeName}`);
 }
 
 class UpdateTriggerBindingBehavior {
@@ -11346,7 +11389,7 @@ const DebounceBindingBehaviorRegistration = DebounceBindingBehavior;
 const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior;
 const ToViewBindingBehaviorRegistration = ToViewBindingBehavior;
 const FromViewBindingBehaviorRegistration = FromViewBindingBehavior;
-const SignalBindingBehaviorRegistration = exports.SignalBindingBehavior;
+const SignalBindingBehaviorRegistration = SignalBindingBehavior;
 const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior;
 const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior;
 const ITemplateCompilerRegistration = TemplateCompiler;
@@ -11572,20 +11615,26 @@ const IAurelia = kernel.DI.createInterface('IAurelia');
 class Aurelia {
     constructor(container = kernel.DI.createContainer()) {
         this.container = container;
+        /** @internal */
         this._isRunning = false;
+        /** @internal */
         this._isStarting = false;
+        /** @internal */
         this._isStopping = false;
         // TODO:
         // root should just be a controller,
         // in all other parts of the framework, root of something is always the same type of that thing
         // i.e: container.root => a container, RouteContext.root => a RouteContext
         // Aurelia.root of a controller hierarchy should behave similarly
+        /** @internal */
         this._root = void 0;
         this.next = void 0;
+        /** @internal */
         this._startPromise = void 0;
+        /** @internal */
         this._stopPromise = void 0;
         if (container.has(IAurelia, true)) {
-            throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
+            throw new Error('AUR0711');
         }
         container.registerResolver(IAurelia, new kernel.InstanceProvider('IAurelia', this));
         container.registerResolver(IAppRoot, this._rootProvider = new kernel.InstanceProvider('IAppRoot'));
@@ -11596,7 +11645,7 @@ class Aurelia {
     get root() {
         if (this._root == null) {
             if (this.next == null) {
-                throw new Error(`root is not defined`); // TODO: create error code
+                throw new Error('AUR0710');
             }
             return this.next;
         }
@@ -11638,11 +11687,12 @@ class Aurelia {
         await platform.domReadQueue.yield();
         await platform.taskQueue.yield();
     }
+    /** @internal */
     _initPlatform(host) {
         let p;
         if (!this.container.has(IPlatform, false)) {
             if (host.ownerDocument.defaultView === null) {
-                throw new Error(`Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`);
+                throw new Error('AUR0712');
             }
             p = new platformBrowser.BrowserPlatform(host.ownerDocument.defaultView);
             this.container.register(kernel.Registration.instance(IPlatform, p));
@@ -11654,7 +11704,7 @@ class Aurelia {
     }
     start(root = this.next) {
         if (root == null) {
-            throw new Error(`There is no composition root`);
+            throw new Error('AUR0713');
         }
         if (this._startPromise instanceof Promise) {
             return this._startPromise;
@@ -11693,10 +11743,11 @@ class Aurelia {
     }
     dispose() {
         if (this._isRunning || this._isStopping) {
-            throw new Error(`The aurelia instance must be fully stopped before it can be disposed`);
+            throw new Error('AUR0714');
         }
         this.container.dispose();
     }
+    /** @internal */
     _dispatchEvent(root, name, target) {
         const ev = new root.platform.window.CustomEvent(name, { detail: this, bubbles: true, cancelable: true });
         target.dispatchEvent(ev);
@@ -11963,7 +12014,7 @@ class DialogService {
         container.register(kernel.Registration.singleton(IDialogService, this), AppTask.beforeDeactivate(IDialogService, dialogService => kernel.onResolve(dialogService.closeAll(), (openDialogController) => {
             if (openDialogController.length > 0) {
                 // todo: what to do?
-                throw new Error(`There are still ${openDialogController.length} open dialog(s).`);
+                throw new Error(`AUR0901:${openDialogController.length}`);
             }
         })));
     }
@@ -11993,7 +12044,7 @@ class DialogService {
                 const dialogController = container.invoke(DialogController);
                 container.register(kernel.Registration.instance(IDialogController, dialogController));
                 container.register(kernel.Registration.callback(DialogController, () => {
-                    throw new Error('Invalid injection of DialogController. Use IDialogController instead.');
+                    throw new Error('AUR0902');
                 }));
                 return kernel.onResolve(dialogController.activate(loadedSettings), openResult => {
                     if (!openResult.wasCancelled) {
@@ -12062,8 +12113,8 @@ class DialogService {
 class DialogSettings {
     static from(...srcs) {
         return Object.assign(new DialogSettings(), ...srcs)
-            .validate()
-            .normalize();
+            ._validate()
+            ._normalize();
     }
     load() {
         const loaded = this;
@@ -12081,13 +12132,15 @@ class DialogSettings {
             ? maybePromise.then(() => loaded)
             : loaded;
     }
-    validate() {
+    /** @internal */
+    _validate() {
         if (this.component == null && this.template == null) {
-            throw new Error('Invalid Dialog Settings. You must provide "component", "template" or both.');
+            throw new Error('AUR0903');
         }
         return this;
     }
-    normalize() {
+    /** @internal */
+    _normalize() {
         if (this.keyboard == null) {
             this.keyboard = this.lock ? [] : ['Enter', 'Escape'];
         }
@@ -12148,6 +12201,7 @@ class DefaultDialogDomRenderer {
         return new DefaultDialogDom(wrapper, overlay, host);
     }
 }
+/** @internal */
 DefaultDialogDomRenderer.inject = [IPlatform];
 class DefaultDialogDom {
     constructor(wrapper, overlay, contentHost) {
@@ -12178,10 +12232,7 @@ DialogConfiguration.customize(settings => {
 ```
  */
 const DialogConfiguration = createDialogConfiguration(() => {
-    throw new Error('Invalid dialog configuration. ' +
-        'Specify the implementations for ' +
-        '<IDialogService>, <IDialogGlobalSettings> and <IDialogDomRenderer>, ' +
-        'or use the DialogDefaultConfiguration export.');
+    throw new Error('AUR0904');
 }, [class NoopDialogGlobalSettings {
         static register(container) {
             container.register(kernel.Registration.singleton(IDialogGlobalSettings, this));
@@ -12932,6 +12983,7 @@ exports.SetStyleAttributeInstruction = SetStyleAttributeInstruction;
 exports.SetStyleAttributeRendererRegistration = SetStyleAttributeRendererRegistration;
 exports.ShadowDOMRegistry = ShadowDOMRegistry;
 exports.ShortHandBindingSyntax = ShortHandBindingSyntax;
+exports.SignalBindingBehavior = SignalBindingBehavior;
 exports.SignalBindingBehaviorRegistration = SignalBindingBehaviorRegistration;
 exports.StandardConfiguration = StandardConfiguration;
 exports.StyleAttributeAccessor = StyleAttributeAccessor;

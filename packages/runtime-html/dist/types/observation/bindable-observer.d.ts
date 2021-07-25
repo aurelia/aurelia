@@ -6,25 +6,18 @@ export interface BindableObserver extends IObserver, ISubscriberCollection {
 }
 export declare class BindableObserver implements IFlushable, IWithFlushQueue {
     readonly obj: IIndexable;
-    readonly propertyKey: string;
+    readonly key: string;
     private readonly set;
     readonly $controller: IController | null;
     get type(): AccessorType;
     value: unknown;
-    oldValue: unknown;
-    observing: boolean;
     queue: FlushQueue;
     private readonly cb;
-    private readonly cbAll;
-    private readonly hasCb;
-    private readonly hasCbAll;
-    private readonly hasSetter;
     private f;
-    constructor(obj: IIndexable, propertyKey: string, cbName: string, set: InterceptorFunc, $controller: IController | null);
+    constructor(obj: IIndexable, key: string, cbName: string, set: InterceptorFunc, $controller: IController | null);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     subscribe(subscriber: ISubscriber): void;
     flush(): void;
-    private _createGetterSetter;
 }
 //# sourceMappingURL=bindable-observer.d.ts.map

@@ -710,7 +710,7 @@ class BindingBehaviorExpression {
         }
         const behavior = b.locator.get(this.behaviorKey);
         if (behavior == null) {
-            throw new Error(`BindingBehavior named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+            throw new Error(`AUR0101:${this.name}`);
         }
         if (!(behavior instanceof BindingBehaviorFactory)) {
             if (b[this.behaviorKey] === void 0) {
@@ -718,7 +718,7 @@ class BindingBehaviorExpression {
                 behavior.bind.call(behavior, f, s, b, ...this.args.map(a => a.evaluate(f, s, b.locator, null)));
             }
             else {
-                throw new Error(`BindingBehavior named '${this.name}' already applied.`);
+                throw new Error(`AUR0102:${this.name}`);
             }
         }
     }
@@ -755,7 +755,7 @@ class ValueConverterExpression {
     evaluate(f, s, l, c) {
         const vc = l.get(this.converterKey);
         if (vc == null) {
-            throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+            throw new Error(`AUR0103:${this.name}`);
         }
         // note: the cast is expected. To connect, it just needs to be a IConnectable
         // though to work with signal, it needs to have `handleChange`
@@ -778,7 +778,7 @@ class ValueConverterExpression {
     assign(f, s, l, val) {
         const vc = l.get(this.converterKey);
         if (vc == null) {
-            throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+            throw new Error(`AUR0104:${this.name}`);
         }
         if ('fromView' in vc) {
             val = vc.fromView(val, ...this.args.map(a => a.evaluate(f, s, l, null)));
@@ -893,7 +893,7 @@ class AccessScopeExpression {
         }
         const evaluatedValue = obj[this.name];
         if (evaluatedValue == null && this.name === '$host') {
-            throw new Error('Unable to find $host context. Did you forget [au-slot] attribute?');
+            throw new Error('AUR0105');
         }
         if (f & 1 /* isStrictBindingStrategy */) {
             return evaluatedValue;
@@ -903,7 +903,7 @@ class AccessScopeExpression {
     assign(f, s, _l, val) {
         var _a;
         if (this.name === '$host') {
-            throw new Error('Invalid assignment. $host is a reserved keyword.');
+            throw new Error('AUR0106');
         }
         const obj = BindingContext.get(s, this.name, this.ancestor, f);
         if (obj instanceof Object) {
@@ -1076,7 +1076,7 @@ class CallFunctionExpression {
         if (!(f & 8 /* mustEvaluate */) && (func == null)) {
             return void 0;
         }
-        throw new Error(`Expression is not a function.`);
+        throw new Error('AUR0107');
     }
     assign(_f, _s, _l, _obj) {
         return void 0;
@@ -1165,7 +1165,7 @@ class BinaryExpression {
             case '>=':
                 return this.left.evaluate(f, s, l, c) >= this.right.evaluate(f, s, l, c);
             default:
-                throw new Error(`Unknown binary operator: '${this.operation}'`);
+                throw new Error(`AUR0108:${this.operation}`);
         }
     }
     assign(_f, _s, _l, _obj) {
@@ -1199,7 +1199,7 @@ class UnaryExpression {
             case '+':
                 return +this.expression.evaluate(f, s, l, c);
             default:
-                throw new Error(`Unknown unary operator: '${this.operation}'`);
+                throw new Error(`AUR0109:${this.operation}`);
         }
     }
     assign(_f, _s, _l, _obj) {
@@ -1353,7 +1353,7 @@ class TaggedTemplateExpression {
         const results = this.expressions.map(e => e.evaluate(f, s, l, c));
         const func = this.func.evaluate(f, s, l, c);
         if (typeof func !== 'function') {
-            throw new Error(`Left-hand side of tagged template expression is not a function.`);
+            throw new Error(`AUR0110`);
         }
         return func(this.cooked, ...results);
     }
@@ -1548,7 +1548,7 @@ function getFunction(f, obj, name) {
     if (!(f & 8 /* mustEvaluate */) && func == null) {
         return null;
     }
-    throw new Error(`Expected '${name}' to be a function`);
+    throw new Error(`AUR0111:${name}`);
 }
 function $array(result, func) {
     for (let i = 0, ii = result.length; i < ii; ++i) {

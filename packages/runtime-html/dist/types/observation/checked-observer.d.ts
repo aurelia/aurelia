@@ -16,28 +16,21 @@ export interface CheckedObserver extends ISubscriberCollection {
 }
 export declare class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     readonly handler: EventSubscriber;
-    value: unknown;
-    oldValue: unknown;
-    readonly obj: IInputElement;
     type: AccessorType;
-    private _collectionObserver?;
-    private _valueObserver?;
+    value: unknown;
+    readonly obj: IInputElement;
     readonly queue: FlushQueue;
-    private f;
-    private readonly oL;
     constructor(obj: INode, _key: PropertyKey, handler: EventSubscriber, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
-    private _synchronizeElement;
     handleEvent(): void;
     start(): void;
     stop(): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
     flush(): void;
-    private _observe;
 }
 export {};
 //# sourceMappingURL=checked-observer.d.ts.map

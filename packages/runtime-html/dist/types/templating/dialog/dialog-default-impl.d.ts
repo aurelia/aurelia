@@ -9,7 +9,6 @@ export declare class DefaultDialogGlobalSettings implements IDialogGlobalSetting
 }
 export declare class DefaultDialogDomRenderer implements IDialogDomRenderer {
     private readonly p;
-    protected static inject: import("@aurelia/kernel").InterfaceSymbol<IPlatform>[];
     constructor(p: IPlatform);
     static register(container: IContainer): void;
     private readonly wrapperCss;

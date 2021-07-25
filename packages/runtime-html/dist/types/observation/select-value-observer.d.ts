@@ -14,20 +14,14 @@ export interface SelectValueObserver extends ISubscriberCollection {
 }
 export declare class SelectValueObserver implements IObserver, IFlushable, IWithFlushQueue {
     readonly handler: EventSubscriber;
-    value: unknown;
-    oldValue: unknown;
-    readonly obj: ISelectElement;
-    hasChanges: boolean;
     type: AccessorType;
-    private _arrayObserver?;
-    private _nodeObserver?;
+    value: unknown;
+    readonly obj: ISelectElement;
     readonly queue: FlushQueue;
-    private observing;
     private readonly oL;
     constructor(obj: INode, _key: PropertyKey, handler: EventSubscriber, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LF): void;
-    flushChanges(flags: LF): void;
     handleCollectionChange(): void;
     syncOptions(): void;
     syncValue(): boolean;

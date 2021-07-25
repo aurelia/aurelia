@@ -28,12 +28,12 @@ export declare function children(prop: string): ClassDecorator;
  * @param prop - The property name
  */
 export declare function children(target: {}, prop: string): void;
-export declare const Children: {
+export declare const Children: Readonly<{
     name: string;
     keyFrom(name: string): string;
     from(...childrenObserverLists: readonly (ChildrenDefinition | Record<string, PartialChildrenDefinition> | readonly string[] | undefined)[]): Record<string, ChildrenDefinition>;
     getAll(Type: Constructable): readonly ChildrenDefinition[];
-};
+}>;
 export declare class ChildrenDefinition {
     readonly callback: string;
     readonly property: string;

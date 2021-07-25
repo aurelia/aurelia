@@ -11,16 +11,13 @@ export interface ValueAttributeObserver extends ISubscriberCollection {
 export declare class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlushable {
     readonly propertyKey: PropertyKey;
     readonly handler: EventSubscriber;
+    type: AccessorType;
     readonly obj: INode & IIndexable;
     value: unknown;
-    oldValue: unknown;
-    hasChanges: boolean;
-    type: AccessorType;
     readonly queue: FlushQueue;
     constructor(obj: INode, propertyKey: PropertyKey, handler: EventSubscriber);
     getValue(): unknown;
     setValue(newValue: string | null, flags: LifecycleFlags): void;
-    flushChanges(flags: LifecycleFlags): void;
     handleEvent(): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;

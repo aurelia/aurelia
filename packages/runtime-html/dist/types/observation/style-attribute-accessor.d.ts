@@ -2,12 +2,10 @@ import { LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import type { IAccessor } from '@aurelia/runtime';
 export declare class StyleAttributeAccessor implements IAccessor {
     readonly obj: HTMLElement;
+    type: AccessorType;
     value: unknown;
-    oldValue: unknown;
     styles: Record<string, number>;
     version: number;
-    hasChanges: boolean;
-    type: AccessorType;
     constructor(obj: HTMLElement);
     getValue(): string;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
@@ -15,7 +13,6 @@ export declare class StyleAttributeAccessor implements IAccessor {
     private _getStyleTuplesFromObject;
     private _getStyleTuplesFromArray;
     private _getStyleTuples;
-    flushChanges(flags: LifecycleFlags): void;
     setProperty(style: string, value: string): void;
     bind(flags: LifecycleFlags): void;
 }

@@ -8,11 +8,9 @@ import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
  * @see ElementPropertyAccessor
  */
 export declare class DataAttributeAccessor implements IAccessor<string | null> {
-    readonly obj: HTMLElement;
-    readonly propertyKey: string;
     type: AccessorType;
     getValue(obj: HTMLElement, key: string): string | null;
-    setValue(newValue: string | null, flags: LifecycleFlags, obj: HTMLElement, key: string): void;
+    setValue(newValue: string | null, f: LifecycleFlags, obj: HTMLElement, key: string): void;
 }
 export declare const attrAccessor: DataAttributeAccessor;
 //# sourceMappingURL=data-attribute-accessor.d.ts.map

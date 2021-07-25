@@ -1,13 +1,5 @@
 import { LifecycleFlags, AccessorType } from '@aurelia/runtime';
-import { IPlatform } from '../platform.js';
 import type { IObserver, ISubscriber, ISubscriberCollection, IFlushable, IWithFlushQueue, FlushQueue } from '@aurelia/runtime';
-export interface IHtmlElement extends HTMLElement {
-    $mObserver: MutationObserver;
-    $eMObservers: Set<ElementMutationSubscription>;
-}
-export interface ElementMutationSubscription {
-    handleMutation(mutationRecords: MutationRecord[]): void;
-}
 export interface AttributeObserver extends IObserver, ISubscriber, ISubscriberCollection {
 }
 /**
@@ -15,24 +7,24 @@ export interface AttributeObserver extends IObserver, ISubscriber, ISubscriberCo
  * Has different strategy for class/style and normal attributes
  * TODO: handle SVG/attributes with namespace
  */
-export declare class AttributeObserver implements AttributeObserver, ElementMutationSubscription, IWithFlushQueue, IFlushable {
-    private readonly platform;
-    readonly obj: IHtmlElement;
-    readonly propertyKey: string;
-    readonly targetAttribute: string;
-    value: unknown;
-    oldValue: unknown;
-    hasChanges: boolean;
+export declare class AttributeObserver implements AttributeObserver, ElementMutationSubscriber, IWithFlushQueue, IFlushable {
+    readonly prop: string;
+    readonly attr: string;
     type: AccessorType;
+    readonly obj: HTMLElement;
+    value: unknown;
     readonly queue: FlushQueue;
     private f;
-    constructor(platform: IPlatform, obj: IHtmlElement, propertyKey: string, targetAttribute: string);
+    constructor(obj: HTMLElement, prop: string, attr: string);
     getValue(): unknown;
     setValue(value: unknown, flags: LifecycleFlags): void;
-    flushChanges(flags: LifecycleFlags): void;
     handleMutation(mutationRecords: MutationRecord[]): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
     flush(): void;
 }
+interface ElementMutationSubscriber {
+    handleMutation(mutationRecords: MutationRecord[]): void;
+}
+export {};
 //# sourceMappingURL=element-attribute-observer.d.ts.map

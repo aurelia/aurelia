@@ -108,7 +108,10 @@ export class Rendering {
     const renderers = this.renderers;
     const ii = targets.length;
     if (targets.length !== rows.length) {
-      throw new Error(`The compiled template is not aligned with the render instructions. There are ${ii} targets and ${rows.length} instructions.`);
+      if (__DEV__)
+        throw new Error(`The compiled template is not aligned with the render instructions. There are ${ii} targets and ${rows.length} instructions.`);
+      else
+        throw new Error(`AUR0757:${ii}<>${rows.length}`);
     }
 
     let i = 0;

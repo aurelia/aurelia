@@ -66,6 +66,7 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0754 | This happens when a controller renders a template controller instruction that it doesn't have a registration. Normally happens in hand-crafted definition |
 | AUR0755 | This happens when a view factory provider tries to resolve but does not have a view factory associated |
 | AUR0756 | This happens when a view factory provider tries to resolve but the view factory associated does not have a valid name |
+| AUR0757 | This happens when `IRendering.render` is called with different number of targets and instructions |
 | AUR0701 | This happens when `BindingCommand.getDefinition` is called on a class/object without any binding command metadata associated |
 | AUR0702 | This happens when `CustomAttribute.getDefinition` is called on a class/object without any custom attribute metadata associated |
 | AUR0703 | This happens when `CustomElement.getDefinition` is called on a class/object without any custom element metadata associated |
@@ -75,15 +76,23 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0707 | This happens when `CustomElement.for` is called on an element with a given name, and Aurelia is unable to find any custom element in the given the element, or its ancestors |
 | AUR0708 | This happens when `CustomElement.for` is called on an element without a given name, and Aurelia is unable to find any custom element in the given element, or its ancestors |
 | AUR0709 | This happens when `@processContent` is called with a string as its first parameter, and Aurelia couldn't find the method on the decorated class |
+| AUR0710 | This happens when `root` property on an `Aurelia` instance is access before at least one application has been started with this `Aurelia` instance |
+| AUR0711 | This happens when a new `Aurelia` is created with a predefined container that already has `IAurelia` registration in it, or its ancestors |
+| AUR0712 | This happens when an `Aurelia` application is started with a document fragment before it's adopted by a document |
+| AUR0713 | This happens when `Aurelia.prototype.start` is called with a `null`/`undefined` value as the first parameter |
+| AUR0714 | This happens when `Aurelia.prototype.dispose` is called before the instance is stopped |
+| AUR0715 | This happens when the `@watch` decorator is used without a valid first parameter |
+| AUR0716 | This happens when the `@watch` decorator is used and Aurelia is not able to resolve the first parameter to a function |
+| AUR0717 | This happens when the `@watch` decorator is used on a class property instead of a method |
 
 ## HTML observation errors
 
 | Error Code | Description |
 | - | - |
-| AUR0751 | This happens when the binding created `.attr` binding command is forced into two way mode against any attribute other than `class`/`style` |
-| AUR0752 | This happens when the default `NodeObserverLocator.getObserver` is called with an object and property combo that it doesn't know how to observe, and dirty checking is disabled |
-| AUR0753 | This happens when `NodeObserverLocator` property->observation events mapping is getting overridden |
-| AUR0754 | This happens when a `<select>` element is specified `multiple`, but the binding value is not an array |
+| AUR0651 | This happens when the binding created `.attr` binding command is forced into two way mode against any attribute other than `class`/`style` |
+| AUR0652 | This happens when the default `NodeObserverLocator.getObserver` is called with an object and property combo that it doesn't know how to observe, and dirty checking is disabled |
+| AUR0653 | This happens when `NodeObserverLocator` property->observation events mapping is getting overridden |
+| AUR0654 | This happens when a `<select>` element is specified `multiple`, but the binding value is not an array |
 
 ## Controller errors
 
@@ -117,3 +126,30 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0814 | This happens when the internal of the `repeat` attribute get into a race condition and is corrupted |
 | AUR0815 | This happens when `case`/`default-case` attributes is used outside of a `switch` attribute |
 | AUR0816 | This happens when there are multiple `default-case` attributes inside a `switch` attribute |
+| AUR0817 | This happens when `& signal` binding behavior is used on binding that does not have `handleChange` method |
+| AUR0818 | This happens when `& signal` binding behavior is used without a valid name (non empty) |
+
+## Plugin errors
+
+| Error Code | Plugin name | Description |
+| - | - | - |
+| AUR0901 | Dialog | This happens when an application is closed with some dialogs still open |
+| AUR0902 | Dialog | This happens when `DialogController` injection is requested. It's a error prevention for v1->v2 migration of the dialog plugin |
+| AUR0903 | Dialog | This happens when `IDialogService.open` is called without both `component` and `template` property |
+| AUR0904 | Dialog | This happens when the default configuration of the dialog plugin is used, as there's no registration associated for key interfaces |
+
+# AST errors
+
+| Error Code | Description |
+| - | - |
+| AUR0101 | This happens when Aurelia couldn't find a binding behavior specified in an expression |
+| AUR0102 | This happens when there are two binding behaviors with the same name in an expression |
+| AUR0103 | This happens when a value converter for a given name couldn't be found during the evaluation of an expression |
+| AUR0104 | This happens when a value converter for a given name couldn't be found during the assignment of an expression |
+| AUR0105 | This happens when the special `$host` contextual property is accessed but no thing is found in the scope tree |
+| AUR0106 | This happens when an expression looks like this `$host = ...`, as `$host` is a readonly property |
+| AUR0107 | This happens when a call expression is evaluated but the object evaluated by the expression isn't a function |
+| AUR0108 | This happens when a binary expression is evaluated with an unknown operator |
+| AUR0109 | This happens when an unary expression is evaluated with an unknown operator |
+| AUR0110 | This happens when a tagged template (function call) is but the function specified isn't a function |
+| AUR0111 | This happens when a function call AST is evaluated but no function is found |

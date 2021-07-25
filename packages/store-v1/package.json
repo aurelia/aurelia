@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/store-v1",
-  "version": "2.0.0-alpha.13",
+  "version": "2.0.0-alpha.14",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -40,10 +40,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.13",
-    "@aurelia/metadata": "2.0.0-alpha.13",
-    "@aurelia/platform": "2.0.0-alpha.13",
-    "@aurelia/runtime-html": "2.0.0-alpha.13",
+    "@aurelia/kernel": "2.0.0-alpha.14",
+    "@aurelia/metadata": "2.0.0-alpha.14",
+    "@aurelia/platform": "2.0.0-alpha.14",
+    "@aurelia/runtime-html": "2.0.0-alpha.14",
     "rxjs": "^6.5.3"
   },
   "devDependencies": {

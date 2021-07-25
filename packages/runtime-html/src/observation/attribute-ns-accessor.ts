@@ -19,23 +19,23 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
-  public obj?: HTMLElement;
-  public propertyKey?: string;
-
   public constructor(
-    public readonly namespace: string,
+    /**
+     * The namespace associated with this accessor
+     */
+    public readonly ns: string,
   ) {
   }
 
   public getValue(obj: HTMLElement, propertyKey: string): string | null {
-    return obj.getAttributeNS(this.namespace, propertyKey);
+    return obj.getAttributeNS(this.ns, propertyKey);
   }
 
-  public setValue(newValue: string | null, flags: LifecycleFlags, obj: HTMLElement, key: string): void {
+  public setValue(newValue: string | null, f: LifecycleFlags, obj: HTMLElement, key: string): void {
     if (newValue == void 0) {
-      obj.removeAttributeNS(this.namespace, key);
+      obj.removeAttributeNS(this.ns, key);
     } else {
-      obj.setAttributeNS(this.namespace, key, newValue);
+      obj.setAttributeNS(this.ns, key, newValue);
     }
   }
 }

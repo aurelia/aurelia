@@ -405,14 +405,20 @@ export class BindingBehaviorExpression {
     }
     const behavior = b.locator.get<BindingBehaviorInstance>(this.behaviorKey);
     if (behavior == null) {
-      throw new Error(`BindingBehavior named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+      if (__DEV__)
+        throw new Error(`BindingBehavior named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+      else
+        throw new Error(`AUR0101:${this.name}`);
     }
     if (!(behavior instanceof BindingBehaviorFactory)) {
       if ((b as BindingWithBehavior)[this.behaviorKey] === void 0) {
         (b as BindingWithBehavior)[this.behaviorKey] = behavior;
         (behavior.bind.call as (...args: unknown[]) => void)(behavior, f, s, b, ...this.args.map(a => a.evaluate(f, s, b.locator, null)));
       } else {
-        throw new Error(`BindingBehavior named '${this.name}' already applied.`);
+        if (__DEV__)
+          throw new Error(`BindingBehavior named '${this.name}' already applied.`);
+        else
+          throw new Error(`AUR0102:${this.name}`);
       }
     }
   }
@@ -457,7 +463,10 @@ export class ValueConverterExpression {
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
     const vc = l.get<ValueConverterExpression & ValueConverterInstance & { signals?: string[] }>(this.converterKey);
     if (vc == null) {
-      throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+      if (__DEV__)
+        throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+      else
+        throw new Error(`AUR0103:${this.name}`);
     }
     // note: the cast is expected. To connect, it just needs to be a IConnectable
     // though to work with signal, it needs to have `handleChange`
@@ -481,7 +490,10 @@ export class ValueConverterExpression {
   public assign(f: LF, s: Scope, l: IServiceLocator, val: unknown): unknown {
     const vc = l.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
     if (vc == null) {
-      throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+      if (__DEV__)
+        throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+      else
+        throw new Error(`AUR0104:${this.name}`);
     }
     if ('fromView' in vc) {
       val = vc.fromView!(val, ...this.args.map(a => a.evaluate(f, s, l, null)));
@@ -619,7 +631,10 @@ export class AccessScopeExpression {
     }
     const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (evaluatedValue == null && this.name === '$host') {
-      throw new Error('Unable to find $host context. Did you forget [au-slot] attribute?');
+      if (__DEV__)
+        throw new Error('Unable to find $host context. Did you forget [au-slot] attribute?');
+      else
+        throw new Error('AUR0105');
     }
     if (f & LF.isStrictBindingStrategy) {
       return evaluatedValue;
@@ -629,7 +644,10 @@ export class AccessScopeExpression {
 
   public assign(f: LF, s: Scope, _l: IServiceLocator, val: unknown): unknown {
     if (this.name === '$host') {
-      throw new Error('Invalid assignment. $host is a reserved keyword.');
+      if (__DEV__)
+        throw new Error('Invalid assignment. $host is a reserved keyword.');
+      else
+        throw new Error('AUR0106');
     }
     const obj = BindingContext.get(s, this.name, this.ancestor, f) as IObservable;
     if (obj instanceof Object) {
@@ -829,7 +847,10 @@ export class CallFunctionExpression {
     if (!(f & LF.mustEvaluate) && (func == null)) {
       return void 0;
     }
-    throw new Error(`Expression is not a function.`);
+    if (__DEV__)
+      throw new Error(`Expression is not a function.`);
+    else
+      throw new Error('AUR0107');
   }
 
   public assign(_f: LF, _s: Scope, _l: IServiceLocator, _obj: unknown): unknown {
@@ -926,7 +947,10 @@ export class BinaryExpression {
       case '>=':
         return (this.left.evaluate(f, s, l, c) as number) >= (this.right.evaluate(f, s, l, c) as number);
       default:
-        throw new Error(`Unknown binary operator: '${this.operation}'`);
+        if (__DEV__)
+          throw new Error(`Unknown binary operator: '${this.operation}'`);
+        else
+          throw new Error(`AUR0108:${this.operation}`);
     }
   }
 
@@ -966,7 +990,10 @@ export class UnaryExpression {
       case '+':
         return +(this.expression.evaluate(f, s, l, c) as number);
       default:
-        throw new Error(`Unknown unary operator: '${this.operation}'`);
+        if (__DEV__)
+          throw new Error(`Unknown unary operator: '${this.operation}'`);
+        else
+          throw new Error(`AUR0109:${this.operation}`);
     }
   }
 
@@ -1157,7 +1184,10 @@ export class TaggedTemplateExpression {
     const results = this.expressions.map(e => e.evaluate(f, s, l, c));
     const func = this.func.evaluate(f, s, l, c);
     if (typeof func !== 'function') {
-      throw new Error(`Left-hand side of tagged template expression is not a function.`);
+      if (__DEV__)
+        throw new Error(`Left-hand side of tagged template expression is not a function.`);
+      else
+        throw new Error(`AUR0110`);
     }
     return func(this.cooked, ...results);
   }
@@ -1394,7 +1424,10 @@ function getFunction(f: LF, obj: object, name: string): ((...args: unknown[]) =>
   if (!(f & LF.mustEvaluate) && func == null) {
     return null;
   }
-  throw new Error(`Expected '${name}' to be a function`);
+  if (__DEV__)
+    throw new Error(`Expected '${name}' to be a function`);
+  else
+    throw new Error(`AUR0111:${name}`);
 }
 
 function $array(result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {

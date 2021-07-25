@@ -33,7 +33,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         error = err;
       }
       assert.notStrictEqual(error, void 0);
-      assert.includes((error as Error).message, 'Invalid dialog configuration.');
+      // assert.includes((error as Error).message, 'Invalid dialog configuration.');
+      assert.includes((error as Error).message, 'AUR0904');
     });
 
     it('throws when customize without any implementation', async function () {
@@ -45,8 +46,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         error = err;
       }
       assert.notStrictEqual(error, void 0);
-      assert.includes((error as Error).message, 'AUR0012:IDialogGlobalSettings');
       // assert.includes((error as Error).message, 'Attempted to jitRegister an interface: IDialogGlobalSettings');
+      assert.includes((error as Error).message, 'AUR0012:IDialogGlobalSettings');
     });
 
     it('reuses previous registration', async function () {
@@ -93,7 +94,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         err = ex;
       });
       assert.notStrictEqual(err, undefined);
-      assert.includes(err.message, 'There are still 1 open dialog(s).');
+      assert.includes(err.message, 'AUR0901:1');
+      // assert.includes(err.message, 'There are still 1 open dialog(s).');
 
       canDeactivate = true;
       await dialogService.closeAll();
@@ -107,7 +109,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async (_, dialogService) => {
           let error: DialogCancelError<unknown>;
           await dialogService.open({}).catch(err => error = err);
-          assert.strictEqual(error.message, 'Invalid Dialog Settings. You must provide "component", "template" or both.');
+          assert.strictEqual(error.message, 'AUR0903');
+          // assert.strictEqual(error.message, 'Invalid Dialog Settings. You must provide "component", "template" or both.');
         }
       },
       {
@@ -148,7 +151,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             error = ex;
           });
           assert.notStrictEqual(error, undefined);
-          assert.includes(error.message, 'Invalid injection of DialogController. Use IDialogController instead.');
+          assert.includes(error.message, 'AUR0902');
+          // assert.includes(error.message, 'Invalid injection of DialogController. Use IDialogController instead.');
         }
       },
       {

@@ -4,16 +4,20 @@ import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
 import type { IAccessor } from '@aurelia/runtime';
 
 export class ClassAttributeAccessor implements IAccessor {
+  public type: AccessorType = AccessorType.Node | AccessorType.Layout;
+
   public value: unknown = '';
-  public oldValue: unknown = '';
+  /** @internal */
+  private _oldValue: unknown = '';
 
   public readonly doNotCache: true = true;
-  public nameIndex: Record<string, number> = {};
-  public version: number = 0;
+  /** @internal */
+  private _nameIndex: Record<string, number> = {};
+  /** @internal */
+  private _version: number = 0;
 
-  public hasChanges: boolean = false;
-  public isActive: boolean = false;
-  public type: AccessorType = AccessorType.Node | AccessorType.Layout;
+  /** @internal */
+  private _hasChanges: boolean = false;
 
   public constructor(
     public readonly obj: HTMLElement,
@@ -28,28 +32,28 @@ export class ClassAttributeAccessor implements IAccessor {
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.value = newValue;
-    this.hasChanges = newValue !== this.oldValue;
+    this._hasChanges = newValue !== this._oldValue;
     if ((flags & LifecycleFlags.noFlush) === 0) {
-      this.flushChanges(flags);
+      this._flushChanges();
     }
   }
 
-  public flushChanges(flags: LifecycleFlags): void {
-    if (this.hasChanges) {
-      this.hasChanges = false;
+  /** @internal */
+  private _flushChanges(): void {
+    if (this._hasChanges) {
+      this._hasChanges = false;
       const currentValue = this.value;
-      const nameIndex = this.nameIndex;
-      let version = this.version;
-      this.oldValue = currentValue;
-
+      const nameIndex = this._nameIndex;
       const classesToAdd = getClassesToAdd(currentValue as any);
+      let version = this._version;
+      this._oldValue = currentValue;
 
       // Get strings split on a space not including empties
       if (classesToAdd.length > 0) {
         this._addClassesAndUpdateIndex(classesToAdd);
       }
 
-      this.version += 1;
+      this._version += 1;
 
       // First call to setValue?  We're done.
       if (version === 0) {
@@ -72,14 +76,18 @@ export class ClassAttributeAccessor implements IAccessor {
     }
   }
 
+  /** @internal */
   private _addClassesAndUpdateIndex(classes: string[]) {
     const node = this.obj;
-    for (let i = 0, ii = classes.length; i < ii; i++) {
-      const className = classes[i];
+    const ii = classes.length;
+    let i = 0;
+    let className: string;
+    for (; i < ii; i++) {
+      className = classes[i];
       if (className.length === 0) {
         continue;
       }
-      this.nameIndex[className] = this.version;
+      this._nameIndex[className] = this._version;
       node.classList.add(className);
     }
   }
@@ -97,7 +105,8 @@ export function getClassesToAdd(object: Record<string, unknown> | [] | string): 
     const len = object.length;
     if (len > 0) {
       const classes: string[] = [];
-      for (let i = 0; i < len; ++i) {
+      let i = 0;
+      for (; len > i; ++i) {
         classes.push(...getClassesToAdd(object[i]));
       }
       return classes;
@@ -107,7 +116,8 @@ export function getClassesToAdd(object: Record<string, unknown> | [] | string): 
   }
 
   const classes: string[] = [];
-  for (const property in object) {
+  let property: string;
+  for (property in object) {
     // Let non typical values also evaluate true so disable bool check
     if (Boolean(object[property])) {
       // We must do this in case object property has a space in the name which results in two classes

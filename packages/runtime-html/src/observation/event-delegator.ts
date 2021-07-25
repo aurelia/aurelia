@@ -116,8 +116,9 @@ export class EventSubscriber {
 
   public dispose(): void {
     const { target, handler } = this;
+    let event: string;
     if (target !== null && handler !== null) {
-      for (const event of this.config.events) {
+      for (event of this.config.events) {
         target.removeEventListener(event, handler);
       }
     }

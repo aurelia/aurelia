@@ -312,7 +312,10 @@ function getPromiseController(controller: IHydratableController) {
   if ($promise instanceof PromiseTemplateController) {
     return $promise;
   }
-  throw new Error('The parent promise.resolve not found; only `*[promise.resolve] > *[pending|then|catch]` relation is supported.');
+  if (__DEV__)
+    throw new Error('The parent promise.resolve not found; only `*[promise.resolve] > *[pending|then|catch]` relation is supported.');
+  else
+    throw new Error('AUR0813');
 }
 
 // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.

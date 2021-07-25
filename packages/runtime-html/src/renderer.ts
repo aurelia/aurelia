@@ -172,7 +172,7 @@ export class HydrateElementInstruction {
     /**
      * Bindable instructions for the custom element instance
      */
-    public instructions: IInstruction[],
+    public props: IInstruction[],
     /**
      * Indicates what projections are associated with the element usage
      */
@@ -196,7 +196,7 @@ export class HydrateAttributeInstruction {
     /**
      * Bindable instructions for the custom attribute instance
      */
-    public instructions: IInstruction[],
+    public props: IInstruction[],
   ) {}
 }
 
@@ -212,7 +212,7 @@ export class HydrateTemplateController {
     /**
      * Bindable instructions for the template controller instance
      */
-    public instructions: IInstruction[],
+    public props: IInstruction[],
   ) {}
 }
 
@@ -415,7 +415,10 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
       return CustomElement.for(refHost)!;
     case 'view':
       // todo: returns node sequences for fun?
-      throw new Error('Not supported API');
+      if (__DEV__)
+        throw new Error('Not supported API');
+      else
+        throw new Error('AUR0750');
     case 'view-model':
       // this means it supports returning undefined
       return CustomElement.for(refHost)!.viewModel;
@@ -426,7 +429,10 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
       }
       const ceController = CustomElement.for(refHost, { name: refTargetName });
       if (ceController === void 0) {
-        throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
+        if (__DEV__)
+          throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
+        else
+          throw new Error(`AUR0751:${refTargetName}`);
       }
       return ceController.viewModel;
     }
@@ -486,7 +492,10 @@ export class CustomElementRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomElement, res);
         if (def == null) {
-          throw new Error(`Element ${res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+          if (__DEV__)
+            throw new Error(`Element ${res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+          else
+            throw new Error(`AUR0752:${res}@${(renderingCtrl as Controller)['name']}`);
         }
         break;
       // constructor based instruction
@@ -515,7 +524,7 @@ export class CustomElementRenderer implements IRenderer {
     setRef(target, def.key, childCtrl);
 
     const renderers = this.r.renderers;
-    const props = instruction.instructions;
+    const props = instruction.props;
     const ii = props.length;
     let i = 0;
     let propInst: IInstruction;
@@ -555,7 +564,10 @@ export class CustomAttributeRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
-          throw new Error(`Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+          if (__DEV__)
+            throw new Error(`Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+          else
+            throw new Error(`AUR0753:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
         }
         break;
       // constructor based instruction
@@ -588,7 +600,7 @@ export class CustomAttributeRenderer implements IRenderer {
     setRef(target, def.key, childController);
 
     const renderers = this.r.renderers;
-    const props = instruction.instructions;
+    const props = instruction.props;
     const ii = props.length;
     let i = 0;
     let propInst: IInstruction;
@@ -625,7 +637,10 @@ export class TemplateControllerRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
-          throw new Error(`Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+          if (__DEV__)
+            throw new Error(`Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+          else
+            throw new Error(`AUR0754:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
         }
         break;
       // constructor based instruction
@@ -662,7 +677,7 @@ export class TemplateControllerRenderer implements IRenderer {
     component.link?.(f, renderingCtrl, childController, target, instruction);
 
     const renderers = this.r.renderers;
-    const props = instruction.instructions;
+    const props = instruction.props;
     const ii = props.length;
     let i = 0;
     let propInst: IInstruction;
@@ -1132,10 +1147,16 @@ class ViewFactoryProvider implements IResolver {
   public resolve(): IViewFactory {
     const f = this.f;
     if (f === null) {
-      throw new Error('Cannot resolve ViewFactory before the provider was prepared.');
+      if (__DEV__)
+        throw new Error('Cannot resolve ViewFactory before the provider was prepared.');
+      else
+        throw new Error('AUR7055');
     }
     if (typeof f.name !== 'string' || f.name.length === 0) {
-      throw new Error('Cannot resolve ViewFactory without a (valid) name.');
+      if (__DEV__)
+        throw new Error('Cannot resolve ViewFactory without a (valid) name.');
+      else
+        throw new Error('AUR0756');
     }
     return f;
   }

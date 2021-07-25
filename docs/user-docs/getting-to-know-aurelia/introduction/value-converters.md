@@ -95,7 +95,7 @@ Value converters are always referenced as camelCase when used in your templates.
 
 To teach you how value converters can be created, we are going to create a simplistic value converter called date which will allow us to format dates.
 
-{% code title="date-format.ts" %}
+{% code title="date-value-converter.ts" %}
 ```typescript
 import { valueConverter } from 'aurelia';
 
@@ -122,7 +122,13 @@ export class FormatDateValueConverter {
 ```
 {% endcode %}
 
-You can then reference this value converter \(once registered with Aurelia's DI\). This example value below will display `June 22, 2021` in your view. Because our default date format is US, it will display as month-date-year.
+Import your value converter in your view
+
+```text
+<import from="./date-value-converter" />
+```
+
+This example value below will display `June 22, 2021` in your view. Because our default date format is US, it will display as month-date-year.
 
 ```text
 <p>${'2021-06-22T09:21:26.699Z' | date}</p>

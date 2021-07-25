@@ -32,7 +32,7 @@ export class SVGAnalyzer {
     return Registration.singleton(ISVGAnalyzer, this).register(container);
   }
 
-  private readonly svgElements: Record<string, Record<string, true | undefined> | undefined> = Object.assign(createLookup<Record<string, true | undefined> | undefined>(), {
+  private readonly _svgElements: Record<string, Record<string, true | undefined> | undefined> = Object.assign(createLookup<Record<string, true | undefined> | undefined>(), {
     'a': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
     'altGlyph': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
     'altglyph': createLookup<true | undefined>(),
@@ -119,7 +119,7 @@ export class SVGAnalyzer {
     'vkern': o(['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space']),
   });
 
-  private readonly svgPresentationElements = o([
+  private readonly _svgPresentationElements = o([
     'a',
     'altGlyph',
     'animate',
@@ -173,7 +173,7 @@ export class SVGAnalyzer {
     'use',
   ]);
 
-  private readonly svgPresentationAttributes = o([
+  private readonly _svgPresentationAttributes = o([
     'alignment-baseline',
     'baseline-shift',
     'clip-path',
@@ -243,7 +243,7 @@ export class SVGAnalyzer {
     div.innerHTML = '<svg><altGlyph /></svg>';
     if (div.firstElementChild!.nodeName === 'altglyph') {
       // handle chrome casing inconsistencies.
-      const svg = this.svgElements;
+      const svg = this._svgElements;
       let tmp = svg.altGlyph;
       svg.altGlyph = svg.altglyph;
       svg.altglyph = tmp;
@@ -265,8 +265,8 @@ export class SVGAnalyzer {
     }
 
     return (
-      this.svgPresentationElements[node.nodeName] === true && this.svgPresentationAttributes[attributeName] === true ||
-      this.svgElements[node.nodeName]?.[attributeName] === true
+      this._svgPresentationElements[node.nodeName] === true && this._svgPresentationAttributes[attributeName] === true ||
+      this._svgElements[node.nodeName]?.[attributeName] === true
     );
   }
 }

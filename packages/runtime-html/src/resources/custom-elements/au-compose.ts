@@ -50,7 +50,10 @@ export class AuCompose {
       if (v === 'scoped' || v === 'auto') {
         return v;
       }
-      throw new Error('Invalid scope behavior config. Only "scoped" or "auto" allowed.');
+      if (__DEV__)
+        throw new Error('Invalid scope behavior config. Only "scoped" or "auto" allowed.');
+      else
+        throw new Error('AUR0805');
     }
   })
   public scopeBehavior: 'auto' | 'scoped' = 'auto';
@@ -193,7 +196,10 @@ export class AuCompose {
 
     if (srcDef !== null) {
       if (srcDef.containerless) {
-        throw new Error('Containerless custom element is not supported by <au-compose/>');
+        if (__DEV__)
+          throw new Error('Containerless custom element is not supported by <au-compose/>');
+        else
+          throw new Error('AUR0806');
       }
       if (loc == null) {
         compositionHost = host;
@@ -416,7 +422,10 @@ class CompositionController implements ICompositionController {
 
   public activate() {
     if (this.state !== 0) {
-      throw new Error(`Composition has already been activated/deactivated. Id: ${this.controller.name}`);
+      if (__DEV__)
+        throw new Error(`Composition has already been activated/deactivated. Id: ${this.controller.name}`);
+      else
+        throw new Error(`AUR0807:${this.controller.name}`);
     }
     this.state = 1;
     return this.start();
@@ -428,7 +437,10 @@ class CompositionController implements ICompositionController {
         this.state = -1;
         return this.stop(detachInitator);
       case -1:
-        throw new Error('Composition has already been deactivated.');
+        if (__DEV__)
+          throw new Error('Composition has already been deactivated.');
+        else
+          throw new Error('AUR0808');
       default:
         this.state = -1;
     }

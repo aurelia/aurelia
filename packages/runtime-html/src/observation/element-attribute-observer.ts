@@ -126,7 +126,10 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
           newValue = this.obj.style.getPropertyValue(this.propertyKey);
           break;
         default:
-          throw new Error(`Unsupported observation of attribute: ${this.targetAttribute}`);
+          if (__DEV__)
+            throw new Error(`Unsupported observation of attribute: ${this.targetAttribute}`);
+          else
+            throw new Error(`AUR0751:${this.targetAttribute}`);
       }
 
       if (newValue !== this.value) {

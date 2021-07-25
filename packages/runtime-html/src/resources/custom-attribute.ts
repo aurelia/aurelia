@@ -162,7 +162,10 @@ export const CustomAttribute: CustomAttributeKind = Object.freeze({
   getDefinition<T extends Constructable>(Type: T): CustomAttributeDefinition<T> {
     const def = Metadata.getOwn(caBaseName, Type) as CustomAttributeDefinition<T>;
     if (def === void 0) {
-      throw new Error(`No definition found for type ${Type.name}`);
+      if (__DEV__)
+        throw new Error(`No definition found for type ${Type.name}`);
+      else
+        throw new Error(`AUR0702:${Type.name}`);
     }
 
     return def;

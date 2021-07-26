@@ -32,6 +32,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   private _hasChanges: boolean = false;
 
   public readonly queue!: FlushQueue;
+  /** @internal */
   private f: LifecycleFlags = LifecycleFlags.none;
 
   public constructor(

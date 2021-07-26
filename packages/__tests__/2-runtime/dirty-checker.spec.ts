@@ -305,6 +305,7 @@ describe('DirtyChecker', function () {
     } catch (e) {
       err = e;
     }
-    assert.match(err.message, /Property 'foo' is being dirty-checked/, `err.message`);
+    assert.match(err.message, /AUR0222:foo/, `err.message`);
+    // assert.match(err.message, /Property 'foo' is being dirty-checked/, `err.message`);
   });
 });

@@ -93,7 +93,10 @@ export class CollectionSizeObserver implements ICollectionSubscriber, IFlushable
   }
 
   public setValue(): void {
-    throw new Error('Map/Set "size" is a readonly property');
+    if (__DEV__)
+      throw new Error('Map/Set "size" is a readonly property');
+    else
+      throw new Error('AUR02');
   }
 
   public handleCollectionChange(_: IndexMap, flags: LifecycleFlags): void {

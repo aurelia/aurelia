@@ -246,6 +246,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     nameOrDef: string | PartialCustomElementDefinition,
     Type: CustomElementType | null = null,
   ): CustomElementDefinition {
+    const getAnnotation = CustomElement.getAnnotation;
     if (Type === null) {
       const def = nameOrDef;
       if (typeof def === 'string') {
@@ -297,23 +298,23 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       return new CustomElementDefinition(
         Type,
         nameOrDef,
-        mergeArrays(CustomElement.getAnnotation(Type, 'aliases'), Type.aliases),
+        mergeArrays(getAnnotation(Type, 'aliases'), Type.aliases),
         CustomElement.keyFrom(nameOrDef),
         fromAnnotationOrTypeOrDefault('cache', Type, () => 0),
         fromAnnotationOrTypeOrDefault('template', Type, () => null),
-        mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), Type.instructions),
-        mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), Type.dependencies),
+        mergeArrays(getAnnotation(Type, 'instructions'), Type.instructions),
+        mergeArrays(getAnnotation(Type, 'dependencies'), Type.dependencies),
         fromAnnotationOrTypeOrDefault('injectable', Type, () => null),
         fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true),
-        mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), Type.surrogates),
+        mergeArrays(getAnnotation(Type, 'surrogates'), Type.surrogates),
         Bindable.from(
           ...Bindable.getAll(Type),
-          CustomElement.getAnnotation(Type, 'bindables'),
+          getAnnotation(Type, 'bindables'),
           Type.bindables,
         ),
         Children.from(
           ...Children.getAll(Type),
-          CustomElement.getAnnotation(Type, 'childrenObservers'),
+          getAnnotation(Type, 'childrenObservers'),
           Type.childrenObservers,
         ),
         fromAnnotationOrTypeOrDefault('containerless', Type, () => false),
@@ -335,24 +336,24 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     return new CustomElementDefinition(
       Type,
       name,
-      mergeArrays(CustomElement.getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases),
+      mergeArrays(getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases),
       CustomElement.keyFrom(name),
       fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0),
       fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null),
-      mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions),
-      mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies),
+      mergeArrays(getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions),
+      mergeArrays(getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies),
       fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null),
       fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true),
-      mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates),
+      mergeArrays(getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates),
       Bindable.from(
         ...Bindable.getAll(Type),
-        CustomElement.getAnnotation(Type, 'bindables'),
+        getAnnotation(Type, 'bindables'),
         Type.bindables,
         nameOrDef.bindables,
       ),
       Children.from(
         ...Children.getAll(Type),
-        CustomElement.getAnnotation(Type, 'childrenObservers'),
+        getAnnotation(Type, 'childrenObservers'),
         Type.childrenObservers,
         nameOrDef.childrenObservers,
       ),
@@ -409,7 +410,7 @@ const defaultForOpts: ForOpts = {
 };
 
 const ceBaseName = Protocol.resource.keyFor('custom-element');
-export const CustomElement: CustomElementKind = Object.freeze({
+export const CustomElement: CustomElementKind = Object.freeze<CustomElementKind>({
   name: ceBaseName,
   keyFrom(name: string): string {
     return `${ceBaseName}:${name}`;

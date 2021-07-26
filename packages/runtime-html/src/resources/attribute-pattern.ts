@@ -422,10 +422,14 @@ export interface IAttributeParser extends AttributeParser {}
 export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser', x => x.singleton(AttributeParser));
 
 export class AttributeParser {
-  public static inject = [ISyntaxInterpreter, all(IAttributePattern)];
+  /** @internal */
+  protected static inject = [ISyntaxInterpreter, all(IAttributePattern)];
 
+  /** @internal */
   private readonly _cache: Record<string, Interpretation> = {};
+  /** @internal */
   private readonly _patterns: Record<string, IAttributePattern>;
+  /** @internal */
   private readonly _interpreter: ISyntaxInterpreter;
 
   public constructor(
@@ -489,7 +493,7 @@ export class AttributePatternResourceDefinition implements ResourceDefinition<Co
 
 const apBaseName = Protocol.resource.keyFor('attribute-pattern');
 const annotationKey = 'attribute-pattern-definitions';
-export const AttributePattern: AttributePattern = Object.freeze({
+export const AttributePattern: AttributePattern = Object.freeze<AttributePattern>({
   name: apBaseName,
   definitionAnnotationKey: annotationKey,
   define<TProto, TClass>(

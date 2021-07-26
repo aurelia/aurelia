@@ -4,20 +4,21 @@ import type { Scope } from '@aurelia/runtime';
 import type { PropertyBinding } from '../binding/property-binding.js';
 
 export abstract class BindingModeBehavior implements BindingBehaviorInstance {
-  private readonly originalModes: Map<PropertyBinding, BindingMode> = new Map();
+  /** @internal */
+  private readonly _originalModes: Map<PropertyBinding, BindingMode> = new Map();
 
   public constructor(
     private readonly mode: BindingMode,
   ) {}
 
   public bind(flags: LifecycleFlags, scope: Scope, binding: PropertyBinding): void {
-    this.originalModes.set(binding, binding.mode);
+    this._originalModes.set(binding, binding.mode);
     binding.mode = this.mode;
   }
 
   public unbind(flags: LifecycleFlags, scope: Scope, binding: PropertyBinding): void {
-    binding.mode = this.originalModes.get(binding)!;
-    this.originalModes.delete(binding);
+    binding.mode = this._originalModes.get(binding)!;
+    this._originalModes.delete(binding);
   }
 }
 

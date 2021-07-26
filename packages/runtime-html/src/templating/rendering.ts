@@ -13,12 +13,18 @@ export const IRendering = DI.createInterface<IRendering>('IRendering', x => x.si
 export interface IRendering extends Rendering { }
 
 export class Rendering {
-  public static inject: unknown[] = [IContainer];
+  /** @internal */
+  protected static inject: unknown[] = [IContainer];
+  /** @internal */
   private readonly _ctn: IContainer;
   private rs: Record<string, IRenderer> | undefined;
+  /** @internal */
   private readonly _p: IPlatform;
+  /** @internal */
   private readonly _compilationCache: WeakMap<PartialCustomElementDefinition, CustomElementDefinition> = new WeakMap();
+  /** @internal */
   private readonly _fragmentCache: WeakMap<CustomElementDefinition, DocumentFragment | null> = new WeakMap();
+  /** @internal */
   private readonly _empty: INodeSequence;
 
   public get renderers(): Record<string, IRenderer> {

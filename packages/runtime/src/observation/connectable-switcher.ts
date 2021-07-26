@@ -23,7 +23,10 @@ export function currentConnectable(): IConnectable | null {
 
 export function enterConnectable(connectable: IConnectable): void {
   if (connectable == null) {
-    throw new Error('Connectable cannot be null/undefined');
+    if (__DEV__)
+      throw new Error('Connectable cannot be null/undefined');
+    else
+      throw new Error('AUR0206');
   }
   if (_connectable == null) {
     _connectable = connectable;
@@ -32,7 +35,10 @@ export function enterConnectable(connectable: IConnectable): void {
     return;
   }
   if (_connectable === connectable) {
-    throw new Error(`Trying to enter an active connectable`);
+    if (__DEV__)
+      throw new Error(`Trying to enter an active connectable`);
+    else
+      throw new Error('AUR0207');
   }
   connectables.push(_connectable);
   _connectable = connectable;
@@ -41,10 +47,16 @@ export function enterConnectable(connectable: IConnectable): void {
 
 export function exitConnectable(connectable: IConnectable): void {
   if (connectable == null) {
-    throw new Error('Connectable cannot be null/undefined');
+    if (__DEV__)
+      throw new Error('Connectable cannot be null/undefined');
+    else
+      throw new Error('AUR0208');
   }
   if (_connectable !== connectable) {
-    throw new Error(`Trying to exit an unactive connectable`);
+    if (__DEV__)
+      throw new Error(`Trying to exit an unactive connectable`);
+    else
+      throw new Error('AUR0209');
   }
 
   connectables.pop();

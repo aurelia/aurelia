@@ -30,11 +30,11 @@ export type PartialBindingCommandDefinition = PartialResourceDefinition<{
 }>;
 
 export interface ICommandBuildInfo {
-  node: Element;
-  attr: AttrSyntax;
-  expr: AnyBindingExpression;
-  bindable: BindableDefinition | null;
-  def: CustomAttributeDefinition | CustomElementDefinition | null;
+  readonly node: Element;
+  readonly attr: AttrSyntax;
+  readonly expr: AnyBindingExpression;
+  readonly bindable: BindableDefinition | null;
+  readonly def: CustomAttributeDefinition | CustomElementDefinition | null;
 }
 
 export type BindingCommandInstance<T extends {} = {}> = {
@@ -87,12 +87,13 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
       def = nameOrDef;
     }
 
+    const getAnnotation = BindingCommand.getAnnotation;
     return new BindingCommandDefinition(
       Type,
-      firstDefined(BindingCommand.getAnnotation(Type, 'name'), name),
-      mergeArrays(BindingCommand.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      firstDefined(getAnnotation(Type, 'name'), name),
+      mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       BindingCommand.keyFrom(name),
-      firstDefined(BindingCommand.getAnnotation(Type, 'type'), def.type, Type.type, null),
+      firstDefined(getAnnotation(Type, 'type'), def.type, Type.type, null),
     );
   }
 
@@ -105,7 +106,7 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
 }
 
 const cmdBaseName = Protocol.resource.keyFor('binding-command');
-export const BindingCommand: BindingCommandKind = Object.freeze({
+export const BindingCommand: BindingCommandKind = Object.freeze<BindingCommandKind>({
   name: cmdBaseName,
   keyFrom(name: string): string {
     return `${cmdBaseName}:${name}`;

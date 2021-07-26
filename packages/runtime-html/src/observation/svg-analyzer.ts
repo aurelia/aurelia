@@ -32,6 +32,7 @@ export class SVGAnalyzer {
     return Registration.singleton(ISVGAnalyzer, this).register(container);
   }
 
+  /** @internal */
   private readonly _svgElements: Record<string, Record<string, true | undefined> | undefined> = Object.assign(createLookup<Record<string, true | undefined> | undefined>(), {
     'a': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
     'altGlyph': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
@@ -119,6 +120,7 @@ export class SVGAnalyzer {
     'vkern': o(['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space']),
   });
 
+  /** @internal */
   private readonly _svgPresentationElements = o([
     'a',
     'altGlyph',
@@ -173,6 +175,7 @@ export class SVGAnalyzer {
     'use',
   ]);
 
+  /** @internal */
   private readonly _svgPresentationAttributes = o([
     'alignment-baseline',
     'baseline-shift',

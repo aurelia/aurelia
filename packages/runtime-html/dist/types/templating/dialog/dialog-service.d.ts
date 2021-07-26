@@ -11,7 +11,7 @@ export declare class DialogService implements IDialogService {
     private readonly _defaultSettings;
     get controllers(): IDialogController[];
     private get top();
-    protected static get inject(): (import("@aurelia/kernel").InterfaceSymbol<IPlatform> | import("@aurelia/kernel").InterfaceSymbol<IContainer> | import("@aurelia/kernel").InterfaceSymbol<Pick<IDialogSettings<unknown, object>, "lock" | "startingZIndex" | "rejectOnCancel">>)[];
+    protected static get inject(): (import("@aurelia/kernel").InterfaceSymbol<IPlatform> | import("@aurelia/kernel").InterfaceSymbol<IContainer> | import("@aurelia/kernel").InterfaceSymbol<IDialogGlobalSettings>)[];
     constructor(_ctn: IContainer, p: IPlatform, _defaultSettings: IDialogGlobalSettings);
     static register(container: IContainer): void;
     /**

@@ -14,7 +14,6 @@ export declare class AttributeObserver implements AttributeObserver, ElementMuta
     readonly obj: HTMLElement;
     value: unknown;
     readonly queue: FlushQueue;
-    private f;
     constructor(obj: HTMLElement, prop: string, attr: string);
     getValue(): unknown;
     setValue(value: unknown, flags: LifecycleFlags): void;

@@ -643,6 +643,7 @@ const IAttributePattern = kernel.DI.createInterface('IAttributePattern');
 const IAttributeParser = kernel.DI.createInterface('IAttributeParser', x => x.singleton(AttributeParser));
 class AttributeParser {
     constructor(interpreter, attrPatterns) {
+        /** @internal */
         this._cache = {};
         this._interpreter = interpreter;
         const patterns = this._patterns = {};
@@ -668,6 +669,7 @@ class AttributeParser {
         }
     }
 }
+/** @internal */
 AttributeParser.inject = [ISyntaxInterpreter, kernel.all(IAttributePattern)];
 function attributePattern(...patternDefs) {
     return function decorator(target) {
@@ -776,6 +778,7 @@ function o(keys) {
 }
 class SVGAnalyzer {
     constructor(platform) {
+        /** @internal */
         this._svgElements = Object.assign(createLookup(), {
             'a': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
             'altGlyph': o(['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y']),
@@ -862,6 +865,7 @@ class SVGAnalyzer {
             'view': o(['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan']),
             'vkern': o(['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space']),
         });
+        /** @internal */
         this._svgPresentationElements = o([
             'a',
             'altGlyph',
@@ -915,6 +919,7 @@ class SVGAnalyzer {
             'tspan',
             'use',
         ]);
+        /** @internal */
         this._svgPresentationAttributes = o([
             'alignment-baseline',
             'baseline-shift',
@@ -1217,6 +1222,7 @@ class AttributeObserver {
         this._oldValue = null;
         /** @internal */
         this._hasChanges = false;
+        /** @internal */
         this.f = 0 /* none */;
         this.obj = obj;
     }
@@ -2337,6 +2343,7 @@ class CustomAttributeDefinition {
         this.watches = watches;
     }
     static create(nameOrDef, Type) {
+        const getAnnotation = CustomAttribute.getAnnotation;
         let name;
         let def;
         if (typeof nameOrDef === 'string') {
@@ -2347,7 +2354,7 @@ class CustomAttributeDefinition {
             name = nameOrDef.name;
             def = nameOrDef;
         }
-        return new CustomAttributeDefinition(Type, kernel.firstDefined(CustomAttribute.getAnnotation(Type, 'name'), name), kernel.mergeArrays(CustomAttribute.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), kernel.firstDefined(CustomAttribute.getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, runtime.BindingMode.toView), kernel.firstDefined(CustomAttribute.getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(...Bindable.getAll(Type), CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables), kernel.firstDefined(CustomAttribute.getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), kernel.mergeArrays(Watch.getAnnotation(Type), Type.watches));
+        return new CustomAttributeDefinition(Type, kernel.firstDefined(getAnnotation(Type, 'name'), name), kernel.mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), kernel.firstDefined(getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, runtime.BindingMode.toView), kernel.firstDefined(getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(...Bindable.getAll(Type), getAnnotation(Type, 'bindables'), Type.bindables, def.bindables), kernel.firstDefined(getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), kernel.mergeArrays(Watch.getAnnotation(Type), Type.watches));
     }
     register(container) {
         const { Type, key, aliases } = this;
@@ -2502,6 +2509,7 @@ class CustomElementDefinition {
         this.processContent = processContent;
     }
     static create(nameOrDef, Type = null) {
+        const getAnnotation = CustomElement.getAnnotation;
         if (Type === null) {
             const def = nameOrDef;
             if (typeof def === 'string') {
@@ -2522,14 +2530,14 @@ class CustomElementDefinition {
         // If a type is passed in, we ignore the Type property on the definition if it exists.
         // TODO: document this behavior
         if (typeof nameOrDef === 'string') {
-            return new CustomElementDefinition(Type, nameOrDef, kernel.mergeArrays(CustomElement.getAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), kernel.fromAnnotationOrTypeOrDefault('cache', Type, () => 0), kernel.fromAnnotationOrTypeOrDefault('template', Type, () => null), kernel.mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), Type.instructions), kernel.mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), Type.dependencies), kernel.fromAnnotationOrTypeOrDefault('injectable', Type, () => null), kernel.fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true), kernel.mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), CustomElement.getAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers), kernel.fromAnnotationOrTypeOrDefault('containerless', Type, () => false), kernel.fromAnnotationOrTypeOrDefault('isStrictBinding', Type, () => false), kernel.fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null), kernel.fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false), kernel.fromAnnotationOrTypeOrDefault('enhance', Type, () => false), kernel.mergeArrays(Watch.getAnnotation(Type), Type.watches), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, () => null));
+            return new CustomElementDefinition(Type, nameOrDef, kernel.mergeArrays(getAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), kernel.fromAnnotationOrTypeOrDefault('cache', Type, () => 0), kernel.fromAnnotationOrTypeOrDefault('template', Type, () => null), kernel.mergeArrays(getAnnotation(Type, 'instructions'), Type.instructions), kernel.mergeArrays(getAnnotation(Type, 'dependencies'), Type.dependencies), kernel.fromAnnotationOrTypeOrDefault('injectable', Type, () => null), kernel.fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true), kernel.mergeArrays(getAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), getAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), getAnnotation(Type, 'childrenObservers'), Type.childrenObservers), kernel.fromAnnotationOrTypeOrDefault('containerless', Type, () => false), kernel.fromAnnotationOrTypeOrDefault('isStrictBinding', Type, () => false), kernel.fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null), kernel.fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false), kernel.fromAnnotationOrTypeOrDefault('enhance', Type, () => false), kernel.mergeArrays(Watch.getAnnotation(Type), Type.watches), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, () => null));
         }
         // This is the typical default behavior, e.g. from regular CustomElement.define invocations or from @customElement deco
         // The ViewValueConverter also uses this signature and passes in a definition where everything except for the 'hooks'
         // property needs to be copied. So we have that exception for 'hooks', but we may need to revisit that default behavior
         // if this turns out to be too opinionated.
         const name = kernel.fromDefinitionOrDefault('name', nameOrDef, CustomElement.generateName);
-        return new CustomElementDefinition(Type, name, kernel.mergeArrays(CustomElement.getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null), kernel.mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel.mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true), kernel.mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), CustomElement.getAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false), kernel.mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, () => null));
+        return new CustomElementDefinition(Type, name, kernel.mergeArrays(getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null), kernel.mergeArrays(getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel.mergeArrays(getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true), kernel.mergeArrays(getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), getAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), getAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false), kernel.mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, () => null));
     }
     static getOrCreate(partialDefinition) {
         if (partialDefinition instanceof CustomElementDefinition) {
@@ -3284,7 +3292,9 @@ function view(v) {
 const IViewLocator = kernel.DI.createInterface('IViewLocator', x => x.singleton(ViewLocator));
 class ViewLocator {
     constructor() {
+        /** @internal */
         this._modelInstanceToBoundComponent = new WeakMap();
+        /** @internal */
         this._modelTypeToUnboundComponent = new Map();
     }
     getViewComponentForObject(object, viewNameOrSelector) {
@@ -3297,6 +3307,7 @@ class ViewLocator {
         }
         return null;
     }
+    /** @internal */
     _getOrCreateBoundComponent(object, availableViews, resolvedViewName) {
         let lookup = this._modelInstanceToBoundComponent.get(object);
         let BoundComponent;
@@ -3318,6 +3329,7 @@ class ViewLocator {
         }
         return BoundComponent;
     }
+    /** @internal */
     _getOrCreateUnboundComponent(object, availableViews, resolvedViewName) {
         let lookup = this._modelTypeToUnboundComponent.get(object.constructor);
         let UnboundComponent;
@@ -3396,6 +3408,7 @@ class ViewLocator {
         }
         return UnboundComponent;
     }
+    /** @internal */
     _getViewName(views, requestedName) {
         if (requestedName) {
             return requestedName;
@@ -3405,6 +3418,7 @@ class ViewLocator {
         }
         return 'default-view';
     }
+    /** @internal */
     _getView(views, name) {
         const v = views.find(x => x.name === name);
         if (v === void 0) {
@@ -3417,7 +3431,9 @@ class ViewLocator {
 const IRendering = kernel.DI.createInterface('IRendering', x => x.singleton(Rendering));
 class Rendering {
     constructor(container) {
+        /** @internal */
         this._compilationCache = new WeakMap();
+        /** @internal */
         this._fragmentCache = new WeakMap();
         this._p = (this._ctn = container.root).get(IPlatform);
         this._empty = new FragmentNodeSequence(this._p, this._p.document.createDocumentFragment());
@@ -3529,6 +3545,7 @@ class Rendering {
         }
     }
 }
+/** @internal */
 Rendering.inject = [kernel.IContainer];
 
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
@@ -3587,7 +3604,9 @@ class Controller {
         this.location = null;
         this.lifecycleHooks = null;
         this.state = 0 /* none */;
+        /** @internal */
         this._fullyNamed = false;
+        /** @internal */
         this._childrenObs = kernel.emptyArray;
         this.$initiator = null;
         this.$flags = 0 /* none */;
@@ -4618,8 +4637,11 @@ const IAppRoot = kernel.DI.createInterface('IAppRoot');
 const IWorkTracker = kernel.DI.createInterface('IWorkTracker', x => x.singleton(WorkTracker));
 class WorkTracker {
     constructor(logger) {
+        /** @internal */
         this._stack = 0;
+        /** @internal */
         this._promise = null;
+        /** @internal */
         this._resolve = null;
         this._logger = logger.scopeTo('WorkTracker');
     }
@@ -4650,6 +4672,7 @@ class WorkTracker {
         return this._promise;
     }
 }
+/** @internal */
 WorkTracker.inject = [kernel.ILogger];
 class AppRoot {
     constructor(config, platform, container, rootProvider) {
@@ -4657,6 +4680,7 @@ class AppRoot {
         this.platform = platform;
         this.container = container;
         this.controller = (void 0);
+        /** @internal */
         this._hydratePromise = void 0;
         this.host = config.host;
         this.work = container.get(IWorkTracker);
@@ -5076,32 +5100,29 @@ class ListenerTracker {
         this._publisher = _publisher;
         this._eventName = _eventName;
         this._options = _options;
-        this.count = 0;
-        /** @internal */
+        this._count = 0;
         this._captureLookups = new Map();
-        /** @internal */
         this._bubbleLookups = new Map();
     }
-    increment() {
-        if (++this.count === 1) {
+    _increment() {
+        if (++this._count === 1) {
             this._publisher.addEventListener(this._eventName, this, this._options);
         }
     }
-    decrement() {
-        if (--this.count === 0) {
+    _decrement() {
+        if (--this._count === 0) {
             this._publisher.removeEventListener(this._eventName, this, this._options);
         }
     }
     dispose() {
-        if (this.count > 0) {
-            this.count = 0;
+        if (this._count > 0) {
+            this._count = 0;
             this._publisher.removeEventListener(this._eventName, this, this._options);
         }
         this._captureLookups.clear();
         this._bubbleLookups.clear();
     }
-    /** @internal */
-    getLookup(target) {
+    _getLookup(target) {
         const lookups = this._options.capture === true ? this._captureLookups : this._bubbleLookups;
         let lookup = lookups.get(target);
         if (lookup === void 0) {
@@ -5109,7 +5130,6 @@ class ListenerTracker {
         }
         return lookup;
     }
-    /** @internal */
     handleEvent(event) {
         const lookups = this._options.capture === true ? this._captureLookups : this._bubbleLookups;
         const path = event.composedPath();
@@ -5145,11 +5165,11 @@ class DelegateSubscription {
         this._tracker = _tracker;
         this._lookup = _lookup;
         this._eventName = _eventName;
-        _tracker.increment();
+        _tracker._increment();
         _lookup[_eventName] = callback;
     }
     dispose() {
-        this._tracker.decrement();
+        this._tracker._decrement();
         this._lookup[this._eventName] = void 0;
     }
 }
@@ -5162,7 +5182,8 @@ class EventSubscriber {
     subscribe(node, callbackOrListener) {
         this.target = node;
         this.handler = callbackOrListener;
-        for (const event of this.config.events) {
+        let event;
+        for (event of this.config.events) {
             node.addEventListener(event, callbackOrListener);
         }
     }
@@ -5191,7 +5212,7 @@ class EventDelegator {
         if (tracker === void 0) {
             trackerMap.set(publisher, tracker = new ListenerTracker(publisher, eventName, options));
         }
-        return new DelegateSubscription(tracker, tracker.getLookup(target), eventName, listener);
+        return new DelegateSubscription(tracker, tracker._getLookup(target), eventName, listener);
     }
     dispose() {
         for (const eventName in this._trackerMaps) {
@@ -6146,7 +6167,8 @@ class BindingCommandDefinition {
             name = nameOrDef.name;
             def = nameOrDef;
         }
-        return new BindingCommandDefinition(Type, kernel.firstDefined(BindingCommand.getAnnotation(Type, 'name'), name), kernel.mergeArrays(BindingCommand.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), BindingCommand.keyFrom(name), kernel.firstDefined(BindingCommand.getAnnotation(Type, 'type'), def.type, Type.type, null));
+        const getAnnotation = BindingCommand.getAnnotation;
+        return new BindingCommandDefinition(Type, kernel.firstDefined(getAnnotation(Type, 'name'), name), kernel.mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), BindingCommand.keyFrom(name), kernel.firstDefined(getAnnotation(Type, 'type'), def.type, Type.type, null));
     }
     register(container) {
         const { Type, key, aliases } = this;
@@ -6665,12 +6687,12 @@ class TemplateCompiler {
                     el.removeAttribute(attrName);
                     --i;
                     --ii;
-                    instructions.push(new InterpolationInstruction(expr, (_a = 
+                    instructions.push(new InterpolationInstruction(expr, 
                     // if not a bindable, then ensure plain attribute are mapped correctly:
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLength etc...
-                    context._attrMapper.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : kernel.camelCase(realAttrTarget)));
+                    (_a = context._attrMapper.map(el, realAttrTarget)) !== null && _a !== void 0 ? _a : kernel.camelCase(realAttrTarget)));
                 }
                 else {
                     switch (attrName) {
@@ -7022,12 +7044,12 @@ class TemplateCompiler {
                 if (expr != null) {
                     // if it's an interpolation, remove the attribute
                     removeAttr();
-                    (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(new InterpolationInstruction(expr, (_c = 
+                    (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(new InterpolationInstruction(expr, 
                     // if not a bindable, then ensure plain attribute are mapped correctly:
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLength etc...
-                    context._attrMapper.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : kernel.camelCase(realAttrTarget)));
+                    (_c = context._attrMapper.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : kernel.camelCase(realAttrTarget)));
                 }
                 // if not a custom attribute + no binding command + not a bindable + not an interpolation
                 // then it's just a plain attribute, do nothing
@@ -7801,6 +7823,7 @@ const invalidSurrogateAttribute = Object.assign(createLookup(), {
 const orderSensitiveInputType = {
     checkbox: 1,
     radio: 1,
+    // todo: range is also sensitive to order, for min/max
 };
 const bindableAttrsInfoCache = new WeakMap();
 class BindablesInfo {
@@ -7940,15 +7963,16 @@ const templateCompilerHooks = (target) => {
 class BindingModeBehavior {
     constructor(mode) {
         this.mode = mode;
-        this.originalModes = new Map();
+        /** @internal */
+        this._originalModes = new Map();
     }
     bind(flags, scope, binding) {
-        this.originalModes.set(binding, binding.mode);
+        this._originalModes.set(binding, binding.mode);
         binding.mode = this.mode;
     }
     unbind(flags, scope, binding) {
-        binding.mode = this.originalModes.get(binding);
-        this.originalModes.delete(binding);
+        binding.mode = this._originalModes.get(binding);
+        this._originalModes.delete(binding);
     }
 }
 class OneTimeBindingBehavior extends BindingModeBehavior {
@@ -8634,13 +8658,15 @@ class SelectValueObserver {
         // B.4
         return true;
     }
-    start() {
+    /** @internal */
+    _start() {
         (this._nodeObserver = new this.obj.ownerDocument.defaultView.MutationObserver(this._handleNodeChange.bind(this)))
             .observe(this.obj, childObserverOptions);
         this._observeArray(this.value instanceof Array ? this.value : null);
         this._observing = true;
     }
-    stop() {
+    /** @internal */
+    _stop() {
         var _a;
         this._nodeObserver.disconnect();
         (_a = this._arrayObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
@@ -8650,6 +8676,7 @@ class SelectValueObserver {
         this._observing = false;
     }
     // todo: observe all kind of collection
+    /** @internal */
     _observeArray(array) {
         var _a;
         (_a = this._arrayObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
@@ -8668,6 +8695,7 @@ class SelectValueObserver {
             // this.subs.notify(this.currentValue, this.oldValue, LF.none);
         }
     }
+    /** @internal */
     _handleNodeChange() {
         this.syncOptions();
         const shouldNotify = this.syncValue();
@@ -8678,13 +8706,13 @@ class SelectValueObserver {
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
             this.handler.subscribe(this.obj, this);
-            this.start();
+            this._start();
         }
     }
     unsubscribe(subscriber) {
         if (this.subs.remove(subscriber) && this.subs.count === 0) {
             this.handler.dispose();
-            this.stop();
+            this._stop();
         }
     }
     flush() {
@@ -8850,8 +8878,8 @@ class StyleAttributeAccessor {
  * Observer for non-radio, non-checkbox input.
  */
 class ValueAttributeObserver {
-    constructor(obj, propertyKey, handler) {
-        this.propertyKey = propertyKey;
+    constructor(obj, key, handler) {
+        this.key = key;
         this.handler = handler;
         // ObserverType.Layout is not always true, it depends on the element & property combo
         // but for simplicity, always treat as such
@@ -8884,7 +8912,7 @@ class ValueAttributeObserver {
         var _a;
         if (this._hasChanges) {
             this._hasChanges = false;
-            this.obj[this.propertyKey] = (_a = this.value) !== null && _a !== void 0 ? _a : this.handler.config.default;
+            this.obj[this.key] = (_a = this.value) !== null && _a !== void 0 ? _a : this.handler.config.default;
             if ((flags & 2 /* fromBind */) === 0) {
                 this.queue.add(this);
             }
@@ -8892,7 +8920,7 @@ class ValueAttributeObserver {
     }
     handleEvent() {
         this._oldValue = this.value;
-        this.value = this.obj[this.propertyKey];
+        this.value = this.obj[this.key];
         if (this._oldValue !== this.value) {
             this._hasChanges = false;
             this.queue.add(this);
@@ -8901,7 +8929,7 @@ class ValueAttributeObserver {
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
             this.handler.subscribe(this.obj, this);
-            this.value = this._oldValue = this.obj[this.propertyKey];
+            this.value = this._oldValue = this.obj[this.key];
         }
     }
     unsubscribe(subscriber) {
@@ -12592,12 +12620,6 @@ Object.defineProperty(exports, 'OverrideContext', {
         return runtime.OverrideContext;
     }
 });
-Object.defineProperty(exports, 'ParserState', {
-    enumerable: true,
-    get: function () {
-        return runtime.ParserState;
-    }
-});
 Object.defineProperty(exports, 'Precedence', {
     enumerable: true,
     get: function () {
@@ -12770,12 +12792,6 @@ Object.defineProperty(exports, 'observable', {
     enumerable: true,
     get: function () {
         return runtime.observable;
-    }
-});
-Object.defineProperty(exports, 'parse', {
-    enumerable: true,
-    get: function () {
-        return runtime.parse;
     }
 });
 Object.defineProperty(exports, 'parseExpression', {

@@ -57,11 +57,8 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     state: State;
     get isActive(): boolean;
     get name(): string;
-    private _compiledDef;
     private logger;
     private debug;
-    private _fullyNamed;
-    private _childrenObs;
     readonly hooks: HooksDefinition;
     constructor(container: IContainer, vmKind: ViewModelKind, flags: LifecycleFlags, definition: CustomElementDefinition | CustomAttributeDefinition | null, 
     /**

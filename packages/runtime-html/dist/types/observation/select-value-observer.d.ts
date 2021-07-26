@@ -25,11 +25,7 @@ export declare class SelectValueObserver implements IObserver, IFlushable, IWith
     handleCollectionChange(): void;
     syncOptions(): void;
     syncValue(): boolean;
-    private start;
-    private stop;
-    private _observeArray;
     handleEvent(): void;
-    private _handleNodeChange;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
     flush(): void;

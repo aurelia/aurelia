@@ -3,7 +3,6 @@ import type { Scope } from '@aurelia/runtime';
 import type { PropertyBinding } from '../binding/property-binding.js';
 export declare abstract class BindingModeBehavior implements BindingBehaviorInstance {
     private readonly mode;
-    private readonly originalModes;
     constructor(mode: BindingMode);
     bind(flags: LifecycleFlags, scope: Scope, binding: PropertyBinding): void;
     unbind(flags: LifecycleFlags, scope: Scope, binding: PropertyBinding): void;

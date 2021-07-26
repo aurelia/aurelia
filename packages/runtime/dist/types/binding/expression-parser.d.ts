@@ -1,4 +1,4 @@
-import { ForOfStatement, Interpolation, AnyBindingExpression, IsBindingBehavior } from './ast.js';
+import { ForOfStatement, Interpolation, AnyBindingExpression, IsAssign, IsBinary, IsBindingBehavior, IsConditional, IsLeftHandSide, IsPrimary, IsUnary } from './ast.js';
 export interface IExpressionParser extends ExpressionParser {
 }
 export declare const IExpressionParser: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>;
@@ -164,4 +164,12 @@ export declare const enum BindingType {
     ForCommand = 539,
     CustomCommand = 284
 }
+export declare class ParserState {
+    ip: string;
+    index: number;
+    length: number;
+    constructor(ip: string);
+}
+export declare function parseExpression<TType extends BindingType = BindingType.BindCommand>(input: string, bindingType?: TType): TType extends BindingType.Interpolation ? Interpolation : TType extends BindingType.ForCommand ? ForOfStatement : IsBindingBehavior;
+export declare function parse<TPrec extends Precedence, TType extends BindingType>(state: ParserState, access: Access, minPrecedence: TPrec, bindingType: TType): TPrec extends Precedence.Unary ? IsUnary : TPrec extends Precedence.Binary ? IsBinary : TPrec extends Precedence.LeftHandSide ? IsLeftHandSide : TPrec extends Precedence.Assign ? IsAssign : TPrec extends Precedence.Conditional ? IsConditional : TPrec extends Precedence.Primary ? IsPrimary : TPrec extends Precedence.Multiplicative ? IsBinary : TPrec extends Precedence.Additive ? IsBinary : TPrec extends Precedence.Relational ? IsBinary : TPrec extends Precedence.Equality ? IsBinary : TPrec extends Precedence.LogicalAND ? IsBinary : TPrec extends Precedence.LogicalOR ? IsBinary : TPrec extends Precedence.Variadic ? TType extends BindingType.Interpolation ? Interpolation : TType extends BindingType.ForCommand ? ForOfStatement : never : never;
 //# sourceMappingURL=expression-parser.d.ts.map

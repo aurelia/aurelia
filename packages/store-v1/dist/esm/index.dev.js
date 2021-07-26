@@ -327,7 +327,8 @@ let Store = class Store {
             STORE.container.get(IWindow).performance.clearMeasures();
             return;
         }
-        if (isStateHistory(resultingState) && ((_a = this.options.history) === null || _a === void 0 ? void 0 : _a.limit)) {
+        if (isStateHistory(resultingState) &&
+            ((_a = this.options.history) === null || _a === void 0 ? void 0 : _a.limit)) {
             resultingState = applyLimits(resultingState, this.options.history.limit);
         }
         this._state.next(resultingState);

@@ -1,5 +1,5 @@
 import { Class, ILogger, IServiceLocator } from '@aurelia/kernel';
-import { IExpressionParser, Interpolation, IsBindingBehavior, LifecycleFlags, PrimitiveLiteralExpression, AccessScopeExpression, Scope } from '@aurelia/runtime';
+import { IExpressionParser, Interpolation, IsBindingBehavior, LifecycleFlags, PrimitiveLiteralExpression, Scope } from '@aurelia/runtime';
 import { ValidationRuleAlias, IValidationMessageProvider } from './rules.js';
 import { IValidateable, ValidationRuleExecutionPredicate, IValidationVisitor, ValidationDisplayNameAccessor, IRuleProperty, IPropertyRule, IValidationExpressionHydrator, IValidationRule } from './rule-interfaces.js';
 /**
@@ -10,11 +10,11 @@ export interface ICustomMessage<TRule extends IValidationRule = IValidationRule>
     aliases: ValidationRuleAlias[];
 }
 export declare class RuleProperty implements IRuleProperty {
-    expression?: import("@aurelia/runtime").AccessThisExpression | AccessScopeExpression | import("@aurelia/runtime").ArrayLiteralExpression | import("@aurelia/runtime").ObjectLiteralExpression | PrimitiveLiteralExpression<string | number | boolean | null | undefined> | import("@aurelia/runtime").TemplateExpression | import("@aurelia/runtime").CallFunctionExpression | import("@aurelia/runtime").CallMemberExpression | import("@aurelia/runtime").CallScopeExpression | import("@aurelia/runtime").AccessMemberExpression | import("@aurelia/runtime").AccessKeyedExpression | import("@aurelia/runtime").TaggedTemplateExpression | import("@aurelia/runtime").UnaryExpression | import("@aurelia/runtime").BinaryExpression | import("@aurelia/runtime").ConditionalExpression | import("@aurelia/runtime").AssignExpression | import("@aurelia/runtime").ValueConverterExpression | import("@aurelia/runtime").BindingBehaviorExpression | undefined;
+    expression?: IsBindingBehavior | undefined;
     name: string | number | undefined;
     displayName: string | ValidationDisplayNameAccessor | undefined;
     static $TYPE: string;
-    constructor(expression?: import("@aurelia/runtime").AccessThisExpression | AccessScopeExpression | import("@aurelia/runtime").ArrayLiteralExpression | import("@aurelia/runtime").ObjectLiteralExpression | PrimitiveLiteralExpression<string | number | boolean | null | undefined> | import("@aurelia/runtime").TemplateExpression | import("@aurelia/runtime").CallFunctionExpression | import("@aurelia/runtime").CallMemberExpression | import("@aurelia/runtime").CallScopeExpression | import("@aurelia/runtime").AccessMemberExpression | import("@aurelia/runtime").AccessKeyedExpression | import("@aurelia/runtime").TaggedTemplateExpression | import("@aurelia/runtime").UnaryExpression | import("@aurelia/runtime").BinaryExpression | import("@aurelia/runtime").ConditionalExpression | import("@aurelia/runtime").AssignExpression | import("@aurelia/runtime").ValueConverterExpression | import("@aurelia/runtime").BindingBehaviorExpression | undefined, name?: string | number | undefined, displayName?: string | ValidationDisplayNameAccessor | undefined);
+    constructor(expression?: IsBindingBehavior | undefined, name?: string | number | undefined, displayName?: string | ValidationDisplayNameAccessor | undefined);
     accept(visitor: IValidationVisitor): string;
 }
 export declare type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;

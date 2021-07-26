@@ -13,11 +13,6 @@ export interface IWorkTracker extends WorkTracker {
 }
 export declare const IWorkTracker: import("@aurelia/kernel").InterfaceSymbol<IWorkTracker>;
 export declare class WorkTracker {
-    static inject: import("@aurelia/kernel").InterfaceSymbol<ILogger>[];
-    private _stack;
-    private _promise;
-    private _resolve;
-    private readonly _logger;
     constructor(logger: ILogger);
     start(): void;
     finish(): void;
@@ -30,7 +25,6 @@ export declare class AppRoot implements IDisposable {
     readonly host: HTMLElement;
     controller: ICustomElementController;
     work: IWorkTracker;
-    private _hydratePromise;
     constructor(config: ISinglePageApp, platform: IPlatform, container: IContainer, rootProvider: InstanceProvider<IAppRoot>);
     activate(): void | Promise<void>;
     deactivate(): void | Promise<void>;

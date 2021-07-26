@@ -190,6 +190,6 @@ export declare class $ParameterDeclaration implements I$Node {
     readonly HasInitializer: boolean;
     readonly IsSimpleParameterList: boolean;
     constructor(node: ParameterDeclaration, parent: $$Function, ctx: Context, idx: number, mos?: $$ESModuleOrScript, realm?: Realm, depth?: number, logger?: ILogger, path?: string);
-    InitializeIteratorBinding(ctx: ExecutionContext, iteratorRecord: $IteratorRecord, environment: $EnvRec | undefined): $Object<string> | import("../types/null.js").$Null | $Error<Error, string> | $Empty | $Undefined | $Boolean<boolean> | $String<string> | import("../types/symbol.js").$Symbol<$Undefined | $String<string>> | import("../types/number.js").$Number<number> | undefined;
+    InitializeIteratorBinding(ctx: ExecutionContext, iteratorRecord: $IteratorRecord, environment: $EnvRec | undefined): $Object<string> | import("../types/null.js").$Null | $Empty | $Error<Error, string> | $Undefined | $Boolean<boolean> | $String<string> | import("../types/symbol.js").$Symbol<$String<string> | $Undefined> | import("../types/number.js").$Number<number> | undefined;
 }
 //# sourceMappingURL=functions.d.ts.map

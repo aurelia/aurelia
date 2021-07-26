@@ -123,7 +123,7 @@ export declare type IDialogLoadedSettings<T extends object = object> = Omit<IDia
     readonly keyboard: DialogActionKey[];
 };
 export declare type IDialogGlobalSettings = Pick<IDialogSettings, 'lock' | 'startingZIndex' | 'rejectOnCancel'>;
-export declare const IDialogGlobalSettings: import("@aurelia/kernel").InterfaceSymbol<Pick<IDialogSettings<unknown, object>, "lock" | "startingZIndex" | "rejectOnCancel">>;
+export declare const IDialogGlobalSettings: import("@aurelia/kernel").InterfaceSymbol<IDialogGlobalSettings>;
 export interface DialogError<T> extends Error {
     wasCancelled: boolean;
     value?: T;

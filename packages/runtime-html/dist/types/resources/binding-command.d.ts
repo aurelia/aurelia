@@ -12,11 +12,11 @@ export declare type PartialBindingCommandDefinition = PartialResourceDefinition<
     readonly type?: string | null;
 }>;
 export interface ICommandBuildInfo {
-    node: Element;
-    attr: AttrSyntax;
-    expr: AnyBindingExpression;
-    bindable: BindableDefinition | null;
-    def: CustomAttributeDefinition | CustomElementDefinition | null;
+    readonly node: Element;
+    readonly attr: AttrSyntax;
+    readonly expr: AnyBindingExpression;
+    readonly bindable: BindableDefinition | null;
+    readonly def: CustomAttributeDefinition | CustomElementDefinition | null;
 }
 export declare type BindingCommandInstance<T extends {} = {}> = {
     bindingType: BindingType;

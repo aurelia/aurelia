@@ -6,9 +6,9 @@ export declare type TypedArray = IntArray | FloatArray;
 export declare type IntArrayConstructor = Int8ArrayConstructor | Int16ArrayConstructor | Int32ArrayConstructor | Uint8ArrayConstructor | Uint8ClampedArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor;
 export declare type FloatArrayConstructor = Float32ArrayConstructor | Float64ArrayConstructor;
 export declare type TypedArrayConstructor = IntArrayConstructor | FloatArrayConstructor;
-export declare const getPrototypeOf: (o: any) => any, getOwnPropertyDescriptor: (o: any, p: string | number | symbol) => PropertyDescriptor | undefined, getOwnPropertyDescriptors: <T>(o: T) => { [P in keyof T]: TypedPropertyDescriptor<T[P]>; } & {
+export declare const getPrototypeOf: (o: any) => any, getOwnPropertyDescriptor: (o: any, p: PropertyKey) => PropertyDescriptor | undefined, getOwnPropertyDescriptors: <T>(o: T) => { [P in keyof T]: TypedPropertyDescriptor<T[P]>; } & {
     [x: string]: PropertyDescriptor;
-}, getOwnPropertyNames: (o: any) => string[], getOwnPropertySymbols: (o: any) => symbol[], defineProperty: (o: any, p: string | number | symbol, attributes: PropertyDescriptor & ThisType<any>) => any, defineProperties: (o: any, properties: PropertyDescriptorMap & ThisType<any>) => any;
+}, getOwnPropertyNames: (o: any) => string[], getOwnPropertySymbols: (o: any) => symbol[], defineProperty: <T>(o: T, p: PropertyKey, attributes: PropertyDescriptor & ThisType<any>) => T, defineProperties: <T>(o: T, properties: PropertyDescriptorMap & ThisType<any>) => T;
 export declare const Object_keys: {
     (o: object): string[];
     (o: {}): string[];
@@ -33,8 +33,8 @@ export declare const Number_isNaN: (number: unknown) => boolean;
 export declare const Reflect_apply: typeof Reflect.apply;
 export declare const ArrayBuffer_isView: (arg: any) => arg is ArrayBufferView;
 export declare function uncurryThis<TArgs extends any[], TRet>(func: (...args: TArgs) => TRet): (thisArg: unknown, ...args: TArgs) => TRet;
-export declare const hasOwnProperty: (thisArg: unknown, v: string | number | symbol) => boolean;
-export declare const propertyIsEnumerable: (thisArg: unknown, v: string | number | symbol) => boolean;
+export declare const hasOwnProperty: (thisArg: unknown, v: PropertyKey) => boolean;
+export declare const propertyIsEnumerable: (thisArg: unknown, v: PropertyKey) => boolean;
 export declare const TypedArrayPrototype: any;
 export declare const Object_toString: (thisArg: unknown) => string;
 export declare const RegExp_toString: (thisArg: unknown) => string;

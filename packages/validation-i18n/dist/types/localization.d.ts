@@ -9,7 +9,7 @@ export interface ValidationI18nCustomizationOptions extends ValidationHtmlCustom
     DefaultKeyPrefix?: string;
 }
 export declare type I18nKeyConfiguration = Pick<ValidationI18nCustomizationOptions, 'DefaultNamespace' | 'DefaultKeyPrefix'>;
-export declare const I18nKeyConfiguration: import("@aurelia/kernel").InterfaceSymbol<Pick<ValidationI18nCustomizationOptions, "DefaultNamespace" | "DefaultKeyPrefix">>;
+export declare const I18nKeyConfiguration: import("@aurelia/kernel").InterfaceSymbol<I18nKeyConfiguration>;
 export declare class LocalizedValidationController extends ValidationController {
     private readonly localeChangeSubscription;
     constructor(locator: IServiceLocator, ea: EventAggregator, validator: IValidator, parser: IExpressionParser, platform: IPlatform);

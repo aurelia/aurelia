@@ -47,7 +47,7 @@ class BindingContext {
     static get(scope, name, ancestor, flags) {
         var _a, _b;
         if (scope == null) {
-            throw new Error(`Scope is ${scope}.`);
+            throw new Error(`AUR203:${scope}`);
         }
         let overrideContext = scope.overrideContext;
         let currentScope = scope;
@@ -141,13 +141,13 @@ class Scope {
     }
     static fromOverride(oc) {
         if (oc == null) {
-            throw new Error(`OverrideContext is ${oc}`);
+            throw new Error(`AUR0204:${oc}`);
         }
         return new Scope(null, oc.bindingContext, oc, false);
     }
     static fromParent(ps, bc) {
         if (ps == null) {
-            throw new Error(`ParentScope is ${ps}`);
+            throw new Error(`AUR0205:${ps}`);
         }
         return new Scope(ps, bc, OverrideContext.create(bc), false);
     }
@@ -224,7 +224,8 @@ class BindingBehaviorDefinition {
             def = nameOrDef;
         }
         const inheritsFromInterceptor = Object.getPrototypeOf(Type) === BindingInterceptor;
-        return new BindingBehaviorDefinition(Type, kernel.firstDefined(BindingBehavior.getAnnotation(Type, 'name'), name), kernel.mergeArrays(BindingBehavior.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), BindingBehavior.keyFrom(name), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('strategy', def, Type, () => inheritsFromInterceptor ? 2 /* interceptor */ : 1 /* singleton */));
+        const getAnnotation = BindingBehavior.getAnnotation;
+        return new BindingBehaviorDefinition(Type, kernel.firstDefined(getAnnotation(Type, 'name'), name), kernel.mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), BindingBehavior.keyFrom(name), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('strategy', def, Type, () => inheritsFromInterceptor ? 2 /* interceptor */ : 1 /* singleton */));
     }
     register(container) {
         const { Type, key, aliases, strategy } = this;
@@ -341,7 +342,7 @@ const BindingBehavior = Object.freeze({
     getDefinition(Type) {
         const def = kernel.Metadata.getOwn(bbBaseName, Type);
         if (def === void 0) {
-            throw new Error(`No definition found for type ${Type.name}`);
+            throw new Error(`AUR0151:${Type.name}`);
         }
         return def;
     },
@@ -376,7 +377,8 @@ class ValueConverterDefinition {
             name = nameOrDef.name;
             def = nameOrDef;
         }
-        return new ValueConverterDefinition(Type, kernel.firstDefined(ValueConverter.getAnnotation(Type, 'name'), name), kernel.mergeArrays(ValueConverter.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), ValueConverter.keyFrom(name));
+        const getAnnotation = ValueConverter.getAnnotation;
+        return new ValueConverterDefinition(Type, kernel.firstDefined(getAnnotation(Type, 'name'), name), kernel.mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), ValueConverter.keyFrom(name));
     }
     register(container) {
         const { Type, key, aliases } = this;
@@ -404,7 +406,7 @@ const ValueConverter = Object.freeze({
     getDefinition(Type) {
         const def = kernel.Metadata.getOwn(vcBaseName, Type);
         if (def === void 0) {
-            throw new Error(`No definition found for type ${Type.name}`);
+            throw new Error(`AUR0152:${Type.name}`);
         }
         return def;
     },
@@ -1473,6 +1475,7 @@ class ForOfStatement {
             case '[object Number]': return result;
             case '[object Null]': return 0;
             case '[object Undefined]': return 0;
+            // todo: remove this count method
             default: throw new Error(`Cannot count ${toStringTag$1.call(result)}`);
         }
     }
@@ -1485,6 +1488,7 @@ class ForOfStatement {
             case '[object Number]': return $number(result, func);
             case '[object Null]': return;
             case '[object Undefined]': return;
+            // todo: remove this count method
             default: throw new Error(`Cannot iterate over ${toStringTag$1.call(result)}`);
         }
     }
@@ -2007,7 +2011,7 @@ class CollectionSizeObserver {
         return this.obj.size;
     }
     setValue() {
-        throw new Error('Map/Set "size" is a readonly property');
+        throw new Error('AUR02');
     }
     handleCollectionChange(_, flags) {
         const oldValue = this.value;
@@ -2838,7 +2842,7 @@ function observeCollection(collection) {
         obs = getMapObserver(collection);
     }
     else {
-        throw new Error('Unrecognised collection type.');
+        throw new Error('AUR0210');
     }
     this.obs.add(obs);
 }
@@ -2846,10 +2850,10 @@ function subscribeTo(subscribable) {
     this.obs.add(subscribable);
 }
 function noopHandleChange() {
-    throw new Error('method "handleChange" not implemented');
+    throw new Error(`AUR2011:handleChange`);
 }
 function noopHandleCollectionChange() {
-    throw new Error('method "handleCollectionChange" not implemented');
+    throw new Error('AUR2012:handleCollectionChange');
 }
 class BindingObserverRecord {
     constructor(binding) {
@@ -2949,10 +2953,10 @@ class BindingMediator {
         this.interceptor = this;
     }
     $bind() {
-        throw new Error('Method not implemented.');
+        throw new Error('AUR0213:$bind');
     }
     $unbind() {
-        throw new Error('Method not implemented.');
+        throw new Error('AUR0214:$unbind');
     }
     handleChange(newValue, previousValue, flags) {
         this.binding[this.key](newValue, previousValue, flags);
@@ -2998,10 +3002,10 @@ class ExpressionParser {
         }
     }
     $parse(expression, bindingType) {
-        $state.input = expression;
+        $state.ip = expression;
         $state.length = expression.length;
         $state.index = 0;
-        $state.currentChar = expression.charCodeAt(0);
+        $state._currentChar = expression.charCodeAt(0);
         return parse($state, 0 /* Reset */, 61 /* Variadic */, bindingType === void 0 ? 53 /* BindCommand */ : bindingType);
     }
 }
@@ -3249,33 +3253,36 @@ exports.BindingType = void 0;
     BindingType[BindingType["CustomCommand"] = 284] = "CustomCommand";
 })(exports.BindingType || (exports.BindingType = {}));
 /* eslint-enable @typescript-eslint/indent */
-/** @internal */
 class ParserState {
-    constructor(input) {
-        this.input = input;
+    constructor(ip) {
+        this.ip = ip;
         this.index = 0;
-        this.startIndex = 0;
-        this.lastIndex = 0;
-        this.currentToken = 1572864 /* EOF */;
-        this.tokenValue = '';
-        this.assignable = true;
-        this.length = input.length;
-        this.currentChar = input.charCodeAt(0);
+        /** @internal */
+        this._startIndex = 0;
+        /** @internal */
+        this._lastIndex = 0;
+        /** @internal */
+        this._currentToken = 1572864 /* EOF */;
+        /** @internal */
+        this._tokenValue = '';
+        /** @internal */
+        this._assignable = true;
+        this.length = ip.length;
+        this._currentChar = ip.charCodeAt(0);
     }
-    get tokenRaw() {
-        return this.input.slice(this.startIndex, this.index);
+    /** @internal */
+    get _tokenRaw() {
+        return this.ip.slice(this._startIndex, this.index);
     }
 }
 const $state = new ParserState('');
-/** @internal */
 function parseExpression(input, bindingType) {
-    $state.input = input;
+    $state.ip = input;
     $state.length = input.length;
     $state.index = 0;
-    $state.currentChar = input.charCodeAt(0);
+    $state._currentChar = input.charCodeAt(0);
     return parse($state, 0 /* Reset */, 61 /* Variadic */, bindingType === void 0 ? 53 /* BindCommand */ : bindingType);
 }
-/** @internal */
 // This is performance-critical code which follows a subset of the well-known ES spec.
 // Knowing the spec, or parsers in general, will help with understanding this code and it is therefore not the
 // single source of information for being able to figure it out.
@@ -3286,7 +3293,7 @@ function parseExpression(input, bindingType) {
 // eslint-disable-next-line max-lines-per-function
 function parse(state, access, minPrecedence, bindingType) {
     if (bindingType === 284 /* CustomCommand */) {
-        return new CustomExpression(state.input);
+        return new CustomExpression(state.ip);
     }
     if (state.index === 0) {
         if (bindingType & 2048 /* Interpolation */) {
@@ -3294,13 +3301,13 @@ function parse(state, access, minPrecedence, bindingType) {
             return parseInterpolation(state);
         }
         nextToken(state);
-        if (state.currentToken & 1048576 /* ExpressionTerminal */) {
-            throw new Error(`Invalid start of expression: '${state.input}'`);
+        if (state._currentToken & 1048576 /* ExpressionTerminal */) {
+            throw new Error(`AUR0151:${state.ip}`);
         }
     }
-    state.assignable = 448 /* Binary */ > minPrecedence;
+    state._assignable = 448 /* Binary */ > minPrecedence;
     let result = void 0;
-    if (state.currentToken & 32768 /* UnaryOp */) {
+    if (state._currentToken & 32768 /* UnaryOp */) {
         /** parseUnaryExpression
          * https://tc39.github.io/ecma262/#sec-unary-operators
          *
@@ -3318,10 +3325,10 @@ function parse(state, access, minPrecedence, bindingType) {
          *
          * Note: technically we should throw on ++ / -- / +++ / ---, but there's nothing to gain from that
          */
-        const op = TokenValues[state.currentToken & 63 /* Type */];
+        const op = TokenValues[state._currentToken & 63 /* Type */];
         nextToken(state);
         result = new UnaryExpression(op, parse(state, access, 449 /* LeftHandSide */, bindingType));
-        state.assignable = false;
+        state._assignable = false;
     }
     else {
         /** parsePrimaryExpression
@@ -3349,44 +3356,44 @@ function parse(state, access, minPrecedence, bindingType) {
          * 1,3,4,5,6,7 = false
          * 2 = true
          */
-        primary: switch (state.currentToken) {
+        primary: switch (state._currentToken) {
             case 3078 /* ParentScope */: // $parent
-                state.assignable = false;
+                state._assignable = false;
                 do {
                     nextToken(state);
                     access++; // ancestor
                     if (consumeOpt(state, 16393 /* Dot */)) {
-                        if (state.currentToken === 16393 /* Dot */) {
-                            throw new Error(`Double dot and spread operators are not supported: '${state.input}'`);
+                        if (state._currentToken === 16393 /* Dot */) {
+                            throw new Error(`AUR0152:${state.ip}`);
                         }
-                        else if (state.currentToken === 1572864 /* EOF */) {
-                            throw new Error(`Expected identifier: '${state.input}'`);
+                        else if (state._currentToken === 1572864 /* EOF */) {
+                            throw new Error(`AUR0153:${state.ip}`);
                         }
                     }
-                    else if (state.currentToken & 524288 /* AccessScopeTerminal */) {
+                    else if (state._currentToken & 524288 /* AccessScopeTerminal */) {
                         const ancestor = access & 511 /* Ancestor */;
                         result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThisExpression(ancestor);
                         access = 512 /* This */;
                         break primary;
                     }
                     else {
-                        throw new Error(`Invalid member expression: '${state.input}'`);
+                        throw new Error(`AUR0154:${state.ip}`);
                     }
-                } while (state.currentToken === 3078 /* ParentScope */);
+                } while (state._currentToken === 3078 /* ParentScope */);
             // falls through
             case 1024 /* Identifier */: // identifier
                 if (bindingType & 512 /* IsIterator */) {
-                    result = new BindingIdentifier(state.tokenValue);
+                    result = new BindingIdentifier(state._tokenValue);
                 }
                 else {
-                    result = new AccessScopeExpression(state.tokenValue, access & 511 /* Ancestor */);
+                    result = new AccessScopeExpression(state._tokenValue, access & 511 /* Ancestor */);
                     access = 1024 /* Scope */;
                 }
-                state.assignable = true;
+                state._assignable = true;
                 nextToken(state);
                 break;
             case 3076 /* ThisScope */: // $this
-                state.assignable = false;
+                state._assignable = false;
                 nextToken(state);
                 result = $this;
                 access = 512 /* This */;
@@ -3406,8 +3413,8 @@ function parse(state, access, minPrecedence, bindingType) {
                 access = 0 /* Reset */;
                 break;
             case 540714 /* TemplateTail */:
-                result = new TemplateExpression([state.tokenValue]);
-                state.assignable = false;
+                result = new TemplateExpression([state._tokenValue]);
+                state._assignable = false;
                 nextToken(state);
                 access = 0 /* Reset */;
                 break;
@@ -3417,8 +3424,8 @@ function parse(state, access, minPrecedence, bindingType) {
                 break;
             case 4096 /* StringLiteral */:
             case 8192 /* NumericLiteral */:
-                result = new PrimitiveLiteralExpression(state.tokenValue);
-                state.assignable = false;
+                result = new PrimitiveLiteralExpression(state._tokenValue);
+                state._assignable = false;
                 nextToken(state);
                 access = 0 /* Reset */;
                 break;
@@ -3426,17 +3433,17 @@ function parse(state, access, minPrecedence, bindingType) {
             case 2051 /* UndefinedKeyword */:
             case 2049 /* TrueKeyword */:
             case 2048 /* FalseKeyword */:
-                result = TokenValues[state.currentToken & 63 /* Type */];
-                state.assignable = false;
+                result = TokenValues[state._currentToken & 63 /* Type */];
+                state._assignable = false;
                 nextToken(state);
                 access = 0 /* Reset */;
                 break;
             default:
                 if (state.index >= state.length) {
-                    throw new Error(`Unexpected end of expression: '${state.input}'`);
+                    throw new Error(`AUR0155:${state.ip}`);
                 }
                 else {
-                    throw new Error(`Unconsumed token: '${state.input}'`);
+                    throw new Error(`AUR0156:${state.ip}`);
                 }
         }
         if (bindingType & 512 /* IsIterator */) {
@@ -3471,22 +3478,22 @@ function parse(state, access, minPrecedence, bindingType) {
          * 1,2,5 = false
          * 3,4 = true
          */
-        let name = state.tokenValue;
-        while ((state.currentToken & 16384 /* LeftHandSide */) > 0) {
+        let name = state._tokenValue;
+        while ((state._currentToken & 16384 /* LeftHandSide */) > 0) {
             const args = [];
             let strings;
-            switch (state.currentToken) {
+            switch (state._currentToken) {
                 case 16393 /* Dot */:
-                    state.assignable = true;
+                    state._assignable = true;
                     nextToken(state);
-                    if ((state.currentToken & 3072 /* IdentifierName */) === 0) {
-                        throw new Error(`Expected identifier: '${state.input}'`);
+                    if ((state._currentToken & 3072 /* IdentifierName */) === 0) {
+                        throw new Error(`AUR0153:${state.ip}`);
                     }
-                    name = state.tokenValue;
+                    name = state._tokenValue;
                     nextToken(state);
                     // Change $This to $Scope, change $Scope to $Member, keep $Member as-is, change $Keyed to $Member, disregard other flags
                     access = ((access & (512 /* This */ | 1024 /* Scope */)) << 1) | (access & 2048 /* Member */) | ((access & 4096 /* Keyed */) >> 1);
-                    if (state.currentToken === 671751 /* OpenParen */) {
+                    if (state._currentToken === 671751 /* OpenParen */) {
                         if (access === 0 /* Reset */) { // if the left hand side is a literal, make sure we parse a CallMemberExpression
                             access = 2048 /* Member */;
                         }
@@ -3500,16 +3507,16 @@ function parse(state, access, minPrecedence, bindingType) {
                     }
                     continue;
                 case 671757 /* OpenBracket */:
-                    state.assignable = true;
+                    state._assignable = true;
                     nextToken(state);
                     access = 4096 /* Keyed */;
                     result = new AccessKeyedExpression(result, parse(state, 0 /* Reset */, 62 /* Assign */, bindingType));
                     consume(state, 1835022 /* CloseBracket */);
                     break;
                 case 671751 /* OpenParen */:
-                    state.assignable = false;
+                    state._assignable = false;
                     nextToken(state);
-                    while (state.currentToken !== 1835019 /* CloseParen */) {
+                    while (state._currentToken !== 1835019 /* CloseParen */) {
                         args.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType));
                         if (!consumeOpt(state, 1572876 /* Comma */)) {
                             break;
@@ -3528,8 +3535,8 @@ function parse(state, access, minPrecedence, bindingType) {
                     access = 0;
                     break;
                 case 540714 /* TemplateTail */:
-                    state.assignable = false;
-                    strings = [state.tokenValue];
+                    state._assignable = false;
+                    strings = [state._tokenValue];
                     result = new TaggedTemplateExpression(strings, strings, result);
                     nextToken(state);
                     break;
@@ -3569,14 +3576,14 @@ function parse(state, access, minPrecedence, bindingType) {
      * LogicalANDExpression
      * LogicalORExpression || LogicalANDExpression
      */
-    while ((state.currentToken & 65536 /* BinaryOp */) > 0) {
-        const opToken = state.currentToken;
+    while ((state._currentToken & 65536 /* BinaryOp */) > 0) {
+        const opToken = state._currentToken;
         if ((opToken & 448 /* Precedence */) <= minPrecedence) {
             break;
         }
         nextToken(state);
         result = new BinaryExpression(TokenValues[opToken & 63 /* Type */], result, parse(state, access, opToken & 448 /* Precedence */, bindingType));
-        state.assignable = false;
+        state._assignable = false;
     }
     if (63 /* Conditional */ < minPrecedence) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -3597,7 +3604,7 @@ function parse(state, access, minPrecedence, bindingType) {
         const yes = parse(state, access, 62 /* Assign */, bindingType);
         consume(state, 1572879 /* Colon */);
         result = new ConditionalExpression(result, yes, parse(state, access, 62 /* Assign */, bindingType));
-        state.assignable = false;
+        state._assignable = false;
     }
     if (62 /* Assign */ < minPrecedence) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -3615,8 +3622,8 @@ function parse(state, access, minPrecedence, bindingType) {
      * 1,2 = false
      */
     if (consumeOpt(state, 1048616 /* Equals */)) {
-        if (!state.assignable) {
-            throw new Error(`Left hand side of expression is not assignable: '${state.input}'`);
+        if (!state._assignable) {
+            throw new Error(`AUR0158:${state.ip}`);
         }
         result = new AssignExpression(result, parse(state, access, 62 /* Assign */, bindingType));
     }
@@ -3627,10 +3634,10 @@ function parse(state, access, minPrecedence, bindingType) {
     /** parseValueConverter
      */
     while (consumeOpt(state, 1572884 /* Bar */)) {
-        if (state.currentToken === 1572864 /* EOF */) {
-            throw new Error(`Expected identifier to come after ValueConverter operator: '${state.input}'`);
+        if (state._currentToken === 1572864 /* EOF */) {
+            throw new Error(`AUR0159:${state.ip}`);
         }
-        const name = state.tokenValue;
+        const name = state._tokenValue;
         nextToken(state);
         const args = new Array();
         while (consumeOpt(state, 1572879 /* Colon */)) {
@@ -3641,10 +3648,10 @@ function parse(state, access, minPrecedence, bindingType) {
     /** parseBindingBehavior
      */
     while (consumeOpt(state, 1572883 /* Ampersand */)) {
-        if (state.currentToken === 1572864 /* EOF */) {
-            throw new Error(`Expected identifier to come after BindingBehavior operator: '${state.input}'`);
+        if (state._currentToken === 1572864 /* EOF */) {
+            throw new Error(`AUR0160:${state.ip}`);
         }
-        const name = state.tokenValue;
+        const name = state._tokenValue;
         nextToken(state);
         const args = new Array();
         while (consumeOpt(state, 1572879 /* Colon */)) {
@@ -3652,15 +3659,15 @@ function parse(state, access, minPrecedence, bindingType) {
         }
         result = new BindingBehaviorExpression(result, name, args);
     }
-    if (state.currentToken !== 1572864 /* EOF */) {
+    if (state._currentToken !== 1572864 /* EOF */) {
         if (bindingType & 2048 /* Interpolation */) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return result;
         }
-        if (state.tokenRaw === 'of') {
-            throw new Error(`Unexpected keyword "of": '${state.input}'`);
+        if (state._tokenRaw === 'of') {
+            throw new Error(`AUR0161:${state.ip}`);
         }
-        throw new Error(`Unconsumed token: '${state.input}'`);
+        throw new Error(`AUR0162:${state.ip}`);
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result;
@@ -3685,17 +3692,17 @@ function parse(state, access, minPrecedence, bindingType) {
 function parseArrayLiteralExpression(state, access, bindingType) {
     nextToken(state);
     const elements = new Array();
-    while (state.currentToken !== 1835022 /* CloseBracket */) {
+    while (state._currentToken !== 1835022 /* CloseBracket */) {
         if (consumeOpt(state, 1572876 /* Comma */)) {
             elements.push($undefined);
-            if (state.currentToken === 1835022 /* CloseBracket */) {
+            if (state._currentToken === 1835022 /* CloseBracket */) {
                 break;
             }
         }
         else {
             elements.push(parse(state, access, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
             if (consumeOpt(state, 1572876 /* Comma */)) {
-                if (state.currentToken === 1835022 /* CloseBracket */) {
+                if (state._currentToken === 1835022 /* CloseBracket */) {
                     break;
                 }
             }
@@ -3709,16 +3716,16 @@ function parseArrayLiteralExpression(state, access, bindingType) {
         return new ArrayBindingPattern(elements);
     }
     else {
-        state.assignable = false;
+        state._assignable = false;
         return new ArrayLiteralExpression(elements);
     }
 }
 function parseForOfStatement(state, result) {
     if ((result.$kind & 65536 /* IsForDeclaration */) === 0) {
-        throw new Error(`Invalid BindingIdentifier at left hand side of "of": '${state.input}'`);
+        throw new Error(`AUR0163:${state.ip}`);
     }
-    if (state.currentToken !== 1051180 /* OfKeyword */) {
-        throw new Error(`Invalid BindingIdentifier at left hand side of "of": '${state.input}'`);
+    if (state._currentToken !== 1051180 /* OfKeyword */) {
+        throw new Error(`AUR0163:${state.ip}`);
     }
     nextToken(state);
     const declaration = result;
@@ -3750,33 +3757,33 @@ function parseObjectLiteralExpression(state, bindingType) {
     const keys = new Array();
     const values = new Array();
     nextToken(state);
-    while (state.currentToken !== 1835018 /* CloseBrace */) {
-        keys.push(state.tokenValue);
+    while (state._currentToken !== 1835018 /* CloseBrace */) {
+        keys.push(state._tokenValue);
         // Literal = mandatory colon
-        if (state.currentToken & 12288 /* StringOrNumericLiteral */) {
+        if (state._currentToken & 12288 /* StringOrNumericLiteral */) {
             nextToken(state);
             consume(state, 1572879 /* Colon */);
             values.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
         }
-        else if (state.currentToken & 3072 /* IdentifierName */) {
+        else if (state._currentToken & 3072 /* IdentifierName */) {
             // IdentifierName = optional colon
-            const { currentChar, currentToken, index } = state;
+            const { _currentChar: currentChar, _currentToken: currentToken, index: index } = state;
             nextToken(state);
             if (consumeOpt(state, 1572879 /* Colon */)) {
                 values.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
             }
             else {
                 // Shorthand
-                state.currentChar = currentChar;
-                state.currentToken = currentToken;
+                state._currentChar = currentChar;
+                state._currentToken = currentToken;
                 state.index = index;
                 values.push(parse(state, 0 /* Reset */, 450 /* Primary */, bindingType & ~512 /* IsIterator */));
             }
         }
         else {
-            throw new Error(`Invalid or unsupported property definition in object literal: '${state.input}'`);
+            throw new Error(`AUR0164:${state.ip}`);
         }
-        if (state.currentToken !== 1835018 /* CloseBrace */) {
+        if (state._currentToken !== 1835018 /* CloseBrace */) {
             consume(state, 1572876 /* Comma */);
         }
     }
@@ -3785,7 +3792,7 @@ function parseObjectLiteralExpression(state, bindingType) {
         return new ObjectBindingPattern(keys, values);
     }
     else {
-        state.assignable = false;
+        state._assignable = false;
         return new ObjectLiteralExpression(keys, values);
     }
 }
@@ -3795,13 +3802,13 @@ function parseInterpolation(state) {
     const length = state.length;
     let result = '';
     while (state.index < length) {
-        switch (state.currentChar) {
+        switch (state._currentChar) {
             case 36 /* Dollar */:
-                if (state.input.charCodeAt(state.index + 1) === 123 /* OpenBrace */) {
+                if (state.ip.charCodeAt(state.index + 1) === 123 /* OpenBrace */) {
                     parts.push(result);
                     result = '';
                     state.index += 2;
-                    state.currentChar = state.input.charCodeAt(state.index);
+                    state._currentChar = state.ip.charCodeAt(state.index);
                     nextToken(state);
                     const expression = parse(state, 0 /* Reset */, 61 /* Variadic */, 2048 /* Interpolation */);
                     expressions.push(expression);
@@ -3815,7 +3822,7 @@ function parseInterpolation(state) {
                 result += String.fromCharCode(unescapeCode(nextChar(state)));
                 break;
             default:
-                result += String.fromCharCode(state.currentChar);
+                result += String.fromCharCode(state._currentChar);
         }
         nextChar(state);
     }
@@ -3858,17 +3865,17 @@ function parseInterpolation(state) {
  * SourceCharacter (but not one of ` or \ or $)
  */
 function parseTemplate(state, access, bindingType, result, tagged) {
-    const cooked = [state.tokenValue];
+    const cooked = [state._tokenValue];
     // TODO: properly implement raw parts / decide whether we want this
     consume(state, 540715 /* TemplateContinuation */);
     const expressions = [parse(state, access, 62 /* Assign */, bindingType)];
-    while ((state.currentToken = scanTemplateTail(state)) !== 540714 /* TemplateTail */) {
-        cooked.push(state.tokenValue);
+    while ((state._currentToken = scanTemplateTail(state)) !== 540714 /* TemplateTail */) {
+        cooked.push(state._tokenValue);
         consume(state, 540715 /* TemplateContinuation */);
         expressions.push(parse(state, access, 62 /* Assign */, bindingType));
     }
-    cooked.push(state.tokenValue);
-    state.assignable = false;
+    cooked.push(state._tokenValue);
+    state._assignable = false;
     if (tagged) {
         nextToken(state);
         return new TaggedTemplateExpression(cooked, cooked, result, expressions);
@@ -3880,31 +3887,31 @@ function parseTemplate(state, access, bindingType, result, tagged) {
 }
 function nextToken(state) {
     while (state.index < state.length) {
-        state.startIndex = state.index;
-        if ((state.currentToken = (CharScanners[state.currentChar](state))) != null) { // a null token means the character must be skipped
+        state._startIndex = state.index;
+        if ((state._currentToken = (CharScanners[state._currentChar](state))) != null) { // a null token means the character must be skipped
             return;
         }
     }
-    state.currentToken = 1572864 /* EOF */;
+    state._currentToken = 1572864 /* EOF */;
 }
 function nextChar(state) {
-    return state.currentChar = state.input.charCodeAt(++state.index);
+    return state._currentChar = state.ip.charCodeAt(++state.index);
 }
 function scanIdentifier(state) {
     // run to the next non-idPart
     while (IdParts[nextChar(state)])
         ;
-    const token = KeywordLookup[state.tokenValue = state.tokenRaw];
+    const token = KeywordLookup[state._tokenValue = state._tokenRaw];
     return token === undefined ? 1024 /* Identifier */ : token;
 }
 function scanNumber(state, isFloat) {
-    let char = state.currentChar;
+    let char = state._currentChar;
     if (isFloat === false) {
         do {
             char = nextChar(state);
         } while (char <= 57 /* Nine */ && char >= 48 /* Zero */);
         if (char !== 46 /* Dot */) {
-            state.tokenValue = parseInt(state.tokenRaw, 10);
+            state._tokenValue = parseInt(state._tokenRaw, 10);
             return 8192 /* NumericLiteral */;
         }
         // past this point it's always a float
@@ -3912,7 +3919,7 @@ function scanNumber(state, isFloat) {
         if (state.index >= state.length) {
             // unless the number ends with a dot - that behaves a little different in native ES expressions
             // but in our AST that behavior has no effect because numbers are always stored in variables
-            state.tokenValue = parseInt(state.tokenRaw.slice(0, -1), 10);
+            state._tokenValue = parseInt(state._tokenRaw.slice(0, -1), 10);
             return 8192 /* NumericLiteral */;
         }
     }
@@ -3922,47 +3929,47 @@ function scanNumber(state, isFloat) {
         } while (char <= 57 /* Nine */ && char >= 48 /* Zero */);
     }
     else {
-        state.currentChar = state.input.charCodeAt(--state.index);
+        state._currentChar = state.ip.charCodeAt(--state.index);
     }
-    state.tokenValue = parseFloat(state.tokenRaw);
+    state._tokenValue = parseFloat(state._tokenRaw);
     return 8192 /* NumericLiteral */;
 }
 function scanString(state) {
-    const quote = state.currentChar;
+    const quote = state._currentChar;
     nextChar(state); // Skip initial quote.
     let unescaped = 0;
     const buffer = new Array();
     let marker = state.index;
-    while (state.currentChar !== quote) {
-        if (state.currentChar === 92 /* Backslash */) {
-            buffer.push(state.input.slice(marker, state.index));
+    while (state._currentChar !== quote) {
+        if (state._currentChar === 92 /* Backslash */) {
+            buffer.push(state.ip.slice(marker, state.index));
             nextChar(state);
-            unescaped = unescapeCode(state.currentChar);
+            unescaped = unescapeCode(state._currentChar);
             nextChar(state);
             buffer.push(String.fromCharCode(unescaped));
             marker = state.index;
         }
         else if (state.index >= state.length) {
-            throw new Error(`Unterminated quote in string literal: '${state.input}'`);
+            throw new Error(`AUR0165:${state.ip}`);
         }
         else {
             nextChar(state);
         }
     }
-    const last = state.input.slice(marker, state.index);
+    const last = state.ip.slice(marker, state.index);
     nextChar(state); // Skip terminating quote.
     // Compute the unescaped string value.
     buffer.push(last);
     const unescapedStr = buffer.join('');
-    state.tokenValue = unescapedStr;
+    state._tokenValue = unescapedStr;
     return 4096 /* StringLiteral */;
 }
 function scanTemplate(state) {
     let tail = true;
     let result = '';
     while (nextChar(state) !== 96 /* Backtick */) {
-        if (state.currentChar === 36 /* Dollar */) {
-            if ((state.index + 1) < state.length && state.input.charCodeAt(state.index + 1) === 123 /* OpenBrace */) {
+        if (state._currentChar === 36 /* Dollar */) {
+            if ((state.index + 1) < state.length && state.ip.charCodeAt(state.index + 1) === 123 /* OpenBrace */) {
                 state.index++;
                 tail = false;
                 break;
@@ -3971,18 +3978,18 @@ function scanTemplate(state) {
                 result += '$';
             }
         }
-        else if (state.currentChar === 92 /* Backslash */) {
+        else if (state._currentChar === 92 /* Backslash */) {
             result += String.fromCharCode(unescapeCode(nextChar(state)));
         }
         else {
             if (state.index >= state.length) {
-                throw new Error(`Unterminated template string: '${state.input}'`);
+                throw new Error(`AUR0166:${state.ip}`);
             }
-            result += String.fromCharCode(state.currentChar);
+            result += String.fromCharCode(state._currentChar);
         }
     }
     nextChar(state);
-    state.tokenValue = result;
+    state._tokenValue = result;
     if (tail) {
         return 540714 /* TemplateTail */;
     }
@@ -3990,24 +3997,24 @@ function scanTemplate(state) {
 }
 function scanTemplateTail(state) {
     if (state.index >= state.length) {
-        throw new Error(`Unterminated template string: '${state.input}'`);
+        throw new Error(`AUR0166:${state.ip}`);
     }
     state.index--;
     return scanTemplate(state);
 }
 function consumeOpt(state, token) {
-    if (state.currentToken === token) {
+    if (state._currentToken === token) {
         nextToken(state);
         return true;
     }
     return false;
 }
 function consume(state, token) {
-    if (state.currentToken === token) {
+    if (state._currentToken === token) {
         nextToken(state);
     }
     else {
-        throw new Error(`Missing expected token: '${state.input}'`);
+        throw new Error(`AUR0167:${state.ip}<${token}`);
     }
 }
 /**
@@ -4080,7 +4087,7 @@ function returnToken(token) {
     };
 }
 const unexpectedCharacter = s => {
-    throw new Error(`Unexpected character: '${s.input}'`);
+    throw new Error(`AUR0168:${s.ip}`);
 };
 unexpectedCharacter.notMapped = true;
 // ASCII IdentifierPart lookup
@@ -4148,7 +4155,7 @@ CharScanners[124 /* Bar */] = s => {
 };
 // .
 CharScanners[46 /* Dot */] = s => {
-    if (nextChar(s) <= 57 /* Nine */ && s.currentChar >= 48 /* Zero */) {
+    if (nextChar(s) <= 57 /* Nine */ && s._currentChar >= 48 /* Zero */) {
         return scanNumber(s, true);
     }
     return 16393 /* Dot */;
@@ -4203,7 +4210,7 @@ function currentConnectable() {
 }
 function enterConnectable(connectable) {
     if (connectable == null) {
-        throw new Error('Connectable cannot be null/undefined');
+        throw new Error('AUR0206');
     }
     if (_connectable == null) {
         _connectable = connectable;
@@ -4212,7 +4219,7 @@ function enterConnectable(connectable) {
         return;
     }
     if (_connectable === connectable) {
-        throw new Error(`Trying to enter an active connectable`);
+        throw new Error('AUR0207');
     }
     connectables.push(_connectable);
     _connectable = connectable;
@@ -4220,10 +4227,10 @@ function enterConnectable(connectable) {
 }
 function exitConnectable(connectable) {
     if (connectable == null) {
-        throw new Error('Connectable cannot be null/undefined');
+        throw new Error('AUR0208');
     }
     if (_connectable !== connectable) {
-        throw new Error(`Trying to exit an unactive connectable`);
+        throw new Error('AUR0209');
     }
     connectables.pop();
     _connectable = connectables.length > 0 ? connectables[connectables.length - 1] : null;
@@ -4727,7 +4734,7 @@ class ComputedObserver {
             }
         }
         else {
-            throw new Error('Property is readonly');
+            throw new Error('AUR0221');
         }
     }
     handleChange() {
@@ -4857,11 +4864,11 @@ class DirtyChecker {
             }
         };
     }
-    createProperty(obj, propertyName) {
+    createProperty(obj, key) {
         if (DirtyCheckSettings.throw) {
-            throw new Error(`Property '${propertyName}' is being dirty-checked.`);
+            throw new Error(`AUR0222:${key}`);
         }
-        return new DirtyCheckProperty(this, obj, propertyName);
+        return new DirtyCheckProperty(this, obj, key);
     }
     addProperty(property) {
         this.tracked.push(property);
@@ -4883,33 +4890,34 @@ class DirtyChecker {
 DirtyChecker.inject = [kernel.IPlatform];
 withFlushQueue(DirtyChecker);
 class DirtyCheckProperty {
-    constructor(_dirtyChecker, obj, propertyKey) {
-        this._dirtyChecker = _dirtyChecker;
+    constructor(dirtyChecker, obj, key) {
         this.obj = obj;
-        this.propertyKey = propertyKey;
-        this.oldValue = void 0;
+        this.key = key;
         this.type = 0 /* None */;
+        /** @internal */
+        this._oldValue = void 0;
+        this._dirtyChecker = dirtyChecker;
     }
     getValue() {
-        return this.obj[this.propertyKey];
+        return this.obj[this.key];
     }
     setValue(v, f) {
         // todo: this should be allowed, probably
         // but the construction of dirty checker should throw instead
-        throw new Error(`Trying to set value for property ${this.propertyKey} in dirty checker`);
+        throw new Error(`Trying to set value for property ${this.key} in dirty checker`);
     }
     isDirty() {
-        return this.oldValue !== this.obj[this.propertyKey];
+        return this._oldValue !== this.obj[this.key];
     }
     flush() {
-        const oldValue = this.oldValue;
+        const oldValue = this._oldValue;
         const newValue = this.getValue();
-        this.oldValue = newValue;
+        this._oldValue = newValue;
         this.subs.notify(newValue, oldValue, 0 /* none */);
     }
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
-            this.oldValue = this.obj[this.propertyKey];
+            this._oldValue = this.obj[this.key];
             this._dirtyChecker.addProperty(this);
         }
     }
@@ -5270,7 +5278,7 @@ class Effect {
     }
     run() {
         if (this.stopped) {
-            throw new Error('Effect has already been stopped');
+            throw new Error('AUR0225');
         }
         if (this.running) {
             return;
@@ -5295,7 +5303,7 @@ class Effect {
         if (this.queued) {
             if (this.runCount > this.maxRunCount) {
                 this.runCount = 0;
-                throw new Error('Maximum number of recursive effect run reached. Consider handle effect dependencies differently.');
+                throw new Error(`AUR0226`);
             }
             this.run();
         }
@@ -5352,7 +5360,7 @@ function observable(targetOrConfig, key, descriptor) {
             key = config.name;
         }
         if (key == null || key === '') {
-            throw new Error('Invalid usage, cannot determine property name for @observable');
+            throw new Error('AUR0224');
         }
         // determine callback name based on config or convention.
         const callback = config.callback || `${String(key)}Changed`;

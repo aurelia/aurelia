@@ -9,13 +9,7 @@ export declare const IRendering: import("@aurelia/kernel").InterfaceSymbol<IRend
 export interface IRendering extends Rendering {
 }
 export declare class Rendering {
-    static inject: unknown[];
-    private readonly _ctn;
     private rs;
-    private readonly _p;
-    private readonly _compilationCache;
-    private readonly _fragmentCache;
-    private readonly _empty;
     get renderers(): Record<string, IRenderer>;
     constructor(container: IContainer);
     compile(definition: PartialCustomElementDefinition, container: IContainer, compilationInstruction: ICompliationInstruction | null): CustomElementDefinition;

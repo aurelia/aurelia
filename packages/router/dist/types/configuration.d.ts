@@ -27,6 +27,6 @@ export declare const RouterConfiguration: {
      * Parameter is either a config object that's passed to Router's activate
      * or a config function that's called instead of Router's activate.
      */
-    customize(config?: IRouterOptions | ((router: IRouter) => ReturnType<IRouter['start']>) | undefined): IRegistry;
+    customize(config?: RouterConfig | undefined): IRegistry;
 };
 //# sourceMappingURL=configuration.d.ts.map

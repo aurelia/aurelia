@@ -2066,17 +2066,17 @@ class RouteNode {
         /*   finalPath */ input.finalPath, 
         /*     context */ input.context, 
         /* originalIns */ input.instruction, 
-        /* instruction */ input.instruction, (_a = 
-        /*      params */ input.params) !== null && _a !== void 0 ? _a : {}, (_b = 
-        /* queryParams */ input.queryParams) !== null && _b !== void 0 ? _b : Object.freeze(new URLSearchParams()), (_c = 
-        /*    fragment */ input.fragment) !== null && _c !== void 0 ? _c : null, (_d = 
-        /*        data */ input.data) !== null && _d !== void 0 ? _d : {}, (_e = 
-        /*    viewport */ input.viewport) !== null && _e !== void 0 ? _e : null, (_f = 
-        /*       title */ input.title) !== null && _f !== void 0 ? _f : null, 
+        /* instruction */ input.instruction, 
+        /*      params */ (_a = input.params) !== null && _a !== void 0 ? _a : {}, 
+        /* queryParams */ (_b = input.queryParams) !== null && _b !== void 0 ? _b : Object.freeze(new URLSearchParams()), 
+        /*    fragment */ (_c = input.fragment) !== null && _c !== void 0 ? _c : null, 
+        /*        data */ (_d = input.data) !== null && _d !== void 0 ? _d : {}, 
+        /*    viewport */ (_e = input.viewport) !== null && _e !== void 0 ? _e : null, 
+        /*       title */ (_f = input.title) !== null && _f !== void 0 ? _f : null, 
         /*   component */ input.component, 
-        /*      append */ input.append, (_g = 
-        /*    children */ input.children) !== null && _g !== void 0 ? _g : [], (_h = 
-        /*     residue */ input.residue) !== null && _h !== void 0 ? _h : []);
+        /*      append */ input.append, 
+        /*    children */ (_g = input.children) !== null && _g !== void 0 ? _g : [], 
+        /*     residue */ (_h = input.residue) !== null && _h !== void 0 ? _h : []);
     }
     contains(instructions) {
         var _a, _b;
@@ -2578,7 +2578,7 @@ function createDirectNode(log, node, vi, append, ced) {
         component: ced,
         append,
         title: rd.config.title,
-        residue: [...vi.children],
+        residue: [...vi.children], // Children must be cloned, because residue will be mutated by the compiler
     });
     childCtx.node.setTree(ctx.node.tree);
     log.trace(`createDirectNode(vi:%s) -> %s`, vi, childCtx.node);

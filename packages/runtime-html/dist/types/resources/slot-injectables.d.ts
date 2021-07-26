@@ -1,6 +1,6 @@
 import { CustomElementDefinition } from './custom-element.js';
 export declare type IProjections = Record<string, CustomElementDefinition>;
-export declare const IProjections: import("@aurelia/kernel").InterfaceSymbol<Record<string, CustomElementDefinition<import("@aurelia/kernel").Constructable<{}>>>>;
+export declare const IProjections: import("@aurelia/kernel").InterfaceSymbol<IProjections>;
 export interface IAuSlotsInfo extends AuSlotsInfo {
 }
 export declare const IAuSlotsInfo: import("@aurelia/kernel").InterfaceSymbol<IAuSlotsInfo>;

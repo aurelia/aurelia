@@ -38,12 +38,6 @@ export declare const IViewLocator: import("@aurelia/kernel").InterfaceSymbol<IVi
 export interface IViewLocator extends ViewLocator {
 }
 export declare class ViewLocator {
-    private readonly _modelInstanceToBoundComponent;
-    private readonly _modelTypeToUnboundComponent;
     getViewComponentForObject<T extends ClassInstance<ICustomElementViewModel>>(object: T | null | undefined, viewNameOrSelector?: string | ViewSelector): ComposableObjectComponentType<T> | null;
-    private _getOrCreateBoundComponent;
-    private _getOrCreateUnboundComponent;
-    private _getViewName;
-    private _getView;
 }
 //# sourceMappingURL=view.d.ts.map

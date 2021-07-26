@@ -35,19 +35,11 @@ export declare type RuleType<TRule extends IValidationRule> = Class<TRule, {
 }>;
 export declare const ValidationRuleAliasMessage: Readonly<{
     aliasKey: string;
-    define<TRule extends IValidationRule<any, IValidateable<any>>>(target: Class<TRule, {
-        $TYPE: string;
-    }>, definition: ValidationRuleDefinition): Class<TRule, {
-        $TYPE: string;
-    }>;
+    define<TRule extends IValidationRule<any, IValidateable<any>>>(target: RuleType<TRule>, definition: ValidationRuleDefinition): RuleType<TRule>;
     setDefaultMessage<TRule_1 extends IValidationRule<any, IValidateable<any>>>(rule: Constructable<TRule_1>, { aliases }: ValidationRuleDefinition, append?: boolean): void;
     getDefaultMessages<TRule_2 extends IValidationRule<any, IValidateable<any>>>(rule: TRule_2 | Constructable<TRule_2>): ValidationRuleAlias[];
 }>;
-export declare function validationRule(definition: ValidationRuleDefinition): <TRule extends IValidationRule<any, IValidateable<any>>>(target: Class<TRule, {
-    $TYPE: string;
-}>) => Class<TRule, {
-    $TYPE: string;
-}>;
+export declare function validationRule(definition: ValidationRuleDefinition): <TRule extends IValidationRule<any, IValidateable<any>>>(target: RuleType<TRule>) => RuleType<TRule>;
 /**
  * Abstract validation rule.
  */

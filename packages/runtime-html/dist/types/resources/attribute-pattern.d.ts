@@ -40,10 +40,6 @@ export interface IAttributeParser extends AttributeParser {
 }
 export declare const IAttributeParser: import("@aurelia/kernel").InterfaceSymbol<IAttributeParser>;
 export declare class AttributeParser {
-    static inject: import("@aurelia/kernel").InterfaceSymbol<ISyntaxInterpreter>[];
-    private readonly _cache;
-    private readonly _patterns;
-    private readonly _interpreter;
     constructor(interpreter: ISyntaxInterpreter, attrPatterns: IAttributePattern[]);
     parse(name: string, value: string): AttrSyntax;
 }

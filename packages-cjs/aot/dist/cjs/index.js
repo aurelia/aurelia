@@ -17951,17 +17951,24 @@ const modifiersToModifierFlags = (function () {
         }
         const len = mods.length;
         if (len === 1) {
+            // todo(fred): bigopon added these cast, as it causes issues to the build
+            //             it's from existing working code, though the cast is really weird when the lookup only has a few keys
             return lookup[mods[0].kind];
         }
         else if (len === 2) {
             return lookup[mods[0].kind] + lookup[mods[1].kind];
         }
         else if (len === 3) {
-            return lookup[mods[0].kind] + lookup[mods[1].kind] + lookup[mods[2].kind];
+            return lookup[mods[0].kind]
+                + lookup[mods[1].kind]
+                + lookup[mods[2].kind];
         }
         else {
             // More than 4 modifiers is not possible
-            return lookup[mods[0].kind] + lookup[mods[1].kind] + lookup[mods[2].kind] + lookup[mods[3].kind];
+            return lookup[mods[0].kind]
+                + lookup[mods[1].kind]
+                + lookup[mods[2].kind]
+                + lookup[mods[3].kind];
         }
     };
 })();
@@ -23709,6 +23716,10 @@ class Intrinsics {
         this['%Promise_resolve%'] = void 0;
     }
 }
+// export type IntrinsicObjectKey =
+//   { [K in keyof Intrinsics]: Intrinsics[K] extends $Object ? K : never; } extends { [K in keyof Intrinsics]: infer U; }
+//     ? ({} extends U ? never : U)
+//     : never;
 
 class ResolveSet {
     constructor() {

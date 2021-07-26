@@ -40,7 +40,7 @@ describe('df', function () {
       year: 'numeric', month: '2-digit', day: '2-digit',
       hour: '2-digit', minute: '2-digit', second: '2-digit',
       hour12: false
-    };
+    } as const;
     const { sut } = await createFixture();
     assert.equal(sut.toView(new Date(2000, 0, 17, 17, 0, 1), options), '01/17/2000, 17:00:01');
   });

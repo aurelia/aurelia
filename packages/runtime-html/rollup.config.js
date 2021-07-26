@@ -45,7 +45,7 @@ export default {
       file: `dist/esm/index.js`,
       format: 'es',
       sourcemap: true,
-      plugins: [terserPluginCfg]
+      plugins: [terserPluginCfg],
     },
     {
       file: `dist/cjs/index.dev.js`,

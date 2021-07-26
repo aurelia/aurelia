@@ -23,6 +23,7 @@
   "devDependencies": {
     "@aurelia/http-server": "2.0.1-dev.202107251305",
     "webpack-cli": "^4.2.0",
-    "webpack": "^5.10.3"
+    "webpack": "^5.10.3",
+    "webpack-bundle-analyzer": "^4.4.2"
   }
 }

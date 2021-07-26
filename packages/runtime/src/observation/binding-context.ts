@@ -51,7 +51,10 @@ export class BindingContext implements IBindingContext {
 
   public static get(scope: Scope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (scope == null) {
-      throw new Error(`Scope is ${scope}.`);
+      if (__DEV__)
+        throw new Error(`Scope is ${scope}.`);
+      else
+        throw new Error(`AUR203:${scope}`);
     }
     let overrideContext: IOverrideContext | null = scope.overrideContext;
     let currentScope: Scope | null = scope;
@@ -187,14 +190,20 @@ export class Scope {
 
   public static fromOverride(oc: IOverrideContext): Scope {
     if (oc == null) {
-      throw new Error(`OverrideContext is ${oc}`);
+      if (__DEV__)
+        throw new Error(`OverrideContext is ${oc}`);
+      else
+        throw new Error(`AUR0204:${oc}`);
     }
     return new Scope(null, oc.bindingContext, oc, false);
   }
 
   public static fromParent(ps: Scope | null, bc: object): Scope {
     if (ps == null) {
-      throw new Error(`ParentScope is ${ps}`);
+      if (__DEV__)
+        throw new Error(`ParentScope is ${ps}`);
+      else
+        throw new Error(`AUR0205:${ps}`);
     }
     return new Scope(ps, bc as IBindingContext, OverrideContext.create(bc), false);
   }

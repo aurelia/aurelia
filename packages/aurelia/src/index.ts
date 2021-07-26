@@ -614,8 +614,6 @@ export {
   // These exports are temporary until we have a proper way to unit test them
 
   // parseExpression,
-  // parse,
-  // ParserState,
 
   // BindableInfo,
   // ElementInfo,

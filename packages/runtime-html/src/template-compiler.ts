@@ -30,6 +30,7 @@ import type {
   IContainer,
   IResolver,
   Constructable,
+  Writable,
 } from '@aurelia/kernel';
 import type { AnyBindingExpression } from '@aurelia/runtime';
 import type { CustomAttributeDefinition } from './resources/custom-attribute.js';
@@ -1522,7 +1523,7 @@ function resetCommandBuildInfo(): void {
 const emptyCompilationInstructions: ICompliationInstruction = { projections: null };
 // eslint-disable-next-line
 const voidDefinition: CustomElementDefinition = { name: 'unnamed' } as CustomElementDefinition;
-const commandBuildInfo: ICommandBuildInfo = {
+const commandBuildInfo: Writable<ICommandBuildInfo> = {
   node: null!,
   expr: null!,
   attr: null!,

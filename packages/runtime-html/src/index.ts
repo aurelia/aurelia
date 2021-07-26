@@ -110,8 +110,6 @@ export {
   Char,
   Access,
   Precedence,
-  parse,
-  ParserState,
 
   ArrayObserver,
   ArrayIndexObserver,

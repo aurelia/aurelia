@@ -1249,8 +1249,8 @@ export class Intrinsics implements IDisposable {
   }
 }
 
-export type IntrinsicObjectKey = {
-  [K in keyof Intrinsics]: Intrinsics[K] extends $Object ? K : never;
-} extends {
-  [K in keyof Intrinsics]: infer U;
-} ? ({} extends U ? never : U) : never;
+export type IntrinsicObjectKey = { [K in keyof Intrinsics]: Intrinsics[K] extends $Object ? K : never }[keyof Intrinsics];
+// export type IntrinsicObjectKey =
+//   { [K in keyof Intrinsics]: Intrinsics[K] extends $Object ? K : never; } extends { [K in keyof Intrinsics]: infer U; }
+//     ? ({} extends U ? never : U)
+//     : never;

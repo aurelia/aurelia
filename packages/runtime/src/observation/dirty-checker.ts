@@ -61,11 +61,14 @@ export class DirtyChecker implements IWithFlushQueue {
     private readonly p: IPlatform,
   ) {}
 
-  public createProperty(obj: object, propertyName: string): DirtyCheckProperty {
+  public createProperty(obj: object, key: string): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
-      throw new Error(`Property '${propertyName}' is being dirty-checked.`);
+      if (__DEV__)
+        throw new Error(`Property '${key}' is being dirty-checked.`);
+      else
+        throw new Error(`AUR0222:${key}`);
     }
-    return new DirtyCheckProperty(this, obj as IIndexable, propertyName);
+    return new DirtyCheckProperty(this, obj as IIndexable, key);
   }
 
   public addProperty(property: DirtyCheckProperty): void {
@@ -110,40 +113,46 @@ withFlushQueue(DirtyChecker);
 export interface DirtyCheckProperty extends IObserver, ISubscriberCollection { }
 
 export class DirtyCheckProperty implements DirtyCheckProperty, IFlushable {
-  public oldValue: unknown = void 0;
   public type: AccessorType = AccessorType.None;
 
+  /** @internal */
+  private _oldValue: unknown = void 0;
+  /** @internal */
+  private readonly _dirtyChecker: IDirtyChecker;
+
   public constructor(
-    private readonly _dirtyChecker: IDirtyChecker,
+    dirtyChecker: IDirtyChecker,
     public obj: IObservable & IIndexable,
-    public propertyKey: string,
-  ) {}
+    public key: string,
+  ) {
+    this._dirtyChecker = dirtyChecker;
+  }
 
   public getValue() {
-    return this.obj[this.propertyKey];
+    return this.obj[this.key];
   }
 
   public setValue(v: unknown, f: LifecycleFlags) {
     // todo: this should be allowed, probably
     // but the construction of dirty checker should throw instead
-    throw new Error(`Trying to set value for property ${this.propertyKey} in dirty checker`);
+    throw new Error(`Trying to set value for property ${this.key} in dirty checker`);
   }
 
   public isDirty(): boolean {
-    return this.oldValue !== this.obj[this.propertyKey];
+    return this._oldValue !== this.obj[this.key];
   }
 
   public flush(): void {
-    const oldValue = this.oldValue;
+    const oldValue = this._oldValue;
     const newValue = this.getValue();
 
-    this.oldValue = newValue;
+    this._oldValue = newValue;
     this.subs.notify(newValue, oldValue, LifecycleFlags.none);
   }
 
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
-      this.oldValue = this.obj[this.propertyKey];
+      this._oldValue = this.obj[this.key];
       this._dirtyChecker.addProperty(this);
     }
   }

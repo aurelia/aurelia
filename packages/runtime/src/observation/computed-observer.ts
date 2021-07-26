@@ -107,7 +107,10 @@ export class ComputedObserver implements
         this.run();
       }
     } else {
-      throw new Error('Property is readonly');
+      if (__DEV__)
+        throw new Error('Property is readonly');
+      else
+        throw new Error('AUR0221');
     }
   }
 

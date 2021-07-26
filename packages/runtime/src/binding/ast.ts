@@ -1325,27 +1325,29 @@ export class ForOfStatement {
   }
 
   public count(_f: LF, result: Collection | number | null | undefined): number {
-    switch (toStringTag.call(result)) {
+    switch (toStringTag.call(result) as string) {
       case '[object Array]': return (result as unknown[]).length;
       case '[object Map]': return (result as Map<unknown, unknown>).size;
       case '[object Set]': return (result as Set<unknown>).size;
       case '[object Number]': return result as number;
       case '[object Null]': return 0;
       case '[object Undefined]': return 0;
-      default: throw new Error(`Cannot count ${String(toStringTag.call(result))}`);
+      // todo: remove this count method
+      default: throw new Error(`Cannot count ${toStringTag.call(result) as string}`);
     }
   }
 
   // deepscan-disable-next-line
   public iterate(f: LF, result: Collection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
-    switch (toStringTag.call(result)) {
+    switch (toStringTag.call(result) as string) {
       case '[object Array]': return $array(result as unknown[], func);
       case '[object Map]': return $map(result as Map<unknown, unknown>, func);
       case '[object Set]': return $set(result as Set<unknown>, func);
       case '[object Number]': return $number(result as number, func);
       case '[object Null]': return;
       case '[object Undefined]': return;
-      default: throw new Error(`Cannot iterate over ${String(toStringTag.call(result))}`);
+      // todo: remove this count method
+      default: throw new Error(`Cannot iterate over ${toStringTag.call(result) as string}`);
     }
   }
 

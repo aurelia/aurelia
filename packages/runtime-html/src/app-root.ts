@@ -21,10 +21,15 @@ export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot');
 export interface IWorkTracker extends WorkTracker {}
 export const IWorkTracker = DI.createInterface<IWorkTracker>('IWorkTracker', x => x.singleton(WorkTracker));
 export class WorkTracker {
-  public static inject = [ILogger];
+  /** @internal */
+  protected static inject = [ILogger];
+  /** @internal */
   private _stack: number = 0;
+  /** @internal */
   private _promise: Promise<void> | null = null;
+  /** @internal */
   private _resolve: (() => void) | null = null;
+  /** @internal */
   private readonly _logger: ILogger;
 
   public constructor(logger: ILogger) {
@@ -67,6 +72,7 @@ export class AppRoot implements IDisposable {
   public controller: ICustomElementController = (void 0)!;
   public work: IWorkTracker;
 
+  /** @internal */
   private _hydratePromise: Promise<void> | void = void 0;
 
   public constructor(

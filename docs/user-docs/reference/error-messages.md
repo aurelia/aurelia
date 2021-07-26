@@ -138,7 +138,9 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0903 | Dialog | This happens when `IDialogService.open` is called without both `component` and `template` property |
 | AUR0904 | Dialog | This happens when the default configuration of the dialog plugin is used, as there's no registration associated for key interfaces |
 
-# AST errors
+# Runtime module
+
+## AST errors \(from 101 to 150\)
 
 | Error Code | Description |
 | - | - |
@@ -153,3 +155,48 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0109 | This happens when an unary expression is evaluated with an unknown operator |
 | AUR0110 | This happens when a tagged template (function call) is but the function specified isn't a function |
 | AUR0111 | This happens when a function call AST is evaluated but no function is found |
+
+## Parser errors \(from 151-200\)
+
+| Error Code | Description |
+| - | - |
+| AUR0151 | An expression has an invalid character at the start |
+| AUR0152 | An expression has `..` or `...` |
+| AUR0153 | The parser encounters an unexpected identifier in an expression |
+| AUR0154 | The parser encounters an invalid `AccessMember` expression |
+| AUR0155 | The parers encounters an unexpected end in an expression |
+| AUR0156 | The parser encounters an unconsumable token in an expression |
+| AUR0158 | The expression has an invalid assignment |
+| AUR0159 | An expression has no valid identifier after the value converter `|` symbol |
+| AUR0160 | An expression has no valid identifier after the binding behavior `&` symbol |
+| AUR0161 | The parser encounters an invalid `of` keyword |
+| AUR0162 | The parser encounters an unconsumed token |
+| AUR0163 | The parser encounters an invalid binding identifier at left hand side of an `of` keyword |
+| AUR0164 | The parser encounters a literal object with a property declaration that it doesn't understand |
+| AUR0165 | An expression has an opening string quote `'` or `"`, but no matching ending quote |
+| AUR0166 | An expression has an opening template string quote `\``, but has no matching end |
+| AUR0167 | The parser encounters an unexpected token |
+| AUR0168 | The parser encounters an unexpected character |
+
+## Others \(from 200-300\)
+
+| Error Code | Description |
+| - | - |
+| AUR0201 | `BindingBehavior.getDefinition` is called on a class/object without any binding behavior metadata associated |
+| AUR0202 | `ValueConverter.getDefinition` is called on a class/object without any value converter metadata associated |
+| AUR0203 | `BindingContext.get` is called with `null`/`undefined` as the first parameter |
+| AUR0204 | `Scope.fromOverride` is called with `null`/`undefined` as the first parameter |
+| AUR0205 | `Scope.fromParent` is called with `null`/`undefined` as the first parameter |
+| AUR0206 | `ConnectableSwitcher.enter` is called with `null`/`undefined` as the first parameter |
+| AUR0207 | `ConnectableSwitcher.enter` is called with the currently active connectable |
+| AUR0208 | `ConnectableSwitcher.exit` is called with `null`/`undefined` as the first parameter |
+| AUR0209 | `ConnectableSwitcher.exit` is called with an inactive connectable |
+| AUR0210 | `getCollectionObserver` is called with an not-supported collection type |
+| AUR0211 | a binding subscried to an observer, but does not implement method `handleChange` |
+| AUR0212 | a binding subscribed to a collection observer, but does not implement method `handleCollectionChange` | 
+| AUR0220 | a `Set`/`Map` size observer `.setValue` method is called |
+| AUR0221 | the `setValue` method on a computed property without a setter |
+| AUR0222 | Aurelia doesn't know how to observe a property on an object, and dirty checking is disabled |
+| AUR0224 | Encounters an invalid usage of `@observable` |
+| AUR0225 | An effect is attempted to run again, after it has stopped |
+| AUR0226 | An effect has reach its limit of recursive update |

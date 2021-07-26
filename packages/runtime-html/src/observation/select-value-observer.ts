@@ -220,14 +220,16 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
     return true;
   }
 
-  private start(): void {
+  /** @internal */
+  private _start(): void {
     (this._nodeObserver = new this.obj.ownerDocument.defaultView!.MutationObserver(this._handleNodeChange.bind(this)))
       .observe(this.obj, childObserverOptions);
     this._observeArray(this.value instanceof Array ? this.value : null);
     this._observing = true;
   }
 
-  private stop(): void {
+  /** @internal */
+  private _stop(): void {
     this._nodeObserver!.disconnect();
     this._arrayObserver?.unsubscribe(this);
     this._nodeObserver
@@ -237,6 +239,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   }
 
   // todo: observe all kind of collection
+  /** @internal */
   private _observeArray(array: unknown[] | null): void {
     this._arrayObserver?.unsubscribe(this);
     this._arrayObserver = void 0;
@@ -259,6 +262,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
     }
   }
 
+  /** @internal */
   private _handleNodeChange(): void {
     this.syncOptions();
     const shouldNotify = this.syncValue();
@@ -270,14 +274,14 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.handler.subscribe(this.obj, this);
-      this.start();
+      this._start();
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.handler.dispose();
-      this.stop();
+      this._stop();
     }
   }
 

@@ -524,7 +524,7 @@ export function createSpy<
     $restore = noop;
   } else {
     if (!(key in instanceOrInnerFn)) {
-      throw new Error(`No method named '${key}' exists in object of type ${Reflect.getPrototypeOf(instanceOrInnerFn).constructor.name}`);
+      throw new Error(`No method named '${key}' exists in object of type ${Reflect.getPrototypeOf(instanceOrInnerFn)!.constructor.name}`);
     }
     let descriptorOwner = instanceOrInnerFn;
     let descriptor = Reflect.getOwnPropertyDescriptor(descriptorOwner, key)!;

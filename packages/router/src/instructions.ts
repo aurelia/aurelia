@@ -417,7 +417,7 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
     } else if (typeof instruction === 'function') {
       // This is the class itself
       // CustomElement.getDefinition will throw if the type is not a custom element
-      const definition = CustomElement.getDefinition(instruction);
+      const definition = CustomElement.getDefinition(instruction as Constructable);
       return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, definition);
     } else if (instruction instanceof Promise) {
       return new TypedNavigationInstruction(NavigationInstructionType.Promise, instruction);

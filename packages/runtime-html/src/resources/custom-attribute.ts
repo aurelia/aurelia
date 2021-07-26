@@ -107,7 +107,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     nameOrDef: string | PartialCustomAttributeDefinition,
     Type: CustomAttributeType<T>,
   ): CustomAttributeDefinition<T> {
-
+    const getAnnotation = CustomAttribute.getAnnotation;
     let name: string;
     let def: PartialCustomAttributeDefinition;
     if (typeof nameOrDef === 'string') {
@@ -120,13 +120,13 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 
     return new CustomAttributeDefinition(
       Type,
-      firstDefined(CustomAttribute.getAnnotation(Type, 'name'), name),
-      mergeArrays(CustomAttribute.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      firstDefined(getAnnotation(Type, 'name'), name),
+      mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       CustomAttribute.keyFrom(name),
-      firstDefined(CustomAttribute.getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView),
-      firstDefined(CustomAttribute.getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
-      Bindable.from(...Bindable.getAll(Type), CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
-      firstDefined(CustomAttribute.getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
+      firstDefined(getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView),
+      firstDefined(getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
+      Bindable.from(...Bindable.getAll(Type), getAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
+      firstDefined(getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
       mergeArrays(Watch.getAnnotation(Type), Type.watches),
     );
   }
@@ -140,7 +140,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 }
 
 const caBaseName = Protocol.resource.keyFor('custom-attribute');
-export const CustomAttribute: CustomAttributeKind = Object.freeze({
+export const CustomAttribute: CustomAttributeKind = Object.freeze<CustomAttributeKind>({
   name: caBaseName,
   keyFrom(name: string): string {
     return `${caBaseName}:${name}`;

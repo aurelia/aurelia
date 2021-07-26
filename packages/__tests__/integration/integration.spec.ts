@@ -168,7 +168,7 @@ describe('app', function () {
       assert.html.textContent(wrongStatic, 'infant', 'incorrect text wrongStatic');
 
       const dirtyChecker = ctx.container.get(IDirtyChecker);
-      const dirty = (dirtyChecker['tracked'] as DirtyCheckProperty[]).filter(prop => Object.is(user, prop.obj) && ['fullNameStatic', 'fullNameNonStatic', 'fullNameWrongStatic'].includes(prop.propertyKey));
+      const dirty = (dirtyChecker['tracked'] as DirtyCheckProperty[]).filter(prop => Object.is(user, prop.obj) && ['fullNameStatic', 'fullNameNonStatic', 'fullNameWrongStatic'].includes(prop.key));
       assert.equal(dirty.length, 0, 'dirty checker should not have been applied');
 
       let index = calls.length;
@@ -205,7 +205,7 @@ describe('app', function () {
       assert.html.textContent($userLocation, 'City1, Country1', 'incorrect text #user_location');
 
       const dirtyChecker = ctx.container.get(IDirtyChecker);
-      const dirty = (dirtyChecker['tracked'] as DirtyCheckProperty[]).filter(prop => Object.is(user, prop.obj) && ['roleNonVolatile', 'locationVolatile'].includes(prop.propertyKey));
+      const dirty = (dirtyChecker['tracked'] as DirtyCheckProperty[]).filter(prop => Object.is(user, prop.obj) && ['roleNonVolatile', 'locationVolatile'].includes(prop.key));
       assert.equal(dirty.length, 0, 'dirty checker should not have been applied');
 
       let index = calls.length;
@@ -249,7 +249,7 @@ describe('app', function () {
 
       // assert that it is being dirty checked
       const dirtyChecker = container.get(IDirtyChecker);
-      const dirtyCheckProperty = (dirtyChecker['tracked'] as DirtyCheckProperty[]).find(prop => Object.is(user.arr, prop.obj) && prop.propertyKey === 'indeterminate');
+      const dirtyCheckProperty = (dirtyChecker['tracked'] as DirtyCheckProperty[]).find(prop => Object.is(user.arr, prop.obj) && prop.key === 'indeterminate');
       assert.strictEqual(dirtyCheckProperty, undefined);
       // todo: the following has been commented as it's not correct
       // it's asserting that a property "intermediate" on an array should be dirty checked, but it shouldn't

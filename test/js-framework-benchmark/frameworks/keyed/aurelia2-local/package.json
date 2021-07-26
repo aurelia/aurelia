@@ -1,24 +1,16 @@
 {
-  "name": "@benchmarking-apps/dfsdfasdf",
+  "name": "@benchmarking-apps/aurelia2-local",
   "description": "Benchmark for aurelia 2 framework",
   "private": true,
   "js-framework-benchmark": {
-    "frameworkVersionFromPackage": "@aurelia/kernel",
+    "frameworkVersionFromPackage": "aurelia",
     "customURL": "/dist"
   },
   "version": "1.0.0",
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.13",
-    "@aurelia/metadata": "2.0.0-alpha.13",
-    "@aurelia/platform": "2.0.0-alpha.13",
-    "@aurelia/platform-browser": "2.0.0-alpha.13",
-    "@aurelia/runtime-html": "2.0.0-alpha.13",
-    "@aurelia/runtime": "2.0.0-alpha.13",
-    "@aurelia/webpack-loader": "2.0.0-alpha.13"
+    "aurelia": "2.0.0-alpha.14"
   },
   "devDependencies": {
-    "@aurelia/testing": "dev",
-    "@aurelia/webpack-loader": "dev",
     "@types/node": "^15.12.4",
     "@typescript-eslint/eslint-plugin": "^4.27.0",
     "@typescript-eslint/parser": "^4.27.0",

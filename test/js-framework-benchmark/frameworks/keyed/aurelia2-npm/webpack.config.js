@@ -39,13 +39,9 @@ module.exports = function (env, { analyze }) {
     },
     module: {
       rules: [
-        { test: /\.(png|gif|jpg|cur)$/i, loader: 'url-loader', options: { limit: 8192 } },
-        { test: /\.woff2(\?v=[0-9]\.[0-9]\.[0-9])?$/i, loader: 'url-loader', options: { limit: 10000, mimetype: 'application/font-woff2' } },
-        { test: /\.woff(\?v=[0-9]\.[0-9]\.[0-9])?$/i, loader: 'url-loader', options: { limit: 10000, mimetype: 'application/font-woff' } },
-        { test: /\.(ttf|eot|svg|otf)(\?v=[0-9]\.[0-9]\.[0-9])?$/i, loader: 'file-loader' },
-        { test: /\.css$/i, use: ['style-loader', cssLoader, postcssLoader] },
-        { test: /\.ts$/i, use: ['ts-loader', '@aurelia/webpack-loader'], exclude: /node_modules/ },
-        { test: /[/\\]src[/\\].+\.html$/i, use: '@aurelia/webpack-loader', exclude: /node_modules/ }
+        { test: /\.css$/i, use: [{ loader: 'style-loader' }, { loader: 'css-loader' }] },
+        { test: /\.ts$/i, use: 'ts-loader', exclude: /node_modules/ },
+        { test: /\.html$/i, use: 'html-loader' },
       ]
     },
     plugins: [

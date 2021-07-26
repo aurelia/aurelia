@@ -65,7 +65,10 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
 
   public run(): void {
     if (this.stopped) {
-      throw new Error('Effect has already been stopped');
+      if (__DEV__)
+        throw new Error('Effect has already been stopped');
+      else
+        throw new Error('AUR0225');
     }
     if (this.running) {
       return;
@@ -89,7 +92,10 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
     if (this.queued) {
       if (this.runCount > this.maxRunCount) {
         this.runCount = 0;
-        throw new Error('Maximum number of recursive effect run reached. Consider handle effect dependencies differently.');
+        if (__DEV__)
+          throw new Error('Maximum number of recursive effect run reached. Consider handle effect dependencies differently.');
+        else
+          throw new Error(`AUR0226`);
       }
       this.run();
     } else {

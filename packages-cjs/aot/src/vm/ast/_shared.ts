@@ -87,6 +87,7 @@ import {
 } from 'typescript';
 import {
   emptyArray,
+  IIndexable,
   Writable,
 } from '@aurelia/kernel';
 import {
@@ -1370,14 +1371,21 @@ export const modifiersToModifierFlags = (function () {
     }
     const len = mods.length;
     if (len === 1) {
-      return lookup[mods[0].kind];
+      // todo(fred): bigopon added these cast, as it causes issues to the build
+      //             it's from existing working code, though the cast is really weird when the lookup only has a few keys
+      return (lookup as IIndexable)[mods[0].kind] as ModifierFlags;
     } else if (len === 2) {
-      return lookup[mods[0].kind] + lookup[mods[1].kind];
+      return (lookup as IIndexable)[mods[0].kind] as ModifierFlags + ((lookup as IIndexable)[mods[1].kind] as ModifierFlags);
     } else if (len === 3) {
-      return lookup[mods[0].kind] + lookup[mods[1].kind] + lookup[mods[2].kind];
+      return ((lookup as IIndexable)[mods[0].kind] as ModifierFlags)
+        + ((lookup as IIndexable)[mods[1].kind] as ModifierFlags)
+        + ((lookup as IIndexable)[mods[2].kind] as ModifierFlags);
     } else {
       // More than 4 modifiers is not possible
-      return lookup[mods[0].kind] + lookup[mods[1].kind] + lookup[mods[2].kind] + lookup[mods[3].kind];
+      return ((lookup as IIndexable)[mods[0].kind] as ModifierFlags)
+        + ((lookup as IIndexable)[mods[1].kind] as ModifierFlags)
+        + ((lookup as IIndexable)[mods[2].kind] as ModifierFlags)
+        + ((lookup as IIndexable)[mods[3].kind] as ModifierFlags);
     }
   };
 })();

@@ -90,10 +90,10 @@ export class ExpressionParser {
   private $parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
   private $parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
   private $parse(expression: string, bindingType: BindingType): AnyBindingExpression {
-    $state.input = expression;
+    $state.ip = expression;
     $state.length = expression.length;
     $state.index = 0;
-    $state.currentChar = expression.charCodeAt(0);
+    $state._currentChar = expression.charCodeAt(0);
     return parse($state, Access.Reset, Precedence.Variadic, bindingType === void 0 ? BindingType.BindCommand : bindingType);
   }
 }
@@ -347,44 +347,48 @@ export const enum BindingType {
 }
 /* eslint-enable @typescript-eslint/indent */
 
-/** @internal */
 export class ParserState {
   public index: number = 0;
-  public startIndex: number = 0;
-  public lastIndex: number = 0;
+  /** @internal */
+  public _startIndex: number = 0;
+  /** @internal */
+  public _lastIndex: number = 0;
   public length: number;
-  public currentToken: Token = Token.EOF;
-  public tokenValue: string | number = '';
-  public currentChar: number;
-  public assignable: boolean = true;
-  public get tokenRaw(): string {
-    return this.input.slice(this.startIndex, this.index);
+  /** @internal */
+  public _currentToken: Token = Token.EOF;
+  /** @internal */
+  public _tokenValue: string | number = '';
+  /** @internal */
+  public _currentChar: number;
+  /** @internal */
+  public _assignable: boolean = true;
+  /** @internal */
+  public get _tokenRaw(): string {
+    return this.ip.slice(this._startIndex, this.index);
   }
 
   public constructor(
-    public input: string,
+    public ip: string,
   ) {
-    this.length = input.length;
-    this.currentChar = input.charCodeAt(0);
+    this.length = ip.length;
+    this._currentChar = ip.charCodeAt(0);
   }
 }
 
 const $state = new ParserState('');
 
-/** @internal */
 export function parseExpression<TType extends BindingType = BindingType.BindCommand>(input: string, bindingType?: TType):
 TType extends BindingType.Interpolation ? Interpolation :
   TType extends BindingType.ForCommand ? ForOfStatement :
     IsBindingBehavior {
 
-  $state.input = input;
+  $state.ip = input;
   $state.length = input.length;
   $state.index = 0;
-  $state.currentChar = input.charCodeAt(0);
+  $state._currentChar = input.charCodeAt(0);
   return parse($state, Access.Reset, Precedence.Variadic, bindingType === void 0 ? BindingType.BindCommand : bindingType);
 }
 
-/** @internal */
 // This is performance-critical code which follows a subset of the well-known ES spec.
 // Knowing the spec, or parsers in general, will help with understanding this code and it is therefore not the
 // single source of information for being able to figure it out.
@@ -412,7 +416,7 @@ TPrec extends Precedence.Unary ? IsUnary :
                               never : never {
 
   if (bindingType === BindingType.CustomCommand) {
-    return new CustomExpression(state.input) as any;
+    return new CustomExpression(state.ip) as any;
   }
 
   if (state.index === 0) {
@@ -421,15 +425,18 @@ TPrec extends Precedence.Unary ? IsUnary :
       return parseInterpolation(state) as any;
     }
     nextToken(state);
-    if (state.currentToken & Token.ExpressionTerminal) {
-      throw new Error(`Invalid start of expression: '${state.input}'`);
+    if (state._currentToken & Token.ExpressionTerminal) {
+      if (__DEV__)
+        throw new Error(`Invalid start of expression: '${state.ip}'`);
+      else
+        throw new Error(`AUR0151:${state.ip}`);
     }
   }
 
-  state.assignable = Precedence.Binary > minPrecedence;
+  state._assignable = Precedence.Binary > minPrecedence;
   let result = void 0 as unknown as IsExpressionOrStatement;
 
-  if (state.currentToken & Token.UnaryOp) {
+  if (state._currentToken & Token.UnaryOp) {
     /** parseUnaryExpression
      * https://tc39.github.io/ecma262/#sec-unary-operators
      *
@@ -447,10 +454,10 @@ TPrec extends Precedence.Unary ? IsUnary :
      *
      * Note: technically we should throw on ++ / -- / +++ / ---, but there's nothing to gain from that
      */
-    const op = TokenValues[state.currentToken & Token.Type] as UnaryOperator;
+    const op = TokenValues[state._currentToken & Token.Type] as UnaryOperator;
     nextToken(state);
     result = new UnaryExpression(op, parse(state, access, Precedence.LeftHandSide, bindingType));
-    state.assignable = false;
+    state._assignable = false;
   } else {
     /** parsePrimaryExpression
      * https://tc39.github.io/ecma262/#sec-primary-expression
@@ -477,40 +484,49 @@ TPrec extends Precedence.Unary ? IsUnary :
      * 1,3,4,5,6,7 = false
      * 2 = true
      */
-    primary: switch (state.currentToken) {
+    primary: switch (state._currentToken) {
       case Token.ParentScope: // $parent
-        state.assignable = false;
+        state._assignable = false;
         do {
           nextToken(state);
           access++; // ancestor
           if (consumeOpt(state, Token.Dot)) {
-            if ((state.currentToken as Token) === Token.Dot) {
-              throw new Error(`Double dot and spread operators are not supported: '${state.input}'`);
-            } else if ((state.currentToken as Token) === Token.EOF) {
-              throw new Error(`Expected identifier: '${state.input}'`);
+            if ((state._currentToken as Token) === Token.Dot) {
+              if (__DEV__)
+                throw new Error(`Double dot and spread operators are not supported: '${state.ip}'`);
+              else
+                throw new Error(`AUR0152:${state.ip}`);
+            } else if ((state._currentToken as Token) === Token.EOF) {
+              if (__DEV__)
+                throw new Error(`Expected identifier: '${state.ip}'`);
+              else
+                throw new Error(`AUR0153:${state.ip}`);
             }
-          } else if (state.currentToken & Token.AccessScopeTerminal) {
+          } else if (state._currentToken & Token.AccessScopeTerminal) {
             const ancestor = access & Access.Ancestor;
             result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThisExpression(ancestor);
             access = Access.This;
             break primary;
           } else {
-            throw new Error(`Invalid member expression: '${state.input}'`);
+            if (__DEV__)
+              throw new Error(`Invalid member expression: '${state.ip}'`);
+            else
+              throw new Error(`AUR0154:${state.ip}`);
           }
-        } while (state.currentToken === Token.ParentScope);
+        } while (state._currentToken === Token.ParentScope);
         // falls through
       case Token.Identifier: // identifier
         if (bindingType & BindingType.IsIterator) {
-          result = new BindingIdentifier(state.tokenValue as string);
+          result = new BindingIdentifier(state._tokenValue as string);
         } else {
-          result = new AccessScopeExpression(state.tokenValue as string, access & Access.Ancestor);
+          result = new AccessScopeExpression(state._tokenValue as string, access & Access.Ancestor);
           access = Access.Scope;
         }
-        state.assignable = true;
+        state._assignable = true;
         nextToken(state);
         break;
       case Token.ThisScope: // $this
-        state.assignable = false;
+        state._assignable = false;
         nextToken(state);
         result = $this;
         access = Access.This;
@@ -530,8 +546,8 @@ TPrec extends Precedence.Unary ? IsUnary :
         access = Access.Reset;
         break;
       case Token.TemplateTail:
-        result = new TemplateExpression([state.tokenValue as string]);
-        state.assignable = false;
+        result = new TemplateExpression([state._tokenValue as string]);
+        state._assignable = false;
         nextToken(state);
         access = Access.Reset;
         break;
@@ -541,8 +557,8 @@ TPrec extends Precedence.Unary ? IsUnary :
         break;
       case Token.StringLiteral:
       case Token.NumericLiteral:
-        result = new PrimitiveLiteralExpression(state.tokenValue);
-        state.assignable = false;
+        result = new PrimitiveLiteralExpression(state._tokenValue);
+        state._assignable = false;
         nextToken(state);
         access = Access.Reset;
         break;
@@ -550,16 +566,22 @@ TPrec extends Precedence.Unary ? IsUnary :
       case Token.UndefinedKeyword:
       case Token.TrueKeyword:
       case Token.FalseKeyword:
-        result = TokenValues[state.currentToken & Token.Type] as PrimitiveLiteralExpression;
-        state.assignable = false;
+        result = TokenValues[state._currentToken & Token.Type] as PrimitiveLiteralExpression;
+        state._assignable = false;
         nextToken(state);
         access = Access.Reset;
         break;
       default:
         if (state.index >= state.length) {
-          throw new Error(`Unexpected end of expression: '${state.input}'`);
+          if (__DEV__)
+            throw new Error(`Unexpected end of expression: '${state.ip}'`);
+          else
+            throw new Error(`AUR0155:${state.ip}`);
         } else {
-          throw new Error(`Unconsumed token: '${state.input}'`);
+          if (__DEV__)
+            throw new Error(`Unconsumed token: '${state.ip}'`);
+          else
+            throw new Error(`AUR0156:${state.ip}`);
         }
     }
 
@@ -596,22 +618,25 @@ TPrec extends Precedence.Unary ? IsUnary :
      * 1,2,5 = false
      * 3,4 = true
      */
-    let name = state.tokenValue as string;
-    while ((state.currentToken & Token.LeftHandSide) > 0) {
+    let name = state._tokenValue as string;
+    while ((state._currentToken & Token.LeftHandSide) > 0) {
       const args: IsAssign[] = [];
       let strings: string[];
-      switch ((state.currentToken as Token)) {
+      switch ((state._currentToken as Token)) {
         case Token.Dot:
-          state.assignable = true;
+          state._assignable = true;
           nextToken(state);
-          if ((state.currentToken & Token.IdentifierName) === 0) {
-            throw new Error(`Expected identifier: '${state.input}'`);
+          if ((state._currentToken & Token.IdentifierName) === 0) {
+            if (__DEV__)
+              throw new Error(`Expected identifier: '${state.ip}'`);
+            else
+              throw new Error(`AUR0153:${state.ip}`);
           }
-          name = state.tokenValue as string;
+          name = state._tokenValue as string;
           nextToken(state);
           // Change $This to $Scope, change $Scope to $Member, keep $Member as-is, change $Keyed to $Member, disregard other flags
           access = ((access & (Access.This | Access.Scope)) << 1) | (access & Access.Member) | ((access & Access.Keyed) >> 1);
-          if ((state.currentToken as Token) === Token.OpenParen) {
+          if ((state._currentToken as Token) === Token.OpenParen) {
             if (access === Access.Reset) { // if the left hand side is a literal, make sure we parse a CallMemberExpression
               access = Access.Member;
             }
@@ -624,16 +649,16 @@ TPrec extends Precedence.Unary ? IsUnary :
           }
           continue;
         case Token.OpenBracket:
-          state.assignable = true;
+          state._assignable = true;
           nextToken(state);
           access = Access.Keyed;
           result = new AccessKeyedExpression(result as IsLeftHandSide, parse(state, Access.Reset, Precedence.Assign, bindingType));
           consume(state, Token.CloseBracket);
           break;
         case Token.OpenParen:
-          state.assignable = false;
+          state._assignable = false;
           nextToken(state);
-          while ((state.currentToken as Token) !== Token.CloseParen) {
+          while ((state._currentToken as Token) !== Token.CloseParen) {
             args.push(parse(state, Access.Reset, Precedence.Assign, bindingType));
             if (!consumeOpt(state, Token.Comma)) {
               break;
@@ -650,8 +675,8 @@ TPrec extends Precedence.Unary ? IsUnary :
           access = 0;
           break;
         case Token.TemplateTail:
-          state.assignable = false;
-          strings = [state.tokenValue as string];
+          state._assignable = false;
+          strings = [state._tokenValue as string];
           result = new TaggedTemplateExpression(strings, strings, result as IsLeftHandSide);
           nextToken(state);
           break;
@@ -694,14 +719,14 @@ TPrec extends Precedence.Unary ? IsUnary :
    * LogicalANDExpression
    * LogicalORExpression || LogicalANDExpression
    */
-  while ((state.currentToken & Token.BinaryOp) > 0) {
-    const opToken = state.currentToken;
+  while ((state._currentToken & Token.BinaryOp) > 0) {
+    const opToken = state._currentToken;
     if ((opToken & Token.Precedence) <= minPrecedence) {
       break;
     }
     nextToken(state);
     result = new BinaryExpression(TokenValues[opToken & Token.Type] as BinaryOperator, result as IsBinary, parse(state, access, opToken & Token.Precedence, bindingType));
-    state.assignable = false;
+    state._assignable = false;
   }
   if (Precedence.Conditional < minPrecedence) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -724,7 +749,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     const yes = parse(state, access, Precedence.Assign, bindingType);
     consume(state, Token.Colon);
     result = new ConditionalExpression(result as IsBinary, yes, parse(state, access, Precedence.Assign, bindingType));
-    state.assignable = false;
+    state._assignable = false;
   }
   if (Precedence.Assign < minPrecedence) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -743,8 +768,11 @@ TPrec extends Precedence.Unary ? IsUnary :
    * 1,2 = false
    */
   if (consumeOpt(state, Token.Equals)) {
-    if (!state.assignable) {
-      throw new Error(`Left hand side of expression is not assignable: '${state.input}'`);
+    if (!state._assignable) {
+      if (__DEV__)
+        throw new Error(`Left hand side of expression is not assignable: '${state.ip}'`);
+      else
+        throw new Error(`AUR0158:${state.ip}`);
     }
     result = new AssignExpression(result as IsAssignable, parse(state, access, Precedence.Assign, bindingType));
   }
@@ -756,10 +784,13 @@ TPrec extends Precedence.Unary ? IsUnary :
   /** parseValueConverter
    */
   while (consumeOpt(state, Token.Bar)) {
-    if (state.currentToken === Token.EOF) {
-      throw new Error(`Expected identifier to come after ValueConverter operator: '${state.input}'`);
+    if (state._currentToken === Token.EOF) {
+      if (__DEV__)
+        throw new Error(`Expected identifier to come after ValueConverter operator: '${state.ip}'`);
+      else
+        throw new Error(`AUR0159:${state.ip}`);
     }
-    const name = state.tokenValue as string;
+    const name = state._tokenValue as string;
     nextToken(state);
     const args = new Array<IsAssign>();
     while (consumeOpt(state, Token.Colon)) {
@@ -771,10 +802,13 @@ TPrec extends Precedence.Unary ? IsUnary :
   /** parseBindingBehavior
    */
   while (consumeOpt(state, Token.Ampersand)) {
-    if (state.currentToken === Token.EOF) {
-      throw new Error(`Expected identifier to come after BindingBehavior operator: '${state.input}'`);
+    if (state._currentToken === Token.EOF) {
+      if (__DEV__)
+        throw new Error(`Expected identifier to come after BindingBehavior operator: '${state.ip}'`);
+      else
+        throw new Error(`AUR0160:${state.ip}`);
     }
-    const name = state.tokenValue as string;
+    const name = state._tokenValue as string;
     nextToken(state);
     const args = new Array<IsAssign>();
     while (consumeOpt(state, Token.Colon)) {
@@ -782,15 +816,21 @@ TPrec extends Precedence.Unary ? IsUnary :
     }
     result = new BindingBehaviorExpression(result as IsBindingBehavior, name, args);
   }
-  if (state.currentToken !== Token.EOF) {
+  if (state._currentToken !== Token.EOF) {
     if (bindingType & BindingType.Interpolation) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }
-    if (state.tokenRaw === 'of') {
-      throw new Error(`Unexpected keyword "of": '${state.input}'`);
+    if (state._tokenRaw === 'of') {
+      if (__DEV__)
+        throw new Error(`Unexpected keyword "of": '${state.ip}'`);
+      else
+        throw new Error(`AUR0161:${state.ip}`);
     }
-    throw new Error(`Unconsumed token: '${state.input}'`);
+    if (__DEV__)
+      throw new Error(`Unconsumed token: '${state.ip}'`);
+    else
+      throw new Error(`AUR0162:${state.ip}`);
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return result as any;
@@ -816,16 +856,16 @@ TPrec extends Precedence.Unary ? IsUnary :
 function parseArrayLiteralExpression(state: ParserState, access: Access, bindingType: BindingType): ArrayBindingPattern | ArrayLiteralExpression {
   nextToken(state);
   const elements = new Array<IsAssign>();
-  while (state.currentToken !== Token.CloseBracket) {
+  while (state._currentToken !== Token.CloseBracket) {
     if (consumeOpt(state, Token.Comma)) {
       elements.push($undefined);
-      if ((state.currentToken as Token) === Token.CloseBracket) {
+      if ((state._currentToken as Token) === Token.CloseBracket) {
         break;
       }
     } else {
       elements.push(parse(state, access, Precedence.Assign, bindingType & ~BindingType.IsIterator));
       if (consumeOpt(state, Token.Comma)) {
-        if ((state.currentToken as Token) === Token.CloseBracket) {
+        if ((state._currentToken as Token) === Token.CloseBracket) {
           break;
         }
       } else {
@@ -837,17 +877,23 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
   if (bindingType & BindingType.IsIterator) {
     return new ArrayBindingPattern(elements);
   } else {
-    state.assignable = false;
+    state._assignable = false;
     return new ArrayLiteralExpression(elements);
   }
 }
 
 function parseForOfStatement(state: ParserState, result: BindingIdentifierOrPattern): ForOfStatement {
   if ((result.$kind & ExpressionKind.IsForDeclaration) === 0) {
-    throw new Error(`Invalid BindingIdentifier at left hand side of "of": '${state.input}'`);
+    if (__DEV__)
+      throw new Error(`Invalid BindingIdentifier at left hand side of "of": '${state.ip}'`);
+    else
+      throw new Error(`AUR0163:${state.ip}`);
   }
-  if (state.currentToken !== Token.OfKeyword) {
-    throw new Error(`Invalid BindingIdentifier at left hand side of "of": '${state.input}'`);
+  if (state._currentToken !== Token.OfKeyword) {
+    if (__DEV__)
+      throw new Error(`Invalid BindingIdentifier at left hand side of "of": '${state.ip}'`);
+    else
+      throw new Error(`AUR0163:${state.ip}`);
   }
   nextToken(state);
   const declaration = result;
@@ -880,30 +926,33 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
   const keys = new Array<string | number>();
   const values = new Array<IsAssign>();
   nextToken(state);
-  while (state.currentToken !== Token.CloseBrace) {
-    keys.push(state.tokenValue);
+  while (state._currentToken !== Token.CloseBrace) {
+    keys.push(state._tokenValue);
     // Literal = mandatory colon
-    if (state.currentToken & Token.StringOrNumericLiteral) {
+    if (state._currentToken & Token.StringOrNumericLiteral) {
       nextToken(state);
       consume(state, Token.Colon);
       values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator));
-    } else if (state.currentToken & Token.IdentifierName) {
+    } else if (state._currentToken & Token.IdentifierName) {
       // IdentifierName = optional colon
-      const { currentChar, currentToken, index } = state;
+      const { _currentChar: currentChar, _currentToken: currentToken, index: index } = state;
       nextToken(state);
       if (consumeOpt(state, Token.Colon)) {
         values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator));
       } else {
         // Shorthand
-        state.currentChar = currentChar;
-        state.currentToken = currentToken;
+        state._currentChar = currentChar;
+        state._currentToken = currentToken;
         state.index = index;
         values.push(parse(state, Access.Reset, Precedence.Primary, bindingType & ~BindingType.IsIterator));
       }
     } else {
-      throw new Error(`Invalid or unsupported property definition in object literal: '${state.input}'`);
+      if (__DEV__)
+        throw new Error(`Invalid or unsupported property definition in object literal: '${state.ip}'`);
+      else
+        throw new Error(`AUR0164:${state.ip}`);
     }
-    if ((state.currentToken as Token) !== Token.CloseBrace) {
+    if ((state._currentToken as Token) !== Token.CloseBrace) {
       consume(state, Token.Comma);
     }
   }
@@ -911,7 +960,7 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
   if (bindingType & BindingType.IsIterator) {
     return new ObjectBindingPattern(keys, values);
   } else {
-    state.assignable = false;
+    state._assignable = false;
     return new ObjectLiteralExpression(keys, values);
   }
 }
@@ -922,14 +971,14 @@ function parseInterpolation(state: ParserState): Interpolation {
   const length = state.length;
   let result = '';
   while (state.index < length) {
-    switch (state.currentChar) {
+    switch (state._currentChar) {
       case Char.Dollar:
-        if (state.input.charCodeAt(state.index + 1) === Char.OpenBrace) {
+        if (state.ip.charCodeAt(state.index + 1) === Char.OpenBrace) {
           parts.push(result);
           result = '';
 
           state.index += 2;
-          state.currentChar = state.input.charCodeAt(state.index);
+          state._currentChar = state.ip.charCodeAt(state.index);
           nextToken(state);
           const expression = parse(state, Access.Reset, Precedence.Variadic, BindingType.Interpolation);
           expressions.push(expression);
@@ -942,7 +991,7 @@ function parseInterpolation(state: ParserState): Interpolation {
         result += String.fromCharCode(unescapeCode(nextChar(state)));
         break;
       default:
-        result += String.fromCharCode(state.currentChar);
+        result += String.fromCharCode(state._currentChar);
     }
     nextChar(state);
   }
@@ -986,17 +1035,17 @@ function parseInterpolation(state: ParserState): Interpolation {
  * SourceCharacter (but not one of ` or \ or $)
  */
 function parseTemplate(state: ParserState, access: Access, bindingType: BindingType, result: IsLeftHandSide, tagged: boolean): TaggedTemplateExpression | TemplateExpression {
-  const cooked = [state.tokenValue as string];
+  const cooked = [state._tokenValue as string];
   // TODO: properly implement raw parts / decide whether we want this
   consume(state, Token.TemplateContinuation);
   const expressions = [parse(state, access, Precedence.Assign, bindingType)];
-  while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
-    cooked.push(state.tokenValue as string);
+  while ((state._currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
+    cooked.push(state._tokenValue as string);
     consume(state, Token.TemplateContinuation);
     expressions.push(parse(state, access, Precedence.Assign, bindingType));
   }
-  cooked.push(state.tokenValue as string);
-  state.assignable = false;
+  cooked.push(state._tokenValue as string);
+  state._assignable = false;
   if (tagged) {
     nextToken(state);
     return new TaggedTemplateExpression(cooked, cooked, result, expressions);
@@ -1008,35 +1057,35 @@ function parseTemplate(state: ParserState, access: Access, bindingType: BindingT
 
 function nextToken(state: ParserState): void {
   while (state.index < state.length) {
-    state.startIndex = state.index;
-    if ((state.currentToken = (CharScanners[state.currentChar](state)) as Token) != null) { // a null token means the character must be skipped
+    state._startIndex = state.index;
+    if ((state._currentToken = (CharScanners[state._currentChar](state)) as Token) != null) { // a null token means the character must be skipped
       return;
     }
   }
-  state.currentToken = Token.EOF;
+  state._currentToken = Token.EOF;
 }
 
 function nextChar(state: ParserState): number {
-  return state.currentChar = state.input.charCodeAt(++state.index);
+  return state._currentChar = state.ip.charCodeAt(++state.index);
 }
 
 function scanIdentifier(state: ParserState): Token {
   // run to the next non-idPart
   while (IdParts[nextChar(state)]);
 
-  const token: Token|undefined = KeywordLookup[state.tokenValue = state.tokenRaw];
+  const token: Token|undefined = KeywordLookup[state._tokenValue = state._tokenRaw];
   return token === undefined ? Token.Identifier : token;
 }
 
 function scanNumber(state: ParserState, isFloat: boolean): Token {
-  let char = state.currentChar;
+  let char = state._currentChar;
   if (isFloat === false) {
     do {
       char = nextChar(state);
     } while (char <= Char.Nine && char >= Char.Zero);
 
     if (char !== Char.Dot) {
-      state.tokenValue = parseInt(state.tokenRaw, 10);
+      state._tokenValue = parseInt(state._tokenRaw, 10);
       return Token.NumericLiteral;
     }
     // past this point it's always a float
@@ -1044,7 +1093,7 @@ function scanNumber(state: ParserState, isFloat: boolean): Token {
     if (state.index >= state.length) {
       // unless the number ends with a dot - that behaves a little different in native ES expressions
       // but in our AST that behavior has no effect because numbers are always stored in variables
-      state.tokenValue = parseInt(state.tokenRaw.slice(0, -1), 10);
+      state._tokenValue = parseInt(state._tokenRaw.slice(0, -1), 10);
       return Token.NumericLiteral;
     }
   }
@@ -1054,44 +1103,47 @@ function scanNumber(state: ParserState, isFloat: boolean): Token {
       char = nextChar(state);
     } while (char <= Char.Nine && char >= Char.Zero);
   } else {
-    state.currentChar = state.input.charCodeAt(--state.index);
+    state._currentChar = state.ip.charCodeAt(--state.index);
   }
 
-  state.tokenValue = parseFloat(state.tokenRaw);
+  state._tokenValue = parseFloat(state._tokenRaw);
   return Token.NumericLiteral;
 }
 
 function scanString(state: ParserState): Token {
-  const quote = state.currentChar;
+  const quote = state._currentChar;
   nextChar(state); // Skip initial quote.
 
   let unescaped = 0;
   const buffer = new Array<string>();
   let marker = state.index;
 
-  while (state.currentChar !== quote) {
-    if (state.currentChar === Char.Backslash) {
-      buffer.push(state.input.slice(marker, state.index));
+  while (state._currentChar !== quote) {
+    if (state._currentChar === Char.Backslash) {
+      buffer.push(state.ip.slice(marker, state.index));
       nextChar(state);
-      unescaped = unescapeCode(state.currentChar);
+      unescaped = unescapeCode(state._currentChar);
       nextChar(state);
       buffer.push(String.fromCharCode(unescaped));
       marker = state.index;
     } else if (state.index >= state.length) {
-      throw new Error(`Unterminated quote in string literal: '${state.input}'`);
+      if (__DEV__)
+        throw new Error(`Unterminated quote in string literal: '${state.ip}'`);
+      else
+        throw new Error(`AUR0165:${state.ip}`);
     } else {
       nextChar(state);
     }
   }
 
-  const last = state.input.slice(marker, state.index);
+  const last = state.ip.slice(marker, state.index);
   nextChar(state); // Skip terminating quote.
 
   // Compute the unescaped string value.
   buffer.push(last);
   const unescapedStr = buffer.join('');
 
-  state.tokenValue = unescapedStr;
+  state._tokenValue = unescapedStr;
   return Token.StringLiteral;
 }
 
@@ -1100,26 +1152,29 @@ function scanTemplate(state: ParserState): Token {
   let result = '';
 
   while (nextChar(state) !== Char.Backtick) {
-    if (state.currentChar === Char.Dollar) {
-      if ((state.index + 1) < state.length && state.input.charCodeAt(state.index + 1) === Char.OpenBrace) {
+    if (state._currentChar === Char.Dollar) {
+      if ((state.index + 1) < state.length && state.ip.charCodeAt(state.index + 1) === Char.OpenBrace) {
         state.index++;
         tail = false;
         break;
       } else {
         result += '$';
       }
-    } else if (state.currentChar === Char.Backslash) {
+    } else if (state._currentChar === Char.Backslash) {
       result += String.fromCharCode(unescapeCode(nextChar(state)));
     } else {
       if (state.index >= state.length) {
-        throw new Error(`Unterminated template string: '${state.input}'`);
+        if (__DEV__)
+          throw new Error(`Unterminated template string: '${state.ip}'`);
+        else
+          throw new Error(`AUR0166:${state.ip}`);
       }
-      result += String.fromCharCode(state.currentChar);
+      result += String.fromCharCode(state._currentChar);
     }
   }
 
   nextChar(state);
-  state.tokenValue = result;
+  state._tokenValue = result;
   if (tail) {
     return Token.TemplateTail;
   }
@@ -1128,14 +1183,17 @@ function scanTemplate(state: ParserState): Token {
 
 function scanTemplateTail(state: ParserState): Token {
   if (state.index >= state.length) {
-    throw new Error(`Unterminated template string: '${state.input}'`);
+    if (__DEV__)
+      throw new Error(`Unterminated template string: '${state.ip}'`);
+    else
+      throw new Error(`AUR0166:${state.ip}`);
   }
   state.index--;
   return scanTemplate(state);
 }
 
 function consumeOpt(state: ParserState, token: Token): boolean {
-  if (state.currentToken === token) {
+  if (state._currentToken === token) {
     nextToken(state);
     return true;
   }
@@ -1144,10 +1202,13 @@ function consumeOpt(state: ParserState, token: Token): boolean {
 }
 
 function consume(state: ParserState, token: Token): void {
-  if (state.currentToken === token) {
+  if (state._currentToken === token) {
     nextToken(state);
   } else {
-    throw new Error(`Missing expected token: '${state.input}'`);
+    if (__DEV__)
+      throw new Error(`Missing expected token: '${state.ip}'`);
+    else
+      throw new Error(`AUR0167:${state.ip}<${token}`);
   }
 }
 
@@ -1229,7 +1290,10 @@ function returnToken(token: Token): (s: ParserState) => Token {
   };
 }
 const unexpectedCharacter: CharScanner = s => {
-  throw new Error(`Unexpected character: '${s.input}'`);
+  if (__DEV__)
+    throw new Error(`Unexpected character: '${s.ip}'`);
+  else
+    throw new Error(`AUR0168:${s.ip}`);
 };
 unexpectedCharacter.notMapped = true;
 
@@ -1309,7 +1373,7 @@ CharScanners[Char.Bar] = s => {
 
 // .
 CharScanners[Char.Dot] = s => {
-  if (nextChar(s) <= Char.Nine && s.currentChar >= Char.Zero) {
+  if (nextChar(s) <= Char.Nine && s._currentChar >= Char.Zero) {
     return scanNumber(s, true);
   }
   return Token.Dot;

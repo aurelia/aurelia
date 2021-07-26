@@ -32,7 +32,7 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
 
   public constructor(
     obj: INode,
-    public readonly propertyKey: PropertyKey,
+    public readonly key: PropertyKey,
     public readonly handler: EventSubscriber,
   ) {
     this.obj = obj as INode & IIndexable;
@@ -60,7 +60,7 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   private _flushChanges(flags: LifecycleFlags): void {
     if (this._hasChanges) {
       this._hasChanges = false;
-      this.obj[this.propertyKey as string] = this.value ?? this.handler.config.default;
+      this.obj[this.key as string] = this.value ?? this.handler.config.default;
 
       if ((flags & LifecycleFlags.fromBind) === 0) {
         this.queue.add(this);
@@ -70,7 +70,7 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
 
   public handleEvent(): void {
     this._oldValue = this.value;
-    this.value = this.obj[this.propertyKey as string];
+    this.value = this.obj[this.key as string];
     if (this._oldValue !== this.value) {
       this._hasChanges = false;
       this.queue.add(this);
@@ -80,7 +80,7 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.handler.subscribe(this.obj, this);
-      this.value = this._oldValue = this.obj[this.propertyKey as string];
+      this.value = this._oldValue = this.obj[this.key as string];
     }
   }
 

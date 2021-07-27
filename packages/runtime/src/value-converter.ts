@@ -68,10 +68,11 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
       def = nameOrDef;
     }
 
+    const getAnnotation = ValueConverter.getAnnotation;
     return new ValueConverterDefinition(
       Type,
-      firstDefined(ValueConverter.getAnnotation(Type, 'name'), name),
-      mergeArrays(ValueConverter.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      firstDefined(getAnnotation(Type, 'name'), name),
+      mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       ValueConverter.keyFrom(name),
     );
   }
@@ -85,7 +86,7 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
 }
 
 const vcBaseName = Protocol.resource.keyFor('value-converter');
-export const ValueConverter: ValueConverterKind = Object.freeze({
+export const ValueConverter: ValueConverterKind = Object.freeze<ValueConverterKind>({
   name: vcBaseName,
   keyFrom(name: string): string {
     return `${vcBaseName}:${name}`;
@@ -104,7 +105,10 @@ export const ValueConverter: ValueConverterKind = Object.freeze({
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
     const def = Metadata.getOwn(vcBaseName, Type);
     if (def === void 0) {
-      throw new Error(`No definition found for type ${Type.name}`);
+      if (__DEV__)
+        throw new Error(`No definition found for type ${Type.name}`);
+      else
+        throw new Error(`AUR0152:${Type.name}`);
     }
 
     return def;

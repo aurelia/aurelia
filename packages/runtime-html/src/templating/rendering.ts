@@ -13,12 +13,18 @@ export const IRendering = DI.createInterface<IRendering>('IRendering', x => x.si
 export interface IRendering extends Rendering { }
 
 export class Rendering {
-  public static inject: unknown[] = [IContainer];
+  /** @internal */
+  protected static inject: unknown[] = [IContainer];
+  /** @internal */
   private readonly _ctn: IContainer;
   private rs: Record<string, IRenderer> | undefined;
+  /** @internal */
   private readonly _p: IPlatform;
+  /** @internal */
   private readonly _compilationCache: WeakMap<PartialCustomElementDefinition, CustomElementDefinition> = new WeakMap();
+  /** @internal */
   private readonly _fragmentCache: WeakMap<CustomElementDefinition, DocumentFragment | null> = new WeakMap();
+  /** @internal */
   private readonly _empty: INodeSequence;
 
   public get renderers(): Record<string, IRenderer> {
@@ -108,7 +114,10 @@ export class Rendering {
     const renderers = this.renderers;
     const ii = targets.length;
     if (targets.length !== rows.length) {
-      throw new Error(`The compiled template is not aligned with the render instructions. There are ${ii} targets and ${rows.length} instructions.`);
+      if (__DEV__)
+        throw new Error(`The compiled template is not aligned with the render instructions. There are ${ii} targets and ${rows.length} instructions.`);
+      else
+        throw new Error(`AUR0757:${ii}<>${rows.length}`);
     }
 
     let i = 0;

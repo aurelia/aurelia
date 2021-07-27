@@ -22,7 +22,6 @@ import type {
   QueueTaskOptions,
   Scope,
 } from '@aurelia/runtime';
-import type { IHtmlElement } from '../observation/element-attribute-observer.js';
 import type { INode } from '../dom.js';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
@@ -164,8 +163,7 @@ export class AttributeBinding implements IObserverLocatorBasedConnectable {
     let targetObserver = this.targetObserver as IObserver;
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
-        this.p,
-        this.target as IHtmlElement,
+        this.target as HTMLElement,
         this.targetProperty,
         this.targetAttribute,
       );

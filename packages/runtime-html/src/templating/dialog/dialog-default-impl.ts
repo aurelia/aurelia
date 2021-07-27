@@ -22,6 +22,7 @@ const baseWrapperCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
 
 export class DefaultDialogDomRenderer implements IDialogDomRenderer {
 
+  /** @internal */
   protected static inject = [IPlatform];
 
   public constructor(private readonly p: IPlatform) {}

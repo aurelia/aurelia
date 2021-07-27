@@ -118,10 +118,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _compiledDef: CustomElementDefinition | undefined;
   private logger!: ILogger;
   private debug!: boolean;
+  /** @internal */
   private _fullyNamed: boolean = false;
+  /** @internal */
   private _childrenObs: ChildrenObserver[] = emptyArray;
   /** @internal */
   private readonly _rendering: IRendering;

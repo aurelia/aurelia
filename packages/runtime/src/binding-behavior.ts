@@ -87,11 +87,12 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
     }
 
     const inheritsFromInterceptor = Object.getPrototypeOf(Type) === BindingInterceptor;
+    const getAnnotation = BindingBehavior.getAnnotation;
 
     return new BindingBehaviorDefinition(
       Type,
-      firstDefined(BindingBehavior.getAnnotation(Type, 'name'), name),
-      mergeArrays(BindingBehavior.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      firstDefined(getAnnotation(Type, 'name'), name),
+      mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       BindingBehavior.keyFrom(name),
       fromAnnotationOrDefinitionOrTypeOrDefault('strategy', def, Type, () => inheritsFromInterceptor ? BindingBehaviorStrategy.interceptor : BindingBehaviorStrategy.singleton),
     );
@@ -216,7 +217,7 @@ export class BindingInterceptor implements IInterceptableBinding {
 }
 
 const bbBaseName = Protocol.resource.keyFor('binding-behavior');
-export const BindingBehavior: BindingBehaviorKind = Object.freeze({
+export const BindingBehavior: BindingBehaviorKind = Object.freeze<BindingBehaviorKind>({
   name: bbBaseName,
   keyFrom(name: string): string {
     return `${bbBaseName}:${name}`;
@@ -235,7 +236,10 @@ export const BindingBehavior: BindingBehaviorKind = Object.freeze({
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T> {
     const def = Metadata.getOwn(bbBaseName, Type) as BindingBehaviorDefinition<T>;
     if (def === void 0) {
-      throw new Error(`No definition found for type ${Type.name}`);
+      if (__DEV__)
+        throw new Error(`No definition found for type ${Type.name}`);
+      else
+        throw new Error(`AUR0151:${Type.name}`);
     }
 
     return def;

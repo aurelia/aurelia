@@ -26,12 +26,11 @@ export function register(container) {
   it('transforms html file with paired css file', function () {
     const html = '<template></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
-import { Registration } from '@aurelia/kernel';
-import d0 from "./foo-bar.css";
+import "./foo-bar.css";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ Registration.defer('.css', d0) ];
+export const dependencies = [  ];
 let _e;
 export function register(container) {
   if (!_e) {

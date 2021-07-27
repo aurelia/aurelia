@@ -154,7 +154,9 @@ export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator', x =
 export interface IViewLocator extends ViewLocator {}
 
 export class ViewLocator {
+  /** @internal */
   private readonly _modelInstanceToBoundComponent: WeakMap<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new WeakMap();
+  /** @internal */
   private readonly _modelTypeToUnboundComponent: Map<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new Map();
 
   public getViewComponentForObject<T extends ClassInstance<ICustomElementViewModel>>(
@@ -177,6 +179,7 @@ export class ViewLocator {
     return null;
   }
 
+  /** @internal */
   private _getOrCreateBoundComponent<T extends ClassInstance<ICustomElementViewModel>>(
     object: T,
     availableViews: readonly CustomElementDefinition[],
@@ -214,6 +217,7 @@ export class ViewLocator {
     return BoundComponent;
   }
 
+  /** @internal */
   private _getOrCreateUnboundComponent<T extends ClassInstance<ICustomElementViewModel>>(
     object: T,
     availableViews: readonly CustomElementDefinition[],
@@ -341,6 +345,7 @@ export class ViewLocator {
     return UnboundComponent;
   }
 
+  /** @internal */
   private _getViewName(views: readonly CustomElementDefinition[], requestedName?: string) {
     if (requestedName) {
       return requestedName;
@@ -353,6 +358,7 @@ export class ViewLocator {
     return 'default-view';
   }
 
+  /** @internal */
   private _getView(views: readonly CustomElementDefinition[], name: string): CustomElementDefinition {
     const v = views.find(x => x.name === name);
 

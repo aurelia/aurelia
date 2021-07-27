@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/platform",
-  "version": "2.0.0-alpha.13",
+  "version": "2.0.0-alpha.14",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -34,7 +34,6 @@
     "publish:dev": "npm publish --tag dev",
     "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c",
-    "postrollup": "tsc --emitDeclarationOnly",
     "postrollup": "tsc --declaration --emitDeclarationOnly"
   },
   "publishConfig": {
@@ -42,7 +41,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "typescript": "^4.0.3"
+    "typescript": "^4.3.5"
   },
   "engines": {
     "node": ">=14.17.0"

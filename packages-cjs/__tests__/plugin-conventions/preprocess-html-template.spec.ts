@@ -44,12 +44,11 @@ export function register(container) {
   it('processes template with css pair', function () {
     const html = '<template></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
-import { Registration } from '@aurelia/kernel';
-import d0 from "./foo-bar.css";
+import "./foo-bar.css";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ Registration.defer('.css', d0) ];
+export const dependencies = [  ];
 let _e;
 export function register(container) {
   if (!_e) {
@@ -65,13 +64,12 @@ export function register(container) {
   it('processes template with multiple css', function () {
     const html = '<require from="./lo.css"></require><template></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
-import { Registration } from '@aurelia/kernel';
-import d0 from "./foo-bar.css";
-import d1 from "./lo.css";
+import "./foo-bar.css";
+import "./lo.css";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ Registration.defer('.css', d0, d1) ];
+export const dependencies = [  ];
 let _e;
 export function register(container) {
   if (!_e) {
@@ -87,12 +85,11 @@ export function register(container) {
   it('do not import css pair if a pair is imported', function () {
     const html = '<import from="./foo-bar.less"></import><template></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
-import { Registration } from '@aurelia/kernel';
-import d0 from "./foo-bar.less";
+import "./foo-bar.less";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ Registration.defer('.css', d0) ];
+export const dependencies = [  ];
 let _e;
 export function register(container) {
   if (!_e) {
@@ -110,12 +107,11 @@ export function register(container) {
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
-import d2 from "./foo-bar.scss";
+import "./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
+export const dependencies = [ d0, d1 ];
 let _e;
 export function register(container) {
   if (!_e) {
@@ -133,12 +129,11 @@ export function register(container) {
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.md";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
-import d2 from "./foo-bar.scss";
+import "./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
+export const dependencies = [ d0, d1 ];
 let _e;
 export function register(container) {
   if (!_e) {
@@ -151,17 +146,16 @@ export function register(container) {
     assert.equal(result.code, expected);
   });
 
-  it('processes template with dependencies, wrap css module id', function () {
+  it('processes template with dependencies, ignore wrapping css module id in non-shadow mode', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
-import d2 from "./foo-bar.scss";
+import "./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
+export const dependencies = [ d0, d1 ];
 let _e;
 export function register(container) {
   if (!_e) {
@@ -332,12 +326,11 @@ export function register(container) {
 console.warn("WARN: ShadowDOM is disabled for ${path.join('lo', 'foo.html')}. ShadowDOM requires element name to contain at least one dash (-), you have to refactor <foo> to something like <lorem-foo>.");
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
-import d2 from "./foo-bar.scss";
+import "./foo-bar.scss";
 export const name = "foo";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
+export const dependencies = [ d0, d1 ];
 let _e;
 export function register(container) {
   if (!_e) {

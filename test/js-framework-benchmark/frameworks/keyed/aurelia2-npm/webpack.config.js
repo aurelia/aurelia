@@ -3,18 +3,6 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
-const cssLoader = 'css-loader';
-
-
-const postcssLoader = {
-  loader: 'postcss-loader',
-  options: {
-    postcssOptions: {
-      plugins: ['autoprefixer']
-    }
-  }
-};
-
 module.exports = function (env, { analyze }) {
   const production = env.production || process.env.NODE_ENV === 'production';
   return {

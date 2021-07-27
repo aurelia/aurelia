@@ -4,7 +4,6 @@ import {
 } from '@aurelia/runtime-html';
 
 import { App } from './app';
-import { Registration } from '@aurelia/kernel';
 
 new Aurelia()
   .register(

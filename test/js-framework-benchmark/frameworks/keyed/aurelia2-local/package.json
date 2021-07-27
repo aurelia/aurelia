@@ -3,12 +3,17 @@
   "description": "Benchmark for aurelia 2 framework",
   "private": true,
   "js-framework-benchmark": {
-    "frameworkVersionFromPackage": "aurelia",
+    "frameworkVersionFromPackage": "@aurelia/kernel",
     "customURL": "/dist"
   },
   "version": "1.0.0",
   "dependencies": {
-    "aurelia": "2.0.0-alpha.14"
+    "@aurelia/kernel": "2.0.0-alpha.14",
+    "@aurelia/metadata": "2.0.0-alpha.14",
+    "@aurelia/platform": "2.0.0-alpha.14",
+    "@aurelia/platform-browser": "2.0.0-alpha.14",
+    "@aurelia/runtime-html": "2.0.0-alpha.14",
+    "@aurelia/runtime": "2.0.0-alpha.14"
   },
   "devDependencies": {
     "@types/node": "^15.12.4",

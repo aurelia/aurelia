@@ -1,4 +1,8 @@
 import { Store } from './store';
+import { customElement } from 'aurelia';
+import template from './app.html';
+
+@customElement({ name: 'app', template })
 
 export class App {
   store: Store;

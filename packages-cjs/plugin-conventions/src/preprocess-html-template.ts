@@ -51,32 +51,36 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
 
   deps.forEach((d, i) => {
     const ext = path.extname(d);
-    if (ext && ext !== '.js' && ext !== '.ts' && !options.templateExtensions.includes(ext)) {
-      const isCssResource = options.cssExtensions.includes(ext);
-
-      // Wrap all other unknown resources (including .css, .scss) in defer.
-      if ((!isCssResource || (shadowMode === null && !useCSSModule)) && !registrationImported) {
-        statements.push(`import { Registration } from '@aurelia/kernel';\n`);
-        registrationImported = true;
-      }
-
-      let stringModuleId = d;
-
-      if (isCssResource && shadowMode !== null && options.stringModuleWrap) {
-        stringModuleId = options.stringModuleWrap(d);
-      }
-
-      statements.push(`import d${i} from ${s(stringModuleId)};\n`);
-
-      if (isCssResource) {
-        cssDeps.push(`d${i}`);
-      } else {
-        viewDeps.push(`Registration.defer('${ext}', d${i})`);
-      }
-    } else {
+    // All known resource types
+    if (!ext || ext === '.js' || ext === '.ts' || options.templateExtensions.includes(ext)) {
       statements.push(`import * as d${i} from ${s(d)};\n`);
       viewDeps.push(`d${i}`);
+      return;
     }
+
+    // CSS resource
+    if (options.cssExtensions.includes(ext)) {
+      if (shadowMode !== null) {
+        const stringModuleId = options.stringModuleWrap ? options.stringModuleWrap(d) : d;
+        statements.push(`import d${i} from ${s(stringModuleId)};\n`);
+        cssDeps.push(`d${i}`);
+      } else if (useCSSModule) {
+        statements.push(`import d${i} from ${s(d)};\n`);
+        cssDeps.push(`d${i}`);
+      } else {
+        // Rely on bundler to inject CSS.
+        statements.push(`import ${s(d)};\n`);
+      }
+      return;
+    }
+
+    // Wrap all other unknown resources in defer.
+    if (!registrationImported) {
+      statements.push(`import { Registration } from '@aurelia/kernel';\n`);
+      registrationImported = true;
+    }
+    statements.push(`import d${i} from ${s(d)};\n`);
+    viewDeps.push(`Registration.defer('${ext}', d${i})`);
   });
 
   const m = modifyCode('', unit.path);
@@ -88,8 +92,6 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
     } else if (useCSSModule) {
       m.append(`import { cssModules } from '@aurelia/runtime-html';\n`);
       viewDeps.push(`cssModules(${cssDeps.join(', ')})`);
-    } else {
-      viewDeps.push(`Registration.defer('.css', ${cssDeps.join(', ')})`);
     }
   }
   statements.forEach(st => m.append(st));

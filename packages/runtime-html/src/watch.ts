@@ -60,7 +60,7 @@ export function watch<T extends object = object>(
     if (__DEV__)
       throw new Error('Invalid watch config. Expected an expression or a fn');
     else
-      throw new Error('AUR0715');
+      throw new Error('AUR0772');
   }
 
   return function decorator(
@@ -80,13 +80,13 @@ export function watch<T extends object = object>(
         if (__DEV__)
           throw new Error(`Invalid change handler config. Method "${String(changeHandlerOrCallback)}" not found in class ${Type.name}`);
         else
-          throw new Error(`AUR0716:${String(changeHandlerOrCallback)}@${Type.name}}`);
+          throw new Error(`AUR0773:${String(changeHandlerOrCallback)}@${Type.name}}`);
       }
     } else if (typeof descriptor?.value !== 'function') {
       if (__DEV__)
         throw new Error(`decorated target ${String(key)} is not a class method.`);
       else
-        throw new Error(`AUR0717:${String(key)}`);
+        throw new Error(`AUR0774:${String(key)}`);
     }
 
     Watch.add(Type, watchDef);

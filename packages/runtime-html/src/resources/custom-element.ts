@@ -253,7 +253,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         if (__DEV__)
           throw new Error(`Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
         else
-          throw new Error(`AUR0704:${nameOrDef}`);
+          throw new Error(`AUR0761:${nameOrDef}`);
       }
 
       const name = fromDefinitionOrDefault('name', def, CustomElement.generateName);
@@ -428,7 +428,7 @@ export const CustomElement: CustomElementKind = Object.freeze<CustomElementKind>
         if (__DEV__)
           throw new Error(`The provided node is not a custom element or containerless host.`);
         else
-          throw new Error('AUR0705');
+          throw new Error('AUR0762');
       }
       return controller as unknown as ICustomElementController<C>;
     }
@@ -439,7 +439,7 @@ export const CustomElement: CustomElementKind = Object.freeze<CustomElementKind>
           if (__DEV__)
             throw new Error(`The provided node is not a custom element or containerless host.`);
           else
-            throw new Error('AUR0706');
+            throw new Error('AUR0763');
         }
 
         if (controller.is(opts.name)) {
@@ -470,7 +470,7 @@ export const CustomElement: CustomElementKind = Object.freeze<CustomElementKind>
       if (__DEV__)
         throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
       else
-        throw new Error('AUR0707');
+        throw new Error('AUR0764');
     }
 
     let cur = node as INode | null;
@@ -486,7 +486,7 @@ export const CustomElement: CustomElementKind = Object.freeze<CustomElementKind>
     if (__DEV__)
       throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
     else
-      throw new Error('AUR0708');
+      throw new Error('AUR0765');
   },
   define<C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C> {
     const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
@@ -502,7 +502,7 @@ export const CustomElement: CustomElementKind = Object.freeze<CustomElementKind>
       if (__DEV__)
         throw new Error(`No definition found for type ${Type.name}`);
       else
-        throw new Error(`AUR0703:${Type.name}`);
+        throw new Error(`AUR0760:${Type.name}`);
     }
 
     return def;
@@ -610,7 +610,7 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
     if (__DEV__)
       throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
     else
-      throw new Error(`AUR0709:${hookType}`);
+      throw new Error(`AUR0766:${hookType}`);
   }
   return hook;
 }

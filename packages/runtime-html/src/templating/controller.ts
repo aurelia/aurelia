@@ -153,8 +153,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
      */
     public host: HTMLElement | null,
   ) {
-    this.logger = null!;
-    this.debug = false;
+    if (__DEV__) {
+      this.logger = null!;
+      this.debug = false;
+    }
     this._rendering = container.root.get(IRendering);
     switch (vmKind) {
       case ViewModelKind.customAttribute:
@@ -325,10 +327,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
      */
     hydrationContext: IHydrationContext | null,
   ): void {
-    this.logger = this.container.get(ILogger).root;
-    this.debug = this.logger.config.level <= LogLevel.debug;
-    if (this.debug) {
-      this.logger = this.logger.scopeTo(this.name);
+    if (__DEV__) {
+      this.logger = this.container.get(ILogger).root;
+      this.debug = this.logger.config.level <= LogLevel.debug;
+      if (__DEV__ && this.debug) {
+        this.logger = this.logger.scopeTo(this.name);
+      }
     }
 
     const container = this.container;
@@ -345,7 +349,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._childrenObs = createChildrenObservers(this as Controller, definition, flags, instance);
 
     if (this.hooks.hasDefine) {
-      if (this.debug) { this.logger.trace(`invoking define() hook`); }
+      if (__DEV__ && this.debug) { this.logger.trace(`invoking define() hook`); }
       const result = instance.define(
         /* controller      */this as ICustomElementController,
         /* parentContainer */hydrationContext,
@@ -383,7 +387,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   public _hydrate(hydrationInst: IControllerElementHydrationInstruction | null): void {
     if (this.hooks.hasHydrating) {
-      if (this.debug) { this.logger!.trace(`invoking hydrating() hook`); }
+      if (__DEV__ && this.debug) { this.logger!.trace(`invoking hydrating() hook`); }
       (this.viewModel as BindingContext<C>).hydrating(this as ICustomElementController);
     }
 
@@ -420,7 +424,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.nodes = this._rendering.createNodes(compiledDef);
 
     if (this.hooks.hasHydrated) {
-      if (this.debug) { this.logger!.trace(`invoking hydrated() hook`); }
+      if (__DEV__ && this.debug) { this.logger!.trace(`invoking hydrated() hook`); }
       (this.viewModel as BindingContext<C>).hydrated(this as ICustomElementController);
     }
   }
@@ -436,7 +440,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     );
 
     if (this.hooks.hasCreated) {
-      if (this.debug) { this.logger!.trace(`invoking created() hook`); }
+      if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
       (this.viewModel as BindingContext<C>).created(this as ICustomElementController);
     }
   }
@@ -454,7 +458,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.lifecycleHooks = LifecycleHooks.resolve(this.container);
 
     if (this.hooks.hasCreated) {
-      if (this.debug) { this.logger!.trace(`invoking created() hook`); }
+      if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
       (this.viewModel as BindingContext<C>).created(this as ICustomAttributeController);
     }
   }
@@ -509,7 +513,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     this.parent = parent;
-    if (this.debug && !this._fullyNamed) {
+    if (__DEV__ && this.debug && !this._fullyNamed) {
       this._fullyNamed = true;
       (this.logger ??= this.container.get(ILogger).root.scopeTo(this.name)).trace(`activate()`);
     }
@@ -549,7 +553,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._enterActivating();
 
     if (this.hooks.hasBinding) {
-      if (this.debug) { this.logger!.trace(`binding()`); }
+      if (__DEV__ && this.debug) { this.logger!.trace(`binding()`); }
 
       const ret = this.viewModel!.binding(this.$initiator, this.parent, this.$flags);
       if (ret instanceof Promise) {
@@ -568,7 +572,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private bind(): void {
-    if (this.debug) { this.logger!.trace(`bind()`); }
+    if (__DEV__ && this.debug) { this.logger!.trace(`bind()`); }
 
     let i = 0;
     let ii = this._childrenObs.length;
@@ -595,7 +599,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     if (this.hooks.hasBound) {
-      if (this.debug) { this.logger!.trace(`bound()`); }
+      if (__DEV__ && this.debug) { this.logger!.trace(`bound()`); }
 
       ret = this.viewModel!.bound(this.$initiator, this.parent, this.$flags);
       if (ret instanceof Promise) {
@@ -633,7 +637,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private _attach(): void {
-    if (this.debug) { this.logger!.trace(`attach()`); }
+    if (__DEV__ && this.debug) { this.logger!.trace(`attach()`); }
 
     if (this.hostController !== null) {
       switch (this.mountTarget) {
@@ -666,7 +670,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     if (this.hooks.hasAttaching) {
-      if (this.debug) { this.logger!.trace(`attaching()`); }
+      if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
 
       const ret = this.viewModel!.attaching(this.$initiator, this.parent, this.$flags);
       if (ret instanceof Promise) {
@@ -716,7 +720,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           throw new Error(`AUR0505:${this.name} ${stringifyState(this.state)}`);
     }
 
-    if (this.debug) { this.logger!.trace(`deactivate()`); }
+    if (__DEV__ && this.debug) { this.logger!.trace(`deactivate()`); }
 
     this.$initiator = initiator;
     this.$flags = flags;
@@ -743,7 +747,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     if (this.hooks.hasDetaching) {
-      if (this.debug) { this.logger!.trace(`detaching()`); }
+      if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
 
       const ret = this.viewModel!.detaching(this.$initiator, this.parent, this.$flags);
       if (ret instanceof Promise) {
@@ -805,7 +809,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private unbind(): void {
-    if (this.debug) { this.logger!.trace(`unbind()`); }
+    if (__DEV__ && this.debug) { this.logger!.trace(`unbind()`); }
 
     const flags = this.$flags | LifecycleFlags.fromUnbind;
     let i = 0;
@@ -895,7 +899,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private _leaveActivating(): void {
     if (--this._activatingStack === 0) {
       if (this.hooks.hasAttached) {
-        if (this.debug) { this.logger!.trace(`attached()`); }
+        if (__DEV__ && this.debug) { this.logger!.trace(`attached()`); }
 
         _retPromise = this.viewModel!.attached!(this.$initiator, this.$flags);
         if (_retPromise instanceof Promise) {
@@ -932,7 +936,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private _leaveDetaching(): void {
     if (--this._detachingStack === 0) {
       // Note: this controller is the initiator (detach is only ever called on the initiator)
-      if (this.debug) { this.logger!.trace(`detach()`); }
+      if (__DEV__ && this.debug) { this.logger!.trace(`detach()`); }
 
       this._enterUnbinding();
       this.removeNodes();
@@ -974,7 +978,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
   private _leaveUnbinding(): void {
     if (--this._unbindingStack === 0) {
-      if (this.debug) { this.logger!.trace(`unbind()`); }
+      if (__DEV__ && this.debug) { this.logger!.trace(`unbind()`); }
 
       let cur = this.$initiator.head as Controller | null;
       let next: Controller | null = null;
@@ -1063,7 +1067,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public dispose(): void {
-    if (this.debug) { this.logger!.trace(`dispose()`); }
+    if (__DEV__ && this.debug) { this.logger!.trace(`dispose()`); }
 
     if ((this.state & State.disposed) === State.disposed) {
       return;

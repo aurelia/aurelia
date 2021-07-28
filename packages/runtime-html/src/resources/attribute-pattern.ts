@@ -210,8 +210,6 @@ export class State {
   }
 }
 
-const sortStatePattern = (p1: string, p2: string) => p2.length > p1.length ? -1 : 1;
-
 /** @internal */
 export interface ISegment {
   text: string;

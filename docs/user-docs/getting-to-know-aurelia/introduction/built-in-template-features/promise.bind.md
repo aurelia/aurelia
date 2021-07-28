@@ -44,3 +44,7 @@ export class MyApp {
 {% endtab %}
 {% endtabs %}
 
+{% hint style="info" %}
+The parameter `i` passed to the method `fetchAdvice()` call in the template is for refreshing binding purposes. It is not used in the method itself.
+This is because method calls in Aurelia are considered pure, and will only called again if any of its parameter has changes.
+{% endhint %}

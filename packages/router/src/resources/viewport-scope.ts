@@ -83,7 +83,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
   public hydrated(controller: ICompiledCustomElementController) {
     this.controller = controller as ICustomElementController;
     // Don't update the container here (probably because it wants to be a part of the structure)
-    // this.container = controller.context.get(IContainer);
+    // this.container = controller.container
 
     // console.log('ViewportScope creating', this.getAttribute('name', this.name), this.container, this.parent, controller, this);
     // this.connect();

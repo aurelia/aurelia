@@ -4,7 +4,6 @@
   "js-framework-benchmark": {
     "frameworkVersionFromPackage": "aurelia",
     "customURL": "/dist/"
-
   },
   "keywords": [
     "aurelia",

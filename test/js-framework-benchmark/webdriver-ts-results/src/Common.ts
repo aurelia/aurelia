@@ -97,9 +97,9 @@ const computeColor = function(factor: number): string {
 }
 
 export class TableResultValueEntry {
-    constructor(public key: string, public value: number, public formattedValue: string, 
-        public deviation: string|null, public factor: number, public formattedFactor: string, 
-        public bgColor: string, public textColor: string, 
+    constructor(public key: string, public value: number, public formattedValue: string,
+        public deviation: string|null, public factor: number, public formattedFactor: string,
+        public bgColor: string, public textColor: string,
         public statisticResult: StatisticResult,
         public statisticallySignificantFactor: string|number|undefined = undefined) {
     }
@@ -191,7 +191,7 @@ export class ResultTableData {
 
     constructor(public allFrameworks: Array<Framework>, public allBenchmarks: Array<Benchmark>, public results: ResultLookup,
         public selectedFrameworksInDropdown: Set<Framework>, public selectedBenchmarks: Set<Benchmark>, type: FrameworkType, sortKey: string,
-        public displayMode: DisplayMode, public compareWith: Framework|undefined, public selectedCategories: Set<number>) {     
+        public displayMode: DisplayMode, public compareWith: Framework|undefined, public selectedCategories: Set<number>) {
 
         this.selectedFameworks = new Set<Framework>();
 
@@ -205,12 +205,7 @@ export class ResultTableData {
         console.log("ResultTableData", allowedIssues, selectedCategories);
 
         selectedFrameworksInDropdown.forEach(f => {
-          if (f.issues.every(i => allowedIssues.has(i))
-            || (f.name === 'vanillajs-keyed') || (f.name === 'vanillajs-1-keyed')
-            || (f.name === 'vanillajs-non-keyed') || (f.name === 'vanillajs-1-non-keyed')
-            ) {
               this.selectedFameworks.add(f);
-          }
         })
         this.frameworks = this.allFrameworks.filter(framework => framework.type === type && this.selectedFameworks.has(framework));
         this.update(sortKey);
@@ -226,16 +221,16 @@ export class ResultTableData {
             const geomMean = this.frameworks.map((framework, idx) => {
                 const resultsForFramework = results.map(arr => arr[idx]);
                 return this.computeGeometricMean(framework, benchmarks, resultsForFramework);
-            });    
+            });
             const comparison = this.frameworks.map((framework, idx) => {
                 const resultsForFramework = results.map(arr => arr[idx]);
                 return this.computeComparison(framework, benchmarks, resultsForFramework);
-            });    
-            
+            });
+
 
             return {benchmarks, results, geomMean, comparison}
         }
-        [BenchmarkType.CPU, BenchmarkType.MEM, BenchmarkType.STARTUP].forEach((type) => 
+        [BenchmarkType.CPU, BenchmarkType.MEM, BenchmarkType.STARTUP].forEach((type) =>
             this.resultsMap.set(type, createResult(type))
         )
         this.sortBy(sortKey);
@@ -360,7 +355,7 @@ export class ResultTableData {
                 const stdDev = result.standardDeviation || 0;
                 const compareWithResultsStdDev = compareWithResults.standardDeviation || 0;
 
-                
+
                 const x1 = result.mean;
                 const x2 = compareWithMean;
                 const s1_2 = stdDev*stdDev;
@@ -373,7 +368,7 @@ export class ResultTableData {
                 statisticalCol = statisticComputeColor(t, p);
                 statisticalResult = (p*100).toFixed(3)+"%";
                 return new TableResultValueEntry(f.name, value, formattedValue, conficenceIntervalStr, factor, factor.toFixed(2), statisticalCol[0], statisticalCol[1], statisticalCol[2], statisticalResult);
-            } 
+            }
         });
     }
     filterResults = function(bench: Benchmark, frameworks: Array<Framework>, results: Array<Result>) {

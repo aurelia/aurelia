@@ -32,8 +32,8 @@ var frameworks = [].concat(
 
 var notRestarter = ([dir, name]) => {
   if (!restartWithFramework) return false;
-  if (restartWithFramework.indexOf("/")>-1) {
-    return !(dir+"/"+name).startsWith(restartWithFramework);
+  if (restartWithFramework.indexOf("/") > -1) {
+    return !(dir + "/" + name).startsWith(restartWithFramework);
   } else {
     return !name.startsWith(restartWithFramework);
   }
@@ -46,36 +46,41 @@ console.log("Building ", buildable);
 
 
 for (f of buildable) {
-    console.log("BUILDING ", f);
-    let [keyed,name] = f;
-    let path = `frameworks/${keyed}/${name}`;
-    if (!fs.existsSync(path+"/package.json")) {
-      console.log("WARN: skipping ", f, " since there's no package.json");
-    } else {
-      // if (fs.existsSync(path)) {
-      //     console.log("deleting folder ",path);
-      //     exec(`rm -r ${path}`);
-      // }
-      // rsync(keyed,name);
-      let rm_cmd = `rm -rf ${ci ? '' : 'package-lock.json'} yarn.lock dist elm-stuff bower_components node_modules output`
-      console.log(rm_cmd);
-      exec(rm_cmd, {
-        cwd: path,
-        stdio: 'inherit'
-      });
+  console.log("BUILDING ", f);
+  let [keyed, name] = f;
+  let path = `frameworks/${keyed}/${name}`;
 
-      let install_cmd = `npm ${ci ? 'ci' : 'install'} && npm run build-prod`;
-      console.log(install_cmd);
-      exec(install_cmd, {
-        cwd: path,
-        stdio: 'inherit'
-      });
 
-      if (docker) {
-        let packageLockPath = path+"/package-lock.json";
-        fs.copyFileSync(packageLockPath, "/src/"+packageLockPath);
-      }
+  if (!fs.existsSync(path + "/package.json")) {
+    console.log("WARN: skipping ", f, " since there's no package.json");
+  } else {
+    // if (fs.existsSync(path)) {
+    //     console.log("deleting folder ",path);
+    //     exec(`rm -r ${path}`);
+    // }
+    // rsync(keyed,name);
+    let rm_cmd = `rm -rf ${ci && !path.includes('npm') ? '' : 'package-lock.json'} yarn.lock dist elm-stuff bower_components node_modules output`
+    console.log(rm_cmd);
+    exec(rm_cmd, {
+      cwd: path,
+      stdio: 'inherit'
+    });
+
+    let install_cmd = `npm ${ci && !path.includes('npm') ? 'ci' : 'install'} && npm run build-prod`;
+
+    if (name.includes('local')) install_cmd = 'npm run build-prod';
+
+    console.log(install_cmd);
+    exec(install_cmd, {
+      cwd: path,
+      stdio: 'inherit'
+    });
+
+    if (docker) {
+      let packageLockPath = path + "/package-lock.json";
+      fs.copyFileSync(packageLockPath, "/src/" + packageLockPath);
     }
+  }
 }
 
 console.log("All frameworks were built!");

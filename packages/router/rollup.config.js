@@ -26,7 +26,8 @@ const terserPluginCfg = terser({
   },
   mangle: {
     properties: {
-      regex: /^_/
+      regex: /^_/,
+      reserved: ['__esModule']
     }
   },
   format: {

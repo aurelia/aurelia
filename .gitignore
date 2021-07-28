@@ -22,3 +22,4 @@ test/benchmarking-apps/runner/cosmos.config.json
 
 # Use the following directory to stash anything in the workspace, that you don't want to push to remote. For example: personal notes, todos etc.
 /.ignored
+!/test/js-framework-benchmark/css/bootstrap/dist

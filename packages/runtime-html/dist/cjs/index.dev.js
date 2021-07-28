@@ -284,7 +284,6 @@ runtime.withFlushQueue(BindableObserver);
 // so that there doesn't need to create an env record for every call
 let oV$4 = void 0;
 
-/** @internal */
 class CharSpec {
     constructor(chars, repeat, isSymbol, isInverted) {
         this.chars = chars;
@@ -344,8 +343,11 @@ class CharSpec {
 class Interpretation {
     constructor() {
         this.parts = kernel.emptyArray;
+        /** @internal */
         this._pattern = '';
+        /** @internal */
         this._currentRecord = {};
+        /** @internal */
         this._partsRecord = {};
     }
     get pattern() {
@@ -368,7 +370,7 @@ class Interpretation {
         }
     }
     append(pattern, ch) {
-        const { _currentRecord: currentRecord } = this;
+        const currentRecord = this._currentRecord;
         if (currentRecord[pattern] === undefined) {
             currentRecord[pattern] = ch;
         }
@@ -377,9 +379,10 @@ class Interpretation {
         }
     }
     next(pattern) {
-        const { _currentRecord: currentRecord } = this;
+        const currentRecord = this._currentRecord;
+        let partsRecord;
         if (currentRecord[pattern] !== undefined) {
-            const { _partsRecord: partsRecord } = this;
+            partsRecord = this._partsRecord;
             if (partsRecord[pattern] === undefined) {
                 partsRecord[pattern] = [currentRecord[pattern]];
             }
@@ -406,7 +409,8 @@ class State$1 {
         const nextStates = this.nextStates;
         const len = nextStates.length;
         let child = null;
-        for (let i = 0; i < len; ++i) {
+        let i = 0;
+        for (; i < len; ++i) {
             child = nextStates[i];
             if (charSpec.equals(child.charSpec)) {
                 return child;
@@ -415,7 +419,7 @@ class State$1 {
         return null;
     }
     append(charSpec, pattern) {
-        const { patterns } = this;
+        const patterns = this.patterns;
         if (!patterns.includes(pattern)) {
             patterns.push(pattern);
         }
@@ -465,13 +469,16 @@ class StaticSegment {
         this.text = text;
         const len = this.len = text.length;
         const specs = this.specs = [];
-        for (let i = 0; i < len; ++i) {
+        let i = 0;
+        for (; len > i; ++i) {
             specs.push(new CharSpec(text[i], false, false, false));
         }
     }
     eachChar(callback) {
-        const { len, specs } = this;
-        for (let i = 0; i < len; ++i) {
+        const len = this.len;
+        const specs = this.specs;
+        let i = 0;
+        for (; len > i; ++i) {
             callback(specs[i]);
         }
     }
@@ -496,7 +503,6 @@ class SymbolSegment {
         callback(this.spec);
     }
 }
-/** @internal */
 class SegmentTypes {
     constructor() {
         this.statics = 0;
@@ -510,67 +516,53 @@ class SyntaxInterpreter {
         this.rootState = new State$1(null);
         this.initialStates = [this.rootState];
     }
-    add(defOrDefs) {
+    // todo: this only works if this method is ever called only once
+    add(defs) {
+        defs = defs.slice(0).sort((d1, d2) => d1.pattern > d2.pattern ? 1 : -1);
+        const ii = defs.length;
+        let currentState;
+        let def;
+        let pattern;
+        let types;
+        let segments;
+        let len;
+        let charSpecCb;
         let i = 0;
-        if (Array.isArray(defOrDefs)) {
-            const ii = defOrDefs.length;
-            for (; i < ii; ++i) {
-                this.add(defOrDefs[i]);
+        let j;
+        while (ii > i) {
+            currentState = this.rootState;
+            def = defs[i];
+            pattern = def.pattern;
+            types = new SegmentTypes();
+            segments = this.parse(def, types);
+            len = segments.length;
+            charSpecCb = (ch) => {
+                currentState = currentState.append(ch, pattern);
+            };
+            for (j = 0; len > j; ++j) {
+                segments[j].eachChar(charSpecCb);
             }
-            return;
+            currentState.types = types;
+            currentState.isEndpoint = true;
+            ++i;
         }
-        let currentState = this.rootState;
-        const def = defOrDefs;
-        const pattern = def.pattern;
-        const types = new SegmentTypes();
-        const segments = this.parse(def, types);
-        const len = segments.length;
-        const callback = (ch) => {
-            currentState = currentState.append(ch, pattern);
-        };
-        for (i = 0; i < len; ++i) {
-            segments[i].eachChar(callback);
-        }
-        currentState.types = types;
-        currentState.isEndpoint = true;
     }
     interpret(name) {
         const interpretation = new Interpretation();
-        let states = this.initialStates;
         const len = name.length;
-        for (let i = 0; i < len; ++i) {
+        let states = this.initialStates;
+        let i = 0;
+        let state;
+        for (; i < len; ++i) {
             states = this.getNextStates(states, name.charAt(i), interpretation);
             if (states.length === 0) {
                 break;
             }
         }
-        states.sort((a, b) => {
-            if (a.isEndpoint) {
-                if (!b.isEndpoint) {
-                    return -1;
-                }
-            }
-            else if (b.isEndpoint) {
-                return 1;
-            }
-            else {
-                return 0;
-            }
-            const aTypes = a.types;
-            const bTypes = b.types;
-            if (aTypes.statics !== bTypes.statics) {
-                return bTypes.statics - aTypes.statics;
-            }
-            if (aTypes.dynamics !== bTypes.dynamics) {
-                return bTypes.dynamics - aTypes.dynamics;
-            }
-            if (aTypes.symbols !== bTypes.symbols) {
-                return bTypes.symbols - aTypes.symbols;
-            }
-            return 0;
-        });
+        states = states.filter(isEndpoint);
         if (states.length > 0) {
-            const state = states[0];
+            states.sort(sortEndpoint);
+            state = states[0];
             if (!state.charSpec.isSymbol) {
                 interpretation.next(state.pattern);
             }
@@ -583,7 +575,8 @@ class SyntaxInterpreter {
         const nextStates = [];
         let state = null;
         const len = states.length;
-        for (let i = 0; i < len; ++i) {
+        let i = 0;
+        for (; i < len; ++i) {
             state = states[i];
             nextStates.push(...state.findMatches(ch, interpretation));
         }
@@ -593,16 +586,17 @@ class SyntaxInterpreter {
         const result = [];
         const pattern = def.pattern;
         const len = pattern.length;
+        const symbols = def.symbols;
         let i = 0;
         let start = 0;
         let c = '';
         while (i < len) {
             c = pattern.charAt(i);
-            if (!def.symbols.includes(c)) {
+            if (symbols.length === 0 || !symbols.includes(c)) {
                 if (i === start) {
                     if (c === 'P' && pattern.slice(i, i + 4) === 'PART') {
                         start = i = (i + 4);
-                        result.push(new DynamicSegment(def.symbols));
+                        result.push(new DynamicSegment(symbols));
                         ++types.dynamics;
                     }
                     else {
@@ -631,6 +625,25 @@ class SyntaxInterpreter {
         return result;
     }
 }
+function isEndpoint(a) {
+    return a.isEndpoint;
+}
+function sortEndpoint(a, b) {
+    // both a and b are endpoints
+    // compare them based on the number of static, then dynamic & symbol fragments
+    const aTypes = a.types;
+    const bTypes = b.types;
+    if (aTypes.statics !== bTypes.statics) {
+        return bTypes.statics - aTypes.statics;
+    }
+    if (aTypes.dynamics !== bTypes.dynamics) {
+        return bTypes.dynamics - aTypes.dynamics;
+    }
+    if (aTypes.symbols !== bTypes.symbols) {
+        return bTypes.symbols - aTypes.symbols;
+    }
+    return 0;
+}
 class AttrSyntax {
     constructor(rawName, rawValue, target, command) {
         this.rawName = rawName;
@@ -647,13 +660,12 @@ class AttributeParser {
         this._cache = {};
         this._interpreter = interpreter;
         const patterns = this._patterns = {};
-        attrPatterns.forEach(attrPattern => {
-            const defs = AttributePattern.getPatternDefinitions(attrPattern.constructor);
-            interpreter.add(defs);
-            defs.forEach(def => {
-                patterns[def.pattern] = attrPattern;
-            });
-        });
+        const allDefs = attrPatterns.reduce((allDefs, attrPattern) => {
+            const patternDefs = AttributePattern.getPatternDefinitions(attrPattern.constructor);
+            patternDefs.forEach(def => patterns[def.pattern] = attrPattern);
+            return allDefs.concat(patternDefs);
+        }, kernel.emptyArray);
+        interpreter.add(allDefs);
     }
     parse(name, value) {
         let interpretation = this._cache[name];
@@ -10717,25 +10729,30 @@ function getPromiseController(controller) {
     }
     throw new Error('AUR0813');
 }
-// TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
-// @attributePattern({ pattern: 'promise.resolve', symbols: '' })
-// export class PromiseAttributePattern {
-//   public 'promise.resolve'(name: string, value: string, _parts: string[]): AttrSyntax {
-//     return new AttrSyntax(name, value, 'promise', 'bind');
-//   }
-// }
-// @attributePattern({ pattern: 'then', symbols: '' })
-// export class FulfilledAttributePattern {
-//   public 'then'(name: string, value: string, _parts: string[]): AttrSyntax {
-//     return new AttrSyntax(name, value, 'then', 'from-view');
-//   }
-// }
-// @attributePattern({ pattern: 'catch', symbols: '' })
-// export class RejectedAttributePattern {
-//   public 'catch'(name: string, value: string, _parts: string[]): AttrSyntax {
-//     return new AttrSyntax(name, value, 'catch', 'from-view');
-//   }
-// }
+let PromiseAttributePattern = class PromiseAttributePattern {
+    'promise.resolve'(name, value, _parts) {
+        return new AttrSyntax(name, value, 'promise', 'bind');
+    }
+};
+PromiseAttributePattern = __decorate([
+    attributePattern({ pattern: 'promise.resolve', symbols: '' })
+], PromiseAttributePattern);
+let FulfilledAttributePattern = class FulfilledAttributePattern {
+    'then'(name, value, _parts) {
+        return new AttrSyntax(name, value, 'then', 'from-view');
+    }
+};
+FulfilledAttributePattern = __decorate([
+    attributePattern({ pattern: 'then', symbols: '' })
+], FulfilledAttributePattern);
+let RejectedAttributePattern = class RejectedAttributePattern {
+    'catch'(name, value, _parts) {
+        return new AttrSyntax(name, value, 'catch', 'from-view');
+    }
+};
+RejectedAttributePattern = __decorate([
+    attributePattern({ pattern: 'catch', symbols: '' })
+], RejectedAttributePattern);
 
 function createElement(p, tagOrType, props, children) {
     if (typeof tagOrType === 'string') {
@@ -11508,9 +11525,9 @@ const PendingTemplateControllerRegistration = exports.PendingTemplateController;
 const FulfilledTemplateControllerRegistration = exports.FulfilledTemplateController;
 const RejectedTemplateControllerRegistration = exports.RejectedTemplateController;
 // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
-// export const PromiseAttributePatternRegistration = PromiseAttributePattern as unknown as IRegistry;
-// export const FulfilledAttributePatternRegistration = FulfilledAttributePattern as unknown as IRegistry;
-// export const RejectedAttributePatternRegistration = RejectedAttributePattern as unknown as IRegistry;
+const PromiseAttributePatternRegistration = PromiseAttributePattern;
+const FulfilledAttributePatternRegistration = FulfilledAttributePattern;
+const RejectedAttributePatternRegistration = RejectedAttributePattern;
 const AttrBindingBehaviorRegistration = AttrBindingBehavior;
 const SelfBindingBehaviorRegistration = SelfBindingBehavior;
 const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior;
@@ -11551,9 +11568,9 @@ const DefaultResources = [
     FulfilledTemplateControllerRegistration,
     RejectedTemplateControllerRegistration,
     // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
-    // PromiseAttributePatternRegistration,
-    // FulfilledAttributePatternRegistration,
-    // RejectedAttributePatternRegistration,
+    PromiseAttributePatternRegistration,
+    FulfilledAttributePatternRegistration,
+    RejectedAttributePatternRegistration,
     AttrBindingBehaviorRegistration,
     SelfBindingBehaviorRegistration,
     UpdateTriggerBindingBehaviorRegistration,

@@ -3,15 +3,32 @@ export interface AttributePatternDefinition {
     pattern: string;
     symbols: string;
 }
+export declare class CharSpec implements ICharSpec {
+    chars: string;
+    repeat: boolean;
+    isSymbol: boolean;
+    isInverted: boolean;
+    has: (char: string) => boolean;
+    constructor(chars: string, repeat: boolean, isSymbol: boolean, isInverted: boolean);
+    equals(other: ICharSpec): boolean;
+    private _hasOfMultiple;
+    private _hasOfSingle;
+    private _hasOfNone;
+    private _hasOfMultipleInverse;
+    private _hasOfSingleInverse;
+    private _hasOfNoneInverse;
+}
 export declare class Interpretation {
     parts: readonly string[];
     get pattern(): string | null;
     set pattern(value: string | null);
-    private _pattern;
-    private readonly _currentRecord;
-    private readonly _partsRecord;
     append(pattern: string, ch: string): void;
     next(pattern: string): void;
+}
+export declare class SegmentTypes {
+    statics: number;
+    dynamics: number;
+    symbols: number;
 }
 export interface ISyntaxInterpreter extends SyntaxInterpreter {
 }
@@ -19,7 +36,6 @@ export declare const ISyntaxInterpreter: import("@aurelia/kernel").InterfaceSymb
 export declare class SyntaxInterpreter {
     rootState: State;
     private readonly initialStates;
-    add(def: AttributePatternDefinition): void;
     add(defs: AttributePatternDefinition[]): void;
     interpret(name: string): Interpretation;
     getNextStates(states: State[], ch: string, interpretation: Interpretation): State[];

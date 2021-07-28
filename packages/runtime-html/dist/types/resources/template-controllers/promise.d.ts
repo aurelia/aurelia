@@ -5,6 +5,7 @@ import { IPlatform } from '../../platform.js';
 import { Instruction } from '../../renderer.js';
 import { ICustomAttributeController, ICustomAttributeViewModel, IHydratableController, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 import { IViewFactory } from '../../templating/view.js';
+import { AttrSyntax } from '../attribute-pattern.js';
 export declare class PromiseTemplateController implements ICustomAttributeViewModel {
     private readonly factory;
     private readonly location;
@@ -67,5 +68,14 @@ export declare class RejectedTemplateController implements ICustomAttributeViewM
     deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     dispose(): void;
+}
+export declare class PromiseAttributePattern {
+    'promise.resolve'(name: string, value: string, _parts: string[]): AttrSyntax;
+}
+export declare class FulfilledAttributePattern {
+    'then'(name: string, value: string, _parts: string[]): AttrSyntax;
+}
+export declare class RejectedAttributePattern {
+    'catch'(name: string, value: string, _parts: string[]): AttrSyntax;
 }
 //# sourceMappingURL=promise.d.ts.map

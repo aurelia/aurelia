@@ -165,7 +165,7 @@ export const CustomAttribute: CustomAttributeKind = Object.freeze<CustomAttribut
       if (__DEV__)
         throw new Error(`No definition found for type ${Type.name}`);
       else
-        throw new Error(`AUR0702:${Type.name}`);
+        throw new Error(`AUR0759:${Type.name}`);
     }
 
     return def;

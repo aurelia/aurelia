@@ -128,7 +128,7 @@ export const BindingCommand: BindingCommandKind = Object.freeze<BindingCommandKi
       if (__DEV__)
         throw new Error(`No definition found for type ${Type.name}`);
       else
-        throw new Error(`AUR0701:${Type.name}`);
+        throw new Error(`AUR0758:${Type.name}`);
     }
 
     return def;

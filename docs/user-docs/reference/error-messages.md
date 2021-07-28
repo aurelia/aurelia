@@ -34,7 +34,7 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0014 | - | key/value cannot be null or undefined. Are you trying to inject/register something that doesn't exist with DI? | A key was `null`/`undefined` in a `container.get`/`.getAll` call | Make sure the key is not `null`/`undefined`. This sometimes can happen with bundler that leaves circular dependency handling to applications, e.x: Webpack |
 | AUR0015 | name(string) | `yyyy` is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver. | A `container.invoke(key)` or `container.getFactory(key)` call happens with the key being one of the built-in types like `String`/`Number`/`Array` | Consider avoid using these keys for those calls |
 
-## Template Compiler Errors
+## Template Compiler Errors \(From 701-749\)
 
 | Error Code | Description |
 | - | - |
@@ -55,7 +55,7 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0715 | This happens when an `as-local-template` template has the value of `as-local-template` as an empty string |
 | AUR0716 | This happens when a custom element has 2 or more local elements with the same name |
 
-## Templating Errors
+## Templating Errors \(From 750-800\)
 
 | Error Code | Description |
 | - | - |
@@ -67,23 +67,23 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0755 | This happens when a view factory provider tries to resolve but does not have a view factory associated |
 | AUR0756 | This happens when a view factory provider tries to resolve but the view factory associated does not have a valid name |
 | AUR0757 | This happens when `IRendering.render` is called with different number of targets and instructions |
-| AUR0701 | This happens when `BindingCommand.getDefinition` is called on a class/object without any binding command metadata associated |
-| AUR0702 | This happens when `CustomAttribute.getDefinition` is called on a class/object without any custom attribute metadata associated |
-| AUR0703 | This happens when `CustomElement.getDefinition` is called on a class/object without any custom element metadata associated |
-| AUR0704 | This happens when `CustomElementDefinition.create` is called with a string as first parameter |
-| AUR0705 | This happens when `CustomElement.for` is called on an element that does not have any custom element with a given name, without searching in ancestor elements |
-| AUR0706 | This happens when `CustomElement.for` is called and Aurelia isn't able to find any custom element with the given name in the given element, or its ancestors |
-| AUR0707 | This happens when `CustomElement.for` is called on an element with a given name, and Aurelia is unable to find any custom element in the given the element, or its ancestors |
-| AUR0708 | This happens when `CustomElement.for` is called on an element without a given name, and Aurelia is unable to find any custom element in the given element, or its ancestors |
-| AUR0709 | This happens when `@processContent` is called with a string as its first parameter, and Aurelia couldn't find the method on the decorated class |
-| AUR0710 | This happens when `root` property on an `Aurelia` instance is access before at least one application has been started with this `Aurelia` instance |
-| AUR0711 | This happens when a new `Aurelia` is created with a predefined container that already has `IAurelia` registration in it, or its ancestors |
-| AUR0712 | This happens when an `Aurelia` application is started with a document fragment before it's adopted by a document |
-| AUR0713 | This happens when `Aurelia.prototype.start` is called with a `null`/`undefined` value as the first parameter |
-| AUR0714 | This happens when `Aurelia.prototype.dispose` is called before the instance is stopped |
-| AUR0715 | This happens when the `@watch` decorator is used without a valid first parameter |
-| AUR0716 | This happens when the `@watch` decorator is used and Aurelia is not able to resolve the first parameter to a function |
-| AUR0717 | This happens when the `@watch` decorator is used on a class property instead of a method |
+| AUR0758 | This happens when `BindingCommand.getDefinition` is called on a class/object without any binding command metadata associated |
+| AUR0759 | This happens when `CustomAttribute.getDefinition` is called on a class/object without any custom attribute metadata associated |
+| AUR0760 | This happens when `CustomElement.getDefinition` is called on a class/object without any custom element metadata associated |
+| AUR0761 | This happens when `CustomElementDefinition.create` is called with a string as first parameter |
+| AUR0762 | This happens when `CustomElement.for` is called on an element that does not have any custom element with a given name, without searching in ancestor elements |
+| AUR0763 | This happens when `CustomElement.for` is called and Aurelia isn't able to find any custom element with the given name in the given element, or its ancestors |
+| AUR0764 | This happens when `CustomElement.for` is called on an element with a given name, and Aurelia is unable to find any custom element in the given the element, or its ancestors |
+| AUR0765 | This happens when `CustomElement.for` is called on an element without a given name, and Aurelia is unable to find any custom element in the given element, or its ancestors |
+| AUR0766 | This happens when `@processContent` is called with a string as its first parameter, and Aurelia couldn't find the method on the decorated class |
+| AUR0767 | This happens when `root` property on an `Aurelia` instance is access before at least one application has been started with this `Aurelia` instance |
+| AUR0768 | This happens when a new `Aurelia` is created with a predefined container that already has `IAurelia` registration in it, or its ancestors |
+| AUR0769 | This happens when an `Aurelia` application is started with a document fragment before it's adopted by a document |
+| AUR0770 | This happens when `Aurelia.prototype.start` is called with a `null`/`undefined` value as the first parameter |
+| AUR0771 | This happens when `Aurelia.prototype.dispose` is called before the instance is stopped |
+| AUR0772 | This happens when the `@watch` decorator is used without a valid first parameter |
+| AUR0773 | This happens when the `@watch` decorator is used and Aurelia is not able to resolve the first parameter to a function |
+| AUR0774 | This happens when the `@watch` decorator is used on a class property instead of a method |
 
 ## HTML observation errors
 

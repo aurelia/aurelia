@@ -2398,7 +2398,7 @@ const CustomAttribute = Object.freeze({
     getDefinition(Type) {
         const def = kernel.Metadata.getOwn(caBaseName, Type);
         if (def === void 0) {
-            throw new Error(`AUR0702:${Type.name}`);
+            throw new Error(`AUR0759:${Type.name}`);
         }
         return def;
     },
@@ -2412,7 +2412,7 @@ const CustomAttribute = Object.freeze({
 
 function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
     if (!expressionOrPropertyAccessFn) {
-        throw new Error('AUR0715');
+        throw new Error('AUR0772');
     }
     return function decorator(target, key, descriptor) {
         const isClassDecorator = key == null;
@@ -2422,11 +2422,11 @@ function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
         if (isClassDecorator) {
             if (typeof changeHandlerOrCallback !== 'function'
                 && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in Type.prototype))) {
-                throw new Error(`AUR0716:${String(changeHandlerOrCallback)}@${Type.name}}`);
+                throw new Error(`AUR0773:${String(changeHandlerOrCallback)}@${Type.name}}`);
             }
         }
         else if (typeof (descriptor === null || descriptor === void 0 ? void 0 : descriptor.value) !== 'function') {
-            throw new Error(`AUR0717:${String(key)}`);
+            throw new Error(`AUR0774:${String(key)}`);
         }
         Watch.add(Type, watchDef);
         // if the code looks like this:
@@ -2525,7 +2525,7 @@ class CustomElementDefinition {
         if (Type === null) {
             const def = nameOrDef;
             if (typeof def === 'string') {
-                throw new Error(`AUR0704:${nameOrDef}`);
+                throw new Error(`AUR0761:${nameOrDef}`);
             }
             const name = kernel.fromDefinitionOrDefault('name', def, CustomElement.generateName);
             if (typeof def.Type === 'function') {
@@ -2594,7 +2594,7 @@ const CustomElement = Object.freeze({
                 if (opts.optional === true) {
                     return null;
                 }
-                throw new Error('AUR0705');
+                throw new Error('AUR0762');
             }
             return controller;
         }
@@ -2602,7 +2602,7 @@ const CustomElement = Object.freeze({
             if (opts.searchParents !== true) {
                 const controller = getRef(node, ceBaseName);
                 if (controller === null) {
-                    throw new Error('AUR0706');
+                    throw new Error('AUR0763');
                 }
                 if (controller.is(opts.name)) {
                     return controller;
@@ -2624,7 +2624,7 @@ const CustomElement = Object.freeze({
             if (foundAController) {
                 return (void 0);
             }
-            throw new Error('AUR0707');
+            throw new Error('AUR0764');
         }
         let cur = node;
         while (cur !== null) {
@@ -2634,7 +2634,7 @@ const CustomElement = Object.freeze({
             }
             cur = getEffectiveParentNode(cur);
         }
-        throw new Error('AUR0708');
+        throw new Error('AUR0765');
     },
     define(nameOrDef, Type) {
         const definition = CustomElementDefinition.create(nameOrDef, Type);
@@ -2646,7 +2646,7 @@ const CustomElement = Object.freeze({
     getDefinition(Type) {
         const def = kernel.Metadata.getOwn(ceBaseName, Type);
         if (def === void 0) {
-            throw new Error(`AUR0703:${Type.name}`);
+            throw new Error(`AUR0760:${Type.name}`);
         }
         return def;
     },
@@ -2734,7 +2734,7 @@ function ensureHook(target, hook) {
     }
     const hookType = typeof hook;
     if (hookType !== 'function') {
-        throw new Error(`AUR0709:${hookType}`);
+        throw new Error(`AUR0766:${hookType}`);
     }
     return hook;
 }
@@ -3628,8 +3628,6 @@ class Controller {
         this._activatingStack = 0;
         this._detachingStack = 0;
         this._unbindingStack = 0;
-        this.logger = null;
-        this.debug = false;
         this._rendering = container.root.get(IRendering);
         switch (vmKind) {
             case 1 /* customAttribute */:
@@ -3775,11 +3773,6 @@ class Controller {
      * This is the context controller creating this this controller
      */
     hydrationContext) {
-        this.logger = this.container.get(kernel.ILogger).root;
-        this.debug = this.logger.config.level <= 1 /* debug */;
-        if (this.debug) {
-            this.logger = this.logger.scopeTo(this.name);
-        }
         const container = this.container;
         const flags = this.flags;
         const instance = this.viewModel;
@@ -3791,9 +3784,6 @@ class Controller {
         createObservers(this, definition, flags, instance);
         this._childrenObs = createChildrenObservers(this, definition, flags, instance);
         if (this.hooks.hasDefine) {
-            if (this.debug) {
-                this.logger.trace(`invoking define() hook`);
-            }
             const result = instance.define(
             /* controller      */ this, 
             /* parentContainer */ hydrationContext, 
@@ -3823,9 +3813,6 @@ class Controller {
     /** @internal */
     _hydrate(hydrationInst) {
         if (this.hooks.hasHydrating) {
-            if (this.debug) {
-                this.logger.trace(`invoking hydrating() hook`);
-            }
             this.viewModel.hydrating(this);
         }
         const compiledDef = this._compiledDef = this._rendering.compile(this.definition, this.container, hydrationInst);
@@ -3855,9 +3842,6 @@ class Controller {
         this.viewModel.$controller = this;
         this.nodes = this._rendering.createNodes(compiledDef);
         if (this.hooks.hasHydrated) {
-            if (this.debug) {
-                this.logger.trace(`invoking hydrated() hook`);
-            }
             this.viewModel.hydrated(this);
         }
     }
@@ -3870,9 +3854,6 @@ class Controller {
         /* definition */ this._compiledDef, 
         /* host       */ this.host);
         if (this.hooks.hasCreated) {
-            if (this.debug) {
-                this.logger.trace(`invoking created() hook`);
-            }
             this.viewModel.created(this);
         }
     }
@@ -3886,9 +3867,6 @@ class Controller {
         instance.$controller = this;
         this.lifecycleHooks = LifecycleHooks.resolve(this.container);
         if (this.hooks.hasCreated) {
-            if (this.debug) {
-                this.logger.trace(`invoking created() hook`);
-            }
             this.viewModel.created(this);
         }
     }
@@ -3903,7 +3881,6 @@ class Controller {
         /* host       */ void 0);
     }
     activate(initiator, parent, flags, scope) {
-        var _a;
         switch (this.state) {
             case 0 /* none */:
             case 8 /* deactivated */:
@@ -3927,10 +3904,6 @@ class Controller {
                 throw new Error(`AUR0503:${this.name} ${stringifyState(this.state)}`);
         }
         this.parent = parent;
-        if (this.debug && !this._fullyNamed) {
-            this._fullyNamed = true;
-            ((_a = this.logger) !== null && _a !== void 0 ? _a : (this.logger = this.container.get(kernel.ILogger).root.scopeTo(this.name))).trace(`activate()`);
-        }
         flags |= 2 /* fromBind */;
         switch (this.vmKind) {
             case 0 /* customElement */:
@@ -3958,9 +3931,6 @@ class Controller {
         // opposing leave is called in attach() (which will trigger attached())
         this._enterActivating();
         if (this.hooks.hasBinding) {
-            if (this.debug) {
-                this.logger.trace(`binding()`);
-            }
             const ret = this.viewModel.binding(this.$initiator, this.parent, this.$flags);
             if (ret instanceof Promise) {
                 this._ensurePromise();
@@ -3976,9 +3946,6 @@ class Controller {
         return this.$promise;
     }
     bind() {
-        if (this.debug) {
-            this.logger.trace(`bind()`);
-        }
         let i = 0;
         let ii = this._childrenObs.length;
         let ret;
@@ -4002,9 +3969,6 @@ class Controller {
             }
         }
         if (this.hooks.hasBound) {
-            if (this.debug) {
-                this.logger.trace(`bound()`);
-            }
             ret = this.viewModel.bound(this.$initiator, this.parent, this.$flags);
             if (ret instanceof Promise) {
                 this._ensurePromise();
@@ -4038,9 +4002,6 @@ class Controller {
         }
     }
     _attach() {
-        if (this.debug) {
-            this.logger.trace(`attach()`);
-        }
         if (this.hostController !== null) {
             switch (this.mountTarget) {
                 case 1 /* host */:
@@ -4070,9 +4031,6 @@ class Controller {
                 break;
         }
         if (this.hooks.hasAttaching) {
-            if (this.debug) {
-                this.logger.trace(`attaching()`);
-            }
             const ret = this.viewModel.attaching(this.$initiator, this.parent, this.$flags);
             if (ret instanceof Promise) {
                 this._ensurePromise();
@@ -4110,9 +4068,6 @@ class Controller {
             default:
                 throw new Error(`AUR0505:${this.name} ${stringifyState(this.state)}`);
         }
-        if (this.debug) {
-            this.logger.trace(`deactivate()`);
-        }
         this.$initiator = initiator;
         this.$flags = flags;
         if (initiator === this) {
@@ -4134,9 +4089,6 @@ class Controller {
             }
         }
         if (this.hooks.hasDetaching) {
-            if (this.debug) {
-                this.logger.trace(`detaching()`);
-            }
             const ret = this.viewModel.detaching(this.$initiator, this.parent, this.$flags);
             if (ret instanceof Promise) {
                 this._ensurePromise();
@@ -4192,9 +4144,6 @@ class Controller {
         }
     }
     unbind() {
-        if (this.debug) {
-            this.logger.trace(`unbind()`);
-        }
         const flags = this.$flags | 4 /* fromUnbind */;
         let i = 0;
         if (this.bindings !== null) {
@@ -4267,9 +4216,6 @@ class Controller {
     _leaveActivating() {
         if (--this._activatingStack === 0) {
             if (this.hooks.hasAttached) {
-                if (this.debug) {
-                    this.logger.trace(`attached()`);
-                }
                 _retPromise = this.viewModel.attached(this.$initiator, this.$flags);
                 if (_retPromise instanceof Promise) {
                     this._ensurePromise();
@@ -4301,10 +4247,6 @@ class Controller {
     }
     _leaveDetaching() {
         if (--this._detachingStack === 0) {
-            // Note: this controller is the initiator (detach is only ever called on the initiator)
-            if (this.debug) {
-                this.logger.trace(`detach()`);
-            }
             this._enterUnbinding();
             this.removeNodes();
             let cur = this.$initiator.head;
@@ -4341,9 +4283,6 @@ class Controller {
     }
     _leaveUnbinding() {
         if (--this._unbindingStack === 0) {
-            if (this.debug) {
-                this.logger.trace(`unbind()`);
-            }
             let cur = this.$initiator.head;
             let next = null;
             while (cur !== null) {
@@ -4423,9 +4362,6 @@ class Controller {
         this.state |= 16 /* released */;
     }
     dispose() {
-        if (this.debug) {
-            this.logger.trace(`dispose()`);
-        }
         if ((this.state & 32 /* disposed */) === 32 /* disposed */) {
             return;
         }
@@ -6208,7 +6144,7 @@ const BindingCommand = Object.freeze({
     getDefinition(Type) {
         const def = kernel.Metadata.getOwn(cmdBaseName, Type);
         if (def === void 0) {
-            throw new Error(`AUR0701:${Type.name}`);
+            throw new Error(`AUR0758:${Type.name}`);
         }
         return def;
     },
@@ -11679,7 +11615,7 @@ class Aurelia {
         /** @internal */
         this._stopPromise = void 0;
         if (container.has(IAurelia, true)) {
-            throw new Error('AUR0711');
+            throw new Error('AUR0768');
         }
         container.registerResolver(IAurelia, new kernel.InstanceProvider('IAurelia', this));
         container.registerResolver(IAppRoot, this._rootProvider = new kernel.InstanceProvider('IAppRoot'));
@@ -11690,7 +11626,7 @@ class Aurelia {
     get root() {
         if (this._root == null) {
             if (this.next == null) {
-                throw new Error('AUR0710');
+                throw new Error('AUR0767');
             }
             return this.next;
         }
@@ -11737,7 +11673,7 @@ class Aurelia {
         let p;
         if (!this.container.has(IPlatform, false)) {
             if (host.ownerDocument.defaultView === null) {
-                throw new Error('AUR0712');
+                throw new Error('AUR0769');
             }
             p = new platformBrowser.BrowserPlatform(host.ownerDocument.defaultView);
             this.container.register(kernel.Registration.instance(IPlatform, p));
@@ -11749,7 +11685,7 @@ class Aurelia {
     }
     start(root = this.next) {
         if (root == null) {
-            throw new Error('AUR0713');
+            throw new Error('AUR0770');
         }
         if (this._startPromise instanceof Promise) {
             return this._startPromise;
@@ -11788,7 +11724,7 @@ class Aurelia {
     }
     dispose() {
         if (this._isRunning || this._isStopping) {
-            throw new Error('AUR0714');
+            throw new Error('AUR0771');
         }
         this.container.dispose();
     }
@@ -12289,558 +12225,98 @@ const DialogDefaultConfiguration = createDialogConfiguration(kernel.noop, [
     DefaultDialogDomRenderer,
 ]);
 
-Object.defineProperty(exports, 'Platform', {
-    enumerable: true,
-    get: function () {
-        return platform.Platform;
-    }
-});
-Object.defineProperty(exports, 'Task', {
-    enumerable: true,
-    get: function () {
-        return platform.Task;
-    }
-});
-Object.defineProperty(exports, 'TaskAbortError', {
-    enumerable: true,
-    get: function () {
-        return platform.TaskAbortError;
-    }
-});
-Object.defineProperty(exports, 'TaskQueue', {
-    enumerable: true,
-    get: function () {
-        return platform.TaskQueue;
-    }
-});
-Object.defineProperty(exports, 'TaskQueuePriority', {
-    enumerable: true,
-    get: function () {
-        return platform.TaskQueuePriority;
-    }
-});
-Object.defineProperty(exports, 'TaskStatus', {
-    enumerable: true,
-    get: function () {
-        return platform.TaskStatus;
-    }
-});
-Object.defineProperty(exports, 'BrowserPlatform', {
-    enumerable: true,
-    get: function () {
-        return platformBrowser.BrowserPlatform;
-    }
-});
-Object.defineProperty(exports, 'Access', {
-    enumerable: true,
-    get: function () {
-        return runtime.Access;
-    }
-});
-Object.defineProperty(exports, 'AccessKeyedExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.AccessKeyedExpression;
-    }
-});
-Object.defineProperty(exports, 'AccessMemberExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.AccessMemberExpression;
-    }
-});
-Object.defineProperty(exports, 'AccessScopeExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.AccessScopeExpression;
-    }
-});
-Object.defineProperty(exports, 'AccessThisExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.AccessThisExpression;
-    }
-});
-Object.defineProperty(exports, 'AccessorType', {
-    enumerable: true,
-    get: function () {
-        return runtime.AccessorType;
-    }
-});
-Object.defineProperty(exports, 'ArrayBindingPattern', {
-    enumerable: true,
-    get: function () {
-        return runtime.ArrayBindingPattern;
-    }
-});
-Object.defineProperty(exports, 'ArrayIndexObserver', {
-    enumerable: true,
-    get: function () {
-        return runtime.ArrayIndexObserver;
-    }
-});
-Object.defineProperty(exports, 'ArrayLiteralExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.ArrayLiteralExpression;
-    }
-});
-Object.defineProperty(exports, 'ArrayObserver', {
-    enumerable: true,
-    get: function () {
-        return runtime.ArrayObserver;
-    }
-});
-Object.defineProperty(exports, 'AssignExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.AssignExpression;
-    }
-});
-Object.defineProperty(exports, 'BinaryExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.BinaryExpression;
-    }
-});
-Object.defineProperty(exports, 'BindingBehavior', {
-    enumerable: true,
-    get: function () {
-        return runtime.BindingBehavior;
-    }
-});
-Object.defineProperty(exports, 'BindingBehaviorDefinition', {
-    enumerable: true,
-    get: function () {
-        return runtime.BindingBehaviorDefinition;
-    }
-});
-Object.defineProperty(exports, 'BindingBehaviorExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.BindingBehaviorExpression;
-    }
-});
-Object.defineProperty(exports, 'BindingBehaviorFactory', {
-    enumerable: true,
-    get: function () {
-        return runtime.BindingBehaviorFactory;
-    }
-});
-Object.defineProperty(exports, 'BindingBehaviorStrategy', {
-    enumerable: true,
-    get: function () {
-        return runtime.BindingBehaviorStrategy;
-    }
-});
-Object.defineProperty(exports, 'BindingContext', {
-    enumerable: true,
-    get: function () {
-        return runtime.BindingContext;
-    }
-});
-Object.defineProperty(exports, 'BindingIdentifier', {
-    enumerable: true,
-    get: function () {
-        return runtime.BindingIdentifier;
-    }
-});
-Object.defineProperty(exports, 'BindingInterceptor', {
-    enumerable: true,
-    get: function () {
-        return runtime.BindingInterceptor;
-    }
-});
-Object.defineProperty(exports, 'BindingMediator', {
-    enumerable: true,
-    get: function () {
-        return runtime.BindingMediator;
-    }
-});
-Object.defineProperty(exports, 'BindingMode', {
-    enumerable: true,
-    get: function () {
-        return runtime.BindingMode;
-    }
-});
-Object.defineProperty(exports, 'BindingType', {
-    enumerable: true,
-    get: function () {
-        return runtime.BindingType;
-    }
-});
-Object.defineProperty(exports, 'CallFunctionExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.CallFunctionExpression;
-    }
-});
-Object.defineProperty(exports, 'CallMemberExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.CallMemberExpression;
-    }
-});
-Object.defineProperty(exports, 'CallScopeExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.CallScopeExpression;
-    }
-});
-Object.defineProperty(exports, 'Char', {
-    enumerable: true,
-    get: function () {
-        return runtime.Char;
-    }
-});
-Object.defineProperty(exports, 'CollectionKind', {
-    enumerable: true,
-    get: function () {
-        return runtime.CollectionKind;
-    }
-});
-Object.defineProperty(exports, 'CollectionLengthObserver', {
-    enumerable: true,
-    get: function () {
-        return runtime.CollectionLengthObserver;
-    }
-});
-Object.defineProperty(exports, 'CollectionSizeObserver', {
-    enumerable: true,
-    get: function () {
-        return runtime.CollectionSizeObserver;
-    }
-});
-Object.defineProperty(exports, 'ComputedObserver', {
-    enumerable: true,
-    get: function () {
-        return runtime.ComputedObserver;
-    }
-});
-Object.defineProperty(exports, 'ConditionalExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.ConditionalExpression;
-    }
-});
-Object.defineProperty(exports, 'CustomExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.CustomExpression;
-    }
-});
-Object.defineProperty(exports, 'DelegationStrategy', {
-    enumerable: true,
-    get: function () {
-        return runtime.DelegationStrategy;
-    }
-});
-Object.defineProperty(exports, 'DirtyCheckProperty', {
-    enumerable: true,
-    get: function () {
-        return runtime.DirtyCheckProperty;
-    }
-});
-Object.defineProperty(exports, 'DirtyCheckSettings', {
-    enumerable: true,
-    get: function () {
-        return runtime.DirtyCheckSettings;
-    }
-});
-Object.defineProperty(exports, 'ExpressionKind', {
-    enumerable: true,
-    get: function () {
-        return runtime.ExpressionKind;
-    }
-});
-Object.defineProperty(exports, 'ForOfStatement', {
-    enumerable: true,
-    get: function () {
-        return runtime.ForOfStatement;
-    }
-});
-Object.defineProperty(exports, 'HtmlLiteralExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.HtmlLiteralExpression;
-    }
-});
-Object.defineProperty(exports, 'IDirtyChecker', {
-    enumerable: true,
-    get: function () {
-        return runtime.IDirtyChecker;
-    }
-});
-Object.defineProperty(exports, 'IExpressionParser', {
-    enumerable: true,
-    get: function () {
-        return runtime.IExpressionParser;
-    }
-});
-Object.defineProperty(exports, 'INodeObserverLocator', {
-    enumerable: true,
-    get: function () {
-        return runtime.INodeObserverLocator;
-    }
-});
-Object.defineProperty(exports, 'IObserverLocator', {
-    enumerable: true,
-    get: function () {
-        return runtime.IObserverLocator;
-    }
-});
-Object.defineProperty(exports, 'ISignaler', {
-    enumerable: true,
-    get: function () {
-        return runtime.ISignaler;
-    }
-});
-Object.defineProperty(exports, 'Interpolation', {
-    enumerable: true,
-    get: function () {
-        return runtime.Interpolation;
-    }
-});
-Object.defineProperty(exports, 'LifecycleFlags', {
-    enumerable: true,
-    get: function () {
-        return runtime.LifecycleFlags;
-    }
-});
-Object.defineProperty(exports, 'MapObserver', {
-    enumerable: true,
-    get: function () {
-        return runtime.MapObserver;
-    }
-});
-Object.defineProperty(exports, 'ObjectBindingPattern', {
-    enumerable: true,
-    get: function () {
-        return runtime.ObjectBindingPattern;
-    }
-});
-Object.defineProperty(exports, 'ObjectLiteralExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.ObjectLiteralExpression;
-    }
-});
-Object.defineProperty(exports, 'ObserverLocator', {
-    enumerable: true,
-    get: function () {
-        return runtime.ObserverLocator;
-    }
-});
-Object.defineProperty(exports, 'OverrideContext', {
-    enumerable: true,
-    get: function () {
-        return runtime.OverrideContext;
-    }
-});
-Object.defineProperty(exports, 'Precedence', {
-    enumerable: true,
-    get: function () {
-        return runtime.Precedence;
-    }
-});
-Object.defineProperty(exports, 'PrimitiveLiteralExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.PrimitiveLiteralExpression;
-    }
-});
-Object.defineProperty(exports, 'PrimitiveObserver', {
-    enumerable: true,
-    get: function () {
-        return runtime.PrimitiveObserver;
-    }
-});
-Object.defineProperty(exports, 'PropertyAccessor', {
-    enumerable: true,
-    get: function () {
-        return runtime.PropertyAccessor;
-    }
-});
-Object.defineProperty(exports, 'Scope', {
-    enumerable: true,
-    get: function () {
-        return runtime.Scope;
-    }
-});
-Object.defineProperty(exports, 'SetObserver', {
-    enumerable: true,
-    get: function () {
-        return runtime.SetObserver;
-    }
-});
-Object.defineProperty(exports, 'SetterObserver', {
-    enumerable: true,
-    get: function () {
-        return runtime.SetterObserver;
-    }
-});
-Object.defineProperty(exports, 'TaggedTemplateExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.TaggedTemplateExpression;
-    }
-});
-Object.defineProperty(exports, 'TemplateExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.TemplateExpression;
-    }
-});
-Object.defineProperty(exports, 'UnaryExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.UnaryExpression;
-    }
-});
-Object.defineProperty(exports, 'ValueConverter', {
-    enumerable: true,
-    get: function () {
-        return runtime.ValueConverter;
-    }
-});
-Object.defineProperty(exports, 'ValueConverterDefinition', {
-    enumerable: true,
-    get: function () {
-        return runtime.ValueConverterDefinition;
-    }
-});
-Object.defineProperty(exports, 'ValueConverterExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.ValueConverterExpression;
-    }
-});
-Object.defineProperty(exports, 'alias', {
-    enumerable: true,
-    get: function () {
-        return runtime.alias;
-    }
-});
-Object.defineProperty(exports, 'applyMutationsToIndices', {
-    enumerable: true,
-    get: function () {
-        return runtime.applyMutationsToIndices;
-    }
-});
-Object.defineProperty(exports, 'bindingBehavior', {
-    enumerable: true,
-    get: function () {
-        return runtime.bindingBehavior;
-    }
-});
-Object.defineProperty(exports, 'cloneIndexMap', {
-    enumerable: true,
-    get: function () {
-        return runtime.cloneIndexMap;
-    }
-});
-Object.defineProperty(exports, 'connectable', {
-    enumerable: true,
-    get: function () {
-        return runtime.connectable;
-    }
-});
-Object.defineProperty(exports, 'copyIndexMap', {
-    enumerable: true,
-    get: function () {
-        return runtime.copyIndexMap;
-    }
-});
-Object.defineProperty(exports, 'createIndexMap', {
-    enumerable: true,
-    get: function () {
-        return runtime.createIndexMap;
-    }
-});
-Object.defineProperty(exports, 'disableArrayObservation', {
-    enumerable: true,
-    get: function () {
-        return runtime.disableArrayObservation;
-    }
-});
-Object.defineProperty(exports, 'disableMapObservation', {
-    enumerable: true,
-    get: function () {
-        return runtime.disableMapObservation;
-    }
-});
-Object.defineProperty(exports, 'disableSetObservation', {
-    enumerable: true,
-    get: function () {
-        return runtime.disableSetObservation;
-    }
-});
-Object.defineProperty(exports, 'enableArrayObservation', {
-    enumerable: true,
-    get: function () {
-        return runtime.enableArrayObservation;
-    }
-});
-Object.defineProperty(exports, 'enableMapObservation', {
-    enumerable: true,
-    get: function () {
-        return runtime.enableMapObservation;
-    }
-});
-Object.defineProperty(exports, 'enableSetObservation', {
-    enumerable: true,
-    get: function () {
-        return runtime.enableSetObservation;
-    }
-});
-Object.defineProperty(exports, 'getCollectionObserver', {
-    enumerable: true,
-    get: function () {
-        return runtime.getCollectionObserver;
-    }
-});
-Object.defineProperty(exports, 'isIndexMap', {
-    enumerable: true,
-    get: function () {
-        return runtime.isIndexMap;
-    }
-});
-Object.defineProperty(exports, 'observable', {
-    enumerable: true,
-    get: function () {
-        return runtime.observable;
-    }
-});
-Object.defineProperty(exports, 'parseExpression', {
-    enumerable: true,
-    get: function () {
-        return runtime.parseExpression;
-    }
-});
-Object.defineProperty(exports, 'registerAliases', {
-    enumerable: true,
-    get: function () {
-        return runtime.registerAliases;
-    }
-});
-Object.defineProperty(exports, 'subscriberCollection', {
-    enumerable: true,
-    get: function () {
-        return runtime.subscriberCollection;
-    }
-});
-Object.defineProperty(exports, 'synchronizeIndices', {
-    enumerable: true,
-    get: function () {
-        return runtime.synchronizeIndices;
-    }
-});
-Object.defineProperty(exports, 'valueConverter', {
-    enumerable: true,
-    get: function () {
-        return runtime.valueConverter;
-    }
-});
+exports.Platform = platform.Platform;
+exports.Task = platform.Task;
+exports.TaskAbortError = platform.TaskAbortError;
+exports.TaskQueue = platform.TaskQueue;
+exports.TaskQueuePriority = platform.TaskQueuePriority;
+exports.TaskStatus = platform.TaskStatus;
+exports.BrowserPlatform = platformBrowser.BrowserPlatform;
+exports.Access = runtime.Access;
+exports.AccessKeyedExpression = runtime.AccessKeyedExpression;
+exports.AccessMemberExpression = runtime.AccessMemberExpression;
+exports.AccessScopeExpression = runtime.AccessScopeExpression;
+exports.AccessThisExpression = runtime.AccessThisExpression;
+exports.AccessorType = runtime.AccessorType;
+exports.ArrayBindingPattern = runtime.ArrayBindingPattern;
+exports.ArrayIndexObserver = runtime.ArrayIndexObserver;
+exports.ArrayLiteralExpression = runtime.ArrayLiteralExpression;
+exports.ArrayObserver = runtime.ArrayObserver;
+exports.AssignExpression = runtime.AssignExpression;
+exports.BinaryExpression = runtime.BinaryExpression;
+exports.BindingBehavior = runtime.BindingBehavior;
+exports.BindingBehaviorDefinition = runtime.BindingBehaviorDefinition;
+exports.BindingBehaviorExpression = runtime.BindingBehaviorExpression;
+exports.BindingBehaviorFactory = runtime.BindingBehaviorFactory;
+exports.BindingBehaviorStrategy = runtime.BindingBehaviorStrategy;
+exports.BindingContext = runtime.BindingContext;
+exports.BindingIdentifier = runtime.BindingIdentifier;
+exports.BindingInterceptor = runtime.BindingInterceptor;
+exports.BindingMediator = runtime.BindingMediator;
+exports.BindingMode = runtime.BindingMode;
+exports.BindingType = runtime.BindingType;
+exports.CallFunctionExpression = runtime.CallFunctionExpression;
+exports.CallMemberExpression = runtime.CallMemberExpression;
+exports.CallScopeExpression = runtime.CallScopeExpression;
+exports.Char = runtime.Char;
+exports.CollectionKind = runtime.CollectionKind;
+exports.CollectionLengthObserver = runtime.CollectionLengthObserver;
+exports.CollectionSizeObserver = runtime.CollectionSizeObserver;
+exports.ComputedObserver = runtime.ComputedObserver;
+exports.ConditionalExpression = runtime.ConditionalExpression;
+exports.CustomExpression = runtime.CustomExpression;
+exports.DelegationStrategy = runtime.DelegationStrategy;
+exports.DirtyCheckProperty = runtime.DirtyCheckProperty;
+exports.DirtyCheckSettings = runtime.DirtyCheckSettings;
+exports.ExpressionKind = runtime.ExpressionKind;
+exports.ForOfStatement = runtime.ForOfStatement;
+exports.HtmlLiteralExpression = runtime.HtmlLiteralExpression;
+exports.IDirtyChecker = runtime.IDirtyChecker;
+exports.IExpressionParser = runtime.IExpressionParser;
+exports.INodeObserverLocator = runtime.INodeObserverLocator;
+exports.IObserverLocator = runtime.IObserverLocator;
+exports.ISignaler = runtime.ISignaler;
+exports.Interpolation = runtime.Interpolation;
+exports.LifecycleFlags = runtime.LifecycleFlags;
+exports.MapObserver = runtime.MapObserver;
+exports.ObjectBindingPattern = runtime.ObjectBindingPattern;
+exports.ObjectLiteralExpression = runtime.ObjectLiteralExpression;
+exports.ObserverLocator = runtime.ObserverLocator;
+exports.OverrideContext = runtime.OverrideContext;
+exports.Precedence = runtime.Precedence;
+exports.PrimitiveLiteralExpression = runtime.PrimitiveLiteralExpression;
+exports.PrimitiveObserver = runtime.PrimitiveObserver;
+exports.PropertyAccessor = runtime.PropertyAccessor;
+exports.Scope = runtime.Scope;
+exports.SetObserver = runtime.SetObserver;
+exports.SetterObserver = runtime.SetterObserver;
+exports.TaggedTemplateExpression = runtime.TaggedTemplateExpression;
+exports.TemplateExpression = runtime.TemplateExpression;
+exports.UnaryExpression = runtime.UnaryExpression;
+exports.ValueConverter = runtime.ValueConverter;
+exports.ValueConverterDefinition = runtime.ValueConverterDefinition;
+exports.ValueConverterExpression = runtime.ValueConverterExpression;
+exports.alias = runtime.alias;
+exports.applyMutationsToIndices = runtime.applyMutationsToIndices;
+exports.bindingBehavior = runtime.bindingBehavior;
+exports.cloneIndexMap = runtime.cloneIndexMap;
+exports.connectable = runtime.connectable;
+exports.copyIndexMap = runtime.copyIndexMap;
+exports.createIndexMap = runtime.createIndexMap;
+exports.disableArrayObservation = runtime.disableArrayObservation;
+exports.disableMapObservation = runtime.disableMapObservation;
+exports.disableSetObservation = runtime.disableSetObservation;
+exports.enableArrayObservation = runtime.enableArrayObservation;
+exports.enableMapObservation = runtime.enableMapObservation;
+exports.enableSetObservation = runtime.enableSetObservation;
+exports.getCollectionObserver = runtime.getCollectionObserver;
+exports.isIndexMap = runtime.isIndexMap;
+exports.observable = runtime.observable;
+exports.parseExpression = runtime.parseExpression;
+exports.registerAliases = runtime.registerAliases;
+exports.subscriberCollection = runtime.subscriberCollection;
+exports.synchronizeIndices = runtime.synchronizeIndices;
+exports.valueConverter = runtime.valueConverter;
 exports.AdoptedStyleSheetsStyles = AdoptedStyleSheetsStyles;
 exports.AppRoot = AppRoot;
 exports.AppTask = AppTask;

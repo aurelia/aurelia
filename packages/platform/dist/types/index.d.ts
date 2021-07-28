@@ -116,11 +116,7 @@ export declare class Task<T = any> implements ITask {
     readonly reusable: boolean;
     callback: TaskCallback<T>;
     readonly id: number;
-    private resolve;
-    private reject;
-    private _result;
     get result(): Promise<UnwrapPromise<T>>;
-    private _status;
     get status(): TaskStatus;
     constructor(tracer: Tracer, taskQueue: TaskQueue, createdTime: number, queueTime: number, preempt: boolean, persistent: boolean, suspend: boolean, reusable: boolean, callback: TaskCallback<T>);
     run(time?: number): void;

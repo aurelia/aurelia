@@ -1,6 +1,6 @@
 "use strict";
 
-Object.defineProperty(exports, "t", {
+Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
@@ -2381,9 +2381,9 @@ exports.Router = class Router {
         this.logger = i;
         this.events = s;
         this.locationMgr = n;
+        this.t = null;
         this.i = null;
         this.o = null;
-        this.h = null;
         this.options = RouterOptions.DEFAULT;
         this.navigated = false;
         this.navigationId = 0;
@@ -2396,18 +2396,18 @@ exports.Router = class Router {
         this.logger = i.root.scopeTo("Router");
     }
     get ctx() {
-        let t = this.i;
+        let t = this.t;
         if (null === t) {
             if (!this.container.has(ht, true)) throw new Error(`Root RouteContext is not set. Did you forget to register RouteConfiguration, or try to navigate before calling Aurelia.start()?`);
-            t = this.i = this.container.get(ht);
+            t = this.t = this.container.get(ht);
         }
         return t;
     }
     get routeTree() {
-        let t = this.o;
+        let t = this.i;
         if (null === t) {
             const e = this.ctx;
-            t = this.o = new RouteTree(NavigationOptions.create({
+            t = this.i = new RouteTree(NavigationOptions.create({
                 ...this.options
             }), Object.freeze(new URLSearchParams), null, RouteNode.create({
                 path: "",
@@ -2421,8 +2421,8 @@ exports.Router = class Router {
         return t;
     }
     get currentTr() {
-        let t = this.h;
-        if (null === t) t = this.h = Transition.create({
+        let t = this.o;
+        if (null === t) t = this.o = Transition.create({
             id: 0,
             prevInstructions: this.instructions,
             instructions: this.instructions,
@@ -2442,7 +2442,7 @@ exports.Router = class Router {
         return t;
     }
     set currentTr(t) {
-        this.h = t;
+        this.o = t;
     }
     resolveContext(t) {
         return RouteContext.resolve(this.ctx, t);
@@ -2534,7 +2534,7 @@ exports.Router = class Router {
             resolve: o,
             reject: r,
             previousRouteTree: this.routeTree,
-            routeTree: this.o = this.routeTree.clone(),
+            routeTree: this.i = this.routeTree.clone(),
             guardsResult: true,
             error: void 0
         });
@@ -2682,7 +2682,7 @@ exports.Router = class Router {
         }));
         this.activeNavigation = null;
         this.instructions = e.prevInstructions;
-        this.o = e.previousRouteTree;
+        this.i = e.previousRouteTree;
         this.events.publish(new NavigationCancelEvent(e.id, e.instructions, `guardsResult is ${e.guardsResult}`));
         if (false === e.guardsResult) {
             e.resolve(false);
@@ -3245,12 +3245,12 @@ class RouteContext {
         this.parentContainer = h;
         this.childViewportAgents = [];
         this.childRoutes = [];
+        this.h = null;
         this.u = null;
-        this.l = null;
         this.prevNode = null;
+        this.l = null;
         this.g = null;
-        this.v = null;
-        this.v = s;
+        this.g = s;
         if (null === n) {
             this.root = this;
             this.path = [ this ];
@@ -3290,11 +3290,11 @@ class RouteContext {
                 this.childRoutes.push(i);
             }
         }
-        if (f.length > 0) this.u = Promise.all(f).then((() => {
-            this.u = null;
+        if (f.length > 0) this.h = Promise.all(f).then((() => {
+            this.h = null;
         }));
-        if (p.length > 0) this.l = Promise.all(p).then((() => {
-            this.l = null;
+        if (p.length > 0) this.u = Promise.all(p).then((() => {
+            this.u = null;
         }));
     }
     get id() {
@@ -3307,33 +3307,33 @@ class RouteContext {
         return this.path.length - 1;
     }
     get resolved() {
-        return this.u;
+        return this.h;
     }
     get allResolved() {
-        return this.l;
+        return this.u;
     }
     get node() {
-        const t = this.g;
+        const t = this.l;
         if (null === t) throw new Error(`Invariant violation: RouteNode should be set immediately after the RouteContext is created. Context: ${this}`);
         return t;
     }
     set node(t) {
-        const e = this.prevNode = this.g;
+        const e = this.prevNode = this.l;
         if (e !== t) {
-            this.g = t;
+            this.l = t;
             this.logger.trace(`Node changed from %s to %s`, this.prevNode, t);
         }
     }
     get vpa() {
-        const t = this.v;
+        const t = this.g;
         if (null === t) throw new Error(`RouteContext has no ViewportAgent: ${this}`);
         return t;
     }
     set vpa(t) {
         if (null === t || void 0 === t) throw new Error(`Cannot set ViewportAgent to ${t} for RouteContext: ${this}`);
-        const e = this.v;
+        const e = this.g;
         if (e !== t) {
-            this.v = t;
+            this.g = t;
             this.logger.trace(`ViewportAgent changed from %s to %s`, e, t);
         }
     }

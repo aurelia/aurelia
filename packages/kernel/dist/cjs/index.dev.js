@@ -2505,72 +2505,17 @@ class EventAggregator {
     }
 }
 
-Object.defineProperty(exports, 'Metadata', {
-    enumerable: true,
-    get: function () {
-        return metadata.Metadata;
-    }
-});
-Object.defineProperty(exports, 'applyMetadataPolyfill', {
-    enumerable: true,
-    get: function () {
-        return metadata.applyMetadataPolyfill;
-    }
-});
-Object.defineProperty(exports, 'isNullOrUndefined', {
-    enumerable: true,
-    get: function () {
-        return metadata.isNullOrUndefined;
-    }
-});
-Object.defineProperty(exports, 'isObject', {
-    enumerable: true,
-    get: function () {
-        return metadata.isObject;
-    }
-});
-Object.defineProperty(exports, 'metadata', {
-    enumerable: true,
-    get: function () {
-        return metadata.metadata;
-    }
-});
-Object.defineProperty(exports, 'Platform', {
-    enumerable: true,
-    get: function () {
-        return platform.Platform;
-    }
-});
-Object.defineProperty(exports, 'Task', {
-    enumerable: true,
-    get: function () {
-        return platform.Task;
-    }
-});
-Object.defineProperty(exports, 'TaskAbortError', {
-    enumerable: true,
-    get: function () {
-        return platform.TaskAbortError;
-    }
-});
-Object.defineProperty(exports, 'TaskQueue', {
-    enumerable: true,
-    get: function () {
-        return platform.TaskQueue;
-    }
-});
-Object.defineProperty(exports, 'TaskQueuePriority', {
-    enumerable: true,
-    get: function () {
-        return platform.TaskQueuePriority;
-    }
-});
-Object.defineProperty(exports, 'TaskStatus', {
-    enumerable: true,
-    get: function () {
-        return platform.TaskStatus;
-    }
-});
+exports.Metadata = metadata.Metadata;
+exports.applyMetadataPolyfill = metadata.applyMetadataPolyfill;
+exports.isNullOrUndefined = metadata.isNullOrUndefined;
+exports.isObject = metadata.isObject;
+exports.metadata = metadata.metadata;
+exports.Platform = platform.Platform;
+exports.Task = platform.Task;
+exports.TaskAbortError = platform.TaskAbortError;
+exports.TaskQueue = platform.TaskQueue;
+exports.TaskQueuePriority = platform.TaskQueuePriority;
+exports.TaskStatus = platform.TaskStatus;
 exports.AnalyzedModule = AnalyzedModule;
 exports.ContainerConfiguration = ContainerConfiguration;
 exports.DI = DI;

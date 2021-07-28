@@ -1,7 +1,7 @@
 export { Platform, Task, TaskAbortError, TaskQueue, TaskQueuePriority, TaskStatus } from '@aurelia/platform';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 export { BrowserPlatform } from '@aurelia/platform-browser';
-import { Protocol, getPrototypeChain, Metadata, firstDefined, kebabCase, noop, emptyArray, DI, all, Registration, IPlatform as IPlatform$1, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, IContainer, nextId, optional, InstanceProvider, ILogger, isObject, onResolve, resolveAll, camelCase, toArray, emptyObject, IServiceLocator, compareNumber, transient } from '@aurelia/kernel';
+import { Protocol, getPrototypeChain, Metadata, firstDefined, kebabCase, noop, emptyArray, DI, all, Registration, IPlatform as IPlatform$1, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, IContainer, nextId, optional, InstanceProvider, isObject, ILogger, onResolve, resolveAll, camelCase, toArray, emptyObject, IServiceLocator, compareNumber, transient } from '@aurelia/kernel';
 import { BindingMode, subscriberCollection, withFlushQueue, connectable, registerAliases, ConnectableSwitcher, ProxyObservable, Scope, IObserverLocator, IExpressionParser, AccessScopeExpression, DelegationStrategy, BindingBehaviorExpression, BindingBehaviorFactory, PrimitiveLiteralExpression, bindingBehavior, BindingInterceptor, ISignaler, PropertyAccessor, INodeObserverLocator, SetterObserver, IDirtyChecker, alias, applyMutationsToIndices, getCollectionObserver as getCollectionObserver$1, BindingContext, synchronizeIndices, valueConverter } from '@aurelia/runtime';
 export { Access, AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, AccessorType, ArrayBindingPattern, ArrayIndexObserver, ArrayLiteralExpression, ArrayObserver, AssignExpression, BinaryExpression, BindingBehavior, BindingBehaviorDefinition, BindingBehaviorExpression, BindingBehaviorFactory, BindingBehaviorStrategy, BindingContext, BindingIdentifier, BindingInterceptor, BindingMediator, BindingMode, BindingType, CallFunctionExpression, CallMemberExpression, CallScopeExpression, Char, CollectionKind, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConditionalExpression, CustomExpression, DelegationStrategy, DirtyCheckProperty, DirtyCheckSettings, ExpressionKind, ForOfStatement, HtmlLiteralExpression, IDirtyChecker, IExpressionParser, INodeObserverLocator, IObserverLocator, ISignaler, Interpolation, LifecycleFlags, MapObserver, ObjectBindingPattern, ObjectLiteralExpression, ObserverLocator, OverrideContext, Precedence, PrimitiveLiteralExpression, PrimitiveObserver, PropertyAccessor, Scope, SetObserver, SetterObserver, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverter, ValueConverterDefinition, ValueConverterExpression, alias, applyMutationsToIndices, bindingBehavior, cloneIndexMap, connectable, copyIndexMap, createIndexMap, disableArrayObservation, disableMapObservation, disableSetObservation, enableArrayObservation, enableMapObservation, enableSetObservation, getCollectionObserver, isIndexMap, observable, parseExpression, registerAliases, subscriberCollection, synchronizeIndices, valueConverter } from '@aurelia/runtime';
 
@@ -2396,7 +2396,7 @@ const CustomAttribute = Object.freeze({
     getDefinition(Type) {
         const def = Metadata.getOwn(caBaseName, Type);
         if (def === void 0) {
-            throw new Error(`AUR0702:${Type.name}`);
+            throw new Error(`AUR0759:${Type.name}`);
         }
         return def;
     },
@@ -2410,7 +2410,7 @@ const CustomAttribute = Object.freeze({
 
 function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
     if (!expressionOrPropertyAccessFn) {
-        throw new Error('AUR0715');
+        throw new Error('AUR0772');
     }
     return function decorator(target, key, descriptor) {
         const isClassDecorator = key == null;
@@ -2420,11 +2420,11 @@ function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
         if (isClassDecorator) {
             if (typeof changeHandlerOrCallback !== 'function'
                 && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in Type.prototype))) {
-                throw new Error(`AUR0716:${String(changeHandlerOrCallback)}@${Type.name}}`);
+                throw new Error(`AUR0773:${String(changeHandlerOrCallback)}@${Type.name}}`);
             }
         }
         else if (typeof (descriptor === null || descriptor === void 0 ? void 0 : descriptor.value) !== 'function') {
-            throw new Error(`AUR0717:${String(key)}`);
+            throw new Error(`AUR0774:${String(key)}`);
         }
         Watch.add(Type, watchDef);
         // if the code looks like this:
@@ -2523,7 +2523,7 @@ class CustomElementDefinition {
         if (Type === null) {
             const def = nameOrDef;
             if (typeof def === 'string') {
-                throw new Error(`AUR0704:${nameOrDef}`);
+                throw new Error(`AUR0761:${nameOrDef}`);
             }
             const name = fromDefinitionOrDefault('name', def, CustomElement.generateName);
             if (typeof def.Type === 'function') {
@@ -2592,7 +2592,7 @@ const CustomElement = Object.freeze({
                 if (opts.optional === true) {
                     return null;
                 }
-                throw new Error('AUR0705');
+                throw new Error('AUR0762');
             }
             return controller;
         }
@@ -2600,7 +2600,7 @@ const CustomElement = Object.freeze({
             if (opts.searchParents !== true) {
                 const controller = getRef(node, ceBaseName);
                 if (controller === null) {
-                    throw new Error('AUR0706');
+                    throw new Error('AUR0763');
                 }
                 if (controller.is(opts.name)) {
                     return controller;
@@ -2622,7 +2622,7 @@ const CustomElement = Object.freeze({
             if (foundAController) {
                 return (void 0);
             }
-            throw new Error('AUR0707');
+            throw new Error('AUR0764');
         }
         let cur = node;
         while (cur !== null) {
@@ -2632,7 +2632,7 @@ const CustomElement = Object.freeze({
             }
             cur = getEffectiveParentNode(cur);
         }
-        throw new Error('AUR0708');
+        throw new Error('AUR0765');
     },
     define(nameOrDef, Type) {
         const definition = CustomElementDefinition.create(nameOrDef, Type);
@@ -2644,7 +2644,7 @@ const CustomElement = Object.freeze({
     getDefinition(Type) {
         const def = Metadata.getOwn(ceBaseName, Type);
         if (def === void 0) {
-            throw new Error(`AUR0703:${Type.name}`);
+            throw new Error(`AUR0760:${Type.name}`);
         }
         return def;
     },
@@ -2732,7 +2732,7 @@ function ensureHook(target, hook) {
     }
     const hookType = typeof hook;
     if (hookType !== 'function') {
-        throw new Error(`AUR0709:${hookType}`);
+        throw new Error(`AUR0766:${hookType}`);
     }
     return hook;
 }
@@ -3626,8 +3626,6 @@ class Controller {
         this._activatingStack = 0;
         this._detachingStack = 0;
         this._unbindingStack = 0;
-        this.logger = null;
-        this.debug = false;
         this._rendering = container.root.get(IRendering);
         switch (vmKind) {
             case 1 /* customAttribute */:
@@ -3773,11 +3771,6 @@ class Controller {
      * This is the context controller creating this this controller
      */
     hydrationContext) {
-        this.logger = this.container.get(ILogger).root;
-        this.debug = this.logger.config.level <= 1 /* debug */;
-        if (this.debug) {
-            this.logger = this.logger.scopeTo(this.name);
-        }
         const container = this.container;
         const flags = this.flags;
         const instance = this.viewModel;
@@ -3789,9 +3782,6 @@ class Controller {
         createObservers(this, definition, flags, instance);
         this._childrenObs = createChildrenObservers(this, definition, flags, instance);
         if (this.hooks.hasDefine) {
-            if (this.debug) {
-                this.logger.trace(`invoking define() hook`);
-            }
             const result = instance.define(
             /* controller      */ this, 
             /* parentContainer */ hydrationContext, 
@@ -3821,9 +3811,6 @@ class Controller {
     /** @internal */
     _hydrate(hydrationInst) {
         if (this.hooks.hasHydrating) {
-            if (this.debug) {
-                this.logger.trace(`invoking hydrating() hook`);
-            }
             this.viewModel.hydrating(this);
         }
         const compiledDef = this._compiledDef = this._rendering.compile(this.definition, this.container, hydrationInst);
@@ -3853,9 +3840,6 @@ class Controller {
         this.viewModel.$controller = this;
         this.nodes = this._rendering.createNodes(compiledDef);
         if (this.hooks.hasHydrated) {
-            if (this.debug) {
-                this.logger.trace(`invoking hydrated() hook`);
-            }
             this.viewModel.hydrated(this);
         }
     }
@@ -3868,9 +3852,6 @@ class Controller {
         /* definition */ this._compiledDef, 
         /* host       */ this.host);
         if (this.hooks.hasCreated) {
-            if (this.debug) {
-                this.logger.trace(`invoking created() hook`);
-            }
             this.viewModel.created(this);
         }
     }
@@ -3884,9 +3865,6 @@ class Controller {
         instance.$controller = this;
         this.lifecycleHooks = LifecycleHooks.resolve(this.container);
         if (this.hooks.hasCreated) {
-            if (this.debug) {
-                this.logger.trace(`invoking created() hook`);
-            }
             this.viewModel.created(this);
         }
     }
@@ -3901,7 +3879,6 @@ class Controller {
         /* host       */ void 0);
     }
     activate(initiator, parent, flags, scope) {
-        var _a;
         switch (this.state) {
             case 0 /* none */:
             case 8 /* deactivated */:
@@ -3925,10 +3902,6 @@ class Controller {
                 throw new Error(`AUR0503:${this.name} ${stringifyState(this.state)}`);
         }
         this.parent = parent;
-        if (this.debug && !this._fullyNamed) {
-            this._fullyNamed = true;
-            ((_a = this.logger) !== null && _a !== void 0 ? _a : (this.logger = this.container.get(ILogger).root.scopeTo(this.name))).trace(`activate()`);
-        }
         flags |= 2 /* fromBind */;
         switch (this.vmKind) {
             case 0 /* customElement */:
@@ -3956,9 +3929,6 @@ class Controller {
         // opposing leave is called in attach() (which will trigger attached())
         this._enterActivating();
         if (this.hooks.hasBinding) {
-            if (this.debug) {
-                this.logger.trace(`binding()`);
-            }
             const ret = this.viewModel.binding(this.$initiator, this.parent, this.$flags);
             if (ret instanceof Promise) {
                 this._ensurePromise();
@@ -3974,9 +3944,6 @@ class Controller {
         return this.$promise;
     }
     bind() {
-        if (this.debug) {
-            this.logger.trace(`bind()`);
-        }
         let i = 0;
         let ii = this._childrenObs.length;
         let ret;
@@ -4000,9 +3967,6 @@ class Controller {
             }
         }
         if (this.hooks.hasBound) {
-            if (this.debug) {
-                this.logger.trace(`bound()`);
-            }
             ret = this.viewModel.bound(this.$initiator, this.parent, this.$flags);
             if (ret instanceof Promise) {
                 this._ensurePromise();
@@ -4036,9 +4000,6 @@ class Controller {
         }
     }
     _attach() {
-        if (this.debug) {
-            this.logger.trace(`attach()`);
-        }
         if (this.hostController !== null) {
             switch (this.mountTarget) {
                 case 1 /* host */:
@@ -4068,9 +4029,6 @@ class Controller {
                 break;
         }
         if (this.hooks.hasAttaching) {
-            if (this.debug) {
-                this.logger.trace(`attaching()`);
-            }
             const ret = this.viewModel.attaching(this.$initiator, this.parent, this.$flags);
             if (ret instanceof Promise) {
                 this._ensurePromise();
@@ -4108,9 +4066,6 @@ class Controller {
             default:
                 throw new Error(`AUR0505:${this.name} ${stringifyState(this.state)}`);
         }
-        if (this.debug) {
-            this.logger.trace(`deactivate()`);
-        }
         this.$initiator = initiator;
         this.$flags = flags;
         if (initiator === this) {
@@ -4132,9 +4087,6 @@ class Controller {
             }
         }
         if (this.hooks.hasDetaching) {
-            if (this.debug) {
-                this.logger.trace(`detaching()`);
-            }
             const ret = this.viewModel.detaching(this.$initiator, this.parent, this.$flags);
             if (ret instanceof Promise) {
                 this._ensurePromise();
@@ -4190,9 +4142,6 @@ class Controller {
         }
     }
     unbind() {
-        if (this.debug) {
-            this.logger.trace(`unbind()`);
-        }
         const flags = this.$flags | 4 /* fromUnbind */;
         let i = 0;
         if (this.bindings !== null) {
@@ -4265,9 +4214,6 @@ class Controller {
     _leaveActivating() {
         if (--this._activatingStack === 0) {
             if (this.hooks.hasAttached) {
-                if (this.debug) {
-                    this.logger.trace(`attached()`);
-                }
                 _retPromise = this.viewModel.attached(this.$initiator, this.$flags);
                 if (_retPromise instanceof Promise) {
                     this._ensurePromise();
@@ -4299,10 +4245,6 @@ class Controller {
     }
     _leaveDetaching() {
         if (--this._detachingStack === 0) {
-            // Note: this controller is the initiator (detach is only ever called on the initiator)
-            if (this.debug) {
-                this.logger.trace(`detach()`);
-            }
             this._enterUnbinding();
             this.removeNodes();
             let cur = this.$initiator.head;
@@ -4339,9 +4281,6 @@ class Controller {
     }
     _leaveUnbinding() {
         if (--this._unbindingStack === 0) {
-            if (this.debug) {
-                this.logger.trace(`unbind()`);
-            }
             let cur = this.$initiator.head;
             let next = null;
             while (cur !== null) {
@@ -4421,9 +4360,6 @@ class Controller {
         this.state |= 16 /* released */;
     }
     dispose() {
-        if (this.debug) {
-            this.logger.trace(`dispose()`);
-        }
         if ((this.state & 32 /* disposed */) === 32 /* disposed */) {
             return;
         }
@@ -6206,7 +6142,7 @@ const BindingCommand = Object.freeze({
     getDefinition(Type) {
         const def = Metadata.getOwn(cmdBaseName, Type);
         if (def === void 0) {
-            throw new Error(`AUR0701:${Type.name}`);
+            throw new Error(`AUR0758:${Type.name}`);
         }
         return def;
     },
@@ -11677,7 +11613,7 @@ class Aurelia {
         /** @internal */
         this._stopPromise = void 0;
         if (container.has(IAurelia, true)) {
-            throw new Error('AUR0711');
+            throw new Error('AUR0768');
         }
         container.registerResolver(IAurelia, new InstanceProvider('IAurelia', this));
         container.registerResolver(IAppRoot, this._rootProvider = new InstanceProvider('IAppRoot'));
@@ -11688,7 +11624,7 @@ class Aurelia {
     get root() {
         if (this._root == null) {
             if (this.next == null) {
-                throw new Error('AUR0710');
+                throw new Error('AUR0767');
             }
             return this.next;
         }
@@ -11735,7 +11671,7 @@ class Aurelia {
         let p;
         if (!this.container.has(IPlatform, false)) {
             if (host.ownerDocument.defaultView === null) {
-                throw new Error('AUR0712');
+                throw new Error('AUR0769');
             }
             p = new BrowserPlatform(host.ownerDocument.defaultView);
             this.container.register(Registration.instance(IPlatform, p));
@@ -11747,7 +11683,7 @@ class Aurelia {
     }
     start(root = this.next) {
         if (root == null) {
-            throw new Error('AUR0713');
+            throw new Error('AUR0770');
         }
         if (this._startPromise instanceof Promise) {
             return this._startPromise;
@@ -11786,7 +11722,7 @@ class Aurelia {
     }
     dispose() {
         if (this._isRunning || this._isStopping) {
-            throw new Error('AUR0714');
+            throw new Error('AUR0771');
         }
         this.container.dispose();
     }

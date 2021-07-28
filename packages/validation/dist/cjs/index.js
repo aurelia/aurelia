@@ -1,6 +1,6 @@
 "use strict";
 
-Object.defineProperty(exports, "t", {
+Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
@@ -9,18 +9,10 @@ var e = require("@aurelia/kernel");
 var t = require("@aurelia/runtime");
 
 function s(e) {
-    if (e && e.t) return e;
+    if (e && e.__esModule) return e;
     var t = Object.create(null);
     if (e) Object.keys(e).forEach((function(s) {
-        if ("default" !== s) {
-            var r = Object.getOwnPropertyDescriptor(e, s);
-            Object.defineProperty(t, s, r.get ? r : {
-                enumerable: true,
-                get: function() {
-                    return e[s];
-                }
-            });
-        }
+        t[s] = e[s];
     }));
     t["default"] = e;
     return Object.freeze(t);
@@ -818,7 +810,7 @@ class Deserializer {
             }
 
           default:
-            if (Array.isArray(e)) if ("object" === typeof e[0]) return this.deserializeExpressions(e); else return e.map(b); else if ("object" !== typeof e) return b(e);
+            if (Array.isArray(e)) if ("object" === typeof e[0]) return this.deserializeExpressions(e); else return e.map(E); else if ("object" !== typeof e) return E(e);
             throw new Error(`unable to deserialize the expression: ${e}`);
         }
     }
@@ -851,10 +843,10 @@ class Serializer {
         return `{"$TYPE":"${v.ArrayLiteralExpression}","elements":${this.serializeExpressions(e.elements)}}`;
     }
     visitObjectLiteral(e) {
-        return `{"$TYPE":"${v.ObjectLiteralExpression}","keys":${g(e.keys)},"values":${this.serializeExpressions(e.values)}}`;
+        return `{"$TYPE":"${v.ObjectLiteralExpression}","keys":${w(e.keys)},"values":${this.serializeExpressions(e.values)}}`;
     }
     visitPrimitiveLiteral(e) {
-        return `{"$TYPE":"${v.PrimitiveLiteralExpression}","value":${w(e.value)}}`;
+        return `{"$TYPE":"${v.PrimitiveLiteralExpression}","value":${y(e.value)}}`;
     }
     visitCallFunction(e) {
         return `{"$TYPE":"${v.CallFunctionExpression}","func":${e.func.accept(this)},"args":${this.serializeExpressions(e.args)}}`;
@@ -866,10 +858,10 @@ class Serializer {
         return `{"$TYPE":"${v.CallScopeExpression}","name":"${e.name}","ancestor":${e.ancestor},"args":${this.serializeExpressions(e.args)}}`;
     }
     visitTemplate(e) {
-        return `{"$TYPE":"${v.TemplateExpression}","cooked":${g(e.cooked)},"expressions":${this.serializeExpressions(e.expressions)}}`;
+        return `{"$TYPE":"${v.TemplateExpression}","cooked":${w(e.cooked)},"expressions":${this.serializeExpressions(e.expressions)}}`;
     }
     visitTaggedTemplate(e) {
-        return `{"$TYPE":"${v.TaggedTemplateExpression}","cooked":${g(e.cooked)},"raw":${g(e.cooked.raw)},"func":${e.func.accept(this)},"expressions":${this.serializeExpressions(e.expressions)}}`;
+        return `{"$TYPE":"${v.TaggedTemplateExpression}","cooked":${w(e.cooked)},"raw":${w(e.cooked.raw)},"func":${e.func.accept(this)},"expressions":${this.serializeExpressions(e.expressions)}}`;
     }
     visitUnary(e) {
         return `{"$TYPE":"${v.UnaryExpression}","operation":"${e.operation}","expression":${e.expression.accept(this)}}`;
@@ -893,7 +885,7 @@ class Serializer {
         return `{"$TYPE":"${v.ArrayBindingPattern}","elements":${this.serializeExpressions(e.elements)}}`;
     }
     visitObjectBindingPattern(e) {
-        return `{"$TYPE":"${v.ObjectBindingPattern}","keys":${g(e.keys)},"values":${this.serializeExpressions(e.values)}}`;
+        return `{"$TYPE":"${v.ObjectBindingPattern}","keys":${w(e.keys)},"values":${this.serializeExpressions(e.values)}}`;
     }
     visitBindingIdentifier(e) {
         return `{"$TYPE":"${v.BindingIdentifier}","name":"${e.name}"}`;
@@ -905,7 +897,7 @@ class Serializer {
         return `{"$TYPE":"${v.ForOfStatement}","declaration":${e.declaration.accept(this)},"iterable":${e.iterable.accept(this)}}`;
     }
     visitInterpolation(e) {
-        return `{"$TYPE":"${v.Interpolation}","cooked":${g(e.parts)},"expressions":${this.serializeExpressions(e.expressions)}}`;
+        return `{"$TYPE":"${v.Interpolation}","cooked":${w(e.parts)},"expressions":${this.serializeExpressions(e.expressions)}}`;
     }
     serializeExpressions(e) {
         let t = "[";
@@ -918,21 +910,21 @@ class Serializer {
     }
 }
 
-function g(e) {
+function w(e) {
     let t = "[";
     for (let s = 0, r = e.length; s < r; ++s) {
         if (0 !== s) t += ",";
-        t += w(e[s]);
+        t += y(e[s]);
     }
     t += "]";
     return t;
 }
 
-function w(e) {
-    if ("string" === typeof e) return `"\\"${y(e)}\\""`; else if (null == e) return `"${e}"`; else return `${e}`;
+function y(e) {
+    if ("string" === typeof e) return `"\\"${g(e)}\\""`; else if (null == e) return `"${e}"`; else return `${e}`;
 }
 
-function y(e) {
+function g(e) {
     let t = "";
     for (let s = 0, r = e.length; s < r; ++s) t += R(e.charAt(s));
     return t;
@@ -969,7 +961,7 @@ function R(e) {
     }
 }
 
-function b(e) {
+function E(e) {
     if ("string" === typeof e) {
         if ("null" === e) return null;
         if ("undefined" === e) return;
@@ -984,32 +976,32 @@ class ValidationSerializer {
         return e.accept(t);
     }
     visitRequiredRule(e) {
-        return `{"$TYPE":"${exports.RequiredRule.$TYPE}","messageKey":"${e.messageKey}","tag":${w(e.tag)}}`;
+        return `{"$TYPE":"${exports.RequiredRule.$TYPE}","messageKey":"${e.messageKey}","tag":${y(e.tag)}}`;
     }
     visitRegexRule(e) {
         const t = e.pattern;
-        return `{"$TYPE":"${exports.RegexRule.$TYPE}","messageKey":"${e.messageKey}","tag":${w(e.tag)},"pattern":{"source":${w(t.source)},"flags":"${t.flags}"}}`;
+        return `{"$TYPE":"${exports.RegexRule.$TYPE}","messageKey":"${e.messageKey}","tag":${y(e.tag)},"pattern":{"source":${y(t.source)},"flags":"${t.flags}"}}`;
     }
     visitLengthRule(e) {
-        return `{"$TYPE":"${exports.LengthRule.$TYPE}","messageKey":"${e.messageKey}","tag":${w(e.tag)},"length":${w(e.length)},"isMax":${w(e.isMax)}}`;
+        return `{"$TYPE":"${exports.LengthRule.$TYPE}","messageKey":"${e.messageKey}","tag":${y(e.tag)},"length":${y(e.length)},"isMax":${y(e.isMax)}}`;
     }
     visitSizeRule(e) {
-        return `{"$TYPE":"${exports.SizeRule.$TYPE}","messageKey":"${e.messageKey}","tag":${w(e.tag)},"count":${w(e.count)},"isMax":${w(e.isMax)}}`;
+        return `{"$TYPE":"${exports.SizeRule.$TYPE}","messageKey":"${e.messageKey}","tag":${y(e.tag)},"count":${y(e.count)},"isMax":${y(e.isMax)}}`;
     }
     visitRangeRule(e) {
-        return `{"$TYPE":"${exports.RangeRule.$TYPE}","messageKey":"${e.messageKey}","tag":${w(e.tag)},"isInclusive":${e.isInclusive},"min":${this.serializeNumber(e.min)},"max":${this.serializeNumber(e.max)}}`;
+        return `{"$TYPE":"${exports.RangeRule.$TYPE}","messageKey":"${e.messageKey}","tag":${y(e.tag)},"isInclusive":${e.isInclusive},"min":${this.serializeNumber(e.min)},"max":${this.serializeNumber(e.max)}}`;
     }
     visitEqualsRule(e) {
         const t = e.expectedValue;
         let s;
-        if ("object" !== typeof t || null === t) s = w(t); else s = JSON.stringify(t);
-        return `{"$TYPE":"${exports.EqualsRule.$TYPE}","messageKey":"${e.messageKey}","tag":${w(e.tag)},"expectedValue":${s}}`;
+        if ("object" !== typeof t || null === t) s = y(t); else s = JSON.stringify(t);
+        return `{"$TYPE":"${exports.EqualsRule.$TYPE}","messageKey":"${e.messageKey}","tag":${y(e.tag)},"expectedValue":${s}}`;
     }
     visitRuleProperty(e) {
         const t = e.displayName;
         if (void 0 !== t && "string" !== typeof t) throw new Error("Serializing a non-string displayName for rule property is not supported.");
         const s = e.expression;
-        return `{"$TYPE":"${RuleProperty.$TYPE}","name":${w(e.name)},"expression":${s ? Serializer.serialize(s) : null},"displayName":${w(t)}}`;
+        return `{"$TYPE":"${RuleProperty.$TYPE}","name":${y(e.name)},"expression":${s ? Serializer.serialize(s) : null},"displayName":${y(t)}}`;
     }
     visitPropertyRule(e) {
         return `{"$TYPE":"${PropertyRule.$TYPE}","property":${e.property.accept(this)},"$rules":${this.serializeRules(e.$rules)}}`;
@@ -1279,7 +1271,7 @@ class ValidateInstruction {
     }
 }
 
-const E = e.DI.createInterface("IValidator");
+const b = e.DI.createInterface("IValidator");
 
 class StandardValidator {
     async validate(e) {
@@ -1312,7 +1304,7 @@ function M(t) {
         register(s) {
             const r = P();
             t(r);
-            s.register(e.Registration.instance(c, r.CustomMessages), e.Registration.singleton(E, r.ValidatorType), e.Registration.singleton(a, r.MessageProviderType), e.Registration.singleton(i, r.HydratorType), e.Registration.transient(p, exports.ValidationRules), exports.ValidationDeserializer);
+            s.register(e.Registration.instance(c, r.CustomMessages), e.Registration.singleton(b, r.ValidatorType), e.Registration.singleton(a, r.MessageProviderType), e.Registration.singleton(i, r.HydratorType), e.Registration.transient(p, exports.ValidationRules), exports.ValidationDeserializer);
             return s;
         },
         customize(e) {
@@ -1333,7 +1325,7 @@ exports.IValidationMessageProvider = a;
 
 exports.IValidationRules = p;
 
-exports.IValidator = E;
+exports.IValidator = b;
 
 exports.ModelBasedRule = ModelBasedRule;
 
@@ -1355,7 +1347,7 @@ exports.ValidationRuleAliasMessage = u;
 
 exports.ValidationSerializer = ValidationSerializer;
 
-exports.deserializePrimitive = b;
+exports.deserializePrimitive = E;
 
 exports.getDefaultValidationConfiguration = P;
 
@@ -1363,9 +1355,9 @@ exports.parsePropertyName = f;
 
 exports.rootObjectSymbol = x;
 
-exports.serializePrimitive = w;
+exports.serializePrimitive = y;
 
-exports.serializePrimitives = g;
+exports.serializePrimitives = w;
 
 exports.validationRule = l;
 

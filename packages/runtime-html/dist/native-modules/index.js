@@ -4,7 +4,7 @@ import { BrowserPlatform as t } from "../../../platform-browser/dist/native-modu
 
 export { BrowserPlatform } from "../../../platform-browser/dist/native-modules/index.js";
 
-import { Protocol as e, getPrototypeChain as i, Metadata as s, firstDefined as n, kebabCase as r, noop as o, emptyArray as l, DI as h, all as a, Registration as c, IPlatform as u, mergeArrays as f, fromDefinitionOrDefault as d, pascalCase as v, fromAnnotationOrTypeOrDefault as m, fromAnnotationOrDefinitionOrTypeOrDefault as p, IContainer as g, nextId as w, optional as x, InstanceProvider as b, ILogger as y, isObject as k, onResolve as A, resolveAll as C, camelCase as R, toArray as S, emptyObject as E, IServiceLocator as B, compareNumber as I, transient as T } from "../../../kernel/dist/native-modules/index.js";
+import { Protocol as e, getPrototypeChain as i, Metadata as s, firstDefined as n, kebabCase as r, noop as o, emptyArray as l, DI as h, all as a, Registration as c, IPlatform as u, mergeArrays as f, fromDefinitionOrDefault as d, pascalCase as v, fromAnnotationOrTypeOrDefault as m, fromAnnotationOrDefinitionOrTypeOrDefault as p, IContainer as g, nextId as w, optional as x, InstanceProvider as b, isObject as y, ILogger as k, onResolve as A, resolveAll as C, camelCase as R, toArray as S, emptyObject as E, IServiceLocator as B, compareNumber as I, transient as T } from "../../../kernel/dist/native-modules/index.js";
 
 import { BindingMode as D, subscriberCollection as P, withFlushQueue as O, connectable as $, registerAliases as L, ConnectableSwitcher as q, ProxyObservable as M, Scope as U, IObserverLocator as F, IExpressionParser as V, AccessScopeExpression as j, DelegationStrategy as _, BindingBehaviorExpression as N, BindingBehaviorFactory as H, PrimitiveLiteralExpression as W, bindingBehavior as z, BindingInterceptor as G, ISignaler as X, PropertyAccessor as K, INodeObserverLocator as Y, SetterObserver as Q, IDirtyChecker as Z, alias as J, applyMutationsToIndices as tt, getCollectionObserver as et, BindingContext as it, synchronizeIndices as st, valueConverter as nt } from "../../../runtime/dist/native-modules/index.js";
 
@@ -1910,7 +1910,7 @@ const me = Object.freeze({
     },
     getDefinition(t) {
         const e = s.getOwn(ve, t);
-        if (void 0 === e) throw new Error(`AUR0702:${t.name}`);
+        if (void 0 === e) throw new Error(`AUR0759:${t.name}`);
         return e;
     },
     annotate(t, i, n) {
@@ -1922,14 +1922,14 @@ const me = Object.freeze({
 });
 
 function pe(t, e) {
-    if (!t) throw new Error("AUR0715");
+    if (!t) throw new Error("AUR0772");
     return function i(s, n, r) {
         const o = null == n;
         const l = o ? s : s.constructor;
         const h = new WatchDefinition(t, o ? e : r.value);
         if (o) {
-            if ("function" !== typeof e && (null == e || !(e in l.prototype))) throw new Error(`AUR0716:${String(e)}@${l.name}}`);
-        } else if ("function" !== typeof (null === r || void 0 === r ? void 0 : r.value)) throw new Error(`AUR0717:${String(n)}`);
+            if ("function" !== typeof e && (null == e || !(e in l.prototype))) throw new Error(`AUR0773:${String(e)}@${l.name}}`);
+        } else if ("function" !== typeof (null === r || void 0 === r ? void 0 : r.value)) throw new Error(`AUR0774:${String(n)}`);
         xe.add(l, h);
         if (me.isType(l)) me.getDefinition(l).watches.push(h);
         if (Se.isType(l)) Se.getDefinition(l).watches.push(h);
@@ -2016,7 +2016,7 @@ class CustomElementDefinition {
         const i = Se.getAnnotation;
         if (null === e) {
             const i = t;
-            if ("string" === typeof i) throw new Error(`AUR0704:${t}`);
+            if ("string" === typeof i) throw new Error(`AUR0761:${t}`);
             const s = d("name", i, Se.generateName);
             if ("function" === typeof i.Type) e = i.Type; else e = Se.generateType(v(s));
             return new CustomElementDefinition(e, s, f(i.aliases), d("key", i, (() => Se.keyFrom(s))), d("cache", i, (() => 0)), d("template", i, (() => null)), f(i.instructions), f(i.dependencies), d("injectable", i, (() => null)), d("needsCompile", i, (() => true)), f(i.surrogates), ct.from(i.bindables), re.from(i.childrenObservers), d("containerless", i, (() => false)), d("isStrictBinding", i, (() => false)), d("shadowOptions", i, (() => null)), d("hasSlots", i, (() => false)), d("enhance", i, (() => false)), d("watches", i, (() => l)), m("processContent", e, (() => null)));
@@ -2064,14 +2064,14 @@ const Se = Object.freeze({
             const i = Ri(t, Re);
             if (null === i) {
                 if (true === e.optional) return null;
-                throw new Error("AUR0705");
+                throw new Error("AUR0762");
             }
             return i;
         }
         if (void 0 !== e.name) {
             if (true !== e.searchParents) {
                 const i = Ri(t, Re);
-                if (null === i) throw new Error("AUR0706");
+                if (null === i) throw new Error("AUR0763");
                 if (i.is(e.name)) return i;
                 return;
             }
@@ -2086,7 +2086,7 @@ const Se = Object.freeze({
                 i = Pi(i);
             }
             if (s) return;
-            throw new Error("AUR0707");
+            throw new Error("AUR0764");
         }
         let i = t;
         while (null !== i) {
@@ -2094,7 +2094,7 @@ const Se = Object.freeze({
             if (null !== t) return t;
             i = Pi(i);
         }
-        throw new Error("AUR0708");
+        throw new Error("AUR0765");
     },
     define(t, i) {
         const n = CustomElementDefinition.create(t, i);
@@ -2105,7 +2105,7 @@ const Se = Object.freeze({
     },
     getDefinition(t) {
         const e = s.getOwn(Re, t);
-        if (void 0 === e) throw new Error(`AUR0703:${t.name}`);
+        if (void 0 === e) throw new Error(`AUR0760:${t.name}`);
         return e;
     },
     annotate(t, i, n) {
@@ -2169,7 +2169,7 @@ function Be(t) {
 function Ie(t, e) {
     if ("string" === typeof e) e = t[e];
     const i = typeof e;
-    if ("function" !== i) throw new Error(`AUR0709:${i}`);
+    if ("function" !== i) throw new Error(`AUR0766:${i}`);
     return e;
 }
 
@@ -2874,8 +2874,6 @@ class Controller {
         this.at = 0;
         this.ct = 0;
         this.ut = 0;
-        this.logger = null;
-        this.debug = false;
         this.ft = t.root.get(ei);
         switch (e) {
           case 1:
@@ -2948,9 +2946,6 @@ class Controller {
         return s;
     }
     dt(t, e) {
-        this.logger = this.container.get(y).root;
-        this.debug = this.logger.config.level <= 1;
-        if (this.debug) this.logger = this.logger.scopeTo(this.name);
         const i = this.container;
         const s = this.flags;
         const n = this.viewModel;
@@ -2960,7 +2955,6 @@ class Controller {
         oi(this, r, s, n);
         this.ht = li(this, r, s, n);
         if (this.hooks.hasDefine) {
-            if (this.debug) this.logger.trace(`invoking define() hook`);
             const t = n.define(this, e, r);
             if (void 0 !== t && t !== r) r = CustomElementDefinition.getOrCreate(t);
         }
@@ -2973,10 +2967,7 @@ class Controller {
         }
     }
     wt(t) {
-        if (this.hooks.hasHydrating) {
-            if (this.debug) this.logger.trace(`invoking hydrating() hook`);
-            this.viewModel.hydrating(this);
-        }
+        if (this.hooks.hasHydrating) this.viewModel.hydrating(this);
         const e = this.bt = this.ft.compile(this.definition, this.container, t);
         const {shadowOptions: i, isStrictBinding: s, hasSlots: n, containerless: r} = e;
         this.isStrictBinding = s;
@@ -2995,17 +2986,11 @@ class Controller {
         } else this.mountTarget = 1;
         this.viewModel.$controller = this;
         this.nodes = this.ft.createNodes(e);
-        if (this.hooks.hasHydrated) {
-            if (this.debug) this.logger.trace(`invoking hydrated() hook`);
-            this.viewModel.hydrated(this);
-        }
+        if (this.hooks.hasHydrated) this.viewModel.hydrated(this);
     }
     xt() {
         this.ft.render(this.flags, this, this.nodes.findTargets(), this.bt, this.host);
-        if (this.hooks.hasCreated) {
-            if (this.debug) this.logger.trace(`invoking created() hook`);
-            this.viewModel.created(this);
-        }
+        if (this.hooks.hasCreated) this.viewModel.created(this);
     }
     vt() {
         const t = this.definition;
@@ -3014,10 +2999,7 @@ class Controller {
         oi(this, t, this.flags, e);
         e.$controller = this;
         this.lifecycleHooks = We.resolve(this.container);
-        if (this.hooks.hasCreated) {
-            if (this.debug) this.logger.trace(`invoking created() hook`);
-            this.viewModel.created(this);
-        }
+        if (this.hooks.hasCreated) this.viewModel.created(this);
     }
     gt() {
         this.bt = this.ft.compile(this.viewFactory.def, this.container, null);
@@ -3025,7 +3007,6 @@ class Controller {
         this.ft.render(this.flags, this, (this.nodes = this.ft.createNodes(this.bt)).findTargets(), this.bt, void 0);
     }
     activate(t, e, i, s) {
-        var n;
         switch (this.state) {
           case 0:
           case 8:
@@ -3043,10 +3024,6 @@ class Controller {
             throw new Error(`AUR0503:${this.name} ${pi(this.state)}`);
         }
         this.parent = e;
-        if (this.debug && !this.lt) {
-            this.lt = true;
-            (null !== (n = this.logger) && void 0 !== n ? n : this.logger = this.container.get(y).root.scopeTo(this.name)).trace(`activate()`);
-        }
         i |= 2;
         switch (this.vmKind) {
           case 0:
@@ -3067,7 +3044,6 @@ class Controller {
         this.$flags = i;
         this.yt();
         if (this.hooks.hasBinding) {
-            if (this.debug) this.logger.trace(`binding()`);
             const t = this.viewModel.binding(this.$initiator, this.parent, this.$flags);
             if (t instanceof Promise) {
                 this.kt();
@@ -3083,7 +3059,6 @@ class Controller {
         return this.$promise;
     }
     bind() {
-        if (this.debug) this.logger.trace(`bind()`);
         let t = 0;
         let e = this.ht.length;
         let i;
@@ -3100,7 +3075,6 @@ class Controller {
             }
         }
         if (this.hooks.hasBound) {
-            if (this.debug) this.logger.trace(`bound()`);
             i = this.viewModel.bound(this.$initiator, this.parent, this.$flags);
             if (i instanceof Promise) {
                 this.kt();
@@ -3135,7 +3109,6 @@ class Controller {
         }
     }
     Ct() {
-        if (this.debug) this.logger.trace(`attach()`);
         if (null !== this.hostController) switch (this.mountTarget) {
           case 1:
           case 2:
@@ -3165,7 +3138,6 @@ class Controller {
             break;
         }
         if (this.hooks.hasAttaching) {
-            if (this.debug) this.logger.trace(`attaching()`);
             const t = this.viewModel.attaching(this.$initiator, this.parent, this.$flags);
             if (t instanceof Promise) {
                 this.kt();
@@ -3198,7 +3170,6 @@ class Controller {
           default:
             throw new Error(`AUR0505:${this.name} ${pi(this.state)}`);
         }
-        if (this.debug) this.logger.trace(`deactivate()`);
         this.$initiator = t;
         this.$flags = i;
         if (t === this) this.Et();
@@ -3206,7 +3177,6 @@ class Controller {
         if (this.ht.length) for (;s < this.ht.length; ++s) this.ht[s].stop();
         if (null !== this.children) for (s = 0; s < this.children.length; ++s) void this.children[s].deactivate(t, this, i);
         if (this.hooks.hasDetaching) {
-            if (this.debug) this.logger.trace(`detaching()`);
             const e = this.viewModel.detaching(this.$initiator, this.parent, this.$flags);
             if (e instanceof Promise) {
                 this.kt();
@@ -3244,7 +3214,6 @@ class Controller {
         }
     }
     unbind() {
-        if (this.debug) this.logger.trace(`unbind()`);
         const t = 4 | this.$flags;
         let e = 0;
         if (null !== this.bindings) for (;e < this.bindings.length; ++e) this.bindings[e].$unbind(t);
@@ -3301,7 +3270,6 @@ class Controller {
     St() {
         if (0 === --this.at) {
             if (this.hooks.hasAttached) {
-                if (this.debug) this.logger.trace(`attached()`);
                 ki = this.viewModel.attached(this.$initiator, this.$flags);
                 if (ki instanceof Promise) {
                     this.kt();
@@ -3327,7 +3295,6 @@ class Controller {
     }
     Bt() {
         if (0 === --this.ct) {
-            if (this.debug) this.logger.trace(`detach()`);
             this.Tt();
             this.removeNodes();
             let t = this.$initiator.head;
@@ -3360,7 +3327,6 @@ class Controller {
     }
     Dt() {
         if (0 === --this.ut) {
-            if (this.debug) this.logger.trace(`unbind()`);
             let t = this.$initiator.head;
             let e = null;
             while (null !== t) {
@@ -3430,7 +3396,6 @@ class Controller {
         this.state |= 16;
     }
     dispose() {
-        if (this.debug) this.logger.trace(`dispose()`);
         if (32 === (32 & this.state)) return;
         this.state |= 32;
         if (this.hooks.hasDispose) this.viewModel.dispose();
@@ -3548,7 +3513,7 @@ function ui(t) {
 }
 
 function fi(t) {
-    return k(t) && Se.isType(t.constructor);
+    return y(t) && Se.isType(t.constructor);
 }
 
 class HooksDefinition {
@@ -3664,7 +3629,7 @@ class WorkTracker {
     }
 }
 
-WorkTracker.inject = [ y ];
+WorkTracker.inject = [ k ];
 
 class AppRoot {
     constructor(t, e, i, s) {
@@ -4863,7 +4828,7 @@ const Ps = Object.freeze({
     },
     getDefinition(t) {
         const e = s.getOwn(Ds, t);
-        if (void 0 === e) throw new Error(`AUR0701:${t.name}`);
+        if (void 0 === e) throw new Error(`AUR0758:${t.name}`);
         return e;
     },
     annotate(t, i, n) {
@@ -5804,7 +5769,7 @@ class CompilationContext {
         this.ee = o ? s.ee : e.get(pt);
         this.te = o ? s.te : e.get(V);
         this.re = o ? s.re : e.get(Pt);
-        this.$t = o ? s.$t : e.get(y);
+        this.$t = o ? s.$t : e.get(k);
         this.p = o ? s.p : e.get(It);
         this.localEls = o ? s.localEls : new Set;
         this.rows = null !== r && void 0 !== r ? r : [];
@@ -7851,7 +7816,7 @@ rt([ lt({
     mode: D.oneTime
 }) ], Hn.prototype, "fallThrough", void 0);
 
-Hn = rt([ de("case"), ot(0, Ge), ot(1, F), ot(2, Ii), ot(3, y) ], Hn);
+Hn = rt([ de("case"), ot(0, Ge), ot(1, F), ot(2, Ii), ot(3, k) ], Hn);
 
 let Wn = class DefaultCase extends Hn {
     linkToSwitch(t) {
@@ -7942,7 +7907,7 @@ let zn = class PromiseTemplateController {
 
 rt([ lt ], zn.prototype, "value", void 0);
 
-zn = rt([ de("promise"), ot(0, Ge), ot(1, Ii), ot(2, It), ot(3, y) ], zn);
+zn = rt([ de("promise"), ot(0, Ge), ot(1, Ii), ot(2, It), ot(3, k) ], zn);
 
 let Gn = class PendingTemplateController {
     constructor(t, e) {
@@ -8777,7 +8742,7 @@ class Aurelia {
         this.next = void 0;
         this.yi = void 0;
         this.ki = void 0;
-        if (t.has(qo, true)) throw new Error("AUR0711");
+        if (t.has(qo, true)) throw new Error("AUR0768");
         t.registerResolver(qo, new b("IAurelia", this));
         t.registerResolver(Ai, this.Ai = new b("IAppRoot"));
     }
@@ -8792,7 +8757,7 @@ class Aurelia {
     }
     get root() {
         if (null == this.bi) {
-            if (null == this.next) throw new Error("AUR0710");
+            if (null == this.next) throw new Error("AUR0767");
             return this.next;
         }
         return this.bi;
@@ -8834,14 +8799,14 @@ class Aurelia {
     Ci(e) {
         let i;
         if (!this.container.has(It, false)) {
-            if (null === e.ownerDocument.defaultView) throw new Error("AUR0712");
+            if (null === e.ownerDocument.defaultView) throw new Error("AUR0769");
             i = new t(e.ownerDocument.defaultView);
             this.container.register(c.instance(It, i));
         } else i = this.container.get(It);
         return i;
     }
     start(t = this.next) {
-        if (null == t) throw new Error("AUR0713");
+        if (null == t) throw new Error("AUR0770");
         if (this.yi instanceof Promise) return this.yi;
         return this.yi = A(this.stop(), (() => {
             Reflect.set(t.host, "$aurelia", this);
@@ -8872,7 +8837,7 @@ class Aurelia {
         }
     }
     dispose() {
-        if (this.gi || this.xi) throw new Error("AUR0714");
+        if (this.gi || this.xi) throw new Error("AUR0771");
         this.container.dispose();
     }
     Ri(t, e, i) {

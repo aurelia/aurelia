@@ -1,6 +1,6 @@
 "use strict";
 
-Object.defineProperty(exports, "t", {
+Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
@@ -176,8 +176,8 @@ exports.Store = class Store {
         this.dispatchQueue = [];
         this.options = null !== i && void 0 !== i ? i : {};
         const h = true === (null === (n = null === (o = this.options) || void 0 === o ? void 0 : o.history) || void 0 === n ? void 0 : n.undoable);
-        this.i = new r.BehaviorSubject(t);
-        this.state = this.i.asObservable();
+        this.t = new r.BehaviorSubject(t);
+        this.state = this.t.asObservable();
         if (true !== (null === (a = null === (c = this.options) || void 0 === c ? void 0 : c.devToolsOptions) || void 0 === a ? void 0 : a.disable)) this.setupDevTools();
         if (h) this.registerHistoryMethods();
     }
@@ -207,7 +207,7 @@ exports.Store = class Store {
         return this.actions.has(t);
     }
     resetToState(t) {
-        this.i.next(t);
+        this.t.next(t);
     }
     async dispatch(t, ...e) {
         const r = this.lookupAction(t);
@@ -282,7 +282,7 @@ exports.Store = class Store {
             })))
         };
         if (this.options.logDispatchedActions) this.logger[x(this.options, "dispatchedActions", exports.LogLevel.info)](`Dispatching: ${o.name}`);
-        const n = await this.executeMiddlewares(this.i.getValue(), exports.MiddlewarePlacement.Before, o);
+        const n = await this.executeMiddlewares(this.t.getValue(), exports.MiddlewarePlacement.Before, o);
         if (false === n) {
             w.container.get(e.IWindow).performance.clearMarks();
             w.container.get(e.IWindow).performance.clearMeasures();
@@ -306,7 +306,7 @@ exports.Store = class Store {
             return;
         }
         if (h(u) && (null === (r = this.options.history) || void 0 === r ? void 0 : r.limit)) u = a(u, this.options.history.limit);
-        this.i.next(u);
+        this.t.next(u);
         w.container.get(e.IWindow).performance.mark("dispatch-end");
         if (this.options.measurePerformance === exports.PerformanceMeasurement.StartEnd) {
             w.container.get(e.IWindow).performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
@@ -327,7 +327,7 @@ exports.Store = class Store {
     executeMiddlewares(t, r, s) {
         return Array.from(this.middlewares).filter((t => t[1].placement === r)).reduce((async (t, i, o) => {
             try {
-                const o = await i[0](await t, this.i.getValue(), i[1].settings, s);
+                const o = await i[0](await t, this.t.getValue(), i[1].settings, s);
                 if (false === o) return false;
                 return o || await t;
             } catch (e) {
@@ -339,10 +339,10 @@ exports.Store = class Store {
         }), t);
     }
     setupDevTools() {
-        if (this.window.o) {
+        if (this.window.i) {
             this.logger[x(this.options, "devToolsStatus", exports.LogLevel.debug)]("DevTools are available");
             this.devToolsAvailable = true;
-            this.devTools = this.window.o.connect(this.options.devToolsOptions);
+            this.devTools = this.window.i.connect(this.options.devToolsOptions);
             this.devTools.init(this.initialState);
             this.devTools.subscribe((t => {
                 var e, r;
@@ -363,11 +363,11 @@ exports.Store = class Store {
                 if ("DISPATCH" === t.type && t.payload) switch (t.payload.type) {
                   case "JUMP_TO_STATE":
                   case "JUMP_TO_ACTION":
-                    this.i.next(JSON.parse(t.state));
+                    this.t.next(JSON.parse(t.state));
                     return;
 
                   case "COMMIT":
-                    this.devTools.init(this.i.getValue());
+                    this.devTools.init(this.t.getValue());
                     return;
 
                   case "RESET":
@@ -474,7 +474,7 @@ function D(t) {
         s.prototype["object" === typeof t && void 0 !== t.setup ? t.setup : "binding"] = function() {
             if ("object" === typeof t && "string" === typeof t.onChanged && !(t.onChanged in this)) throw new Error("Provided onChanged handler does not exist on target VM");
             const r = e.Controller.getCached(this) ? e.Controller.getCached(this).container.get(exports.Store) : w.container.get(exports.Store);
-            this.h = o().map((t => i(r, t.selector).subscribe((e => {
+            this.o = o().map((t => i(r, t.selector).subscribe((e => {
                 const r = t.targets.length - 1;
                 const s = t.targets.reduce(((t = {}, e) => t[e]), this);
                 Object.entries(t.changeHandlers).forEach((([i, o]) => {
@@ -488,7 +488,7 @@ function D(t) {
             if (n) return n.apply(this, arguments);
         };
         s.prototype["object" === typeof t && t.teardown ? t.teardown : "bound"] = function() {
-            if (this.h && Array.isArray(this.h)) this.h.forEach((t => {
+            if (this.o && Array.isArray(this.o)) this.o.forEach((t => {
                 if (t instanceof r.Subscription && false === t.closed) t.unsubscribe();
             }));
             if (c) return c.apply(this, arguments);

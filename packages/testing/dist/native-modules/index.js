@@ -2396,7 +2396,7 @@ const qi = function() {
         const s = t.preempt;
         const o = t.reusable;
         const l = t.persistent;
-        const u = t["u"];
+        const u = t.status;
         return `    task id=${i} createdTime=${r} queueTime=${a} preempt=${s} reusable=${o} persistent=${l} status=${u}\n` + `    task callback="${null === (n = t.callback) || void 0 === n ? void 0 : n.toString()}"`;
     }
     function n(e, n) {
@@ -3925,18 +3925,18 @@ class ChangeSet {
     constructor(e, t, n, i) {
         this.index = e;
         this.flags = t;
-        this.h = n;
-        this.p = i;
+        this.u = n;
+        this.h = i;
     }
     get newValue() {
-        return this.h;
+        return this.u;
     }
     get oldValue() {
-        return this.p;
+        return this.h;
     }
     dispose() {
+        this.u = void 0;
         this.h = void 0;
-        this.p = void 0;
     }
 }
 
@@ -3945,18 +3945,18 @@ class ProxyChangeSet {
         this.index = e;
         this.flags = t;
         this.key = n;
-        this.h = i;
-        this.p = r;
+        this.u = i;
+        this.h = r;
     }
     get newValue() {
-        return this.h;
+        return this.u;
     }
     get oldValue() {
-        return this.p;
+        return this.h;
     }
     dispose() {
+        this.u = void 0;
         this.h = void 0;
-        this.p = void 0;
     }
 }
 
@@ -3964,57 +3964,61 @@ class CollectionChangeSet {
     constructor(e, t, n) {
         this.index = e;
         this.flags = t;
-        this.g = n;
+        this.p = n;
     }
     get indexMap() {
-        return this.g;
+        return this.p;
     }
     dispose() {
-        this.g = void 0;
+        this.p = void 0;
     }
 }
 
 class SpySubscriber {
     constructor() {
+        this.g = void 0;
         this.m = void 0;
         this.v = void 0;
-        this.$ = void 0;
-        this.k = 0;
+        this.$ = 0;
     }
     get changes() {
+        if (void 0 === this.g) return r;
+        return this.g;
+    }
+    get proxyChanges() {
         if (void 0 === this.m) return r;
         return this.m;
     }
-    get proxyChanges() {
+    get collectionChanges() {
         if (void 0 === this.v) return r;
         return this.v;
     }
-    get collectionChanges() {
-        if (void 0 === this.$) return r;
-        return this.$;
-    }
     get hasChanges() {
-        return void 0 !== this.m;
+        return void 0 !== this.g;
     }
     get hasProxyChanges() {
-        return void 0 !== this.v;
+        return void 0 !== this.m;
     }
     get hasCollectionChanges() {
-        return void 0 !== this.$;
+        return void 0 !== this.v;
     }
     get callCount() {
-        return this.k;
+        return this.$;
     }
     handleChange(e, t, n) {
-        if (void 0 === this.m) this.m = [ new ChangeSet(this.k++, n, e, t) ]; else this.m.push(new ChangeSet(this.k++, n, e, t));
+        if (void 0 === this.g) this.g = [ new ChangeSet(this.$++, n, e, t) ]; else this.g.push(new ChangeSet(this.$++, n, e, t));
     }
     handleProxyChange(e, t, n, i) {
-        if (void 0 === this.v) this.v = [ new ProxyChangeSet(this.k++, i, e, t, n) ]; else this.v.push(new ProxyChangeSet(this.k++, i, e, t, n));
+        if (void 0 === this.m) this.m = [ new ProxyChangeSet(this.$++, i, e, t, n) ]; else this.m.push(new ProxyChangeSet(this.$++, i, e, t, n));
     }
     handleCollectionChange(e, t) {
-        if (void 0 === this.$) this.$ = [ new CollectionChangeSet(this.k++, t, e) ]; else this.$.push(new CollectionChangeSet(this.k++, t, e));
+        if (void 0 === this.v) this.v = [ new CollectionChangeSet(this.$++, t, e) ]; else this.v.push(new CollectionChangeSet(this.$++, t, e));
     }
     dispose() {
+        if (void 0 !== this.g) {
+            this.g.forEach((e => e.dispose()));
+            this.g = void 0;
+        }
         if (void 0 !== this.m) {
             this.m.forEach((e => e.dispose()));
             this.m = void 0;
@@ -4023,11 +4027,7 @@ class SpySubscriber {
             this.v.forEach((e => e.dispose()));
             this.v = void 0;
         }
-        if (void 0 !== this.$) {
-            this.$.forEach((e => e.dispose()));
-            this.$ = void 0;
-        }
-        this.k = 0;
+        this.$ = 0;
     }
 }
 

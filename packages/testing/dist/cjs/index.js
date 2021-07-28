@@ -1,6 +1,6 @@
 "use strict";
 
-Object.defineProperty(exports, "t", {
+Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
@@ -684,11 +684,11 @@ function Ke(e, t) {
 
 class TestContext {
     constructor() {
+        this.t = void 0;
         this.i = void 0;
         this.o = void 0;
-        this.l = void 0;
         this.oL = void 0;
-        this.u = void 0;
+        this.l = void 0;
     }
     get wnd() {
         return this.platform.globalThis;
@@ -730,29 +730,29 @@ class TestContext {
         return this.platform.globalThis.DOMParser;
     }
     get container() {
-        if (void 0 === this.i) {
-            this.i = e.DI.createContainer();
-            t.StandardConfiguration.register(this.i);
-            this.i.register(e.Registration.instance(TestContext, this));
-            if (false === this.i.has(t.IPlatform, true)) this.i.register(exports.PLATFORMRegistration);
+        if (void 0 === this.t) {
+            this.t = e.DI.createContainer();
+            t.StandardConfiguration.register(this.t);
+            this.t.register(e.Registration.instance(TestContext, this));
+            if (false === this.t.has(t.IPlatform, true)) this.t.register(exports.PLATFORMRegistration);
         }
-        return this.i;
+        return this.t;
     }
     get platform() {
-        if (void 0 === this.o) this.o = this.container.get(t.IPlatform);
-        return this.o;
+        if (void 0 === this.i) this.i = this.container.get(t.IPlatform);
+        return this.i;
     }
     get templateCompiler() {
-        if (void 0 === this.l) this.l = this.container.get(t.ITemplateCompiler);
-        return this.l;
+        if (void 0 === this.o) this.o = this.container.get(t.ITemplateCompiler);
+        return this.o;
     }
     get observerLocator() {
         if (void 0 === this.oL) this.oL = this.container.get(t.IObserverLocator);
         return this.oL;
     }
     get domParser() {
-        if (void 0 === this.u) this.u = this.doc.createElement("div");
-        return this.u;
+        if (void 0 === this.l) this.l = this.doc.createElement("div");
+        return this.l;
     }
     static create() {
         return new TestContext;
@@ -2402,7 +2402,7 @@ const ci = function() {
         const s = t.preempt;
         const o = t.reusable;
         const l = t.persistent;
-        const u = t["h"];
+        const u = t.status;
         return `    task id=${i} createdTime=${r} queueTime=${a} preempt=${s} reusable=${o} persistent=${l} status=${u}\n` + `    task callback="${null === (n = t.callback) || void 0 === n ? void 0 : n.toString()}"`;
     }
     function i(e, t) {
@@ -3931,18 +3931,18 @@ class ChangeSet {
     constructor(e, t, n, i) {
         this.index = e;
         this.flags = t;
-        this.p = n;
-        this.g = i;
+        this.u = n;
+        this.h = i;
     }
     get newValue() {
-        return this.p;
+        return this.u;
     }
     get oldValue() {
-        return this.g;
+        return this.h;
     }
     dispose() {
-        this.p = void 0;
-        this.g = void 0;
+        this.u = void 0;
+        this.h = void 0;
     }
 }
 
@@ -3951,18 +3951,18 @@ class ProxyChangeSet {
         this.index = e;
         this.flags = t;
         this.key = n;
-        this.p = i;
-        this.g = r;
+        this.u = i;
+        this.h = r;
     }
     get newValue() {
-        return this.p;
+        return this.u;
     }
     get oldValue() {
-        return this.g;
+        return this.h;
     }
     dispose() {
-        this.p = void 0;
-        this.g = void 0;
+        this.u = void 0;
+        this.h = void 0;
     }
 }
 
@@ -3970,70 +3970,70 @@ class CollectionChangeSet {
     constructor(e, t, n) {
         this.index = e;
         this.flags = t;
-        this.m = n;
+        this.p = n;
     }
     get indexMap() {
-        return this.m;
+        return this.p;
     }
     dispose() {
-        this.m = void 0;
+        this.p = void 0;
     }
 }
 
 class SpySubscriber {
     constructor() {
+        this.g = void 0;
+        this.m = void 0;
         this.v = void 0;
-        this.$ = void 0;
-        this.k = void 0;
-        this.C = 0;
+        this.$ = 0;
     }
     get changes() {
+        if (void 0 === this.g) return e.emptyArray;
+        return this.g;
+    }
+    get proxyChanges() {
+        if (void 0 === this.m) return e.emptyArray;
+        return this.m;
+    }
+    get collectionChanges() {
         if (void 0 === this.v) return e.emptyArray;
         return this.v;
     }
-    get proxyChanges() {
-        if (void 0 === this.$) return e.emptyArray;
-        return this.$;
-    }
-    get collectionChanges() {
-        if (void 0 === this.k) return e.emptyArray;
-        return this.k;
-    }
     get hasChanges() {
-        return void 0 !== this.v;
+        return void 0 !== this.g;
     }
     get hasProxyChanges() {
-        return void 0 !== this.$;
+        return void 0 !== this.m;
     }
     get hasCollectionChanges() {
-        return void 0 !== this.k;
+        return void 0 !== this.v;
     }
     get callCount() {
-        return this.C;
+        return this.$;
     }
     handleChange(e, t, n) {
-        if (void 0 === this.v) this.v = [ new ChangeSet(this.C++, n, e, t) ]; else this.v.push(new ChangeSet(this.C++, n, e, t));
+        if (void 0 === this.g) this.g = [ new ChangeSet(this.$++, n, e, t) ]; else this.g.push(new ChangeSet(this.$++, n, e, t));
     }
     handleProxyChange(e, t, n, i) {
-        if (void 0 === this.$) this.$ = [ new ProxyChangeSet(this.C++, i, e, t, n) ]; else this.$.push(new ProxyChangeSet(this.C++, i, e, t, n));
+        if (void 0 === this.m) this.m = [ new ProxyChangeSet(this.$++, i, e, t, n) ]; else this.m.push(new ProxyChangeSet(this.$++, i, e, t, n));
     }
     handleCollectionChange(e, t) {
-        if (void 0 === this.k) this.k = [ new CollectionChangeSet(this.C++, t, e) ]; else this.k.push(new CollectionChangeSet(this.C++, t, e));
+        if (void 0 === this.v) this.v = [ new CollectionChangeSet(this.$++, t, e) ]; else this.v.push(new CollectionChangeSet(this.$++, t, e));
     }
     dispose() {
+        if (void 0 !== this.g) {
+            this.g.forEach((e => e.dispose()));
+            this.g = void 0;
+        }
+        if (void 0 !== this.m) {
+            this.m.forEach((e => e.dispose()));
+            this.m = void 0;
+        }
         if (void 0 !== this.v) {
             this.v.forEach((e => e.dispose()));
             this.v = void 0;
         }
-        if (void 0 !== this.$) {
-            this.$.forEach((e => e.dispose()));
-            this.$ = void 0;
-        }
-        if (void 0 !== this.k) {
-            this.k.forEach((e => e.dispose()));
-            this.k = void 0;
-        }
-        this.C = 0;
+        this.$ = 0;
     }
 }
 

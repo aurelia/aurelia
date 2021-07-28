@@ -5424,48 +5424,13 @@ class     | config           | config
           | target           | target
 */
 
-Object.defineProperty(exports, 'IPlatform', {
-    enumerable: true,
-    get: function () {
-        return kernel.IPlatform;
-    }
-});
-Object.defineProperty(exports, 'Platform', {
-    enumerable: true,
-    get: function () {
-        return platform.Platform;
-    }
-});
-Object.defineProperty(exports, 'Task', {
-    enumerable: true,
-    get: function () {
-        return platform.Task;
-    }
-});
-Object.defineProperty(exports, 'TaskAbortError', {
-    enumerable: true,
-    get: function () {
-        return platform.TaskAbortError;
-    }
-});
-Object.defineProperty(exports, 'TaskQueue', {
-    enumerable: true,
-    get: function () {
-        return platform.TaskQueue;
-    }
-});
-Object.defineProperty(exports, 'TaskQueuePriority', {
-    enumerable: true,
-    get: function () {
-        return platform.TaskQueuePriority;
-    }
-});
-Object.defineProperty(exports, 'TaskStatus', {
-    enumerable: true,
-    get: function () {
-        return platform.TaskStatus;
-    }
-});
+exports.IPlatform = kernel.IPlatform;
+exports.Platform = platform.Platform;
+exports.Task = platform.Task;
+exports.TaskAbortError = platform.TaskAbortError;
+exports.TaskQueue = platform.TaskQueue;
+exports.TaskQueuePriority = platform.TaskQueuePriority;
+exports.TaskStatus = platform.TaskStatus;
 exports.AccessKeyedExpression = AccessKeyedExpression;
 exports.AccessMemberExpression = AccessMemberExpression;
 exports.AccessScopeExpression = AccessScopeExpression;

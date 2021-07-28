@@ -395,9 +395,13 @@ class Task {
         this.reusable = reusable;
         this.callback = callback;
         this.id = ++id;
-        this.resolve = void 0;
-        this.reject = void 0;
+        /** @internal */
+        this._resolve = void 0;
+        /** @internal */
+        this._reject = void 0;
+        /** @internal */
         this._result = void 0;
+        /** @internal */
         this._status = 0 /* pending */;
     }
     get result() {
@@ -406,8 +410,8 @@ class Task {
             switch (this._status) {
                 case 0 /* pending */: {
                     const promise = this._result = createExposedPromise();
-                    this.resolve = promise.resolve;
-                    this.reject = promise.reject;
+                    this._resolve = promise.resolve;
+                    this._reject = promise.reject;
                     return promise;
                 }
                 case 1 /* running */:
@@ -436,10 +440,11 @@ class Task {
         // this.persistent could be changed while the task is running (this can only be done by the task itself if canceled, and is a valid way of stopping a loop)
         // so we deliberately reference this.persistent instead of the local variable, but we keep it around to know whether the task *was* persistent before running it,
         // so we can set the correct cancelation state.
-        const { persistent, reusable, taskQueue, callback, resolve, reject, createdTime, } = this;
+        const { persistent, reusable, taskQueue, callback, _resolve: resolve, _reject: reject, createdTime, } = this;
+        let ret;
         this._status = 1 /* running */;
         try {
-            const ret = callback(time - createdTime);
+            ret = callback(time - createdTime);
             if (ret instanceof Promise) {
                 ret.then($ret => {
                     if (this.persistent) {
@@ -529,7 +534,7 @@ class Task {
         if (this._status === 0 /* pending */) {
             const taskQueue = this.taskQueue;
             const reusable = this.reusable;
-            const reject = this.reject;
+            const reject = this._reject;
             taskQueue.remove(this);
             if (taskQueue.isEmpty) {
                 taskQueue.cancel();
@@ -567,8 +572,8 @@ class Task {
         this.createdTime = time;
         this.queueTime = time + delay;
         this._status = 0 /* pending */;
-        this.resolve = void 0;
-        this.reject = void 0;
+        this._resolve = void 0;
+        this._reject = void 0;
         this._result = void 0;
         if (this.tracer.enabled) {
             this.tracer.leave(this, 'reset');
@@ -594,8 +599,8 @@ class Task {
             this.tracer.trace(this, 'dispose');
         }
         this.callback = (void 0);
-        this.resolve = void 0;
-        this.reject = void 0;
+        this._resolve = void 0;
+        this._reject = void 0;
         this._result = void 0;
     }
 }

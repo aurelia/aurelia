@@ -7,7 +7,7 @@ var runtimeHtml = require('@aurelia/runtime-html');
 var runtime = require('@aurelia/runtime');
 var i18next = require('i18next');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e['default'] : e; }
 
 var i18next__default = /*#__PURE__*/_interopDefaultLegacy(i18next);
 
@@ -75,7 +75,7 @@ const I18nWrapper = kernel.DI.createInterface('I18nextWrapper');
  */
 class I18nextWrapper {
     constructor() {
-        this.i18next = i18next__default['default'];
+        this.i18next = i18next__default;
     }
 }
 

@@ -1,8 +1,16 @@
+import { IPlatform } from 'aurelia';
+import { platform } from 'os';
+
 function _random(max) {
   return Math.round(Math.random() * 1000) % max;
 }
 
+const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"];
+const colours = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"];
+const nouns = ["table", "chair", "house", "bbq", "desk", "car", "pony", "cookie", "sandwich", "burger", "pizza", "mouse", "keyboard"];
+
 type Data = { id: number, label: string }
+
 
 export class Store {
   data: Data[];
@@ -10,15 +18,12 @@ export class Store {
   id: number;
   backup: Data[];
 
-  constructor() {
+  constructor(@IPlatform private readonly platform: IPlatform) {
     this.data = [];
     this.selected = undefined;
     this.id = 1;
   }
   buildData(count = 1000) {
-    var adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"];
-    var colours = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"];
-    var nouns = ["table", "chair", "house", "bbq", "desk", "car", "pony", "cookie", "sandwich", "burger", "pizza", "mouse", "keyboard"];
     var data = [];
     for (var i = 0; i < count; i++)
       data.push({ id: this.id++, label: adjectives[_random(adjectives.length)] + " " + colours[_random(colours.length)] + " " + nouns[_random(nouns.length)] });
@@ -72,8 +77,10 @@ export class Store {
     if (this.data.length > 998) {
       var temp = this.data[1];
       var temp2 = this.data[998];
-      this.data.splice(1, 1, temp2);
-      this.data.splice(998, 1, temp);
+      this.platform.domWriteQueue.queueTask(() => {
+        this.data.splice(1, 1, temp2);
+        this.data.splice(998, 1, temp);
+      });
     }
   }
 

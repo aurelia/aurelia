@@ -1,6 +1,46 @@
-import Aurelia from 'aurelia';
+import {
+  Aurelia,
+  CustomElementRendererRegistration,
+  DefaultBindingCommandRegistration,
+  DelegateBindingCommandRegistration,
+  DotSeparatedAttributePatternRegistration,
+  ForBindingCommandRegistration,
+  INodeObserverLocatorRegistration,
+  ITemplateCompilerRegistration,
+  IteratorBindingRendererRegistration,
+  ListenerBindingRendererRegistration,
+  OneTimeBindingBehaviorRegistration,
+  PropertyBindingRendererRegistration,
+  RepeatRegistration,
+  TemplateControllerRendererRegistration,
+  TextBindingRendererRegistration,
+} from '@aurelia/runtime-html';
+
 import { App } from './app';
 
-Aurelia
-  .app(App)
+global['Aurelia'] = new Aurelia()
+  .register(
+    ITemplateCompilerRegistration,
+    INodeObserverLocatorRegistration,
+
+    DotSeparatedAttributePatternRegistration,
+
+    RepeatRegistration,
+    OneTimeBindingBehaviorRegistration,
+
+    DefaultBindingCommandRegistration,
+    DelegateBindingCommandRegistration,
+    ForBindingCommandRegistration,
+
+    TextBindingRendererRegistration,
+    ListenerBindingRendererRegistration,
+    PropertyBindingRendererRegistration,
+    IteratorBindingRendererRegistration,
+    CustomElementRendererRegistration,
+    TemplateControllerRendererRegistration,
+  )
+  .app({
+    host: document.querySelector('app'),
+    component: App
+  })
   .start();

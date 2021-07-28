@@ -1,13 +1,16 @@
 import { Store } from './store';
-import { customElement } from '@aurelia/runtime-html';
+import { customElement, IPlatform } from 'aurelia';
 import template from './app.html';
+import { platform } from 'os';
 
 @customElement({ name: 'app', template })
+
 export class App {
   store: Store;
 
-  constructor() {
-    this.store = new Store();
+  constructor(@IPlatform platform: IPlatform) {
+    this.store = new Store(platform);
+
   }
   run() {
     this.store.run();

@@ -16,7 +16,6 @@ export interface ICharSpec {
   equals(other: ICharSpec): boolean;
 }
 
-/** @internal */
 export class CharSpec implements ICharSpec {
   public has: (char: string) => boolean;
 
@@ -102,12 +101,15 @@ export class Interpretation {
       this.parts = this._partsRecord[value];
     }
   }
+  /** @internal */
   private _pattern: string = '';
+  /** @internal */
   private readonly _currentRecord: Record<string, string> = {};
+  /** @internal */
   private readonly _partsRecord: Record<string, string[]> = {};
 
   public append(pattern: string, ch: string): void {
-    const { _currentRecord: currentRecord } = this;
+    const currentRecord = this._currentRecord;
     if (currentRecord[pattern] === undefined) {
       currentRecord[pattern] = ch;
     } else {
@@ -116,9 +118,11 @@ export class Interpretation {
   }
 
   public next(pattern: string): void {
-    const { _currentRecord: currentRecord } = this;
+    const currentRecord = this._currentRecord;
+    let partsRecord: Interpretation['_partsRecord'];
+
     if (currentRecord[pattern] !== undefined) {
-      const { _partsRecord: partsRecord } = this;
+      partsRecord = this._partsRecord;
       if (partsRecord[pattern] === undefined) {
         partsRecord[pattern] = [currentRecord[pattern]];
       } else {
@@ -161,7 +165,7 @@ export class State {
   }
 
   public append(charSpec: ICharSpec, pattern: string): State {
-    const { patterns } = this;
+    const patterns = this.patterns;
     if (!patterns.includes(pattern)) {
       patterns.push(pattern);
     }
@@ -206,6 +210,8 @@ export class State {
   }
 }
 
+const sortStatePattern = (p1: string, p2: string) => p2.length > p1.length ? -1 : 1;
+
 /** @internal */
 export interface ISegment {
   text: string;
@@ -222,14 +228,17 @@ export class StaticSegment implements ISegment {
   ) {
     const len = this.len = text.length;
     const specs = this.specs = [] as CharSpec[];
-    for (let i = 0; i < len; ++i) {
+    let i = 0;
+    for (; len > i; ++i) {
       specs.push(new CharSpec(text[i], false, false, false));
     }
   }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
-    const { len, specs } = this;
-    for (let i = 0; i < len; ++i) {
+    const len = this.len;
+    const specs = this.specs;
+    let i = 0;
+    for (; len > i; ++i) {
       callback(specs[i]);
     }
   }
@@ -264,7 +273,6 @@ export class SymbolSegment implements ISegment {
   }
 }
 
-/** @internal */
 export class SegmentTypes {
   public statics: number = 0;
   public dynamics: number = 0;
@@ -278,31 +286,36 @@ export class SyntaxInterpreter {
   public rootState: State = new State(null!);
   private readonly initialStates: State[] = [this.rootState];
 
-  public add(def: AttributePatternDefinition): void;
-  public add(defs: AttributePatternDefinition[]): void;
-  public add(defOrDefs: AttributePatternDefinition | AttributePatternDefinition[]): void {
+  // todo: this only works if this method is ever called only once
+  public add(defs: AttributePatternDefinition[]): void {
+    defs = defs.slice(0).sort((d1, d2) => d1.pattern > d2.pattern ? 1 : -1);
+    const ii = defs.length;
+    let currentState: State;
+    let def: AttributePatternDefinition;
+    let pattern: string;
+    let types: SegmentTypes;
+    let segments: ISegment[];
+    let len: number;
+    let charSpecCb: (ch: ICharSpec) => void;
     let i = 0;
-    if (Array.isArray(defOrDefs)) {
-      const ii = defOrDefs.length;
-      for (; i < ii; ++i) {
-        this.add(defOrDefs[i]);
+    let j: number;
+    while (ii > i) {
+      currentState = this.rootState;
+      def = defs[i];
+      pattern = def.pattern;
+      types = new SegmentTypes();
+      segments = this.parse(def, types);
+      len = segments.length;
+      charSpecCb = (ch: ICharSpec) => {
+        currentState = currentState.append(ch, pattern);
+      };
+      for (j = 0; len > j; ++j) {
+        segments[j].eachChar(charSpecCb);
       }
-      return;
+      currentState.types = types;
+      currentState.isEndpoint = true;
+      ++i;
     }
-    let currentState = this.rootState;
-    const def = defOrDefs;
-    const pattern = def.pattern;
-    const types = new SegmentTypes();
-    const segments = this.parse(def, types);
-    const len = segments.length;
-    const callback = (ch: ICharSpec): void => {
-      currentState = currentState.append(ch, pattern);
-    };
-    for (i = 0; i < len; ++i) {
-      segments[i].eachChar(callback);
-    }
-    currentState.types = types;
-    currentState.isEndpoint = true;
   }
 
   public interpret(name: string): Interpretation {
@@ -349,17 +362,18 @@ export class SyntaxInterpreter {
     const result = [];
     const pattern = def.pattern;
     const len = pattern.length;
+    const symbols = def.symbols;
     let i = 0;
     let start = 0;
     let c = '';
 
     while (i < len) {
       c = pattern.charAt(i);
-      if (!def.symbols.includes(c)) {
+      if (symbols.length === 0 || !symbols.includes(c)) {
         if (i === start) {
           if (c === 'P' && pattern.slice(i, i + 4) === 'PART') {
             start = i = (i + 4);
-            result.push(new DynamicSegment(def.symbols));
+            result.push(new DynamicSegment(symbols));
             ++types.dynamics;
           } else {
             ++i;
@@ -431,7 +445,12 @@ export class AttributeParser {
 
   /** @internal */
   private readonly _cache: Record<string, Interpretation> = {};
-  /** @internal */
+  /**
+   * A 2 level record with the same key on both levels.
+   * Just a trick to maintain `this` + have simple lookup + support multi patterns per class definition
+   *
+   * @internal
+   */
   private readonly _patterns: Record<string, IAttributePattern>;
   /** @internal */
   private readonly _interpreter: ISyntaxInterpreter;
@@ -442,13 +461,15 @@ export class AttributeParser {
   ) {
     this._interpreter = interpreter;
     const patterns: AttributeParser['_patterns'] = this._patterns = {};
-    attrPatterns.forEach(attrPattern => {
-      const defs = AttributePattern.getPatternDefinitions(attrPattern.constructor as Constructable);
-      interpreter.add(defs);
-      defs.forEach(def => {
-        patterns[def.pattern] = attrPattern as unknown as IAttributePattern;
-      });
-    });
+    const allDefs = attrPatterns.reduce<AttributePatternDefinition[]>(
+      (allDefs, attrPattern) => {
+        const patternDefs = AttributePattern.getPatternDefinitions(attrPattern.constructor as Constructable);
+        patternDefs.forEach(def => patterns[def.pattern] = attrPattern);
+        return allDefs.concat(patternDefs);
+      },
+      emptyArray
+    );
+    interpreter.add(allDefs);
   }
 
   public parse(name: string, value: string): AttrSyntax {

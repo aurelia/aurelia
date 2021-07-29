@@ -87,8 +87,11 @@ export class Aurelia implements IDisposable {
     let bc: ICustomElementViewModel & K;
     if (typeof comp === 'function') {
       ctn.registerResolver(
-        p.Element,
-        ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+        p.HTMLElement,
+        ctn.registerResolver(
+          p.Element,
+          ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+        )
       );
       bc = ctn.invoke(comp as unknown as Constructable<ICustomElementViewModel & K>);
     } else {

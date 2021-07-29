@@ -3,6 +3,7 @@ import { BindingMode, registerAliases } from '@aurelia/runtime';
 import { Bindable } from '../bindable.js';
 import { Watch } from '../watch.js';
 import { getRef } from '../dom.js';
+import { DefinitionType } from './resources-constants.js';
 
 import type {
   Constructable,
@@ -91,6 +92,9 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
 }
 
 export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
+  // a simple marker to distinguish between Custom Element definition & Custom attribute definition
+  public get type(): DefinitionType.Attribute { return DefinitionType.Attribute; }
+
   private constructor(
     public readonly Type: CustomAttributeType<T>,
     public readonly name: string,

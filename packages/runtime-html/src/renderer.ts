@@ -1091,7 +1091,6 @@ function addClasses(classList: DOMTokenList, className: string): void {
   }
 }
 
-const elProviderName = 'ElementProvider';
 const controllerProviderName = 'IController';
 const instructionProviderName = 'IInstruction';
 const locationProviderName = 'IRenderLocation';
@@ -1113,8 +1112,11 @@ function createElementContainer(
   // reason being some custom element can have `containerless` attribute on them
   // causing the host to disappear, and replace by a location instead
   ctn.registerResolver(
-    p.Element,
-    ctn.registerResolver(INode, new InstanceProvider<INode>(elProviderName, host))
+    p.HTMLElement,
+    ctn.registerResolver(
+      p.Element,
+      ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+    )
   );
   ctn.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingCtrl));
   ctn.registerResolver(IInstruction, new InstanceProvider(instructionProviderName, instruction));
@@ -1174,8 +1176,11 @@ function invokeAttribute(
 ): ICustomAttributeViewModel {
   const ctn = renderingCtrl.container.createChild();
   ctn.registerResolver(
-    p.Element,
-    ctn.registerResolver(INode, new InstanceProvider<INode>(elProviderName, host))
+    p.HTMLElement,
+    ctn.registerResolver(
+      p.Element,
+      ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+    )
   );
   ctn.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingCtrl));
   ctn.registerResolver(IInstruction, new InstanceProvider<IInstruction>(instructionProviderName, instruction));

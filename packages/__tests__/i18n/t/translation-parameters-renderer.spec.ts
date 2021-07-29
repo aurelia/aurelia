@@ -1,7 +1,6 @@
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
 import { DI } from '@aurelia/kernel';
 import {
-  AnyBindingExpression,
   BindingType,
   IExpressionParser,
   IRenderer,
@@ -59,7 +58,6 @@ describe('TranslationParametersBindingCommand', function () {
       attr: syntax,
       bindable: null,
       def: null,
-      expr: { syntax } as unknown as AnyBindingExpression
     });
 
     assert.instanceOf(actual, TranslationParametersBindingInstruction);

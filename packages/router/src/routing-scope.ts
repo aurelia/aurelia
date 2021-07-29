@@ -101,13 +101,13 @@ export class RoutingScope {
     // return this.getClosestScope(origin) || this.rootScope!.scope;
     let container: IContainer | null | undefined;
 
-    if ('resourceResolvers' in origin) {
+    if ('res' in origin) {
       container = origin;
     } else {
-      if ('context' in origin) {
-        container = origin.context;
+      if ('container' in origin) {
+        container = origin.container;
       } else if ('$controller' in origin) {
-        container = origin.$controller!.context;
+        container = origin.$controller!.container;
       } else {
         const controller = CustomElement.for(origin as Node, { searchParents: true });
         container = controller?.container;

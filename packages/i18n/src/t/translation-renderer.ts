@@ -14,6 +14,7 @@ import {
   IPlatform,
   IAttrMapper,
   ICommandBuildInfo,
+  CustomExpression,
 } from '@aurelia/runtime-html';
 
 import type {
@@ -46,7 +47,7 @@ export class TranslationBindingInstruction {
 export class TranslationBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.CustomCommand = BindingType.CustomCommand;
 
-  public static get inject() { return [IAttrMapper]; }
+  public static inject = [IAttrMapper];
   public constructor(private readonly m: IAttrMapper) {}
 
   public build(info: ICommandBuildInfo): TranslationBindingInstruction {
@@ -59,7 +60,7 @@ export class TranslationBindingCommand implements BindingCommandInstance {
     } else {
       target = info.bindable.property;
     }
-    return new TranslationBindingInstruction(info.expr as IsBindingBehavior, target);
+    return new TranslationBindingInstruction(new CustomExpression(info.attr.rawValue) as IsBindingBehavior, target);
   }
 }
 
@@ -115,8 +116,11 @@ export class TranslationBindBindingInstruction {
 export class TranslationBindBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
-  public static get inject() { return [IAttrMapper]; }
-  public constructor(private readonly m: IAttrMapper) {}
+  public static inject = [IAttrMapper, IExpressionParser];
+  public constructor(
+    private readonly m: IAttrMapper,
+    private readonly xp: IExpressionParser,
+  ) {}
 
   public build(info: ICommandBuildInfo): TranslationBindingInstruction {
     let target: string;
@@ -128,7 +132,7 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
     } else {
       target = info.bindable.property;
     }
-    return new TranslationBindBindingInstruction(info.expr as IsBindingBehavior, target);
+    return new TranslationBindBindingInstruction(this.xp.parse(info.attr.rawValue, BindingType.BindCommand), target);
   }
 }
 

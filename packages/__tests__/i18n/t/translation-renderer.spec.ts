@@ -14,7 +14,6 @@ import {
 } from '@aurelia/i18n';
 import { Constructable } from '@aurelia/kernel';
 import {
-  AnyBindingExpression,
   BindingType,
   IBinding,
   IExpressionParser,
@@ -109,7 +108,6 @@ describe('TranslationBindingCommand', function () {
       attr: syntax,
       bindable: null,
       def: null,
-      expr: { syntax } as unknown as AnyBindingExpression
     });
 
     assert.instanceOf(actual, TranslationBindingInstruction);
@@ -250,7 +248,6 @@ describe('TranslationBindBindingCommand', function () {
       attr: syntax,
       bindable: null,
       def: null,
-      expr: { syntax } as unknown as AnyBindingExpression
     });
 
     assert.instanceOf(actual, TranslationBindBindingInstruction);

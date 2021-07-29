@@ -434,6 +434,9 @@ export {
   AuSlotsInfo,
   IAuSlotsInfo,
 } from './resources/slot-injectables.js';
+export {
+  DefinitionType,
+} from './resources/resources-constants.js';
 
 export {
   containerless,

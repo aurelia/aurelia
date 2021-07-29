@@ -21,9 +21,10 @@ import { RoutingInstruction } from '../instructions/routing-instruction.js';
  * should be checked and returned as a boolean
  */
 export function getValueOrAttribute(name: string, value: string | boolean, useValue: boolean, element: HTMLElement, doExistCheck: boolean = false): string | boolean | undefined {
-  // If an attribute exist check is requested, the value isn't used at all
+  // If an attribute exist check is requested, Aurelia sets the value to ""
   if (doExistCheck) {
-    return element.hasAttribute(name);
+    return value === "";
+    // return element.hasAttribute(name);
   }
   if (useValue) {
     return value;

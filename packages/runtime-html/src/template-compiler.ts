@@ -140,17 +140,15 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       bindingCommand = context._createCommand(attrSyntax);
-      if (bindingCommand !== null && bindingCommand.bindingType & BindingType.IgnoreAttr) {
+      if (bindingCommand !== null && (bindingCommand.bindingType & BindingType.IgnoreAttr) > 0) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."
         // background.style="..."
         // my-attr.attr="..."
-        expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
 
         commandBuildInfo.node = el;
         commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.expr = expr;
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
         instructions.push(bindingCommand.build(commandBuildInfo));
@@ -198,11 +196,9 @@ export class TemplateCompiler implements ITemplateCompiler {
             // custom attribute with binding command:
             // my-attr.bind="..."
             // my-attr.two-way="..."
-            expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
 
             commandBuildInfo.node = el;
             commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.expr = expr;
             commandBuildInfo.bindable = primaryBindable;
             commandBuildInfo.def = attrDef;
             attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
@@ -253,11 +249,9 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
       } else {
-        expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
 
         commandBuildInfo.node = el;
         commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.expr = expr;
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
         instructions.push(bindingCommand.build(commandBuildInfo));
@@ -524,11 +518,9 @@ export class TemplateCompiler implements ITemplateCompiler {
         // active.class="..."
         // background.style="..."
         // my-attr.attr="..."
-        expr = exprParser.parse(attrValue, bindingCommand.bindingType);
 
         commandBuildInfo.node = el;
         commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.expr = expr;
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
         (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
@@ -577,11 +569,9 @@ export class TemplateCompiler implements ITemplateCompiler {
             // custom attribute with binding command:
             // my-attr.bind="..."
             // my-attr.two-way="..."
-            expr = exprParser.parse(attrValue, bindingCommand.bindingType);
 
             commandBuildInfo.node = el;
             commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.expr = expr;
             commandBuildInfo.bindable = primaryBindable;
             commandBuildInfo.def = attrDef;
             attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
@@ -668,24 +658,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         bindablesInfo = BindablesInfo.from(elDef, false);
         bindable = bindablesInfo.attrs[realAttrTarget];
         if (bindable !== void 0) {
-          // if it looks like: <my-el value.bind>
-          // it means        : <my-el value.bind="value">
-          // this is a shortcut
-          // and reuse attrValue variable
-          attrValue = attrValue.length === 0
-            && (bindingCommand.bindingType & (
-              BindingType.BindCommand
-              | BindingType.OneTimeCommand
-              | BindingType.ToViewCommand
-              | BindingType.TwoWayCommand
-            )) > 0
-              ? camelCase(attrName)
-              : attrValue;
-          expr = exprParser.parse(attrValue, bindingCommand.bindingType);
-
           commandBuildInfo.node = el;
           commandBuildInfo.attr = attrSyntax;
-          commandBuildInfo.expr = expr;
           commandBuildInfo.bindable = bindable;
           commandBuildInfo.def = elDef;
           (elBindableInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
@@ -697,11 +671,8 @@ export class TemplateCompiler implements ITemplateCompiler {
       // + a plain attribute
       // + has binding command
 
-      expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
-
       commandBuildInfo.node = el;
       commandBuildInfo.attr = attrSyntax;
-      commandBuildInfo.expr = expr;
       commandBuildInfo.bindable = null;
       commandBuildInfo.def = null;
       (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
@@ -1206,13 +1177,10 @@ export class TemplateCompiler implements ITemplateCompiler {
             : new InterpolationInstruction(expr, bindable.property)
           );
         } else {
-          expr = context._exprParser.parse(attrValue, command.bindingType);
           commandBuildInfo.node = node;
           commandBuildInfo.attr = attrSyntax;
-          commandBuildInfo.expr = expr;
           commandBuildInfo.bindable = bindable;
           commandBuildInfo.def = attrDef;
-          // instructions.push(command.compile(new BindingSymbol(command, bindable, expr, attrValue, attrName)));
           instructions.push(command.build(commandBuildInfo));
         }
 
@@ -1515,7 +1483,6 @@ function hasInlineBindings(rawValue: string): boolean {
 function resetCommandBuildInfo(): void {
   commandBuildInfo.node
     = commandBuildInfo.attr
-    = commandBuildInfo.expr
     = commandBuildInfo.bindable
     = commandBuildInfo.def = null!;
 }
@@ -1525,7 +1492,6 @@ const emptyCompilationInstructions: ICompliationInstruction = { projections: nul
 const voidDefinition: CustomElementDefinition = { name: 'unnamed' } as CustomElementDefinition;
 const commandBuildInfo: Writable<ICommandBuildInfo> = {
   node: null!,
-  expr: null!,
   attr: null!,
   bindable: null,
   def: null,

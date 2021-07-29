@@ -15,6 +15,7 @@ import { Bindable } from '../bindable.js';
 import { getEffectiveParentNode, getRef } from '../dom.js';
 import { Children } from '../templating/children.js';
 import { Watch } from '../watch.js';
+import { DefinitionType } from './resources-constants.js';
 
 import type {
   Constructable,
@@ -207,6 +208,7 @@ export function strict(target?: Constructable): void | ((target: Constructable) 
 const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
 
 export class CustomElementDefinition<C extends Constructable = Constructable> implements ResourceDefinition<C, ICustomElementViewModel, PartialCustomElementDefinition> {
+  public get type(): DefinitionType.Element { return DefinitionType.Element; }
   private constructor(
     public readonly Type: CustomElementType<C>,
     public readonly name: string,

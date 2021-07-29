@@ -84,10 +84,12 @@ export class AppRoot implements IDisposable {
     this.host = config.host;
     this.work = container.get(IWorkTracker);
     rootProvider.prepare(this);
-    container.registerResolver(INode,
+
+    container.registerResolver(
+      platform.HTMLElement,
       container.registerResolver(
         platform.Element,
-        new InstanceProvider('ElementProvider', config.host)
+        container.registerResolver(INode, new InstanceProvider('ElementResolver', config.host))
       )
     );
 

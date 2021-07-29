@@ -27,11 +27,7 @@ export class Store {
         this.data.splice(idx, 1);
     }
     run() {
-        // faster: 178 msecs
-        this.data = []
-        setTimeout(() => {this.data = this.buildData();});
-        // slower: 194 msecs
-        // this.data.splice(0, this.data.length, ...this.buildData());
+      this.data = this.buildData();
     }
     add() {
         this.data = this.data.concat(this.buildData(1000));
@@ -63,8 +59,8 @@ export class Store {
     }
     swapRows() {
         if (this.data.length > 998) {
-            var temp = this.data[1];            
-            var temp2 = this.data[998];  
+            var temp = this.data[1];
+            var temp2 = this.data[998];
             this.data.splice(1, 1, temp2);
             this.data.splice(998, 1, temp);
         }

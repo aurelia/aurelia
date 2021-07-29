@@ -1,4 +1,5 @@
 import { BindingMode } from '@aurelia/runtime';
+import { DefinitionType } from './resources-constants.js';
 import type { Constructable, IContainer, IResourceKind, ResourceDefinition, PartialResourceDefinition, ResourceType } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
 import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller.js';
@@ -65,6 +66,7 @@ export declare class CustomAttributeDefinition<T extends Constructable = Constru
     readonly bindables: Record<string, BindableDefinition>;
     readonly noMultiBindings: boolean;
     readonly watches: IWatchDefinition[];
+    get type(): DefinitionType.Attribute;
     private constructor();
     static create<T extends Constructable = Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: CustomAttributeType<T>): CustomAttributeDefinition<T>;
     register(container: IContainer): void;

@@ -46,6 +46,7 @@ export { Focus, } from './resources/custom-attributes/focus.js';
 export { Portal, PortalTarget, PortalLifecycleCallback, } from './resources/template-controllers/portal.js';
 export { AuSlot, } from './resources/custom-elements/au-slot.js';
 export { IProjections, AuSlotsInfo, IAuSlotsInfo, } from './resources/slot-injectables.js';
+export { DefinitionType, } from './resources/resources-constants.js';
 export { containerless, customElement, CustomElement, CustomElementDecorator, CustomElementKind, CustomElementType, CustomElementDefinition, PartialCustomElementDefinition, useShadowDOM, processContent, } from './resources/custom-element.js';
 export { Subject, AuRender, } from './resources/custom-elements/au-render.js';
 export { AuCompose, IDynamicComponentActivate, } from './resources/custom-elements/au-compose.js';

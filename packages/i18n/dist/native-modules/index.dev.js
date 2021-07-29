@@ -1,5 +1,5 @@
 import { DI, IEventAggregator, toArray, camelCase, Registration } from '../../../kernel/dist/native-modules/index.js';
-import { ValueConverterExpression as ValueConverterExpression$1, bindingBehavior as bindingBehavior$1, CustomExpression, Interpolation, CustomElement, connectable, AttrSyntax, attributePattern, BindingMode, IAttrMapper, bindingCommand, renderer, IExpressionParser, IObserverLocator, IPlatform, valueConverter as valueConverter$1, AppTask, AttributePattern, BindingCommand } from '../../../runtime-html/dist/native-modules/index.js';
+import { ValueConverterExpression as ValueConverterExpression$1, bindingBehavior as bindingBehavior$1, CustomExpression, Interpolation, CustomElement, connectable, AttrSyntax, attributePattern, BindingMode, IAttrMapper, IExpressionParser, bindingCommand, renderer, IObserverLocator, IPlatform, valueConverter as valueConverter$1, AppTask, AttributePattern, BindingCommand } from '../../../runtime-html/dist/native-modules/index.js';
 import { ValueConverterExpression, bindingBehavior, ISignaler, valueConverter } from '../../../runtime/dist/native-modules/index.js';
 import i18next from 'i18next';
 
@@ -609,23 +609,25 @@ class TranslationParametersBindingInstruction {
     }
 }
 let TranslationParametersBindingCommand = class TranslationParametersBindingCommand {
-    constructor(m) {
+    constructor(m, xp) {
         this.m = m;
+        this.xp = xp;
         this.bindingType = 53 /* BindCommand */;
     }
-    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
-        let target;
+        const attr = info.attr;
+        let target = attr.target;
         if (info.bindable == null) {
-            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, target)) !== null && _a !== void 0 ? _a : camelCase(target);
         }
         else {
             target = info.bindable.property;
         }
-        return new TranslationParametersBindingInstruction(info.expr, target);
+        return new TranslationParametersBindingInstruction(this.xp.parse(attr.rawValue, 53 /* BindCommand */), target);
     }
 };
+TranslationParametersBindingCommand.inject = [IAttrMapper, IExpressionParser];
 TranslationParametersBindingCommand = __decorate([
     bindingCommand(attribute)
 ], TranslationParametersBindingCommand);
@@ -676,7 +678,6 @@ class TranslationBindingCommand {
         this.m = m;
         this.bindingType = 284 /* CustomCommand */;
     }
-    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
@@ -686,9 +687,10 @@ class TranslationBindingCommand {
         else {
             target = info.bindable.property;
         }
-        return new TranslationBindingInstruction(info.expr, target);
+        return new TranslationBindingInstruction(new CustomExpression(info.attr.rawValue), target);
     }
 }
+TranslationBindingCommand.inject = [IAttrMapper];
 let TranslationBindingRenderer = class TranslationBindingRenderer {
     constructor(parser, oL, p) {
         this.parser = parser;
@@ -731,11 +733,11 @@ class TranslationBindBindingInstruction {
     }
 }
 class TranslationBindBindingCommand {
-    constructor(m) {
+    constructor(m, xp) {
         this.m = m;
+        this.xp = xp;
         this.bindingType = 53 /* BindCommand */;
     }
-    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
         let target;
@@ -745,9 +747,10 @@ class TranslationBindBindingCommand {
         else {
             target = info.bindable.property;
         }
-        return new TranslationBindBindingInstruction(info.expr, target);
+        return new TranslationBindBindingInstruction(this.xp.parse(info.attr.rawValue, 53 /* BindCommand */), target);
     }
 }
+TranslationBindBindingCommand.inject = [IAttrMapper, IExpressionParser];
 let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
     constructor(parser, oL, p) {
         this.parser = parser;

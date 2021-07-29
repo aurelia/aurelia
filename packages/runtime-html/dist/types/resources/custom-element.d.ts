@@ -1,3 +1,4 @@
+import { DefinitionType } from './resources-constants.js';
 import type { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
 import type { INode } from '../dom.js';
@@ -157,6 +158,7 @@ export declare class CustomElementDefinition<C extends Constructable = Construct
     readonly enhance: boolean;
     readonly watches: IWatchDefinition[];
     readonly processContent: ProcessContentHook | null;
+    get type(): DefinitionType.Element;
     private constructor();
     static create<T extends Constructable = Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementDefinition;
     static create<T extends Constructable = Constructable>(name: string, Type: CustomElementType): CustomElementDefinition;

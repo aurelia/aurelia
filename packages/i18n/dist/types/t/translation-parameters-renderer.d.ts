@@ -14,9 +14,10 @@ export declare class TranslationParametersBindingInstruction {
 }
 export declare class TranslationParametersBindingCommand implements BindingCommandInstance {
     private readonly m;
+    private readonly xp;
     readonly bindingType: BindingType.BindCommand;
-    static get inject(): import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>[];
-    constructor(m: IAttrMapper);
+    static inject: (import("@aurelia/kernel").InterfaceSymbol<IAttrMapper> | import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>)[];
+    constructor(m: IAttrMapper, xp: IExpressionParser);
     build(info: ICommandBuildInfo): TranslationParametersBindingInstruction;
 }
 export declare class TranslationParametersBindingRenderer implements IRenderer {

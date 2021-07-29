@@ -2354,6 +2354,8 @@ class CustomAttributeDefinition {
         this.noMultiBindings = noMultiBindings;
         this.watches = watches;
     }
+    // a simple marker to distinguish between Custom Element definition & Custom attribute definition
+    get type() { return 2 /* Attribute */; }
     static create(nameOrDef, Type) {
         const getAnnotation = CustomAttribute.getAnnotation;
         let name;
@@ -2520,6 +2522,7 @@ class CustomElementDefinition {
         this.watches = watches;
         this.processContent = processContent;
     }
+    get type() { return 1 /* Element */; }
     static create(nameOrDef, Type = null) {
         const getAnnotation = CustomElement.getAnnotation;
         if (Type === null) {
@@ -4633,7 +4636,7 @@ class AppRoot {
         this.host = config.host;
         this.work = container.get(IWorkTracker);
         rootProvider.prepare(this);
-        container.registerResolver(INode, container.registerResolver(platform.Element, new kernel.InstanceProvider('ElementProvider', config.host)));
+        container.registerResolver(platform.HTMLElement, container.registerResolver(platform.Element, container.registerResolver(INode, new kernel.InstanceProvider('ElementResolver', config.host))));
         this._hydratePromise = kernel.onResolve(this._runAppTasks('beforeCreate'), () => {
             const component = config.component;
             const childCtn = container.createChild();
@@ -6026,7 +6029,6 @@ function addClasses(classList, className) {
         }
     }
 }
-const elProviderName = 'ElementProvider';
 const controllerProviderName = 'IController';
 const instructionProviderName = 'IInstruction';
 const locationProviderName = 'IRenderLocation';
@@ -6038,7 +6040,7 @@ function createElementContainer(p, renderingCtrl, host, instruction, location, a
     // if there's no value associated, unlike InstanceProvider
     // reason being some custom element can have `containerless` attribute on them
     // causing the host to disappear, and replace by a location instead
-    ctn.registerResolver(p.Element, ctn.registerResolver(INode, new kernel.InstanceProvider(elProviderName, host)));
+    ctn.registerResolver(p.HTMLElement, ctn.registerResolver(p.Element, ctn.registerResolver(INode, new kernel.InstanceProvider('ElementResolver', host))));
     ctn.registerResolver(IController, new kernel.InstanceProvider(controllerProviderName, renderingCtrl));
     ctn.registerResolver(IInstruction, new kernel.InstanceProvider(instructionProviderName, instruction));
     ctn.registerResolver(IRenderLocation, location == null
@@ -6073,7 +6075,7 @@ class ViewFactoryProvider {
 }
 function invokeAttribute(p, definition, renderingCtrl, host, instruction, viewFactory, location, auSlotsInfo) {
     const ctn = renderingCtrl.container.createChild();
-    ctn.registerResolver(p.Element, ctn.registerResolver(INode, new kernel.InstanceProvider(elProviderName, host)));
+    ctn.registerResolver(p.HTMLElement, ctn.registerResolver(p.Element, ctn.registerResolver(INode, new kernel.InstanceProvider('ElementResolver', host))));
     ctn.registerResolver(IController, new kernel.InstanceProvider(controllerProviderName, renderingCtrl));
     ctn.registerResolver(IInstruction, new kernel.InstanceProvider(instructionProviderName, instruction));
     ctn.registerResolver(IRenderLocation, location == null
@@ -6156,107 +6158,145 @@ const BindingCommand = Object.freeze({
     },
 });
 exports.OneTimeBindingCommand = class OneTimeBindingCommand {
-    constructor(m) {
+    constructor(m, xp) {
         this.m = m;
+        this.xp = xp;
         this.bindingType = 49 /* OneTimeCommand */;
     }
-    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
-        let target;
+        const attr = info.attr;
+        let target = attr.target;
+        let value = info.attr.rawValue;
         if (info.bindable == null) {
-            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel.camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, target)) !== null && _a !== void 0 ? _a : kernel.camelCase(target);
         }
         else {
+            // if it looks like: <my-el value.bind>
+            // it means        : <my-el value.bind="value">
+            if (value === '' && info.def.type === 1 /* Element */) {
+                value = kernel.camelCase(target);
+            }
             target = info.bindable.property;
         }
-        return new PropertyBindingInstruction(info.expr, target, runtime.BindingMode.oneTime);
+        return new PropertyBindingInstruction(this.xp.parse(value, 49 /* OneTimeCommand */), target, runtime.BindingMode.oneTime);
     }
 };
+exports.OneTimeBindingCommand.inject = [IAttrMapper, runtime.IExpressionParser];
 exports.OneTimeBindingCommand = __decorate([
     bindingCommand('one-time')
 ], exports.OneTimeBindingCommand);
 exports.ToViewBindingCommand = class ToViewBindingCommand {
-    constructor(m) {
+    constructor(m, xp) {
         this.m = m;
+        this.xp = xp;
         this.bindingType = 50 /* ToViewCommand */;
     }
-    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
-        let target;
+        const attr = info.attr;
+        let target = attr.target;
+        let value = info.attr.rawValue;
         if (info.bindable == null) {
-            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel.camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, target)) !== null && _a !== void 0 ? _a : kernel.camelCase(target);
         }
         else {
+            // if it looks like: <my-el value.bind>
+            // it means        : <my-el value.bind="value">
+            if (value === '' && info.def.type === 1 /* Element */) {
+                value = kernel.camelCase(target);
+            }
             target = info.bindable.property;
         }
-        return new PropertyBindingInstruction(info.expr, target, runtime.BindingMode.toView);
+        return new PropertyBindingInstruction(this.xp.parse(value, 50 /* ToViewCommand */), target, runtime.BindingMode.toView);
     }
 };
+exports.ToViewBindingCommand.inject = [IAttrMapper, runtime.IExpressionParser];
 exports.ToViewBindingCommand = __decorate([
     bindingCommand('to-view')
 ], exports.ToViewBindingCommand);
 exports.FromViewBindingCommand = class FromViewBindingCommand {
-    constructor(m) {
+    constructor(m, xp) {
         this.m = m;
+        this.xp = xp;
         this.bindingType = 51 /* FromViewCommand */;
     }
-    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
-        let target;
+        const attr = info.attr;
+        let target = attr.target;
+        let value = attr.rawValue;
         if (info.bindable == null) {
-            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel.camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, target)) !== null && _a !== void 0 ? _a : kernel.camelCase(target);
         }
         else {
+            // if it looks like: <my-el value.bind>
+            // it means        : <my-el value.bind="value">
+            if (value === '' && info.def.type === 1 /* Element */) {
+                value = kernel.camelCase(target);
+            }
             target = info.bindable.property;
         }
-        return new PropertyBindingInstruction(info.expr, target, runtime.BindingMode.fromView);
+        return new PropertyBindingInstruction(this.xp.parse(value, 51 /* FromViewCommand */), target, runtime.BindingMode.fromView);
     }
 };
+exports.FromViewBindingCommand.inject = [IAttrMapper, runtime.IExpressionParser];
 exports.FromViewBindingCommand = __decorate([
     bindingCommand('from-view')
 ], exports.FromViewBindingCommand);
 exports.TwoWayBindingCommand = class TwoWayBindingCommand {
-    constructor(m) {
+    constructor(m, xp) {
         this.m = m;
+        this.xp = xp;
         this.bindingType = 52 /* TwoWayCommand */;
     }
-    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
-        let target;
+        const attr = info.attr;
+        let target = attr.target;
+        let value = attr.rawValue;
         if (info.bindable == null) {
-            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : kernel.camelCase(info.attr.target);
+            target = (_a = this.m.map(info.node, target)) !== null && _a !== void 0 ? _a : kernel.camelCase(target);
         }
         else {
+            // if it looks like: <my-el value.bind>
+            // it means        : <my-el value.bind="value">
+            if (value === '' && info.def.type === 1 /* Element */) {
+                value = kernel.camelCase(target);
+            }
             target = info.bindable.property;
         }
-        return new PropertyBindingInstruction(info.expr, target, runtime.BindingMode.twoWay);
+        return new PropertyBindingInstruction(this.xp.parse(value, 52 /* TwoWayCommand */), target, runtime.BindingMode.twoWay);
     }
 };
+exports.TwoWayBindingCommand.inject = [IAttrMapper, runtime.IExpressionParser];
 exports.TwoWayBindingCommand = __decorate([
     bindingCommand('two-way')
 ], exports.TwoWayBindingCommand);
 exports.DefaultBindingCommand = class DefaultBindingCommand {
-    constructor(m) {
+    constructor(m, xp) {
         this.m = m;
+        this.xp = xp;
         this.bindingType = 53 /* BindCommand */;
     }
-    static get inject() { return [IAttrMapper]; }
     build(info) {
         var _a;
-        const attrName = info.attr.target;
+        const attr = info.attr;
         const bindable = info.bindable;
         let defaultMode;
         let mode;
-        let target;
+        let target = attr.target;
+        let value = attr.rawValue;
         if (bindable == null) {
-            mode = this.m.isTwoWay(info.node, attrName) ? runtime.BindingMode.twoWay : runtime.BindingMode.toView;
-            target = (_a = this.m.map(info.node, attrName)) !== null && _a !== void 0 ? _a : kernel.camelCase(attrName);
+            mode = this.m.isTwoWay(info.node, target) ? runtime.BindingMode.twoWay : runtime.BindingMode.toView;
+            target = (_a = this.m.map(info.node, target)) !== null && _a !== void 0 ? _a : kernel.camelCase(target);
         }
         else {
+            // if it looks like: <my-el value.bind>
+            // it means        : <my-el value.bind="value">
+            if (value === '' && info.def.type === 1 /* Element */) {
+                value = kernel.camelCase(target);
+            }
             defaultMode = info.def.defaultBindingMode;
             mode = bindable.mode === runtime.BindingMode.default || bindable.mode == null
                 ? defaultMode == null || defaultMode === runtime.BindingMode.default
@@ -6265,70 +6305,81 @@ exports.DefaultBindingCommand = class DefaultBindingCommand {
                 : bindable.mode;
             target = bindable.property;
         }
-        return new PropertyBindingInstruction(info.expr, target, mode);
+        return new PropertyBindingInstruction(this.xp.parse(value, 53 /* BindCommand */), target, mode);
     }
 };
+exports.DefaultBindingCommand.inject = [IAttrMapper, runtime.IExpressionParser];
 exports.DefaultBindingCommand = __decorate([
     bindingCommand('bind')
 ], exports.DefaultBindingCommand);
 exports.CallBindingCommand = class CallBindingCommand {
-    constructor() {
+    constructor(xp) {
+        this.xp = xp;
         this.bindingType = 153 /* CallCommand */;
     }
     build(info) {
         const target = info.bindable === null
             ? kernel.camelCase(info.attr.target)
             : info.bindable.property;
-        return new CallBindingInstruction(info.expr, target);
+        return new CallBindingInstruction(this.xp.parse(info.attr.rawValue, 153 /* CallCommand */), target);
     }
 };
+exports.CallBindingCommand.inject = [runtime.IExpressionParser];
 exports.CallBindingCommand = __decorate([
     bindingCommand('call')
 ], exports.CallBindingCommand);
 exports.ForBindingCommand = class ForBindingCommand {
-    constructor() {
+    constructor(xp) {
+        this.xp = xp;
         this.bindingType = 539 /* ForCommand */;
     }
     build(info) {
         const target = info.bindable === null
             ? kernel.camelCase(info.attr.target)
             : info.bindable.property;
-        return new IteratorBindingInstruction(info.expr, target);
+        return new IteratorBindingInstruction(this.xp.parse(info.attr.rawValue, 539 /* ForCommand */), target);
     }
 };
+exports.ForBindingCommand.inject = [runtime.IExpressionParser];
 exports.ForBindingCommand = __decorate([
     bindingCommand('for')
 ], exports.ForBindingCommand);
 exports.TriggerBindingCommand = class TriggerBindingCommand {
-    constructor() {
+    constructor(xp) {
+        this.xp = xp;
         this.bindingType = 4182 /* TriggerCommand */;
     }
     build(info) {
-        return new ListenerBindingInstruction(info.expr, info.attr.target, true, runtime.DelegationStrategy.none);
+        return new ListenerBindingInstruction(this.xp.parse(info.attr.rawValue, 4182 /* TriggerCommand */), info.attr.target, true, runtime.DelegationStrategy.none);
     }
 };
+exports.TriggerBindingCommand.inject = [runtime.IExpressionParser];
 exports.TriggerBindingCommand = __decorate([
     bindingCommand('trigger')
 ], exports.TriggerBindingCommand);
 exports.DelegateBindingCommand = class DelegateBindingCommand {
-    constructor() {
+    constructor(xp) {
+        this.xp = xp;
         this.bindingType = 4184 /* DelegateCommand */;
     }
     build(info) {
-        return new ListenerBindingInstruction(info.expr, info.attr.target, false, runtime.DelegationStrategy.bubbling);
+        return new ListenerBindingInstruction(this.xp.parse(info.attr.rawValue, 4184 /* DelegateCommand */), info.attr.target, false, runtime.DelegationStrategy.bubbling);
     }
 };
+exports.DelegateBindingCommand.inject = [runtime.IExpressionParser];
 exports.DelegateBindingCommand = __decorate([
     bindingCommand('delegate')
 ], exports.DelegateBindingCommand);
 exports.CaptureBindingCommand = class CaptureBindingCommand {
-    constructor() {
+    constructor(xp) {
+        this.xp = xp;
         this.bindingType = 4183 /* CaptureCommand */;
     }
     build(info) {
-        return new ListenerBindingInstruction(info.expr, info.attr.target, false, runtime.DelegationStrategy.capturing);
+        return new ListenerBindingInstruction(this.xp.parse(info.attr.rawValue, 4183 /* CaptureCommand */), info.attr.target, false, runtime.DelegationStrategy.capturing);
     }
 };
+exports.CaptureBindingCommand.inject = [runtime.IExpressionParser];
 exports.CaptureBindingCommand = __decorate([
     bindingCommand('capture')
 ], exports.CaptureBindingCommand);
@@ -6336,13 +6387,15 @@ exports.CaptureBindingCommand = __decorate([
  * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
  */
 exports.AttrBindingCommand = class AttrBindingCommand {
-    constructor() {
+    constructor(xp) {
+        this.xp = xp;
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     build(info) {
-        return new AttributeBindingInstruction(info.attr.target, info.expr, info.attr.target);
+        return new AttributeBindingInstruction(info.attr.target, this.xp.parse(info.attr.rawValue, 32 /* IsProperty */), info.attr.target);
     }
 };
+exports.AttrBindingCommand.inject = [runtime.IExpressionParser];
 exports.AttrBindingCommand = __decorate([
     bindingCommand('attr')
 ], exports.AttrBindingCommand);
@@ -6350,13 +6403,15 @@ exports.AttrBindingCommand = __decorate([
  * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
  */
 exports.StyleBindingCommand = class StyleBindingCommand {
-    constructor() {
+    constructor(xp) {
+        this.xp = xp;
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     build(info) {
-        return new AttributeBindingInstruction('style', info.expr, info.attr.target);
+        return new AttributeBindingInstruction('style', this.xp.parse(info.attr.rawValue, 32 /* IsProperty */), info.attr.target);
     }
 };
+exports.StyleBindingCommand.inject = [runtime.IExpressionParser];
 exports.StyleBindingCommand = __decorate([
     bindingCommand('style')
 ], exports.StyleBindingCommand);
@@ -6364,13 +6419,15 @@ exports.StyleBindingCommand = __decorate([
  * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
  */
 exports.ClassBindingCommand = class ClassBindingCommand {
-    constructor() {
+    constructor(xp) {
+        this.xp = xp;
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     build(info) {
-        return new AttributeBindingInstruction('class', info.expr, info.attr.target);
+        return new AttributeBindingInstruction('class', this.xp.parse(info.attr.rawValue, 32 /* IsProperty */), info.attr.target);
     }
 };
+exports.ClassBindingCommand.inject = [runtime.IExpressionParser];
 exports.ClassBindingCommand = __decorate([
     bindingCommand('class')
 ], exports.ClassBindingCommand);
@@ -6378,13 +6435,15 @@ exports.ClassBindingCommand = __decorate([
  * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
  */
 let RefBindingCommand = class RefBindingCommand {
-    constructor() {
+    constructor(xp) {
+        this.xp = xp;
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     build(info) {
-        return new RefBindingInstruction(info.expr, info.attr.target);
+        return new RefBindingInstruction(this.xp.parse(info.attr.rawValue, 32 /* IsProperty */), info.attr.target);
     }
 };
+RefBindingCommand.inject = [runtime.IExpressionParser];
 RefBindingCommand = __decorate([
     bindingCommand('ref')
 ], RefBindingCommand);
@@ -6556,16 +6615,14 @@ class TemplateCompiler {
                 throw new Error(`AUR0702:${attrName}`);
             }
             bindingCommand = context._createCommand(attrSyntax);
-            if (bindingCommand !== null && bindingCommand.bindingType & 4096 /* IgnoreAttr */) {
+            if (bindingCommand !== null && (bindingCommand.bindingType & 4096 /* IgnoreAttr */) > 0) {
                 // when the binding command overrides everything
                 // just pass the target as is to the binding command, and treat it as a normal attribute:
                 // active.class="..."
                 // background.style="..."
                 // my-attr.attr="..."
-                expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
                 commandBuildInfo.node = el;
                 commandBuildInfo.attr = attrSyntax;
-                commandBuildInfo.expr = expr;
                 commandBuildInfo.bindable = null;
                 commandBuildInfo.def = null;
                 instructions.push(bindingCommand.build(commandBuildInfo));
@@ -6610,10 +6667,8 @@ class TemplateCompiler {
                         // custom attribute with binding command:
                         // my-attr.bind="..."
                         // my-attr.two-way="..."
-                        expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
                         commandBuildInfo.node = el;
                         commandBuildInfo.attr = attrSyntax;
-                        commandBuildInfo.expr = expr;
                         commandBuildInfo.bindable = primaryBindable;
                         commandBuildInfo.def = attrDef;
                         attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
@@ -6658,10 +6713,8 @@ class TemplateCompiler {
                 }
             }
             else {
-                expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
                 commandBuildInfo.node = el;
                 commandBuildInfo.attr = attrSyntax;
-                commandBuildInfo.expr = expr;
                 commandBuildInfo.bindable = null;
                 commandBuildInfo.def = null;
                 instructions.push(bindingCommand.build(commandBuildInfo));
@@ -6890,10 +6943,8 @@ class TemplateCompiler {
                 // active.class="..."
                 // background.style="..."
                 // my-attr.attr="..."
-                expr = exprParser.parse(attrValue, bindingCommand.bindingType);
                 commandBuildInfo.node = el;
                 commandBuildInfo.attr = attrSyntax;
-                commandBuildInfo.expr = expr;
                 commandBuildInfo.bindable = null;
                 commandBuildInfo.def = null;
                 (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(bindingCommand.build(commandBuildInfo));
@@ -6942,10 +6993,8 @@ class TemplateCompiler {
                         // custom attribute with binding command:
                         // my-attr.bind="..."
                         // my-attr.two-way="..."
-                        expr = exprParser.parse(attrValue, bindingCommand.bindingType);
                         commandBuildInfo.node = el;
                         commandBuildInfo.attr = attrSyntax;
-                        commandBuildInfo.expr = expr;
                         commandBuildInfo.bindable = primaryBindable;
                         commandBuildInfo.def = attrDef;
                         attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
@@ -7014,21 +7063,8 @@ class TemplateCompiler {
                 bindablesInfo = BindablesInfo.from(elDef, false);
                 bindable = bindablesInfo.attrs[realAttrTarget];
                 if (bindable !== void 0) {
-                    // if it looks like: <my-el value.bind>
-                    // it means        : <my-el value.bind="value">
-                    // this is a shortcut
-                    // and reuse attrValue variable
-                    attrValue = attrValue.length === 0
-                        && (bindingCommand.bindingType & (53 /* BindCommand */
-                            | 49 /* OneTimeCommand */
-                            | 50 /* ToViewCommand */
-                            | 52 /* TwoWayCommand */)) > 0
-                        ? kernel.camelCase(attrName)
-                        : attrValue;
-                    expr = exprParser.parse(attrValue, bindingCommand.bindingType);
                     commandBuildInfo.node = el;
                     commandBuildInfo.attr = attrSyntax;
-                    commandBuildInfo.expr = expr;
                     commandBuildInfo.bindable = bindable;
                     commandBuildInfo.def = elDef;
                     (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : (elBindableInstructions = [])).push(bindingCommand.build(commandBuildInfo));
@@ -7038,10 +7074,8 @@ class TemplateCompiler {
             // reaching here means:
             // + a plain attribute
             // + has binding command
-            expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
             commandBuildInfo.node = el;
             commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.expr = expr;
             commandBuildInfo.bindable = null;
             commandBuildInfo.def = null;
             (plainAttrInstructions !== null && plainAttrInstructions !== void 0 ? plainAttrInstructions : (plainAttrInstructions = [])).push(bindingCommand.build(commandBuildInfo));
@@ -7503,13 +7537,10 @@ class TemplateCompiler {
                         : new InterpolationInstruction(expr, bindable.property));
                 }
                 else {
-                    expr = context._exprParser.parse(attrValue, command.bindingType);
                     commandBuildInfo.node = node;
                     commandBuildInfo.attr = attrSyntax;
-                    commandBuildInfo.expr = expr;
                     commandBuildInfo.bindable = bindable;
                     commandBuildInfo.def = attrDef;
-                    // instructions.push(command.compile(new BindingSymbol(command, bindable, expr, attrValue, attrName)));
                     instructions.push(command.build(commandBuildInfo));
                 }
                 // Skip whitespace after semicolon
@@ -7748,16 +7779,14 @@ function hasInlineBindings(rawValue) {
 function resetCommandBuildInfo() {
     commandBuildInfo.node
         = commandBuildInfo.attr
-            = commandBuildInfo.expr
-                = commandBuildInfo.bindable
-                    = commandBuildInfo.def = null;
+            = commandBuildInfo.bindable
+                = commandBuildInfo.def = null;
 }
 const emptyCompilationInstructions = { projections: null };
 // eslint-disable-next-line
 const voidDefinition = { name: 'unnamed' };
 const commandBuildInfo = {
     node: null,
-    expr: null,
     attr: null,
     bindable: null,
     def: null,
@@ -11651,7 +11680,7 @@ class Aurelia {
         const comp = config.component;
         let bc;
         if (typeof comp === 'function') {
-            ctn.registerResolver(p.Element, ctn.registerResolver(INode, new kernel.InstanceProvider('ElementResolver', host)));
+            ctn.registerResolver(p.HTMLElement, ctn.registerResolver(p.Element, ctn.registerResolver(INode, new kernel.InstanceProvider('ElementResolver', host))));
             bc = ctn.invoke(comp);
         }
         else {
@@ -11734,6 +11763,12 @@ class Aurelia {
         target.dispatchEvent(ev);
     }
 }
+
+exports.DefinitionType = void 0;
+(function (DefinitionType) {
+    DefinitionType[DefinitionType["Element"] = 1] = "Element";
+    DefinitionType[DefinitionType["Attribute"] = 2] = "Attribute";
+})(exports.DefinitionType || (exports.DefinitionType = {}));
 
 /**
  * The dialog service for composing view & view model into a dialog
@@ -11940,7 +11975,7 @@ class DialogController {
             return Component;
         }
         const p = this.p;
-        container.registerResolver(INode, container.registerResolver(p.Element, new kernel.InstanceProvider('ElementResolver', host)));
+        container.registerResolver(p.HTMLElement, container.registerResolver(p.Element, container.registerResolver(INode, new kernel.InstanceProvider('ElementResolver', host))));
         return container.invoke(Component);
     }
     getDefinition(component) {

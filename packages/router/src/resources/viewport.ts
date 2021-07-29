@@ -5,6 +5,7 @@ import {
   LifecycleFlags,
   customElement,
   CustomElement,
+  HydrateElementInstruction,
   ICompiledCustomElementController,
   ICustomElementViewModel,
   ICustomElementController,
@@ -118,7 +119,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     this.controller = controller as ICustomElementController;
     this.container = controller.container;
 
-    const hasDefault = (this.instruction as any).instructions.filter((instr: any) => instr.to === 'default').length > 0;
+    const hasDefault = (this.instruction as HydrateElementInstruction).props.filter((instr: any) => instr.to === 'default').length > 0;
     if (hasDefault && this.parentViewport != null) {
       this.parentViewport.pendingChildren.push(this);
       if (this.parentViewport.pendingPromise === null) {

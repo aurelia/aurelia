@@ -33,20 +33,20 @@ const testDirs = [
 ];
 
 const packageNames = [
-  'fetch-client',
-  'i18n',
-  'kernel',
-  'metadata',
-  'platform',
-  'platform-browser',
-  'route-recognizer',
+  // 'fetch-client',
+  // 'i18n',
+  // 'kernel',
+  // 'metadata',
+  // 'platform',
+  // 'platform-browser',
+  // 'route-recognizer',
   'router',
-  'runtime',
-  'runtime-html',
-  'testing',
-  'validation',
-  'validation-html',
-  'validation-i18n',
+  // 'runtime',
+  // 'runtime-html',
+  // 'testing',
+  // 'validation',
+  // 'validation-html',
+  // 'validation-i18n',
 ];
 
 module.exports = function (config) {
@@ -100,9 +100,9 @@ module.exports = function (config) {
     if (/\.js$/.test(file.pattern)) {
       // Only instrument core framework files (not the specs themselves, nor any test utils (for now))
       if (/__tests__|testing/.test(file.pattern) || !config.coverage) {
-        p[file.pattern] = [];
+        p[file.pattern] = ['aurelia-direct-router'];
       } else {
-        p[file.pattern] = ['karma-coverage-istanbul-instrumenter'];
+        p[file.pattern] = ['aurelia-direct-router', 'karma-coverage-istanbul-instrumenter'];
       }
     }
     return p;

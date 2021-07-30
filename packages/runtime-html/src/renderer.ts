@@ -347,7 +347,6 @@ export interface IRenderer<
   TType extends InstructionTypeName = InstructionTypeName
 > extends Partial<IInstructionTypeClassifier<TType>> {
   render(
-    flags: LifecycleFlags,
     /**
      * The controller that is current invoking this renderer
      */
@@ -443,7 +442,6 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
 /** @internal */
 export class SetPropertyRenderer implements IRenderer {
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: IController,
     instruction: SetPropertyInstruction,
@@ -467,7 +465,6 @@ export class CustomElementRenderer implements IRenderer {
   ) {}
 
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: HydrateElementInstruction,
@@ -516,11 +513,9 @@ export class CustomElementRenderer implements IRenderer {
       /* viewModel           */component,
       /* host                */target,
       /* instruction         */instruction,
-      /* flags               */f,
       /* definition          */def,
     );
 
-    f = childCtrl.flags;
     setRef(target, def.key, childCtrl);
 
     const renderers = this.r.renderers;
@@ -530,7 +525,7 @@ export class CustomElementRenderer implements IRenderer {
     let propInst: IInstruction;
     while (ii > i) {
       propInst = props[i];
-      renderers[propInst.type].render(f, renderingCtrl, childCtrl, propInst);
+      renderers[propInst.type].render(renderingCtrl, childCtrl, propInst);
       ++i;
     }
 
@@ -549,7 +544,6 @@ export class CustomAttributeRenderer implements IRenderer {
   ) {}
 
   public render(
-    f: LifecycleFlags,
     /**
      * The cotroller that is currently invoking this renderer
      */
@@ -593,7 +587,6 @@ export class CustomAttributeRenderer implements IRenderer {
       /* context ct */renderingCtrl.container,
       /* viewModel  */component,
       /* host       */target,
-      /* flags      */f,
       /* definition */def,
     );
 
@@ -606,7 +599,7 @@ export class CustomAttributeRenderer implements IRenderer {
     let propInst: IInstruction;
     while (ii > i) {
       propInst = props[i];
-      renderers[propInst.type].render(f, renderingCtrl, childController, propInst);
+      renderers[propInst.type].render(renderingCtrl, childController, propInst);
       ++i;
     }
 
@@ -625,7 +618,6 @@ export class TemplateControllerRenderer implements IRenderer {
   ) {}
 
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: HydrateTemplateController,
@@ -668,13 +660,12 @@ export class TemplateControllerRenderer implements IRenderer {
       /* container ct */renderingCtrl.container,
       /* viewModel    */component,
       /* host         */target,
-      /* flags        */f,
       /* definition   */def,
     );
 
     setRef(renderLocation, def.key, childController);
 
-    component.link?.(f, renderingCtrl, childController, target, instruction);
+    component.link?.(renderingCtrl, childController, target, instruction);
 
     const renderers = this.r.renderers;
     const props = instruction.props;
@@ -683,7 +674,7 @@ export class TemplateControllerRenderer implements IRenderer {
     let propInst: IInstruction;
     while (ii > i) {
       propInst = props[i];
-      renderers[propInst.type].render(f, renderingCtrl, childController, propInst);
+      renderers[propInst.type].render(renderingCtrl, childController, propInst);
       ++i;
     }
 
@@ -701,7 +692,6 @@ export class LetElementRenderer implements IRenderer {
   ) {}
 
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: Node & ChildNode,
     instruction: HydrateLetElementInstruction,
@@ -744,7 +734,6 @@ export class CallBindingRenderer implements IRenderer {
   }
 
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: IController,
     instruction: CallBindingInstruction,
@@ -766,7 +755,6 @@ export class RefBindingRenderer implements IRenderer {
   ) {}
 
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: INode,
     instruction: RefBindingInstruction,
@@ -790,7 +778,6 @@ export class InterpolationBindingRenderer implements IRenderer {
   ) {}
 
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: IController,
     instruction: InterpolationInstruction,
@@ -834,7 +821,6 @@ export class PropertyBindingRenderer implements IRenderer {
   ) {}
 
   public render(
-    flags: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: IController,
     instruction: PropertyBindingInstruction,
@@ -858,7 +844,6 @@ export class IteratorBindingRenderer implements IRenderer {
   ) {}
 
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: IController,
     instruction: IteratorBindingInstruction,
@@ -906,7 +891,6 @@ export class TextBindingRenderer implements IRenderer {
   ) {}
 
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: ChildNode,
     instruction: TextBindingInstruction,
@@ -969,7 +953,6 @@ export class ListenerBindingRenderer implements IRenderer {
   ) {}
 
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: ListenerBindingInstruction,
@@ -987,7 +970,6 @@ export class ListenerBindingRenderer implements IRenderer {
 /** @internal */
 export class SetAttributeRenderer implements IRenderer {
   public render(
-    f: LifecycleFlags,
     _: IHydratableController,
     target: HTMLElement,
     instruction: SetAttributeInstruction,
@@ -999,7 +981,6 @@ export class SetAttributeRenderer implements IRenderer {
 @renderer(InstructionType.setClassAttribute)
 export class SetClassAttributeRenderer implements IRenderer {
   public render(
-    f: LifecycleFlags,
     _: IHydratableController,
     target: HTMLElement,
     instruction: SetClassAttributeInstruction,
@@ -1011,7 +992,6 @@ export class SetClassAttributeRenderer implements IRenderer {
 @renderer(InstructionType.setStyleAttribute)
 export class SetStyleAttributeRenderer implements IRenderer {
   public render(
-    f: LifecycleFlags,
     _: IHydratableController,
     target: HTMLElement,
     instruction: SetStyleAttributeInstruction,
@@ -1030,7 +1010,6 @@ export class StylePropertyBindingRenderer implements IRenderer {
   ) {}
 
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: StylePropertyBindingInstruction,
@@ -1053,7 +1032,6 @@ export class AttributeBindingRenderer implements IRenderer {
   ) {}
 
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: AttributeBindingInstruction,

@@ -204,7 +204,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const views = this.views = Array(newLen);
 
     this.forOf.iterate(flags, items, (arr, i, item) => {
-      view = views[i] = factory.create(flags).setLocation(location);
+      view = views[i] = factory.create().setLocation(location);
       view.nodes!.unlink();
       viewScope = Scope.fromParent(parentScope, BindingContext.create(local, item));
 
@@ -303,7 +303,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     for (; mapLen > i; ++i) {
       if (indexMap[i] === -2) {
-        view = factory.create(flags);
+        view = factory.create();
         views.splice(i, 0, view);
       }
     }

@@ -109,7 +109,6 @@ export class AppRoot implements IDisposable {
         instance,
         this.host,
         hydrationInst,
-        LifecycleFlags.none,
       )) as Controller;
 
       controller._hydrateCustomElement(hydrationInst, /* root does not have hydration context */null);

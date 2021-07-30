@@ -105,7 +105,6 @@ export class Aurelia implements IDisposable {
       bc,
       host,
       null,
-      void 0,
       CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }),
     );
     return onResolve(

@@ -168,11 +168,11 @@ export class AuRender implements ICustomElementViewModel {
       }
 
       if ('create' in comp) { // IViewFactory
-        return comp.create(flags);
+        return comp.create();
       }
 
       if ('template' in comp) { // Raw Template Definition
-        return this.r.getViewFactory(CustomElementDefinition.getOrCreate(comp), ctxContainer).create(flags);
+        return this.r.getViewFactory(CustomElementDefinition.getOrCreate(comp), ctxContainer).create();
       }
     }
 

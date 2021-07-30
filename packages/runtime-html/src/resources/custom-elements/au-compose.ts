@@ -229,7 +229,6 @@ export class AuCompose {
           comp,
           compositionHost as HTMLElement,
           null,
-          LifecycleFlags.none,
           srcDef,
         );
 
@@ -254,7 +253,6 @@ export class AuCompose {
         const viewFactory = this.r.getViewFactory(targetDef, childCtn);
         const controller = Controller.$view(
           viewFactory,
-          LifecycleFlags.fromBind,
           $controller
         );
         const scope = this.scopeBehavior === 'auto'

@@ -77,7 +77,6 @@ export class ViewFactory implements IViewFactory {
   }
 
   public create(
-    flags?: LifecycleFlags,
     parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
   ): ISyntheticView {
     const cache = this.cache;
@@ -88,7 +87,7 @@ export class ViewFactory implements IViewFactory {
       return controller;
     }
 
-    controller = Controller.$view(this, flags, parentController);
+    controller = Controller.$view(this, parentController);
     return controller;
   }
 }

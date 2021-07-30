@@ -130,11 +130,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private readonly _rendering: IRendering;
 
   public readonly hooks: HooksDefinition;
+  public flags: LifecycleFlags = LifecycleFlags.none;
 
   public constructor(
     public container: IContainer,
     public readonly vmKind: ViewModelKind,
-    public flags: LifecycleFlags,
     public readonly definition: CustomElementDefinition | CustomAttributeDefinition | null,
     /**
      * The viewFactory. Only present for synthetic views.
@@ -198,7 +198,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     viewModel: C,
     host: HTMLElement,
     hydrationInst: IControllerElementHydrationInstruction | null,
-    flags: LifecycleFlags = LifecycleFlags.none,
     // Use this when `instance.constructor` is not a custom element type
     // to pass on the CustomElement definition
     definition: CustomElementDefinition | undefined = void 0,
@@ -212,7 +211,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const controller = new Controller<C>(
       /* container      */ctn,
       /* vmKind         */ViewModelKind.customElement,
-      /* flags          */flags,
       /* definition     */definition,
       /* viewFactory    */null,
       /* viewModel      */viewModel as BindingContext<C>,
@@ -256,7 +254,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     ctn: IContainer,
     viewModel: C,
     host: HTMLElement,
-    flags: LifecycleFlags = LifecycleFlags.none,
     /**
      * The definition that will be used to hydrate the custom attribute view model
      *
@@ -273,7 +270,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const controller = new Controller<C>(
       /* own ct         */ctn,
       /* vmKind         */ViewModelKind.customAttribute,
-      /* flags          */flags,
       /* definition     */definition,
       /* viewFactory    */null,
       /* viewModel      */viewModel as BindingContext<C>,
@@ -298,13 +294,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
    */
   public static $view(
     viewFactory: IViewFactory,
-    flags: LifecycleFlags = LifecycleFlags.none,
     parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined = void 0,
   ): ISyntheticView {
     const controller = new Controller(
       /* container      */viewFactory.container,
       /* vmKind         */ViewModelKind.synthetic,
-      /* flags          */flags,
       /* definition     */null,
       /* viewFactory    */viewFactory,
       /* viewModel      */null,
@@ -346,7 +340,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       createWatchers(this, container, definition, instance);
     }
     createObservers(this, definition, flags, instance);
-    this._childrenObs = createChildrenObservers(this as Controller, definition, flags, instance);
+    this._childrenObs = createChildrenObservers(this as Controller, definition, instance);
 
     if (this.hooks.hasDefine) {
       if (__DEV__ && this.debug) { this.logger.trace(`invoking define() hook`); }
@@ -432,7 +426,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   public _hydrateChildren(): void {
     this._rendering.render(
-      /* flags      */this.flags,
       /* controller */this as ICustomElementController,
       /* targets    */this.nodes!.findTargets(),
       /* definition */this._compiledDef!,
@@ -463,11 +456,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _hydrateSynthetic(): void {
     this._compiledDef = this._rendering.compile(this.viewFactory!.def!, this.container, null);
     this.isStrictBinding = this._compiledDef.isStrictBinding;
     this._rendering.render(
-      /* flags      */this.flags,
       /* controller */this as ISyntheticView,
       /* targets    */(this.nodes = this._rendering.createNodes(this._compiledDef)).findTargets(),
       /* definition */this._compiledDef,
@@ -1171,8 +1164,6 @@ function createObservers(
 function createChildrenObservers(
   controller: Controller,
   definition: CustomElementDefinition,
-  // deepscan-disable-next-line
-  _flags: LifecycleFlags,
   instance: object,
 ): ChildrenObserver[] {
   const childrenObservers = definition.childrenObservers;
@@ -1746,7 +1737,6 @@ export interface ICustomElementViewModel extends IViewModel, IActivationHooks<IH
 export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<IHydratedController> {
   readonly $controller?: ICustomAttributeController<this>;
   link?(
-    flags: LifecycleFlags,
     controller: IHydratableController,
     childController: ICustomAttributeController,
     target: INode,

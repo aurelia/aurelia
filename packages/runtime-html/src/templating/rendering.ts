@@ -104,7 +104,6 @@ export class Rendering {
   }
 
   public render(
-    flags: LifecycleFlags,
     controller: IHydratableController,
     targets: ArrayLike<INode>,
     definition: CustomElementDefinition,
@@ -135,7 +134,7 @@ export class Rendering {
         jj = row.length;
         while (jj > j) {
           instruction = row[j];
-          renderers[instruction.type].render(flags, controller, target, instruction);
+          renderers[instruction.type].render(controller, target, instruction);
           ++j;
         }
         ++i;
@@ -148,7 +147,7 @@ export class Rendering {
         j = 0;
         while (jj > j) {
           instruction = row[j];
-          renderers[instruction.type].render(flags, controller, host, instruction);
+          renderers[instruction.type].render(controller, host, instruction);
           ++j;
         }
       }

@@ -135,7 +135,6 @@ describe('TranslationBindingRenderer', function () {
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
     const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
     sut.render(
-      LifecycleFlags.none,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -155,7 +154,6 @@ describe('TranslationBindingRenderer', function () {
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
     const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
     sut.render(
-      LifecycleFlags.none,
       controller,
       targetElement,
       callBindingInstruction,
@@ -277,7 +275,6 @@ describe('TranslationBindBindingRenderer', function () {
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
-      LifecycleFlags.none,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -295,7 +292,6 @@ describe('TranslationBindBindingRenderer', function () {
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
-      LifecycleFlags.none,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -315,7 +311,6 @@ describe('TranslationBindBindingRenderer', function () {
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
-      LifecycleFlags.none,
       controller,
       targetElement,
       callBindingInstruction,

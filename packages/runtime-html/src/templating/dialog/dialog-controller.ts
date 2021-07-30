@@ -123,7 +123,6 @@ export class DialogController implements IDialogController {
             cmp,
             contentHost,
             null,
-            LifecycleFlags.none,
             CustomElementDefinition.create(
               this.getDefinition(cmp) ?? { name: CustomElement.generateName(), template }
             )

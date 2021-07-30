@@ -874,6 +874,7 @@ export class TemplateCompiler implements ITemplateCompiler {
                 template,
                 instructions: projectionCompilationContext.rows,
                 needsCompile: false,
+                isStrictBinding: context.root.def.isStrictBinding,
               });
             }
             elementInstruction!.projections = projections;
@@ -900,6 +901,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         template: mostInnerTemplate,
         instructions: childContext.rows,
         needsCompile: false,
+        isStrictBinding: context.root.def.isStrictBinding,
       });
 
       // 4.1.2.
@@ -927,7 +929,8 @@ export class TemplateCompiler implements ITemplateCompiler {
           name: CustomElement.generateName(),
           template,
           needsCompile: false,
-          instructions: [[tcInstructions[i + 1]]]
+          instructions: [[tcInstructions[i + 1]]],
+          isStrictBinding: context.root.def.isStrictBinding,
         });
       }
       // the most outer template controller should be
@@ -1054,6 +1057,7 @@ export class TemplateCompiler implements ITemplateCompiler {
               template,
               instructions: projectionCompilationContext.rows,
               needsCompile: false,
+              isStrictBinding: context.root.def.isStrictBinding,
             });
           }
           elementInstruction!.projections = projections;

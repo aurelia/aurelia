@@ -558,14 +558,14 @@ exports.TranslationParametersBindingRenderer = class TranslationParametersBindin
         this.oL = s;
         this.p = n;
     }
-    render(t, s, n, i) {
+    render(t, s, n) {
         TranslationBinding.create({
             parser: this.parser,
             observerLocator: this.oL,
-            context: s.container,
-            controller: s,
-            target: n,
-            instruction: i,
+            context: t.container,
+            controller: t,
+            target: s,
+            instruction: n,
             isParameterContext: true,
             platform: this.p
         });
@@ -614,14 +614,14 @@ exports.TranslationBindingRenderer = class TranslationBindingRenderer {
         this.oL = s;
         this.p = n;
     }
-    render(t, s, n, i) {
+    render(t, s, n) {
         TranslationBinding.create({
             parser: this.parser,
             observerLocator: this.oL,
-            context: s.container,
-            controller: s,
-            target: n,
-            instruction: i,
+            context: t.container,
+            controller: t,
+            target: s,
+            instruction: n,
             platform: this.p
         });
     }
@@ -671,14 +671,14 @@ exports.TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
         this.oL = s;
         this.p = n;
     }
-    render(t, s, n, i) {
+    render(t, s, n) {
         TranslationBinding.create({
             parser: this.parser,
             observerLocator: this.oL,
-            context: s.container,
-            controller: s,
-            target: n,
-            instruction: i,
+            context: t.container,
+            controller: t,
+            target: s,
+            instruction: n,
             platform: this.p
         });
     }

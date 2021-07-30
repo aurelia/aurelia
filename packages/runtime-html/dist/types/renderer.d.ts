@@ -1,4 +1,4 @@
-import { BindingMode, IExpressionParser, IObserverLocator, LifecycleFlags } from '@aurelia/runtime';
+import { BindingMode, IExpressionParser, IObserverLocator } from '@aurelia/runtime';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElementDefinition } from './resources/custom-element.js';
 import { IProjections } from './resources/slot-injectables.js';
@@ -261,7 +261,7 @@ export interface IInstructionTypeClassifier<TType extends string = string> {
     instructionType: TType;
 }
 export interface IRenderer<TType extends InstructionTypeName = InstructionTypeName> extends Partial<IInstructionTypeClassifier<TType>> {
-    render(flags: LifecycleFlags, 
+    render(
     /**
      * The controller that is current invoking this renderer
      */
@@ -273,21 +273,21 @@ declare type DecoratedInstructionRenderer<TType extends string, TProto, TClass> 
 declare type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;
 export declare function renderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType>;
 export declare class SetPropertyRenderer implements IRenderer {
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: SetPropertyInstruction): void;
+    render(renderingCtrl: IHydratableController, target: IController, instruction: SetPropertyInstruction): void;
 }
 export declare class CustomElementRenderer implements IRenderer {
     private readonly r;
     private readonly p;
     static get inject(): unknown[];
     constructor(r: IRendering, p: IPlatform);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: HTMLElement, instruction: HydrateElementInstruction): void;
+    render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: HydrateElementInstruction): void;
 }
 export declare class CustomAttributeRenderer implements IRenderer {
     private readonly r;
     private readonly p;
     static get inject(): unknown[];
     constructor(r: IRendering, p: IPlatform);
-    render(f: LifecycleFlags, 
+    render(
     /**
      * The cotroller that is currently invoking this renderer
      */
@@ -298,45 +298,45 @@ export declare class TemplateControllerRenderer implements IRenderer {
     private readonly p;
     static get inject(): unknown[];
     constructor(r: IRendering, p: IPlatform);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: HTMLElement, instruction: HydrateTemplateController): void;
+    render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: HydrateTemplateController): void;
 }
 export declare class LetElementRenderer implements IRenderer {
     private readonly parser;
     private readonly oL;
     constructor(parser: IExpressionParser, oL: IObserverLocator);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: Node & ChildNode, instruction: HydrateLetElementInstruction): void;
+    render(renderingCtrl: IHydratableController, target: Node & ChildNode, instruction: HydrateLetElementInstruction): void;
 }
 export declare class CallBindingRenderer implements IRenderer {
     private readonly parser;
     static inject: (import("@aurelia/kernel").InterfaceSymbol<IExpressionParser> | import("@aurelia/kernel").InterfaceSymbol<IObserverLocator>)[];
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: CallBindingInstruction): void;
+    render(renderingCtrl: IHydratableController, target: IController, instruction: CallBindingInstruction): void;
 }
 export declare class RefBindingRenderer implements IRenderer {
     private readonly parser;
     constructor(parser: IExpressionParser);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: INode, instruction: RefBindingInstruction): void;
+    render(renderingCtrl: IHydratableController, target: INode, instruction: RefBindingInstruction): void;
 }
 export declare class InterpolationBindingRenderer implements IRenderer {
     private readonly parser;
     private readonly oL;
     private readonly p;
     constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: InterpolationInstruction): void;
+    render(renderingCtrl: IHydratableController, target: IController, instruction: InterpolationInstruction): void;
 }
 export declare class PropertyBindingRenderer implements IRenderer {
     private readonly parser;
     private readonly oL;
     private readonly p;
     constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
-    render(flags: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: PropertyBindingInstruction): void;
+    render(renderingCtrl: IHydratableController, target: IController, instruction: PropertyBindingInstruction): void;
 }
 export declare class IteratorBindingRenderer implements IRenderer {
     private readonly parser;
     private readonly oL;
     private readonly p;
     constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: IController, instruction: IteratorBindingInstruction): void;
+    render(renderingCtrl: IHydratableController, target: IController, instruction: IteratorBindingInstruction): void;
 }
 export declare function applyBindingBehavior<T extends IInterceptableBinding>(binding: T, expression: IsBindingBehavior, locator: IServiceLocator): T;
 export declare class TextBindingRenderer implements IRenderer {
@@ -344,36 +344,36 @@ export declare class TextBindingRenderer implements IRenderer {
     private readonly oL;
     private readonly p;
     constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: ChildNode, instruction: TextBindingInstruction): void;
+    render(renderingCtrl: IHydratableController, target: ChildNode, instruction: TextBindingInstruction): void;
 }
 export declare class ListenerBindingRenderer implements IRenderer {
     private readonly parser;
     private readonly eventDelegator;
     private readonly p;
     constructor(parser: IExpressionParser, eventDelegator: IEventDelegator, p: IPlatform);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: HTMLElement, instruction: ListenerBindingInstruction): void;
+    render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: ListenerBindingInstruction): void;
 }
 export declare class SetAttributeRenderer implements IRenderer {
-    render(f: LifecycleFlags, _: IHydratableController, target: HTMLElement, instruction: SetAttributeInstruction): void;
+    render(_: IHydratableController, target: HTMLElement, instruction: SetAttributeInstruction): void;
 }
 export declare class SetClassAttributeRenderer implements IRenderer {
-    render(f: LifecycleFlags, _: IHydratableController, target: HTMLElement, instruction: SetClassAttributeInstruction): void;
+    render(_: IHydratableController, target: HTMLElement, instruction: SetClassAttributeInstruction): void;
 }
 export declare class SetStyleAttributeRenderer implements IRenderer {
-    render(f: LifecycleFlags, _: IHydratableController, target: HTMLElement, instruction: SetStyleAttributeInstruction): void;
+    render(_: IHydratableController, target: HTMLElement, instruction: SetStyleAttributeInstruction): void;
 }
 export declare class StylePropertyBindingRenderer implements IRenderer {
     private readonly parser;
     private readonly oL;
     private readonly p;
     constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: HTMLElement, instruction: StylePropertyBindingInstruction): void;
+    render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: StylePropertyBindingInstruction): void;
 }
 export declare class AttributeBindingRenderer implements IRenderer {
     private readonly parser;
     private readonly oL;
     constructor(parser: IExpressionParser, oL: IObserverLocator);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: HTMLElement, instruction: AttributeBindingInstruction): void;
+    render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: AttributeBindingInstruction): void;
 }
 export {};
 //# sourceMappingURL=renderer.d.ts.map

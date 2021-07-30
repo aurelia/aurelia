@@ -1,4 +1,4 @@
-import { BindingMode, BindingType, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, IHydratableController, AttrSyntax, IPlatform, IAttrMapper, ICommandBuildInfo } from '@aurelia/runtime-html';
+import { BindingMode, BindingType, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, IHydratableController, AttrSyntax, IPlatform, IAttrMapper, ICommandBuildInfo } from '@aurelia/runtime-html';
 import type { CallBindingInstruction, BindingCommandInstance } from '@aurelia/runtime-html';
 export declare const TranslationInstructionType = "tt";
 export declare class TranslationAttributePattern {
@@ -24,7 +24,7 @@ export declare class TranslationBindingRenderer implements IRenderer {
     private readonly oL;
     private readonly p;
     constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: HTMLElement, instruction: CallBindingInstruction): void;
+    render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: CallBindingInstruction): void;
 }
 export declare const TranslationBindInstructionType = "tbt";
 export declare class TranslationBindAttributePattern {
@@ -51,6 +51,6 @@ export declare class TranslationBindBindingRenderer implements IRenderer {
     private readonly oL;
     private readonly p;
     constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
-    render(f: LifecycleFlags, renderingCtrl: IHydratableController, target: HTMLElement, instruction: CallBindingInstruction): void;
+    render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: CallBindingInstruction): void;
 }
 //# sourceMappingURL=translation-renderer.d.ts.map

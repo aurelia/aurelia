@@ -637,7 +637,7 @@ let TranslationParametersBindingRenderer = class TranslationParametersBindingRen
         this.oL = oL;
         this.p = p;
     }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         TranslationBinding.create({
             parser: this.parser,
             observerLocator: this.oL,
@@ -697,7 +697,7 @@ let TranslationBindingRenderer = class TranslationBindingRenderer {
         this.oL = oL;
         this.p = p;
     }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         TranslationBinding.create({
             parser: this.parser,
             observerLocator: this.oL,
@@ -757,7 +757,7 @@ let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
         this.oL = oL;
         this.p = p;
     }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         TranslationBinding.create({
             parser: this.parser,
             observerLocator: this.oL,

@@ -1,5 +1,4 @@
 import { IContainer } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
 import { INode, INodeSequence } from '../dom.js';
 import { ICompliationInstruction, IRenderer } from '../renderer.js';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
@@ -15,6 +14,6 @@ export declare class Rendering {
     compile(definition: PartialCustomElementDefinition, container: IContainer, compilationInstruction: ICompliationInstruction | null): CustomElementDefinition;
     getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory;
     createNodes(definition: CustomElementDefinition): INodeSequence;
-    render(flags: LifecycleFlags, controller: IHydratableController, targets: ArrayLike<INode>, definition: CustomElementDefinition, host: INode | null | undefined): void;
+    render(controller: IHydratableController, targets: ArrayLike<INode>, definition: CustomElementDefinition, host: INode | null | undefined): void;
 }
 //# sourceMappingURL=rendering.d.ts.map

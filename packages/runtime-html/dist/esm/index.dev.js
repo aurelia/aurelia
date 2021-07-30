@@ -3244,14 +3244,14 @@ class ViewFactory {
         }
         return false;
     }
-    create(flags, parentController) {
+    create(parentController) {
         const cache = this.cache;
         let controller;
         if (cache != null && cache.length > 0) {
             controller = cache.pop();
             return controller;
         }
-        controller = Controller.$view(this, flags, parentController);
+        controller = Controller.$view(this, parentController);
         return controller;
     }
 }
@@ -3518,7 +3518,7 @@ class Rendering {
             ? this._empty
             : new FragmentNodeSequence(this._p, fragment.cloneNode(true));
     }
-    render(flags, controller, targets, definition, host) {
+    render(controller, targets, definition, host) {
         const rows = definition.instructions;
         const renderers = this.renderers;
         const ii = targets.length;
@@ -3539,7 +3539,7 @@ class Rendering {
                 jj = row.length;
                 while (jj > j) {
                     instruction = row[j];
-                    renderers[instruction.type].render(flags, controller, target, instruction);
+                    renderers[instruction.type].render(controller, target, instruction);
                     ++j;
                 }
                 ++i;
@@ -3551,7 +3551,7 @@ class Rendering {
                 j = 0;
                 while (jj > j) {
                     instruction = row[j];
-                    renderers[instruction.type].render(flags, controller, host, instruction);
+                    renderers[instruction.type].render(controller, host, instruction);
                     ++j;
                 }
             }
@@ -3572,7 +3572,7 @@ var MountTarget;
 const optionalCeFind = { optional: true };
 const controllerLookup = new WeakMap();
 class Controller {
-    constructor(container, vmKind, flags, definition, 
+    constructor(container, vmKind, definition, 
     /**
      * The viewFactory. Only present for synthetic views.
      */
@@ -3591,7 +3591,6 @@ class Controller {
     host) {
         this.container = container;
         this.vmKind = vmKind;
-        this.flags = flags;
         this.definition = definition;
         this.viewFactory = viewFactory;
         this.viewModel = viewModel;
@@ -3621,6 +3620,7 @@ class Controller {
         this._fullyNamed = false;
         /** @internal */
         this._childrenObs = emptyArray;
+        this.flags = 0 /* none */;
         this.$initiator = null;
         this.$flags = 0 /* none */;
         this.$resolve = void 0;
@@ -3685,7 +3685,7 @@ class Controller {
      *
      * Semi private API
      */
-    static $el(ctn, viewModel, host, hydrationInst, flags = 0 /* none */, 
+    static $el(ctn, viewModel, host, hydrationInst, 
     // Use this when `instance.constructor` is not a custom element type
     // to pass on the CustomElement definition
     definition = void 0) {
@@ -3695,7 +3695,6 @@ class Controller {
         definition = definition !== null && definition !== void 0 ? definition : CustomElement.getDefinition(viewModel.constructor);
         const controller = new Controller(
         /* container      */ ctn, 0 /* customElement */, 
-        /* flags          */ flags, 
         /* definition     */ definition, 
         /* viewFactory    */ null, 
         /* viewModel      */ viewModel, 
@@ -3723,7 +3722,7 @@ class Controller {
      * @param definition - the definition of the custom attribute,
      * will be used to override the definition associated with the view model object contructor if given
      */
-    static $attr(ctn, viewModel, host, flags = 0 /* none */, 
+    static $attr(ctn, viewModel, host, 
     /**
      * The definition that will be used to hydrate the custom attribute view model
      *
@@ -3736,7 +3735,6 @@ class Controller {
         definition = definition !== null && definition !== void 0 ? definition : CustomAttribute.getDefinition(viewModel.constructor);
         const controller = new Controller(
         /* own ct         */ ctn, 1 /* customAttribute */, 
-        /* flags          */ flags, 
         /* definition     */ definition, 
         /* viewFactory    */ null, 
         /* viewModel      */ viewModel, 
@@ -3754,10 +3752,9 @@ class Controller {
      *
      * Semi private API
      */
-    static $view(viewFactory, flags = 0 /* none */, parentController = void 0) {
+    static $view(viewFactory, parentController = void 0) {
         const controller = new Controller(
         /* container      */ viewFactory.container, 2 /* synthetic */, 
-        /* flags          */ flags, 
         /* definition     */ null, 
         /* viewFactory    */ viewFactory, 
         /* viewModel      */ null, 
@@ -3783,7 +3780,7 @@ class Controller {
             createWatchers(this, container, definition, instance);
         }
         createObservers(this, definition, flags, instance);
-        this._childrenObs = createChildrenObservers(this, definition, flags, instance);
+        this._childrenObs = createChildrenObservers(this, definition, instance);
         if (this.hooks.hasDefine) {
             const result = instance.define(
             /* controller      */ this, 
@@ -3849,7 +3846,6 @@ class Controller {
     /** @internal */
     _hydrateChildren() {
         this._rendering.render(
-        /* flags      */ this.flags, 
         /* controller */ this, 
         /* targets    */ this.nodes.findTargets(), 
         /* definition */ this._compiledDef, 
@@ -3871,11 +3867,11 @@ class Controller {
             this.viewModel.created(this);
         }
     }
+    /** @internal */
     _hydrateSynthetic() {
         this._compiledDef = this._rendering.compile(this.viewFactory.def, this.container, null);
         this.isStrictBinding = this._compiledDef.isStrictBinding;
         this._rendering.render(
-        /* flags      */ this.flags, 
         /* controller */ this, 
         /* targets    */ (this.nodes = this._rendering.createNodes(this._compiledDef)).findTargets(), 
         /* definition */ this._compiledDef, 
@@ -4434,9 +4430,7 @@ _flags, instance) {
         }
     }
 }
-function createChildrenObservers(controller, definition, 
-// deepscan-disable-next-line
-_flags, instance) {
+function createChildrenObservers(controller, definition, instance) {
     const childrenObservers = definition.childrenObservers;
     const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
     const length = childObserverNames.length;
@@ -4646,7 +4640,7 @@ class AppRoot {
                 instance = config.component;
             }
             const hydrationInst = { hydrate: false, projections: null };
-            const controller = (this.controller = Controller.$el(childCtn, instance, this.host, hydrationInst, 0 /* none */));
+            const controller = (this.controller = Controller.$el(childCtn, instance, this.host, hydrationInst));
             controller._hydrateCustomElement(hydrationInst, /* root does not have hydration context */ null);
             return onResolve(this._runAppTasks('hydrating'), () => {
                 controller._hydrate(null);
@@ -5466,7 +5460,7 @@ function getRefTarget(refHost, refTargetName) {
 let SetPropertyRenderer = 
 /** @internal */
 class SetPropertyRenderer {
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         const obj = getTarget(target);
         if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
             obj.$observers[instruction.to].setValue(instruction.value, 2 /* fromBind */);
@@ -5488,7 +5482,7 @@ class CustomElementRenderer {
         this.p = p;
     }
     static get inject() { return [IRendering, IPlatform]; }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         /* eslint-disable prefer-const */
         let def;
         let Ctor;
@@ -5529,9 +5523,7 @@ class CustomElementRenderer {
         /* viewModel           */ component, 
         /* host                */ target, 
         /* instruction         */ instruction, 
-        /* flags               */ f, 
         /* definition          */ def);
-        f = childCtrl.flags;
         setRef(target, def.key, childCtrl);
         const renderers = this.r.renderers;
         const props = instruction.props;
@@ -5540,7 +5532,7 @@ class CustomElementRenderer {
         let propInst;
         while (ii > i) {
             propInst = props[i];
-            renderers[propInst.type].render(f, renderingCtrl, childCtrl, propInst);
+            renderers[propInst.type].render(renderingCtrl, childCtrl, propInst);
             ++i;
         }
         renderingCtrl.addChild(childCtrl);
@@ -5559,7 +5551,7 @@ class CustomAttributeRenderer {
         this.p = p;
     }
     static get inject() { return [IRendering, IPlatform]; }
-    render(f, 
+    render(
     /**
      * The cotroller that is currently invoking this renderer
      */
@@ -5596,7 +5588,6 @@ class CustomAttributeRenderer {
         /* context ct */ renderingCtrl.container, 
         /* viewModel  */ component, 
         /* host       */ target, 
-        /* flags      */ f, 
         /* definition */ def);
         setRef(target, def.key, childController);
         const renderers = this.r.renderers;
@@ -5606,7 +5597,7 @@ class CustomAttributeRenderer {
         let propInst;
         while (ii > i) {
             propInst = props[i];
-            renderers[propInst.type].render(f, renderingCtrl, childController, propInst);
+            renderers[propInst.type].render(renderingCtrl, childController, propInst);
             ++i;
         }
         renderingCtrl.addChild(childController);
@@ -5625,7 +5616,7 @@ class TemplateControllerRenderer {
         this.p = p;
     }
     static get inject() { return [IRendering, IPlatform]; }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         var _a;
         /* eslint-disable prefer-const */
         let ctxContainer = renderingCtrl.container;
@@ -5661,10 +5652,9 @@ class TemplateControllerRenderer {
         /* container ct */ renderingCtrl.container, 
         /* viewModel    */ component, 
         /* host         */ target, 
-        /* flags        */ f, 
         /* definition   */ def);
         setRef(renderLocation, def.key, childController);
-        (_a = component.link) === null || _a === void 0 ? void 0 : _a.call(component, f, renderingCtrl, childController, target, instruction);
+        (_a = component.link) === null || _a === void 0 ? void 0 : _a.call(component, renderingCtrl, childController, target, instruction);
         const renderers = this.r.renderers;
         const props = instruction.props;
         const ii = props.length;
@@ -5672,7 +5662,7 @@ class TemplateControllerRenderer {
         let propInst;
         while (ii > i) {
             propInst = props[i];
-            renderers[propInst.type].render(f, renderingCtrl, childController, propInst);
+            renderers[propInst.type].render(renderingCtrl, childController, propInst);
             ++i;
         }
         renderingCtrl.addChild(childController);
@@ -5690,7 +5680,7 @@ class LetElementRenderer {
         this.parser = parser;
         this.oL = oL;
     }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         target.remove();
         const childInstructions = instruction.instructions;
         const toBindingContext = instruction.toBindingContext;
@@ -5725,7 +5715,7 @@ class CallBindingRenderer {
         this.parser = parser;
         this.oL = observerLocator;
     }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
         const binding = new CallBinding(expr, getTarget(target), instruction.to, this.oL, renderingCtrl.container);
         renderingCtrl.addBinding(expr.$kind === 38962 /* BindingBehavior */
@@ -5744,7 +5734,7 @@ class RefBindingRenderer {
     constructor(parser) {
         this.parser = parser;
     }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 5376 /* IsRef */);
         const binding = new RefBinding(expr, getRefTarget(target, instruction.to), renderingCtrl.container);
         renderingCtrl.addBinding(expr.$kind === 38962 /* BindingBehavior */
@@ -5766,7 +5756,7 @@ class InterpolationBindingRenderer {
         this.oL = oL;
         this.p = p;
     }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         const container = renderingCtrl.container;
         const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
         const binding = new InterpolationBinding(this.oL, expr, getTarget(target), instruction.to, BindingMode.toView, container, this.p.domWriteQueue);
@@ -5799,7 +5789,7 @@ class PropertyBindingRenderer {
         this.oL = oL;
         this.p = p;
     }
-    render(flags, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
         const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.oL, renderingCtrl.container, this.p.domWriteQueue);
         renderingCtrl.addBinding(expr.$kind === 38962 /* BindingBehavior */
@@ -5823,7 +5813,7 @@ class IteratorBindingRenderer {
         this.oL = oL;
         this.p = p;
     }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
         const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.oL, renderingCtrl.container, this.p.domWriteQueue);
         renderingCtrl.addBinding(binding);
@@ -5866,7 +5856,7 @@ class TextBindingRenderer {
         this.oL = oL;
         this.p = p;
     }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         const container = renderingCtrl.container;
         const next = target.nextSibling;
         const parent = target.parentNode;
@@ -5922,7 +5912,7 @@ class ListenerBindingRenderer {
         this.eventDelegator = eventDelegator;
         this.p = p;
     }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
         const binding = new Listener(this.p, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, renderingCtrl.container);
         renderingCtrl.addBinding(expr.$kind === 38962 /* BindingBehavior */
@@ -5941,7 +5931,7 @@ ListenerBindingRenderer = __decorate([
 let SetAttributeRenderer = 
 /** @internal */
 class SetAttributeRenderer {
-    render(f, _, target, instruction) {
+    render(_, target, instruction) {
         target.setAttribute(instruction.to, instruction.value);
     }
 };
@@ -5950,7 +5940,7 @@ SetAttributeRenderer = __decorate([
     /** @internal */
 ], SetAttributeRenderer);
 let SetClassAttributeRenderer = class SetClassAttributeRenderer {
-    render(f, _, target, instruction) {
+    render(_, target, instruction) {
         addClasses(target.classList, instruction.value);
     }
 };
@@ -5958,7 +5948,7 @@ SetClassAttributeRenderer = __decorate([
     renderer("hf" /* setClassAttribute */)
 ], SetClassAttributeRenderer);
 let SetStyleAttributeRenderer = class SetStyleAttributeRenderer {
-    render(f, _, target, instruction) {
+    render(_, target, instruction) {
         target.style.cssText += instruction.value;
     }
 };
@@ -5973,7 +5963,7 @@ class StylePropertyBindingRenderer {
         this.oL = oL;
         this.p = p;
     }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
         const binding = new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.oL, renderingCtrl.container, this.p.domWriteQueue);
         renderingCtrl.addBinding(expr.$kind === 38962 /* BindingBehavior */
@@ -5996,7 +5986,7 @@ class AttributeBindingRenderer {
         this.parser = parser;
         this.oL = oL;
     }
-    render(f, renderingCtrl, target, instruction) {
+    render(renderingCtrl, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
         const binding = new AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, BindingMode.toView, this.oL, renderingCtrl.container);
         renderingCtrl.addBinding(expr.$kind === 38962 /* BindingBehavior */
@@ -7258,6 +7248,7 @@ class TemplateCompiler {
                                 template,
                                 instructions: projectionCompilationContext.rows,
                                 needsCompile: false,
+                                isStrictBinding: context.root.def.isStrictBinding,
                             });
                         }
                         elementInstruction.projections = projections;
@@ -7284,6 +7275,7 @@ class TemplateCompiler {
                 template: mostInnerTemplate,
                 instructions: childContext.rows,
                 needsCompile: false,
+                isStrictBinding: context.root.def.isStrictBinding,
             });
             // 4.1.2.
             //  Start processing other Template controllers by walking the TC list (list 1) RIGHT -> LEFT
@@ -7308,7 +7300,8 @@ class TemplateCompiler {
                     name: CustomElement.generateName(),
                     template,
                     needsCompile: false,
-                    instructions: [[tcInstructions[i + 1]]]
+                    instructions: [[tcInstructions[i + 1]]],
+                    isStrictBinding: context.root.def.isStrictBinding,
                 });
             }
             // the most outer template controller should be
@@ -7433,6 +7426,7 @@ class TemplateCompiler {
                             template,
                             instructions: projectionCompilationContext.rows,
                             needsCompile: false,
+                            isStrictBinding: context.root.def.isStrictBinding,
                         });
                     }
                     elementInstruction.projections = projections;
@@ -9616,13 +9610,13 @@ class If {
             if (this.value) {
                 view = (this.view = this.ifView = this.cache && this.ifView != null
                     ? this.ifView
-                    : this.ifFactory.create(f));
+                    : this.ifFactory.create());
             }
             else {
                 // truthy -> falsy
                 view = (this.view = this.elseView = this.cache && this.elseView != null
                     ? this.elseView
-                    : (_a = this.elseFactory) === null || _a === void 0 ? void 0 : _a.create(f));
+                    : (_a = this.elseFactory) === null || _a === void 0 ? void 0 : _a.create());
             }
             if (view == null) {
                 return;
@@ -9683,13 +9677,13 @@ class If {
             if (newValue) {
                 view = (this.view = this.ifView = this.cache && this.ifView != null
                     ? this.ifView
-                    : this.ifFactory.create(f));
+                    : this.ifFactory.create());
             }
             else {
                 // truthy -> falsy
                 view = (this.view = this.elseView = this.cache && this.elseView != null
                     ? this.elseView
-                    : (_a = this.elseFactory) === null || _a === void 0 ? void 0 : _a.create(f));
+                    : (_a = this.elseFactory) === null || _a === void 0 ? void 0 : _a.create());
             }
             if (view == null) {
                 return;
@@ -9735,7 +9729,7 @@ class Else {
         this.factory = factory;
         this.id = nextId('au$component');
     }
-    link(flags, controller, _childController, _target, _instruction) {
+    link(controller, _childController, _target, _instruction) {
         const children = controller.children;
         const ifBehavior = children[children.length - 1];
         if (ifBehavior instanceof If) {
@@ -9888,7 +9882,7 @@ class Repeat {
         const newLen = this.forOf.count(flags, items);
         const views = this.views = Array(newLen);
         this.forOf.iterate(flags, items, (arr, i, item) => {
-            view = views[i] = factory.create(flags).setLocation(location);
+            view = views[i] = factory.create().setLocation(location);
             view.nodes.unlink();
             viewScope = Scope.fromParent(parentScope, BindingContext.create(local, item));
             setContextualProperties(viewScope.overrideContext, i, newLen);
@@ -9963,7 +9957,7 @@ class Repeat {
         const mapLen = indexMap.length;
         for (; mapLen > i; ++i) {
             if (indexMap[i] === -2) {
-                view = factory.create(flags);
+                view = factory.create();
                 views.splice(i, 0, view);
             }
         }
@@ -10165,8 +10159,8 @@ let Switch = class Switch {
          */
         this.promise = void 0;
     }
-    link(flags, _controller, _childController, _target, _instruction) {
-        this.view = this.factory.create(flags, this.$controller).setLocation(this.location);
+    link(_controller, _childController, _target, _instruction) {
+        this.view = this.factory.create(this.$controller).setLocation(this.location);
     }
     attaching(initiator, parent, flags) {
         const view = this.view;
@@ -10340,7 +10334,7 @@ let Case = class Case {
         this.logger = logger.scopeTo(`${this.constructor.name}-#${this.id}`);
         this.view = this.factory.create().setLocation(location);
     }
-    link(flags, controller, _childController, _target, _instruction) {
+    link(controller, _childController, _target, _instruction) {
         const switchController = controller.parent;
         const $switch = switchController === null || switchController === void 0 ? void 0 : switchController.viewModel;
         if ($switch instanceof Switch) {
@@ -10462,8 +10456,8 @@ let PromiseTemplateController = class PromiseTemplateController {
         this.postSettledTask = null;
         this.logger = logger.scopeTo('promise.resolve');
     }
-    link(flags, _controller, _childController, _target, _instruction) {
-        this.view = this.factory.create(flags, this.$controller).setLocation(this.location);
+    link(_controller, _childController, _target, _instruction) {
+        this.view = this.factory.create(this.$controller).setLocation(this.location);
     }
     attaching(initiator, parent, flags) {
         const view = this.view;
@@ -10568,7 +10562,7 @@ let PendingTemplateController = class PendingTemplateController {
         this.id = nextId('au$component');
         this.view = this.factory.create().setLocation(location);
     }
-    link(flags, controller, _childController, _target, _instruction) {
+    link(controller, _childController, _target, _instruction) {
         getPromiseController(controller).pending = this;
     }
     activate(initiator, flags, scope) {
@@ -10608,7 +10602,7 @@ let FulfilledTemplateController = class FulfilledTemplateController {
         this.id = nextId('au$component');
         this.view = this.factory.create().setLocation(location);
     }
-    link(flags, controller, _childController, _target, _instruction) {
+    link(controller, _childController, _target, _instruction) {
         getPromiseController(controller).fulfilled = this;
     }
     activate(initiator, flags, scope, resolvedValue) {
@@ -10649,7 +10643,7 @@ let RejectedTemplateController = class RejectedTemplateController {
         this.id = nextId('au$component');
         this.view = this.factory.create().setLocation(location);
     }
-    link(flags, controller, _childController, _target, _instruction) {
+    link(controller, _childController, _target, _instruction) {
         getPromiseController(controller).rejected = this;
     }
     activate(initiator, flags, scope, error) {
@@ -10928,10 +10922,10 @@ let AuRender = class AuRender {
                 return comp.createView(ctxContainer);
             }
             if ('create' in comp) { // IViewFactory
-                return comp.create(flags);
+                return comp.create();
             }
             if ('template' in comp) { // Raw Template Definition
-                return this.r.getViewFactory(CustomElementDefinition.getOrCreate(comp), ctxContainer).create(flags);
+                return this.r.getViewFactory(CustomElementDefinition.getOrCreate(comp), ctxContainer).create();
             }
         }
         if (typeof comp === 'string') {
@@ -11113,7 +11107,7 @@ class AuCompose {
         const compose = () => {
             // custom element based composition
             if (srcDef !== null) {
-                const controller = Controller.$el(childCtn, comp, compositionHost, null, 0 /* none */, srcDef);
+                const controller = Controller.$el(childCtn, comp, compositionHost, null, srcDef);
                 return new CompositionController(controller, () => controller.activate(initiator !== null && initiator !== void 0 ? initiator : controller, $controller, 2 /* fromBind */), 
                 // todo: call deactivate on the component view model
                 (deactachInitiator) => onResolve(controller.deactivate(deactachInitiator !== null && deactachInitiator !== void 0 ? deactachInitiator : controller, $controller, 4 /* fromUnbind */), removeCompositionHost), 
@@ -11127,7 +11121,7 @@ class AuCompose {
                     template: view,
                 });
                 const viewFactory = this.r.getViewFactory(targetDef, childCtn);
-                const controller = Controller.$view(viewFactory, 2 /* fromBind */, $controller);
+                const controller = Controller.$view(viewFactory, $controller);
                 const scope = this.scopeBehavior === 'auto'
                     ? Scope.fromParent(this.parent.scope, comp)
                     : Scope.create(comp);
@@ -11686,7 +11680,7 @@ class Aurelia {
         }
         ctn.registerResolver(IEventTarget, new InstanceProvider('IEventTarget', host));
         parentController = parentController !== null && parentController !== void 0 ? parentController : null;
-        const view = Controller.$el(ctn, bc, host, null, void 0, CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }));
+        const view = Controller.$el(ctn, bc, host, null, CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }));
         return onResolve(view.activate(view, parentController, 2 /* fromBind */), () => view);
     }
     async waitForIdle() {
@@ -11869,7 +11863,7 @@ class DialogController {
             const cmp = this.cmp;
             return onResolve((_a = cmp.activate) === null || _a === void 0 ? void 0 : _a.call(cmp, model), () => {
                 var _a;
-                const ctrlr = this.controller = Controller.$el(container, cmp, contentHost, null, 0 /* none */, CustomElementDefinition.create((_a = this.getDefinition(cmp)) !== null && _a !== void 0 ? _a : { name: CustomElement.generateName(), template }));
+                const ctrlr = this.controller = Controller.$el(container, cmp, contentHost, null, CustomElementDefinition.create((_a = this.getDefinition(cmp)) !== null && _a !== void 0 ? _a : { name: CustomElement.generateName(), template }));
                 return onResolve(ctrlr.activate(ctrlr, null, 2 /* fromBind */), () => {
                     var _a;
                     dom.overlay.addEventListener((_a = settings.mouseEvent) !== null && _a !== void 0 ? _a : 'click', this);

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/route-recognizer",
-  "version": "2.1.0-dev.202107291313",
+  "version": "2.1.0-dev.202107300716",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",

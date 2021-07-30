@@ -9,7 +9,6 @@ import {
   renderer,
   IObserverLocator,
   IsBindingBehavior,
-  LifecycleFlags,
   attributePattern,
   AttrSyntax,
   bindingCommand,
@@ -78,7 +77,6 @@ export class TranslationParametersBindingRenderer implements IRenderer {
   ) { }
 
   public render(
-    f: LifecycleFlags,
     renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,

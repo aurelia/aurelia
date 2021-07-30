@@ -86,7 +86,6 @@ describe('TranslationParametersBindingRenderer', function () {
     const callBindingInstruction: CallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as unknown as CallBindingInstruction;
 
     sut.render(
-      LifecycleFlags.none,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -106,7 +105,6 @@ describe('TranslationParametersBindingRenderer', function () {
     const callBindingInstruction: CallBindingInstruction = { from: paramExpr } as unknown as CallBindingInstruction;
 
     sut.render(
-      LifecycleFlags.none,
       hydratable,
       targetElement,
       callBindingInstruction,

@@ -46,13 +46,12 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   }
 
   public link(
-    flags: LifecycleFlags,
     _controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
     _instruction: Instruction,
   ): void {
-    this.view = this.factory.create(flags, this.$controller).setLocation(this.location);
+    this.view = this.factory.create(this.$controller).setLocation(this.location);
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
@@ -178,7 +177,6 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   }
 
   public link(
-    flags: LifecycleFlags,
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
@@ -226,7 +224,6 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   }
 
   public link(
-    flags: LifecycleFlags,
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
@@ -275,7 +272,6 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
   }
 
   public link(
-    flags: LifecycleFlags,
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,

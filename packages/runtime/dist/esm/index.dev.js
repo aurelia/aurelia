@@ -1,13 +1,26 @@
-import { Protocol, Metadata, Registration, DI, firstDefined, mergeArrays, fromAnnotationOrDefinitionOrTypeOrDefault, isNumberOrBigInt, isStringOrDate, emptyArray, isArrayIndex, IPlatform, ILogger } from '@aurelia/kernel';
+import { Metadata, Protocol, Registration, DI, firstDefined, mergeArrays, fromAnnotationOrDefinitionOrTypeOrDefault, isNumberOrBigInt, isStringOrDate, emptyArray, isArrayIndex, IPlatform, ILogger } from '@aurelia/kernel';
 export { IPlatform } from '@aurelia/kernel';
 export { Platform, Task, TaskAbortError, TaskQueue, TaskQueuePriority, TaskStatus } from '@aurelia/platform';
 
+/** @internal */
+const getOwnMetadata = Metadata.getOwn;
+/** @internal */
+const hasOwnMetadata = Metadata.hasOwn;
+/** @internal */
+const defineMetadata = Metadata.define;
+/** @internal */
+const getAnnotationKeyFor = Protocol.annotation.keyFor;
+/** @internal */
+const getResourceKeyFor = Protocol.resource.keyFor;
+/** @internal */
+const appendResourceKey = Protocol.resource.appendTo;
+
 function alias(...aliases) {
     return function (target) {
-        const key = Protocol.annotation.keyFor('aliases');
-        const existing = Metadata.getOwn(key, target);
+        const key = getAnnotationKeyFor('aliases');
+        const existing = getOwnMetadata(key, target);
         if (existing === void 0) {
-            Metadata.define(key, aliases, target);
+            defineMetadata(key, aliases, target);
         }
         else {
             existing.push(...aliases);
@@ -221,8 +234,7 @@ class BindingBehaviorDefinition {
             def = nameOrDef;
         }
         const inheritsFromInterceptor = Object.getPrototypeOf(Type) === BindingInterceptor;
-        const getAnnotation = BindingBehavior.getAnnotation;
-        return new BindingBehaviorDefinition(Type, firstDefined(getAnnotation(Type, 'name'), name), mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), BindingBehavior.keyFrom(name), fromAnnotationOrDefinitionOrTypeOrDefault('strategy', def, Type, () => inheritsFromInterceptor ? 2 /* interceptor */ : 1 /* singleton */));
+        return new BindingBehaviorDefinition(Type, firstDefined(getBehaviorAnnotation(Type, 'name'), name), mergeArrays(getBehaviorAnnotation(Type, 'aliases'), def.aliases, Type.aliases), BindingBehavior.keyFrom(name), fromAnnotationOrDefinitionOrTypeOrDefault('strategy', def, Type, () => inheritsFromInterceptor ? 2 /* interceptor */ : 1 /* singleton */));
     }
     register(container) {
         const { Type, key, aliases, strategy } = this;
@@ -320,35 +332,34 @@ class BindingInterceptor {
         this.binding.$unbind(flags);
     }
 }
-const bbBaseName = Protocol.resource.keyFor('binding-behavior');
+const bbBaseName = getResourceKeyFor('binding-behavior');
+const getBehaviorAnnotation = (Type, prop) => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 const BindingBehavior = Object.freeze({
     name: bbBaseName,
     keyFrom(name) {
         return `${bbBaseName}:${name}`;
     },
     isType(value) {
-        return typeof value === 'function' && Metadata.hasOwn(bbBaseName, value);
+        return typeof value === 'function' && hasOwnMetadata(bbBaseName, value);
     },
     define(nameOrDef, Type) {
         const definition = BindingBehaviorDefinition.create(nameOrDef, Type);
-        Metadata.define(bbBaseName, definition, definition.Type);
-        Metadata.define(bbBaseName, definition, definition);
-        Protocol.resource.appendTo(Type, bbBaseName);
+        defineMetadata(bbBaseName, definition, definition.Type);
+        defineMetadata(bbBaseName, definition, definition);
+        appendResourceKey(Type, bbBaseName);
         return definition.Type;
     },
     getDefinition(Type) {
-        const def = Metadata.getOwn(bbBaseName, Type);
+        const def = getOwnMetadata(bbBaseName, Type);
         if (def === void 0) {
             throw new Error(`AUR0151:${Type.name}`);
         }
         return def;
     },
     annotate(Type, prop, value) {
-        Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+        defineMetadata(getAnnotationKeyFor(prop), value, Type);
     },
-    getAnnotation(Type, prop) {
-        return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
-    },
+    getAnnotation: getBehaviorAnnotation,
 });
 
 function valueConverter(nameOrDef) {
@@ -374,8 +385,7 @@ class ValueConverterDefinition {
             name = nameOrDef.name;
             def = nameOrDef;
         }
-        const getAnnotation = ValueConverter.getAnnotation;
-        return new ValueConverterDefinition(Type, firstDefined(getAnnotation(Type, 'name'), name), mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), ValueConverter.keyFrom(name));
+        return new ValueConverterDefinition(Type, firstDefined(getConverterAnnotation(Type, 'name'), name), mergeArrays(getConverterAnnotation(Type, 'aliases'), def.aliases, Type.aliases), ValueConverter.keyFrom(name));
     }
     register(container) {
         const { Type, key, aliases } = this;
@@ -384,35 +394,32 @@ class ValueConverterDefinition {
         registerAliases(aliases, ValueConverter, key, container);
     }
 }
-const vcBaseName = Protocol.resource.keyFor('value-converter');
+const vcBaseName = getResourceKeyFor('value-converter');
+const getConverterAnnotation = (Type, prop) => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 const ValueConverter = Object.freeze({
     name: vcBaseName,
-    keyFrom(name) {
-        return `${vcBaseName}:${name}`;
-    },
+    keyFrom: (name) => `${vcBaseName}:${name}`,
     isType(value) {
-        return typeof value === 'function' && Metadata.hasOwn(vcBaseName, value);
+        return typeof value === 'function' && hasOwnMetadata(vcBaseName, value);
     },
     define(nameOrDef, Type) {
         const definition = ValueConverterDefinition.create(nameOrDef, Type);
-        Metadata.define(vcBaseName, definition, definition.Type);
-        Metadata.define(vcBaseName, definition, definition);
-        Protocol.resource.appendTo(Type, vcBaseName);
+        defineMetadata(vcBaseName, definition, definition.Type);
+        defineMetadata(vcBaseName, definition, definition);
+        appendResourceKey(Type, vcBaseName);
         return definition.Type;
     },
     getDefinition(Type) {
-        const def = Metadata.getOwn(vcBaseName, Type);
+        const def = getOwnMetadata(vcBaseName, Type);
         if (def === void 0) {
             throw new Error(`AUR0152:${Type.name}`);
         }
         return def;
     },
     annotate(Type, prop, value) {
-        Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+        defineMetadata(getAnnotationKeyFor(prop), value, Type);
     },
-    getAnnotation(Type, prop) {
-        return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
-    },
+    getAnnotation: getConverterAnnotation,
 });
 
 /* eslint-disable eqeqeq */

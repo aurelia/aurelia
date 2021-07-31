@@ -75,7 +75,7 @@ export declare class AttributePatternResourceDefinition implements ResourceDefin
     constructor(Type: ResourceType<Constructable, Partial<IAttributePattern>>);
     register(container: IContainer): void;
 }
-export declare const AttributePattern: AttributePattern;
+export declare const AttributePattern: Readonly<AttributePattern>;
 export declare class DotSeparatedAttributePattern {
     'PART.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax;
     'PART.PART.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax;

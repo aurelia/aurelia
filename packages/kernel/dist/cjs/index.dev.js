@@ -485,75 +485,78 @@ function resolveAll(...maybePromises) {
     return Promise.all(promises);
 }
 
+/** @internal */
+const getOwnMetadata = metadata.Metadata.getOwn;
+/** @internal */
+const hasOwnMetadata = metadata.Metadata.hasOwn;
+/** @internal */
+const defineMetadata = metadata.Metadata.define;
+
 const annoBaseName = 'au:annotation';
-const annotation = {
+/** @internal */
+const getAnnotationKeyFor = (name, context) => {
+    if (context === void 0) {
+        return `${annoBaseName}:${name}`;
+    }
+    return `${annoBaseName}:${name}:${context}`;
+};
+/** @internal */
+const appendAnnotation = (target, key) => {
+    const keys = getOwnMetadata(annoBaseName, target);
+    if (keys === void 0) {
+        defineMetadata(annoBaseName, [key], target);
+    }
+    else {
+        keys.push(key);
+    }
+};
+const annotation = Object.freeze({
     name: 'au:annotation',
-    appendTo(target, key) {
-        const keys = metadata.Metadata.getOwn(annoBaseName, target);
-        if (keys === void 0) {
-            metadata.Metadata.define(annoBaseName, [key], target);
-        }
-        else {
-            keys.push(key);
-        }
-    },
+    appendTo: appendAnnotation,
     set(target, prop, value) {
-        metadata.Metadata.define(annotation.keyFor(prop), value, target);
+        defineMetadata(getAnnotationKeyFor(prop), value, target);
     },
-    get(target, prop) {
-        return metadata.Metadata.getOwn(annotation.keyFor(prop), target);
-    },
+    get: (target, prop) => getOwnMetadata(getAnnotationKeyFor(prop), target),
     getKeys(target) {
-        let keys = metadata.Metadata.getOwn(annoBaseName, target);
+        let keys = getOwnMetadata(annoBaseName, target);
         if (keys === void 0) {
-            metadata.Metadata.define(annoBaseName, keys = [], target);
+            defineMetadata(annoBaseName, keys = [], target);
         }
         return keys;
     },
-    isKey(key) {
-        return key.startsWith(annoBaseName);
-    },
-    keyFor(name, context) {
-        if (context === void 0) {
-            return `${annoBaseName}:${name}`;
-        }
-        return `${annoBaseName}:${name}:${context}`;
-    },
-};
+    isKey: (key) => key.startsWith(annoBaseName),
+    keyFor: getAnnotationKeyFor,
+});
 const resBaseName = 'au:resource';
 const resource = Object.freeze({
     name: resBaseName,
     appendTo(target, key) {
-        const keys = metadata.Metadata.getOwn(resBaseName, target);
+        const keys = getOwnMetadata(resBaseName, target);
         if (keys === void 0) {
-            metadata.Metadata.define(resBaseName, [key], target);
+            defineMetadata(resBaseName, [key], target);
         }
         else {
             keys.push(key);
         }
     },
-    has(target) {
-        return metadata.Metadata.hasOwn(resBaseName, target);
-    },
+    has: (target) => hasOwnMetadata(resBaseName, target),
     getAll(target) {
-        const keys = metadata.Metadata.getOwn(resBaseName, target);
+        const keys = getOwnMetadata(resBaseName, target);
         if (keys === void 0) {
             return emptyArray;
         }
         else {
-            return keys.map(k => metadata.Metadata.getOwn(k, target));
+            return keys.map(k => getOwnMetadata(k, target));
         }
     },
     getKeys(target) {
-        let keys = metadata.Metadata.getOwn(resBaseName, target);
+        let keys = getOwnMetadata(resBaseName, target);
         if (keys === void 0) {
-            metadata.Metadata.define(resBaseName, keys = [], target);
+            defineMetadata(resBaseName, keys = [], target);
         }
         return keys;
     },
-    isKey(key) {
-        return key.startsWith(resBaseName);
-    },
+    isKey: (key) => key.startsWith(resBaseName),
     keyFor(name, context) {
         if (context === void 0) {
             return `${resBaseName}:${name}`;
@@ -574,7 +577,7 @@ const hasOwn = Object.prototype.hasOwnProperty;
  * 4. The default property that is provided last. The function is only called if the default property is needed
  */
 function fromAnnotationOrDefinitionOrTypeOrDefault(name, def, Type, getDefault) {
-    let value = metadata.Metadata.getOwn(Protocol.annotation.keyFor(name), Type);
+    let value = getOwnMetadata(getAnnotationKeyFor(name), Type);
     if (value === void 0) {
         value = def[name];
         if (value === void 0) {
@@ -595,7 +598,7 @@ function fromAnnotationOrDefinitionOrTypeOrDefault(name, def, Type, getDefault) 
  * 3. The default property that is provided last. The function is only called if the default property is needed
  */
 function fromAnnotationOrTypeOrDefault(name, Type, getDefault) {
-    let value = metadata.Metadata.getOwn(Protocol.annotation.keyFor(name), Type);
+    let value = getOwnMetadata(getAnnotationKeyFor(name), Type);
     if (value === void 0) {
         value = Type[name];
         if (value === void 0 || !hasOwn.call(Type, name)) { // First just check the value (common case is faster), but do make sure it doesn't come from the proto chain
@@ -690,11 +693,11 @@ const DI = {
         return new Container(null, ContainerConfiguration.from(config));
     },
     getDesignParamtypes(Type) {
-        return metadata.Metadata.getOwn('design:paramtypes', Type);
+        return getOwnMetadata('design:paramtypes', Type);
     },
     getAnnotationParamtypes(Type) {
-        const key = Protocol.annotation.keyFor('di:paramtypes');
-        return metadata.Metadata.getOwn(key, Type);
+        const key = getAnnotationKeyFor('di:paramtypes');
+        return getOwnMetadata(key, Type);
     },
     getOrCreateAnnotationParamTypes: getOrCreateAnnotationParamTypes,
     getDependencies: getDependencies,
@@ -858,8 +861,8 @@ function getDependencies(Type) {
     // Note: Every detail of this getDependencies method is pretty deliberate at the moment, and probably not yet 100% tested from every possible angle,
     // so be careful with making changes here as it can have a huge impact on complex end user apps.
     // Preferably, only make changes to the dependency resolution process via a RFC.
-    const key = Protocol.annotation.keyFor('di:dependencies');
-    let dependencies = metadata.Metadata.getOwn(key, Type);
+    const key = getAnnotationKeyFor('di:dependencies');
+    let dependencies = getOwnMetadata(key, Type);
     if (dependencies === void 0) {
         // Type.length is the number of constructor parameters. If this is 0, it could mean the class has an empty constructor
         // but it could also mean the class has no constructor at all (in which case it inherits the constructor from the prototype).
@@ -920,17 +923,17 @@ function getDependencies(Type) {
             // Ignore paramtypes if we have static inject
             dependencies = cloneArrayWithPossibleProps(inject);
         }
-        metadata.Metadata.define(key, dependencies, Type);
-        Protocol.annotation.appendTo(Type, key);
+        defineMetadata(key, dependencies, Type);
+        appendAnnotation(Type, key);
     }
     return dependencies;
 }
 function getOrCreateAnnotationParamTypes(Type) {
-    const key = Protocol.annotation.keyFor('di:paramtypes');
-    let annotationParamtypes = metadata.Metadata.getOwn(key, Type);
+    const key = getAnnotationKeyFor('di:paramtypes');
+    let annotationParamtypes = getOwnMetadata(key, Type);
     if (annotationParamtypes === void 0) {
-        metadata.Metadata.define(key, annotationParamtypes = [], Type);
-        Protocol.annotation.appendTo(Type, key);
+        defineMetadata(key, annotationParamtypes = [], Type);
+        appendAnnotation(Type, key);
     }
     return annotationParamtypes;
 }
@@ -1247,8 +1250,8 @@ const InstrinsicTypeNames = new Set([
     'WeakMap',
     'WeakSet',
 ]);
-const factoryKey = 'di:factory';
-Protocol.annotation.keyFor(factoryKey);
+// const factoryKey = 'di:factory';
+// const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
 let containerId = 0;
 /** @internal */
 class Container {
@@ -1564,7 +1567,7 @@ class Container {
             if (factory === null || factory === void 0) {
                 return null;
             }
-            const definition = metadata.Metadata.getOwn(kind.name, factory.Type);
+            const definition = getOwnMetadata(kind.name, factory.Type);
             if (definition === void 0) {
                 // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
                 // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
@@ -1933,9 +1936,9 @@ const ILogEventFactory = DI.createInterface('ILogEventFactory', x => x.singleton
 const ILogger = DI.createInterface('ILogger', x => x.singleton(exports.DefaultLogger));
 const ILogScopes = DI.createInterface('ILogScope');
 const LoggerSink = Object.freeze({
-    key: Protocol.annotation.keyFor('logger-sink-handles'),
+    key: getAnnotationKeyFor('logger-sink-handles'),
     define(target, definition) {
-        metadata.Metadata.define(this.key, definition.handles, target.prototype);
+        defineMetadata(this.key, definition.handles, target.prototype);
         return target;
     },
     getHandles(target) {

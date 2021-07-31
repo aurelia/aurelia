@@ -1,4 +1,4 @@
-import { DefinitionType } from './resources-constants.js';
+import { DefinitionType } from './resources-shared.js';
 import type { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
 import type { INode } from '../dom.js';
@@ -167,7 +167,7 @@ export declare class CustomElementDefinition<C extends Constructable = Construct
     register(container: IContainer): void;
 }
 export declare type InjectableToken<K = any> = (target: Injectable<K>, property: string, index: number) => void;
-export declare const CustomElement: CustomElementKind;
+export declare const CustomElement: Readonly<CustomElementKind>;
 declare type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
 declare type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
 export declare function processContent(hook: ProcessContentHook): CustomElementDecorator;

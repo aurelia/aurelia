@@ -33,6 +33,24 @@ function __param(paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 }
 
+/** @internal */
+const getOwnMetadata = kernel.Metadata.getOwn;
+/** @internal */
+const hasOwnMetadata = kernel.Metadata.hasOwn;
+/** @internal */
+const defineMetadata = kernel.Metadata.define;
+const { annotation, resource } = kernel.Protocol;
+/** @internal */
+const getAnnotationKeyFor = annotation.keyFor;
+/** @internal */
+const getResourceKeyFor = resource.keyFor;
+/** @internal */
+const appendResourceKey = resource.appendTo;
+/** @internal */
+const appendAnnotationKey = annotation.appendTo;
+/** @internal */
+const getAllAnnotations = annotation.getKeys;
+
 function bindable(configOrTarget, prop) {
     let config;
     function decorator($target, $prop) {
@@ -44,8 +62,8 @@ function bindable(configOrTarget, prop) {
             // - @bindable({...opts})
             config.property = $prop;
         }
-        kernel.Metadata.define(baseName$1, BindableDefinition.create($prop, config), $target.constructor, $prop);
-        kernel.Protocol.annotation.appendTo($target.constructor, Bindable.keyFrom($prop));
+        defineMetadata(baseName$1, BindableDefinition.create($prop, config), $target.constructor, $prop);
+        appendAnnotationKey($target.constructor, Bindable.keyFrom($prop));
     }
     if (arguments.length > 1) {
         // Non invocation:
@@ -71,12 +89,10 @@ function bindable(configOrTarget, prop) {
 function isBindableAnnotation(key) {
     return key.startsWith(baseName$1);
 }
-const baseName$1 = kernel.Protocol.annotation.keyFor('bindable');
+const baseName$1 = getAnnotationKeyFor('bindable');
 const Bindable = Object.freeze({
     name: baseName$1,
-    keyFrom(name) {
-        return `${baseName$1}:${name}`;
-    },
+    keyFrom: (name) => `${baseName$1}:${name}`,
     from(...bindableLists) {
         const bindables = {};
         const isArray = Array.isArray;
@@ -115,10 +131,10 @@ const Bindable = Object.freeze({
                     config = configOrProp;
                 }
                 def = BindableDefinition.create(prop, config);
-                if (!kernel.Metadata.hasOwn(baseName$1, Type, prop)) {
-                    kernel.Protocol.annotation.appendTo(Type, Bindable.keyFrom(prop));
+                if (!hasOwnMetadata(baseName$1, Type, prop)) {
+                    appendAnnotationKey(Type, Bindable.keyFrom(prop));
                 }
-                kernel.Metadata.define(baseName$1, def, Type, prop);
+                defineMetadata(baseName$1, def, Type, prop);
                 return builder;
             },
             mode(mode) {
@@ -156,10 +172,10 @@ const Bindable = Object.freeze({
         let i;
         while (--iProto >= 0) {
             Class = prototypeChain[iProto];
-            keys = kernel.Protocol.annotation.getKeys(Class).filter(isBindableAnnotation);
+            keys = getAllAnnotations(Class).filter(isBindableAnnotation);
             keysLen = keys.length;
             for (i = 0; i < keysLen; ++i) {
-                defs[iDefs++] = kernel.Metadata.getOwn(baseName$1, Class, keys[i].slice(propStart));
+                defs[iDefs++] = getOwnMetadata(baseName$1, Class, keys[i].slice(propStart));
             }
         }
         return defs;
@@ -661,7 +677,7 @@ class AttributeParser {
         this._interpreter = interpreter;
         const patterns = this._patterns = {};
         const allDefs = attrPatterns.reduce((allDefs, attrPattern) => {
-            const patternDefs = AttributePattern.getPatternDefinitions(attrPattern.constructor);
+            const patternDefs = getAllPatternDefinitions(attrPattern.constructor);
             patternDefs.forEach(def => patterns[def.pattern] = attrPattern);
             return allDefs.concat(patternDefs);
         }, kernel.emptyArray);
@@ -697,22 +713,21 @@ class AttributePatternResourceDefinition {
         kernel.Registration.singleton(IAttributePattern, this.Type).register(container);
     }
 }
-const apBaseName = kernel.Protocol.resource.keyFor('attribute-pattern');
+const apBaseName = getResourceKeyFor('attribute-pattern');
 const annotationKey = 'attribute-pattern-definitions';
+const getAllPatternDefinitions = (Type) => kernel.Protocol.annotation.get(Type, annotationKey);
 const AttributePattern = Object.freeze({
     name: apBaseName,
     definitionAnnotationKey: annotationKey,
     define(patternDefs, Type) {
         const definition = new AttributePatternResourceDefinition(Type);
-        kernel.Metadata.define(apBaseName, definition, Type);
-        kernel.Protocol.resource.appendTo(Type, apBaseName);
+        defineMetadata(apBaseName, definition, Type);
+        appendResourceKey(Type, apBaseName);
         kernel.Protocol.annotation.set(Type, annotationKey, patternDefs);
-        kernel.Protocol.annotation.appendTo(Type, annotationKey);
+        appendAnnotationKey(Type, annotationKey);
         return Type;
     },
-    getPatternDefinitions(Type) {
-        return kernel.Protocol.annotation.get(Type, annotationKey);
-    }
+    getPatternDefinitions: getAllPatternDefinitions,
 });
 exports.DotSeparatedAttributePattern = class DotSeparatedAttributePattern {
     'PART.PART'(rawName, rawValue, parts) {
@@ -2146,8 +2161,8 @@ function children(configOrTarget, prop) {
             // - @children({...opts})
             config.property = $prop;
         }
-        kernel.Metadata.define(baseName, ChildrenDefinition.create($prop, config), $target.constructor, $prop);
-        kernel.Protocol.annotation.appendTo($target.constructor, Children.keyFrom($prop));
+        defineMetadata(baseName, ChildrenDefinition.create($prop, config), $target.constructor, $prop);
+        appendAnnotationKey($target.constructor, Children.keyFrom($prop));
     }
     if (arguments.length > 1) {
         // Non invocation:
@@ -2173,12 +2188,10 @@ function children(configOrTarget, prop) {
 function isChildrenObserverAnnotation(key) {
     return key.startsWith(baseName);
 }
-const baseName = kernel.Protocol.annotation.keyFor('children-observer');
+const baseName = getAnnotationKeyFor('children-observer');
 const Children = Object.freeze({
-    name: kernel.Protocol.annotation.keyFor('children-observer'),
-    keyFrom(name) {
-        return `${baseName}:${name}`;
-    },
+    name: baseName,
+    keyFrom: (name) => `${baseName}:${name}`,
     from(...childrenObserverLists) {
         const childrenObservers = {};
         const isArray = Array.isArray;
@@ -2213,10 +2226,10 @@ const Children = Object.freeze({
         let Class;
         while (--iProto >= 0) {
             Class = prototypeChain[iProto];
-            keys = kernel.Protocol.annotation.getKeys(Class).filter(isChildrenObserverAnnotation);
+            keys = getAllAnnotations(Class).filter(isChildrenObserverAnnotation);
             keysLen = keys.length;
             for (let i = 0; i < keysLen; ++i) {
-                defs[iDefs++] = kernel.Metadata.getOwn(baseName, Class, keys[i].slice(propStart));
+                defs[iDefs++] = getOwnMetadata(baseName, Class, keys[i].slice(propStart));
             }
         }
         return defs;
@@ -2357,7 +2370,6 @@ class CustomAttributeDefinition {
     // a simple marker to distinguish between Custom Element definition & Custom attribute definition
     get type() { return 2 /* Attribute */; }
     static create(nameOrDef, Type) {
-        const getAnnotation = CustomAttribute.getAnnotation;
         let name;
         let def;
         if (typeof nameOrDef === 'string') {
@@ -2368,7 +2380,7 @@ class CustomAttributeDefinition {
             name = nameOrDef.name;
             def = nameOrDef;
         }
-        return new CustomAttributeDefinition(Type, kernel.firstDefined(getAnnotation(Type, 'name'), name), kernel.mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), kernel.firstDefined(getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, runtime.BindingMode.toView), kernel.firstDefined(getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(...Bindable.getAll(Type), getAnnotation(Type, 'bindables'), Type.bindables, def.bindables), kernel.firstDefined(getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), kernel.mergeArrays(Watch.getAnnotation(Type), Type.watches));
+        return new CustomAttributeDefinition(Type, kernel.firstDefined(getAttributeAnnotation(Type, 'name'), name), kernel.mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), kernel.firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, runtime.BindingMode.toView), kernel.firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables), kernel.firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), kernel.mergeArrays(Watch.getAnnotation(Type), Type.watches));
     }
     register(container) {
         const { Type, key, aliases } = this;
@@ -2377,39 +2389,37 @@ class CustomAttributeDefinition {
         runtime.registerAliases(aliases, CustomAttribute, key, container);
     }
 }
-const caBaseName = kernel.Protocol.resource.keyFor('custom-attribute');
+const caBaseName = getResourceKeyFor('custom-attribute');
+const getAttributeKeyFrom = (name) => `${caBaseName}:${name}`;
+const getAttributeAnnotation = (Type, prop) => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 const CustomAttribute = Object.freeze({
     name: caBaseName,
-    keyFrom(name) {
-        return `${caBaseName}:${name}`;
-    },
+    keyFrom: getAttributeKeyFrom,
     isType(value) {
-        return typeof value === 'function' && kernel.Metadata.hasOwn(caBaseName, value);
+        return typeof value === 'function' && hasOwnMetadata(caBaseName, value);
     },
     for(node, name) {
         var _a;
-        return ((_a = getRef(node, CustomAttribute.keyFrom(name))) !== null && _a !== void 0 ? _a : void 0);
+        return ((_a = getRef(node, getAttributeKeyFrom(name))) !== null && _a !== void 0 ? _a : void 0);
     },
     define(nameOrDef, Type) {
         const definition = CustomAttributeDefinition.create(nameOrDef, Type);
-        kernel.Metadata.define(caBaseName, definition, definition.Type);
-        kernel.Metadata.define(caBaseName, definition, definition);
-        kernel.Protocol.resource.appendTo(Type, caBaseName);
+        defineMetadata(caBaseName, definition, definition.Type);
+        defineMetadata(caBaseName, definition, definition);
+        appendResourceKey(Type, caBaseName);
         return definition.Type;
     },
     getDefinition(Type) {
-        const def = kernel.Metadata.getOwn(caBaseName, Type);
+        const def = getOwnMetadata(caBaseName, Type);
         if (def === void 0) {
             throw new Error(`AUR0759:${Type.name}`);
         }
         return def;
     },
     annotate(Type, prop, value) {
-        kernel.Metadata.define(kernel.Protocol.annotation.keyFor(prop), value, Type);
+        defineMetadata(getAnnotationKeyFor(prop), value, Type);
     },
-    getAnnotation(Type, prop) {
-        return kernel.Metadata.getOwn(kernel.Protocol.annotation.keyFor(prop), Type);
-    },
+    getAnnotation: getAttributeAnnotation,
 });
 
 function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
@@ -2456,21 +2466,21 @@ class WatchDefinition {
     }
 }
 const noDefinitions = kernel.emptyArray;
-const watchBaseName = kernel.Protocol.annotation.keyFor('watch');
-const Watch = {
+const watchBaseName = getAnnotationKeyFor('watch');
+const Watch = Object.freeze({
     name: watchBaseName,
     add(Type, definition) {
-        let watchDefinitions = kernel.Metadata.getOwn(watchBaseName, Type);
+        let watchDefinitions = getOwnMetadata(watchBaseName, Type);
         if (watchDefinitions == null) {
-            kernel.Metadata.define(watchBaseName, watchDefinitions = [], Type);
+            defineMetadata(watchBaseName, watchDefinitions = [], Type);
         }
         watchDefinitions.push(definition);
     },
     getAnnotation(Type) {
         var _a;
-        return (_a = kernel.Metadata.getOwn(watchBaseName, Type)) !== null && _a !== void 0 ? _a : noDefinitions;
+        return (_a = getOwnMetadata(watchBaseName, Type)) !== null && _a !== void 0 ? _a : noDefinitions;
     },
-};
+});
 
 function customElement(nameOrDef) {
     return function (target) {
@@ -2480,23 +2490,23 @@ function customElement(nameOrDef) {
 function useShadowDOM(targetOrOptions) {
     if (targetOrOptions === void 0) {
         return function ($target) {
-            CustomElement.annotate($target, 'shadowOptions', { mode: 'open' });
+            annotateElementMetadata($target, 'shadowOptions', { mode: 'open' });
         };
     }
     if (typeof targetOrOptions !== 'function') {
         return function ($target) {
-            CustomElement.annotate($target, 'shadowOptions', targetOrOptions);
+            annotateElementMetadata($target, 'shadowOptions', targetOrOptions);
         };
     }
-    CustomElement.annotate(targetOrOptions, 'shadowOptions', { mode: 'open' });
+    annotateElementMetadata(targetOrOptions, 'shadowOptions', { mode: 'open' });
 }
 function containerless(target) {
     if (target === void 0) {
         return function ($target) {
-            CustomElement.annotate($target, 'containerless', true);
+            annotateElementMetadata($target, 'containerless', true);
         };
     }
-    CustomElement.annotate(target, 'containerless', true);
+    annotateElementMetadata(target, 'containerless', true);
 }
 const definitionLookup = new WeakMap();
 class CustomElementDefinition {
@@ -2524,13 +2534,12 @@ class CustomElementDefinition {
     }
     get type() { return 1 /* Element */; }
     static create(nameOrDef, Type = null) {
-        const getAnnotation = CustomElement.getAnnotation;
         if (Type === null) {
             const def = nameOrDef;
             if (typeof def === 'string') {
                 throw new Error(`AUR0761:${nameOrDef}`);
             }
-            const name = kernel.fromDefinitionOrDefault('name', def, CustomElement.generateName);
+            const name = kernel.fromDefinitionOrDefault('name', def, generateElementName);
             if (typeof def.Type === 'function') {
                 // This needs to be a clone (it will usually be the compiler calling this signature)
                 // TODO: we need to make sure it's documented that passing in the type via the definition (while passing in null
@@ -2540,19 +2549,19 @@ class CustomElementDefinition {
             else {
                 Type = CustomElement.generateType(kernel.pascalCase(name));
             }
-            return new CustomElementDefinition(Type, name, kernel.mergeArrays(def.aliases), kernel.fromDefinitionOrDefault('key', def, () => CustomElement.keyFrom(name)), kernel.fromDefinitionOrDefault('cache', def, () => 0), kernel.fromDefinitionOrDefault('template', def, () => null), kernel.mergeArrays(def.instructions), kernel.mergeArrays(def.dependencies), kernel.fromDefinitionOrDefault('injectable', def, () => null), kernel.fromDefinitionOrDefault('needsCompile', def, () => true), kernel.mergeArrays(def.surrogates), Bindable.from(def.bindables), Children.from(def.childrenObservers), kernel.fromDefinitionOrDefault('containerless', def, () => false), kernel.fromDefinitionOrDefault('isStrictBinding', def, () => false), kernel.fromDefinitionOrDefault('shadowOptions', def, () => null), kernel.fromDefinitionOrDefault('hasSlots', def, () => false), kernel.fromDefinitionOrDefault('enhance', def, () => false), kernel.fromDefinitionOrDefault('watches', def, () => kernel.emptyArray), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, () => null));
+            return new CustomElementDefinition(Type, name, kernel.mergeArrays(def.aliases), kernel.fromDefinitionOrDefault('key', def, () => CustomElement.keyFrom(name)), kernel.fromDefinitionOrDefault('cache', def, returnZero), kernel.fromDefinitionOrDefault('template', def, returnNull), kernel.mergeArrays(def.instructions), kernel.mergeArrays(def.dependencies), kernel.fromDefinitionOrDefault('injectable', def, returnNull), kernel.fromDefinitionOrDefault('needsCompile', def, returnTrue), kernel.mergeArrays(def.surrogates), Bindable.from(def.bindables), Children.from(def.childrenObservers), kernel.fromDefinitionOrDefault('containerless', def, returnFalse), kernel.fromDefinitionOrDefault('isStrictBinding', def, returnFalse), kernel.fromDefinitionOrDefault('shadowOptions', def, returnNull), kernel.fromDefinitionOrDefault('hasSlots', def, returnFalse), kernel.fromDefinitionOrDefault('enhance', def, returnFalse), kernel.fromDefinitionOrDefault('watches', def, returnEmptyArray), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // If a type is passed in, we ignore the Type property on the definition if it exists.
         // TODO: document this behavior
         if (typeof nameOrDef === 'string') {
-            return new CustomElementDefinition(Type, nameOrDef, kernel.mergeArrays(getAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), kernel.fromAnnotationOrTypeOrDefault('cache', Type, () => 0), kernel.fromAnnotationOrTypeOrDefault('template', Type, () => null), kernel.mergeArrays(getAnnotation(Type, 'instructions'), Type.instructions), kernel.mergeArrays(getAnnotation(Type, 'dependencies'), Type.dependencies), kernel.fromAnnotationOrTypeOrDefault('injectable', Type, () => null), kernel.fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true), kernel.mergeArrays(getAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), getAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), getAnnotation(Type, 'childrenObservers'), Type.childrenObservers), kernel.fromAnnotationOrTypeOrDefault('containerless', Type, () => false), kernel.fromAnnotationOrTypeOrDefault('isStrictBinding', Type, () => false), kernel.fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null), kernel.fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false), kernel.fromAnnotationOrTypeOrDefault('enhance', Type, () => false), kernel.mergeArrays(Watch.getAnnotation(Type), Type.watches), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, () => null));
+            return new CustomElementDefinition(Type, nameOrDef, kernel.mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), kernel.fromAnnotationOrTypeOrDefault('cache', Type, returnZero), kernel.fromAnnotationOrTypeOrDefault('template', Type, returnNull), kernel.mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies), kernel.fromAnnotationOrTypeOrDefault('injectable', Type, returnNull), kernel.fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue), kernel.mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers), kernel.fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull), kernel.fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse), kernel.mergeArrays(Watch.getAnnotation(Type), Type.watches), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // This is the typical default behavior, e.g. from regular CustomElement.define invocations or from @customElement deco
         // The ViewValueConverter also uses this signature and passes in a definition where everything except for the 'hooks'
         // property needs to be copied. So we have that exception for 'hooks', but we may need to revisit that default behavior
         // if this turns out to be too opinionated.
-        const name = kernel.fromDefinitionOrDefault('name', nameOrDef, CustomElement.generateName);
-        return new CustomElementDefinition(Type, name, kernel.mergeArrays(getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null), kernel.mergeArrays(getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel.mergeArrays(getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true), kernel.mergeArrays(getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), getAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), getAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false), kernel.mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, () => null));
+        const name = kernel.fromDefinitionOrDefault('name', nameOrDef, generateElementName);
+        return new CustomElementDefinition(Type, name, kernel.mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull), kernel.mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue), kernel.mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse), kernel.mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull));
     }
     static getOrCreate(partialDefinition) {
         if (partialDefinition instanceof CustomElementDefinition) {
@@ -2564,7 +2573,7 @@ class CustomElementDefinition {
         const definition = CustomElementDefinition.create(partialDefinition);
         definitionLookup.set(partialDefinition, definition);
         // Make sure the full definition can be retrieved from dynamically created classes as well
-        kernel.Metadata.define(CustomElement.name, definition, definition.Type);
+        defineMetadata(ceBaseName, definition, definition.Type);
         return definition;
     }
     register(container) {
@@ -2581,14 +2590,26 @@ const defaultForOpts = {
     searchParents: false,
     optional: false,
 };
-const ceBaseName = kernel.Protocol.resource.keyFor('custom-element');
+const returnZero = () => 0;
+const returnNull = () => null;
+const returnFalse = () => false;
+const returnTrue = () => true;
+const returnEmptyArray = () => kernel.emptyArray;
+const ceBaseName = getResourceKeyFor('custom-element');
+const getElementKeyFrom = (name) => `${ceBaseName}:${name}`;
+const generateElementName = (() => {
+    let id = 0;
+    return () => `unnamed-${++id}`;
+})();
+const annotateElementMetadata = (Type, prop, value) => {
+    defineMetadata(getAnnotationKeyFor(prop), value, Type);
+};
+const getElementAnnotation = (Type, prop) => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 const CustomElement = Object.freeze({
     name: ceBaseName,
-    keyFrom(name) {
-        return `${ceBaseName}:${name}`;
-    },
+    keyFrom: getElementKeyFrom,
     isType(value) {
-        return typeof value === 'function' && kernel.Metadata.hasOwn(ceBaseName, value);
+        return typeof value === 'function' && hasOwnMetadata(ceBaseName, value);
     },
     for(node, opts = defaultForOpts) {
         if (opts.name === void 0 && opts.searchParents !== true) {
@@ -2641,30 +2662,21 @@ const CustomElement = Object.freeze({
     },
     define(nameOrDef, Type) {
         const definition = CustomElementDefinition.create(nameOrDef, Type);
-        kernel.Metadata.define(ceBaseName, definition, definition.Type);
-        kernel.Metadata.define(ceBaseName, definition, definition);
-        kernel.Protocol.resource.appendTo(definition.Type, ceBaseName);
+        defineMetadata(ceBaseName, definition, definition.Type);
+        defineMetadata(ceBaseName, definition, definition);
+        appendResourceKey(definition.Type, ceBaseName);
         return definition.Type;
     },
     getDefinition(Type) {
-        const def = kernel.Metadata.getOwn(ceBaseName, Type);
+        const def = getOwnMetadata(ceBaseName, Type);
         if (def === void 0) {
             throw new Error(`AUR0760:${Type.name}`);
         }
         return def;
     },
-    annotate(Type, prop, value) {
-        kernel.Metadata.define(kernel.Protocol.annotation.keyFor(prop), value, Type);
-    },
-    getAnnotation(Type, prop) {
-        return kernel.Metadata.getOwn(kernel.Protocol.annotation.keyFor(prop), Type);
-    },
-    generateName: (function () {
-        let id = 0;
-        return function () {
-            return `unnamed-${++id}`;
-        };
-    })(),
+    annotate: annotateElementMetadata,
+    getAnnotation: getElementAnnotation,
+    generateName: generateElementName,
     createInjectable() {
         const $injectable = function (target, property, index) {
             const annotationParamtypes = kernel.DI.getOrCreateAnnotationParamTypes(target);
@@ -2712,20 +2724,20 @@ const CustomElement = Object.freeze({
         };
     })(),
 });
-const pcHookMetadataProperty = kernel.Protocol.annotation.keyFor('processContent');
+const pcHookMetadataProperty = getAnnotationKeyFor('processContent');
 function processContent(hook) {
     return hook === void 0
         ? function (target, propertyKey, _descriptor) {
-            kernel.Metadata.define(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
+            defineMetadata(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
         }
         : function (target) {
             hook = ensureHook(target, hook);
-            const def = kernel.Metadata.getOwn(ceBaseName, target);
+            const def = getOwnMetadata(ceBaseName, target);
             if (def !== void 0) {
                 def.processContent = hook;
             }
             else {
-                kernel.Metadata.define(pcHookMetadataProperty, hook, target);
+                defineMetadata(pcHookMetadataProperty, hook, target);
             }
             return target;
         };
@@ -3149,7 +3161,7 @@ class LifecycleHooksDefinition {
     }
 }
 const containerLookup = new WeakMap();
-const lhBaseName = kernel.Protocol.annotation.keyFor('lifecycle-hooks');
+const lhBaseName = getAnnotationKeyFor('lifecycle-hooks');
 const LifecycleHooks = Object.freeze({
     name: lhBaseName,
     /**
@@ -3157,8 +3169,8 @@ const LifecycleHooks = Object.freeze({
      */
     define(def, Type) {
         const definition = LifecycleHooksDefinition.create(def, Type);
-        kernel.Metadata.define(lhBaseName, definition, Type);
-        kernel.Protocol.resource.appendTo(Type, lhBaseName);
+        defineMetadata(lhBaseName, definition, Type);
+        appendResourceKey(Type, lhBaseName);
         return definition.Type;
     },
     resolve(ctx) {
@@ -3179,7 +3191,7 @@ const LifecycleHooks = Object.freeze({
             let name;
             let entries;
             for (instance of instances) {
-                definition = kernel.Metadata.getOwn(lhBaseName, instance.constructor);
+                definition = getOwnMetadata(lhBaseName, instance.constructor);
                 entry = new LifecycleHooksEntry(definition, instance);
                 for (name of definition.propertyNames) {
                     entries = lookup[name];
@@ -3266,11 +3278,11 @@ function toCustomElementDefinition($view) {
     seenViews.add($view);
     return CustomElementDefinition.create($view);
 }
-const viewsBaseName = kernel.Protocol.resource.keyFor('views');
+const viewsBaseName = getResourceKeyFor('views');
 const Views = Object.freeze({
     name: viewsBaseName,
     has(value) {
-        return typeof value === 'function' && (kernel.Metadata.hasOwn(viewsBaseName, value) || '$views' in value);
+        return typeof value === 'function' && (hasOwnMetadata(viewsBaseName, value) || '$views' in value);
     },
     get(value) {
         if (typeof value === 'function' && '$views' in value) {
@@ -3281,17 +3293,17 @@ const Views = Object.freeze({
                 Views.add(value, def);
             }
         }
-        let views = kernel.Metadata.getOwn(viewsBaseName, value);
+        let views = getOwnMetadata(viewsBaseName, value);
         if (views === void 0) {
-            kernel.Metadata.define(viewsBaseName, views = [], value);
+            defineMetadata(viewsBaseName, views = [], value);
         }
         return views;
     },
     add(Type, partialDefinition) {
         const definition = CustomElementDefinition.create(partialDefinition);
-        let views = kernel.Metadata.getOwn(viewsBaseName, Type);
+        let views = getOwnMetadata(viewsBaseName, Type);
         if (views === void 0) {
-            kernel.Metadata.define(viewsBaseName, views = [definition], Type);
+            defineMetadata(viewsBaseName, views = [definition], Type);
         }
         else {
             views.push(definition);
@@ -5411,7 +5423,7 @@ function renderer(instructionType) {
         // the length (number of ctor arguments) is copied for the same reason
         const metadataKeys = kernel.Metadata.getOwnKeys(target);
         for (const key of metadataKeys) {
-            kernel.Metadata.define(key, kernel.Metadata.getOwn(key, target), decoratedTarget);
+            defineMetadata(key, getOwnMetadata(key, target), decoratedTarget);
         }
         const ownProperties = Object.getOwnPropertyDescriptors(target);
         Object.keys(ownProperties).filter(prop => prop !== 'prototype').forEach(prop => {
@@ -6107,8 +6119,7 @@ class BindingCommandDefinition {
             name = nameOrDef.name;
             def = nameOrDef;
         }
-        const getAnnotation = BindingCommand.getAnnotation;
-        return new BindingCommandDefinition(Type, kernel.firstDefined(getAnnotation(Type, 'name'), name), kernel.mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), BindingCommand.keyFrom(name), kernel.firstDefined(getAnnotation(Type, 'type'), def.type, Type.type, null));
+        return new BindingCommandDefinition(Type, kernel.firstDefined(getCommandAnnotation(Type, 'name'), name), kernel.mergeArrays(getCommandAnnotation(Type, 'aliases'), def.aliases, Type.aliases), getCommandKeyFrom(name), kernel.firstDefined(getCommandAnnotation(Type, 'type'), def.type, Type.type, null));
     }
     register(container) {
         const { Type, key, aliases } = this;
@@ -6117,35 +6128,33 @@ class BindingCommandDefinition {
         runtime.registerAliases(aliases, BindingCommand, key, container);
     }
 }
-const cmdBaseName = kernel.Protocol.resource.keyFor('binding-command');
+const cmdBaseName = getResourceKeyFor('binding-command');
+const getCommandKeyFrom = (name) => `${cmdBaseName}:${name}`;
+const getCommandAnnotation = (Type, prop) => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 const BindingCommand = Object.freeze({
     name: cmdBaseName,
-    keyFrom(name) {
-        return `${cmdBaseName}:${name}`;
-    },
+    keyFrom: getCommandKeyFrom,
     isType(value) {
-        return typeof value === 'function' && kernel.Metadata.hasOwn(cmdBaseName, value);
+        return typeof value === 'function' && hasOwnMetadata(cmdBaseName, value);
     },
     define(nameOrDef, Type) {
         const definition = BindingCommandDefinition.create(nameOrDef, Type);
-        kernel.Metadata.define(cmdBaseName, definition, definition.Type);
-        kernel.Metadata.define(cmdBaseName, definition, definition);
-        kernel.Protocol.resource.appendTo(Type, cmdBaseName);
+        defineMetadata(cmdBaseName, definition, definition.Type);
+        defineMetadata(cmdBaseName, definition, definition);
+        appendResourceKey(Type, cmdBaseName);
         return definition.Type;
     },
     getDefinition(Type) {
-        const def = kernel.Metadata.getOwn(cmdBaseName, Type);
+        const def = getOwnMetadata(cmdBaseName, Type);
         if (def === void 0) {
             throw new Error(`AUR0758:${Type.name}`);
         }
         return def;
     },
     annotate(Type, prop, value) {
-        kernel.Metadata.define(kernel.Protocol.annotation.keyFor(prop), value, Type);
+        defineMetadata(getAnnotationKeyFor(prop), value, Type);
     },
-    getAnnotation(Type, prop) {
-        return kernel.Metadata.getOwn(kernel.Protocol.annotation.keyFor(prop), Type);
-    },
+    getAnnotation: getCommandAnnotation,
 });
 exports.OneTimeBindingCommand = class OneTimeBindingCommand {
     constructor(m, xp) {
@@ -6437,6 +6446,9 @@ RefBindingCommand.inject = [runtime.IExpressionParser];
 RefBindingCommand = __decorate([
     bindingCommand('ref')
 ], RefBindingCommand);
+// @bindingCommand('...$attrs')
+// export class SpreadCaptureBindingCommand implements BindingCommandInstance {
+// }
 
 const ITemplateElementFactory = kernel.DI.createInterface('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 const markupCache = {};
@@ -6560,7 +6572,7 @@ class TemplateCompiler {
         this._compileNode(content, context);
         return CustomElementDefinition.create({
             ...partialDefinition,
-            name: partialDefinition.name || CustomElement.generateName(),
+            name: partialDefinition.name || _generateElementName(),
             dependencies: ((_c = partialDefinition.dependencies) !== null && _c !== void 0 ? _c : kernel.emptyArray).concat((_d = context.deps) !== null && _d !== void 0 ? _d : kernel.emptyArray),
             instructions: context.rows,
             surrogates: isTemplateElement
@@ -7105,7 +7117,7 @@ class TemplateCompiler {
                 elementInstruction.auSlot = {
                     name: slotName,
                     fallback: CustomElementDefinition.create({
-                        name: CustomElement.generateName(),
+                        name: _generateElementName(),
                         template,
                         instructions: fallbackContentContext.rows,
                         needsCompile: false,
@@ -7246,7 +7258,7 @@ class TemplateCompiler {
                             projectionCompilationContext = context._createChild();
                             this._compileNode(template.content, projectionCompilationContext);
                             projections[targetSlot] = CustomElementDefinition.create({
-                                name: CustomElement.generateName(),
+                                name: _generateElementName(),
                                 template,
                                 instructions: projectionCompilationContext.rows,
                                 needsCompile: false,
@@ -7273,7 +7285,7 @@ class TemplateCompiler {
                 }
             }
             tcInstruction.def = CustomElementDefinition.create({
-                name: CustomElement.generateName(),
+                name: _generateElementName(),
                 template: mostInnerTemplate,
                 instructions: childContext.rows,
                 needsCompile: false,
@@ -7299,7 +7311,7 @@ class TemplateCompiler {
                 marker.classList.add('au');
                 template.content.appendChild(marker);
                 tcInstruction.def = CustomElementDefinition.create({
-                    name: CustomElement.generateName(),
+                    name: _generateElementName(),
                     template,
                     needsCompile: false,
                     instructions: [[tcInstructions[i + 1]]],
@@ -7424,7 +7436,7 @@ class TemplateCompiler {
                         projectionCompilationContext = context._createChild();
                         this._compileNode(template.content, projectionCompilationContext);
                         projections[targetSlot] = CustomElementDefinition.create({
-                            name: CustomElement.generateName(),
+                            name: _generateElementName(),
                             template,
                             instructions: projectionCompilationContext.rows,
                             needsCompile: false,
@@ -7893,15 +7905,15 @@ function getBindingMode(bindable) {
  */
 const ITemplateCompilerHooks = kernel.DI.createInterface('ITemplateCompilerHooks');
 const typeToHooksDefCache = new WeakMap();
-const hooksBaseName = kernel.Protocol.resource.keyFor('compiler-hooks');
+const hooksBaseName = getResourceKeyFor('compiler-hooks');
 const TemplateCompilerHooks = Object.freeze({
     name: hooksBaseName,
     define(Type) {
         let def = typeToHooksDefCache.get(Type);
         if (def === void 0) {
             typeToHooksDefCache.set(Type, def = new TemplateCompilerHooksDefinition(Type));
-            kernel.Metadata.define(hooksBaseName, def, Type);
-            kernel.Protocol.resource.appendTo(Type, hooksBaseName);
+            defineMetadata(hooksBaseName, def, Type);
+            appendResourceKey(Type, hooksBaseName);
         }
         return Type;
     }
@@ -7930,6 +7942,7 @@ const templateCompilerHooks = (target) => {
     }
 };
 /* eslint-enable */
+const _generateElementName = CustomElement.generateName;
 
 class BindingModeBehavior {
     constructor(mode) {

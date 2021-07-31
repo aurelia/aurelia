@@ -18,22 +18,22 @@ export interface IResourceKind<TType extends ResourceType, TDef extends Resource
     keyFrom(name: string): string;
 }
 export declare const Protocol: {
-    annotation: {
+    annotation: Readonly<{
         name: string;
-        appendTo(target: Constructable, key: string): void;
+        appendTo: (target: Constructable, key: string) => void;
         set(target: Constructable, prop: string, value: unknown): void;
-        get(target: Constructable, prop: string): unknown;
+        get: (target: Constructable, prop: string) => unknown;
         getKeys(target: Constructable): readonly string[];
-        isKey(key: string): boolean;
-        keyFor(name: string, context?: string | undefined): string;
-    };
+        isKey: (key: string) => boolean;
+        keyFor: (name: string, context?: string | undefined) => string;
+    }>;
     resource: Readonly<{
         name: string;
         appendTo(target: Constructable, key: string): void;
-        has(target: unknown): target is Constructable<{}>;
+        has: (target: unknown) => target is Constructable<{}>;
         getAll(target: Constructable): readonly ResourceDefinition[];
         getKeys(target: Constructable): readonly string[];
-        isKey(key: string): boolean;
+        isKey: (key: string) => boolean;
         keyFor(name: string, context?: string | undefined): string;
     }>;
 };

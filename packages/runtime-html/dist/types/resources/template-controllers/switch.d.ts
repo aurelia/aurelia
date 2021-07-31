@@ -4,7 +4,7 @@ import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller.js';
 import type { INode } from '../../dom.js';
-import type { Instruction } from '../../renderer.js';
+import type { IInstruction } from '../../renderer.js';
 export declare class Switch implements ICustomAttributeViewModel {
     private readonly factory;
     private readonly location;
@@ -19,7 +19,7 @@ export declare class Switch implements ICustomAttributeViewModel {
      */
     readonly promise: Promise<void> | void;
     constructor(factory: IViewFactory, location: IRenderLocation);
-    link(_controller: IHydratableController, _childController: ICustomAttributeController, _target: INode, _instruction: Instruction): void;
+    link(_controller: IHydratableController, _childController: ICustomAttributeController, _target: INode, _instruction: IInstruction): void;
     attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     dispose(): void;
@@ -45,7 +45,7 @@ export declare class Case implements ICustomAttributeViewModel {
     private readonly logger;
     private observer;
     constructor(factory: IViewFactory, locator: IObserverLocator, location: IRenderLocation, logger: ILogger);
-    link(controller: IHydratableController, _childController: ICustomAttributeController, _target: INode, _instruction: Instruction): void;
+    link(controller: IHydratableController, _childController: ICustomAttributeController, _target: INode, _instruction: IInstruction): void;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     isMatch(value: unknown, flags: LifecycleFlags): boolean;
     valueChanged(newValue: unknown, _oldValue: unknown, flags: LifecycleFlags): void;

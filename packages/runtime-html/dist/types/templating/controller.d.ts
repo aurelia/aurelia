@@ -7,7 +7,7 @@ import type { IProjections } from '../resources/slot-injectables.js';
 import type { LifecycleHooksLookup } from './lifecycle-hooks.js';
 import type { INode, INodeSequence, IRenderLocation } from '../dom.js';
 import type { IViewFactory } from './view.js';
-import type { Instruction } from '../renderer.js';
+import type { IInstruction } from '../renderer.js';
 import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 declare type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 export declare const enum MountTarget {
@@ -471,7 +471,7 @@ export interface ICustomElementViewModel extends IViewModel, IActivationHooks<IH
 }
 export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<IHydratedController> {
     readonly $controller?: ICustomAttributeController<this>;
-    link?(controller: IHydratableController, childController: ICustomAttributeController, target: INode, instruction: Instruction): void;
+    link?(controller: IHydratableController, childController: ICustomAttributeController, target: INode, instruction: IInstruction): void;
     created?(controller: ICustomAttributeController<this>): void;
 }
 export interface IHydratedCustomElementViewModel extends ICustomElementViewModel {

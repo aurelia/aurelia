@@ -1,7 +1,7 @@
 export { Platform, Task, TaskAbortError, TaskQueue, TaskQueuePriority, TaskStatus } from '../../../platform/dist/native-modules/index.js';
 import { BrowserPlatform } from '../../../platform-browser/dist/native-modules/index.js';
 export { BrowserPlatform } from '../../../platform-browser/dist/native-modules/index.js';
-import { Protocol, getPrototypeChain, Metadata, firstDefined, kebabCase, noop, emptyArray, DI, all, Registration, IPlatform as IPlatform$1, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, IContainer, nextId, optional, InstanceProvider, isObject, ILogger, onResolve, resolveAll, camelCase, toArray, emptyObject, IServiceLocator, compareNumber, transient } from '../../../kernel/dist/native-modules/index.js';
+import { Metadata, Protocol, getPrototypeChain, firstDefined, kebabCase, noop, emptyArray, DI, all, Registration, IPlatform as IPlatform$1, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, IContainer, nextId, optional, InstanceProvider, isObject, ILogger, onResolve, resolveAll, camelCase, toArray, emptyObject, IServiceLocator, compareNumber, transient } from '../../../kernel/dist/native-modules/index.js';
 import { BindingMode, subscriberCollection, withFlushQueue, connectable, registerAliases, ConnectableSwitcher, ProxyObservable, Scope, IObserverLocator, IExpressionParser, AccessScopeExpression, DelegationStrategy, BindingBehaviorExpression, BindingBehaviorFactory, PrimitiveLiteralExpression, bindingBehavior, BindingInterceptor, ISignaler, PropertyAccessor, INodeObserverLocator, SetterObserver, IDirtyChecker, alias, applyMutationsToIndices, getCollectionObserver as getCollectionObserver$1, BindingContext, synchronizeIndices, valueConverter } from '../../../runtime/dist/native-modules/index.js';
 export { Access, AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, AccessorType, ArrayBindingPattern, ArrayIndexObserver, ArrayLiteralExpression, ArrayObserver, AssignExpression, BinaryExpression, BindingBehavior, BindingBehaviorDefinition, BindingBehaviorExpression, BindingBehaviorFactory, BindingBehaviorStrategy, BindingContext, BindingIdentifier, BindingInterceptor, BindingMediator, BindingMode, BindingType, CallFunctionExpression, CallMemberExpression, CallScopeExpression, Char, CollectionKind, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConditionalExpression, CustomExpression, DelegationStrategy, DirtyCheckProperty, DirtyCheckSettings, ExpressionKind, ForOfStatement, HtmlLiteralExpression, IDirtyChecker, IExpressionParser, INodeObserverLocator, IObserverLocator, ISignaler, Interpolation, LifecycleFlags, MapObserver, ObjectBindingPattern, ObjectLiteralExpression, ObserverLocator, OverrideContext, Precedence, PrimitiveLiteralExpression, PrimitiveObserver, PropertyAccessor, Scope, SetObserver, SetterObserver, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverter, ValueConverterDefinition, ValueConverterExpression, alias, applyMutationsToIndices, bindingBehavior, cloneIndexMap, connectable, copyIndexMap, createIndexMap, disableArrayObservation, disableMapObservation, disableSetObservation, enableArrayObservation, enableMapObservation, enableSetObservation, getCollectionObserver, isIndexMap, observable, parseExpression, registerAliases, subscriberCollection, synchronizeIndices, valueConverter } from '../../../runtime/dist/native-modules/index.js';
 
@@ -31,6 +31,24 @@ function __param(paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 }
 
+/** @internal */
+const getOwnMetadata = Metadata.getOwn;
+/** @internal */
+const hasOwnMetadata = Metadata.hasOwn;
+/** @internal */
+const defineMetadata = Metadata.define;
+const { annotation, resource } = Protocol;
+/** @internal */
+const getAnnotationKeyFor = annotation.keyFor;
+/** @internal */
+const getResourceKeyFor = resource.keyFor;
+/** @internal */
+const appendResourceKey = resource.appendTo;
+/** @internal */
+const appendAnnotationKey = annotation.appendTo;
+/** @internal */
+const getAllAnnotations = annotation.getKeys;
+
 function bindable(configOrTarget, prop) {
     let config;
     function decorator($target, $prop) {
@@ -42,8 +60,8 @@ function bindable(configOrTarget, prop) {
             // - @bindable({...opts})
             config.property = $prop;
         }
-        Metadata.define(baseName$1, BindableDefinition.create($prop, config), $target.constructor, $prop);
-        Protocol.annotation.appendTo($target.constructor, Bindable.keyFrom($prop));
+        defineMetadata(baseName$1, BindableDefinition.create($prop, config), $target.constructor, $prop);
+        appendAnnotationKey($target.constructor, Bindable.keyFrom($prop));
     }
     if (arguments.length > 1) {
         // Non invocation:
@@ -69,12 +87,10 @@ function bindable(configOrTarget, prop) {
 function isBindableAnnotation(key) {
     return key.startsWith(baseName$1);
 }
-const baseName$1 = Protocol.annotation.keyFor('bindable');
+const baseName$1 = getAnnotationKeyFor('bindable');
 const Bindable = Object.freeze({
     name: baseName$1,
-    keyFrom(name) {
-        return `${baseName$1}:${name}`;
-    },
+    keyFrom: (name) => `${baseName$1}:${name}`,
     from(...bindableLists) {
         const bindables = {};
         const isArray = Array.isArray;
@@ -113,10 +129,10 @@ const Bindable = Object.freeze({
                     config = configOrProp;
                 }
                 def = BindableDefinition.create(prop, config);
-                if (!Metadata.hasOwn(baseName$1, Type, prop)) {
-                    Protocol.annotation.appendTo(Type, Bindable.keyFrom(prop));
+                if (!hasOwnMetadata(baseName$1, Type, prop)) {
+                    appendAnnotationKey(Type, Bindable.keyFrom(prop));
                 }
-                Metadata.define(baseName$1, def, Type, prop);
+                defineMetadata(baseName$1, def, Type, prop);
                 return builder;
             },
             mode(mode) {
@@ -154,10 +170,10 @@ const Bindable = Object.freeze({
         let i;
         while (--iProto >= 0) {
             Class = prototypeChain[iProto];
-            keys = Protocol.annotation.getKeys(Class).filter(isBindableAnnotation);
+            keys = getAllAnnotations(Class).filter(isBindableAnnotation);
             keysLen = keys.length;
             for (i = 0; i < keysLen; ++i) {
-                defs[iDefs++] = Metadata.getOwn(baseName$1, Class, keys[i].slice(propStart));
+                defs[iDefs++] = getOwnMetadata(baseName$1, Class, keys[i].slice(propStart));
             }
         }
         return defs;
@@ -659,7 +675,7 @@ class AttributeParser {
         this._interpreter = interpreter;
         const patterns = this._patterns = {};
         const allDefs = attrPatterns.reduce((allDefs, attrPattern) => {
-            const patternDefs = AttributePattern.getPatternDefinitions(attrPattern.constructor);
+            const patternDefs = getAllPatternDefinitions(attrPattern.constructor);
             patternDefs.forEach(def => patterns[def.pattern] = attrPattern);
             return allDefs.concat(patternDefs);
         }, emptyArray);
@@ -695,22 +711,21 @@ class AttributePatternResourceDefinition {
         Registration.singleton(IAttributePattern, this.Type).register(container);
     }
 }
-const apBaseName = Protocol.resource.keyFor('attribute-pattern');
+const apBaseName = getResourceKeyFor('attribute-pattern');
 const annotationKey = 'attribute-pattern-definitions';
+const getAllPatternDefinitions = (Type) => Protocol.annotation.get(Type, annotationKey);
 const AttributePattern = Object.freeze({
     name: apBaseName,
     definitionAnnotationKey: annotationKey,
     define(patternDefs, Type) {
         const definition = new AttributePatternResourceDefinition(Type);
-        Metadata.define(apBaseName, definition, Type);
-        Protocol.resource.appendTo(Type, apBaseName);
+        defineMetadata(apBaseName, definition, Type);
+        appendResourceKey(Type, apBaseName);
         Protocol.annotation.set(Type, annotationKey, patternDefs);
-        Protocol.annotation.appendTo(Type, annotationKey);
+        appendAnnotationKey(Type, annotationKey);
         return Type;
     },
-    getPatternDefinitions(Type) {
-        return Protocol.annotation.get(Type, annotationKey);
-    }
+    getPatternDefinitions: getAllPatternDefinitions,
 });
 let DotSeparatedAttributePattern = class DotSeparatedAttributePattern {
     'PART.PART'(rawName, rawValue, parts) {
@@ -2144,8 +2159,8 @@ function children(configOrTarget, prop) {
             // - @children({...opts})
             config.property = $prop;
         }
-        Metadata.define(baseName, ChildrenDefinition.create($prop, config), $target.constructor, $prop);
-        Protocol.annotation.appendTo($target.constructor, Children.keyFrom($prop));
+        defineMetadata(baseName, ChildrenDefinition.create($prop, config), $target.constructor, $prop);
+        appendAnnotationKey($target.constructor, Children.keyFrom($prop));
     }
     if (arguments.length > 1) {
         // Non invocation:
@@ -2171,12 +2186,10 @@ function children(configOrTarget, prop) {
 function isChildrenObserverAnnotation(key) {
     return key.startsWith(baseName);
 }
-const baseName = Protocol.annotation.keyFor('children-observer');
+const baseName = getAnnotationKeyFor('children-observer');
 const Children = Object.freeze({
-    name: Protocol.annotation.keyFor('children-observer'),
-    keyFrom(name) {
-        return `${baseName}:${name}`;
-    },
+    name: baseName,
+    keyFrom: (name) => `${baseName}:${name}`,
     from(...childrenObserverLists) {
         const childrenObservers = {};
         const isArray = Array.isArray;
@@ -2211,10 +2224,10 @@ const Children = Object.freeze({
         let Class;
         while (--iProto >= 0) {
             Class = prototypeChain[iProto];
-            keys = Protocol.annotation.getKeys(Class).filter(isChildrenObserverAnnotation);
+            keys = getAllAnnotations(Class).filter(isChildrenObserverAnnotation);
             keysLen = keys.length;
             for (let i = 0; i < keysLen; ++i) {
-                defs[iDefs++] = Metadata.getOwn(baseName, Class, keys[i].slice(propStart));
+                defs[iDefs++] = getOwnMetadata(baseName, Class, keys[i].slice(propStart));
             }
         }
         return defs;
@@ -2355,7 +2368,6 @@ class CustomAttributeDefinition {
     // a simple marker to distinguish between Custom Element definition & Custom attribute definition
     get type() { return 2 /* Attribute */; }
     static create(nameOrDef, Type) {
-        const getAnnotation = CustomAttribute.getAnnotation;
         let name;
         let def;
         if (typeof nameOrDef === 'string') {
@@ -2366,7 +2378,7 @@ class CustomAttributeDefinition {
             name = nameOrDef.name;
             def = nameOrDef;
         }
-        return new CustomAttributeDefinition(Type, firstDefined(getAnnotation(Type, 'name'), name), mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), firstDefined(getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView), firstDefined(getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(...Bindable.getAll(Type), getAnnotation(Type, 'bindables'), Type.bindables, def.bindables), firstDefined(getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), mergeArrays(Watch.getAnnotation(Type), Type.watches));
+        return new CustomAttributeDefinition(Type, firstDefined(getAttributeAnnotation(Type, 'name'), name), mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView), firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables), firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), mergeArrays(Watch.getAnnotation(Type), Type.watches));
     }
     register(container) {
         const { Type, key, aliases } = this;
@@ -2375,39 +2387,37 @@ class CustomAttributeDefinition {
         registerAliases(aliases, CustomAttribute, key, container);
     }
 }
-const caBaseName = Protocol.resource.keyFor('custom-attribute');
+const caBaseName = getResourceKeyFor('custom-attribute');
+const getAttributeKeyFrom = (name) => `${caBaseName}:${name}`;
+const getAttributeAnnotation = (Type, prop) => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 const CustomAttribute = Object.freeze({
     name: caBaseName,
-    keyFrom(name) {
-        return `${caBaseName}:${name}`;
-    },
+    keyFrom: getAttributeKeyFrom,
     isType(value) {
-        return typeof value === 'function' && Metadata.hasOwn(caBaseName, value);
+        return typeof value === 'function' && hasOwnMetadata(caBaseName, value);
     },
     for(node, name) {
         var _a;
-        return ((_a = getRef(node, CustomAttribute.keyFrom(name))) !== null && _a !== void 0 ? _a : void 0);
+        return ((_a = getRef(node, getAttributeKeyFrom(name))) !== null && _a !== void 0 ? _a : void 0);
     },
     define(nameOrDef, Type) {
         const definition = CustomAttributeDefinition.create(nameOrDef, Type);
-        Metadata.define(caBaseName, definition, definition.Type);
-        Metadata.define(caBaseName, definition, definition);
-        Protocol.resource.appendTo(Type, caBaseName);
+        defineMetadata(caBaseName, definition, definition.Type);
+        defineMetadata(caBaseName, definition, definition);
+        appendResourceKey(Type, caBaseName);
         return definition.Type;
     },
     getDefinition(Type) {
-        const def = Metadata.getOwn(caBaseName, Type);
+        const def = getOwnMetadata(caBaseName, Type);
         if (def === void 0) {
             throw new Error(`AUR0759:${Type.name}`);
         }
         return def;
     },
     annotate(Type, prop, value) {
-        Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+        defineMetadata(getAnnotationKeyFor(prop), value, Type);
     },
-    getAnnotation(Type, prop) {
-        return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
-    },
+    getAnnotation: getAttributeAnnotation,
 });
 
 function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
@@ -2454,21 +2464,21 @@ class WatchDefinition {
     }
 }
 const noDefinitions = emptyArray;
-const watchBaseName = Protocol.annotation.keyFor('watch');
-const Watch = {
+const watchBaseName = getAnnotationKeyFor('watch');
+const Watch = Object.freeze({
     name: watchBaseName,
     add(Type, definition) {
-        let watchDefinitions = Metadata.getOwn(watchBaseName, Type);
+        let watchDefinitions = getOwnMetadata(watchBaseName, Type);
         if (watchDefinitions == null) {
-            Metadata.define(watchBaseName, watchDefinitions = [], Type);
+            defineMetadata(watchBaseName, watchDefinitions = [], Type);
         }
         watchDefinitions.push(definition);
     },
     getAnnotation(Type) {
         var _a;
-        return (_a = Metadata.getOwn(watchBaseName, Type)) !== null && _a !== void 0 ? _a : noDefinitions;
+        return (_a = getOwnMetadata(watchBaseName, Type)) !== null && _a !== void 0 ? _a : noDefinitions;
     },
-};
+});
 
 function customElement(nameOrDef) {
     return function (target) {
@@ -2478,23 +2488,23 @@ function customElement(nameOrDef) {
 function useShadowDOM(targetOrOptions) {
     if (targetOrOptions === void 0) {
         return function ($target) {
-            CustomElement.annotate($target, 'shadowOptions', { mode: 'open' });
+            annotateElementMetadata($target, 'shadowOptions', { mode: 'open' });
         };
     }
     if (typeof targetOrOptions !== 'function') {
         return function ($target) {
-            CustomElement.annotate($target, 'shadowOptions', targetOrOptions);
+            annotateElementMetadata($target, 'shadowOptions', targetOrOptions);
         };
     }
-    CustomElement.annotate(targetOrOptions, 'shadowOptions', { mode: 'open' });
+    annotateElementMetadata(targetOrOptions, 'shadowOptions', { mode: 'open' });
 }
 function containerless(target) {
     if (target === void 0) {
         return function ($target) {
-            CustomElement.annotate($target, 'containerless', true);
+            annotateElementMetadata($target, 'containerless', true);
         };
     }
-    CustomElement.annotate(target, 'containerless', true);
+    annotateElementMetadata(target, 'containerless', true);
 }
 const definitionLookup = new WeakMap();
 class CustomElementDefinition {
@@ -2522,13 +2532,12 @@ class CustomElementDefinition {
     }
     get type() { return 1 /* Element */; }
     static create(nameOrDef, Type = null) {
-        const getAnnotation = CustomElement.getAnnotation;
         if (Type === null) {
             const def = nameOrDef;
             if (typeof def === 'string') {
                 throw new Error(`AUR0761:${nameOrDef}`);
             }
-            const name = fromDefinitionOrDefault('name', def, CustomElement.generateName);
+            const name = fromDefinitionOrDefault('name', def, generateElementName);
             if (typeof def.Type === 'function') {
                 // This needs to be a clone (it will usually be the compiler calling this signature)
                 // TODO: we need to make sure it's documented that passing in the type via the definition (while passing in null
@@ -2538,19 +2547,19 @@ class CustomElementDefinition {
             else {
                 Type = CustomElement.generateType(pascalCase(name));
             }
-            return new CustomElementDefinition(Type, name, mergeArrays(def.aliases), fromDefinitionOrDefault('key', def, () => CustomElement.keyFrom(name)), fromDefinitionOrDefault('cache', def, () => 0), fromDefinitionOrDefault('template', def, () => null), mergeArrays(def.instructions), mergeArrays(def.dependencies), fromDefinitionOrDefault('injectable', def, () => null), fromDefinitionOrDefault('needsCompile', def, () => true), mergeArrays(def.surrogates), Bindable.from(def.bindables), Children.from(def.childrenObservers), fromDefinitionOrDefault('containerless', def, () => false), fromDefinitionOrDefault('isStrictBinding', def, () => false), fromDefinitionOrDefault('shadowOptions', def, () => null), fromDefinitionOrDefault('hasSlots', def, () => false), fromDefinitionOrDefault('enhance', def, () => false), fromDefinitionOrDefault('watches', def, () => emptyArray), fromAnnotationOrTypeOrDefault('processContent', Type, () => null));
+            return new CustomElementDefinition(Type, name, mergeArrays(def.aliases), fromDefinitionOrDefault('key', def, () => CustomElement.keyFrom(name)), fromDefinitionOrDefault('cache', def, returnZero), fromDefinitionOrDefault('template', def, returnNull), mergeArrays(def.instructions), mergeArrays(def.dependencies), fromDefinitionOrDefault('injectable', def, returnNull), fromDefinitionOrDefault('needsCompile', def, returnTrue), mergeArrays(def.surrogates), Bindable.from(def.bindables), Children.from(def.childrenObservers), fromDefinitionOrDefault('containerless', def, returnFalse), fromDefinitionOrDefault('isStrictBinding', def, returnFalse), fromDefinitionOrDefault('shadowOptions', def, returnNull), fromDefinitionOrDefault('hasSlots', def, returnFalse), fromDefinitionOrDefault('enhance', def, returnFalse), fromDefinitionOrDefault('watches', def, returnEmptyArray), fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // If a type is passed in, we ignore the Type property on the definition if it exists.
         // TODO: document this behavior
         if (typeof nameOrDef === 'string') {
-            return new CustomElementDefinition(Type, nameOrDef, mergeArrays(getAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), fromAnnotationOrTypeOrDefault('cache', Type, () => 0), fromAnnotationOrTypeOrDefault('template', Type, () => null), mergeArrays(getAnnotation(Type, 'instructions'), Type.instructions), mergeArrays(getAnnotation(Type, 'dependencies'), Type.dependencies), fromAnnotationOrTypeOrDefault('injectable', Type, () => null), fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true), mergeArrays(getAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), getAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), getAnnotation(Type, 'childrenObservers'), Type.childrenObservers), fromAnnotationOrTypeOrDefault('containerless', Type, () => false), fromAnnotationOrTypeOrDefault('isStrictBinding', Type, () => false), fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null), fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false), fromAnnotationOrTypeOrDefault('enhance', Type, () => false), mergeArrays(Watch.getAnnotation(Type), Type.watches), fromAnnotationOrTypeOrDefault('processContent', Type, () => null));
+            return new CustomElementDefinition(Type, nameOrDef, mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), fromAnnotationOrTypeOrDefault('cache', Type, returnZero), fromAnnotationOrTypeOrDefault('template', Type, returnNull), mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions), mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies), fromAnnotationOrTypeOrDefault('injectable', Type, returnNull), fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue), mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers), fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse), fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse), fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull), fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse), fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse), mergeArrays(Watch.getAnnotation(Type), Type.watches), fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // This is the typical default behavior, e.g. from regular CustomElement.define invocations or from @customElement deco
         // The ViewValueConverter also uses this signature and passes in a definition where everything except for the 'hooks'
         // property needs to be copied. So we have that exception for 'hooks', but we may need to revisit that default behavior
         // if this turns out to be too opinionated.
-        const name = fromDefinitionOrDefault('name', nameOrDef, CustomElement.generateName);
-        return new CustomElementDefinition(Type, name, mergeArrays(getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0), fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null), mergeArrays(getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), mergeArrays(getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null), fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true), mergeArrays(getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), getAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), getAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false), fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false), fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null), fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false), fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false), mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches), fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, () => null));
+        const name = fromDefinitionOrDefault('name', nameOrDef, generateElementName);
+        return new CustomElementDefinition(Type, name, mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero), fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull), mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull), fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue), mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull), fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse), mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches), fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull));
     }
     static getOrCreate(partialDefinition) {
         if (partialDefinition instanceof CustomElementDefinition) {
@@ -2562,7 +2571,7 @@ class CustomElementDefinition {
         const definition = CustomElementDefinition.create(partialDefinition);
         definitionLookup.set(partialDefinition, definition);
         // Make sure the full definition can be retrieved from dynamically created classes as well
-        Metadata.define(CustomElement.name, definition, definition.Type);
+        defineMetadata(ceBaseName, definition, definition.Type);
         return definition;
     }
     register(container) {
@@ -2579,14 +2588,26 @@ const defaultForOpts = {
     searchParents: false,
     optional: false,
 };
-const ceBaseName = Protocol.resource.keyFor('custom-element');
+const returnZero = () => 0;
+const returnNull = () => null;
+const returnFalse = () => false;
+const returnTrue = () => true;
+const returnEmptyArray = () => emptyArray;
+const ceBaseName = getResourceKeyFor('custom-element');
+const getElementKeyFrom = (name) => `${ceBaseName}:${name}`;
+const generateElementName = (() => {
+    let id = 0;
+    return () => `unnamed-${++id}`;
+})();
+const annotateElementMetadata = (Type, prop, value) => {
+    defineMetadata(getAnnotationKeyFor(prop), value, Type);
+};
+const getElementAnnotation = (Type, prop) => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 const CustomElement = Object.freeze({
     name: ceBaseName,
-    keyFrom(name) {
-        return `${ceBaseName}:${name}`;
-    },
+    keyFrom: getElementKeyFrom,
     isType(value) {
-        return typeof value === 'function' && Metadata.hasOwn(ceBaseName, value);
+        return typeof value === 'function' && hasOwnMetadata(ceBaseName, value);
     },
     for(node, opts = defaultForOpts) {
         if (opts.name === void 0 && opts.searchParents !== true) {
@@ -2639,30 +2660,21 @@ const CustomElement = Object.freeze({
     },
     define(nameOrDef, Type) {
         const definition = CustomElementDefinition.create(nameOrDef, Type);
-        Metadata.define(ceBaseName, definition, definition.Type);
-        Metadata.define(ceBaseName, definition, definition);
-        Protocol.resource.appendTo(definition.Type, ceBaseName);
+        defineMetadata(ceBaseName, definition, definition.Type);
+        defineMetadata(ceBaseName, definition, definition);
+        appendResourceKey(definition.Type, ceBaseName);
         return definition.Type;
     },
     getDefinition(Type) {
-        const def = Metadata.getOwn(ceBaseName, Type);
+        const def = getOwnMetadata(ceBaseName, Type);
         if (def === void 0) {
             throw new Error(`AUR0760:${Type.name}`);
         }
         return def;
     },
-    annotate(Type, prop, value) {
-        Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
-    },
-    getAnnotation(Type, prop) {
-        return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
-    },
-    generateName: (function () {
-        let id = 0;
-        return function () {
-            return `unnamed-${++id}`;
-        };
-    })(),
+    annotate: annotateElementMetadata,
+    getAnnotation: getElementAnnotation,
+    generateName: generateElementName,
     createInjectable() {
         const $injectable = function (target, property, index) {
             const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
@@ -2710,20 +2722,20 @@ const CustomElement = Object.freeze({
         };
     })(),
 });
-const pcHookMetadataProperty = Protocol.annotation.keyFor('processContent');
+const pcHookMetadataProperty = getAnnotationKeyFor('processContent');
 function processContent(hook) {
     return hook === void 0
         ? function (target, propertyKey, _descriptor) {
-            Metadata.define(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
+            defineMetadata(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
         }
         : function (target) {
             hook = ensureHook(target, hook);
-            const def = Metadata.getOwn(ceBaseName, target);
+            const def = getOwnMetadata(ceBaseName, target);
             if (def !== void 0) {
                 def.processContent = hook;
             }
             else {
-                Metadata.define(pcHookMetadataProperty, hook, target);
+                defineMetadata(pcHookMetadataProperty, hook, target);
             }
             return target;
         };
@@ -3147,7 +3159,7 @@ class LifecycleHooksDefinition {
     }
 }
 const containerLookup = new WeakMap();
-const lhBaseName = Protocol.annotation.keyFor('lifecycle-hooks');
+const lhBaseName = getAnnotationKeyFor('lifecycle-hooks');
 const LifecycleHooks = Object.freeze({
     name: lhBaseName,
     /**
@@ -3155,8 +3167,8 @@ const LifecycleHooks = Object.freeze({
      */
     define(def, Type) {
         const definition = LifecycleHooksDefinition.create(def, Type);
-        Metadata.define(lhBaseName, definition, Type);
-        Protocol.resource.appendTo(Type, lhBaseName);
+        defineMetadata(lhBaseName, definition, Type);
+        appendResourceKey(Type, lhBaseName);
         return definition.Type;
     },
     resolve(ctx) {
@@ -3177,7 +3189,7 @@ const LifecycleHooks = Object.freeze({
             let name;
             let entries;
             for (instance of instances) {
-                definition = Metadata.getOwn(lhBaseName, instance.constructor);
+                definition = getOwnMetadata(lhBaseName, instance.constructor);
                 entry = new LifecycleHooksEntry(definition, instance);
                 for (name of definition.propertyNames) {
                     entries = lookup[name];
@@ -3264,11 +3276,11 @@ function toCustomElementDefinition($view) {
     seenViews.add($view);
     return CustomElementDefinition.create($view);
 }
-const viewsBaseName = Protocol.resource.keyFor('views');
+const viewsBaseName = getResourceKeyFor('views');
 const Views = Object.freeze({
     name: viewsBaseName,
     has(value) {
-        return typeof value === 'function' && (Metadata.hasOwn(viewsBaseName, value) || '$views' in value);
+        return typeof value === 'function' && (hasOwnMetadata(viewsBaseName, value) || '$views' in value);
     },
     get(value) {
         if (typeof value === 'function' && '$views' in value) {
@@ -3279,17 +3291,17 @@ const Views = Object.freeze({
                 Views.add(value, def);
             }
         }
-        let views = Metadata.getOwn(viewsBaseName, value);
+        let views = getOwnMetadata(viewsBaseName, value);
         if (views === void 0) {
-            Metadata.define(viewsBaseName, views = [], value);
+            defineMetadata(viewsBaseName, views = [], value);
         }
         return views;
     },
     add(Type, partialDefinition) {
         const definition = CustomElementDefinition.create(partialDefinition);
-        let views = Metadata.getOwn(viewsBaseName, Type);
+        let views = getOwnMetadata(viewsBaseName, Type);
         if (views === void 0) {
-            Metadata.define(viewsBaseName, views = [definition], Type);
+            defineMetadata(viewsBaseName, views = [definition], Type);
         }
         else {
             views.push(definition);
@@ -5409,7 +5421,7 @@ function renderer(instructionType) {
         // the length (number of ctor arguments) is copied for the same reason
         const metadataKeys = Metadata.getOwnKeys(target);
         for (const key of metadataKeys) {
-            Metadata.define(key, Metadata.getOwn(key, target), decoratedTarget);
+            defineMetadata(key, getOwnMetadata(key, target), decoratedTarget);
         }
         const ownProperties = Object.getOwnPropertyDescriptors(target);
         Object.keys(ownProperties).filter(prop => prop !== 'prototype').forEach(prop => {
@@ -6105,8 +6117,7 @@ class BindingCommandDefinition {
             name = nameOrDef.name;
             def = nameOrDef;
         }
-        const getAnnotation = BindingCommand.getAnnotation;
-        return new BindingCommandDefinition(Type, firstDefined(getAnnotation(Type, 'name'), name), mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), BindingCommand.keyFrom(name), firstDefined(getAnnotation(Type, 'type'), def.type, Type.type, null));
+        return new BindingCommandDefinition(Type, firstDefined(getCommandAnnotation(Type, 'name'), name), mergeArrays(getCommandAnnotation(Type, 'aliases'), def.aliases, Type.aliases), getCommandKeyFrom(name), firstDefined(getCommandAnnotation(Type, 'type'), def.type, Type.type, null));
     }
     register(container) {
         const { Type, key, aliases } = this;
@@ -6115,35 +6126,33 @@ class BindingCommandDefinition {
         registerAliases(aliases, BindingCommand, key, container);
     }
 }
-const cmdBaseName = Protocol.resource.keyFor('binding-command');
+const cmdBaseName = getResourceKeyFor('binding-command');
+const getCommandKeyFrom = (name) => `${cmdBaseName}:${name}`;
+const getCommandAnnotation = (Type, prop) => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 const BindingCommand = Object.freeze({
     name: cmdBaseName,
-    keyFrom(name) {
-        return `${cmdBaseName}:${name}`;
-    },
+    keyFrom: getCommandKeyFrom,
     isType(value) {
-        return typeof value === 'function' && Metadata.hasOwn(cmdBaseName, value);
+        return typeof value === 'function' && hasOwnMetadata(cmdBaseName, value);
     },
     define(nameOrDef, Type) {
         const definition = BindingCommandDefinition.create(nameOrDef, Type);
-        Metadata.define(cmdBaseName, definition, definition.Type);
-        Metadata.define(cmdBaseName, definition, definition);
-        Protocol.resource.appendTo(Type, cmdBaseName);
+        defineMetadata(cmdBaseName, definition, definition.Type);
+        defineMetadata(cmdBaseName, definition, definition);
+        appendResourceKey(Type, cmdBaseName);
         return definition.Type;
     },
     getDefinition(Type) {
-        const def = Metadata.getOwn(cmdBaseName, Type);
+        const def = getOwnMetadata(cmdBaseName, Type);
         if (def === void 0) {
             throw new Error(`AUR0758:${Type.name}`);
         }
         return def;
     },
     annotate(Type, prop, value) {
-        Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+        defineMetadata(getAnnotationKeyFor(prop), value, Type);
     },
-    getAnnotation(Type, prop) {
-        return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
-    },
+    getAnnotation: getCommandAnnotation,
 });
 let OneTimeBindingCommand = class OneTimeBindingCommand {
     constructor(m, xp) {
@@ -6435,6 +6444,9 @@ RefBindingCommand.inject = [IExpressionParser];
 RefBindingCommand = __decorate([
     bindingCommand('ref')
 ], RefBindingCommand);
+// @bindingCommand('...$attrs')
+// export class SpreadCaptureBindingCommand implements BindingCommandInstance {
+// }
 
 const ITemplateElementFactory = DI.createInterface('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 const markupCache = {};
@@ -6558,7 +6570,7 @@ class TemplateCompiler {
         this._compileNode(content, context);
         return CustomElementDefinition.create({
             ...partialDefinition,
-            name: partialDefinition.name || CustomElement.generateName(),
+            name: partialDefinition.name || _generateElementName(),
             dependencies: ((_c = partialDefinition.dependencies) !== null && _c !== void 0 ? _c : emptyArray).concat((_d = context.deps) !== null && _d !== void 0 ? _d : emptyArray),
             instructions: context.rows,
             surrogates: isTemplateElement
@@ -7103,7 +7115,7 @@ class TemplateCompiler {
                 elementInstruction.auSlot = {
                     name: slotName,
                     fallback: CustomElementDefinition.create({
-                        name: CustomElement.generateName(),
+                        name: _generateElementName(),
                         template,
                         instructions: fallbackContentContext.rows,
                         needsCompile: false,
@@ -7244,7 +7256,7 @@ class TemplateCompiler {
                             projectionCompilationContext = context._createChild();
                             this._compileNode(template.content, projectionCompilationContext);
                             projections[targetSlot] = CustomElementDefinition.create({
-                                name: CustomElement.generateName(),
+                                name: _generateElementName(),
                                 template,
                                 instructions: projectionCompilationContext.rows,
                                 needsCompile: false,
@@ -7271,7 +7283,7 @@ class TemplateCompiler {
                 }
             }
             tcInstruction.def = CustomElementDefinition.create({
-                name: CustomElement.generateName(),
+                name: _generateElementName(),
                 template: mostInnerTemplate,
                 instructions: childContext.rows,
                 needsCompile: false,
@@ -7297,7 +7309,7 @@ class TemplateCompiler {
                 marker.classList.add('au');
                 template.content.appendChild(marker);
                 tcInstruction.def = CustomElementDefinition.create({
-                    name: CustomElement.generateName(),
+                    name: _generateElementName(),
                     template,
                     needsCompile: false,
                     instructions: [[tcInstructions[i + 1]]],
@@ -7422,7 +7434,7 @@ class TemplateCompiler {
                         projectionCompilationContext = context._createChild();
                         this._compileNode(template.content, projectionCompilationContext);
                         projections[targetSlot] = CustomElementDefinition.create({
-                            name: CustomElement.generateName(),
+                            name: _generateElementName(),
                             template,
                             instructions: projectionCompilationContext.rows,
                             needsCompile: false,
@@ -7891,15 +7903,15 @@ function getBindingMode(bindable) {
  */
 const ITemplateCompilerHooks = DI.createInterface('ITemplateCompilerHooks');
 const typeToHooksDefCache = new WeakMap();
-const hooksBaseName = Protocol.resource.keyFor('compiler-hooks');
+const hooksBaseName = getResourceKeyFor('compiler-hooks');
 const TemplateCompilerHooks = Object.freeze({
     name: hooksBaseName,
     define(Type) {
         let def = typeToHooksDefCache.get(Type);
         if (def === void 0) {
             typeToHooksDefCache.set(Type, def = new TemplateCompilerHooksDefinition(Type));
-            Metadata.define(hooksBaseName, def, Type);
-            Protocol.resource.appendTo(Type, hooksBaseName);
+            defineMetadata(hooksBaseName, def, Type);
+            appendResourceKey(Type, hooksBaseName);
         }
         return Type;
     }
@@ -7928,6 +7940,7 @@ const templateCompilerHooks = (target) => {
     }
 };
 /* eslint-enable */
+const _generateElementName = CustomElement.generateName;
 
 class BindingModeBehavior {
     constructor(mode) {

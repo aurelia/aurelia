@@ -31,10 +31,6 @@ export declare const enum InstructionType {
     setClassAttribute = "hf",
     setStyleAttribute = "hg"
 }
-export declare type NodeInstruction = HydrateElementInstruction | HydrateTemplateController | HydrateLetElementInstruction | TextBindingInstruction;
-export declare type AttributeInstruction = InterpolationInstruction | PropertyBindingInstruction | IteratorBindingInstruction | CallBindingInstruction | RefBindingInstruction | SetPropertyInstruction | LetBindingInstruction | HydrateAttributeInstruction | ListenerBindingInstruction | AttributeBindingInstruction | StylePropertyBindingInstruction | SetAttributeInstruction | SetClassAttributeInstruction | SetStyleAttributeInstruction;
-export declare type Instruction = NodeInstruction | AttributeInstruction;
-export declare type InstructionRow = [Instruction, ...AttributeInstruction[]];
 export declare type InstructionTypeName = string;
 export interface IInstruction {
     readonly type: InstructionTypeName;

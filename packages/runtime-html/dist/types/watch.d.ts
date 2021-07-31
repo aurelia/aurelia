@@ -15,10 +15,10 @@ declare type MethodsOf<Type> = {
 export declare function watch<T extends object, D = unknown>(expressionOrPropertyAccessFn: PropertyKey, changeHandlerOrCallback: MethodsOf<T> | IWatcherCallback<T, D>): WatchClassDecorator<T>;
 export declare function watch<T extends object, D = unknown>(expressionOrPropertyAccessFn: IDepCollectionFn<T, D>, changeHandlerOrCallback: MethodsOf<T> | IWatcherCallback<T, D>): WatchClassDecorator<T>;
 export declare function watch<T extends object = object, D = unknown>(expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T, D>): WatchMethodDecorator<T>;
-export declare const Watch: {
+export declare const Watch: Readonly<{
     name: string;
     add(Type: Constructable, definition: IWatchDefinition): void;
     getAnnotation(Type: Constructable): IWatchDefinition[];
-};
+}>;
 export {};
 //# sourceMappingURL=watch.d.ts.map

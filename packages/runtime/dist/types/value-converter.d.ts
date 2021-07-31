@@ -27,5 +27,5 @@ export declare class ValueConverterDefinition<T extends Constructable = Construc
     static create<T extends Constructable = Constructable>(nameOrDef: string | PartialValueConverterDefinition, Type: ValueConverterType<T>): ValueConverterDefinition<T>;
     register(container: IContainer): void;
 }
-export declare const ValueConverter: ValueConverterKind;
+export declare const ValueConverter: Readonly<ValueConverterKind>;
 //# sourceMappingURL=value-converter.d.ts.map

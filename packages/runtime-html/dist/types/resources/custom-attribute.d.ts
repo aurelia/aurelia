@@ -1,5 +1,5 @@
 import { BindingMode } from '@aurelia/runtime';
-import { DefinitionType } from './resources-constants.js';
+import { DefinitionType } from './resources-shared.js';
 import type { Constructable, IContainer, IResourceKind, ResourceDefinition, PartialResourceDefinition, ResourceType } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
 import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller.js';
@@ -71,5 +71,5 @@ export declare class CustomAttributeDefinition<T extends Constructable = Constru
     static create<T extends Constructable = Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: CustomAttributeType<T>): CustomAttributeDefinition<T>;
     register(container: IContainer): void;
 }
-export declare const CustomAttribute: CustomAttributeKind;
+export declare const CustomAttribute: Readonly<CustomAttributeKind>;
 //# sourceMappingURL=custom-attribute.d.ts.map

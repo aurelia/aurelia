@@ -1,4 +1,5 @@
-import { DI, Metadata, Protocol, Registration } from '@aurelia/kernel';
+import { DI, Registration } from '@aurelia/kernel';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../shared.js';
 import type { Constructable, IContainer } from '@aurelia/kernel';
 
 type FuncPropNames<T> = {
@@ -59,7 +60,8 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
 
 const containerLookup = new WeakMap<IContainer, LifecycleHooksLookup<any>>();
 
-const lhBaseName = Protocol.annotation.keyFor('lifecycle-hooks');
+const lhBaseName = getAnnotationKeyFor('lifecycle-hooks');
+
 export const LifecycleHooks = Object.freeze({
   name: lhBaseName,
   /**
@@ -67,8 +69,8 @@ export const LifecycleHooks = Object.freeze({
    */
   define<T extends Constructable>(def: {}, Type: T): T {
     const definition = LifecycleHooksDefinition.create(def, Type);
-    Metadata.define(lhBaseName, definition, Type);
-    Protocol.resource.appendTo(Type, lhBaseName);
+    defineMetadata(lhBaseName, definition, Type);
+    appendResourceKey(Type, lhBaseName);
     return definition.Type;
   },
   resolve(ctx: IContainer): LifecycleHooksLookup {
@@ -91,7 +93,7 @@ export const LifecycleHooks = Object.freeze({
       let entries: LifecycleHooksEntry[];
 
       for (instance of instances) {
-        definition = Metadata.getOwn(lhBaseName, instance.constructor);
+        definition = getOwnMetadata(lhBaseName, instance.constructor);
         entry = new LifecycleHooksEntry(definition, instance);
         for (name of definition.propertyNames) {
           entries = lookup[name] as LifecycleHooksEntry[];

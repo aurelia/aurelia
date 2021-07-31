@@ -7,7 +7,7 @@ import { bindable } from '../../bindable.js';
 import { IWorkTracker } from '../../app-root.js';
 
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller.js';
-import type { Instruction } from '../../renderer.js';
+import type { IInstruction } from '../../renderer.js';
 import type { INode } from '../../dom.js';
 
 export class If implements ICustomAttributeViewModel {
@@ -188,7 +188,7 @@ export class Else implements ICustomAttributeViewModel {
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: Instruction,
+    _instruction: IInstruction,
   ): void {
     const children = controller.children!;
     const ifBehavior: If | ICustomAttributeController = children[children.length - 1] as If | ICustomAttributeController;

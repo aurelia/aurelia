@@ -1,4 +1,4 @@
-import { DI, emptyArray, Registration, toArray, ILogger, camelCase, Protocol, ResourceDefinition, ResourceType, Metadata, noop } from '@aurelia/kernel';
+import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop } from '@aurelia/kernel';
 import { BindingMode, BindingType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
@@ -25,6 +25,7 @@ import { CustomElement, CustomElementDefinition } from './resources/custom-eleme
 import { BindingCommand } from './resources/binding-command.js';
 import { createLookup } from './utilities-html.js';
 import { allResources } from './utilities-di.js';
+import { appendResourceKey, defineMetadata, getResourceKeyFor } from './shared.js';
 
 import type {
   IContainer,
@@ -88,7 +89,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     return CustomElementDefinition.create({
       ...partialDefinition,
-      name: partialDefinition.name || CustomElement.generateName(),
+      name: partialDefinition.name || _generateElementName(),
       dependencies: (partialDefinition.dependencies ?? emptyArray).concat(context.deps ?? emptyArray),
       instructions: context.rows,
       surrogates: isTemplateElement
@@ -721,7 +722,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         elementInstruction.auSlot = {
           name: slotName,
           fallback: CustomElementDefinition.create({
-            name: CustomElement.generateName(),
+            name: _generateElementName(),
             template,
             instructions: fallbackContentContext.rows,
             needsCompile: false,
@@ -870,7 +871,7 @@ export class TemplateCompiler implements ITemplateCompiler {
               projectionCompilationContext = context._createChild();
               this._compileNode(template.content, projectionCompilationContext);
               projections[targetSlot] = CustomElementDefinition.create({
-                name: CustomElement.generateName(),
+                name: _generateElementName(),
                 template,
                 instructions: projectionCompilationContext.rows,
                 needsCompile: false,
@@ -897,7 +898,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
       }
       tcInstruction.def = CustomElementDefinition.create({
-        name: CustomElement.generateName(),
+        name: _generateElementName(),
         template: mostInnerTemplate,
         instructions: childContext.rows,
         needsCompile: false,
@@ -926,7 +927,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         template.content.appendChild(marker);
 
         tcInstruction.def = CustomElementDefinition.create({
-          name: CustomElement.generateName(),
+          name: _generateElementName(),
           template,
           needsCompile: false,
           instructions: [[tcInstructions[i + 1]]],
@@ -1053,7 +1054,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             projectionCompilationContext = context._createChild();
             this._compileNode(template.content, projectionCompilationContext);
             projections[targetSlot] = CustomElementDefinition.create({
-              name: CustomElement.generateName(),
+              name: _generateElementName(),
               template,
               instructions: projectionCompilationContext.rows,
               needsCompile: false,
@@ -1634,15 +1635,16 @@ export interface ITemplateCompilerHooks {
 }
 
 const typeToHooksDefCache = new WeakMap<Constructable, TemplateCompilerHooksDefinition<unknown>>();
-const hooksBaseName = Protocol.resource.keyFor('compiler-hooks');
+const hooksBaseName = getResourceKeyFor('compiler-hooks');
+
 export const TemplateCompilerHooks = Object.freeze({
   name: hooksBaseName,
   define<K extends ITemplateCompilerHooks, T extends Constructable<K>>(Type: T): T {
     let def = typeToHooksDefCache.get(Type);
     if (def === void 0) {
       typeToHooksDefCache.set(Type, def = new TemplateCompilerHooksDefinition(Type));
-      Metadata.define(hooksBaseName, def, Type);
-      Protocol.resource.appendTo(Type, hooksBaseName);
+      defineMetadata(hooksBaseName, def, Type);
+      appendResourceKey(Type, hooksBaseName);
     }
     return Type;
   }
@@ -1675,3 +1677,5 @@ export const templateCompilerHooks = (target?: Function) => {
   };
 }
 /* eslint-enable */
+
+const _generateElementName = CustomElement.generateName;

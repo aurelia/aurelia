@@ -1,9 +1,10 @@
 import { all, DI, IContainer, ignore, IRegistry, optional, Registration } from './di.js';
 import { bound, toLookup } from './functions.js';
 import { Class, Constructable } from './interfaces.js';
-import { Protocol } from './resource.js';
+import { getAnnotationKeyFor } from './resource.js';
 import { Metadata } from '@aurelia/metadata';
 import { IPlatform } from './platform.js';
+import { defineMetadata } from './shared.js';
 
 export const enum LogLevel {
   /**
@@ -169,9 +170,9 @@ interface SinkDefinition {
 }
 
 export const LoggerSink = Object.freeze({
-  key: Protocol.annotation.keyFor('logger-sink-handles'),
+  key: getAnnotationKeyFor('logger-sink-handles'),
   define<TSink extends ISink>(target: Constructable<TSink>, definition: SinkDefinition) {
-    Metadata.define(this.key, definition.handles, target.prototype);
+    defineMetadata(this.key, definition.handles, target.prototype);
     return target;
   },
   getHandles<TSink extends ISink>(target: Constructable<TSink> | TSink) {

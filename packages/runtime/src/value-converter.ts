@@ -1,11 +1,10 @@
 import {
   Registration,
-  Metadata,
-  Protocol,
   mergeArrays,
   firstDefined,
 } from '@aurelia/kernel';
 import { registerAliases } from './alias.js';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from './shared.js';
 
 import type {
   Constructable,
@@ -68,11 +67,10 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
       def = nameOrDef;
     }
 
-    const getAnnotation = ValueConverter.getAnnotation;
     return new ValueConverterDefinition(
       Type,
-      firstDefined(getAnnotation(Type, 'name'), name),
-      mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      firstDefined(getConverterAnnotation(Type, 'name'), name),
+      mergeArrays(getConverterAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       ValueConverter.keyFrom(name),
     );
   }
@@ -85,25 +83,28 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
   }
 }
 
-const vcBaseName = Protocol.resource.keyFor('value-converter');
-export const ValueConverter: ValueConverterKind = Object.freeze<ValueConverterKind>({
+const vcBaseName = getResourceKeyFor('value-converter');
+const getConverterAnnotation = <K extends keyof PartialValueConverterDefinition>(
+  Type: Constructable,
+  prop: K,
+): PartialValueConverterDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
+
+export const ValueConverter = Object.freeze<ValueConverterKind>({
   name: vcBaseName,
-  keyFrom(name: string): string {
-    return `${vcBaseName}:${name}`;
-  },
+  keyFrom: (name: string): string => `${vcBaseName}:${name}`,
   isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never) {
-    return typeof value === 'function' && Metadata.hasOwn(vcBaseName, value);
+    return typeof value === 'function' && hasOwnMetadata(vcBaseName, value);
   },
   define<T extends Constructable<ValueConverterInstance>>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T> {
     const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable<ValueConverterInstance>);
-    Metadata.define(vcBaseName, definition, definition.Type);
-    Metadata.define(vcBaseName, definition, definition);
-    Protocol.resource.appendTo(Type, vcBaseName);
+    defineMetadata(vcBaseName, definition, definition.Type);
+    defineMetadata(vcBaseName, definition, definition);
+    appendResourceKey(Type, vcBaseName);
 
     return definition.Type as ValueConverterType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
-    const def = Metadata.getOwn(vcBaseName, Type);
+    const def = getOwnMetadata(vcBaseName, Type);
     if (def === void 0) {
       if (__DEV__)
         throw new Error(`No definition found for type ${Type.name}`);
@@ -114,9 +115,7 @@ export const ValueConverter: ValueConverterKind = Object.freeze<ValueConverterKi
     return def;
   },
   annotate<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K, value: PartialValueConverterDefinition[K]): void {
-    Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+    defineMetadata(getAnnotationKeyFor(prop), value, Type);
   },
-  getAnnotation<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K): PartialValueConverterDefinition[K] {
-    return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
-  },
+  getAnnotation: getConverterAnnotation,
 });

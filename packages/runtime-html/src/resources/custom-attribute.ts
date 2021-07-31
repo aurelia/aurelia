@@ -1,9 +1,10 @@
-import { Registration, Protocol, Metadata, mergeArrays, firstDefined } from '@aurelia/kernel';
+import { Registration, mergeArrays, firstDefined } from '@aurelia/kernel';
 import { BindingMode, registerAliases } from '@aurelia/runtime';
 import { Bindable } from '../bindable.js';
 import { Watch } from '../watch.js';
 import { getRef } from '../dom.js';
-import { DefinitionType } from './resources-constants.js';
+import { DefinitionType } from './resources-shared.js';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
 
 import type {
   Constructable,
@@ -111,7 +112,6 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     nameOrDef: string | PartialCustomAttributeDefinition,
     Type: CustomAttributeType<T>,
   ): CustomAttributeDefinition<T> {
-    const getAnnotation = CustomAttribute.getAnnotation;
     let name: string;
     let def: PartialCustomAttributeDefinition;
     if (typeof nameOrDef === 'string') {
@@ -124,13 +124,13 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 
     return new CustomAttributeDefinition(
       Type,
-      firstDefined(getAnnotation(Type, 'name'), name),
-      mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      firstDefined(getAttributeAnnotation(Type, 'name'), name),
+      mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       CustomAttribute.keyFrom(name),
-      firstDefined(getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView),
-      firstDefined(getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
-      Bindable.from(...Bindable.getAll(Type), getAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
-      firstDefined(getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
+      firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView),
+      firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
+      Bindable.from(...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
+      firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
       mergeArrays(Watch.getAnnotation(Type), Type.watches),
     );
   }
@@ -143,28 +143,32 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
   }
 }
 
-const caBaseName = Protocol.resource.keyFor('custom-attribute');
-export const CustomAttribute: CustomAttributeKind = Object.freeze<CustomAttributeKind>({
+const caBaseName = getResourceKeyFor('custom-attribute');
+const getAttributeKeyFrom = (name: string): string => `${caBaseName}:${name}`;
+const getAttributeAnnotation = <K extends keyof PartialCustomAttributeDefinition>(
+  Type: Constructable,
+  prop: K,
+): PartialCustomAttributeDefinition[K] =>getOwnMetadata(getAnnotationKeyFor(prop), Type);
+
+export const CustomAttribute = Object.freeze<CustomAttributeKind>({
   name: caBaseName,
-  keyFrom(name: string): string {
-    return `${caBaseName}:${name}`;
-  },
+  keyFrom: getAttributeKeyFrom,
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never) {
-    return typeof value === 'function' && Metadata.hasOwn(caBaseName, value);
+    return typeof value === 'function' && hasOwnMetadata(caBaseName, value);
   },
   for<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(node: Node, name: string): ICustomAttributeController<C> | undefined {
-    return (getRef(node, CustomAttribute.keyFrom(name)) ?? void 0) as ICustomAttributeController<C> | undefined;
+    return (getRef(node, getAttributeKeyFrom(name)) ?? void 0) as ICustomAttributeController<C> | undefined;
   },
   define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> {
     const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
-    Metadata.define(caBaseName, definition, definition.Type);
-    Metadata.define(caBaseName, definition, definition);
-    Protocol.resource.appendTo(Type, caBaseName);
+    defineMetadata(caBaseName, definition, definition.Type);
+    defineMetadata(caBaseName, definition, definition);
+    appendResourceKey(Type, caBaseName);
 
     return definition.Type as CustomAttributeType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): CustomAttributeDefinition<T> {
-    const def = Metadata.getOwn(caBaseName, Type) as CustomAttributeDefinition<T>;
+    const def = getOwnMetadata(caBaseName, Type) as CustomAttributeDefinition<T>;
     if (def === void 0) {
       if (__DEV__)
         throw new Error(`No definition found for type ${Type.name}`);
@@ -175,9 +179,7 @@ export const CustomAttribute: CustomAttributeKind = Object.freeze<CustomAttribut
     return def;
   },
   annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void {
-    Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+    defineMetadata(getAnnotationKeyFor(prop), value, Type);
   },
-  getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K): PartialCustomAttributeDefinition[K] {
-    return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
-  },
+  getAnnotation: getAttributeAnnotation,
 });

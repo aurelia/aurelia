@@ -1,8 +1,7 @@
-import { Metadata } from '@aurelia/metadata';
-
 import { IContainer } from './di.js';
 import { Constructable } from './interfaces.js';
 import { emptyArray } from './platform.js';
+import { defineMetadata, hasOwnMetadata, getOwnMetadata } from './shared.js';
 
 export type ResourceType<
   TUserType extends Constructable = Constructable,
@@ -40,73 +39,69 @@ export interface IResourceKind<TType extends ResourceType, TDef extends Resource
 }
 
 const annoBaseName = 'au:annotation';
-const annotation = {
+/** @internal */
+export const getAnnotationKeyFor = (name: string, context?: string): string => {
+  if (context === void 0) {
+    return `${annoBaseName}:${name}`;
+  }
+
+  return `${annoBaseName}:${name}:${context}`;
+};
+/** @internal */
+export const appendAnnotation = (target: Constructable, key: string): void => {
+  const keys = getOwnMetadata(annoBaseName, target) as string[];
+  if (keys === void 0) {
+    defineMetadata(annoBaseName, [key], target);
+  } else {
+    keys.push(key);
+  }
+};
+const annotation = Object.freeze({
   name: 'au:annotation',
-  appendTo(target: Constructable, key: string): void {
-    const keys = Metadata.getOwn(annoBaseName, target) as string[];
-    if (keys === void 0) {
-      Metadata.define(annoBaseName, [key], target);
-    } else {
-      keys.push(key);
-    }
-  },
+  appendTo: appendAnnotation,
   set(target: Constructable, prop: string, value: unknown): void {
-    Metadata.define(annotation.keyFor(prop), value, target);
+    defineMetadata(getAnnotationKeyFor(prop), value, target);
   },
-  get(target: Constructable, prop: string): unknown {
-    return Metadata.getOwn(annotation.keyFor(prop), target);
-  },
+  get: (target: Constructable, prop: string): unknown => getOwnMetadata(getAnnotationKeyFor(prop), target),
   getKeys(target: Constructable): readonly string[] {
-    let keys = Metadata.getOwn(annoBaseName, target) as string[];
+    let keys = getOwnMetadata(annoBaseName, target) as string[];
     if (keys === void 0) {
-      Metadata.define(annoBaseName, keys = [], target);
+      defineMetadata(annoBaseName, keys = [], target);
     }
     return keys;
   },
-  isKey(key: string): boolean {
-    return key.startsWith(annoBaseName);
-  },
-  keyFor(name: string, context?: string): string {
-    if (context === void 0) {
-      return `${annoBaseName}:${name}`;
-    }
-
-    return `${annoBaseName}:${name}:${context}`;
-  },
-};
+  isKey: (key: string): boolean  => key.startsWith(annoBaseName),
+  keyFor: getAnnotationKeyFor,
+});
 
 const resBaseName = 'au:resource';
 const resource = Object.freeze({
   name: resBaseName,
   appendTo(target: Constructable, key: string): void {
-    const keys = Metadata.getOwn(resBaseName, target) as string[];
+    const keys = getOwnMetadata(resBaseName, target) as string[];
     if (keys === void 0) {
-      Metadata.define(resBaseName, [key], target);
+      defineMetadata(resBaseName, [key], target);
     } else {
       keys.push(key);
     }
   },
-  has(target: unknown): target is Constructable {
-    return Metadata.hasOwn(resBaseName, target);
-  },
+  has: (target: unknown): target is Constructable => hasOwnMetadata(resBaseName, target),
   getAll(target: Constructable): readonly ResourceDefinition[] {
-    const keys = Metadata.getOwn(resBaseName, target) as string[];
+    const keys = getOwnMetadata(resBaseName, target) as string[];
     if (keys === void 0) {
       return emptyArray;
     } else {
-      return keys.map(k => Metadata.getOwn(k, target));
+      return keys.map(k => getOwnMetadata(k, target));
     }
   },
   getKeys(target: Constructable): readonly string[] {
-    let keys = Metadata.getOwn(resBaseName, target) as string[];
+    let keys = getOwnMetadata(resBaseName, target) as string[];
     if (keys === void 0) {
-      Metadata.define(resBaseName, keys = [], target);
+      defineMetadata(resBaseName, keys = [], target);
     }
     return keys;
   },
-  isKey(key: string): boolean {
-    return key.startsWith(resBaseName);
-  },
+  isKey: (key: string): boolean => key.startsWith(resBaseName),
   keyFor(name: string, context?: string): string {
     if (context === void 0) {
       return `${resBaseName}:${name}`;
@@ -139,7 +134,7 @@ export function fromAnnotationOrDefinitionOrTypeOrDefault<
   Type: Constructable,
   getDefault: () => Required<TDef>[K],
 ): Required<TDef>[K] {
-  let value = Metadata.getOwn(Protocol.annotation.keyFor(name as string), Type) as TDef[K] | undefined;
+  let value = getOwnMetadata(getAnnotationKeyFor(name as string), Type) as TDef[K] | undefined;
   if (value === void 0) {
     value = def[name];
     if (value === void 0) {
@@ -165,7 +160,7 @@ export function fromAnnotationOrTypeOrDefault<T, K extends keyof T, V>(
   Type: T,
   getDefault: () => V,
 ): V {
-  let value = Metadata.getOwn(Protocol.annotation.keyFor(name as string), Type) as V;
+  let value = getOwnMetadata(getAnnotationKeyFor(name as string), Type) as V;
   if (value === void 0) {
     value = Type[name] as unknown as V;
     if (value === void 0 || !hasOwn.call(Type, name)) { // First just check the value (common case is faster), but do make sure it doesn't come from the proto chain

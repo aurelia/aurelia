@@ -21,12 +21,12 @@ const terserPluginCfg = terser({
   compress: {
     defaults: false,
   },
-  mangle: {
-    properties: {
-      regex: /^_/,
-      reserved: ['__esModule']
-    }
-  },
+  // mangle: {
+  //   properties: {
+  //     regex: /^_/,
+  //     reserved: ['__esModule']
+  //   }
+  // },
   format: {
     beautify: true,
   },

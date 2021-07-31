@@ -46,7 +46,7 @@ import type { BindableDefinition } from '../bindable.js';
 import type { LifecycleHooksLookup } from './lifecycle-hooks.js';
 import type { INode, INodeSequence, IRenderLocation } from '../dom.js';
 import type { IViewFactory } from './view.js';
-import type { Instruction } from '../renderer.js';
+import type { IInstruction } from '../renderer.js';
 import type { IWatchDefinition, IWatcherCallback } from '../watch.js';
 import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
 
@@ -1740,7 +1740,7 @@ export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<
     controller: IHydratableController,
     childController: ICustomAttributeController,
     target: INode,
-    instruction: Instruction,
+    instruction: IInstruction,
   ): void;
   created?(
     controller: ICustomAttributeController<this>,

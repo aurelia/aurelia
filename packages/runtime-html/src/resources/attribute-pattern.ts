@@ -1,4 +1,5 @@
-import { DI, Metadata, emptyArray, Protocol, Registration, all } from '@aurelia/kernel';
+import { DI, emptyArray, Protocol, Registration, all } from '@aurelia/kernel';
+import { appendAnnotationKey, appendResourceKey, defineMetadata, getResourceKeyFor } from '../shared.js';
 import type { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
 
 export interface AttributePatternDefinition {
@@ -461,7 +462,7 @@ export class AttributeParser {
     const patterns: AttributeParser['_patterns'] = this._patterns = {};
     const allDefs = attrPatterns.reduce<AttributePatternDefinition[]>(
       (allDefs, attrPattern) => {
-        const patternDefs = AttributePattern.getPatternDefinitions(attrPattern.constructor as Constructable);
+        const patternDefs = getAllPatternDefinitions(attrPattern.constructor as Constructable);
         patternDefs.forEach(def => patterns[def.pattern] = attrPattern);
         return allDefs.concat(patternDefs);
       },
@@ -514,9 +515,12 @@ export class AttributePatternResourceDefinition implements ResourceDefinition<Co
   }
 }
 
-const apBaseName = Protocol.resource.keyFor('attribute-pattern');
+const apBaseName = getResourceKeyFor('attribute-pattern');
 const annotationKey = 'attribute-pattern-definitions';
-export const AttributePattern: AttributePattern = Object.freeze<AttributePattern>({
+const getAllPatternDefinitions = <TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>) =>
+  Protocol.annotation.get(Type, annotationKey) as AttributePatternDefinition[];
+
+export const AttributePattern = Object.freeze<AttributePattern>({
   name: apBaseName,
   definitionAnnotationKey: annotationKey,
   define<TProto, TClass>(
@@ -524,17 +528,15 @@ export const AttributePattern: AttributePattern = Object.freeze<AttributePattern
     Type: DecoratableAttributePattern<TProto, TClass>,
   ) {
     const definition = new AttributePatternResourceDefinition(Type);
-    Metadata.define(apBaseName, definition, Type);
-    Protocol.resource.appendTo(Type, apBaseName);
+    defineMetadata(apBaseName, definition, Type);
+    appendResourceKey(Type, apBaseName);
 
     Protocol.annotation.set(Type, annotationKey, patternDefs);
-    Protocol.annotation.appendTo(Type, annotationKey);
+    appendAnnotationKey(Type, annotationKey);
 
     return Type as DecoratedAttributePattern<TProto, TClass>;
   },
-  getPatternDefinitions<TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>) {
-    return Protocol.annotation.get(Type, annotationKey) as AttributePatternDefinition[];
-  }
+  getPatternDefinitions: getAllPatternDefinitions,
 });
 
 @attributePattern(

@@ -25,6 +25,7 @@ import { Controller, ICustomElementController, ICustomElementViewModel, IControl
 import { IPlatform } from './platform.js';
 import { IViewFactory } from './templating/view.js';
 import { IRendering } from './templating/rendering.js';
+import { defineMetadata, getOwnMetadata } from './shared.js';
 
 import type { IServiceLocator, IContainer, Class, IRegistry, Constructable, IResolver } from '@aurelia/kernel';
 import type {
@@ -60,31 +61,6 @@ export const enum InstructionType {
   setClassAttribute = 'hf',
   setStyleAttribute = 'hg',
 }
-
-export type NodeInstruction =
-  HydrateElementInstruction |
-  HydrateTemplateController |
-  HydrateLetElementInstruction |
-  TextBindingInstruction;
-
-export type AttributeInstruction =
-  InterpolationInstruction |
-  PropertyBindingInstruction |
-  IteratorBindingInstruction |
-  CallBindingInstruction |
-  RefBindingInstruction |
-  SetPropertyInstruction |
-  LetBindingInstruction |
-  HydrateAttributeInstruction |
-  ListenerBindingInstruction |
-  AttributeBindingInstruction |
-  StylePropertyBindingInstruction |
-  SetAttributeInstruction |
-  SetClassAttributeInstruction |
-  SetStyleAttributeInstruction;
-
-export type Instruction = NodeInstruction | AttributeInstruction;
-export type InstructionRow = [Instruction, ...AttributeInstruction[]];
 
 export type InstructionTypeName = string;
 
@@ -380,7 +356,7 @@ export function renderer<TType extends string>(instructionType: TType): Instruct
     // the length (number of ctor arguments) is copied for the same reason
     const metadataKeys = Metadata.getOwnKeys(target);
     for (const key of metadataKeys) {
-      Metadata.define(key, Metadata.getOwn(key, target), decoratedTarget);
+      defineMetadata(key, getOwnMetadata(key, target), decoratedTarget);
     }
     const ownProperties = Object.getOwnPropertyDescriptors(target);
     Object.keys(ownProperties).filter(prop => prop !== 'prototype').forEach(prop => {

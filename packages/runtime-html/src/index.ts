@@ -316,12 +316,8 @@ export {
   SetStyleAttributeInstruction,
   StylePropertyBindingInstruction,
   TextBindingInstruction,
-  AttributeInstruction,
-  InstructionRow,
   isInstruction,
-  NodeInstruction,
   InstructionTypeName,
-  Instruction,
   IInstruction,
   InstructionType,
 } from './renderer.js';
@@ -436,7 +432,7 @@ export {
 } from './resources/slot-injectables.js';
 export {
   DefinitionType,
-} from './resources/resources-constants.js';
+} from './resources/resources-shared.js';
 
 export {
   containerless,

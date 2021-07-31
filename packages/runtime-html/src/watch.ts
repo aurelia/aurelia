@@ -1,9 +1,10 @@
-import { Protocol, Metadata, emptyArray } from '@aurelia/kernel';
-import type { Constructable } from '@aurelia/kernel';
-import type { IConnectable } from '@aurelia/runtime';
-
+import { emptyArray } from '@aurelia/kernel';
 import { CustomAttribute } from './resources/custom-attribute.js';
 import { CustomElement } from './resources/custom-element.js';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './shared.js';
+
+import type { Constructable } from '@aurelia/kernel';
+import type { IConnectable } from '@aurelia/runtime';
 
 export type IDepCollectionFn<TType extends object, TReturn = unknown> = (vm: TType, watcher: IConnectable) => TReturn;
 export type IWatcherCallback<TType extends object, TValue = unknown>
@@ -118,17 +119,18 @@ class WatchDefinition<T extends object> implements IWatchDefinition<T> {
 }
 
 const noDefinitions: IWatchDefinition[] = emptyArray;
-const watchBaseName = Protocol.annotation.keyFor('watch');
-export const Watch = {
+const watchBaseName = getAnnotationKeyFor('watch');
+
+export const Watch = Object.freeze({
   name: watchBaseName,
   add(Type: Constructable, definition: IWatchDefinition): void {
-    let watchDefinitions: IWatchDefinition[] = Metadata.getOwn(watchBaseName, Type);
+    let watchDefinitions: IWatchDefinition[] = getOwnMetadata(watchBaseName, Type);
     if (watchDefinitions == null) {
-      Metadata.define(watchBaseName, watchDefinitions = [], Type);
+      defineMetadata(watchBaseName, watchDefinitions = [], Type);
     }
     watchDefinitions.push(definition);
   },
   getAnnotation(Type: Constructable): IWatchDefinition[] {
-    return Metadata.getOwn(watchBaseName, Type) ?? noDefinitions;
+    return getOwnMetadata(watchBaseName, Type) ?? noDefinitions;
   },
-};
+});

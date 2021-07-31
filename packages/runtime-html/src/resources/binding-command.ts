@@ -1,4 +1,4 @@
-import { camelCase, Registration, mergeArrays, Protocol, firstDefined, Metadata } from '@aurelia/kernel';
+import { camelCase, Registration, mergeArrays, firstDefined } from '@aurelia/kernel';
 import { BindingMode, BindingType, DelegationStrategy, IExpressionParser, registerAliases } from '@aurelia/runtime';
 import { IAttrMapper } from '../attribute-mapper.js';
 import {
@@ -9,6 +9,8 @@ import {
   RefBindingInstruction,
   ListenerBindingInstruction,
 } from '../renderer.js';
+import { DefinitionType } from './resources-shared.js';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
 
 import type {
   Constructable,
@@ -23,7 +25,6 @@ import type { AttrSyntax } from './attribute-pattern.js';
 import type { BindableDefinition } from '../bindable.js';
 import type { CustomAttributeDefinition } from './custom-attribute.js';
 import type { CustomElementDefinition } from './custom-element.js';
-import { DefinitionType } from './resources-constants.js';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition<{
   readonly type?: string | null;
@@ -95,13 +96,12 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
       def = nameOrDef;
     }
 
-    const getAnnotation = BindingCommand.getAnnotation;
     return new BindingCommandDefinition(
       Type,
-      firstDefined(getAnnotation(Type, 'name'), name),
-      mergeArrays(getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
-      BindingCommand.keyFrom(name),
-      firstDefined(getAnnotation(Type, 'type'), def.type, Type.type, null),
+      firstDefined(getCommandAnnotation(Type, 'name'), name),
+      mergeArrays(getCommandAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      getCommandKeyFrom(name),
+      firstDefined(getCommandAnnotation(Type, 'type'), def.type, Type.type, null),
     );
   }
 
@@ -113,25 +113,29 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
   }
 }
 
-const cmdBaseName = Protocol.resource.keyFor('binding-command');
+const cmdBaseName = getResourceKeyFor('binding-command');
+const getCommandKeyFrom = (name: string): string => `${cmdBaseName}:${name}`;
+const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
+  Type: Constructable,
+  prop: K,
+): PartialBindingCommandDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
+
 export const BindingCommand = Object.freeze<BindingCommandKind>({
   name: cmdBaseName,
-  keyFrom(name: string): string {
-    return `${cmdBaseName}:${name}`;
-  },
+  keyFrom: getCommandKeyFrom,
   isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
-    return typeof value === 'function' && Metadata.hasOwn(cmdBaseName, value);
+    return typeof value === 'function' && hasOwnMetadata(cmdBaseName, value);
   },
   define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
     const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
-    Metadata.define(cmdBaseName, definition, definition.Type);
-    Metadata.define(cmdBaseName, definition, definition);
-    Protocol.resource.appendTo(Type, cmdBaseName);
+    defineMetadata(cmdBaseName, definition, definition.Type);
+    defineMetadata(cmdBaseName, definition, definition);
+    appendResourceKey(Type, cmdBaseName);
 
     return definition.Type as BindingCommandType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T> {
-    const def = Metadata.getOwn(cmdBaseName, Type);
+    const def = getOwnMetadata(cmdBaseName, Type);
     if (def === void 0) {
       if (__DEV__)
         throw new Error(`No definition found for type ${Type.name}`);
@@ -142,11 +146,9 @@ export const BindingCommand = Object.freeze<BindingCommandKind>({
     return def;
   },
   annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void {
-    Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+    defineMetadata(getAnnotationKeyFor(prop), value, Type);
   },
-  getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K] {
-    return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
-  },
+  getAnnotation: getCommandAnnotation,
 });
 
 @bindingCommand('one-time')
@@ -440,3 +442,8 @@ export class RefBindingCommand implements BindingCommandInstance {
     return new RefBindingInstruction(this.xp.parse(info.attr.rawValue, BindingType.IsProperty), info.attr.target);
   }
 }
+
+// @bindingCommand('...$attrs')
+// export class SpreadCaptureBindingCommand implements BindingCommandInstance {
+
+// }

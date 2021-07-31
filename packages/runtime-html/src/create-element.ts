@@ -4,7 +4,6 @@ import {
   isInstruction,
   SetAttributeInstruction,
   IInstruction,
-  Instruction,
   SetPropertyInstruction,
 } from './renderer.js';
 import { IPlatform } from './platform.js';
@@ -116,7 +115,7 @@ function createElementForType(
   const instructions: IInstruction[] = [];
   const allInstructions = [instructions];
   const dependencies: Key[] = [];
-  const childInstructions: Instruction[] = [];
+  const childInstructions: IInstruction[] = [];
   const bindables = definition.bindables;
   const element = p.document.createElement(definition.name);
   element.className = 'au';
@@ -130,7 +129,7 @@ function createElementForType(
   if (props) {
     Object.keys(props)
       .forEach(to => {
-        const value = props[to] as Instruction | string;
+        const value = props[to] as IInstruction | string;
 
         if (isInstruction(value)) {
           childInstructions.push(value);

@@ -3,7 +3,7 @@ import { BindingMode, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable.js';
 import { INode, IRenderLocation } from '../../dom.js';
 import { IPlatform } from '../../platform.js';
-import { Instruction } from '../../renderer.js';
+import { IInstruction } from '../../renderer.js';
 import {
   Controller,
   ICustomAttributeController,
@@ -49,7 +49,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     _controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: Instruction,
+    _instruction: IInstruction,
   ): void {
     this.view = this.factory.create(this.$controller).setLocation(this.location);
   }
@@ -180,7 +180,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: Instruction,
+    _instruction: IInstruction,
   ): void {
     getPromiseController(controller).pending = this;
   }
@@ -227,7 +227,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: Instruction,
+    _instruction: IInstruction,
   ): void {
     getPromiseController(controller).fulfilled = this;
   }
@@ -275,7 +275,7 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: Instruction,
+    _instruction: IInstruction,
   ): void {
     getPromiseController(controller).rejected = this;
   }

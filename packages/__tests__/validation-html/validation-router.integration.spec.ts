@@ -12,6 +12,7 @@ import {
   CustomAttribute,
   CustomElement,
   customElement,
+  IHistory,
   ILocation,
   IPlatform,
   StandardConfiguration
@@ -114,6 +115,7 @@ describe('validation-html/validation-router.integration.spec.ts/integration', fu
     await au
       .register(
         StandardConfiguration,
+        Registration.instance(IHistory, mockBrowserHistoryLocation),
         Registration.instance(ILocation, mockBrowserHistoryLocation),
         RouterConfiguration,
         ValidationHtmlConfiguration,
@@ -132,7 +134,7 @@ describe('validation-html/validation-router.integration.spec.ts/integration', fu
   }
   const $it = createSpecFunction(runTest);
 
-  $it('navigating back to the view with validation works', async function ({ host, platform }) {
+  $it('navigating back to the view with validation works', async function ({ host, platform, ctx }) {
     function assertController() {
       const node = host.querySelector('view-with-val');
       const vm = CustomElement.for<ViewWithValidation>(node).viewModel;
@@ -157,7 +159,7 @@ describe('validation-html/validation-router.integration.spec.ts/integration', fu
 
     // step#2: valid value and navigate
     input.value = 'foo';
-    input.dispatchEvent(new Event('change'));
+    input.dispatchEvent(new ctx.Event('change'));
     await platform.domReadQueue.yield();
 
     submit.click();

@@ -137,10 +137,99 @@ describe('@attributePattern', function () {
         ['value:bind',   null,           []],
         ['value@bind',   null,           []]
       ]
-    ]
+    ],
+    // overlapping characters for promise + i18n combo
+    // then before t to make sure it still terminates at the correct position
+    [
+      [
+        { pattern: "promise.resolve", symbols: '' },
+        { pattern: "then", symbols: '' },
+        { pattern: "catch", symbols: '' },
+        { pattern: "ref", symbols: '' },
+        { pattern: "PART.ref", symbols: '.' },
+        { pattern: "PART.PART", symbols: '.' },
+        { pattern: "PART.PART.PART", symbols: '.' },
+        { pattern: 't.PART', symbols: '.' },
+        { pattern: 'PART.t', symbols: '.' },
+        { pattern: "t", symbols: '' },
+        { pattern: "t.bind", symbols: '' },
+        { pattern: "t-params.bind", symbols: '' },
+      ],
+      [
+        ['t', 't', ['t']],
+        ['tt.bind', 'PART.PART', ['tt', 'bind']],
+        ['t.bind', 't.PART', ['t', 'bind']],
+        ['then', 'then', ['then']],
+        ['t-params.bind', 't-params.bind', ['t-params.bind']],
+      ],
+    ],
+    [
+      [
+        { pattern: 'then', symbols: '' },
+        { pattern: 'the', symbols: '' },
+        { pattern: 'th', symbols: '' },
+        { pattern: 't', symbols: '' },
+        { pattern: 't.PART', symbols: '.' },
+      ],
+      [
+        ['tt', null, []],
+        ['t', 't', ['t']],
+        ['th', 'th', ['th']],
+        ['the', 'the', ['the']],
+        ['then', 'then', ['then']],
+      ],
+    ],
+    [
+      [
+        { pattern: 'then', symbols: '' },
+        { pattern: 'the', symbols: '' },
+        { pattern: 'th', symbols: '' },
+        { pattern: 't', symbols: '' },
+        { pattern: 't.PART', symbols: '.' },
+      ],
+      [
+        ['then', 'then', ['then']],
+        ['the', 'the', ['the']],
+        ['th', 'th', ['th']],
+        ['t', 't', ['t']],
+        ['tt', null, []],
+      ],
+    ],
+    [
+      [
+        { pattern: 't', symbols: '' },
+        { pattern: 'th', symbols: '' },
+        { pattern: 'the', symbols: '' },
+        { pattern: 'then', symbols: '' },
+        { pattern: 't.PART', symbols: '.' },
+      ],
+      [
+        ['then', 'then', ['then']],
+        ['the', 'the', ['the']],
+        ['th', 'th', ['th']],
+        ['t', 't', ['t']],
+        ['tt', null, []],
+      ],
+    ],
+    [
+      [
+        { pattern: 't', symbols: '' },
+        { pattern: 'th', symbols: '' },
+        { pattern: 'the', symbols: '' },
+        { pattern: 'then', symbols: '' },
+        { pattern: 't.PART', symbols: '.' },
+      ],
+      [
+        ['t', 't', ['t']],
+        ['th', 'th', ['th']],
+        ['the', 'the', ['the']],
+        ['then', 'then', ['then']],
+        ['tt', null, []],
+      ],
+    ],
   ] as [AttributePatternDefinition[], [string, string, string[]][]][]) {
     describe(`parse [${defs.map(d => d.pattern)}]`, function () {
-      for (const [value, match, values] of tests) {
+      for (const [value, match, parts] of tests) {
         it(`parse [${defs.map(d => d.pattern)}] -> interpret [${value}] -> match=[${match}]`, function () {
           let receivedRawName: string;
           let receivedRawValue: string;
@@ -163,10 +252,11 @@ describe('@attributePattern', function () {
 
           const result = interpreter.interpret(value);
           if (match != null) {
+            assert.strictEqual(result.pattern, match);
             assert.strictEqual(
               patternDefs.map(d => d.pattern).includes(result.pattern),
               true,
-              `patternDefs.map(d => d.pattern).indexOf(result.pattern) >= 0`
+              `patternDefs.map(d => d.pattern).indexOf(result.pattern) >= 0\n  result: ${result.pattern}`
             );
             attrPattern[result.pattern](value, 'foo', result.parts);
             assert.strictEqual(receivedRawName, value, `receivedRawName`);
@@ -180,7 +270,7 @@ describe('@attributePattern', function () {
             );
           }
 
-          assert.deepStrictEqual(result.parts, values, `result.parts`);
+          assert.deepStrictEqual(result.parts, parts, `result.parts`);
         });
       }
     });

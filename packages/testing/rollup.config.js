@@ -21,11 +21,12 @@ const terserPluginCfg = terser({
   compress: {
     defaults: false,
   },
-  mangle: {
-    properties: {
-      regex: /^_/
-    }
-  },
+  // mangle: {
+  //   properties: {
+  //     regex: /^_/,
+  //     reserved: ['__esModule']
+  //   }
+  // },
   format: {
     beautify: true,
   },
@@ -45,19 +46,21 @@ export default {
       file: `dist/esm/index.js`,
       format: 'es',
       sourcemap: true,
-      plugins: [terserPluginCfg]
+      plugins: [terserPluginCfg],
     },
     {
       file: `dist/cjs/index.dev.js`,
       format: 'cjs',
       sourcemap: true,
       esModule: true,
+      externalLiveBindings: false,
     },
     {
       file: `dist/cjs/index.js`,
       format: 'cjs',
       sourcemap: true,
-      plugins: [terserPluginCfg]
+      externalLiveBindings: false,
+      plugins: [terserPluginCfg],
     },
   ],
   plugins: [

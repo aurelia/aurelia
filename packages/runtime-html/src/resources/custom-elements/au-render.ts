@@ -1,7 +1,7 @@
 import { Constructable, nextId, onResolve } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags } from '@aurelia/runtime';
 import { createElement, RenderPlan } from '../../create-element.js';
-import { HydrateElementInstruction, IInstruction, Instruction } from '../../renderer.js';
+import { HydrateElementInstruction, IInstruction } from '../../renderer.js';
 import { IPlatform } from '../../platform.js';
 import { IViewFactory } from '../../templating/view.js';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element.js';
@@ -18,7 +18,7 @@ function toLookup(
 ): Record<string, IInstruction> {
   const to = item.to;
   if (to !== void 0 && to !== 'subject' && to !== 'composing') {
-    acc[to] = item as Instruction;
+    acc[to] = item as IInstruction;
   }
 
   return acc;
@@ -168,11 +168,11 @@ export class AuRender implements ICustomElementViewModel {
       }
 
       if ('create' in comp) { // IViewFactory
-        return comp.create(flags);
+        return comp.create();
       }
 
       if ('template' in comp) { // Raw Template Definition
-        return this.r.getViewFactory(CustomElementDefinition.getOrCreate(comp), ctxContainer).create(flags);
+        return this.r.getViewFactory(CustomElementDefinition.getOrCreate(comp), ctxContainer).create();
       }
     }
 

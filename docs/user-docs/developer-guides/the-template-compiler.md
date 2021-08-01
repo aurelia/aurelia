@@ -79,21 +79,22 @@ List of attributes that are considered expressions:
 
 The default template compiler will turn a template, either in string or already an element, into an element before the compilation. During the compilation, these APIs on the `Node` & `Element` classes are accessed and invoked:
 
-- `Node.prototype.nodeType`
-- `Node.prototype.nodeName`
-- `Node.prototype.childNodes`
-- `Node.prototype.childNode`
-- `Node.prototype.firstChild`
-- `Node.prototype.textContent`
-- `Node.prototype.parentNode`
-- `Node.prototype.appendChild`
-- `Node.prototype.insertBefore`
-- `Element.prototype.attributes`
-- `Element.prototype.hasAttribute`
-- `Element.prototype.getAttribute`
-- `Element.prototype.setAttribute`
-- `Element.prototype.classList.add`
+* `Node.prototype.nodeType`
+* `Node.prototype.nodeName`
+* `Node.prototype.childNodes`
+* `Node.prototype.childNode`
+* `Node.prototype.firstChild`
+* `Node.prototype.textContent`
+* `Node.prototype.parentNode`
+* `Node.prototype.appendChild`
+* `Node.prototype.insertBefore`
+* `Element.prototype.attributes`
+* `Element.prototype.hasAttribute`
+* `Element.prototype.getAttribute`
+* `Element.prototype.setAttribute`
+* `Element.prototype.classList.add`
 
 If it is desirable to use the default template compiler in any other environment other than HTML, make sure the template compiler can hydrate the input string or object into some object with the above APIs.
 
 TODO: examples of some hydrator for different environments
+

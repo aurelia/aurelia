@@ -1,5 +1,6 @@
-import { kebabCase, Metadata, Protocol, firstDefined, getPrototypeChain, noop } from '@aurelia/kernel';
+import { kebabCase, firstDefined, getPrototypeChain, noop } from '@aurelia/kernel';
 import { BindingMode } from '@aurelia/runtime';
+import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './shared.js';
 
 import type { Constructable, Writable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
@@ -51,8 +52,8 @@ export function bindable(configOrTarget?: PartialBindableDefinition | {}, prop?:
       config.property = $prop;
     }
 
-    Metadata.define(baseName, BindableDefinition.create($prop, config), $target.constructor, $prop);
-    Protocol.annotation.appendTo($target.constructor as Constructable, Bindable.keyFrom($prop));
+    defineMetadata(baseName, BindableDefinition.create($prop, config), $target.constructor, $prop);
+    appendAnnotationKey($target.constructor as Constructable, Bindable.keyFrom($prop));
   }
 
   if (arguments.length > 1) {
@@ -113,12 +114,11 @@ type B345 = B45 & B3<B45>;
 type B2345 = B345 & B2<B345>;
 type B12345 = B2345 & B1<B2345>;
 
-const baseName = Protocol.annotation.keyFor('bindable');
+const baseName = getAnnotationKeyFor('bindable');
+
 export const Bindable = Object.freeze({
   name: baseName,
-  keyFrom(name: string): string {
-    return `${baseName}:${name}`;
-  },
+  keyFrom: (name: string): string => `${baseName}:${name}`,
   from(...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
     const bindables: Record<string, BindableDefinition> = {};
 
@@ -162,10 +162,10 @@ export const Bindable = Object.freeze({
         }
 
         def = BindableDefinition.create(prop, config) as Writable<BindableDefinition>;
-        if (!Metadata.hasOwn(baseName, Type, prop)) {
-          Protocol.annotation.appendTo(Type, Bindable.keyFrom(prop));
+        if (!hasOwnMetadata(baseName, Type, prop)) {
+          appendAnnotationKey(Type, Bindable.keyFrom(prop));
         }
-        Metadata.define(baseName, def, Type, prop);
+        defineMetadata(baseName, def, Type, prop);
 
         return builder;
       },
@@ -211,10 +211,10 @@ export const Bindable = Object.freeze({
     let i: number;
     while (--iProto >= 0) {
       Class = prototypeChain[iProto];
-      keys = Protocol.annotation.getKeys(Class).filter(isBindableAnnotation);
+      keys = getAllAnnotations(Class).filter(isBindableAnnotation);
       keysLen = keys.length;
       for (i = 0; i < keysLen; ++i) {
-        defs[iDefs++] = Metadata.getOwn(baseName, Class, keys[i].slice(propStart)) as BindableDefinition;
+        defs[iDefs++] = getOwnMetadata(baseName, Class, keys[i].slice(propStart)) as BindableDefinition;
       }
     }
     return defs;

@@ -101,6 +101,7 @@
   * [Markdown Integration](developer-guides/scenarios/markdown-integration.md)
 * [Extending templating syntax](developer-guides/extending-templating-syntax.md)
 * [The Template Compiler](developer-guides/the-template-compiler.md)
+* [AttributePattern](developer-guides/attributepattern.md)
 * [Components revisited](developer-guides/components-revisited.md)
 
 ## Tutorials

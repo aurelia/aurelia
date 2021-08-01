@@ -78,6 +78,7 @@ module.exports = function (config) {
   //   Because they're not watched, they're also not cached, so that the browser will always serve the latest version from disk.
   //
   const files = [
+    { type: 'script', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/importmap.js` },
     { type: 'script', watched: false, included: true,  nocache: false, pattern: path.join(smsPath, 'browser-source-map-support.js') },
     { type: 'module', watched: true,  included: true,  nocache: false, pattern: `${baseUrl}/setup-browser.js` }, // 1.1
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/setup-shared.js` }, // 1.2
@@ -150,6 +151,7 @@ module.exports = function (config) {
         timeout: 5000,
       }
     },
+    restartOnFileChange: true,
     logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
     // logLevel: config.LOG_DEBUG,
   };

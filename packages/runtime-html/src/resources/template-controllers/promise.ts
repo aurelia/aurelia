@@ -3,7 +3,7 @@ import { BindingMode, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable.js';
 import { INode, IRenderLocation } from '../../dom.js';
 import { IPlatform } from '../../platform.js';
-import { Instruction } from '../../renderer.js';
+import { IInstruction } from '../../renderer.js';
 import {
   Controller,
   ICustomAttributeController,
@@ -14,6 +14,7 @@ import {
   ISyntheticView
 } from '../../templating/controller.js';
 import { IViewFactory } from '../../templating/view.js';
+import { attributePattern, AttrSyntax } from '../attribute-pattern.js';
 import { templateController } from '../custom-attribute.js';
 
 @templateController('promise')
@@ -45,13 +46,12 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   }
 
   public link(
-    flags: LifecycleFlags,
     _controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: Instruction,
+    _instruction: IInstruction,
   ): void {
-    this.view = this.factory.create(flags, this.$controller).setLocation(this.location);
+    this.view = this.factory.create(this.$controller).setLocation(this.location);
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
@@ -177,11 +177,10 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   }
 
   public link(
-    flags: LifecycleFlags,
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: Instruction,
+    _instruction: IInstruction,
   ): void {
     getPromiseController(controller).pending = this;
   }
@@ -225,11 +224,10 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   }
 
   public link(
-    flags: LifecycleFlags,
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: Instruction,
+    _instruction: IInstruction,
   ): void {
     getPromiseController(controller).fulfilled = this;
   }
@@ -274,11 +272,10 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
   }
 
   public link(
-    flags: LifecycleFlags,
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: Instruction,
+    _instruction: IInstruction,
   ): void {
     getPromiseController(controller).rejected = this;
   }
@@ -318,24 +315,23 @@ function getPromiseController(controller: IHydratableController) {
     throw new Error('AUR0813');
 }
 
-// TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
-// @attributePattern({ pattern: 'promise.resolve', symbols: '' })
-// export class PromiseAttributePattern {
-//   public 'promise.resolve'(name: string, value: string, _parts: string[]): AttrSyntax {
-//     return new AttrSyntax(name, value, 'promise', 'bind');
-//   }
-// }
+@attributePattern({ pattern: 'promise.resolve', symbols: '' })
+export class PromiseAttributePattern {
+  public 'promise.resolve'(name: string, value: string, _parts: string[]): AttrSyntax {
+    return new AttrSyntax(name, value, 'promise', 'bind');
+  }
+}
 
-// @attributePattern({ pattern: 'then', symbols: '' })
-// export class FulfilledAttributePattern {
-//   public 'then'(name: string, value: string, _parts: string[]): AttrSyntax {
-//     return new AttrSyntax(name, value, 'then', 'from-view');
-//   }
-// }
+@attributePattern({ pattern: 'then', symbols: '' })
+export class FulfilledAttributePattern {
+  public 'then'(name: string, value: string, _parts: string[]): AttrSyntax {
+    return new AttrSyntax(name, value, 'then', 'from-view');
+  }
+}
 
-// @attributePattern({ pattern: 'catch', symbols: '' })
-// export class RejectedAttributePattern {
-//   public 'catch'(name: string, value: string, _parts: string[]): AttrSyntax {
-//     return new AttrSyntax(name, value, 'catch', 'from-view');
-//   }
-// }
+@attributePattern({ pattern: 'catch', symbols: '' })
+export class RejectedAttributePattern {
+  public 'catch'(name: string, value: string, _parts: string[]): AttrSyntax {
+    return new AttrSyntax(name, value, 'catch', 'from-view');
+  }
+}

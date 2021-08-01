@@ -33,7 +33,7 @@ Ignore the `i` variable being incremented, this is only there to make Aurelia fi
 {% endtab %}
 
 {% tab title="my-app.ts" %}
-```
+```text
 export class MyApp {
   fetchAdvice() {
     return fetch("https://api.adviceslip.com/advice")
@@ -43,4 +43,8 @@ export class MyApp {
 ```
 {% endtab %}
 {% endtabs %}
+
+{% hint style="info" %}
+The parameter `i` passed to the method `fetchAdvice()` call in the template is for refreshing binding purposes. It is not used in the method itself. This is because method calls in Aurelia are considered pure, and will only called again if any of its parameter has changes.
+{% endhint %}
 

@@ -103,9 +103,9 @@ import { IHttpClient } from '@aurelia/fetch-client';
 
 export class DogComponent {
     constructor(@IHttpClient private http: IHttpClient) {
-    
+
     }
-    
+
     fetchDog() {
         return this.http.fetch('https://random.dog/woof.json')
         .then(r => r.ok ? r.json() : (() => { throw new Error('Unable to fetch doggo :(') }))
@@ -252,7 +252,6 @@ export class MyApp {
     DogComponent
   ];
 }
-
 ```
 
 * We import the two components we have created so far
@@ -292,9 +291,9 @@ import { IHttpClient } from '@aurelia/fetch-client';
 
 export class GeoipComponent {
     constructor(@IHttpClient private http: IHttpClient) {
-    
+
     }
-    
+
     getUserInfo() {
         return this.http.fetch('https://freegeoip.app/json/')
         .then(r => r.ok ? r.json() : (() => { throw new Error('Unable to contact API') }))
@@ -348,7 +347,6 @@ export class MyApp {
     GeoipComponent
   ];
 }
-
 ```
 
 ## Component \#4 - Notes component
@@ -441,7 +439,6 @@ export class MyApp {
     GeoipComponent
   ];
 }
-
 ```
 
 ## Component \#5 - USD exchange rate component
@@ -457,9 +454,9 @@ import { IHttpClient } from '@aurelia/fetch-client';
 
 export class ExchangeComponent {
     constructor(@IHttpClient private http: IHttpClient) {
-    
+
     }
-    
+
     getExchangeData() {
         return this.http.fetch('https://api.exchangerate-api.com/v4/latest/USD')
         .then(r => r.ok ? r.json() : (() => { throw new Error('Unable to fetch exchange rates') }))
@@ -517,7 +514,6 @@ export class MyApp {
     DogComponent
   ];
 }
-
 ```
 
 ## Running the app
@@ -543,9 +539,9 @@ import { IHttpClient } from '@aurelia/fetch-client';
 
 export class Api {
     constructor(@IHttpClient private http: IHttpClient) {
-    
+
     }
-    
+
     fetchData(url: string, error = 'Unable to fetch data') {
         return this.http.fetch(url)
             .then(r => r.ok ? r.json() : (() => { throw new Error(error) }))
@@ -564,7 +560,7 @@ import { Api } from '../services/api';
 
 export class DogComponent {
     constructor(private api: Api) {
-    
+
     }
 }
 ```
@@ -584,7 +580,7 @@ import { Api } from '../services/api';
 
 export class ExchangeComponent {
     constructor(private api: Api) {
-    
+
     }
 }
 ```
@@ -602,7 +598,7 @@ import { Api } from '../services/api';
 
 export class GeoipComponent {
     constructor(private api: Api) {
-    
+
     }
 }
 ```

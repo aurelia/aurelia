@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.15"></a>
+# 2.0.0-alpha.15 (2021-08-01)
+
+### Features:
+
+* **promise:** re-enable promise patterns .resolve/then/catch ([d0fa65c](https://github.com/aurelia/aurelia/commit/d0fa65c))
+
+
+### Bug Fixes:
+
+* **attr-parser:** correctly handles multiple overlapping patterns ([9996ae4](https://github.com/aurelia/aurelia/commit/9996ae4))
+* **plugin-conventions:** fix compatibility with webpack css extraction ([c1ab6cc](https://github.com/aurelia/aurelia/commit/c1ab6cc))
+
+
+### Refactorings:
+
+* **all:** remove lifecycle flags from various APIs ([b05db02](https://github.com/aurelia/aurelia/commit/b05db02))
+* **template-compiler:** let binding command determine parsing work ([63aace4](https://github.com/aurelia/aurelia/commit/63aace4))
+
 <a name="2.0.0-alpha.14"></a>
 # 2.0.0-alpha.14 (2021-07-25)
 

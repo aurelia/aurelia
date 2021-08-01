@@ -1,8 +1,8 @@
 <div if.bind="authService.isAuthenticated">
-  Authenticated: ${user.currentUser}
+  Authenticated: ${user.currentUser}<br>
   <a click.trigger="goToLogin()">Logout</a>
 </div>
 <div else>
-  Unauthenticated
+  Unauthenticated<br>
   <a click.trigger="goToLogin()">Login</a>
 </div>

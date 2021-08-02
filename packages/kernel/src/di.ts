@@ -60,7 +60,8 @@ export interface IContainer extends IServiceLocator, IDisposable {
   readonly id: number;
   readonly root: IContainer;
   register(...params: any[]): IContainer;
-  registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean, strategy?: ResolverStrategy): IResolver<T>;
+  registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
+  deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
   registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
@@ -685,7 +686,8 @@ export type IResolvedFactory<K> = (...args: unknown[]) => Resolved<K>;
 export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
   const instance = createNewInstance(key, handler, requestor);
   const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key), instance);
-  requestor.registerResolver(key, instanceProvider, false, ResolverStrategy.instance);
+  requestor.deregisterResolverFor(key, false);
+  requestor.registerResolver(key, instanceProvider);
 
   return instance;
 }) as <K>(key: K) => INewInstanceResolver<K>;
@@ -1023,12 +1025,7 @@ export class Container implements IContainer {
     return this;
   }
 
-  public registerResolver<K extends Key, T = K>(
-    key: K,
-    resolver: IResolver<T>,
-    isDisposable: boolean = false,
-    strategy: ResolverStrategy = ResolverStrategy.array,
-  ): IResolver<T> {
+  public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable: boolean = false): IResolver<T> {
     validateKey(key);
 
     const resolvers = this._resolvers;
@@ -1049,15 +1046,7 @@ export class Container implements IContainer {
     } else if (result instanceof Resolver && result.strategy === ResolverStrategy.array) {
       (result.state as IResolver[]).push(resolver);
     } else {
-      switch (strategy) {
-        case ResolverStrategy.array:
-          resolvers.set(key, new Resolver(key, strategy, [result, resolver]));
-          break;
-        default:
-          resolvers.delete(key);
-          resolvers.set(key, resolver);
-          break;
-      }
+      resolvers.set(key, new Resolver(key, ResolverStrategy.array, [result, resolver]));
     }
 
     if (isDisposable) {
@@ -1067,38 +1056,36 @@ export class Container implements IContainer {
     return resolver;
   }
 
-  // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
-  //   // const console =  (globalThis as any).console;
-  //   // console.group("deregisterResolverFor");
-  //   validateKey(key);
+  public deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void {
+    validateKey(key);
 
-  //   let current: Container = this;
-  //   let resolver: IResolver | undefined;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let current: Container | null = this;
+    let resolver: IResolver | undefined;
 
-  //   while (current != null) {
-  //     resolver = current.resolvers.get(key);
+    while (current != null) {
+      resolver = current._resolvers.get(key);
 
-  //     if (resolver != null) { break; }
-  //     if (current.parent == null) { return; }
-  //     current = current.parent;
-  //   }
+      if (resolver != null) {
+        current._resolvers.delete(key);
+        break;
+      }
+      if (current.parent == null) { return; }
+      current = searchAncestors ? current.parent : null;
+    }
 
-  //   if (resolver === void 0) { return; }
-  //   if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
-  //     throw new Error('Cannot deregister a resolver with array strategy');
-  //   }
-  //   if (this.disposableResolvers.has(resolver as IDisposableResolver<T>)) {
-  //     (resolver as IDisposableResolver<T>).dispose();
-  //   }
-  //   if (isResourceKey(key)) {
-  //     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-  //     delete this.resourceResolvers[key];
-  //   }
-  //   // console.log(`BEFORE delete ${Array.from(current.resolvers.keys()).map((k) => k.toString())}`);
-  //   current.resolvers.delete(key);
-  //   // console.log(`AFTER delete ${Array.from(current.resolvers.keys()).map((k) => k.toString())}`);
-  //   // console.groupEnd();
-  // }
+    if (resolver == null) { return; }
+    if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
+      throw new Error('Cannot deregister a resolver with array strategy');
+    }
+    if (this._disposableResolvers.has(resolver as IDisposableResolver<K>)) {
+      (resolver as IDisposableResolver<K>).dispose();
+    }
+    if (isResourceKey(key)) {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete this.res[key];
+    }
+  }
 
   public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
     const resolver = this.getResolver(key);

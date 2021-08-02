@@ -1,6 +1,7 @@
-import { Protocol, Metadata, firstDefined, getPrototypeChain, emptyArray } from '@aurelia/kernel';
+import { firstDefined, getPrototypeChain, emptyArray } from '@aurelia/kernel';
 import { LifecycleFlags, subscriberCollection } from '@aurelia/runtime';
 import { CustomElement } from '../resources/custom-element.js';
+import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../shared.js';
 
 import type { IIndexable, Constructable } from '@aurelia/kernel';
 import type { ISubscriberCollection, IAccessor, ISubscribable, IObserver } from '@aurelia/runtime';
@@ -48,8 +49,8 @@ export function children(configOrTarget?: PartialChildrenDefinition | {}, prop?:
       config.property = $prop as string;
     }
 
-    Metadata.define(baseName, ChildrenDefinition.create($prop as string, config), $target.constructor, $prop);
-    Protocol.annotation.appendTo($target.constructor as Constructable, Children.keyFrom($prop as string));
+    defineMetadata(baseName, ChildrenDefinition.create($prop as string, config), $target.constructor, $prop);
+    appendAnnotationKey($target.constructor as Constructable, Children.keyFrom($prop as string));
   }
 
   if (arguments.length > 1) {
@@ -78,12 +79,10 @@ function isChildrenObserverAnnotation(key: string): boolean {
   return key.startsWith(baseName);
 }
 
-const baseName = Protocol.annotation.keyFor('children-observer');
+const baseName = getAnnotationKeyFor('children-observer');
 export const Children = Object.freeze({
-  name: Protocol.annotation.keyFor('children-observer'),
-  keyFrom(name: string): string {
-    return `${baseName}:${name}`;
-  },
+  name: baseName,
+  keyFrom: (name: string): string =>`${baseName}:${name}`,
   from(...childrenObserverLists: readonly (ChildrenDefinition | Record<string, PartialChildrenDefinition> | readonly string[] | undefined)[]): Record<string, ChildrenDefinition> {
     const childrenObservers: Record<string, ChildrenDefinition> = {};
 
@@ -123,10 +122,10 @@ export const Children = Object.freeze({
     let Class: Constructable;
     while (--iProto >= 0) {
       Class = prototypeChain[iProto];
-      keys = Protocol.annotation.getKeys(Class).filter(isChildrenObserverAnnotation);
+      keys = getAllAnnotations(Class).filter(isChildrenObserverAnnotation);
       keysLen = keys.length;
       for (let i = 0; i < keysLen; ++i) {
-        defs[iDefs++] = Metadata.getOwn(baseName, Class, keys[i].slice(propStart));
+        defs[iDefs++] = getOwnMetadata(baseName, Class, keys[i].slice(propStart));
       }
     }
     return defs;

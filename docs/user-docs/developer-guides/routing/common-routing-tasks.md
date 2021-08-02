@@ -18,7 +18,6 @@ If you are not using the direct router to navigate to components directly, you w
 In the following fictitious example, we have three routes. The first route for the homepage is a default route \(denoted by its empty path value\) the other two routes are for a login and register page.
 
 ```typescript
-
 @route({
   routes: [
     { id: 'home', path: '', component: import('./home'), title: 'Home' },
@@ -83,7 +82,7 @@ export class ProductPage {
 
 ## Passing information between routes with direct routing
 
-Unlike configured routing, direct routing by default does not rely on preconfigured routes. This means parameters can be specified at the time of routing without having to tell the router about them. 
+Unlike configured routing, direct routing by default does not rely on preconfigured routes. This means parameters can be specified at the time of routing without having to tell the router about them.
 
 When working with parameters and the direct router, there are some things you need to be aware of.
 

@@ -40,7 +40,7 @@ export class Aurelia implements IDisposable {
         if (__DEV__)
           throw new Error(`root is not defined`);
         else
-          throw new Error('AUR0710');
+          throw new Error('AUR0767');
       }
       return this.next;
     }
@@ -59,7 +59,7 @@ export class Aurelia implements IDisposable {
       if (__DEV__)
         throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
       else
-        throw new Error('AUR0711');
+        throw new Error('AUR0768');
     }
 
     container.registerResolver(IAurelia, new InstanceProvider<IAurelia>('IAurelia', this));
@@ -87,8 +87,11 @@ export class Aurelia implements IDisposable {
     let bc: ICustomElementViewModel & K;
     if (typeof comp === 'function') {
       ctn.registerResolver(
-        p.Element,
-        ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+        p.HTMLElement,
+        ctn.registerResolver(
+          p.Element,
+          ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+        )
       );
       bc = ctn.invoke(comp as unknown as Constructable<ICustomElementViewModel & K>);
     } else {
@@ -102,7 +105,6 @@ export class Aurelia implements IDisposable {
       bc,
       host,
       null,
-      void 0,
       CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }),
     );
     return onResolve(
@@ -126,7 +128,7 @@ export class Aurelia implements IDisposable {
         if (__DEV__)
           throw new Error(`Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`);
         else
-          throw new Error('AUR0712');
+          throw new Error('AUR0769');
       }
       p = new BrowserPlatform(host.ownerDocument.defaultView);
       this.container.register(Registration.instance(IPlatform, p));
@@ -143,7 +145,7 @@ export class Aurelia implements IDisposable {
       if (__DEV__)
         throw new Error(`There is no composition root`);
       else
-        throw new Error('AUR0713');
+        throw new Error('AUR0770');
     }
 
     if (this._startPromise instanceof Promise) {
@@ -194,7 +196,7 @@ export class Aurelia implements IDisposable {
       if (__DEV__)
         throw new Error(`The aurelia instance must be fully stopped before it can be disposed`);
       else
-        throw new Error('AUR0714');
+        throw new Error('AUR0771');
     }
     this.container.dispose();
   }

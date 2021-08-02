@@ -58,7 +58,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           return new App();
         },
         // /Invalid change handler config/
-        /AUR0716/
+        /AUR0773/
       );
     });
   }

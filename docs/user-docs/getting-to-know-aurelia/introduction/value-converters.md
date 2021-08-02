@@ -142,7 +142,5 @@ We specified that our value converter supports a parameter called locale which a
 
 To see our value converter in action, here is what it looks like:
 
-{% embed url="https://stackblitz.com/edit/aurelia-date-value-converter?embed=1&file=my-app.html&hideExplorer=1&view=preview" %}
-
-
+{% embed url="https://stackblitz.com/edit/aurelia-date-value-converter?embed=1&file=my-app.html&hideExplorer=1&view=preview" caption="" %}
 

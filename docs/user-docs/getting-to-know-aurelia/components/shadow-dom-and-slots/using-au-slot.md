@@ -8,7 +8,7 @@ Aurelia provides another way of content projection with `au-slot`. This is simil
 * The following examples use [local templates](../../../developer-guides/components-revisited.md#getting-started/components/local-templates) for succinctness only; the examples should also work for full-fledged custom elements.
 {% endhint %}
 
-### Basic templating usage
+## Basic templating usage
 
 Like `slot`, a "projection target"/"slot" can be defined using a `<au-slot>` element, and a projection to that slot can be provided using a `[au-slot]` attribute. Consider the following example.
 
@@ -152,7 +152,7 @@ Following would be logged to the console for the instances of `my-element`.
 []
 ```
 
-### Binding scope
+## Binding scope
 
 It is also possible to use data-binding, interpolation etc. while projecting. While doing so, the scope accessing rule can be described by the following thumb rule:
 
@@ -525,7 +525,7 @@ The last example is also interesting from another aspect. It shows that while wo
 The `$host` keyword can only be used in context of projection. Using it in any other context is not supported, and will throw error with high probability.
 {% endhint %}
 
-### Multiple projections for single slot
+## Multiple projections for single slot
 
 It is possible to provide multiple projections to single slot.
 
@@ -578,7 +578,7 @@ This is useful for many cases. One evident example would a 'tabs' custom element
 
 This helps keeping things closer that belong together. For example, keeping the tab-header and tab-content next to each other, provides better readability and understanding of the code to the developer. On other hand, it still places the projected contents at the right slot.
 
-### Duplicate slots
+## Duplicate slots
 
 Having more than one `<au-slot>` with same name is also supported. This lets us projecting same content to multiple slots declaratively, as can be seen from the following example.
 

@@ -448,9 +448,12 @@ export interface ITask<T = any> {
 export class Task<T = any> implements ITask {
   public readonly id: number = ++id;
 
-  private resolve: PResolve<UnwrapPromise<T>> | undefined = void 0;
-  private reject: PReject<TaskAbortError<T>> | undefined = void 0;
+  /** @internal */
+  private _resolve: PResolve<UnwrapPromise<T>> | undefined = void 0;
+  /** @internal */
+  private _reject: PReject<TaskAbortError<T>> | undefined = void 0;
 
+  /** @internal */
   private _result: Promise<UnwrapPromise<T>> | undefined = void 0;
   public get result(): Promise<UnwrapPromise<T>> {
     const result = this._result;
@@ -458,8 +461,8 @@ export class Task<T = any> implements ITask {
       switch (this._status) {
         case TaskStatus.pending: {
           const promise = this._result = createExposedPromise();
-          this.resolve = promise.resolve;
-          this.reject = promise.reject;
+          this._resolve = promise.resolve;
+          this._reject = promise.reject;
           return promise;
         }
         case TaskStatus.running:
@@ -473,6 +476,7 @@ export class Task<T = any> implements ITask {
     return result!;
   }
 
+  /** @internal */
   private _status: TaskStatus = TaskStatus.pending;
   public get status(): TaskStatus {
     return this._status;
@@ -507,15 +511,16 @@ export class Task<T = any> implements ITask {
       reusable,
       taskQueue,
       callback,
-      resolve,
-      reject,
+      _resolve: resolve,
+      _reject: reject,
       createdTime,
     } = this;
+    let ret: unknown | Promise<unknown>;
 
     this._status = TaskStatus.running;
 
     try {
-      const ret = callback(time - createdTime);
+      ret = callback(time - createdTime);
       if (ret instanceof Promise) {
         ret.then($ret => {
             if (this.persistent) {
@@ -603,7 +608,7 @@ export class Task<T = any> implements ITask {
     if (this._status === TaskStatus.pending) {
       const taskQueue = this.taskQueue;
       const reusable = this.reusable;
-      const reject = this.reject;
+      const reject = this._reject;
 
       taskQueue.remove(this);
 
@@ -647,8 +652,8 @@ export class Task<T = any> implements ITask {
     this.queueTime = time + delay;
     this._status = TaskStatus.pending;
 
-    this.resolve = void 0;
-    this.reject = void 0;
+    this._resolve = void 0;
+    this._reject = void 0;
     this._result = void 0;
 
     if (this.tracer.enabled) { this.tracer.leave(this, 'reset'); }
@@ -679,8 +684,8 @@ export class Task<T = any> implements ITask {
     if (this.tracer.enabled) { this.tracer.trace(this, 'dispose'); }
 
     this.callback = (void 0)!;
-    this.resolve = void 0;
-    this.reject = void 0;
+    this._resolve = void 0;
+    this._reject = void 0;
     this._result = void 0;
   }
 }

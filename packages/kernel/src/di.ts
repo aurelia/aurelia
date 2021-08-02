@@ -1,11 +1,12 @@
-import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
+import { isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 
 applyMetadataPolyfill(Reflect, false, false);
 
 import { isArrayIndex, isNativeFunction } from './functions.js';
 import { Class, Constructable, IDisposable } from './interfaces.js';
 import { emptyArray } from './platform.js';
-import { IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource.js';
+import { appendAnnotation, getAnnotationKeyFor, IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource.js';
+import { defineMetadata, getOwnMetadata } from './shared.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -196,11 +197,11 @@ export const DI = {
     return new Container(null, ContainerConfiguration.from(config));
   },
   getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
-    return Metadata.getOwn('design:paramtypes', Type);
+    return getOwnMetadata('design:paramtypes', Type);
   },
   getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
-    const key = Protocol.annotation.keyFor('di:paramtypes');
-    return Metadata.getOwn(key, Type);
+    const key = getAnnotationKeyFor('di:paramtypes');
+    return getOwnMetadata(key, Type);
   },
   getOrCreateAnnotationParamTypes: getOrCreateAnnotationParamTypes,
   getDependencies: getDependencies,
@@ -370,8 +371,8 @@ function getDependencies(Type: Constructable | Injectable): Key[] {
   // so be careful with making changes here as it can have a huge impact on complex end user apps.
   // Preferably, only make changes to the dependency resolution process via a RFC.
 
-  const key = Protocol.annotation.keyFor('di:dependencies');
-  let dependencies = Metadata.getOwn(key, Type) as Key[] | undefined;
+  const key = getAnnotationKeyFor('di:dependencies');
+  let dependencies = getOwnMetadata(key, Type) as Key[] | undefined;
   if (dependencies === void 0) {
     // Type.length is the number of constructor parameters. If this is 0, it could mean the class has an empty constructor
     // but it could also mean the class has no constructor at all (in which case it inherits the constructor from the prototype).
@@ -431,19 +432,19 @@ function getDependencies(Type: Constructable | Injectable): Key[] {
       dependencies = cloneArrayWithPossibleProps(inject);
     }
 
-    Metadata.define(key, dependencies, Type);
-    Protocol.annotation.appendTo(Type, key);
+    defineMetadata(key, dependencies, Type);
+    appendAnnotation(Type, key);
   }
 
   return dependencies;
 }
 
 function getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[] {
-  const key = Protocol.annotation.keyFor('di:paramtypes');
-  let annotationParamtypes = Metadata.getOwn(key, Type);
+  const key = getAnnotationKeyFor('di:paramtypes');
+  let annotationParamtypes = getOwnMetadata(key, Type);
   if (annotationParamtypes === void 0) {
-    Metadata.define(key, annotationParamtypes = [], Type);
-    Protocol.annotation.appendTo(Type, key);
+    defineMetadata(key, annotationParamtypes = [], Type);
+    appendAnnotation(Type, key);
   }
   return annotationParamtypes;
 }
@@ -899,8 +900,8 @@ const InstrinsicTypeNames = new Set<string>([
   'WeakSet',
 ]);
 
-const factoryKey = 'di:factory';
-const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
+// const factoryKey = 'di:factory';
+// const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
 let containerId = 0;
 /** @internal */
 export class Container implements IContainer {
@@ -1286,7 +1287,7 @@ export class Container implements IContainer {
         return null;
       }
 
-      const definition = Metadata.getOwn(kind.name, factory.Type);
+      const definition = getOwnMetadata(kind.name, factory.Type);
       if (definition === void 0) {
         // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
         // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.

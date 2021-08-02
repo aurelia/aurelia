@@ -1,4 +1,4 @@
-import { DI, emptyArray, Registration, toArray, ILogger, camelCase, Protocol, ResourceDefinition, ResourceType, Metadata, noop } from '@aurelia/kernel';
+import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop } from '@aurelia/kernel';
 import { BindingMode, BindingType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
@@ -25,6 +25,7 @@ import { CustomElement, CustomElementDefinition } from './resources/custom-eleme
 import { BindingCommand } from './resources/binding-command.js';
 import { createLookup } from './utilities-html.js';
 import { allResources } from './utilities-di.js';
+import { appendResourceKey, defineMetadata, getResourceKeyFor } from './shared.js';
 
 import type {
   IContainer,
@@ -88,7 +89,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     return CustomElementDefinition.create({
       ...partialDefinition,
-      name: partialDefinition.name || CustomElement.generateName(),
+      name: partialDefinition.name || _generateElementName(),
       dependencies: (partialDefinition.dependencies ?? emptyArray).concat(context.deps ?? emptyArray),
       instructions: context.rows,
       surrogates: isTemplateElement
@@ -140,17 +141,15 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       bindingCommand = context._createCommand(attrSyntax);
-      if (bindingCommand !== null && bindingCommand.bindingType & BindingType.IgnoreAttr) {
+      if (bindingCommand !== null && (bindingCommand.bindingType & BindingType.IgnoreAttr) > 0) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."
         // background.style="..."
         // my-attr.attr="..."
-        expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
 
         commandBuildInfo.node = el;
         commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.expr = expr;
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
         instructions.push(bindingCommand.build(commandBuildInfo));
@@ -198,11 +197,9 @@ export class TemplateCompiler implements ITemplateCompiler {
             // custom attribute with binding command:
             // my-attr.bind="..."
             // my-attr.two-way="..."
-            expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
 
             commandBuildInfo.node = el;
             commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.expr = expr;
             commandBuildInfo.bindable = primaryBindable;
             commandBuildInfo.def = attrDef;
             attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
@@ -253,11 +250,9 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
       } else {
-        expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
 
         commandBuildInfo.node = el;
         commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.expr = expr;
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
         instructions.push(bindingCommand.build(commandBuildInfo));
@@ -524,11 +519,9 @@ export class TemplateCompiler implements ITemplateCompiler {
         // active.class="..."
         // background.style="..."
         // my-attr.attr="..."
-        expr = exprParser.parse(attrValue, bindingCommand.bindingType);
 
         commandBuildInfo.node = el;
         commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.expr = expr;
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
         (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
@@ -577,11 +570,9 @@ export class TemplateCompiler implements ITemplateCompiler {
             // custom attribute with binding command:
             // my-attr.bind="..."
             // my-attr.two-way="..."
-            expr = exprParser.parse(attrValue, bindingCommand.bindingType);
 
             commandBuildInfo.node = el;
             commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.expr = expr;
             commandBuildInfo.bindable = primaryBindable;
             commandBuildInfo.def = attrDef;
             attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
@@ -668,24 +659,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         bindablesInfo = BindablesInfo.from(elDef, false);
         bindable = bindablesInfo.attrs[realAttrTarget];
         if (bindable !== void 0) {
-          // if it looks like: <my-el value.bind>
-          // it means        : <my-el value.bind="value">
-          // this is a shortcut
-          // and reuse attrValue variable
-          attrValue = attrValue.length === 0
-            && (bindingCommand.bindingType & (
-              BindingType.BindCommand
-              | BindingType.OneTimeCommand
-              | BindingType.ToViewCommand
-              | BindingType.TwoWayCommand
-            )) > 0
-              ? camelCase(attrName)
-              : attrValue;
-          expr = exprParser.parse(attrValue, bindingCommand.bindingType);
-
           commandBuildInfo.node = el;
           commandBuildInfo.attr = attrSyntax;
-          commandBuildInfo.expr = expr;
           commandBuildInfo.bindable = bindable;
           commandBuildInfo.def = elDef;
           (elBindableInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
@@ -697,11 +672,8 @@ export class TemplateCompiler implements ITemplateCompiler {
       // + a plain attribute
       // + has binding command
 
-      expr = exprParser.parse(realAttrValue, bindingCommand.bindingType);
-
       commandBuildInfo.node = el;
       commandBuildInfo.attr = attrSyntax;
-      commandBuildInfo.expr = expr;
       commandBuildInfo.bindable = null;
       commandBuildInfo.def = null;
       (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
@@ -750,7 +722,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         elementInstruction.auSlot = {
           name: slotName,
           fallback: CustomElementDefinition.create({
-            name: CustomElement.generateName(),
+            name: _generateElementName(),
             template,
             instructions: fallbackContentContext.rows,
             needsCompile: false,
@@ -899,10 +871,11 @@ export class TemplateCompiler implements ITemplateCompiler {
               projectionCompilationContext = context._createChild();
               this._compileNode(template.content, projectionCompilationContext);
               projections[targetSlot] = CustomElementDefinition.create({
-                name: CustomElement.generateName(),
+                name: _generateElementName(),
                 template,
                 instructions: projectionCompilationContext.rows,
                 needsCompile: false,
+                isStrictBinding: context.root.def.isStrictBinding,
               });
             }
             elementInstruction!.projections = projections;
@@ -925,10 +898,11 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
       }
       tcInstruction.def = CustomElementDefinition.create({
-        name: CustomElement.generateName(),
+        name: _generateElementName(),
         template: mostInnerTemplate,
         instructions: childContext.rows,
         needsCompile: false,
+        isStrictBinding: context.root.def.isStrictBinding,
       });
 
       // 4.1.2.
@@ -953,10 +927,11 @@ export class TemplateCompiler implements ITemplateCompiler {
         template.content.appendChild(marker);
 
         tcInstruction.def = CustomElementDefinition.create({
-          name: CustomElement.generateName(),
+          name: _generateElementName(),
           template,
           needsCompile: false,
-          instructions: [[tcInstructions[i + 1]]]
+          instructions: [[tcInstructions[i + 1]]],
+          isStrictBinding: context.root.def.isStrictBinding,
         });
       }
       // the most outer template controller should be
@@ -1079,10 +1054,11 @@ export class TemplateCompiler implements ITemplateCompiler {
             projectionCompilationContext = context._createChild();
             this._compileNode(template.content, projectionCompilationContext);
             projections[targetSlot] = CustomElementDefinition.create({
-              name: CustomElement.generateName(),
+              name: _generateElementName(),
               template,
               instructions: projectionCompilationContext.rows,
               needsCompile: false,
+              isStrictBinding: context.root.def.isStrictBinding,
             });
           }
           elementInstruction!.projections = projections;
@@ -1206,13 +1182,10 @@ export class TemplateCompiler implements ITemplateCompiler {
             : new InterpolationInstruction(expr, bindable.property)
           );
         } else {
-          expr = context._exprParser.parse(attrValue, command.bindingType);
           commandBuildInfo.node = node;
           commandBuildInfo.attr = attrSyntax;
-          commandBuildInfo.expr = expr;
           commandBuildInfo.bindable = bindable;
           commandBuildInfo.def = attrDef;
-          // instructions.push(command.compile(new BindingSymbol(command, bindable, expr, attrValue, attrName)));
           instructions.push(command.build(commandBuildInfo));
         }
 
@@ -1515,7 +1488,6 @@ function hasInlineBindings(rawValue: string): boolean {
 function resetCommandBuildInfo(): void {
   commandBuildInfo.node
     = commandBuildInfo.attr
-    = commandBuildInfo.expr
     = commandBuildInfo.bindable
     = commandBuildInfo.def = null!;
 }
@@ -1525,7 +1497,6 @@ const emptyCompilationInstructions: ICompliationInstruction = { projections: nul
 const voidDefinition: CustomElementDefinition = { name: 'unnamed' } as CustomElementDefinition;
 const commandBuildInfo: Writable<ICommandBuildInfo> = {
   node: null!,
-  expr: null!,
   attr: null!,
   bindable: null,
   def: null,
@@ -1664,15 +1635,16 @@ export interface ITemplateCompilerHooks {
 }
 
 const typeToHooksDefCache = new WeakMap<Constructable, TemplateCompilerHooksDefinition<unknown>>();
-const hooksBaseName = Protocol.resource.keyFor('compiler-hooks');
+const hooksBaseName = getResourceKeyFor('compiler-hooks');
+
 export const TemplateCompilerHooks = Object.freeze({
   name: hooksBaseName,
   define<K extends ITemplateCompilerHooks, T extends Constructable<K>>(Type: T): T {
     let def = typeToHooksDefCache.get(Type);
     if (def === void 0) {
       typeToHooksDefCache.set(Type, def = new TemplateCompilerHooksDefinition(Type));
-      Metadata.define(hooksBaseName, def, Type);
-      Protocol.resource.appendTo(Type, hooksBaseName);
+      defineMetadata(hooksBaseName, def, Type);
+      appendResourceKey(Type, hooksBaseName);
     }
     return Type;
   }
@@ -1705,3 +1677,5 @@ export const templateCompilerHooks = (target?: Function) => {
   };
 }
 /* eslint-enable */
+
+const _generateElementName = CustomElement.generateName;

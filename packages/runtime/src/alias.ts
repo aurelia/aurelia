@@ -1,12 +1,13 @@
-import { Protocol, Metadata, Registration } from '@aurelia/kernel';
+import { Registration } from '@aurelia/kernel';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './shared.js';
 import type { Constructable, IResourceKind, ResourceDefinition, IContainer } from '@aurelia/kernel';
 
 export function alias(...aliases: readonly string[]) {
   return function (target: Constructable) {
-    const key = Protocol.annotation.keyFor('aliases');
-    const existing = Metadata.getOwn(key, target);
+    const key = getAnnotationKeyFor('aliases');
+    const existing = getOwnMetadata(key, target);
     if (existing === void 0) {
-      Metadata.define(key, aliases, target);
+      defineMetadata(key, aliases, target);
     } else {
       existing.push(...aliases);
     }

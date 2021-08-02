@@ -68,7 +68,7 @@ export default {
     replacePluginCfg,
     {
       closeBundle() {
-        // exec('npm run postrollup')
+        exec('npm run postrollup')
       }
     }
   ].filter(Boolean),

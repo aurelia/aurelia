@@ -42,7 +42,6 @@
     "aurelia-direct-router": "2.0.0-alpha.14.2",
     "@aurelia/runtime-html": "2.0.0-alpha.14",
     "@aurelia/runtime": "2.0.0-alpha.14",
-    "@aurelia/testing": "2.0.0-alpha.14",
     "@aurelia/validation-html": "2.0.0-alpha.14",
     "@aurelia/validation-i18n": "2.0.0-alpha.14",
     "@aurelia/validation": "2.0.0-alpha.14",

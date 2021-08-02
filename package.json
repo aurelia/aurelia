@@ -3,10 +3,11 @@
   "private": true,
   "version": "2.0.0-alpha.14.2",
   "workspaces": [
-    "packages/__tests__",
     "packages/router",
+    "packages/__tests__",
     "examples/base-url",
-    "examples/lazy-loading-config"
+    "examples/lazy-loading-config",
+    "test/karma-aurelia-preprocessor"
   ],
   "license": "MIT",
   "engines": {
@@ -47,6 +48,7 @@
     "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts"
   },
   "devDependencies": {
+    "@aurelia/testing": "2.0.0-alpha.14",
     "@commitlint/cli": "^8.2.0",
     "@rollup/plugin-replace": "^3.0.0",
     "@rollup/plugin-typescript": "^8.2.5",

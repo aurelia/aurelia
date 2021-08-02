@@ -32,7 +32,7 @@ const testDirs = [
   // 'validation-i18n',
 ];
 
-const packageNames = [
+const corePackageNames = [
   // 'fetch-client',
   // 'i18n',
   // 'kernel',
@@ -88,10 +88,12 @@ module.exports = function (config) {
       { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/!(*.$au)*.js` }, // 2.3
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
-    ...packageNames.flatMap(name => [
-      { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/${name}/dist/esm/**/!(*.$au)*.js` }, // 3.1
-      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/${name}/dist/esm/**/*.js.map` }, // 3.2
-      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/${name}/src/**/*.ts` }, // 3.3
+    { type: 'module', watched: true,  included: false, nocache: false, served: true, pattern: `packages/router/dist/esm/**/!(*.$au)*.js` }, // 3.1
+    { type: 'module', watched: false, included: false, nocache: true,  served: true, pattern: `packages/router/dist/esm/**/*.js.map` }, // 3.2
+    { type: 'module', watched: false, included: false, nocache: true,  served: true, pattern: `packages/router/src/**/*.ts` }, // 3.3
+    ...corePackageNames.flatMap(name => [
+      { type: 'module', watched: true,  included: false, nocache: false, served: true, pattern: `node_modules/@aurelia/${name}/dist/esm/index.js` }, // 3.1
+      { type: 'module', watched: true,  included: false, nocache: false, served: true, pattern: `node_modules/@aurelia/${name}/dist/esm/index.js.map` }, // 3.1
     ])
   ];
 
@@ -100,9 +102,9 @@ module.exports = function (config) {
     if (/\.js$/.test(file.pattern)) {
       // Only instrument core framework files (not the specs themselves, nor any test utils (for now))
       if (/__tests__|testing/.test(file.pattern) || !config.coverage) {
-        p[file.pattern] = ['aurelia-direct-router'];
+        p[file.pattern] = ['aurelia'];
       } else {
-        p[file.pattern] = ['aurelia-direct-router', 'karma-coverage-istanbul-instrumenter'];
+        p[file.pattern] = ['aurelia', 'karma-coverage-istanbul-instrumenter'];
       }
     }
     return p;
@@ -146,6 +148,7 @@ module.exports = function (config) {
         timeout: 5000,
       }
     },
+    restartOnFileChange: true,
     logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
     // logLevel: config.LOG_DEBUG,
   };

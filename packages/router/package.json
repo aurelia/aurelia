@@ -30,10 +30,12 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
-    "build": "tsc -b",
-    "dev": "tsc -b -w --preserveWatchOutput",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
     "publish:dev": "npm publish --tag dev",
-    "publish:latest": "npm publish --tag latest"
+    "publish:latest": "npm publish --tag latest",
+    "rollup": "rollup -c",
+    "postrollup": "tsc --declaration --emitDeclarationOnly"
   },
   "publishConfig": {
     "access": "public"

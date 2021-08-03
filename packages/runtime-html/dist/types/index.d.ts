@@ -68,4 +68,5 @@ export { CSSModulesProcessorRegistry, cssModules, ShadowDOMRegistry, IShadowDOMS
 export { Watch, watch, IWatchDefinition, IWatcherCallback, IDepCollectionFn, } from './watch.js';
 export { ComputedWatcher, ExpressionWatcher, } from './templating/watchers.js';
 export { DialogConfiguration, DialogConfigurationProvider, DialogDefaultConfiguration, DialogActionKey, DialogMouseEventType, DialogDeactivationStatuses, IDialogSettings, IDialogGlobalSettings, IDialogLoadedSettings, IDialogService, IDialogController, IDialogDomRenderer, IDialogDom, DialogError, DialogOpenPromise, DialogOpenResult, DialogCancelError, DialogCloseError, DialogCloseResult, DialogService, DialogController, DefaultDialogDom, DefaultDialogDomRenderer, DefaultDialogGlobalSettings, IDialogCustomElementViewModel, IDialogComponent, IDialogComponentActivate, IDialogComponentCanActivate, IDialogComponentDeactivate, IDialogComponentCanDeactivate, } from './dialog.js';
+export { IWcElementRegistry, WebComponentViewModelClass, WcCustomElementRegistry, } from './plugins/web-components.js';
 //# sourceMappingURL=index.d.ts.map

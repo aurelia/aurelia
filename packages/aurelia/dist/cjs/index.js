@@ -126,6 +126,26 @@ exports.CustomAttribute = r.CustomAttribute;
 
 exports.CustomElement = r.CustomElement;
 
+exports.DefaultDialogDom = r.DefaultDialogDom;
+
+exports.DefaultDialogDomRenderer = r.DefaultDialogDomRenderer;
+
+exports.DefaultDialogGlobalSettings = r.DefaultDialogGlobalSettings;
+
+exports.DialogCloseResult = r.DialogCloseResult;
+
+exports.DialogConfiguration = r.DialogConfiguration;
+
+exports.DialogController = r.DialogController;
+
+exports.DialogDeactivationStatuses = r.DialogDeactivationStatuses;
+
+exports.DialogDefaultConfiguration = r.DialogDefaultConfiguration;
+
+exports.DialogOpenResult = r.DialogOpenResult;
+
+exports.DialogService = r.DialogService;
+
 exports.ExpressionWatcher = r.ExpressionWatcher;
 
 exports.IAppRoot = r.IAppRoot;
@@ -137,6 +157,16 @@ exports.IAttributePattern = r.IAttributePattern;
 exports.IAuSlotsInfo = r.IAuSlotsInfo;
 
 exports.IAurelia = r.IAurelia;
+
+exports.IDialogController = r.IDialogController;
+
+exports.IDialogDom = r.IDialogDom;
+
+exports.IDialogDomRenderer = r.IDialogDomRenderer;
+
+exports.IDialogGlobalSettings = r.IDialogGlobalSettings;
+
+exports.IDialogService = r.IDialogService;
 
 exports.IEventTarget = r.IEventTarget;
 
@@ -153,6 +183,8 @@ exports.IRenderLocation = r.IRenderLocation;
 exports.ISignaler = r.ISignaler;
 
 exports.ITemplateCompilerHooks = r.ITemplateCompilerHooks;
+
+exports.IWcElementRegistry = r.IWcElementRegistry;
 
 exports.IWorkTracker = r.IWorkTracker;
 
@@ -175,6 +207,8 @@ exports.ValueConverter = r.ValueConverter;
 exports.ViewFactory = r.ViewFactory;
 
 exports.Watch = r.Watch;
+
+exports.WcCustomElementRegistry = r.WcCustomElementRegistry;
 
 exports.alias = r.alias;
 

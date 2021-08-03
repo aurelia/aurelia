@@ -12267,6 +12267,98 @@ const DialogDefaultConfiguration = createDialogConfiguration(kernel.noop, [
     DefaultDialogDomRenderer,
 ]);
 
+const IWcElementRegistry = kernel.DI.createInterface(x => x.singleton(WcCustomElementRegistry));
+/**
+ * A default implementation of `IAuElementRegistry` interface.
+ */
+class WcCustomElementRegistry {
+    constructor(ctn, p, r) {
+        this.ctn = ctn;
+        this.p = p;
+        this.r = r;
+    }
+    define(name, def, options) {
+        if (!name.includes('-')) {
+            throw new Error('Invalid web-components custom element name. It must include a "-"');
+        }
+        let elDef;
+        if (def == null) {
+            throw new Error('Invalid custom element definition');
+        }
+        switch (typeof def) {
+            case 'function':
+                elDef = CustomElement.isType(def)
+                    ? CustomElement.getDefinition(def)
+                    : CustomElementDefinition.create(CustomElement.generateName(), def);
+                break;
+            default:
+                elDef = CustomElementDefinition.getOrCreate(def);
+                break;
+        }
+        if (elDef.containerless) {
+            throw new Error('Containerless custom element is not supported. Consider using buitl-in extends instead');
+        }
+        const BaseClass = !(options === null || options === void 0 ? void 0 : options.extends) ? HTMLElement : this.p.document.createElement(options.extends).constructor;
+        const container = this.ctn;
+        const rendering = this.r;
+        const bindables = elDef.bindables;
+        const p = this.p;
+        class CustomElementClass extends BaseClass {
+            auInit() {
+                if (this.auInited) {
+                    return;
+                }
+                this.auInited = true;
+                const childCtn = container.createChild();
+                childCtn.registerResolver(p.HTMLElement, childCtn.registerResolver(p.Element, childCtn.registerResolver(INode, new kernel.InstanceProvider('ElementProvider', this))));
+                const compiledDef = rendering.compile(elDef, childCtn, 
+                // todo: compile existing child element with [au-slot] into here
+                //       complication: what are the scope for the [au-slot] view?
+                { projections: null });
+                const viewModel = childCtn.invoke(compiledDef.Type);
+                const controller = this.auCtrl = Controller.$el(childCtn, viewModel, this, null, compiledDef);
+                setRef(this, compiledDef.key, controller);
+            }
+            connectedCallback() {
+                this.auInit();
+                // eslint-disable-next-line
+                this.auCtrl.activate(this.auCtrl, null, 0 /* none */);
+            }
+            disconnectedCallback() {
+                // eslint-disable-next-line
+                this.auCtrl.deactivate(this.auCtrl, null, 0 /* none */);
+            }
+            adoptedCallback() {
+                this.auInit();
+            }
+            attributeChangedCallback(name, oldValue, newValue) {
+                this.auInit();
+                this.auCtrl.viewModel[name] = newValue;
+            }
+        }
+        CustomElementClass.observedAttributes = Object.keys(bindables);
+        for (const bindableProp in bindables) {
+            Object.defineProperty(CustomElementClass.prototype, bindableProp, {
+                configurable: true,
+                enumerable: false,
+                get() {
+                    return this['auCtrl'].viewModel[bindableProp];
+                },
+                set(v) {
+                    if (!this['auInited']) {
+                        this['auInit']();
+                    }
+                    this['auCtrl'].viewModel[bindableProp] = v;
+                }
+            });
+        }
+        this.p.customElements.define(name, CustomElementClass, options);
+        return CustomElementClass;
+    }
+}
+/** @internal */
+WcCustomElementRegistry.inject = [kernel.IContainer, IPlatform, IRendering];
+
 exports.Platform = platform.Platform;
 exports.Task = platform.Task;
 exports.TaskAbortError = platform.TaskAbortError;
@@ -12479,6 +12571,7 @@ exports.ITemplateCompilerRegistration = ITemplateCompilerRegistration;
 exports.ITemplateElementFactory = ITemplateElementFactory;
 exports.IViewFactory = IViewFactory;
 exports.IViewLocator = IViewLocator;
+exports.IWcElementRegistry = IWcElementRegistry;
 exports.IWindow = IWindow;
 exports.IWorkTracker = IWorkTracker;
 exports.If = If;
@@ -12565,6 +12658,7 @@ exports.ViewLocator = ViewLocator;
 exports.ViewValueConverterRegistration = ViewValueConverterRegistration;
 exports.Views = Views;
 exports.Watch = Watch;
+exports.WcCustomElementRegistry = WcCustomElementRegistry;
 exports.With = With;
 exports.WithRegistration = WithRegistration;
 exports.allResources = allResources;

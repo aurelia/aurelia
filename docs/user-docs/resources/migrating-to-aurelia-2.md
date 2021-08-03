@@ -78,3 +78,9 @@ Change it to:
 <div if="value.bind: yes">
 ```
 
+## Plugins:
+
+### Web-Components plugn
+
+* Remove automatic au- prefix
+* Remove auto-conversion of Aurelia element -> WC element. Applications need to explicitly define this. This should make mix-matching & controlling things easier.

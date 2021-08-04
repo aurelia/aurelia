@@ -121,7 +121,7 @@ export class AttributeBinding implements IObserverLocatorBasedConnectable {
       }
       newValue = sourceExpression.evaluate(flags, $scope, locator, interceptor);
       if (shouldConnect) {
-        this.obs.clear(false);
+        this.obs.clear();
       }
     }
 
@@ -209,7 +209,7 @@ export class AttributeBinding implements IObserverLocatorBasedConnectable {
 
     this.task?.cancel();
     this.task = null;
-    this.obs.clear(true);
+    this.obs.clearAll();
 
     // remove isBound and isUnbinding flags
     this.isBound = false;

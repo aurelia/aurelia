@@ -48,7 +48,7 @@ export class LetBinding implements IObserverLocatorBasedConnectable {
     const previousValue: unknown = target[targetProperty];
     this.obs.version++;
     newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);
-    this.obs.clear(false);
+    this.obs.clear();
     if (newValue !== previousValue) {
       target[targetProperty] = newValue;
     }
@@ -87,7 +87,7 @@ export class LetBinding implements IObserverLocatorBasedConnectable {
       sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
     this.$scope = void 0;
-    this.obs.clear(true);
+    this.obs.clearAll();
 
     // remove isBound and isUnbinding flags
     this.isBound = false;

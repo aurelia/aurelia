@@ -81,7 +81,7 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
       enterConnectable(this);
       this.fn(this);
     } finally {
-      this.obs.clear(false);
+      this.obs.clear();
       this.running = false;
       exitConnectable(this);
     }
@@ -105,7 +105,7 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
 
   public stop(): void {
     this.stopped = true;
-    this.obs.clear(true);
+    this.obs.clearAll();
   }
 }
 

@@ -187,7 +187,7 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
       }
       newValue = sourceExpression.evaluate(flags, this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
-        obsRecord.clear(false);
+        obsRecord.clear();
       }
     }
     if (newValue != this.value) {
@@ -240,7 +240,7 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
     }
 
     this.$scope = void 0;
-    this.obs.clear(true);
+    this.obs.clearAll();
   }
 }
 
@@ -310,7 +310,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
       newValue = sourceExpression.evaluate(flags, this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
-        obsRecord.clear(false);
+        obsRecord.clear();
       }
     }
     if (newValue === this.value) {
@@ -380,7 +380,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     // be removed when this binding is unbound?
     // this.updateTarget('', flags);
     this.$scope = void 0;
-    this.obs.clear(true);
+    this.obs.clearAll();
     this.task?.cancel();
     this.task = null;
   }

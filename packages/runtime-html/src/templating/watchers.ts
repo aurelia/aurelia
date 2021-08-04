@@ -73,7 +73,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
       return;
     }
     this.isBound = false;
-    this.obs.clear(true);
+    this.obs.clearAll();
   }
 
   private run(): void {
@@ -97,7 +97,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
       enter(this);
       return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
-      this.obs.clear(false);
+      this.obs.clear();
       this.running = false;
       exit(this);
     }
@@ -139,7 +139,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     if (!canOptimize) {
       this.obs.version++;
       value = expr.evaluate(0, this.scope, this.locator, this);
-      this.obs.clear(false);
+      this.obs.clear();
     }
     if (!Object.is(value, oldValue)) {
       this.value = value;
@@ -155,7 +155,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     this.isBound = true;
     this.obs.version++;
     this.value = this.expression.evaluate(LifecycleFlags.none, this.scope, this.locator, this);
-    this.obs.clear(false);
+    this.obs.clear();
   }
 
   public $unbind(): void {
@@ -163,7 +163,7 @@ export class ExpressionWatcher implements IConnectableBinding {
       return;
     }
     this.isBound = false;
-    this.obs.clear(true);
+    this.obs.clearAll();
     this.value = void 0;
   }
 }

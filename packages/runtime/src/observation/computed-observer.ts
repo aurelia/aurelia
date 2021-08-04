@@ -141,7 +141,7 @@ export class ComputedObserver implements
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this._isDirty = true;
-      this.obs.clear(true);
+      this.obs.clearAll();
     }
   }
 
@@ -173,7 +173,7 @@ export class ComputedObserver implements
       enterConnectable(this);
       return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
-      this.obs.clear(false);
+      this.obs.clear();
       this.running = false;
       exitConnectable(this);
     }

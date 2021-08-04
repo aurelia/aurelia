@@ -98,7 +98,7 @@ export class PropertyBinding implements IObserverLocatorBasedConnectable {
       }
       newValue = sourceExpression.evaluate(flags, $scope!, locator, interceptor);
       if (shouldConnect) {
-        obsRecord.clear(false);
+        obsRecord.clear();
       }
     }
 
@@ -192,7 +192,7 @@ export class PropertyBinding implements IObserverLocatorBasedConnectable {
       task.cancel();
       task = this.task = null;
     }
-    this.obs.clear(true);
+    this.obs.clearAll();
 
     this.isBound = false;
   }

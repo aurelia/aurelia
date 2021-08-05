@@ -22,33 +22,35 @@ export interface SetterObserver extends IAccessor, ISubscriberCollection {}
  * This is used for observing object properties that has no decorator.
  */
 export class SetterObserver implements IWithFlushQueue, IFlushable {
-  public value: unknown = void 0;
-  public oldValue: unknown = void 0;
-
-  public observing: boolean = false;
   // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
   public type: AccessorType = AccessorType.Observer;
+
+  private v: unknown = void 0;
+  private ov: unknown = void 0;
+  /** @internal */
+  private _observing: boolean = false;
   public readonly queue!: FlushQueue;
 
+  /** @internal */
   private f: LifecycleFlags = LifecycleFlags.none;
 
   public constructor(
     public readonly obj: IIndexable,
-    public readonly propertyKey: string,
+    public readonly key: string,
   ) {
   }
 
   public getValue(): unknown {
-    return this.value;
+    return this.v;
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    if (this.observing) {
-      if (Object.is(newValue, this.value)) {
+    if (this._observing) {
+      if (Object.is(newValue, this.v)) {
         return;
       }
-      this.oldValue = this.value;
-      this.value = newValue;
+      this.ov = this.v;
+      this.v = newValue;
       this.f = flags;
       this.queue.add(this);
     } else {
@@ -58,12 +60,12 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
       // is unmodified and we need to explicitly set the property value.
       // This will happen in one-time, to-view and two-way bindings during $bind, meaning that the $bind will not actually update the target value.
       // This wasn't visible in vCurrent due to connect-queue always doing a delayed update, so in many cases it didn't matter whether $bind updated the target or not.
-      this.obj[this.propertyKey] = newValue;
+      this.obj[this.key] = newValue;
     }
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (this.observing === false) {
+    if (this._observing === false) {
       this.start();
     }
 
@@ -71,18 +73,18 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
   }
 
   public flush(): void {
-    oV = this.oldValue;
-    this.oldValue = this.value;
-    this.subs.notify(this.value, oV, this.f);
+    oV = this.ov;
+    this.ov = this.v;
+    this.subs.notify(this.v, oV, this.f);
   }
 
   public start(): this {
-    if (this.observing === false) {
-      this.observing = true;
-      this.value = this.obj[this.propertyKey];
+    if (this._observing === false) {
+      this._observing = true;
+      this.v = this.obj[this.key];
       def(
         this.obj,
-        this.propertyKey,
+        this.key,
         {
           enumerable: true,
           configurable: true,
@@ -97,14 +99,14 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
   }
 
   public stop(): this {
-    if (this.observing) {
-      def(this.obj, this.propertyKey, {
+    if (this._observing) {
+      def(this.obj, this.key, {
         enumerable: true,
         configurable: true,
         writable: true,
-        value: this.value,
+        value: this.v,
       });
-      this.observing = false;
+      this._observing = false;
       // todo(bigopon/fred): add .removeAllSubscribers()
     }
     return this;
@@ -119,29 +121,17 @@ export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
   public readonly type: AccessorType = AccessorType.Observer;
   public readonly queue!: FlushQueue;
 
-  /**
-   * @internal
-   */
+  /** @internal */
   private v: unknown = void 0;
-  /**
-   * @internal
-   */
-  private oV: unknown = void 0;
-  /**
-   * @internal
-   */
+  /** @internal */
+  private ov: unknown = void 0;
+  /** @internal */
   private f: LifecycleFlags = LifecycleFlags.none;
-  /**
-   * @internal
-   */
+  /** @internal */
   private readonly cb?: ChangeHandlerCallback;
-  /**
-   * @internal
-   */
+  /** @internal */
   private readonly obj: object;
-  /**
-   * @internal
-   */
+  /** @internal */
   private readonly s: InterceptorFunc | undefined;
 
   public constructor(
@@ -166,17 +156,17 @@ export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
       value = this.s(value);
     }
     if (!Object.is(value, this.v)) {
-      this.oV = this.v;
+      this.ov = this.v;
       this.v = value;
       this.f = flags;
-      this.cb?.call(this.obj, this.v, this.oV, flags);
+      this.cb?.call(this.obj, this.v, this.ov, flags);
       this.queue.add(this);
     }
   }
 
   public flush(): void {
-    oV = this.oV;
-    this.oV = this.v;
+    oV = this.ov;
+    this.ov = this.v;
     this.subs.notify(this.v, oV, this.f);
   }
 }

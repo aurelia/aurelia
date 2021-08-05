@@ -44,12 +44,11 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     if (this.observing) {
-      const value = this.value;
-      if (Object.is(newValue, value)) {
+      if (Object.is(newValue, this.value)) {
         return;
       }
+      this.oldValue = this.value;
       this.value = newValue;
-      this.oldValue = value;
       this.f = flags;
       this.queue.add(this);
     } else {

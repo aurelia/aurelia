@@ -75,28 +75,22 @@ export class PropertyBinding implements IObserverLocatorBasedConnectable {
 
     flags |= this.persistentFlags;
 
-    const targetObserver = this.targetObserver!;
-    const interceptor = this.interceptor;
-    const sourceExpression = this.sourceExpression;
-    const $scope = this.$scope;
-    const locator = this.locator;
-
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (this.targetObserver!.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
     let shouldConnect: boolean = false;
 
     // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-    if (sourceExpression.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
+    if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
       // todo: in VC expressions, from view also requires connect
       shouldConnect = this.mode > oneTime;
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = sourceExpression.evaluate(flags, $scope!, locator, interceptor);
+      newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);
       if (shouldConnect) {
         obsRecord.clear();
       }
@@ -106,13 +100,13 @@ export class PropertyBinding implements IObserverLocatorBasedConnectable {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this.task;
       this.task = this.taskQueue.queueTask(() => {
-        interceptor.updateTarget(newValue, flags);
+        this.interceptor.updateTarget(newValue, flags);
         this.task = null;
       }, updateTaskOpts);
       task?.cancel();
       task = null;
     } else {
-      interceptor.updateTarget(newValue, flags);
+      this.interceptor.updateTarget(newValue, flags);
     }
   }
 

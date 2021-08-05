@@ -13,16 +13,15 @@ import { IPlatform } from '../platform.js';
 import { BindingTargetSubscriber } from './binding-utils.js';
 
 import type {
-  IConnectableBinding,
   ForOfStatement,
   IObserverLocator,
-  IObserverLocatorBasedConnectable,
   IsBindingBehavior,
   ITask,
   QueueTaskOptions,
   Scope,
 } from '@aurelia/runtime';
 import type { INode } from '../dom.js';
+import type { IAstBasedBinding } from './interfaces-bindings.js';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -35,12 +34,12 @@ const taskOptions: QueueTaskOptions = {
   preempt: true,
 };
 
-export interface AttributeBinding extends IConnectableBinding {}
+export interface AttributeBinding extends IAstBasedBinding {}
 
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
-export class AttributeBinding implements IObserverLocatorBasedConnectable {
+export class AttributeBinding implements IAstBasedBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;

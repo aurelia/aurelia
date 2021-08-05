@@ -96,10 +96,11 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
   // is currently subscribing to. The values are the version of the observers,
   // as the observers version may need to be changed during different evaluation
   public o = new Map<ISubscribable | ICollectionSubscribable, number>();
+  /** @internal */
+  private readonly b: IConnectableBinding;
 
-  public constructor(
-    private readonly b: IConnectableBinding
-  ) {
+  public constructor(b: IConnectableBinding) {
+    this.b = b;
   }
 
   public handleChange(value: unknown, oldValue: unknown, flags: LifecycleFlags): unknown {

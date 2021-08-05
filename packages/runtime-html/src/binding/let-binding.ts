@@ -3,17 +3,16 @@ import { connectable, LifecycleFlags } from '@aurelia/runtime';
 import type { ITask } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type {
-  IConnectableBinding,
   IObservable,
   IObserverLocator,
-  IObserverLocatorBasedConnectable,
   IsExpression,
   Scope,
 } from '@aurelia/runtime';
+import type { IAstBasedBinding } from './interfaces-bindings';
 
-export interface LetBinding extends IConnectableBinding {}
+export interface LetBinding extends IAstBasedBinding {}
 
-export class LetBinding implements IObserverLocatorBasedConnectable {
+export class LetBinding implements IAstBasedBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;

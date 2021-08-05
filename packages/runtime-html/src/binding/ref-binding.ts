@@ -1,10 +1,11 @@
 import { LifecycleFlags } from '@aurelia/runtime';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { IBinding, IConnectableBinding, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import type { IsBindingBehavior, Scope } from '@aurelia/runtime';
+import type { IAstBasedBinding } from './interfaces-bindings.js';
 
-export interface RefBinding extends IConnectableBinding {}
-export class RefBinding implements IBinding {
+export interface RefBinding extends IAstBasedBinding {}
+export class RefBinding implements IAstBasedBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;

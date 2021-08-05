@@ -6,20 +6,21 @@ import {
 import { IEventTarget } from '../dom.js';
 
 import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { IBinding, IConnectableBinding, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import type { IsBindingBehavior, Scope } from '@aurelia/runtime';
 import type { IEventDelegator } from '../observation/event-delegator.js';
 import type { IPlatform } from '../platform.js';
+import { IAstBasedBinding } from './interfaces-bindings.js';
 
 const options = {
   [DelegationStrategy.capturing]: { capture: true } as const,
   [DelegationStrategy.bubbling]: { capture: false } as const,
 } as const;
 
-export interface Listener extends IConnectableBinding {}
+export interface Listener extends IAstBasedBinding {}
 /**
  * Listener binding. Handle event binding between view and view model
  */
-export class Listener implements IBinding {
+export class Listener implements IAstBasedBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;

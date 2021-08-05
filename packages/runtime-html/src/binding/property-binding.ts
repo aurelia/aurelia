@@ -5,28 +5,26 @@ import type { IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurel
 import type {
   AccessorOrObserver,
   ForOfStatement,
-  IConnectableBinding,
   IObserver,
   IObserverLocator,
-  IObserverLocatorBasedConnectable,
   IsBindingBehavior,
   Scope,
 } from '@aurelia/runtime';
+import type { IAstBasedBinding } from './interfaces-bindings.js';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
 
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
-
-export interface PropertyBinding extends IConnectableBinding {}
-
 const updateTaskOpts: QueueTaskOptions = {
   reusable: false,
   preempt: true,
 };
 
-export class PropertyBinding implements IObserverLocatorBasedConnectable {
+export interface PropertyBinding extends IAstBasedBinding {}
+
+export class PropertyBinding implements IAstBasedBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;

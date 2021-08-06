@@ -43,20 +43,26 @@ export interface CheckedObserver extends
 export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
-  public value: unknown = void 0;
-  /** @internal */
-  private _oldValue: unknown = void 0;
-
-  public readonly obj: IInputElement;
-
-  /** @internal */
-  private _collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
-  /** @internal */
-  private _valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
   public readonly queue!: FlushQueue;
 
   /** @internal */
+  private _value: unknown = void 0;
+
+  /** @internal */
+  private _oldValue: unknown = void 0;
+
+  /** @internal */
+  private readonly _obj: IInputElement;
+
+  /** @internal */
+  private _collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
+
+  /** @internal */
+  private _valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
+
+  /** @internal */
   private f: LifecycleFlags = LifecycleFlags.none;
+
   /** @internal */
   private readonly oL: IObserverLocator;
 
@@ -67,20 +73,20 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     public readonly handler: EventSubscriber,
     observerLocator: IObserverLocator,
   ) {
-    this.obj = obj as IInputElement;
+    this._obj = obj as IInputElement;
     this.oL = observerLocator;
   }
 
   public getValue(): unknown {
-    return this.value;
+    return this._value;
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    const currentValue = this.value;
+    const currentValue = this._value;
     if (newValue === currentValue) {
       return;
     }
-    this.value = newValue;
+    this._value = newValue;
     this._oldValue = currentValue;
     this.f = flags;
     this._observe();
@@ -98,8 +104,8 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
 
   /** @internal */
   private _synchronizeElement(): void {
-    const currentValue = this.value;
-    const obj = this.obj;
+    const currentValue = this._value;
+    const obj = this._obj;
     const elementValue = hasOwnProperty.call(obj, 'model') as boolean ? obj.model : obj.value;
     const isRadio = obj.type === 'radio';
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
@@ -136,8 +142,8 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
   }
 
   public handleEvent(): void {
-    let currentValue = this._oldValue = this.value;
-    const obj = this.obj;
+    let currentValue = this._oldValue = this._value;
+    const obj = this._obj;
     const elementValue = hasOwnProperty.call(obj, 'model') as boolean ? obj.model : obj.value;
     const isChecked = obj.checked;
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
@@ -238,12 +244,12 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
       // a radio cannot be unchecked by user
       return;
     }
-    this.value = currentValue;
+    this._value = currentValue;
     this.queue.add(this);
   }
 
   public start() {
-    this.handler.subscribe(this.obj, this);
+    this.handler.subscribe(this._obj, this);
     this._observe();
   }
 
@@ -269,13 +275,13 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
 
   public flush(): void {
     oV = this._oldValue;
-    this._oldValue = this.value;
-    this.subs.notify(this.value, oV, this.f);
+    this._oldValue = this._value;
+    this.subs.notify(this._value, oV, this.f);
   }
 
   /** @internal */
   private _observe() {
-    const obj = this.obj;
+    const obj = this._obj;
 
     (this._valueObserver ??= obj.$observers?.model ?? obj.$observers?.value)?.subscribe(this);
 
@@ -283,7 +289,7 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     this._collectionObserver = void 0;
 
     if (obj.type === 'checkbox') {
-      (this._collectionObserver = getCollectionObserver(this.value, this.oL))?.subscribe(this);
+      (this._collectionObserver = getCollectionObserver(this._value, this.oL))?.subscribe(this);
     }
   }
 }

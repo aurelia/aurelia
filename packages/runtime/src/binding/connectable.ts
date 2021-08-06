@@ -91,82 +91,60 @@ export interface BindingObserverRecord extends ObservationRecordImplType { }
 export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber {
   public version: number = 0;
   public count: number = 0;
-  public slots: number = 0;
+  /** @internal */
+  // a map of the observers (subscribables) that the owning binding of this record
+  // is currently subscribing to. The values are the version of the observers,
+  // as the observers version may need to be changed during different evaluation
+  public o = new Map<ISubscribable | ICollectionSubscribable, number>();
+  /** @internal */
+  private readonly b: IConnectableBinding;
 
-  public constructor(
-    public binding: IConnectableBinding
-  ) {
+  public constructor(b: IConnectableBinding) {
+    this.b = b;
   }
 
   public handleChange(value: unknown, oldValue: unknown, flags: LifecycleFlags): unknown {
-    return this.binding.interceptor.handleChange(value, oldValue, flags);
+    return this.b.interceptor.handleChange(value, oldValue, flags);
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    this.binding.interceptor.handleCollectionChange(indexMap, flags);
+    this.b.interceptor.handleCollectionChange(indexMap, flags);
   }
 
   /**
    * Add, and subscribe to a given observer
    */
   public add(observer: ISubscribable | ICollectionSubscribable): void {
-    // find the observer.
-    const observerSlots = this.slots;
-    let i = observerSlots;
-
-    // find the slot number of the observer
-    while (i-- && this[`o${i}`] !== observer);
-
-    // if we are not already observing, put the observer in an open slot and subscribe.
-    if (i === -1) {
-      i = 0;
-      // go from the start, find an open slot number
-      while (this[`o${i}`] !== void 0) {
-        i++;
-      }
-      // store the reference to the observer and subscribe
-      this[`o${i}`] = observer;
+    if (!this.o.has(observer)) {
       observer.subscribe(this);
-      // increment the slot count.
-      if (i === observerSlots) {
-        this.slots = i + 1;
-      }
       ++this.count;
     }
-    this[`v${i}`] = this.version;
+    this.o.set(observer, this.version);
   }
 
   /**
    * Unsubscribe the observers that are not up to date with the record version
    */
-  public clear(all?: boolean): void {
-    const slotCount = this.slots;
-    let slotName: string;
-    let observer: (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
-    let i = 0;
-    if (all === true) {
-      for (; i < slotCount; ++i) {
-        slotName = `o${i}`;
-        observer = this[slotName] as (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
-        if (observer !== void 0) {
-          this[slotName] = void 0;
-          observer.unsubscribe(this);
-        }
-      }
-      this.count = this.slots = 0;
-    } else {
-      for (; i < slotCount; ++i) {
-        if (this[`v${i}`] !== this.version) {
-          slotName = `o${i}`;
-          observer = this[slotName] as (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
-          if (observer !== void 0) {
-            this[slotName] = void 0;
-            observer.unsubscribe(this);
-            this.count--;
-          }
-        }
-      }
-    }
+  public clear(): void {
+    this.o.forEach(unsubscribeStale, this);
+    this.count = this.o.size;
+  }
+
+  public clearAll() {
+    this.o.forEach(unsubscribeAll, this);
+    this.o.clear();
+    this.count = 0;
+  }
+}
+
+function unsubscribeAll(this: BindingObserverRecord, version: number, subscribable: ISubscribable | ICollectionSubscribable) {
+  subscribable.unsubscribe(this);
+}
+
+function unsubscribeStale(this: BindingObserverRecord, version: number, subscribable: ISubscribable | ICollectionSubscribable) {
+  if (this.version !== version) {
+    subscribable.unsubscribe(this);
+    this.o.delete(subscribable);
   }
 }
 

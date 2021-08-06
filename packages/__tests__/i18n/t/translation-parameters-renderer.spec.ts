@@ -1,7 +1,6 @@
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
 import { DI } from '@aurelia/kernel';
 import {
-  AnyBindingExpression,
   BindingType,
   IExpressionParser,
   IRenderer,
@@ -59,7 +58,6 @@ describe('TranslationParametersBindingCommand', function () {
       attr: syntax,
       bindable: null,
       def: null,
-      expr: { syntax } as unknown as AnyBindingExpression
     });
 
     assert.instanceOf(actual, TranslationParametersBindingInstruction);
@@ -88,7 +86,6 @@ describe('TranslationParametersBindingRenderer', function () {
     const callBindingInstruction: CallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as unknown as CallBindingInstruction;
 
     sut.render(
-      LifecycleFlags.none,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -108,7 +105,6 @@ describe('TranslationParametersBindingRenderer', function () {
     const callBindingInstruction: CallBindingInstruction = { from: paramExpr } as unknown as CallBindingInstruction;
 
     sut.render(
-      LifecycleFlags.none,
       hydratable,
       targetElement,
       callBindingInstruction,

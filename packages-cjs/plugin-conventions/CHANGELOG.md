@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.15"></a>
+# 2.0.0-alpha.15 (2021-08-01)
+
+### Bug Fixes:
+
+* **plugin-conventions:** fix compatibility with webpack css extraction ([c1ab6cc](https://github.com/aurelia/aurelia/commit/c1ab6cc))
+
 <a name="2.0.0-alpha.14"></a>
 # 2.0.0-alpha.14 (2021-07-25)
 

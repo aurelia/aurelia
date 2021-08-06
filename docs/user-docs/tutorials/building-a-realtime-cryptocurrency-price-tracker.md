@@ -36,7 +36,7 @@ Before going any further, you should be familiar with some basic Aurelia concept
 
 ## Create the app
 
-We will be using TypeScript & Webpack for this tutorial as well as enabling Shadow DOM to keep our styles encapsulated. Don't worry if you're not familiar with these concepts yet, you will learn as we go. 
+We will be using TypeScript & Webpack for this tutorial as well as enabling Shadow DOM to keep our styles encapsulated. Don't worry if you're not familiar with these concepts yet, you will learn as we go.
 
 For this, we will be using the Aurelia `makes` command-line tool to create a new Aurelia application and to save time, passing in the options we want.
 
@@ -172,7 +172,7 @@ And add the `priceUpdate()` call to binding function.
 ```typescript
 async binding() {
     this.prices = await this.api.getPrices(config.coins);
-    
+
     this.priceUpdate();
 }
 ```

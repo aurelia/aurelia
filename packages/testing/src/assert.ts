@@ -790,7 +790,7 @@ const areTaskQueuesEmpty = (function () {
     const preempt = task.preempt;
     const reusable = task.reusable;
     const persistent = task.persistent;
-    const status = task['_status'];
+    const status = task.status;
 
     return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}\n`
       + `    task callback="${task.callback?.toString()}"`;

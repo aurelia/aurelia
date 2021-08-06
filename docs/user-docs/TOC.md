@@ -90,6 +90,7 @@
   * [Configuration and setup](developer-guides/store/configuration-and-setup.md)
   * [Middleware](developer-guides/store/middleware.md)
 * [Dialog](developer-guides/dialog.md)
+* [Web Components](developer-guides/web-components.md)
 * [Securing an app](developer-guides/securing-an-app.md)
 * [Scenarios](developer-guides/scenarios/README.md)
   * [Integrating 3rd Party Libraries](developer-guides/scenarios/integrating-3rd-party-libraries.md)
@@ -101,6 +102,7 @@
   * [Markdown Integration](developer-guides/scenarios/markdown-integration.md)
 * [Extending templating syntax](developer-guides/extending-templating-syntax.md)
 * [The Template Compiler](developer-guides/the-template-compiler.md)
+* [AttributePattern](developer-guides/attributepattern.md)
 * [Components revisited](developer-guides/components-revisited.md)
 
 ## Tutorials

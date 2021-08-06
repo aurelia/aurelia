@@ -1,8 +1,6 @@
 import {
   DI,
   Registration,
-  Protocol,
-  Metadata,
   mergeArrays,
   fromDefinitionOrDefault,
   pascalCase,
@@ -15,6 +13,8 @@ import { Bindable } from '../bindable.js';
 import { getEffectiveParentNode, getRef } from '../dom.js';
 import { Children } from '../templating/children.js';
 import { Watch } from '../watch.js';
+import { DefinitionType } from './resources-shared.js';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
 
 import type {
   Constructable,
@@ -155,17 +155,17 @@ export function useShadowDOM(target: Constructable): void;
 export function useShadowDOM(targetOrOptions?: Constructable | ShadowOptions): void | ((target: Constructable) => void) {
   if (targetOrOptions === void 0) {
     return function ($target: Constructable) {
-      CustomElement.annotate($target, 'shadowOptions', { mode: 'open' });
+      annotateElementMetadata($target, 'shadowOptions', { mode: 'open' });
     };
   }
 
   if (typeof targetOrOptions !== 'function') {
     return function ($target: Constructable) {
-      CustomElement.annotate($target, 'shadowOptions', targetOrOptions);
+      annotateElementMetadata($target, 'shadowOptions', targetOrOptions);
     };
   }
 
-  CustomElement.annotate(targetOrOptions, 'shadowOptions', { mode: 'open' });
+  annotateElementMetadata(targetOrOptions, 'shadowOptions', { mode: 'open' });
 }
 
 /**
@@ -179,11 +179,11 @@ export function containerless(): (target: Constructable) => void;
 export function containerless(target?: Constructable): void | ((target: Constructable) => void) {
   if (target === void 0) {
     return function ($target: Constructable) {
-      CustomElement.annotate($target, 'containerless', true);
+      annotateElementMetadata($target, 'containerless', true);
     };
   }
 
-  CustomElement.annotate(target, 'containerless', true);
+  annotateElementMetadata(target, 'containerless', true);
 }
 
 /**
@@ -197,16 +197,17 @@ export function strict(): (target: Constructable) => void;
 export function strict(target?: Constructable): void | ((target: Constructable) => void) {
   if (target === void 0) {
     return function ($target: Constructable) {
-      CustomElement.annotate($target, 'isStrictBinding', true);
+      annotateElementMetadata($target, 'isStrictBinding', true);
     };
   }
 
-  CustomElement.annotate(target, 'isStrictBinding', true);
+  annotateElementMetadata(target, 'isStrictBinding', true);
 }
 
 const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
 
 export class CustomElementDefinition<C extends Constructable = Constructable> implements ResourceDefinition<C, ICustomElementViewModel, PartialCustomElementDefinition> {
+  public get type(): DefinitionType.Element { return DefinitionType.Element; }
   private constructor(
     public readonly Type: CustomElementType<C>,
     public readonly name: string,
@@ -246,17 +247,16 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     nameOrDef: string | PartialCustomElementDefinition,
     Type: CustomElementType | null = null,
   ): CustomElementDefinition {
-    const getAnnotation = CustomElement.getAnnotation;
     if (Type === null) {
       const def = nameOrDef;
       if (typeof def === 'string') {
         if (__DEV__)
           throw new Error(`Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
         else
-          throw new Error(`AUR0704:${nameOrDef}`);
+          throw new Error(`AUR0761:${nameOrDef}`);
       }
 
-      const name = fromDefinitionOrDefault('name', def, CustomElement.generateName);
+      const name = fromDefinitionOrDefault('name', def, generateElementName);
       if (typeof (def as CustomElementDefinition).Type === 'function') {
         // This needs to be a clone (it will usually be the compiler calling this signature)
 
@@ -272,22 +272,22 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         name,
         mergeArrays(def.aliases),
         fromDefinitionOrDefault('key', def as CustomElementDefinition, () => CustomElement.keyFrom(name)),
-        fromDefinitionOrDefault('cache', def, () => 0),
-        fromDefinitionOrDefault('template', def, () => null),
+        fromDefinitionOrDefault('cache', def, returnZero),
+        fromDefinitionOrDefault('template', def, returnNull),
         mergeArrays(def.instructions),
         mergeArrays(def.dependencies),
-        fromDefinitionOrDefault('injectable', def, () => null),
-        fromDefinitionOrDefault('needsCompile', def, () => true),
+        fromDefinitionOrDefault('injectable', def, returnNull),
+        fromDefinitionOrDefault('needsCompile', def, returnTrue),
         mergeArrays(def.surrogates),
         Bindable.from(def.bindables),
         Children.from(def.childrenObservers),
-        fromDefinitionOrDefault('containerless', def, () => false),
-        fromDefinitionOrDefault('isStrictBinding', def, () => false),
-        fromDefinitionOrDefault('shadowOptions', def, () => null),
-        fromDefinitionOrDefault('hasSlots', def, () => false),
-        fromDefinitionOrDefault('enhance', def, () => false),
-        fromDefinitionOrDefault('watches', def as CustomElementDefinition, () => emptyArray),
-        fromAnnotationOrTypeOrDefault('processContent', Type, () => null),
+        fromDefinitionOrDefault('containerless', def, returnFalse),
+        fromDefinitionOrDefault('isStrictBinding', def, returnFalse),
+        fromDefinitionOrDefault('shadowOptions', def, returnNull),
+        fromDefinitionOrDefault('hasSlots', def, returnFalse),
+        fromDefinitionOrDefault('enhance', def, returnFalse),
+        fromDefinitionOrDefault('watches', def as CustomElementDefinition, returnEmptyArray),
+        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull),
       );
     }
 
@@ -298,32 +298,32 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       return new CustomElementDefinition(
         Type,
         nameOrDef,
-        mergeArrays(getAnnotation(Type, 'aliases'), Type.aliases),
+        mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases),
         CustomElement.keyFrom(nameOrDef),
-        fromAnnotationOrTypeOrDefault('cache', Type, () => 0),
-        fromAnnotationOrTypeOrDefault('template', Type, () => null),
-        mergeArrays(getAnnotation(Type, 'instructions'), Type.instructions),
-        mergeArrays(getAnnotation(Type, 'dependencies'), Type.dependencies),
-        fromAnnotationOrTypeOrDefault('injectable', Type, () => null),
-        fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true),
-        mergeArrays(getAnnotation(Type, 'surrogates'), Type.surrogates),
+        fromAnnotationOrTypeOrDefault('cache', Type, returnZero),
+        fromAnnotationOrTypeOrDefault('template', Type, returnNull),
+        mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions),
+        mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies),
+        fromAnnotationOrTypeOrDefault('injectable', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue),
+        mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates),
         Bindable.from(
           ...Bindable.getAll(Type),
-          getAnnotation(Type, 'bindables'),
+          getElementAnnotation(Type, 'bindables'),
           Type.bindables,
         ),
         Children.from(
           ...Children.getAll(Type),
-          getAnnotation(Type, 'childrenObservers'),
+          getElementAnnotation(Type, 'childrenObservers'),
           Type.childrenObservers,
         ),
-        fromAnnotationOrTypeOrDefault('containerless', Type, () => false),
-        fromAnnotationOrTypeOrDefault('isStrictBinding', Type, () => false),
-        fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null),
-        fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false),
-        fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
+        fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse),
+        fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse),
+        fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse),
+        fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse),
         mergeArrays(Watch.getAnnotation(Type), Type.watches),
-        fromAnnotationOrTypeOrDefault('processContent', Type, () => null),
+        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull),
       );
     }
 
@@ -332,38 +332,38 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     // property needs to be copied. So we have that exception for 'hooks', but we may need to revisit that default behavior
     // if this turns out to be too opinionated.
 
-    const name = fromDefinitionOrDefault('name', nameOrDef, CustomElement.generateName);
+    const name = fromDefinitionOrDefault('name', nameOrDef, generateElementName);
     return new CustomElementDefinition(
       Type,
       name,
-      mergeArrays(getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases),
+      mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases),
       CustomElement.keyFrom(name),
-      fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0),
-      fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null),
-      mergeArrays(getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions),
-      mergeArrays(getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies),
-      fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null),
-      fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true),
-      mergeArrays(getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates),
+      fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero),
+      fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull),
+      mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions),
+      mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies),
+      fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull),
+      fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue),
+      mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates),
       Bindable.from(
         ...Bindable.getAll(Type),
-        getAnnotation(Type, 'bindables'),
+        getElementAnnotation(Type, 'bindables'),
         Type.bindables,
         nameOrDef.bindables,
       ),
       Children.from(
         ...Children.getAll(Type),
-        getAnnotation(Type, 'childrenObservers'),
+        getElementAnnotation(Type, 'childrenObservers'),
         Type.childrenObservers,
         nameOrDef.childrenObservers,
       ),
-      fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false),
-      fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false),
-      fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null),
-      fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false),
-      fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
+      fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse),
+      fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse),
+      fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull),
+      fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse),
+      fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse),
       mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches),
-      fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, () => null),
+      fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull),
     );
   }
 
@@ -379,7 +379,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     const definition = CustomElementDefinition.create(partialDefinition);
     definitionLookup.set(partialDefinition, definition);
     // Make sure the full definition can be retrieved from dynamically created classes as well
-    Metadata.define(CustomElement.name, definition, definition.Type);
+    defineMetadata(ceBaseName, definition, definition.Type);
     return definition;
   }
 
@@ -408,15 +408,32 @@ const defaultForOpts: ForOpts = {
   searchParents: false,
   optional: false,
 };
+const returnZero = () => 0;
+const returnNull = <T>(): T | null | any => null;
+const returnFalse = () => false;
+const returnTrue = () => true;
+const returnEmptyArray = () => emptyArray;
 
-const ceBaseName = Protocol.resource.keyFor('custom-element');
-export const CustomElement: CustomElementKind = Object.freeze<CustomElementKind>({
+const ceBaseName = getResourceKeyFor('custom-element');
+const getElementKeyFrom = (name: string): string => `${ceBaseName}:${name}`;
+const generateElementName = (() => {
+  let id = 0;
+
+  return () => `unnamed-${++id}`;
+})();
+const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void => {
+  defineMetadata(getAnnotationKeyFor(prop), value, Type);
+};
+const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
+  Type: Constructable,
+  prop: K
+): PartialCustomElementDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
+
+export const CustomElement = Object.freeze<CustomElementKind>({
   name: ceBaseName,
-  keyFrom(name: string): string {
-    return `${ceBaseName}:${name}`;
-  },
+  keyFrom: getElementKeyFrom,
   isType<C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never) {
-    return typeof value === 'function' && Metadata.hasOwn(ceBaseName, value);
+    return typeof value === 'function' && hasOwnMetadata(ceBaseName, value);
   },
   for<C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: ForOpts = defaultForOpts): ICustomElementController<C> {
     if (opts.name === void 0 && opts.searchParents !== true) {
@@ -428,7 +445,7 @@ export const CustomElement: CustomElementKind = Object.freeze<CustomElementKind>
         if (__DEV__)
           throw new Error(`The provided node is not a custom element or containerless host.`);
         else
-          throw new Error('AUR0705');
+          throw new Error('AUR0762');
       }
       return controller as unknown as ICustomElementController<C>;
     }
@@ -439,7 +456,7 @@ export const CustomElement: CustomElementKind = Object.freeze<CustomElementKind>
           if (__DEV__)
             throw new Error(`The provided node is not a custom element or containerless host.`);
           else
-            throw new Error('AUR0706');
+            throw new Error('AUR0763');
         }
 
         if (controller.is(opts.name)) {
@@ -470,7 +487,7 @@ export const CustomElement: CustomElementKind = Object.freeze<CustomElementKind>
       if (__DEV__)
         throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
       else
-        throw new Error('AUR0707');
+        throw new Error('AUR0764');
     }
 
     let cur = node as INode | null;
@@ -486,40 +503,30 @@ export const CustomElement: CustomElementKind = Object.freeze<CustomElementKind>
     if (__DEV__)
       throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
     else
-      throw new Error('AUR0708');
+      throw new Error('AUR0765');
   },
   define<C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C> {
     const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
-    Metadata.define(ceBaseName, definition, definition.Type);
-    Metadata.define(ceBaseName, definition, definition);
-    Protocol.resource.appendTo(definition.Type, ceBaseName);
+    defineMetadata(ceBaseName, definition, definition.Type);
+    defineMetadata(ceBaseName, definition, definition);
+    appendResourceKey(definition.Type, ceBaseName);
 
     return definition.Type as CustomElementType<C>;
   },
   getDefinition<C extends Constructable>(Type: C): CustomElementDefinition<C> {
-    const def = Metadata.getOwn(ceBaseName, Type) as CustomElementDefinition<C>;
+    const def = getOwnMetadata(ceBaseName, Type) as CustomElementDefinition<C>;
     if (def === void 0) {
       if (__DEV__)
         throw new Error(`No definition found for type ${Type.name}`);
       else
-        throw new Error(`AUR0703:${Type.name}`);
+        throw new Error(`AUR0760:${Type.name}`);
     }
 
     return def;
   },
-  annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void {
-    Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
-  },
-  getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K] {
-    return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
-  },
-  generateName: (function () {
-    let id = 0;
-
-    return function () {
-      return `unnamed-${++id}`;
-    };
-  })(),
+  annotate: annotateElementMetadata,
+  getAnnotation: getElementAnnotation,
+  generateName: generateElementName,
   createInjectable<K extends Key = Key>(): InjectableToken<K> {
     const $injectable: InternalInjectableToken<K> = function (target, property, index): any {
       const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
@@ -579,21 +586,21 @@ export const CustomElement: CustomElementKind = Object.freeze<CustomElementKind>
 type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
 type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
 
-const pcHookMetadataProperty = Protocol.annotation.keyFor('processContent');
+const pcHookMetadataProperty = getAnnotationKeyFor('processContent');
 export function processContent(hook: ProcessContentHook): CustomElementDecorator;
 export function processContent<TClass>(): DecoratorFactoryMethod<TClass>;
 export function processContent<TClass>(hook?: ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
   return hook === void 0
     ? function (target: Constructable<TClass>, propertyKey: string, _descriptor: PropertyDescriptor) {
-      Metadata.define(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
+      defineMetadata(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
     }
     : function (target: Constructable<TClass>) {
       hook = ensureHook(target, hook!);
-      const def = Metadata.getOwn(ceBaseName, target) as CustomElementDefinition<Constructable<TClass>>;
+      const def = getOwnMetadata(ceBaseName, target) as CustomElementDefinition<Constructable<TClass>>;
       if (def !== void 0) {
         (def as Writable<CustomElementDefinition<Constructable<TClass>>>).processContent = hook;
       } else {
-        Metadata.define(pcHookMetadataProperty, hook, target);
+        defineMetadata(pcHookMetadataProperty, hook, target);
       }
       return target;
     };
@@ -610,7 +617,7 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
     if (__DEV__)
       throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
     else
-      throw new Error(`AUR0709:${hookType}`);
+      throw new Error(`AUR0766:${hookType}`);
   }
   return hook;
 }

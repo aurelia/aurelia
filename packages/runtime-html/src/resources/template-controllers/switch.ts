@@ -22,7 +22,7 @@ import { bindable } from '../../bindable.js';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller.js';
 import type { INode } from '../../dom.js';
-import type { Instruction } from '../../renderer.js';
+import type { IInstruction } from '../../renderer.js';
 
 @templateController('switch')
 export class Switch implements ICustomAttributeViewModel {
@@ -49,13 +49,12 @@ export class Switch implements ICustomAttributeViewModel {
   ) { }
 
   public link(
-    flags: LifecycleFlags,
     _controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: Instruction,
+    _instruction: IInstruction,
   ): void {
-    this.view = this.factory.create(flags, this.$controller).setLocation(this.location);
+    this.view = this.factory.create(this.$controller).setLocation(this.location);
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
@@ -272,11 +271,10 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public link(
-    flags: LifecycleFlags,
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: Instruction,
+    _instruction: IInstruction,
   ): void {
     const switchController: IHydratedParentController = (controller as Controller).parent! as IHydratedParentController;
     const $switch = switchController?.viewModel;

@@ -123,7 +123,6 @@ export class DialogController implements IDialogController {
             cmp,
             contentHost,
             null,
-            LifecycleFlags.none,
             CustomElementDefinition.create(
               this.getDefinition(cmp) ?? { name: CustomElement.generateName(), template }
             )
@@ -249,8 +248,11 @@ export class DialogController implements IDialogController {
     const p = this.p;
 
     container.registerResolver(
-      INode,
-      container.registerResolver(p.Element, new InstanceProvider('ElementResolver', host))
+      p.HTMLElement,
+      container.registerResolver(
+        p.Element,
+        container.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+      )
     );
 
     return container.invoke(Component!);

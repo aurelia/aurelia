@@ -7,7 +7,7 @@ import { bindable } from '../../bindable.js';
 import { IWorkTracker } from '../../app-root.js';
 
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller.js';
-import type { Instruction } from '../../renderer.js';
+import type { IInstruction } from '../../renderer.js';
 import type { INode } from '../../dom.js';
 
 export class If implements ICustomAttributeViewModel {
@@ -57,13 +57,13 @@ export class If implements ICustomAttributeViewModel {
       if (this.value) {
         view = (this.view = this.ifView = this.cache && this.ifView != null
           ? this.ifView
-          : this.ifFactory.create(f)
+          : this.ifFactory.create()
         );
       } else {
         // truthy -> falsy
         view = (this.view = this.elseView = this.cache && this.elseView != null
           ? this.elseView
-          : this.elseFactory?.create(f)
+          : this.elseFactory?.create()
         );
       }
       if (view == null) {
@@ -131,13 +131,13 @@ export class If implements ICustomAttributeViewModel {
           if (newValue) {
             view = (this.view = this.ifView = this.cache && this.ifView != null
               ? this.ifView
-              : this.ifFactory.create(f)
+              : this.ifFactory.create()
             );
           } else {
             // truthy -> falsy
             view = (this.view = this.elseView = this.cache && this.elseView != null
               ? this.elseView
-              : this.elseFactory?.create(f)
+              : this.elseFactory?.create()
             );
           }
           if (view == null) {
@@ -176,7 +176,7 @@ export class If implements ICustomAttributeViewModel {
 }
 templateController('if')(If);
 
-export class Else {
+export class Else implements ICustomAttributeViewModel {
   public static inject = [IViewFactory];
   public readonly id: number = nextId('au$component');
 
@@ -185,11 +185,10 @@ export class Else {
   ) {}
 
   public link(
-    flags: LifecycleFlags,
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: Instruction,
+    _instruction: IInstruction,
   ): void {
     const children = controller.children!;
     const ifBehavior: If | ICustomAttributeController = children[children.length - 1] as If | ICustomAttributeController;

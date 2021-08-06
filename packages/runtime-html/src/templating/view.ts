@@ -1,7 +1,8 @@
-import { DI, Metadata, Protocol } from '@aurelia/kernel';
+import { DI, Protocol } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element.js';
 import { Controller } from './controller.js';
+import { defineMetadata, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
 
 import type { Constructable, ConstructableClass, IContainer } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
@@ -77,7 +78,6 @@ export class ViewFactory implements IViewFactory {
   }
 
   public create(
-    flags?: LifecycleFlags,
     parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
   ): ISyntheticView {
     const cache = this.cache;
@@ -88,7 +88,7 @@ export class ViewFactory implements IViewFactory {
       return controller;
     }
 
-    controller = Controller.$view(this, flags, parentController);
+    controller = Controller.$view(this, parentController);
     return controller;
   }
 }
@@ -102,11 +102,12 @@ function toCustomElementDefinition($view: PartialCustomElementDefinition): Custo
   return CustomElementDefinition.create($view);
 }
 
-const viewsBaseName = Protocol.resource.keyFor('views');
+const viewsBaseName = getResourceKeyFor('views');
+
 export const Views = Object.freeze({
   name: viewsBaseName,
   has(value: object): boolean {
-    return typeof value === 'function' && (Metadata.hasOwn(viewsBaseName, value) || '$views' in value);
+    return typeof value === 'function' && (hasOwnMetadata(viewsBaseName, value) || '$views' in value);
   },
   get(value: object | Constructable): readonly CustomElementDefinition[] {
     if (typeof value === 'function' && '$views' in value) {
@@ -117,17 +118,17 @@ export const Views = Object.freeze({
         Views.add(value, def);
       }
     }
-    let views = Metadata.getOwn(viewsBaseName, value) as CustomElementDefinition[] | undefined;
+    let views = getOwnMetadata(viewsBaseName, value) as CustomElementDefinition[] | undefined;
     if (views === void 0) {
-      Metadata.define(viewsBaseName, views = [], value);
+      defineMetadata(viewsBaseName, views = [], value);
     }
     return views;
   },
   add<T extends Constructable>(Type: T, partialDefinition: PartialCustomElementDefinition): readonly CustomElementDefinition[] {
     const definition = CustomElementDefinition.create(partialDefinition);
-    let views = Metadata.getOwn(viewsBaseName, Type) as CustomElementDefinition[] | undefined;
+    let views = getOwnMetadata(viewsBaseName, Type) as CustomElementDefinition[] | undefined;
     if (views === void 0) {
-      Metadata.define(viewsBaseName, views = [definition], Type);
+      defineMetadata(viewsBaseName, views = [definition], Type);
     } else {
       views.push(definition);
     }

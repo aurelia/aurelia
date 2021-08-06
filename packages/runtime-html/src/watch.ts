@@ -1,9 +1,10 @@
-import { Protocol, Metadata, emptyArray } from '@aurelia/kernel';
-import type { Constructable } from '@aurelia/kernel';
-import type { IConnectable } from '@aurelia/runtime';
-
+import { emptyArray } from '@aurelia/kernel';
 import { CustomAttribute } from './resources/custom-attribute.js';
 import { CustomElement } from './resources/custom-element.js';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './shared.js';
+
+import type { Constructable } from '@aurelia/kernel';
+import type { IConnectable } from '@aurelia/runtime';
 
 export type IDepCollectionFn<TType extends object, TReturn = unknown> = (vm: TType, watcher: IConnectable) => TReturn;
 export type IWatcherCallback<TType extends object, TValue = unknown>
@@ -60,7 +61,7 @@ export function watch<T extends object = object>(
     if (__DEV__)
       throw new Error('Invalid watch config. Expected an expression or a fn');
     else
-      throw new Error('AUR0715');
+      throw new Error('AUR0772');
   }
 
   return function decorator(
@@ -80,13 +81,13 @@ export function watch<T extends object = object>(
         if (__DEV__)
           throw new Error(`Invalid change handler config. Method "${String(changeHandlerOrCallback)}" not found in class ${Type.name}`);
         else
-          throw new Error(`AUR0716:${String(changeHandlerOrCallback)}@${Type.name}}`);
+          throw new Error(`AUR0773:${String(changeHandlerOrCallback)}@${Type.name}}`);
       }
     } else if (typeof descriptor?.value !== 'function') {
       if (__DEV__)
         throw new Error(`decorated target ${String(key)} is not a class method.`);
       else
-        throw new Error(`AUR0717:${String(key)}`);
+        throw new Error(`AUR0774:${String(key)}`);
     }
 
     Watch.add(Type, watchDef);
@@ -118,17 +119,18 @@ class WatchDefinition<T extends object> implements IWatchDefinition<T> {
 }
 
 const noDefinitions: IWatchDefinition[] = emptyArray;
-const watchBaseName = Protocol.annotation.keyFor('watch');
-export const Watch = {
+const watchBaseName = getAnnotationKeyFor('watch');
+
+export const Watch = Object.freeze({
   name: watchBaseName,
   add(Type: Constructable, definition: IWatchDefinition): void {
-    let watchDefinitions: IWatchDefinition[] = Metadata.getOwn(watchBaseName, Type);
+    let watchDefinitions: IWatchDefinition[] = getOwnMetadata(watchBaseName, Type);
     if (watchDefinitions == null) {
-      Metadata.define(watchBaseName, watchDefinitions = [], Type);
+      defineMetadata(watchBaseName, watchDefinitions = [], Type);
     }
     watchDefinitions.push(definition);
   },
   getAnnotation(Type: Constructable): IWatchDefinition[] {
-    return Metadata.getOwn(watchBaseName, Type) ?? noDefinitions;
+    return getOwnMetadata(watchBaseName, Type) ?? noDefinitions;
   },
-};
+});

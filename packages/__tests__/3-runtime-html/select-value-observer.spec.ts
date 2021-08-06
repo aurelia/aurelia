@@ -54,73 +54,51 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
       //    1. With synchronizeOptions: source => target => source. Or selected <option/> are based on value array
       //    2. Without synchronizeOptions: target => source. Or selected values are based on selected <option/>
       describe('<select multiple="true" />', function () {
-        it('synchronizes with array', function () {
-          const { sut } = createMutiSelectSut([], [
+        it('retrieves value freshly when not observing', function () {
+          const initialValue = [];
+          const { sut } = createMutiSelectSut(initialValue, [
             option({ text: 'A', selected: true }),
             option({ text: 'B', selected: true }),
             option({ text: 'C' })
           ]);
 
-          const currentValue = sut.value as any[];
-          assert.instanceOf(currentValue, Array);
-          assert.strictEqual(currentValue['length'], 0, `currentValue['length']`);
-
-          sut.syncValue();
-
-          assert.strictEqual(currentValue, sut.value, `currentValue`);
-          assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
+          assert.notStrictEqual(initialValue, sut.getValue());
+          assert.deepEqual(['A', 'B'], sut.getValue(), `currentValue`);
         });
 
-        it('synchronizes with null', function () {
+        it('disregards null existing value when not observing', function () {
           const { sut } = createMutiSelectSut(null, [
             option({ text: 'A', selected: true }),
             option({ text: 'B', selected: true }),
             option({ text: 'C' })
           ]);
 
-          const currentValue = sut.value as any;
-          assert.strictEqual(currentValue, null, `currentValue`);
-
-          sut.syncValue();
-
-          assert.strictEqual(currentValue, sut.value, `currentValue`);
+          assert.deepEqual(['A', 'B'], sut.getValue(), `currentValue`);
         });
 
-        it('synchronizes with undefined', function () {
+        it('disregard existing value when not observing', function () {
           const { sut } = createMutiSelectSut(undefined, [
             option({ text: 'A', selected: true }),
             option({ text: 'B', selected: true }),
             option({ text: 'C' })
           ]);
 
-          const currentValue = sut.value as any;
-          assert.strictEqual(currentValue, undefined, `currentValue`);
-
-          sut.syncValue();
-
-          assert.strictEqual(currentValue, sut.value, `currentValue`);
+          assert.deepEqual(['A', 'B'], sut.getValue(), `currentValue`);
         });
 
-        it('synchronizes with array (2)', function () {
+        it('retrieves <option /> "model" if has', function () {
           const { sut } = createMutiSelectSut([], [
             option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),
             option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true }),
             option({ text: 'C' })
           ]);
 
-          const currentValue = sut.value as any[];
-
-          sut.syncValue();
-
-          assert.strictEqual(currentValue, sut.value, `currentValue`);
-          assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
-
           verifyEqual(
-            currentValue,
             [
               { id: 1, name: 'select 1' },
               { id: 2, name: 'select 2' }
-            ]
+            ],
+            sut.getValue()
           );
         });
 
@@ -131,12 +109,12 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
             option({ text: 'C', value: 'CC' })
           ]);
 
-          const currentValue = sut.value as any[];
+          const currentValue = sut.getValue() as any[];
 
           sut.syncValue();
 
-          assert.strictEqual(currentValue, sut.value, `currentValue`);
-          assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
+          assert.deepEqual(currentValue, sut.getValue(), `currentValue`);
+          assert.strictEqual(currentValue.length, 2, `currentValue['length']`);
 
           verifyEqual(
             currentValue,
@@ -154,11 +132,11 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
             option({ text: 'C', value: 'CC', disabled: true, selected: true })
           ]);
 
-          const currentValue = sut.value as any[];
+          const currentValue = sut.getValue() as any[];
 
           sut.syncValue();
 
-          assert.strictEqual(currentValue, sut.value, `currentValue`);
+          assert.deepEqual(currentValue, sut.getValue(), `currentValue`);
 
           verifyEqual(
             currentValue,
@@ -171,14 +149,14 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
         });
 
         it('syncs array & <option/> mutation (from repeat etc...)', async function () {
-          const { sut, ctx } = createMutiSelectSut([], [
+          const { sut, el, ctx } = createMutiSelectSut([], [
             option({ text: 'A', value: 'AA', _model: { id: 1, name: 'select 1' }, selected: true }),
             option({ text: 'B', value: 'BB', disabled: true, _model: { id: 2, name: 'select 2' }, selected: true }),
             option({ text: 'C', value: 'CC', disabled: true, selected: true })
           ]);
 
           let handleChangeCallCount = 0;
-          const currentValue = sut.value as any[];
+          let currentValue = sut.getValue() as any[];
           const noopSubscriber = {
             handleChange() {
               handleChangeCallCount++;
@@ -186,16 +164,20 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
           };
 
           sut.syncValue();
-          assert.strictEqual(currentValue, sut.value, `currentValue`);
+          assert.deepEqual(currentValue, sut.getValue(), `currentValue`);
           sut.subscribe(noopSubscriber);
 
-          sut.obj.add(option({ text: 'DD', value: 'DD', selected: true })(ctx));
+          el.add(option({ text: 'DD', value: 'DD', selected: true })(ctx));
           await Promise.resolve();
 
+          // currentValue = sut.getValue() as any[];
           assert.strictEqual(handleChangeCallCount, 0);
-          assert.strictEqual(sut.obj.options[3].value, 'DD');
-          assert.strictEqual(sut.obj.options[3].selected, false);
-          assert.deepStrictEqual(
+          assert.strictEqual(el.options[3].value, 'DD');
+          assert.strictEqual(el.options[3].selected, false);
+
+          currentValue = sut.getValue() as any[];
+
+          assert.deepEqual(
             currentValue,
             [
               { id: 1, name: 'select 1' },
@@ -206,9 +188,9 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
 
           currentValue.push('DD');
           assert.strictEqual(handleChangeCallCount, 0);
-          assert.strictEqual(sut.obj.options[3].value, 'DD');
-          assert.strictEqual(sut.obj.options[3].selected, true);
-          assert.deepStrictEqual(
+          assert.strictEqual(el.options[3].value, 'DD');
+          assert.strictEqual(el.options[3].selected, true);
+          assert.deepEqual(
             currentValue,
             [
               { id: 1, name: 'select 1' },
@@ -232,15 +214,14 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
               option({ text: 'C', value: 'CC' })
             ]);
 
-            const currentValue = sut.value as any[];
+            let currentValue = sut.getValue() as any[];
+            assert.strictEqual(currentValue.length, 2, `currentValue.length`);
 
             sut.syncValue();
+            currentValue = sut.getValue() as any[];
 
-            assert.strictEqual(currentValue, sut.value, `currentValue`);
-            assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
-
-            verifyEqual(
-              currentValue,
+            assert.deepEqual(
+              sut.getValue(),
               [
                 { id: 1, name: 'select 1' },
                 { id: 2, name: 'select 2' }

@@ -73,7 +73,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
     const hasCb = this._hasCb = typeof cb === 'function';
     const hasCbAll = this._hasCbAll = typeof cbAll === 'function';
     const hasSetter = this._hasSetter = set !== noop;
-    let val;
+    let val: unknown;
 
     this._obj = obj;
     this._key = key;

@@ -51,7 +51,6 @@ export class AttributeBinding implements IAstBasedBinding {
   /**
    * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
    */
-
   public targetObserver!: IObserver;
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;

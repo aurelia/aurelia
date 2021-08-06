@@ -6,15 +6,22 @@ import type { IAccessor, ISubscribable } from '../observation.js';
 export class PrimitiveObserver implements IAccessor, ISubscribable {
   public get doNotCache(): true { return true; }
   public type: AccessorType = AccessorType.None;
+  /** @internal */
+  private readonly _obj: Primitive;
+  /** @internal */
+  private readonly _key: PropertyKey;
 
   public constructor(
-    public readonly obj: Primitive,
-    public readonly propertyKey: PropertyKey,
-  ) {}
+    obj: Primitive,
+    key: PropertyKey,
+  ) {
+    this._obj = obj;
+    this._key = key;
+  }
 
   public getValue(): unknown {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
-    return (this.obj as any)[this.propertyKey];
+    return (this._obj as any)[this._key];
   }
   public setValue(): void { /* do nothing */ }
   public subscribe(): void { /* do nothing */ }

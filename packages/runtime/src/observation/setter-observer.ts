@@ -1,6 +1,6 @@
 import { AccessorType, LifecycleFlags } from '../observation.js';
 import { subscriberCollection } from './subscriber-collection.js';
-import { def } from '../utilities-objects.js';
+import { def, isFunction } from '../utilities-objects.js';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type {
@@ -25,32 +25,38 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
   // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
   public type: AccessorType = AccessorType.Observer;
 
-  private v: unknown = void 0;
-  private ov: unknown = void 0;
+  /** @internal */
+  private _value: unknown = void 0;
+  /** @internal */
+  private _oldValue: unknown = void 0;
   /** @internal */
   private _observing: boolean = false;
   public readonly queue!: FlushQueue;
 
   /** @internal */
   private f: LifecycleFlags = LifecycleFlags.none;
+  private readonly _obj: IIndexable;
+  private readonly _key: string;
 
   public constructor(
-    public readonly obj: IIndexable,
-    public readonly key: string,
+    obj: IIndexable,
+    key: string,
   ) {
+    this._obj = obj;
+    this._key = key;
   }
 
   public getValue(): unknown {
-    return this.v;
+    return this._value;
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     if (this._observing) {
-      if (Object.is(newValue, this.v)) {
+      if (Object.is(newValue, this._value)) {
         return;
       }
-      this.ov = this.v;
-      this.v = newValue;
+      this._oldValue = this._value;
+      this._value = newValue;
       this.f = flags;
       this.queue.add(this);
     } else {
@@ -60,7 +66,7 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
       // is unmodified and we need to explicitly set the property value.
       // This will happen in one-time, to-view and two-way bindings during $bind, meaning that the $bind will not actually update the target value.
       // This wasn't visible in vCurrent due to connect-queue always doing a delayed update, so in many cases it didn't matter whether $bind updated the target or not.
-      this.obj[this.key] = newValue;
+      this._obj[this._key] = newValue;
     }
   }
 
@@ -73,18 +79,18 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
   }
 
   public flush(): void {
-    oV = this.ov;
-    this.ov = this.v;
-    this.subs.notify(this.v, oV, this.f);
+    oV = this._oldValue;
+    this._oldValue = this._value;
+    this.subs.notify(this._value, oV, this.f);
   }
 
   public start(): this {
     if (this._observing === false) {
       this._observing = true;
-      this.v = this.obj[this.key];
+      this._value = this._obj[this._key];
       def(
-        this.obj,
-        this.key,
+        this._obj,
+        this._key,
         {
           enumerable: true,
           configurable: true,
@@ -100,11 +106,11 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
 
   public stop(): this {
     if (this._observing) {
-      def(this.obj, this.key, {
+      def(this._obj, this._key, {
         enumerable: true,
         configurable: true,
         writable: true,
-        value: this.v,
+        value: this._value,
       });
       this._observing = false;
       // todo(bigopon/fred): add .removeAllSubscribers()
@@ -122,17 +128,19 @@ export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
   public readonly queue!: FlushQueue;
 
   /** @internal */
-  private v: unknown = void 0;
+  private _value: unknown = void 0;
   /** @internal */
-  private ov: unknown = void 0;
+  private _oldValue: unknown = void 0;
   /** @internal */
   private f: LifecycleFlags = LifecycleFlags.none;
   /** @internal */
   private readonly cb?: ChangeHandlerCallback;
   /** @internal */
-  private readonly obj: object;
+  private readonly _obj: object;
   /** @internal */
-  private readonly s: InterceptorFunc | undefined;
+  private readonly _setter: InterceptorFunc | undefined;
+  /** @internal */
+  private readonly _hasSetter: boolean;
 
   public constructor(
     obj: object,
@@ -140,34 +148,35 @@ export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
     set: InterceptorFunc | undefined,
     initialValue: unknown,
   ) {
-    this.obj = obj;
-    this.s = set;
+    this._obj = obj;
+    this._setter = set;
+    this._hasSetter = isFunction(set);
     const callback = (obj as IIndexable)[callbackKey as string];
-    this.cb = typeof callback === 'function' ? callback as ChangeHandlerCallback : void 0;
-    this.v = initialValue;
+    this.cb = isFunction(callback) ? callback as ChangeHandlerCallback : void 0;
+    this._value = initialValue;
   }
 
   public getValue(): unknown {
-    return this.v;
+    return this._value;
   }
 
   public setValue(value: unknown, flags: LifecycleFlags): void {
-    if (typeof this.s === 'function') {
-      value = this.s(value);
+    if (this._hasSetter) {
+      value = this._setter!(value);
     }
-    if (!Object.is(value, this.v)) {
-      this.ov = this.v;
-      this.v = value;
+    if (!Object.is(value, this._value)) {
+      this._oldValue = this._value;
+      this._value = value;
       this.f = flags;
-      this.cb?.call(this.obj, this.v, this.ov, flags);
+      this.cb?.call(this._obj, this._value, this._oldValue, flags);
       this.queue.add(this);
     }
   }
 
   public flush(): void {
-    oV = this.ov;
-    this.ov = this.v;
-    this.subs.notify(this.v, oV, this.f);
+    oV = this._oldValue;
+    this._oldValue = this._value;
+    this.subs.notify(this._value, oV, this.f);
   }
 }
 

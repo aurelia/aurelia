@@ -93,6 +93,8 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run build
+        working-directory: examples/helloworld
+      - run: npm run build
         working-directory: examples/1kcomponents
       - run: npm run build
         working-directory: examples/fractals-tree

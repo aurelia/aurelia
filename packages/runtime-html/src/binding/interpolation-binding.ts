@@ -12,7 +12,6 @@ import type {
   ICollectionSubscriber,
   IndexMap,
   Interpolation,
-  IConnectableBinding,
   IObserverLocator,
   IsExpression,
   IBinding,

@@ -4,6 +4,7 @@ import replace from '@rollup/plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 import pkg from './package.json';
 import { exec } from 'child_process';
+import { terserNameCache } from '../terser-namecache';
 
 const tsPluginConfig = typescript({
   tsconfig: 'tsconfig.build.json',
@@ -27,6 +28,7 @@ const terserPluginCfg = terser({
       reserved: ['__esModule']
     }
   },
+  nameCache: terserNameCache,
   format: {
     beautify: true,
   },

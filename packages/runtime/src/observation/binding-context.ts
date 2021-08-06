@@ -54,7 +54,7 @@ export class BindingContext implements IBindingContext {
       if (__DEV__)
         throw new Error(`Scope is ${scope}.`);
       else
-        throw new Error(`AUR203:${scope}`);
+        throw new Error(`AUR0203:${scope}`);
     }
     let overrideContext: IOverrideContext | null = scope.overrideContext;
     let currentScope: Scope | null = scope;

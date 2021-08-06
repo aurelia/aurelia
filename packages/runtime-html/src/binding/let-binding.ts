@@ -3,17 +3,16 @@ import { connectable, LifecycleFlags } from '@aurelia/runtime';
 import type { ITask } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type {
-  IConnectableBinding,
   IObservable,
   IObserverLocator,
-  IObserverLocatorBasedConnectable,
   IsExpression,
   Scope,
 } from '@aurelia/runtime';
+import type { IAstBasedBinding } from './interfaces-bindings';
 
-export interface LetBinding extends IConnectableBinding {}
+export interface LetBinding extends IAstBasedBinding {}
 
-export class LetBinding implements IObserverLocatorBasedConnectable {
+export class LetBinding implements IAstBasedBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;
@@ -48,7 +47,7 @@ export class LetBinding implements IObserverLocatorBasedConnectable {
     const previousValue: unknown = target[targetProperty];
     this.obs.version++;
     newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);
-    this.obs.clear(false);
+    this.obs.clear();
     if (newValue !== previousValue) {
       target[targetProperty] = newValue;
     }
@@ -87,7 +86,7 @@ export class LetBinding implements IObserverLocatorBasedConnectable {
       sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
     this.$scope = void 0;
-    this.obs.clear(true);
+    this.obs.clearAll();
 
     // remove isBound and isUnbinding flags
     this.isBound = false;

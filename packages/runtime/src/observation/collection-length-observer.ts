@@ -17,79 +17,93 @@ import type { FlushQueue, IFlushable, IWithFlushQueue } from './flush-queue.js';
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 
 export class CollectionLengthObserver implements IWithFlushQueue, ICollectionSubscriber, IFlushable {
+  public readonly type: AccessorType = AccessorType.Array;
 
-  public value: number;
-  private oldvalue: number;
+  /** @internal */
+  private _value: number;
+
+  /** @internal */
+  private _oldvalue: number;
+
+  /** @internal */
   private f: LifecycleFlags = LifecycleFlags.none;
 
-  public readonly type: AccessorType = AccessorType.Array;
-  public readonly obj: unknown[];
+  /** @internal */
+  private readonly _obj: unknown[];
   // available via withFlushQueue mixin
   public readonly queue!: FlushQueue;
 
   public constructor(
     public readonly owner: ICollectionObserver<CollectionKind.array>,
   ) {
-    this.value = this.oldvalue = (this.obj = owner.collection).length;
+    this._value = this._oldvalue = (this._obj = owner.collection).length;
   }
 
   public getValue(): number {
-    return this.obj.length;
+    return this._obj.length;
   }
 
   public setValue(newValue: number, flags: LifecycleFlags): void {
-    const currentValue = this.value;
+    const currentValue = this._value;
     // if in the template, length is two-way bound directly
     // then there's a chance that the new value is invalid
     // add a guard so that we don't accidentally broadcast invalid values
     if (newValue !== currentValue && isArrayIndex(newValue)) {
       if ((flags & LifecycleFlags.noFlush) === 0) {
-        this.obj.length = newValue;
+        this._obj.length = newValue;
       }
-      this.value = newValue;
-      this.oldvalue = currentValue;
+      this._value = newValue;
+      this._oldvalue = currentValue;
       this.f = flags;
       this.queue.add(this);
     }
   }
 
   public handleCollectionChange(_: IndexMap, flags: LifecycleFlags) {
-    const oldValue = this.value;
-    const value = this.obj.length;
-    if ((this.value = value) !== oldValue) {
-      this.oldvalue = oldValue;
+    const oldValue = this._value;
+    const value = this._obj.length;
+    if ((this._value = value) !== oldValue) {
+      this._oldvalue = oldValue;
       this.f = flags;
       this.queue.add(this);
     }
   }
 
   public flush(): void {
-    oV = this.oldvalue;
-    this.oldvalue = this.value;
-    this.subs.notify(this.value, oV, this.f);
+    oV = this._oldvalue;
+    this._oldvalue = this._value;
+    this.subs.notify(this._value, oV, this.f);
   }
 }
 
 export interface CollectionSizeObserver extends ISubscriberCollection {}
 
 export class CollectionSizeObserver implements ICollectionSubscriber, IFlushable {
-  public value: number;
-  private oldvalue: number;
+  public readonly type: AccessorType;
+
+  public readonly queue!: FlushQueue;
+
+  /** @internal */
+  private _value: number;
+
+  /** @internal */
+  private _oldvalue: number;
+
+  /** @internal */
   private f: LifecycleFlags = LifecycleFlags.none;
 
-  public readonly type: AccessorType;
-  public readonly obj: Set<unknown> | Map<unknown, unknown>;
-  public readonly queue!: FlushQueue;
+  /** @internal */
+  private readonly _obj: Set<unknown> | Map<unknown, unknown>;
 
   public constructor(
     public readonly owner: ICollectionObserver<CollectionKind.map | CollectionKind.set>,
   ) {
-    this.value = this.oldvalue = (this.obj = owner.collection).size;
-    this.type = this.obj instanceof Map ? AccessorType.Map : AccessorType.Set;
+    this._value = this._oldvalue = (this._obj = owner.collection).size;
+    this.type = this._obj instanceof Map ? AccessorType.Map : AccessorType.Set;
   }
 
   public getValue(): number {
-    return this.obj.size;
+    return this._obj.size;
   }
 
   public setValue(): void {
@@ -100,19 +114,19 @@ export class CollectionSizeObserver implements ICollectionSubscriber, IFlushable
   }
 
   public handleCollectionChange(_: IndexMap, flags: LifecycleFlags): void {
-    const oldValue = this.value;
-    const value = this.obj.size;
-    if ((this.value = value) !== oldValue) {
-      this.oldvalue = oldValue;
+    const oldValue = this._value;
+    const value = this._obj.size;
+    if ((this._value = value) !== oldValue) {
+      this._oldvalue = oldValue;
       this.f = flags;
       this.queue.add(this);
     }
   }
 
   public flush(): void {
-    oV = this.oldvalue;
-    this.oldvalue = this.value;
-    this.subs.notify(this.value, oV, this.f);
+    oV = this._oldvalue;
+    this._oldvalue = this._value;
+    this.subs.notify(this._value, oV, this.f);
   }
 }
 

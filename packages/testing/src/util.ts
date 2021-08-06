@@ -140,11 +140,11 @@ export function isArrayBuffer(arg: unknown): arg is ArrayBuffer {
 }
 
 export function isSharedArrayBuffer(arg: unknown): arg is SharedArrayBuffer {
-  return arg instanceof SharedArrayBuffer;
+  return typeof SharedArrayBuffer !== 'undefined' && arg instanceof SharedArrayBuffer;
 }
 
 export function isAnyArrayBuffer(arg: unknown): arg is ArrayBuffer | SharedArrayBuffer {
-  return arg instanceof ArrayBuffer || arg instanceof SharedArrayBuffer;
+  return arg instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && arg instanceof SharedArrayBuffer);
 }
 
 export function isDate(arg: unknown): arg is Date {

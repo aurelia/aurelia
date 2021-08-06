@@ -1,14 +1,15 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, IObserver } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
-import type { IConnectableBinding, ForOfStatement, IObserverLocator, IObserverLocatorBasedConnectable, IsBindingBehavior, ITask, Scope } from '@aurelia/runtime';
+import type { ForOfStatement, IObserverLocator, IsBindingBehavior, ITask, Scope } from '@aurelia/runtime';
 import type { INode } from '../dom.js';
-export interface AttributeBinding extends IConnectableBinding {
+import type { IAstBasedBinding } from './interfaces-bindings.js';
+export interface AttributeBinding extends IAstBasedBinding {
 }
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
-export declare class AttributeBinding implements IObserverLocatorBasedConnectable {
+export declare class AttributeBinding implements IAstBasedBinding {
     sourceExpression: IsBindingBehavior | ForOfStatement;
     targetAttribute: string;
     targetProperty: string;

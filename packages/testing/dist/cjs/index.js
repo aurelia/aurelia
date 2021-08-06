@@ -93,7 +93,7 @@ function I(e) {
 }
 
 function V(e) {
-    return e instanceof ArrayBuffer || e instanceof SharedArrayBuffer;
+    return e instanceof ArrayBuffer || "undefined" !== typeof SharedArrayBuffer && e instanceof SharedArrayBuffer;
 }
 
 function H(e) {

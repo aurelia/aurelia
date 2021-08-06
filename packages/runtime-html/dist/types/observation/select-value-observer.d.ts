@@ -13,12 +13,9 @@ export interface IOptionElement extends HTMLOptionElement {
 export interface SelectValueObserver extends ISubscriberCollection {
 }
 export declare class SelectValueObserver implements IObserver, IFlushable, IWithFlushQueue {
-    readonly handler: EventSubscriber;
     type: AccessorType;
-    value: unknown;
-    readonly obj: ISelectElement;
     readonly queue: FlushQueue;
-    private readonly oL;
+    readonly handler: EventSubscriber;
     constructor(obj: INode, _key: PropertyKey, handler: EventSubscriber, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LF): void;

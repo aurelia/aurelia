@@ -1,6 +1,6 @@
-import type { ForOfStatement, IConnectableBinding, IsBindingBehavior, ISubscriber, LifecycleFlags } from '@aurelia/runtime';
-interface ITwoWayBindingImpl extends IConnectableBinding {
-    sourceExpression: IsBindingBehavior | ForOfStatement;
+import type { ISubscriber, LifecycleFlags } from '@aurelia/runtime';
+import type { IAstBasedBinding } from './interfaces-bindings.js';
+interface ITwoWayBindingImpl extends IAstBasedBinding {
     updateSource(value: unknown, flags: LifecycleFlags): void;
 }
 /**

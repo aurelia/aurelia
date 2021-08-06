@@ -9,15 +9,11 @@ export interface SetterObserver extends IAccessor, ISubscriberCollection {
  * This is used for observing object properties that has no decorator.
  */
 export declare class SetterObserver implements IWithFlushQueue, IFlushable {
-    readonly obj: IIndexable;
-    readonly propertyKey: string;
-    value: unknown;
-    oldValue: unknown;
-    observing: boolean;
     type: AccessorType;
     readonly queue: FlushQueue;
-    private f;
-    constructor(obj: IIndexable, propertyKey: string);
+    private readonly _obj;
+    private readonly _key;
+    constructor(obj: IIndexable, key: string);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     subscribe(subscriber: ISubscriber): void;

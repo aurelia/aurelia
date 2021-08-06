@@ -8,11 +8,7 @@ export interface AttributeObserver extends IObserver, ISubscriber, ISubscriberCo
  * TODO: handle SVG/attributes with namespace
  */
 export declare class AttributeObserver implements AttributeObserver, ElementMutationSubscriber, IWithFlushQueue, IFlushable {
-    readonly prop: string;
-    readonly attr: string;
     type: AccessorType;
-    readonly obj: HTMLElement;
-    value: unknown;
     readonly queue: FlushQueue;
     constructor(obj: HTMLElement, prop: string, attr: string);
     getValue(): unknown;

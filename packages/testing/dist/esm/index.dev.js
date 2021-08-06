@@ -54,7 +54,7 @@ function isArrayBuffer(arg) {
     return arg instanceof ArrayBuffer;
 }
 function isAnyArrayBuffer(arg) {
-    return arg instanceof ArrayBuffer || arg instanceof SharedArrayBuffer;
+    return arg instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && arg instanceof SharedArrayBuffer);
 }
 function isDate(arg) {
     return arg instanceof Date;

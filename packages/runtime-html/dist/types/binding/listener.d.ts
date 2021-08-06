@@ -1,14 +1,15 @@
 import { DelegationStrategy, LifecycleFlags } from '@aurelia/runtime';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { IBinding, IConnectableBinding, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import type { IsBindingBehavior, Scope } from '@aurelia/runtime';
 import type { IEventDelegator } from '../observation/event-delegator.js';
 import type { IPlatform } from '../platform.js';
-export interface Listener extends IConnectableBinding {
+import { IAstBasedBinding } from './interfaces-bindings.js';
+export interface Listener extends IAstBasedBinding {
 }
 /**
  * Listener binding. Handle event binding between view and view model
  */
-export declare class Listener implements IBinding {
+export declare class Listener implements IAstBasedBinding {
     platform: IPlatform;
     targetEvent: string;
     delegationStrategy: DelegationStrategy;

@@ -395,14 +395,14 @@ class TranslationBinding {
             this.task = null;
         }
         this.scope = (void 0);
-        this.obs.clear(true);
+        this.obs.clearAll();
     }
     handleChange(newValue, _previousValue, flags) {
         this.obs.version++;
         this._keyExpression = this._isInterpolation
             ? this.expr.evaluate(flags, this.scope, this.locator, this)
             : newValue;
-        this.obs.clear(false);
+        this.obs.clear();
         this._ensureKeyExpression();
         this._updateTranslations(flags);
     }
@@ -561,7 +561,7 @@ class ParameterBinding {
     handleChange(newValue, _previousValue, flags) {
         this.obs.version++;
         this.value = this.expr.evaluate(flags, this.scope, this.locator, this);
-        this.obs.clear(false);
+        this.obs.clear();
         this.updater(flags);
     }
     $bind(flags, scope) {
@@ -583,7 +583,7 @@ class ParameterBinding {
             this.expr.unbind(flags, this.scope, this);
         }
         this.scope = (void 0);
-        this.obs.clear(true);
+        this.obs.clearAll();
     }
 }
 connectable(TranslationBinding);

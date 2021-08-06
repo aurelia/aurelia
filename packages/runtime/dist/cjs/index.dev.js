@@ -60,7 +60,7 @@ class BindingContext {
     static get(scope, name, ancestor, flags) {
         var _a, _b;
         if (scope == null) {
-            throw new Error(`AUR203:${scope}`);
+            throw new Error(`AUR0203:${scope}`);
         }
         let overrideContext = scope.overrideContext;
         let currentScope = scope;
@@ -1596,9 +1596,15 @@ function $number(result, func) {
 /**
  * A shortcut to Object.prototype.hasOwnProperty
  * Needs to do explicit .call
+ *
+ * @internal
  */
 const hasOwnProp = Object.prototype.hasOwnProperty;
+/** @internal */
 const def = Reflect.defineProperty;
+/** @internal */
+const isFunction = (v) => typeof v === 'function';
+/** @internal */
 function defineHiddenProp(obj, key, value) {
     def(obj, key, {
         enumerable: false,
@@ -1608,6 +1614,7 @@ function defineHiddenProp(obj, key, value) {
     });
     return value;
 }
+/** @internal */
 function ensureProto(proto, key, defaultValue, force = false) {
     if (force || !hasOwnProp.call(proto, key)) {
         defineHiddenProp(proto, key, defaultValue);
@@ -1933,7 +1940,9 @@ function queueableDeco(target) {
 }
 class FlushQueue {
     constructor() {
+        /** @internal */
         this._flushing = false;
+        /** @internal */
         this._items = new Set();
     }
     get count() {
@@ -1945,13 +1954,8 @@ class FlushQueue {
             return;
         }
         this._flushing = true;
-        const items = this._items;
-        let item;
         try {
-            for (item of items) {
-                items.delete(item);
-                item.flush();
-            }
+            this._items.forEach(flushItem);
         }
         finally {
             this._flushing = false;
@@ -1966,73 +1970,79 @@ FlushQueue.instance = new FlushQueue();
 function getFlushQueue() {
     return FlushQueue.instance;
 }
+function flushItem(item, _, items) {
+    items.delete(item);
+    item.flush();
+}
 
 class CollectionLengthObserver {
     constructor(owner) {
         this.owner = owner;
-        this.f = 0 /* none */;
         this.type = 18 /* Array */;
-        this.value = this.oldvalue = (this.obj = owner.collection).length;
+        /** @internal */
+        this.f = 0 /* none */;
+        this._value = this._oldvalue = (this._obj = owner.collection).length;
     }
     getValue() {
-        return this.obj.length;
+        return this._obj.length;
     }
     setValue(newValue, flags) {
-        const currentValue = this.value;
+        const currentValue = this._value;
         // if in the template, length is two-way bound directly
         // then there's a chance that the new value is invalid
         // add a guard so that we don't accidentally broadcast invalid values
         if (newValue !== currentValue && kernel.isArrayIndex(newValue)) {
             if ((flags & 256 /* noFlush */) === 0) {
-                this.obj.length = newValue;
+                this._obj.length = newValue;
             }
-            this.value = newValue;
-            this.oldvalue = currentValue;
+            this._value = newValue;
+            this._oldvalue = currentValue;
             this.f = flags;
             this.queue.add(this);
         }
     }
     handleCollectionChange(_, flags) {
-        const oldValue = this.value;
-        const value = this.obj.length;
-        if ((this.value = value) !== oldValue) {
-            this.oldvalue = oldValue;
+        const oldValue = this._value;
+        const value = this._obj.length;
+        if ((this._value = value) !== oldValue) {
+            this._oldvalue = oldValue;
             this.f = flags;
             this.queue.add(this);
         }
     }
     flush() {
-        oV$2 = this.oldvalue;
-        this.oldvalue = this.value;
-        this.subs.notify(this.value, oV$2, this.f);
+        oV$2 = this._oldvalue;
+        this._oldvalue = this._value;
+        this.subs.notify(this._value, oV$2, this.f);
     }
 }
 class CollectionSizeObserver {
     constructor(owner) {
         this.owner = owner;
+        /** @internal */
         this.f = 0 /* none */;
-        this.value = this.oldvalue = (this.obj = owner.collection).size;
-        this.type = this.obj instanceof Map ? 66 /* Map */ : 34 /* Set */;
+        this._value = this._oldvalue = (this._obj = owner.collection).size;
+        this.type = this._obj instanceof Map ? 66 /* Map */ : 34 /* Set */;
     }
     getValue() {
-        return this.obj.size;
+        return this._obj.size;
     }
     setValue() {
         throw new Error('AUR02');
     }
     handleCollectionChange(_, flags) {
-        const oldValue = this.value;
-        const value = this.obj.size;
-        if ((this.value = value) !== oldValue) {
-            this.oldvalue = oldValue;
+        const oldValue = this._value;
+        const value = this._obj.size;
+        if ((this._value = value) !== oldValue) {
+            this._oldvalue = oldValue;
             this.f = flags;
             this.queue.add(this);
         }
     }
     flush() {
-        oV$2 = this.oldvalue;
-        this.oldvalue = this.value;
-        this.subs.notify(this.value, oV$2, this.f);
+        oV$2 = this._oldvalue;
+        this._oldvalue = this._value;
+        this.subs.notify(this._value, oV$2, this.f);
     }
 }
 function implementLengthObserver(klass) {
@@ -2863,78 +2873,52 @@ function noopHandleCollectionChange() {
     throw new Error('AUR2012:handleCollectionChange');
 }
 class BindingObserverRecord {
-    constructor(binding) {
-        this.binding = binding;
+    constructor(b) {
         this.version = 0;
         this.count = 0;
-        this.slots = 0;
+        /** @internal */
+        // a map of the observers (subscribables) that the owning binding of this record
+        // is currently subscribing to. The values are the version of the observers,
+        // as the observers version may need to be changed during different evaluation
+        this.o = new Map();
+        this.b = b;
     }
     handleChange(value, oldValue, flags) {
-        return this.binding.interceptor.handleChange(value, oldValue, flags);
+        return this.b.interceptor.handleChange(value, oldValue, flags);
     }
     handleCollectionChange(indexMap, flags) {
-        this.binding.interceptor.handleCollectionChange(indexMap, flags);
+        this.b.interceptor.handleCollectionChange(indexMap, flags);
     }
     /**
      * Add, and subscribe to a given observer
      */
     add(observer) {
-        // find the observer.
-        const observerSlots = this.slots;
-        let i = observerSlots;
-        // find the slot number of the observer
-        while (i-- && this[`o${i}`] !== observer)
-            ;
-        // if we are not already observing, put the observer in an open slot and subscribe.
-        if (i === -1) {
-            i = 0;
-            // go from the start, find an open slot number
-            while (this[`o${i}`] !== void 0) {
-                i++;
-            }
-            // store the reference to the observer and subscribe
-            this[`o${i}`] = observer;
+        if (!this.o.has(observer)) {
             observer.subscribe(this);
-            // increment the slot count.
-            if (i === observerSlots) {
-                this.slots = i + 1;
-            }
             ++this.count;
         }
-        this[`v${i}`] = this.version;
+        this.o.set(observer, this.version);
     }
     /**
      * Unsubscribe the observers that are not up to date with the record version
      */
-    clear(all) {
-        const slotCount = this.slots;
-        let slotName;
-        let observer;
-        let i = 0;
-        if (all === true) {
-            for (; i < slotCount; ++i) {
-                slotName = `o${i}`;
-                observer = this[slotName];
-                if (observer !== void 0) {
-                    this[slotName] = void 0;
-                    observer.unsubscribe(this);
-                }
-            }
-            this.count = this.slots = 0;
-        }
-        else {
-            for (; i < slotCount; ++i) {
-                if (this[`v${i}`] !== this.version) {
-                    slotName = `o${i}`;
-                    observer = this[slotName];
-                    if (observer !== void 0) {
-                        this[slotName] = void 0;
-                        observer.unsubscribe(this);
-                        this.count--;
-                    }
-                }
-            }
-        }
+    clear() {
+        this.o.forEach(unsubscribeStale, this);
+        this.count = this.o.size;
+    }
+    clearAll() {
+        this.o.forEach(unsubscribeAll, this);
+        this.o.clear();
+        this.count = 0;
+    }
+}
+function unsubscribeAll(version, subscribable) {
+    subscribable.unsubscribe(this);
+}
+function unsubscribeStale(version, subscribable) {
+    if (this.version !== version) {
+        subscribable.unsubscribe(this);
+        this.o.delete(subscribable);
     }
 }
 function connectableDecorator(target) {
@@ -4687,20 +4671,21 @@ const ProxyObservable = Object.freeze({
 
 class ComputedObserver {
     constructor(obj, get, set, useProxy, observerLocator) {
-        this.obj = obj;
-        this.get = get;
-        this.set = set;
-        this.useProxy = useProxy;
         this.interceptor = this;
         this.type = 1 /* Observer */;
-        this.value = void 0;
+        /** @internal */
+        this._value = void 0;
+        /** @internal */
         this._oldValue = void 0;
         // todo: maybe use a counter allow recursive call to a certain level
-        /**
-         * @internal
-         */
-        this.running = false;
+        /** @internal */
+        this._isRunning = false;
+        /** @internal */
         this._isDirty = false;
+        this._obj = obj;
+        this.get = get;
+        this.set = set;
+        this._useProxy = useProxy;
         this.oL = observerLocator;
     }
     static create(obj, key, descriptor, observerLocator, useProxy) {
@@ -4721,22 +4706,22 @@ class ComputedObserver {
     }
     getValue() {
         if (this.subs.count === 0) {
-            return this.get.call(this.obj, this);
+            return this.get.call(this._obj, this);
         }
         if (this._isDirty) {
             this.compute();
             this._isDirty = false;
         }
-        return this.value;
+        return this._value;
     }
     // deepscan-disable-next-line
     setValue(v, _flags) {
         if (typeof this.set === 'function') {
-            if (v !== this.value) {
+            if (v !== this._value) {
                 // setting running true as a form of batching
-                this.running = true;
-                this.set.call(this.obj, v);
-                this.running = false;
+                this._isRunning = true;
+                this.set.call(this._obj, v);
+                this._isRunning = false;
                 this.run();
             }
         }
@@ -4768,19 +4753,19 @@ class ComputedObserver {
     unsubscribe(subscriber) {
         if (this.subs.remove(subscriber) && this.subs.count === 0) {
             this._isDirty = true;
-            this.obs.clear(true);
+            this.obs.clearAll();
         }
     }
     flush() {
         oV$1 = this._oldValue;
-        this._oldValue = this.value;
-        this.subs.notify(this.value, oV$1, 0 /* none */);
+        this._oldValue = this._value;
+        this.subs.notify(this._value, oV$1, 0 /* none */);
     }
     run() {
-        if (this.running) {
+        if (this._isRunning) {
             return;
         }
-        const oldValue = this.value;
+        const oldValue = this._value;
         const newValue = this.compute();
         this._isDirty = false;
         if (!Object.is(newValue, oldValue)) {
@@ -4789,15 +4774,15 @@ class ComputedObserver {
         }
     }
     compute() {
-        this.running = true;
+        this._isRunning = true;
         this.obs.version++;
         try {
             enterConnectable(this);
-            return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
+            return this._value = unwrap(this.get.call(this._useProxy ? wrap(this._obj) : this._obj, this));
         }
         finally {
-            this.obs.clear(false);
-            this.running = false;
+            this.obs.clear();
+            this._isRunning = false;
             exitConnectable(this);
         }
     }
@@ -4937,15 +4922,15 @@ class DirtyCheckProperty {
 subscriberCollection(DirtyCheckProperty);
 
 class PrimitiveObserver {
-    constructor(obj, propertyKey) {
-        this.obj = obj;
-        this.propertyKey = propertyKey;
+    constructor(obj, key) {
         this.type = 0 /* None */;
+        this._obj = obj;
+        this._key = key;
     }
     get doNotCache() { return true; }
     getValue() {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
-        return this.obj[this.propertyKey];
+        return this._obj[this._key];
     }
     setValue() { }
     subscribe() { }
@@ -4974,27 +4959,30 @@ let oV = void 0;
  * This is used for observing object properties that has no decorator.
  */
 class SetterObserver {
-    constructor(obj, propertyKey) {
-        this.obj = obj;
-        this.propertyKey = propertyKey;
-        this.value = void 0;
-        this.oldValue = void 0;
-        this.observing = false;
+    constructor(obj, key) {
         // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
         this.type = 1 /* Observer */;
+        /** @internal */
+        this._value = void 0;
+        /** @internal */
+        this._oldValue = void 0;
+        /** @internal */
+        this._observing = false;
+        /** @internal */
         this.f = 0 /* none */;
+        this._obj = obj;
+        this._key = key;
     }
     getValue() {
-        return this.value;
+        return this._value;
     }
     setValue(newValue, flags) {
-        if (this.observing) {
-            const value = this.value;
-            if (Object.is(newValue, value)) {
+        if (this._observing) {
+            if (Object.is(newValue, this._value)) {
                 return;
             }
-            this.value = newValue;
-            this.oldValue = value;
+            this._oldValue = this._value;
+            this._value = newValue;
             this.f = flags;
             this.queue.add(this);
         }
@@ -5005,25 +4993,25 @@ class SetterObserver {
             // is unmodified and we need to explicitly set the property value.
             // This will happen in one-time, to-view and two-way bindings during $bind, meaning that the $bind will not actually update the target value.
             // This wasn't visible in vCurrent due to connect-queue always doing a delayed update, so in many cases it didn't matter whether $bind updated the target or not.
-            this.obj[this.propertyKey] = newValue;
+            this._obj[this._key] = newValue;
         }
     }
     subscribe(subscriber) {
-        if (this.observing === false) {
+        if (this._observing === false) {
             this.start();
         }
         this.subs.add(subscriber);
     }
     flush() {
-        oV = this.oldValue;
-        this.oldValue = this.value;
-        this.subs.notify(this.value, oV, this.f);
+        oV = this._oldValue;
+        this._oldValue = this._value;
+        this.subs.notify(this._value, oV, this.f);
     }
     start() {
-        if (this.observing === false) {
-            this.observing = true;
-            this.value = this.obj[this.propertyKey];
-            def(this.obj, this.propertyKey, {
+        if (this._observing === false) {
+            this._observing = true;
+            this._value = this._obj[this._key];
+            def(this._obj, this._key, {
                 enumerable: true,
                 configurable: true,
                 get: ( /* Setter Observer */) => this.getValue(),
@@ -5035,14 +5023,14 @@ class SetterObserver {
         return this;
     }
     stop() {
-        if (this.observing) {
-            def(this.obj, this.propertyKey, {
+        if (this._observing) {
+            def(this._obj, this._key, {
                 enumerable: true,
                 configurable: true,
                 writable: true,
-                value: this.value,
+                value: this._value,
             });
-            this.observing = false;
+            this._observing = false;
             // todo(bigopon/fred): add .removeAllSubscribers()
         }
         return this;
@@ -5051,44 +5039,39 @@ class SetterObserver {
 class SetterNotifier {
     constructor(obj, callbackKey, set, initialValue) {
         this.type = 1 /* Observer */;
-        /**
-         * @internal
-         */
-        this.v = void 0;
-        /**
-         * @internal
-         */
-        this.oV = void 0;
-        /**
-         * @internal
-         */
+        /** @internal */
+        this._value = void 0;
+        /** @internal */
+        this._oldValue = void 0;
+        /** @internal */
         this.f = 0 /* none */;
-        this.obj = obj;
-        this.s = set;
+        this._obj = obj;
+        this._setter = set;
+        this._hasSetter = isFunction(set);
         const callback = obj[callbackKey];
-        this.cb = typeof callback === 'function' ? callback : void 0;
-        this.v = initialValue;
+        this.cb = isFunction(callback) ? callback : void 0;
+        this._value = initialValue;
     }
     getValue() {
-        return this.v;
+        return this._value;
     }
     setValue(value, flags) {
         var _a;
-        if (typeof this.s === 'function') {
-            value = this.s(value);
+        if (this._hasSetter) {
+            value = this._setter(value);
         }
-        if (!Object.is(value, this.v)) {
-            this.oV = this.v;
-            this.v = value;
+        if (!Object.is(value, this._value)) {
+            this._oldValue = this._value;
+            this._value = value;
             this.f = flags;
-            (_a = this.cb) === null || _a === void 0 ? void 0 : _a.call(this.obj, this.v, this.oV, flags);
+            (_a = this.cb) === null || _a === void 0 ? void 0 : _a.call(this._obj, this._value, this._oldValue, flags);
             this.queue.add(this);
         }
     }
     flush() {
-        oV = this.oV;
-        this.oV = this.v;
-        this.subs.notify(this.v, oV, this.f);
+        oV = this._oldValue;
+        this._oldValue = this._value;
+        this.subs.notify(this._value, oV, this.f);
     }
 }
 subscriberCollection(SetterObserver);
@@ -5299,7 +5282,7 @@ class Effect {
             this.fn(this);
         }
         finally {
-            this.obs.clear(false);
+            this.obs.clear();
             this.running = false;
             exitConnectable(this);
         }
@@ -5320,7 +5303,7 @@ class Effect {
     }
     stop() {
         this.stopped = true;
-        this.obs.clear(true);
+        this.obs.clearAll();
     }
 }
 connectable(Effect);

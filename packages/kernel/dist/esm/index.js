@@ -1094,11 +1094,11 @@ const bt = {
 class InstanceProvider {
     constructor(t, e) {
         this.h = null;
-        this.v = t;
+        this.g = t;
         if (void 0 !== e) this.h = e;
     }
     get friendlyName() {
-        return this.v;
+        return this.g;
     }
     prepare(t) {
         this.h = t;
@@ -1107,7 +1107,7 @@ class InstanceProvider {
         return true;
     }
     resolve() {
-        if (null == this.h) throw new Error(`AUR0013:${this.v}`);
+        if (null == this.h) throw new Error(`AUR0013:${this.g}`);
         return this.h;
     }
     dispose() {
@@ -1472,31 +1472,31 @@ function qt(t) {
 class ModuleTransformer {
     constructor(t) {
         this.$transform = t;
-        this.g = new Map;
         this.p = new Map;
+        this.m = new Map;
     }
     transform(t) {
-        if (t instanceof Promise) return this.m(t); else if ("object" === typeof t && null !== t) return this.R(t); else throw new Error(`Invalid input: ${String(t)}. Expected Promise or Object.`);
+        if (t instanceof Promise) return this.C(t); else if ("object" === typeof t && null !== t) return this.$(t); else throw new Error(`Invalid input: ${String(t)}. Expected Promise or Object.`);
     }
-    m(t) {
-        if (this.g.has(t)) return this.g.get(t);
-        const e = t.then((t => this.R(t)));
-        this.g.set(t, e);
-        void e.then((e => {
-            this.g.set(t, e);
-        }));
-        return e;
-    }
-    R(t) {
+    C(t) {
         if (this.p.has(t)) return this.p.get(t);
-        const e = this.$transform(this.C(t));
+        const e = t.then((t => this.$(t)));
         this.p.set(t, e);
-        if (e instanceof Promise) void e.then((e => {
+        void e.then((e => {
             this.p.set(t, e);
         }));
         return e;
     }
-    C(t) {
+    $(t) {
+        if (this.m.has(t)) return this.m.get(t);
+        const e = this.$transform(this.A(t));
+        this.m.set(t, e);
+        if (e instanceof Promise) void e.then((e => {
+            this.m.set(t, e);
+        }));
+        return e;
+    }
+    A(t) {
         let e;
         let n;
         let r;

@@ -18,11 +18,9 @@ declare type ObservationRecordImplType = {
 export interface BindingObserverRecord extends ObservationRecordImplType {
 }
 export declare class BindingObserverRecord implements ISubscriber, ICollectionSubscriber {
-    binding: IConnectableBinding;
     version: number;
     count: number;
-    slots: number;
-    constructor(binding: IConnectableBinding);
+    constructor(b: IConnectableBinding);
     handleChange(value: unknown, oldValue: unknown, flags: LifecycleFlags): unknown;
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
     /**
@@ -32,7 +30,8 @@ export declare class BindingObserverRecord implements ISubscriber, ICollectionSu
     /**
      * Unsubscribe the observers that are not up to date with the record version
      */
-    clear(all?: boolean): void;
+    clear(): void;
+    clearAll(): void;
 }
 declare type Connectable = IConnectable & Partial<ISubscriber & ICollectionSubscriber>;
 declare type DecoratableConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;

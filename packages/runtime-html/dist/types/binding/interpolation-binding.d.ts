@@ -1,7 +1,8 @@
 import { BindingMode, LifecycleFlags } from '@aurelia/runtime';
 import type { IServiceLocator, ITask, TaskQueue } from '@aurelia/kernel';
-import type { ICollectionSubscriber, IndexMap, Interpolation, IConnectableBinding, IObserverLocator, IsExpression, IBinding, Scope } from '@aurelia/runtime';
+import type { ICollectionSubscriber, IndexMap, Interpolation, IObserverLocator, IsExpression, IBinding, Scope } from '@aurelia/runtime';
 import type { IPlatform } from '../platform';
+import type { IAstBasedBinding } from './interfaces-bindings';
 export declare class InterpolationBinding implements IBinding {
     interpolation: Interpolation;
     target: object;
@@ -24,9 +25,9 @@ export declare class InterpolationBinding implements IBinding {
     $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
 }
-export interface InterpolationPartBinding extends IConnectableBinding {
+export interface InterpolationPartBinding extends IAstBasedBinding {
 }
-export declare class InterpolationPartBinding implements InterpolationPartBinding, ICollectionSubscriber {
+export declare class InterpolationPartBinding implements IAstBasedBinding, ICollectionSubscriber {
     readonly sourceExpression: IsExpression;
     readonly target: object;
     readonly targetProperty: string;
@@ -48,12 +49,12 @@ export declare class InterpolationPartBinding implements InterpolationPartBindin
     $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
 }
-export interface ContentBinding extends IConnectableBinding {
+export interface ContentBinding extends IAstBasedBinding {
 }
 /**
  * A binding for handling the element content interpolation
  */
-export declare class ContentBinding implements ContentBinding, ICollectionSubscriber {
+export declare class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     readonly sourceExpression: IsExpression;
     readonly target: Text;
     readonly locator: IServiceLocator;

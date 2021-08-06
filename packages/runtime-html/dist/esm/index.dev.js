@@ -200,20 +200,22 @@ class BindableObserver {
     // this observer can become more static, as in immediately available when used
     // in the form of a decorator
     $controller) {
-        this.obj = obj;
-        this.key = key;
         this.set = set;
         this.$controller = $controller;
-        // todo: name too long. just value/oldValue, or v/oV
-        this.value = void 0;
+        /** @internal */
+        this._value = void 0;
         /** @internal */
         this._oldValue = void 0;
+        /** @internal */
         this.f = 0 /* none */;
         const cb = obj[cbName];
         const cbAll = obj.propertyChanged;
         const hasCb = this._hasCb = typeof cb === 'function';
         const hasCbAll = this._hasCbAll = typeof cbAll === 'function';
         const hasSetter = this._hasSetter = set !== noop;
+        let val;
+        this._obj = obj;
+        this._key = key;
         this.cb = hasCb ? cb : noop;
         this._cbAll = hasCbAll ? cbAll : noop;
         // when user declare @bindable({ set })
@@ -225,35 +227,35 @@ class BindableObserver {
         }
         else {
             this._observing = true;
-            const val = obj[key];
-            this.value = hasSetter && val !== void 0 ? set(val) : val;
+            val = obj[key];
+            this._value = hasSetter && val !== void 0 ? set(val) : val;
             this._createGetterSetter();
         }
     }
     get type() { return 1 /* Observer */; }
     getValue() {
-        return this.value;
+        return this._value;
     }
     setValue(newValue, flags) {
         if (this._hasSetter) {
             newValue = this.set(newValue);
         }
+        const currentValue = this._value;
         if (this._observing) {
-            const currentValue = this.value;
             if (Object.is(newValue, currentValue)) {
                 return;
             }
-            this.value = newValue;
+            this._value = newValue;
             this._oldValue = currentValue;
             this.f = flags;
             // todo: controller (if any) state should determine the invocation instead
             if ( /* either not instantiated via a controller */this.$controller == null
                 /* or the controller instantiating this is bound */ || this.$controller.isBound) {
                 if (this._hasCb) {
-                    this.cb.call(this.obj, newValue, currentValue, flags);
+                    this.cb.call(this._obj, newValue, currentValue, flags);
                 }
                 if (this._hasCbAll) {
-                    this._cbAll.call(this.obj, this.key, newValue, currentValue, flags);
+                    this._cbAll.call(this._obj, this._key, newValue, currentValue, flags);
                 }
             }
             this.queue.add(this);
@@ -261,31 +263,30 @@ class BindableObserver {
         }
         else {
             // See SetterObserver.setValue for explanation
-            this.obj[this.key] = newValue;
+            this._obj[this._key] = newValue;
         }
     }
     subscribe(subscriber) {
         if (!this._observing === false) {
             this._observing = true;
-            const currentValue = this.obj[this.key];
-            this.value = this._hasSetter
-                ? this.set(currentValue)
-                : currentValue;
+            this._value = this._hasSetter
+                ? this.set(this._obj[this._key])
+                : this._obj[this._key];
             this._createGetterSetter();
         }
         this.subs.add(subscriber);
     }
     flush() {
         oV$4 = this._oldValue;
-        this._oldValue = this.value;
-        this.subs.notify(this.value, oV$4, this.f);
+        this._oldValue = this._value;
+        this.subs.notify(this._value, oV$4, this.f);
     }
     /** @internal */
     _createGetterSetter() {
-        Reflect.defineProperty(this.obj, this.key, {
+        Reflect.defineProperty(this._obj, this._key, {
             enumerable: true,
             configurable: true,
-            get: ( /* Bindable Observer */) => this.value,
+            get: ( /* Bindable Observer */) => this._value,
             set: (/* Bindable Observer */ value) => {
                 this.setValue(value, 0 /* none */);
             }
@@ -1236,28 +1237,31 @@ class CallBinding {
  * TODO: handle SVG/attributes with namespace
  */
 class AttributeObserver {
-    constructor(obj, prop, attr) {
-        this.prop = prop;
-        this.attr = attr;
+    constructor(obj, 
+    // todo: rename to attr and sub-attr
+    prop, attr) {
         // layout is not certain, depends on the attribute being flushed to owner element
         // but for simple start, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
-        this.value = null;
+        /** @internal */
+        this._value = null;
         /** @internal */
         this._oldValue = null;
         /** @internal */
         this._hasChanges = false;
         /** @internal */
         this.f = 0 /* none */;
-        this.obj = obj;
+        this._obj = obj;
+        this._prop = prop;
+        this._attr = attr;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
         // todo: ability to turn on/off cache based on type
-        return this.value;
+        return this._value;
     }
     setValue(value, flags) {
-        this.value = value;
+        this._value = value;
         this._hasChanges = value !== this._oldValue;
         if ((flags & 256 /* noFlush */) === 0) {
             this._flushChanges();
@@ -1267,10 +1271,8 @@ class AttributeObserver {
     _flushChanges() {
         if (this._hasChanges) {
             this._hasChanges = false;
-            const value = this.value;
-            const attr = this.attr;
-            this._oldValue = value;
-            switch (attr) {
+            this._oldValue = this._value;
+            switch (this._attr) {
                 case 'class': {
                     // Why does class attribute observer setValue look different with class attribute accessor?
                     // ==============
@@ -1283,25 +1285,25 @@ class AttributeObserver {
                     // this also comes from syntax, where it would typically be my-class.class="someProperty"
                     //
                     // so there is no need for separating class by space and add all of them like class accessor
-                    this.obj.classList.toggle(this.prop, !!value);
+                    this._obj.classList.toggle(this._prop, !!this._value);
                     break;
                 }
                 case 'style': {
                     let priority = '';
-                    let newValue = value;
+                    let newValue = this._value;
                     if (typeof newValue === 'string' && newValue.includes('!important')) {
                         priority = 'important';
                         newValue = newValue.replace('!important', '');
                     }
-                    this.obj.style.setProperty(this.prop, newValue, priority);
+                    this._obj.style.setProperty(this._prop, newValue, priority);
                     break;
                 }
                 default: {
-                    if (value == null) {
-                        this.obj.removeAttribute(attr);
+                    if (this._value == null) {
+                        this._obj.removeAttribute(this._attr);
                     }
                     else {
-                        this.obj.setAttribute(attr, String(value));
+                        this._obj.setAttribute(this._attr, String(this._value));
                     }
                 }
             }
@@ -1311,26 +1313,26 @@ class AttributeObserver {
         let shouldProcess = false;
         for (let i = 0, ii = mutationRecords.length; ii > i; ++i) {
             const record = mutationRecords[i];
-            if (record.type === 'attributes' && record.attributeName === this.prop) {
+            if (record.type === 'attributes' && record.attributeName === this._prop) {
                 shouldProcess = true;
                 break;
             }
         }
         if (shouldProcess) {
             let newValue;
-            switch (this.attr) {
+            switch (this._attr) {
                 case 'class':
-                    newValue = this.obj.classList.contains(this.prop);
+                    newValue = this._obj.classList.contains(this._prop);
                     break;
                 case 'style':
-                    newValue = this.obj.style.getPropertyValue(this.prop);
+                    newValue = this._obj.style.getPropertyValue(this._prop);
                     break;
                 default:
-                    throw new Error(`AUR0651:${this.attr}`);
+                    throw new Error(`AUR0651:${this._attr}`);
             }
-            if (newValue !== this.value) {
-                this._oldValue = this.value;
-                this.value = newValue;
+            if (newValue !== this._value) {
+                this._oldValue = this._value;
+                this._value = newValue;
                 this._hasChanges = false;
                 this.f = 0 /* none */;
                 this.queue.add(this);
@@ -1339,19 +1341,19 @@ class AttributeObserver {
     }
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
-            this.value = this._oldValue = this.obj.getAttribute(this.prop);
-            startObservation(this.obj.ownerDocument.defaultView.MutationObserver, this.obj, this);
+            this._value = this._oldValue = this._obj.getAttribute(this._prop);
+            startObservation(this._obj.ownerDocument.defaultView.MutationObserver, this._obj, this);
         }
     }
     unsubscribe(subscriber) {
         if (this.subs.remove(subscriber) && this.subs.count === 0) {
-            stopObservation(this.obj, this);
+            stopObservation(this._obj, this);
         }
     }
     flush() {
         oV$3 = this._oldValue;
-        this._oldValue = this.value;
-        this.subs.notify(this.value, oV$3, this.f);
+        this._oldValue = this._value;
+        this.subs.notify(this._value, oV$3, this.f);
     }
 }
 subscriberCollection(AttributeObserver);
@@ -1470,7 +1472,7 @@ class AttributeBinding {
             }
             newValue = sourceExpression.evaluate(flags, $scope, locator, interceptor);
             if (shouldConnect) {
-                this.obs.clear(false);
+                this.obs.clear();
             }
         }
         if (newValue !== this.value) {
@@ -1540,7 +1542,7 @@ class AttributeBinding {
         }
         (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
         this.task = null;
-        this.obs.clear(true);
+        this.obs.clearAll();
         // remove isBound and isUnbinding flags
         this.isBound = false;
     }
@@ -1681,7 +1683,7 @@ class InterpolationPartBinding {
             }
             newValue = sourceExpression.evaluate(flags, this.$scope, this.locator, shouldConnect ? this.interceptor : null);
             if (shouldConnect) {
-                obsRecord.clear(false);
+                obsRecord.clear();
             }
         }
         if (newValue != this.value) {
@@ -1721,7 +1723,7 @@ class InterpolationPartBinding {
             this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         this.$scope = void 0;
-        this.obs.clear(true);
+        this.obs.clearAll();
     }
 }
 connectable(InterpolationPartBinding);
@@ -1778,7 +1780,7 @@ class ContentBinding {
             flags |= this.strict ? 1 /* isStrictBindingStrategy */ : 0;
             newValue = sourceExpression.evaluate(flags, this.$scope, this.locator, shouldConnect ? this.interceptor : null);
             if (shouldConnect) {
-                obsRecord.clear(false);
+                obsRecord.clear();
             }
         }
         if (newValue === this.value) {
@@ -1836,7 +1838,7 @@ class ContentBinding {
         // be removed when this binding is unbound?
         // this.updateTarget('', flags);
         this.$scope = void 0;
-        this.obs.clear(true);
+        this.obs.clearAll();
         (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
         this.task = null;
     }
@@ -1874,7 +1876,7 @@ class LetBinding {
         const previousValue = target[targetProperty];
         this.obs.version++;
         newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.interceptor);
-        this.obs.clear(false);
+        this.obs.clear();
         if (newValue !== previousValue) {
             target[targetProperty] = newValue;
         }
@@ -1907,7 +1909,7 @@ class LetBinding {
             sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         this.$scope = void 0;
-        this.obs.clear(true);
+        this.obs.clearAll();
         // remove isBound and isUnbinding flags
         this.isBound = false;
     }
@@ -1952,42 +1954,37 @@ class PropertyBinding {
             return;
         }
         flags |= this.persistentFlags;
-        const targetObserver = this.targetObserver;
-        const interceptor = this.interceptor;
-        const sourceExpression = this.sourceExpression;
-        const $scope = this.$scope;
-        const locator = this.locator;
         // Alpha: during bind a simple strategy for bind is always flush immediately
         // todo:
         //  (1). determine whether this should be the behavior
         //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-        const shouldQueueFlush = (flags & 2 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
+        const shouldQueueFlush = (flags & 2 /* fromBind */) === 0 && (this.targetObserver.type & 4 /* Layout */) > 0;
         const obsRecord = this.obs;
         let shouldConnect = false;
         // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-        if (sourceExpression.$kind !== 10082 /* AccessScope */ || obsRecord.count > 1) {
+        if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || obsRecord.count > 1) {
             // todo: in VC expressions, from view also requires connect
             shouldConnect = this.mode > oneTime;
             if (shouldConnect) {
                 obsRecord.version++;
             }
-            newValue = sourceExpression.evaluate(flags, $scope, locator, interceptor);
+            newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.interceptor);
             if (shouldConnect) {
-                obsRecord.clear(false);
+                obsRecord.clear();
             }
         }
         if (shouldQueueFlush) {
             // Queue the new one before canceling the old one, to prevent early yield
             task = this.task;
             this.task = this.taskQueue.queueTask(() => {
-                interceptor.updateTarget(newValue, flags);
+                this.interceptor.updateTarget(newValue, flags);
                 this.task = null;
             }, updateTaskOpts);
             task === null || task === void 0 ? void 0 : task.cancel();
             task = null;
         }
         else {
-            interceptor.updateTarget(newValue, flags);
+            this.interceptor.updateTarget(newValue, flags);
         }
     }
     $bind(flags, scope) {
@@ -2053,7 +2050,7 @@ class PropertyBinding {
             task.cancel();
             task = this.task = null;
         }
-        this.obs.clear(true);
+        this.obs.clearAll();
         this.isBound = false;
     }
 }
@@ -3042,7 +3039,7 @@ class ComputedWatcher {
             return;
         }
         this.isBound = false;
-        this.obs.clear(true);
+        this.obs.clearAll();
     }
     run() {
         if (!this.isBound || this.running) {
@@ -3064,7 +3061,7 @@ class ComputedWatcher {
             return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
         }
         finally {
-            this.obs.clear(false);
+            this.obs.clear();
             this.running = false;
             exit(this);
         }
@@ -3089,7 +3086,7 @@ class ExpressionWatcher {
         if (!canOptimize) {
             this.obs.version++;
             value = expr.evaluate(0, this.scope, this.locator, this);
-            this.obs.clear(false);
+            this.obs.clear();
         }
         if (!Object.is(value, oldValue)) {
             this.value = value;
@@ -3104,14 +3101,14 @@ class ExpressionWatcher {
         this.isBound = true;
         this.obs.version++;
         this.value = this.expression.evaluate(0 /* none */, this.scope, this.locator, this);
-        this.obs.clear(false);
+        this.obs.clear();
     }
     $unbind() {
         if (!this.isBound) {
             return;
         }
         this.isBound = false;
-        this.obs.clear(true);
+        this.obs.clearAll();
         this.value = void 0;
     }
 }
@@ -8247,7 +8244,8 @@ class CheckedObserver {
     _key, handler, observerLocator) {
         this.handler = handler;
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
-        this.value = void 0;
+        /** @internal */
+        this._value = void 0;
         /** @internal */
         this._oldValue = void 0;
         /** @internal */
@@ -8256,18 +8254,18 @@ class CheckedObserver {
         this._valueObserver = void 0;
         /** @internal */
         this.f = 0 /* none */;
-        this.obj = obj;
+        this._obj = obj;
         this.oL = observerLocator;
     }
     getValue() {
-        return this.value;
+        return this._value;
     }
     setValue(newValue, flags) {
-        const currentValue = this.value;
+        const currentValue = this._value;
         if (newValue === currentValue) {
             return;
         }
-        this.value = newValue;
+        this._value = newValue;
         this._oldValue = currentValue;
         this.f = flags;
         this._observe();
@@ -8282,8 +8280,8 @@ class CheckedObserver {
     }
     /** @internal */
     _synchronizeElement() {
-        const currentValue = this.value;
-        const obj = this.obj;
+        const currentValue = this._value;
+        const obj = this._obj;
         const elementValue = hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
         const isRadio = obj.type === 'radio';
         const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher$1;
@@ -8322,8 +8320,8 @@ class CheckedObserver {
         }
     }
     handleEvent() {
-        let currentValue = this._oldValue = this.value;
-        const obj = this.obj;
+        let currentValue = this._oldValue = this._value;
+        const obj = this._obj;
         const elementValue = hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
         const isChecked = obj.checked;
         const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher$1;
@@ -8425,11 +8423,11 @@ class CheckedObserver {
             // a radio cannot be unchecked by user
             return;
         }
-        this.value = currentValue;
+        this._value = currentValue;
         this.queue.add(this);
     }
     start() {
-        this.handler.subscribe(this.obj, this);
+        this.handler.subscribe(this._obj, this);
         this._observe();
     }
     stop() {
@@ -8451,18 +8449,18 @@ class CheckedObserver {
     }
     flush() {
         oV$2 = this._oldValue;
-        this._oldValue = this.value;
-        this.subs.notify(this.value, oV$2, this.f);
+        this._oldValue = this._value;
+        this.subs.notify(this._value, oV$2, this.f);
     }
     /** @internal */
     _observe() {
         var _a, _b, _c, _d, _e, _f, _g;
-        const obj = this.obj;
+        const obj = this._obj;
         (_e = ((_a = this._valueObserver) !== null && _a !== void 0 ? _a : (this._valueObserver = (_c = (_b = obj.$observers) === null || _b === void 0 ? void 0 : _b.model) !== null && _c !== void 0 ? _c : (_d = obj.$observers) === null || _d === void 0 ? void 0 : _d.value))) === null || _e === void 0 ? void 0 : _e.subscribe(this);
         (_f = this._collectionObserver) === null || _f === void 0 ? void 0 : _f.unsubscribe(this);
         this._collectionObserver = void 0;
         if (obj.type === 'checkbox') {
-            (_g = (this._collectionObserver = getCollectionObserver(this.value, this.oL))) === null || _g === void 0 ? void 0 : _g.subscribe(this);
+            (_g = (this._collectionObserver = getCollectionObserver(this._value, this.oL))) === null || _g === void 0 ? void 0 : _g.subscribe(this);
         }
     }
 }
@@ -8485,11 +8483,11 @@ class SelectValueObserver {
     constructor(obj, 
     // deepscan-disable-next-line
     _key, handler, observerLocator) {
-        this.handler = handler;
         // ObserverType.Layout is not always true
         // but for simplicity, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
-        this.value = void 0;
+        /** @internal */
+        this._value = void 0;
         /** @internal */
         this._oldValue = void 0;
         /** @internal */
@@ -8500,21 +8498,23 @@ class SelectValueObserver {
         this._nodeObserver = void 0;
         /** @internal */
         this._observing = false;
-        this.obj = obj;
-        this.oL = observerLocator;
+        this._obj = obj;
+        this._observerLocator = observerLocator;
+        this.handler = handler;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
         // todo: ability to turn on/off cache based on type
         return this._observing
-            ? this.value
-            : this.obj.multiple
-                ? Array.from(this.obj.options).map(o => o.value)
-                : this.obj.value;
+            ? this._value
+            : this._obj.multiple
+                // todo: maybe avoid double iteration?
+                ? getSelectedOptions(this._obj.options)
+                : this._obj.value;
     }
     setValue(newValue, flags) {
-        this._oldValue = this.value;
-        this.value = newValue;
+        this._oldValue = this._value;
+        this._value = newValue;
         this._hasChanges = newValue !== this._oldValue;
         this._observeArray(newValue instanceof Array ? newValue : null);
         if ((flags & 256 /* noFlush */) === 0) {
@@ -8535,8 +8535,8 @@ class SelectValueObserver {
     }
     syncOptions() {
         var _a;
-        const value = this.value;
-        const obj = this.obj;
+        const value = this._value;
+        const obj = this._obj;
         const isArray = Array.isArray(value);
         const matcher = (_a = obj.matcher) !== null && _a !== void 0 ? _a : defaultMatcher;
         const options = obj.options;
@@ -8567,10 +8567,10 @@ class SelectValueObserver {
         //    2. assign `this.currentValue` to `this.oldValue`
         //    3. assign `value` to `this.currentValue`
         //    4. return `true` to signal value has changed
-        const obj = this.obj;
+        const obj = this._obj;
         const options = obj.options;
         const len = options.length;
-        const currentValue = this.value;
+        const currentValue = this._value;
         let i = 0;
         if (obj.multiple) {
             // A.
@@ -8634,17 +8634,17 @@ class SelectValueObserver {
             ++i;
         }
         // B.2
-        this._oldValue = this.value;
+        this._oldValue = this._value;
         // B.3
-        this.value = value;
+        this._value = value;
         // B.4
         return true;
     }
     /** @internal */
     _start() {
-        (this._nodeObserver = new this.obj.ownerDocument.defaultView.MutationObserver(this._handleNodeChange.bind(this)))
-            .observe(this.obj, childObserverOptions);
-        this._observeArray(this.value instanceof Array ? this.value : null);
+        (this._nodeObserver = new this._obj.ownerDocument.defaultView.MutationObserver(this._handleNodeChange.bind(this)))
+            .observe(this._obj, childObserverOptions);
+        this._observeArray(this._value instanceof Array ? this._value : null);
         this._observing = true;
     }
     /** @internal */
@@ -8664,10 +8664,10 @@ class SelectValueObserver {
         (_a = this._arrayObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
         this._arrayObserver = void 0;
         if (array != null) {
-            if (!this.obj.multiple) {
+            if (!this._obj.multiple) {
                 throw new Error('AUR0654');
             }
-            (this._arrayObserver = this.oL.getArrayObserver(array)).subscribe(this);
+            (this._arrayObserver = this._observerLocator.getArrayObserver(array)).subscribe(this);
         }
     }
     handleEvent() {
@@ -8678,7 +8678,15 @@ class SelectValueObserver {
         }
     }
     /** @internal */
-    _handleNodeChange() {
+    _handleNodeChange(records) {
+        // syncing options first means forcing the UI to take the existing state from the model
+        // example: if existing state has only 3 selected option
+        //          and it's adding a 4th <option/> with selected state
+        //          [selected] state will be disregarded as it's not present in the model
+        //          this force uni-direction flow: where UI update is only via user event, or model changes
+        //          Cons:
+        //          Sometimes, an <option selected /> maybe added to the UI, and causes confusion, as it's not selected anymore after the sync
+        //          Consider this before entering release candidate
         this.syncOptions();
         const shouldNotify = this.syncValue();
         if (shouldNotify) {
@@ -8687,7 +8695,7 @@ class SelectValueObserver {
     }
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
-            this.handler.subscribe(this.obj, this);
+            this.handler.subscribe(this._obj, this);
             this._start();
         }
     }
@@ -8699,12 +8707,29 @@ class SelectValueObserver {
     }
     flush() {
         oV$1 = this._oldValue;
-        this._oldValue = this.value;
-        this.subs.notify(this.value, oV$1, 0 /* none */);
+        this._oldValue = this._value;
+        this.subs.notify(this._value, oV$1, 0 /* none */);
     }
 }
 subscriberCollection(SelectValueObserver);
 withFlushQueue(SelectValueObserver);
+function getSelectedOptions(options) {
+    const selection = [];
+    if (options.length === 0) {
+        return selection;
+    }
+    const ii = options.length;
+    let i = 0;
+    let option;
+    while (ii > i) {
+        option = options[i];
+        if (option.selected) {
+            selection[selection.length] = hasOwn.call(option, 'model') ? option.model : option.value;
+        }
+        ++i;
+    }
+    return selection;
+}
 // a shared variable for `.flush()` methods of observers
 // so that there doesn't need to create an env record for every call
 let oV$1 = void 0;
@@ -8861,29 +8886,30 @@ class StyleAttributeAccessor {
  */
 class ValueAttributeObserver {
     constructor(obj, key, handler) {
-        this.key = key;
         this.handler = handler;
         // ObserverType.Layout is not always true, it depends on the element & property combo
         // but for simplicity, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
-        this.value = '';
+        /** @internal */
+        this._value = '';
         /** @internal */
         this._oldValue = '';
         /** @internal */
         this._hasChanges = false;
-        this.obj = obj;
+        this._obj = obj;
+        this._key = key;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
         // todo: ability to turn on/off cache based on type
-        return this.value;
+        return this._value;
     }
     setValue(newValue, flags) {
-        if (Object.is(newValue, this.value)) {
+        if (Object.is(newValue, this._value)) {
             return;
         }
-        this._oldValue = this.value;
-        this.value = newValue;
+        this._oldValue = this._value;
+        this._value = newValue;
         this._hasChanges = true;
         if (!this.handler.config.readonly && (flags & 256 /* noFlush */) === 0) {
             this._flushChanges(flags);
@@ -8894,24 +8920,24 @@ class ValueAttributeObserver {
         var _a;
         if (this._hasChanges) {
             this._hasChanges = false;
-            this.obj[this.key] = (_a = this.value) !== null && _a !== void 0 ? _a : this.handler.config.default;
+            this._obj[this._key] = (_a = this._value) !== null && _a !== void 0 ? _a : this.handler.config.default;
             if ((flags & 2 /* fromBind */) === 0) {
                 this.queue.add(this);
             }
         }
     }
     handleEvent() {
-        this._oldValue = this.value;
-        this.value = this.obj[this.key];
-        if (this._oldValue !== this.value) {
+        this._oldValue = this._value;
+        this._value = this._obj[this._key];
+        if (this._oldValue !== this._value) {
             this._hasChanges = false;
             this.queue.add(this);
         }
     }
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
-            this.handler.subscribe(this.obj, this);
-            this.value = this._oldValue = this.obj[this.key];
+            this.handler.subscribe(this._obj, this);
+            this._value = this._oldValue = this._obj[this._key];
         }
     }
     unsubscribe(subscriber) {
@@ -8921,8 +8947,8 @@ class ValueAttributeObserver {
     }
     flush() {
         oV = this._oldValue;
-        this._oldValue = this.value;
-        this.subs.notify(this.value, oV, 0 /* none */);
+        this._oldValue = this._value;
+        this.subs.notify(this._value, oV, 0 /* none */);
     }
 }
 subscriberCollection(ValueAttributeObserver);

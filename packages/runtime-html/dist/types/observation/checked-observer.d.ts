@@ -17,8 +17,6 @@ export interface CheckedObserver extends ISubscriberCollection {
 export declare class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     readonly handler: EventSubscriber;
     type: AccessorType;
-    value: unknown;
-    readonly obj: IInputElement;
     readonly queue: FlushQueue;
     constructor(obj: INode, _key: PropertyKey, handler: EventSubscriber, observerLocator: IObserverLocator);
     getValue(): unknown;

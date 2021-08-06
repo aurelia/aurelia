@@ -1,7 +1,8 @@
 import { LifecycleFlags } from '@aurelia/runtime';
 import type { IServiceLocator } from '@aurelia/kernel';
-import type { IAccessor, IConnectableBinding, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
-export interface CallBinding extends IConnectableBinding {
+import type { IAccessor, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import type { IAstBasedBinding } from './interfaces-bindings.js';
+export interface CallBinding extends IAstBasedBinding {
 }
 export declare class CallBinding {
     sourceExpression: IsBindingBehavior;

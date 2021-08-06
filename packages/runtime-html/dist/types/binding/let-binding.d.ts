@@ -1,10 +1,11 @@
 import { LifecycleFlags } from '@aurelia/runtime';
 import type { ITask } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { IConnectableBinding, IObservable, IObserverLocator, IObserverLocatorBasedConnectable, IsExpression, Scope } from '@aurelia/runtime';
-export interface LetBinding extends IConnectableBinding {
+import type { IObservable, IObserverLocator, IsExpression, Scope } from '@aurelia/runtime';
+import type { IAstBasedBinding } from './interfaces-bindings';
+export interface LetBinding extends IAstBasedBinding {
 }
-export declare class LetBinding implements IObserverLocatorBasedConnectable {
+export declare class LetBinding implements IAstBasedBinding {
     sourceExpression: IsExpression;
     targetProperty: string;
     locator: IServiceLocator;

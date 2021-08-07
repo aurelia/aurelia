@@ -62,7 +62,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
   readonly root: IContainer;
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
-  deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void;
+  // deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
   registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
@@ -684,14 +684,18 @@ export type IFactoryResolver<K = any> = IResolver<K>
   & ((...args: unknown[]) => any);
 export type IResolvedFactory<K> = (...args: unknown[]) => Resolved<K>;
 
-export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
-  const instance = createNewInstance(key, handler, requestor);
-  const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key), instance);
-  requestor.deregisterResolverFor(key, false);
-  requestor.registerResolver(key, instanceProvider);
+export const newInstanceForScope = createResolver(
+  (key: any, handler: IContainer, requestor: IContainer) => {
+    const instance = createNewInstance(key, handler, requestor);
+    const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key), instance);
+    /**
+     * By default the new instances for scope are disposable.
+     * If need be, we can always enhance the `createNewInstance` to support a 'injection' context, to make a non/disposable registration here.
+     */
+    requestor.registerResolver(key, instanceProvider, true);
 
-  return instance;
-}) as <K>(key: K) => INewInstanceResolver<K>;
+    return instance;
+  }) as <K>(key: K) => INewInstanceResolver<K>;
 
 export const newInstanceOf = createResolver(
   (key: any, handler: IContainer, requestor: IContainer) => createNewInstance(key, handler, requestor)
@@ -929,7 +933,7 @@ export class Container implements IContainer {
    */
   private res: Record<string, IResolver | IDisposableResolver | undefined>;
 
-  private readonly _disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
+  private readonly _disposableResolvers: Map<Key, IDisposableResolver> = new Map<Key, IDisposableResolver>();
 
   public constructor(
     private readonly parent: Container | null,
@@ -1051,42 +1055,42 @@ export class Container implements IContainer {
     }
 
     if (isDisposable) {
-      this._disposableResolvers.add(resolver as IDisposableResolver<T>);
+      this._disposableResolvers.set(key, resolver as IDisposableResolver<T>);
     }
 
     return resolver;
   }
 
-  public deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void {
-    validateKey(key);
+  // public deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void {
+  //   validateKey(key);
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let current: Container | null = this;
-    let resolver: IResolver | undefined;
+  //   // eslint-disable-next-line @typescript-eslint/no-this-alias
+  //   let current: Container | null = this;
+  //   let resolver: IResolver | undefined;
 
-    while (current != null) {
-      resolver = current._resolvers.get(key);
+  //   while (current != null) {
+  //     resolver = current._resolvers.get(key);
 
-      if (resolver != null) {
-        current._resolvers.delete(key);
-        break;
-      }
-      if (current.parent == null) { return; }
-      current = searchAncestors ? current.parent : null;
-    }
+  //     if (resolver != null) {
+  //       current._resolvers.delete(key);
+  //       break;
+  //     }
+  //     if (current.parent == null) { return; }
+  //     current = searchAncestors ? current.parent : null;
+  //   }
 
-    if (resolver == null) { return; }
-    if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
-      throw new Error('Cannot deregister a resolver with array strategy');
-    }
-    if (this._disposableResolvers.has(resolver as IDisposableResolver<K>)) {
-      (resolver as IDisposableResolver<K>).dispose();
-    }
-    if (isResourceKey(key)) {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete this.res[key];
-    }
-  }
+  //   if (resolver == null) { return; }
+  //   if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
+  //     throw new Error('Cannot deregister a resolver with array strategy');
+  //   }
+  //   if (this._disposableResolvers.has(resolver as IDisposableResolver<K>)) {
+  //     (resolver as IDisposableResolver<K>).dispose();
+  //   }
+  //   if (isResourceKey(key)) {
+  //     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+  //     delete this.res[key];
+  //   }
+  // }
 
   public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
     const resolver = this.getResolver(key);
@@ -1260,11 +1264,18 @@ export class Container implements IContainer {
     return new Container(this, ContainerConfiguration.from(config ?? this.config));
   }
 
-  public disposeResolvers() {
-    let disposeable: IDisposable;
-    for (disposeable of this._disposableResolvers) {
-      disposeable.dispose();
+  public disposeResolvers(): void {
+    const resolvers = this._resolvers;
+    const disposableResolvers = this._disposableResolvers;
+
+    let disposable: IDisposable;
+    let key: Key;
+
+    for ([key, disposable] of disposableResolvers.entries()) {
+      disposable.dispose();
+      resolvers.delete(key);
     }
+    disposableResolvers.clear();
   }
 
   public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {

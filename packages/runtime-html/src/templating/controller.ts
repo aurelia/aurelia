@@ -1090,6 +1090,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.viewModel = null;
     this.host = null;
     this.shadowRoot = null;
+    this.container.disposeResolvers();
   }
 
   public accept(visitor: ControllerVisitor): void | true {

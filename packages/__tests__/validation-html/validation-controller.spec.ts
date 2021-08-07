@@ -114,13 +114,13 @@ describe('validation-html/validation-controller.spec.ts/validation controller fa
     assert.equal(!!vcRootVm.controller2, true, 'error9');
     assert.equal(!!vcRootVm.controller3, true, 'error10');
 
-    assert.equal(vcRootVm.controller2, vcRootVm.controller3, 'error1');
+    assert.equal(vcRootVm.controller1, vcRootVm.controller3, 'error1');
     assert.notEqual(vcRootVm.controller1, vcRootVm.controller2, 'error2');
 
     assert.equal(!!cs1.controller, true, 'error11');
     assert.equal(!!cs2.controller, true, 'error12');
-    assert.equal(vcRootVm.controller2, cs1.controller, 'error3');
-    assert.equal(vcRootVm.controller2, cs2.controller, 'error4');
+    assert.equal(vcRootVm.controller1, cs1.controller, 'error3');
+    assert.equal(vcRootVm.controller1, cs2.controller, 'error4');
 
     assert.notEqual(vcRootVm.controller1, newVcRoot.controller, 'error5');
     assert.notEqual(vcRootVm.controller2, newVcRoot.controller, 'error6');

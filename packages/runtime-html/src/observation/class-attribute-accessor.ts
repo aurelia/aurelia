@@ -4,13 +4,13 @@ import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
 import type { IAccessor } from '@aurelia/runtime';
 
 export class ClassAttributeAccessor implements IAccessor {
+  public get doNotCache(): true { return true; }
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public value: unknown = '';
   /** @internal */
   private _oldValue: unknown = '';
 
-  public readonly doNotCache: true = true;
   /** @internal */
   private _nameIndex: Record<string, number> = {};
   /** @internal */

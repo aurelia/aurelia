@@ -20,6 +20,8 @@ export class LetBinding implements IAstBasedBinding {
   public task: ITask | null = null;
 
   public target: (IObservable & IIndexable) | null = null;
+  /** @internal */
+  private readonly _toBindingContext: boolean;
   /**
    * A semi-private property used by connectable mixin
    *
@@ -32,9 +34,10 @@ export class LetBinding implements IAstBasedBinding {
     public targetProperty: string,
     observerLocator: IObserverLocator,
     public locator: IServiceLocator,
-    private readonly toBindingContext: boolean = false,
+    toBindingContext: boolean = false,
   ) {
     this.oL = observerLocator;
+    this._toBindingContext = toBindingContext;
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -62,7 +65,7 @@ export class LetBinding implements IAstBasedBinding {
     }
 
     this.$scope = scope;
-    this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
+    this.target = (this._toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.hasBind) {

@@ -32,6 +32,7 @@ export function createElement<C extends Constructable = Constructable>(
  * RenderPlan. Todo: describe goal of this class
  */
 export class RenderPlan {
+  /** @internal */
   private _lazyDef?: CustomElementDefinition = void 0;
 
   public constructor(

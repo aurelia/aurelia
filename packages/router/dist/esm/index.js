@@ -102,7 +102,7 @@ function Y(t, e, i) {
     throw new Error(`Invalid route config property: "${e}". Expected ${t}, but got ${D(i)}.`);
 }
 
-function J(t, e) {
+function _(t, e) {
     if (null === t || void 0 === t) throw new Error(`Invalid route config: expected an object or string, but got: ${String(t)}.`);
     const i = Object.keys(t);
     for (const s of i) {
@@ -180,7 +180,7 @@ function J(t, e) {
     }
 }
 
-function _(t, e) {
+function J(t, e) {
     if (null === t || void 0 === t) throw new Error(`Invalid route config: expected an object or string, but got: ${String(t)}.`);
     const i = Object.keys(t);
     for (const s of i) {
@@ -206,11 +206,11 @@ function Z(t, e) {
       case "object":
         if (t instanceof Promise) break;
         if (W(t)) {
-            _(t, e);
+            J(t, e);
             break;
         }
         if (z(t)) {
-            J(t, e);
+            _(t, e);
             break;
         }
         if (!v(t) && !F(t)) Y(`an object with at least a 'component' property (see Routeable)`, e, t);
@@ -2969,7 +2969,7 @@ class RouteConfig {
             return new RouteConfig(f, u, p, l, d, g, v, w, m);
         } else if ("object" === typeof t) {
             const i = t;
-            J(i, "");
+            _(i, "");
             const s = null !== (l = null !== (u = i.path) && void 0 !== u ? u : null === e || void 0 === e ? void 0 : e.path) && void 0 !== l ? l : null;
             const n = null !== (f = null !== (d = i.title) && void 0 !== d ? d : null === e || void 0 === e ? void 0 : e.title) && void 0 !== f ? f : null;
             const o = null !== (g = null !== (p = i.redirectTo) && void 0 !== p ? p : null === e || void 0 === e ? void 0 : e.redirectTo) && void 0 !== g ? g : null;
@@ -3333,10 +3333,10 @@ class RouteContext {
     }
     static setRoot(t) {
         const e = t.get(i).scopeTo("RouteContext");
-        if (!t.has(R, true)) Jt(new Error(`The provided container has no registered IAppRoot. RouteContext.setRoot can only be used after Aurelia.app was called, on a container that is within that app's component tree.`), e);
-        if (t.has(Wt, true)) Jt(new Error(`A root RouteContext is already registered. A possible cause is the RouterConfiguration being registered more than once in the same container tree. If you have a multi-rooted app, make sure you register RouterConfiguration only in the "forked" containers and not in the common root.`), e);
+        if (!t.has(R, true)) _t(new Error(`The provided container has no registered IAppRoot. RouteContext.setRoot can only be used after Aurelia.app was called, on a container that is within that app's component tree.`), e);
+        if (t.has(Wt, true)) _t(new Error(`A root RouteContext is already registered. A possible cause is the RouterConfiguration being registered more than once in the same container tree. If you have a multi-rooted app, make sure you register RouterConfiguration only in the "forked" containers and not in the common root.`), e);
         const {controller: s} = t.get(R);
-        if (void 0 === s) Jt(new Error(`The provided IAppRoot does not (yet) have a controller. A possible cause is calling this API manually before Aurelia.start() is called`), e);
+        if (void 0 === s) _t(new Error(`The provided IAppRoot does not (yet) have a controller. A possible cause is calling this API manually before Aurelia.start() is called`), e);
         const n = t.get(Lt);
         const o = n.getRouteContext(null, s.definition, s.container);
         t.register(g.instance(Wt, o));
@@ -3373,7 +3373,7 @@ class RouteContext {
             n.trace(`resolve(context:CustomElementController(name:'${t.definition.name}')) - resolving RouteContext from controller's RenderContext`);
             return t.container.get(Wt);
         }
-        Jt(new Error(`Invalid context type: ${Object.prototype.toString.call(e)}`), n);
+        _t(new Error(`Invalid context type: ${Object.prototype.toString.call(e)}`), n);
     }
     dispose() {
         this.container.dispose();
@@ -3451,7 +3451,7 @@ class RouteContext {
             let i;
             let s;
             for (const t of e.items) if (t.isConstructable) {
-                const e = t.definitions.find(_t);
+                const e = t.definitions.find(Jt);
                 if (void 0 !== e) if ("default" === t.key) i = e; else if (void 0 === s) s = e;
             }
             if (void 0 === i) {
@@ -3477,12 +3477,12 @@ function Yt(t) {
     return t instanceof RouteContext;
 }
 
-function Jt(t, e) {
+function _t(t, e) {
     e.error(t);
     throw t;
 }
 
-function _t(t) {
+function Jt(t) {
     return y.isType(t.Type);
 }
 
@@ -3687,16 +3687,6 @@ let Xt = class HrefCustomAttribute {
         this.delegator = s;
         this.ctx = n;
         this.isInitialized = false;
-        this.onClick = t => {
-            if (t.altKey || t.ctrlKey || t.shiftKey || t.metaKey || 0 !== t.button || this.isExternal || !this.isEnabled) return;
-            const e = this.el.getAttribute("href");
-            if (null !== e) {
-                t.preventDefault();
-                void this.router.load(e, {
-                    context: this.ctx
-                });
-            }
-        };
         if (i.options.useHref && "A" === e.nodeName) switch (e.getAttribute("target")) {
           case null:
           case o.name:
@@ -3717,14 +3707,27 @@ let Xt = class HrefCustomAttribute {
             this.isInitialized = true;
             this.isEnabled = this.isEnabled && null === L(this.el, U.getDefinition(Kt).key);
         }
-        if (this.isEnabled) this.el.setAttribute("href", this.value);
-        this.eventListener = this.delegator.addEventListener(this.target, this.el, "click", this.onClick);
+        if (null == this.value) this.el.removeAttribute("href"); else this.el.setAttribute("href", this.value);
+        this.eventListener = this.delegator.addEventListener(this.target, this.el, "click", this);
     }
     unbinding() {
         this.eventListener.dispose();
     }
     valueChanged(t) {
-        this.el.setAttribute("href", t);
+        if (null == t) this.el.removeAttribute("href"); else this.el.setAttribute("href", t);
+    }
+    handleEvent(t) {
+        this.v(t);
+    }
+    v(t) {
+        if (t.altKey || t.ctrlKey || t.shiftKey || t.metaKey || 0 !== t.button || this.isExternal || !this.isEnabled) return;
+        const e = this.el.getAttribute("href");
+        if (null !== e) {
+            t.preventDefault();
+            void this.router.load(e, {
+                context: this.ctx
+            });
+        }
     }
 };
 

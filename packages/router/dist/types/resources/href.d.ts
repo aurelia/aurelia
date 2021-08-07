@@ -17,6 +17,6 @@ export declare class HrefCustomAttribute implements ICustomAttributeViewModel {
     binding(): void;
     unbinding(): void;
     valueChanged(newValue: unknown): void;
-    private readonly onClick;
+    handleEvent(e: MouseEvent): void;
 }
 //# sourceMappingURL=href.d.ts.map

@@ -21,11 +21,8 @@ export declare class TranslationBinding implements IObserverLocatorBasedConnecta
     isBound: boolean;
     expr: IsExpression;
     private readonly i18n;
-    private readonly _contentAttributes;
-    private _keyExpression;
     private scope;
     private task;
-    private _isInterpolation;
     private readonly _targetAccessors;
     target: HTMLElement;
     private readonly platform;

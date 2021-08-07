@@ -14,7 +14,7 @@ export declare class TranslationBindingInstruction {
 }
 export declare class TranslationBindingCommand implements BindingCommandInstance {
     private readonly m;
-    readonly bindingType: BindingType.CustomCommand;
+    readonly type: BindingType.CustomCommand;
     static inject: import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>[];
     constructor(m: IAttrMapper);
     build(info: ICommandBuildInfo): TranslationBindingInstruction;
@@ -41,7 +41,7 @@ export declare class TranslationBindBindingInstruction {
 export declare class TranslationBindBindingCommand implements BindingCommandInstance {
     private readonly m;
     private readonly xp;
-    readonly bindingType: BindingType.BindCommand;
+    readonly type: BindingType.BindCommand;
     static inject: (import("@aurelia/kernel").InterfaceSymbol<IAttrMapper> | import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>)[];
     constructor(m: IAttrMapper, xp: IExpressionParser);
     build(info: ICommandBuildInfo): TranslationBindingInstruction;

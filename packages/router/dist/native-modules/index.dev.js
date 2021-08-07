@@ -4566,22 +4566,6 @@ let HrefCustomAttribute = class HrefCustomAttribute {
         this.delegator = delegator;
         this.ctx = ctx;
         this.isInitialized = false;
-        this.onClick = (e) => {
-            // Ensure this is an ordinary left-button click
-            if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0
-                // on an internally managed link
-                || this.isExternal
-                || !this.isEnabled) {
-                return;
-            }
-            // Use the normalized attribute instead of this.value to ensure consistency.
-            const href = this.el.getAttribute('href');
-            if (href !== null) {
-                e.preventDefault();
-                // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
-                void this.router.load(href, { context: this.ctx });
-            }
-        };
         if (router.options.useHref &&
             // Ensure the element is an anchor
             el.nodeName === 'A') {
@@ -4609,16 +4593,44 @@ let HrefCustomAttribute = class HrefCustomAttribute {
             this.isInitialized = true;
             this.isEnabled = this.isEnabled && getRef(this.el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
         }
-        if (this.isEnabled) {
+        if (this.value == null) {
+            this.el.removeAttribute('href');
+        }
+        else {
             this.el.setAttribute('href', this.value);
         }
-        this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.onClick);
+        this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this);
     }
     unbinding() {
         this.eventListener.dispose();
     }
     valueChanged(newValue) {
-        this.el.setAttribute('href', newValue);
+        if (newValue == null) {
+            this.el.removeAttribute('href');
+        }
+        else {
+            this.el.setAttribute('href', newValue);
+        }
+    }
+    handleEvent(e) {
+        this._onClick(e);
+    }
+    /** @internal */
+    _onClick(e) {
+        // Ensure this is an ordinary left-button click
+        if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0
+            // on an internally managed link
+            || this.isExternal
+            || !this.isEnabled) {
+            return;
+        }
+        // Use the normalized attribute instead of this.value to ensure consistency.
+        const href = this.el.getAttribute('href');
+        if (href !== null) {
+            e.preventDefault();
+            // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
+            void this.router.load(href, { context: this.ctx });
+        }
     }
 };
 __decorate([

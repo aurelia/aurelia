@@ -1859,13 +1859,13 @@ class LetBinding {
         this.sourceExpression = sourceExpression;
         this.targetProperty = targetProperty;
         this.locator = locator;
-        this.toBindingContext = toBindingContext;
         this.interceptor = this;
         this.isBound = false;
         this.$scope = void 0;
         this.task = null;
         this.target = null;
         this.oL = observerLocator;
+        this._toBindingContext = toBindingContext;
     }
     handleChange(newValue, _previousValue, flags) {
         if (!this.isBound) {
@@ -1889,7 +1889,7 @@ class LetBinding {
             this.interceptor.$unbind(flags | 2 /* fromBind */);
         }
         this.$scope = scope;
-        this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext);
+        this.target = (this._toBindingContext ? scope.bindingContext : scope.overrideContext);
         const sourceExpression = this.sourceExpression;
         if (sourceExpression.hasBind) {
             sourceExpression.bind(flags, scope, this.interceptor);
@@ -2756,7 +2756,6 @@ class ClassAttributeAccessor {
         this.value = '';
         /** @internal */
         this._oldValue = '';
-        this.doNotCache = true;
         /** @internal */
         this._nameIndex = {};
         /** @internal */
@@ -2764,6 +2763,7 @@ class ClassAttributeAccessor {
         /** @internal */
         this._hasChanges = false;
     }
+    get doNotCache() { return true; }
     getValue() {
         // is it safe to assume the observer has the latest value?
         // todo: ability to turn on/off cache based on type
@@ -6155,7 +6155,7 @@ let OneTimeBindingCommand = class OneTimeBindingCommand {
     constructor(m, xp) {
         this.m = m;
         this.xp = xp;
-        this.bindingType = 49 /* OneTimeCommand */;
+        this.type = 49 /* OneTimeCommand */;
     }
     build(info) {
         var _a;
@@ -6184,7 +6184,7 @@ let ToViewBindingCommand = class ToViewBindingCommand {
     constructor(m, xp) {
         this.m = m;
         this.xp = xp;
-        this.bindingType = 50 /* ToViewCommand */;
+        this.type = 50 /* ToViewCommand */;
     }
     build(info) {
         var _a;
@@ -6213,7 +6213,7 @@ let FromViewBindingCommand = class FromViewBindingCommand {
     constructor(m, xp) {
         this.m = m;
         this.xp = xp;
-        this.bindingType = 51 /* FromViewCommand */;
+        this.type = 51 /* FromViewCommand */;
     }
     build(info) {
         var _a;
@@ -6242,7 +6242,7 @@ let TwoWayBindingCommand = class TwoWayBindingCommand {
     constructor(m, xp) {
         this.m = m;
         this.xp = xp;
-        this.bindingType = 52 /* TwoWayCommand */;
+        this.type = 52 /* TwoWayCommand */;
     }
     build(info) {
         var _a;
@@ -6271,7 +6271,7 @@ let DefaultBindingCommand = class DefaultBindingCommand {
     constructor(m, xp) {
         this.m = m;
         this.xp = xp;
-        this.bindingType = 53 /* BindCommand */;
+        this.type = 53 /* BindCommand */;
     }
     build(info) {
         var _a;
@@ -6309,7 +6309,7 @@ DefaultBindingCommand = __decorate([
 let CallBindingCommand = class CallBindingCommand {
     constructor(xp) {
         this.xp = xp;
-        this.bindingType = 153 /* CallCommand */;
+        this.type = 153 /* CallCommand */;
     }
     build(info) {
         const target = info.bindable === null
@@ -6325,7 +6325,7 @@ CallBindingCommand = __decorate([
 let ForBindingCommand = class ForBindingCommand {
     constructor(xp) {
         this.xp = xp;
-        this.bindingType = 539 /* ForCommand */;
+        this.type = 539 /* ForCommand */;
     }
     build(info) {
         const target = info.bindable === null
@@ -6341,7 +6341,7 @@ ForBindingCommand = __decorate([
 let TriggerBindingCommand = class TriggerBindingCommand {
     constructor(xp) {
         this.xp = xp;
-        this.bindingType = 4182 /* TriggerCommand */;
+        this.type = 4182 /* TriggerCommand */;
     }
     build(info) {
         return new ListenerBindingInstruction(this.xp.parse(info.attr.rawValue, 4182 /* TriggerCommand */), info.attr.target, true, DelegationStrategy.none);
@@ -6354,7 +6354,7 @@ TriggerBindingCommand = __decorate([
 let DelegateBindingCommand = class DelegateBindingCommand {
     constructor(xp) {
         this.xp = xp;
-        this.bindingType = 4184 /* DelegateCommand */;
+        this.type = 4184 /* DelegateCommand */;
     }
     build(info) {
         return new ListenerBindingInstruction(this.xp.parse(info.attr.rawValue, 4184 /* DelegateCommand */), info.attr.target, false, DelegationStrategy.bubbling);
@@ -6367,7 +6367,7 @@ DelegateBindingCommand = __decorate([
 let CaptureBindingCommand = class CaptureBindingCommand {
     constructor(xp) {
         this.xp = xp;
-        this.bindingType = 4183 /* CaptureCommand */;
+        this.type = 4183 /* CaptureCommand */;
     }
     build(info) {
         return new ListenerBindingInstruction(this.xp.parse(info.attr.rawValue, 4183 /* CaptureCommand */), info.attr.target, false, DelegationStrategy.capturing);
@@ -6383,7 +6383,7 @@ CaptureBindingCommand = __decorate([
 let AttrBindingCommand = class AttrBindingCommand {
     constructor(xp) {
         this.xp = xp;
-        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
+        this.type = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     build(info) {
         return new AttributeBindingInstruction(info.attr.target, this.xp.parse(info.attr.rawValue, 32 /* IsProperty */), info.attr.target);
@@ -6399,7 +6399,7 @@ AttrBindingCommand = __decorate([
 let StyleBindingCommand = class StyleBindingCommand {
     constructor(xp) {
         this.xp = xp;
-        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
+        this.type = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     build(info) {
         return new AttributeBindingInstruction('style', this.xp.parse(info.attr.rawValue, 32 /* IsProperty */), info.attr.target);
@@ -6415,7 +6415,7 @@ StyleBindingCommand = __decorate([
 let ClassBindingCommand = class ClassBindingCommand {
     constructor(xp) {
         this.xp = xp;
-        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
+        this.type = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     build(info) {
         return new AttributeBindingInstruction('class', this.xp.parse(info.attr.rawValue, 32 /* IsProperty */), info.attr.target);
@@ -6431,7 +6431,7 @@ ClassBindingCommand = __decorate([
 let RefBindingCommand = class RefBindingCommand {
     constructor(xp) {
         this.xp = xp;
-        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
+        this.type = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     build(info) {
         return new RefBindingInstruction(this.xp.parse(info.attr.rawValue, 32 /* IsProperty */), info.attr.target);
@@ -6612,7 +6612,7 @@ class TemplateCompiler {
                 throw new Error(`AUR0702:${attrName}`);
             }
             bindingCommand = context._createCommand(attrSyntax);
-            if (bindingCommand !== null && (bindingCommand.bindingType & 4096 /* IgnoreAttr */) > 0) {
+            if (bindingCommand !== null && (bindingCommand.type & 4096 /* IgnoreAttr */) > 0) {
                 // when the binding command overrides everything
                 // just pass the target as is to the binding command, and treat it as a normal attribute:
                 // active.class="..."
@@ -6794,9 +6794,9 @@ class TemplateCompiler {
                 // Onetime means it will not have appropriate value, but it's also a good thing,
                 // since often one it's just a simple declaration
                 // todo: consider supporting one-time for <let>
-                if (bindingCommand.bindingType === 50 /* ToViewCommand */
-                    || bindingCommand.bindingType === 53 /* BindCommand */) {
-                    letInstructions.push(new LetBindingInstruction(exprParser.parse(realAttrValue, bindingCommand.bindingType), camelCase(realAttrTarget)));
+                if (bindingCommand.type === 50 /* ToViewCommand */
+                    || bindingCommand.type === 53 /* BindCommand */) {
+                    letInstructions.push(new LetBindingInstruction(exprParser.parse(realAttrValue, bindingCommand.type), camelCase(realAttrTarget)));
                     continue;
                 }
                 throw new Error(`AUR0704:${attrSyntax.command}`);
@@ -6934,7 +6934,7 @@ class TemplateCompiler {
             }
             attrSyntax = context._attrParser.parse(attrName, attrValue);
             bindingCommand = context._createCommand(attrSyntax);
-            if (bindingCommand !== null && bindingCommand.bindingType & 4096 /* IgnoreAttr */) {
+            if (bindingCommand !== null && bindingCommand.type & 4096 /* IgnoreAttr */) {
                 // when the binding command overrides everything
                 // just pass the target as is to the binding command, and treat it as a normal attribute:
                 // active.class="..."
@@ -10767,6 +10767,7 @@ class RenderPlan {
         this.node = node;
         this.instructions = instructions;
         this.dependencies = dependencies;
+        /** @internal */
         this._lazyDef = void 0;
     }
     get definition() {

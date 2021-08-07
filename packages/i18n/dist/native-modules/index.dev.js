@@ -336,6 +336,7 @@ class TranslationBinding {
         this.locator = locator;
         this.interceptor = this;
         this.isBound = false;
+        /** @internal */
         this._contentAttributes = contentAttributes;
         this.task = null;
         this.parameter = null;
@@ -612,7 +613,7 @@ let TranslationParametersBindingCommand = class TranslationParametersBindingComm
     constructor(m, xp) {
         this.m = m;
         this.xp = xp;
-        this.bindingType = 53 /* BindCommand */;
+        this.type = 53 /* BindCommand */;
     }
     build(info) {
         var _a;
@@ -676,7 +677,7 @@ class TranslationBindingInstruction {
 class TranslationBindingCommand {
     constructor(m) {
         this.m = m;
-        this.bindingType = 284 /* CustomCommand */;
+        this.type = 284 /* CustomCommand */;
     }
     build(info) {
         var _a;
@@ -736,7 +737,7 @@ class TranslationBindBindingCommand {
     constructor(m, xp) {
         this.m = m;
         this.xp = xp;
-        this.bindingType = 53 /* BindCommand */;
+        this.type = 53 /* BindCommand */;
     }
     build(info) {
         var _a;

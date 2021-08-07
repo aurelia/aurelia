@@ -3693,16 +3693,6 @@ exports.HrefCustomAttribute = class HrefCustomAttribute {
         this.delegator = s;
         this.ctx = n;
         this.isInitialized = false;
-        this.onClick = t => {
-            if (t.altKey || t.ctrlKey || t.shiftKey || t.metaKey || 0 !== t.button || this.isExternal || !this.isEnabled) return;
-            const e = this.el.getAttribute("href");
-            if (null !== e) {
-                t.preventDefault();
-                void this.router.load(e, {
-                    context: this.ctx
-                });
-            }
-        };
         if (i.options.useHref && "A" === e.nodeName) switch (e.getAttribute("target")) {
           case null:
           case o.name:
@@ -3723,14 +3713,27 @@ exports.HrefCustomAttribute = class HrefCustomAttribute {
             this.isInitialized = true;
             this.isEnabled = this.isEnabled && null === e.getRef(this.el, e.CustomAttribute.getDefinition(exports.LoadCustomAttribute).key);
         }
-        if (this.isEnabled) this.el.setAttribute("href", this.value);
-        this.eventListener = this.delegator.addEventListener(this.target, this.el, "click", this.onClick);
+        if (null == this.value) this.el.removeAttribute("href"); else this.el.setAttribute("href", this.value);
+        this.eventListener = this.delegator.addEventListener(this.target, this.el, "click", this);
     }
     unbinding() {
         this.eventListener.dispose();
     }
     valueChanged(t) {
-        this.el.setAttribute("href", t);
+        if (null == t) this.el.removeAttribute("href"); else this.el.setAttribute("href", t);
+    }
+    handleEvent(t) {
+        this.v(t);
+    }
+    v(t) {
+        if (t.altKey || t.ctrlKey || t.shiftKey || t.metaKey || 0 !== t.button || this.isExternal || !this.isEnabled) return;
+        const e = this.el.getAttribute("href");
+        if (null !== e) {
+            t.preventDefault();
+            void this.router.load(e, {
+                context: this.ctx
+            });
+        }
     }
 };
 

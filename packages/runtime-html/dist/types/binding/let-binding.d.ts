@@ -9,7 +9,6 @@ export declare class LetBinding implements IAstBasedBinding {
     sourceExpression: IsExpression;
     targetProperty: string;
     locator: IServiceLocator;
-    private readonly toBindingContext;
     interceptor: this;
     isBound: boolean;
     $scope?: Scope;

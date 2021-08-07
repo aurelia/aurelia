@@ -537,7 +537,7 @@ exports.TranslationParametersBindingCommand = class TranslationParametersBinding
     constructor(t, s) {
         this.m = t;
         this.xp = s;
-        this.bindingType = 53;
+        this.type = 53;
     }
     build(s) {
         var n;
@@ -596,7 +596,7 @@ class TranslationBindingInstruction {
 class TranslationBindingCommand {
     constructor(t) {
         this.m = t;
-        this.bindingType = 284;
+        this.type = 284;
     }
     build(n) {
         var i;
@@ -653,7 +653,7 @@ class TranslationBindBindingCommand {
     constructor(t, s) {
         this.m = t;
         this.xp = s;
-        this.bindingType = 53;
+        this.type = 53;
     }
     build(s) {
         var n;

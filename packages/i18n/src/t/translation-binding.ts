@@ -59,10 +59,13 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   public isBound: boolean = false;
   public expr!: IsExpression;
   private readonly i18n: I18N;
+  /** @internal */
   private readonly _contentAttributes: readonly string[] = contentAttributes;
+  /** @internal */
   private _keyExpression: string | undefined | null;
   private scope!: Scope;
   private task: ITask | null = null;
+  /** @internal */
   private _isInterpolation!: boolean;
   private readonly _targetAccessors: Set<IAccessor>;
 

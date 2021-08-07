@@ -141,7 +141,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       bindingCommand = context._createCommand(attrSyntax);
-      if (bindingCommand !== null && (bindingCommand.bindingType & BindingType.IgnoreAttr) > 0) {
+      if (bindingCommand !== null && (bindingCommand.type & BindingType.IgnoreAttr) > 0) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."
@@ -343,11 +343,11 @@ export class TemplateCompiler implements ITemplateCompiler {
         // Onetime means it will not have appropriate value, but it's also a good thing,
         // since often one it's just a simple declaration
         // todo: consider supporting one-time for <let>
-        if (bindingCommand.bindingType === BindingType.ToViewCommand
-          || bindingCommand.bindingType === BindingType.BindCommand
+        if (bindingCommand.type === BindingType.ToViewCommand
+          || bindingCommand.type === BindingType.BindCommand
         ) {
           letInstructions.push(new LetBindingInstruction(
-            exprParser.parse(realAttrValue, bindingCommand.bindingType),
+            exprParser.parse(realAttrValue, bindingCommand.type),
             camelCase(realAttrTarget)
           ));
           continue;
@@ -513,7 +513,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrSyntax = context._attrParser.parse(attrName, attrValue);
 
       bindingCommand = context._createCommand(attrSyntax);
-      if (bindingCommand !== null && bindingCommand.bindingType & BindingType.IgnoreAttr) {
+      if (bindingCommand !== null && bindingCommand.type & BindingType.IgnoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."

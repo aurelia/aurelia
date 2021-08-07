@@ -47,7 +47,7 @@ export interface IBindableCommandInfo {
 export type ICommandBuildInfo = IPlainAttrCommandInfo | IBindableCommandInfo;
 
 export type BindingCommandInstance<T extends {} = {}> = {
-  bindingType: BindingType;
+  type: BindingType;
   build(info: ICommandBuildInfo): IInstruction;
 } & T;
 
@@ -153,7 +153,7 @@ export const BindingCommand = Object.freeze<BindingCommandKind>({
 
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.OneTimeCommand = BindingType.OneTimeCommand;
+  public readonly type: BindingType.OneTimeCommand = BindingType.OneTimeCommand;
 
   public static inject = [IAttrMapper, IExpressionParser];
   public constructor(
@@ -184,7 +184,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('to-view')
 export class ToViewBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.ToViewCommand = BindingType.ToViewCommand;
+  public readonly type: BindingType.ToViewCommand = BindingType.ToViewCommand;
 
   public static inject = [IAttrMapper, IExpressionParser];
   public constructor(
@@ -215,7 +215,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('from-view')
 export class FromViewBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.FromViewCommand = BindingType.FromViewCommand;
+  public readonly type: BindingType.FromViewCommand = BindingType.FromViewCommand;
 
   public static inject = [IAttrMapper, IExpressionParser];
   public constructor(
@@ -246,7 +246,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('two-way')
 export class TwoWayBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.TwoWayCommand = BindingType.TwoWayCommand;
+  public readonly type: BindingType.TwoWayCommand = BindingType.TwoWayCommand;
 
   public static inject = [IAttrMapper, IExpressionParser];
   public constructor(
@@ -277,7 +277,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('bind')
 export class DefaultBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
+  public readonly type: BindingType.BindCommand = BindingType.BindCommand;
 
   public static inject = [IAttrMapper, IExpressionParser];
   public constructor(
@@ -319,7 +319,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('call')
 export class CallBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.CallCommand = BindingType.CallCommand;
+  public readonly type: BindingType.CallCommand = BindingType.CallCommand;
 
   public static inject = [IExpressionParser];
   public constructor(private readonly xp: IExpressionParser) {}
@@ -334,7 +334,7 @@ export class CallBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('for')
 export class ForBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.ForCommand = BindingType.ForCommand;
+  public readonly type: BindingType.ForCommand = BindingType.ForCommand;
 
   public static inject = [IExpressionParser];
   public constructor(private readonly xp: IExpressionParser) {}
@@ -349,7 +349,7 @@ export class ForBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('trigger')
 export class TriggerBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.TriggerCommand = BindingType.TriggerCommand;
+  public readonly type: BindingType.TriggerCommand = BindingType.TriggerCommand;
 
   public static inject = [IExpressionParser];
   public constructor(private readonly xp: IExpressionParser) {}
@@ -361,7 +361,7 @@ export class TriggerBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.DelegateCommand = BindingType.DelegateCommand;
+  public readonly type: BindingType.DelegateCommand = BindingType.DelegateCommand;
 
   public static inject = [IExpressionParser];
   public constructor(private readonly xp: IExpressionParser) {}
@@ -373,7 +373,7 @@ export class DelegateBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('capture')
 export class CaptureBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.CaptureCommand = BindingType.CaptureCommand;
+  public readonly type: BindingType.CaptureCommand = BindingType.CaptureCommand;
 
   public static inject = [IExpressionParser];
   public constructor(private readonly xp: IExpressionParser) {}
@@ -388,7 +388,7 @@ export class CaptureBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('attr')
 export class AttrBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
+  public readonly type: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
 
   public static inject = [IExpressionParser];
   public constructor(private readonly xp: IExpressionParser) {}
@@ -403,7 +403,7 @@ export class AttrBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('style')
 export class StyleBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
+  public readonly type: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
 
   public static inject = [IExpressionParser];
   public constructor(private readonly xp: IExpressionParser) {}
@@ -418,7 +418,7 @@ export class StyleBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('class')
 export class ClassBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
+  public readonly type: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
 
   public static inject = [IExpressionParser];
   public constructor(private readonly xp: IExpressionParser) {}
@@ -433,7 +433,7 @@ export class ClassBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('ref')
 export class RefBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.IsProperty | BindingType.IgnoreAttr = BindingType.IsProperty | BindingType.IgnoreAttr;
+  public readonly type: BindingType.IsProperty | BindingType.IgnoreAttr = BindingType.IsProperty | BindingType.IgnoreAttr;
 
   public static inject = [IExpressionParser];
   public constructor(private readonly xp: IExpressionParser) {}

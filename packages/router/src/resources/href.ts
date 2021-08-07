@@ -54,20 +54,31 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       this.isInitialized = true;
       this.isEnabled = this.isEnabled && getRef(this.el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
     }
-    if (this.isEnabled) {
+    if (this.value == null) {
+      this.el.removeAttribute('href');
+    } else {
       this.el.setAttribute('href', this.value as string);
     }
-    this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.onClick as EventListener);
+    this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this);
   }
   public unbinding(): void {
     this.eventListener.dispose();
   }
 
   public valueChanged(newValue: unknown): void {
-    this.el.setAttribute('href', newValue as string);
+    if (newValue == null) {
+      this.el.removeAttribute('href');
+    } else {
+      this.el.setAttribute('href', newValue as string);
+    }
   }
 
-  private readonly onClick = (e: MouseEvent): void => {
+  public handleEvent(e: MouseEvent) {
+    this._onClick(e);
+  }
+
+  /** @internal */
+  private _onClick(e: MouseEvent): void {
     // Ensure this is an ordinary left-button click
     if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0
       // on an internally managed link
@@ -84,5 +95,5 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
       void this.router.load(href, { context: this.ctx });
     }
-  };
+  }
 }

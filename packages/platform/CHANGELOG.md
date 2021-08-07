@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.16"></a>
+# 2.0.0-alpha.16 (2021-08-07)
+
+### Refactorings:
+
+* **all:** use a terser name cache for predictable prop mangling ([7649ced](https://github.com/aurelia/aurelia/commit/7649ced))
+
 <a name="2.0.0-alpha.15"></a>
 # 2.0.0-alpha.15 (2021-08-01)
 

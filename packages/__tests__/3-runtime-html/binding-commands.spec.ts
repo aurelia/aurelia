@@ -20,7 +20,7 @@ describe('binding-commands', function () {
     @bindingCommand({ name: 'woot1', aliases: ['woot13'] })
     @alias(...['woot11', 'woot12'])
     class WootCommand implements BindingCommandInstance {
-      public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
+      public readonly type: BindingType.BindCommand = BindingType.BindCommand;
 
       public static inject = [OneTimeBindingCommand];
       public constructor(private readonly oneTimeCmd: OneTimeBindingCommand) {}
@@ -33,7 +33,7 @@ describe('binding-commands', function () {
     @bindingCommand({ name: 'woot2', aliases: ['woot23'] })
     @alias('woot21', 'woot22')
     class WootCommand2 implements BindingCommandInstance {
-      public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
+      public readonly type: BindingType.BindCommand = BindingType.BindCommand;
 
       public static inject = [OneTimeBindingCommand];
       public constructor(private readonly oneTimeCmd: OneTimeBindingCommand) {}

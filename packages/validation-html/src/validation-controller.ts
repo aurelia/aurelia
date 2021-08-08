@@ -574,13 +574,6 @@ export class ValidationControllerFactory implements IFactory<Constructable<IVali
   }
 
   public construct(container: IContainer, _dynamicDependencies?: Key[] | undefined): IValidationController {
-    return _dynamicDependencies !== void 0
-      ? Reflect.construct(ValidationController, _dynamicDependencies)
-      : new ValidationController(
-        container.get<IValidator>(IValidator),
-        container.get(IExpressionParser),
-        container.get(IPlatform),
-        container,
-      );
+    return container.invoke(ValidationController, _dynamicDependencies);
   }
 }

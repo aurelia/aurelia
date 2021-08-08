@@ -12,7 +12,7 @@ import {
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util.js';
 import { Person } from '../../validation/_test-resources.js';
 
-describe('validation-container-custom-element', function () {
+describe('validation-html/subscribers/validation-container-custom-element.spec.ts/validation-container-custom-element', function () {
 
   class App {
     public person: Person = new Person((void 0)!, (void 0)!);

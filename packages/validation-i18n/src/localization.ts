@@ -34,15 +34,7 @@ export class LocalizedValidationController extends ValidationController {
 
 export class LocalizedValidationControllerFactory extends ValidationControllerFactory {
   public construct(container: IContainer, _dynamicDependencies?: Key[] | undefined): IValidationController {
-    return _dynamicDependencies !== void 0
-      ? Reflect.construct(LocalizedValidationController, _dynamicDependencies)
-      : new LocalizedValidationController(
-        container,
-        container.get(IEventAggregator),
-        container.get<IValidator>(IValidator),
-        container.get(IExpressionParser),
-        container.get(IPlatform)
-      );
+    return container.invoke(LocalizedValidationController, _dynamicDependencies);
   }
 }
 

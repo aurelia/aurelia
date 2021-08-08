@@ -18,7 +18,7 @@ import { LocalizedValidationController, LocalizedValidationControllerFactory, Lo
 import { Spy } from '../Spy.js';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
-describe('validation-i18n', function () {
+describe('validation-i18n/localization.spec.ts/validation-i18n', function () {
 
   interface TestSetupContext {
     template: string;

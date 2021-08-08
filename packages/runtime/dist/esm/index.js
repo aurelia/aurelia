@@ -176,14 +176,12 @@ class BindingBehaviorFactory {
         const s = this.deps;
         switch (s.length) {
           case 0:
-          case 1:
-          case 2:
             return new this.Type(t, e);
 
-          case 3:
+          case 1:
             return new this.Type(r.get(s[0]), t, e);
 
-          case 4:
+          case 2:
             return new this.Type(r.get(s[0]), r.get(s[1]), t, e);
 
           default:

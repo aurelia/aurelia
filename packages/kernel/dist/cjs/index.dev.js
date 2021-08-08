@@ -1084,7 +1084,11 @@ const factory = createResolver((key, handler, requestor) => {
 const newInstanceForScope = createResolver((key, handler, requestor) => {
     const instance = createNewInstance(key, handler, requestor);
     const instanceProvider = new InstanceProvider(String(key), instance);
-    requestor.registerResolver(key, instanceProvider);
+    /**
+     * By default the new instances for scope are disposable.
+     * If need be, we can always enhance the `createNewInstance` to support a 'injection' context, to make a non/disposable registration here.
+     */
+    requestor.registerResolver(key, instanceProvider, true);
     return instance;
 });
 const newInstanceOf = createResolver((key, handler, requestor) => createNewInstance(key, handler, requestor));
@@ -1260,7 +1264,7 @@ class Container {
         this.config = config;
         this.id = ++containerId;
         this._registerDepth = 0;
-        this._disposableResolvers = new Set();
+        this._disposableResolvers = new Map();
         if (parent === null) {
             this.root = this;
             this._resolvers = new Map();
@@ -1371,37 +1375,35 @@ class Container {
             resolvers.set(key, new Resolver(key, 4 /* array */, [result, resolver]));
         }
         if (isDisposable) {
-            this._disposableResolvers.add(resolver);
+            this._disposableResolvers.set(key, resolver);
         }
         return resolver;
     }
-    // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
-    //   // const console =  (globalThis as any).console;
-    //   // console.group("deregisterResolverFor");
+    // public deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void {
     //   validateKey(key);
-    //   let current: Container = this;
+    //   // eslint-disable-next-line @typescript-eslint/no-this-alias
+    //   let current: Container | null = this;
     //   let resolver: IResolver | undefined;
     //   while (current != null) {
-    //     resolver = current.resolvers.get(key);
-    //     if (resolver != null) { break; }
+    //     resolver = current._resolvers.get(key);
+    //     if (resolver != null) {
+    //       current._resolvers.delete(key);
+    //       break;
+    //     }
     //     if (current.parent == null) { return; }
-    //     current = current.parent;
+    //     current = searchAncestors ? current.parent : null;
     //   }
-    //   if (resolver === void 0) { return; }
+    //   if (resolver == null) { return; }
     //   if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
     //     throw new Error('Cannot deregister a resolver with array strategy');
     //   }
-    //   if (this.disposableResolvers.has(resolver as IDisposableResolver<T>)) {
-    //     (resolver as IDisposableResolver<T>).dispose();
+    //   if (this._disposableResolvers.has(resolver as IDisposableResolver<K>)) {
+    //     (resolver as IDisposableResolver<K>).dispose();
     //   }
     //   if (isResourceKey(key)) {
     //     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    //     delete this.resourceResolvers[key];
+    //     delete this.res[key];
     //   }
-    //   // console.log(`BEFORE delete ${Array.from(current.resolvers.keys()).map((k) => k.toString())}`);
-    //   current.resolvers.delete(key);
-    //   // console.log(`AFTER delete ${Array.from(current.resolvers.keys()).map((k) => k.toString())}`);
-    //   // console.groupEnd();
     // }
     registerTransformer(key, transformer) {
         const resolver = this.getResolver(key);
@@ -1545,10 +1547,15 @@ class Container {
         return new Container(this, ContainerConfiguration.from(config !== null && config !== void 0 ? config : this.config));
     }
     disposeResolvers() {
-        let disposeable;
-        for (disposeable of this._disposableResolvers) {
-            disposeable.dispose();
+        const resolvers = this._resolvers;
+        const disposableResolvers = this._disposableResolvers;
+        let disposable;
+        let key;
+        for ([key, disposable] of disposableResolvers.entries()) {
+            disposable.dispose();
+            resolvers.delete(key);
         }
+        disposableResolvers.clear();
     }
     find(kind, name) {
         const key = kind.keyFrom(name);

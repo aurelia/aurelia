@@ -6,9 +6,9 @@ import { IExpressionParser as l } from "../../../runtime/dist/native-modules/ind
 
 import { IPlatform as s } from "../../../runtime-html/dist/native-modules/index.js";
 
-import { IValidator as c, ValidationMessageProvider as u } from "../../../validation/dist/native-modules/index.js";
+import { ValidationMessageProvider as c, IValidator as u } from "../../../validation/dist/native-modules/index.js";
 
-import { ValidationController as f, ValidationControllerFactory as d, getDefaultValidationHtmlConfiguration as m, ValidationHtmlConfiguration as v } from "../../../validation-html/dist/native-modules/index.js";
+import { ValidationController as f, ValidationControllerFactory as d, getDefaultValidationHtmlConfiguration as m, ValidationHtmlConfiguration as h } from "../../../validation-html/dist/native-modules/index.js";
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -23,7 +23,7 @@ INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
 LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */ function h(t, e, i, o) {
+***************************************************************************** */ function v(t, e, i, o) {
     var r = arguments.length, n = r < 3 ? e : null === o ? o = Object.getOwnPropertyDescriptor(e, i) : o, a;
     if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) n = Reflect.decorate(t, e, i, o); else for (var l = t.length - 1; l >= 0; l--) if (a = t[l]) n = (r < 3 ? a(n) : r > 3 ? a(e, i, n) : a(e, i)) || n;
     return r > 3 && n && Object.defineProperty(e, i, n), n;
@@ -50,15 +50,15 @@ let x = class LocalizedValidationController extends f {
     }
 };
 
-x = h([ p(0, r), p(1, i), p(2, c), p(3, l), p(4, s) ], x);
+x = v([ p(0, r), p(1, i), p(2, u), p(3, l), p(4, s) ], x);
 
 class LocalizedValidationControllerFactory extends d {
     construct(t, e) {
-        return void 0 !== e ? Reflect.construct(x, e) : new x(t, t.get(i), t.get(c), t.get(l), t.get(s));
+        return t.invoke(x, e);
     }
 }
 
-let z = class LocalizedValidationMessageProvider extends u {
+let z = class LocalizedValidationMessageProvider extends c {
     constructor(t, e, i, o, r) {
         super(o, r, []);
         this.i18n = e;
@@ -89,7 +89,7 @@ let z = class LocalizedValidationMessageProvider extends u {
     }
 };
 
-z = h([ p(0, g), p(1, t), p(2, i), p(3, l), p(4, o) ], z);
+z = v([ p(0, g), p(1, t), p(2, i), p(3, l), p(4, o) ], z);
 
 function C(t) {
     return {
@@ -107,7 +107,7 @@ function C(t) {
                 DefaultNamespace: i.DefaultNamespace,
                 DefaultKeyPrefix: i.DefaultKeyPrefix
             };
-            return e.register(v.customize((t => {
+            return e.register(h.customize((t => {
                 for (const e of Object.keys(t)) if (e in i) t[e] = i[e];
             })), n.callback(g, (() => o)));
         },

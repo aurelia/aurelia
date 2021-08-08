@@ -389,9 +389,7 @@ class ValidationControllerFactory {
         return false;
     }
     construct(container, _dynamicDependencies) {
-        return _dynamicDependencies !== void 0
-            ? Reflect.construct(ValidationController, _dynamicDependencies)
-            : new ValidationController(container.get(IValidator), container.get(IExpressionParser), container.get(IPlatform), container);
+        return container.invoke(ValidationController, _dynamicDependencies);
     }
 }
 

@@ -20,7 +20,7 @@ const o = t.Protocol.resource.keyFor;
 
 const h = t.Protocol.resource.appendTo;
 
-function c(...t) {
+function u(...t) {
     return function(e) {
         const s = n("aliases");
         const o = r(s, e);
@@ -28,7 +28,7 @@ function c(...t) {
     };
 }
 
-function u(e, r, s, i) {
+function c(e, r, s, i) {
     for (let n = 0, o = e.length; n < o; ++n) t.Registration.aliasTo(s, r.keyFrom(e[n])).register(i);
 }
 
@@ -165,7 +165,7 @@ class BindingBehaviorDefinition {
             break;
         }
         t.Registration.aliasTo(s, r).register(e);
-        u(i, v, s, e);
+        c(i, v, s, e);
     }
 }
 
@@ -180,14 +180,12 @@ class BindingBehaviorFactory {
         const s = this.deps;
         switch (s.length) {
           case 0:
-          case 1:
-          case 2:
             return new this.Type(t, e);
 
-          case 3:
+          case 1:
             return new this.Type(r.get(s[0]), t, e);
 
-          case 4:
+          case 2:
             return new this.Type(r.get(s[0]), r.get(s[1]), t, e);
 
           default:
@@ -316,7 +314,7 @@ class ValueConverterDefinition {
         const {Type: r, key: s, aliases: i} = this;
         t.Registration.singleton(s, r).register(e);
         t.Registration.aliasTo(s, r).register(e);
-        u(i, x, s, e);
+        c(i, x, s, e);
     }
 }
 
@@ -1991,18 +1989,18 @@ function J(t, e) {
 }
 
 function X(t, e, r, s, i) {
-    let n, o, h, c, u;
+    let n, o, h, u, c;
     let a, l;
     for (a = r + 1; a < s; a++) {
         n = t[a];
         o = e[a];
         for (l = a - 1; l >= r; l--) {
             h = t[l];
-            c = e[l];
-            u = i(h, n);
-            if (u > 0) {
+            u = e[l];
+            c = i(h, n);
+            if (c > 0) {
                 t[l + 1] = h;
-                e[l + 1] = c;
+                e[l + 1] = u;
             } else break;
         }
         t[l + 1] = n;
@@ -2012,7 +2010,7 @@ function X(t, e, r, s, i) {
 
 function Y(t, e, r, s, i) {
     let n = 0, o = 0;
-    let h, c, u;
+    let h, u, c;
     let a, l, f;
     let d, p, v;
     let g, b;
@@ -2026,45 +2024,45 @@ function Y(t, e, r, s, i) {
         n = r + (s - r >> 1);
         h = t[r];
         a = e[r];
-        c = t[s - 1];
+        u = t[s - 1];
         l = e[s - 1];
-        u = t[n];
+        c = t[n];
         f = e[n];
-        d = i(h, c);
+        d = i(h, u);
         if (d > 0) {
             g = h;
             b = a;
-            h = c;
+            h = u;
             a = l;
-            c = g;
+            u = g;
             l = b;
         }
-        p = i(h, u);
+        p = i(h, c);
         if (p >= 0) {
             g = h;
             b = a;
-            h = u;
+            h = c;
             a = f;
-            u = c;
+            c = u;
             f = l;
-            c = g;
+            u = g;
             l = b;
         } else {
-            v = i(c, u);
+            v = i(u, c);
             if (v > 0) {
-                g = c;
+                g = u;
                 b = l;
-                c = u;
+                u = c;
                 l = f;
-                u = g;
+                c = g;
                 f = b;
             }
         }
         t[r] = h;
         e[r] = a;
-        t[s - 1] = u;
+        t[s - 1] = c;
         e[s - 1] = f;
-        w = c;
+        w = u;
         x = l;
         m = r + 1;
         E = s - 1;
@@ -2130,7 +2128,7 @@ const ot = tt.reverse;
 
 const ht = tt.sort;
 
-const ct = {
+const ut = {
     push: et,
     unshift: rt,
     pop: st,
@@ -2140,7 +2138,7 @@ const ct = {
     sort: ht
 };
 
-const ut = [ "push", "unshift", "pop", "shift", "splice", "reverse", "sort" ];
+const ct = [ "push", "unshift", "pop", "shift", "splice", "reverse", "sort" ];
 
 const at = {
     push: function(...t) {
@@ -2201,18 +2199,18 @@ const at = {
         const n = 0 | e;
         const o = n < 0 ? Math.max(i + n, 0) : Math.min(n, i);
         const h = s.indexMap;
-        const c = t.length;
-        const u = 0 === c ? 0 : 1 === c ? i - o : r;
-        if (u > 0) {
+        const u = t.length;
+        const c = 0 === u ? 0 : 1 === u ? i - o : r;
+        if (c > 0) {
             let t = o;
-            const e = t + u;
+            const e = t + c;
             while (t < e) {
                 if (h[t] > -1) h.deletedItems.push(h[t]);
                 t++;
             }
         }
-        if (c > 2) {
-            const t = c - 2;
+        if (u > 2) {
+            const t = u - 2;
             const s = new Array(t);
             let i = 0;
             while (i < t) s[i++] = -2;
@@ -2267,7 +2265,7 @@ const at = {
     }
 };
 
-for (const t of ut) S(at[t], "observing", {
+for (const t of ct) S(at[t], "observing", {
     value: true,
     writable: false,
     configurable: false,
@@ -2277,11 +2275,11 @@ for (const t of ut) S(at[t], "observing", {
 let lt = false;
 
 function ft() {
-    for (const t of ut) if (true !== tt[t].observing) L(tt, t, at[t]);
+    for (const t of ct) if (true !== tt[t].observing) L(tt, t, at[t]);
 }
 
 function dt() {
-    for (const t of ut) if (true === tt[t].observing) L(tt, t, ct[t]);
+    for (const t of ct) if (true === tt[t].observing) L(tt, t, ut[t]);
 }
 
 class ArrayObserver {
@@ -2805,11 +2803,11 @@ class ExpressionParser {
         }
     }
     $parse(t, e) {
-        ce.ip = t;
-        ce.length = t.length;
-        ce.index = 0;
-        ce.u = t.charCodeAt(0);
-        return ae(ce, 0, 61, void 0 === e ? 53 : e);
+        ue.ip = t;
+        ue.length = t.length;
+        ue.index = 0;
+        ue.u = t.charCodeAt(0);
+        return ae(ue, 0, 61, void 0 === e ? 53 : e);
     }
 }
 
@@ -3104,14 +3102,14 @@ class ParserState {
     }
 }
 
-const ce = new ParserState("");
+const ue = new ParserState("");
 
-function ue(t, e) {
-    ce.ip = t;
-    ce.length = t.length;
-    ce.index = 0;
-    ce.u = t.charCodeAt(0);
-    return ae(ce, 0, 61, void 0 === e ? 53 : e);
+function ce(t, e) {
+    ue.ip = t;
+    ue.length = t.length;
+    ue.index = 0;
+    ue.u = t.charCodeAt(0);
+    return ae(ue, 0, 61, void 0 === e ? 53 : e);
 }
 
 function ae(t, e, r, s) {
@@ -3817,10 +3815,10 @@ const er = {
             return ir;
 
           case "find":
-            return ur;
+            return cr;
 
           case "findIndex":
-            return cr;
+            return ur;
 
           case "flat":
             return ar;
@@ -3932,7 +3930,7 @@ function hr(t) {
     return s;
 }
 
-function cr(t, e) {
+function ur(t, e) {
     var r;
     const s = Ze(this);
     const i = s.findIndex(((r, s) => Je(t.call(e, ze(r), s, this))));
@@ -3940,7 +3938,7 @@ function cr(t, e) {
     return i;
 }
 
-function ur(t, e) {
+function cr(t, e) {
     var r;
     const s = Ze(this);
     const i = s.find(((e, r) => t(ze(e), r, this)), e);
@@ -4223,12 +4221,12 @@ class ComputedObserver {
         const n = r.get;
         const o = r.set;
         const h = new ComputedObserver(t, n, o, i, s);
-        const c = () => h.getValue();
-        c.getObserver = () => h;
+        const u = () => h.getValue();
+        u.getObserver = () => h;
         S(t, e, {
             enumerable: r.enumerable,
             configurable: true,
-            get: c,
+            get: u,
             set: t => {
                 h.setValue(t, 0);
             }
@@ -4751,18 +4749,18 @@ function Zr(t, e, r) {
             configurable: true
         };
         if (!("enumerable" in r)) r.enumerable = true;
-        const c = s.set;
+        const u = s.set;
         r.get = function t() {
             var r;
-            const s = Jr(this, e, o, h, c);
+            const s = Jr(this, e, o, h, u);
             null === (r = Ve()) || void 0 === r ? void 0 : r.subscribeTo(s);
             return s.getValue();
         };
         r.set = function t(r) {
-            Jr(this, e, o, h, c).setValue(r, 0);
+            Jr(this, e, o, h, u).setValue(r, 0);
         };
         r.get.getObserver = function t(r) {
-            return Jr(r, e, o, h, c);
+            return Jr(r, e, o, h, u);
         };
         if (n) S(t.prototype, e, r); else return r;
     }
@@ -4914,7 +4912,7 @@ exports.ValueConverterDefinition = ValueConverterDefinition;
 
 exports.ValueConverterExpression = ValueConverterExpression;
 
-exports.alias = c;
+exports.alias = u;
 
 exports.applyMutationsToIndices = vt;
 
@@ -4948,9 +4946,9 @@ exports.observable = Zr;
 
 exports.parse = ae;
 
-exports.parseExpression = ue;
+exports.parseExpression = ce;
 
-exports.registerAliases = u;
+exports.registerAliases = c;
 
 exports.subscriberCollection = I;
 

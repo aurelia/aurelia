@@ -52,9 +52,7 @@ exports.LocalizedValidationController = __decorate([
 ], exports.LocalizedValidationController);
 class LocalizedValidationControllerFactory extends validationHtml.ValidationControllerFactory {
     construct(container, _dynamicDependencies) {
-        return _dynamicDependencies !== void 0
-            ? Reflect.construct(exports.LocalizedValidationController, _dynamicDependencies)
-            : new exports.LocalizedValidationController(container, container.get(kernel.IEventAggregator), container.get(validation.IValidator), container.get(runtime.IExpressionParser), container.get(runtimeHtml.IPlatform));
+        return container.invoke(exports.LocalizedValidationController, _dynamicDependencies);
     }
 }
 exports.LocalizedValidationMessageProvider = class LocalizedValidationMessageProvider extends validation.ValidationMessageProvider {

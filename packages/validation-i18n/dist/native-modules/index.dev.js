@@ -2,7 +2,7 @@ import { I18N } from '../../../i18n/dist/native-modules/index.js';
 import { DI, IEventAggregator, ILogger, IServiceLocator, Registration, noop } from '../../../kernel/dist/native-modules/index.js';
 import { IExpressionParser } from '../../../runtime/dist/native-modules/index.js';
 import { IPlatform } from '../../../runtime-html/dist/native-modules/index.js';
-import { IValidator, ValidationMessageProvider } from '../../../validation/dist/native-modules/index.js';
+import { ValidationMessageProvider, IValidator } from '../../../validation/dist/native-modules/index.js';
 import { ValidationController, ValidationControllerFactory, getDefaultValidationHtmlConfiguration, ValidationHtmlConfiguration } from '../../../validation-html/dist/native-modules/index.js';
 
 /*! *****************************************************************************
@@ -48,9 +48,7 @@ LocalizedValidationController = __decorate([
 ], LocalizedValidationController);
 class LocalizedValidationControllerFactory extends ValidationControllerFactory {
     construct(container, _dynamicDependencies) {
-        return _dynamicDependencies !== void 0
-            ? Reflect.construct(LocalizedValidationController, _dynamicDependencies)
-            : new LocalizedValidationController(container, container.get(IEventAggregator), container.get(IValidator), container.get(IExpressionParser), container.get(IPlatform));
+        return container.invoke(LocalizedValidationController, _dynamicDependencies);
     }
 }
 let LocalizedValidationMessageProvider = class LocalizedValidationMessageProvider extends ValidationMessageProvider {

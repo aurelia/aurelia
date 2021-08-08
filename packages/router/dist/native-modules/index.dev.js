@@ -4003,7 +4003,7 @@ class RouteContext {
         container.registerResolver(IController, this.hostControllerProvider = new InstanceProvider(), true);
         // We don't need to store it here but we use an InstanceProvider so that it can be disposed indirectly via the container.
         const contextProvider = new InstanceProvider();
-        container.registerResolver(IRouteContext, contextProvider, true);
+        container.registerResolver(IRouteContext, contextProvider);
         contextProvider.prepare(this);
         container.register(definition);
         container.register(...component.dependencies);

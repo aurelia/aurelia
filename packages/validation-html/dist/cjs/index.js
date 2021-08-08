@@ -291,8 +291,8 @@ class ValidationControllerFactory {
     registerTransformer(t) {
         return false;
     }
-    construct(t, o) {
-        return void 0 !== o ? Reflect.construct(exports.ValidationController, o) : new exports.ValidationController(t.get(i.IValidator), t.get(e.IExpressionParser), t.get(s.IPlatform), t);
+    construct(t, i) {
+        return t.invoke(exports.ValidationController, i);
     }
 }
 

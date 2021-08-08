@@ -261,13 +261,11 @@ class BindingBehaviorFactory {
         const deps = this.deps;
         switch (deps.length) {
             case 0:
-            case 1:
-            case 2:
                 // TODO(fkleuver): fix this cast
                 return new this.Type(binding, expr);
-            case 3:
+            case 1:
                 return new this.Type(container.get(deps[0]), binding, expr);
-            case 4:
+            case 2:
                 return new this.Type(container.get(deps[0]), container.get(deps[1]), binding, expr);
             default:
                 return new this.Type(...deps.map(d => container.get(d)), binding, expr);

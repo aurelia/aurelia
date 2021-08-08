@@ -4393,6 +4393,7 @@ class Controller {
         this.viewModel = null;
         this.host = null;
         this.shadowRoot = null;
+        this.container.disposeResolvers();
     }
     accept(visitor) {
         if (visitor(this) === true) {

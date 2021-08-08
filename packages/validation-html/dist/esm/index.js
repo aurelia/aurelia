@@ -286,7 +286,7 @@ class ValidationControllerFactory {
         return false;
     }
     construct(t, i) {
-        return void 0 !== i ? Reflect.construct(j, i) : new j(t.get(h), t.get(C), t.get(d), t);
+        return t.invoke(j, i);
     }
 }
 

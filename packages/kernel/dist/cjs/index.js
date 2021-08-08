@@ -323,14 +323,14 @@ const I = (t, e) => {
     return `${O}:${t}:${e}`;
 };
 
-const k = (t, e) => {
+const M = (t, e) => {
     const r = E(O, t);
     if (void 0 === r) j(O, [ e ], t); else r.push(e);
 };
 
-const M = Object.freeze({
+const k = Object.freeze({
     name: "au:annotation",
-    appendTo: k,
+    appendTo: M,
     set(t, e, r) {
         j(I(e), r, t);
     },
@@ -370,7 +370,7 @@ const L = Object.freeze({
 });
 
 const U = {
-    annotation: M,
+    annotation: k,
     resource: L
 };
 
@@ -584,7 +584,7 @@ function z(t) {
             }
         } else r = N(i);
         j(e, r, t);
-        k(t, e);
+        M(t, e);
     }
     return r;
 }
@@ -594,7 +594,7 @@ function Q(t) {
     let r = E(e, t);
     if (void 0 === r) {
         j(e, r = [], t);
-        k(t, e);
+        M(t, e);
     }
     return r;
 }
@@ -672,7 +672,7 @@ const nt = K(((t, e, r) => (...n) => e.getFactory(t).construct(r, n)));
 const it = K(((t, e, r) => {
     const n = st(t, e, r);
     const i = new InstanceProvider(String(t), n);
-    r.registerResolver(t, i);
+    r.registerResolver(t, i, true);
     return n;
 }));
 
@@ -818,7 +818,7 @@ class Container {
         this.config = e;
         this.id = ++wt;
         this.t = 0;
-        this.i = new Set;
+        this.i = new Map;
         if (null === t) {
             this.root = this;
             this.o = new Map;
@@ -882,7 +882,7 @@ class Container {
                 this.res[t] = e;
             }
         } else if (i instanceof Resolver && 4 === i.strategy) i.state.push(e); else n.set(t, new Resolver(t, 4, [ i, e ]));
-        if (r) this.i.add(e);
+        if (r) this.i.set(t, e);
         return e;
     }
     registerTransformer(t, e) {
@@ -982,8 +982,15 @@ class Container {
         return new Container(this, ContainerConfiguration.from(null !== t && void 0 !== t ? t : this.config));
     }
     disposeResolvers() {
-        let t;
-        for (t of this.i) t.dispose();
+        const t = this.o;
+        const e = this.i;
+        let r;
+        let n;
+        for ([n, r] of e.entries()) {
+            r.dispose();
+            t.delete(n);
+        }
+        e.clear();
     }
     find(t, e) {
         const r = t.keyFrom(e);
@@ -1190,9 +1197,9 @@ exports.ColorOptions = void 0;
     t[t["colors"] = 1] = "colors";
 })(exports.ColorOptions || (exports.ColorOptions = {}));
 
-const kt = B.createInterface("ILogConfig", (t => t.instance(new LogConfig(0, 3))));
+const Mt = B.createInterface("ILogConfig", (t => t.instance(new LogConfig(0, 3))));
 
-const Mt = B.createInterface("ISink");
+const kt = B.createInterface("ISink");
 
 const Ft = B.createInterface("ILogEventFactory", (t => t.singleton(exports.DefaultLogEventFactory)));
 
@@ -1315,7 +1322,7 @@ exports.DefaultLogEventFactory = class DefaultLogEventFactory {
     }
 };
 
-exports.DefaultLogEventFactory = Ot([ It(0, kt) ], exports.DefaultLogEventFactory);
+exports.DefaultLogEventFactory = Ot([ It(0, Mt) ], exports.DefaultLogEventFactory);
 
 exports.ConsoleSink = class ConsoleSink {
     constructor(t) {
@@ -1362,7 +1369,7 @@ exports.ConsoleSink = class ConsoleSink {
         };
     }
     static register(t) {
-        Rt.singleton(Mt, ConsoleSink).register(t);
+        Rt.singleton(kt, ConsoleSink).register(t);
     }
 };
 
@@ -1453,14 +1460,14 @@ Ot([ g ], exports.DefaultLogger.prototype, "error", null);
 
 Ot([ g ], exports.DefaultLogger.prototype, "fatal", null);
 
-exports.DefaultLogger = Ot([ It(0, kt), It(1, Ft), It(2, Z(Mt)), It(3, et(Ut)), It(4, rt) ], exports.DefaultLogger);
+exports.DefaultLogger = Ot([ It(0, Mt), It(1, Ft), It(2, Z(kt)), It(3, et(Ut)), It(4, rt) ], exports.DefaultLogger);
 
 const Bt = m({
     create({level: t = 3, colorOptions: e = 0, sinks: r = []} = {}) {
         return m({
             register(n) {
-                n.register(Rt.instance(kt, new LogConfig(e, t)));
-                for (const t of r) if ("function" === typeof t) n.register(Rt.singleton(Mt, t)); else n.register(t);
+                n.register(Rt.instance(Mt, new LogConfig(e, t)));
+                for (const t of r) if ("function" === typeof t) n.register(Rt.singleton(kt, t)); else n.register(t);
                 return n;
             }
         });
@@ -1661,7 +1668,7 @@ exports.IContainer = _;
 
 exports.IEventAggregator = _t;
 
-exports.ILogConfig = kt;
+exports.ILogConfig = Mt;
 
 exports.ILogEventFactory = Ft;
 
@@ -1673,7 +1680,7 @@ exports.IPlatform = jt;
 
 exports.IServiceLocator = G;
 
-exports.ISink = Mt;
+exports.ISink = kt;
 
 exports.InstanceProvider = InstanceProvider;
 

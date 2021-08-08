@@ -3266,7 +3266,7 @@ class RouteContext {
         const l = this.container = h.createChild();
         l.registerResolver(e.IController, this.hostControllerProvider = new t.InstanceProvider, true);
         const d = new t.InstanceProvider;
-        l.registerResolver(ht, d, true);
+        l.registerResolver(ht, d);
         d.prepare(this);
         l.register(a);
         l.register(...r.dependencies);

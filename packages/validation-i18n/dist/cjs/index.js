@@ -59,8 +59,8 @@ exports.LocalizedValidationController = class LocalizedValidationController exte
 exports.LocalizedValidationController = n([ s(0, t.IServiceLocator), s(1, t.IEventAggregator), s(2, o.IValidator), s(3, r.IExpressionParser), s(4, i.IPlatform) ], exports.LocalizedValidationController);
 
 class LocalizedValidationControllerFactory extends a.ValidationControllerFactory {
-    construct(e, a) {
-        return void 0 !== a ? Reflect.construct(exports.LocalizedValidationController, a) : new exports.LocalizedValidationController(e, e.get(t.IEventAggregator), e.get(o.IValidator), e.get(r.IExpressionParser), e.get(i.IPlatform));
+    construct(e, t) {
+        return e.invoke(exports.LocalizedValidationController, t);
     }
 }
 

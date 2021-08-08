@@ -2,7 +2,7 @@ import { I18N } from '@aurelia/i18n';
 import { DI, IEventAggregator, ILogger, IServiceLocator, Registration, noop } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
 import { IPlatform } from '@aurelia/runtime-html';
-import { IValidator, ValidationMessageProvider } from '@aurelia/validation';
+import { ValidationMessageProvider, IValidator } from '@aurelia/validation';
 import { ValidationController, ValidationControllerFactory, getDefaultValidationHtmlConfiguration, ValidationHtmlConfiguration } from '@aurelia/validation-html';
 
 /*! *****************************************************************************
@@ -48,9 +48,7 @@ LocalizedValidationController = __decorate([
 ], LocalizedValidationController);
 class LocalizedValidationControllerFactory extends ValidationControllerFactory {
     construct(container, _dynamicDependencies) {
-        return _dynamicDependencies !== void 0
-            ? Reflect.construct(LocalizedValidationController, _dynamicDependencies)
-            : new LocalizedValidationController(container, container.get(IEventAggregator), container.get(IValidator), container.get(IExpressionParser), container.get(IPlatform));
+        return container.invoke(LocalizedValidationController, _dynamicDependencies);
     }
 }
 let LocalizedValidationMessageProvider = class LocalizedValidationMessageProvider extends ValidationMessageProvider {

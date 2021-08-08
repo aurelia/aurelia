@@ -370,15 +370,15 @@ const P = {
     resource: L
 };
 
-const S = Object.prototype.hasOwnProperty;
+const D = Object.prototype.hasOwnProperty;
 
-function D(t, e, n, r) {
+function S(t, e, n, r) {
     let i = j(M(t), n);
     if (void 0 === i) {
         i = e[t];
         if (void 0 === i) {
             i = n[t];
-            if (void 0 === i || !S.call(n, t)) return r();
+            if (void 0 === i || !D.call(n, t)) return r();
             return i;
         }
         return i;
@@ -390,7 +390,7 @@ function N(t, e, n) {
     let r = j(M(t), e);
     if (void 0 === r) {
         r = e[t];
-        if (void 0 === r || !S.call(e, t)) return n();
+        if (void 0 === r || !D.call(e, t)) return n();
         return r;
     }
     return r;
@@ -668,7 +668,7 @@ const it = H(((t, e, n) => (...r) => e.getFactory(t).construct(n, r)));
 const ot = H(((t, e, n) => {
     const r = ut(t, e, n);
     const i = new InstanceProvider(String(t), r);
-    n.registerResolver(t, i);
+    n.registerResolver(t, i, true);
     return r;
 }));
 
@@ -814,7 +814,7 @@ class Container {
         this.config = e;
         this.id = ++yt;
         this.t = 0;
-        this.i = new Set;
+        this.i = new Map;
         if (null === t) {
             this.root = this;
             this.o = new Map;
@@ -878,7 +878,7 @@ class Container {
                 this.res[t] = e;
             }
         } else if (i instanceof Resolver && 4 === i.strategy) i.state.push(e); else r.set(t, new Resolver(t, 4, [ i, e ]));
-        if (n) this.i.add(e);
+        if (n) this.i.set(t, e);
         return e;
     }
     registerTransformer(t, e) {
@@ -978,8 +978,15 @@ class Container {
         return new Container(this, ContainerConfiguration.from(null !== t && void 0 !== t ? t : this.config));
     }
     disposeResolvers() {
-        let t;
-        for (t of this.i) t.dispose();
+        const t = this.o;
+        const e = this.i;
+        let n;
+        let r;
+        for ([r, n] of e.entries()) {
+            n.dispose();
+            t.delete(r);
+        }
+        e.clear();
     }
     find(t, e) {
         const n = t.keyFrom(e);
@@ -1192,9 +1199,9 @@ const Lt = x.createInterface("ISink");
 
 const Pt = x.createInterface("ILogEventFactory", (t => t.singleton(Gt)));
 
-const St = x.createInterface("ILogger", (t => t.singleton(_t)));
+const Dt = x.createInterface("ILogger", (t => t.singleton(_t)));
 
-const Dt = x.createInterface("ILogScope");
+const St = x.createInterface("ILogScope");
 
 const Nt = Object.freeze({
     key: M("logger-sink-handles"),
@@ -1449,7 +1456,7 @@ It([ p ], _t.prototype, "error", null);
 
 It([ p ], _t.prototype, "fatal", null);
 
-_t = It([ Mt(0, Ut), Mt(1, Pt), Mt(2, tt(Lt)), Mt(3, nt(Dt)), Mt(4, rt) ], _t);
+_t = It([ Mt(0, Ut), Mt(1, Pt), Mt(2, tt(Lt)), Mt(3, nt(St)), Mt(4, rt) ], _t);
 
 const Ht = C({
     create({level: t = 3, colorOptions: e = 0, sinks: n = []} = {}) {
@@ -1619,5 +1626,5 @@ class EventAggregator {
     }
 }
 
-export { AnalyzedModule, Ft as ColorOptions, Kt as ConsoleSink, ContainerConfiguration, x as DI, DefaultLogEvent, Gt as DefaultLogEventFactory, _t as DefaultLogger, Q as DefaultResolver, EventAggregator, K as IContainer, Jt as IEventAggregator, Ut as ILogConfig, Pt as ILogEventFactory, St as ILogger, Vt as IModuleLoader, kt as IPlatform, _ as IServiceLocator, Lt as ISink, InstanceProvider, LogConfig, Tt as LogLevel, Ht as LoggerConfiguration, ModuleItem, P as Protocol, bt as Registration, tt as all, p as bound, l as camelCase, g as compareNumber, At as emptyArray, jt as emptyObject, it as factory, R as firstDefined, Bt as format, D as fromAnnotationOrDefinitionOrTypeOrDefault, N as fromAnnotationOrTypeOrDefault, W as fromDefinitionOrDefault, b as getPrototypeChain, rt as ignore, V as inject, i as isArrayIndex, $ as isNativeFunction, o as isNumberOrBigInt, s as isStringOrDate, f as kebabCase, et as lazy, y as mergeArrays, w as mergeDistinct, m as mergeObjects, ot as newInstanceForScope, st as newInstanceOf, d as nextId, Ot as noop, E as onResolve, nt as optional, c as pascalCase, v as resetId, A as resolveAll, Y as singleton, Wt as sink, a as toArray, J as transient };
+export { AnalyzedModule, Ft as ColorOptions, Kt as ConsoleSink, ContainerConfiguration, x as DI, DefaultLogEvent, Gt as DefaultLogEventFactory, _t as DefaultLogger, Q as DefaultResolver, EventAggregator, K as IContainer, Jt as IEventAggregator, Ut as ILogConfig, Pt as ILogEventFactory, Dt as ILogger, Vt as IModuleLoader, kt as IPlatform, _ as IServiceLocator, Lt as ISink, InstanceProvider, LogConfig, Tt as LogLevel, Ht as LoggerConfiguration, ModuleItem, P as Protocol, bt as Registration, tt as all, p as bound, l as camelCase, g as compareNumber, At as emptyArray, jt as emptyObject, it as factory, R as firstDefined, Bt as format, S as fromAnnotationOrDefinitionOrTypeOrDefault, N as fromAnnotationOrTypeOrDefault, W as fromDefinitionOrDefault, b as getPrototypeChain, rt as ignore, V as inject, i as isArrayIndex, $ as isNativeFunction, o as isNumberOrBigInt, s as isStringOrDate, f as kebabCase, et as lazy, y as mergeArrays, w as mergeDistinct, m as mergeObjects, ot as newInstanceForScope, st as newInstanceOf, d as nextId, Ot as noop, E as onResolve, nt as optional, c as pascalCase, v as resetId, A as resolveAll, Y as singleton, Wt as sink, a as toArray, J as transient };
 //# sourceMappingURL=index.js.map

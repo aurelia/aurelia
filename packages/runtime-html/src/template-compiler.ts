@@ -22,7 +22,7 @@ import { Bindable, BindableDefinition } from './bindable.js';
 import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
-import { BindingCommand } from './resources/binding-command.js';
+import { BindingCommand, CommandType } from './resources/binding-command.js';
 import { createLookup } from './utilities-html.js';
 import { allResources } from './utilities-di.js';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from './shared.js';
@@ -141,7 +141,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       bindingCommand = context._createCommand(attrSyntax);
-      if (bindingCommand !== null && (bindingCommand.type & ExpressionType.IgnoreAttr) > 0) {
+      if (bindingCommand !== null && (bindingCommand.type & CommandType.IgnoreAttr) > 0) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."
@@ -347,7 +347,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           case 'to-view':
           case 'bind':
             letInstructions.push(new LetBindingInstruction(
-              exprParser.parse(realAttrValue, bindingCommand.type) as IsBindingBehavior,
+              exprParser.parse(realAttrValue, ExpressionType.IsProperty),
               camelCase(realAttrTarget)
             ));
             continue;
@@ -514,7 +514,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrSyntax = context._attrParser.parse(attrName, attrValue);
 
       bindingCommand = context._createCommand(attrSyntax);
-      if (bindingCommand !== null && bindingCommand.type & ExpressionType.IgnoreAttr) {
+      if (bindingCommand !== null && bindingCommand.type & CommandType.IgnoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."

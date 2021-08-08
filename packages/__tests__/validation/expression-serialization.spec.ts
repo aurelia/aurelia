@@ -22,7 +22,6 @@ import {
   TemplateExpression,
   TaggedTemplateExpression,
   AssignExpression,
-  AnyBindingExpression,
 } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 import { Deserializer, Serializer } from '@aurelia/validation';
@@ -32,7 +31,7 @@ describe('validation/expression-serialization.spec.ts/expression-de/serializatio
     const ctx = TestContext.create();
     return ctx.container.get(IExpressionParser);
   }
-  const list: { name: string, strExpr: string; expressionType: ExpressionType; exprType: any }[] = [
+  const list: { name: string; strExpr: string; expressionType: ExpressionType; exprType: any }[] = [
     { name: 'interpolation', strExpr: '${prop} static', expressionType: ExpressionType.Interpolation, exprType: Interpolation },
     { name: 'multi-interpolation', strExpr: '${prop1} static ${prop2}', expressionType: ExpressionType.Interpolation, exprType: Interpolation },
     { name: 'primitive literal (number)', strExpr: '1', expressionType: ExpressionType.None, exprType: PrimitiveLiteralExpression },

@@ -254,6 +254,7 @@ export {
   BindingCommandKind,
   BindingCommandType,
   CallBindingCommand,
+  CommandType,
   DefaultBindingCommand,
   ForBindingCommand,
   FromViewBindingCommand,

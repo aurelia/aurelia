@@ -321,16 +321,11 @@ const $parent = AccessThisExpression.$parent;
 
 export const enum ExpressionType {
                 None = 0,
-          // if a binding command is taking over the processing of an attribute
-          // then it should add this flag to its binding type
-          // which then tell the binder to proceed the attribute compilation as is,
-          // instead of normal process: transformation -> compilation
-          IgnoreAttr = 0b1000000,
-       Interpolation = 0b0100000,
-          IsIterator = 0b0001000,
-          IsCustom   = 0b0000100,
-          IsFunction = 0b0000010,
-          IsProperty = 0b0000001,
+       Interpolation = 0b0_00001,
+          IsIterator = 0b0_00010,
+          IsFunction = 0b0_00100,
+          IsProperty = 0b0_01000,
+          IsCustom   = 0b0_10000,
 }
 /* eslint-enable @typescript-eslint/indent */
 

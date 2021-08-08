@@ -7,6 +7,7 @@ import {
 } from '@aurelia/runtime';
 import {
   BindingMode,
+  CommandType,
   IHydratableController,
   IRenderer,
   renderer,
@@ -47,7 +48,7 @@ export class TranslationParametersBindingInstruction {
 
 @bindingCommand(attribute)
 export class TranslationParametersBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsProperty = ExpressionType.IsProperty;
+  public readonly type: CommandType.None = CommandType.None;
   public get name() { return attribute; }
 
   /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];

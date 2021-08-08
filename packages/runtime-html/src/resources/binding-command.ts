@@ -26,6 +26,18 @@ import type { BindableDefinition } from '../bindable.js';
 import type { CustomAttributeDefinition } from './custom-attribute.js';
 import type { CustomElementDefinition } from './custom-element.js';
 
+/**
+ * Characteristics of a binding command.
+ */
+export const enum CommandType {
+  None       = 0b0_000,
+  // if a binding command is taking over the processing of an attribute
+  // then it should add this flag to its type
+  // which then should be considered by the template compiler to keep the attribute as is in compilation,
+  // instead of normal process: check custom attribute -> check bindable -> command.build()
+  IgnoreAttr = 0b0_001,
+}
+
 export type PartialBindingCommandDefinition = PartialResourceDefinition<{
   readonly type?: string | null;
 }>;
@@ -47,7 +59,7 @@ export interface IBindableCommandInfo {
 export type ICommandBuildInfo = IPlainAttrCommandInfo | IBindableCommandInfo;
 
 export type BindingCommandInstance<T extends {} = {}> = {
-  type: ExpressionType;
+  type: CommandType;
   name: string;
   build(info: ICommandBuildInfo): IInstruction;
 } & T;
@@ -154,7 +166,7 @@ export const BindingCommand = Object.freeze<BindingCommandKind>({
 
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsProperty = ExpressionType.IsProperty;
+  public readonly type: CommandType.None = CommandType.None;
   public get name() { return 'one-time'; }
 
   /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
@@ -190,7 +202,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('to-view')
 export class ToViewBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsProperty = ExpressionType.IsProperty;
+  public readonly type: CommandType.None = CommandType.None;
   public get name() { return 'to-view'; }
 
   /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
@@ -226,7 +238,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('from-view')
 export class FromViewBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsProperty = ExpressionType.IsProperty;
+  public readonly type: CommandType.None = CommandType.None;
   public get name() { return 'from-view'; }
 
   /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
@@ -262,7 +274,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('two-way')
 export class TwoWayBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsProperty = ExpressionType.IsProperty;
+  public readonly type: CommandType.None = CommandType.None;
   public get name() { return 'two-way'; }
 
   /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
@@ -298,7 +310,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('bind')
 export class DefaultBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsProperty = ExpressionType.IsProperty;
+  public readonly type: CommandType.None = CommandType.None;
   public get name() { return 'bind'; }
 
   /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
@@ -344,7 +356,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('call')
 export class CallBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsProperty | ExpressionType.IsFunction = ExpressionType.IsProperty | ExpressionType.IsFunction;
+  public readonly type: CommandType.None = CommandType.None;
   public get name() { return 'call'; }
 
   /** @internal */ protected static inject = [IExpressionParser];
@@ -364,7 +376,7 @@ export class CallBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('for')
 export class ForBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsIterator = ExpressionType.IsIterator;
+  public readonly type: CommandType.None = CommandType.None;
   public get name() { return 'for'; }
 
   /** @internal */ protected static inject = [IExpressionParser];
@@ -384,7 +396,7 @@ export class ForBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('trigger')
 export class TriggerBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsFunction | ExpressionType.IgnoreAttr = ExpressionType.IsFunction | ExpressionType.IgnoreAttr;
+  public readonly type: CommandType.IgnoreAttr = CommandType.IgnoreAttr;
   public get name() { return 'trigger'; }
 
   /** @internal */ protected static inject = [IExpressionParser];
@@ -401,7 +413,7 @@ export class TriggerBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsFunction | ExpressionType.IgnoreAttr = ExpressionType.IsFunction | ExpressionType.IgnoreAttr;
+  public readonly type: CommandType.IgnoreAttr = CommandType.IgnoreAttr;
   public get name() { return 'delegate'; }
 
   /** @internal */ protected static inject = [IExpressionParser];
@@ -418,7 +430,7 @@ export class DelegateBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('capture')
 export class CaptureBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsFunction | ExpressionType.IgnoreAttr = ExpressionType.IsFunction | ExpressionType.IgnoreAttr;
+  public readonly type: CommandType.IgnoreAttr = CommandType.IgnoreAttr;
   public get name() { return 'capture'; }
 
   /** @internal */ protected static inject = [IExpressionParser];
@@ -438,7 +450,7 @@ export class CaptureBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('attr')
 export class AttrBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsProperty = ExpressionType.IsProperty | ExpressionType.IgnoreAttr;
+  public readonly type: CommandType.IgnoreAttr = CommandType.IgnoreAttr;
   public get name() { return 'attr'; }
 
   /** @internal */ protected static inject = [IExpressionParser];
@@ -458,7 +470,7 @@ export class AttrBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('style')
 export class StyleBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsProperty | ExpressionType.IgnoreAttr = ExpressionType.IsProperty | ExpressionType.IgnoreAttr;
+  public readonly type: CommandType.IgnoreAttr = CommandType.IgnoreAttr;
   public get name() { return 'style'; }
 
   /** @internal */ protected static inject = [IExpressionParser];
@@ -478,7 +490,7 @@ export class StyleBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('class')
 export class ClassBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsProperty | ExpressionType.IgnoreAttr = ExpressionType.IsProperty | ExpressionType.IgnoreAttr;
+  public readonly type: CommandType.IgnoreAttr = CommandType.IgnoreAttr;
   public get name() { return 'class'; }
 
   /** @internal */ protected static inject = [IExpressionParser];
@@ -498,7 +510,7 @@ export class ClassBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('ref')
 export class RefBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsProperty | ExpressionType.IgnoreAttr = ExpressionType.IsProperty | ExpressionType.IgnoreAttr;
+  public readonly type: CommandType.IgnoreAttr = CommandType.IgnoreAttr;
   public get name() { return 'ref'; }
 
   /** @internal */ protected static inject = [IExpressionParser];

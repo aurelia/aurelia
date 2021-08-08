@@ -1,5 +1,6 @@
 import {
   alias,
+  CommandType,
   ExpressionType,
   BindingCommandInstance,
   bindingCommand,
@@ -20,7 +21,7 @@ describe('binding-commands', function () {
     @bindingCommand({ name: 'woot1', aliases: ['woot13'] })
     @alias(...['woot11', 'woot12'])
     class WootCommand implements BindingCommandInstance {
-      public readonly type: ExpressionType.IsProperty = ExpressionType.IsProperty;
+      public readonly type: CommandType.None = CommandType.None;
       public name = 'woot1';
 
       public static inject = [OneTimeBindingCommand];
@@ -34,7 +35,7 @@ describe('binding-commands', function () {
     @bindingCommand({ name: 'woot2', aliases: ['woot23'] })
     @alias('woot21', 'woot22')
     class WootCommand2 implements BindingCommandInstance {
-      public readonly type: ExpressionType.IsProperty = ExpressionType.IsProperty;
+      public readonly type: CommandType.None = CommandType.None;
       public name = 'woot2';
 
       public static inject = [OneTimeBindingCommand];

@@ -9,6 +9,7 @@ import {
 } from '@aurelia/runtime';
 import {
   BindingMode,
+  CommandType,
   IRenderer,
   renderer,
   IHydratableController,
@@ -46,7 +47,7 @@ export class TranslationBindingInstruction {
 }
 
 export class TranslationBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsCustom = ExpressionType.IsCustom;
+  public readonly type: CommandType.None = CommandType.None;
   public get name() { return 't'; }
 
   /** @internal */ protected static inject = [IAttrMapper];
@@ -72,11 +73,20 @@ export class TranslationBindingCommand implements BindingCommandInstance {
 
 @renderer(TranslationInstructionType)
 export class TranslationBindingRenderer implements IRenderer {
+  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IPlatform];
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+  /** @internal */ private readonly _observerLocator: IObserverLocator;
+  /** @internal */ private readonly _platform: IPlatform;
+
   public constructor(
-    @IExpressionParser private readonly parser: IExpressionParser,
-    @IObserverLocator private readonly oL: IObserverLocator,
-    @IPlatform private readonly p: IPlatform,
-  ) { }
+    exprParser: IExpressionParser,
+    observerLocator: IObserverLocator,
+    p: IPlatform,
+  ) {
+    this._exprParser = exprParser;
+    this._observerLocator = observerLocator;
+    this._platform = p;
+  }
 
   public render(
     renderingCtrl: IHydratableController,
@@ -84,13 +94,13 @@ export class TranslationBindingRenderer implements IRenderer {
     instruction: CallBindingInstruction,
   ): void {
     TranslationBinding.create({
-      parser: this.parser,
-      observerLocator: this.oL,
+      parser: this._exprParser,
+      observerLocator: this._observerLocator,
       context: renderingCtrl.container,
       controller: renderingCtrl,
       target,
       instruction,
-      platform: this.p,
+      platform: this._platform,
     });
   }
 }
@@ -119,7 +129,7 @@ export class TranslationBindBindingInstruction {
 }
 
 export class TranslationBindBindingCommand implements BindingCommandInstance {
-  public readonly type: ExpressionType.IsProperty = ExpressionType.IsProperty;
+  public readonly type: CommandType.None = CommandType.None;
   public get name() { return 't-bind'; }
 
   /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];

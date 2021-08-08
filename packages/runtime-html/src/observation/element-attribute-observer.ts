@@ -23,34 +23,48 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   // layout is not certain, depends on the attribute being flushed to owner element
   // but for simple start, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
+  public readonly queue!: FlushQueue;
 
-  public readonly obj: HTMLElement;
-  public value: unknown = null;
+  /** @internal */
+  private readonly _obj: HTMLElement;
+
+  /** @internal */
+  private _value: unknown = null;
+
   /** @internal */
   private _oldValue: unknown = null;
+
   /** @internal */
   private _hasChanges: boolean = false;
 
-  public readonly queue!: FlushQueue;
+  /** @internal */
+  private readonly _prop: string;
+
+  /** @internal */
+  private readonly _attr: string;
+
   /** @internal */
   private f: LifecycleFlags = LifecycleFlags.none;
 
   public constructor(
     obj: HTMLElement,
-    public readonly prop: string,
-    public readonly attr: string,
+    // todo: rename to attr and sub-attr
+    prop: string,
+    attr: string,
   ) {
-    this.obj = obj;
+    this._obj = obj;
+    this._prop = prop;
+    this._attr = attr;
   }
 
   public getValue(): unknown {
     // is it safe to assume the observer has the latest value?
     // todo: ability to turn on/off cache based on type
-    return this.value;
+    return this._value;
   }
 
   public setValue(value: unknown, flags: LifecycleFlags): void {
-    this.value = value;
+    this._value = value;
     this._hasChanges = value !== this._oldValue;
     if ((flags & LifecycleFlags.noFlush) === 0) {
       this._flushChanges();
@@ -61,10 +75,8 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   private _flushChanges(): void {
     if (this._hasChanges) {
       this._hasChanges = false;
-      const value = this.value;
-      const attr = this.attr;
-      this._oldValue = value;
-      switch (attr) {
+      this._oldValue = this._value;
+      switch (this._attr) {
         case 'class': {
           // Why does class attribute observer setValue look different with class attribute accessor?
           // ==============
@@ -77,24 +89,24 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
           // this also comes from syntax, where it would typically be my-class.class="someProperty"
           //
           // so there is no need for separating class by space and add all of them like class accessor
-          this.obj.classList.toggle(this.prop, !!value);
+          this._obj.classList.toggle(this._prop, !!this._value);
           break;
         }
         case 'style': {
           let priority = '';
-          let newValue = value as string;
+          let newValue = this._value as string;
           if (typeof newValue === 'string' && newValue.includes('!important')) {
             priority = 'important';
             newValue = newValue.replace('!important', '');
           }
-          this.obj.style.setProperty(this.prop, newValue, priority);
+          this._obj.style.setProperty(this._prop, newValue, priority);
           break;
         }
         default: {
-          if (value == null) {
-            this.obj.removeAttribute(attr);
+          if (this._value == null) {
+            this._obj.removeAttribute(this._attr);
           } else {
-            this.obj.setAttribute(attr, String(value));
+            this._obj.setAttribute(this._attr, String(this._value));
           }
         }
       }
@@ -105,7 +117,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     let shouldProcess = false;
     for (let i = 0, ii = mutationRecords.length; ii > i; ++i) {
       const record = mutationRecords[i];
-      if (record.type === 'attributes' && record.attributeName === this.prop) {
+      if (record.type === 'attributes' && record.attributeName === this._prop) {
         shouldProcess = true;
         break;
       }
@@ -113,23 +125,23 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 
     if (shouldProcess) {
       let newValue;
-      switch (this.attr) {
+      switch (this._attr) {
         case 'class':
-          newValue = this.obj.classList.contains(this.prop);
+          newValue = this._obj.classList.contains(this._prop);
           break;
         case 'style':
-          newValue = this.obj.style.getPropertyValue(this.prop);
+          newValue = this._obj.style.getPropertyValue(this._prop);
           break;
         default:
           if (__DEV__)
-            throw new Error(`Unsupported observation of attribute: ${this.attr}`);
+            throw new Error(`Unsupported observation of attribute: ${this._attr}`);
           else
-            throw new Error(`AUR0651:${this.attr}`);
+            throw new Error(`AUR0651:${this._attr}`);
       }
 
-      if (newValue !== this.value) {
-        this._oldValue = this.value;
-        this.value = newValue;
+      if (newValue !== this._value) {
+        this._oldValue = this._value;
+        this._value = newValue;
         this._hasChanges = false;
         this.f = LifecycleFlags.none;
         this.queue.add(this);
@@ -139,21 +151,21 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
-      this.value = this._oldValue = this.obj.getAttribute(this.prop);
-      startObservation(this.obj.ownerDocument.defaultView!.MutationObserver, this.obj as IHtmlElement, this);
+      this._value = this._oldValue = this._obj.getAttribute(this._prop);
+      startObservation(this._obj.ownerDocument.defaultView!.MutationObserver, this._obj as IHtmlElement, this);
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
-      stopObservation(this.obj as IHtmlElement, this);
+      stopObservation(this._obj as IHtmlElement, this);
     }
   }
 
   public flush(): void {
     oV = this._oldValue;
-    this._oldValue = this.value;
-    this.subs.notify(this.value, oV, this.f);
+    this._oldValue = this._value;
+    this.subs.notify(this._value, oV, this.f);
   }
 }
 

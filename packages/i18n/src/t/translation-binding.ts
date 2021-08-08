@@ -59,10 +59,13 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   public isBound: boolean = false;
   public expr!: IsExpression;
   private readonly i18n: I18N;
+  /** @internal */
   private readonly _contentAttributes: readonly string[] = contentAttributes;
+  /** @internal */
   private _keyExpression: string | undefined | null;
   private scope!: Scope;
   private task: ITask | null = null;
+  /** @internal */
   private _isInterpolation!: boolean;
   private readonly _targetAccessors: Set<IAccessor>;
 
@@ -154,7 +157,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     }
 
     this.scope = (void 0)!;
-    this.obs.clear(true);
+    this.obs.clearAll();
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
@@ -162,7 +165,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     this._keyExpression = this._isInterpolation
         ? this.expr.evaluate(flags, this.scope, this.locator, this) as string
         : newValue as string;
-    this.obs.clear(false);
+    this.obs.clear();
     this._ensureKeyExpression();
     this._updateTranslations(flags);
   }
@@ -357,7 +360,7 @@ class ParameterBinding {
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
     this.obs.version++;
     this.value = this.expr.evaluate(flags, this.scope, this.locator, this) as i18next.TOptions;
-    this.obs.clear(false);
+    this.obs.clear();
     this.updater(flags);
   }
 
@@ -385,7 +388,7 @@ class ParameterBinding {
     }
 
     this.scope = (void 0)!;
-    this.obs.clear(true);
+    this.obs.clearAll();
   }
 }
 

@@ -702,3 +702,9 @@ export {
   IDialogComponentDeactivate,
   IDialogComponentCanDeactivate,
 } from './dialog.js';
+
+export {
+  IWcElementRegistry,
+  WebComponentViewModelClass,
+  WcCustomElementRegistry,
+} from './plugins/web-components.js';

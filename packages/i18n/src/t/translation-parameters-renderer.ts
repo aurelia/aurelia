@@ -45,7 +45,7 @@ export class TranslationParametersBindingInstruction {
 
 @bindingCommand(attribute)
 export class TranslationParametersBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
+  public readonly type: BindingType.BindCommand = BindingType.BindCommand;
 
   public static inject = [IAttrMapper, IExpressionParser];
   public constructor(

@@ -12,15 +12,13 @@ import type {
   ICollectionSubscriber,
   IndexMap,
   Interpolation,
-  IConnectableBinding,
   IObserverLocator,
   IsExpression,
   IBinding,
   Scope,
 } from '@aurelia/runtime';
-import type {
-  IPlatform,
-} from '../platform';
+import type { IPlatform } from '../platform';
+import type { IAstBasedBinding } from './interfaces-bindings';
 
 const { toView } = BindingMode;
 const queueTaskOptions: QueueTaskOptions = {
@@ -143,9 +141,9 @@ export class InterpolationBinding implements IBinding {
 
 // a pseudo binding, part of a larger interpolation binding
 // employed to support full expression per expression part of an interpolation
-export interface InterpolationPartBinding extends IConnectableBinding {}
+export interface InterpolationPartBinding extends IAstBasedBinding {}
 
-export class InterpolationPartBinding implements InterpolationPartBinding, ICollectionSubscriber {
+export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSubscriber {
   public interceptor: this = this;
 
   // at runtime, mode may be overriden by binding behavior
@@ -187,7 +185,7 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
       }
       newValue = sourceExpression.evaluate(flags, this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
-        obsRecord.clear(false);
+        obsRecord.clear();
       }
     }
     if (newValue != this.value) {
@@ -240,18 +238,18 @@ export class InterpolationPartBinding implements InterpolationPartBinding, IColl
     }
 
     this.$scope = void 0;
-    this.obs.clear(true);
+    this.obs.clearAll();
   }
 }
 
 connectable(InterpolationPartBinding);
 
-export interface ContentBinding extends IConnectableBinding {}
+export interface ContentBinding extends IAstBasedBinding {}
 
 /**
  * A binding for handling the element content interpolation
  */
-export class ContentBinding implements ContentBinding, ICollectionSubscriber {
+export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   public interceptor: this = this;
 
   // at runtime, mode may be overriden by binding behavior
@@ -310,7 +308,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
       newValue = sourceExpression.evaluate(flags, this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
-        obsRecord.clear(false);
+        obsRecord.clear();
       }
     }
     if (newValue === this.value) {
@@ -380,7 +378,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     // be removed when this binding is unbound?
     // this.updateTarget('', flags);
     this.$scope = void 0;
-    this.obs.clear(true);
+    this.obs.clearAll();
     this.task?.cancel();
     this.task = null;
   }

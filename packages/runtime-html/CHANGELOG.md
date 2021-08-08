@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.16"></a>
+# 2.0.0-alpha.16 (2021-08-07)
+
+### Features:
+
+* **wc:** add web-component plugin ([74589bc](https://github.com/aurelia/aurelia/commit/74589bc))
+
+
+### Bug Fixes:
+
+* **href:** avoid interfering with native href ([de625d2](https://github.com/aurelia/aurelia/commit/de625d2))
+
+
+### Performance Improvements:
+
+* **bindings:** simpler observer tracking/clearing ([c867cd1](https://github.com/aurelia/aurelia/commit/c867cd1))
+
+
+### Refactorings:
+
+* **binding-command:** bindingType -> type ([e38e7f2](https://github.com/aurelia/aurelia/commit/e38e7f2))
+* **all:** use a terser name cache for predictable prop mangling ([7649ced](https://github.com/aurelia/aurelia/commit/7649ced))
+
 <a name="2.0.0-alpha.15"></a>
 # 2.0.0-alpha.15 (2021-08-01)
 

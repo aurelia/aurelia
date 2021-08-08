@@ -44,7 +44,7 @@ export class TranslationBindingInstruction {
 }
 
 export class TranslationBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.CustomCommand = BindingType.CustomCommand;
+  public readonly type: BindingType.CustomCommand = BindingType.CustomCommand;
 
   public static inject = [IAttrMapper];
   public constructor(private readonly m: IAttrMapper) {}
@@ -112,7 +112,7 @@ export class TranslationBindBindingInstruction {
 }
 
 export class TranslationBindBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
+  public readonly type: BindingType.BindCommand = BindingType.BindCommand;
 
   public static inject = [IAttrMapper, IExpressionParser];
   public constructor(

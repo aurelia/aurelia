@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.16"></a>
+# 2.0.0-alpha.16 (2021-08-07)
+
+### Bug Fixes:
+
+* **href:** avoid interfering with native href ([de625d2](https://github.com/aurelia/aurelia/commit/de625d2))
+
 <a name="2.0.0-alpha.15"></a>
 # 2.0.0-alpha.15 (2021-08-01)
 

@@ -1,6 +1,7 @@
 import {
   LifecycleFlags,
   AccessorType,
+  IObserver,
 } from '../observation.js';
 import { subscriberCollection } from './subscriber-collection.js';
 import { enterConnectable, exitConnectable } from './connectable-switcher.js';
@@ -22,6 +23,7 @@ import type { FlushQueue, IFlushable, IWithFlushQueue } from './flush-queue.js';
 export interface ComputedObserver extends IConnectableBinding, ISubscriberCollection { }
 
 export class ComputedObserver implements
+  IObserver,
   IConnectableBinding,
   ISubscriber,
   ICollectionSubscriber,
@@ -58,16 +60,27 @@ export class ComputedObserver implements
   public type: AccessorType = AccessorType.Observer;
   public readonly queue!: FlushQueue;
 
-  public value: unknown = void 0;
+  /** @internal */
+  private _value: unknown = void 0;
+  /** @internal */
   private _oldValue: unknown = void 0;
 
   // todo: maybe use a counter allow recursive call to a certain level
-  /**
-   * @internal
-   */
-  private running: boolean = false;
+  /** @internal */
+  private _isRunning: boolean = false;
 
+  /** @internal */
   private _isDirty: boolean = false;
+
+  /** @internal */
+  private readonly _obj: object;
+
+  public readonly get: (watcher: IConnectable) => unknown;
+
+  public readonly set: undefined | ((v: unknown) => void);
+
+  /** @internal */
+  private readonly _useProxy: boolean;
 
   /**
    * A semi-private property used by connectable mixin
@@ -75,34 +88,38 @@ export class ComputedObserver implements
   public readonly oL: IObserverLocator;
 
   public constructor(
-    public readonly obj: object,
-    public readonly get: (watcher: IConnectable) => unknown,
-    public readonly set: undefined | ((v: unknown) => void),
-    public readonly useProxy: boolean,
+    obj: object,
+    get: (watcher: IConnectable) => unknown,
+    set: undefined | ((v: unknown) => void),
+    useProxy: boolean,
     observerLocator: IObserverLocator,
   ) {
+    this._obj = obj;
+    this.get = get;
+    this.set = set;
+    this._useProxy = useProxy;
     this.oL = observerLocator;
   }
 
   public getValue() {
     if (this.subs.count === 0) {
-      return this.get.call(this.obj, this);
+      return this.get.call(this._obj, this);
     }
     if (this._isDirty) {
       this.compute();
       this._isDirty = false;
     }
-    return this.value;
+    return this._value;
   }
 
   // deepscan-disable-next-line
   public setValue(v: unknown, _flags: LifecycleFlags): void {
     if (typeof this.set === 'function') {
-      if (v !== this.value) {
+      if (v !== this._value) {
         // setting running true as a form of batching
-        this.running = true;
-        this.set.call(this.obj, v);
-        this.running = false;
+        this._isRunning = true;
+        this.set.call(this._obj, v);
+        this._isRunning = false;
 
         this.run();
       }
@@ -141,21 +158,21 @@ export class ComputedObserver implements
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this._isDirty = true;
-      this.obs.clear(true);
+      this.obs.clearAll();
     }
   }
 
   public flush(): void {
     oV = this._oldValue;
-    this._oldValue = this.value;
-    this.subs.notify(this.value, oV, LifecycleFlags.none);
+    this._oldValue = this._value;
+    this.subs.notify(this._value, oV, LifecycleFlags.none);
   }
 
   private run(): void {
-    if (this.running) {
+    if (this._isRunning) {
       return;
     }
-    const oldValue = this.value;
+    const oldValue = this._value;
     const newValue = this.compute();
 
     this._isDirty = false;
@@ -167,14 +184,14 @@ export class ComputedObserver implements
   }
 
   private compute(): unknown {
-    this.running = true;
+    this._isRunning = true;
     this.obs.version++;
     try {
       enterConnectable(this);
-      return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
+      return this._value = unwrap(this.get.call(this._useProxy ? wrap(this._obj) : this._obj, this));
     } finally {
-      this.obs.clear(false);
-      this.running = false;
+      this.obs.clear();
+      this._isRunning = false;
       exitConnectable(this);
     }
   }

@@ -59,6 +59,8 @@ export class ExpressionParser {
   public parse(expression: string, bindingType: BindingType): AnyBindingExpression {
     let found: AnyBindingExpression;
     switch (bindingType) {
+      case BindingType.IsCustom:
+        return new CustomExpression(expression) as AnyBindingExpression;
       case BindingType.Interpolation:
         found = this._interpolationLookup[expression];
         if (found === void 0) {
@@ -323,32 +325,12 @@ export const enum BindingType {
           // then it should add this flag to its binding type
           // which then tell the binder to proceed the attribute compilation as is,
           // instead of normal process: transformation -> compilation
-          IgnoreAttr = 0b100000000_0000,
-       Interpolation = 0b010000000_0000,
-          IsRef      = 0b101010000_0000,
-          IsIterator = 0b000100000_0000,
-          IsCustom   = 0b000010000_0000,
-          IsFunction = 0b000001000_0000,
-          IsEvent    = 0b000000100_0000,
-          IsProperty = 0b000000010_0000,
-          IsCommand  = 0b000000001_0000,
-  IsPropertyCommand  = 0b000000011_0000,
-     IsEventCommand  = 0b000000101_0000,
-  DelegationStrategyDelta =      0b0110,
-
-             Command =           0b1111,
-      OneTimeCommand = 0b000000011_0001,
-      ToViewCommand  = 0b000000011_0010,
-     FromViewCommand = 0b000000011_0011,
-       TwoWayCommand = 0b000000011_0100,
-         BindCommand = 0b000000011_0101,
-      TriggerCommand = 0b100000101_0110,
-      CaptureCommand = 0b100000101_0111,
-     DelegateCommand = 0b100000101_1000,
-         CallCommand = 0b000001001_1001,
-      OptionsCommand = 0b000000001_1010,
-          ForCommand = 0b000100001_1011,
-       CustomCommand = 0b000010001_1100
+          IgnoreAttr = 0b1000000,
+       Interpolation = 0b0100000,
+          IsIterator = 0b0001000,
+          IsCustom   = 0b0000100,
+          IsFunction = 0b0000010,
+          IsProperty = 0b0000001,
 }
 /* eslint-enable @typescript-eslint/indent */
 
@@ -413,7 +395,7 @@ TPrec extends Precedence.Unary ? IsUnary :
                             TType extends BindingType.IsIterator ? ForOfStatement :
                               never : never {
 
-  if (bindingType === BindingType.CustomCommand) {
+  if (bindingType === BindingType.IsCustom) {
     return new CustomExpression(state.ip) as any;
   }
 

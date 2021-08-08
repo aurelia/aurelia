@@ -81,9 +81,6 @@ function bindingTypeToString(bindingType: BindingType): string {
   if (bindingType & BindingType.IsFunction) {
     name += ' | IsFunction';
   }
-  if (bindingType & BindingType.IsEvent) {
-    name += ' | IsEvent';
-  }
   return name;
 }
 
@@ -394,8 +391,6 @@ describe('ExpressionParser', function () {
   for (const [bindingType, name] of [
     [undefined, 'undefined'],
     [BindingType.IsProperty, 'IsProperty'],
-    // not really use, but it's fine
-    [BindingType.IsEvent, 'IsEvent'],
     [BindingType.IsProperty | BindingType.IsFunction, 'call command'],
   ] as [BindingType, string][]) {
     describe(name, function () {

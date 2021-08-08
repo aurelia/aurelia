@@ -150,7 +150,6 @@ export class RouteContext {
     container.registerResolver(
       IRouteContext,
       contextProvider,
-      true,
     );
     contextProvider.prepare(this);
 

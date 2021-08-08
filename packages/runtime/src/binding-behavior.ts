@@ -8,7 +8,7 @@ import {
 } from '@aurelia/kernel';
 import { Collection, IndexMap, LifecycleFlags } from './observation.js';
 import { registerAliases } from './alias.js';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from './shared.js';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from './utilities-objects.js';
 
 import type {
   Constructable,
@@ -220,7 +220,7 @@ const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>
   prop: K,
 ): PartialBindingBehaviorDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type) as PartialBindingBehaviorDefinition[K];
 
-export const BindingBehavior: BindingBehaviorKind = Object.freeze<BindingBehaviorKind>({
+export const BindingBehavior = Object.freeze<BindingBehaviorKind>({
   name: bbBaseName,
   keyFrom(name: string): string {
     return `${bbBaseName}:${name}`;

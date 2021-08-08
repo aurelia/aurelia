@@ -272,7 +272,7 @@ describe('TranslationBindBindingRenderer', function () {
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
-    const from = expressionParser.parse('simple.key', BindingType.BindCommand);
+    const from = expressionParser.parse('simple.key', BindingType.IsProperty);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
       controller,
@@ -289,7 +289,7 @@ describe('TranslationBindBindingRenderer', function () {
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
-    const from = expressionParser.parse('simple.key', BindingType.BindCommand);
+    const from = expressionParser.parse('simple.key', BindingType.IsProperty);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
       controller,
@@ -308,7 +308,7 @@ describe('TranslationBindBindingRenderer', function () {
     const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container, container.get(IPlatform));
     const controller = ({ container, bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
-    const from = expressionParser.parse('simple.key', BindingType.BindCommand);
+    const from = expressionParser.parse('simple.key', BindingType.IsProperty);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
       controller,

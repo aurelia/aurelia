@@ -1,5 +1,5 @@
 import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop } from '@aurelia/kernel';
-import { BindingMode, BindingType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { BindingMode, BindingType, Char, IExpressionParser, IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
 import {
@@ -343,19 +343,20 @@ export class TemplateCompiler implements ITemplateCompiler {
         // Onetime means it will not have appropriate value, but it's also a good thing,
         // since often one it's just a simple declaration
         // todo: consider supporting one-time for <let>
-        if (bindingCommand.type === BindingType.ToViewCommand
-          || bindingCommand.type === BindingType.BindCommand
-        ) {
-          letInstructions.push(new LetBindingInstruction(
-            exprParser.parse(realAttrValue, bindingCommand.type),
-            camelCase(realAttrTarget)
-          ));
-          continue;
+        switch (bindingCommand.name) {
+          case 'to-view':
+          case 'bind':
+            letInstructions.push(new LetBindingInstruction(
+              exprParser.parse(realAttrValue, bindingCommand.type) as IsBindingBehavior,
+              camelCase(realAttrTarget)
+            ));
+            continue;
+          default:
+            if (__DEV__)
+              throw new Error(`Invalid command ${attrSyntax.command} for <let>. Only to-view/bind supported.`);
+            else
+              throw new Error(`AUR0704:${attrSyntax.command}`);
         }
-        if (__DEV__)
-          throw new Error(`Invalid command ${attrSyntax.command} for <let>. Only to-view/bind supported.`);
-        else
-          throw new Error(`AUR0704:${attrSyntax.command}`);
       }
 
       expr = exprParser.parse(realAttrValue, BindingType.Interpolation);

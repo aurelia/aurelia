@@ -1252,7 +1252,7 @@ function createWatchers(
       ));
     } else {
       ast = typeof expression === 'string'
-        ? expressionParser.parse(expression, BindingType.BindCommand)
+        ? expressionParser.parse(expression, BindingType.IsProperty)
         : getAccessScopeAst(expression);
 
       controller.addBinding(new ExpressionWatcher(

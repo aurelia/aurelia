@@ -45,36 +45,49 @@ export class TranslationParametersBindingInstruction {
 
 @bindingCommand(attribute)
 export class TranslationParametersBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.BindCommand = BindingType.BindCommand;
+  public readonly type: BindingType.IsProperty = BindingType.IsProperty;
+  public get name() { return attribute; }
 
-  public static inject = [IAttrMapper, IExpressionParser];
-  public constructor(
-    private readonly m: IAttrMapper,
-    private readonly xp: IExpressionParser,
-  ) {}
+  /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
+  /** @internal */ private readonly _attrMapper: IAttrMapper;
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(m: IAttrMapper, xp: IExpressionParser) {
+    this._attrMapper = m;
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): TranslationParametersBindingInstruction {
     const attr = info.attr;
     let target = attr.target;
     if (info.bindable == null) {
-      target = this.m.map(info.node, target)
+      target = this._attrMapper.map(info.node, target)
         // if the transformer doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
     } else {
       target = info.bindable.property;
     }
-    return new TranslationParametersBindingInstruction(this.xp.parse(attr.rawValue, BindingType.BindCommand), target);
+    return new TranslationParametersBindingInstruction(this._exprParser.parse(attr.rawValue, BindingType.IsProperty), target);
   }
 }
 
 @renderer(TranslationParametersInstructionType)
 export class TranslationParametersBindingRenderer implements IRenderer {
+  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IPlatform];
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+  /** @internal */ private readonly _observerLocator: IObserverLocator;
+  /** @internal */ private readonly _platform: IPlatform;
+
   public constructor(
-    @IExpressionParser private readonly parser: IExpressionParser,
-    @IObserverLocator private readonly oL: IObserverLocator,
-    @IPlatform private readonly p: IPlatform,
-  ) { }
+    exprParser: IExpressionParser,
+    observerLocator: IObserverLocator,
+    p: IPlatform,
+  ) {
+    this._exprParser = exprParser;
+    this._observerLocator = observerLocator;
+    this._platform = p;
+  }
 
   public render(
     renderingCtrl: IHydratableController,
@@ -82,14 +95,14 @@ export class TranslationParametersBindingRenderer implements IRenderer {
     instruction: CallBindingInstruction,
   ): void {
     TranslationBinding.create({
-      parser: this.parser,
-      observerLocator: this.oL,
+      parser: this._exprParser,
+      observerLocator: this._observerLocator,
       context: renderingCtrl.container,
       controller: renderingCtrl,
       target,
       instruction,
       isParameterContext: true,
-      platform: this.p
+      platform: this._platform
     });
   }
 }

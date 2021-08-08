@@ -42,59 +42,64 @@ import {
   UnaryOperator,
   ExpressionKind,
 } from './ast.js';
+import { createLookup } from '../utilities-objects.js';
 
 export interface IExpressionParser extends ExpressionParser {}
 export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
 
 export class ExpressionParser {
-  private readonly expressionLookup: Record<string, IsBindingBehavior> = Object.create(null);
-  private readonly forOfLookup: Record<string, ForOfStatement> = Object.create(null);
-  private readonly interpolationLookup: Record<string, Interpolation> = Object.create(null);
+  /** @internal */ private readonly _expressionLookup: Record<string, IsBindingBehavior> = createLookup();
+  /** @internal */ private readonly _forOfLookup: Record<string, ForOfStatement> = createLookup();
+  /** @internal */ private readonly _interpolationLookup: Record<string, Interpolation> = createLookup();
 
-  public parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
+  public parse(expression: string, bindingType: BindingType.IsIterator): ForOfStatement;
   public parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
-  public parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
+  public parse(expression: string, bindingType: Exclude<BindingType, BindingType.IsIterator | BindingType.Interpolation>): IsBindingBehavior;
   public parse(expression: string, bindingType: BindingType): AnyBindingExpression;
   public parse(expression: string, bindingType: BindingType): AnyBindingExpression {
+    let found: AnyBindingExpression;
     switch (bindingType) {
-      case BindingType.Interpolation: {
-        let found = this.interpolationLookup[expression];
+      case BindingType.Interpolation:
+        found = this._interpolationLookup[expression];
         if (found === void 0) {
-          found = this.interpolationLookup[expression] = this.$parse(expression, bindingType);
+          found = this._interpolationLookup[expression] = this.$parse(expression, bindingType);
         }
         return found;
-      }
-      case BindingType.ForCommand: {
-        let found = this.forOfLookup[expression];
+      case BindingType.IsIterator:
+        found = this._forOfLookup[expression];
         if (found === void 0) {
-          found = this.forOfLookup[expression] = this.$parse(expression, bindingType);
+          found = this._forOfLookup[expression] = this.$parse(expression, bindingType);
         }
         return found;
-      }
       default: {
-        // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
-        // But don't cache it, because empty strings are always invalid for any other type of binding
-        if (expression.length === 0 && (bindingType & (BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand))) {
-          return PrimitiveLiteralExpression.$empty;
+        if (expression.length === 0) {
+          // only allow function to be empty
+          if ((bindingType & (BindingType.IsFunction | BindingType.IsProperty)) > 0) {
+            return PrimitiveLiteralExpression.$empty;
+          }
+          if (__DEV__)
+            throw new Error('Invalid expression. Empty expression is only valid in event bindings (trigger, delegate, capture etc...)');
+          else
+            throw new Error('AUR0169');
         }
-        let found = this.expressionLookup[expression];
+        found = this._expressionLookup[expression];
         if (found === void 0) {
-          found = this.expressionLookup[expression] = this.$parse(expression, bindingType);
+          found = this._expressionLookup[expression] = this.$parse(expression, bindingType);
         }
         return found;
       }
     }
   }
 
-  private $parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
+  private $parse(expression: string, bindingType: BindingType.IsIterator): ForOfStatement;
   private $parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
-  private $parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
+  private $parse(expression: string, bindingType: Exclude<BindingType, BindingType.IsIterator | BindingType.Interpolation>): IsBindingBehavior;
   private $parse(expression: string, bindingType: BindingType): AnyBindingExpression {
     $state.ip = expression;
     $state.length = expression.length;
     $state.index = 0;
     $state._currentChar = expression.charCodeAt(0);
-    return parse($state, Access.Reset, Precedence.Variadic, bindingType === void 0 ? BindingType.BindCommand : bindingType);
+    return parse($state, Access.Reset, Precedence.Variadic, bindingType === void 0 ? BindingType.IsProperty : bindingType);
   }
 }
 
@@ -349,21 +354,14 @@ export const enum BindingType {
 
 export class ParserState {
   public index: number = 0;
-  /** @internal */
-  public _startIndex: number = 0;
-  /** @internal */
-  public _lastIndex: number = 0;
   public length: number;
-  /** @internal */
-  public _currentToken: Token = Token.EOF;
-  /** @internal */
-  public _tokenValue: string | number = '';
-  /** @internal */
-  public _currentChar: number;
-  /** @internal */
-  public _assignable: boolean = true;
-  /** @internal */
-  public get _tokenRaw(): string {
+  /** @internal */ public _startIndex: number = 0;
+  /** @internal */ public _lastIndex: number = 0;
+  /** @internal */ public _currentToken: Token = Token.EOF;
+  /** @internal */ public _tokenValue: string | number = '';
+  /** @internal */ public _currentChar: number;
+  /** @internal */ public _assignable: boolean = true;
+  /** @internal */ public get _tokenRaw(): string {
     return this.ip.slice(this._startIndex, this.index);
   }
 
@@ -377,16 +375,16 @@ export class ParserState {
 
 const $state = new ParserState('');
 
-export function parseExpression<TType extends BindingType = BindingType.BindCommand>(input: string, bindingType?: TType):
+export function parseExpression<TType extends BindingType = BindingType.IsProperty>(input: string, bindingType?: TType):
 TType extends BindingType.Interpolation ? Interpolation :
-  TType extends BindingType.ForCommand ? ForOfStatement :
+  TType extends BindingType.IsIterator ? ForOfStatement :
     IsBindingBehavior {
 
   $state.ip = input;
   $state.length = input.length;
   $state.index = 0;
   $state._currentChar = input.charCodeAt(0);
-  return parse($state, Access.Reset, Precedence.Variadic, bindingType === void 0 ? BindingType.BindCommand : bindingType);
+  return parse($state, Access.Reset, Precedence.Variadic, bindingType === void 0 ? BindingType.IsProperty : bindingType);
 }
 
 // This is performance-critical code which follows a subset of the well-known ES spec.
@@ -412,7 +410,7 @@ TPrec extends Precedence.Unary ? IsUnary :
                       TPrec extends Precedence.LogicalOR ? IsBinary :
                         TPrec extends Precedence.Variadic ?
                           TType extends BindingType.Interpolation ? Interpolation :
-                            TType extends BindingType.ForCommand ? ForOfStatement :
+                            TType extends BindingType.IsIterator ? ForOfStatement :
                               never : never {
 
   if (bindingType === BindingType.CustomCommand) {
@@ -1230,9 +1228,7 @@ const TokenValues = [
   'of'
 ];
 
-const KeywordLookup: {
-  [key: string]: Token;
-} = Object.create(null);
+const KeywordLookup: Record<string, Token> = createLookup();
 KeywordLookup.true = Token.TrueKeyword;
 KeywordLookup.null = Token.NullKeyword;
 KeywordLookup.false = Token.FalseKeyword;

@@ -103,7 +103,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   }: TranslationBindingCreationContext) {
     const binding = this.getBinding({ observerLocator, context, controller, target, platform });
     const expr = typeof instruction.from === 'string'
-      ? parser.parse(instruction.from, BindingType.BindCommand)
+      ? parser.parse(instruction.from, BindingType.IsProperty)
       : instruction.from as IsBindingBehavior;
     if (isParameterContext) {
       binding.useParameter(expr);

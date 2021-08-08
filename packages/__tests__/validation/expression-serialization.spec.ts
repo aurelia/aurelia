@@ -80,11 +80,11 @@ describe('validation/expression-serialization.spec.ts/expression-de/serializatio
     { name: 'call function', strExpr: '$this()', bindingType: BindingType.None, exprType: CallFunctionExpression },
     { name: 'template', strExpr: '``', bindingType: BindingType.None, exprType: TemplateExpression },
     { name: 'assign', strExpr: 'a=b', bindingType: BindingType.None, exprType: AssignExpression },
-    { name: '"for of" with simple binding identifier', strExpr: 'item of items', bindingType: BindingType.ForCommand, exprType: ForOfStatement },
-    { name: '"for of" with vc', strExpr: 'item of items | vc', bindingType: BindingType.ForCommand, exprType: ForOfStatement },
-    { name: '"for of" with bb', strExpr: 'item of items & bb', bindingType: BindingType.ForCommand, exprType: ForOfStatement },
-    { name: '"for of" with object binding pattern (destructuring)', strExpr: '{a,b} of items & bb', bindingType: BindingType.ForCommand, exprType: ForOfStatement },
-    { name: '"for of" with array binding pattern (destructuring)', strExpr: '[a,b] of items & bb', bindingType: BindingType.ForCommand, exprType: ForOfStatement },
+    { name: '"for of" with simple binding identifier', strExpr: 'item of items', bindingType: BindingType.IsIterator, exprType: ForOfStatement },
+    { name: '"for of" with vc', strExpr: 'item of items | vc', bindingType: BindingType.IsIterator, exprType: ForOfStatement },
+    { name: '"for of" with bb', strExpr: 'item of items & bb', bindingType: BindingType.IsIterator, exprType: ForOfStatement },
+    { name: '"for of" with object binding pattern (destructuring)', strExpr: '{a,b} of items & bb', bindingType: BindingType.IsIterator, exprType: ForOfStatement },
+    { name: '"for of" with array binding pattern (destructuring)', strExpr: '[a,b] of items & bb', bindingType: BindingType.IsIterator, exprType: ForOfStatement },
   ];
 
   for (const { strExpr, bindingType, exprType, name } of list) {

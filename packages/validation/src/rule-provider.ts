@@ -546,7 +546,7 @@ export function parsePropertyName(property: string | PropertyAccessor, parser: I
       throw new Error(`Unable to parse accessor function:\n${property}`); // TODO: use reporter
   }
 
-  return [property, parser.parse(`${rootObjectSymbol}.${property}`, BindingType.BindCommand)];
+  return [property, parser.parse(`${rootObjectSymbol}.${property}`, BindingType.IsProperty)];
 }
 
 /**

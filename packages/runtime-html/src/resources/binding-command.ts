@@ -1,5 +1,5 @@
 import { camelCase, Registration, mergeArrays, firstDefined } from '@aurelia/kernel';
-import { BindingMode, BindingType, DelegationStrategy, IExpressionParser, registerAliases } from '@aurelia/runtime';
+import { BindingMode, BindingType, DelegationStrategy, IExpressionParser, IsBindingBehavior, registerAliases } from '@aurelia/runtime';
 import { IAttrMapper } from '../attribute-mapper.js';
 import {
   AttributeBindingInstruction,
@@ -48,6 +48,7 @@ export type ICommandBuildInfo = IPlainAttrCommandInfo | IBindableCommandInfo;
 
 export type BindingCommandInstance<T extends {} = {}> = {
   type: BindingType;
+  name: string;
   build(info: ICommandBuildInfo): IInstruction;
 } & T;
 
@@ -153,20 +154,25 @@ export const BindingCommand = Object.freeze<BindingCommandKind>({
 
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.OneTimeCommand = BindingType.OneTimeCommand;
+  public readonly type: BindingType.IsProperty = BindingType.IsProperty;
+  public get name() { return 'one-time'; }
 
-  public static inject = [IAttrMapper, IExpressionParser];
-  public constructor(
-    private readonly m: IAttrMapper,
-    private readonly xp: IExpressionParser,
-  ) {}
+  /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
+
+  /** @internal */ private readonly _attrMapper: IAttrMapper;
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(m: IAttrMapper, xp: IExpressionParser) {
+    this._attrMapper = m;
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     const attr = info.attr;
     let target = attr.target;
     let value = info.attr.rawValue;
     if (info.bindable == null) {
-      target = this.m.map(info.node, target)
+      target = this._attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
@@ -178,26 +184,31 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.property;
     }
-    return new PropertyBindingInstruction(this.xp.parse(value, BindingType.OneTimeCommand), target, BindingMode.oneTime);
+    return new PropertyBindingInstruction(this._exprParser.parse(value, BindingType.IsProperty), target, BindingMode.oneTime);
   }
 }
 
 @bindingCommand('to-view')
 export class ToViewBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.ToViewCommand = BindingType.ToViewCommand;
+  public readonly type: BindingType.IsProperty = BindingType.IsProperty;
+  public get name() { return 'to-view'; }
 
-  public static inject = [IAttrMapper, IExpressionParser];
-  public constructor(
-    private readonly m: IAttrMapper,
-    private readonly xp: IExpressionParser,
-  ) {}
+  /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
+
+  /** @internal */ private readonly _attrMapper: IAttrMapper;
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(attrMapper: IAttrMapper, exprParser: IExpressionParser) {
+    this._attrMapper = attrMapper;
+    this._exprParser = exprParser;
+  }
 
   public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     const attr = info.attr;
     let target = attr.target;
     let value = info.attr.rawValue;
     if (info.bindable == null) {
-      target = this.m.map(info.node, target)
+      target = this._attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
@@ -209,26 +220,31 @@ export class ToViewBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.property;
     }
-    return new PropertyBindingInstruction(this.xp.parse(value, BindingType.ToViewCommand), target, BindingMode.toView);
+    return new PropertyBindingInstruction(this._exprParser.parse(value, BindingType.IsProperty), target, BindingMode.toView);
   }
 }
 
 @bindingCommand('from-view')
 export class FromViewBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.FromViewCommand = BindingType.FromViewCommand;
+  public readonly type: BindingType.IsProperty = BindingType.IsProperty;
+  public get name() { return 'from-view'; }
 
-  public static inject = [IAttrMapper, IExpressionParser];
-  public constructor(
-    private readonly m: IAttrMapper,
-    private readonly xp: IExpressionParser,
-  ) {}
+  /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
+
+  /** @internal */ private readonly _attrMapper: IAttrMapper;
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(m: IAttrMapper, xp: IExpressionParser) {
+    this._attrMapper = m;
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     const attr = info.attr;
     let target = attr.target;
     let value = attr.rawValue;
     if (info.bindable == null) {
-      target = this.m.map(info.node, target)
+      target = this._attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
@@ -240,26 +256,31 @@ export class FromViewBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.property;
     }
-    return new PropertyBindingInstruction(this.xp.parse(value, BindingType.FromViewCommand), target, BindingMode.fromView);
+    return new PropertyBindingInstruction(this._exprParser.parse(value, BindingType.IsProperty), target, BindingMode.fromView);
   }
 }
 
 @bindingCommand('two-way')
 export class TwoWayBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.TwoWayCommand = BindingType.TwoWayCommand;
+  public readonly type: BindingType.IsProperty = BindingType.IsProperty;
+  public get name() { return 'two-way'; }
 
-  public static inject = [IAttrMapper, IExpressionParser];
-  public constructor(
-    private readonly m: IAttrMapper,
-    private readonly xp: IExpressionParser,
-  ) {}
+  /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
+
+  /** @internal */ private readonly _attrMapper: IAttrMapper;
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(m: IAttrMapper, xp: IExpressionParser) {
+    this._attrMapper = m;
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     const attr = info.attr;
     let target = attr.target;
     let value = attr.rawValue;
     if (info.bindable == null) {
-      target = this.m.map(info.node, target)
+      target = this._attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
@@ -271,19 +292,23 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.property;
     }
-    return new PropertyBindingInstruction(this.xp.parse(value, BindingType.TwoWayCommand), target, BindingMode.twoWay);
+    return new PropertyBindingInstruction(this._exprParser.parse(value, BindingType.IsProperty), target, BindingMode.twoWay);
   }
 }
 
 @bindingCommand('bind')
 export class DefaultBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.BindCommand = BindingType.BindCommand;
+  public readonly type: BindingType.IsProperty = BindingType.IsProperty;
+  public get name() { return 'bind'; }
 
-  public static inject = [IAttrMapper, IExpressionParser];
-  public constructor(
-    private readonly m: IAttrMapper,
-    private readonly xp: IExpressionParser,
-  ) {}
+  /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
+  /** @internal */ private readonly _attrMapper: IAttrMapper;
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(m: IAttrMapper, xp: IExpressionParser) {
+    this._attrMapper = m;
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): PropertyBindingInstruction {
     type CA = CustomAttributeDefinition;
@@ -294,8 +319,8 @@ export class DefaultBindingCommand implements BindingCommandInstance {
     let target = attr.target;
     let value = attr.rawValue;
     if (bindable == null) {
-      mode = this.m.isTwoWay(info.node, target) ? BindingMode.twoWay : BindingMode.toView;
-      target = this.m.map(info.node, target)
+      mode = this._attrMapper.isTwoWay(info.node, target) ? BindingMode.twoWay : BindingMode.toView;
+      target = this._attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
@@ -313,73 +338,98 @@ export class DefaultBindingCommand implements BindingCommandInstance {
         : bindable.mode;
       target = bindable.property;
     }
-    return new PropertyBindingInstruction(this.xp.parse(value, BindingType.BindCommand), target, mode);
+    return new PropertyBindingInstruction(this._exprParser.parse(value, BindingType.IsProperty), target, mode);
   }
 }
 
 @bindingCommand('call')
 export class CallBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.CallCommand = BindingType.CallCommand;
+  public readonly type: BindingType.IsProperty | BindingType.IsFunction = BindingType.IsProperty | BindingType.IsFunction;
+  public get name() { return 'call'; }
 
-  public static inject = [IExpressionParser];
-  public constructor(private readonly xp: IExpressionParser) {}
+  /** @internal */ protected static inject = [IExpressionParser];
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(xp: IExpressionParser) {
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): IInstruction {
     const target = info.bindable === null
       ? camelCase(info.attr.target)
       : info.bindable.property;
-    return new CallBindingInstruction(this.xp.parse(info.attr.rawValue, BindingType.CallCommand), target);
+    return new CallBindingInstruction(this._exprParser.parse(info.attr.rawValue, (BindingType.IsProperty | BindingType.IsFunction) as BindingType) as IsBindingBehavior, target);
   }
 }
 
 @bindingCommand('for')
 export class ForBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.ForCommand = BindingType.ForCommand;
+  public readonly type: BindingType.IsIterator = BindingType.IsIterator;
+  public get name() { return 'for'; }
 
-  public static inject = [IExpressionParser];
-  public constructor(private readonly xp: IExpressionParser) {}
+  /** @internal */ protected static inject = [IExpressionParser];
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(xp: IExpressionParser) {
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): IInstruction {
     const target = info.bindable === null
       ? camelCase(info.attr.target)
       : info.bindable.property;
-    return new IteratorBindingInstruction(this.xp.parse(info.attr.rawValue, BindingType.ForCommand), target);
+    return new IteratorBindingInstruction(this._exprParser.parse(info.attr.rawValue, BindingType.IsIterator), target);
   }
 }
 
 @bindingCommand('trigger')
 export class TriggerBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.TriggerCommand = BindingType.TriggerCommand;
+  public readonly type: BindingType.IsFunction | BindingType.IgnoreAttr = BindingType.IsFunction | BindingType.IgnoreAttr;
+  public get name() { return 'trigger'; }
 
-  public static inject = [IExpressionParser];
-  public constructor(private readonly xp: IExpressionParser) {}
+  /** @internal */ protected static inject = [IExpressionParser];
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(xp: IExpressionParser) {
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): IInstruction {
-    return new ListenerBindingInstruction(this.xp.parse(info.attr.rawValue, BindingType.TriggerCommand), info.attr.target, true, DelegationStrategy.none);
+    return new ListenerBindingInstruction(this._exprParser.parse(info.attr.rawValue, BindingType.IsFunction), info.attr.target, true, DelegationStrategy.none);
   }
 }
 
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.DelegateCommand = BindingType.DelegateCommand;
+  public readonly type: BindingType.IsFunction | BindingType.IgnoreAttr = BindingType.IsFunction | BindingType.IgnoreAttr;
+  public get name() { return 'delegate'; }
 
-  public static inject = [IExpressionParser];
-  public constructor(private readonly xp: IExpressionParser) {}
+  /** @internal */ protected static inject = [IExpressionParser];
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(xp: IExpressionParser) {
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): IInstruction {
-    return new ListenerBindingInstruction(this.xp.parse(info.attr.rawValue, BindingType.DelegateCommand), info.attr.target, false, DelegationStrategy.bubbling);
+    return new ListenerBindingInstruction(this._exprParser.parse(info.attr.rawValue, BindingType.IsFunction), info.attr.target, false, DelegationStrategy.bubbling);
   }
 }
 
 @bindingCommand('capture')
 export class CaptureBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.CaptureCommand = BindingType.CaptureCommand;
+  public readonly type: BindingType.IsFunction | BindingType.IgnoreAttr = BindingType.IsFunction | BindingType.IgnoreAttr;
+  public get name() { return 'capture'; }
 
-  public static inject = [IExpressionParser];
-  public constructor(private readonly xp: IExpressionParser) {}
+  /** @internal */ protected static inject = [IExpressionParser];
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(xp: IExpressionParser) {
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): IInstruction {
-    return new ListenerBindingInstruction(this.xp.parse(info.attr.rawValue, BindingType.CaptureCommand), info.attr.target, false, DelegationStrategy.capturing);
+    return new ListenerBindingInstruction(this._exprParser.parse(info.attr.rawValue, BindingType.IsFunction), info.attr.target, false, DelegationStrategy.capturing);
   }
 }
 
@@ -389,12 +439,17 @@ export class CaptureBindingCommand implements BindingCommandInstance {
 @bindingCommand('attr')
 export class AttrBindingCommand implements BindingCommandInstance {
   public readonly type: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
+  public get name() { return 'attr'; }
 
-  public static inject = [IExpressionParser];
-  public constructor(private readonly xp: IExpressionParser) {}
+  /** @internal */ protected static inject = [IExpressionParser];
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(xp: IExpressionParser) {
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): IInstruction {
-    return new AttributeBindingInstruction(info.attr.target, this.xp.parse(info.attr.rawValue, BindingType.IsProperty), info.attr.target);
+    return new AttributeBindingInstruction(info.attr.target, this._exprParser.parse(info.attr.rawValue, BindingType.IsProperty), info.attr.target);
   }
 }
 
@@ -403,13 +458,18 @@ export class AttrBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('style')
 export class StyleBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
+  public readonly type: BindingType.IsProperty | BindingType.IgnoreAttr = BindingType.IsProperty | BindingType.IgnoreAttr;
+  public get name() { return 'style'; }
 
-  public static inject = [IExpressionParser];
-  public constructor(private readonly xp: IExpressionParser) {}
+  /** @internal */ protected static inject = [IExpressionParser];
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(xp: IExpressionParser) {
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): IInstruction {
-    return new AttributeBindingInstruction('style', this.xp.parse(info.attr.rawValue, BindingType.IsProperty), info.attr.target);
+    return new AttributeBindingInstruction('style', this._exprParser.parse(info.attr.rawValue, BindingType.IsProperty), info.attr.target);
   }
 }
 
@@ -418,13 +478,18 @@ export class StyleBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('class')
 export class ClassBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
+  public readonly type: BindingType.IsProperty | BindingType.IgnoreAttr = BindingType.IsProperty | BindingType.IgnoreAttr;
+  public get name() { return 'class'; }
 
-  public static inject = [IExpressionParser];
-  public constructor(private readonly xp: IExpressionParser) {}
+  /** @internal */ protected static inject = [IExpressionParser];
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(xp: IExpressionParser) {
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): IInstruction {
-    return new AttributeBindingInstruction('class', this.xp.parse(info.attr.rawValue, BindingType.IsProperty), info.attr.target);
+    return new AttributeBindingInstruction('class', this._exprParser.parse(info.attr.rawValue, BindingType.IsProperty), info.attr.target);
   }
 }
 
@@ -434,12 +499,17 @@ export class ClassBindingCommand implements BindingCommandInstance {
 @bindingCommand('ref')
 export class RefBindingCommand implements BindingCommandInstance {
   public readonly type: BindingType.IsProperty | BindingType.IgnoreAttr = BindingType.IsProperty | BindingType.IgnoreAttr;
+  public get name() { return 'ref'; }
 
-  public static inject = [IExpressionParser];
-  public constructor(private readonly xp: IExpressionParser) {}
+  /** @internal */ protected static inject = [IExpressionParser];
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(xp: IExpressionParser) {
+    this._exprParser = xp;
+  }
 
   public build(info: ICommandBuildInfo): IInstruction {
-    return new RefBindingInstruction(this.xp.parse(info.attr.rawValue, BindingType.IsProperty), info.attr.target);
+    return new RefBindingInstruction(this._exprParser.parse(info.attr.rawValue, BindingType.IsProperty), info.attr.target);
   }
 }
 

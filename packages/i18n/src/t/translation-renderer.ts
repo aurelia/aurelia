@@ -45,14 +45,19 @@ export class TranslationBindingInstruction {
 
 export class TranslationBindingCommand implements BindingCommandInstance {
   public readonly type: BindingType.CustomCommand = BindingType.CustomCommand;
+  public get name() { return 't'; }
 
-  public static inject = [IAttrMapper];
-  public constructor(private readonly m: IAttrMapper) {}
+  /** @internal */ protected static inject = [IAttrMapper];
+  /** @internal */ private readonly _attrMapper: IAttrMapper;
+
+  public constructor(m: IAttrMapper) {
+    this._attrMapper = m;
+  }
 
   public build(info: ICommandBuildInfo): TranslationBindingInstruction {
     let target: string;
     if (info.bindable == null) {
-      target = this.m.map(info.node, info.attr.target)
+      target = this._attrMapper.map(info.node, info.attr.target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
@@ -112,25 +117,29 @@ export class TranslationBindBindingInstruction {
 }
 
 export class TranslationBindBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.BindCommand = BindingType.BindCommand;
+  public readonly type: BindingType.IsProperty = BindingType.IsProperty;
+  public get name() { return 't-bind'; }
 
-  public static inject = [IAttrMapper, IExpressionParser];
-  public constructor(
-    private readonly m: IAttrMapper,
-    private readonly xp: IExpressionParser,
-  ) {}
+  /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
+  /** @internal */ private readonly _attrMapper: IAttrMapper;
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(attrMapper: IAttrMapper, exprParser: IExpressionParser) {
+    this._attrMapper = attrMapper;
+    this._exprParser = exprParser;
+  }
 
   public build(info: ICommandBuildInfo): TranslationBindingInstruction {
     let target: string;
     if (info.bindable == null) {
-      target = this.m.map(info.node, info.attr.target)
+      target = this._attrMapper.map(info.node, info.attr.target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
     } else {
       target = info.bindable.property;
     }
-    return new TranslationBindBindingInstruction(this.xp.parse(info.attr.rawValue, BindingType.BindCommand), target);
+    return new TranslationBindBindingInstruction(this._exprParser.parse(info.attr.rawValue, BindingType.IsProperty), target);
   }
 }
 

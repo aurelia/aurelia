@@ -37,6 +37,7 @@ export function ensureProto<T extends object, K extends keyof T>(
   }
 }
 
+/** @internal */
 export const createLookup = <T>(): Record<string, T> => Object.create(null);
 
 /** @internal */

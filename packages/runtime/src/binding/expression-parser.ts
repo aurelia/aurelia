@@ -320,12 +320,12 @@ const $this = AccessThisExpression.$this;
 const $parent = AccessThisExpression.$parent;
 
 export const enum ExpressionType {
-                None = 0,
-       Interpolation = 0b0_00001,
-          IsIterator = 0b0_00010,
-          IsFunction = 0b0_00100,
-          IsProperty = 0b0_01000,
-          IsCustom   = 0b0_10000,
+          None = 0,
+ Interpolation = 0b0_00001,
+    IsIterator = 0b0_00010,
+    IsFunction = 0b0_00100,
+    IsProperty = 0b0_01000,
+    IsCustom   = 0b0_10000,
 }
 /* eslint-enable @typescript-eslint/indent */
 

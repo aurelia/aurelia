@@ -1,5 +1,5 @@
 import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop } from '@aurelia/kernel';
-import { BindingMode, ExpressionType, Char, IExpressionParser, IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { BindingMode, ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
 import {
@@ -1283,10 +1283,12 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
   }
 
+  /** @internal */
   private _shouldReorderAttrs(el: Element): boolean {
     return el.nodeName === 'INPUT' && orderSensitiveInputType[(el as HTMLInputElement).type] === 1;
   }
 
+  /** @internal */
   private _reorder(el: Element, instructions: (IInstruction)[]) {
     switch (el.nodeName) {
       case 'INPUT': {

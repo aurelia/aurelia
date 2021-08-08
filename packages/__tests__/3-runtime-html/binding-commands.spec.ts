@@ -1,7 +1,6 @@
 import {
   alias,
   CommandType,
-  ExpressionType,
   BindingCommandInstance,
   bindingCommand,
   OneTimeBindingCommand,

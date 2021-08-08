@@ -105,7 +105,7 @@ export {
   MediatedBinding,
 
   IExpressionParser,
-  BindingType,
+  ExpressionType,
   parseExpression,
   Char,
   Access,

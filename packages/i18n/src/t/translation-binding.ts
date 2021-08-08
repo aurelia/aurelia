@@ -1,18 +1,21 @@
 import { toArray } from '@aurelia/kernel';
 import {
-  BindingType,
   connectable,
-  CustomElement,
+  AccessorType,
   CustomExpression,
-  Interpolation,
+  ExpressionType,
   LifecycleFlags,
+} from '@aurelia/runtime';
+import {
+  CustomElement,
+  Interpolation,
   IPlatform,
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import { I18N } from '../i18n.js';
 
 import type { ITask, QueueTaskOptions, IContainer, IServiceLocator } from '@aurelia/kernel';
-import {
+import type {
   Scope,
   IsBindingBehavior,
   IsExpression,
@@ -21,7 +24,6 @@ import {
   IObserverLocator,
   IObserverLocatorBasedConnectable,
   IAccessor,
-  AccessorType,
 } from '@aurelia/runtime';
 import type { CallBindingInstruction, IHydratableController, INode } from '@aurelia/runtime-html';
 
@@ -103,12 +105,12 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   }: TranslationBindingCreationContext) {
     const binding = this.getBinding({ observerLocator, context, controller, target, platform });
     const expr = typeof instruction.from === 'string'
-      ? parser.parse(instruction.from, BindingType.IsProperty)
+      ? parser.parse(instruction.from, ExpressionType.IsProperty)
       : instruction.from as IsBindingBehavior;
     if (isParameterContext) {
       binding.useParameter(expr);
     } else {
-      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, BindingType.Interpolation) : undefined;
+      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, ExpressionType.Interpolation) : undefined;
       binding.expr = interpolation || expr;
     }
   }

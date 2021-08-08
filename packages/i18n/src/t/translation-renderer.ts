@@ -1,19 +1,21 @@
 import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding.js';
 import {
-  BindingMode,
-  BindingType,
+  CustomExpression,
+  ExpressionType,
   IExpressionParser,
-  IRenderer,
-  renderer,
   IObserverLocator,
   IsBindingBehavior,
+} from '@aurelia/runtime';
+import {
+  BindingMode,
+  IRenderer,
+  renderer,
   IHydratableController,
   AttrSyntax,
   IPlatform,
   IAttrMapper,
   ICommandBuildInfo,
-  CustomExpression,
 } from '@aurelia/runtime-html';
 
 import type {
@@ -44,7 +46,7 @@ export class TranslationBindingInstruction {
 }
 
 export class TranslationBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.IsCustom = BindingType.IsCustom;
+  public readonly type: ExpressionType.IsCustom = ExpressionType.IsCustom;
   public get name() { return 't'; }
 
   /** @internal */ protected static inject = [IAttrMapper];
@@ -117,7 +119,7 @@ export class TranslationBindBindingInstruction {
 }
 
 export class TranslationBindBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.IsProperty = BindingType.IsProperty;
+  public readonly type: ExpressionType.IsProperty = ExpressionType.IsProperty;
   public get name() { return 't-bind'; }
 
   /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
@@ -139,7 +141,7 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
     } else {
       target = info.bindable.property;
     }
-    return new TranslationBindBindingInstruction(this._exprParser.parse(info.attr.rawValue, BindingType.IsProperty), target);
+    return new TranslationBindBindingInstruction(this._exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), target);
   }
 }
 

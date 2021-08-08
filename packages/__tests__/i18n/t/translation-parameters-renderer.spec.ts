@@ -1,14 +1,15 @@
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
 import { DI } from '@aurelia/kernel';
 import {
-  BindingType,
+  ExpressionType,
   IExpressionParser,
-  IRenderer,
   IObserverLocator,
-  LifecycleFlags,
+  IBinding,
+} from '@aurelia/runtime';
+import {
+  IRenderer,
   StandardConfiguration,
   IHydratableController,
-  IBinding,
   CallBindingInstruction,
   AttrSyntax,
   BindingCommand,
@@ -83,7 +84,7 @@ describe('TranslationParametersBindingRenderer', function () {
     const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator), container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
-    const callBindingInstruction: CallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.IsProperty) } as unknown as CallBindingInstruction;
+    const callBindingInstruction: CallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', ExpressionType.IsProperty) } as unknown as CallBindingInstruction;
 
     sut.render(
       controller,
@@ -101,7 +102,7 @@ describe('TranslationParametersBindingRenderer', function () {
     const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding(targetElement, container.get(IObserverLocator), container, container.get(IPlatform));
     const hydratable = ({ container, bindings: [binding] } as unknown as IHydratableController);
-    const paramExpr = expressionParser.parse('{foo: "bar"}', BindingType.IsProperty);
+    const paramExpr = expressionParser.parse('{foo: "bar"}', ExpressionType.IsProperty);
     const callBindingInstruction: CallBindingInstruction = { from: paramExpr } as unknown as CallBindingInstruction;
 
     sut.render(

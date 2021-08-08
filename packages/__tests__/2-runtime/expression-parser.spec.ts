@@ -10,7 +10,7 @@ import {
   BinaryOperator,
   BindingBehaviorExpression,
   BindingIdentifier,
-  BindingType,
+  ExpressionType,
   CallFunctionExpression,
   CallMemberExpression,
   CallScopeExpression,
@@ -73,41 +73,41 @@ const $c = new AccessScopeExpression('c');
 const $num0 = new PrimitiveLiteralExpression(0);
 const $num1 = new PrimitiveLiteralExpression(1);
 
-function bindingTypeToString(bindingType: BindingType): string {
+function expressionTypeToString(expressionType: ExpressionType): string {
   let name = '';
-  if (bindingType & BindingType.IsProperty) {
+  if (expressionType & ExpressionType.IsProperty) {
     name += ' | IsProperty';
   }
-  if (bindingType & BindingType.IsFunction) {
+  if (expressionType & ExpressionType.IsFunction) {
     name += ' | IsFunction';
   }
   return name;
 }
 
-function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, bindingType?: BindingType, name?: string): any {
+function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, exprType?: ExpressionType, name?: string): any {
   let error: Error = null;
   let actual: any = null;
   try {
-    actual = parseExpression(expr, bindingType as any);
+    actual = parseExpression(expr, exprType as any);
   } catch (e) {
     error = e;
   }
-  if (bindingType === BindingType.Interpolation && !(expected instanceof Interpolation)) {
+  if (exprType === ExpressionType.Interpolation && !(expected instanceof Interpolation)) {
     if (error != null) {
-      throw new Error(`Expected expression "${expr}" with (${name}) BindingType.${bindingTypeToString(bindingType)} not to throw, but it threw "${error.message}"`);
+      throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${expressionTypeToString(exprType)} not to throw, but it threw "${error.message}"`);
     }
   } else if (expectedMsg == null) {
     if (error == null) {
       assert.deepStrictEqual(actual, expected);
     } else {
-      throw new Error(`Expected expression "${expr}" with (${name}) BindingType.${bindingTypeToString(bindingType)} parse successfully, but it threw "${error.message}"`);
+      throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${expressionTypeToString(exprType)} parse successfully, but it threw "${error.message}"`);
     }
   } else {
     if (error == null) {
-      throw new Error(`Expected expression "${expr}" with (${name}) BindingType.${bindingTypeToString(bindingType)} to throw "${expectedMsg}", but no error was thrown`);
+      throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${expressionTypeToString(exprType)} to throw "${expectedMsg}", but no error was thrown`);
     } else {
       if (!error.message.startsWith(expectedMsg)) {
-        throw new Error(`Expected expression "${expr}" with (${name}) BindingType.${bindingTypeToString(bindingType)} to throw "${expectedMsg}", but got "${error.message}" instead`);
+        throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${expressionTypeToString(exprType)} to throw "${expectedMsg}", but got "${error.message}" instead`);
       }
     }
   }
@@ -388,16 +388,16 @@ describe('ExpressionParser', function () {
     ...SimpleBindingBehaviorList
   ];
 
-  for (const [bindingType, name] of [
+  for (const [exprType, name] of [
     [undefined, 'undefined'],
-    [BindingType.IsProperty, 'IsProperty'],
-    [BindingType.IsProperty | BindingType.IsFunction, 'call command'],
-  ] as [BindingType, string][]) {
+    [ExpressionType.IsProperty, 'IsProperty'],
+    [ExpressionType.IsProperty | ExpressionType.IsFunction, 'call command'],
+  ] as [ExpressionType, string][]) {
     describe(name, function () {
       describe('parse AccessThisList', function () {
         for (const [input, expected] of AccessThisList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -405,7 +405,7 @@ describe('ExpressionParser', function () {
       describe('parse AccessScopeList', function () {
         for (const [input, expected] of AccessScopeList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -413,7 +413,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleStringLiteralList', function () {
         for (const [input, expected] of SimpleStringLiteralList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -421,7 +421,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleNumberLiteralList', function () {
         for (const [input, expected] of SimpleNumberLiteralList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -429,7 +429,7 @@ describe('ExpressionParser', function () {
       describe('parse KeywordPrimitiveLiteralList', function () {
         for (const [input, expected] of KeywordPrimitiveLiteralList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -437,7 +437,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleArrayLiteralList', function () {
         for (const [input, expected] of SimpleArrayLiteralList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -445,7 +445,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleObjectLiteralList', function () {
         for (const [input, expected] of SimpleObjectLiteralList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -453,7 +453,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleTemplateLiteralList', function () {
         for (const [input, expected] of SimpleTemplateLiteralList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -461,7 +461,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleParenthesizedList', function () {
         for (const [input, expected] of SimpleParenthesizedList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -469,7 +469,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleAccessKeyedList', function () {
         for (const [input, expected] of SimpleAccessKeyedList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -477,7 +477,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleAccessMemberList', function () {
         for (const [input, expected] of SimpleAccessMemberList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -485,7 +485,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleTaggedTemplateList', function () {
         for (const [input, expected] of SimpleTaggedTemplateList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -493,7 +493,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleCallFunctionList', function () {
         for (const [input, expected] of SimpleCallFunctionList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -501,7 +501,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleCallScopeList', function () {
         for (const [input, expected] of SimpleCallScopeList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -509,7 +509,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleCallMemberList', function () {
         for (const [input, expected] of SimpleCallMemberList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -517,7 +517,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleUnaryList', function () {
         for (const [input, expected] of SimpleUnaryList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -525,7 +525,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleMultiplicativeList', function () {
         for (const [input, expected] of SimpleMultiplicativeList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -533,7 +533,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleAdditiveList', function () {
         for (const [input, expected] of SimpleAdditiveList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -541,7 +541,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleRelationalList', function () {
         for (const [input, expected] of SimpleRelationalList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -549,7 +549,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleEqualityList', function () {
         for (const [input, expected] of SimpleEqualityList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -557,7 +557,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleLogicalANDList', function () {
         for (const [input, expected] of SimpleLogicalANDList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -565,7 +565,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleLogicalORList', function () {
         for (const [input, expected] of SimpleLogicalORList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -573,7 +573,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleConditionalList', function () {
         for (const [input, expected] of SimpleConditionalList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -581,7 +581,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleAssignList', function () {
         for (const [input, expected] of SimpleAssignList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -589,7 +589,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleValueConverterList', function () {
         for (const [input, expected] of SimpleValueConverterList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -597,7 +597,7 @@ describe('ExpressionParser', function () {
       describe('parse SimpleBindingBehaviorList', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
-            verifyResultOrError(input, expected, null, bindingType, name);
+            verifyResultOrError(input, expected, null, exprType, name);
           });
         }
       });
@@ -606,7 +606,7 @@ describe('ExpressionParser', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
             const state = new ParserState(input);
-            const result = parse(state, Access.Reset, Precedence.Unary, bindingType);
+            const result = parse(state, Access.Reset, Precedence.Unary, exprType);
             if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
               (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary) {
               if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
@@ -628,7 +628,7 @@ describe('ExpressionParser', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
             const state = new ParserState(input);
-            const result = parse(state, Access.Reset, Precedence.Binary, bindingType);
+            const result = parse(state, Access.Reset, Precedence.Binary, exprType);
             if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
               (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
               (result.$kind & ExpressionKind.Binary) === ExpressionKind.Binary) {
@@ -652,7 +652,7 @@ describe('ExpressionParser', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
             const state = new ParserState(input);
-            const result = parse(state, Access.Reset, Precedence.Conditional, bindingType);
+            const result = parse(state, Access.Reset, Precedence.Conditional, exprType);
             if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
               (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
               (result.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
@@ -678,7 +678,7 @@ describe('ExpressionParser', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
             const state = new ParserState(input);
-            const result = parse(state, Access.Reset, Precedence.Assign, bindingType);
+            const result = parse(state, Access.Reset, Precedence.Assign, exprType);
             if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
               (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
               (result.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
@@ -706,7 +706,7 @@ describe('ExpressionParser', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
             const state = new ParserState(input);
-            const result = parse(state, Access.Reset, Precedence.Variadic, bindingType);
+            const result = parse(state, Access.Reset, Precedence.Variadic, exprType);
             assert.deepStrictEqual(result, expected);
           });
         }
@@ -1278,7 +1278,7 @@ describe('ExpressionParser', function () {
 
     for (const [input, expected] of ForOfStatements) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input, BindingType.IsIterator), expected);
+        assert.deepStrictEqual(parseExpression(input, ExpressionType.IsIterator), expected);
       });
     }
   });
@@ -1318,7 +1318,7 @@ describe('ExpressionParser', function () {
   describe('parse Interpolation', function () {
     for (const [input, expected] of InterpolationList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input, BindingType.Interpolation as any), expected);
+        assert.deepStrictEqual(parseExpression(input, ExpressionType.Interpolation as any), expected);
       });
     }
   });
@@ -1425,16 +1425,16 @@ describe('ExpressionParser', function () {
 
     for (const [input] of SimpleIsBindingBehaviorList) {
       it(`throw 'Invalid BindingIdentifier at left hand side of "of"' on "${input}"`, function () {
-        verifyResultOrError(input, null, 'AUR0163', BindingType.IsIterator);
-        // verifyResultOrError(input, null, 'Invalid BindingIdentifier at left hand side of "of"', BindingType.IsIterator);
+        verifyResultOrError(input, null, 'AUR0163', ExpressionType.IsIterator);
+        // verifyResultOrError(input, null, 'Invalid BindingIdentifier at left hand side of "of"', ExpressionType.IsIterator);
       });
     }
     for (const [input] of [
       [`a`, new BindingIdentifier('a')]
     ] as [string, any][]) {
       it(`throw 'Invalid BindingIdentifier at left hand side of "of"' on "${input}"`, function () {
-        verifyResultOrError(input, null, 'AUR0163', BindingType.IsIterator);
-        // verifyResultOrError(input, null, 'Invalid BindingIdentifier at left hand side of "of"', BindingType.IsIterator);
+        verifyResultOrError(input, null, 'AUR0163', ExpressionType.IsIterator);
+        // verifyResultOrError(input, null, 'Invalid BindingIdentifier at left hand side of "of"', ExpressionType.IsIterator);
       });
     }
 

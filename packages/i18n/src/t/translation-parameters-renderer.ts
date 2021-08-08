@@ -1,13 +1,15 @@
 import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding.js';
 import {
-  BindingMode,
-  BindingType,
-  IHydratableController,
+  ExpressionType,
   IExpressionParser,
+  IObserverLocator,
+} from '@aurelia/runtime';
+import {
+  BindingMode,
+  IHydratableController,
   IRenderer,
   renderer,
-  IObserverLocator,
   IsBindingBehavior,
   attributePattern,
   AttrSyntax,
@@ -45,7 +47,7 @@ export class TranslationParametersBindingInstruction {
 
 @bindingCommand(attribute)
 export class TranslationParametersBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.IsProperty = BindingType.IsProperty;
+  public readonly type: ExpressionType.IsProperty = ExpressionType.IsProperty;
   public get name() { return attribute; }
 
   /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
@@ -68,7 +70,7 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
     } else {
       target = info.bindable.property;
     }
-    return new TranslationParametersBindingInstruction(this._exprParser.parse(attr.rawValue, BindingType.IsProperty), target);
+    return new TranslationParametersBindingInstruction(this._exprParser.parse(attr.rawValue, ExpressionType.IsProperty), target);
   }
 }
 

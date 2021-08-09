@@ -687,7 +687,7 @@ function parsePropertyName(property, parser) {
         default:
             throw new Error(`Unable to parse accessor function:\n${property}`); // TODO: use reporter
     }
-    return [property, parser.parse(`${rootObjectSymbol}.${property}`, 53 /* BindCommand */)];
+    return [property, parser.parse(`${rootObjectSymbol}.${property}`, 8 /* IsProperty */)];
 }
 /**
  * The result of validating an individual validation rule.
@@ -761,7 +761,7 @@ exports.ValidationMessageProvider = class ValidationMessageProvider {
         return parsedMessage;
     }
     parseMessage(message) {
-        const parsed = this.parser.parse(message, 2048 /* Interpolation */);
+        const parsed = this.parser.parse(message, 1 /* Interpolation */);
         if ((parsed === null || parsed === void 0 ? void 0 : parsed.$kind) === 24 /* Interpolation */) {
             for (const expr of parsed.expressions) {
                 const name = expr.name;

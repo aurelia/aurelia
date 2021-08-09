@@ -1,5 +1,4 @@
-import { LifecycleFlags } from '../observation.js';
-import type { ISubscriber } from '../observation.js';
+import type { ISubscriber, LifecycleFlags } from '../observation.js';
 declare type Signal = string;
 export interface ISignaler extends Signaler {
 }

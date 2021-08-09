@@ -1105,11 +1105,11 @@ const Rt = {
 class InstanceProvider {
     constructor(t, e) {
         this.h = null;
-        this.p = t;
+        this.g = t;
         if (void 0 !== e) this.h = e;
     }
     get friendlyName() {
-        return this.p;
+        return this.g;
     }
     prepare(t) {
         this.h = t;
@@ -1118,7 +1118,7 @@ class InstanceProvider {
         return true;
     }
     resolve() {
-        if (null == this.h) throw new Error(`AUR0013:${this.p}`);
+        if (null == this.h) throw new Error(`AUR0013:${this.g}`);
         return this.h;
     }
     dispose() {
@@ -1483,31 +1483,31 @@ function Qt(t) {
 class ModuleTransformer {
     constructor(t) {
         this.$transform = t;
-        this.g = new Map;
-        this.m = new Map;
+        this.R = new Map;
+        this.C = new Map;
     }
     transform(t) {
-        if (t instanceof Promise) return this.C(t); else if ("object" === typeof t && null !== t) return this.$(t); else throw new Error(`Invalid input: ${String(t)}. Expected Promise or Object.`);
-    }
-    C(t) {
-        if (this.g.has(t)) return this.g.get(t);
-        const e = t.then((t => this.$(t)));
-        this.g.set(t, e);
-        void e.then((e => {
-            this.g.set(t, e);
-        }));
-        return e;
+        if (t instanceof Promise) return this.$(t); else if ("object" === typeof t && null !== t) return this.A(t); else throw new Error(`Invalid input: ${String(t)}. Expected Promise or Object.`);
     }
     $(t) {
-        if (this.m.has(t)) return this.m.get(t);
-        const e = this.$transform(this.A(t));
-        this.m.set(t, e);
-        if (e instanceof Promise) void e.then((e => {
-            this.m.set(t, e);
+        if (this.R.has(t)) return this.R.get(t);
+        const e = t.then((t => this.A(t)));
+        this.R.set(t, e);
+        void e.then((e => {
+            this.R.set(t, e);
         }));
         return e;
     }
     A(t) {
+        if (this.C.has(t)) return this.C.get(t);
+        const e = this.$transform(this.j(t));
+        this.C.set(t, e);
+        if (e instanceof Promise) void e.then((e => {
+            this.C.set(t, e);
+        }));
+        return e;
+    }
+    j(t) {
         let e;
         let r;
         let n;

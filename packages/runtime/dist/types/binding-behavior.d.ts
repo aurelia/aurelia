@@ -77,5 +77,5 @@ export declare class BindingInterceptor implements IInterceptableBinding {
     $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
 }
-export declare const BindingBehavior: BindingBehaviorKind;
+export declare const BindingBehavior: Readonly<BindingBehaviorKind>;
 //# sourceMappingURL=binding-behavior.d.ts.map

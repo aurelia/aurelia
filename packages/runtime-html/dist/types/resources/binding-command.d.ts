@@ -1,4 +1,4 @@
-import { BindingType, IExpressionParser } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/runtime';
 import { IAttrMapper } from '../attribute-mapper.js';
 import { PropertyBindingInstruction } from '../renderer.js';
 import type { Constructable, IContainer, IResourceKind, ResourceType, ResourceDefinition, PartialResourceDefinition } from '@aurelia/kernel';
@@ -7,6 +7,13 @@ import type { AttrSyntax } from './attribute-pattern.js';
 import type { BindableDefinition } from '../bindable.js';
 import type { CustomAttributeDefinition } from './custom-attribute.js';
 import type { CustomElementDefinition } from './custom-element.js';
+/**
+ * Characteristics of a binding command.
+ */
+export declare const enum CommandType {
+    None = 0,
+    IgnoreAttr = 1
+}
 export declare type PartialBindingCommandDefinition = PartialResourceDefinition<{
     readonly type?: string | null;
 }>;
@@ -24,7 +31,8 @@ export interface IBindableCommandInfo {
 }
 export declare type ICommandBuildInfo = IPlainAttrCommandInfo | IBindableCommandInfo;
 export declare type BindingCommandInstance<T extends {} = {}> = {
-    type: BindingType;
+    type: CommandType;
+    name: string;
     build(info: ICommandBuildInfo): IInstruction;
 } & T;
 export declare type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
@@ -52,77 +60,62 @@ export declare class BindingCommandDefinition<T extends Constructable = Construc
 }
 export declare const BindingCommand: Readonly<BindingCommandKind>;
 export declare class OneTimeBindingCommand implements BindingCommandInstance {
-    private readonly m;
-    private readonly xp;
-    readonly type: BindingType.OneTimeCommand;
-    static inject: (import("@aurelia/kernel").InterfaceSymbol<IExpressionParser> | import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>)[];
+    readonly type: CommandType.None;
+    get name(): string;
     constructor(m: IAttrMapper, xp: IExpressionParser);
     build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class ToViewBindingCommand implements BindingCommandInstance {
-    private readonly m;
-    private readonly xp;
-    readonly type: BindingType.ToViewCommand;
-    static inject: (import("@aurelia/kernel").InterfaceSymbol<IExpressionParser> | import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>)[];
-    constructor(m: IAttrMapper, xp: IExpressionParser);
+    readonly type: CommandType.None;
+    get name(): string;
+    constructor(attrMapper: IAttrMapper, exprParser: IExpressionParser);
     build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class FromViewBindingCommand implements BindingCommandInstance {
-    private readonly m;
-    private readonly xp;
-    readonly type: BindingType.FromViewCommand;
-    static inject: (import("@aurelia/kernel").InterfaceSymbol<IExpressionParser> | import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>)[];
+    readonly type: CommandType.None;
+    get name(): string;
     constructor(m: IAttrMapper, xp: IExpressionParser);
     build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class TwoWayBindingCommand implements BindingCommandInstance {
-    private readonly m;
-    private readonly xp;
-    readonly type: BindingType.TwoWayCommand;
-    static inject: (import("@aurelia/kernel").InterfaceSymbol<IExpressionParser> | import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>)[];
+    readonly type: CommandType.None;
+    get name(): string;
     constructor(m: IAttrMapper, xp: IExpressionParser);
     build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class DefaultBindingCommand implements BindingCommandInstance {
-    private readonly m;
-    private readonly xp;
-    readonly type: BindingType.BindCommand;
-    static inject: (import("@aurelia/kernel").InterfaceSymbol<IExpressionParser> | import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>)[];
+    readonly type: CommandType.None;
+    get name(): string;
     constructor(m: IAttrMapper, xp: IExpressionParser);
     build(info: ICommandBuildInfo): PropertyBindingInstruction;
 }
 export declare class CallBindingCommand implements BindingCommandInstance {
-    private readonly xp;
-    readonly type: BindingType.CallCommand;
-    static inject: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>[];
+    readonly type: CommandType.None;
+    get name(): string;
     constructor(xp: IExpressionParser);
     build(info: ICommandBuildInfo): IInstruction;
 }
 export declare class ForBindingCommand implements BindingCommandInstance {
-    private readonly xp;
-    readonly type: BindingType.ForCommand;
-    static inject: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>[];
+    readonly type: CommandType.None;
+    get name(): string;
     constructor(xp: IExpressionParser);
     build(info: ICommandBuildInfo): IInstruction;
 }
 export declare class TriggerBindingCommand implements BindingCommandInstance {
-    private readonly xp;
-    readonly type: BindingType.TriggerCommand;
-    static inject: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>[];
+    readonly type: CommandType.IgnoreAttr;
+    get name(): string;
     constructor(xp: IExpressionParser);
     build(info: ICommandBuildInfo): IInstruction;
 }
 export declare class DelegateBindingCommand implements BindingCommandInstance {
-    private readonly xp;
-    readonly type: BindingType.DelegateCommand;
-    static inject: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>[];
+    readonly type: CommandType.IgnoreAttr;
+    get name(): string;
     constructor(xp: IExpressionParser);
     build(info: ICommandBuildInfo): IInstruction;
 }
 export declare class CaptureBindingCommand implements BindingCommandInstance {
-    private readonly xp;
-    readonly type: BindingType.CaptureCommand;
-    static inject: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>[];
+    readonly type: CommandType.IgnoreAttr;
+    get name(): string;
     constructor(xp: IExpressionParser);
     build(info: ICommandBuildInfo): IInstruction;
 }
@@ -130,9 +123,8 @@ export declare class CaptureBindingCommand implements BindingCommandInstance {
  * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
  */
 export declare class AttrBindingCommand implements BindingCommandInstance {
-    private readonly xp;
-    readonly type: BindingType.IsProperty;
-    static inject: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>[];
+    readonly type: CommandType.IgnoreAttr;
+    get name(): string;
     constructor(xp: IExpressionParser);
     build(info: ICommandBuildInfo): IInstruction;
 }
@@ -140,9 +132,8 @@ export declare class AttrBindingCommand implements BindingCommandInstance {
  * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
  */
 export declare class StyleBindingCommand implements BindingCommandInstance {
-    private readonly xp;
-    readonly type: BindingType.IsProperty;
-    static inject: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>[];
+    readonly type: CommandType.IgnoreAttr;
+    get name(): string;
     constructor(xp: IExpressionParser);
     build(info: ICommandBuildInfo): IInstruction;
 }
@@ -150,9 +141,8 @@ export declare class StyleBindingCommand implements BindingCommandInstance {
  * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
  */
 export declare class ClassBindingCommand implements BindingCommandInstance {
-    private readonly xp;
-    readonly type: BindingType.IsProperty;
-    static inject: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>[];
+    readonly type: CommandType.IgnoreAttr;
+    get name(): string;
     constructor(xp: IExpressionParser);
     build(info: ICommandBuildInfo): IInstruction;
 }
@@ -160,9 +150,8 @@ export declare class ClassBindingCommand implements BindingCommandInstance {
  * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
  */
 export declare class RefBindingCommand implements BindingCommandInstance {
-    private readonly xp;
-    readonly type: BindingType.IsProperty | BindingType.IgnoreAttr;
-    static inject: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>[];
+    readonly type: CommandType.IgnoreAttr;
+    get name(): string;
     constructor(xp: IExpressionParser);
     build(info: ICommandBuildInfo): IInstruction;
 }

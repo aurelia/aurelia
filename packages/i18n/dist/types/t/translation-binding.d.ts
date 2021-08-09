@@ -1,7 +1,8 @@
-import { LifecycleFlags, IPlatform } from '@aurelia/runtime-html';
+import { LifecycleFlags } from '@aurelia/runtime';
+import { IPlatform } from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
-import { Scope, IsExpression, IConnectableBinding, IExpressionParser, IObserverLocator, IObserverLocatorBasedConnectable } from '@aurelia/runtime';
+import type { Scope, IsExpression, IConnectableBinding, IExpressionParser, IObserverLocator, IObserverLocatorBasedConnectable } from '@aurelia/runtime';
 import type { CallBindingInstruction, IHydratableController, INode } from '@aurelia/runtime-html';
 interface TranslationBindingCreationContext {
     parser: IExpressionParser;

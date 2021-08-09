@@ -564,7 +564,7 @@ function f(e, t) {
       default:
         throw new Error(`Unable to parse accessor function:\n${e}`);
     }
-    return [ e, t.parse(`${x}.${e}`, 53) ];
+    return [ e, t.parse(`${x}.${e}`, 8) ];
 }
 
 class ValidationResult {
@@ -614,7 +614,7 @@ exports.ValidationMessageProvider = class ValidationMessageProvider {
         return s;
     }
     parseMessage(e) {
-        const s = this.parser.parse(e, 2048);
+        const s = this.parser.parse(e, 1);
         if (24 === (null === s || void 0 === s ? void 0 : s.$kind)) {
             for (const t of s.expressions) {
                 const s = t.name;

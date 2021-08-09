@@ -2,6 +2,35 @@ import { Metadata, Protocol, Registration, DI, firstDefined, mergeArrays, fromAn
 export { IPlatform } from '../../../kernel/dist/native-modules/index.js';
 export { Platform, Task, TaskAbortError, TaskQueue, TaskQueuePriority, TaskStatus } from '../../../platform/dist/native-modules/index.js';
 
+/**
+ * A shortcut to Object.prototype.hasOwnProperty
+ * Needs to do explicit .call
+ *
+ * @internal
+ */
+const hasOwnProp = Object.prototype.hasOwnProperty;
+/** @internal */
+const def = Reflect.defineProperty;
+/** @internal */
+const isFunction = (v) => typeof v === 'function';
+/** @internal */
+function defineHiddenProp(obj, key, value) {
+    def(obj, key, {
+        enumerable: false,
+        configurable: true,
+        writable: true,
+        value
+    });
+    return value;
+}
+/** @internal */
+function ensureProto(proto, key, defaultValue, force = false) {
+    if (force || !hasOwnProp.call(proto, key)) {
+        defineHiddenProp(proto, key, defaultValue);
+    }
+}
+/** @internal */
+const createLookup = () => Object.create(null);
 /** @internal */
 const getOwnMetadata = Metadata.getOwn;
 /** @internal */
@@ -174,7 +203,7 @@ class OverrideContext {
 const ISignaler = DI.createInterface('ISignaler', x => x.singleton(Signaler));
 class Signaler {
     constructor() {
-        this.signals = Object.create(null);
+        this.signals = createLookup();
     }
     dispatchSignal(name, flags) {
         const listeners = this.signals[name];
@@ -1588,34 +1617,6 @@ function $number(result, func) {
     $array(arr, func);
 }
 
-/**
- * A shortcut to Object.prototype.hasOwnProperty
- * Needs to do explicit .call
- *
- * @internal
- */
-const hasOwnProp = Object.prototype.hasOwnProperty;
-/** @internal */
-const def = Reflect.defineProperty;
-/** @internal */
-const isFunction = (v) => typeof v === 'function';
-/** @internal */
-function defineHiddenProp(obj, key, value) {
-    def(obj, key, {
-        enumerable: false,
-        configurable: true,
-        writable: true,
-        value
-    });
-    return value;
-}
-/** @internal */
-function ensureProto(proto, key, defaultValue, force = false) {
-    if (force || !hasOwnProp.call(proto, key)) {
-        defineHiddenProp(proto, key, defaultValue);
-    }
-}
-
 /*
 * Note: the oneTime binding now has a non-zero value for 2 reasons:
 *  - plays nicer with bitwise operations (more consistent code, more explicit settings)
@@ -2953,46 +2954,49 @@ connectableDecorator(BindingMediator);
 const IExpressionParser = DI.createInterface('IExpressionParser', x => x.singleton(ExpressionParser));
 class ExpressionParser {
     constructor() {
-        this.expressionLookup = Object.create(null);
-        this.forOfLookup = Object.create(null);
-        this.interpolationLookup = Object.create(null);
+        /** @internal */ this._expressionLookup = createLookup();
+        /** @internal */ this._forOfLookup = createLookup();
+        /** @internal */ this._interpolationLookup = createLookup();
     }
-    parse(expression, bindingType) {
-        switch (bindingType) {
-            case 2048 /* Interpolation */: {
-                let found = this.interpolationLookup[expression];
+    parse(expression, expressionType) {
+        let found;
+        switch (expressionType) {
+            case 16 /* IsCustom */:
+                return new CustomExpression(expression);
+            case 1 /* Interpolation */:
+                found = this._interpolationLookup[expression];
                 if (found === void 0) {
-                    found = this.interpolationLookup[expression] = this.$parse(expression, bindingType);
+                    found = this._interpolationLookup[expression] = this.$parse(expression, expressionType);
                 }
                 return found;
-            }
-            case 539 /* ForCommand */: {
-                let found = this.forOfLookup[expression];
+            case 2 /* IsIterator */:
+                found = this._forOfLookup[expression];
                 if (found === void 0) {
-                    found = this.forOfLookup[expression] = this.$parse(expression, bindingType);
+                    found = this._forOfLookup[expression] = this.$parse(expression, expressionType);
                 }
                 return found;
-            }
             default: {
-                // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
-                // But don't cache it, because empty strings are always invalid for any other type of binding
-                if (expression.length === 0 && (bindingType & (53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */))) {
-                    return PrimitiveLiteralExpression.$empty;
+                if (expression.length === 0) {
+                    // only allow function to be empty
+                    if ((expressionType & (4 /* IsFunction */ | 8 /* IsProperty */)) > 0) {
+                        return PrimitiveLiteralExpression.$empty;
+                    }
+                    throw new Error('AUR0169');
                 }
-                let found = this.expressionLookup[expression];
+                found = this._expressionLookup[expression];
                 if (found === void 0) {
-                    found = this.expressionLookup[expression] = this.$parse(expression, bindingType);
+                    found = this._expressionLookup[expression] = this.$parse(expression, expressionType);
                 }
                 return found;
             }
         }
     }
-    $parse(expression, bindingType) {
+    $parse(expression, expressionType) {
         $state.ip = expression;
         $state.length = expression.length;
         $state.index = 0;
         $state._currentChar = expression.charCodeAt(0);
-        return parse($state, 0 /* Reset */, 61 /* Variadic */, bindingType === void 0 ? 53 /* BindCommand */ : bindingType);
+        return parse($state, 0 /* Reset */, 61 /* Variadic */, expressionType === void 0 ? 8 /* IsProperty */ : expressionType);
     }
 }
 var Char;
@@ -3205,69 +3209,39 @@ const $null = PrimitiveLiteralExpression.$null;
 const $undefined = PrimitiveLiteralExpression.$undefined;
 const $this = AccessThisExpression.$this;
 const $parent = AccessThisExpression.$parent;
-var BindingType;
-(function (BindingType) {
-    BindingType[BindingType["None"] = 0] = "None";
-    // if a binding command is taking over the processing of an attribute
-    // then it should add this flag to its binding type
-    // which then tell the binder to proceed the attribute compilation as is,
-    // instead of normal process: transformation -> compilation
-    BindingType[BindingType["IgnoreAttr"] = 4096] = "IgnoreAttr";
-    BindingType[BindingType["Interpolation"] = 2048] = "Interpolation";
-    BindingType[BindingType["IsRef"] = 5376] = "IsRef";
-    BindingType[BindingType["IsIterator"] = 512] = "IsIterator";
-    BindingType[BindingType["IsCustom"] = 256] = "IsCustom";
-    BindingType[BindingType["IsFunction"] = 128] = "IsFunction";
-    BindingType[BindingType["IsEvent"] = 64] = "IsEvent";
-    BindingType[BindingType["IsProperty"] = 32] = "IsProperty";
-    BindingType[BindingType["IsCommand"] = 16] = "IsCommand";
-    BindingType[BindingType["IsPropertyCommand"] = 48] = "IsPropertyCommand";
-    BindingType[BindingType["IsEventCommand"] = 80] = "IsEventCommand";
-    BindingType[BindingType["DelegationStrategyDelta"] = 6] = "DelegationStrategyDelta";
-    BindingType[BindingType["Command"] = 15] = "Command";
-    BindingType[BindingType["OneTimeCommand"] = 49] = "OneTimeCommand";
-    BindingType[BindingType["ToViewCommand"] = 50] = "ToViewCommand";
-    BindingType[BindingType["FromViewCommand"] = 51] = "FromViewCommand";
-    BindingType[BindingType["TwoWayCommand"] = 52] = "TwoWayCommand";
-    BindingType[BindingType["BindCommand"] = 53] = "BindCommand";
-    BindingType[BindingType["TriggerCommand"] = 4182] = "TriggerCommand";
-    BindingType[BindingType["CaptureCommand"] = 4183] = "CaptureCommand";
-    BindingType[BindingType["DelegateCommand"] = 4184] = "DelegateCommand";
-    BindingType[BindingType["CallCommand"] = 153] = "CallCommand";
-    BindingType[BindingType["OptionsCommand"] = 26] = "OptionsCommand";
-    BindingType[BindingType["ForCommand"] = 539] = "ForCommand";
-    BindingType[BindingType["CustomCommand"] = 284] = "CustomCommand";
-})(BindingType || (BindingType = {}));
+var ExpressionType;
+(function (ExpressionType) {
+    ExpressionType[ExpressionType["None"] = 0] = "None";
+    ExpressionType[ExpressionType["Interpolation"] = 1] = "Interpolation";
+    ExpressionType[ExpressionType["IsIterator"] = 2] = "IsIterator";
+    ExpressionType[ExpressionType["IsFunction"] = 4] = "IsFunction";
+    ExpressionType[ExpressionType["IsProperty"] = 8] = "IsProperty";
+    ExpressionType[ExpressionType["IsCustom"] = 16] = "IsCustom";
+})(ExpressionType || (ExpressionType = {}));
 /* eslint-enable @typescript-eslint/indent */
 class ParserState {
     constructor(ip) {
         this.ip = ip;
         this.index = 0;
-        /** @internal */
-        this._startIndex = 0;
-        /** @internal */
-        this._lastIndex = 0;
-        /** @internal */
-        this._currentToken = 1572864 /* EOF */;
-        /** @internal */
-        this._tokenValue = '';
-        /** @internal */
-        this._assignable = true;
+        /** @internal */ this._startIndex = 0;
+        /** @internal */ this._lastIndex = 0;
+        /** @internal */ this._currentToken = 1572864 /* EOF */;
+        /** @internal */ this._tokenValue = '';
+        /** @internal */ this._assignable = true;
         this.length = ip.length;
         this._currentChar = ip.charCodeAt(0);
     }
-    /** @internal */
-    get _tokenRaw() {
+    /** @internal */ get _tokenRaw() {
         return this.ip.slice(this._startIndex, this.index);
     }
 }
 const $state = new ParserState('');
-function parseExpression(input, bindingType) {
+function parseExpression(input, expressionType) {
     $state.ip = input;
     $state.length = input.length;
     $state.index = 0;
     $state._currentChar = input.charCodeAt(0);
-    return parse($state, 0 /* Reset */, 61 /* Variadic */, bindingType === void 0 ? 53 /* BindCommand */ : bindingType);
+    return parse($state, 0 /* Reset */, 61 /* Variadic */, expressionType === void 0 ? 8 /* IsProperty */ : expressionType);
 }
 // This is performance-critical code which follows a subset of the well-known ES spec.
 // Knowing the spec, or parsers in general, will help with understanding this code and it is therefore not the
@@ -3277,12 +3251,12 @@ function parseExpression(input, bindingType) {
 // It's therefore not considered to have any tangible impact on the maintainability of the code base.
 // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
 // eslint-disable-next-line max-lines-per-function
-function parse(state, access, minPrecedence, bindingType) {
-    if (bindingType === 284 /* CustomCommand */) {
+function parse(state, access, minPrecedence, expressionType) {
+    if (expressionType === 16 /* IsCustom */) {
         return new CustomExpression(state.ip);
     }
     if (state.index === 0) {
-        if (bindingType & 2048 /* Interpolation */) {
+        if (expressionType & 1 /* Interpolation */) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return parseInterpolation(state);
         }
@@ -3313,7 +3287,7 @@ function parse(state, access, minPrecedence, bindingType) {
          */
         const op = TokenValues[state._currentToken & 63 /* Type */];
         nextToken(state);
-        result = new UnaryExpression(op, parse(state, access, 449 /* LeftHandSide */, bindingType));
+        result = new UnaryExpression(op, parse(state, access, 449 /* LeftHandSide */, expressionType));
         state._assignable = false;
     }
     else {
@@ -3368,7 +3342,7 @@ function parse(state, access, minPrecedence, bindingType) {
                 } while (state._currentToken === 3078 /* ParentScope */);
             // falls through
             case 1024 /* Identifier */: // identifier
-                if (bindingType & 512 /* IsIterator */) {
+                if (expressionType & 2 /* IsIterator */) {
                     result = new BindingIdentifier(state._tokenValue);
                 }
                 else {
@@ -3386,16 +3360,16 @@ function parse(state, access, minPrecedence, bindingType) {
                 break;
             case 671751 /* OpenParen */: // parenthesized expression
                 nextToken(state);
-                result = parse(state, 0 /* Reset */, 62 /* Assign */, bindingType);
+                result = parse(state, 0 /* Reset */, 62 /* Assign */, expressionType);
                 consume(state, 1835019 /* CloseParen */);
                 access = 0 /* Reset */;
                 break;
             case 671757 /* OpenBracket */:
-                result = parseArrayLiteralExpression(state, access, bindingType);
+                result = parseArrayLiteralExpression(state, access, expressionType);
                 access = 0 /* Reset */;
                 break;
             case 131080 /* OpenBrace */:
-                result = parseObjectLiteralExpression(state, bindingType);
+                result = parseObjectLiteralExpression(state, expressionType);
                 access = 0 /* Reset */;
                 break;
             case 540714 /* TemplateTail */:
@@ -3405,7 +3379,7 @@ function parse(state, access, minPrecedence, bindingType) {
                 access = 0 /* Reset */;
                 break;
             case 540715 /* TemplateContinuation */:
-                result = parseTemplate(state, access, bindingType, result, false);
+                result = parseTemplate(state, access, expressionType, result, false);
                 access = 0 /* Reset */;
                 break;
             case 4096 /* StringLiteral */:
@@ -3432,7 +3406,7 @@ function parse(state, access, minPrecedence, bindingType) {
                     throw new Error(`AUR0156:${state.ip}`);
                 }
         }
-        if (bindingType & 512 /* IsIterator */) {
+        if (expressionType & 2 /* IsIterator */) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return parseForOfStatement(state, result);
         }
@@ -3496,14 +3470,14 @@ function parse(state, access, minPrecedence, bindingType) {
                     state._assignable = true;
                     nextToken(state);
                     access = 4096 /* Keyed */;
-                    result = new AccessKeyedExpression(result, parse(state, 0 /* Reset */, 62 /* Assign */, bindingType));
+                    result = new AccessKeyedExpression(result, parse(state, 0 /* Reset */, 62 /* Assign */, expressionType));
                     consume(state, 1835022 /* CloseBracket */);
                     break;
                 case 671751 /* OpenParen */:
                     state._assignable = false;
                     nextToken(state);
                     while (state._currentToken !== 1835019 /* CloseParen */) {
-                        args.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType));
+                        args.push(parse(state, 0 /* Reset */, 62 /* Assign */, expressionType));
                         if (!consumeOpt(state, 1572876 /* Comma */)) {
                             break;
                         }
@@ -3527,7 +3501,7 @@ function parse(state, access, minPrecedence, bindingType) {
                     nextToken(state);
                     break;
                 case 540715 /* TemplateContinuation */:
-                    result = parseTemplate(state, access, bindingType, result, true);
+                    result = parseTemplate(state, access, expressionType, result, true);
             }
         }
     }
@@ -3568,7 +3542,7 @@ function parse(state, access, minPrecedence, bindingType) {
             break;
         }
         nextToken(state);
-        result = new BinaryExpression(TokenValues[opToken & 63 /* Type */], result, parse(state, access, opToken & 448 /* Precedence */, bindingType));
+        result = new BinaryExpression(TokenValues[opToken & 63 /* Type */], result, parse(state, access, opToken & 448 /* Precedence */, expressionType));
         state._assignable = false;
     }
     if (63 /* Conditional */ < minPrecedence) {
@@ -3587,9 +3561,9 @@ function parse(state, access, minPrecedence, bindingType) {
      * 1,2 = false
      */
     if (consumeOpt(state, 1572880 /* Question */)) {
-        const yes = parse(state, access, 62 /* Assign */, bindingType);
+        const yes = parse(state, access, 62 /* Assign */, expressionType);
         consume(state, 1572879 /* Colon */);
-        result = new ConditionalExpression(result, yes, parse(state, access, 62 /* Assign */, bindingType));
+        result = new ConditionalExpression(result, yes, parse(state, access, 62 /* Assign */, expressionType));
         state._assignable = false;
     }
     if (62 /* Assign */ < minPrecedence) {
@@ -3611,7 +3585,7 @@ function parse(state, access, minPrecedence, bindingType) {
         if (!state._assignable) {
             throw new Error(`AUR0158:${state.ip}`);
         }
-        result = new AssignExpression(result, parse(state, access, 62 /* Assign */, bindingType));
+        result = new AssignExpression(result, parse(state, access, 62 /* Assign */, expressionType));
     }
     if (61 /* Variadic */ < minPrecedence) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -3627,7 +3601,7 @@ function parse(state, access, minPrecedence, bindingType) {
         nextToken(state);
         const args = new Array();
         while (consumeOpt(state, 1572879 /* Colon */)) {
-            args.push(parse(state, access, 62 /* Assign */, bindingType));
+            args.push(parse(state, access, 62 /* Assign */, expressionType));
         }
         result = new ValueConverterExpression(result, name, args);
     }
@@ -3641,12 +3615,12 @@ function parse(state, access, minPrecedence, bindingType) {
         nextToken(state);
         const args = new Array();
         while (consumeOpt(state, 1572879 /* Colon */)) {
-            args.push(parse(state, access, 62 /* Assign */, bindingType));
+            args.push(parse(state, access, 62 /* Assign */, expressionType));
         }
         result = new BindingBehaviorExpression(result, name, args);
     }
     if (state._currentToken !== 1572864 /* EOF */) {
-        if (bindingType & 2048 /* Interpolation */) {
+        if (expressionType & 1 /* Interpolation */) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return result;
         }
@@ -3675,7 +3649,7 @@ function parse(state, access, minPrecedence, bindingType) {
  * ,
  * Elision ,
  */
-function parseArrayLiteralExpression(state, access, bindingType) {
+function parseArrayLiteralExpression(state, access, expressionType) {
     nextToken(state);
     const elements = new Array();
     while (state._currentToken !== 1835022 /* CloseBracket */) {
@@ -3686,7 +3660,7 @@ function parseArrayLiteralExpression(state, access, bindingType) {
             }
         }
         else {
-            elements.push(parse(state, access, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
+            elements.push(parse(state, access, 62 /* Assign */, expressionType & ~2 /* IsIterator */));
             if (consumeOpt(state, 1572876 /* Comma */)) {
                 if (state._currentToken === 1835022 /* CloseBracket */) {
                     break;
@@ -3698,7 +3672,7 @@ function parseArrayLiteralExpression(state, access, bindingType) {
         }
     }
     consume(state, 1835022 /* CloseBracket */);
-    if (bindingType & 512 /* IsIterator */) {
+    if (expressionType & 2 /* IsIterator */) {
         return new ArrayBindingPattern(elements);
     }
     else {
@@ -3739,7 +3713,7 @@ function parseForOfStatement(state, result) {
  * StringLiteral
  * NumericLiteral
  */
-function parseObjectLiteralExpression(state, bindingType) {
+function parseObjectLiteralExpression(state, expressionType) {
     const keys = new Array();
     const values = new Array();
     nextToken(state);
@@ -3749,21 +3723,21 @@ function parseObjectLiteralExpression(state, bindingType) {
         if (state._currentToken & 12288 /* StringOrNumericLiteral */) {
             nextToken(state);
             consume(state, 1572879 /* Colon */);
-            values.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
+            values.push(parse(state, 0 /* Reset */, 62 /* Assign */, expressionType & ~2 /* IsIterator */));
         }
         else if (state._currentToken & 3072 /* IdentifierName */) {
             // IdentifierName = optional colon
             const { _currentChar: currentChar, _currentToken: currentToken, index: index } = state;
             nextToken(state);
             if (consumeOpt(state, 1572879 /* Colon */)) {
-                values.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
+                values.push(parse(state, 0 /* Reset */, 62 /* Assign */, expressionType & ~2 /* IsIterator */));
             }
             else {
                 // Shorthand
                 state._currentChar = currentChar;
                 state._currentToken = currentToken;
                 state.index = index;
-                values.push(parse(state, 0 /* Reset */, 450 /* Primary */, bindingType & ~512 /* IsIterator */));
+                values.push(parse(state, 0 /* Reset */, 450 /* Primary */, expressionType & ~2 /* IsIterator */));
             }
         }
         else {
@@ -3774,7 +3748,7 @@ function parseObjectLiteralExpression(state, bindingType) {
         }
     }
     consume(state, 1835018 /* CloseBrace */);
-    if (bindingType & 512 /* IsIterator */) {
+    if (expressionType & 2 /* IsIterator */) {
         return new ObjectBindingPattern(keys, values);
     }
     else {
@@ -3796,7 +3770,7 @@ function parseInterpolation(state) {
                     state.index += 2;
                     state._currentChar = state.ip.charCodeAt(state.index);
                     nextToken(state);
-                    const expression = parse(state, 0 /* Reset */, 61 /* Variadic */, 2048 /* Interpolation */);
+                    const expression = parse(state, 0 /* Reset */, 61 /* Variadic */, 1 /* Interpolation */);
                     expressions.push(expression);
                     continue;
                 }
@@ -3850,15 +3824,15 @@ function parseInterpolation(state) {
  * \ EscapeSequence
  * SourceCharacter (but not one of ` or \ or $)
  */
-function parseTemplate(state, access, bindingType, result, tagged) {
+function parseTemplate(state, access, expressionType, result, tagged) {
     const cooked = [state._tokenValue];
     // TODO: properly implement raw parts / decide whether we want this
     consume(state, 540715 /* TemplateContinuation */);
-    const expressions = [parse(state, access, 62 /* Assign */, bindingType)];
+    const expressions = [parse(state, access, 62 /* Assign */, expressionType)];
     while ((state._currentToken = scanTemplateTail(state)) !== 540714 /* TemplateTail */) {
         cooked.push(state._tokenValue);
         consume(state, 540715 /* TemplateContinuation */);
-        expressions.push(parse(state, access, 62 /* Assign */, bindingType));
+        expressions.push(parse(state, access, 62 /* Assign */, expressionType));
     }
     cooked.push(state._tokenValue);
     state._assignable = false;
@@ -4018,7 +3992,7 @@ const TokenValues = [
     540714 /* TemplateTail */, 540715 /* TemplateContinuation */,
     'of'
 ];
-const KeywordLookup = Object.create(null);
+const KeywordLookup = createLookup();
 KeywordLookup.true = 2049 /* TrueKeyword */;
 KeywordLookup.null = 2050 /* NullKeyword */;
 KeywordLookup.false = 2048 /* FalseKeyword */;
@@ -5409,5 +5383,5 @@ class     | config           | config
           | target           | target
 */
 
-export { Access, AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, AccessorType, ArrayBindingPattern, ArrayIndexObserver, ArrayLiteralExpression, ArrayObserver, AssignExpression, BinaryExpression, BindingBehavior, BindingBehaviorDefinition, BindingBehaviorExpression, BindingBehaviorFactory, BindingBehaviorStrategy, BindingContext, BindingIdentifier, BindingInterceptor, BindingMediator, BindingMode, BindingObserverRecord, BindingType, CallFunctionExpression, CallMemberExpression, CallScopeExpression, Char, CollectionKind, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConditionalExpression, ConnectableSwitcher, CustomExpression, DelegationStrategy, DirtyCheckProperty, DirtyCheckSettings, ExpressionKind, FlushQueue, ForOfStatement, HtmlLiteralExpression, IDirtyChecker, IExpressionParser, INodeObserverLocator, IObservation, IObserverLocator, ISignaler, Interpolation, LifecycleFlags, MapObserver, ObjectBindingPattern, ObjectLiteralExpression, Observation, ObserverLocator, OverrideContext, ParserState, Precedence, PrimitiveLiteralExpression, PrimitiveObserver, PropertyAccessor, ProxyObservable, Scope, SetObserver, SetterObserver, SubscriberRecord, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverter, ValueConverterDefinition, ValueConverterExpression, alias, applyMutationsToIndices, bindingBehavior, cloneIndexMap, connectable, copyIndexMap, createIndexMap, disableArrayObservation, disableMapObservation, disableSetObservation, enableArrayObservation, enableMapObservation, enableSetObservation, getCollectionObserver, isIndexMap, observable, parse, parseExpression, registerAliases, subscriberCollection, synchronizeIndices, valueConverter, withFlushQueue };
+export { Access, AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, AccessorType, ArrayBindingPattern, ArrayIndexObserver, ArrayLiteralExpression, ArrayObserver, AssignExpression, BinaryExpression, BindingBehavior, BindingBehaviorDefinition, BindingBehaviorExpression, BindingBehaviorFactory, BindingBehaviorStrategy, BindingContext, BindingIdentifier, BindingInterceptor, BindingMediator, BindingMode, BindingObserverRecord, CallFunctionExpression, CallMemberExpression, CallScopeExpression, Char, CollectionKind, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConditionalExpression, ConnectableSwitcher, CustomExpression, DelegationStrategy, DirtyCheckProperty, DirtyCheckSettings, ExpressionKind, ExpressionType, FlushQueue, ForOfStatement, HtmlLiteralExpression, IDirtyChecker, IExpressionParser, INodeObserverLocator, IObservation, IObserverLocator, ISignaler, Interpolation, LifecycleFlags, MapObserver, ObjectBindingPattern, ObjectLiteralExpression, Observation, ObserverLocator, OverrideContext, ParserState, Precedence, PrimitiveLiteralExpression, PrimitiveObserver, PropertyAccessor, ProxyObservable, Scope, SetObserver, SetterObserver, SubscriberRecord, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverter, ValueConverterDefinition, ValueConverterExpression, alias, applyMutationsToIndices, bindingBehavior, cloneIndexMap, connectable, copyIndexMap, createIndexMap, disableArrayObservation, disableMapObservation, disableSetObservation, enableArrayObservation, enableMapObservation, enableSetObservation, getCollectionObserver, isIndexMap, observable, parse, parseExpression, registerAliases, subscriberCollection, synchronizeIndices, valueConverter, withFlushQueue };
 //# sourceMappingURL=index.dev.js.map

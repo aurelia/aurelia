@@ -3,13 +3,10 @@ export interface IExpressionParser extends ExpressionParser {
 }
 export declare const IExpressionParser: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>;
 export declare class ExpressionParser {
-    private readonly expressionLookup;
-    private readonly forOfLookup;
-    private readonly interpolationLookup;
-    parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
-    parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
-    parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
-    parse(expression: string, bindingType: BindingType): AnyBindingExpression;
+    parse(expression: string, expressionType: ExpressionType.IsIterator): ForOfStatement;
+    parse(expression: string, expressionType: ExpressionType.Interpolation): Interpolation;
+    parse(expression: string, expressionType: Exclude<ExpressionType, ExpressionType.IsIterator | ExpressionType.Interpolation>): IsBindingBehavior;
+    parse(expression: string, expressionType: ExpressionType): AnyBindingExpression;
     private $parse;
 }
 export declare const enum Char {
@@ -136,33 +133,13 @@ export declare const enum Precedence {
     Primary = 450,
     Unary = 451
 }
-export declare const enum BindingType {
+export declare const enum ExpressionType {
     None = 0,
-    IgnoreAttr = 4096,
-    Interpolation = 2048,
-    IsRef = 5376,
-    IsIterator = 512,
-    IsCustom = 256,
-    IsFunction = 128,
-    IsEvent = 64,
-    IsProperty = 32,
-    IsCommand = 16,
-    IsPropertyCommand = 48,
-    IsEventCommand = 80,
-    DelegationStrategyDelta = 6,
-    Command = 15,
-    OneTimeCommand = 49,
-    ToViewCommand = 50,
-    FromViewCommand = 51,
-    TwoWayCommand = 52,
-    BindCommand = 53,
-    TriggerCommand = 4182,
-    CaptureCommand = 4183,
-    DelegateCommand = 4184,
-    CallCommand = 153,
-    OptionsCommand = 26,
-    ForCommand = 539,
-    CustomCommand = 284
+    Interpolation = 1,
+    IsIterator = 2,
+    IsFunction = 4,
+    IsProperty = 8,
+    IsCustom = 16
 }
 export declare class ParserState {
     ip: string;
@@ -170,6 +147,6 @@ export declare class ParserState {
     length: number;
     constructor(ip: string);
 }
-export declare function parseExpression<TType extends BindingType = BindingType.BindCommand>(input: string, bindingType?: TType): TType extends BindingType.Interpolation ? Interpolation : TType extends BindingType.ForCommand ? ForOfStatement : IsBindingBehavior;
-export declare function parse<TPrec extends Precedence, TType extends BindingType>(state: ParserState, access: Access, minPrecedence: TPrec, bindingType: TType): TPrec extends Precedence.Unary ? IsUnary : TPrec extends Precedence.Binary ? IsBinary : TPrec extends Precedence.LeftHandSide ? IsLeftHandSide : TPrec extends Precedence.Assign ? IsAssign : TPrec extends Precedence.Conditional ? IsConditional : TPrec extends Precedence.Primary ? IsPrimary : TPrec extends Precedence.Multiplicative ? IsBinary : TPrec extends Precedence.Additive ? IsBinary : TPrec extends Precedence.Relational ? IsBinary : TPrec extends Precedence.Equality ? IsBinary : TPrec extends Precedence.LogicalAND ? IsBinary : TPrec extends Precedence.LogicalOR ? IsBinary : TPrec extends Precedence.Variadic ? TType extends BindingType.Interpolation ? Interpolation : TType extends BindingType.ForCommand ? ForOfStatement : never : never;
+export declare function parseExpression<TType extends ExpressionType = ExpressionType.IsProperty>(input: string, expressionType?: TType): TType extends ExpressionType.Interpolation ? Interpolation : TType extends ExpressionType.IsIterator ? ForOfStatement : IsBindingBehavior;
+export declare function parse<TPrec extends Precedence, TType extends ExpressionType>(state: ParserState, access: Access, minPrecedence: TPrec, expressionType: TType): TPrec extends Precedence.Unary ? IsUnary : TPrec extends Precedence.Binary ? IsBinary : TPrec extends Precedence.LeftHandSide ? IsLeftHandSide : TPrec extends Precedence.Assign ? IsAssign : TPrec extends Precedence.Conditional ? IsConditional : TPrec extends Precedence.Primary ? IsPrimary : TPrec extends Precedence.Multiplicative ? IsBinary : TPrec extends Precedence.Additive ? IsBinary : TPrec extends Precedence.Relational ? IsBinary : TPrec extends Precedence.Equality ? IsBinary : TPrec extends Precedence.LogicalAND ? IsBinary : TPrec extends Precedence.LogicalOR ? IsBinary : TPrec extends Precedence.Variadic ? TType extends ExpressionType.Interpolation ? Interpolation : TType extends ExpressionType.IsIterator ? ForOfStatement : never : never;
 //# sourceMappingURL=expression-parser.d.ts.map

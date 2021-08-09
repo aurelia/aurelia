@@ -1479,31 +1479,31 @@ function qt(t) {
 class ModuleTransformer {
     constructor(t) {
         this.$transform = t;
-        this.p = new Map;
-        this.m = new Map;
+        this.R = new Map;
+        this.C = new Map;
     }
     transform(t) {
-        if (t instanceof Promise) return this.C(t); else if ("object" === typeof t && null !== t) return this.$(t); else throw new Error(`Invalid input: ${String(t)}. Expected Promise or Object.`);
-    }
-    C(t) {
-        if (this.p.has(t)) return this.p.get(t);
-        const e = t.then((t => this.$(t)));
-        this.p.set(t, e);
-        void e.then((e => {
-            this.p.set(t, e);
-        }));
-        return e;
+        if (t instanceof Promise) return this.$(t); else if ("object" === typeof t && null !== t) return this.A(t); else throw new Error(`Invalid input: ${String(t)}. Expected Promise or Object.`);
     }
     $(t) {
-        if (this.m.has(t)) return this.m.get(t);
-        const e = this.$transform(this.A(t));
-        this.m.set(t, e);
-        if (e instanceof Promise) void e.then((e => {
-            this.m.set(t, e);
+        if (this.R.has(t)) return this.R.get(t);
+        const e = t.then((t => this.A(t)));
+        this.R.set(t, e);
+        void e.then((e => {
+            this.R.set(t, e);
         }));
         return e;
     }
     A(t) {
+        if (this.C.has(t)) return this.C.get(t);
+        const e = this.$transform(this.j(t));
+        this.C.set(t, e);
+        if (e instanceof Promise) void e.then((e => {
+            this.C.set(t, e);
+        }));
+        return e;
+    }
+    j(t) {
         let e;
         let n;
         let r;

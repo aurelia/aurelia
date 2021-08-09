@@ -1,4 +1,5 @@
-import { BindingMode, BindingType, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, IHydratableController, AttrSyntax, IPlatform, IAttrMapper, ICommandBuildInfo } from '@aurelia/runtime-html';
+import { IExpressionParser, IObserverLocator, IsBindingBehavior } from '@aurelia/runtime';
+import { BindingMode, CommandType, IRenderer, IHydratableController, AttrSyntax, IPlatform, IAttrMapper, ICommandBuildInfo } from '@aurelia/runtime-html';
 import type { CallBindingInstruction, BindingCommandInstance } from '@aurelia/runtime-html';
 export declare const TranslationInstructionType = "tt";
 export declare class TranslationAttributePattern {
@@ -13,17 +14,13 @@ export declare class TranslationBindingInstruction {
     constructor(from: IsBindingBehavior, to: string);
 }
 export declare class TranslationBindingCommand implements BindingCommandInstance {
-    private readonly m;
-    readonly type: BindingType.CustomCommand;
-    static inject: import("@aurelia/kernel").InterfaceSymbol<IAttrMapper>[];
+    readonly type: CommandType.None;
+    get name(): string;
     constructor(m: IAttrMapper);
     build(info: ICommandBuildInfo): TranslationBindingInstruction;
 }
 export declare class TranslationBindingRenderer implements IRenderer {
-    private readonly parser;
-    private readonly oL;
-    private readonly p;
-    constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
+    constructor(exprParser: IExpressionParser, observerLocator: IObserverLocator, p: IPlatform);
     render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: CallBindingInstruction): void;
 }
 export declare const TranslationBindInstructionType = "tbt";
@@ -39,11 +36,9 @@ export declare class TranslationBindBindingInstruction {
     constructor(from: IsBindingBehavior, to: string);
 }
 export declare class TranslationBindBindingCommand implements BindingCommandInstance {
-    private readonly m;
-    private readonly xp;
-    readonly type: BindingType.BindCommand;
-    static inject: (import("@aurelia/kernel").InterfaceSymbol<IAttrMapper> | import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>)[];
-    constructor(m: IAttrMapper, xp: IExpressionParser);
+    readonly type: CommandType.None;
+    get name(): string;
+    constructor(attrMapper: IAttrMapper, exprParser: IExpressionParser);
     build(info: ICommandBuildInfo): TranslationBindingInstruction;
 }
 export declare class TranslationBindBindingRenderer implements IRenderer {

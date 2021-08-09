@@ -272,17 +272,11 @@ export declare class SetPropertyRenderer implements IRenderer {
     render(renderingCtrl: IHydratableController, target: IController, instruction: SetPropertyInstruction): void;
 }
 export declare class CustomElementRenderer implements IRenderer {
-    private readonly r;
-    private readonly p;
-    static get inject(): unknown[];
-    constructor(r: IRendering, p: IPlatform);
+    constructor(rendering: IRendering, platform: IPlatform);
     render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: HydrateElementInstruction): void;
 }
 export declare class CustomAttributeRenderer implements IRenderer {
-    private readonly r;
-    private readonly p;
-    static get inject(): unknown[];
-    constructor(r: IRendering, p: IPlatform);
+    constructor(rendering: IRendering, platform: IPlatform);
     render(
     /**
      * The cotroller that is currently invoking this renderer
@@ -290,62 +284,39 @@ export declare class CustomAttributeRenderer implements IRenderer {
     renderingCtrl: IHydratableController, target: HTMLElement, instruction: HydrateAttributeInstruction): void;
 }
 export declare class TemplateControllerRenderer implements IRenderer {
-    private readonly r;
-    private readonly p;
-    static get inject(): unknown[];
-    constructor(r: IRendering, p: IPlatform);
+    constructor(rendering: IRendering, platform: IPlatform);
     render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: HydrateTemplateController): void;
 }
 export declare class LetElementRenderer implements IRenderer {
-    private readonly parser;
-    private readonly oL;
-    constructor(parser: IExpressionParser, oL: IObserverLocator);
+    constructor(exprParser: IExpressionParser, observerLocator: IObserverLocator);
     render(renderingCtrl: IHydratableController, target: Node & ChildNode, instruction: HydrateLetElementInstruction): void;
 }
 export declare class CallBindingRenderer implements IRenderer {
-    private readonly parser;
-    static inject: (import("@aurelia/kernel").InterfaceSymbol<IExpressionParser> | import("@aurelia/kernel").InterfaceSymbol<IObserverLocator>)[];
-    constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
+    constructor(exprParser: IExpressionParser, observerLocator: IObserverLocator);
     render(renderingCtrl: IHydratableController, target: IController, instruction: CallBindingInstruction): void;
 }
 export declare class RefBindingRenderer implements IRenderer {
-    private readonly parser;
-    constructor(parser: IExpressionParser);
+    constructor(exprParser: IExpressionParser);
     render(renderingCtrl: IHydratableController, target: INode, instruction: RefBindingInstruction): void;
 }
 export declare class InterpolationBindingRenderer implements IRenderer {
-    private readonly parser;
-    private readonly oL;
-    private readonly p;
-    constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
+    constructor(exprParser: IExpressionParser, observerLocator: IObserverLocator, p: IPlatform);
     render(renderingCtrl: IHydratableController, target: IController, instruction: InterpolationInstruction): void;
 }
 export declare class PropertyBindingRenderer implements IRenderer {
-    private readonly parser;
-    private readonly oL;
-    private readonly p;
-    constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
+    constructor(exprParser: IExpressionParser, observerLocator: IObserverLocator, p: IPlatform);
     render(renderingCtrl: IHydratableController, target: IController, instruction: PropertyBindingInstruction): void;
 }
 export declare class IteratorBindingRenderer implements IRenderer {
-    private readonly parser;
-    private readonly oL;
-    private readonly p;
-    constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
+    constructor(exprParser: IExpressionParser, observerLocator: IObserverLocator, p: IPlatform);
     render(renderingCtrl: IHydratableController, target: IController, instruction: IteratorBindingInstruction): void;
 }
 export declare function applyBindingBehavior<T extends IInterceptableBinding>(binding: T, expression: IsBindingBehavior, locator: IServiceLocator): T;
 export declare class TextBindingRenderer implements IRenderer {
-    private readonly parser;
-    private readonly oL;
-    private readonly p;
-    constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
+    constructor(exprParser: IExpressionParser, observerLocator: IObserverLocator, p: IPlatform);
     render(renderingCtrl: IHydratableController, target: ChildNode, instruction: TextBindingInstruction): void;
 }
 export declare class ListenerBindingRenderer implements IRenderer {
-    private readonly parser;
-    private readonly eventDelegator;
-    private readonly p;
     constructor(parser: IExpressionParser, eventDelegator: IEventDelegator, p: IPlatform);
     render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: ListenerBindingInstruction): void;
 }
@@ -359,16 +330,11 @@ export declare class SetStyleAttributeRenderer implements IRenderer {
     render(_: IHydratableController, target: HTMLElement, instruction: SetStyleAttributeInstruction): void;
 }
 export declare class StylePropertyBindingRenderer implements IRenderer {
-    private readonly parser;
-    private readonly oL;
-    private readonly p;
-    constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
+    constructor(exprParser: IExpressionParser, observerLocator: IObserverLocator, p: IPlatform);
     render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: StylePropertyBindingInstruction): void;
 }
 export declare class AttributeBindingRenderer implements IRenderer {
-    private readonly parser;
-    private readonly oL;
-    constructor(parser: IExpressionParser, oL: IObserverLocator);
+    constructor(exprParser: IExpressionParser, observerLocator: IObserverLocator);
     render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: AttributeBindingInstruction): void;
 }
 export {};

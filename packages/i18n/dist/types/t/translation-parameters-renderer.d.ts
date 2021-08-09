@@ -1,4 +1,5 @@
-import { BindingMode, BindingType, IHydratableController, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, AttrSyntax, IPlatform, IAttrMapper, ICommandBuildInfo } from '@aurelia/runtime-html';
+import { IExpressionParser, IObserverLocator } from '@aurelia/runtime';
+import { BindingMode, CommandType, IHydratableController, IRenderer, IsBindingBehavior, AttrSyntax, IPlatform, IAttrMapper, ICommandBuildInfo } from '@aurelia/runtime-html';
 import type { CallBindingInstruction, BindingCommandInstance } from '@aurelia/runtime-html';
 export declare const TranslationParametersInstructionType = "tpt";
 declare const attribute = "t-params.bind";
@@ -13,18 +14,13 @@ export declare class TranslationParametersBindingInstruction {
     constructor(from: IsBindingBehavior, to: string);
 }
 export declare class TranslationParametersBindingCommand implements BindingCommandInstance {
-    private readonly m;
-    private readonly xp;
-    readonly type: BindingType.BindCommand;
-    static inject: (import("@aurelia/kernel").InterfaceSymbol<IAttrMapper> | import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>)[];
+    readonly type: CommandType.None;
+    get name(): string;
     constructor(m: IAttrMapper, xp: IExpressionParser);
     build(info: ICommandBuildInfo): TranslationParametersBindingInstruction;
 }
 export declare class TranslationParametersBindingRenderer implements IRenderer {
-    private readonly parser;
-    private readonly oL;
-    private readonly p;
-    constructor(parser: IExpressionParser, oL: IObserverLocator, p: IPlatform);
+    constructor(exprParser: IExpressionParser, observerLocator: IObserverLocator, p: IPlatform);
     render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: CallBindingInstruction): void;
 }
 export {};

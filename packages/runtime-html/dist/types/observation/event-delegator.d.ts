@@ -1,4 +1,4 @@
-import type { NodeObserverConfig } from './observer-locator';
+import type { NodeObserverConfig } from './observer-locator.js';
 import type { IDisposable } from '@aurelia/kernel';
 export declare class EventSubscriber {
     readonly config: NodeObserverConfig;

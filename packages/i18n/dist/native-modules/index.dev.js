@@ -1,6 +1,6 @@
 import { DI, IEventAggregator, toArray, camelCase, Registration } from '../../../kernel/dist/native-modules/index.js';
-import { ValueConverterExpression as ValueConverterExpression$1, bindingBehavior as bindingBehavior$1, CustomExpression, Interpolation, CustomElement, connectable, AttrSyntax, attributePattern, BindingMode, IAttrMapper, IExpressionParser, bindingCommand, renderer, IObserverLocator, IPlatform, valueConverter as valueConverter$1, AppTask, AttributePattern, BindingCommand } from '../../../runtime-html/dist/native-modules/index.js';
-import { ValueConverterExpression, bindingBehavior, ISignaler, valueConverter } from '../../../runtime/dist/native-modules/index.js';
+import { ValueConverterExpression as ValueConverterExpression$1, bindingBehavior as bindingBehavior$1, Interpolation, CustomElement, AttrSyntax, attributePattern, BindingMode, IAttrMapper, bindingCommand, IPlatform, renderer, valueConverter as valueConverter$1, AppTask, AttributePattern, BindingCommand } from '../../../runtime-html/dist/native-modules/index.js';
+import { ValueConverterExpression, bindingBehavior, ISignaler, valueConverter, CustomExpression, connectable, IExpressionParser, IObserverLocator } from '../../../runtime/dist/native-modules/index.js';
 import i18next from 'i18next';
 
 /*! *****************************************************************************
@@ -350,13 +350,13 @@ class TranslationBinding {
     static create({ parser, observerLocator, context, controller, target, instruction, platform, isParameterContext, }) {
         const binding = this.getBinding({ observerLocator, context, controller, target, platform });
         const expr = typeof instruction.from === 'string'
-            ? parser.parse(instruction.from, 53 /* BindCommand */)
+            ? parser.parse(instruction.from, 8 /* IsProperty */)
             : instruction.from;
         if (isParameterContext) {
             binding.useParameter(expr);
         }
         else {
-            const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, 2048 /* Interpolation */) : undefined;
+            const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, 1 /* Interpolation */) : undefined;
             binding.expr = interpolation || expr;
         }
     }
@@ -611,51 +611,50 @@ class TranslationParametersBindingInstruction {
 }
 let TranslationParametersBindingCommand = class TranslationParametersBindingCommand {
     constructor(m, xp) {
-        this.m = m;
-        this.xp = xp;
-        this.type = 53 /* BindCommand */;
+        this.type = 0 /* None */;
+        this._attrMapper = m;
+        this._exprParser = xp;
     }
+    get name() { return attribute; }
     build(info) {
         var _a;
         const attr = info.attr;
         let target = attr.target;
         if (info.bindable == null) {
-            target = (_a = this.m.map(info.node, target)) !== null && _a !== void 0 ? _a : camelCase(target);
+            target = (_a = this._attrMapper.map(info.node, target)) !== null && _a !== void 0 ? _a : camelCase(target);
         }
         else {
             target = info.bindable.property;
         }
-        return new TranslationParametersBindingInstruction(this.xp.parse(attr.rawValue, 53 /* BindCommand */), target);
+        return new TranslationParametersBindingInstruction(this._exprParser.parse(attr.rawValue, 8 /* IsProperty */), target);
     }
 };
-TranslationParametersBindingCommand.inject = [IAttrMapper, IExpressionParser];
+/** @internal */ TranslationParametersBindingCommand.inject = [IAttrMapper, IExpressionParser];
 TranslationParametersBindingCommand = __decorate([
     bindingCommand(attribute)
 ], TranslationParametersBindingCommand);
 let TranslationParametersBindingRenderer = class TranslationParametersBindingRenderer {
-    constructor(parser, oL, p) {
-        this.parser = parser;
-        this.oL = oL;
-        this.p = p;
+    constructor(exprParser, observerLocator, p) {
+        this._exprParser = exprParser;
+        this._observerLocator = observerLocator;
+        this._platform = p;
     }
     render(renderingCtrl, target, instruction) {
         TranslationBinding.create({
-            parser: this.parser,
-            observerLocator: this.oL,
+            parser: this._exprParser,
+            observerLocator: this._observerLocator,
             context: renderingCtrl.container,
             controller: renderingCtrl,
             target,
             instruction,
             isParameterContext: true,
-            platform: this.p
+            platform: this._platform
         });
     }
 };
+/** @internal */ TranslationParametersBindingRenderer.inject = [IExpressionParser, IObserverLocator, IPlatform];
 TranslationParametersBindingRenderer = __decorate([
-    renderer(TranslationParametersInstructionType),
-    __param(0, IExpressionParser),
-    __param(1, IObserverLocator),
-    __param(2, IPlatform)
+    renderer(TranslationParametersInstructionType)
 ], TranslationParametersBindingRenderer);
 
 const TranslationInstructionType = 'tt';
@@ -676,14 +675,15 @@ class TranslationBindingInstruction {
 }
 class TranslationBindingCommand {
     constructor(m) {
-        this.m = m;
-        this.type = 284 /* CustomCommand */;
+        this.type = 0 /* None */;
+        this._attrMapper = m;
     }
+    get name() { return 't'; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this._attrMapper.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
@@ -691,30 +691,28 @@ class TranslationBindingCommand {
         return new TranslationBindingInstruction(new CustomExpression(info.attr.rawValue), target);
     }
 }
-TranslationBindingCommand.inject = [IAttrMapper];
+/** @internal */ TranslationBindingCommand.inject = [IAttrMapper];
 let TranslationBindingRenderer = class TranslationBindingRenderer {
-    constructor(parser, oL, p) {
-        this.parser = parser;
-        this.oL = oL;
-        this.p = p;
+    constructor(exprParser, observerLocator, p) {
+        this._exprParser = exprParser;
+        this._observerLocator = observerLocator;
+        this._platform = p;
     }
     render(renderingCtrl, target, instruction) {
         TranslationBinding.create({
-            parser: this.parser,
-            observerLocator: this.oL,
+            parser: this._exprParser,
+            observerLocator: this._observerLocator,
             context: renderingCtrl.container,
             controller: renderingCtrl,
             target,
             instruction,
-            platform: this.p,
+            platform: this._platform,
         });
     }
 };
+/** @internal */ TranslationBindingRenderer.inject = [IExpressionParser, IObserverLocator, IPlatform];
 TranslationBindingRenderer = __decorate([
-    renderer(TranslationInstructionType),
-    __param(0, IExpressionParser),
-    __param(1, IObserverLocator),
-    __param(2, IPlatform)
+    renderer(TranslationInstructionType)
 ], TranslationBindingRenderer);
 const TranslationBindInstructionType = 'tbt';
 class TranslationBindAttributePattern {
@@ -734,24 +732,25 @@ class TranslationBindBindingInstruction {
     }
 }
 class TranslationBindBindingCommand {
-    constructor(m, xp) {
-        this.m = m;
-        this.xp = xp;
-        this.type = 53 /* BindCommand */;
+    constructor(attrMapper, exprParser) {
+        this.type = 0 /* None */;
+        this._attrMapper = attrMapper;
+        this._exprParser = exprParser;
     }
+    get name() { return 't-bind'; }
     build(info) {
         var _a;
         let target;
         if (info.bindable == null) {
-            target = (_a = this.m.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
+            target = (_a = this._attrMapper.map(info.node, info.attr.target)) !== null && _a !== void 0 ? _a : camelCase(info.attr.target);
         }
         else {
             target = info.bindable.property;
         }
-        return new TranslationBindBindingInstruction(this.xp.parse(info.attr.rawValue, 53 /* BindCommand */), target);
+        return new TranslationBindBindingInstruction(this._exprParser.parse(info.attr.rawValue, 8 /* IsProperty */), target);
     }
 }
-TranslationBindBindingCommand.inject = [IAttrMapper, IExpressionParser];
+/** @internal */ TranslationBindBindingCommand.inject = [IAttrMapper, IExpressionParser];
 let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
     constructor(parser, oL, p) {
         this.parser = parser;

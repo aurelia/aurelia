@@ -3,15 +3,19 @@ export const terserNameCache = (() => {
   const cache = {
     props: {
       props: {
+        $_attrMapper: 'm',
+        $_exprParser: 'xp',
         $_getter: 'G',
         $_hasSetter: 'HS',
         $_isDirty: 'D',
-        $_isRunning: 'R',
+        $_isRunning: 'iR',
         $_key: 'K',
         $_obj: 'O',
         $_observerLocator: 'oL',
         $_observing: 'iO',
         $_oldValue: 'ov',
+        $_platform: 'p',
+        $_rendering: 'r',
         $_setter: 'S',
         $_useProxy: 'uP',
         $_value: 'v',

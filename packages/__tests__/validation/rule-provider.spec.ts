@@ -13,7 +13,7 @@ import {
   PrimitiveLiteralExpression,
   LifecycleFlags,
   IExpressionParser,
-  BindingType,
+  ExpressionType,
   Scope
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
@@ -950,7 +950,7 @@ describe('validation/validation.spec.ts/parsePropertyName', function () {
   for(const { property, expected } of positiveDataRows) {
     it(`parses ${property.toString()} to ${expected}`, function () {
       const { parser } = setup();
-      assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(`${rootObjectSymbol}.${expected}`, BindingType.None)]);
+      assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(`${rootObjectSymbol}.${expected}`, ExpressionType.None)]);
     });
   }
 

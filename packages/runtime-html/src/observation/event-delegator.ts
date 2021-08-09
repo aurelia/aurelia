@@ -1,5 +1,6 @@
 import { DI } from '@aurelia/kernel';
-import type { NodeObserverConfig } from './observer-locator';
+import { createLookup } from '../utilities-html.js';
+import type { NodeObserverConfig } from './observer-locator.js';
 import type { IDisposable } from '@aurelia/kernel';
 
 const defaultOptions: AddEventListenerOptions = {
@@ -42,7 +43,7 @@ class ListenerTracker implements IDisposable {
     const lookups = this._options.capture === true ? this._captureLookups : this._bubbleLookups;
     let lookup = lookups.get(target);
     if (lookup === void 0) {
-      lookups.set(target, lookup = Object.create(null) as Record<string, EventListenerOrEventListenerObject | undefined>);
+      lookups.set(target, lookup = createLookup());
     }
     return lookup;
   }
@@ -129,7 +130,7 @@ export const IEventDelegator = DI.createInterface<IEventDelegator>('IEventDelega
 
 export class EventDelegator implements IDisposable {
   /** @internal */
-  private readonly _trackerMaps: Record<string, Map<EventTarget, ListenerTracker> | undefined> = Object.create(null);
+  private readonly _trackerMaps: Record<string, Map<EventTarget, ListenerTracker> | undefined> = createLookup();
 
   public addEventListener(
     publisher: EventTarget,

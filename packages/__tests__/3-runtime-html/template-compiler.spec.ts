@@ -11,18 +11,21 @@ import {
   Registration,
 } from '@aurelia/kernel';
 import {
+  ExpressionType,
+  ForOfStatement,
+  parseExpression,
+} from '@aurelia/runtime';
+import {
   AccessScopeExpression,
   bindable,
   BindableDefinition,
   BindingIdentifier,
   BindingMode,
-  BindingType,
   customAttribute,
   CustomAttribute,
   customElement,
   CustomElement,
   DelegationStrategy,
-  ForOfStatement,
   ITemplateCompiler,
   PartialCustomElementDefinition,
   PrimitiveLiteralExpression,
@@ -31,7 +34,6 @@ import {
   IInstruction,
   CustomElementType,
   AuSlot,
-  parseExpression,
   Aurelia,
   HydrateElementInstruction,
   HydrateTemplateController,
@@ -821,7 +823,7 @@ function createCustomElement(
           // nor a custom attribute,
           && !ctx.container.find(CustomAttribute, syntax.target)
           // nor with interpolation
-          && exprParser.parse(a[1], BindingType.Interpolation) === null
+          && exprParser.parse(a[1], ExpressionType.Interpolation) === null
           // nor a bindable
           && !(BindablesInfo.from(def, false).attrs[a[0]]);
         // then can stay in the template
@@ -912,7 +914,7 @@ function createAttributeInstruction(bindableDescription: BindableDefinition | nu
       const from = parseExpression(attributeValue);
       return { type, to, mode, from };
     } else {
-      const from = parseExpression(attributeValue, BindingType.Interpolation);
+      const from = parseExpression(attributeValue, ExpressionType.Interpolation);
       if (!!from) {
         const type = TT.interpolation;
         const to = bindableDescription.property;
@@ -931,7 +933,7 @@ function createAttributeInstruction(bindableDescription: BindableDefinition | nu
       const from = parseExpression(attributeValue);
       return { type, to, mode, from };
     } else {
-      const from = parseExpression(attributeValue, BindingType.Interpolation);
+      const from = parseExpression(attributeValue, ExpressionType.Interpolation);
       if (!!from) {
         const type2 = TT.interpolation;
         return { type: type2, to, from };

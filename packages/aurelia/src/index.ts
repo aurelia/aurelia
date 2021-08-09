@@ -314,7 +314,7 @@ export {
   // connectable,
 
   // IExpressionParser,
-  // BindingType,
+  // ExpressionType,
 
   // MultiInterpolationBinding,
   // InterpolationBinding,

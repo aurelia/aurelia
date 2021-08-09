@@ -105,7 +105,7 @@ export {
   MediatedBinding,
 
   IExpressionParser,
-  BindingType,
+  ExpressionType,
   parseExpression,
   Char,
   Access,
@@ -254,6 +254,7 @@ export {
   BindingCommandKind,
   BindingCommandType,
   CallBindingCommand,
+  CommandType,
   DefaultBindingCommand,
   ForBindingCommand,
   FromViewBindingCommand,

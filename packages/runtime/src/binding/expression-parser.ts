@@ -42,59 +42,66 @@ import {
   UnaryOperator,
   ExpressionKind,
 } from './ast.js';
+import { createLookup } from '../utilities-objects.js';
 
 export interface IExpressionParser extends ExpressionParser {}
 export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
 
 export class ExpressionParser {
-  private readonly expressionLookup: Record<string, IsBindingBehavior> = Object.create(null);
-  private readonly forOfLookup: Record<string, ForOfStatement> = Object.create(null);
-  private readonly interpolationLookup: Record<string, Interpolation> = Object.create(null);
+  /** @internal */ private readonly _expressionLookup: Record<string, IsBindingBehavior> = createLookup();
+  /** @internal */ private readonly _forOfLookup: Record<string, ForOfStatement> = createLookup();
+  /** @internal */ private readonly _interpolationLookup: Record<string, Interpolation> = createLookup();
 
-  public parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
-  public parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
-  public parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
-  public parse(expression: string, bindingType: BindingType): AnyBindingExpression;
-  public parse(expression: string, bindingType: BindingType): AnyBindingExpression {
-    switch (bindingType) {
-      case BindingType.Interpolation: {
-        let found = this.interpolationLookup[expression];
+  public parse(expression: string, expressionType: ExpressionType.IsIterator): ForOfStatement;
+  public parse(expression: string, expressionType: ExpressionType.Interpolation): Interpolation;
+  public parse(expression: string, expressionType: Exclude<ExpressionType, ExpressionType.IsIterator | ExpressionType.Interpolation>): IsBindingBehavior;
+  public parse(expression: string, expressionType: ExpressionType): AnyBindingExpression;
+  public parse(expression: string, expressionType: ExpressionType): AnyBindingExpression {
+    let found: AnyBindingExpression;
+    switch (expressionType) {
+      case ExpressionType.IsCustom:
+        return new CustomExpression(expression) as AnyBindingExpression;
+      case ExpressionType.Interpolation:
+        found = this._interpolationLookup[expression];
         if (found === void 0) {
-          found = this.interpolationLookup[expression] = this.$parse(expression, bindingType);
+          found = this._interpolationLookup[expression] = this.$parse(expression, expressionType);
         }
         return found;
-      }
-      case BindingType.ForCommand: {
-        let found = this.forOfLookup[expression];
+      case ExpressionType.IsIterator:
+        found = this._forOfLookup[expression];
         if (found === void 0) {
-          found = this.forOfLookup[expression] = this.$parse(expression, bindingType);
+          found = this._forOfLookup[expression] = this.$parse(expression, expressionType);
         }
         return found;
-      }
       default: {
-        // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
-        // But don't cache it, because empty strings are always invalid for any other type of binding
-        if (expression.length === 0 && (bindingType & (BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand))) {
-          return PrimitiveLiteralExpression.$empty;
+        if (expression.length === 0) {
+          // only allow function to be empty
+          if ((expressionType & (ExpressionType.IsFunction | ExpressionType.IsProperty)) > 0) {
+            return PrimitiveLiteralExpression.$empty;
+          }
+          if (__DEV__)
+            throw new Error('Invalid expression. Empty expression is only valid in event bindings (trigger, delegate, capture etc...)');
+          else
+            throw new Error('AUR0169');
         }
-        let found = this.expressionLookup[expression];
+        found = this._expressionLookup[expression];
         if (found === void 0) {
-          found = this.expressionLookup[expression] = this.$parse(expression, bindingType);
+          found = this._expressionLookup[expression] = this.$parse(expression, expressionType);
         }
         return found;
       }
     }
   }
 
-  private $parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
-  private $parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
-  private $parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
-  private $parse(expression: string, bindingType: BindingType): AnyBindingExpression {
+  private $parse(expression: string, expressionType: ExpressionType.IsIterator): ForOfStatement;
+  private $parse(expression: string, expressionType: ExpressionType.Interpolation): Interpolation;
+  private $parse(expression: string, expressionType: Exclude<ExpressionType, ExpressionType.IsIterator | ExpressionType.Interpolation>): IsBindingBehavior;
+  private $parse(expression: string, expressionType: ExpressionType): AnyBindingExpression {
     $state.ip = expression;
     $state.length = expression.length;
     $state.index = 0;
     $state._currentChar = expression.charCodeAt(0);
-    return parse($state, Access.Reset, Precedence.Variadic, bindingType === void 0 ? BindingType.BindCommand : bindingType);
+    return parse($state, Access.Reset, Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
   }
 }
 
@@ -312,58 +319,26 @@ const $undefined = PrimitiveLiteralExpression.$undefined;
 const $this = AccessThisExpression.$this;
 const $parent = AccessThisExpression.$parent;
 
-export const enum BindingType {
-                None = 0,
-          // if a binding command is taking over the processing of an attribute
-          // then it should add this flag to its binding type
-          // which then tell the binder to proceed the attribute compilation as is,
-          // instead of normal process: transformation -> compilation
-          IgnoreAttr = 0b100000000_0000,
-       Interpolation = 0b010000000_0000,
-          IsRef      = 0b101010000_0000,
-          IsIterator = 0b000100000_0000,
-          IsCustom   = 0b000010000_0000,
-          IsFunction = 0b000001000_0000,
-          IsEvent    = 0b000000100_0000,
-          IsProperty = 0b000000010_0000,
-          IsCommand  = 0b000000001_0000,
-  IsPropertyCommand  = 0b000000011_0000,
-     IsEventCommand  = 0b000000101_0000,
-  DelegationStrategyDelta =      0b0110,
-
-             Command =           0b1111,
-      OneTimeCommand = 0b000000011_0001,
-      ToViewCommand  = 0b000000011_0010,
-     FromViewCommand = 0b000000011_0011,
-       TwoWayCommand = 0b000000011_0100,
-         BindCommand = 0b000000011_0101,
-      TriggerCommand = 0b100000101_0110,
-      CaptureCommand = 0b100000101_0111,
-     DelegateCommand = 0b100000101_1000,
-         CallCommand = 0b000001001_1001,
-      OptionsCommand = 0b000000001_1010,
-          ForCommand = 0b000100001_1011,
-       CustomCommand = 0b000010001_1100
+export const enum ExpressionType {
+          None = 0,
+ Interpolation = 0b0_00001,
+    IsIterator = 0b0_00010,
+    IsFunction = 0b0_00100,
+    IsProperty = 0b0_01000,
+    IsCustom   = 0b0_10000,
 }
 /* eslint-enable @typescript-eslint/indent */
 
 export class ParserState {
   public index: number = 0;
-  /** @internal */
-  public _startIndex: number = 0;
-  /** @internal */
-  public _lastIndex: number = 0;
   public length: number;
-  /** @internal */
-  public _currentToken: Token = Token.EOF;
-  /** @internal */
-  public _tokenValue: string | number = '';
-  /** @internal */
-  public _currentChar: number;
-  /** @internal */
-  public _assignable: boolean = true;
-  /** @internal */
-  public get _tokenRaw(): string {
+  /** @internal */ public _startIndex: number = 0;
+  /** @internal */ public _lastIndex: number = 0;
+  /** @internal */ public _currentToken: Token = Token.EOF;
+  /** @internal */ public _tokenValue: string | number = '';
+  /** @internal */ public _currentChar: number;
+  /** @internal */ public _assignable: boolean = true;
+  /** @internal */ public get _tokenRaw(): string {
     return this.ip.slice(this._startIndex, this.index);
   }
 
@@ -377,16 +352,16 @@ export class ParserState {
 
 const $state = new ParserState('');
 
-export function parseExpression<TType extends BindingType = BindingType.BindCommand>(input: string, bindingType?: TType):
-TType extends BindingType.Interpolation ? Interpolation :
-  TType extends BindingType.ForCommand ? ForOfStatement :
+export function parseExpression<TType extends ExpressionType = ExpressionType.IsProperty>(input: string, expressionType?: TType):
+TType extends ExpressionType.Interpolation ? Interpolation :
+  TType extends ExpressionType.IsIterator ? ForOfStatement :
     IsBindingBehavior {
 
   $state.ip = input;
   $state.length = input.length;
   $state.index = 0;
   $state._currentChar = input.charCodeAt(0);
-  return parse($state, Access.Reset, Precedence.Variadic, bindingType === void 0 ? BindingType.BindCommand : bindingType);
+  return parse($state, Access.Reset, Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
 }
 
 // This is performance-critical code which follows a subset of the well-known ES spec.
@@ -397,7 +372,7 @@ TType extends BindingType.Interpolation ? Interpolation :
 // It's therefore not considered to have any tangible impact on the maintainability of the code base.
 // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
 // eslint-disable-next-line max-lines-per-function
-export function parse<TPrec extends Precedence, TType extends BindingType>(state: ParserState, access: Access, minPrecedence: TPrec, bindingType: TType):
+export function parse<TPrec extends Precedence, TType extends ExpressionType>(state: ParserState, access: Access, minPrecedence: TPrec, expressionType: TType):
 TPrec extends Precedence.Unary ? IsUnary :
   TPrec extends Precedence.Binary ? IsBinary :
     TPrec extends Precedence.LeftHandSide ? IsLeftHandSide :
@@ -411,16 +386,16 @@ TPrec extends Precedence.Unary ? IsUnary :
                     TPrec extends Precedence.LogicalAND ? IsBinary :
                       TPrec extends Precedence.LogicalOR ? IsBinary :
                         TPrec extends Precedence.Variadic ?
-                          TType extends BindingType.Interpolation ? Interpolation :
-                            TType extends BindingType.ForCommand ? ForOfStatement :
+                          TType extends ExpressionType.Interpolation ? Interpolation :
+                            TType extends ExpressionType.IsIterator ? ForOfStatement :
                               never : never {
 
-  if (bindingType === BindingType.CustomCommand) {
+  if (expressionType === ExpressionType.IsCustom) {
     return new CustomExpression(state.ip) as any;
   }
 
   if (state.index === 0) {
-    if (bindingType & BindingType.Interpolation) {
+    if (expressionType & ExpressionType.Interpolation) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return parseInterpolation(state) as any;
     }
@@ -456,7 +431,7 @@ TPrec extends Precedence.Unary ? IsUnary :
      */
     const op = TokenValues[state._currentToken & Token.Type] as UnaryOperator;
     nextToken(state);
-    result = new UnaryExpression(op, parse(state, access, Precedence.LeftHandSide, bindingType));
+    result = new UnaryExpression(op, parse(state, access, Precedence.LeftHandSide, expressionType));
     state._assignable = false;
   } else {
     /** parsePrimaryExpression
@@ -516,7 +491,7 @@ TPrec extends Precedence.Unary ? IsUnary :
         } while (state._currentToken === Token.ParentScope);
         // falls through
       case Token.Identifier: // identifier
-        if (bindingType & BindingType.IsIterator) {
+        if (expressionType & ExpressionType.IsIterator) {
           result = new BindingIdentifier(state._tokenValue as string);
         } else {
           result = new AccessScopeExpression(state._tokenValue as string, access & Access.Ancestor);
@@ -533,16 +508,16 @@ TPrec extends Precedence.Unary ? IsUnary :
         break;
       case Token.OpenParen: // parenthesized expression
         nextToken(state);
-        result = parse(state, Access.Reset, Precedence.Assign, bindingType);
+        result = parse(state, Access.Reset, Precedence.Assign, expressionType);
         consume(state, Token.CloseParen);
         access = Access.Reset;
         break;
       case Token.OpenBracket:
-        result = parseArrayLiteralExpression(state, access, bindingType);
+        result = parseArrayLiteralExpression(state, access, expressionType);
         access = Access.Reset;
         break;
       case Token.OpenBrace:
-        result = parseObjectLiteralExpression(state, bindingType);
+        result = parseObjectLiteralExpression(state, expressionType);
         access = Access.Reset;
         break;
       case Token.TemplateTail:
@@ -552,7 +527,7 @@ TPrec extends Precedence.Unary ? IsUnary :
         access = Access.Reset;
         break;
       case Token.TemplateContinuation:
-        result = parseTemplate(state, access, bindingType, result as IsLeftHandSide, false);
+        result = parseTemplate(state, access, expressionType, result as IsLeftHandSide, false);
         access = Access.Reset;
         break;
       case Token.StringLiteral:
@@ -585,7 +560,7 @@ TPrec extends Precedence.Unary ? IsUnary :
         }
     }
 
-    if (bindingType & BindingType.IsIterator) {
+    if (expressionType & ExpressionType.IsIterator) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return parseForOfStatement(state, result as BindingIdentifierOrPattern) as any;
     }
@@ -652,14 +627,14 @@ TPrec extends Precedence.Unary ? IsUnary :
           state._assignable = true;
           nextToken(state);
           access = Access.Keyed;
-          result = new AccessKeyedExpression(result as IsLeftHandSide, parse(state, Access.Reset, Precedence.Assign, bindingType));
+          result = new AccessKeyedExpression(result as IsLeftHandSide, parse(state, Access.Reset, Precedence.Assign, expressionType));
           consume(state, Token.CloseBracket);
           break;
         case Token.OpenParen:
           state._assignable = false;
           nextToken(state);
           while ((state._currentToken as Token) !== Token.CloseParen) {
-            args.push(parse(state, Access.Reset, Precedence.Assign, bindingType));
+            args.push(parse(state, Access.Reset, Precedence.Assign, expressionType));
             if (!consumeOpt(state, Token.Comma)) {
               break;
             }
@@ -681,7 +656,7 @@ TPrec extends Precedence.Unary ? IsUnary :
           nextToken(state);
           break;
         case Token.TemplateContinuation:
-          result = parseTemplate(state, access, bindingType, result as IsLeftHandSide, true);
+          result = parseTemplate(state, access, expressionType, result as IsLeftHandSide, true);
         default:
       }
     }
@@ -725,7 +700,7 @@ TPrec extends Precedence.Unary ? IsUnary :
       break;
     }
     nextToken(state);
-    result = new BinaryExpression(TokenValues[opToken & Token.Type] as BinaryOperator, result as IsBinary, parse(state, access, opToken & Token.Precedence, bindingType));
+    result = new BinaryExpression(TokenValues[opToken & Token.Type] as BinaryOperator, result as IsBinary, parse(state, access, opToken & Token.Precedence, expressionType));
     state._assignable = false;
   }
   if (Precedence.Conditional < minPrecedence) {
@@ -746,9 +721,9 @@ TPrec extends Precedence.Unary ? IsUnary :
    */
 
   if (consumeOpt(state, Token.Question)) {
-    const yes = parse(state, access, Precedence.Assign, bindingType);
+    const yes = parse(state, access, Precedence.Assign, expressionType);
     consume(state, Token.Colon);
-    result = new ConditionalExpression(result as IsBinary, yes, parse(state, access, Precedence.Assign, bindingType));
+    result = new ConditionalExpression(result as IsBinary, yes, parse(state, access, Precedence.Assign, expressionType));
     state._assignable = false;
   }
   if (Precedence.Assign < minPrecedence) {
@@ -774,7 +749,7 @@ TPrec extends Precedence.Unary ? IsUnary :
       else
         throw new Error(`AUR0158:${state.ip}`);
     }
-    result = new AssignExpression(result as IsAssignable, parse(state, access, Precedence.Assign, bindingType));
+    result = new AssignExpression(result as IsAssignable, parse(state, access, Precedence.Assign, expressionType));
   }
   if (Precedence.Variadic < minPrecedence) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -794,7 +769,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     nextToken(state);
     const args = new Array<IsAssign>();
     while (consumeOpt(state, Token.Colon)) {
-      args.push(parse(state, access, Precedence.Assign, bindingType));
+      args.push(parse(state, access, Precedence.Assign, expressionType));
     }
     result = new ValueConverterExpression(result as IsValueConverter, name, args);
   }
@@ -812,12 +787,12 @@ TPrec extends Precedence.Unary ? IsUnary :
     nextToken(state);
     const args = new Array<IsAssign>();
     while (consumeOpt(state, Token.Colon)) {
-      args.push(parse(state, access, Precedence.Assign, bindingType));
+      args.push(parse(state, access, Precedence.Assign, expressionType));
     }
     result = new BindingBehaviorExpression(result as IsBindingBehavior, name, args);
   }
   if (state._currentToken !== Token.EOF) {
-    if (bindingType & BindingType.Interpolation) {
+    if (expressionType & ExpressionType.Interpolation) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }
@@ -853,7 +828,7 @@ TPrec extends Precedence.Unary ? IsUnary :
  * ,
  * Elision ,
  */
-function parseArrayLiteralExpression(state: ParserState, access: Access, bindingType: BindingType): ArrayBindingPattern | ArrayLiteralExpression {
+function parseArrayLiteralExpression(state: ParserState, access: Access, expressionType: ExpressionType): ArrayBindingPattern | ArrayLiteralExpression {
   nextToken(state);
   const elements = new Array<IsAssign>();
   while (state._currentToken !== Token.CloseBracket) {
@@ -863,7 +838,7 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
         break;
       }
     } else {
-      elements.push(parse(state, access, Precedence.Assign, bindingType & ~BindingType.IsIterator));
+      elements.push(parse(state, access, Precedence.Assign, expressionType & ~ExpressionType.IsIterator));
       if (consumeOpt(state, Token.Comma)) {
         if ((state._currentToken as Token) === Token.CloseBracket) {
           break;
@@ -874,7 +849,7 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
     }
   }
   consume(state, Token.CloseBracket);
-  if (bindingType & BindingType.IsIterator) {
+  if (expressionType & ExpressionType.IsIterator) {
     return new ArrayBindingPattern(elements);
   } else {
     state._assignable = false;
@@ -897,7 +872,7 @@ function parseForOfStatement(state: ParserState, result: BindingIdentifierOrPatt
   }
   nextToken(state);
   const declaration = result;
-  const statement = parse(state, Access.Reset, Precedence.Variadic, BindingType.None);
+  const statement = parse(state, Access.Reset, Precedence.Variadic, ExpressionType.None);
   return new ForOfStatement(declaration, statement as IsBindingBehavior);
 }
 
@@ -922,7 +897,7 @@ function parseForOfStatement(state: ParserState, result: BindingIdentifierOrPatt
  * StringLiteral
  * NumericLiteral
  */
-function parseObjectLiteralExpression(state: ParserState, bindingType: BindingType): ObjectBindingPattern | ObjectLiteralExpression {
+function parseObjectLiteralExpression(state: ParserState, expressionType: ExpressionType): ObjectBindingPattern | ObjectLiteralExpression {
   const keys = new Array<string | number>();
   const values = new Array<IsAssign>();
   nextToken(state);
@@ -932,19 +907,19 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
     if (state._currentToken & Token.StringOrNumericLiteral) {
       nextToken(state);
       consume(state, Token.Colon);
-      values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator));
+      values.push(parse(state, Access.Reset, Precedence.Assign, expressionType & ~ExpressionType.IsIterator));
     } else if (state._currentToken & Token.IdentifierName) {
       // IdentifierName = optional colon
       const { _currentChar: currentChar, _currentToken: currentToken, index: index } = state;
       nextToken(state);
       if (consumeOpt(state, Token.Colon)) {
-        values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator));
+        values.push(parse(state, Access.Reset, Precedence.Assign, expressionType & ~ExpressionType.IsIterator));
       } else {
         // Shorthand
         state._currentChar = currentChar;
         state._currentToken = currentToken;
         state.index = index;
-        values.push(parse(state, Access.Reset, Precedence.Primary, bindingType & ~BindingType.IsIterator));
+        values.push(parse(state, Access.Reset, Precedence.Primary, expressionType & ~ExpressionType.IsIterator));
       }
     } else {
       if (__DEV__)
@@ -957,7 +932,7 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
     }
   }
   consume(state, Token.CloseBrace);
-  if (bindingType & BindingType.IsIterator) {
+  if (expressionType & ExpressionType.IsIterator) {
     return new ObjectBindingPattern(keys, values);
   } else {
     state._assignable = false;
@@ -980,7 +955,7 @@ function parseInterpolation(state: ParserState): Interpolation {
           state.index += 2;
           state._currentChar = state.ip.charCodeAt(state.index);
           nextToken(state);
-          const expression = parse(state, Access.Reset, Precedence.Variadic, BindingType.Interpolation);
+          const expression = parse(state, Access.Reset, Precedence.Variadic, ExpressionType.Interpolation);
           expressions.push(expression);
           continue;
         } else {
@@ -1034,15 +1009,15 @@ function parseInterpolation(state: ParserState): Interpolation {
  * \ EscapeSequence
  * SourceCharacter (but not one of ` or \ or $)
  */
-function parseTemplate(state: ParserState, access: Access, bindingType: BindingType, result: IsLeftHandSide, tagged: boolean): TaggedTemplateExpression | TemplateExpression {
+function parseTemplate(state: ParserState, access: Access, expressionType: ExpressionType, result: IsLeftHandSide, tagged: boolean): TaggedTemplateExpression | TemplateExpression {
   const cooked = [state._tokenValue as string];
   // TODO: properly implement raw parts / decide whether we want this
   consume(state, Token.TemplateContinuation);
-  const expressions = [parse(state, access, Precedence.Assign, bindingType)];
+  const expressions = [parse(state, access, Precedence.Assign, expressionType)];
   while ((state._currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
     cooked.push(state._tokenValue as string);
     consume(state, Token.TemplateContinuation);
-    expressions.push(parse(state, access, Precedence.Assign, bindingType));
+    expressions.push(parse(state, access, Precedence.Assign, expressionType));
   }
   cooked.push(state._tokenValue as string);
   state._assignable = false;
@@ -1230,9 +1205,7 @@ const TokenValues = [
   'of'
 ];
 
-const KeywordLookup: {
-  [key: string]: Token;
-} = Object.create(null);
+const KeywordLookup: Record<string, Token> = createLookup();
 KeywordLookup.true = Token.TrueKeyword;
 KeywordLookup.null = Token.NullKeyword;
 KeywordLookup.false = Token.FalseKeyword;

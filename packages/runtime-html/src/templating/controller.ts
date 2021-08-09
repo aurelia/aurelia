@@ -11,7 +11,7 @@ import {
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
-  BindingType,
+  ExpressionType,
   Scope,
   LifecycleFlags,
   IObserverLocator,
@@ -1252,7 +1252,7 @@ function createWatchers(
       ));
     } else {
       ast = typeof expression === 'string'
-        ? expressionParser.parse(expression, BindingType.BindCommand)
+        ? expressionParser.parse(expression, ExpressionType.IsProperty)
         : getAccessScopeAst(expression);
 
       controller.addBinding(new ExpressionWatcher(

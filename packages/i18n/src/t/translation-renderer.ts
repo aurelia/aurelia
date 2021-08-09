@@ -1,19 +1,22 @@
 import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding.js';
 import {
-  BindingMode,
-  BindingType,
+  CustomExpression,
+  ExpressionType,
   IExpressionParser,
-  IRenderer,
-  renderer,
   IObserverLocator,
   IsBindingBehavior,
+} from '@aurelia/runtime';
+import {
+  BindingMode,
+  CommandType,
+  IRenderer,
+  renderer,
   IHydratableController,
   AttrSyntax,
   IPlatform,
   IAttrMapper,
   ICommandBuildInfo,
-  CustomExpression,
 } from '@aurelia/runtime-html';
 
 import type {
@@ -44,15 +47,20 @@ export class TranslationBindingInstruction {
 }
 
 export class TranslationBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.CustomCommand = BindingType.CustomCommand;
+  public readonly type: CommandType.None = CommandType.None;
+  public get name() { return 't'; }
 
-  public static inject = [IAttrMapper];
-  public constructor(private readonly m: IAttrMapper) {}
+  /** @internal */ protected static inject = [IAttrMapper];
+  /** @internal */ private readonly _attrMapper: IAttrMapper;
+
+  public constructor(m: IAttrMapper) {
+    this._attrMapper = m;
+  }
 
   public build(info: ICommandBuildInfo): TranslationBindingInstruction {
     let target: string;
     if (info.bindable == null) {
-      target = this.m.map(info.node, info.attr.target)
+      target = this._attrMapper.map(info.node, info.attr.target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
@@ -65,11 +73,20 @@ export class TranslationBindingCommand implements BindingCommandInstance {
 
 @renderer(TranslationInstructionType)
 export class TranslationBindingRenderer implements IRenderer {
+  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IPlatform];
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+  /** @internal */ private readonly _observerLocator: IObserverLocator;
+  /** @internal */ private readonly _platform: IPlatform;
+
   public constructor(
-    @IExpressionParser private readonly parser: IExpressionParser,
-    @IObserverLocator private readonly oL: IObserverLocator,
-    @IPlatform private readonly p: IPlatform,
-  ) { }
+    exprParser: IExpressionParser,
+    observerLocator: IObserverLocator,
+    p: IPlatform,
+  ) {
+    this._exprParser = exprParser;
+    this._observerLocator = observerLocator;
+    this._platform = p;
+  }
 
   public render(
     renderingCtrl: IHydratableController,
@@ -77,13 +94,13 @@ export class TranslationBindingRenderer implements IRenderer {
     instruction: CallBindingInstruction,
   ): void {
     TranslationBinding.create({
-      parser: this.parser,
-      observerLocator: this.oL,
+      parser: this._exprParser,
+      observerLocator: this._observerLocator,
       context: renderingCtrl.container,
       controller: renderingCtrl,
       target,
       instruction,
-      platform: this.p,
+      platform: this._platform,
     });
   }
 }
@@ -112,25 +129,29 @@ export class TranslationBindBindingInstruction {
 }
 
 export class TranslationBindBindingCommand implements BindingCommandInstance {
-  public readonly type: BindingType.BindCommand = BindingType.BindCommand;
+  public readonly type: CommandType.None = CommandType.None;
+  public get name() { return 't-bind'; }
 
-  public static inject = [IAttrMapper, IExpressionParser];
-  public constructor(
-    private readonly m: IAttrMapper,
-    private readonly xp: IExpressionParser,
-  ) {}
+  /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
+  /** @internal */ private readonly _attrMapper: IAttrMapper;
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+
+  public constructor(attrMapper: IAttrMapper, exprParser: IExpressionParser) {
+    this._attrMapper = attrMapper;
+    this._exprParser = exprParser;
+  }
 
   public build(info: ICommandBuildInfo): TranslationBindingInstruction {
     let target: string;
     if (info.bindable == null) {
-      target = this.m.map(info.node, info.attr.target)
+      target = this._attrMapper.map(info.node, info.attr.target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
     } else {
       target = info.bindable.property;
     }
-    return new TranslationBindBindingInstruction(this.xp.parse(info.attr.rawValue, BindingType.BindCommand), target);
+    return new TranslationBindBindingInstruction(this._exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), target);
   }
 }
 

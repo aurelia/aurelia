@@ -73,7 +73,7 @@ export {
 } from './binding/connectable.js';
 export {
   IExpressionParser,
-  BindingType,
+  ExpressionType,
   parseExpression,
   Char,
   Access,

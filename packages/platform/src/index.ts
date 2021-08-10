@@ -11,21 +11,22 @@ function notImplemented(name: string): (...args: any[]) => any {
   };
 }
 
-const scheduling = (navigator as NavigatorScheduling)?.scheduling;
+const scheduler = (navigator as NavigatorScheduling);
 
 let deadline = 0,
   yieldInterval = 5,
   maxDeadline = 300,
   maxYieldInterval = 300;
 
-const shouldYield = scheduling.isInputPending ? () => {
+const shouldYield = scheduler.scheduling.isInputPending ? function () {
   const currentTime = performance.now();
   if (currentTime < deadline) return false;
-  if (scheduling.isInputPending!()) return true;
+  if (scheduler.scheduling.isInputPending!()) return true;
 
   return currentTime >= maxDeadline;
-} : () =>
-  performance.now() >= deadline
+} : function () {
+  return performance.now() >= deadline;
+}
 
 export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
   // http://www.ecma-international.org/ecma-262/#sec-value-properties-of-the-global-object
@@ -201,7 +202,9 @@ export class TaskQueue {
       // seems redundant idk yet
       maxDeadline = time + maxYieldInterval;
       while (this.processing.length > 0) {
-        if (shouldYield()) return;
+        if (shouldYield()) {
+          this.requestFlush(); return;
+        }
         (cur = this.processing.shift()!).run();
         // If it's still running, it can only be an async task
         if (cur.status === TaskStatus.running) {

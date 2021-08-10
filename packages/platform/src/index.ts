@@ -1,10 +1,31 @@
 const lookup = new Map<object, Platform>();
 
+type NavigatorScheduling = Navigator & {
+  scheduling: { isInputPending?: () => boolean };
+};
+
+
 function notImplemented(name: string): (...args: any[]) => any {
   return function notImplemented() {
     throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
   };
 }
+
+const scheduling = (navigator as NavigatorScheduling)?.scheduling;
+
+let deadline = 0,
+  yieldInterval = 5,
+  maxDeadline = 300,
+  maxYieldInterval = 300;
+
+const shouldYield = scheduling.isInputPending ? () => {
+  const currentTime = performance.now();
+  if (currentTime < deadline) return false;
+  if (scheduling.isInputPending!()) return true;
+
+  return currentTime >= maxDeadline;
+} : () =>
+  performance.now() >= deadline
 
 export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
   // http://www.ecma-international.org/ecma-262/#sec-value-properties-of-the-global-object
@@ -176,7 +197,11 @@ export class TaskQueue {
       }
 
       let cur: Task;
+      deadline = time + yieldInterval;
+      // seems redundant idk yet
+      maxDeadline = time + maxYieldInterval;
       while (this.processing.length > 0) {
+        if (shouldYield()) return;
         (cur = this.processing.shift()!).run();
         // If it's still running, it can only be an async task
         if (cur.status === TaskStatus.running) {
@@ -492,7 +517,7 @@ export class Task<T = any> implements ITask {
     public suspend: boolean,
     public readonly reusable: boolean,
     public callback: TaskCallback<T>,
-  ) {}
+  ) { }
 
   public run(time: number = this.taskQueue.platform.performanceNow()): void {
     if (this.tracer.enabled) { this.tracer.enter(this, 'run'); }
@@ -523,31 +548,31 @@ export class Task<T = any> implements ITask {
       ret = callback(time - createdTime);
       if (ret instanceof Promise) {
         ret.then($ret => {
-            if (this.persistent) {
-              taskQueue['resetPersistentTask'](this);
+          if (this.persistent) {
+            taskQueue['resetPersistentTask'](this);
+          } else {
+            if (persistent) {
+              // Persistent tasks never reach completed status. They're either pending, running, or canceled.
+              this._status = TaskStatus.canceled;
             } else {
-              if (persistent) {
-                // Persistent tasks never reach completed status. They're either pending, running, or canceled.
-                this._status = TaskStatus.canceled;
-              } else {
-                this._status = TaskStatus.completed;
-              }
-
-              this.dispose();
+              this._status = TaskStatus.completed;
             }
 
-            taskQueue['completeAsyncTask'](this);
+            this.dispose();
+          }
 
-            if (this.tracer.enabled) { this.tracer.leave(this, 'run async then'); }
+          taskQueue['completeAsyncTask'](this);
 
-            if (resolve !== void 0) {
-              resolve($ret as UnwrapPromise<T>);
-            }
+          if (this.tracer.enabled) { this.tracer.leave(this, 'run async then'); }
 
-            if (!this.persistent && reusable) {
-              taskQueue['returnToPool'](this);
-            }
-          })
+          if (resolve !== void 0) {
+            resolve($ret as UnwrapPromise<T>);
+          }
+
+          if (!this.persistent && reusable) {
+            taskQueue['returnToPool'](this);
+          }
+        })
           .catch(err => {
             if (!this.persistent) {
               this.dispose();
@@ -702,7 +727,7 @@ function taskStatus(status: TaskStatus): 'pending' | 'running' | 'canceled' | 'c
 class Tracer {
   public enabled: boolean = false;
   private depth: number = 0;
-  public constructor(private readonly console: Platform['console']) {}
+  public constructor(private readonly console: Platform['console']) { }
 
   public enter(obj: TaskQueue | Task, method: string): void {
     this.log(`${'  '.repeat(this.depth++)}> `, obj, method);
@@ -740,8 +765,8 @@ class Tracer {
   }
 }
 export const enum TaskQueuePriority {
-  render     = 0,
-  macroTask  = 1,
+  render = 0,
+  macroTask = 1,
   postRender = 2,
 }
 

@@ -754,13 +754,13 @@ class Tracer {
       this.console.log(`${prefix}[Q.${method}] ${info}`);
     } else {
       const id = obj['id'];
-      const created = Math.round(obj['createdTime'] * 10) / 10;
-      const queue = Math.round(obj['queueTime'] * 10) / 10;
-      const preempt = obj['preempt'];
-      const reusable = obj['reusable'];
-      const persistent = obj['persistent'];
-      const suspend = obj['suspend'];
-      const status = taskStatus(obj['_status']);
+      const created = Math.round(obj.createdTime * 10) / 10;
+      const queue = Math.round(obj.queueTime * 10) / 10;
+      const preempt = obj.preempt;
+      const reusable = obj.reusable;
+      const persistent = obj.persistent;
+      const suspend = obj.suspend;
+      const status = taskStatus(obj.status);
 
       const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} persistent=${persistent} reusable=${reusable} status=${status} suspend=${suspend}`;
       this.console.log(`${prefix}[T.${method}] ${info}`);

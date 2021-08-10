@@ -6,21 +6,20 @@ import {
   LifecycleFlags,
   connectable,
 } from '@aurelia/runtime';
-
-import type { IIndexable, IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
 import type {
+  IBinding,
   ICollectionSubscriber,
-  IndexMap,
-  Interpolation,
   IConnectableBinding,
   IObserverLocator,
+  IndexMap,
+  Interpolation,
   IsExpression,
-  IBinding,
   Scope,
 } from '@aurelia/runtime';
-import type {
-  IPlatform,
-} from '../platform';
+import type { IIndexable, IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
+
+import type { IAstBasedBinding } from './interfaces-bindings';
+import { IPlatform } from '../platform';
 
 const { toView } = BindingMode;
 const queueTaskOptions: QueueTaskOptions = {
@@ -49,6 +48,7 @@ export class InterpolationBinding implements IBinding {
    * A semi-private property used by connectable mixin
    */
   public readonly oL: IObserverLocator;
+  private p: IPlatform;
 
   public constructor(
     observerLocator: IObserverLocator,
@@ -59,6 +59,7 @@ export class InterpolationBinding implements IBinding {
     public locator: IServiceLocator,
     private readonly taskQueue: TaskQueue,
   ) {
+    this.p = locator.get(IPlatform);
     this.oL = observerLocator;
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
     const expressions = interpolation.expressions;
@@ -67,6 +68,17 @@ export class InterpolationBinding implements IBinding {
     let i = 0;
     for (; ii > i; ++i) {
       partBindings[i] = new InterpolationPartBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
+    }
+  }
+
+  private _value: unknown;
+  private _flags: LifecycleFlags = 0;
+  private _queued = false;
+  public writeDom() {
+    this._queued = false;
+    this.targetObserver.setValue(this._value, this._flags, this.target, this.targetProperty);
+    if (!this._queued) {
+      this._value = void (this._flags = 0);
     }
   }
 
@@ -91,16 +103,22 @@ export class InterpolationBinding implements IBinding {
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
-    let task: ITask | null;
+    // let task: ITask | null;
     if (shouldQueueFlush) {
+      this._value = result;
+      this._flags = flags;
+      if (!this._queued) {
+        this._queued = true;
+        this.p.queueDomWrite(this);
+      }
       // Queue the new one before canceling the old one, to prevent early yield
-      task = this.task;
-      this.task = this.taskQueue.queueTask(() => {
-        this.task = null;
-        targetObserver.setValue(result, flags, this.target, this.targetProperty);
-      }, queueTaskOptions);
-      task?.cancel();
-      task = null;
+      // task = this.task;
+      // this.task = this.taskQueue.queueTask(() => {
+      //   this.task = null;
+      //   targetObserver.setValue(result, flags, this.target, this.targetProperty);
+      // }, queueTaskOptions);
+      // task?.cancel();
+      // task = null;
     } else {
       targetObserver.setValue(result, flags, this.target, this.targetProperty);
     }
@@ -267,6 +285,10 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
    */
   public readonly oL: IObserverLocator;
 
+  // private value: unknown = void 0;
+  private _flags: LifecycleFlags = LifecycleFlags.none;
+  private _queue = false;
+
   public constructor(
     public readonly sourceExpression: IsExpression,
     public readonly target: Text,
@@ -327,14 +349,21 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0;
     if (shouldQueueFlush) {
-      this.queueUpdate(newValue, flags);
+      this.value = newValue;
+      this._flags = flags;
+      if (!this._queue) {
+        this._queue = true;
+        this.p.queueDomWrite(this);
+      }
+      // this.queueUpdate(newValue, flags);
     } else {
       this.updateTarget(newValue, flags);
     }
   }
 
   public handleCollectionChange(): void {
-    this.queueUpdate(this.value, LifecycleFlags.none);
+    this.p.queueDomWrite(this);
+    // this.queueUpdate(this.value, LifecycleFlags.none);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {
@@ -385,14 +414,22 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     this.task = null;
   }
 
+  public writeDom() {
+    this._queue = false;
+    this.interceptor.updateTarget(this.value, this._flags);
+    if (!this._queue) {
+      this.value = void (this._flags = 0);
+    }
+  }
+
   // queue a force update
   private queueUpdate(newValue: unknown, flags: LifecycleFlags): void {
-    const task = this.task;
-    this.task = this.p.domWriteQueue.queueTask(() => {
-      this.task = null;
-      this.updateTarget(newValue, flags);
-    }, queueTaskOptions);
-    task?.cancel();
+    // const task = this.task;
+    // this.task = this.p.domWriteQueue.queueTask(() => {
+    //   this.task = null;
+    //   this.updateTarget(newValue, flags);
+    // }, queueTaskOptions);
+    // task?.cancel();
   }
 }
 

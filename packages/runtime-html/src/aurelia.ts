@@ -118,6 +118,7 @@ export class Aurelia implements IDisposable {
     await platform.domWriteQueue.yield();
     await platform.domReadQueue.yield();
     await platform.taskQueue.yield();
+    await platform.yieldDomQueue();
   }
 
   /** @internal */

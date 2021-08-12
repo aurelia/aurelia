@@ -150,7 +150,7 @@ export class TaskQueue {
     );
   }
 
-  private readonly _tracer: Tracer;
+  /** @internal */ private readonly _tracer: Tracer;
   public constructor(
     public readonly platform: Platform,
     private readonly $request: () => void,

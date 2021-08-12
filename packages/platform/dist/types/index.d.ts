@@ -29,27 +29,15 @@ export declare class TaskQueue {
     private readonly $request;
     private readonly $cancel;
     private processing;
-    private suspenderTask;
-    private pendingAsyncCount;
     private pending;
     private delayed;
     private flushRequested;
-    private yieldPromise;
+    private _yieldPromise;
     private readonly taskPool;
-    private taskPoolSize;
-    private lastRequest;
-    private lastFlush;
+    private _taskPoolSize;
+    private _lastRequest;
+    private _lastFlush;
     get isEmpty(): boolean;
-    /**
-     * Persistent tasks will re-queue themselves indefinitely until they are explicitly canceled,
-     * so we consider them 'infinite work' whereas non-persistent (one-off) tasks are 'finite work'.
-     *
-     * This `hasNoMoreFiniteWork` getters returns true if either all remaining tasks are persistent, or if there are no more tasks.
-     *
-     * If that is the case, we can resolve the promise that was created when `yield()` is called.
-     */
-    private get hasNoMoreFiniteWork();
-    private readonly tracer;
     constructor(platform: Platform, $request: () => void, $cancel: () => void);
     flush(time?: number): void;
     /**
@@ -86,7 +74,7 @@ export declare class TaskQueue {
      * Notify the queue that this async task has had its promise resolved, so that the queue can proceed with consecutive tasks on the next flush.
      */
     private completeAsyncTask;
-    private readonly requestFlush;
+    private readonly _requestFlush;
 }
 export declare class TaskAbortError<T = any> extends Error {
     task: Task<T>;
@@ -106,7 +94,6 @@ export interface ITask<T = any> {
     cancel(): boolean;
 }
 export declare class Task<T = any> implements ITask {
-    private readonly tracer;
     readonly taskQueue: TaskQueue;
     createdTime: number;
     queueTime: number;

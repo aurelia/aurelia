@@ -1801,14 +1801,14 @@ const Registration = {
     }
 };
 class InstanceProvider {
-    constructor(_name, 
+    constructor(name, 
     /**
      * if not undefined, then this is the value this provider will resolve to
      * until overridden by explicit prepare call
      */
     instance) {
-        this._instance = null;
-        this._name = _name;
+        /** @internal */ this._instance = null;
+        this._name = name;
         if (instance !== void 0) {
             this._instance = instance;
         }

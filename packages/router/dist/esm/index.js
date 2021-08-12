@@ -3107,17 +3107,17 @@ class ComponentAgent {
         this.definition = s;
         this.routeNode = n;
         this.ctx = o;
-        this.logger = o.container.get(i).scopeTo(`ComponentAgent<${o.friendlyPath}>`);
-        this.logger.trace(`constructor()`);
+        this.h = o.container.get(i).scopeTo(`ComponentAgent<${o.friendlyPath}>`);
+        this.h.trace(`constructor()`);
         const u = e.lifecycleHooks;
         this.canLoadHooks = (null !== (r = u.canLoad) && void 0 !== r ? r : []).map((t => t.instance));
         this.loadHooks = (null !== (a = u.load) && void 0 !== a ? a : []).map((t => t.instance));
         this.canUnloadHooks = (null !== (h = u.canUnload) && void 0 !== h ? h : []).map((t => t.instance));
         this.unloadHooks = (null !== (c = u.unload) && void 0 !== c ? c : []).map((t => t.instance));
-        this.hasCanLoad = "canLoad" in t;
-        this.hasLoad = "load" in t;
-        this.hasCanUnload = "canUnload" in t;
-        this.hasUnload = "unload" in t;
+        this.u = "canLoad" in t;
+        this.l = "load" in t;
+        this.g = "canUnload" in t;
+        this.v = "unload" in t;
     }
     static for(t, e, i, s) {
         let n = zt.get(t);
@@ -3131,26 +3131,26 @@ class ComponentAgent {
     }
     activate(t, e, i) {
         if (null === t) {
-            this.logger.trace(`activate() - initial`);
+            this.h.trace(`activate() - initial`);
             return this.controller.activate(this.controller, e, i);
         }
-        this.logger.trace(`activate()`);
+        this.h.trace(`activate()`);
         void this.controller.activate(t, e, i);
     }
     deactivate(t, e, i) {
         if (null === t) {
-            this.logger.trace(`deactivate() - initial`);
+            this.h.trace(`deactivate() - initial`);
             return this.controller.deactivate(this.controller, e, i);
         }
-        this.logger.trace(`deactivate()`);
+        this.h.trace(`deactivate()`);
         void this.controller.deactivate(t, e, i);
     }
     dispose() {
-        this.logger.trace(`dispose()`);
+        this.h.trace(`dispose()`);
         this.controller.dispose();
     }
     canUnload(t, e, i) {
-        this.logger.trace(`canUnload(next:%s) - invoking ${this.canUnloadHooks.length} hooks`, e);
+        this.h.trace(`canUnload(next:%s) - invoking ${this.canUnloadHooks.length} hooks`, e);
         i.push();
         for (const s of this.canUnloadHooks) t.run((() => {
             i.push();
@@ -3159,7 +3159,7 @@ class ComponentAgent {
             if (true === t.guardsResult && true !== e) t.guardsResult = false;
             i.pop();
         }));
-        if (this.hasCanUnload) t.run((() => {
+        if (this.g) t.run((() => {
             i.push();
             return this.instance.canUnload(e, this.routeNode);
         }), (e => {
@@ -3169,7 +3169,7 @@ class ComponentAgent {
         i.pop();
     }
     canLoad(t, e, i) {
-        this.logger.trace(`canLoad(next:%s) - invoking ${this.canLoadHooks.length} hooks`, e);
+        this.h.trace(`canLoad(next:%s) - invoking ${this.canLoadHooks.length} hooks`, e);
         i.push();
         for (const s of this.canLoadHooks) t.run((() => {
             i.push();
@@ -3178,7 +3178,7 @@ class ComponentAgent {
             if (true === t.guardsResult && true !== e) t.guardsResult = false === e ? false : ViewportInstructionTree.create(e);
             i.pop();
         }));
-        if (this.hasCanLoad) t.run((() => {
+        if (this.u) t.run((() => {
             i.push();
             return this.instance.canLoad(e.params, e, this.routeNode);
         }), (e => {
@@ -3188,7 +3188,7 @@ class ComponentAgent {
         i.pop();
     }
     unload(t, e, i) {
-        this.logger.trace(`unload(next:%s) - invoking ${this.unloadHooks.length} hooks`, e);
+        this.h.trace(`unload(next:%s) - invoking ${this.unloadHooks.length} hooks`, e);
         i.push();
         for (const s of this.unloadHooks) t.run((() => {
             i.push();
@@ -3196,7 +3196,7 @@ class ComponentAgent {
         }), (() => {
             i.pop();
         }));
-        if (this.hasUnload) t.run((() => {
+        if (this.v) t.run((() => {
             i.push();
             return this.instance.unload(e, this.routeNode);
         }), (() => {
@@ -3205,7 +3205,7 @@ class ComponentAgent {
         i.pop();
     }
     load(t, e, i) {
-        this.logger.trace(`load(next:%s) - invoking ${this.loadHooks.length} hooks`, e);
+        this.h.trace(`load(next:%s) - invoking ${this.loadHooks.length} hooks`, e);
         i.push();
         for (const s of this.loadHooks) t.run((() => {
             i.push();
@@ -3213,7 +3213,7 @@ class ComponentAgent {
         }), (() => {
             i.pop();
         }));
-        if (this.hasLoad) t.run((() => {
+        if (this.l) t.run((() => {
             i.push();
             return this.instance.load(e.params, e, this.routeNode);
         }), (() => {
@@ -3239,12 +3239,12 @@ class RouteContext {
         this.parentContainer = o;
         this.childViewportAgents = [];
         this.childRoutes = [];
-        this.h = null;
-        this.u = null;
+        this.m = null;
+        this.$ = null;
         this.prevNode = null;
-        this.l = null;
-        this.g = null;
-        this.g = t;
+        this.S = null;
+        this.R = null;
+        this.R = t;
         if (null === e) {
             this.root = this;
             this.path = [ this ];
@@ -3259,18 +3259,16 @@ class RouteContext {
         this.moduleLoader = o.get(d);
         const a = this.container = o.createChild();
         a.registerResolver(b, this.hostControllerProvider = new f, true);
-        const h = new f;
-        a.registerResolver(Wt, h);
-        h.prepare(this);
+        a.registerResolver(Wt, new f("IRouteContext", this));
         a.register(n);
         a.register(...s.dependencies);
         this.recognizer = new j;
+        const h = [];
         const c = [];
-        const u = [];
         for (const t of n.config.routes) if (t instanceof Promise) {
             const e = this.addRoute(t);
+            h.push(e);
             c.push(e);
-            u.push(e);
         } else {
             const e = RouteDefinition.resolve(t, this);
             if (e instanceof Promise) if (z(t) && null != t.path) {
@@ -3278,17 +3276,17 @@ class RouteContext {
                 const i = this.childRoutes.length;
                 const s = e.then((t => this.childRoutes[i] = t));
                 this.childRoutes.push(s);
-                u.push(s.then(p));
+                c.push(s.then(p));
             } else throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified. To use lazy loading without specifying the path (e.g. in direct routing), pass the import promise as a direct value to the routes array instead of providing it as the component property on an object literal.`); else {
                 for (const t of e.path) this.$addRoute(t, e.caseSensitive, e);
                 this.childRoutes.push(e);
             }
         }
-        if (c.length > 0) this.h = Promise.all(c).then((() => {
-            this.h = null;
+        if (h.length > 0) this.m = Promise.all(h).then((() => {
+            this.m = null;
         }));
-        if (u.length > 0) this.u = Promise.all(u).then((() => {
-            this.u = null;
+        if (c.length > 0) this.$ = Promise.all(c).then((() => {
+            this.$ = null;
         }));
     }
     get id() {
@@ -3301,33 +3299,33 @@ class RouteContext {
         return this.path.length - 1;
     }
     get resolved() {
-        return this.h;
+        return this.m;
     }
     get allResolved() {
-        return this.u;
+        return this.$;
     }
     get node() {
-        const t = this.l;
+        const t = this.S;
         if (null === t) throw new Error(`Invariant violation: RouteNode should be set immediately after the RouteContext is created. Context: ${this}`);
         return t;
     }
     set node(t) {
-        const e = this.prevNode = this.l;
+        const e = this.prevNode = this.S;
         if (e !== t) {
-            this.l = t;
+            this.S = t;
             this.logger.trace(`Node changed from %s to %s`, this.prevNode, t);
         }
     }
     get vpa() {
-        const t = this.g;
+        const t = this.R;
         if (null === t) throw new Error(`RouteContext has no ViewportAgent: ${this}`);
         return t;
     }
     set vpa(t) {
         if (null === t || void 0 === t) throw new Error(`Cannot set ViewportAgent to ${t} for RouteContext: ${this}`);
-        const e = this.g;
+        const e = this.R;
         if (e !== t) {
-            this.g = t;
+            this.R = t;
             this.logger.trace(`ViewportAgent changed from %s to %s`, e, t);
         }
     }
@@ -3717,9 +3715,9 @@ let Xt = class HrefCustomAttribute {
         if (null == t) this.el.removeAttribute("href"); else this.el.setAttribute("href", t);
     }
     handleEvent(t) {
-        this.v(t);
+        this.C(t);
     }
-    v(t) {
+    C(t) {
         if (t.altKey || t.ctrlKey || t.shiftKey || t.metaKey || 0 !== t.button || this.isExternal || !this.isEnabled) return;
         const e = this.el.getAttribute("href");
         if (null !== e) {

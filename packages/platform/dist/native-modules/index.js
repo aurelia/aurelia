@@ -1,40 +1,40 @@
-const i = new Map;
+const t = new Map;
 
-function t(i) {
-    return function t() {
-        throw new Error(`The PLATFORM did not receive a valid reference to the global function '${i}'.`);
+function s(t) {
+    return function s() {
+        throw new Error(`The PLATFORM did not receive a valid reference to the global function '${t}'.`);
     };
 }
 
 class Platform {
-    constructor(i, s = {}) {
-        var h, e, r, n, o, a, c, l, u, f, d, v, p;
+    constructor(t, i = {}) {
+        var e, h, r, n, o, a, l, c, u, f, d, v, w;
         this.macroTaskRequested = false;
         this.macroTaskHandle = -1;
-        this.globalThis = i;
-        this.decodeURI = "decodeURI" in s ? s.decodeURI : i.decodeURI;
-        this.decodeURIComponent = "decodeURIComponent" in s ? s.decodeURIComponent : i.decodeURIComponent;
-        this.encodeURI = "encodeURI" in s ? s.encodeURI : i.encodeURI;
-        this.encodeURIComponent = "encodeURIComponent" in s ? s.encodeURIComponent : i.encodeURIComponent;
-        this.Date = "Date" in s ? s.Date : i.Date;
-        this.Reflect = "Reflect" in s ? s.Reflect : i.Reflect;
-        this.clearInterval = "clearInterval" in s ? s.clearInterval : null !== (e = null === (h = i.clearInterval) || void 0 === h ? void 0 : h.bind(i)) && void 0 !== e ? e : t("clearInterval");
-        this.clearTimeout = "clearTimeout" in s ? s.clearTimeout : null !== (n = null === (r = i.clearTimeout) || void 0 === r ? void 0 : r.bind(i)) && void 0 !== n ? n : t("clearTimeout");
-        this.queueMicrotask = "queueMicrotask" in s ? s.queueMicrotask : null !== (a = null === (o = i.queueMicrotask) || void 0 === o ? void 0 : o.bind(i)) && void 0 !== a ? a : t("queueMicrotask");
-        this.setInterval = "setInterval" in s ? s.setInterval : null !== (l = null === (c = i.setInterval) || void 0 === c ? void 0 : c.bind(i)) && void 0 !== l ? l : t("setInterval");
-        this.setTimeout = "setTimeout" in s ? s.setTimeout : null !== (f = null === (u = i.setTimeout) || void 0 === u ? void 0 : u.bind(i)) && void 0 !== f ? f : t("setTimeout");
-        this.console = "console" in s ? s.console : i.console;
-        this.performanceNow = "performanceNow" in s ? s.performanceNow : null !== (p = null === (v = null === (d = i.performance) || void 0 === d ? void 0 : d.now) || void 0 === v ? void 0 : v.bind(i.performance)) && void 0 !== p ? p : t("performance.now");
+        this.globalThis = t;
+        this.decodeURI = "decodeURI" in i ? i.decodeURI : t.decodeURI;
+        this.decodeURIComponent = "decodeURIComponent" in i ? i.decodeURIComponent : t.decodeURIComponent;
+        this.encodeURI = "encodeURI" in i ? i.encodeURI : t.encodeURI;
+        this.encodeURIComponent = "encodeURIComponent" in i ? i.encodeURIComponent : t.encodeURIComponent;
+        this.Date = "Date" in i ? i.Date : t.Date;
+        this.Reflect = "Reflect" in i ? i.Reflect : t.Reflect;
+        this.clearInterval = "clearInterval" in i ? i.clearInterval : null !== (h = null === (e = t.clearInterval) || void 0 === e ? void 0 : e.bind(t)) && void 0 !== h ? h : s("clearInterval");
+        this.clearTimeout = "clearTimeout" in i ? i.clearTimeout : null !== (n = null === (r = t.clearTimeout) || void 0 === r ? void 0 : r.bind(t)) && void 0 !== n ? n : s("clearTimeout");
+        this.queueMicrotask = "queueMicrotask" in i ? i.queueMicrotask : null !== (a = null === (o = t.queueMicrotask) || void 0 === o ? void 0 : o.bind(t)) && void 0 !== a ? a : s("queueMicrotask");
+        this.setInterval = "setInterval" in i ? i.setInterval : null !== (c = null === (l = t.setInterval) || void 0 === l ? void 0 : l.bind(t)) && void 0 !== c ? c : s("setInterval");
+        this.setTimeout = "setTimeout" in i ? i.setTimeout : null !== (f = null === (u = t.setTimeout) || void 0 === u ? void 0 : u.bind(t)) && void 0 !== f ? f : s("setTimeout");
+        this.console = "console" in i ? i.console : t.console;
+        this.performanceNow = "performanceNow" in i ? i.performanceNow : null !== (w = null === (v = null === (d = t.performance) || void 0 === d ? void 0 : d.now) || void 0 === v ? void 0 : v.bind(t.performance)) && void 0 !== w ? w : s("performance.now");
         this.flushMacroTask = this.flushMacroTask.bind(this);
         this.taskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
     }
-    static getOrCreate(t, s = {}) {
-        let h = i.get(t);
-        if (void 0 === h) i.set(t, h = new Platform(t, s));
-        return h;
+    static getOrCreate(s, i = {}) {
+        let e = t.get(s);
+        if (void 0 === e) t.set(s, e = new Platform(s, i));
+        return e;
     }
-    static set(t, s) {
-        i.set(t, s);
+    static set(s, i) {
+        t.set(s, i);
     }
     requestMacroTask() {
         this.macroTaskRequested = true;
@@ -56,341 +56,298 @@ class Platform {
     }
 }
 
-function s(i) {
-    return i.persistent;
+function i(t) {
+    return t.persistent;
 }
 
 class TaskQueue {
-    constructor(i, t, s) {
-        this.platform = i;
-        this.$request = t;
-        this.$cancel = s;
+    constructor(t, s, i) {
+        this.platform = t;
+        this.$request = s;
+        this.$cancel = i;
+        this.t = void 0;
+        this.i = 0;
         this.processing = [];
-        this.suspenderTask = void 0;
-        this.pendingAsyncCount = 0;
         this.pending = [];
         this.delayed = [];
         this.flushRequested = false;
-        this.yieldPromise = void 0;
+        this.h = void 0;
         this.taskPool = [];
-        this.taskPoolSize = 0;
-        this.lastRequest = 0;
-        this.lastFlush = 0;
-        this.requestFlush = () => {
-            if (this.tracer.enabled) this.tracer.enter(this, "requestFlush");
+        this.l = 0;
+        this.u = 0;
+        this.T = 0;
+        this.$ = () => {
             if (!this.flushRequested) {
                 this.flushRequested = true;
-                this.lastRequest = this.platform.performanceNow();
+                this.u = this.platform.performanceNow();
                 this.$request();
             }
-            if (this.tracer.enabled) this.tracer.leave(this, "requestFlush");
         };
-        this.tracer = new Tracer(i.console);
+        this.I = new Tracer(t.console);
     }
     get isEmpty() {
-        return 0 === this.pendingAsyncCount && 0 === this.processing.length && 0 === this.pending.length && 0 === this.delayed.length;
+        return 0 === this.i && 0 === this.processing.length && 0 === this.pending.length && 0 === this.delayed.length;
     }
-    get hasNoMoreFiniteWork() {
-        return 0 === this.pendingAsyncCount && this.processing.every(s) && this.pending.every(s) && this.delayed.every(s);
+    get M() {
+        return 0 === this.i && this.processing.every(i) && this.pending.every(i) && this.delayed.every(i);
     }
-    flush(i = this.platform.performanceNow()) {
-        if (this.tracer.enabled) this.tracer.enter(this, "flush");
+    flush(t = this.platform.performanceNow()) {
         this.flushRequested = false;
-        this.lastFlush = i;
-        if (void 0 === this.suspenderTask) {
+        this.T = t;
+        if (void 0 === this.t) {
             if (this.pending.length > 0) {
                 this.processing.push(...this.pending);
                 this.pending.length = 0;
             }
             if (this.delayed.length > 0) {
-                let t = -1;
-                while (++t < this.delayed.length && this.delayed[t].queueTime <= i) ;
-                this.processing.push(...this.delayed.splice(0, t));
+                let s = -1;
+                while (++s < this.delayed.length && this.delayed[s].queueTime <= t) ;
+                this.processing.push(...this.delayed.splice(0, s));
             }
-            let t;
+            let s;
             while (this.processing.length > 0) {
-                (t = this.processing.shift()).run();
-                if (1 === t.status) if (true === t.suspend) {
-                    this.suspenderTask = t;
-                    this.requestFlush();
-                    if (this.tracer.enabled) this.tracer.leave(this, "flush early async");
+                (s = this.processing.shift()).run();
+                if (1 === s.status) if (true === s.suspend) {
+                    this.t = s;
+                    this.$();
                     return;
-                } else ++this.pendingAsyncCount;
+                } else ++this.i;
             }
             if (this.pending.length > 0) {
                 this.processing.push(...this.pending);
                 this.pending.length = 0;
             }
             if (this.delayed.length > 0) {
-                let t = -1;
-                while (++t < this.delayed.length && this.delayed[t].queueTime <= i) ;
-                this.processing.push(...this.delayed.splice(0, t));
+                let s = -1;
+                while (++s < this.delayed.length && this.delayed[s].queueTime <= t) ;
+                this.processing.push(...this.delayed.splice(0, s));
             }
-            if (this.processing.length > 0 || this.delayed.length > 0 || this.pendingAsyncCount > 0) this.requestFlush();
-            if (void 0 !== this.yieldPromise && this.hasNoMoreFiniteWork) {
-                const i = this.yieldPromise;
-                this.yieldPromise = void 0;
-                i.resolve();
+            if (this.processing.length > 0 || this.delayed.length > 0 || this.i > 0) this.$();
+            if (void 0 !== this.h && this.M) {
+                const t = this.h;
+                this.h = void 0;
+                t.resolve();
             }
-        } else this.requestFlush();
-        if (this.tracer.enabled) this.tracer.leave(this, "flush full");
+        } else this.$();
     }
     cancel() {
-        if (this.tracer.enabled) this.tracer.enter(this, "cancel");
         if (this.flushRequested) {
             this.$cancel();
             this.flushRequested = false;
         }
-        if (this.tracer.enabled) this.tracer.leave(this, "cancel");
     }
     async yield() {
-        if (this.tracer.enabled) this.tracer.enter(this, "yield");
-        if (this.isEmpty) {
-            if (this.tracer.enabled) this.tracer.leave(this, "yield empty");
-        } else {
-            if (void 0 === this.yieldPromise) {
-                if (this.tracer.enabled) this.tracer.trace(this, "yield - creating promise");
-                this.yieldPromise = u();
-            }
-            await this.yieldPromise;
-            if (this.tracer.enabled) this.tracer.leave(this, "yield task");
+        if (this.isEmpty) ; else {
+            if (void 0 === this.h) this.h = u();
+            await this.h;
         }
     }
-    queueTask(i, t) {
-        if (this.tracer.enabled) this.tracer.enter(this, "queueTask");
-        const {delay: s, preempt: h, persistent: e, reusable: r, suspend: n} = {
+    queueTask(t, s) {
+        const {delay: i, preempt: e, persistent: h, reusable: r, suspend: n} = {
             ...o,
-            ...t
+            ...s
         };
-        if (h) {
-            if (s > 0) throw new Error(`Invalid arguments: preempt cannot be combined with a greater-than-zero delay`);
-            if (e) throw new Error(`Invalid arguments: preempt cannot be combined with persistent`);
+        if (e) {
+            if (i > 0) throw new Error(`Invalid arguments: preempt cannot be combined with a greater-than-zero delay`);
+            if (h) throw new Error(`Invalid arguments: preempt cannot be combined with persistent`);
         }
-        if (0 === this.processing.length) this.requestFlush();
+        if (0 === this.processing.length) this.$();
         const a = this.platform.performanceNow();
-        let c;
+        let l;
         if (r) {
-            const t = this.taskPool;
-            const o = this.taskPoolSize - 1;
+            const s = this.taskPool;
+            const o = this.l - 1;
             if (o >= 0) {
-                c = t[o];
-                t[o] = void 0;
-                this.taskPoolSize = o;
-                c.reuse(a, s, h, e, n, i);
-            } else c = new Task(this.tracer, this, a, a + s, h, e, n, r, i);
-        } else c = new Task(this.tracer, this, a, a + s, h, e, n, r, i);
-        if (h) this.processing[this.processing.length] = c; else if (0 === s) this.pending[this.pending.length] = c; else this.delayed[this.delayed.length] = c;
-        if (this.tracer.enabled) this.tracer.leave(this, "queueTask");
-        return c;
+                l = s[o];
+                s[o] = void 0;
+                this.l = o;
+                l.reuse(a, i, e, h, n, t);
+            } else l = new Task(this.I, this, a, a + i, e, h, n, r, t);
+        } else l = new Task(this.I, this, a, a + i, e, h, n, r, t);
+        if (e) this.processing[this.processing.length] = l; else if (0 === i) this.pending[this.pending.length] = l; else this.delayed[this.delayed.length] = l;
+        return l;
     }
-    remove(i) {
-        if (this.tracer.enabled) this.tracer.enter(this, "remove");
-        let t = this.processing.indexOf(i);
-        if (t > -1) {
-            this.processing.splice(t, 1);
-            if (this.tracer.enabled) this.tracer.leave(this, "remove processing");
+    remove(t) {
+        let s = this.processing.indexOf(t);
+        if (s > -1) {
+            this.processing.splice(s, 1);
             return;
         }
-        t = this.pending.indexOf(i);
-        if (t > -1) {
-            this.pending.splice(t, 1);
-            if (this.tracer.enabled) this.tracer.leave(this, "remove pending");
+        s = this.pending.indexOf(t);
+        if (s > -1) {
+            this.pending.splice(s, 1);
             return;
         }
-        t = this.delayed.indexOf(i);
-        if (t > -1) {
-            this.delayed.splice(t, 1);
-            if (this.tracer.enabled) this.tracer.leave(this, "remove delayed");
+        s = this.delayed.indexOf(t);
+        if (s > -1) {
+            this.delayed.splice(s, 1);
             return;
         }
-        if (this.tracer.enabled) this.tracer.leave(this, "remove error");
-        throw new Error(`Task #${i.id} could not be found`);
+        throw new Error(`Task #${t.id} could not be found`);
     }
-    returnToPool(i) {
-        if (this.tracer.enabled) this.tracer.trace(this, "returnToPool");
-        this.taskPool[this.taskPoolSize++] = i;
+    returnToPool(t) {
+        this.taskPool[this.l++] = t;
     }
-    resetPersistentTask(i) {
-        if (this.tracer.enabled) this.tracer.enter(this, "resetPersistentTask");
-        i.reset(this.platform.performanceNow());
-        if (i.createdTime === i.queueTime) this.pending[this.pending.length] = i; else this.delayed[this.delayed.length] = i;
-        if (this.tracer.enabled) this.tracer.leave(this, "resetPersistentTask");
+    resetPersistentTask(t) {
+        t.reset(this.platform.performanceNow());
+        if (t.createdTime === t.queueTime) this.pending[this.pending.length] = t; else this.delayed[this.delayed.length] = t;
     }
-    completeAsyncTask(i) {
-        var t;
-        if (this.tracer.enabled) this.tracer.enter(this, "completeAsyncTask");
-        if (true === i.suspend) {
-            if (this.suspenderTask !== i) {
-                if (this.tracer.enabled) this.tracer.leave(this, "completeAsyncTask error");
-                throw new Error(`Async task completion mismatch: suspenderTask=${null === (t = this.suspenderTask) || void 0 === t ? void 0 : t.id}, task=${i.id}`);
-            }
-            this.suspenderTask = void 0;
-        } else --this.pendingAsyncCount;
-        if (void 0 !== this.yieldPromise && this.hasNoMoreFiniteWork) {
-            const i = this.yieldPromise;
-            this.yieldPromise = void 0;
-            i.resolve();
+    completeAsyncTask(t) {
+        var s;
+        if (true === t.suspend) {
+            if (this.t !== t) throw new Error(`Async task completion mismatch: suspenderTask=${null === (s = this.t) || void 0 === s ? void 0 : s.id}, task=${t.id}`);
+            this.t = void 0;
+        } else --this.i;
+        if (void 0 !== this.h && this.M) {
+            const t = this.h;
+            this.h = void 0;
+            t.resolve();
         }
         if (this.isEmpty) this.cancel();
-        if (this.tracer.enabled) this.tracer.leave(this, "completeAsyncTask");
     }
 }
 
 class TaskAbortError extends Error {
-    constructor(i) {
+    constructor(t) {
         super("Task was canceled.");
-        this.task = i;
+        this.task = t;
     }
 }
 
-let h = 0;
+let e = 0;
 
-var e;
+var h;
 
-(function(i) {
-    i[i["pending"] = 0] = "pending";
-    i[i["running"] = 1] = "running";
-    i[i["completed"] = 2] = "completed";
-    i[i["canceled"] = 3] = "canceled";
-})(e || (e = {}));
+(function(t) {
+    t[t["pending"] = 0] = "pending";
+    t[t["running"] = 1] = "running";
+    t[t["completed"] = 2] = "completed";
+    t[t["canceled"] = 3] = "canceled";
+})(h || (h = {}));
 
 class Task {
-    constructor(i, t, s, e, r, n, o, a, c) {
-        this.tracer = i;
-        this.taskQueue = t;
-        this.createdTime = s;
-        this.queueTime = e;
+    constructor(t, s, i, h, r, n, o, a, l) {
+        this.taskQueue = s;
+        this.createdTime = i;
+        this.queueTime = h;
         this.preempt = r;
         this.persistent = n;
         this.suspend = o;
         this.reusable = a;
-        this.callback = c;
-        this.id = ++h;
-        this.i = void 0;
-        this.t = void 0;
-        this.h = void 0;
-        this.o = 0;
+        this.callback = l;
+        this.id = ++e;
+        this.P = void 0;
+        this.R = void 0;
+        this.A = void 0;
+        this.q = 0;
+        this.I = t;
     }
     get result() {
-        const i = this.h;
-        if (void 0 === i) switch (this.o) {
+        const t = this.A;
+        if (void 0 === t) switch (this.q) {
           case 0:
             {
-                const i = this.h = u();
-                this.i = i.resolve;
-                this.t = i.reject;
-                return i;
+                const t = this.A = u();
+                this.P = t.resolve;
+                this.R = t.reject;
+                return t;
             }
 
           case 1:
             throw new Error("Trying to await task from within task will cause a deadlock.");
 
           case 2:
-            return this.h = Promise.resolve();
+            return this.A = Promise.resolve();
 
           case 3:
-            return this.h = Promise.reject(new TaskAbortError(this));
+            return this.A = Promise.reject(new TaskAbortError(this));
         }
-        return i;
+        return t;
     }
     get status() {
-        return this.o;
+        return this.q;
     }
-    run(i = this.taskQueue.platform.performanceNow()) {
-        if (this.tracer.enabled) this.tracer.enter(this, "run");
-        if (0 !== this.o) {
-            if (this.tracer.enabled) this.tracer.leave(this, "run error");
-            throw new Error(`Cannot run task in ${this.o} state`);
-        }
-        const {persistent: t, reusable: s, taskQueue: h, callback: e, i: r, t: n, createdTime: o} = this;
+    run(t = this.taskQueue.platform.performanceNow()) {
+        if (0 !== this.q) throw new Error(`Cannot run task in ${this.q} state`);
+        const {persistent: s, reusable: i, taskQueue: e, callback: h, P: r, R: n, createdTime: o} = this;
         let a;
-        this.o = 1;
+        this.q = 1;
         try {
-            a = e(i - o);
-            if (a instanceof Promise) a.then((i => {
-                if (this.persistent) h["resetPersistentTask"](this); else {
-                    if (t) this.o = 3; else this.o = 2;
+            a = h(t - o);
+            if (a instanceof Promise) a.then((t => {
+                if (this.persistent) e["resetPersistentTask"](this); else {
+                    if (s) this.q = 3; else this.q = 2;
                     this.dispose();
                 }
-                h["completeAsyncTask"](this);
-                if (this.tracer.enabled) this.tracer.leave(this, "run async then");
-                if (void 0 !== r) r(i);
-                if (!this.persistent && s) h["returnToPool"](this);
-            })).catch((i => {
+                e["completeAsyncTask"](this);
+                if (false && this.I.enabled) ;
+                if (void 0 !== r) r(t);
+                if (!this.persistent && i) e["returnToPool"](this);
+            })).catch((t => {
                 if (!this.persistent) this.dispose();
-                h["completeAsyncTask"](this);
-                if (this.tracer.enabled) this.tracer.leave(this, "run async catch");
-                if (void 0 !== n) n(i); else throw i;
+                e["completeAsyncTask"](this);
+                if (false && this.I.enabled) ;
+                if (void 0 !== n) n(t); else throw t;
             })); else {
-                if (this.persistent) h["resetPersistentTask"](this); else {
-                    if (t) this.o = 3; else this.o = 2;
+                if (this.persistent) e["resetPersistentTask"](this); else {
+                    if (s) this.q = 3; else this.q = 2;
                     this.dispose();
                 }
-                if (this.tracer.enabled) this.tracer.leave(this, "run sync success");
+                if (false && this.I.enabled) ;
                 if (void 0 !== r) r(a);
-                if (!this.persistent && s) h["returnToPool"](this);
+                if (!this.persistent && i) e["returnToPool"](this);
             }
-        } catch (i) {
+        } catch (t) {
             if (!this.persistent) this.dispose();
-            if (this.tracer.enabled) this.tracer.leave(this, "run sync error");
-            if (void 0 !== n) n(i); else throw i;
+            if (void 0 !== n) n(t); else throw t;
         }
     }
     cancel() {
-        if (this.tracer.enabled) this.tracer.enter(this, "cancel");
-        if (0 === this.o) {
-            const i = this.taskQueue;
-            const t = this.reusable;
-            const s = this.t;
-            i.remove(this);
-            if (i.isEmpty) i.cancel();
-            this.o = 3;
+        if (0 === this.q) {
+            const t = this.taskQueue;
+            const s = this.reusable;
+            const i = this.R;
+            t.remove(this);
+            if (t.isEmpty) t.cancel();
+            this.q = 3;
             this.dispose();
-            if (t) i["returnToPool"](this);
-            if (void 0 !== s) s(new TaskAbortError(this));
-            if (this.tracer.enabled) this.tracer.leave(this, "cancel true =pending");
+            if (s) t["returnToPool"](this);
+            if (void 0 !== i) i(new TaskAbortError(this));
             return true;
-        } else if (1 === this.o && this.persistent) {
+        } else if (1 === this.q && this.persistent) {
             this.persistent = false;
-            if (this.tracer.enabled) this.tracer.leave(this, "cancel true =running+persistent");
             return true;
         }
-        if (this.tracer.enabled) this.tracer.leave(this, "cancel false");
         return false;
     }
-    reset(i) {
-        if (this.tracer.enabled) this.tracer.enter(this, "reset");
-        const t = this.queueTime - this.createdTime;
-        this.createdTime = i;
-        this.queueTime = i + t;
-        this.o = 0;
-        this.i = void 0;
-        this.t = void 0;
-        this.h = void 0;
-        if (this.tracer.enabled) this.tracer.leave(this, "reset");
+    reset(t) {
+        const s = this.queueTime - this.createdTime;
+        this.createdTime = t;
+        this.queueTime = t + s;
+        this.q = 0;
+        this.P = void 0;
+        this.R = void 0;
+        this.A = void 0;
     }
-    reuse(i, t, s, h, e, r) {
-        if (this.tracer.enabled) this.tracer.enter(this, "reuse");
-        this.createdTime = i;
-        this.queueTime = i + t;
-        this.preempt = s;
-        this.persistent = h;
-        this.suspend = e;
+    reuse(t, s, i, e, h, r) {
+        this.createdTime = t;
+        this.queueTime = t + s;
+        this.preempt = i;
+        this.persistent = e;
+        this.suspend = h;
         this.callback = r;
-        this.o = 0;
-        if (this.tracer.enabled) this.tracer.leave(this, "reuse");
+        this.q = 0;
     }
     dispose() {
-        if (this.tracer.enabled) this.tracer.trace(this, "dispose");
         this.callback = void 0;
-        this.i = void 0;
-        this.t = void 0;
-        this.h = void 0;
+        this.P = void 0;
+        this.R = void 0;
+        this.A = void 0;
     }
 }
 
-function r(i) {
-    switch (i) {
+function r(t) {
+    switch (t) {
       case 0:
         return "pending";
 
@@ -406,50 +363,50 @@ function r(i) {
 }
 
 class Tracer {
-    constructor(i) {
-        this.console = i;
+    constructor(t) {
+        this.console = t;
         this.enabled = false;
         this.depth = 0;
     }
-    enter(i, t) {
-        this.log(`${"  ".repeat(this.depth++)}> `, i, t);
+    enter(t, s) {
+        this.log(`${"  ".repeat(this.depth++)}> `, t, s);
     }
-    leave(i, t) {
-        this.log(`${"  ".repeat(--this.depth)}< `, i, t);
+    leave(t, s) {
+        this.log(`${"  ".repeat(--this.depth)}< `, t, s);
     }
-    trace(i, t) {
-        this.log(`${"  ".repeat(this.depth)}- `, i, t);
+    trace(t, s) {
+        this.log(`${"  ".repeat(this.depth)}- `, t, s);
     }
-    log(i, t, s) {
-        if (t instanceof TaskQueue) {
-            const h = t["processing"].length;
-            const e = t["pending"].length;
-            const r = t["delayed"].length;
-            const n = t["flushRequested"];
-            const o = !!t["suspenderTask"];
-            const a = `processing=${h} pending=${e} delayed=${r} flushReq=${n} susTask=${o}`;
-            this.console.log(`${i}[Q.${s}] ${a}`);
+    log(t, s, i) {
+        if (s instanceof TaskQueue) {
+            const e = s["processing"].length;
+            const h = s["pending"].length;
+            const r = s["delayed"].length;
+            const n = s["flushRequested"];
+            const o = !!s.t;
+            const a = `processing=${e} pending=${h} delayed=${r} flushReq=${n} susTask=${o}`;
+            this.console.log(`${t}[Q.${i}] ${a}`);
         } else {
-            const h = t["id"];
-            const e = Math.round(10 * t["createdTime"]) / 10;
-            const n = Math.round(10 * t["queueTime"]) / 10;
-            const o = t["preempt"];
-            const a = t["reusable"];
-            const c = t["persistent"];
-            const l = t["suspend"];
-            const u = r(t["o"]);
-            const f = `id=${h} created=${e} queue=${n} preempt=${o} persistent=${c} reusable=${a} status=${u} suspend=${l}`;
-            this.console.log(`${i}[T.${s}] ${f}`);
+            const e = s["id"];
+            const h = Math.round(10 * s["createdTime"]) / 10;
+            const n = Math.round(10 * s["queueTime"]) / 10;
+            const o = s["preempt"];
+            const a = s["reusable"];
+            const l = s["persistent"];
+            const c = s["suspend"];
+            const u = r(s["q"]);
+            const f = `id=${e} created=${h} queue=${n} preempt=${o} persistent=${l} reusable=${a} status=${u} suspend=${c}`;
+            this.console.log(`${t}[T.${i}] ${f}`);
         }
     }
 }
 
 var n;
 
-(function(i) {
-    i[i["render"] = 0] = "render";
-    i[i["macroTask"] = 1] = "macroTask";
-    i[i["postRender"] = 2] = "postRender";
+(function(t) {
+    t[t["render"] = 0] = "render";
+    t[t["macroTask"] = 1] = "macroTask";
+    t[t["postRender"] = 2] = "postRender";
 })(n || (n = {}));
 
 const o = {
@@ -462,19 +419,19 @@ const o = {
 
 let a;
 
-let c;
+let l;
 
-function l(i, t) {
-    a = i;
-    c = t;
+function c(t, s) {
+    a = t;
+    l = s;
 }
 
 function u() {
-    const i = new Promise(l);
-    i.resolve = a;
-    i.reject = c;
-    return i;
+    const t = new Promise(c);
+    t.resolve = a;
+    t.reject = l;
+    return t;
 }
 
-export { Platform, Task, TaskAbortError, TaskQueue, n as TaskQueuePriority, e as TaskStatus };
+export { Platform, Task, TaskAbortError, TaskQueue, n as TaskQueuePriority, h as TaskStatus };
 //# sourceMappingURL=index.js.map

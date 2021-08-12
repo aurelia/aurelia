@@ -446,10 +446,8 @@ export declare const Registration: {
     defer(key: Key, ...params: unknown[]): IRegistry;
 };
 export declare class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
-    private _instance;
-    private readonly _name?;
     get friendlyName(): string | undefined;
-    constructor(_name?: string, 
+    constructor(name?: string, 
     /**
      * if not undefined, then this is the value this provider will resolve to
      * until overridden by explicit prepare call

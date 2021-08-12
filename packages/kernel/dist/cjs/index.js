@@ -821,16 +821,16 @@ class Container {
         this.i = new Map;
         if (null === t) {
             this.root = this;
-            this.o = new Map;
             this.u = new Map;
+            this.l = new Map;
             this.res = Object.create(null);
         } else {
             this.root = t.root;
-            this.o = new Map;
-            this.u = t.u;
+            this.u = new Map;
+            this.l = t.l;
             if (e.inheritParentResources) this.res = Object.assign(Object.create(null), t.res, this.root.res); else this.res = Object.create(null);
         }
-        this.o.set(_, ft);
+        this.u.set(_, ft);
     }
     get depth() {
         return null === this.parent ? 0 : this.parent.depth + 1;
@@ -873,7 +873,7 @@ class Container {
     }
     registerResolver(t, e, r = false) {
         mt(t);
-        const n = this.o;
+        const n = this.u;
         const i = n.get(t);
         if (null == i) {
             n.set(t, e);
@@ -902,11 +902,11 @@ class Container {
         let r = this;
         let n;
         while (null != r) {
-            n = r.o.get(t);
+            n = r.u.get(t);
             if (null == n) {
                 if (null == r.parent) {
                     const n = dt(t) ? this : r;
-                    return e ? this.l(t, n) : null;
+                    return e ? this.h(t, n) : null;
                 }
                 r = r.parent;
             } else return n;
@@ -914,7 +914,7 @@ class Container {
         return null;
     }
     has(t, e = false) {
-        return this.o.has(t) ? true : e && null != this.parent ? this.parent.has(t, true) : false;
+        return this.u.has(t) ? true : e && null != this.parent ? this.parent.has(t, true) : false;
     }
     get(t) {
         mt(t);
@@ -922,11 +922,11 @@ class Container {
         let e = this;
         let r;
         while (null != e) {
-            r = e.o.get(t);
+            r = e.u.get(t);
             if (null == r) {
                 if (null == e.parent) {
                     const n = dt(t) ? this : e;
-                    r = this.l(t, n);
+                    r = this.h(t, n);
                     return r.resolve(e, this);
                 }
                 e = e.parent;
@@ -942,13 +942,13 @@ class Container {
         if (e) {
             let e = $t;
             while (null != n) {
-                i = n.o.get(t);
+                i = n.u.get(t);
                 if (null != i) e = e.concat(bt(i, n, r));
                 n = n.parent;
             }
             return e;
         } else while (null != n) {
-            i = n.o.get(t);
+            i = n.u.get(t);
             if (null == i) {
                 n = n.parent;
                 if (null == n) return $t;
@@ -961,15 +961,15 @@ class Container {
         if (void 0 === e) return new t(...z(t).map(lt, this)); else return new t(...z(t).map(lt, this), ...e);
     }
     getFactory(t) {
-        let e = this.u.get(t);
+        let e = this.l.get(t);
         if (void 0 === e) {
             if (b(t)) throw Ct(t);
-            this.u.set(t, e = new Factory(t, z(t)));
+            this.l.set(t, e = new Factory(t, z(t)));
         }
         return e;
     }
     registerFactory(t, e) {
-        this.u.set(t, e);
+        this.l.set(t, e);
     }
     createChild(t) {
         if (void 0 === t && this.config.inheritParentResources) {
@@ -982,7 +982,7 @@ class Container {
         return new Container(this, ContainerConfiguration.from(null !== t && void 0 !== t ? t : this.config));
     }
     disposeResolvers() {
-        const t = this.o;
+        const t = this.u;
         const e = this.i;
         let r;
         let n;
@@ -1022,15 +1022,15 @@ class Container {
     }
     dispose() {
         if (this.i.size > 0) this.disposeResolvers();
-        this.o.clear();
+        this.u.clear();
     }
-    l(t, e) {
+    h(t, e) {
         if ("function" !== typeof t) throw new Error(`AUR0009:${t}`);
         if (gt.has(t.name)) throw new Error(`AUR0010:${t.name}`);
         if (at(t)) {
             const r = t.register(e, t);
             if (!(r instanceof Object) || null == r.resolve) {
-                const r = e.o.get(t);
+                const r = e.u.get(t);
                 if (void 0 != r) return r;
                 throw new Error(`AUR0011`);
             }
@@ -1041,12 +1041,12 @@ class Container {
                 const t = r.length;
                 for (let n = 0; n < t; ++n) r[n].register(e);
             }
-            const n = e.o.get(t);
+            const n = e.u.get(t);
             if (void 0 != n) return n;
             throw new Error(`AUR0011`);
         } else if (t.$isInterface) throw new Error(`AUR0012:${t.friendlyName}`); else {
             const r = this.config.defaultResolver(t, e);
-            e.o.set(t, r);
+            e.u.set(t, r);
             return r;
         }
     }
@@ -1104,25 +1104,25 @@ const Rt = {
 
 class InstanceProvider {
     constructor(t, e) {
-        this.h = null;
-        this.g = t;
-        if (void 0 !== e) this.h = e;
+        this.R = null;
+        this.C = t;
+        if (void 0 !== e) this.R = e;
     }
     get friendlyName() {
-        return this.g;
+        return this.C;
     }
     prepare(t) {
-        this.h = t;
+        this.R = t;
     }
     get $isResolver() {
         return true;
     }
     resolve() {
-        if (null == this.h) throw new Error(`AUR0013:${this.g}`);
-        return this.h;
+        if (null == this.R) throw new Error(`AUR0013:${this.C}`);
+        return this.R;
     }
     dispose() {
-        this.h = null;
+        this.R = null;
     }
 }
 
@@ -1483,31 +1483,31 @@ function Qt(t) {
 class ModuleTransformer {
     constructor(t) {
         this.$transform = t;
-        this.R = new Map;
-        this.C = new Map;
+        this.$ = new Map;
+        this.A = new Map;
     }
     transform(t) {
-        if (t instanceof Promise) return this.$(t); else if ("object" === typeof t && null !== t) return this.A(t); else throw new Error(`Invalid input: ${String(t)}. Expected Promise or Object.`);
-    }
-    $(t) {
-        if (this.R.has(t)) return this.R.get(t);
-        const e = t.then((t => this.A(t)));
-        this.R.set(t, e);
-        void e.then((e => {
-            this.R.set(t, e);
-        }));
-        return e;
-    }
-    A(t) {
-        if (this.C.has(t)) return this.C.get(t);
-        const e = this.$transform(this.j(t));
-        this.C.set(t, e);
-        if (e instanceof Promise) void e.then((e => {
-            this.C.set(t, e);
-        }));
-        return e;
+        if (t instanceof Promise) return this.j(t); else if ("object" === typeof t && null !== t) return this.O(t); else throw new Error(`Invalid input: ${String(t)}. Expected Promise or Object.`);
     }
     j(t) {
+        if (this.$.has(t)) return this.$.get(t);
+        const e = t.then((t => this.O(t)));
+        this.$.set(t, e);
+        void e.then((e => {
+            this.$.set(t, e);
+        }));
+        return e;
+    }
+    O(t) {
+        if (this.A.has(t)) return this.A.get(t);
+        const e = this.$transform(this.I(t));
+        this.A.set(t, e);
+        if (e instanceof Promise) void e.then((e => {
+            this.A.set(t, e);
+        }));
+        return e;
+    }
+    I(t) {
         let e;
         let r;
         let n;

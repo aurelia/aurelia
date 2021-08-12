@@ -468,7 +468,7 @@ function I(t) {
         e.prototype["object" === typeof t && void 0 !== t.setup ? t.setup : "binding"] = function() {
             if ("object" === typeof t && "string" === typeof t.onChanged && !(t.onChanged in this)) throw new Error("Provided onChanged handler does not exist on target VM");
             const e = s.getCached(this) ? s.getCached(this).container.get(O) : j.container.get(O);
-            this.o = i().map((t => r(e, t.selector).subscribe((e => {
+            this.h = i().map((t => r(e, t.selector).subscribe((e => {
                 const r = t.targets.length - 1;
                 const i = t.targets.reduce(((t = {}, e) => t[e]), this);
                 Object.entries(t.changeHandlers).forEach((([s, n]) => {
@@ -482,7 +482,7 @@ function I(t) {
             if (n) return n.apply(this, arguments);
         };
         e.prototype["object" === typeof t && t.teardown ? t.teardown : "bound"] = function() {
-            if (this.o && Array.isArray(this.o)) this.o.forEach((t => {
+            if (this.h && Array.isArray(this.h)) this.h.forEach((t => {
                 if (t instanceof o && false === t.closed) t.unsubscribe();
             }));
             if (a) return a.apply(this, arguments);

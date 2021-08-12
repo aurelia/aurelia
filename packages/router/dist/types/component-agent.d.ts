@@ -17,17 +17,12 @@ export declare class ComponentAgent<T extends IRouteViewModel = IRouteViewModel>
     readonly definition: RouteDefinition;
     readonly routeNode: RouteNode;
     readonly ctx: IRouteContext;
-    private readonly logger;
     readonly canLoadHooks: readonly ILifecycleHooks<IRouteViewModel, 'canLoad'>[];
     readonly loadHooks: readonly ILifecycleHooks<IRouteViewModel, 'load'>[];
     readonly canUnloadHooks: readonly ILifecycleHooks<IRouteViewModel, 'canUnload'>[];
     readonly unloadHooks: readonly ILifecycleHooks<IRouteViewModel, 'unload'>[];
-    private readonly hasCanLoad;
-    private readonly hasLoad;
-    private readonly hasCanUnload;
-    private readonly hasUnload;
     constructor(instance: T, controller: ICustomElementController<T>, definition: RouteDefinition, routeNode: RouteNode, ctx: IRouteContext);
-    static for<T extends IRouteViewModel>(componentInstance: T, hostController: ICustomElementController, routeNode: RouteNode, ctx: IRouteContext): ComponentAgent<T>;
+    static for<T extends IRouteViewModel>(componentInstance: T, hostController: ICustomElementController<T>, routeNode: RouteNode, ctx: IRouteContext): ComponentAgent<T>;
     activate(initiator: IHydratedController | null, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
     deactivate(initiator: IHydratedController | null, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
     dispose(): void;

@@ -1,90 +1,80 @@
-import { Platform as i, TaskQueue as t } from "../../../platform/dist/native-modules/index.js";
+import { Platform as t, TaskQueue as i } from "../../../platform/dist/native-modules/index.js";
 
 const s = new Map;
 
-function h(i) {
-    return function t() {
-        throw new Error(`The PLATFORM did not receive a valid reference to the global function '${i}'.`);
+function e(t) {
+    return function i() {
+        throw new Error(`The PLATFORM did not receive a valid reference to the global function '${t}'.`);
     };
 }
 
-class BrowserPlatform extends i {
-    constructor(i, s = {}) {
-        var e, n, o, r, a, l;
-        super(i, s);
-        this.domReadRequested = false;
-        this.domReadHandle = -1;
-        this.domWriteRequested = false;
-        this.domWriteHandle = -1;
-        this.Node = "Node" in s ? s.Node : i.Node;
-        this.Element = "Element" in s ? s.Element : i.Element;
-        this.HTMLElement = "HTMLElement" in s ? s.HTMLElement : i.HTMLElement;
-        this.CustomEvent = "CustomEvent" in s ? s.CustomEvent : i.CustomEvent;
-        this.CSSStyleSheet = "CSSStyleSheet" in s ? s.CSSStyleSheet : i.CSSStyleSheet;
-        this.ShadowRoot = "ShadowRoot" in s ? s.ShadowRoot : i.ShadowRoot;
-        this.MutationObserver = "MutationObserver" in s ? s.MutationObserver : i.MutationObserver;
-        this.window = "window" in s ? s.window : i.window;
-        this.document = "document" in s ? s.document : i.document;
-        this.location = "location" in s ? s.location : i.location;
-        this.history = "history" in s ? s.history : i.history;
-        this.navigator = "navigator" in s ? s.navigator : i.navigator;
-        this.fetch = "fetch" in s ? s.fetch : null !== (n = null === (e = i.fetch) || void 0 === e ? void 0 : e.bind(i)) && void 0 !== n ? n : h("fetch");
-        this.requestAnimationFrame = "requestAnimationFrame" in s ? s.requestAnimationFrame : null !== (r = null === (o = i.requestAnimationFrame) || void 0 === o ? void 0 : o.bind(i)) && void 0 !== r ? r : h("requestAnimationFrame");
-        this.cancelAnimationFrame = "cancelAnimationFrame" in s ? s.cancelAnimationFrame : null !== (l = null === (a = i.cancelAnimationFrame) || void 0 === a ? void 0 : a.bind(i)) && void 0 !== l ? l : h("cancelAnimationFrame");
-        this.customElements = "customElements" in s ? s.customElements : i.customElements;
+class BrowserPlatform extends t {
+    constructor(t, s = {}) {
+        super(t, s);
+        this.t = false;
+        this.i = -1;
+        this.h = false;
+        this.l = -1;
+        ("Node,Element,HTMLElement,CustomEvent,CSSStyleSheet,ShadowRoot,MutationObserver," + "window,document,location,history,navigator,customElements").split(",").forEach((i => {
+            this[i] = i in s ? s[i] : t[i];
+        }));
+        "fetch,requestAnimationFrame,cancelAnimationFrame".split(",").forEach((i => {
+            var h;
+            this[i] = i in s ? s[i] : null !== (h = t[i].bind(t)) && void 0 !== h ? h : e(i);
+        }));
         this.flushDomRead = this.flushDomRead.bind(this);
         this.flushDomWrite = this.flushDomWrite.bind(this);
-        this.domReadQueue = new t(this, this.requestDomRead.bind(this), this.cancelDomRead.bind(this));
-        this.domWriteQueue = new t(this, this.requestDomWrite.bind(this), this.cancelDomWrite.bind(this));
+        this.domReadQueue = new i(this, this.requestDomRead.bind(this), this.cancelDomRead.bind(this));
+        this.domWriteQueue = new i(this, this.requestDomWrite.bind(this), this.cancelDomWrite.bind(this));
     }
-    static getOrCreate(i, t = {}) {
-        let h = s.get(i);
-        if (void 0 === h) s.set(i, h = new BrowserPlatform(i, t));
-        return h;
+    static getOrCreate(t, i = {}) {
+        let e = s.get(t);
+        if (void 0 === e) s.set(t, e = new BrowserPlatform(t, i));
+        return e;
     }
-    static set(i, t) {
-        s.set(i, t);
+    static set(t, i) {
+        s.set(t, i);
     }
     requestDomRead() {
-        this.domReadRequested = true;
-        if (-1 === this.domWriteHandle) this.domWriteHandle = this.requestAnimationFrame(this.flushDomWrite);
+        this.t = true;
+        if (-1 === this.l) this.l = this.requestAnimationFrame(this.flushDomWrite);
     }
     cancelDomRead() {
-        this.domReadRequested = false;
-        if (this.domReadHandle > -1) {
-            this.clearTimeout(this.domReadHandle);
-            this.domReadHandle = -1;
+        this.t = false;
+        if (this.i > -1) {
+            this.clearTimeout(this.i);
+            this.i = -1;
         }
-        if (false === this.domWriteRequested && this.domWriteHandle > -1) {
-            this.cancelAnimationFrame(this.domWriteHandle);
-            this.domWriteHandle = -1;
+        if (false === this.h && this.l > -1) {
+            this.cancelAnimationFrame(this.l);
+            this.l = -1;
         }
     }
     flushDomRead() {
-        this.domReadHandle = -1;
-        if (true === this.domReadRequested) {
-            this.domReadRequested = false;
+        this.i = -1;
+        if (true === this.t) {
+            this.t = false;
             this.domReadQueue.flush();
         }
     }
     requestDomWrite() {
-        this.domWriteRequested = true;
-        if (-1 === this.domWriteHandle) this.domWriteHandle = this.requestAnimationFrame(this.flushDomWrite);
+        this.h = true;
+        if (-1 === this.l) this.l = this.requestAnimationFrame(this.flushDomWrite);
     }
     cancelDomWrite() {
-        this.domWriteRequested = false;
-        if (this.domWriteHandle > -1 && (false === this.domReadRequested || this.domReadHandle > -1)) {
-            this.cancelAnimationFrame(this.domWriteHandle);
-            this.domWriteHandle = -1;
+        this.h = false;
+        if (this.l > -1 && (false === this.t || this.i > -1)) {
+            this.cancelAnimationFrame(this.l);
+            this.l = -1;
         }
     }
     flushDomWrite() {
-        this.domWriteHandle = -1;
-        if (true === this.domWriteRequested) {
-            this.domWriteRequested = false;
+        this.l = -1;
+        if (true === this.h) {
+            this.h = false;
             this.domWriteQueue.flush();
         }
-        if (true === this.domReadRequested && -1 === this.domReadHandle) this.domReadHandle = this.setTimeout(this.flushDomRead, 0);
+        if (true === this.t && -1 === this.i) this.i = this.setTimeout(this.flushDomRead, 0);
     }
 }
 

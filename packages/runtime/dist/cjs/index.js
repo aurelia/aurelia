@@ -1893,15 +1893,15 @@ class CollectionLengthObserver {
         this.owner = t;
         this.type = 18;
         this.f = 0;
-        this.v = this.h = (this.O = t.collection).length;
+        this.v = this.h = (this.o = t.collection).length;
     }
     getValue() {
-        return this.O.length;
+        return this.o.length;
     }
     setValue(e, r) {
         const s = this.v;
         if (e !== s && t.isArrayIndex(e)) {
-            if (0 === (256 & r)) this.O.length = e;
+            if (0 === (256 & r)) this.o.length = e;
             this.v = e;
             this.h = s;
             this.f = r;
@@ -1910,7 +1910,7 @@ class CollectionLengthObserver {
     }
     handleCollectionChange(t, e) {
         const r = this.v;
-        const s = this.O.length;
+        const s = this.o.length;
         if ((this.v = s) !== r) {
             this.h = r;
             this.f = e;
@@ -1928,18 +1928,18 @@ class CollectionSizeObserver {
     constructor(t) {
         this.owner = t;
         this.f = 0;
-        this.v = this.h = (this.O = t.collection).size;
-        this.type = this.O instanceof Map ? 66 : 34;
+        this.v = this.h = (this.o = t.collection).size;
+        this.type = this.o instanceof Map ? 66 : 34;
     }
     getValue() {
-        return this.O.size;
+        return this.o.size;
     }
     setValue() {
         throw new Error("AUR02");
     }
     handleCollectionChange(t, e) {
         const r = this.v;
-        const s = this.O.size;
+        const s = this.o.size;
         if ((this.v = s) !== r) {
             this.h = r;
             this.f = e;
@@ -2777,7 +2777,7 @@ class ExpressionParser {
     constructor() {
         this.u = h();
         this.l = h();
-        this.g = h();
+        this.A = h();
     }
     parse(t, e) {
         let r;
@@ -2786,8 +2786,8 @@ class ExpressionParser {
             return new CustomExpression(t);
 
           case 1:
-            r = this.g[t];
-            if (void 0 === r) r = this.g[t] = this.$parse(t, e);
+            r = this.A[t];
+            if (void 0 === r) r = this.A[t] = this.$parse(t, e);
             return r;
 
           case 2:
@@ -2809,7 +2809,7 @@ class ExpressionParser {
         ue.ip = t;
         ue.length = t.length;
         ue.index = 0;
-        ue.A = t.charCodeAt(0);
+        ue.U = t.charCodeAt(0);
         return le(ue, 0, 61, void 0 === e ? 8 : e);
     }
 }
@@ -3072,16 +3072,16 @@ class ParserState {
     constructor(t) {
         this.ip = t;
         this.index = 0;
-        this.U = 0;
+        this.O = 0;
         this.C = 0;
         this.B = 1572864;
         this.L = "";
         this.$ = true;
         this.length = t.length;
-        this.A = t.charCodeAt(0);
+        this.U = t.charCodeAt(0);
     }
-    get k() {
-        return this.ip.slice(this.U, this.index);
+    get P() {
+        return this.ip.slice(this.O, this.index);
     }
 }
 
@@ -3091,7 +3091,7 @@ function ae(t, e) {
     ue.ip = t;
     ue.length = t.length;
     ue.index = 0;
-    ue.A = t.charCodeAt(0);
+    ue.U = t.charCodeAt(0);
     return le(ue, 0, 61, void 0 === e ? 8 : e);
 }
 
@@ -3284,7 +3284,7 @@ function le(t, e, r, s) {
     }
     if (1572864 !== t.B) {
         if (1 & s) return i;
-        if ("of" === t.k) throw new Error(`AUR0161:${t.ip}`);
+        if ("of" === t.P) throw new Error(`AUR0161:${t.ip}`);
         throw new Error(`AUR0162:${t.ip}`);
     }
     return i;
@@ -3329,10 +3329,10 @@ function pe(t, e) {
             Oe(t, 1572879);
             s.push(le(t, 0, 62, ~2 & e));
         } else if (3072 & t.B) {
-            const {A: r, B: i, index: n} = t;
+            const {U: r, B: i, index: n} = t;
             be(t);
             if (me(t, 1572879)) s.push(le(t, 0, 62, ~2 & e)); else {
-                t.A = r;
+                t.U = r;
                 t.B = i;
                 t.index = n;
                 s.push(le(t, 0, 450, ~2 & e));
@@ -3353,13 +3353,13 @@ function ve(t) {
     const s = t.length;
     let i = "";
     while (t.index < s) {
-        switch (t.A) {
+        switch (t.U) {
           case 36:
             if (123 === t.ip.charCodeAt(t.index + 1)) {
                 e.push(i);
                 i = "";
                 t.index += 2;
-                t.A = t.ip.charCodeAt(t.index);
+                t.U = t.ip.charCodeAt(t.index);
                 be(t);
                 const s = le(t, 0, 61, 1);
                 r.push(s);
@@ -3372,7 +3372,7 @@ function ve(t) {
             break;
 
           default:
-            i += String.fromCharCode(t.A);
+            i += String.fromCharCode(t.U);
         }
         we(t);
     }
@@ -3405,55 +3405,55 @@ function ge(t, e, r, s, i) {
 
 function be(t) {
     while (t.index < t.length) {
-        t.U = t.index;
-        if (null != (t.B = Te[t.A](t))) return;
+        t.O = t.index;
+        if (null != (t.B = Te[t.U](t))) return;
     }
     t.B = 1572864;
 }
 
 function we(t) {
-    return t.A = t.ip.charCodeAt(++t.index);
+    return t.U = t.ip.charCodeAt(++t.index);
 }
 
 function xe(t) {
     while (Re[we(t)]) ;
-    const e = Ce[t.L = t.k];
+    const e = Ce[t.L = t.P];
     return void 0 === e ? 1024 : e;
 }
 
 function Ee(t, e) {
-    let r = t.A;
+    let r = t.U;
     if (false === e) {
         do {
             r = we(t);
         } while (r <= 57 && r >= 48);
         if (46 !== r) {
-            t.L = parseInt(t.k, 10);
+            t.L = parseInt(t.P, 10);
             return 8192;
         }
         r = we(t);
         if (t.index >= t.length) {
-            t.L = parseInt(t.k.slice(0, -1), 10);
+            t.L = parseInt(t.P.slice(0, -1), 10);
             return 8192;
         }
     }
     if (r <= 57 && r >= 48) do {
         r = we(t);
-    } while (r <= 57 && r >= 48); else t.A = t.ip.charCodeAt(--t.index);
-    t.L = parseFloat(t.k);
+    } while (r <= 57 && r >= 48); else t.U = t.ip.charCodeAt(--t.index);
+    t.L = parseFloat(t.P);
     return 8192;
 }
 
 function ye(t) {
-    const e = t.A;
+    const e = t.U;
     we(t);
     let r = 0;
     const s = new Array;
     let i = t.index;
-    while (t.A !== e) if (92 === t.A) {
+    while (t.U !== e) if (92 === t.U) {
         s.push(t.ip.slice(i, t.index));
         we(t);
-        r = ee(t.A);
+        r = ee(t.U);
         we(t);
         s.push(String.fromCharCode(r));
         i = t.index;
@@ -3469,13 +3469,13 @@ function ye(t) {
 function Ae(t) {
     let e = true;
     let r = "";
-    while (96 !== we(t)) if (36 === t.A) if (t.index + 1 < t.length && 123 === t.ip.charCodeAt(t.index + 1)) {
+    while (96 !== we(t)) if (36 === t.U) if (t.index + 1 < t.length && 123 === t.ip.charCodeAt(t.index + 1)) {
         t.index++;
         e = false;
         break;
-    } else r += "$"; else if (92 === t.A) r += String.fromCharCode(ee(we(t))); else {
+    } else r += "$"; else if (92 === t.U) r += String.fromCharCode(ee(we(t))); else {
         if (t.index >= t.length) throw new Error(`AUR0166:${t.ip}`);
-        r += String.fromCharCode(t.A);
+        r += String.fromCharCode(t.U);
     }
     we(t);
     t.L = r;
@@ -3612,7 +3612,7 @@ Te[124] = t => {
 };
 
 Te[46] = t => {
-    if (we(t) <= 57 && t.A >= 48) return Ee(t, true);
+    if (we(t) <= 57 && t.U >= 48) return Ee(t, true);
     return 16393;
 };
 
@@ -4192,12 +4192,12 @@ class ComputedObserver {
         this.type = 1;
         this.v = void 0;
         this.ov = void 0;
-        this.iR = false;
+        this.ir = false;
         this.D = false;
-        this.O = t;
+        this.o = t;
         this.get = e;
         this.set = r;
-        this.uP = s;
+        this.up = s;
         this.oL = i;
     }
     static create(t, e, r, i, n) {
@@ -4217,7 +4217,7 @@ class ComputedObserver {
         return c;
     }
     getValue() {
-        if (0 === this.subs.count) return this.get.call(this.O, this);
+        if (0 === this.subs.count) return this.get.call(this.o, this);
         if (this.D) {
             this.compute();
             this.D = false;
@@ -4227,9 +4227,9 @@ class ComputedObserver {
     setValue(t, e) {
         if ("function" === typeof this.set) {
             if (t !== this.v) {
-                this.iR = true;
-                this.set.call(this.O, t);
-                this.iR = false;
+                this.ir = true;
+                this.set.call(this.o, t);
+                this.ir = false;
                 this.run();
             }
         } else throw new Error("AUR0221");
@@ -4260,7 +4260,7 @@ class ComputedObserver {
         this.subs.notify(this.v, Mr, 0);
     }
     run() {
-        if (this.iR) return;
+        if (this.ir) return;
         const t = this.v;
         const e = this.compute();
         this.D = false;
@@ -4270,14 +4270,14 @@ class ComputedObserver {
         }
     }
     compute() {
-        this.iR = true;
+        this.ir = true;
         this.obs.version++;
         try {
             Ne(this);
-            return this.v = Xe(this.get.call(this.uP ? Ge(this.O) : this.O, this));
+            return this.v = Xe(this.get.call(this.up ? Ge(this.o) : this.o, this));
         } finally {
             this.obs.clear();
-            this.iR = false;
+            this.ir = false;
             Ke(this);
         }
     }
@@ -4312,12 +4312,12 @@ class DirtyChecker {
     constructor(t) {
         this.p = t;
         this.tracked = [];
-        this.P = null;
-        this.R = 0;
+        this.R = null;
+        this.T = 0;
         this.check = () => {
             if (Vr.disabled) return;
-            if (++this.R < Vr.timeoutsPerCheck) return;
-            this.R = 0;
+            if (++this.T < Vr.timeoutsPerCheck) return;
+            this.T = 0;
             const t = this.tracked;
             const e = t.length;
             let r;
@@ -4334,13 +4334,13 @@ class DirtyChecker {
     }
     addProperty(t) {
         this.tracked.push(t);
-        if (1 === this.tracked.length) this.P = this.p.taskQueue.queueTask(this.check, Dr);
+        if (1 === this.tracked.length) this.R = this.p.taskQueue.queueTask(this.check, Dr);
     }
     removeProperty(t) {
         this.tracked.splice(this.tracked.indexOf(t), 1);
         if (0 === this.tracked.length) {
-            this.P.cancel();
-            this.P = null;
+            this.R.cancel();
+            this.R = null;
         }
     }
 }
@@ -4355,7 +4355,7 @@ class DirtyCheckProperty {
         this.key = r;
         this.type = 0;
         this.ov = void 0;
-        this.T = t;
+        this.j = t;
     }
     getValue() {
         return this.obj[this.key];
@@ -4375,11 +4375,11 @@ class DirtyCheckProperty {
     subscribe(t) {
         if (this.subs.add(t) && 1 === this.subs.count) {
             this.ov = this.obj[this.key];
-            this.T.addProperty(this);
+            this.j.addProperty(this);
         }
     }
     unsubscribe(t) {
-        if (this.subs.remove(t) && 0 === this.subs.count) this.T.removeProperty(this);
+        if (this.subs.remove(t) && 0 === this.subs.count) this.j.removeProperty(this);
     }
 }
 
@@ -4388,14 +4388,14 @@ M(DirtyCheckProperty);
 class PrimitiveObserver {
     constructor(t, e) {
         this.type = 0;
-        this.O = t;
-        this.K = e;
+        this.o = t;
+        this.k = e;
     }
     get doNotCache() {
         return true;
     }
     getValue() {
-        return this.O[this.K];
+        return this.o[this.k];
     }
     setValue() {}
     subscribe() {}
@@ -4423,8 +4423,8 @@ class SetterObserver {
         this.ov = void 0;
         this.iO = false;
         this.f = 0;
-        this.O = t;
-        this.K = e;
+        this.o = t;
+        this.k = e;
     }
     getValue() {
         return this.v;
@@ -4436,7 +4436,7 @@ class SetterObserver {
             this.v = t;
             this.f = e;
             this.queue.add(this);
-        } else this.O[this.K] = t;
+        } else this.o[this.k] = t;
     }
     subscribe(t) {
         if (false === this.iO) this.start();
@@ -4450,8 +4450,8 @@ class SetterObserver {
     start() {
         if (false === this.iO) {
             this.iO = true;
-            this.v = this.O[this.K];
-            s(this.O, this.K, {
+            this.v = this.o[this.k];
+            s(this.o, this.k, {
                 enumerable: true,
                 configurable: true,
                 get: () => this.getValue(),
@@ -4464,7 +4464,7 @@ class SetterObserver {
     }
     stop() {
         if (this.iO) {
-            s(this.O, this.K, {
+            s(this.o, this.k, {
                 enumerable: true,
                 configurable: true,
                 writable: true,
@@ -4482,9 +4482,9 @@ class SetterNotifier {
         this.v = void 0;
         this.ov = void 0;
         this.f = 0;
-        this.O = t;
+        this.o = t;
         this.S = r;
-        this.HS = i(r);
+        this.hs = i(r);
         const n = t[e];
         this.cb = i(n) ? n : void 0;
         this.v = s;
@@ -4494,12 +4494,12 @@ class SetterNotifier {
     }
     setValue(t, e) {
         var r;
-        if (this.HS) t = this.S(t);
+        if (this.hs) t = this.S(t);
         if (!Object.is(t, this.v)) {
             this.ov = this.v;
             this.v = t;
             this.f = e;
-            null === (r = this.cb) || void 0 === r ? void 0 : r.call(this.O, this.v, this.ov, e);
+            null === (r = this.cb) || void 0 === r ? void 0 : r.call(this.o, this.v, this.ov, e);
             this.queue.add(this);
         }
     }
@@ -4543,22 +4543,22 @@ class DefaultNodeObserverLocator {
 
 class ObserverLocator {
     constructor(t, e) {
-        this.T = t;
-        this.j = e;
-        this.I = [];
+        this.j = t;
+        this.I = e;
+        this.M = [];
     }
     addAdapter(t) {
-        this.I.push(t);
+        this.M.push(t);
     }
     getObserver(t, e) {
         var r, s;
-        return null !== (s = null === (r = t.$observers) || void 0 === r ? void 0 : r[e]) && void 0 !== s ? s : this.M(t, e, this.createObserver(t, e));
+        return null !== (s = null === (r = t.$observers) || void 0 === r ? void 0 : r[e]) && void 0 !== s ? s : this.F(t, e, this.createObserver(t, e));
     }
     getAccessor(t, e) {
         var r;
         const s = null === (r = t.$observers) || void 0 === r ? void 0 : r[e];
         if (void 0 !== s) return s;
-        if (this.j.handles(t, e, this)) return this.j.getAccessor(t, e, this);
+        if (this.I.handles(t, e, this)) return this.I.getAccessor(t, e, this);
         return Kr;
     }
     getArrayObserver(t) {
@@ -4573,7 +4573,7 @@ class ObserverLocator {
     createObserver(e, s) {
         var i, n, o, h;
         if (!(e instanceof Object)) return new PrimitiveObserver(e, s);
-        if (this.j.handles(e, s, this)) return this.j.getObserver(e, s, this);
+        if (this.I.handles(e, s, this)) return this.I.getObserver(e, s, this);
         switch (s) {
           case "length":
             if (e instanceof Array) return vt(e).getLengthObserver();
@@ -4596,20 +4596,20 @@ class ObserverLocator {
             }
         }
         if (void 0 !== c && !r.call(c, "value")) {
-            let t = this.F(e, s, c);
+            let t = this.V(e, s, c);
             if (null == t) t = null === (h = null !== (n = null === (i = c.get) || void 0 === i ? void 0 : i.getObserver) && void 0 !== n ? n : null === (o = c.set) || void 0 === o ? void 0 : o.getObserver) || void 0 === h ? void 0 : h(e, this);
-            return null == t ? c.configurable ? ComputedObserver.create(e, s, c, this, true) : this.T.createProperty(e, s) : t;
+            return null == t ? c.configurable ? ComputedObserver.create(e, s, c, this, true) : this.j.createProperty(e, s) : t;
         }
         return new SetterObserver(e, s);
     }
-    F(t, e, r) {
-        if (this.I.length > 0) for (const s of this.I) {
+    V(t, e, r) {
+        if (this.M.length > 0) for (const s of this.M) {
             const i = s.getObserver(t, e, r, this);
             if (null != i) return i;
         }
         return null;
     }
-    M(t, e, r) {
+    F(t, e, r) {
         if (true === r.doNotCache) return r;
         if (void 0 === t.$observers) {
             s(t, "$observers", {

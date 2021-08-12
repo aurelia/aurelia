@@ -101,13 +101,13 @@ export class RoutingScope {
     // return this.getClosestScope(origin) || this.rootScope!.scope;
     let container: IContainer | null | undefined;
 
-    if ('resourceResolvers' in origin) {
+    if ('res' in origin) {
       container = origin;
     } else {
-      if ('context' in origin) {
-        container = origin.context;
+      if ('container' in origin) {
+        container = origin.container;
       } else if ('$controller' in origin) {
-        container = origin.$controller!.context;
+        container = origin.$controller!.container;
       } else {
         const controller = CustomElement.for(origin as Node, { searchParents: true });
         container = controller?.container;
@@ -226,25 +226,56 @@ export class RoutingScope {
   public findInstructions(instruction: string | RoutingInstruction[], useDirectRouting: boolean, useConfiguredRoutes: boolean): FoundRoute {
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
-      const instructions = RoutingInstruction.parse(this.router, instruction);
-      if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(instructions)) {
-        const foundRoute = this.findMatchingRoute(instruction);
-        if (foundRoute?.foundConfiguration ?? false) {
-          route = foundRoute!;
+      const instructions: RoutingInstruction[] = [];
+
+      for (const instr of RoutingInstruction.parse(this.router, instruction)) {
+        if (instr.isClear(this.router) || instr.isClearAll(this.router)) {
+          instructions.push(instr);
         } else {
-          if (useDirectRouting) {
-            route.instructions = instructions;
-            if (route.instructions.length > 0) {
-              const nextInstructions = route.instructions[0].nextScopeInstructions ?? [];
-              route.remaining = RoutingInstruction.stringify(this.router, nextInstructions);
-              // TODO: Verify that it's okay to leave this in
-              route.instructions[0].nextScopeInstructions = null;
+
+          if (useConfiguredRoutes) {
+            const foundRoute = this.findMatchingRoute(RoutingInstruction.stringify(this.router, [instr]));
+            if (foundRoute?.foundConfiguration ?? false) {
+              route = foundRoute!;
+              instructions.push(...route.instructions);
+            } else {
+              if (useDirectRouting) {
+                // route.instructions = instructions;
+                instructions.push(instr);
+                // if (route.instructions.length > 0) {
+                const nextInstructions = instr.nextScopeInstructions ?? [];
+                route.remaining = RoutingInstruction.stringify(this.router, nextInstructions);
+                // TODO: Verify that it's okay to leave this in
+                instr.nextScopeInstructions = null;
+                // }
+              }
             }
+          } else if (useDirectRouting) {
+            instructions.push(instr);
           }
         }
-      } else if (useDirectRouting) {
-        route.instructions = instructions;
+
       }
+      route.instructions = instructions;
+
+      // if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(instructions)) {
+      //   const foundRoute = this.findMatchingRoute(instruction);
+      //   if (foundRoute?.foundConfiguration ?? false) {
+      //     route = foundRoute!;
+      //   } else {
+      //     if (useDirectRouting) {
+      //       route.instructions = instructions;
+      //       if (route.instructions.length > 0) {
+      //         const nextInstructions = route.instructions[0].nextScopeInstructions ?? [];
+      //         route.remaining = RoutingInstruction.stringify(this.router, nextInstructions);
+      //         // TODO: Verify that it's okay to leave this in
+      //         route.instructions[0].nextScopeInstructions = null;
+      //       }
+      //     }
+      //   }
+      // } else if (useDirectRouting) {
+      //   route.instructions = instructions;
+      // }
     } else {
       route.instructions = instruction;
     }

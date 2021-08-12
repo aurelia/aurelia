@@ -64,7 +64,7 @@ describe('Nav', function () {
 
     assert.includes(host.innerHTML, 'foo', `host.innerHTML`);
     assert.includes(host.innerHTML, 'Bar', `host.innerHTML`);
-    assert.includes(host.innerHTML, 'href="bar"', `host.innerHTML`);
+    assert.includes(host.innerHTML, 'href="#bar"', `host.innerHTML`);
     assert.notIncludes(host.innerHTML, 'nav-active', `host.innerHTML`);
     await tearDown();
   });
@@ -76,7 +76,7 @@ describe('Nav', function () {
 
     await platform.domWriteQueue.yield();
 
-    assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
+    assert.includes(host.innerHTML, 'href="#baz"', `host.innerHTML`);
     // assert.includes(host.innerHTML, 'nav-active', `host.innerHTML`); // TODO: fix this
     await tearDown();
   });
@@ -88,7 +88,7 @@ describe('Nav', function () {
 
     await platform.domWriteQueue.yield();
 
-    assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
+    assert.includes(host.innerHTML, 'href="#baz"', `host.innerHTML`);
     assert.includes(host.innerHTML, 'nav-has-children', `host.innerHTML`);
     assert.includes(host.innerHTML, 'nav-level-1', `host.innerHTML`);
     await tearDown();

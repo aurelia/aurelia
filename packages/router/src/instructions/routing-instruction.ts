@@ -467,7 +467,7 @@ export class RoutingInstruction {
   public clone(keepInstances: boolean = false, scopeModifier: boolean = false, shallow: boolean = false): RoutingInstruction {
     // Create a clone without instances...
     const clone = RoutingInstruction.create(
-      this.component.promise ?? this.component.type ?? this.component.name!,
+      this.component.func ?? this.component.promise ?? this.component.type ?? this.component.name!,
       this.endpoint.name!,
       this.parameters.typedParameters !== null ? this.parameters.typedParameters : void 0,
     ) as RoutingInstruction;

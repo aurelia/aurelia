@@ -1,11 +1,12 @@
 {
   "name": "aurelia-direct-router-monorepo",
   "private": true,
-  "version": "2.0.0-alpha.9.0",
+  "version": "2.0.0-alpha.14.2",
   "workspaces": [
     "packages/__tests__",
     "packages/router",
-    "examples/base-url"
+    "examples/base-url",
+    "examples/lazy-loading-config"
   ],
   "license": "MIT",
   "engines": {

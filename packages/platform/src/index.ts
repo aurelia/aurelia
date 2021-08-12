@@ -106,25 +106,25 @@ function isPersistent(task: Task): boolean {
   return task.persistent;
 }
 export class TaskQueue {
+
+  /** @internal */ public _suspenderTask: Task | undefined = void 0;
+  /** @internal */ public _pendingAsyncCount: number = 0;
+
   private processing: Task[] = [];
-
-  private suspenderTask: Task | undefined = void 0;
-  private pendingAsyncCount: number = 0;
-
   private pending: Task[] = [];
   private delayed: Task[] = [];
 
   private flushRequested: boolean = false;
-  private yieldPromise: ExposedPromise | undefined = void 0;
+  private _yieldPromise: ExposedPromise | undefined = void 0;
 
   private readonly taskPool: Task[] = [];
-  private taskPoolSize: number = 0;
-  private lastRequest: number = 0;
-  private lastFlush: number = 0;
+  private _taskPoolSize: number = 0;
+  private _lastRequest: number = 0;
+  private _lastFlush: number = 0;
 
   public get isEmpty(): boolean {
     return (
-      this.pendingAsyncCount === 0 &&
+      this._pendingAsyncCount === 0 &&
       this.processing.length === 0 &&
       this.pending.length === 0 &&
       this.delayed.length === 0
@@ -138,33 +138,35 @@ export class TaskQueue {
    * This `hasNoMoreFiniteWork` getters returns true if either all remaining tasks are persistent, or if there are no more tasks.
    *
    * If that is the case, we can resolve the promise that was created when `yield()` is called.
+   *
+   * @internal
    */
-  private get hasNoMoreFiniteWork(): boolean {
+  private get _hasNoMoreFiniteWork(): boolean {
     return (
-      this.pendingAsyncCount === 0 &&
+      this._pendingAsyncCount === 0 &&
       this.processing.every(isPersistent) &&
       this.pending.every(isPersistent) &&
       this.delayed.every(isPersistent)
     );
   }
 
-  private readonly tracer: Tracer;
+  /** @internal */ private readonly _tracer: Tracer;
   public constructor(
     public readonly platform: Platform,
     private readonly $request: () => void,
     private readonly $cancel: () => void,
   ) {
-    this.tracer = new Tracer(platform.console);
+    this._tracer = new Tracer(platform.console);
   }
 
   public flush(time: number = this.platform.performanceNow()): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'flush'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'flush'); }
 
     this.flushRequested = false;
-    this.lastFlush = time;
+    this._lastFlush = time;
 
     // Only process normally if we are *not* currently waiting for an async task to finish
-    if (this.suspenderTask === void 0) {
+    if (this._suspenderTask === void 0) {
       if (this.pending.length > 0) {
         this.processing.push(...this.pending);
         this.pending.length = 0;
@@ -181,14 +183,14 @@ export class TaskQueue {
         // If it's still running, it can only be an async task
         if (cur.status === TaskStatus.running) {
           if (cur.suspend === true) {
-            this.suspenderTask = cur;
-            this.requestFlush();
+            this._suspenderTask = cur;
+            this._requestFlush();
 
-            if (this.tracer.enabled) { this.tracer.leave(this, 'flush early async'); }
+            if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'flush early async'); }
 
             return;
           } else {
-            ++this.pendingAsyncCount;
+            ++this._pendingAsyncCount;
           }
         }
       }
@@ -203,26 +205,26 @@ export class TaskQueue {
         this.processing.push(...this.delayed.splice(0, i));
       }
 
-      if (this.processing.length > 0 || this.delayed.length > 0 || this.pendingAsyncCount > 0) {
-        this.requestFlush();
+      if (this.processing.length > 0 || this.delayed.length > 0 || this._pendingAsyncCount > 0) {
+        this._requestFlush();
       }
 
       if (
-        this.yieldPromise !== void 0 &&
-        this.hasNoMoreFiniteWork
+        this._yieldPromise !== void 0 &&
+        this._hasNoMoreFiniteWork
       ) {
-        const p = this.yieldPromise;
-        this.yieldPromise = void 0;
+        const p = this._yieldPromise;
+        this._yieldPromise = void 0;
         p.resolve();
       }
     } else {
       // If we are still waiting for an async task to finish, just schedule the next flush and do nothing else.
       // Should the task finish before the next flush is invoked,
       // the callback to `completeAsyncTask` will have reset `this.suspenderTask` back to undefined so processing can return back to normal next flush.
-      this.requestFlush();
+      this._requestFlush();
     }
 
-    if (this.tracer.enabled) { this.tracer.leave(this, 'flush full'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'flush full'); }
   }
 
   /**
@@ -231,14 +233,14 @@ export class TaskQueue {
    * This operation is idempotent and will do nothing if no flush is scheduled.
    */
   public cancel(): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'cancel'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'cancel'); }
 
     if (this.flushRequested) {
       this.$cancel();
       this.flushRequested = false;
     }
 
-    if (this.tracer.enabled) { this.tracer.leave(this, 'cancel'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'cancel'); }
   }
 
   /**
@@ -251,24 +253,24 @@ export class TaskQueue {
    * If `yield()` is called multiple times in a row when there are one or more persistent tasks in the queue, each call will await exactly one cycle of those tasks.
    */
   public async yield(): Promise<void> {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'yield'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'yield'); }
 
     if (this.isEmpty) {
-      if (this.tracer.enabled) { this.tracer.leave(this, 'yield empty'); }
+      if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'yield empty'); }
     } else {
-      if (this.yieldPromise === void 0) {
-        if (this.tracer.enabled) { this.tracer.trace(this, 'yield - creating promise'); }
-        this.yieldPromise = createExposedPromise();
+      if (this._yieldPromise === void 0) {
+        if (__DEV__ && this._tracer.enabled) { this._tracer.trace(this, 'yield - creating promise'); }
+        this._yieldPromise = createExposedPromise();
       }
 
-      await this.yieldPromise;
+      await this._yieldPromise;
 
-      if (this.tracer.enabled) { this.tracer.leave(this, 'yield task'); }
+      if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'yield task'); }
     }
   }
 
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'queueTask'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'queueTask'); }
 
     const { delay, preempt, persistent, reusable, suspend } = { ...defaultQueueTaskOptions, ...opts };
 
@@ -282,7 +284,7 @@ export class TaskQueue {
     }
 
     if (this.processing.length === 0) {
-      this.requestFlush();
+      this._requestFlush();
     }
 
     const time = this.platform.performanceNow();
@@ -290,18 +292,18 @@ export class TaskQueue {
     let task: Task<T>;
     if (reusable) {
       const taskPool = this.taskPool;
-      const index = this.taskPoolSize - 1;
+      const index = this._taskPoolSize - 1;
       if (index >= 0) {
         task = taskPool[index];
         taskPool[index] = (void 0)!;
-        this.taskPoolSize = index;
+        this._taskPoolSize = index;
 
         task.reuse(time, delay, preempt, persistent, suspend, callback);
       } else {
-        task = new Task(this.tracer, this, time, time + delay, preempt, persistent, suspend, reusable, callback);
+        task = new Task(this._tracer, this, time, time + delay, preempt, persistent, suspend, reusable, callback);
       }
     } else {
-      task = new Task(this.tracer, this, time, time + delay, preempt, persistent, suspend, reusable, callback);
+      task = new Task(this._tracer, this, time, time + delay, preempt, persistent, suspend, reusable, callback);
     }
 
     if (preempt) {
@@ -312,7 +314,7 @@ export class TaskQueue {
       this.delayed[this.delayed.length] = task;
     }
 
-    if (this.tracer.enabled) { this.tracer.leave(this, 'queueTask'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'queueTask'); }
 
     return task;
   }
@@ -321,28 +323,28 @@ export class TaskQueue {
    * Remove the task from this queue.
    */
   public remove<T = any>(task: Task<T>): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'remove'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'remove'); }
 
     let idx = this.processing.indexOf(task);
     if (idx > -1) {
       this.processing.splice(idx, 1);
-      if (this.tracer.enabled) { this.tracer.leave(this, 'remove processing'); }
+      if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'remove processing'); }
       return;
     }
     idx = this.pending.indexOf(task);
     if (idx > -1) {
       this.pending.splice(idx, 1);
-      if (this.tracer.enabled) { this.tracer.leave(this, 'remove pending'); }
+      if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'remove pending'); }
       return;
     }
     idx = this.delayed.indexOf(task);
     if (idx > -1) {
       this.delayed.splice(idx, 1);
-      if (this.tracer.enabled) { this.tracer.leave(this, 'remove delayed'); }
+      if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'remove delayed'); }
       return;
     }
 
-    if (this.tracer.enabled) { this.tracer.leave(this, 'remove error'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'remove error'); }
 
     throw new Error(`Task #${task.id} could not be found`);
   }
@@ -352,16 +354,16 @@ export class TaskQueue {
    * The next queued callback will reuse this task object instead of creating a new one, to save overhead of creating additional objects.
    */
   private returnToPool(task: Task): void {
-    if (this.tracer.enabled) { this.tracer.trace(this, 'returnToPool'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.trace(this, 'returnToPool'); }
 
-    this.taskPool[this.taskPoolSize++] = task;
+    this.taskPool[this._taskPoolSize++] = task;
   }
 
   /**
    * Reset the persistent task back to its pending state, preparing it for being invoked again on the next flush.
    */
   private resetPersistentTask(task: Task): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'resetPersistentTask'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'resetPersistentTask'); }
 
     task.reset(this.platform.performanceNow());
 
@@ -371,33 +373,33 @@ export class TaskQueue {
       this.delayed[this.delayed.length] = task;
     }
 
-    if (this.tracer.enabled) { this.tracer.leave(this, 'resetPersistentTask'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'resetPersistentTask'); }
   }
 
   /**
    * Notify the queue that this async task has had its promise resolved, so that the queue can proceed with consecutive tasks on the next flush.
    */
   private completeAsyncTask(task: Task): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'completeAsyncTask'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'completeAsyncTask'); }
 
     if (task.suspend === true) {
-      if (this.suspenderTask !== task) {
-        if (this.tracer.enabled) { this.tracer.leave(this, 'completeAsyncTask error'); }
+      if (this._suspenderTask !== task) {
+        if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'completeAsyncTask error'); }
 
-        throw new Error(`Async task completion mismatch: suspenderTask=${this.suspenderTask?.id}, task=${task.id}`);
+        throw new Error(`Async task completion mismatch: suspenderTask=${this._suspenderTask?.id}, task=${task.id}`);
       }
 
-      this.suspenderTask = void 0;
+      this._suspenderTask = void 0;
     } else {
-      --this.pendingAsyncCount;
+      --this._pendingAsyncCount;
     }
 
     if (
-      this.yieldPromise !== void 0 &&
-      this.hasNoMoreFiniteWork
+      this._yieldPromise !== void 0 &&
+      this._hasNoMoreFiniteWork
     ) {
-      const p = this.yieldPromise;
-      this.yieldPromise = void 0;
+      const p = this._yieldPromise;
+      this._yieldPromise = void 0;
       p.resolve();
     }
 
@@ -405,19 +407,19 @@ export class TaskQueue {
       this.cancel();
     }
 
-    if (this.tracer.enabled) { this.tracer.leave(this, 'completeAsyncTask'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'completeAsyncTask'); }
   }
 
-  private readonly requestFlush: () => void = () => {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'requestFlush'); }
+  private readonly _requestFlush: () => void = () => {
+    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'requestFlush'); }
 
     if (!this.flushRequested) {
       this.flushRequested = true;
-      this.lastRequest = this.platform.performanceNow();
+      this._lastRequest = this.platform.performanceNow();
       this.$request();
     }
 
-    if (this.tracer.enabled) { this.tracer.leave(this, 'requestFlush'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'requestFlush'); }
   };
 }
 
@@ -448,10 +450,8 @@ export interface ITask<T = any> {
 export class Task<T = any> implements ITask {
   public readonly id: number = ++id;
 
-  /** @internal */
-  private _resolve: PResolve<UnwrapPromise<T>> | undefined = void 0;
-  /** @internal */
-  private _reject: PReject<TaskAbortError<T>> | undefined = void 0;
+  /** @internal */ private _resolve: PResolve<UnwrapPromise<T>> | undefined = void 0;
+  /** @internal */ private _reject: PReject<TaskAbortError<T>> | undefined = void 0;
 
   /** @internal */
   private _result: Promise<UnwrapPromise<T>> | undefined = void 0;
@@ -482,8 +482,11 @@ export class Task<T = any> implements ITask {
     return this._status;
   }
 
+  /** @internal */
+  private readonly _tracer: Tracer;
+
   public constructor(
-    private readonly tracer: Tracer,
+    tracer: Tracer,
     public readonly taskQueue: TaskQueue,
     public createdTime: number,
     public queueTime: number,
@@ -492,13 +495,15 @@ export class Task<T = any> implements ITask {
     public suspend: boolean,
     public readonly reusable: boolean,
     public callback: TaskCallback<T>,
-  ) {}
+  ) {
+    this._tracer = tracer;
+  }
 
   public run(time: number = this.taskQueue.platform.performanceNow()): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'run'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'run'); }
 
     if (this._status !== TaskStatus.pending) {
-      if (this.tracer.enabled) { this.tracer.leave(this, 'run error'); }
+      if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'run error'); }
 
       throw new Error(`Cannot run task in ${this._status} state`);
     }
@@ -523,46 +528,46 @@ export class Task<T = any> implements ITask {
       ret = callback(time - createdTime);
       if (ret instanceof Promise) {
         ret.then($ret => {
-            if (this.persistent) {
-              taskQueue['resetPersistentTask'](this);
+          if (this.persistent) {
+            taskQueue['resetPersistentTask'](this);
+          } else {
+            if (persistent) {
+              // Persistent tasks never reach completed status. They're either pending, running, or canceled.
+              this._status = TaskStatus.canceled;
             } else {
-              if (persistent) {
-                // Persistent tasks never reach completed status. They're either pending, running, or canceled.
-                this._status = TaskStatus.canceled;
-              } else {
-                this._status = TaskStatus.completed;
-              }
-
-              this.dispose();
+              this._status = TaskStatus.completed;
             }
 
-            taskQueue['completeAsyncTask'](this);
+            this.dispose();
+          }
 
-            if (this.tracer.enabled) { this.tracer.leave(this, 'run async then'); }
+          taskQueue['completeAsyncTask'](this);
 
-            if (resolve !== void 0) {
-              resolve($ret as UnwrapPromise<T>);
-            }
+          if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'run async then'); }
 
-            if (!this.persistent && reusable) {
-              taskQueue['returnToPool'](this);
-            }
-          })
-          .catch(err => {
-            if (!this.persistent) {
-              this.dispose();
-            }
+          if (resolve !== void 0) {
+            resolve($ret as UnwrapPromise<T>);
+          }
 
-            taskQueue['completeAsyncTask'](this);
+          if (!this.persistent && reusable) {
+            taskQueue['returnToPool'](this);
+          }
+        })
+        .catch(err => {
+          if (!this.persistent) {
+            this.dispose();
+          }
 
-            if (this.tracer.enabled) { this.tracer.leave(this, 'run async catch'); }
+          taskQueue['completeAsyncTask'](this);
 
-            if (reject !== void 0) {
-              reject(err);
-            } else {
-              throw err;
-            }
-          });
+          if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'run async catch'); }
+
+          if (reject !== void 0) {
+            reject(err);
+          } else {
+            throw err;
+          }
+        });
       } else {
         if (this.persistent) {
           taskQueue['resetPersistentTask'](this);
@@ -577,7 +582,7 @@ export class Task<T = any> implements ITask {
           this.dispose();
         }
 
-        if (this.tracer.enabled) { this.tracer.leave(this, 'run sync success'); }
+        if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'run sync success'); }
 
         if (resolve !== void 0) {
           resolve(ret as UnwrapPromise<T>);
@@ -592,7 +597,7 @@ export class Task<T = any> implements ITask {
         this.dispose();
       }
 
-      if (this.tracer.enabled) { this.tracer.leave(this, 'run sync error'); }
+      if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'run sync error'); }
 
       if (reject !== void 0) {
         reject(err);
@@ -603,7 +608,7 @@ export class Task<T = any> implements ITask {
   }
 
   public cancel(): boolean {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'cancel'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'cancel'); }
 
     if (this._status === TaskStatus.pending) {
       const taskQueue = this.taskQueue;
@@ -628,24 +633,24 @@ export class Task<T = any> implements ITask {
         reject(new TaskAbortError(this));
       }
 
-      if (this.tracer.enabled) { this.tracer.leave(this, 'cancel true =pending'); }
+      if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'cancel true =pending'); }
 
       return true;
     } else if (this._status === TaskStatus.running && this.persistent) {
       this.persistent = false;
 
-      if (this.tracer.enabled) { this.tracer.leave(this, 'cancel true =running+persistent'); }
+      if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'cancel true =running+persistent'); }
 
       return true;
     }
 
-    if (this.tracer.enabled) { this.tracer.leave(this, 'cancel false'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'cancel false'); }
 
     return false;
   }
 
   public reset(time: number): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'reset'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'reset'); }
 
     const delay = this.queueTime - this.createdTime;
     this.createdTime = time;
@@ -656,7 +661,7 @@ export class Task<T = any> implements ITask {
     this._reject = void 0;
     this._result = void 0;
 
-    if (this.tracer.enabled) { this.tracer.leave(this, 'reset'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'reset'); }
   }
 
   public reuse(
@@ -667,7 +672,7 @@ export class Task<T = any> implements ITask {
     suspend: boolean,
     callback: TaskCallback<T>,
   ): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'reuse'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'reuse'); }
 
     this.createdTime = time;
     this.queueTime = time + delay;
@@ -677,11 +682,11 @@ export class Task<T = any> implements ITask {
     this.callback = callback;
     this._status = TaskStatus.pending;
 
-    if (this.tracer.enabled) { this.tracer.leave(this, 'reuse'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'reuse'); }
   }
 
   public dispose(): void {
-    if (this.tracer.enabled) { this.tracer.trace(this, 'dispose'); }
+    if (__DEV__ && this._tracer.enabled) { this._tracer.trace(this, 'dispose'); }
 
     this.callback = (void 0)!;
     this._resolve = void 0;
@@ -720,7 +725,7 @@ class Tracer {
       const pending = obj['pending'].length;
       const delayed = obj['delayed'].length;
       const flushReq = obj['flushRequested'];
-      const susTask = !!obj['suspenderTask'];
+      const susTask = !!obj._suspenderTask;
 
       const info = `processing=${processing} pending=${pending} delayed=${delayed} flushReq=${flushReq} susTask=${susTask}`;
       this.console.log(`${prefix}[Q.${method}] ${info}`);

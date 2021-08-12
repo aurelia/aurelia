@@ -1542,22 +1542,22 @@ export const Registration = {
 };
 
 export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
-  private _instance: Resolved<K> | null = null;
+  /** @internal */ private _instance: Resolved<K> | null = null;
+  /** @internal */ private readonly _name?: string;
 
-  private readonly _name?: string;
   public get friendlyName() {
     return this._name;
   }
 
   public constructor(
-    _name?: string,
+    name?: string,
     /**
      * if not undefined, then this is the value this provider will resolve to
      * until overridden by explicit prepare call
      */
     instance?: Resolved<K> | null,
   ) {
-    this._name = _name;
+    this._name = name;
     if (instance !== void 0) {
       this._instance = instance;
     }

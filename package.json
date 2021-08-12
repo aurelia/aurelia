@@ -5,7 +5,8 @@
   "workspaces": [
     "packages/__tests__",
     "packages/router",
-    "examples/base-url"
+    "examples/base-url",
+    "examples/lazy-loading-config"
   ],
   "license": "MIT",
   "engines": {

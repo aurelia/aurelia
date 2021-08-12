@@ -13,6 +13,7 @@ export interface IInstructionComponent extends InstructionComponent { }
  */
 
 export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | CustomElementDefinition | Constructable;
+export type ComponentAppellationFunction = () => ComponentAppellation | Promise<ComponentAppellation>;
 
 export class InstructionComponent {
   /**
@@ -35,6 +36,13 @@ export class InstructionComponent {
    * instance or definition.
    */
   public promise: Promise<ComponentAppellation> | null = null;
+
+  /**
+   * A function that should result in a component name, type,
+   * instance, definition or promise to any of these at the time
+   * of route invocation.
+   */
+  public func: ComponentAppellationFunction | null = null;
 
   /**
    * Create a new instruction component.
@@ -97,6 +105,7 @@ export class InstructionComponent {
     let type: RouteableComponentType | null = null;
     let instance: IRouteableComponent | null = null;
     let promise: Promise<ComponentAppellation> | null = null;
+    let func: ComponentAppellationFunction | null = null;
     if (component instanceof Promise) {
       promise = component;
     } else if (InstructionComponent.isName(component!)) {
@@ -108,14 +117,21 @@ export class InstructionComponent {
       name = this.getNewName(InstructionComponent.getType(component)!);
       type = InstructionComponent.getType(component);
       instance = InstructionComponent.getInstance(component);
+    } else if (typeof component === 'function') {
+      func = component as unknown as ComponentAppellationFunction;
     }
+
     this.name = name;
     this.type = type;
     this.instance = instance;
     this.promise = promise;
+    this.func = func;
   }
 
   public resolve(): void | Promise<ComponentAppellation> {
+    if (this.func !== null) {
+      this.set(this.func());
+    }
     if (!(this.promise instanceof Promise)) {
       return;
     }
@@ -156,6 +172,9 @@ export class InstructionComponent {
   }
   public isPromise(): boolean {
     return this.promise !== null;
+  }
+  public isFunction(): boolean {
+    return this.func !== null;
   }
 
   public toType(container: IContainer): RouteableComponentType | null {

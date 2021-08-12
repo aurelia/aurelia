@@ -435,8 +435,8 @@ export class Router implements IRouter {
     }
     // TODO: Used to have an early exit if no instructions. Restore it?
 
-    // If there are any unresolved components (promises), resolve into components
-    const unresolved = instructions.filter(instr => instr.component.isPromise());
+    // If there are any unresolved components (functions or promises), resolve into components
+    const unresolved = instructions.filter(instr => instr.component.isFunction() || instr.component.isPromise());
     if (unresolved.length > 0) {
       // TODO(alpha): Fix type here
       await Promise.all(unresolved.map(instr => instr.component.resolve() as Promise<any>));

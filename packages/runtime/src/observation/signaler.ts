@@ -1,6 +1,6 @@
 import { DI } from '@aurelia/kernel';
-import { LifecycleFlags } from '../observation.js';
-import type { ISubscriber } from '../observation.js';
+import { createLookup } from '../utilities-objects.js';
+import type { ISubscriber, LifecycleFlags } from '../observation.js';
 
 type Signal = string;
 
@@ -8,7 +8,7 @@ export interface ISignaler extends Signaler {}
 export const ISignaler = DI.createInterface<ISignaler>('ISignaler', x => x.singleton(Signaler));
 
 export class Signaler {
-  public signals: Record<string, Set<ISubscriber>> = Object.create(null);
+  public signals: Record<string, Set<ISubscriber>> = createLookup();
 
   public dispatchSignal(name: Signal, flags?: LifecycleFlags): void {
     const listeners = this.signals[name];

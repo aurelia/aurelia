@@ -13,7 +13,7 @@ import {
   PrimitiveLiteralExpression,
   LifecycleFlags,
   IExpressionParser,
-  BindingType,
+  ExpressionType,
   Scope
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
@@ -38,7 +38,7 @@ import {
 } from '@aurelia/validation';
 import { Person } from './_test-resources.js';
 
-describe('ValidationRules', function () {
+describe('validation/validation.spec.ts/ValidationRules', function () {
 
   function setup() {
     const container = DI.createContainer();
@@ -545,7 +545,7 @@ describe('ValidationRules', function () {
   });
 });
 
-describe('ValidationMessageProvider', function () {
+describe('validation/validation.spec.ts/ValidationMessageProvider', function () {
   class EventLog implements ISink {
     public log: ILogEvent[] = [];
     public handleEvent(event: ILogEvent): void {
@@ -830,7 +830,7 @@ describe('ValidationMessageProvider', function () {
   }
 });
 
-describe('parsePropertyName', function () {
+describe('validation/validation.spec.ts/parsePropertyName', function () {
 
   function setup() {
     const container = TestContext.create().container;
@@ -950,7 +950,7 @@ describe('parsePropertyName', function () {
   for(const { property, expected } of positiveDataRows) {
     it(`parses ${property.toString()} to ${expected}`, function () {
       const { parser } = setup();
-      assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(`${rootObjectSymbol}.${expected}`, BindingType.None)]);
+      assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(`${rootObjectSymbol}.${expected}`, ExpressionType.None)]);
     });
   }
 
@@ -976,7 +976,7 @@ describe('parsePropertyName', function () {
   }
 });
 
-describe('PropertyRule', function () {
+describe('validation/validation.spec.ts/PropertyRule', function () {
 
   function setup() {
     const container = TestContext.create().container;

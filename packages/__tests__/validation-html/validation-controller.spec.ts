@@ -18,7 +18,7 @@ import {
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util.js';
 import { Person } from '../validation/_test-resources.js';
 
-describe('validation controller factory', function () {
+describe('validation-html/validation-controller.spec.ts/validation controller factory', function () {
   @customElement({
     name: 'app',
     isStrictBinding: true,
@@ -130,7 +130,7 @@ describe('validation controller factory', function () {
   });
 });
 
-describe('validation-controller', function () {
+describe('validation-html/validation-controller.spec.ts/validation-controller', function () {
   class App {
     public person1: Person = new Person((void 0)!, (void 0)!);
     public person2: Person = new Person((void 0)!, (void 0)!);

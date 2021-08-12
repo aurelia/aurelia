@@ -1,5 +1,5 @@
 import { IContainer, IServiceLocator } from '@aurelia/kernel';
-import { IExpressionParser, BindingType, LifecycleFlags, Scope } from '@aurelia/runtime';
+import { IExpressionParser, ExpressionType, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { Deserializer, serializePrimitive, Serializer } from './ast-serialization.js';
 import {
   IPropertyRule,
@@ -252,7 +252,7 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
     const when = raw.when;
     if (when) {
       if (typeof when === 'string') {
-        const parsed = this.parser.parse(when, BindingType.None);
+        const parsed = this.parser.parse(when, ExpressionType.None);
         rule.canExecute = (object: IValidateable) => {
           const flags = LifecycleFlags.none; // TODO? need to get the flags propagated here?
           return parsed.evaluate(flags, Scope.create({ $object: object }), this.locator, null) as boolean;

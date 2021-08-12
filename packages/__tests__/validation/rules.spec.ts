@@ -1,7 +1,7 @@
 import { assert } from '@aurelia/testing';
 import { EqualsRule, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule } from '@aurelia/validation';
 
-describe('rule execution', function () {
+describe('validation/rules.spec.ts/rule execution', function () {
   const requiredRuleDataRows = [
     { value: null,      isValid: false },
     { value: undefined, isValid: false },

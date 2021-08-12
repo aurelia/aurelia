@@ -8,7 +8,7 @@ import {
 } from '@aurelia/kernel';
 import { Collection, IndexMap, LifecycleFlags } from './observation.js';
 import { registerAliases } from './alias.js';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from './shared.js';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from './utilities-objects.js';
 
 import type {
   Constructable,
@@ -129,13 +129,11 @@ export class BindingBehaviorFactory<T extends Constructable = Constructable> {
     const deps = this.deps;
     switch (deps.length) {
       case 0:
-      case 1:
-      case 2:
         // TODO(fkleuver): fix this cast
         return new this.Type(binding, expr) as unknown as IInterceptableBinding;
-      case 3:
+      case 1:
         return new this.Type(container.get(deps[0]), binding, expr) as unknown as IInterceptableBinding;
-      case 4:
+      case 2:
         return new this.Type(container.get(deps[0]), container.get(deps[1]), binding, expr) as unknown as IInterceptableBinding;
       default:
         return new this.Type(...deps.map(d => container.get(d) as unknown), binding, expr) as unknown as IInterceptableBinding;
@@ -222,7 +220,7 @@ const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>
   prop: K,
 ): PartialBindingBehaviorDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type) as PartialBindingBehaviorDefinition[K];
 
-export const BindingBehavior: BindingBehaviorKind = Object.freeze<BindingBehaviorKind>({
+export const BindingBehavior = Object.freeze<BindingBehaviorKind>({
   name: bbBaseName,
   keyFrom(name: string): string {
     return `${bbBaseName}:${name}`;

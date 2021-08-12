@@ -1,18 +1,21 @@
 import { toArray } from '@aurelia/kernel';
 import {
-  BindingType,
   connectable,
-  CustomElement,
+  AccessorType,
   CustomExpression,
-  Interpolation,
+  ExpressionType,
   LifecycleFlags,
+} from '@aurelia/runtime';
+import {
+  CustomElement,
+  Interpolation,
   IPlatform,
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import { I18N } from '../i18n.js';
 
 import type { ITask, QueueTaskOptions, IContainer, IServiceLocator } from '@aurelia/kernel';
-import {
+import type {
   Scope,
   IsBindingBehavior,
   IsExpression,
@@ -21,7 +24,6 @@ import {
   IObserverLocator,
   IObserverLocatorBasedConnectable,
   IAccessor,
-  AccessorType,
 } from '@aurelia/runtime';
 import type { CallBindingInstruction, IHydratableController, INode } from '@aurelia/runtime-html';
 
@@ -59,10 +61,13 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   public isBound: boolean = false;
   public expr!: IsExpression;
   private readonly i18n: I18N;
+  /** @internal */
   private readonly _contentAttributes: readonly string[] = contentAttributes;
+  /** @internal */
   private _keyExpression: string | undefined | null;
   private scope!: Scope;
   private task: ITask | null = null;
+  /** @internal */
   private _isInterpolation!: boolean;
   private readonly _targetAccessors: Set<IAccessor>;
 
@@ -100,12 +105,12 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   }: TranslationBindingCreationContext) {
     const binding = this.getBinding({ observerLocator, context, controller, target, platform });
     const expr = typeof instruction.from === 'string'
-      ? parser.parse(instruction.from, BindingType.BindCommand)
+      ? parser.parse(instruction.from, ExpressionType.IsProperty)
       : instruction.from as IsBindingBehavior;
     if (isParameterContext) {
       binding.useParameter(expr);
     } else {
-      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, BindingType.Interpolation) : undefined;
+      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, ExpressionType.Interpolation) : undefined;
       binding.expr = interpolation || expr;
     }
   }
@@ -154,7 +159,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     }
 
     this.scope = (void 0)!;
-    this.obs.clear(true);
+    this.obs.clearAll();
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
@@ -162,7 +167,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     this._keyExpression = this._isInterpolation
         ? this.expr.evaluate(flags, this.scope, this.locator, this) as string
         : newValue as string;
-    this.obs.clear(false);
+    this.obs.clear();
     this._ensureKeyExpression();
     this._updateTranslations(flags);
   }
@@ -357,7 +362,7 @@ class ParameterBinding {
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
     this.obs.version++;
     this.value = this.expr.evaluate(flags, this.scope, this.locator, this) as i18next.TOptions;
-    this.obs.clear(false);
+    this.obs.clear();
     this.updater(flags);
   }
 
@@ -385,7 +390,7 @@ class ParameterBinding {
     }
 
     this.scope = (void 0)!;
-    this.obs.clear(true);
+    this.obs.clearAll();
   }
 }
 

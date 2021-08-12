@@ -11,7 +11,7 @@ import {
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
-  BindingType,
+  ExpressionType,
   Scope,
   LifecycleFlags,
   IObserverLocator,
@@ -1090,6 +1090,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.viewModel = null;
     this.host = null;
     this.shadowRoot = null;
+    this.container.disposeResolvers();
   }
 
   public accept(visitor: ControllerVisitor): void | true {
@@ -1251,7 +1252,7 @@ function createWatchers(
       ));
     } else {
       ast = typeof expression === 'string'
-        ? expressionParser.parse(expression, BindingType.BindCommand)
+        ? expressionParser.parse(expression, ExpressionType.IsProperty)
         : getAccessScopeAst(expression);
 
       controller.addBinding(new ExpressionWatcher(

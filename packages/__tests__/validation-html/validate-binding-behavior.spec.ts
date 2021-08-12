@@ -30,7 +30,7 @@ import {
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter, $TestSetupContext } from '../util.js';
 import { Organization, Person } from '../validation/_test-resources.js';
 
-describe('validate-binding-behavior', function () {
+describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-behavior', function () {
   const $atob = typeof atob === 'function' ? atob : (b64: string) => Buffer.from(b64, 'base64').toString();
   const $btoa = typeof btoa === 'function' ? btoa : (plainText: string) => Buffer.from(plainText).toString('base64');
   const IObserveCollection = DI.createInterface('IObserveCollection');

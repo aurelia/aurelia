@@ -721,7 +721,7 @@ describe('custom-attributes', function () {
 
         rootVm.prop = 5;
         assert.strictEqual(foo5Vm.prop, 5, '#2 <-> RootVm.prop << 5 -> foo5Vm');
-        assert.strictEqual((foo5Vm as any).$observers.prop.value, 5, '#2 Foo5.$observer.prop.value');
+        assert.strictEqual((foo5Vm as any).$observers.prop.getValue(), 5, '#2 Foo5.$observer.prop.getValue()');
         assert.strictEqual(rootVm.prop, 5, '#2 <-> RootVm.prop << 5 -> rootVm');
         options.platform.domWriteQueue.flush();
         assert.strictEqual(options.appHost.textContent, '5');

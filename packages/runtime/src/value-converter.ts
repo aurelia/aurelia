@@ -4,7 +4,7 @@ import {
   firstDefined,
 } from '@aurelia/kernel';
 import { registerAliases } from './alias.js';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from './shared.js';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from './utilities-objects.js';
 
 import type {
   Constructable,

@@ -1,0 +1,26 @@
+<form submit.trigger="submit($event)">
+  <div validation-errors.from-view="usernameErrors">
+
+    <label> Username </label>
+    <input id="username" type="text" value.bind="user.username & validate">
+
+    <div>
+      <span repeat.for="error of usernameErrors">${error.result.message}</span>
+    </div>
+  </div>
+
+  <div validation-errors.from-view="passwordErrors">
+
+    <label>Password</label>
+    <input type="password" value.bind="user.password & validate">
+
+    <div>
+      <span repeat.for="error of passwordErrors">${error.result.message}</span>
+    </div>
+  </div>
+
+  <button click.trigger="submit($event)">
+    Sign in
+  </button>
+
+</form>

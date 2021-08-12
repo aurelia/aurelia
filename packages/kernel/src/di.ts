@@ -62,6 +62,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
   readonly root: IContainer;
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
+  // deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
   registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
@@ -683,13 +684,18 @@ export type IFactoryResolver<K = any> = IResolver<K>
   & ((...args: unknown[]) => any);
 export type IResolvedFactory<K> = (...args: unknown[]) => Resolved<K>;
 
-export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
-  const instance = createNewInstance(key, handler, requestor);
-  const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key), instance);
-  requestor.registerResolver(key, instanceProvider);
+export const newInstanceForScope = createResolver(
+  (key: any, handler: IContainer, requestor: IContainer) => {
+    const instance = createNewInstance(key, handler, requestor);
+    const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key), instance);
+    /**
+     * By default the new instances for scope are disposable.
+     * If need be, we can always enhance the `createNewInstance` to support a 'injection' context, to make a non/disposable registration here.
+     */
+    requestor.registerResolver(key, instanceProvider, true);
 
-  return instance;
-}) as <K>(key: K) => INewInstanceResolver<K>;
+    return instance;
+  }) as <K>(key: K) => INewInstanceResolver<K>;
 
 export const newInstanceOf = createResolver(
   (key: any, handler: IContainer, requestor: IContainer) => createNewInstance(key, handler, requestor)
@@ -927,7 +933,7 @@ export class Container implements IContainer {
    */
   private res: Record<string, IResolver | IDisposableResolver | undefined>;
 
-  private readonly _disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
+  private readonly _disposableResolvers: Map<Key, IDisposableResolver> = new Map<Key, IDisposableResolver>();
 
   public constructor(
     private readonly parent: Container | null,
@@ -1049,43 +1055,41 @@ export class Container implements IContainer {
     }
 
     if (isDisposable) {
-      this._disposableResolvers.add(resolver as IDisposableResolver<T>);
+      this._disposableResolvers.set(key, resolver as IDisposableResolver<T>);
     }
 
     return resolver;
   }
 
-  // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
-  //   // const console =  (globalThis as any).console;
-  //   // console.group("deregisterResolverFor");
+  // public deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void {
   //   validateKey(key);
 
-  //   let current: Container = this;
+  //   // eslint-disable-next-line @typescript-eslint/no-this-alias
+  //   let current: Container | null = this;
   //   let resolver: IResolver | undefined;
 
   //   while (current != null) {
-  //     resolver = current.resolvers.get(key);
+  //     resolver = current._resolvers.get(key);
 
-  //     if (resolver != null) { break; }
+  //     if (resolver != null) {
+  //       current._resolvers.delete(key);
+  //       break;
+  //     }
   //     if (current.parent == null) { return; }
-  //     current = current.parent;
+  //     current = searchAncestors ? current.parent : null;
   //   }
 
-  //   if (resolver === void 0) { return; }
+  //   if (resolver == null) { return; }
   //   if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
   //     throw new Error('Cannot deregister a resolver with array strategy');
   //   }
-  //   if (this.disposableResolvers.has(resolver as IDisposableResolver<T>)) {
-  //     (resolver as IDisposableResolver<T>).dispose();
+  //   if (this._disposableResolvers.has(resolver as IDisposableResolver<K>)) {
+  //     (resolver as IDisposableResolver<K>).dispose();
   //   }
   //   if (isResourceKey(key)) {
   //     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-  //     delete this.resourceResolvers[key];
+  //     delete this.res[key];
   //   }
-  //   // console.log(`BEFORE delete ${Array.from(current.resolvers.keys()).map((k) => k.toString())}`);
-  //   current.resolvers.delete(key);
-  //   // console.log(`AFTER delete ${Array.from(current.resolvers.keys()).map((k) => k.toString())}`);
-  //   // console.groupEnd();
   // }
 
   public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
@@ -1260,11 +1264,18 @@ export class Container implements IContainer {
     return new Container(this, ContainerConfiguration.from(config ?? this.config));
   }
 
-  public disposeResolvers() {
-    let disposeable: IDisposable;
-    for (disposeable of this._disposableResolvers) {
-      disposeable.dispose();
+  public disposeResolvers(): void {
+    const resolvers = this._resolvers;
+    const disposableResolvers = this._disposableResolvers;
+
+    let disposable: IDisposable;
+    let key: Key;
+
+    for ([key, disposable] of disposableResolvers.entries()) {
+      disposable.dispose();
+      resolvers.delete(key);
     }
+    disposableResolvers.clear();
   }
 
   public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
@@ -1531,22 +1542,22 @@ export const Registration = {
 };
 
 export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
-  private _instance: Resolved<K> | null = null;
+  /** @internal */ private _instance: Resolved<K> | null = null;
+  /** @internal */ private readonly _name?: string;
 
-  private readonly _name?: string;
   public get friendlyName() {
     return this._name;
   }
 
   public constructor(
-    _name?: string,
+    name?: string,
     /**
      * if not undefined, then this is the value this provider will resolve to
      * until overridden by explicit prepare call
      */
     instance?: Resolved<K> | null,
   ) {
-    this._name = _name;
+    this._name = name;
     if (instance !== void 0) {
       this._instance = instance;
     }

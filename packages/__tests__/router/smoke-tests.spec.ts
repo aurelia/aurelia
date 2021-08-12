@@ -863,4 +863,31 @@ describe('router (smoke tests)', function () {
     await au.stop(true);
     assert.areTaskQueuesEmpty();
   });
+
+  it('does not interfere with standard "href" attribute', async function () {
+    const ctx = TestContext.create();
+    const { container } = ctx;
+
+    container.register(TestRouterConfiguration.for(ctx, LogLevel.debug));
+    container.register(RouterConfiguration);
+
+    const component = container.get(CustomElement.define(
+      { name: 'app', template: '<a href.bind="href">' },
+      class App { public href = 'abc'; }
+    ));
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    await au.app({ component, host }).start();
+
+    assert.strictEqual(host.querySelector('a').getAttribute('href'), 'abc');
+
+    component.href = null;
+    ctx.platform.domWriteQueue.flush();
+
+    assert.strictEqual(host.querySelector('a').getAttribute('href'), null);
+
+    await au.stop();
+  });
 });

@@ -28,7 +28,9 @@ export interface IWithFlushQueue {
 export class FlushQueue {
   public static readonly instance: FlushQueue = new FlushQueue();
 
+  /** @internal */
   private _flushing: boolean = false;
+  /** @internal */
   private readonly _items: Set<IFlushable> = new Set();
 
   public get count(): number {
@@ -41,13 +43,8 @@ export class FlushQueue {
       return;
     }
     this._flushing = true;
-    const items = this._items;
-    let item: IFlushable;
     try {
-      for (item of items) {
-        items.delete(item);
-        item.flush();
-      }
+      this._items.forEach(flushItem);
     } finally {
       this._flushing = false;
     }
@@ -61,4 +58,9 @@ export class FlushQueue {
 
 function getFlushQueue() {
   return FlushQueue.instance;
+}
+
+function flushItem(item: IFlushable, _: IFlushable, items: Set<IFlushable>) {
+  items.delete(item);
+  item.flush();
 }

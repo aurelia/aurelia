@@ -20,7 +20,7 @@ import {
 import { assert } from '@aurelia/testing';
 import { Person, Address, Organization } from './_test-resources.js';
 
-describe('IValidator', function () {
+describe('validation/validator.spec.ts/IValidator', function () {
   function setup(validator?: Class<IValidator>) {
     const container = DI.createContainer();
     container.register(
@@ -56,7 +56,7 @@ describe('IValidator', function () {
   });
 });
 
-describe('StandardValidator', function () {
+describe('validation/validator.spec.ts/StandardValidator', function () {
   function setup() {
     const container = DI.createContainer();
     container.register(ValidationConfiguration);

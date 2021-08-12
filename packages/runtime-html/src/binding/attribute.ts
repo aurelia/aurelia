@@ -13,16 +13,15 @@ import { IPlatform } from '../platform.js';
 import { BindingTargetSubscriber } from './binding-utils.js';
 
 import type {
-  IConnectableBinding,
   ForOfStatement,
   IObserverLocator,
-  IObserverLocatorBasedConnectable,
   IsBindingBehavior,
   ITask,
   QueueTaskOptions,
   Scope,
 } from '@aurelia/runtime';
 import type { INode } from '../dom.js';
+import type { IAstBasedBinding } from './interfaces-bindings.js';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -35,12 +34,12 @@ const taskOptions: QueueTaskOptions = {
   preempt: true,
 };
 
-export interface AttributeBinding extends IConnectableBinding {}
+export interface AttributeBinding extends IAstBasedBinding {}
 
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
-export class AttributeBinding implements IObserverLocatorBasedConnectable {
+export class AttributeBinding implements IAstBasedBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;
@@ -52,7 +51,6 @@ export class AttributeBinding implements IObserverLocatorBasedConnectable {
   /**
    * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
    */
-
   public targetObserver!: IObserver;
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
@@ -129,7 +127,7 @@ export class AttributeBinding implements IObserverLocatorBasedConnectable {
       }
       newValue = sourceExpression.evaluate(flags, $scope, locator, interceptor);
       if (shouldConnect) {
-        this.obs.clear(false);
+        this.obs.clear();
       }
     }
 
@@ -217,7 +215,7 @@ export class AttributeBinding implements IObserverLocatorBasedConnectable {
 
     this.task?.cancel();
     this.task = null;
-    this.obs.clear(true);
+    this.obs.clearAll();
 
     // remove isBound and isUnbinding flags
     this.isBound = false;

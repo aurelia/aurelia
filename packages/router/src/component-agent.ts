@@ -18,16 +18,15 @@ export interface IRouteViewModel extends ICustomElementViewModel {
 const componentAgentLookup: WeakMap<object, ComponentAgent> = new WeakMap();
 
 export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
-  private readonly logger: ILogger;
-
+  /** @internal */ private readonly _logger: ILogger;
+  /** @internal */ private readonly _hasCanLoad: boolean;
+  /** @internal */ private readonly _hasLoad: boolean;
+  /** @internal */ private readonly _hasCanUnload: boolean;
+  /** @internal */ private readonly _hasUnload: boolean;
   public readonly canLoadHooks: readonly ILifecycleHooks<IRouteViewModel, 'canLoad'>[];
   public readonly loadHooks: readonly ILifecycleHooks<IRouteViewModel, 'load'>[];
   public readonly canUnloadHooks: readonly ILifecycleHooks<IRouteViewModel, 'canUnload'>[];
   public readonly unloadHooks: readonly ILifecycleHooks<IRouteViewModel, 'unload'>[];
-  private readonly hasCanLoad: boolean;
-  private readonly hasLoad: boolean;
-  private readonly hasCanUnload: boolean;
-  private readonly hasUnload: boolean;
 
   public constructor(
     public readonly instance: T,
@@ -36,24 +35,24 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     public readonly routeNode: RouteNode,
     public readonly ctx: IRouteContext,
   ) {
-    this.logger = ctx.container.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
+    this._logger = ctx.container.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
 
-    this.logger.trace(`constructor()`);
+    this._logger.trace(`constructor()`);
 
     const lifecycleHooks = controller.lifecycleHooks as LifecycleHooksLookup<IRouteViewModel>;
     this.canLoadHooks = (lifecycleHooks.canLoad ?? []).map(x => x.instance);
     this.loadHooks = (lifecycleHooks.load ?? []).map(x => x.instance);
     this.canUnloadHooks = (lifecycleHooks.canUnload ?? []).map(x => x.instance);
     this.unloadHooks = (lifecycleHooks.unload ?? []).map(x => x.instance);
-    this.hasCanLoad = 'canLoad' in instance;
-    this.hasLoad = 'load' in instance;
-    this.hasCanUnload = 'canUnload' in instance;
-    this.hasUnload = 'unload' in instance;
+    this._hasCanLoad = 'canLoad' in instance;
+    this._hasLoad = 'load' in instance;
+    this._hasCanUnload = 'canUnload' in instance;
+    this._hasUnload = 'unload' in instance;
   }
 
   public static for<T extends IRouteViewModel>(
     componentInstance: T,
-    hostController: ICustomElementController,
+    hostController: ICustomElementController<T>,
     routeNode: RouteNode,
     ctx: IRouteContext,
   ): ComponentAgent<T> {
@@ -74,34 +73,34 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   public activate(initiator: IHydratedController | null, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
     if (initiator === null) {
-      this.logger.trace(`activate() - initial`);
+      this._logger.trace(`activate() - initial`);
       return this.controller.activate(this.controller, parent, flags);
     }
 
-    this.logger.trace(`activate()`);
+    this._logger.trace(`activate()`);
     // Promise return values from user VM hooks are awaited by the initiator
     void this.controller.activate(initiator, parent, flags);
   }
 
   public deactivate(initiator: IHydratedController | null, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
     if (initiator === null) {
-      this.logger.trace(`deactivate() - initial`);
+      this._logger.trace(`deactivate() - initial`);
       return this.controller.deactivate(this.controller, parent, flags);
     }
 
-    this.logger.trace(`deactivate()`);
+    this._logger.trace(`deactivate()`);
     // Promise return values from user VM hooks are awaited by the initiator
     void this.controller.deactivate(initiator, parent, flags);
   }
 
   public dispose(): void {
-    this.logger.trace(`dispose()`);
+    this._logger.trace(`dispose()`);
 
     this.controller.dispose();
   }
 
   public canUnload(tr: Transition, next: RouteNode | null, b: Batch): void {
-    this.logger.trace(`canUnload(next:%s) - invoking ${this.canUnloadHooks.length} hooks`, next);
+    this._logger.trace(`canUnload(next:%s) - invoking ${this.canUnloadHooks.length} hooks`, next);
     b.push();
     for (const hook of this.canUnloadHooks) {
       tr.run(() => {
@@ -114,7 +113,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         b.pop();
       });
     }
-    if (this.hasCanUnload) {
+    if (this._hasCanUnload) {
       tr.run(() => {
         b.push();
         return this.instance.canUnload!(next, this.routeNode);
@@ -129,7 +128,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   }
 
   public canLoad(tr: Transition, next: RouteNode, b: Batch): void {
-    this.logger.trace(`canLoad(next:%s) - invoking ${this.canLoadHooks.length} hooks`, next);
+    this._logger.trace(`canLoad(next:%s) - invoking ${this.canLoadHooks.length} hooks`, next);
     b.push();
     for (const hook of this.canLoadHooks) {
       tr.run(() => {
@@ -142,7 +141,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         b.pop();
       });
     }
-    if (this.hasCanLoad) {
+    if (this._hasCanLoad) {
       tr.run(() => {
         b.push();
         return this.instance.canLoad!(next.params, next, this.routeNode);
@@ -157,7 +156,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   }
 
   public unload(tr: Transition, next: RouteNode | null, b: Batch): void {
-    this.logger.trace(`unload(next:%s) - invoking ${this.unloadHooks.length} hooks`, next);
+    this._logger.trace(`unload(next:%s) - invoking ${this.unloadHooks.length} hooks`, next);
     b.push();
     for (const hook of this.unloadHooks) {
       tr.run(() => {
@@ -167,7 +166,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         b.pop();
       });
     }
-    if (this.hasUnload) {
+    if (this._hasUnload) {
       tr.run(() => {
         b.push();
         return this.instance.unload!(next, this.routeNode);
@@ -179,7 +178,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   }
 
   public load(tr: Transition, next: RouteNode, b: Batch): void {
-    this.logger.trace(`load(next:%s) - invoking ${this.loadHooks.length} hooks`, next);
+    this._logger.trace(`load(next:%s) - invoking ${this.loadHooks.length} hooks`, next);
     b.push();
     for (const hook of this.loadHooks) {
       tr.run(() => {
@@ -189,7 +188,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         b.pop();
       });
     }
-    if (this.hasLoad) {
+    if (this._hasLoad) {
       tr.run(() => {
         b.push();
         return this.instance.load!(next.params, next, this.routeNode);

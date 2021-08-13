@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/__tests__",
+  "name": "aurelia-direct-router-test",
   "private": true,
   "license": "MIT",
   "type": "module",

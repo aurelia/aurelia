@@ -33,20 +33,20 @@ const testDirs = [
 ];
 
 const corePackageNames = [
-  // 'fetch-client',
-  // 'i18n',
-  // 'kernel',
-  // 'metadata',
-  // 'platform',
-  // 'platform-browser',
-  // 'route-recognizer',
+  'fetch-client',
+  'i18n',
+  'kernel',
+  'metadata',
+  'platform',
+  'platform-browser',
+  'route-recognizer',
   'router',
-  // 'runtime',
-  // 'runtime-html',
-  // 'testing',
-  // 'validation',
-  // 'validation-html',
-  // 'validation-i18n',
+  'runtime',
+  'runtime-html',
+  'testing',
+  'validation',
+  'validation-html',
+  'validation-i18n',
 ];
 
 module.exports = function (config) {
@@ -148,7 +148,6 @@ module.exports = function (config) {
         timeout: 5000,
       }
     },
-    restartOnFileChange: true,
     logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
     // logLevel: config.LOG_DEBUG,
   };

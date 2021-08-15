@@ -248,10 +248,10 @@ An important feature of the dialog plugin is that it is possible to resolve and 
       // We get here when the dialog is opened,
       // and we are able to close dialog
       setTimeout(() => {
-        openDialogResult.dialog.cancel('Failed to finish editing after 3 seconds');
+        dialog.cancel('Failed to finish editing after 3 seconds');
       }, 3000);
 
-      const response = await openDialogResult.dialog.closed;
+      const response = await dialog.closed;
       if (response.status === DialogDeactivationStatuses.Ok) {
         console.log('good');
       } else {

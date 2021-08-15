@@ -195,7 +195,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let innerItems = this._innerItems;
     let observingInnerItems = this._observingInnerItems;
     if (observingInnerItems) {
-      innerItems = this._innerItems = this._innerItemsExpression?.evaluate(flags, scope, this._forOfBinding.locator, null) as Items<C> ?? null;
+      innerItems = this._innerItems = this._innerItemsExpression!.evaluate(flags, scope, this._forOfBinding.locator, null) as Items<C> ?? null;
       observingInnerItems = this._observingInnerItems = !Object.is(this.items, innerItems);
     }
 

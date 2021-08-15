@@ -4,6 +4,7 @@
   "version": "2.0.0-alpha.16",
   "workspaces": [
     "packages/__tests__",
+    "packages/__e2e__",
     "packages/au",
     "packages/aurelia",
     "packages/fetch-client",

@@ -1,0 +1,16 @@
+{
+  "name": "@aurelia/e2e-tests",
+  "private": true,
+  "workspaces": [
+    "router-configured-basic"
+  ],
+  "scripts": {
+    "test": "npm run test -ws",
+    "build": "",
+    "build:test": "",
+    "build:release": ""
+  },
+  "dependencies": {
+    "@playwright/test": "^1.14.0"
+  }
+}

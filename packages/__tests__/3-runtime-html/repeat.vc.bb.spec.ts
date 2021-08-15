@@ -305,7 +305,7 @@ describe('repeat value-converter integration', function () {
     );
 
     yield new TestData(
-      ['array mutation + instance change - array reverse - oddEven VC', false],
+      'array mutation + instance change - array reverse - oddEven VC',
       `<span repeat.for="item of arr.reverse() | oddEven:true">\${item}</span>`,
       '<span>10</span><span>8</span><span>6</span><span>4</span><span>2</span>',
       [(ctx) => { ctx.app.arr.push(42); }, `<span>42</span><span>10</span><span>8</span><span>6</span><span>4</span><span>2</span>`,],
@@ -316,7 +316,7 @@ describe('repeat value-converter integration', function () {
     );
 
     yield new TestData(
-      ['array mutation + instance change - array sort - oddEven VC', false],
+      'array mutation + instance change - array sort - oddEven VC',
       `<let fn.bind="undefined"></let><span repeat.for="item of arr.sort(fn) | oddEven:true">\${item}</span>`,
       // Because: The default sort order is ascending, built upon converting the elements into strings, then comparing their sequences of UTF-16 code units values (refer: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort).
       '<span>10</span><span>2</span><span>4</span><span>6</span><span>8</span>',
@@ -328,7 +328,7 @@ describe('repeat value-converter integration', function () {
     );
 
     yield new TestData(
-      ['set mutation + instance change - oddEven VC', false],
+      'set mutation + instance change - oddEven VC',
       `<span repeat.for="item of set | oddEven:true">\${item}</span>`,
       evenExpected,
       [(ctx) => { const set = ctx.app.set; set.add(10); set.add(11); set.add(12); }, `${evenExpected}<span>12</span>`,],
@@ -339,7 +339,7 @@ describe('repeat value-converter integration', function () {
     );
 
     yield new TestData(
-      ['mapSimple mutation + instance change - oddEven VC', false],
+      'mapSimple mutation + instance change - oddEven VC',
       `<span repeat.for="item of mapSimple | mapOddEven:true">\${item[0]}:\${item[1]}</span>`,
       '<span>b:2</span><span>d:4</span>',
       [(ctx) => { const map = ctx.app.mapSimple; map.set('e', 6); map.set('f', 5); }, '<span>b:2</span><span>d:4</span><span>e:6</span>',],
@@ -350,7 +350,7 @@ describe('repeat value-converter integration', function () {
     );
 
     yield new TestData(
-      ['mapComplex - oddEven VC', false],
+      'mapComplex - oddEven VC',
       `<span repeat.for="item of mapComplex">\${item[0]}: <template repeat.for="i of item[1] | oddEven:$index % 2===0">\${i} </template></span>`,
       '<span>a: 12 14 </span><span>b: 21 23 </span>',
       [

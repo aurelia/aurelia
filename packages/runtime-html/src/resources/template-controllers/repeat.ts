@@ -50,11 +50,11 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable public items: Items<C>;
-  private innerItems: Items<C> | null;
-  private forOfBinding!: PropertyBinding;
-  private observingInnerItems: boolean = false;
-  private reevaluating: boolean = false;
-  private innerItemsExpression: IsBindingBehavior | null = null;
+  private _innerItems: Items<C> | null;
+  private _forOfBinding!: PropertyBinding;
+  private _observingInnerItems: boolean = false;
+  private _reevaluating: boolean = false;
+  private _innerItemsExpression: IsBindingBehavior | null = null;
 
   private _normalizedItems?: unknown[] = void 0;
 
@@ -78,7 +78,15 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       binding = bindings[i];
       if (binding.target === this && binding.targetProperty === 'items') {
         forOf = this.forOf = binding.sourceExpression as ForOfStatement;
-        this.forOfBinding = binding;
+        this._forOfBinding = binding;
+
+        let expression = forOf.iterable;
+        while (expression != null && wrappedExprs.includes(expression.$kind)) {
+          expression = (expression as ValueConverterExpression | BindingBehaviorExpression).expression;
+          this._observingInnerItems = true;
+        }
+        this._innerItemsExpression = expression;
+
         break;
       }
     }
@@ -136,13 +144,13 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     if (!$controller.isActive) {
       return;
     }
-    if (this.observingInnerItems) {
-      if (this.reevaluating) {
+    if (this._observingInnerItems) {
+      if (this._reevaluating) {
         return;
       }
-      this.reevaluating = true;
-      this.items = this.forOf.iterable.evaluate(flags, $controller.scope, this.forOfBinding.locator, null) as Items<C>;
-      this.reevaluating = false;
+      this._reevaluating = true;
+      this.items = this.forOf.iterable.evaluate(flags, $controller.scope, this._forOfBinding.locator, null) as Items<C>;
+      this._reevaluating = false;
       return;
     }
 
@@ -183,19 +191,12 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   // todo: subscribe to collection from inner expression
   private _checkCollectionObserver(flags: LF): void {
     const scope = this.$controller.scope;
-    let observingInnerItems = this.observingInnerItems;
-    if ((flags & LF.fromBind) > 0) {
-      let expression = this.forOf.iterable;
-      while (expression != null && wrappedExprs.includes(expression.$kind)) {
-        expression = (expression as ValueConverterExpression | BindingBehaviorExpression).expression;
-        observingInnerItems = true;
-      }
-      this.innerItemsExpression = expression;
-    }
-    let innerItems = this.innerItems;
+
+    let innerItems = this._innerItems;
+    let observingInnerItems = this._observingInnerItems;
     if (observingInnerItems) {
-      innerItems = this.innerItems = this.innerItemsExpression?.evaluate(flags, scope, this.forOfBinding.locator, null) as Items<C> ?? null;
-      observingInnerItems = this.observingInnerItems = !Object.is(this.items, innerItems);
+      innerItems = this._innerItems = this._innerItemsExpression?.evaluate(flags, scope, this._forOfBinding.locator, null) as Items<C> ?? null;
+      observingInnerItems = this._observingInnerItems = !Object.is(this.items, innerItems);
     }
 
     const oldObserver = this._observer;

@@ -1,9 +1,11 @@
 {
   "extends": "../../tsconfig-build.json",
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "strict": false,
     "target": "es2021",
-    "module": "ESNext",
+    "module": "CommonJS",
     "outDir": "dist",
     "lib": ["esnext", "dom"]
   },

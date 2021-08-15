@@ -5,12 +5,18 @@
     "router-configured-basic"
   ],
   "scripts": {
+    "pretest:ci": "npx playwright install",
     "test": "npm run test -ws",
+    "test:ci": "npm run test -ws",
     "build": "",
+    "build:ci": "npm run build -ws",
     "build:test": "",
     "build:release": ""
   },
-  "dependencies": {
-    "@playwright/test": "^1.14.0"
+  "devDependencies": {
+    "@playwright/test": "^1.14.0",
+    "@types/express": "^4.17.13",
+    "@types/node": "^14.14.22",
+    "express": "^4.17.1"
   }
 }

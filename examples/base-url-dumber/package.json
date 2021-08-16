@@ -8,14 +8,14 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "aurelia": "2.0.0-alpha.16",
+    "aurelia": "latest",
     "aurelia-direct-router": "../../packages/router"
   },
   "devDependencies": {
     "eslint": "^7.22.0",
-    "@aurelia/testing": "2.0.0-alpha.16",
+    "@aurelia/testing": "latest",
     "htmlhint": "^0.14.2",
-    "@aurelia/plugin-gulp": "2.0.0-alpha.16",
+    "@aurelia/plugin-gulp": "latest",
     "gulp": "^4.0.2",
     "gulp-dumber": "^1.0.3",
     "gulp-typescript": "^5.0.1",

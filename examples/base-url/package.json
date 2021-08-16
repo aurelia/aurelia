@@ -8,12 +8,12 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "aurelia": "2.0.0-alpha.16",
+    "aurelia": "latest",
     "aurelia-direct-router": "../../packages/router"
   },
   "devDependencies": {
-    "@aurelia/testing": "2.0.0-alpha.16",
-    "@aurelia/webpack-loader": "2.0.0-alpha.16",
+    "@aurelia/testing": "latest",
+    "@aurelia/webpack-loader": "latest",
     "@types/node": "^14.14.35",
     "@typescript-eslint/eslint-plugin": "^4.19.0",
     "@typescript-eslint/parser": "^4.19.0",

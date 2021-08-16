@@ -1,13 +1,13 @@
 {
   "name": "aurelia-direct-router-monorepo",
   "private": true,
-  "version": "2.0.0-alpha.14.2",
+  "version": "2.0.0-alpha.16.0",
   "workspaces": [
     "packages/router",
-    "packages/__tests__",
+    "test/karma-aurelia-preprocessor",
     "examples/base-url",
     "examples/lazy-loading-config",
-    "test/karma-aurelia-preprocessor"
+    "packages/__tests__"
   ],
   "license": "MIT",
   "engines": {
@@ -48,7 +48,7 @@
     "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts"
   },
   "devDependencies": {
-    "@aurelia/testing": "2.0.0-alpha.16",
+    "@aurelia/testing": "latest",
     "@commitlint/cli": "^8.2.0",
     "@rollup/plugin-replace": "^3.0.0",
     "@rollup/plugin-typescript": "^8.2.5",

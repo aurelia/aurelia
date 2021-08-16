@@ -230,13 +230,14 @@ export class RoutingScope {
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
       const instructions: RoutingInstruction[] = [];
+      const instrs = RoutingInstruction.parse(this.router, instruction);
 
-      for (const instr of RoutingInstruction.parse(this.router, instruction)) {
-        if (instr.isClear(this.router) || instr.isClearAll(this.router)) {
-          instructions.push(instr);
-        } else {
+      if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(this.router, instrs)) {
+        for (const instr of instrs) {
+          if (instr.isClear(this.router) || instr.isClearAll(this.router)) {
+            instructions.push(instr);
+          } else {
 
-          if (useConfiguredRoutes) {
             const foundRoute = this.findMatchingRoute(RoutingInstruction.stringify(this.router, [instr]));
             if (foundRoute?.foundConfiguration ?? false) {
               route = foundRoute!;
@@ -253,15 +254,16 @@ export class RoutingScope {
                 // }
               }
             }
-          } else if (useDirectRouting) {
-            instructions.push(instr);
           }
         }
 
+      } else if (useDirectRouting) {
+        instructions.push(...instrs);
       }
       route.instructions = instructions;
 
-      // if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(instructions)) {
+      // const instructions = RoutingInstruction.parse(this.router, instruction);
+      // if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(this.router, instructions)) {
       //   const foundRoute = this.findMatchingRoute(instruction);
       //   if (foundRoute?.foundConfiguration ?? false) {
       //     route = foundRoute!;

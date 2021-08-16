@@ -227,14 +227,16 @@ export class RoutingInstruction {
    *
    * @param instructions - The instructions to check
    */
-  public static containsSiblings(instructions: RoutingInstruction[] | null): boolean {
+  public static containsSiblings(context: IRouterConfiguration | IRouter, instructions: RoutingInstruction[] | null): boolean {
     if (instructions === null) {
       return false;
     }
-    if (instructions.length > 1) {
+    if (instructions
+      .filter(instruction => !instruction.isClear(context) && !instruction.isClearAll(context))
+      .length > 1) {
       return true;
     }
-    return instructions.some(instruction => RoutingInstruction.containsSiblings(instruction.nextScopeInstructions));
+    return instructions.some(instruction => RoutingInstruction.containsSiblings(context, instruction.nextScopeInstructions));
   }
 
   /**

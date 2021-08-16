@@ -21,7 +21,6 @@ export function getLogType(
 ): LogLevel {
   // eslint-disable-next-line no-prototype-builtins
   if (options.logDefinitions?.hasOwnProperty(definition) &&
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     options.logDefinitions[definition] &&
     Object.values(LogLevel).includes(options.logDefinitions[definition]!)) {
     return options.logDefinitions[definition]!;

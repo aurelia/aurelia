@@ -44,7 +44,7 @@
     "@aurelia/metadata": "2.0.0-alpha.17",
     "@aurelia/platform": "2.0.0-alpha.17",
     "@aurelia/runtime-html": "2.0.0-alpha.17",
-    "rxjs": "^6.5.3"
+    "rxjs": "^6.6.7"
   },
   "devDependencies": {
     "typescript": "^4.3.5"

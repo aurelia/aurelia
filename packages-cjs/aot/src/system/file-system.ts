@@ -34,6 +34,9 @@ import {
   normalizePath,
   joinPath,
 } from './path-utils.js';
+import type {
+  WriteFileOptions,
+} from 'fs';
 
 const {
   access,
@@ -387,12 +390,12 @@ export class NodeFileSystem implements IFileSystem {
     return writeFile(path, content, { encoding: encoding as BufferEncoding });
   }
 
-  public writeFileSync(path: string, content: string, encoding: Encoding): void {
-    this.logger.trace(`readFileSync(path: ${path}, content: ${content}, encoding: ${encoding})`);
+  public writeFileSync(path: string, content: string, options: WriteFileOptions): void {
+    this.logger.trace(`readFileSync(path: ${path}, content: ${content}, encoding: ${options})`);
 
     this.ensureDirSync(dirname(path));
 
-    writeFileSync(path, content, encoding);
+    writeFileSync(path, content, options);
   }
 
   public async rimraf(path: string): Promise<void> {

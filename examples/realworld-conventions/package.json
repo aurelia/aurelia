@@ -9,12 +9,12 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "aurelia": "0.9.0",
+    "aurelia": "latest",
     "aurelia-direct-router": "../../packages/router"
   },
   "type": "module",
   "devDependencies": {
-    "@aurelia/testing": "0.9.0",
+    "@aurelia/testing": "latest",
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.11.5",
     "css-loader": "^5.0.1",

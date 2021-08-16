@@ -1,16 +1,20 @@
 import { compareNumber, nextId, IDisposable, onResolve } from '@aurelia/kernel';
 import {
   applyMutationsToIndices,
+  BindingBehaviorExpression,
   BindingContext,
   Collection,
   CollectionObserver,
+  ExpressionKind,
   ForOfStatement,
   getCollectionObserver,
   IndexMap,
   IOverrideContext,
+  IsBindingBehavior,
   LifecycleFlags as LF,
   Scope,
   synchronizeIndices,
+  ValueConverterExpression,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
@@ -27,6 +31,11 @@ function dispose(disposable: IDisposable): void {
   disposable.dispose();
 }
 
+const wrappedExprs = [
+  ExpressionKind.BindingBehavior,
+  ExpressionKind.ValueConverter,
+];
+
 export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
   public static inject = [IRenderLocation, IController, IViewFactory];
   public readonly id: number = nextId('au$component');
@@ -41,6 +50,11 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable public items: Items<C>;
+  private _innerItems: Items<C> | null;
+  private _forOfBinding!: PropertyBinding;
+  private _observingInnerItems: boolean = false;
+  private _reevaluating: boolean = false;
+  private _innerItemsExpression: IsBindingBehavior | null = null;
 
   private _normalizedItems?: unknown[] = void 0;
 
@@ -55,20 +69,30 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     parent: IHydratedParentController,
     flags: LF,
   ): void | Promise<void> {
-    this._checkCollectionObserver(flags);
     const bindings = this.parent.bindings as PropertyBinding[];
     const ii = bindings.length;
     let binding: PropertyBinding = (void 0)!;
+    let forOf!: ForOfStatement;
     let i = 0;
     for (; ii > i; ++i) {
       binding = bindings[i];
       if (binding.target === this && binding.targetProperty === 'items') {
-        this.forOf = binding.sourceExpression as ForOfStatement;
+        forOf = this.forOf = binding.sourceExpression as ForOfStatement;
+        this._forOfBinding = binding;
+
+        let expression = forOf.iterable;
+        while (expression != null && wrappedExprs.includes(expression.$kind)) {
+          expression = (expression as ValueConverterExpression | BindingBehaviorExpression).expression;
+          this._observingInnerItems = true;
+        }
+        this._innerItemsExpression = expression;
+
         break;
       }
     }
 
-    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, binding.locator, null) as string;
+    this._checkCollectionObserver(flags);
+    this.local = forOf.declaration.evaluate(flags, this.$controller.scope, binding.locator, null) as string;
   }
 
   public attaching(
@@ -120,6 +144,16 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     if (!$controller.isActive) {
       return;
     }
+    if (this._observingInnerItems) {
+      if (this._reevaluating) {
+        return;
+      }
+      this._reevaluating = true;
+      this.items = this.forOf.iterable.evaluate(flags, $controller.scope, this._forOfBinding.locator, null) as Items<C>;
+      this._reevaluating = false;
+      return;
+    }
+
     flags |= $controller.flags;
     this._normalizeToArray(flags);
 
@@ -156,13 +190,22 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   // todo: subscribe to collection from inner expression
   private _checkCollectionObserver(flags: LF): void {
+    const scope = this.$controller.scope;
+
+    let innerItems = this._innerItems;
+    let observingInnerItems = this._observingInnerItems;
+    if (observingInnerItems) {
+      innerItems = this._innerItems = this._innerItemsExpression!.evaluate(flags, scope, this._forOfBinding.locator, null) as Items<C> ?? null;
+      observingInnerItems = this._observingInnerItems = !Object.is(this.items, innerItems);
+    }
+
     const oldObserver = this._observer;
     if ((flags & LF.fromUnbind)) {
       if (oldObserver !== void 0) {
         oldObserver.unsubscribe(this);
       }
     } else if (this.$controller.isActive) {
-      const newObserver = this._observer = getCollectionObserver(this.items);
+      const newObserver = this._observer = getCollectionObserver(observingInnerItems ? innerItems : this.items);
       if (oldObserver !== newObserver && oldObserver) {
         oldObserver.unsubscribe(this);
       }

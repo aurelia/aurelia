@@ -17,14 +17,14 @@
     "@aurelia/metadata": "2.0.0-alpha.17",
     "@aurelia/platform": "2.0.0-alpha.17",
     "@aurelia/platform-browser": "2.0.0-alpha.17",
-    "@aurelia/runtime-html": "2.0.0-alpha.17",
     "@aurelia/runtime": "2.0.0-alpha.17",
+    "@aurelia/runtime-html": "2.0.0-alpha.17",
     "@aurelia/webpack-loader": "2.0.0-alpha.17",
     "@benchmarking-apps/shared": "1.0.0"
   },
   "devDependencies": {
     "@aurelia/http-server": "2.0.0-alpha.17",
-    "css-loader": "^5.0.1",
+    "css-loader": "^5.2.7",
     "html-entities": "^1.3.1",
     "html-loader": "^1.3.2",
     "html-webpack-plugin": "^5.0.0-beta.1",
@@ -34,7 +34,7 @@
     "typescript": "^4.0.3",
     "webpack": "^5.10.3",
     "webpack-cli": "^4.2.0",
-    "webpack-dev-server": "^4.0.0-beta.0"
+    "webpack-dev-server": "^4.0.0-rc.0"
   },
   "engines": {
     "node": ">=14.15.0",

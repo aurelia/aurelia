@@ -32,6 +32,10 @@ const testDirs = [
   // 'validation-i18n',
 ];
 
+const packageNames = [
+  'aurelia-direct-router',
+];
+
 const corePackageNames = [
   'fetch-client',
   'i18n',
@@ -148,6 +152,7 @@ module.exports = function (config) {
         timeout: 5000,
       }
     },
+    restartOnFileChange: true,
     logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
     // logLevel: config.LOG_DEBUG,
   };

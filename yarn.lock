@@ -1112,10 +1112,10 @@
 "@pnpm/types@6.4.0":
   "version" "6.4.0"
 
-"@polka/url@^1.0.0-next.15":
-  "integrity" "sha512-15spi3V28QdevleWBNXE4pIls3nFZmBbUGrW9IVPwiQczuSb9n76TCB4bsk8TSel+I1OkHEdPhu5QKMfY6rQHA=="
-  "resolved" "https://registry.npmjs.org/@polka/url/-/url-1.0.0-next.15.tgz"
-  "version" "1.0.0-next.15"
+"@polka/url@^1.0.0-next.17":
+  "integrity" "sha512-0p1rCgM3LLbAdwBnc7gqgnvjHg9KpbhcSphergHShlkWz8EdPawoMJ3/VbezI0mGC5eKCDzMaPgF9Yca6cKvrg=="
+  "resolved" "https://registry.npmjs.org/@polka/url/-/url-1.0.0-next.17.tgz"
+  "version" "1.0.0-next.17"
 
 "@rollup/plugin-replace@^2.4.2":
   "integrity" "sha512-IGcu+cydlUMZ5En85jxHH4qj2hta/11BHq95iHEyb2sbgiN0eCdzvUcHw5gt9pBL5lTi4JDYJ1acCoMGpTvEZg=="
@@ -7533,11 +7533,11 @@
   "version" "3.0.3"
 
 "sirv@^1.0.7":
-  "integrity" "sha512-+jQoCxndz7L2tqQL4ZyzfDhky0W/4ZJip3XoOuxyQWnAwMxindLl3Xv1qT4x1YX/re0leShvTm8Uk0kQspGhBg=="
-  "resolved" "https://registry.npmjs.org/sirv/-/sirv-1.0.12.tgz"
-  "version" "1.0.12"
+  "integrity" "sha512-czTFDFjK9lXj0u9mJ3OmJoXFztoilYS+NdRPcJoT182w44wSEkHSiO7A2517GLJ8wKM4GjCm2OXE66Dhngbzjg=="
+  "resolved" "https://registry.npmjs.org/sirv/-/sirv-1.0.14.tgz"
+  "version" "1.0.14"
   dependencies:
-    "@polka/url" "^1.0.0-next.15"
+    "@polka/url" "^1.0.0-next.17"
     "mime" "^2.3.1"
     "totalist" "^1.0.0"
 

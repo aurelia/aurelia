@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/i18n",
-  "version": "2.0.1-dev.202108121358",
+  "version": "2.0.1-dev.202108160019",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -40,11 +40,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.1-dev.202108121358",
-    "@aurelia/metadata": "2.0.1-dev.202108121358",
-    "@aurelia/platform": "2.0.1-dev.202108121358",
-    "@aurelia/runtime-html": "2.0.1-dev.202108121358",
-    "@aurelia/runtime": "2.0.1-dev.202108121358",
+    "@aurelia/kernel": "2.0.1-dev.202108160019",
+    "@aurelia/metadata": "2.0.1-dev.202108160019",
+    "@aurelia/platform": "2.0.1-dev.202108160019",
+    "@aurelia/runtime-html": "2.0.1-dev.202108160019",
+    "@aurelia/runtime": "2.0.1-dev.202108160019",
     "i18next": "^17.0.0"
   },
   "devDependencies": {

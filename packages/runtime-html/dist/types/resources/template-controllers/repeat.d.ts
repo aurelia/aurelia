@@ -17,6 +17,11 @@ export declare class Repeat<C extends Collection = unknown[]> implements ICustom
     local: string;
     readonly $controller: ICustomAttributeController<this>;
     items: Items<C>;
+    private _innerItems;
+    private _forOfBinding;
+    private _observingInnerItems;
+    private _reevaluating;
+    private _innerItemsExpression;
     private _normalizedItems?;
     constructor(location: IRenderLocation, parent: IHydratableController, factory: IViewFactory);
     binding(initiator: IHydratedController, parent: IHydratedParentController, flags: LF): void | Promise<void>;

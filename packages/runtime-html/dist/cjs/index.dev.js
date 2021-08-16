@@ -9801,6 +9801,10 @@ templateController({ name: 'else' })(Else);
 function dispose(disposable) {
     disposable.dispose();
 }
+const wrappedExprs = [
+    38962 /* BindingBehavior */,
+    36913 /* ValueConverter */,
+];
 class Repeat {
     constructor(location, parent, factory) {
         this.location = location;
@@ -9810,22 +9814,33 @@ class Repeat {
         this._observer = void 0;
         this.views = [];
         this.key = void 0;
+        this._observingInnerItems = false;
+        this._reevaluating = false;
+        this._innerItemsExpression = null;
         this._normalizedItems = void 0;
     }
     binding(initiator, parent, flags) {
-        this._checkCollectionObserver(flags);
         const bindings = this.parent.bindings;
         const ii = bindings.length;
         let binding = (void 0);
+        let forOf;
         let i = 0;
         for (; ii > i; ++i) {
             binding = bindings[i];
             if (binding.target === this && binding.targetProperty === 'items') {
-                this.forOf = binding.sourceExpression;
+                forOf = this.forOf = binding.sourceExpression;
+                this._forOfBinding = binding;
+                let expression = forOf.iterable;
+                while (expression != null && wrappedExprs.includes(expression.$kind)) {
+                    expression = expression.expression;
+                    this._observingInnerItems = true;
+                }
+                this._innerItemsExpression = expression;
                 break;
             }
         }
-        this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, binding.locator, null);
+        this._checkCollectionObserver(flags);
+        this.local = forOf.declaration.evaluate(flags, this.$controller.scope, binding.locator, null);
     }
     attaching(initiator, parent, flags) {
         this._normalizeToArray(flags);
@@ -9856,6 +9871,15 @@ class Repeat {
     handleCollectionChange(indexMap, flags) {
         const { $controller } = this;
         if (!$controller.isActive) {
+            return;
+        }
+        if (this._observingInnerItems) {
+            if (this._reevaluating) {
+                return;
+            }
+            this._reevaluating = true;
+            this.items = this.forOf.iterable.evaluate(flags, $controller.scope, this._forOfBinding.locator, null);
+            this._reevaluating = false;
             return;
         }
         flags |= $controller.flags;
@@ -9892,6 +9916,14 @@ class Repeat {
     }
     // todo: subscribe to collection from inner expression
     _checkCollectionObserver(flags) {
+        var _a;
+        const scope = this.$controller.scope;
+        let innerItems = this._innerItems;
+        let observingInnerItems = this._observingInnerItems;
+        if (observingInnerItems) {
+            innerItems = this._innerItems = (_a = this._innerItemsExpression.evaluate(flags, scope, this._forOfBinding.locator, null)) !== null && _a !== void 0 ? _a : null;
+            observingInnerItems = this._observingInnerItems = !Object.is(this.items, innerItems);
+        }
         const oldObserver = this._observer;
         if ((flags & 4 /* fromUnbind */)) {
             if (oldObserver !== void 0) {
@@ -9899,7 +9931,7 @@ class Repeat {
             }
         }
         else if (this.$controller.isActive) {
-            const newObserver = this._observer = runtime.getCollectionObserver(this.items);
+            const newObserver = this._observer = runtime.getCollectionObserver(observingInnerItems ? innerItems : this.items);
             if (oldObserver !== newObserver && oldObserver) {
                 oldObserver.unsubscribe(this);
             }

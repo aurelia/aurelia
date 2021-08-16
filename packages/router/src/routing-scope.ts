@@ -102,7 +102,7 @@ export class RoutingScope {
     let container: IContainer | null | undefined;
 
     // res is a private prop of IContainer impl
-    // todo: should use a different way to detect if something is a container
+    // TODO: should use a different way to detect if something is a container
     // or move this to the bottom if this else-if
     if ('res' in origin) {
       container = origin;

@@ -131,7 +131,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public readonly $controller!: ICustomElementController<this>;
   public viewport: Viewport;
   public get name(): string {
-    return this.$controller.context.definition.name;
+    return this.$controller.definition.name;
   }
 
   public constructor(

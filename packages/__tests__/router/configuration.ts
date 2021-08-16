@@ -13,7 +13,7 @@ export const TestRouterConfiguration = {
         container.register(
           Registration.instance(IHistory, mockBrowserHistoryLocation),
           Registration.instance(ILocation, mockBrowserHistoryLocation),
-          AppTask.with(IRouter).hydrating().call(router => {
+          AppTask.hydrating(IRouter, router => {
             mockBrowserHistoryLocation.changeCallback = async (ev) => { router.viewer.handlePopStateEvent(ev); };
           }),
         );

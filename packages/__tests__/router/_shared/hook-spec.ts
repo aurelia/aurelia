@@ -70,7 +70,7 @@ function getHookSpecs<T extends HookName>(name: T) {
       type: 'setTimeout_0',
       async invoke(vm, getValue, tracker?) {
         const value = getValue();
-        const ctx = vm.$controller.context;
+        const ctx = vm.$controller.container;
         const label = `${vm.name}.${name}`;
 
         return setTimeoutWaiter(ctx, 0, label)

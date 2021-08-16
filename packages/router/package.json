@@ -3,8 +3,8 @@
   "version": "2.0.0-alpha.14.2",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
-  "types": "dist/index.d.ts",
-  "typings": "dist/index.d.ts",
+  "types": "dist/types/index.d.ts",
+  "typings": "dist/types/index.d.ts",
   "license": "MIT",
   "type": "module",
   "homepage": "https://jwx.gitbook.io/aurelia-direct-router/",
@@ -30,22 +30,24 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
-    "build": "tsc -b",
-    "dev": "tsc -b -w --preserveWatchOutput",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
     "publish:dev": "npm publish --tag dev",
-    "publish:latest": "npm publish --tag latest"
+    "publish:latest": "npm publish --tag latest",
+    "rollup": "rollup -c",
+    "postrollup": "tsc --declaration --emitDeclarationOnly"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "latest",
-    "@aurelia/metadata": "latest",
-    "@aurelia/platform": "latest",
-    "@aurelia/platform-browser": "latest",
-    "@aurelia/route-recognizer": "latest",
-    "@aurelia/runtime": "latest",
-    "@aurelia/runtime-html": "latest"
+    "@aurelia/kernel": "2.0.0-alpha.16",
+    "@aurelia/metadata": "2.0.0-alpha.16",
+    "@aurelia/platform": "2.0.0-alpha.16",
+    "@aurelia/platform-browser": "2.0.0-alpha.16",
+    "@aurelia/route-recognizer": "2.0.0-alpha.16",
+    "@aurelia/runtime": "2.0.0-alpha.16",
+    "@aurelia/runtime-html": "2.0.0-alpha.16"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

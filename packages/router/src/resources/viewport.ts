@@ -112,14 +112,14 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     @IContainer public container: IContainer,
     @IEventAggregator private readonly ea: IEventAggregator,
     @ParentViewport public readonly parentViewport: ViewportCustomElement,
-    @IInstruction private readonly instruction: IInstruction,
+    @IInstruction private readonly instruction: HydrateElementInstruction,
   ) { }
 
   public hydrated(controller: ICompiledCustomElementController): void | Promise<void> {
     this.controller = controller as ICustomElementController;
     this.container = controller.container;
 
-    const hasDefault = (this.instruction as HydrateElementInstruction).props.filter((instr: any) => instr.to === 'default').length > 0;
+    const hasDefault = this.instruction.props.filter((instr: any) => instr.to === 'default').length > 0;
     if (hasDefault && this.parentViewport != null) {
       this.parentViewport.pendingChildren.push(this);
       if (this.parentViewport.pendingPromise === null) {

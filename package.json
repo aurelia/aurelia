@@ -1,7 +1,7 @@
 {
   "name": "aurelia-direct-router-monorepo",
   "private": true,
-  "version": "2.0.0-alpha.16.0",
+  "version": "2.0.0-alpha.17.0",
   "workspaces": [
     "packages/router",
     "test/karma-aurelia-preprocessor",
@@ -25,6 +25,7 @@
     "change-package-refs:dev": "ts-node -P tsconfig.json scripts/change-package-refs.ts dev",
     "change-package-refs:release": "ts-node -P tsconfig.json scripts/change-package-refs.ts release",
     "clean": "rimraf dist packages/*/dist test/*/dist examples/*/dist",
+    "clean:node_modules": "rimraf node_modules packages/*/node_modules test/*/node_modules examples/*/node_modules",
     "clean:tsconfig-build-cache": "rimraf packages/*/dist/tsconfig.tsbuildinfo",
     "lint": "npm run lint:packages && npm run lint:other",
     "lint:other": "eslint --cache --ext .js,.ts examples scripts test",
@@ -48,7 +49,7 @@
     "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts"
   },
   "devDependencies": {
-    "@aurelia/testing": "2.0.0-alpha.16",
+    "@aurelia/testing": "latest",
     "@commitlint/cli": "^8.2.0",
     "@rollup/plugin-replace": "^3.0.0",
     "@rollup/plugin-typescript": "^8.2.5",

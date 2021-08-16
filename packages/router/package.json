@@ -1,6 +1,6 @@
 {
   "name": "aurelia-direct-router",
-  "version": "2.0.0-alpha.16.0",
+  "version": "2.0.0-alpha.17.0",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -41,13 +41,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.16",
-    "@aurelia/metadata": "2.0.0-alpha.16",
-    "@aurelia/platform": "2.0.0-alpha.16",
-    "@aurelia/platform-browser": "2.0.0-alpha.16",
-    "@aurelia/route-recognizer": "2.0.0-alpha.16",
-    "@aurelia/runtime": "2.0.0-alpha.16",
-    "@aurelia/runtime-html": "2.0.0-alpha.16"
+    "@aurelia/kernel": "latest",
+    "@aurelia/metadata": "latest",
+    "@aurelia/platform": "latest",
+    "@aurelia/platform-browser": "latest",
+    "@aurelia/route-recognizer": "latest",
+    "@aurelia/runtime": "latest",
+    "@aurelia/runtime-html": "latest"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

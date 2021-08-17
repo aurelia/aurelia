@@ -15,33 +15,33 @@
     "e2e": "mocha --ui bdd --colors --reporter spec --timeout 30000 dist/tests/i18n.spec.js"
   },
   "dependencies": {
-    "@aurelia/i18n": "2.0.1-dev.202108160019",
-    "@aurelia/kernel": "2.0.1-dev.202108160019",
-    "@aurelia/metadata": "2.0.1-dev.202108160019",
-    "@aurelia/platform": "2.0.1-dev.202108160019",
-    "@aurelia/platform-browser": "2.0.1-dev.202108160019",
-    "@aurelia/runtime-html": "2.0.1-dev.202108160019",
-    "@aurelia/runtime": "2.0.1-dev.202108160019",
-    "@aurelia/validation": "2.0.1-dev.202108160019",
+    "@aurelia/i18n": "2.0.0-alpha.17",
+    "@aurelia/kernel": "2.0.0-alpha.17",
+    "@aurelia/metadata": "2.0.0-alpha.17",
+    "@aurelia/platform": "2.0.0-alpha.17",
+    "@aurelia/platform-browser": "2.0.0-alpha.17",
+    "@aurelia/runtime": "2.0.0-alpha.17",
+    "@aurelia/runtime-html": "2.0.0-alpha.17",
+    "@aurelia/validation": "2.0.0-alpha.17",
     "i18next": "^17.0.0",
     "i18next-fetch-backend": "^2.2.0",
     "i18next-intervalplural-postprocessor": "^1.0.0",
     "relative-time-format": "^1.0.0"
   },
   "devDependencies": {
+    "@aurelia/http-server": "2.0.0-alpha.17",
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.11.5",
-    "@aurelia/http-server": "2.0.1-dev.202108160019",
+    "copy-webpack-plugin": "^5.1.1",
     "html-loader": "^1.3.2",
     "html-webpack-plugin": "^5.0.0-beta.1",
-    "mocha": "^8.1.3",
-    "playwright": "^1.6.1",
+    "mocha": "^8.4.0",
+    "playwright": "^1.14.0",
     "rimraf": "^3.0.0",
     "ts-loader": "^8.0.12",
     "typescript": "^4.0.3",
     "webpack": "^5.10.3",
     "webpack-cli": "^4.2.0",
-    "webpack-dev-server": "^4.0.0-beta.0",
-    "copy-webpack-plugin": "^5.1.1"
+    "webpack-dev-server": "^4.0.0-rc.0"
   }
 }

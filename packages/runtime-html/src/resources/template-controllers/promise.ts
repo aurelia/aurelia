@@ -212,7 +212,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable({ mode: BindingMode.toView }) public value!: unknown;
+  @bindable({ mode: BindingMode.fromView }) public value!: unknown;
 
   public view: ISyntheticView;
 
@@ -260,7 +260,7 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
   public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable({ mode: BindingMode.toView }) public value!: unknown;
+  @bindable({ mode: BindingMode.fromView }) public value!: unknown;
 
   public view: ISyntheticView;
 

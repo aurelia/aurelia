@@ -19,7 +19,7 @@ export async function readFile(path: string, options: { encoding?: null }): Prom
 export async function readFile(path: string, options?: string | { encoding?: null | BufferEncoding; flag?: string } | null) {
 
   return new Promise<string | Buffer>(function (resolve, reject) {
-    $readFile(path, options, function (err, data) {
+    $readFile(path, options as Exclude<typeof options, string>, function (err, data) {
       if (err !== null) {
         reject(err);
       } else {

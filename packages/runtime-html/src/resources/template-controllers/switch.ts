@@ -85,10 +85,11 @@ export class Switch implements ICustomAttributeViewModel {
   }
 
   public caseChanged($case: Case, flags: LifecycleFlags): void {
-    this.queue(() => this.handleCaseChange($case, flags));
+    this.queue(() => this._handleCaseChange($case, flags));
   }
 
-  private handleCaseChange($case: Case, flags: LifecycleFlags): void | Promise<void> {
+  /** @internal */
+  private _handleCaseChange($case: Case, flags: LifecycleFlags): void | Promise<void> {
     const isMatch = $case.isMatch(this.value, flags);
     const activeCases = this.activeCases;
     const numActiveCases = activeCases.length;
@@ -97,7 +98,7 @@ export class Switch implements ICustomAttributeViewModel {
     if (!isMatch) {
       /** The previous match started with this; thus clear. */
       if (numActiveCases > 0 && activeCases[0].id === $case.id) {
-        return this.clearActiveCases(null, flags);
+        return this._clearActiveCases(null, flags);
       }
       /**
        * There are 2 different scenarios here:
@@ -129,10 +130,10 @@ export class Switch implements ICustomAttributeViewModel {
     }
 
     return onResolve(
-      this.clearActiveCases(null, flags, newActiveCases),
+      this._clearActiveCases(null, flags, newActiveCases),
       () => {
         this.activeCases = newActiveCases;
-        return this.activateCases(null, flags);
+        return this._activateCases(null, flags);
       }
     );
   }
@@ -155,17 +156,18 @@ export class Switch implements ICustomAttributeViewModel {
 
     return onResolve(
       this.activeCases.length > 0
-        ? this.clearActiveCases(initiator, flags, newActiveCases)
+        ? this._clearActiveCases(initiator, flags, newActiveCases)
         : void 0!,
       () => {
         this.activeCases = newActiveCases;
         if (newActiveCases.length === 0) { return; }
-        return this.activateCases(initiator, flags);
+        return this._activateCases(initiator, flags);
       }
     );
   }
 
-  private activateCases(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
+  /** @internal */
+  private _activateCases(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
     const controller = this.$controller;
     if (!controller.isActive) { return; }
 
@@ -183,7 +185,8 @@ export class Switch implements ICustomAttributeViewModel {
     return resolveAll(...cases.map(($case) => $case.activate(initiator, flags, scope)));
   }
 
-  private clearActiveCases(initiator: IHydratedController | null, flags: LifecycleFlags, newActiveCases: Case[] = []): void | Promise<void> {
+  /** @internal */
+  private _clearActiveCases(initiator: IHydratedController | null, flags: LifecycleFlags, newActiveCases: Case[] = []): void | Promise<void> {
     const cases = this.activeCases;
     const numCases = cases.length;
 

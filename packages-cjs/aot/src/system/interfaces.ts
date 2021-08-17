@@ -4,6 +4,9 @@ import {
 import {
   CompilerOptions,
 } from 'typescript';
+import type {
+  WriteFileOptions
+} from 'fs';
 
 export const enum Encoding {
   utf8 = 'utf8',
@@ -79,7 +82,7 @@ export interface IFileSystem {
   ensureDirSync(path: string): void;
 
   writeFile(path: string, content: string, encoding: Encoding): Promise<void>;
-  writeFileSync(path: string, content: string, encoding: Encoding): void;
+  writeFileSync(path: string, content: string, encoding: WriteFileOptions): void;
 
   rimraf(path: string): Promise<void>;
 

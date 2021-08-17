@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.17"></a>
+# 2.0.0-alpha.17 (2021-08-16)
+
+### Bug Fixes:
+
+* ***:** bug #1253 ([9b98b48](https://github.com/aurelia/aurelia/commit/9b98b48))
+
+
+### Refactorings:
+
+* **di:** resolver disposal ([7c50556](https://github.com/aurelia/aurelia/commit/7c50556))
+* **di:** deregisterResolver API ([46737b9](https://github.com/aurelia/aurelia/commit/46737b9))
+
 <a name="2.0.0-alpha.16"></a>
 # 2.0.0-alpha.16 (2021-08-07)
 

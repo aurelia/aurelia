@@ -1864,7 +1864,6 @@ describe('promise template-controller', function () {
             }
           };
 
-          // eslint-disable-next-line require-atomic-updates
           for (const $resolve of [true, false]) {
 
             yield new TestData(
@@ -2214,7 +2213,6 @@ describe('promise template-controller', function () {
           }
         }
         // #region timings
-        // eslint-disable-next-line require-atomic-updates
         for (const $resolve of [true, false]) {
           const getPromise = (ticks: number) => () => Object.assign(
             createMultiTickPromise(ticks, () => $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar')))(),
@@ -2698,7 +2696,6 @@ describe('promise template-controller', function () {
       }
 
       // #region scope
-      // eslint-disable-next-line require-atomic-updates
       for (const $resolve of [true, false]) {
         {
           class App1 {

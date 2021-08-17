@@ -9,6 +9,7 @@ import {
   IPlatform,
   ICustomElementViewModel,
   ICustomElementController,
+  BindingBehavior,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -45,7 +46,7 @@ describe(spec, function () {
     const container = ctx.container;
 
     const au = new Aurelia(container);
-    await au.register(...registrations)
+    await au.register(...registrations, BindingBehavior.define('keyed', class NoopKeyedBindingBehavior {}))
       .app({
         host,
         component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, app ?? class { })

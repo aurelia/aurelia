@@ -230,7 +230,7 @@ export class Runner {
         step.value = step.step as T | Promise<T> | ((s?: Step) => T | Promise<T>);
         // Iteratively resolve Functions (until value or Promise)
         // Called method can stop iteration by setting isDone on the step
-        while (step.value instanceof Function && !step.isCancelled && !step.isDone) {
+        while (step.value instanceof Function && !step.isCancelled && !step.isExited && !step.isDone) {
           step.value = (step.value)(step as Step);
         }
 
@@ -255,10 +255,10 @@ export class Runner {
 
                 const next = $step.nextToDo();
                 // console.log('next', next?.path, next?.root.report);
-                if (next !== null) {
+                if (next !== null && !$step.isExited) {
                   Runner.process(next);
                 } else {
-                  if ($step.root.doneAll) {
+                  if ($step.root.doneAll || $step.isExited) {
                     Runner.settlePromise($step.root);
                   }
                 }
@@ -268,7 +268,11 @@ export class Runner {
             step.isDone = true;
             step.isDoing = false;
 
-            step = step.nextToDo();
+            if (!step.isExited) {
+              step = step.nextToDo();
+            } else {
+              step = null;
+            }
           }
         }
       }
@@ -281,7 +285,7 @@ export class Runner {
 
     if (root.isCancelled) {
       Runner.settlePromise(root, 'reject');
-    } else if (root.doneAll) {
+    } else if (root.doneAll || root.isExited) {
       Runner.settlePromise(root);
     }
   }
@@ -326,6 +330,8 @@ export class Step<T = unknown> {
   public isDoing: boolean = false;
   public isDone: boolean = false;
   public isCancelled: boolean = false;
+  public isExited: boolean = false;
+  public exited: Step<T> | null = null;
 
   public id: string = '-1';
   public constructor(
@@ -358,8 +364,8 @@ export class Step<T = unknown> {
           child = child.next;
         }
         return results;
-      } else { // ...otherwise return the last one.
-        return this.child?.tail?.result;
+      } else { // ...otherwise return the one that exited/the last one.
+        return this === this.root && this.exited !== null ? this.exited.result : this.child?.tail?.result;
       }
     }
 
@@ -479,6 +485,20 @@ export class Step<T = unknown> {
     this.isCancelled = true;
     this.child?.cancel(false);
     this.next?.cancel(false);
+    return true;
+  }
+
+  public exit(all = true): boolean {
+    if (all) {
+      this.root.exited = this;
+      return this.root.exit(false);
+    }
+    if (this.isExited) {
+      return false;
+    }
+    this.isExited = true;
+    this.child?.exit(false);
+    this.next?.exit(false);
     return true;
   }
 

@@ -5,7 +5,7 @@
  *
  */
 import { Constructable } from '@aurelia/kernel';
-import { CustomElementType, INode, ICustomElementViewModel } from '@aurelia/runtime-html';
+import { CustomElementType, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { Viewport } from './endpoints/viewport.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation } from './navigation.js';
@@ -16,11 +16,11 @@ import { Parameters } from './instructions/instruction-parameters.js';
 // These interfaces exclusively exist to prevent TS decorator metadata emission from having the runtime
 // side-effect of causing a ReferenceError in node, because these are not defined as globals there.
 // We will have a cleaner solution for this once AOT is done, as we can do arbitrary transforms then.
-export interface IPopStateEvent extends PopStateEvent {}
-export interface IHashChangeEvent extends HashChangeEvent {}
-export interface IMouseEvent extends MouseEvent {}
-export interface IElement extends Element {}
-export interface IHTMLElement extends HTMLElement {}
+export interface IPopStateEvent extends PopStateEvent { }
+export interface IHashChangeEvent extends HashChangeEvent { }
+export interface IMouseEvent extends MouseEvent { }
+export interface IElement extends Element { }
+export interface IHTMLElement extends HTMLElement { }
 
 /*
 * Contains interfaces and types that aren't strongly connected
@@ -41,6 +41,7 @@ export interface IRouteableComponent extends ICustomElementViewModel {
   load?(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation): void | Promise<void>;
   canUnload?(instruction: RoutingInstruction, navigation: Navigation | null): boolean | Promise<boolean>;
   unload?(instruction: RoutingInstruction, navigation: Navigation | null): void | Promise<void>;
+  readonly $controller?: ICustomElementController<this>;
 }
 
 export const enum ReloadBehavior {

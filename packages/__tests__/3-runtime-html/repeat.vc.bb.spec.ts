@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia, CustomElement, ICustomElementController, IPlatform, valueConverter } from '@aurelia/runtime-html';
+import { Aurelia, bindingBehavior, CustomElement, ICustomElementController, IPlatform, valueConverter } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
@@ -109,7 +109,7 @@ describe('repeat value-converter integration', function () {
     }
   }
 
-  @valueConverter('noop')
+  @bindingBehavior('noop')
   class NoopBindingBehavior { }
 
   const identityExpected = Array.from({ length: 10 }, (_, i) => `<span>${i + 1}</span>`).join('');
@@ -230,7 +230,7 @@ describe('repeat value-converter integration', function () {
       ],
     );
 
-    const noopBBTmplt = `<span repeat.for="item of arr | noop">\${item}</span>`;
+    const noopBBTmplt = `<span repeat.for="item of arr & noop">\${item}</span>`;
     yield new TestData(
       'array mutation - noop BB',
       noopBBTmplt,

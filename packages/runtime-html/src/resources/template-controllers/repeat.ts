@@ -189,6 +189,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   }
 
   // todo: subscribe to collection from inner expression
+  /** @internal */
   private _checkCollectionObserver(flags: LF): void {
     const scope = this.$controller.scope;
 
@@ -215,6 +216,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 
+  /** @internal */
   private _normalizeToArray(flags: LF): void {
     const items: Items<C> = this.items;
     if (items instanceof Array) {
@@ -232,6 +234,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     this._normalizedItems = normalizedItems;
   }
 
+  /** @internal */
   private _activateAllViews(
     initiator: IHydratedController | null,
     flags: LF,
@@ -266,6 +269,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 
+  /** @internal */
   private _deactivateAllViews(
     initiator: IHydratedController | null,
     flags: LF,
@@ -294,6 +298,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 
+  /** @internal */
   private _deactivateAndRemoveViewsByKey(
     indexMap: IndexMap,
     flags: LF,
@@ -330,6 +335,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 
+  /** @internal */
   private _createAndActivateAndSortViewsByKey(
     oldLength: number,
     indexMap: IndexMap,

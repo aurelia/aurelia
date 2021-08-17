@@ -1,6 +1,6 @@
 import { DI, IServiceLocator, optional, Registration, noop } from '../../../kernel/dist/native-modules/index.js';
 import { parsePropertyName, ValidationResult, ValidateInstruction, PropertyRule, IValidator, getDefaultValidationConfiguration, ValidationConfiguration } from '../../../validation/dist/native-modules/index.js';
-import { IPlatform, bindable, INode, BindingMode, customAttribute, BindingInterceptor, BindingMediator, bindingBehavior, PropertyBinding, CustomElement } from '../../../runtime-html/dist/native-modules/index.js';
+import { IPlatform, bindable, INode, BindingMode, customAttribute, bindingBehavior, BindingInterceptor, BindingMediator, PropertyBinding, CustomElement } from '../../../runtime-html/dist/native-modules/index.js';
 import { IExpressionParser } from '../../../runtime/dist/native-modules/index.js';
 
 /*! *****************************************************************************

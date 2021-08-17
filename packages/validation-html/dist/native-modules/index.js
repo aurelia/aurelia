@@ -2,7 +2,7 @@ import { DI as t, IServiceLocator as i, optional as s, Registration as e, noop a
 
 import { parsePropertyName as o, ValidationResult as r, ValidateInstruction as l, PropertyRule as a, IValidator as h, getDefaultValidationConfiguration as c, ValidationConfiguration as u } from "../../../validation/dist/native-modules/index.js";
 
-import { IPlatform as d, bindable as f, INode as v, BindingMode as g, customAttribute as w, BindingInterceptor as p, BindingMediator as m, bindingBehavior as b, PropertyBinding as V, CustomElement as y } from "../../../runtime-html/dist/native-modules/index.js";
+import { IPlatform as d, bindable as f, INode as v, BindingMode as g, customAttribute as w, bindingBehavior as p, BindingInterceptor as m, BindingMediator as b, PropertyBinding as V, CustomElement as y } from "../../../runtime-html/dist/native-modules/index.js";
 
 import { IExpressionParser as C } from "../../../runtime/dist/native-modules/index.js";
 
@@ -405,16 +405,16 @@ var O;
 
 const P = t.createInterface("IDefaultTrigger");
 
-let S = class ValidateBindingBehavior extends p {
+let S = class ValidateBindingBehavior extends m {
     constructor(t, i) {
         super(t, i);
         this.binding = t;
         this.propertyBinding = void 0;
         this.target = void 0;
         this.isChangeTrigger = false;
-        this.triggerMediator = new m("handleTriggerChange", this, this.oL, this.locator);
-        this.controllerMediator = new m("handleControllerChange", this, this.oL, this.locator);
-        this.rulesMediator = new m("handleRulesChange", this, this.oL, this.locator);
+        this.triggerMediator = new b("handleTriggerChange", this, this.oL, this.locator);
+        this.controllerMediator = new b("handleControllerChange", this, this.oL, this.locator);
+        this.rulesMediator = new b("handleRulesChange", this, this.oL, this.locator);
         this.isDirty = false;
         this.validatedOnce = false;
         this.triggerEvent = null;
@@ -571,7 +571,7 @@ let S = class ValidateBindingBehavior extends p {
     }
 };
 
-S = E([ b("validate") ], S);
+S = E([ p("validate") ], S);
 
 class ValidateArgumentsDelta {
     constructor(t, i, s) {

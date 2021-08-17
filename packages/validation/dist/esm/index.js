@@ -2,7 +2,7 @@ import { DI as e, Protocol as t, Metadata as s, toArray as i, ILogger as r, ISer
 
 import * as u from "@aurelia/runtime";
 
-import { Scope as l, IExpressionParser as c, PrimitiveLiteralExpression as h } from "@aurelia/runtime";
+import { IExpressionParser as l, Scope as c, PrimitiveLiteralExpression as h } from "@aurelia/runtime";
 
 const d = e.createInterface("IValidationExpressionHydrator");
 
@@ -323,7 +323,7 @@ class PropertyRule {
     }
     async validate(e, t, s, i) {
         if (void 0 === s) s = 0;
-        if (void 0 === i) i = l.create({
+        if (void 0 === i) i = c.create({
             [S]: e
         });
         const r = this.property.expression;
@@ -338,7 +338,7 @@ class PropertyRule {
                 const {displayName: r, name: o} = this.property;
                 let u;
                 if (!i) {
-                    const i = l.create(new ValidationMessageEvaluationContext(this.messageProvider, this.messageProvider.getDisplayName(o, r), o, n, t, e));
+                    const i = c.create(new ValidationMessageEvaluationContext(this.messageProvider, this.messageProvider.getDisplayName(o, r), o, n, t, e));
                     u = this.messageProvider.getMessage(t).evaluate(s, i, null, null);
                 }
                 return new ValidationResult(i, u, o, e, t, this);
@@ -522,7 +522,7 @@ let z = class ValidationRules {
     }
 };
 
-z = $([ m(0, n), m(1, c), m(2, f), m(3, d) ], z);
+z = $([ m(0, n), m(1, l), m(2, f), m(3, d) ], z);
 
 const N = /^function\s*\([$_\w\d]+\)\s*\{(?:\s*["']{1}use strict["']{1};)?(?:[$_\s\w\d\/\*.['"\]+;]+)?\s*return\s+[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)\s*;?\s*\}$/;
 
@@ -617,7 +617,7 @@ let A = class ValidationMessageProvider {
     }
 };
 
-A = $([ m(0, c), m(1, r), m(2, b) ], A);
+A = $([ m(0, l), m(1, r), m(2, b) ], A);
 
 var I;
 
@@ -1010,7 +1010,7 @@ let D = class ValidationDeserializer {
     }
     static deserialize(e, t) {
         const s = this.container.get(f);
-        const i = this.container.get(c);
+        const i = this.container.get(l);
         const r = new ValidationDeserializer(this.container, s, i);
         const n = JSON.parse(e);
         return r.hydrate(n, t);
@@ -1103,7 +1103,7 @@ let D = class ValidationDeserializer {
     }
 };
 
-D = $([ m(0, n), m(1, f), m(2, c) ], D);
+D = $([ m(0, n), m(1, f), m(2, l) ], D);
 
 let _ = class ModelValidationExpressionHydrator {
     constructor(e, t, s) {
@@ -1191,7 +1191,7 @@ let _ = class ModelValidationExpressionHydrator {
             const e = this.parser.parse(i, 0);
             t.canExecute = t => {
                 const s = 0;
-                return e.evaluate(s, l.create({
+                return e.evaluate(s, c.create({
                     $object: t
                 }), this.locator, null);
             };
@@ -1242,7 +1242,7 @@ let _ = class ModelValidationExpressionHydrator {
     }
 };
 
-_ = $([ m(0, n), m(1, f), m(2, c) ], _);
+_ = $([ m(0, n), m(1, f), m(2, l) ], _);
 
 class ValidateInstruction {
     constructor(e = void 0, t = void 0, s = void 0, i = void 0, r = void 0, n = 0) {
@@ -1264,12 +1264,12 @@ class StandardValidator {
         const a = e.propertyName;
         const o = e.propertyTag;
         const u = e.flags;
-        const c = null !== (s = null !== (t = e.rules) && void 0 !== t ? t : M.get(n, e.objectTag)) && void 0 !== s ? s : [];
-        const h = l.create({
+        const l = null !== (s = null !== (t = e.rules) && void 0 !== t ? t : M.get(n, e.objectTag)) && void 0 !== s ? s : [];
+        const h = c.create({
             [S]: n
         });
-        if (void 0 !== a) return null !== (r = await (null === (i = c.find((e => e.property.name === a))) || void 0 === i ? void 0 : i.validate(n, o, u, h))) && void 0 !== r ? r : [];
-        return (await Promise.all(c.map((async e => e.validate(n, o, u, h))))).flat();
+        if (void 0 !== a) return null !== (r = await (null === (i = l.find((e => e.property.name === a))) || void 0 === i ? void 0 : i.validate(n, o, u, h))) && void 0 !== r ? r : [];
+        return (await Promise.all(l.map((async e => e.validate(n, o, u, h))))).flat();
     }
 }
 

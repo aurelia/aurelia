@@ -1,4 +1,4 @@
-import { DI, IEventAggregator, ILogger, bound, onResolve, resolveAll, isObject, IContainer, isArrayIndex, Metadata, Protocol, emptyArray, IModuleLoader, InstanceProvider, noop, Registration } from '@aurelia/kernel';
+import { DI, IEventAggregator, ILogger, bound, onResolve, resolveAll, isObject, IContainer, isArrayIndex, Protocol, Metadata, emptyArray, IModuleLoader, InstanceProvider, noop, Registration } from '@aurelia/kernel';
 import { isCustomElementViewModel, IHistory, ILocation, IWindow, Controller, CustomElement, IPlatform, CustomElementDefinition, IController, IAppRoot, isCustomElementController, bindable, customElement, BindingMode, customAttribute, IEventTarget, INode, IEventDelegator, getRef, CustomAttribute, AppTask } from '@aurelia/runtime-html';
 import { RouteRecognizer } from '@aurelia/route-recognizer';
 

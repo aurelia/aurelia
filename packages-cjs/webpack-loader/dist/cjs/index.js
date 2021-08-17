@@ -33,6 +33,6 @@ function loader(contents, _preprocess = pluginConventions.preprocess // for test
     }
 }
 
-exports.default = index;
+exports['default'] = index;
 exports.loader = loader;
 //# sourceMappingURL=index.js.map

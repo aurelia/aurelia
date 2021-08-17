@@ -354,10 +354,10 @@ exports.NodeFileSystem = class NodeFileSystem {
         await this.ensureDir(path.dirname(path$1));
         return writeFile(path$1, content, { encoding: encoding });
     }
-    writeFileSync(path$1, content, encoding) {
-        this.logger.trace(`readFileSync(path: ${path$1}, content: ${content}, encoding: ${encoding})`);
+    writeFileSync(path$1, content, options) {
+        this.logger.trace(`readFileSync(path: ${path$1}, content: ${content}, encoding: ${options})`);
         this.ensureDirSync(path.dirname(path$1));
-        fs.writeFileSync(path$1, content, encoding);
+        fs.writeFileSync(path$1, content, options);
     }
     async rimraf(path$1) {
         this.logger.trace(`rimraf(path: ${path$1})`);

@@ -1,6 +1,6 @@
 import { DI, IEventAggregator, toArray, camelCase, Registration } from '@aurelia/kernel';
-import { ValueConverterExpression as ValueConverterExpression$1, bindingBehavior as bindingBehavior$1, Interpolation, CustomElement, AttrSyntax, attributePattern, BindingMode, IAttrMapper, bindingCommand, IPlatform, renderer, valueConverter as valueConverter$1, AppTask, AttributePattern, BindingCommand } from '@aurelia/runtime-html';
-import { ValueConverterExpression, bindingBehavior, ISignaler, valueConverter, CustomExpression, connectable, IExpressionParser, IObserverLocator } from '@aurelia/runtime';
+import { bindingBehavior as bindingBehavior$1, ValueConverterExpression as ValueConverterExpression$1, Interpolation, CustomElement, attributePattern, bindingCommand, renderer, AttrSyntax, BindingMode, IAttrMapper, IPlatform, valueConverter as valueConverter$1, AppTask, AttributePattern, BindingCommand } from '@aurelia/runtime-html';
+import { ValueConverterExpression, bindingBehavior, ISignaler, valueConverter, connectable, CustomExpression, IExpressionParser, IObserverLocator } from '@aurelia/runtime';
 import i18next from 'i18next';
 
 /*! *****************************************************************************

@@ -166,5 +166,5 @@ exports.RouterRegistration = router.RouterRegistration;
 exports.route = router.route;
 exports.Aurelia = Aurelia;
 exports.PLATFORM = PLATFORM;
-exports.default = Aurelia;
+exports['default'] = Aurelia;
 //# sourceMappingURL=index.dev.js.map

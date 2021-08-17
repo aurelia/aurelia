@@ -6,7 +6,7 @@ import { IExpressionParser as l } from "@aurelia/runtime";
 
 import { IPlatform as s } from "@aurelia/runtime-html";
 
-import { ValidationMessageProvider as c, IValidator as u } from "@aurelia/validation";
+import { IValidator as c, ValidationMessageProvider as u } from "@aurelia/validation";
 
 import { ValidationController as f, ValidationControllerFactory as d, getDefaultValidationHtmlConfiguration as m, ValidationHtmlConfiguration as h } from "@aurelia/validation-html";
 
@@ -50,7 +50,7 @@ let x = class LocalizedValidationController extends f {
     }
 };
 
-x = v([ p(0, r), p(1, i), p(2, u), p(3, l), p(4, s) ], x);
+x = v([ p(0, r), p(1, i), p(2, c), p(3, l), p(4, s) ], x);
 
 class LocalizedValidationControllerFactory extends d {
     construct(t, e) {
@@ -58,7 +58,7 @@ class LocalizedValidationControllerFactory extends d {
     }
 }
 
-let z = class LocalizedValidationMessageProvider extends c {
+let z = class LocalizedValidationMessageProvider extends u {
     constructor(t, e, i, o, r) {
         super(o, r, []);
         this.i18n = e;

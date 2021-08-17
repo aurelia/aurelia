@@ -1,8 +1,8 @@
 import { DI as t, IEventAggregator as n, toArray as i, camelCase as s, Registration as e } from "@aurelia/kernel";
 
-import { ValueConverterExpression as r, bindingBehavior as o, Interpolation as a, CustomElement as h, AttrSyntax as l, attributePattern as c, BindingMode as u, IAttrMapper as d, bindingCommand as f, IPlatform as m, renderer as g, valueConverter as p, AppTask as v, AttributePattern as b, BindingCommand as B } from "@aurelia/runtime-html";
+import { bindingBehavior as r, ValueConverterExpression as o, Interpolation as a, CustomElement as h, attributePattern as l, bindingCommand as c, renderer as u, AttrSyntax as d, BindingMode as f, IAttrMapper as m, IPlatform as g, valueConverter as p, AppTask as v, AttributePattern as b, BindingCommand as B } from "@aurelia/runtime-html";
 
-import { ValueConverterExpression as T, bindingBehavior as w, ISignaler as C, valueConverter as y, CustomExpression as I, connectable as x, IExpressionParser as P, IObserverLocator as M } from "@aurelia/runtime";
+import { ValueConverterExpression as T, bindingBehavior as w, ISignaler as C, valueConverter as y, connectable as I, CustomExpression as x, IExpressionParser as P, IObserverLocator as M } from "@aurelia/runtime";
 
 import A from "i18next";
 
@@ -274,14 +274,14 @@ z = L([ y("rt"), R(0, D) ], z);
 let H = class TranslationBindingBehavior {
     bind(t, n, i) {
         const s = i.sourceExpression.expression;
-        if (!(s instanceof r)) {
-            const t = new r(s, "t", i.sourceExpression.args);
+        if (!(s instanceof o)) {
+            const t = new o(s, "t", i.sourceExpression.args);
             i.sourceExpression.expression = t;
         }
     }
 };
 
-H = L([ o("t") ], H);
+H = L([ r("t") ], H);
 
 const U = [ "textContent", "innerHTML", "prepend", "append" ];
 
@@ -321,7 +321,7 @@ class TranslationBinding {
         });
         const l = "string" === typeof r.from ? t.parse(r.from, 8) : r.from;
         if (a) h.useParameter(l); else {
-            const n = l instanceof I ? t.parse(l.value, 1) : void 0;
+            const n = l instanceof x ? t.parse(l.value, 1) : void 0;
             h.expr = n || l;
         }
     }
@@ -493,9 +493,9 @@ class ParameterBinding {
     }
 }
 
-x(TranslationBinding);
+I(TranslationBinding);
 
-x(ParameterBinding);
+I(ParameterBinding);
 
 const J = "tpt";
 
@@ -503,11 +503,11 @@ const Q = "t-params.bind";
 
 let X = class TranslationParametersAttributePattern {
     [Q](t, n, i) {
-        return new l(t, n, "", Q);
+        return new d(t, n, "", Q);
     }
 };
 
-X = L([ c({
+X = L([ l({
     pattern: Q,
     symbols: ""
 }) ], X);
@@ -517,7 +517,7 @@ class TranslationParametersBindingInstruction {
         this.from = t;
         this.to = n;
         this.type = J;
-        this.mode = u.toView;
+        this.mode = f.toView;
     }
 }
 
@@ -539,9 +539,9 @@ let Z = class TranslationParametersBindingCommand {
     }
 };
 
-Z.inject = [ d, P ];
+Z.inject = [ m, P ];
 
-Z = L([ f(Q) ], Z);
+Z = L([ c(Q) ], Z);
 
 let tt = class TranslationParametersBindingRenderer {
     constructor(t, n, i) {
@@ -563,16 +563,16 @@ let tt = class TranslationParametersBindingRenderer {
     }
 };
 
-tt.inject = [ P, M, m ];
+tt.inject = [ P, M, g ];
 
-tt = L([ g(J) ], tt);
+tt = L([ u(J) ], tt);
 
 const nt = "tt";
 
 class TranslationAttributePattern {
     static registerAlias(t) {
         this.prototype[t] = function(n, i, s) {
-            return new l(n, i, "", t);
+            return new d(n, i, "", t);
         };
     }
 }
@@ -582,7 +582,7 @@ class TranslationBindingInstruction {
         this.from = t;
         this.to = n;
         this.type = nt;
-        this.mode = u.toView;
+        this.mode = f.toView;
     }
 }
 
@@ -598,11 +598,11 @@ class TranslationBindingCommand {
         var n;
         let i;
         if (null == t.bindable) i = null !== (n = this.m.map(t.node, t.attr.target)) && void 0 !== n ? n : s(t.attr.target); else i = t.bindable.property;
-        return new TranslationBindingInstruction(new I(t.attr.rawValue), i);
+        return new TranslationBindingInstruction(new x(t.attr.rawValue), i);
     }
 }
 
-TranslationBindingCommand.inject = [ d ];
+TranslationBindingCommand.inject = [ m ];
 
 let it = class TranslationBindingRenderer {
     constructor(t, n, i) {
@@ -623,9 +623,9 @@ let it = class TranslationBindingRenderer {
     }
 };
 
-it.inject = [ P, M, m ];
+it.inject = [ P, M, g ];
 
-it = L([ g(nt) ], it);
+it = L([ u(nt) ], it);
 
 const st = "tbt";
 
@@ -633,7 +633,7 @@ class TranslationBindAttributePattern {
     static registerAlias(t) {
         const n = `${t}.bind`;
         this.prototype[n] = function(t, i, s) {
-            return new l(t, i, s[1], n);
+            return new d(t, i, s[1], n);
         };
     }
 }
@@ -643,7 +643,7 @@ class TranslationBindBindingInstruction {
         this.from = t;
         this.to = n;
         this.type = st;
-        this.mode = u.toView;
+        this.mode = f.toView;
     }
 }
 
@@ -664,7 +664,7 @@ class TranslationBindBindingCommand {
     }
 }
 
-TranslationBindBindingCommand.inject = [ d, P ];
+TranslationBindBindingCommand.inject = [ m, P ];
 
 let et = class TranslationBindBindingRenderer {
     constructor(t, n, i) {
@@ -685,7 +685,7 @@ let et = class TranslationBindBindingRenderer {
     }
 };
 
-et = L([ g(st), R(0, P), R(1, M), R(2, m) ], et);
+et = L([ u(st), R(0, P), R(1, M), R(2, g) ], et);
 
 let rt = class TranslationValueConverter {
     constructor(t) {

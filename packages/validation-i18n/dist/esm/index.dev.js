@@ -2,7 +2,7 @@ import { I18N } from '@aurelia/i18n';
 import { DI, IEventAggregator, ILogger, IServiceLocator, Registration, noop } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
 import { IPlatform } from '@aurelia/runtime-html';
-import { ValidationMessageProvider, IValidator } from '@aurelia/validation';
+import { IValidator, ValidationMessageProvider } from '@aurelia/validation';
 import { ValidationController, ValidationControllerFactory, getDefaultValidationHtmlConfiguration, ValidationHtmlConfiguration } from '@aurelia/validation-html';
 
 /*! *****************************************************************************

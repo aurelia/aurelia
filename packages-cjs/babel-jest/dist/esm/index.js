@@ -29,5 +29,5 @@ function createTransformer(conventionsOptions = {}) {
 const { canInstrument, getCacheKey, process } = createTransformer();
 var index = { canInstrument, getCacheKey, process, createTransformer, _createTransformer };
 
-export default index;
+export { index as default };
 //# sourceMappingURL=index.js.map

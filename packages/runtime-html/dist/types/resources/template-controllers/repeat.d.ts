@@ -29,12 +29,6 @@ export declare class Repeat<C extends Collection = unknown[]> implements ICustom
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LF): void | Promise<void>;
     itemsChanged(flags: LF): void;
     handleCollectionChange(indexMap: IndexMap | undefined, flags: LF): void;
-    private _checkCollectionObserver;
-    private _normalizeToArray;
-    private _activateAllViews;
-    private _deactivateAllViews;
-    private _deactivateAndRemoveViewsByKey;
-    private _createAndActivateAndSortViewsByKey;
     dispose(): void;
     accept(visitor: ControllerVisitor): void | true;
 }

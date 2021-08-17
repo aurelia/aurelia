@@ -1,4 +1,4 @@
-import { DI as t, IEventAggregator as e, ILogger as i, bound as s, onResolve as n, resolveAll as o, isObject as r, IContainer as a, isArrayIndex as h, Metadata as c, Protocol as u, emptyArray as l, IModuleLoader as d, InstanceProvider as f, noop as p, Registration as g } from "@aurelia/kernel";
+import { DI as t, IEventAggregator as e, ILogger as i, bound as s, onResolve as n, resolveAll as o, isObject as r, IContainer as a, isArrayIndex as h, Protocol as c, Metadata as u, emptyArray as l, IModuleLoader as d, InstanceProvider as f, noop as p, Registration as g } from "@aurelia/kernel";
 
 import { isCustomElementViewModel as v, IHistory as w, ILocation as m, IWindow as $, Controller as x, CustomElement as y, IPlatform as E, CustomElementDefinition as S, IController as b, IAppRoot as R, isCustomElementController as C, bindable as k, customElement as I, BindingMode as N, customAttribute as T, IEventTarget as V, INode as A, IEventDelegator as P, getRef as L, CustomAttribute as U, AppTask as O } from "@aurelia/runtime-html";
 
@@ -2987,15 +2987,15 @@ class RouteConfig {
     }
     static configure(t, e) {
         const i = RouteConfig.create(t, e);
-        c.define(Ht.name, i, e);
+        u.define(Ht.name, i, e);
         return e;
     }
     static getConfig(t) {
-        if (!c.hasOwn(Ht.name, t)) Ht.configure({}, t);
-        return c.getOwn(Ht.name, t);
+        if (!u.hasOwn(Ht.name, t)) Ht.configure({}, t);
+        return u.getOwn(Ht.name, t);
     }
     saveTo(t) {
-        c.define(Ht.name, this, t);
+        u.define(Ht.name, this, t);
     }
 }
 
@@ -3007,18 +3007,18 @@ class ChildRouteConfig extends RouteConfig {
 }
 
 const Ht = {
-    name: u.resource.keyFor("route"),
+    name: c.resource.keyFor("route"),
     isConfigured(t) {
-        return c.hasOwn(Ht.name, t);
+        return u.hasOwn(Ht.name, t);
     },
     configure(t, e) {
         const i = RouteConfig.create(t, e);
-        c.define(Ht.name, i, e);
+        u.define(Ht.name, i, e);
         return e;
     },
     getConfig(t) {
         if (!Ht.isConfigured(t)) Ht.configure({}, t);
-        return c.getOwn(Ht.name, t);
+        return u.getOwn(Ht.name, t);
     }
 };
 
@@ -3048,17 +3048,17 @@ class RouteDefinition {
                 ...Ht.getConfig(e.Type),
                 ...t
             } : Ht.getConfig(e.Type);
-            if (!c.hasOwn(Ht.name, e)) {
+            if (!u.hasOwn(Ht.name, e)) {
                 const t = new RouteDefinition(i, e);
-                c.define(Ht.name, t, e);
+                u.define(Ht.name, t, e);
             } else {
-                let t = c.getOwn(Ht.name, e);
+                let t = u.getOwn(Ht.name, e);
                 if (t.config !== i) {
                     t = new RouteDefinition(i, e);
-                    c.define(Ht.name, t, e);
+                    u.define(Ht.name, t, e);
                 }
             }
-            return c.getOwn(Ht.name, e);
+            return u.getOwn(Ht.name, e);
         }));
     }
     static resolveCustomElementDefinition(t, e) {

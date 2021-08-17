@@ -1,6 +1,6 @@
 import { DI, IServiceLocator, optional, Registration, noop } from '@aurelia/kernel';
 import { parsePropertyName, ValidationResult, ValidateInstruction, PropertyRule, IValidator, getDefaultValidationConfiguration, ValidationConfiguration } from '@aurelia/validation';
-import { IPlatform, bindable, INode, BindingMode, customAttribute, BindingInterceptor, BindingMediator, bindingBehavior, PropertyBinding, CustomElement } from '@aurelia/runtime-html';
+import { IPlatform, bindable, INode, BindingMode, customAttribute, bindingBehavior, BindingInterceptor, BindingMediator, PropertyBinding, CustomElement } from '@aurelia/runtime-html';
 import { IExpressionParser } from '@aurelia/runtime';
 
 /*! *****************************************************************************

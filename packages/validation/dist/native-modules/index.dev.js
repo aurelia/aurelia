@@ -1,6 +1,6 @@
 import { DI, Protocol, Metadata, toArray, ILogger, IServiceLocator, Registration, noop } from '../../../kernel/dist/native-modules/index.js';
 import * as AST from '../../../runtime/dist/native-modules/index.js';
-import { Scope, IExpressionParser, PrimitiveLiteralExpression } from '../../../runtime/dist/native-modules/index.js';
+import { IExpressionParser, Scope, PrimitiveLiteralExpression } from '../../../runtime/dist/native-modules/index.js';
 
 const IValidationExpressionHydrator = DI.createInterface('IValidationExpressionHydrator');
 

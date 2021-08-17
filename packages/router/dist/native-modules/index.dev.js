@@ -1,4 +1,4 @@
-import { DI, IEventAggregator, ILogger, bound, onResolve, resolveAll, isObject, IContainer, isArrayIndex, Metadata, Protocol, emptyArray, IModuleLoader, InstanceProvider, noop, Registration } from '../../../kernel/dist/native-modules/index.js';
+import { DI, IEventAggregator, ILogger, bound, onResolve, resolveAll, isObject, IContainer, isArrayIndex, Protocol, Metadata, emptyArray, IModuleLoader, InstanceProvider, noop, Registration } from '../../../kernel/dist/native-modules/index.js';
 import { isCustomElementViewModel, IHistory, ILocation, IWindow, Controller, CustomElement, IPlatform, CustomElementDefinition, IController, IAppRoot, isCustomElementController, bindable, customElement, BindingMode, customAttribute, IEventTarget, INode, IEventDelegator, getRef, CustomAttribute, AppTask } from '../../../runtime-html/dist/native-modules/index.js';
 import { RouteRecognizer } from '../../../route-recognizer/dist/native-modules/index.js';
 

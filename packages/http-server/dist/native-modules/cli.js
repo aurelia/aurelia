@@ -1,4 +1,4 @@
-import { readFileSync, access, constants as constants$1, exists as exists$1, readFile as readFile$1, readdirSync, statSync, openSync, existsSync } from 'fs';
+import { readFileSync, readFile as readFile$1, access, constants as constants$1, exists as exists$1, readdirSync, statSync, openSync, existsSync } from 'fs';
 import { resolve, join, extname, relative } from 'path';
 import { EOL } from 'os';
 import { DI, IContainer, all, bound, ILogger, Registration, LoggerConfiguration, ConsoleSink, IPlatform, Platform } from '../../../kernel/dist/native-modules/index.js';

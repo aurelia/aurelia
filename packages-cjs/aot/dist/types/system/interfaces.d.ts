@@ -1,4 +1,6 @@
+/// <reference types="node" />
 import { CompilerOptions } from 'typescript';
+import type { WriteFileOptions } from 'fs';
 export declare const enum Encoding {
     utf8 = "utf8",
     utf16le = "utf16le",
@@ -57,7 +59,7 @@ export interface IFileSystem {
     ensureDir(path: string): Promise<void>;
     ensureDirSync(path: string): void;
     writeFile(path: string, content: string, encoding: Encoding): Promise<void>;
-    writeFileSync(path: string, content: string, encoding: Encoding): void;
+    writeFileSync(path: string, content: string, encoding: WriteFileOptions): void;
     rimraf(path: string): Promise<void>;
     getRealPath(path: string): Promise<string>;
     getRealPathSync(path: string): string;

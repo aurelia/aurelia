@@ -350,10 +350,10 @@ let NodeFileSystem = class NodeFileSystem {
         await this.ensureDir(dirname(path));
         return writeFile(path, content, { encoding: encoding });
     }
-    writeFileSync(path, content, encoding) {
-        this.logger.trace(`readFileSync(path: ${path}, content: ${content}, encoding: ${encoding})`);
+    writeFileSync(path, content, options) {
+        this.logger.trace(`readFileSync(path: ${path}, content: ${content}, encoding: ${options})`);
         this.ensureDirSync(dirname(path));
-        writeFileSync(path, content, encoding);
+        writeFileSync(path, content, options);
     }
     async rimraf(path) {
         this.logger.trace(`rimraf(path: ${path})`);

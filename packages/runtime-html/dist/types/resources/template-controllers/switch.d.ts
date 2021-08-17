@@ -25,10 +25,7 @@ export declare class Switch implements ICustomAttributeViewModel {
     dispose(): void;
     valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags): void;
     caseChanged($case: Case, flags: LifecycleFlags): void;
-    private handleCaseChange;
     private swap;
-    private activateCases;
-    private clearActiveCases;
     private queue;
     accept(visitor: ControllerVisitor): void | true;
 }

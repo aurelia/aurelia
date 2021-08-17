@@ -44,6 +44,5 @@ function stringModuleWrap(id) {
     return `text!${id}`;
 }
 
-export default index;
-export { plugin };
+export { index as default, plugin };
 //# sourceMappingURL=index.js.map

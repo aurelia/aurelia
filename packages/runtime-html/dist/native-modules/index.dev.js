@@ -1,7 +1,7 @@
 export { Platform, Task, TaskAbortError, TaskQueue, TaskQueuePriority, TaskStatus } from '../../../platform/dist/native-modules/index.js';
 import { BrowserPlatform } from '../../../platform-browser/dist/native-modules/index.js';
 export { BrowserPlatform } from '../../../platform-browser/dist/native-modules/index.js';
-import { Metadata, Protocol, getPrototypeChain, firstDefined, kebabCase, noop, emptyArray, DI, all, Registration, IPlatform as IPlatform$1, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, IContainer, nextId, optional, InstanceProvider, isObject, ILogger, onResolve, resolveAll, camelCase, toArray, emptyObject, IServiceLocator, compareNumber, transient } from '../../../kernel/dist/native-modules/index.js';
+import { Metadata, Protocol, getPrototypeChain, firstDefined, kebabCase, noop, DI, emptyArray, all, Registration, IPlatform as IPlatform$1, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, IContainer, nextId, optional, InstanceProvider, isObject, ILogger, onResolve, resolveAll, camelCase, toArray, emptyObject, IServiceLocator, compareNumber, transient } from '../../../kernel/dist/native-modules/index.js';
 import { BindingMode, subscriberCollection, withFlushQueue, connectable, registerAliases, ConnectableSwitcher, ProxyObservable, Scope, IObserverLocator, IExpressionParser, AccessScopeExpression, DelegationStrategy, BindingBehaviorExpression, BindingBehaviorFactory, PrimitiveLiteralExpression, bindingBehavior, BindingInterceptor, ISignaler, PropertyAccessor, INodeObserverLocator, SetterObserver, IDirtyChecker, alias, applyMutationsToIndices, getCollectionObserver as getCollectionObserver$1, BindingContext, synchronizeIndices, valueConverter } from '../../../runtime/dist/native-modules/index.js';
 export { Access, AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, AccessorType, ArrayBindingPattern, ArrayIndexObserver, ArrayLiteralExpression, ArrayObserver, AssignExpression, BinaryExpression, BindingBehavior, BindingBehaviorDefinition, BindingBehaviorExpression, BindingBehaviorFactory, BindingBehaviorStrategy, BindingContext, BindingIdentifier, BindingInterceptor, BindingMediator, BindingMode, CallFunctionExpression, CallMemberExpression, CallScopeExpression, Char, CollectionKind, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConditionalExpression, CustomExpression, DelegationStrategy, DirtyCheckProperty, DirtyCheckSettings, ExpressionKind, ExpressionType, ForOfStatement, HtmlLiteralExpression, IDirtyChecker, IExpressionParser, INodeObserverLocator, IObserverLocator, ISignaler, Interpolation, LifecycleFlags, MapObserver, ObjectBindingPattern, ObjectLiteralExpression, ObserverLocator, OverrideContext, Precedence, PrimitiveLiteralExpression, PrimitiveObserver, PropertyAccessor, Scope, SetObserver, SetterObserver, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverter, ValueConverterDefinition, ValueConverterExpression, alias, applyMutationsToIndices, bindingBehavior, cloneIndexMap, connectable, copyIndexMap, createIndexMap, disableArrayObservation, disableMapObservation, disableSetObservation, enableArrayObservation, enableMapObservation, enableSetObservation, getCollectionObserver, isIndexMap, observable, parseExpression, registerAliases, subscriberCollection, synchronizeIndices, valueConverter } from '../../../runtime/dist/native-modules/index.js';
 
@@ -5820,11 +5820,9 @@ class IteratorBindingRenderer {
     render(renderingCtrl, target, instruction) {
         const expr = ensureExpression(this._exprParser, instruction.from, 2 /* IsIterator */);
         const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this._observerLocator, renderingCtrl.container, this._platform.domWriteQueue);
-        renderingCtrl.addBinding(binding);
-        // todo: fix bb + repeat
-        // renderingController.addBinding(expr.iterable.$kind === ExpressionKind.BindingBehavior
-        //   ? applyBindingBehavior(binding, expr.iterable, renderingController.container)
-        //   : binding);
+        renderingCtrl.addBinding(expr.iterable.$kind === 38962 /* BindingBehavior */
+            ? applyBindingBehavior(binding, expr.iterable, renderingCtrl.container)
+            : binding);
     }
 };
 /** @internal */ IteratorBindingRenderer.inject = [IExpressionParser, IObserverLocator, IPlatform];
@@ -9913,6 +9911,7 @@ class Repeat {
         }
     }
     // todo: subscribe to collection from inner expression
+    /** @internal */
     _checkCollectionObserver(flags) {
         var _a;
         const scope = this.$controller.scope;
@@ -9938,6 +9937,7 @@ class Repeat {
             }
         }
     }
+    /** @internal */
     _normalizeToArray(flags) {
         const items = this.items;
         if (items instanceof Array) {
@@ -9954,6 +9954,7 @@ class Repeat {
         });
         this._normalizedItems = normalizedItems;
     }
+    /** @internal */
     _activateAllViews(initiator, flags) {
         let promises = void 0;
         let ret;
@@ -9979,6 +9980,7 @@ class Repeat {
                 : Promise.all(promises);
         }
     }
+    /** @internal */
     _deactivateAllViews(initiator, flags) {
         let promises = void 0;
         let ret;
@@ -10000,6 +10002,7 @@ class Repeat {
                 : Promise.all(promises);
         }
     }
+    /** @internal */
     _deactivateAndRemoveViewsByKey(indexMap, flags) {
         let promises = void 0;
         let ret;
@@ -10028,6 +10031,7 @@ class Repeat {
                 : Promise.all(promises);
         }
     }
+    /** @internal */
     _createAndActivateAndSortViewsByKey(oldLength, indexMap, flags) {
         var _a;
         let promises = void 0;
@@ -10270,9 +10274,10 @@ let Switch = class Switch {
         this.queue(() => this.swap(null, flags, this.value));
     }
     caseChanged($case, flags) {
-        this.queue(() => this.handleCaseChange($case, flags));
+        this.queue(() => this._handleCaseChange($case, flags));
     }
-    handleCaseChange($case, flags) {
+    /** @internal */
+    _handleCaseChange($case, flags) {
         const isMatch = $case.isMatch(this.value, flags);
         const activeCases = this.activeCases;
         const numActiveCases = activeCases.length;
@@ -10280,7 +10285,7 @@ let Switch = class Switch {
         if (!isMatch) {
             /** The previous match started with this; thus clear. */
             if (numActiveCases > 0 && activeCases[0].id === $case.id) {
-                return this.clearActiveCases(null, flags);
+                return this._clearActiveCases(null, flags);
             }
             /**
              * There are 2 different scenarios here:
@@ -10309,9 +10314,9 @@ let Switch = class Switch {
                 fallThrough = c.fallThrough;
             }
         }
-        return onResolve(this.clearActiveCases(null, flags, newActiveCases), () => {
+        return onResolve(this._clearActiveCases(null, flags, newActiveCases), () => {
             this.activeCases = newActiveCases;
-            return this.activateCases(null, flags);
+            return this._activateCases(null, flags);
         });
     }
     swap(initiator, flags, value) {
@@ -10331,16 +10336,17 @@ let Switch = class Switch {
             newActiveCases.push(defaultCase);
         }
         return onResolve(this.activeCases.length > 0
-            ? this.clearActiveCases(initiator, flags, newActiveCases)
+            ? this._clearActiveCases(initiator, flags, newActiveCases)
             : void 0, () => {
             this.activeCases = newActiveCases;
             if (newActiveCases.length === 0) {
                 return;
             }
-            return this.activateCases(initiator, flags);
+            return this._activateCases(initiator, flags);
         });
     }
-    activateCases(initiator, flags) {
+    /** @internal */
+    _activateCases(initiator, flags) {
         const controller = this.$controller;
         if (!controller.isActive) {
             return;
@@ -10357,7 +10363,8 @@ let Switch = class Switch {
         }
         return resolveAll(...cases.map(($case) => $case.activate(initiator, flags, scope)));
     }
-    clearActiveCases(initiator, flags, newActiveCases = []) {
+    /** @internal */
+    _clearActiveCases(initiator, flags, newActiveCases = []) {
         const cases = this.activeCases;
         const numCases = cases.length;
         if (numCases === 0) {
@@ -10712,7 +10719,7 @@ let FulfilledTemplateController = class FulfilledTemplateController {
     }
 };
 __decorate([
-    bindable({ mode: BindingMode.toView })
+    bindable({ mode: BindingMode.fromView })
 ], FulfilledTemplateController.prototype, "value", void 0);
 FulfilledTemplateController = __decorate([
     templateController('then'),
@@ -10753,7 +10760,7 @@ let RejectedTemplateController = class RejectedTemplateController {
     }
 };
 __decorate([
-    bindable({ mode: BindingMode.toView })
+    bindable({ mode: BindingMode.fromView })
 ], RejectedTemplateController.prototype, "value", void 0);
 RejectedTemplateController = __decorate([
     templateController('catch'),

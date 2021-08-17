@@ -1,4 +1,4 @@
-import { access, constants as constants$1, exists as exists$1, readFile as readFile$1, readdirSync, statSync, openSync, readFileSync } from 'fs';
+import { readFile as readFile$1, access, constants as constants$1, exists as exists$1, readdirSync, statSync, openSync, readFileSync } from 'fs';
 import { IncomingMessage, ServerResponse, createServer } from 'http';
 import { constants, Http2ServerRequest, Http2ServerResponse, createSecureServer } from 'http2';
 import { resolve, join, extname, relative } from 'path';

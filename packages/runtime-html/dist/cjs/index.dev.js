@@ -5822,11 +5822,9 @@ class IteratorBindingRenderer {
     render(renderingCtrl, target, instruction) {
         const expr = ensureExpression(this._exprParser, instruction.from, 2 /* IsIterator */);
         const binding = new PropertyBinding(expr, getTarget(target), instruction.to, runtime.BindingMode.toView, this._observerLocator, renderingCtrl.container, this._platform.domWriteQueue);
-        renderingCtrl.addBinding(binding);
-        // todo: fix bb + repeat
-        // renderingController.addBinding(expr.iterable.$kind === ExpressionKind.BindingBehavior
-        //   ? applyBindingBehavior(binding, expr.iterable, renderingController.container)
-        //   : binding);
+        renderingCtrl.addBinding(expr.iterable.$kind === 38962 /* BindingBehavior */
+            ? applyBindingBehavior(binding, expr.iterable, renderingCtrl.container)
+            : binding);
     }
 };
 /** @internal */ IteratorBindingRenderer.inject = [runtime.IExpressionParser, runtime.IObserverLocator, IPlatform];
@@ -9915,6 +9913,7 @@ class Repeat {
         }
     }
     // todo: subscribe to collection from inner expression
+    /** @internal */
     _checkCollectionObserver(flags) {
         var _a;
         const scope = this.$controller.scope;
@@ -9940,6 +9939,7 @@ class Repeat {
             }
         }
     }
+    /** @internal */
     _normalizeToArray(flags) {
         const items = this.items;
         if (items instanceof Array) {
@@ -9956,6 +9956,7 @@ class Repeat {
         });
         this._normalizedItems = normalizedItems;
     }
+    /** @internal */
     _activateAllViews(initiator, flags) {
         let promises = void 0;
         let ret;
@@ -9981,6 +9982,7 @@ class Repeat {
                 : Promise.all(promises);
         }
     }
+    /** @internal */
     _deactivateAllViews(initiator, flags) {
         let promises = void 0;
         let ret;
@@ -10002,6 +10004,7 @@ class Repeat {
                 : Promise.all(promises);
         }
     }
+    /** @internal */
     _deactivateAndRemoveViewsByKey(indexMap, flags) {
         let promises = void 0;
         let ret;
@@ -10030,6 +10033,7 @@ class Repeat {
                 : Promise.all(promises);
         }
     }
+    /** @internal */
     _createAndActivateAndSortViewsByKey(oldLength, indexMap, flags) {
         var _a;
         let promises = void 0;
@@ -10272,9 +10276,10 @@ exports.Switch = class Switch {
         this.queue(() => this.swap(null, flags, this.value));
     }
     caseChanged($case, flags) {
-        this.queue(() => this.handleCaseChange($case, flags));
+        this.queue(() => this._handleCaseChange($case, flags));
     }
-    handleCaseChange($case, flags) {
+    /** @internal */
+    _handleCaseChange($case, flags) {
         const isMatch = $case.isMatch(this.value, flags);
         const activeCases = this.activeCases;
         const numActiveCases = activeCases.length;
@@ -10282,7 +10287,7 @@ exports.Switch = class Switch {
         if (!isMatch) {
             /** The previous match started with this; thus clear. */
             if (numActiveCases > 0 && activeCases[0].id === $case.id) {
-                return this.clearActiveCases(null, flags);
+                return this._clearActiveCases(null, flags);
             }
             /**
              * There are 2 different scenarios here:
@@ -10311,9 +10316,9 @@ exports.Switch = class Switch {
                 fallThrough = c.fallThrough;
             }
         }
-        return kernel.onResolve(this.clearActiveCases(null, flags, newActiveCases), () => {
+        return kernel.onResolve(this._clearActiveCases(null, flags, newActiveCases), () => {
             this.activeCases = newActiveCases;
-            return this.activateCases(null, flags);
+            return this._activateCases(null, flags);
         });
     }
     swap(initiator, flags, value) {
@@ -10333,16 +10338,17 @@ exports.Switch = class Switch {
             newActiveCases.push(defaultCase);
         }
         return kernel.onResolve(this.activeCases.length > 0
-            ? this.clearActiveCases(initiator, flags, newActiveCases)
+            ? this._clearActiveCases(initiator, flags, newActiveCases)
             : void 0, () => {
             this.activeCases = newActiveCases;
             if (newActiveCases.length === 0) {
                 return;
             }
-            return this.activateCases(initiator, flags);
+            return this._activateCases(initiator, flags);
         });
     }
-    activateCases(initiator, flags) {
+    /** @internal */
+    _activateCases(initiator, flags) {
         const controller = this.$controller;
         if (!controller.isActive) {
             return;
@@ -10359,7 +10365,8 @@ exports.Switch = class Switch {
         }
         return kernel.resolveAll(...cases.map(($case) => $case.activate(initiator, flags, scope)));
     }
-    clearActiveCases(initiator, flags, newActiveCases = []) {
+    /** @internal */
+    _clearActiveCases(initiator, flags, newActiveCases = []) {
         const cases = this.activeCases;
         const numCases = cases.length;
         if (numCases === 0) {
@@ -10714,7 +10721,7 @@ exports.FulfilledTemplateController = class FulfilledTemplateController {
     }
 };
 __decorate([
-    bindable({ mode: runtime.BindingMode.toView })
+    bindable({ mode: runtime.BindingMode.fromView })
 ], exports.FulfilledTemplateController.prototype, "value", void 0);
 exports.FulfilledTemplateController = __decorate([
     templateController('then'),
@@ -10755,7 +10762,7 @@ exports.RejectedTemplateController = class RejectedTemplateController {
     }
 };
 __decorate([
-    bindable({ mode: runtime.BindingMode.toView })
+    bindable({ mode: runtime.BindingMode.fromView })
 ], exports.RejectedTemplateController.prototype, "value", void 0);
 exports.RejectedTemplateController = __decorate([
     templateController('catch'),

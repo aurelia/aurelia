@@ -2,6 +2,7 @@
 import { Dirent, Stats } from 'fs';
 import { ILogger } from '@aurelia/kernel';
 import { FileKind, IFileSystem, IFile, Encoding } from './interfaces.js';
+import type { WriteFileOptions } from 'fs';
 export declare class File implements IFile {
     private readonly fs;
     /**
@@ -125,7 +126,7 @@ export declare class NodeFileSystem implements IFileSystem {
     ensureDir(path: string): Promise<void>;
     ensureDirSync(path: string): void;
     writeFile(path: string, content: string, encoding: Encoding): Promise<void>;
-    writeFileSync(path: string, content: string, encoding: Encoding): void;
+    writeFileSync(path: string, content: string, options: WriteFileOptions): void;
     rimraf(path: string): Promise<void>;
     getRealPath(path: string): Promise<string>;
     getRealPathSync(path: string): string;

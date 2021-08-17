@@ -29,6 +29,5 @@ function loader(contents, _preprocess = preprocess // for testing
     }
 }
 
-export default index;
-export { loader };
+export { index as default, loader };
 //# sourceMappingURL=index.js.map

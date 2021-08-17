@@ -1,6 +1,6 @@
 /* eslint-disable no-fallthrough */
-import { IContainer, Writable } from '@aurelia/kernel';
-import { Controller, LifecycleFlags, IHydratedController, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
+import { Constructable, IContainer, Writable } from '@aurelia/kernel';
+import { Controller, LifecycleFlags, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHooksEntry } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType, ReloadBehavior, LoadInstruction } from '../interfaces.js';
 import { Viewport } from './viewport.js';
 import { RoutingInstruction } from '../instructions/routing-instruction.js';
@@ -30,6 +30,12 @@ import { FoundRoute } from '../found-route.js';
  * The content states for the viewport content content.
  */
 export type ContentState = 'created' | 'checkedUnload' | 'checkedLoad' | 'loaded' | 'activating' | 'activated';
+
+// This should really be an export from runtime-html/lifecycle-hooks
+type FuncPropNames<T> = {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  [K in keyof T]: K extends 'constructor' ? never : Required<T>[K] extends Function ? K : never;
+}[keyof T];
 
 /**
  * @internal
@@ -236,10 +242,7 @@ export class ViewportContent extends EndpointContent {
     }
     this.contentStates.set('checkedLoad', void 0);
 
-    // No hook in component, we can unload
-    if (this.instruction.component.instance!.canLoad == null) {
-      return true;
-    }
+    const instance = this.instruction.component.instance!;
 
     // Propagate parent parameters
     // TODO: Do we really want this?
@@ -247,7 +250,42 @@ export class ViewportContent extends EndpointContent {
       .parentViewport?.getTimeContent(this.navigation.timestamp)?.instruction?.typeParameters(this.router);
     const parameters = this.instruction.typeParameters(this.router);
     const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
-    const result = this.instruction.component.instance!.canLoad(merged, this.instruction, this.navigation);
+
+    const hooks = this.getLifecycleHooks(instance, 'canLoad').map(hook => ((innerStep: Step) => {
+      const result = hook(instance, merged, this.instruction, this.navigation);
+      if (typeof result === 'boolean') {
+        if (result === false) {
+          innerStep.exit();
+        }
+        return result;
+      }
+      if (typeof result === 'string') {
+        innerStep.exit();
+        return [RoutingInstruction.create(result, this.endpoint as Viewport)];
+      }
+      return result as Promise<RoutingInstruction[]>;
+    }));
+
+    if (hooks.length !== 0) {
+      const hooksResult = Runner.run(null, ...hooks);
+
+      if (hooksResult !== true) {
+        if (hooksResult === false) {
+          return false;
+        }
+        if (typeof hooksResult === 'string') {
+          return [RoutingInstruction.create(hooksResult, this.endpoint as Viewport)];
+        }
+        return hooksResult as Promise<RoutingInstruction[]>;
+      }
+    }
+
+    // No hook for component, we can load
+    if (instance.canLoad == null) {
+      return true;
+    }
+
+    const result = instance.canLoad(merged, this.instruction, this.navigation);
     if (typeof result === 'boolean') {
       return result;
     }
@@ -275,10 +313,7 @@ export class ViewportContent extends EndpointContent {
       return true;
     }
 
-    // No hook in component, we can unload
-    if (!this.instruction.component.instance!.canUnload) {
-      return true;
-    }
+    const instance = this.instruction.component.instance!;
 
     // If it's an unload without a navigation, such as custom element simply
     // being removed, create an empty navigation for canUnload hook
@@ -289,7 +324,35 @@ export class ViewportContent extends EndpointContent {
         previous: this.navigation,
       });
     }
-    const result = this.instruction.component.instance!.canUnload(this.instruction, navigation);
+
+    const hooks = this.getLifecycleHooks(instance, 'canUnload').map(hook => ((innerStep: Step) => {
+      const result = hook(instance, this.instruction, this.navigation);
+      if (typeof result === 'boolean') {
+        if (result === false) {
+          innerStep.exit();
+        }
+        return result;
+      }
+      return result as Promise<boolean>;
+    }));
+
+    if (hooks.length !== 0) {
+      const hooksResult = Runner.run(null, ...hooks);
+
+      if (hooksResult !== true) {
+        if (hooksResult === false) {
+          return false;
+        }
+        return hooksResult as Promise<boolean>;
+      }
+    }
+
+    // No hook in component, we can unload
+    if (!instance.canUnload) {
+      return true;
+    }
+
+    const result = instance.canUnload(this.instruction, navigation);
     if (typeof result !== 'boolean' && !(result instanceof Promise)) {
       throw new Error(`Method 'canUnload' in component "${this.instruction.component.name}" needs to return true or false or a Promise resolving to true or false.`);
     }
@@ -314,15 +377,30 @@ export class ViewportContent extends EndpointContent {
 
         this.contentStates.set('loaded', void 0);
 
+        const instance = this.instruction.component.instance!;
+
+        // Propagate parent parameters
+        // TODO: Do we really want this?
+        const parentParameters = (this.endpoint as Viewport)
+          .parentViewport?.getTimeContent(this.navigation.timestamp)?.instruction?.typeParameters(this.router);
+        const parameters = this.instruction.typeParameters(this.router);
+        const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
+
+        const hooks = this.getLifecycleHooks(instance, 'load').map(hook =>
+          () => hook(instance, merged, this.instruction, this.navigation));
+
+        if (hooks.length !== 0) {
+          // Add hook in component
+          if (instance.load != null) {
+            hooks.push(() => instance.load!(merged, this.instruction, this.navigation));
+          }
+
+          return Runner.run(null, ...hooks);
+        }
+
         // Skip if there's no hook in component
-        if (this.instruction.component.instance?.load != null) {
-          // Propagate parent parameters
-          // TODO: Do we really want this?
-          const parentParameters = (this.endpoint as Viewport)
-            .parentViewport?.getTimeContent(this.navigation.timestamp)?.instruction?.typeParameters(this.router);
-          const parameters = this.instruction.typeParameters(this.router);
-          const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
-          return this.instruction.component.instance.load(merged, this.instruction, this.navigation);
+        if (instance.load != null) {
+          return instance.load(merged, this.instruction, this.navigation);
         }
       }
     ) as Step<void>;
@@ -341,16 +419,31 @@ export class ViewportContent extends EndpointContent {
     }
     this.contentStates.delete('loaded');
 
-    // Skip if there's no hook in component
-    if (this.instruction.component.instance?.unload != null) {
-      if (navigation === null) {
-        navigation = Navigation.create({
-          instruction: '',
-          fullStateInstruction: '',
-          previous: this.navigation,
-        });
+    const instance = this.instruction.component.instance!;
+
+    if (navigation === null) {
+      navigation = Navigation.create({
+        instruction: '',
+        fullStateInstruction: '',
+        previous: this.navigation,
+      });
+    }
+
+    const hooks = this.getLifecycleHooks(instance, 'unload').map(hook =>
+      () => hook(instance, this.instruction, this.navigation));
+
+    if (hooks.length !== 0) {
+      // Add hook in component
+      if (instance.unload != null) {
+        hooks.push(() => instance.unload!(this.instruction, navigation));
       }
-      return this.instruction.component.instance.unload(this.instruction, navigation);
+
+      return Runner.run(null, ...hooks) as void | Promise<void>;
+    }
+
+    // Skip if there's no hook in component
+    if (instance.unload != null) {
+      return instance.unload(this.instruction, navigation);
     }
   }
 
@@ -528,6 +621,12 @@ export class ViewportContent extends EndpointContent {
         (this.endpoint as Viewport).activeResolve = resolve;
       });
     }
+  }
+
+  // TODO: Move this elsewhere and fix the typings
+  private getLifecycleHooks(instance: IRouteableComponent, name: string): any[] {
+    const hooks = (instance.$controller!.lifecycleHooks[name as FuncPropNames<Constructable>] ?? []) as LifecycleHooksEntry[];
+    return hooks.map(hook => hook.instance[name as FuncPropNames<Constructable>]);
   }
 
   // /**

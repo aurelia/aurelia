@@ -873,11 +873,9 @@ export class IteratorBindingRenderer implements IRenderer {
   ): void {
     const expr = ensureExpression(this._exprParser, instruction.from, ExpressionType.IsIterator);
     const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this._observerLocator, renderingCtrl.container, this._platform.domWriteQueue);
-    renderingCtrl.addBinding(binding);
-    // todo: fix bb + repeat
-    // renderingController.addBinding(expr.iterable.$kind === ExpressionKind.BindingBehavior
-    //   ? applyBindingBehavior(binding, expr.iterable, renderingController.container)
-    //   : binding);
+    renderingCtrl.addBinding(expr.iterable.$kind === ExpressionKind.BindingBehavior
+      ? applyBindingBehavior(binding, expr.iterable, renderingCtrl.container)
+      : binding);
   }
 }
 

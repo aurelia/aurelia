@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.17"></a>
+# 2.0.0-alpha.17 (2021-08-16)
+
+### Bug Fixes:
+
+* **repeat:** #779 ([4c121b9](https://github.com/aurelia/aurelia/commit/4c121b9))
+* **validation:** broken test in node ([809220a](https://github.com/aurelia/aurelia/commit/809220a))
+* **validation:** broken tests ([c334bf9](https://github.com/aurelia/aurelia/commit/c334bf9))
+
+
+### Refactorings:
+
+* **command:** extract CommandType out of ExpressionType ([e24fbed](https://github.com/aurelia/aurelia/commit/e24fbed))
+* **all:** rename BindingType -> ExpressionType ([8cf4061](https://github.com/aurelia/aurelia/commit/8cf4061))
+* **expr-parser:** simplify BindingType enum ([4c4cbc9](https://github.com/aurelia/aurelia/commit/4c4cbc9))
+* **command:** simplify binding type enum ([6651678](https://github.com/aurelia/aurelia/commit/6651678))
+* **di:** resolver disposal ([7c50556](https://github.com/aurelia/aurelia/commit/7c50556))
+* **validation:** controller-factories ([3ebc6d1](https://github.com/aurelia/aurelia/commit/3ebc6d1))
+
 <a name="2.0.0-alpha.16"></a>
 # 2.0.0-alpha.16 (2021-08-07)
 

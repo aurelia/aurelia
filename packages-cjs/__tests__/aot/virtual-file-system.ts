@@ -1,4 +1,5 @@
 import { IFileSystem, Encoding, IFile, IDirent, IStats } from '@aurelia/aot';
+import type { WriteFileOptions } from 'fs';
 
 function toParts(path: string): string[] {
   // eslint-disable-next-line no-useless-escape
@@ -124,7 +125,7 @@ export class VirtualFileSystem implements IFileSystem {
     throw new Error('Method not implemented.');
   }
 
-  public writeFileSync(path: string, content: string, encoding: Encoding): void {
+  public writeFileSync(path: string, content: string, encoding: WriteFileOptions): void {
     throw new Error('Method not implemented.');
   }
 

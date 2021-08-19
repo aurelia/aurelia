@@ -580,3 +580,10 @@ export class AtPrefixedTriggerAttributePattern {
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
   }
 }
+
+@attributePattern({ pattern: '...$attrs', symbols: '' })
+export class SpreadAttributePattern {
+  public '...$attrs'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax('', '', '', '...$attrs');
+  }
+}

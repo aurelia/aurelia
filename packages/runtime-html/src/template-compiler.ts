@@ -16,6 +16,7 @@ import {
   TextBindingInstruction,
   ITemplateCompiler,
   PropertyBindingInstruction,
+  SpreadElementPropBindingInstruction,
 } from './renderer.js';
 import { IPlatform } from './platform.js';
 import { Bindable, BindableDefinition } from './bindable.js';
@@ -99,6 +100,195 @@ export class TemplateCompiler implements ITemplateCompiler {
       hasSlots: context.hasSlot,
       needsCompile: false,
     });
+  }
+
+  public compileSpread(
+    definition: CustomElementDefinition,
+    attrSyntaxs: AttrSyntax[],
+    container: IContainer,
+    el: Element,
+  ): IInstruction[] {
+    const context = new CompilationContext(definition, container, emptyCompilationInstructions, null, null, void 0);
+    const instructions: IInstruction[] = [];
+    const elDef = context._findElement(el.nodeName.toLowerCase());
+    const exprParser = context._exprParser;
+    const ii = attrSyntaxs.length;
+    let i = 0;
+    let attrSyntax: AttrSyntax;
+    let attrDef: CustomAttributeDefinition | null = null;
+    let attrInstructions: (HydrateAttributeInstruction | HydrateTemplateController)[] | undefined;
+    let attrBindableInstructions: IInstruction[];
+    // eslint-disable-next-line
+    let bindablesInfo: BindablesInfo<0> | BindablesInfo<1>;
+    let bindable: BindableDefinition;
+    let primaryBindable: BindableDefinition;
+    let bindingCommand: BindingCommandInstance | null = null;
+    let expr: AnyBindingExpression;
+    let isMultiBindings: boolean;
+    let attrTarget: string;
+    let attrValue: string;
+
+    for (; ii > i; ++i) {
+      attrSyntax = attrSyntaxs[i];
+
+      attrTarget = attrSyntax.target;
+      attrValue = attrSyntax.rawValue;
+
+      bindingCommand = context._createCommand(attrSyntax);
+      if (bindingCommand !== null && (bindingCommand.type & CommandType.IgnoreAttr) > 0) {
+        // when the binding command overrides everything
+        // just pass the target as is to the binding command, and treat it as a normal attribute:
+        // active.class="..."
+        // background.style="..."
+        // my-attr.attr="..."
+
+        commandBuildInfo.node = el;
+        commandBuildInfo.attr = attrSyntax;
+        commandBuildInfo.bindable = null;
+        commandBuildInfo.def = null;
+        instructions.push(bindingCommand.build(commandBuildInfo));
+
+        // to next attribute
+        continue;
+      }
+
+      attrDef = context._findAttr(attrTarget);
+      if (attrDef !== null) {
+        if (attrDef.isTemplateController) {
+          if (__DEV__)
+            throw new Error(`Spreading template controller ${attrTarget} is not supported.`);
+          else
+            throw new Error(`AUR0703:${attrTarget}`);
+        }
+        bindablesInfo = BindablesInfo.from(attrDef, true);
+        // Custom attributes are always in multiple binding mode,
+        // except when they can't be
+        // When they cannot be:
+        //        * has explicit configuration noMultiBindings: false
+        //        * has binding command, ie: <div my-attr.bind="...">.
+        //          In this scenario, the value of the custom attributes is required to be a valid expression
+        //        * has no colon: ie: <div my-attr="abcd">
+        //          In this scenario, it's simply invalid syntax.
+        //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
+        isMultiBindings = attrDef.noMultiBindings === false
+          && bindingCommand === null
+          && hasInlineBindings(attrValue);
+        if (isMultiBindings) {
+          attrBindableInstructions = this._compileMultiBindings(el, attrValue, attrDef, context);
+        } else {
+          primaryBindable = bindablesInfo.primary;
+          // custom attribute + single value + WITHOUT binding command:
+          // my-attr=""
+          // my-attr="${}"
+          if (bindingCommand === null) {
+            expr = exprParser.parse(attrValue, ExpressionType.Interpolation);
+            attrBindableInstructions = [
+              expr === null
+                ? new SetPropertyInstruction(attrValue, primaryBindable.property)
+                : new InterpolationInstruction(expr, primaryBindable.property)
+            ];
+          } else {
+            // custom attribute with binding command:
+            // my-attr.bind="..."
+            // my-attr.two-way="..."
+
+            commandBuildInfo.node = el;
+            commandBuildInfo.attr = attrSyntax;
+            commandBuildInfo.bindable = primaryBindable;
+            commandBuildInfo.def = attrDef;
+            attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
+          }
+        }
+
+        (attrInstructions ??= []).push(new HydrateAttributeInstruction(
+          // todo: def/ def.Type or def.name should be configurable
+          //       example: AOT/runtime can use def.Type, but there are situation
+          //       where instructions need to be serialized, def.name should be used
+          this.resolveResources ? attrDef : attrDef.name,
+          attrDef.aliases != null && attrDef.aliases.includes(attrTarget) ? attrTarget : void 0,
+          attrBindableInstructions
+        ));
+        continue;
+      }
+
+      if (bindingCommand === null) {
+        expr = exprParser.parse(attrValue, ExpressionType.Interpolation);
+
+        // reaching here means:
+        // + maybe a bindable attribute with interpolation
+        // + maybe a plain attribute with interpolation
+        // + maybe a plain attribute
+        if (elDef !== null) {
+          bindablesInfo = BindablesInfo.from(elDef, false);
+          bindable = bindablesInfo.attrs[attrTarget];
+          if (bindable !== void 0) {
+            expr = exprParser.parse(attrValue, ExpressionType.Interpolation);
+            instructions.push(
+              new SpreadElementPropBindingInstruction(
+                expr == null
+                  ? new SetPropertyInstruction(attrValue, bindable.property)
+                  : new InterpolationInstruction(expr, bindable.property)
+              )
+            );
+
+            continue;
+          }
+        }
+
+        if (expr != null) {
+          instructions.push(new InterpolationInstruction(
+            expr,
+            // if not a bindable, then ensure plain attribute are mapped correctly:
+            // e.g: colspan -> colSpan
+            //      innerhtml -> innerHTML
+            //      minlength -> minLength etc...
+            context._attrMapper.map(el, attrTarget) ?? camelCase(attrTarget)
+          ));
+        } else {
+          switch (attrTarget) {
+            case 'class':
+              instructions.push(new SetClassAttributeInstruction(attrValue));
+              break;
+            case 'style':
+              instructions.push(new SetStyleAttributeInstruction(attrValue));
+              break;
+            default:
+              // if not a custom attribute + no binding command + not a bindable + not an interpolation
+              // then it's just a plain attribute
+              instructions.push(new SetAttributeInstruction(attrValue, attrTarget));
+          }
+        }
+      } else {
+        if (elDef !== null) {
+          // if the element is a custom element
+          // - prioritize bindables on a custom element before plain attributes
+          bindablesInfo = BindablesInfo.from(elDef, false);
+          bindable = bindablesInfo.attrs[attrTarget];
+          if (bindable !== void 0) {
+            commandBuildInfo.node = el;
+            commandBuildInfo.attr = attrSyntax;
+            commandBuildInfo.bindable = bindable;
+            commandBuildInfo.def = elDef;
+            instructions.push(new SpreadElementPropBindingInstruction(bindingCommand.build(commandBuildInfo)));
+            continue;
+          }
+        }
+
+        commandBuildInfo.node = el;
+        commandBuildInfo.attr = attrSyntax;
+        commandBuildInfo.bindable = null;
+        commandBuildInfo.def = null;
+        instructions.push(bindingCommand.build(commandBuildInfo));
+      }
+    }
+
+    resetCommandBuildInfo();
+
+    if (attrInstructions != null) {
+      return (attrInstructions as IInstruction[]).concat(instructions);
+    }
+
+    return instructions;
   }
 
   /** @internal */
@@ -433,6 +623,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = context._findElement(elName);
+    const shouldCapture = !!elDef?.capture;
+    const captures: AttrSyntax[] = shouldCapture ? [] : emptyArray;
     const exprParser = context._exprParser;
     const removeAttr = this.debug
       ? noop
@@ -511,7 +703,29 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
           continue;
       }
+
       attrSyntax = context._attrParser.parse(attrName, attrValue);
+      if (shouldCapture) {
+        bindablesInfo = BindablesInfo.from(elDef!, false);
+        // if capture is on, capture everything except:
+        // - as-element
+        // - containerless
+        // - bindable properties
+        // - template controller
+        // - custom attribute
+        if (bindablesInfo.attrs[attrSyntax.target] == null) {
+          bindingCommand = context._createCommand(attrSyntax);
+          // when the binding command ignores custom attribute
+          // it means the binding is targeting the host element
+          // it should also be captured
+          if (bindingCommand?.type === CommandType.IgnoreAttr
+            || !context._findAttr(attrSyntax.target)?.isTemplateController
+          ) {
+            captures.push(attrSyntax);
+            continue;
+          }
+        }
+      }
 
       bindingCommand = context._createCommand(attrSyntax);
       if (bindingCommand !== null && bindingCommand.type & CommandType.IgnoreAttr) {
@@ -697,6 +911,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         (elBindableInstructions ?? emptyArray) as IInstruction[],
         null,
         hasContainerless,
+        captures,
       );
 
       // 2.1 prepare fallback content for <au-slot/>

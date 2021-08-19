@@ -8,6 +8,8 @@ import {
   BindingBehaviorExpression,
   BindingBehaviorFactory,
   ExpressionKind,
+  IBinding,
+  Scope,
 } from '@aurelia/runtime';
 import { CallBinding } from './binding/call-binding.js';
 import { AttributeBinding } from './binding/attribute.js';
@@ -21,7 +23,7 @@ import { CustomElement, CustomElementDefinition } from './resources/custom-eleme
 import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables.js';
 import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute.js';
 import { convertToRenderLocation, IRenderLocation, INode, setRef } from './dom.js';
-import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel } from './templating/controller.js';
+import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext, ViewModelKind } from './templating/controller.js';
 import { IPlatform } from './platform.js';
 import { IViewFactory } from './templating/view.js';
 import { IRendering } from './templating/rendering.js';
@@ -40,6 +42,7 @@ import type {
 } from '@aurelia/runtime';
 import type { IHydratableController } from './templating/controller.js';
 import type { PartialCustomElementDefinition } from './resources/custom-element.js';
+import { AttrSyntax } from './resources/attribute-pattern.js';
 
 export const enum InstructionType {
   hydrateElement = 'ra',
@@ -60,6 +63,8 @@ export const enum InstructionType {
   setAttribute = 'he',
   setClassAttribute = 'hf',
   setStyleAttribute = 'hg',
+  spreadBinding = 'hs',
+  spreadElementProp = 'hp',
 }
 
 export type InstructionTypeName = string;
@@ -157,6 +162,10 @@ export class HydrateElementInstruction {
      * Indicates whether the usage of the custom element was with a containerless attribute or not
      */
     public containerless: boolean,
+    /**
+     * A list of captured attr syntaxes
+     */
+    public captures: AttrSyntax[] | undefined,
   ) {
   }
 }
@@ -285,6 +294,17 @@ export class AttributeBindingInstruction {
   ) {}
 }
 
+export class SpreadBindingInstruction {
+  public get type(): InstructionType.spreadBinding { return InstructionType.spreadBinding; }
+}
+
+export class SpreadElementPropBindingInstruction {
+  public get type(): InstructionType.spreadElementProp { return InstructionType.spreadElementProp; }
+  public constructor(
+    public readonly innerInstruction: IInstruction,
+  ) {}
+}
+
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler');
 export interface ITemplateCompiler {
   /**
@@ -305,6 +325,21 @@ export interface ITemplateCompiler {
     context: IContainer,
     compilationInstruction: ICompliationInstruction | null,
   ): CustomElementDefinition;
+
+  /**
+   * Compile a list of captured attributes as if they are declared in a template
+   *
+   * @param requestor - the context definition where the attributes is compiled
+   * @param attrSyntaxes - the attributes captured
+   * @param container - the container containing information for the compilation
+   * @param host - the host element where the attributes are spreaded on
+   */
+  compileSpread(
+    requestor: PartialCustomElementDefinition,
+    attrSyntaxes: AttrSyntax[],
+    container: IContainer,
+    host: Element,
+  ): IInstruction[];
 }
 
 export interface ICompliationInstruction {
@@ -1043,19 +1078,12 @@ export class SetStyleAttributeRenderer implements IRenderer {
 /** @internal */
 export class StylePropertyBindingRenderer implements IRenderer {
   /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IPlatform];
-  /** @internal */ private readonly _exprParser: IExpressionParser;
-  /** @internal */ private readonly _observerLocator: IObserverLocator;
-  /** @internal */ private readonly _platform: IPlatform;
 
   public constructor(
-    exprParser: IExpressionParser,
-    observerLocator: IObserverLocator,
-    p: IPlatform,
-  ) {
-    this._exprParser = exprParser;
-    this._observerLocator = observerLocator;
-    this._platform = p;
-  }
+    /** @internal */ private readonly _exprParser: IExpressionParser,
+    /** @internal */ private readonly _observerLocator: IObserverLocator,
+    /** @internal */ private readonly _platform: IPlatform,
+  ) {}
 
   public render(
     renderingCtrl: IHydratableController,
@@ -1075,16 +1103,11 @@ export class StylePropertyBindingRenderer implements IRenderer {
 /** @internal */
 export class AttributeBindingRenderer implements IRenderer {
   /** @internal */ protected static inject = [IExpressionParser, IObserverLocator];
-  /** @internal */ private readonly _exprParser: IExpressionParser;
-  /** @internal */ private readonly _observerLocator: IObserverLocator;
 
   public constructor(
-    exprParser: IExpressionParser,
-    observerLocator: IObserverLocator,
-  ) {
-    this._exprParser = exprParser;
-    this._observerLocator = observerLocator;
-  }
+    /** @internal */ private readonly _exprParser: IExpressionParser,
+    /** @internal */ private readonly _observerLocator: IObserverLocator,
+  ) {}
 
   public render(
     renderingCtrl: IHydratableController,
@@ -1108,6 +1131,124 @@ export class AttributeBindingRenderer implements IRenderer {
   }
 }
 
+@renderer(InstructionType.spreadBinding)
+export class SpreadRenderer implements IRenderer {
+  /** @internal */ protected static get inject() { return [ITemplateCompiler, IRendering]; }
+  public constructor(
+    /** @internal */ private readonly _compiler: ITemplateCompiler,
+    /** @internal */ private readonly _rendering: IRendering,
+  ) {}
+
+  public render(
+    renderingCtrl: IHydratableController,
+    target: HTMLElement,
+    instruction: SpreadBindingInstruction,
+  ): void {
+    const container = renderingCtrl.container;
+    const hydrationContext = container.get(IHydrationContext);
+    const renderers = this._rendering.renderers;
+    const getHydrationContext = (ancestor: number) => {
+      let currentLevel = ancestor;
+      let currentContext: IHydrationContext | undefined = hydrationContext;
+      while (currentContext != null && currentLevel > 0) {
+        currentContext = currentContext.parent;
+        --currentLevel;
+      }
+      if (currentContext == null) {
+        throw new Error('No scope context for spread binding.');
+      }
+      return currentContext as IHydrationContext<object>;
+    };
+    const renderSpreadInstruction = (ancestor: number) => {
+      const context = getHydrationContext(ancestor);
+      const spreadBinding = createSurrogateBinding(context);
+      const instructions = this._compiler.compileSpread(
+        context.controller.definition,
+        context.instruction?.captures ?? emptyArray,
+        context.controller.container,
+        target,
+      );
+      let inst: IInstruction;
+      for (inst of instructions) {
+        switch (inst.type) {
+          case InstructionType.spreadBinding:
+            renderSpreadInstruction(ancestor + 1);
+            break;
+          case InstructionType.spreadElementProp:
+            renderers[(inst as SpreadElementPropBindingInstruction).innerInstruction.type].render(
+              spreadBinding,
+              CustomElement.for(target),
+              (inst as SpreadElementPropBindingInstruction).innerInstruction,
+            );
+            break;
+          default:
+            renderers[inst.type].render(spreadBinding, target, inst);
+        }
+      }
+      renderingCtrl.addBinding(spreadBinding);
+    };
+    renderSpreadInstruction(0);
+  }
+}
+
+class SpreadBinding implements IBinding {
+  public interceptor = this;
+  public $scope?: Scope | undefined;
+  public isBound: boolean = false;
+  public readonly locator: IServiceLocator;
+
+  public readonly ctrl: ICustomElementController;
+
+  public get container() {
+    return this.locator;
+  }
+
+  public get definition(): CustomElementDefinition | CustomElementDefinition {
+    return this.ctrl.definition;
+  }
+
+  public get isStrictBinding() {
+    return this.ctrl.isStrictBinding;
+  }
+
+  public constructor(
+    /** @internal */ private readonly _innerBindings: IBinding[],
+    /** @internal */ private readonly _hydrationContext: IHydrationContext<object>,
+  ) {
+    this.ctrl = _hydrationContext.controller;
+    this.locator = this.ctrl.container;
+  }
+
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
+    if (this.isBound) {
+      return;
+    }
+    this.isBound = true;
+    const innerScope = this.$scope = this._hydrationContext.controller.scope.parentScope ?? void 0;
+    if (innerScope == null) {
+      throw new Error('Invalid spreading. Context scope is null/undefined');
+    }
+
+    this._innerBindings.forEach(b => b.$bind(flags, innerScope));
+  }
+
+  public $unbind(flags: LifecycleFlags): void {
+    this._innerBindings.forEach(b => b.$unbind(flags));
+    this.isBound = false;
+  }
+
+  public addBinding(binding: IBinding) {
+    this._innerBindings.push(binding);
+  }
+
+  public addChild(controller: IController) {
+    if (controller.vmKind !== ViewModelKind.customAttribute) {
+      throw new Error('Spread binding does not support spreading custom attributes/template controllers');
+    }
+    this.ctrl.addChild(controller);
+  }
+}
+
 // http://jsben.ch/7n5Kt
 function addClasses(classList: DOMTokenList, className: string): void {
   const len = className.length;
@@ -1124,6 +1265,8 @@ function addClasses(classList: DOMTokenList, className: string): void {
   }
 }
 
+const createSurrogateBinding = (context: IHydrationContext<object>) =>
+  new SpreadBinding([], context) as SpreadBinding & IHydratableController;
 const controllerProviderName = 'IController';
 const instructionProviderName = 'IInstruction';
 const locationProviderName = 'IRenderLocation';
@@ -1215,6 +1358,9 @@ function invokeAttribute(
       ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
     )
   );
+  renderingCtrl = renderingCtrl instanceof Controller
+    ? renderingCtrl
+    : (renderingCtrl as unknown as SpreadBinding).ctrl;
   ctn.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingCtrl));
   ctn.registerResolver(IInstruction, new InstanceProvider<IInstruction>(instructionProviderName, instruction));
   ctn.registerResolver(IRenderLocation, location == null

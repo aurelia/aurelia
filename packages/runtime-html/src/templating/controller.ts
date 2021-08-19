@@ -41,6 +41,7 @@ import type {
   IObservable,
   IsBindingBehavior,
 } from '@aurelia/runtime';
+import type { AttrSyntax } from '../resources/attribute-pattern.js';
 import type { IProjections } from '../resources/slot-injectables.js';
 import type { BindableDefinition } from '../bindable.js';
 import type { LifecycleHooksLookup } from './lifecycle-hooks.js';
@@ -1767,6 +1768,10 @@ export interface IControllerElementHydrationInstruction {
    */
   readonly hydrate?: boolean;
   readonly projections: IProjections | null;
+  /**
+   * A list of captured attributes/binding in raw format
+   */
+  readonly captures?: AttrSyntax[];
 }
 
 function callDispose(disposable: IDisposable): void {

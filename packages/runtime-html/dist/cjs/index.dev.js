@@ -11143,8 +11143,7 @@ class RenderPlan {
         this.node = node;
         this.instructions = instructions;
         this.dependencies = dependencies;
-        /** @internal */
-        this._lazyDef = void 0;
+        /** @internal */ this._lazyDef = void 0;
     }
     get definition() {
         if (this._lazyDef === void 0) {
@@ -11259,22 +11258,27 @@ function toLookup(acc, item) {
     }
     return acc;
 }
-exports.AuRender = class AuRender {
-    constructor(p, instruction, hdrContext, r) {
-        this.p = p;
-        this.r = r;
+class AuRender {
+    constructor(
+    /** @internal */ _platform, 
+    /** @internal */ _instruction, 
+    /** @internal */ _hdrContext, 
+    /** @internal */ _rendering) {
+        this._platform = _platform;
+        this._instruction = _instruction;
+        this._hdrContext = _hdrContext;
+        this._rendering = _rendering;
         this.id = kernel.nextId('au$component');
         this.component = void 0;
         this.composing = false;
         this.view = void 0;
-        this.lastSubject = void 0;
-        this._properties = instruction.props.reduce(toLookup, {});
-        this._hdrContext = hdrContext;
+        /** @internal */ this._lastSubject = void 0;
+        this._properties = _instruction.props.reduce(toLookup, {});
     }
     attaching(initiator, parent, flags) {
         const { component, view } = this;
-        if (view === void 0 || this.lastSubject !== component) {
-            this.lastSubject = component;
+        if (view === void 0 || this._lastSubject !== component) {
+            this._lastSubject = component;
             this.composing = true;
             return this.compose(void 0, component, initiator, flags);
         }
@@ -11288,10 +11292,10 @@ exports.AuRender = class AuRender {
         if (!$controller.isActive) {
             return;
         }
-        if (this.lastSubject === newValue) {
+        if (this._lastSubject === newValue) {
             return;
         }
-        this.lastSubject = newValue;
+        this._lastSubject = newValue;
         this.composing = true;
         flags |= $controller.flags;
         const ret = kernel.onResolve(this._deactivate(this.view, null, flags), () => {
@@ -11341,7 +11345,7 @@ exports.AuRender = class AuRender {
                 return comp.create();
             }
             if ('template' in comp) { // Raw Template Definition
-                return this.r.getViewFactory(CustomElementDefinition.getOrCreate(comp), ctxContainer).create();
+                return this._rendering.getViewFactory(CustomElementDefinition.getOrCreate(comp), ctxContainer).create();
             }
         }
         if (typeof comp === 'string') {
@@ -11352,7 +11356,7 @@ exports.AuRender = class AuRender {
             comp = def.Type;
         }
         // Constructable (Custom Element Constructor)
-        return createElement(this.p, comp, this._properties, this.$controller.host.childNodes).createView(ctxContainer);
+        return createElement(this._platform, comp, this._properties, this.$controller.host.childNodes).createView(ctxContainer);
     }
     dispose() {
         var _a;
@@ -11365,20 +11369,15 @@ exports.AuRender = class AuRender {
             return true;
         }
     }
-};
+}
+/** @internal */ AuRender.inject = [IPlatform, IInstruction, IHydrationContext, IRendering];
 __decorate([
     bindable
-], exports.AuRender.prototype, "component", void 0);
+], AuRender.prototype, "component", void 0);
 __decorate([
     bindable({ mode: runtime.BindingMode.fromView })
-], exports.AuRender.prototype, "composing", void 0);
-exports.AuRender = __decorate([
-    customElement({ name: 'au-render', template: null, containerless: true }),
-    __param(0, IPlatform),
-    __param(1, IInstruction),
-    __param(2, IHydrationContext),
-    __param(3, IRendering)
-], exports.AuRender);
+], AuRender.prototype, "composing", void 0);
+customElement({ name: 'au-render', template: null, containerless: true, capture: true })(AuRender);
 function isController(subject) {
     return 'lockScope' in subject;
 }
@@ -11398,9 +11397,9 @@ class AuCompose {
         this.p = p;
         this.scopeBehavior = 'auto';
         /** @internal */
-        this.c = void 0;
-        this.loc = instruction.containerless ? convertToRenderLocation(this.host) : void 0;
-        this.r = ctn.get(IRendering);
+        this._composition = void 0;
+        this._location = instruction.containerless ? convertToRenderLocation(this.host) : void 0;
+        this._rendering = ctn.get(IRendering);
         this._instruction = instruction;
         this._contextFactory = contextFactory;
     }
@@ -11409,42 +11408,42 @@ class AuCompose {
         return [kernel.IContainer, IController, INode, IPlatform, IInstruction, kernel.transient(CompositionContextFactory)];
     }
     get pending() {
-        return this.pd;
+        return this._pending;
     }
     get composition() {
-        return this.c;
+        return this._composition;
     }
     attaching(initiator, parent, flags) {
-        return this.pd = kernel.onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, initiator, void 0)), (context) => {
+        return this._pending = kernel.onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, initiator, void 0)), (context) => {
             if (this._contextFactory.isCurrent(context)) {
-                this.pd = void 0;
+                this._pending = void 0;
             }
         });
     }
     detaching(initiator) {
-        const cmpstn = this.c;
-        const pending = this.pd;
+        const cmpstn = this._composition;
+        const pending = this._pending;
         this._contextFactory.invalidate();
-        this.c = this.pd = void 0;
+        this._composition = this._pending = void 0;
         return kernel.onResolve(pending, () => cmpstn === null || cmpstn === void 0 ? void 0 : cmpstn.deactivate(initiator));
     }
     /** @internal */
     propertyChanged(name) {
-        if (name === 'model' && this.c != null) {
+        if (name === 'model' && this._composition != null) {
             // eslint-disable-next-line
-            this.c.update(this.model);
+            this._composition.update(this.model);
             return;
         }
-        this.pd = kernel.onResolve(this.pd, () => kernel.onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, void 0, name)), (context) => {
+        this._pending = kernel.onResolve(this._pending, () => kernel.onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, void 0, name)), (context) => {
             if (this._contextFactory.isCurrent(context)) {
-                this.pd = void 0;
+                this._pending = void 0;
             }
         }));
     }
     /** @internal */
     queue(change) {
         const factory = this._contextFactory;
-        const compositionCtrl = this.c;
+        const compositionCtrl = this._composition;
         // todo: handle consequitive changes that create multiple queues
         return kernel.onResolve(factory.create(change), context => {
             // Don't compose [stale] view/view model
@@ -11460,7 +11459,7 @@ class AuCompose {
                             if (factory.isCurrent(context)) {
                                 // after activation, if the composition context is still the most recent one
                                 // then the job is done
-                                this.c = result;
+                                this._composition = result;
                                 return kernel.onResolve(compositionCtrl === null || compositionCtrl === void 0 ? void 0 : compositionCtrl.deactivate(change.initiator), () => context);
                             }
                             else {
@@ -11490,7 +11489,7 @@ class AuCompose {
         //       should it throw or try it best to proceed?
         //       current: proceed
         const { view, viewModel, model, initiator } = context.change;
-        const { ctn: container, host, $controller, loc } = this;
+        const { ctn: container, host, $controller, _location: loc } = this;
         const srcDef = this.getDef(viewModel);
         const childCtn = container.createChild();
         const parentNode = loc == null ? host.parentNode : loc.parentNode;
@@ -11523,8 +11522,8 @@ class AuCompose {
         const compose = () => {
             // custom element based composition
             if (srcDef !== null) {
-                const controller = Controller.$el(childCtn, comp, compositionHost, null, srcDef);
-                return new CompositionController(controller, () => controller.activate(initiator !== null && initiator !== void 0 ? initiator : controller, $controller, 2 /* fromBind */), 
+                const controller = Controller.$el(childCtn, comp, compositionHost, { projections: this._instruction.projections }, srcDef);
+                return new CompositionController(controller, () => controller.activate(initiator !== null && initiator !== void 0 ? initiator : controller, $controller, 2 /* fromBind */, $controller.scope.parentScope), 
                 // todo: call deactivate on the component view model
                 (deactachInitiator) => kernel.onResolve(controller.deactivate(deactachInitiator !== null && deactachInitiator !== void 0 ? deactachInitiator : controller, $controller, 4 /* fromUnbind */), removeCompositionHost), 
                 // casting is technically incorrect
@@ -11536,7 +11535,7 @@ class AuCompose {
                     name: CustomElement.generateName(),
                     template: view,
                 });
-                const viewFactory = this.r.getViewFactory(targetDef, childCtn);
+                const viewFactory = this._rendering.getViewFactory(targetDef, childCtn);
                 const controller = Controller.$view(viewFactory, $controller);
                 const scope = this.scopeBehavior === 'auto'
                     ? runtime.Scope.fromParent(this.parent.scope, comp)
@@ -11908,7 +11907,7 @@ const RejectedAttributePatternRegistration = RejectedAttributePattern;
 const AttrBindingBehaviorRegistration = AttrBindingBehavior;
 const SelfBindingBehaviorRegistration = SelfBindingBehavior;
 const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior;
-const AuRenderRegistration = exports.AuRender;
+const AuRenderRegistration = AuRender;
 const AuComposeRegistration = AuCompose;
 const PortalRegistration = Portal;
 const FocusRegistration = exports.Focus;
@@ -12872,6 +12871,7 @@ exports.AttributeBindingRendererRegistration = AttributeBindingRendererRegistrat
 exports.AttributeNSAccessor = AttributeNSAccessor;
 exports.AttributePattern = AttributePattern;
 exports.AuCompose = AuCompose;
+exports.AuRender = AuRender;
 exports.AuRenderRegistration = AuRenderRegistration;
 exports.AuSlot = AuSlot;
 exports.AuSlotsInfo = AuSlotsInfo;

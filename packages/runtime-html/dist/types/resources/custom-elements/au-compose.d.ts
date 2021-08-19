@@ -24,12 +24,8 @@ export declare class AuCompose {
     viewModel?: Constructable | object | Promise<Constructable | object>;
     model?: unknown;
     scopeBehavior: 'auto' | 'scoped';
-    private pd?;
     get pending(): Promise<void> | void;
     get composition(): ICompositionController | undefined;
-    private readonly r;
-    private readonly _instruction;
-    private readonly _contextFactory;
     constructor(ctn: IContainer, parent: ISyntheticView | ICustomElementController, host: HTMLElement, p: IPlatform, instruction: HydrateElementInstruction, contextFactory: CompositionContextFactory);
     attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController): void | Promise<void>;

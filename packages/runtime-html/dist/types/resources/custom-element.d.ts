@@ -14,6 +14,7 @@ declare module '@aurelia/kernel' {
 }
 export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly cache?: '*' | number;
+    readonly capture?: boolean;
     readonly template?: null | string | Node;
     readonly instructions?: readonly (readonly IInstruction[])[];
     readonly dependencies?: readonly Key[];
@@ -141,6 +142,7 @@ export declare class CustomElementDefinition<C extends Constructable = Construct
     readonly aliases: string[];
     readonly key: string;
     readonly cache: '*' | number;
+    readonly capture: boolean;
     readonly template: null | string | Node;
     readonly instructions: readonly (readonly IInstruction[])[];
     readonly dependencies: readonly Key[];

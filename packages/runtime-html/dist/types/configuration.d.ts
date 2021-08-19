@@ -21,6 +21,7 @@ export declare const AtPrefixedTriggerAttributePatternRegistration: IRegistry;
 export declare const ColonPrefixedBindAttributePatternRegistration: IRegistry;
 export declare const RefAttributePatternRegistration: IRegistry;
 export declare const DotSeparatedAttributePatternRegistration: IRegistry;
+export declare const SpreadAttributePatternRegistration: IRegistry;
 /**
  * Default binding syntax for the following attribute name patterns:
  * - `ref`
@@ -47,6 +48,7 @@ export declare const CaptureBindingCommandRegistration: IRegistry;
 export declare const AttrBindingCommandRegistration: IRegistry;
 export declare const ClassBindingCommandRegistration: IRegistry;
 export declare const StyleBindingCommandRegistration: IRegistry;
+export declare const SpreadBindingCommandRegistration: IRegistry;
 /**
  * Default HTML-specific (but environment-agnostic) binding commands:
  * - Property observation: `.bind`, `.one-time`, `.from-view`, `.to-view`, `.two-way`
@@ -107,6 +109,7 @@ export declare const SetClassAttributeRendererRegistration: IRegistry;
 export declare const SetStyleAttributeRendererRegistration: IRegistry;
 export declare const StylePropertyBindingRendererRegistration: IRegistry;
 export declare const TextBindingRendererRegistration: IRegistry;
+export declare const SpreadRendererRegistration: IRegistry;
 /**
  * Default renderers for:
  * - PropertyBinding: `bind`, `one-time`, `to-view`, `from-view`, `two-way`

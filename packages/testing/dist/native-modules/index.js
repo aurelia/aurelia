@@ -763,6 +763,13 @@ class TestContext {
         n.value = t;
         return n;
     }
+    type(e, t, n) {
+        const i = e.querySelector(t);
+        i.value = n;
+        i.dispatchEvent(new this.CustomEvent("change", {
+            bubbles: true
+        }));
+    }
 }
 
 let mt;

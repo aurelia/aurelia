@@ -766,6 +766,14 @@ let AtPrefixedTriggerAttributePattern = class AtPrefixedTriggerAttributePattern 
 AtPrefixedTriggerAttributePattern = __decorate([
     attributePattern({ pattern: '@PART', symbols: '@' })
 ], AtPrefixedTriggerAttributePattern);
+let SpreadAttributePattern = class SpreadAttributePattern {
+    '...$attrs'(rawName, rawValue, parts) {
+        return new AttrSyntax('', '', '', '...$attrs');
+    }
+};
+SpreadAttributePattern = __decorate([
+    attributePattern({ pattern: '...$attrs', symbols: '' })
+], SpreadAttributePattern);
 
 /** @internal */
 const createLookup = () => Object.create(null);
@@ -2508,12 +2516,13 @@ function containerless(target) {
 }
 const definitionLookup = new WeakMap();
 class CustomElementDefinition {
-    constructor(Type, name, aliases, key, cache, template, instructions, dependencies, injectable, needsCompile, surrogates, bindables, childrenObservers, containerless, isStrictBinding, shadowOptions, hasSlots, enhance, watches, processContent) {
+    constructor(Type, name, aliases, key, cache, capture, template, instructions, dependencies, injectable, needsCompile, surrogates, bindables, childrenObservers, containerless, isStrictBinding, shadowOptions, hasSlots, enhance, watches, processContent) {
         this.Type = Type;
         this.name = name;
         this.aliases = aliases;
         this.key = key;
         this.cache = cache;
+        this.capture = capture;
         this.template = template;
         this.instructions = instructions;
         this.dependencies = dependencies;
@@ -2547,19 +2556,19 @@ class CustomElementDefinition {
             else {
                 Type = CustomElement.generateType(pascalCase(name));
             }
-            return new CustomElementDefinition(Type, name, mergeArrays(def.aliases), fromDefinitionOrDefault('key', def, () => CustomElement.keyFrom(name)), fromDefinitionOrDefault('cache', def, returnZero), fromDefinitionOrDefault('template', def, returnNull), mergeArrays(def.instructions), mergeArrays(def.dependencies), fromDefinitionOrDefault('injectable', def, returnNull), fromDefinitionOrDefault('needsCompile', def, returnTrue), mergeArrays(def.surrogates), Bindable.from(def.bindables), Children.from(def.childrenObservers), fromDefinitionOrDefault('containerless', def, returnFalse), fromDefinitionOrDefault('isStrictBinding', def, returnFalse), fromDefinitionOrDefault('shadowOptions', def, returnNull), fromDefinitionOrDefault('hasSlots', def, returnFalse), fromDefinitionOrDefault('enhance', def, returnFalse), fromDefinitionOrDefault('watches', def, returnEmptyArray), fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
+            return new CustomElementDefinition(Type, name, mergeArrays(def.aliases), fromDefinitionOrDefault('key', def, () => CustomElement.keyFrom(name)), fromDefinitionOrDefault('cache', def, returnZero), fromDefinitionOrDefault('capture', def, returnFalse), fromDefinitionOrDefault('template', def, returnNull), mergeArrays(def.instructions), mergeArrays(def.dependencies), fromDefinitionOrDefault('injectable', def, returnNull), fromDefinitionOrDefault('needsCompile', def, returnTrue), mergeArrays(def.surrogates), Bindable.from(def.bindables), Children.from(def.childrenObservers), fromDefinitionOrDefault('containerless', def, returnFalse), fromDefinitionOrDefault('isStrictBinding', def, returnFalse), fromDefinitionOrDefault('shadowOptions', def, returnNull), fromDefinitionOrDefault('hasSlots', def, returnFalse), fromDefinitionOrDefault('enhance', def, returnFalse), fromDefinitionOrDefault('watches', def, returnEmptyArray), fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // If a type is passed in, we ignore the Type property on the definition if it exists.
         // TODO: document this behavior
         if (typeof nameOrDef === 'string') {
-            return new CustomElementDefinition(Type, nameOrDef, mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), fromAnnotationOrTypeOrDefault('cache', Type, returnZero), fromAnnotationOrTypeOrDefault('template', Type, returnNull), mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions), mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies), fromAnnotationOrTypeOrDefault('injectable', Type, returnNull), fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue), mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers), fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse), fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse), fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull), fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse), fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse), mergeArrays(Watch.getAnnotation(Type), Type.watches), fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
+            return new CustomElementDefinition(Type, nameOrDef, mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), fromAnnotationOrTypeOrDefault('cache', Type, returnZero), fromAnnotationOrTypeOrDefault('capture', Type, returnFalse), fromAnnotationOrTypeOrDefault('template', Type, returnNull), mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions), mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies), fromAnnotationOrTypeOrDefault('injectable', Type, returnNull), fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue), mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers), fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse), fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse), fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull), fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse), fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse), mergeArrays(Watch.getAnnotation(Type), Type.watches), fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // This is the typical default behavior, e.g. from regular CustomElement.define invocations or from @customElement deco
         // The ViewValueConverter also uses this signature and passes in a definition where everything except for the 'hooks'
         // property needs to be copied. So we have that exception for 'hooks', but we may need to revisit that default behavior
         // if this turns out to be too opinionated.
         const name = fromDefinitionOrDefault('name', nameOrDef, generateElementName);
-        return new CustomElementDefinition(Type, name, mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero), fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull), mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull), fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue), mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull), fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse), mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches), fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull));
+        return new CustomElementDefinition(Type, name, mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero), fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull), mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull), fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue), mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull), fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse), mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches), fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull));
     }
     static getOrCreate(partialDefinition) {
         if (partialDefinition instanceof CustomElementDefinition) {
@@ -5213,6 +5222,8 @@ var InstructionType;
     InstructionType["setAttribute"] = "he";
     InstructionType["setClassAttribute"] = "hf";
     InstructionType["setStyleAttribute"] = "hg";
+    InstructionType["spreadBinding"] = "hs";
+    InstructionType["spreadElementProp"] = "hp";
 })(InstructionType || (InstructionType = {}));
 const IInstruction = DI.createInterface('Instruction');
 function isInstruction(value) {
@@ -5281,12 +5292,17 @@ class HydrateElementInstruction {
     /**
      * Indicates whether the usage of the custom element was with a containerless attribute or not
      */
-    containerless) {
+    containerless, 
+    /**
+     * A list of captured attr syntaxes
+     */
+    captures) {
         this.res = res;
         this.alias = alias;
         this.props = props;
         this.projections = projections;
         this.containerless = containerless;
+        this.captures = captures;
         /**
          * A special property that can be used to store <au-slot/> usage information
          */
@@ -5402,6 +5418,15 @@ class AttributeBindingInstruction {
         this.to = to;
     }
     get type() { return "hc" /* attributeBinding */; }
+}
+class SpreadBindingInstruction {
+    get type() { return "hs" /* spreadBinding */; }
+}
+class SpreadElementPropBindingInstruction {
+    constructor(innerInstruction) {
+        this.innerInstruction = innerInstruction;
+    }
+    get type() { return "hp" /* spreadElementProp */; }
 }
 const ITemplateCompiler = DI.createInterface('ITemplateCompiler');
 const IRenderer = DI.createInterface('IRenderer');
@@ -5951,10 +5976,13 @@ SetStyleAttributeRenderer = __decorate([
 let StylePropertyBindingRenderer = 
 /** @internal */
 class StylePropertyBindingRenderer {
-    constructor(exprParser, observerLocator, p) {
-        this._exprParser = exprParser;
-        this._observerLocator = observerLocator;
-        this._platform = p;
+    constructor(
+    /** @internal */ _exprParser, 
+    /** @internal */ _observerLocator, 
+    /** @internal */ _platform) {
+        this._exprParser = _exprParser;
+        this._observerLocator = _observerLocator;
+        this._platform = _platform;
     }
     render(renderingCtrl, target, instruction) {
         const expr = ensureExpression(this._exprParser, instruction.from, 8 /* IsProperty */);
@@ -5972,9 +6000,11 @@ StylePropertyBindingRenderer = __decorate([
 let AttributeBindingRenderer = 
 /** @internal */
 class AttributeBindingRenderer {
-    constructor(exprParser, observerLocator) {
-        this._exprParser = exprParser;
-        this._observerLocator = observerLocator;
+    constructor(
+    /** @internal */ _exprParser, 
+    /** @internal */ _observerLocator) {
+        this._exprParser = _exprParser;
+        this._observerLocator = _observerLocator;
     }
     render(renderingCtrl, target, instruction) {
         const expr = ensureExpression(this._exprParser, instruction.from, 8 /* IsProperty */);
@@ -5989,6 +6019,102 @@ AttributeBindingRenderer = __decorate([
     renderer("hc" /* attributeBinding */)
     /** @internal */
 ], AttributeBindingRenderer);
+let SpreadRenderer = class SpreadRenderer {
+    constructor(
+    /** @internal */ _compiler, 
+    /** @internal */ _rendering) {
+        this._compiler = _compiler;
+        this._rendering = _rendering;
+    }
+    /** @internal */ static get inject() { return [ITemplateCompiler, IRendering]; }
+    render(renderingCtrl, target, instruction) {
+        const container = renderingCtrl.container;
+        const hydrationContext = container.get(IHydrationContext);
+        const renderers = this._rendering.renderers;
+        const getHydrationContext = (ancestor) => {
+            let currentLevel = ancestor;
+            let currentContext = hydrationContext;
+            while (currentContext != null && currentLevel > 0) {
+                currentContext = currentContext.parent;
+                --currentLevel;
+            }
+            if (currentContext == null) {
+                throw new Error('No scope context for spread binding.');
+            }
+            return currentContext;
+        };
+        const renderSpreadInstruction = (ancestor) => {
+            var _a, _b;
+            const context = getHydrationContext(ancestor);
+            const spreadBinding = createSurrogateBinding(context);
+            const instructions = this._compiler.compileSpread(context.controller.definition, (_b = (_a = context.instruction) === null || _a === void 0 ? void 0 : _a.captures) !== null && _b !== void 0 ? _b : emptyArray, context.controller.container, target);
+            let inst;
+            for (inst of instructions) {
+                switch (inst.type) {
+                    case "hs" /* spreadBinding */:
+                        renderSpreadInstruction(ancestor + 1);
+                        break;
+                    case "hp" /* spreadElementProp */:
+                        renderers[inst.innerInstruction.type].render(spreadBinding, CustomElement.for(target), inst.innerInstruction);
+                        break;
+                    default:
+                        renderers[inst.type].render(spreadBinding, target, inst);
+                }
+            }
+            renderingCtrl.addBinding(spreadBinding);
+        };
+        renderSpreadInstruction(0);
+    }
+};
+SpreadRenderer = __decorate([
+    renderer("hs" /* spreadBinding */)
+], SpreadRenderer);
+class SpreadBinding {
+    constructor(
+    /** @internal */ _innerBindings, 
+    /** @internal */ _hydrationContext) {
+        this._innerBindings = _innerBindings;
+        this._hydrationContext = _hydrationContext;
+        this.interceptor = this;
+        this.isBound = false;
+        this.ctrl = _hydrationContext.controller;
+        this.locator = this.ctrl.container;
+    }
+    get container() {
+        return this.locator;
+    }
+    get definition() {
+        return this.ctrl.definition;
+    }
+    get isStrictBinding() {
+        return this.ctrl.isStrictBinding;
+    }
+    $bind(flags, scope) {
+        var _a;
+        if (this.isBound) {
+            return;
+        }
+        this.isBound = true;
+        const innerScope = this.$scope = (_a = this._hydrationContext.controller.scope.parentScope) !== null && _a !== void 0 ? _a : void 0;
+        if (innerScope == null) {
+            throw new Error('Invalid spreading. Context scope is null/undefined');
+        }
+        this._innerBindings.forEach(b => b.$bind(flags, innerScope));
+    }
+    $unbind(flags) {
+        this._innerBindings.forEach(b => b.$unbind(flags));
+        this.isBound = false;
+    }
+    addBinding(binding) {
+        this._innerBindings.push(binding);
+    }
+    addChild(controller) {
+        if (controller.vmKind !== 1 /* customAttribute */) {
+            throw new Error('Spread binding does not support spreading custom attributes/template controllers');
+        }
+        this.ctrl.addChild(controller);
+    }
+}
 // http://jsben.ch/7n5Kt
 function addClasses(classList, className) {
     const len = className.length;
@@ -6005,6 +6131,7 @@ function addClasses(classList, className) {
         }
     }
 }
+const createSurrogateBinding = (context) => new SpreadBinding([], context);
 const controllerProviderName = 'IController';
 const instructionProviderName = 'IInstruction';
 const locationProviderName = 'IRenderLocation';
@@ -6052,6 +6179,9 @@ class ViewFactoryProvider {
 function invokeAttribute(p, definition, renderingCtrl, host, instruction, viewFactory, location, auSlotsInfo) {
     const ctn = renderingCtrl.container.createChild();
     ctn.registerResolver(p.HTMLElement, ctn.registerResolver(p.Element, ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))));
+    renderingCtrl = renderingCtrl instanceof Controller
+        ? renderingCtrl
+        : renderingCtrl.ctrl;
     ctn.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingCtrl));
     ctn.registerResolver(IInstruction, new InstanceProvider(instructionProviderName, instruction));
     ctn.registerResolver(IRenderLocation, location == null
@@ -6120,9 +6250,9 @@ const getCommandAnnotation = (Type, prop) => getOwnMetadata(getAnnotationKeyFor(
 const BindingCommand = Object.freeze({
     name: cmdBaseName,
     keyFrom: getCommandKeyFrom,
-    isType(value) {
-        return typeof value === 'function' && hasOwnMetadata(cmdBaseName, value);
-    },
+    // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
+    //   return typeof value === 'function' && hasOwnMetadata(cmdBaseName, value);
+    // },
     define(nameOrDef, Type) {
         const definition = BindingCommandDefinition.create(nameOrDef, Type);
         defineMetadata(cmdBaseName, definition, definition.Type);
@@ -6130,16 +6260,19 @@ const BindingCommand = Object.freeze({
         appendResourceKey(Type, cmdBaseName);
         return definition.Type;
     },
-    getDefinition(Type) {
-        const def = getOwnMetadata(cmdBaseName, Type);
-        if (def === void 0) {
-            throw new Error(`AUR0758:${Type.name}`);
-        }
-        return def;
-    },
-    annotate(Type, prop, value) {
-        defineMetadata(getAnnotationKeyFor(prop), value, Type);
-    },
+    // getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T> {
+    //   const def = getOwnMetadata(cmdBaseName, Type);
+    //   if (def === void 0) {
+    //     if (false)
+    //       throw new Error(`No definition found for type ${Type.name}`);
+    //     else
+    //       throw new Error(`AUR0758:${Type.name}`);
+    //   }
+    //   return def;
+    // },
+    // annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void {
+    //   defineMetadata(getAnnotationKeyFor(prop), value, Type);
+    // },
     getAnnotation: getCommandAnnotation,
 });
 let OneTimeBindingCommand = class OneTimeBindingCommand {
@@ -6446,9 +6579,18 @@ let RefBindingCommand = class RefBindingCommand {
 RefBindingCommand = __decorate([
     bindingCommand('ref')
 ], RefBindingCommand);
-// @bindingCommand('...$attrs')
-// export class SpreadCaptureBindingCommand implements BindingCommandInstance {
-// }
+let SpreadBindingCommand = class SpreadBindingCommand {
+    constructor() {
+        this.type = 1 /* IgnoreAttr */;
+    }
+    get name() { return '...$attrs'; }
+    build(info) {
+        return new SpreadBindingInstruction();
+    }
+};
+SpreadBindingCommand = __decorate([
+    bindingCommand('...$attrs')
+], SpreadBindingCommand);
 
 const ITemplateElementFactory = DI.createInterface('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 const markupCache = {};
@@ -6582,6 +6724,166 @@ class TemplateCompiler {
             hasSlots: context.hasSlot,
             needsCompile: false,
         });
+    }
+    compileSpread(definition, attrSyntaxs, container, el) {
+        var _a;
+        const context = new CompilationContext(definition, container, emptyCompilationInstructions, null, null, void 0);
+        const instructions = [];
+        const elDef = context._findElement(el.nodeName.toLowerCase());
+        const exprParser = context._exprParser;
+        const ii = attrSyntaxs.length;
+        let i = 0;
+        let attrSyntax;
+        let attrDef = null;
+        let attrInstructions;
+        let attrBindableInstructions;
+        // eslint-disable-next-line
+        let bindablesInfo;
+        let bindable;
+        let primaryBindable;
+        let bindingCommand = null;
+        let expr;
+        let isMultiBindings;
+        let attrTarget;
+        let attrValue;
+        for (; ii > i; ++i) {
+            attrSyntax = attrSyntaxs[i];
+            attrTarget = attrSyntax.target;
+            attrValue = attrSyntax.rawValue;
+            bindingCommand = context._createCommand(attrSyntax);
+            if (bindingCommand !== null && (bindingCommand.type & 1 /* IgnoreAttr */) > 0) {
+                // when the binding command overrides everything
+                // just pass the target as is to the binding command, and treat it as a normal attribute:
+                // active.class="..."
+                // background.style="..."
+                // my-attr.attr="..."
+                commandBuildInfo.node = el;
+                commandBuildInfo.attr = attrSyntax;
+                commandBuildInfo.bindable = null;
+                commandBuildInfo.def = null;
+                instructions.push(bindingCommand.build(commandBuildInfo));
+                // to next attribute
+                continue;
+            }
+            attrDef = context._findAttr(attrTarget);
+            if (attrDef !== null) {
+                if (attrDef.isTemplateController) {
+                    throw new Error(`AUR0703:${attrTarget}`);
+                }
+                bindablesInfo = BindablesInfo.from(attrDef, true);
+                // Custom attributes are always in multiple binding mode,
+                // except when they can't be
+                // When they cannot be:
+                //        * has explicit configuration noMultiBindings: false
+                //        * has binding command, ie: <div my-attr.bind="...">.
+                //          In this scenario, the value of the custom attributes is required to be a valid expression
+                //        * has no colon: ie: <div my-attr="abcd">
+                //          In this scenario, it's simply invalid syntax.
+                //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
+                isMultiBindings = attrDef.noMultiBindings === false
+                    && bindingCommand === null
+                    && hasInlineBindings(attrValue);
+                if (isMultiBindings) {
+                    attrBindableInstructions = this._compileMultiBindings(el, attrValue, attrDef, context);
+                }
+                else {
+                    primaryBindable = bindablesInfo.primary;
+                    // custom attribute + single value + WITHOUT binding command:
+                    // my-attr=""
+                    // my-attr="${}"
+                    if (bindingCommand === null) {
+                        expr = exprParser.parse(attrValue, 1 /* Interpolation */);
+                        attrBindableInstructions = [
+                            expr === null
+                                ? new SetPropertyInstruction(attrValue, primaryBindable.property)
+                                : new InterpolationInstruction(expr, primaryBindable.property)
+                        ];
+                    }
+                    else {
+                        // custom attribute with binding command:
+                        // my-attr.bind="..."
+                        // my-attr.two-way="..."
+                        commandBuildInfo.node = el;
+                        commandBuildInfo.attr = attrSyntax;
+                        commandBuildInfo.bindable = primaryBindable;
+                        commandBuildInfo.def = attrDef;
+                        attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
+                    }
+                }
+                (attrInstructions !== null && attrInstructions !== void 0 ? attrInstructions : (attrInstructions = [])).push(new HydrateAttributeInstruction(
+                // todo: def/ def.Type or def.name should be configurable
+                //       example: AOT/runtime can use def.Type, but there are situation
+                //       where instructions need to be serialized, def.name should be used
+                this.resolveResources ? attrDef : attrDef.name, attrDef.aliases != null && attrDef.aliases.includes(attrTarget) ? attrTarget : void 0, attrBindableInstructions));
+                continue;
+            }
+            if (bindingCommand === null) {
+                expr = exprParser.parse(attrValue, 1 /* Interpolation */);
+                // reaching here means:
+                // + maybe a bindable attribute with interpolation
+                // + maybe a plain attribute with interpolation
+                // + maybe a plain attribute
+                if (elDef !== null) {
+                    bindablesInfo = BindablesInfo.from(elDef, false);
+                    bindable = bindablesInfo.attrs[attrTarget];
+                    if (bindable !== void 0) {
+                        expr = exprParser.parse(attrValue, 1 /* Interpolation */);
+                        instructions.push(new SpreadElementPropBindingInstruction(expr == null
+                            ? new SetPropertyInstruction(attrValue, bindable.property)
+                            : new InterpolationInstruction(expr, bindable.property)));
+                        continue;
+                    }
+                }
+                if (expr != null) {
+                    instructions.push(new InterpolationInstruction(expr, 
+                    // if not a bindable, then ensure plain attribute are mapped correctly:
+                    // e.g: colspan -> colSpan
+                    //      innerhtml -> innerHTML
+                    //      minlength -> minLength etc...
+                    (_a = context._attrMapper.map(el, attrTarget)) !== null && _a !== void 0 ? _a : camelCase(attrTarget)));
+                }
+                else {
+                    switch (attrTarget) {
+                        case 'class':
+                            instructions.push(new SetClassAttributeInstruction(attrValue));
+                            break;
+                        case 'style':
+                            instructions.push(new SetStyleAttributeInstruction(attrValue));
+                            break;
+                        default:
+                            // if not a custom attribute + no binding command + not a bindable + not an interpolation
+                            // then it's just a plain attribute
+                            instructions.push(new SetAttributeInstruction(attrValue, attrTarget));
+                    }
+                }
+            }
+            else {
+                if (elDef !== null) {
+                    // if the element is a custom element
+                    // - prioritize bindables on a custom element before plain attributes
+                    bindablesInfo = BindablesInfo.from(elDef, false);
+                    bindable = bindablesInfo.attrs[attrTarget];
+                    if (bindable !== void 0) {
+                        commandBuildInfo.node = el;
+                        commandBuildInfo.attr = attrSyntax;
+                        commandBuildInfo.bindable = bindable;
+                        commandBuildInfo.def = elDef;
+                        instructions.push(new SpreadElementPropBindingInstruction(bindingCommand.build(commandBuildInfo)));
+                        continue;
+                    }
+                }
+                commandBuildInfo.node = el;
+                commandBuildInfo.attr = attrSyntax;
+                commandBuildInfo.bindable = null;
+                commandBuildInfo.def = null;
+                instructions.push(bindingCommand.build(commandBuildInfo));
+            }
+        }
+        resetCommandBuildInfo();
+        if (attrInstructions != null) {
+            return attrInstructions.concat(instructions);
+        }
+        return instructions;
     }
     /** @internal */
     _compileSurrogate(el, context) {
@@ -6820,8 +7122,8 @@ class TemplateCompiler {
     /** @internal */
     // eslint-disable-next-line
     _compileElement(el, context) {
-        var _a, _b, _c, _d, _e;
-        var _f, _g;
+        var _a, _b, _c, _d, _e, _f;
+        var _g, _h;
         // overall, the template compiler does it job by compiling one node,
         // and let that the process of compiling that node point to the next node to be compiled.
         // ----------------------------------------
@@ -6871,6 +7173,8 @@ class TemplateCompiler {
         const nextSibling = el.nextSibling;
         const elName = ((_a = el.getAttribute('as-element')) !== null && _a !== void 0 ? _a : el.nodeName).toLowerCase();
         const elDef = context._findElement(elName);
+        const shouldCapture = !!(elDef === null || elDef === void 0 ? void 0 : elDef.capture);
+        const captures = shouldCapture ? [] : emptyArray;
         const exprParser = context._exprParser;
         const removeAttr = this.debug
             ? noop
@@ -6940,6 +7244,26 @@ class TemplateCompiler {
                     continue;
             }
             attrSyntax = context._attrParser.parse(attrName, attrValue);
+            if (shouldCapture) {
+                bindablesInfo = BindablesInfo.from(elDef, false);
+                // if capture is on, capture everything except:
+                // - as-element
+                // - containerless
+                // - bindable properties
+                // - template controller
+                // - custom attribute
+                if (bindablesInfo.attrs[attrSyntax.target] == null) {
+                    bindingCommand = context._createCommand(attrSyntax);
+                    // when the binding command ignores custom attribute
+                    // it means the binding is targeting the host element
+                    // it should also be captured
+                    if ((bindingCommand === null || bindingCommand === void 0 ? void 0 : bindingCommand.type) === 1 /* IgnoreAttr */
+                        || !((_c = context._findAttr(attrSyntax.target)) === null || _c === void 0 ? void 0 : _c.isTemplateController)) {
+                        captures.push(attrSyntax);
+                        continue;
+                    }
+                }
+            }
             bindingCommand = context._createCommand(attrSyntax);
             if (bindingCommand !== null && bindingCommand.type & 1 /* IgnoreAttr */) {
                 // when the binding command overrides everything
@@ -7050,7 +7374,7 @@ class TemplateCompiler {
                     // e.g: colspan -> colSpan
                     //      innerhtml -> innerHTML
                     //      minlength -> minLength etc...
-                    (_c = context._attrMapper.map(el, realAttrTarget)) !== null && _c !== void 0 ? _c : camelCase(realAttrTarget)));
+                    (_d = context._attrMapper.map(el, realAttrTarget)) !== null && _d !== void 0 ? _d : camelCase(realAttrTarget)));
                 }
                 // if not a custom attribute + no binding command + not a bindable + not an interpolation
                 // then it's just a plain attribute, do nothing
@@ -7094,7 +7418,7 @@ class TemplateCompiler {
             // todo: def/ def.Type or def.name should be configurable
             //       example: AOT/runtime can use def.Type, but there are situation
             //       where instructions need to be serialized, def.name should be used
-            this.resolveResources ? elDef : elDef.name, void 0, (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : emptyArray), null, hasContainerless);
+            this.resolveResources ? elDef : elDef.name, void 0, (elBindableInstructions !== null && elBindableInstructions !== void 0 ? elBindableInstructions : emptyArray), null, hasContainerless, captures);
             // 2.1 prepare fallback content for <au-slot/>
             if (elName === 'au-slot') {
                 const slotName = el.getAttribute('name') || /* name="" is the same with no name */ 'default';
@@ -7211,7 +7535,7 @@ class TemplateCompiler {
                                 }
                                 childEl.removeAttribute('au-slot');
                                 el.removeChild(childEl);
-                                ((_d = (_f = (slotTemplateRecord !== null && slotTemplateRecord !== void 0 ? slotTemplateRecord : (slotTemplateRecord = {})))[targetSlot]) !== null && _d !== void 0 ? _d : (_f[targetSlot] = [])).push(childEl);
+                                ((_e = (_g = (slotTemplateRecord !== null && slotTemplateRecord !== void 0 ? slotTemplateRecord : (slotTemplateRecord = {})))[targetSlot]) !== null && _e !== void 0 ? _e : (_g[targetSlot] = [])).push(childEl);
                             }
                             // if not a targeted slot then use the common node method
                             // todo: in the future, there maybe more special case for a content of a custom element
@@ -7393,7 +7717,7 @@ class TemplateCompiler {
                             }
                             el.removeChild(childEl);
                             childEl.removeAttribute('au-slot');
-                            ((_e = (_g = (slotTemplateRecord !== null && slotTemplateRecord !== void 0 ? slotTemplateRecord : (slotTemplateRecord = {})))[targetSlot]) !== null && _e !== void 0 ? _e : (_g[targetSlot] = [])).push(childEl);
+                            ((_f = (_h = (slotTemplateRecord !== null && slotTemplateRecord !== void 0 ? slotTemplateRecord : (slotTemplateRecord = {})))[targetSlot]) !== null && _f !== void 0 ? _f : (_h[targetSlot] = [])).push(childEl);
                         }
                         // if not a targeted slot then use the common node method
                         // todo: in the future, there maybe more special case for a content of a custom element
@@ -10885,7 +11209,7 @@ function createElementForType(p, Type, props, children) {
     if (!dependencies.includes(Type)) {
         dependencies.push(Type);
     }
-    instructions.push(new HydrateElementInstruction(definition, void 0, childInstructions, null, false));
+    instructions.push(new HydrateElementInstruction(definition, void 0, childInstructions, null, false, void 0));
     if (props) {
         Object.keys(props)
             .forEach(to => {
@@ -11501,6 +11825,7 @@ const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttribute
 const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern;
 const RefAttributePatternRegistration = RefAttributePattern;
 const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern;
+const SpreadAttributePatternRegistration = SpreadAttributePattern;
 /**
  * Default binding syntax for the following attribute name patterns:
  * - `ref`
@@ -11508,7 +11833,8 @@ const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern;
  */
 const DefaultBindingSyntax = [
     RefAttributePatternRegistration,
-    DotSeparatedAttributePatternRegistration
+    DotSeparatedAttributePatternRegistration,
+    SpreadAttributePatternRegistration,
 ];
 /**
  * Binding syntax for short-hand attribute name patterns:
@@ -11533,6 +11859,7 @@ const CaptureBindingCommandRegistration = CaptureBindingCommand;
 const AttrBindingCommandRegistration = AttrBindingCommand;
 const ClassBindingCommandRegistration = ClassBindingCommand;
 const StyleBindingCommandRegistration = StyleBindingCommand;
+const SpreadBindingCommandRegistration = SpreadBindingCommand;
 /**
  * Default HTML-specific (but environment-agnostic) binding commands:
  * - Property observation: `.bind`, `.one-time`, `.from-view`, `.to-view`, `.two-way`
@@ -11555,6 +11882,7 @@ const DefaultBindingLanguage = [
     ClassBindingCommandRegistration,
     StyleBindingCommandRegistration,
     AttrBindingCommandRegistration,
+    SpreadBindingCommandRegistration,
 ];
 const SanitizeValueConverterRegistration = SanitizeValueConverter;
 const ViewValueConverterRegistration = ViewValueConverter;
@@ -11645,6 +11973,7 @@ const SetClassAttributeRendererRegistration = SetClassAttributeRenderer;
 const SetStyleAttributeRendererRegistration = SetStyleAttributeRenderer;
 const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer;
 const TextBindingRendererRegistration = TextBindingRenderer;
+const SpreadRendererRegistration = SpreadRenderer;
 /**
  * Default renderers for:
  * - PropertyBinding: `bind`, `one-time`, `to-view`, `from-view`, `two-way`
@@ -11680,6 +12009,7 @@ const DefaultRenderers = [
     SetStyleAttributeRendererRegistration,
     StylePropertyBindingRendererRegistration,
     TextBindingRendererRegistration,
+    SpreadRendererRegistration,
 ];
 /**
  * A DI configuration object containing html-specific (but environment-agnostic) registrations:

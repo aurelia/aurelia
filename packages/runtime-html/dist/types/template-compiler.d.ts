@@ -1,15 +1,17 @@
 import { ITemplateCompiler } from './renderer.js';
 import { BindableDefinition } from './bindable.js';
+import { AttrSyntax } from './resources/attribute-pattern.js';
 import { CustomElementDefinition } from './resources/custom-element.js';
 import type { IContainer, IResolver, Constructable } from '@aurelia/kernel';
 import type { CustomAttributeDefinition } from './resources/custom-attribute.js';
 import type { PartialCustomElementDefinition } from './resources/custom-element.js';
-import type { ICompliationInstruction } from './renderer.js';
+import type { ICompliationInstruction, IInstruction } from './renderer.js';
 export declare class TemplateCompiler implements ITemplateCompiler {
     static register(container: IContainer): IResolver<ITemplateCompiler>;
     debug: boolean;
     resolveResources: boolean;
     compile(partialDefinition: PartialCustomElementDefinition, container: IContainer, compilationInstruction: ICompliationInstruction | null): CustomElementDefinition;
+    compileSpread(definition: CustomElementDefinition, attrSyntaxs: AttrSyntax[], container: IContainer, el: Element): IInstruction[];
 }
 export declare class BindablesInfo<T extends 0 | 1 = 0> {
     readonly attrs: Record<string, BindableDefinition>;

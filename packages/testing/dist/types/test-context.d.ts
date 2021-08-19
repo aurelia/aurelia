@@ -82,6 +82,7 @@ export declare class TestContext {
     createElementFromMarkup(markup: string): HTMLElement;
     createElement(name: string): HTMLElement;
     createAttribute(name: string, value: string): Attr;
+    type(host: HTMLElement, selector: string, value: string): void;
 }
 export declare let PLATFORM: IPlatform;
 export declare let PLATFORMRegistration: IRegistration<IPlatform>;

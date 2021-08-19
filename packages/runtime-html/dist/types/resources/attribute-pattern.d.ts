@@ -90,5 +90,8 @@ export declare class ColonPrefixedBindAttributePattern {
 export declare class AtPrefixedTriggerAttributePattern {
     '@PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax;
 }
+export declare class SpreadAttributePattern {
+    '...$attrs'(rawName: string, rawValue: string, parts: string[]): AttrSyntax;
+}
 export {};
 //# sourceMappingURL=attribute-pattern.d.ts.map

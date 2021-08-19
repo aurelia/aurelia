@@ -11,6 +11,7 @@ import type { IServiceLocator, IContainer, Class, IRegistry } from '@aurelia/ker
 import type { Interpolation, IsBindingBehavior, IInterceptableBinding, ForOfStatement, DelegationStrategy } from '@aurelia/runtime';
 import type { IHydratableController } from './templating/controller.js';
 import type { PartialCustomElementDefinition } from './resources/custom-element.js';
+import { AttrSyntax } from './resources/attribute-pattern.js';
 export declare const enum InstructionType {
     hydrateElement = "ra",
     hydrateAttribute = "rb",
@@ -29,7 +30,9 @@ export declare const enum InstructionType {
     stylePropertyBinding = "hd",
     setAttribute = "he",
     setClassAttribute = "hf",
-    setStyleAttribute = "hg"
+    setStyleAttribute = "hg",
+    spreadBinding = "hs",
+    spreadElementProp = "hp"
 }
 export declare type InstructionTypeName = string;
 export interface IInstruction {
@@ -92,6 +95,10 @@ export declare class HydrateElementInstruction {
      * Indicates whether the usage of the custom element was with a containerless attribute or not
      */
     containerless: boolean;
+    /**
+     * A list of captured attr syntaxes
+     */
+    captures: AttrSyntax[] | undefined;
     get type(): InstructionType.hydrateElement;
     /**
      * A special property that can be used to store <au-slot/> usage information
@@ -116,7 +123,11 @@ export declare class HydrateElementInstruction {
     /**
      * Indicates whether the usage of the custom element was with a containerless attribute or not
      */
-    containerless: boolean);
+    containerless: boolean, 
+    /**
+     * A list of captured attr syntaxes
+     */
+    captures: AttrSyntax[] | undefined);
 }
 export declare class HydrateAttributeInstruction {
     res: string | /* Constructable |  */ CustomAttributeDefinition;
@@ -228,6 +239,14 @@ export declare class AttributeBindingInstruction {
      */
     attr: string, from: string | IsBindingBehavior, to: string);
 }
+export declare class SpreadBindingInstruction {
+    get type(): InstructionType.spreadBinding;
+}
+export declare class SpreadElementPropBindingInstruction {
+    readonly innerInstruction: IInstruction;
+    get type(): InstructionType.spreadElementProp;
+    constructor(innerInstruction: IInstruction);
+}
 export declare const ITemplateCompiler: import("@aurelia/kernel").InterfaceSymbol<ITemplateCompiler>;
 export interface ITemplateCompiler {
     /**
@@ -244,6 +263,15 @@ export interface ITemplateCompiler {
      */
     resolveResources: boolean;
     compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, compilationInstruction: ICompliationInstruction | null): CustomElementDefinition;
+    /**
+     * Compile a list of captured attributes as if they are declared in a template
+     *
+     * @param requestor - the context definition where the attributes is compiled
+     * @param attrSyntaxes - the attributes captured
+     * @param container - the container containing information for the compilation
+     * @param host - the host element where the attributes are spreaded on
+     */
+    compileSpread(requestor: PartialCustomElementDefinition, attrSyntaxes: AttrSyntax[], container: IContainer, host: Element): IInstruction[];
 }
 export interface ICompliationInstruction {
     /**
@@ -330,12 +358,23 @@ export declare class SetStyleAttributeRenderer implements IRenderer {
     render(_: IHydratableController, target: HTMLElement, instruction: SetStyleAttributeInstruction): void;
 }
 export declare class StylePropertyBindingRenderer implements IRenderer {
-    constructor(exprParser: IExpressionParser, observerLocator: IObserverLocator, p: IPlatform);
+    constructor(
+    /** @internal */ _exprParser: IExpressionParser, 
+    /** @internal */ _observerLocator: IObserverLocator, 
+    /** @internal */ _platform: IPlatform);
     render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: StylePropertyBindingInstruction): void;
 }
 export declare class AttributeBindingRenderer implements IRenderer {
-    constructor(exprParser: IExpressionParser, observerLocator: IObserverLocator);
+    constructor(
+    /** @internal */ _exprParser: IExpressionParser, 
+    /** @internal */ _observerLocator: IObserverLocator);
     render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: AttributeBindingInstruction): void;
+}
+export declare class SpreadRenderer implements IRenderer {
+    constructor(
+    /** @internal */ _compiler: ITemplateCompiler, 
+    /** @internal */ _rendering: IRendering);
+    render(renderingCtrl: IHydratableController, target: HTMLElement, instruction: SpreadBindingInstruction): void;
 }
 export {};
 //# sourceMappingURL=renderer.d.ts.map

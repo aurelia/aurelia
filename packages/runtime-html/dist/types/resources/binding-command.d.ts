@@ -37,12 +37,9 @@ export declare type BindingCommandInstance<T extends {} = {}> = {
 } & T;
 export declare type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
 export declare type BindingCommandKind = IResourceKind<BindingCommandType, BindingCommandDefinition> & {
-    isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never);
     define<T extends Constructable>(name: string, Type: T): BindingCommandType<T>;
     define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
     define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
-    getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T>;
-    annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void;
     getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K];
 };
 export declare type BindingCommandDecorator = <T extends Constructable>(Type: T) => BindingCommandType<T>;
@@ -153,6 +150,11 @@ export declare class RefBindingCommand implements BindingCommandInstance {
     readonly type: CommandType.IgnoreAttr;
     get name(): string;
     constructor(xp: IExpressionParser);
+    build(info: ICommandBuildInfo): IInstruction;
+}
+export declare class SpreadBindingCommand implements BindingCommandInstance {
+    readonly type: CommandType;
+    get name(): string;
     build(info: ICommandBuildInfo): IInstruction;
 }
 //# sourceMappingURL=binding-command.d.ts.map

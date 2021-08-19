@@ -905,6 +905,11 @@ class TestContext {
         attr.value = value;
         return attr;
     }
+    type(host, selector, value) {
+        const el = host.querySelector(selector);
+        el.value = value;
+        el.dispatchEvent(new this.CustomEvent('change', { bubbles: true }));
+    }
 }
 // Note: our tests shouldn't rely directly on this global variable, but retrieve the platform from a container instead.
 // This keeps the door open for more easily mocking the task queues or certain globals (such as Date) in the future.

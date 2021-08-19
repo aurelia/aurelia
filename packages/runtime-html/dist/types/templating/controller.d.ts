@@ -3,6 +3,7 @@ import { CustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition } from '../resources/custom-attribute.js';
 import type { IContainer, Writable, IDisposable } from '@aurelia/kernel';
 import type { IBinding } from '@aurelia/runtime';
+import type { AttrSyntax } from '../resources/attribute-pattern.js';
 import type { IProjections } from '../resources/slot-injectables.js';
 import type { LifecycleHooksLookup } from './lifecycle-hooks.js';
 import type { INode, INodeSequence, IRenderLocation } from '../dom.js';
@@ -482,6 +483,10 @@ export interface IHydratedCustomAttributeViewModel extends ICustomAttributeViewM
 }
 export interface IControllerElementHydrationInstruction {
     readonly projections: IProjections | null;
+    /**
+     * A list of captured attributes/binding in raw format
+     */
+    readonly captures?: AttrSyntax[];
 }
 export {};
 //# sourceMappingURL=controller.d.ts.map

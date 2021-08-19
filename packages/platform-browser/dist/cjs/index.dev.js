@@ -24,8 +24,8 @@ class BrowserPlatform extends platform.Platform {
             this[prop] = prop in overrides ? overrides[prop] : g[prop];
         });
         'fetch,requestAnimationFrame,cancelAnimationFrame'.split(',').forEach(prop => {
-            var _a;
-            this[prop] = prop in overrides ? overrides[prop] : (_a = g[prop].bind(g)) !== null && _a !== void 0 ? _a : notImplemented(prop);
+            var _a, _b;
+            this[prop] = prop in overrides ? overrides[prop] : ((_b = (_a = g[prop]) === null || _a === void 0 ? void 0 : _a.bind(g)) !== null && _b !== void 0 ? _b : notImplemented(prop));
         });
         this.flushDomRead = this.flushDomRead.bind(this);
         this.flushDomWrite = this.flushDomWrite.bind(this);

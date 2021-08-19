@@ -2,7 +2,8 @@
 
 If the example doesn't seem obvious, the following prerequisite reads are recommended:
 
-* [extending templating syntax](https://docs.aurelia.io/app-basics/extending-templating-syntax)
+{% page-ref page="../../../developer-guides/extending-templating-syntax.md" %}
+* [extending templating syntax](../../../developer-guides/extending-templating-syntax.md)
 
 The following is a code example of how to teach Aurelia to work seamlessly with [Microsoft FAST](https://www.fast.design/):
 

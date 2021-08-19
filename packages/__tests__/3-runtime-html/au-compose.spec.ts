@@ -1018,4 +1018,46 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     await tearDown();
     assert.strictEqual(appHost.textContent, '');
   });
+
+  it('works with [au-slot] when composing custom element', async function () {
+    const El1 = CustomElement.define({
+      name: 'el1',
+      template: `<p><au-slot>`
+    }, class Element1 {});
+    const { appHost, startPromise, tearDown } = createFixture(
+      `<au-compose view-model.bind="vm"><input value.bind="message" au-slot>`,
+      class App {
+        public message = 'Aurelia';
+        public vm: any = El1;
+      }
+    );
+
+    await startPromise;
+
+    assert.strictEqual((appHost.querySelector('p input') as HTMLInputElement).value, 'Aurelia');
+
+    await tearDown();
+  });
+
+  it('works with [au-slot] + [repeat] when composing custom element', async function () {
+    const El1 = CustomElement.define({
+      name: 'el1',
+      template: `<p><au-slot>`
+    }, class Element1 {});
+    const { appHost, startPromise, tearDown } = createFixture(
+      `<au-compose repeat.for="i of 3" view-model.bind="vm"><input value.to-view="message + i" au-slot>`,
+      class App {
+        public message = 'Aurelia';
+        public vm: any = El1;
+      }
+    );
+
+    await startPromise;
+
+    assert.deepStrictEqual(
+      Array.from(appHost.querySelectorAll('p input')).map((i: HTMLInputElement) => i.value),
+      ['Aurelia0', 'Aurelia1', 'Aurelia2']
+    );
+    await tearDown();
+  });
 });

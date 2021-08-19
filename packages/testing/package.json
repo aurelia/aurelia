@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/testing",
-  "version": "2.1.0-dev.202108190723",
+  "version": "2.1.0-dev.202108192341",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -39,12 +39,12 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202108190723",
-    "@aurelia/metadata": "2.1.0-dev.202108190723",
-    "@aurelia/platform": "2.1.0-dev.202108190723",
-    "@aurelia/platform-browser": "2.1.0-dev.202108190723",
-    "@aurelia/runtime": "2.1.0-dev.202108190723",
-    "@aurelia/runtime-html": "2.1.0-dev.202108190723"
+    "@aurelia/kernel": "2.1.0-dev.202108192341",
+    "@aurelia/metadata": "2.1.0-dev.202108192341",
+    "@aurelia/platform": "2.1.0-dev.202108192341",
+    "@aurelia/platform-browser": "2.1.0-dev.202108192341",
+    "@aurelia/runtime": "2.1.0-dev.202108192341",
+    "@aurelia/runtime-html": "2.1.0-dev.202108192341"
   },
   "devDependencies": {
     "@types/mocha": "^8.0.3",

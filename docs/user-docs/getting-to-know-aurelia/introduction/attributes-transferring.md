@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Attribute transferring is a way to relay the binding(s) on a custom element to other element(s) inside it.
+Attribute transferring is a way to relay the binding(s) on a custom element to it's child element(s).
 
 As an application grows, the components inside it also grow. Something that starts simple like the following component
 
@@ -20,9 +20,10 @@ with the template
   <input value.bind="value">
 </label>
 ```
+
 can quickly grow out of hand with a number of needs for configuration: aria, type, min, max, pattern, tooltip, validation etc...
 
-After a while, the `FormInput` component above will be come more and more like a relayer to transfer the bindings from outside, to the elements inside it. This often results in the increase of the number of `@bindable`. This is completely fine except that it's quite some boilerplate code that is not always desirable:
+After a while, the `FormInput` component above will become more and more like a relayer to transfer the bindings from outside, to the elements inside it. This often results in the increase of the number of `@bindable`. This is completely fine except that it's quite some boilerplate code that is not always desirable:
 
 ```typescript
 export class FormInput {
@@ -53,7 +54,7 @@ to be repeated like this inside:
 </label>
 ```
 
-To juggle all the relevant pieces for such relaying task isn't difficult, but somewhat tedious. With attribute transferring, which is roughly close to spreading in JavaScript, the above template should be as simple as:
+To juggle all the relevant pieces for such relaying task isn't difficult, but somewhat tedious. With attribute transferring, which is roughly close to object spreading in JavaScript, the above template should be as simple as:
 
 ```html
 <label>${label}
@@ -83,6 +84,15 @@ As the name suggests, this is to signal the template compiler that all the bindi
 ```html
 <input ...$attrs>
 ```
+
+In case you want to spread all attributes while explicitely overriding inidividual ones, make sure these come after the spread operator
+
+```html
+<input value.bind="..." ...$attrs> spread wins
+<input ...$attrs value.bind="..."> explicit wins
+```
+
+So as a safe practice, keep attribute spreading left-most in order to avoid potentially undesired behaviors.
 
 {% hint style="warning" %}
 It's recommended that this feature should not be overused in multi level capturing & transferring. This is often known as prop-drilling in React, and could have bad effect on overall & long term maintainability of a project. It's probably healthy to limit the max level of transferring to 2.

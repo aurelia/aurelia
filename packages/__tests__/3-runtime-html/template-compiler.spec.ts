@@ -720,6 +720,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         instructions: [[childInstr]],
         needsCompile: false,
         enhance: false,
+        capture: false,
         processContent: null,
       },
       props: createTplCtrlAttributeInstruction(attr, value),
@@ -734,6 +735,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
+      capture: false,
       processContent: null,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
@@ -758,6 +760,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         instructions,
         needsCompile: false,
         enhance: false,
+        capture: false,
         processContent: null,
       },
       props: createTplCtrlAttributeInstruction(attr, value),
@@ -773,6 +776,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
+      capture: false,
       processContent: null,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
@@ -798,6 +802,7 @@ function createCustomElement(
     auSlot: null,
     containerless: false,
     projections: null,
+    captures: [],
   };
   const def = typeof tagNameOrDef === 'string'
     ? ctx.container.find(CustomElement, tagNameOrDef)
@@ -842,6 +847,7 @@ function createCustomElement(
     needsCompile: false,
     enhance: false,
     watches: [],
+    capture: false,
     processContent: null,
   };
   return [input, output];
@@ -877,7 +883,7 @@ function createCustomAttribute(
   // new behavior: if it's custom attribute, remove
   const outputMarkup = ctx.createElementFromMarkup(`<div>${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
   outputMarkup.classList.add('au');
-  const output = {
+  const output: PartialCustomElementDefinition & { key: string } = {
     ...defaultCustomElementDefinitionProperties,
     name: 'unnamed',
     key: 'au:resource:custom-element:unnamed',
@@ -885,6 +891,7 @@ function createCustomAttribute(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     enhance: false,
+    capture: false,
     watches: [],
     processContent: null,
   };
@@ -998,13 +1005,14 @@ describe(`TemplateCompiler - combinations`, function () {
             instructions: [],
             surrogates: [],
           } as unknown as PartialCustomElementDefinition;
-          const expected = {
+          const expected: PartialCustomElementDefinition = {
             ...defaultCustomElementDefinitionProperties,
             template: ctx.createElementFromMarkup(`<template><${el} plain data-attr="value" class="abc au" ${debugMode ? `${n1}="${v1}" ` : ''}></${el}></template>`),
             instructions: [[i1]],
             surrogates: [],
             needsCompile: false,
             enhance: false,
+            capture: false,
             processContent: null,
           };
 
@@ -1023,13 +1031,14 @@ describe(`TemplateCompiler - combinations`, function () {
             instructions: [],
             surrogates: [],
           } as unknown as PartialCustomElementDefinition;
-          const expected = {
+          const expected: PartialCustomElementDefinition = {
             ...defaultCustomElementDefinitionProperties,
             template: ctx.createElementFromMarkup(`<template><${el} plain data-attr="value" ${debugMode ? `${n1}="${v1}" ` : ''}class="au"></${el}></template>`),
             instructions: [[i1]],
             surrogates: [],
             needsCompile: false,
             enhance: false,
+            capture: false,
             processContent: null,
           };
 
@@ -1073,6 +1082,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           enhance: false,
+          capture: false,
           processContent: null,
         };
 
@@ -1151,6 +1161,7 @@ describe(`TemplateCompiler - combinations`, function () {
             surrogates: [],
             needsCompile: false,
             enhance: false,
+            capture: false,
             watches: [],
             processContent: null,
           };
@@ -1448,12 +1459,13 @@ describe(`TemplateCompiler - combinations`, function () {
         );
         sut.resolveResources = resolveRes;
 
-        const output = {
+        const output: PartialCustomElementDefinition = {
           ...defaultCustomElementDefinitionProperties,
           template: ctx.createElementFromMarkup(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           needsCompile: false,
           enhance: false,
+          capture: false,
           watches: [],
           processContent: null,
         };

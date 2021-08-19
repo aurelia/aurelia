@@ -88,6 +88,12 @@ export class TestContext {
     attr.value = value;
     return attr;
   }
+
+  public type(host: HTMLElement, selector: string, value: string): void {
+    const el = host.querySelector(selector) as HTMLElement & { value: string };
+    el.value = value;
+    el.dispatchEvent(new this.CustomEvent('change', { bubbles: true }));
+  }
 }
 
 // Note: our tests shouldn't rely directly on this global variable, but retrieve the platform from a container instead.

@@ -2,6 +2,7 @@ import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
+  SpreadAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern,
 } from './resources/attribute-pattern.js';
@@ -20,6 +21,7 @@ import {
   RefBindingCommand,
   StyleBindingCommand,
   TriggerBindingCommand,
+  SpreadBindingCommand,
 } from './resources/binding-command.js';
 import { TemplateCompiler } from './template-compiler.js';
 import {
@@ -40,6 +42,7 @@ import {
   TextBindingRenderer,
   SetClassAttributeRenderer,
   SetStyleAttributeRenderer,
+  SpreadRenderer,
 } from './renderer.js';
 import {
   FromViewBindingBehavior,
@@ -107,6 +110,7 @@ export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAt
 export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;
 export const RefAttributePatternRegistration = RefAttributePattern as unknown as IRegistry;
 export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as unknown as IRegistry;
+export const SpreadAttributePatternRegistration = SpreadAttributePattern as unknown as IRegistry;
 
 /**
  * Default binding syntax for the following attribute name patterns:
@@ -115,7 +119,8 @@ export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePat
  */
 export const DefaultBindingSyntax = [
   RefAttributePatternRegistration,
-  DotSeparatedAttributePatternRegistration
+  DotSeparatedAttributePatternRegistration,
+  SpreadAttributePatternRegistration,
 ];
 
 /**
@@ -142,6 +147,7 @@ export const CaptureBindingCommandRegistration = CaptureBindingCommand as unknow
 export const AttrBindingCommandRegistration = AttrBindingCommand as unknown as IRegistry;
 export const ClassBindingCommandRegistration = ClassBindingCommand as unknown as IRegistry;
 export const StyleBindingCommandRegistration = StyleBindingCommand as unknown as IRegistry;
+export const SpreadBindingCommandRegistration = SpreadBindingCommand as unknown as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) binding commands:
@@ -165,6 +171,7 @@ export const DefaultBindingLanguage = [
   ClassBindingCommandRegistration,
   StyleBindingCommandRegistration,
   AttrBindingCommandRegistration,
+  SpreadBindingCommandRegistration,
 ];
 
 export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
@@ -258,6 +265,7 @@ export const SetClassAttributeRendererRegistration = SetClassAttributeRenderer a
 export const SetStyleAttributeRendererRegistration = SetStyleAttributeRenderer as unknown as IRegistry;
 export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer as unknown as IRegistry;
 export const TextBindingRendererRegistration = TextBindingRenderer as unknown as IRegistry;
+export const SpreadRendererRegistration = SpreadRenderer as unknown as IRegistry;
 
 /**
  * Default renderers for:
@@ -294,6 +302,7 @@ export const DefaultRenderers = [
   SetStyleAttributeRendererRegistration,
   StylePropertyBindingRendererRegistration,
   TextBindingRendererRegistration,
+  SpreadRendererRegistration,
 ];
 
 /**

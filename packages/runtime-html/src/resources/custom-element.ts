@@ -44,6 +44,7 @@ declare module '@aurelia/kernel' {
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
+  readonly capture?: boolean;
   readonly template?: null | string | Node;
   readonly instructions?: readonly (readonly IInstruction[])[];
   readonly dependencies?: readonly Key[];
@@ -214,6 +215,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly aliases: string[],
     public readonly key: string,
     public readonly cache: '*' | number,
+    public readonly capture: boolean,
     public readonly template: null | string | Node,
     public readonly instructions: readonly (readonly IInstruction[])[],
     public readonly dependencies: readonly Key[],
@@ -273,6 +275,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         mergeArrays(def.aliases),
         fromDefinitionOrDefault('key', def as CustomElementDefinition, () => CustomElement.keyFrom(name)),
         fromDefinitionOrDefault('cache', def, returnZero),
+        fromDefinitionOrDefault('capture', def, returnFalse),
         fromDefinitionOrDefault('template', def, returnNull),
         mergeArrays(def.instructions),
         mergeArrays(def.dependencies),
@@ -301,6 +304,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases),
         CustomElement.keyFrom(nameOrDef),
         fromAnnotationOrTypeOrDefault('cache', Type, returnZero),
+        fromAnnotationOrTypeOrDefault('capture', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('template', Type, returnNull),
         mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions),
         mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies),
@@ -339,6 +343,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases),
       CustomElement.keyFrom(name),
       fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero),
+      fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull),
       mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions),
       mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies),

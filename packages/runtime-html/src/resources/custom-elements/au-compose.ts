@@ -61,23 +61,22 @@ export class AuCompose {
   /** @internal */
   public readonly $controller!: ICustomElementController<AuCompose>;
 
-  private pd?: Promise<void> | void;
+  /** @internal */
+  private _pending?: Promise<void> | void;
   public get pending(): Promise<void> | void {
-    return this.pd;
+    return this._pending;
   }
 
   /** @internal */
-  private c: ICompositionController | undefined = void 0;
+  private _composition: ICompositionController | undefined = void 0;
   public get composition(): ICompositionController | undefined {
-    return this.c;
+    return this._composition;
   }
 
-  private readonly r: IRendering;
-
-  /** @internal */
-  private readonly loc: IRenderLocation | undefined;
-  private readonly _instruction: HydrateElementInstruction;
-  private readonly _contextFactory: CompositionContextFactory;
+  /** @internal */ private readonly _rendering: IRendering;
+  /** @internal */ private readonly _location: IRenderLocation | undefined;
+  /** @internal */ private readonly _instruction: HydrateElementInstruction;
+  /** @internal */ private readonly _contextFactory: CompositionContextFactory;
 
   public constructor(
     private readonly ctn: IContainer,
@@ -89,44 +88,44 @@ export class AuCompose {
     instruction: HydrateElementInstruction,
     contextFactory: CompositionContextFactory,
   ) {
-    this.loc = instruction.containerless ? convertToRenderLocation(this.host) : void 0;
-    this.r = ctn.get(IRendering);
+    this._location = instruction.containerless ? convertToRenderLocation(this.host) : void 0;
+    this._rendering = ctn.get(IRendering);
     this._instruction = instruction;
     this._contextFactory = contextFactory;
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
-    return this.pd = onResolve(
+    return this._pending = onResolve(
       this.queue(new ChangeInfo(this.view, this.viewModel, this.model, initiator, void 0)),
       (context) => {
         if (this._contextFactory.isCurrent(context)) {
-          this.pd = void 0;
+          this._pending = void 0;
         }
       }
     );
   }
 
   public detaching(initiator: IHydratedController): void | Promise<void> {
-    const cmpstn = this.c;
-    const pending = this.pd;
+    const cmpstn = this._composition;
+    const pending = this._pending;
     this._contextFactory.invalidate();
-    this.c = this.pd = void 0;
+    this._composition = this._pending = void 0;
     return onResolve(pending, () => cmpstn?.deactivate(initiator));
   }
 
   /** @internal */
   protected propertyChanged(name: ChangeSource): void {
-    if (name === 'model' && this.c != null) {
+    if (name === 'model' && this._composition != null) {
       // eslint-disable-next-line
-      this.c.update(this.model);
+      this._composition.update(this.model);
       return;
     }
-    this.pd = onResolve(this.pd, () =>
+    this._pending = onResolve(this._pending, () =>
       onResolve(
         this.queue(new ChangeInfo(this.view!, this.viewModel, this.model, void 0, name)),
         (context) => {
           if (this._contextFactory.isCurrent(context)) {
-            this.pd = void 0;
+            this._pending = void 0;
           }
         }
       )
@@ -136,7 +135,7 @@ export class AuCompose {
   /** @internal */
   private queue(change: ChangeInfo): CompositionContext | Promise<CompositionContext> {
     const factory = this._contextFactory;
-    const compositionCtrl = this.c;
+    const compositionCtrl = this._composition;
     // todo: handle consequitive changes that create multiple queues
     return onResolve(
       factory.create(change),
@@ -154,7 +153,7 @@ export class AuCompose {
                 if (factory.isCurrent(context)) {
                   // after activation, if the composition context is still the most recent one
                   // then the job is done
-                  this.c = result;
+                  this._composition = result;
                   return onResolve(compositionCtrl?.deactivate(change.initiator), () => context);
                 } else {
                   // the stale controller should be deactivated
@@ -189,7 +188,7 @@ export class AuCompose {
     //       should it throw or try it best to proceed?
     //       current: proceed
     const { view, viewModel, model, initiator } = context.change;
-    const { ctn: container, host, $controller, loc } = this;
+    const { ctn: container, host, $controller, _location: loc } = this;
     const srcDef = this.getDef(viewModel);
     const childCtn: IContainer = container.createChild();
     const parentNode = loc == null ? host.parentNode : loc.parentNode;
@@ -228,13 +227,13 @@ export class AuCompose {
           childCtn,
           comp,
           compositionHost as HTMLElement,
-          null,
+          { projections: this._instruction.projections },
           srcDef,
         );
 
         return new CompositionController(
           controller,
-          () => controller.activate(initiator ?? controller, $controller, LifecycleFlags.fromBind),
+          () => controller.activate(initiator ?? controller, $controller, LifecycleFlags.fromBind, $controller.scope.parentScope!),
           // todo: call deactivate on the component view model
           (deactachInitiator) => onResolve(
             controller.deactivate(deactachInitiator ?? controller, $controller, LifecycleFlags.fromUnbind),
@@ -250,7 +249,7 @@ export class AuCompose {
           name: CustomElement.generateName(),
           template: view,
         });
-        const viewFactory = this.r.getViewFactory(targetDef, childCtn);
+        const viewFactory = this._rendering.getViewFactory(targetDef, childCtn);
         const controller = Controller.$view(
           viewFactory,
           $controller

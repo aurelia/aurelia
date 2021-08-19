@@ -34,6 +34,7 @@
   * [Template references and variables](getting-to-know-aurelia/introduction/template-references-and-variables.md)
   * [Portalling elements](getting-to-know-aurelia/introduction/portalling-elements.md)
   * [Templating - Local Template](getting-to-know-aurelia/introduction/local-templates.md)
+  * [Attributes transferring](getting-to-know-aurelia/introduction/attributes-transferring.md)
 * [Components](getting-to-know-aurelia/components/README.md)
   * [Component lifecycles](getting-to-know-aurelia/components/component-lifecycles.md)
   * [Creating components](getting-to-know-aurelia/components/creating-components/README.md)

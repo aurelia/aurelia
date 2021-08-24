@@ -869,8 +869,11 @@ export class Viewport extends Endpoint {
         this.connectedCE?.setActivity?.(navigatingPrefix, false);
         this.connectedCE?.setActivity?.(coordinator.navigation.navigation, false);
 
+        coordinator.removeEndpoint(this);
+
         arrayRemove(this.coordinators, (coord => coord === coordinator));
-      }) as Step<void>;
+      },
+      () => step?.exit()) as Step<void>;
   }
 
   /**

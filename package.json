@@ -1,7 +1,7 @@
 {
   "name": "aurelia-direct-router-monorepo",
   "private": true,
-  "version": "2.0.0-alpha.17.1",
+  "version": "2.0.0-alpha.18.0",
   "workspaces": [
     "packages/router",
     "test/karma-aurelia-preprocessor",

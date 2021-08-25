@@ -39,7 +39,7 @@
     "@aurelia/platform": "latest",
     "@aurelia/platform-browser": "latest",
     "@aurelia/route-recognizer": "latest",
-    "aurelia-direct-router": "2.0.0-alpha.17.1",
+    "aurelia-direct-router": "2.0.0-alpha.18.0",
     "@aurelia/runtime-html": "latest",
     "@aurelia/runtime": "latest",
     "@aurelia/validation-html": "latest",

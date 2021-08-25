@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.18"></a>
+# 2.0.0-alpha.18 (2021-08-22)
+
+### Features:
+
+* **attr-transfer:** implement attr capturing & spreading ([998b91c](https://github.com/aurelia/aurelia/commit/998b91c))
+
 <a name="2.0.0-alpha.17"></a>
 # 2.0.0-alpha.17 (2021-08-16)
 

@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.18"></a>
+# 2.0.0-alpha.18 (2021-08-22)
+
+### Features:
+
+* **au-compose:** works with au-slot ([4bfcc00](https://github.com/aurelia/aurelia/commit/4bfcc00))
+* **attr-transfer:** implement attr capturing & spreading with ...$attrs syntax ([998b91c](https://github.com/aurelia/aurelia/commit/998b91c))
+
+
+### Bug Fixes:
+
+* **repeat:** ensure binding behavior works with .for binding ([30a27a0](https://github.com/aurelia/aurelia/commit/30a27a0))
+
 <a name="2.0.0-alpha.17"></a>
 # 2.0.0-alpha.17 (2021-08-16)
 

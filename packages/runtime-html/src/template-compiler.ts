@@ -705,29 +705,34 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       attrSyntax = context._attrParser.parse(attrName, attrValue);
+      bindingCommand = context._createCommand(attrSyntax);
+
+      realAttrTarget = attrSyntax.target;
+      realAttrValue = attrSyntax.rawValue;
+
       if (shouldCapture) {
-        bindablesInfo = BindablesInfo.from(elDef!, false);
-        // if capture is on, capture everything except:
-        // - as-element
-        // - containerless
-        // - bindable properties
-        // - template controller
-        // - custom attribute
-        if (bindablesInfo.attrs[attrSyntax.target] == null) {
-          bindingCommand = context._createCommand(attrSyntax);
-          // when the binding command ignores custom attribute
-          // it means the binding is targeting the host element
-          // it should also be captured
-          if (bindingCommand?.type === CommandType.IgnoreAttr
-            || !context._findAttr(attrSyntax.target)?.isTemplateController
-          ) {
+        if (bindingCommand != null && bindingCommand.type & CommandType.IgnoreAttr) {
+          removeAttr();
+          captures.push(attrSyntax);
+          continue;
+        }
+
+        if (realAttrTarget !== 'au-slot') {
+          bindablesInfo = BindablesInfo.from(elDef!, false);
+          // if capture is on, capture everything except:
+          // - as-element
+          // - containerless
+          // - bindable properties
+          // - template controller
+          // - custom attribute
+          if (bindablesInfo.attrs[realAttrTarget] == null && !context._findAttr(realAttrTarget)?.isTemplateController) {
+            removeAttr();
             captures.push(attrSyntax);
             continue;
           }
         }
       }
 
-      bindingCommand = context._createCommand(attrSyntax);
       if (bindingCommand !== null && bindingCommand.type & CommandType.IgnoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
@@ -746,8 +751,6 @@ export class TemplateCompiler implements ITemplateCompiler {
         continue;
       }
 
-      realAttrTarget = attrSyntax.target;
-      realAttrValue = attrSyntax.rawValue;
       // if not a ignore attribute binding command
       // then process with the next possibilities
       attrDef = context._findAttr(realAttrTarget);

@@ -676,7 +676,7 @@ exports.AtPrefixedTriggerAttributePattern = n([ S({
 
 let D = class SpreadAttributePattern {
     "...$attrs"(t, e, s) {
-        return new AttrSyntax("", "", "", "...$attrs");
+        return new AttrSyntax("...$attrs", "", "", "...$attrs");
     }
 };
 
@@ -5713,17 +5713,24 @@ class TemplateCompiler {
                 continue;
             }
             R = e.ue.parse(C, A);
+            U = e.he(R);
+            V = R.target;
+            j = R.rawValue;
             if (p) {
-                M = BindablesInfo.from(d, false);
-                if (null == M.attrs[R.target]) {
-                    U = e.he(R);
-                    if (1 === (null === U || void 0 === U ? void 0 : U.type) || !(null === (r = e.ce(R.target)) || void 0 === r ? void 0 : r.isTemplateController)) {
+                if (null != U && 1 & U.type) {
+                    v();
+                    m.push(R);
+                    continue;
+                }
+                if ("au-slot" !== V) {
+                    M = BindablesInfo.from(d, false);
+                    if (null == M.attrs[V] && !(null === (r = e.ce(V)) || void 0 === r ? void 0 : r.isTemplateController)) {
+                        v();
                         m.push(R);
                         continue;
                     }
                 }
             }
-            U = e.he(R);
             if (null !== U && 1 & U.type) {
                 oi.node = t;
                 oi.attr = R;
@@ -5733,8 +5740,6 @@ class TemplateCompiler {
                 v();
                 continue;
             }
-            V = R.target;
-            j = R.rawValue;
             B = e.ce(V);
             if (null !== B) {
                 M = BindablesInfo.from(B, true);

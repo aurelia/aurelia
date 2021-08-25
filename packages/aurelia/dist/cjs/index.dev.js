@@ -114,6 +114,7 @@ exports.IObserverLocator = runtimeHtml.IObserverLocator;
 exports.IPlatform = runtimeHtml.IPlatform;
 exports.IRenderLocation = runtimeHtml.IRenderLocation;
 exports.ISignaler = runtimeHtml.ISignaler;
+exports.ITemplateCompiler = runtimeHtml.ITemplateCompiler;
 exports.ITemplateCompilerHooks = runtimeHtml.ITemplateCompilerHooks;
 exports.IWcElementRegistry = runtimeHtml.IWcElementRegistry;
 exports.IWorkTracker = runtimeHtml.IWorkTracker;

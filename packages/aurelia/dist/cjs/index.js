@@ -182,6 +182,8 @@ exports.IRenderLocation = r.IRenderLocation;
 
 exports.ISignaler = r.ISignaler;
 
+exports.ITemplateCompiler = r.ITemplateCompiler;
+
 exports.ITemplateCompilerHooks = r.ITemplateCompilerHooks;
 
 exports.IWcElementRegistry = r.IWcElementRegistry;

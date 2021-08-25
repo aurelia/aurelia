@@ -768,7 +768,7 @@ AtPrefixedTriggerAttributePattern = __decorate([
 ], AtPrefixedTriggerAttributePattern);
 let SpreadAttributePattern = class SpreadAttributePattern {
     '...$attrs'(rawName, rawValue, parts) {
-        return new AttrSyntax('', '', '', '...$attrs');
+        return new AttrSyntax('...$attrs', '', '', '...$attrs');
     }
 };
 SpreadAttributePattern = __decorate([
@@ -7244,27 +7244,30 @@ class TemplateCompiler {
                     continue;
             }
             attrSyntax = context._attrParser.parse(attrName, attrValue);
+            bindingCommand = context._createCommand(attrSyntax);
+            realAttrTarget = attrSyntax.target;
+            realAttrValue = attrSyntax.rawValue;
             if (shouldCapture) {
-                bindablesInfo = BindablesInfo.from(elDef, false);
-                // if capture is on, capture everything except:
-                // - as-element
-                // - containerless
-                // - bindable properties
-                // - template controller
-                // - custom attribute
-                if (bindablesInfo.attrs[attrSyntax.target] == null) {
-                    bindingCommand = context._createCommand(attrSyntax);
-                    // when the binding command ignores custom attribute
-                    // it means the binding is targeting the host element
-                    // it should also be captured
-                    if ((bindingCommand === null || bindingCommand === void 0 ? void 0 : bindingCommand.type) === 1 /* IgnoreAttr */
-                        || !((_c = context._findAttr(attrSyntax.target)) === null || _c === void 0 ? void 0 : _c.isTemplateController)) {
+                if (bindingCommand != null && bindingCommand.type & 1 /* IgnoreAttr */) {
+                    removeAttr();
+                    captures.push(attrSyntax);
+                    continue;
+                }
+                if (realAttrTarget !== 'au-slot') {
+                    bindablesInfo = BindablesInfo.from(elDef, false);
+                    // if capture is on, capture everything except:
+                    // - as-element
+                    // - containerless
+                    // - bindable properties
+                    // - template controller
+                    // - custom attribute
+                    if (bindablesInfo.attrs[realAttrTarget] == null && !((_c = context._findAttr(realAttrTarget)) === null || _c === void 0 ? void 0 : _c.isTemplateController)) {
+                        removeAttr();
                         captures.push(attrSyntax);
                         continue;
                     }
                 }
             }
-            bindingCommand = context._createCommand(attrSyntax);
             if (bindingCommand !== null && bindingCommand.type & 1 /* IgnoreAttr */) {
                 // when the binding command overrides everything
                 // just pass the target as is to the binding command, and treat it as a normal attribute:
@@ -7280,8 +7283,6 @@ class TemplateCompiler {
                 // to next attribute
                 continue;
             }
-            realAttrTarget = attrSyntax.target;
-            realAttrValue = attrSyntax.rawValue;
             // if not a ignore attribute binding command
             // then process with the next possibilities
             attrDef = context._findAttr(realAttrTarget);

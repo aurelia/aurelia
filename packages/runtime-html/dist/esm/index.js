@@ -674,7 +674,7 @@ Lt = rt([ Et({
 
 let qt = class SpreadAttributePattern {
     "...$attrs"(t, e, i) {
-        return new AttrSyntax("", "", "", "...$attrs");
+        return new AttrSyntax("...$attrs", "", "", "...$attrs");
     }
 };
 
@@ -5711,17 +5711,24 @@ class TemplateCompiler {
                 continue;
             }
             E = e.ue.parse(A, R);
+            F = e.he(E);
+            _ = E.target;
+            N = E.rawValue;
             if (v) {
-                V = BindablesInfo.from(m, false);
-                if (null == V.attrs[E.target]) {
-                    F = e.he(E);
-                    if (1 === (null === F || void 0 === F ? void 0 : F.type) || !(null === (n = e.ae(E.target)) || void 0 === n ? void 0 : n.isTemplateController)) {
+                if (null != F && 1 & F.type) {
+                    w();
+                    p.push(E);
+                    continue;
+                }
+                if ("au-slot" !== _) {
+                    V = BindablesInfo.from(m, false);
+                    if (null == V.attrs[_] && !(null === (n = e.ae(_)) || void 0 === n ? void 0 : n.isTemplateController)) {
+                        w();
                         p.push(E);
                         continue;
                     }
                 }
             }
-            F = e.he(E);
             if (null !== F && 1 & F.type) {
                 In.node = t;
                 In.attr = E;
@@ -5731,8 +5738,6 @@ class TemplateCompiler {
                 w();
                 continue;
             }
-            _ = E.target;
-            N = E.rawValue;
             T = e.ae(_);
             if (null !== T) {
                 V = BindablesInfo.from(T, true);

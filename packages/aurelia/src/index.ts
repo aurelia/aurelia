@@ -714,7 +714,7 @@ export {
   // IInstructionTypeClassifier,
   // IRenderingEngine,
   // ITemplate,
-  // ITemplateCompiler,
+  ITemplateCompiler,
   // ITemplateFactory,
   ITemplateCompilerHooks,
   TemplateCompilerHooks,

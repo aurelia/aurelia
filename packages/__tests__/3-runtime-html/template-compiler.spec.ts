@@ -46,6 +46,8 @@ import {
   ITemplateCompilerHooks,
   IAttributeParser,
   HydrateAttributeInstruction,
+  AttrSyntax,
+  If,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -1644,6 +1646,93 @@ describe(`TemplateCompiler - combinations`, function () {
           throw err;
         }
       });
+    });
+  });
+
+  describe('captures & ...$attrs', function () {
+    const MyElement = CustomElement.define({
+      name: 'my-element',
+      capture: true,
+      bindables: ['prop1']
+    });
+    const MyAttr = CustomAttribute.define({
+      name: 'my-attr',
+      bindables: ['value']
+    }, class MyAttr {});
+
+    it('captures normal attributes', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element value.bind="value">',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        (definition.instructions[0][0] as any).captures,
+        [new AttrSyntax('value.bind', 'value', 'value', 'bind')]
+      );
+    });
+
+    it('does not capture bindable', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element prop1.bind="value">',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual((definition.instructions[0][0] as any).captures, []);
+    });
+
+    it('captures bindable-like on ignore-attr command', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element prop1.trigger="value()">',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        (definition.instructions[0][0] as any).captures,
+        [new AttrSyntax('prop1.trigger', 'value()', 'prop1', 'trigger')]
+      );
+    });
+
+    it('captures custom attribute', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement, MyAttr);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element my-attr.bind="myAttrValue">',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        (definition.instructions[0][0] as any).captures,
+        [new AttrSyntax('my-attr.bind', 'myAttrValue', 'my-attr', 'bind')]
+      );
+    });
+
+    it('captures ...$attrs command', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement, MyAttr);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element ...$attrs>',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        (definition.instructions[0][0] as any).captures,
+        [new AttrSyntax('...$attrs', '', '', '...$attrs')]
+      );
+    });
+
+    it('does not capture template controller', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement, If);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element if.bind>',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        ((definition.instructions[0][0] as HydrateTemplateController).def.instructions[0][0] as any).captures,
+        []
+      );
     });
   });
 });

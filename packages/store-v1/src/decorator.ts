@@ -53,8 +53,8 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       // numbers are the starting index to slice all the change handling args,
       // which are prop name, new state and old state
       changeHandlers: {
-        [_settings.onChanged || '']: 1,
-        [`${_settings.target || target}Changed`]: _settings.target ? 0 : 1,
+        [_settings.onChanged ?? '']: 1,
+        [`${_settings.target ?? target}Changed`]: _settings.target ? 0 : 1,
         propertyChanged: 0
       }
     }));
@@ -67,7 +67,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       : target.prototype.binding;
     const originalTeardown = typeof settings === 'object' && settings.teardown
       ? target.prototype[settings.teardown]
-      : target.prototype.bound;
+      : target.prototype.unbinding;
 
     target.prototype[typeof settings === 'object' && settings.setup !== undefined ? settings.setup : 'binding'] = function () {
       if (typeof settings === 'object' &&
@@ -104,7 +104,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       }
     };
 
-    target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'bound'] = function () {
+    target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'unbinding'] = function () {
       if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) {
         this._stateSubscriptions.forEach((sub: Subscription) => {
           if (sub instanceof Subscription && sub.closed === false) {

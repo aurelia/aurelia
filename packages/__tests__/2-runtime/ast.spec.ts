@@ -43,6 +43,7 @@ import {
   TemplateExpression,
   UnaryExpression,
   ValueConverterExpression,
+  DestructuringAssignmentSingleExpression,
 } from '@aurelia/runtime';
 import {
   PropertyBinding,
@@ -1167,7 +1168,7 @@ describe('BinaryExpression', function () {
   }
 
   describe('performs \'in\'', function () {
-    function *getTestData() {
+    function* getTestData() {
       yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('foo'), new ObjectLiteralExpression(['foo'], [$null])), true);
       yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('foo'), new ObjectLiteralExpression(['bar'], [$null])), false);
       yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression(1), new ObjectLiteralExpression(['1'], [$null])), true);
@@ -1196,7 +1197,7 @@ describe('BinaryExpression', function () {
   describe('performs \'instanceof\'', function () {
     class Foo { }
     class Bar extends Foo { }
-    function *getTestData() {
+    function* getTestData() {
       for (const scope of [
         createScopeForTest({ foo: new Foo(), bar: new Bar() }),
       ]) {
@@ -1467,7 +1468,7 @@ describe('LiteralTemplate', function () {
 
     public get scope() { return createScopeForTest(this.ctx); }
   }
-  function *getTestData() {
+  function* getTestData() {
     yield new TestData($tpl, '');
     yield new TestData(new TemplateExpression(['foo']), 'foo');
     yield new TestData(new TemplateExpression(['foo', 'baz'], [new PrimitiveLiteralExpression('bar')]), 'foobarbaz');
@@ -2273,3 +2274,103 @@ describe('ValueConverterExpression', function () {
     return (actual: any, expected: any, message?: string) => assert.strictEqual(actual, expected, `[${prefix}]: ${message}`);
   }
 });
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+describe.only('DestructuringAssignmentExpression', function () {
+
+  describe('DestructuringAssignmentSingleExpression', function () {
+
+    it('{a} = {a:42}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'a'),
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, { a: 42 });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{1:a} = {1:"42"}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, '1'),
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, { 1: '42' });
+      assert.strictEqual(bc.a, '42');
+    });
+
+    it('{x:a} = {x:"42"}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'x'),
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, { x: '42' });
+      assert.strictEqual(bc.a, '42');
+    });
+
+    it('{a=42} = {b:404}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'a'),
+        new PrimitiveLiteralExpression(42),
+      ).assign(LF.none, Scope.create(bc), null, { b: 404 });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{1:a=42} = {2:"404"}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, '1'),
+        new PrimitiveLiteralExpression(42),
+      ).assign(LF.none, Scope.create(bc), null, { 2: "404" });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{x:a=42} = {b:404}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'x'),
+        new PrimitiveLiteralExpression(42),
+      ).assign(LF.none, Scope.create(bc), null, { b: 404 });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{a=404} = {a:42}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'a'),
+        new PrimitiveLiteralExpression(404),
+      ).assign(LF.none, Scope.create(bc), null, { a: 42 });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{1:a=404} = {1:"42"}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, '1'),
+        new PrimitiveLiteralExpression(404),
+      ).assign(LF.none, Scope.create(bc), null, { 1: '42' });
+      assert.strictEqual(bc.a, '42');
+    });
+
+    it('{x:a=404} = {x:"42"}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'x'),
+        new PrimitiveLiteralExpression(404),
+      ).assign(LF.none, Scope.create(bc), null, { x: '42' });
+      assert.strictEqual(bc.a, '42');
+    });
+
+  });
+
+});
+/* eslint-enable @typescript-eslint/no-unsafe-assignment */

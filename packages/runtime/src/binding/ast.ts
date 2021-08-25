@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { emptyArray, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
 import { LifecycleFlags as LF } from '../observation.js';
-import { BindingContext } from '../observation/binding-context.js';
+import { BindingContext, Scope } from '../observation/binding-context.js';
 import { ISignaler } from '../observation/signaler.js';
 import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior.js';
 import { ValueConverter, ValueConverterInstance } from '../value-converter.js';
@@ -16,46 +16,48 @@ import type {
   IConnectable,
   ISubscriber,
 } from '../observation.js';
-import type { Scope } from '../observation/binding-context.js';
 import { IConnectableBinding } from './connectable.js';
 
 export const enum ExpressionKind {
-  CallsFunction        = 0b000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()
-  HasAncestor          = 0b000000001000_00000, // Has an "ancestor" property, meaning the expression could climb up the context (only AccessThis, AccessScope and CallScope)
-  IsPrimary            = 0b000000010000_00000, // Is a primary expression according to ES parsing rules
-  IsLeftHandSide       = 0b000000100000_00000, // Is a left-hand side expression according to ES parsing rules, includes IsPrimary
-  HasBind              = 0b000001000000_00000, // Has a bind() method (currently only BindingBehavior)
-  HasUnbind            = 0b000010000000_00000, // Has an unbind() method (currentl only BindingBehavior and ValueConverter)
-  IsAssignable         = 0b000100000000_00000, // Is an assignable expression according to ES parsing rules (only AccessScope, AccessMember, AccessKeyed ans Assign)
-  IsLiteral            = 0b001000000000_00000, // Is literal expression (Primitive, Array, Object or Template)
-  IsResource           = 0b010000000000_00000, // Is an Aurelia resource (ValueConverter or BindingBehavior)
-  IsForDeclaration     = 0b100000000000_00000, // Is a For declaration (for..of, for..in -> currently only ForOfStatement)
-  Type                 = 0b000000000000_11111, // Type mask to uniquely identify each AST class (concrete types start below)
+  CallsFunction                 = 0b000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()
+  HasAncestor                   = 0b000000001000_00000, // Has an "ancestor" property, meaning the expression could climb up the context (only AccessThis, AccessScope and CallScope)
+  IsPrimary                     = 0b000000010000_00000, // Is a primary expression according to ES parsing rules
+  IsLeftHandSide                = 0b000000100000_00000, // Is a left-hand side expression according to ES parsing rules, includes IsPrimary
+  HasBind                       = 0b000001000000_00000, // Has a bind() method (currently only BindingBehavior)
+  HasUnbind                     = 0b000010000000_00000, // Has an unbind() method (currentl only BindingBehavior and ValueConverter)
+  IsAssignable                  = 0b000100000000_00000, // Is an assignable expression according to ES parsing rules (only AccessScope, AccessMember, AccessKeyed ans Assign)
+  IsLiteral                     = 0b001000000000_00000, // Is literal expression (Primitive, Array, Object or Template)
+  IsResource                    = 0b010000000000_00000, // Is an Aurelia resource (ValueConverter or BindingBehavior)
+  IsForDeclaration              = 0b100000000000_00000, // Is a For declaration (for..of, for..in -> currently only ForOfStatement)
+  Type                          = 0b000000000000_11111, // Type mask to uniquely identify each AST class (concrete types start below)
   // ---------------------------------------------------------------------------------------------------------------------------
-  AccessThis           = 0b000000111000_00001, //               HasAncestor
-  AccessScope          = 0b000100111011_00010, // IsAssignable  HasAncestor
-  ArrayLiteral         = 0b001000110001_00011, //
-  ObjectLiteral        = 0b001000110001_00100, //
-  PrimitiveLiteral     = 0b001000110000_00101, //
-  Template             = 0b001000110001_00110, //
-  Unary                = 0b000000000001_00111, //
-  CallScope            = 0b000000101101_01000, //               HasAncestor  CallsFunction
-  CallMember           = 0b000000100100_01001, //                            CallsFunction
-  CallFunction         = 0b000000100100_01010, //                            CallsFunction
-  AccessMember         = 0b000100100011_01011, // IsAssignable
-  AccessKeyed          = 0b000100100011_01100, // IsAssignable
-  TaggedTemplate       = 0b000000100101_01101, //                            CallsFunction
-  Binary               = 0b000000000001_01110, //
-  Conditional          = 0b000000000001_11111, //
-  Assign               = 0b000100000000_10000, // IsAssignable
-  ValueConverter       = 0b010010000001_10001, //
-  BindingBehavior      = 0b010011000001_10010, //
-  HtmlLiteral          = 0b000000000001_10011, //
-  ArrayBindingPattern  = 0b100000000000_10100, //
-  ObjectBindingPattern = 0b100000000000_10101, //
-  BindingIdentifier    = 0b100000000000_10110, //
-  ForOfStatement       = 0b000011000001_10111, //
-  Interpolation        = 0b000000000000_11000  //
+  AccessThis                    = 0b000000111000_00001, //               HasAncestor
+  AccessScope                   = 0b000100111011_00010, // IsAssignable  HasAncestor
+  ArrayLiteral                  = 0b001000110001_00011, //
+  ObjectLiteral                 = 0b001000110001_00100, //
+  PrimitiveLiteral              = 0b001000110000_00101, //
+  Template                      = 0b001000110001_00110, //
+  Unary                         = 0b000000000001_00111, //
+  CallScope                     = 0b000000101101_01000, //               HasAncestor  CallsFunction
+  CallMember                    = 0b000000100100_01001, //                            CallsFunction
+  CallFunction                  = 0b000000100100_01010, //                            CallsFunction
+  AccessMember                  = 0b000100100011_01011, // IsAssignable
+  AccessKeyed                   = 0b000100100011_01100, // IsAssignable
+  TaggedTemplate                = 0b000000100101_01101, //                            CallsFunction
+  Binary                        = 0b000000000001_01110, //
+  Conditional                   = 0b000000000001_11111, //
+  Assign                        = 0b000100000000_10000, // IsAssignable
+  ValueConverter                = 0b010010000001_10001, //
+  BindingBehavior               = 0b010011000001_10010, //
+  HtmlLiteral                   = 0b000000000001_10011, //
+  ArrayBindingPattern           = 0b100000000000_10100, //
+  ObjectBindingPattern          = 0b100000000000_10101, //
+  BindingIdentifier             = 0b100000000000_10110, //
+  ForOfStatement                = 0b000011000001_10111, //
+  Interpolation                 = 0b000000000000_11000, //
+  ArrayDestructuringAssignment  = 0b001100000000_11001, // IsAssignable
+  ObjectDestructuringAssignment = 0b010100000000_11001, // IsAssignable
+  DestructuringAssignmentLeaf   = 0b100100000000_11001, // IsAssignable
 }
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
@@ -1415,6 +1417,86 @@ export class Interpolation {
 
   public toString(): string {
     return Unparser.unparse(this);
+  }
+}
+
+// spec: https://tc39.es/ecma262/#sec-destructuring-assignment
+export class DestructuringAssignmentExpression {
+  public get hasBind(): false { return false; }
+  public get hasUnbind(): false { return false; }
+  public constructor(
+    public readonly $kind: ExpressionKind.ArrayDestructuringAssignment | ExpressionKind.ObjectDestructuringAssignment,
+    public readonly list: readonly (DestructuringAssignmentExpression|DestructuringAssignmentSingleExpression|DestructuringAssignmentRestExpression)[],
+  ) { }
+
+  public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): undefined {
+    return void 0;
+  }
+
+  public assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void {
+    const list = this.list;
+    const len = list.length;
+    let i: number;
+    let item: DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression;
+    for (i = 0; i < len; i++) {
+      item = list[i];
+      switch(item.$kind) {
+        case ExpressionKind.DestructuringAssignmentLeaf:
+          break;
+      }
+    }
+  }
+
+  public accept<T>(_visitor: IVisitor<T>): T {
+    throw new Error('Not implemented'); // TODO(sayan): fix
+  }
+
+  public toString(): string {
+    throw new Error('Not implemented'); // TODO(sayan): fix
+  }
+}
+
+export class DestructuringAssignmentSingleExpression {
+  public get $kind(): ExpressionKind.DestructuringAssignmentLeaf { return ExpressionKind.DestructuringAssignmentLeaf; }
+  public constructor(
+    public readonly target: AccessMemberExpression,
+    public readonly source: AccessMemberExpression,
+    public readonly defaultValue: AccessMemberExpression | PrimitiveLiteralExpression,
+  ) { }
+
+  public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): undefined {
+    return void 0;
+  }
+
+  public assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void {
+    if (typeof value !== 'object' || value === null) { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
+    this.target.assign(f, s, l, this.source.evaluate(f, Scope.create(value), l, null) ?? this.defaultValue.evaluate(f, s, l, null));
+  }
+
+  public accept<T>(_visitor: IVisitor<T>): T {
+    throw new Error('Not implemented'); // TODO(sayan): fix
+  }
+
+  public toString(): string {
+    throw new Error('Not implemented'); // TODO(sayan): fix
+  }
+}
+
+export class DestructuringAssignmentRestExpression {
+  public get $kind(): ExpressionKind.DestructuringAssignmentLeaf { return ExpressionKind.DestructuringAssignmentLeaf; }
+  public constructor(target: string, startingIndex: number);
+  public constructor(target: string, destructuredProperties: string[]);
+  public constructor(
+    public readonly target: string,
+    public readonly indexOrProperties: string[] | number,
+  ) { }
+
+  public accept<T>(_visitor: IVisitor<T>): T {
+    throw new Error('Not implemented'); // TODO(sayan): fix
+  }
+
+  public toString(): string {
+    throw new Error('Not implemented'); // TODO(sayan): fix
   }
 }
 

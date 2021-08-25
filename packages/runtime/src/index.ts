@@ -62,6 +62,9 @@ export {
   BindingIdentifierOrPattern,
   UnaryOperator,
   IExpressionHydrator,
+  DestructuringAssignmentExpression,
+  DestructuringAssignmentSingleExpression,
+  DestructuringAssignmentRestExpression,
 } from './binding/ast.js';
 export {
   IObserverLocatorBasedConnectable,

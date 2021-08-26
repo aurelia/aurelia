@@ -27,6 +27,7 @@ const testDirs = [
   'i18n',
   'integration',
   'router',
+  'store-v1',
   'validation',
   'validation-html',
   'validation-i18n',
@@ -43,6 +44,7 @@ const packageNames = [
   'router',
   'runtime',
   'runtime-html',
+  'store-v1',
   'testing',
   'validation',
   'validation-html',
@@ -98,6 +100,10 @@ module.exports = function (config) {
     // for i18n tests
     { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/i18next/dist/esm/i18next.js` }, // 3.1
     { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/@babel/runtime/helpers/**/*.js` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/rxjs/_esm5/**/*.js` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/rxjs/_esm5/**/*.js.map` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/rxjs/_esm5/**/*.d.ts` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/tslib/tslib.es6.js` }, // 3.1
   ];
 
   const preprocessors = files.reduce((p, file) => {
@@ -151,7 +157,6 @@ module.exports = function (config) {
         timeout: 5000,
       }
     },
-    restartOnFileChange: true,
     logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
     // logLevel: config.LOG_DEBUG,
   };

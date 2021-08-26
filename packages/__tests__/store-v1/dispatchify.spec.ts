@@ -1,6 +1,4 @@
-import { skip as _skip } from "rxjs/operators/index.js";
-import type { skip as $skip } from "rxjs/operators";
-const skip = _skip as typeof $skip;
+import { skip } from "rxjs/operators";
 
 import { DI, Registration } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';

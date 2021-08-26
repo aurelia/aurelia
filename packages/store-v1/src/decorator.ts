@@ -8,9 +8,9 @@ import { Store, STORE } from './store.js';
 export interface ConnectToSettings<T, R = T | any> {
   onChanged?: string;
   selector: ((store: Store<T>) => Observable<R>) | MultipleSelector<T, R>;
-  setup?: string;
+  setup?: 'created' | 'binding' | 'bound';
   target?: string;
-  teardown?: string;
+  teardown?: 'detached' | 'unbinding';
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

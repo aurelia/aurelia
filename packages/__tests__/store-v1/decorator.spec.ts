@@ -1,11 +1,8 @@
 import { Subscription } from 'rxjs';
 
-import { pluck as _pluck, distinctUntilChanged as _distinctUntilChanged } from "rxjs/operators/index.js";
-import type { pluck as $pluck, distinctUntilChanged as  $distinctUntilChanged } from "rxjs/operators";
-const pluck = _pluck as typeof $pluck;
-const distinctUntilChanged = _distinctUntilChanged as typeof $distinctUntilChanged;
+import { pluck, distinctUntilChanged } from "rxjs/operators";
 
-import { customElement } from '@aurelia/runtime-html';
+import { customElement, IWindow } from '@aurelia/runtime-html';
 import { assert } from "@aurelia/testing";
 import { DI, Registration } from '@aurelia/kernel';
 import { STORE, Store, connectTo } from '@aurelia/store-v1';
@@ -17,19 +14,31 @@ interface DemoState {
   bar: string;
 }
 
+type ITestViewModel<T> = {
+  created?(...args: any[]): any;
+  binding?(...args: any[]): any;
+  bound?(...args: any[]): any;
+  unbinding?(...args: any[]): any;
+  detached?(...args: any[]): any;
+  _stateSubscriptions?: Subscription[];
+} & T;
+
 function arrange() {
   const initialState = { foo: 'Lorem', bar: 'Ipsum' };
   const container = DI.createContainer();
   const { logger, storeWindow } = createDI();
   const store: Store<DemoState> = new Store(initialState, logger, storeWindow);
-  container.register(Registration.instance(Store, store));
+  container.register(
+    Registration.instance(Store, store),
+    Registration.instance(IWindow, storeWindow),
+  );
 
   STORE.container = container;
 
   return { initialState, store };
 }
 
-describe("using decorators", function () {
+describe.only("using decorators", function () {
   it("should lazy load the store inside the decorator", function () {
     arrange();
 
@@ -42,8 +51,8 @@ describe("using decorators", function () {
 
     }
 
-    const component = new ConnectToVm();
-    assert.equal(typeof (component as any).binding, "function");
+    const component: ITestViewModel<ConnectToVm> = new ConnectToVm();
+    assert.equal(typeof component.binding, "function");
   });
 
   it("should be possible to decorate a class and assign the subscribed result to the state property", function () {
@@ -54,13 +63,13 @@ describe("using decorators", function () {
       public state: DemoState;
     }
 
-    const sut = new DemoStoreConsumer();
+    const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
     assert.equal(sut.state, undefined);
 
-    (sut as any).binding();
+    sut.binding();
 
     assert.equal(sut.state, initialState);
-    assert.notEqual((sut as any)._stateSubscriptions, undefined);
+    assert.notEqual(sut._stateSubscriptions, undefined);
   });
 
   it("should be possible to provide a state selector", function () {
@@ -71,10 +80,10 @@ describe("using decorators", function () {
       public state: DemoState;
     }
 
-    const sut = new DemoStoreConsumer();
+    const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
     assert.equal(sut.state, undefined);
 
-    (sut as any).binding();
+    sut.binding();
 
     assert.equal(sut.state, initialState.bar);
   });
@@ -90,10 +99,10 @@ describe("using decorators", function () {
         public state: DemoState;
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
       assert.equal(sut.state, undefined);
 
-      (sut as any).binding();
+      sut.binding();
 
       assert.equal(sut.state, initialState.bar);
     });
@@ -108,10 +117,10 @@ describe("using decorators", function () {
         public state: DemoState;
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
       assert.equal(sut.state, undefined);
 
-      (sut as any).binding();
+      sut.binding();
 
       assert.equal(sut.state, initialState);
     });
@@ -131,9 +140,9 @@ describe("using decorators", function () {
         public fooTarget: string;
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
 
-      (sut as any).binding();
+      sut.binding();
 
       assert.equal(sut.state, undefined);
       assert.equal(sut.barTarget, initialState.bar);
@@ -150,10 +159,10 @@ describe("using decorators", function () {
         public state: DemoState;
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
       assert.equal(sut.state, undefined);
 
-      (sut as any).binding();
+      sut.binding();
 
       assert.equal(sut.state, initialState);
     });
@@ -169,12 +178,12 @@ describe("using decorators", function () {
         public foo: DemoState;
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
       assert.equal(sut.foo, undefined);
 
-      (sut as any).binding();
+      sut.binding();
 
-      assert.equal((sut as any).state, undefined);
+      assert.equal(sut['state'], undefined);
       assert.equal(sut.foo, initialState.bar);
     });
 
@@ -192,17 +201,17 @@ describe("using decorators", function () {
         public foo: DemoState;
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
       assert.equal(sut.foo, undefined);
 
-      (sut as any).binding();
+      sut.binding();
 
-      assert.equal((sut as any).state, undefined);
+      assert.equal(sut['state'], undefined);
       assert.notEqual(sut.foo, undefined);
-      assert.notEqual((sut.foo as any).barTarget, undefined);
-      assert.notEqual((sut.foo as any).fooTarget, undefined);
-      assert.equal((sut.foo as any).barTarget, initialState.bar);
-      assert.equal((sut.foo as any).fooTarget, initialState.foo);
+      assert.notEqual(sut.foo['barTarget'], undefined);
+      assert.notEqual(sut.foo['fooTarget'], undefined);
+      assert.equal(sut.foo['barTarget'], initialState.bar);
+      assert.equal(sut.foo['fooTarget'], initialState.foo);
     });
   });
 
@@ -219,9 +228,9 @@ describe("using decorators", function () {
       }
     }
 
-    const sut = new DemoStoreConsumer();
+    const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
 
-    (sut as any).binding();
+    sut.binding();
 
     assert.equal(sut.state, initialState);
     assert.equal(sut.test, "foobar");
@@ -241,13 +250,13 @@ describe("using decorators", function () {
         }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
 
-      (sut as any).binding();
+      sut.binding();
 
       assert.equal(sut.state, initialState);
 
-      (sut as any).unbinding();
+      sut.unbinding();
 
       assert.equal(sut.test, "foobar");
     });
@@ -260,11 +269,11 @@ describe("using decorators", function () {
         public state: DemoState;
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
       assert.equal(sut.state, undefined);
 
-      (sut as any).binding();
-      const subscriptions = ((sut as any)._stateSubscriptions as Subscription[]);
+      sut.binding();
+      const subscriptions = sut._stateSubscriptions;
       assert.equal(subscriptions.length, 1);
       const subscription = subscriptions[0];
       const { spyObj } = createCallCounter(subscription, "unsubscribe");
@@ -272,7 +281,7 @@ describe("using decorators", function () {
       assert.equal(sut.state, initialState);
       assert.equal(subscription.closed, false);
 
-      (sut as any).unbinding();
+      sut.unbinding();
 
       assert.notEqual(subscription, undefined);
       assert.equal(subscription.closed, true);
@@ -292,11 +301,11 @@ describe("using decorators", function () {
         public state: DemoState;
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
       assert.equal(sut.state, undefined);
 
-      (sut as any).binding();
-      const subscriptions = ((sut as any)._stateSubscriptions as Subscription[]);
+      sut.binding();
+      const subscriptions = sut._stateSubscriptions;
       assert.equal(subscriptions.length, 2);
       const { spyObj: spyObj1 } = createCallCounter(subscriptions[0], "unsubscribe");
       const { spyObj: spyObj2 } = createCallCounter(subscriptions[1], "unsubscribe");
@@ -304,7 +313,7 @@ describe("using decorators", function () {
       assert.equal(subscriptions[0].closed, false);
       assert.equal(subscriptions[1].closed, false);
 
-      (sut as any).unbinding();
+      sut.unbinding();
 
       assert.notEqual(subscriptions[0], undefined);
       assert.notEqual(subscriptions[1], undefined);
@@ -322,11 +331,11 @@ describe("using decorators", function () {
         public state: DemoState;
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
       assert.equal(sut.state, undefined);
 
-      (sut as any).binding();
-      const subscriptions = ((sut as any)._stateSubscriptions as Subscription[]);
+      sut.binding();
+      const subscriptions = sut._stateSubscriptions;
       assert.equal(subscriptions.length, 1);
       const subscription = subscriptions[0];
       subscription.unsubscribe();
@@ -336,7 +345,7 @@ describe("using decorators", function () {
 
       const { spyObj } = createCallCounter(subscription, "unsubscribe");
 
-      (sut as any).unbinding();
+      sut.unbinding();
 
       assert.notEqual(subscription, undefined);
       assert.equal(spyObj.callCounter, 0);
@@ -351,16 +360,16 @@ describe("using decorators", function () {
           public state: DemoState;
         }
 
-        const sut = new DemoStoreConsumer();
+        const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
         assert.equal(sut.state, undefined);
 
-        (sut as any).binding();
-        const subscriptions = ((sut as any)._stateSubscriptions as Subscription[]);
-        (sut as any)._stateSubscriptions = stateSubscription;
+        sut.binding();
+        const subscriptions = sut._stateSubscriptions;
+        sut._stateSubscriptions = stateSubscription;
         const subscription = subscriptions[0];
         const { spyObj } = createCallCounter(subscription, "unsubscribe");
 
-        (sut as any).unbinding();
+        sut.unbinding();
 
         assert.notEqual(subscription, undefined);
         assert.equal(spyObj.callCounter, 0);
@@ -390,7 +399,7 @@ describe("using decorators", function () {
         }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
 
       assert.equal(sut.binding(), expectedbindingResult);
       assert.equal(sut.unbinding(), expectedunbindingResult);
@@ -401,19 +410,19 @@ describe("using decorators", function () {
 
       @connectTo<DemoState>({
         selector: (store) => store.state,
-        setup: "create"
+        setup: "created"
       })
       class DemoStoreConsumer {
         public state: DemoState;
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
 
-      assert.notEqual((sut as any).create, undefined);
-      (sut as any).create();
+      assert.notEqual(sut.created, undefined);
+      sut.created();
 
       assert.equal(sut.state, initialState);
-      assert.notEqual((sut as any)._stateSubscriptions, undefined);
+      assert.notEqual(sut._stateSubscriptions, undefined);
     });
 
     it("should allow to specify a lifecycle hook for the unsubscription", function () {
@@ -427,11 +436,11 @@ describe("using decorators", function () {
         public state: DemoState;
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
 
-      (sut as any).binding();
+      sut.binding();
 
-      const subscriptions = ((sut as any)._stateSubscriptions as Subscription[]);
+      const subscriptions = sut._stateSubscriptions;
       assert.equal(subscriptions.length, 1);
       const subscription = subscriptions[0];
       const { spyObj } = createCallCounter(subscription, "unsubscribe");
@@ -439,7 +448,7 @@ describe("using decorators", function () {
       assert.equal(sut.state, initialState);
       assert.equal(subscription.closed, false);
       assert.notEqual((sut as any).detached, undefined);
-      (sut as any).detached();
+      sut.detached();
 
       assert.notEqual(subscription, undefined);
       assert.equal(subscription.closed, true);
@@ -461,10 +470,10 @@ describe("using decorators", function () {
         public stateChanged(state: DemoState) { return state; }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
       const { spyObj } = createCallCounter(sut, "stateChanged");
 
-      (sut as any).binding();
+      sut.binding();
 
       assert.equal(sut.state, initialState);
       assert.equal(spyObj.callCounter, 1);
@@ -485,10 +494,10 @@ describe("using decorators", function () {
         public stateChanged(state: DemoState) { return state; }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
       const { spyObj } = createCallCounter(sut, "stateChanged");
 
-      (sut as any).binding();
+      sut.binding();
 
       assert.equal(sut.state, initialState);
       assert.equal(spyObj.callCounter, 1);
@@ -512,8 +521,8 @@ describe("using decorators", function () {
         }
       }
 
-      const sut = new DemoStoreConsumer();
-      (sut as any).binding();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
+      sut.binding();
     });
 
     it("should call the targetChanged handler on the VM, if existing, with the new and old state", function () {
@@ -534,10 +543,10 @@ describe("using decorators", function () {
         }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
       const { spyObj } = createCallCounter(sut, "targetPropChanged");
 
-      (sut as any).binding();
+      sut.binding();
 
       assert.equal(targetValOnChange, "foobar");
       assert.equal(sut.targetProp, initialState);
@@ -566,9 +575,9 @@ describe("using decorators", function () {
         }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
 
-      (sut as any).binding();
+      sut.binding();
 
       assert.equal(sut.targetProp, initialState);
     });
@@ -605,8 +614,8 @@ describe("using decorators", function () {
         }
       }
 
-      const sut = new DemoStoreConsumer();
-      (sut as any).binding();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
+      sut.binding();
 
       assert.equal(sut.targetProp, initialState);
       assert.deepEqual(calledHandlersInOrder, ["customHandler", "targetPropChanged", "propertyChanged"]);
@@ -636,10 +645,10 @@ describe("using decorators", function () {
         }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
       const { spyObj } = createCallCounter(sut, "targetPropChanged");
 
-      (sut as any).binding();
+      sut.binding();
 
       assert.equal(sut.foo.targetProp, initialState);
       assert.equal(spyObj.callCounter, 0);
@@ -665,9 +674,9 @@ describe("using decorators", function () {
           public fooChanged() { this.fooCalls++; }
         }
 
-        const sut = new DemoStoreConsumer();
+        const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
 
-        (sut as any).binding();
+        sut.binding();
 
         await store.dispatch(changeOnlyBar);
 
@@ -686,9 +695,9 @@ describe("using decorators", function () {
           public state: DemoState;
         }
 
-        const sut = new DemoStoreConsumer();
+        const sut: ITestViewModel<DemoStoreConsumer> = new DemoStoreConsumer();
 
-        assert.throws(() => (sut as any).binding());
+        assert.throws(() => sut.binding());
       });
   });
 });

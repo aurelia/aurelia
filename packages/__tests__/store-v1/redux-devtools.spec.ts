@@ -1,8 +1,4 @@
-import { skip as _skip, delay as _delay } from "rxjs/operators/index.js";
-import type { skip as $skip, delay as $delay } from "rxjs/operators";
-
-const skip = _skip as typeof $skip;
-const delay = _delay as typeof $delay;
+import { skip, delay } from "rxjs/operators";
 
 import { DevToolsOptions, Store, DevToolsRemoteDispatchError } from '@aurelia/store-v1';
 import {

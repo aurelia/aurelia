@@ -1,7 +1,4 @@
-import { skip as _skip, take as _take } from "rxjs/operators/index.js";
-import type { skip as $skip, take as $take } from "rxjs/operators";
-const skip = _skip as typeof $skip;
-const take = _take as typeof $take;
+import { skip, take } from "rxjs/operators";
 
 import { assert } from '@aurelia/testing';
 import {

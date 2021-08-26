@@ -1,5 +1,6 @@
 const path = require('path');
 
+
 const basePath = path.resolve(__dirname, '..', '..');
 const smsPath = path.dirname(require.resolve('source-map-support'));
 
@@ -19,7 +20,7 @@ const commonChromeFlags = [
   '--disable-translate',
 ];
 
-const testDirs = [
+const allTestDirs = [
   '1-kernel',
   '2-runtime',
   '3-runtime-html',
@@ -32,6 +33,11 @@ const testDirs = [
   'validation-html',
   'validation-i18n',
 ];
+
+const cliArgs = process.argv.slice(3);
+const testDirs = cliArgs.length > 0
+  ? allTestDirs.filter(d => cliArgs.includes(d))
+  : allTestDirs;
 
 const packageNames = [
   'fetch-client',

@@ -2370,6 +2370,79 @@ describe.only('DestructuringAssignmentExpression', function () {
       assert.strictEqual(bc.a, '42');
     });
 
+    it('[a] = [42]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, [42]);
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('[a=42] = []', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+        new PrimitiveLiteralExpression(42),
+      ).assign(LF.none, Scope.create(bc), null, []);
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('[,a=42] = [404]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+        new PrimitiveLiteralExpression(42),
+      ).assign(LF.none, Scope.create(bc), null, [404]);
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{a=vm_prop} = {x:404}', function () {
+      const ps = Scope.create({prop: 42});
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'a'),
+        new AccessScopeExpression('prop', 0),
+      ).assign(LF.none, Scope.fromParent(ps, bc), null, { x: 404 });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('[,a=vm_prop] = [404]', function () {
+      const ps = Scope.create({prop: 42});
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+        new AccessScopeExpression('prop', 0),
+      ).assign(LF.none, Scope.fromParent(ps, bc), null, [404]);
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{a=$parent.vm_prop} = {x:404}', function () {
+      const ps = Scope.create({prop: 42});
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'a'),
+        new AccessScopeExpression('prop', 2),
+      ).assign(LF.none, Scope.fromParent(Scope.fromParent(ps, Object.create(null)), bc), null, { x: 404 });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('[,a=$parent.vm_prop] = [404]', function () {
+      const ps = Scope.create({prop: 42});
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+        new AccessScopeExpression('prop', 2),
+      ).assign(LF.none, Scope.fromParent(Scope.fromParent(ps, Object.create(null)), bc), null, [404]);
+      assert.strictEqual(bc.a, 42);
+    });
   });
 
 });

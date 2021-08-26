@@ -1460,8 +1460,8 @@ export class DestructuringAssignmentSingleExpression {
   public get $kind(): ExpressionKind.DestructuringAssignmentLeaf { return ExpressionKind.DestructuringAssignmentLeaf; }
   public constructor(
     public readonly target: AccessMemberExpression,
-    public readonly source: AccessMemberExpression,
-    public readonly defaultValue: AccessMemberExpression | PrimitiveLiteralExpression,
+    public readonly source: AccessMemberExpression | AccessKeyedExpression,
+    public readonly defaultValue: AccessScopeExpression | PrimitiveLiteralExpression | AccessKeyedExpression | undefined,
   ) { }
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): undefined {
@@ -1470,7 +1470,7 @@ export class DestructuringAssignmentSingleExpression {
 
   public assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void {
     if (typeof value !== 'object' || value === null) { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
-    this.target.assign(f, s, l, this.source.evaluate(f, Scope.create(value), l, null) ?? this.defaultValue.evaluate(f, s, l, null));
+    this.target.assign(f, s, l, this.source.evaluate(f, Scope.create(value), l, null) ?? this.defaultValue?.evaluate(f, s, l, null));
   }
 
   public accept<T>(_visitor: IVisitor<T>): T {

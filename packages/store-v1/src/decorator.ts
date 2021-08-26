@@ -8,9 +8,15 @@ import { Store, STORE } from './store.js';
 export interface ConnectToSettings<T, R = T | any> {
   onChanged?: string;
   selector: ((store: Store<T>) => Observable<R>) | MultipleSelector<T, R>;
-  setup?: 'created' | 'binding' | 'bound';
+  /**
+   * the function to be called for setup of the state subscription, typically an Aurelia lifecycle hook
+   */
+  setup?: string;
   target?: string;
-  teardown?: 'detached' | 'unbinding';
+  /**
+   * the function to be called for teardown of the state subscription, typically an Aurelia lifecycle hook
+   */
+  teardown?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

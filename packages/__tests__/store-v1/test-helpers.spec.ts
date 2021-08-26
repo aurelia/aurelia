@@ -54,11 +54,12 @@ describe("test helpers", function () {
     const { store } = createTestStore();
     const origConsole = {};
     const callTracker = {};
+    const global = typeof globalThis === 'undefined' ? window : globalThis;
 
     ["log", "group", "groupEnd"].forEach((fct) => {
       origConsole[fct] = (global.console as any)[fct];
       // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-      (global.console as any)[fct] = () => { callTracker[fct] = callTracker[fct] + 1 || 1; };
+      global.console[fct] = () => { callTracker[fct] = callTracker[fct] + 1 || 1; };
     });
 
     const actionA = async (_: testState) => Promise.resolve({ foo: "A" });

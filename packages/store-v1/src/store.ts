@@ -71,20 +71,20 @@ export class Store<T> {
   private devTools?: DevTools<T>;
   private readonly actions: Map<Reducer<T>, Action<string>> = new Map<Reducer<T>, Action<string>>();
   private readonly middlewares: Map<Middleware<T>, MiddlewareSettings> = new Map<Middleware<T>, MiddlewareSettings>();
-  private readonly $state: BehaviorSubject<T>;
+  private readonly _state: BehaviorSubject<T>;
   private readonly options: Partial<StoreOptions>;
   private readonly dispatchQueue: DispatchQueueItem<T>[] = [];
 
   public constructor(
     private readonly initialState: T,
     @ILogger private readonly logger: ILogger,
-    @IWindow private readonly window: IStoreWindow,
+    @IWindow private readonly _window: IStoreWindow,
     options?: Partial<StoreOptions>
   ) {
     this.options = options ?? {};
     const isUndoable = this.options?.history?.undoable === true;
-    this.$state = new BehaviorSubject<T>(initialState);
-    this.state = this.$state.asObservable();
+    this._state = new BehaviorSubject<T>(initialState);
+    this.state = this._state.asObservable();
 
     if (this.options?.devToolsOptions?.disable !== true) {
       this.setupDevTools();
@@ -136,7 +136,7 @@ export class Store<T> {
   }
 
   public resetToState(state: T): void {
-    this.$state.next(state);
+    this._state.next(state);
   }
 
   public async dispatch<P extends unknown[]>(reducer: Reducer<T, P> | string, ...params: P): Promise<void> {
@@ -238,7 +238,7 @@ export class Store<T> {
 
     // eslint-disable-next-line @typescript-eslint/await-thenable
     const beforeMiddleswaresResult = await this.executeMiddlewares(
-      this.$state.getValue(),
+      this._state.getValue(),
       MiddlewarePlacement.Before,
       callingAction
     );
@@ -287,7 +287,7 @@ export class Store<T> {
       resultingState = applyLimits(resultingState, this.options.history.limit);
     }
 
-    this.$state.next(resultingState);
+    this._state.next(resultingState);
     STORE.container.get(IWindow).performance.mark("dispatch-end");
 
     if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
@@ -324,7 +324,7 @@ export class Store<T> {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .reduce(async (prev: any, curr, _) => {
         try {
-          const result = await curr[0](await prev, this.$state.getValue(), curr[1].settings, action);
+          const result = await curr[0](await prev, this._state.getValue(), curr[1].settings, action);
 
           if (result === false) {
             return false;
@@ -346,11 +346,11 @@ export class Store<T> {
 
   private setupDevTools() {
     // TODO: needs a better solution for global override
-    if (this.window.__REDUX_DEVTOOLS_EXTENSION__) {
+    if (this._window.__REDUX_DEVTOOLS_EXTENSION__) {
       this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
       this.devToolsAvailable = true;
       // TODO: needs a better solution for global override
-      this.devTools = this.window.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
+      this.devTools = this._window.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
       this.devTools.init(this.initialState);
 
       this.devTools.subscribe((message) => {
@@ -380,10 +380,10 @@ export class Store<T> {
           switch (message.payload.type) {
             case "JUMP_TO_STATE":
             case "JUMP_TO_ACTION":
-              this.$state.next(JSON.parse(message.state));
+              this._state.next(JSON.parse(message.state));
               return;
             case "COMMIT":
-              this.devTools!.init(this.$state.getValue());
+              this.devTools!.init(this._state.getValue());
               return;
             case "RESET":
               this.devTools!.init(this.initialState);

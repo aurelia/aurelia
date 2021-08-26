@@ -25,7 +25,7 @@ const terserPluginCfg = terser({
   mangle: {
     properties: {
       regex: /^_/,
-      reserved: ['__esModule', '_stateSubscriptions']
+      reserved: ['__esModule', '_stateSubscriptions', '_state', '__REDUX_DEVTOOLS_EXTENSION__']
     }
   },
   nameCache: terserNameCache,

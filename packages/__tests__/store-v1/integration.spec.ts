@@ -42,6 +42,8 @@ async function createFixture({ component, options, initialState }: {
 }
 
 describe("when using the store in an aurelia app", function () {
+  this.timeout(100);
+
   it("should allow to use the store without any options by using defaults", async function () {
     @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>`, isStrictBinding: true })
     class App {
@@ -60,7 +62,7 @@ describe("when using the store in an aurelia app", function () {
     const { store, tearDown, host } = await createFixture({ component: App });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
-    assert.equal(store['$state'].getValue().foo, "bar");
+    assert.equal(store['_state'].getValue().foo, "bar");
 
     await tearDown();
   });
@@ -81,7 +83,7 @@ describe("when using the store in an aurelia app", function () {
     const { store, tearDown, host } = await createFixture({ component: App });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
-    assert.equal(store['$state'].getValue().foo, "bar");
+    assert.equal(store['_state'].getValue().foo, "bar");
 
     await tearDown();
   });
@@ -97,7 +99,7 @@ describe("when using the store in an aurelia app", function () {
     });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
-    assert.deepEqual(store['$state'].getValue(), {
+    assert.deepEqual(store['_state'].getValue(), {
       past: [], present: initialState, future: []
     });
 
@@ -131,7 +133,7 @@ describe("when using the store in an aurelia app", function () {
     const { host, store, ctx, tearDown } = await createFixture({ component: App });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
-    assert.equal(store['$state'].getValue().foo, "bar");
+    assert.equal(store['_state'].getValue().foo, "bar");
 
     const sut = ctx.container.get(App);
     await sut.changeFoo();
@@ -139,7 +141,7 @@ describe("when using the store in an aurelia app", function () {
     ctx.platform.domWriteQueue.flush();
 
     assert.equal((host as Element).querySelector("#sut").textContent, "foobar");
-    assert.equal(store['$state'].getValue().foo, "foobar");
+    assert.equal(store['_state'].getValue().foo, "foobar");
 
     await tearDown();
   });

@@ -7,6 +7,7 @@ import {
 } from "./helpers.js";
 
 describe("test helpers", function () {
+  this.timeout(100);
   it("should provide easy means to test sequences", async function () {
     const { store } = createTestStore();
 

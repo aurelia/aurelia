@@ -43,10 +43,13 @@ export function createDI(mockWindow?: object) {
     }
     return $win;
   })();
-  container.register(Registration.instance(IPlatform, platform));
-  container.register(Registration.instance(IWindow, win));
+  container.register(
+    Registration.instance(IPlatform, platform),
+    Registration.instance(IWindow, win)
+  );
 
   return {
+    container,
     logger: container.get(ILogger),
     storeWindow: container.get<IStoreWindow>(IWindow)
   };
@@ -55,10 +58,10 @@ export function createDI(mockWindow?: object) {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createTestStore() {
   const initialState = { foo: "bar" };
-  const { logger, storeWindow } = createDI();
+  const { container, logger, storeWindow } = createDI();
   const store: Store<testState> = new Store(initialState, logger, storeWindow);
 
-  return { initialState, store };
+  return { container, initialState, store };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types

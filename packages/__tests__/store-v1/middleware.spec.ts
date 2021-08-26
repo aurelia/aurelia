@@ -26,6 +26,7 @@ function mockLocalStorage(patch: unknown) {
 }
 
 describe("middlewares", function () {
+  this.timeout(100);
   interface TestState {
     counter: number;
   }

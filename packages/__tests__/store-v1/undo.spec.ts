@@ -14,6 +14,7 @@ import {
 } from "./helpers.js";
 
 describe("an undoable store", function () {
+  this.timeout(100);
   it("should throw if state is not matching type of StateHistory", function () {
     const simpleState: testState = {
       foo: "Bar"

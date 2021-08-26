@@ -17,6 +17,7 @@ import {
 import { assert } from '@aurelia/testing';
 
 describe("store", function () {
+  this.timeout(100);
   it("should accept an initial state", function (done) {
     const { initialState, store } = createTestStore();
 

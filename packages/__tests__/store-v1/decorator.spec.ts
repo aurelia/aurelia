@@ -38,7 +38,7 @@ function arrange() {
   return { initialState, store };
 }
 
-describe.only("using decorators", function () {
+describe("using decorators", function () {
   it("should lazy load the store inside the decorator", function () {
     arrange();
 

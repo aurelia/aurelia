@@ -34,7 +34,8 @@ const allTestDirs = [
   'validation-i18n',
 ];
 
-const cliArgs = process.argv.slice(3);
+const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --coverage --watch-extensions js,html'.split(' ');
+const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
 const testDirs = cliArgs.length > 0
   ? allTestDirs.filter(d => cliArgs.includes(d))
   : allTestDirs;

@@ -20,6 +20,8 @@ const replacePluginCfg = replace({
 const terserPluginCfg = terser({
   compress: {
     defaults: false,
+    drop_debugger: false,
+    drop_console: false,
   },
   mangle: {
     properties: {

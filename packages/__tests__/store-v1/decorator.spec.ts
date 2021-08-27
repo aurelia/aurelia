@@ -1,13 +1,10 @@
 import { Subscription } from 'rxjs';
 
-import { pluck as _pluck, distinctUntilChanged as _distinctUntilChanged } from "rxjs/operators/index.js";
-import type { pluck as $pluck, distinctUntilChanged as  $distinctUntilChanged } from "rxjs/operators";
-const pluck = _pluck as typeof $pluck;
-const distinctUntilChanged = _distinctUntilChanged as typeof $distinctUntilChanged;
+import { pluck, distinctUntilChanged } from "rxjs/operators";
 
-import { customElement } from '@aurelia/runtime-html';
+import { customElement, IWindow } from '@aurelia/runtime-html';
 import { assert } from "@aurelia/testing";
-import { DI, Registration } from '@aurelia/kernel';
+import { ConstructableClass, DI, Registration } from '@aurelia/kernel';
 import { STORE, Store, connectTo } from '@aurelia/store-v1';
 
 import { createCallCounter, createDI } from "./helpers.js";
@@ -17,22 +14,34 @@ interface DemoState {
   bar: string;
 }
 
-function arrange() {
+type ITestViewModel<T> = {
+  created?(...args: any[]): any;
+  binding?(...args: any[]): any;
+  bound?(...args: any[]): any;
+  unbinding?(...args: any[]): any;
+  detached?(...args: any[]): any;
+  _stateSubscriptions?: Subscription[];
+} & T;
+
+function arrange<T>(Component: ConstructableClass<T>) {
   const initialState = { foo: 'Lorem', bar: 'Ipsum' };
   const container = DI.createContainer();
   const { logger, storeWindow } = createDI();
   const store: Store<DemoState> = new Store(initialState, logger, storeWindow);
-  container.register(Registration.instance(Store, store));
+  container.register(
+    Registration.instance(Store, store),
+    Registration.instance(IWindow, storeWindow),
+  );
 
   STORE.container = container;
 
-  return { initialState, store };
+  const sut: ITestViewModel<T> = new Component();
+
+  return { initialState, store, sut };
 }
 
-describe("using decorators", function () {
+describe("store-v1/decorator.spec.ts", function () {
   it("should lazy load the store inside the decorator", function () {
-    arrange();
-
     @customElement({
       name: 'connect-to-vm',
       template: `<template></template>`
@@ -42,83 +51,71 @@ describe("using decorators", function () {
 
     }
 
-    const component = new ConnectToVm();
-    assert.equal(typeof (component as any).beforeBind, "function");
+    const { sut } = arrange(ConnectToVm);
+
+    assert.equal(typeof sut.binding, "function");
   });
 
   it("should be possible to decorate a class and assign the subscribed result to the state property", function () {
-    const { initialState } = arrange();
-
     @connectTo()
     class DemoStoreConsumer {
       public state: DemoState;
     }
 
-    const sut = new DemoStoreConsumer();
+    const { initialState, sut } = arrange(DemoStoreConsumer);
     assert.equal(sut.state, undefined);
 
-    (sut as any).beforeBind();
+    sut.binding();
 
     assert.equal(sut.state, initialState);
-    assert.notEqual((sut as any)._stateSubscriptions, undefined);
+    assert.notEqual(sut._stateSubscriptions, undefined);
   });
 
   it("should be possible to provide a state selector", function () {
-    const { initialState } = arrange();
-
     @connectTo<DemoState>((store) => store.state.pipe(pluck("bar")))
     class DemoStoreConsumer {
       public state: DemoState;
     }
-
-    const sut = new DemoStoreConsumer();
+    const { initialState, sut } = arrange(DemoStoreConsumer);
     assert.equal(sut.state, undefined);
 
-    (sut as any).beforeBind();
+    sut.binding();
 
     assert.equal(sut.state, initialState.bar);
   });
 
   describe("with a complex settings object", function () {
     it("should be possible to provide a selector", function () {
-      const { initialState } = arrange();
-
       @connectTo<DemoState>({
         selector: (store) => store.state.pipe(pluck("bar"))
       })
       class DemoStoreConsumer {
         public state: DemoState;
       }
-
-      const sut = new DemoStoreConsumer();
+      const { initialState, sut } = arrange(DemoStoreConsumer);
       assert.equal(sut.state, undefined);
 
-      (sut as any).beforeBind();
+      sut.binding();
 
       assert.equal(sut.state, initialState.bar);
     });
 
     it("should be possible to provide an undefined selector and still get the state property", function () {
-      const { initialState } = arrange();
-
       @connectTo<DemoState>({
         selector: undefined
       } as any)
       class DemoStoreConsumer {
         public state: DemoState;
       }
-
-      const sut = new DemoStoreConsumer();
+      const { initialState, sut } = arrange(DemoStoreConsumer);
       assert.equal(sut.state, undefined);
 
-      (sut as any).beforeBind();
+      sut.binding();
 
       assert.equal(sut.state, initialState);
     });
 
     it("should be possible to provide an object with multiple selectors", function () {
-      const { initialState } = arrange();
-
       @connectTo<DemoState>({
         selector: {
           barTarget: (store) => store.state.pipe(pluck("bar")),
@@ -130,10 +127,8 @@ describe("using decorators", function () {
         public barTarget: string;
         public fooTarget: string;
       }
-
-      const sut = new DemoStoreConsumer();
-
-      (sut as any).beforeBind();
+      const { initialState, sut } = arrange(DemoStoreConsumer);
+      sut.binding();
 
       assert.equal(sut.state, undefined);
       assert.equal(sut.barTarget, initialState.bar);
@@ -141,26 +136,21 @@ describe("using decorators", function () {
     });
 
     it("should use the default state observable if selector does not return an observable", function () {
-      const { initialState } = arrange();
-
       @connectTo<DemoState>({
         selector: () => "foobar" as any
       })
       class DemoStoreConsumer {
         public state: DemoState;
       }
-
-      const sut = new DemoStoreConsumer();
+      const { initialState, sut } = arrange(DemoStoreConsumer);
       assert.equal(sut.state, undefined);
 
-      (sut as any).beforeBind();
+      sut.binding();
 
       assert.equal(sut.state, initialState);
     });
 
     it("should be possible to override the target property", function () {
-      const { initialState } = arrange();
-
       @connectTo<DemoState>({
         selector: (store) => store.state.pipe(pluck("bar")),
         target: "foo"
@@ -168,19 +158,16 @@ describe("using decorators", function () {
       class DemoStoreConsumer {
         public foo: DemoState;
       }
-
-      const sut = new DemoStoreConsumer();
+      const { initialState, sut } = arrange(DemoStoreConsumer);
       assert.equal(sut.foo, undefined);
 
-      (sut as any).beforeBind();
+      sut.binding();
 
-      assert.equal((sut as any).state, undefined);
+      assert.equal(sut['state'], undefined);
       assert.equal(sut.foo, initialState.bar);
     });
 
     it("should be possible to use the target as the parent object for the multiple selector targets", function () {
-      const { initialState } = arrange();
-
       @connectTo<DemoState>({
         selector: {
           barTarget: (store) => store.state.pipe(pluck("bar")),
@@ -191,80 +178,70 @@ describe("using decorators", function () {
       class DemoStoreConsumer {
         public foo: DemoState;
       }
-
-      const sut = new DemoStoreConsumer();
+      const { initialState, sut } = arrange(DemoStoreConsumer);
       assert.equal(sut.foo, undefined);
 
-      (sut as any).beforeBind();
+      sut.binding();
 
-      assert.equal((sut as any).state, undefined);
+      assert.equal(sut['state'], undefined);
       assert.notEqual(sut.foo, undefined);
-      assert.notEqual((sut.foo as any).barTarget, undefined);
-      assert.notEqual((sut.foo as any).fooTarget, undefined);
-      assert.equal((sut.foo as any).barTarget, initialState.bar);
-      assert.equal((sut.foo as any).fooTarget, initialState.foo);
+      assert.notEqual(sut.foo['barTarget'], undefined);
+      assert.notEqual(sut.foo['fooTarget'], undefined);
+      assert.equal(sut.foo['barTarget'], initialState.bar);
+      assert.equal(sut.foo['fooTarget'], initialState.foo);
     });
   });
 
-  it("should apply original beforeBind method after patch", function () {
-    const { initialState } = arrange();
-
+  it("should apply original binding method after patch", function () {
     @connectTo()
     class DemoStoreConsumer {
       public state: DemoState;
       public test: string = "";
 
-      public beforeBind() {
+      public binding() {
         this.test = "foobar";
       }
     }
+    const { initialState, sut } = arrange(DemoStoreConsumer);
 
-    const sut = new DemoStoreConsumer();
-
-    (sut as any).beforeBind();
+    sut.binding();
 
     assert.equal(sut.state, initialState);
     assert.equal(sut.test, "foobar");
   });
 
-  describe("the afterUnbind lifecycle-method", function () {
-    it("should apply original afterUnbind method after patch", function () {
-      const { initialState } = arrange();
-
+  describe("the unbinding lifecycle-method", function () {
+    it("should apply original unbinding method after patch", function () {
       @connectTo()
       class DemoStoreConsumer {
         public state: DemoState;
         public test: string = "";
 
-        public afterUnbind() {
+        public unbinding() {
           this.test = "foobar";
         }
       }
+      const { initialState, sut } = arrange(DemoStoreConsumer);
 
-      const sut = new DemoStoreConsumer();
-
-      (sut as any).beforeBind();
+      sut.binding();
 
       assert.equal(sut.state, initialState);
 
-      (sut as any).afterUnbind();
+      sut.unbinding();
 
       assert.equal(sut.test, "foobar");
     });
 
-    it("should automatically unsubscribe when afterUnbind is called", function () {
-      const { initialState } = arrange();
-
+    it("should automatically unsubscribe when unbinding is called", function () {
       @connectTo()
       class DemoStoreConsumer {
         public state: DemoState;
       }
-
-      const sut = new DemoStoreConsumer();
+      const { initialState, sut } = arrange(DemoStoreConsumer);
       assert.equal(sut.state, undefined);
 
-      (sut as any).beforeBind();
-      const subscriptions = ((sut as any)._stateSubscriptions as Subscription[]);
+      sut.binding();
+      const subscriptions = sut._stateSubscriptions;
       assert.equal(subscriptions.length, 1);
       const subscription = subscriptions[0];
       const { spyObj } = createCallCounter(subscription, "unsubscribe");
@@ -272,16 +249,14 @@ describe("using decorators", function () {
       assert.equal(sut.state, initialState);
       assert.equal(subscription.closed, false);
 
-      (sut as any).afterUnbind();
+      sut.unbinding();
 
       assert.notEqual(subscription, undefined);
       assert.equal(subscription.closed, true);
       assert.greaterThanOrEqualTo(spyObj.callCounter, 1);
     });
 
-    it("should automatically unsubscribe from all sources when afterUnbind is called", function () {
-      arrange();
-
+    it("should automatically unsubscribe from all sources when unbinding is called", function () {
       @connectTo({
         selector: {
           barTarget: (store) => store.state.pipe(pluck("bar")),
@@ -291,12 +266,11 @@ describe("using decorators", function () {
       class DemoStoreConsumer {
         public state: DemoState;
       }
-
-      const sut = new DemoStoreConsumer();
+      const { sut } = arrange(DemoStoreConsumer);
       assert.equal(sut.state, undefined);
 
-      (sut as any).beforeBind();
-      const subscriptions = ((sut as any)._stateSubscriptions as Subscription[]);
+      sut.binding();
+      const subscriptions = sut._stateSubscriptions;
       assert.equal(subscriptions.length, 2);
       const { spyObj: spyObj1 } = createCallCounter(subscriptions[0], "unsubscribe");
       const { spyObj: spyObj2 } = createCallCounter(subscriptions[1], "unsubscribe");
@@ -304,7 +278,7 @@ describe("using decorators", function () {
       assert.equal(subscriptions[0].closed, false);
       assert.equal(subscriptions[1].closed, false);
 
-      (sut as any).afterUnbind();
+      sut.unbinding();
 
       assert.notEqual(subscriptions[0], undefined);
       assert.notEqual(subscriptions[1], undefined);
@@ -315,18 +289,15 @@ describe("using decorators", function () {
     });
 
     it("should not unsubscribe if subscription is already closed", function () {
-      const { initialState } = arrange();
-
       @connectTo()
       class DemoStoreConsumer {
         public state: DemoState;
       }
-
-      const sut = new DemoStoreConsumer();
+      const { initialState, sut } = arrange(DemoStoreConsumer);
       assert.equal(sut.state, undefined);
 
-      (sut as any).beforeBind();
-      const subscriptions = ((sut as any)._stateSubscriptions as Subscription[]);
+      sut.binding();
+      const subscriptions = sut._stateSubscriptions;
       assert.equal(subscriptions.length, 1);
       const subscription = subscriptions[0];
       subscription.unsubscribe();
@@ -336,7 +307,7 @@ describe("using decorators", function () {
 
       const { spyObj } = createCallCounter(subscription, "unsubscribe");
 
-      (sut as any).afterUnbind();
+      sut.unbinding();
 
       assert.notEqual(subscription, undefined);
       assert.equal(spyObj.callCounter, 0);
@@ -344,23 +315,20 @@ describe("using decorators", function () {
 
     [null, {}].forEach((stateSubscription: any) => {
       it("should not unsubscribe if state subscription changes and is not an array", function () {
-        arrange();
-
         @connectTo()
         class DemoStoreConsumer {
           public state: DemoState;
         }
-
-        const sut = new DemoStoreConsumer();
+        const { sut } = arrange(DemoStoreConsumer);
         assert.equal(sut.state, undefined);
 
-        (sut as any).beforeBind();
-        const subscriptions = ((sut as any)._stateSubscriptions as Subscription[]);
-        (sut as any)._stateSubscriptions = stateSubscription;
+        sut.binding();
+        const subscriptions = sut._stateSubscriptions;
+        sut._stateSubscriptions = stateSubscription;
         const subscription = subscriptions[0];
         const { spyObj } = createCallCounter(subscription, "unsubscribe");
 
-        (sut as any).afterUnbind();
+        sut.unbinding();
 
         assert.notEqual(subscription, undefined);
         assert.equal(spyObj.callCounter, 0);
@@ -370,55 +338,46 @@ describe("using decorators", function () {
 
   describe("with custom setup and teardown settings", function () {
     it("should return the value from the original setup / teardown functions", function () {
-      arrange();
-
-      const expectedBeforeBindResult = "foo";
-      const expectedafterUnbindResult = "bar";
-
+      const expectedbindingResult = "foo";
+      const expectedunbindingResult = "bar";
       @connectTo<DemoState>({
         selector: (store) => store.state
       })
       class DemoStoreConsumer {
         public state: DemoState;
 
-        public beforeBind() {
-          return expectedBeforeBindResult;
+        public binding() {
+          return expectedbindingResult;
         }
 
-        public afterUnbind() {
-          return expectedafterUnbindResult;
+        public unbinding() {
+          return expectedunbindingResult;
         }
       }
+      const { sut } = arrange(DemoStoreConsumer);
 
-      const sut = new DemoStoreConsumer();
-
-      assert.equal(sut.beforeBind(), expectedBeforeBindResult);
-      assert.equal(sut.afterUnbind(), expectedafterUnbindResult);
+      assert.equal(sut.binding(), expectedbindingResult);
+      assert.equal(sut.unbinding(), expectedunbindingResult);
     });
 
     it("should allow to specify a lifecycle hook for the subscription", function () {
-      const { initialState } = arrange();
-
       @connectTo<DemoState>({
         selector: (store) => store.state,
-        setup: "create"
+        setup: "created"
       })
       class DemoStoreConsumer {
         public state: DemoState;
       }
+      const { initialState, sut } = arrange(DemoStoreConsumer);
+      assert.notEqual(sut.created, undefined);
 
-      const sut = new DemoStoreConsumer();
-
-      assert.notEqual((sut as any).create, undefined);
-      (sut as any).create();
+      sut.created();
 
       assert.equal(sut.state, initialState);
-      assert.notEqual((sut as any)._stateSubscriptions, undefined);
+      assert.notEqual(sut._stateSubscriptions, undefined);
     });
 
     it("should allow to specify a lifecycle hook for the unsubscription", function () {
-      const { initialState } = arrange();
-
       @connectTo<DemoState>({
         selector: (store) => store.state,
         teardown: "detached"
@@ -426,12 +385,11 @@ describe("using decorators", function () {
       class DemoStoreConsumer {
         public state: DemoState;
       }
+      const { initialState, sut } = arrange(DemoStoreConsumer);
 
-      const sut = new DemoStoreConsumer();
+      sut.binding();
 
-      (sut as any).beforeBind();
-
-      const subscriptions = ((sut as any)._stateSubscriptions as Subscription[]);
+      const subscriptions = sut._stateSubscriptions;
       assert.equal(subscriptions.length, 1);
       const subscription = subscriptions[0];
       const { spyObj } = createCallCounter(subscription, "unsubscribe");
@@ -439,7 +397,7 @@ describe("using decorators", function () {
       assert.equal(sut.state, initialState);
       assert.equal(subscription.closed, false);
       assert.notEqual((sut as any).detached, undefined);
-      (sut as any).detached();
+      sut.detached();
 
       assert.notEqual(subscription, undefined);
       assert.equal(subscription.closed, true);
@@ -449,7 +407,6 @@ describe("using decorators", function () {
 
   describe("with handling changes", function () {
     it("should call stateChanged when exists on VM by default", function () {
-      const { initialState } = arrange();
       const oldState: DemoState = { foo: "a", bar: "b" };
 
       @connectTo<DemoState>({
@@ -460,11 +417,10 @@ describe("using decorators", function () {
 
         public stateChanged(state: DemoState) { return state; }
       }
-
-      const sut = new DemoStoreConsumer();
+      const { initialState, sut } = arrange(DemoStoreConsumer);
       const { spyObj } = createCallCounter(sut, "stateChanged");
 
-      (sut as any).beforeBind();
+      sut.binding();
 
       assert.equal(sut.state, initialState);
       assert.equal(spyObj.callCounter, 1);
@@ -473,22 +429,18 @@ describe("using decorators", function () {
     });
 
     it("should accept a string for onChanged and call the respective handler passing the new state", function () {
-      const { initialState } = arrange();
-
       @connectTo<DemoState>({
         onChanged: "stateChanged",
         selector: (store) => store.state,
       })
       class DemoStoreConsumer {
         public state: DemoState;
-
         public stateChanged(state: DemoState) { return state; }
       }
-
-      const sut = new DemoStoreConsumer();
+      const { initialState, sut } = arrange(DemoStoreConsumer);
       const { spyObj } = createCallCounter(sut, "stateChanged");
 
-      (sut as any).beforeBind();
+      sut.binding();
 
       assert.equal(sut.state, initialState);
       assert.equal(spyObj.callCounter, 1);
@@ -497,8 +449,6 @@ describe("using decorators", function () {
     });
 
     it("should be called before assigning the new state, so there is still access to the previous state", function () {
-      const { initialState } = arrange();
-
       @connectTo<DemoState>({
         onChanged: "stateChanged",
         selector: (store) => store.state,
@@ -512,12 +462,12 @@ describe("using decorators", function () {
         }
       }
 
-      const sut = new DemoStoreConsumer();
-      (sut as any).beforeBind();
+      const { initialState, sut } = arrange(DemoStoreConsumer);
+
+      sut.binding();
     });
 
     it("should call the targetChanged handler on the VM, if existing, with the new and old state", function () {
-      const { initialState } = arrange();
       let targetValOnChange = null;
 
       @connectTo<DemoState>({
@@ -533,11 +483,10 @@ describe("using decorators", function () {
           targetValOnChange = sut.targetProp;
         }
       }
-
-      const sut = new DemoStoreConsumer();
+      const { initialState, sut } = arrange(DemoStoreConsumer);
       const { spyObj } = createCallCounter(sut, "targetPropChanged");
 
-      (sut as any).beforeBind();
+      sut.binding();
 
       assert.equal(targetValOnChange, "foobar");
       assert.equal(sut.targetProp, initialState);
@@ -548,8 +497,6 @@ describe("using decorators", function () {
     });
 
     it("should call the propertyChanged handler on the VM, if existing, with the new and old state", function () {
-      const { initialState } = arrange();
-
       @connectTo<DemoState>({
         selector: {
           targetProp: (store) => store.state
@@ -565,16 +512,14 @@ describe("using decorators", function () {
           assert.equal(value, "foobar");
         }
       }
+      const { initialState, sut } = arrange(DemoStoreConsumer);
 
-      const sut = new DemoStoreConsumer();
-
-      (sut as any).beforeBind();
+      sut.binding();
 
       assert.equal(sut.targetProp, initialState);
     });
 
     it("should call all change handlers on the VM, if existing, in order and with the correct args", function () {
-      const { initialState } = arrange();
       const calledHandlersInOrder = [] as string[];
 
       @connectTo<DemoState>({
@@ -604,17 +549,15 @@ describe("using decorators", function () {
           assert.equal(value, "foobar");
         }
       }
+      const { initialState, sut } = arrange(DemoStoreConsumer);
 
-      const sut = new DemoStoreConsumer();
-      (sut as any).beforeBind();
+      sut.binding();
 
       assert.equal(sut.targetProp, initialState);
       assert.deepEqual(calledHandlersInOrder, ["customHandler", "targetPropChanged", "propertyChanged"]);
     });
 
     it("should call the targetOnChanged handler and not each multiple selector, if existing, with the 3 args", function () {
-      const { initialState } = arrange();
-
       @connectTo<DemoState>({
         target: "foo",
         selector: {
@@ -635,20 +578,17 @@ describe("using decorators", function () {
           assert.equal(value, "foobar");
         }
       }
+      const { initialState, sut } = arrange(DemoStoreConsumer);
 
-      const sut = new DemoStoreConsumer();
       const { spyObj } = createCallCounter(sut, "targetPropChanged");
 
-      (sut as any).beforeBind();
+      sut.binding();
 
       assert.equal(sut.foo.targetProp, initialState);
       assert.equal(spyObj.callCounter, 0);
     });
 
       it("should call changed handler for multiple selectors only when their state slice is affected", async function () {
-        const { store } = arrange();
-        const changeOnlyBar = (state: DemoState) => ({ ...state, bar: "changed" });
-        store.registerAction("changeOnlyBar", changeOnlyBar);
 
         @connectTo<DemoState>({
           selector: {
@@ -664,10 +604,11 @@ describe("using decorators", function () {
 
           public fooChanged() { this.fooCalls++; }
         }
+        const { store, sut } = arrange(DemoStoreConsumer);
+        const changeOnlyBar = (state: DemoState) => ({ ...state, bar: "changed" });
+        store.registerAction("changeOnlyBar", changeOnlyBar);
 
-        const sut = new DemoStoreConsumer();
-
-        (sut as any).beforeBind();
+        sut.binding();
 
         await store.dispatch(changeOnlyBar);
 
@@ -676,8 +617,6 @@ describe("using decorators", function () {
       });
 
       it("should check whether the method exists before calling it and throw a meaningful error", function () {
-        arrange();
-
         @connectTo<DemoState>({
           onChanged: "stateChanged",
           selector: (store) => store.state,
@@ -685,10 +624,9 @@ describe("using decorators", function () {
         class DemoStoreConsumer {
           public state: DemoState;
         }
+        const { sut } = arrange(DemoStoreConsumer);
 
-        const sut = new DemoStoreConsumer();
-
-        assert.throws(() => (sut as any).beforeBind());
+        assert.throws(() => sut.binding());
       });
   });
 });

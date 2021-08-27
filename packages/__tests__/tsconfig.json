@@ -6,6 +6,7 @@
     "outDir": "dist/esm",
     "lib": ["esnext", "dom"],
     "resolveJsonModule": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": false,
     "emitDecoratorMetadata": true,
     "strict": false,

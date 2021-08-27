@@ -1,8 +1,4 @@
-import { skip as _skip, delay as _delay } from "rxjs/operators/index.js";
-import type { skip as $skip, delay as $delay } from "rxjs/operators";
-
-const skip = _skip as typeof $skip;
-const delay = _delay as typeof $delay;
+import { skip, delay } from "rxjs/operators";
 
 import { DevToolsOptions, Store, DevToolsRemoteDispatchError } from '@aurelia/store-v1';
 import {
@@ -14,19 +10,20 @@ import {
 } from './helpers.js';
 import { assert } from '@aurelia/testing';
 
-describe("redux devtools", function () {
+describe("store-v1/redux-devtools.spec.ts", function () {
+  this.timeout(100);
   it("should not setup devtools if disabled via options", function () {
     const { logger, storeWindow } = createDI();
     const store = new Store<testState>({ foo: "bar " }, logger, storeWindow, { devToolsOptions: { disable: true } });
 
-    assert.equal((store as any).devToolsAvailable, false);
+    assert.equal(store['devToolsAvailable'], false);
   });
 
   it("should init devtools if available", function () {
     class InitTrackerMock extends DevToolsMock {
       public async init() {
         await new Promise<void>((resolve) => {
-          setTimeout(() => assert.equal((store as any).devToolsAvailable, true));
+          setTimeout(() => assert.equal(store['devToolsAvailable'], true));
           resolve();
         });
       }
@@ -45,15 +42,15 @@ describe("redux devtools", function () {
     const options = { serialize: false };
     const store = new Store<testState>({ foo: "bar " }, logger, storeWindow, { devToolsOptions: options });
 
-    assert.notEqual((store as any).devTools.devToolsOptions, undefined);
-    assert.equal((store as any).devTools.devToolsOptions.serialize, options.serialize);
+    assert.notEqual(store['devTools'].devToolsOptions, undefined);
+    assert.equal(store['devTools'].devToolsOptions.serialize, options.serialize);
   });
 
   it("should receive time-travel notification from devtools", function () {
     const { logger, storeWindow } = createDI();
 
     const store = new Store<testState>({ foo: "bar " }, logger, storeWindow);
-    const devtools = ((store as any).devTools as DevToolsMock);
+    const devtools = (store['devTools'] as DevToolsMock);
     const expectedStateChange = "from-redux-devtools";
 
     assert.equal(devtools.subscriptions.length, 1);
@@ -65,7 +62,7 @@ describe("redux devtools", function () {
     const { logger, storeWindow } = createDI();
 
     const store = new Store<testState>({ foo: "bar " }, logger, storeWindow);
-    const devtools = ((store as any).devTools as DevToolsMock);
+    const devtools = (store['devTools'] as DevToolsMock);
     const expectedStateChange = "from-redux-devtools";
 
     assert.equal(devtools.subscriptions.length, 1);
@@ -82,7 +79,7 @@ describe("redux devtools", function () {
     const { logger, storeWindow } = createDI();
 
     const store = new Store<testState>({ foo: "bar " }, logger, storeWindow);
-    const devtools = ((store as any).devTools as DevToolsMock);
+    const devtools = (store['devTools'] as DevToolsMock);
     const expectedStateChange = "from-redux-devtools";
 
     assert.equal(devtools.subscriptions.length, 1);
@@ -99,8 +96,8 @@ describe("redux devtools", function () {
     const { logger, storeWindow } = createDI();
 
     const store = new Store<testState>({ foo: "bar " }, logger, storeWindow);
-    const devtools = ((store as any).devTools as DevToolsMock);
-    const { spyObj: nextSpy } = createCallCounter((store as any)._state, "next");
+    const devtools = (store['devTools'] as DevToolsMock);
+    const { spyObj: nextSpy } = createCallCounter(store['_state'], "next");
     const { spyObj: devtoolsSpy } = createCallCounter(devtools, "init");
 
     assert.equal(devtools.subscriptions.length, 1);
@@ -113,7 +110,7 @@ describe("redux devtools", function () {
 
     assert.equal(nextSpy.callCounter, 0);
     assert.equal(devtoolsSpy.callCounter, 1);
-    assert.equal(devtoolsSpy.lastArgs[0], (store as any)._state.getValue());
+    assert.equal(devtoolsSpy.lastArgs[0], store['_state'].getValue());
 
     nextSpy.reset();
     devtoolsSpy.reset();
@@ -124,7 +121,7 @@ describe("redux devtools", function () {
 
     const initialState = { foo: "bar " };
     const store = new Store<testState>(initialState, logger, storeWindow);
-    const devtools = ((store as any).devTools as DevToolsMock);
+    const devtools = (store['devTools'] as DevToolsMock);
     const { spyObj: resetSpy } = createCallCounter(store, "resetToState");
     const { spyObj: devtoolsSpy } = createCallCounter(devtools, "init");
 
@@ -148,7 +145,7 @@ describe("redux devtools", function () {
 
     const rolledBackState = { foo: "pustekuchen" };
     const store = new Store<testState>({ foo: "bar " }, logger, storeWindow);
-    const devtools = ((store as any).devTools as DevToolsMock);
+    const devtools = (store['devTools'] as DevToolsMock);
     const { spyObj: resetSpy } = createCallCounter(store, "resetToState");
     const { spyObj: devtoolsSpy } = createCallCounter(devtools, "init");
 
@@ -170,7 +167,7 @@ describe("redux devtools", function () {
 
   it("should update Redux DevTools", function (done) {
     const { store } = createTestStore();
-    const devtools = ((store as any).devTools as DevToolsMock);
+    const devtools = (store['devTools'] as DevToolsMock);
     const { spyObj: devtoolsSpy } = createCallCounter(devtools, "send");
 
     const fakeAction = (currentState: testState, foo: string) => {
@@ -195,8 +192,8 @@ describe("redux devtools", function () {
 
   it("should send the newly dispatched actions to the devtools if available", function (done) {
     const { store } = createTestStore();
-    (store as any).devToolsAvailable = true;
-    const devtools = ((store as any).devTools as DevToolsMock);
+    store['devToolsAvailable'] = true;
+    const devtools = (store['devTools'] as DevToolsMock);
     const { spyObj: devtoolsSpy } = createCallCounter(devtools, "send");
 
     const modifiedState = { foo: "bert" };
@@ -235,7 +232,7 @@ describe("redux devtools", function () {
 
       store.registerAction("FakeAction", fakeAction);
 
-      const devtools = ((store as any).devTools as DevToolsMock);
+      const devtools = (store['devTools'] as DevToolsMock);
 
       assert.equal(devtools.subscriptions.length, 1);
 
@@ -268,7 +265,7 @@ describe("redux devtools", function () {
 
       store.registerAction("FakeAction", fakeAction);
 
-      const devtools = ((store as any).devTools as DevToolsMock);
+      const devtools = (store['devTools'] as DevToolsMock);
 
       assert.equal(devtools.subscriptions.length, 1);
 
@@ -297,7 +294,7 @@ describe("redux devtools", function () {
         }
       });
 
-      const devtools = ((store as any).devTools as DevToolsMock);
+      const devtools = (store['devTools'] as DevToolsMock);
 
       assert.equal(devtools.subscriptions.length, 1);
       assert.throws(() => {
@@ -324,7 +321,7 @@ describe("redux devtools", function () {
 
       store.registerAction("FakeAction", fakeAction);
 
-      const devtools = ((store as any).devTools as DevToolsMock);
+      const devtools = (store['devTools'] as DevToolsMock);
 
       assert.equal(devtools.subscriptions.length, 1);
       assert.throws(() => {

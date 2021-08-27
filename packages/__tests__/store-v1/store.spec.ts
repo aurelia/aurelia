@@ -1,6 +1,4 @@
-import { skip as _skip } from "rxjs/operators/index.js";
-import type { skip as $skip } from "rxjs/operators";
-const skip = _skip as typeof $skip;
+import { skip } from "rxjs/operators";
 
 import {
   LogLevel,
@@ -18,7 +16,8 @@ import {
 } from "./helpers.js";
 import { assert } from '@aurelia/testing';
 
-describe("store", function () {
+describe("store-v1/store.spec.ts", function () {
+  this.timeout(100);
   it("should accept an initial state", function (done) {
     const { initialState, store } = createTestStore();
 

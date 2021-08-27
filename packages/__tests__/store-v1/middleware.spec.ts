@@ -1,7 +1,4 @@
-import { skip as _skip, take as _take } from "rxjs/operators/index.js";
-import type { skip as $skip, take as $take } from "rxjs/operators";
-const skip = _skip as typeof $skip;
-const take = _take as typeof $take;
+import { skip, take } from "rxjs/operators";
 
 import { assert } from '@aurelia/testing';
 import {
@@ -12,7 +9,8 @@ import {
   Middleware,
   StateHistory,
   executeSteps,
-  LogLevel
+  LogLevel,
+  STORE
 } from "@aurelia/store-v1";
 
 import {
@@ -28,7 +26,12 @@ function mockLocalStorage(patch: unknown) {
   });
 }
 
-describe("middlewares", function () {
+describe("store-v1/middleware.spec.ts", function () {
+  this.timeout(100);
+  this.beforeEach(function () {
+    STORE.container = null!;
+  });
+
   interface TestState {
     counter: number;
   }
@@ -371,7 +374,7 @@ describe("middlewares", function () {
 
   it("should interrupt queue action if middleware returns sync false", async function () {
     const store = createStoreWithStateAndOptions(initialState, {});
-    const { spyObj } = createCallCounter((store as any)._state, "next");
+    const { spyObj } = createCallCounter(store['_state'], "next");
     const syncFalseMiddleware = (): false => {
       return false;
     };
@@ -385,7 +388,7 @@ describe("middlewares", function () {
 
   it("should interrupt queue action if after placed middleware returns sync false", async function () {
     const store = createStoreWithStateAndOptions(initialState, {});
-    const { spyObj } = createCallCounter((store as any)._state, "next");
+    const { spyObj } = createCallCounter(store['_state'], "next");
     const syncFalseMiddleware = (): false => {
       return false;
     };
@@ -399,7 +402,7 @@ describe("middlewares", function () {
 
   it("should interrupt queue action if middleware returns async false", async function () {
     const store = createStoreWithStateAndOptions(initialState, {});
-    const { spyObj } = createCallCounter((store as any)._state, "next");
+    const { spyObj } = createCallCounter(store['_state'], "next");
     const syncFalseMiddleware = async (): Promise<false> => {
       return Promise.resolve<false>(false);
     };
@@ -737,13 +740,13 @@ describe("middlewares", function () {
 
       mockLocalStorage({
         getItem() {
-          return global;
+          return typeof globalThis !== 'undefined' ? globalThis : window;
         }
       });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
-      store.dispatch(rehydrateFromLocalStorage).catch(() => { /**/ });
+      store.dispatch(rehydrateFromLocalStorage).catch(() => {/* empt */});
 
       store.state.pipe(
         skip(1)

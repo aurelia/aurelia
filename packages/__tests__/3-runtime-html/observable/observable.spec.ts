@@ -174,16 +174,15 @@ describe('3-runtime-html/observable.spec.ts', function () {
     });
   });
 
-  // $it('works with repeat', {
-  //   template: `<div repeat.for="item of items$ & subscribe">\${item}</div>`,
-  //   component: createComponentClassForRepeat(),
-  //   assertFn: ({ platform, appHost, component }) => {
-  //     assert.html.textContent(appHost, '123');
-  //     component.next([1, 2, 3, 4]);
-  //     platform.domWriteQueue.flush();
-  //     assert.html.textContent(appHost, '1234');
-  //   }
-  // });
+  $it('works with repeat via let', {
+    template: `
+      <let items.bind="items$ & subscribe"></let>
+      <div repeat.for="item of items">\${item}</div>`,
+    component: createComponentClassForRepeat(),
+    assertFn: ({ appHost }) => {
+      assert.strictEqual(appHost.textContent.trim(), '123');
+    }
+  });
 
   function createComponentClass() {
     return class App {
@@ -218,11 +217,7 @@ describe('3-runtime-html/observable.spec.ts', function () {
 
   function createComponentClassForRepeat() {
     return class App {
-      private readonly subscribers = new Set<Subscriber<any>>();
       public items$ = from([[1, 2, 3]]);
-      public next(v: number[]) {
-        this.subscribers.forEach(sub => sub.next(v));
-      }
     };
   }
 

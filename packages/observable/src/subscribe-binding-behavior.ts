@@ -1,5 +1,5 @@
 import { Writable } from '@aurelia/kernel';
-import { BindingInterceptor, IInterceptableBinding, BindingBehaviorExpression, Scope, IsBindingBehavior } from '@aurelia/runtime';
+import { BindingInterceptor, IInterceptableBinding, BindingBehaviorExpression, Scope } from '@aurelia/runtime';
 import { bindingBehavior, LifecycleFlags } from '@aurelia/runtime-html';
 import { StreamAstVisitor } from './ast';
 

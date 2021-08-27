@@ -45,15 +45,15 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
 
   public view: ISyntheticView;
 
-  private _currentTarget?: PortalTarget;
-  private readonly p: IPlatform;
+  /** @internal */ private _currentTarget?: PortalTarget;
+  /** @internal */ private readonly _platform: IPlatform;
 
   public constructor(
     factory: IViewFactory,
     originalLoc: IRenderLocation,
     p: IPlatform,
   ) {
-    this.p = p;
+    this._platform = p;
     // to make the shape of this object consistent.
     // todo: is this necessary
     this._currentTarget = p.document.createElement('div');
@@ -108,6 +108,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
   }
 
+  /** @internal */
   private _activating(
     initiator: IHydratedController | null,
     target: T,
@@ -125,6 +126,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     );
   }
 
+  /** @internal */
   private _activate(
     initiator: IHydratedController | null,
     target: T,
@@ -147,6 +149,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     return this._activated(target);
   }
 
+  /** @internal */
   private _activated(
     target: T,
   ): void | Promise<void> {
@@ -155,6 +158,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     return activated?.call(callbackContext, target, view);
   }
 
+  /** @internal */
   private _deactivating(
     initiator: IHydratedController | null,
     target: T,
@@ -170,6 +174,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     );
   }
 
+  /** @internal */
   private _deactivate(
     initiator: IHydratedController | null,
     target: T,
@@ -191,6 +196,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     return this._deactivated(target);
   }
 
+  /** @internal */
   private _deactivated(
     target: T,
   ): void | Promise<void> {
@@ -200,7 +206,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
   }
 
   private _resolveTarget(): T {
-    const p = this.p;
+    const p = this._platform;
     // with a $ in front to make it less confusing/error prone
     const $document = p.document;
     let target = this.target;

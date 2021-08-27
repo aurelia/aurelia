@@ -11,7 +11,8 @@ import type { IInstruction } from '../../renderer.js';
 import type { INode } from '../../dom.js';
 
 export class If implements ICustomAttributeViewModel {
-  public static inject = [IViewFactory, IRenderLocation, IWorkTracker];
+  /** @internal */ protected static inject = [IViewFactory, IRenderLocation, IWorkTracker];
+
   public readonly id: number = nextId('au$component');
 
   public elseFactory?: IViewFactory = void 0;

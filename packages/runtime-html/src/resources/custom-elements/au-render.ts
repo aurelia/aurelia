@@ -116,6 +116,7 @@ export class AuRender implements ICustomElementViewModel {
     );
   }
 
+  /** @internal */
   private _deactivate(
     view: ISyntheticView | undefined,
     initiator: IHydratedController | null,
@@ -124,6 +125,7 @@ export class AuRender implements ICustomElementViewModel {
     return view?.deactivate(initiator ?? view, this.$controller, flags);
   }
 
+  /** @internal */
   private _activate(
     view: ISyntheticView | undefined,
     initiator: IHydratedController | null,
@@ -138,6 +140,7 @@ export class AuRender implements ICustomElementViewModel {
     );
   }
 
+  /** @internal */
   private _resolveView(subject: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
     const view = this._provideViewFor(subject, flags);
 
@@ -150,6 +153,7 @@ export class AuRender implements ICustomElementViewModel {
     return void 0;
   }
 
+  /** @internal */
   private _provideViewFor(comp: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
     if (!comp) {
       return void 0;

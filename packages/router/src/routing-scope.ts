@@ -231,7 +231,10 @@ export class RoutingScope {
     if (typeof instruction === 'string') {
       const instructions: RoutingInstruction[] = [];
       const instrs = RoutingInstruction.parse(this.router, instruction);
-
+      // Make sure empty route is also processed
+      if (instruction === '' || instruction === '-') {
+        instrs.push(new RoutingInstruction(''));
+      }
       if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(this.router, instrs)) {
         for (const instr of instrs) {
           if (instr.isClear(this.router) || instr.isClearAll(this.router)) {

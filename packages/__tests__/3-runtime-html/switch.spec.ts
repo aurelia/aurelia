@@ -41,7 +41,7 @@ import {
   TestFunction,
 } from '../util.js';
 
-describe('switch', function () {
+describe('3-runtime-html/switch.spec.ts', function () {
 
   const enum Status {
     unknown = 'unknown',

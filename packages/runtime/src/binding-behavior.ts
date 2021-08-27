@@ -20,7 +20,7 @@ import type {
   Key,
 } from '@aurelia/kernel';
 import type { BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
-import type { BindingBehaviorExpression, ForOfStatement, IBindingBehaviorExpression, IsBindingBehavior } from './binding/ast.js';
+import type { BindingBehaviorExpression, ForOfStatement, IsBindingBehavior } from './binding/ast.js';
 import type { IObserverLocator } from './observation/observer-locator.js';
 import type { IBinding } from './observation.js';
 import type { Scope } from './observation/binding-context.js';
@@ -174,7 +174,7 @@ export class BindingInterceptor implements IInterceptableBinding {
 
   public constructor(
     public readonly binding: IInterceptableBinding,
-    public readonly expr: IBindingBehaviorExpression,
+    public readonly expr: BindingBehaviorExpression,
   ) {
     let interceptor: IBinding;
     while (binding.interceptor !== this) {

@@ -34,12 +34,12 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   private postSettledTask: Task<void | Promise<void>> | null = null;
   private postSettlePromise!: Promise<void>;
 
-  private readonly logger: ILogger;
+  /** @internal */ private readonly logger: ILogger;
 
   public constructor(
-    @IViewFactory private readonly factory: IViewFactory,
-    @IRenderLocation private readonly location: IRenderLocation,
-    @IPlatform private readonly platform: IPlatform,
+  /** @internal */ @IViewFactory private readonly _factory: IViewFactory,
+  /** @internal */ @IRenderLocation private readonly _location: IRenderLocation,
+  /** @internal */ @IPlatform private readonly _platform: IPlatform,
     @ILogger logger: ILogger,
   ) {
     this.logger = logger.scopeTo('promise.resolve');
@@ -51,7 +51,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     _target: INode,
     _instruction: IInstruction,
   ): void {
-    this.view = this.factory.create(this.$controller).setLocation(this.location);
+    this.view = this._factory.create(this.$controller).setLocation(this._location);
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
@@ -75,7 +75,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
       this.logger.warn(`The value '${String(value)}' is not a promise. No change will be done.`);
       return;
     }
-    const q = this.platform.domWriteQueue;
+    const q = this._platform.domWriteQueue;
     const fulfilled = this.fulfilled;
     const rejected = this.rejected;
     const pending = this.pending;

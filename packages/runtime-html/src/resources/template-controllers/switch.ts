@@ -44,8 +44,8 @@ export class Switch implements ICustomAttributeViewModel {
   public readonly promise: Promise<void> | void = void 0;
 
   public constructor(
-    @IViewFactory private readonly factory: IViewFactory,
-    @IRenderLocation private readonly location: IRenderLocation,
+    @IViewFactory private readonly _factory: IViewFactory,
+    @IRenderLocation private readonly _location: IRenderLocation,
   ) { }
 
   public link(
@@ -54,7 +54,7 @@ export class Switch implements ICustomAttributeViewModel {
     _target: INode,
     _instruction: IInstruction,
   ): void {
-    this.view = this.factory.create(this.$controller).setLocation(this.location);
+    this.view = this._factory.create(this.$controller).setLocation(this._location);
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
@@ -239,6 +239,8 @@ export class Switch implements ICustomAttributeViewModel {
 
 @templateController('case')
 export class Case implements ICustomAttributeViewModel {
+  /** @internal */ protected static inject = [IViewFactory, IObserverLocator, IRenderLocation, ILogger];
+
   public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
@@ -258,19 +260,19 @@ export class Case implements ICustomAttributeViewModel {
 
   public view: ISyntheticView;
   private $switch!: Switch;
-  private readonly debug: boolean;
-  private readonly logger: ILogger;
-  private observer: ICollectionObserver<CollectionKind.array> | undefined;
+  /** @internal */ private readonly _debug: boolean;
+  /** @internal */ private readonly _logger: ILogger;
+  /** @internal */ private _observer: ICollectionObserver<CollectionKind.array> | undefined;
 
   public constructor(
-    @IViewFactory private readonly factory: IViewFactory,
-    @IObserverLocator private readonly locator: IObserverLocator,
-    @IRenderLocation location: IRenderLocation,
-    @ILogger logger: ILogger,
+    factory: IViewFactory,
+    /** @internal */ private readonly _locator: IObserverLocator,
+    location: IRenderLocation,
+    logger: ILogger,
   ) {
-    this.debug = logger.config.level <= LogLevel.debug;
-    this.logger = logger.scopeTo(`${this.constructor.name}-#${this.id}`);
-    this.view = this.factory.create().setLocation(location);
+    this._debug = logger.config.level <= LogLevel.debug;
+    this._logger = logger.scopeTo(`${this.constructor.name}-#${this.id}`);
+    this.view = factory.create().setLocation(location);
   }
 
   public link(
@@ -297,13 +299,11 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public isMatch(value: unknown, flags: LifecycleFlags): boolean {
-    if (this.debug) {
-      this.logger.debug('isMatch()');
-    }
+    this._logger.debug('isMatch()');
     const $value = this.value;
     if (Array.isArray($value)) {
-      if (this.observer === void 0) {
-        this.observer = this.observeCollection(flags, $value);
+      if (this._observer === void 0) {
+        this._observer = this._observeCollection(flags, $value);
       }
       return $value.includes(value);
     }
@@ -312,10 +312,10 @@ export class Case implements ICustomAttributeViewModel {
 
   public valueChanged(newValue: unknown, _oldValue: unknown, flags: LifecycleFlags): void {
     if (Array.isArray(newValue)) {
-      this.observer?.unsubscribe(this);
-      this.observer = this.observeCollection(flags, newValue);
-    } else if (this.observer !== void 0) {
-      this.observer.unsubscribe(this);
+      this._observer?.unsubscribe(this);
+      this._observer = this._observeCollection(flags, newValue);
+    } else if (this._observer !== void 0) {
+      this._observer.unsubscribe(this);
     }
     this.$switch.caseChanged(this, flags);
   }
@@ -337,7 +337,7 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public dispose(): void {
-    this.observer?.unsubscribe(this);
+    this._observer?.unsubscribe(this);
     this.view?.dispose();
     this.view = (void 0)!;
   }
@@ -346,8 +346,8 @@ export class Case implements ICustomAttributeViewModel {
     auSwitch.cases.push(this);
   }
 
-  private observeCollection(flags: LifecycleFlags, $value: unknown[]) {
-    const observer = this.locator.getArrayObserver($value);
+  private _observeCollection(flags: LifecycleFlags, $value: unknown[]) {
+    const observer = this._locator.getArrayObserver($value);
     observer.subscribe(this);
     return observer;
   }

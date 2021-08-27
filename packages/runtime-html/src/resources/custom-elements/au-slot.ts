@@ -13,16 +13,15 @@ import type { IViewFactory } from '../../templating/view.js';
 import type { HydrateElementInstruction } from '../../renderer.js';
 
 export class AuSlot implements ICustomElementViewModel {
-  /** @internal */
-  public static get inject() { return [IRenderLocation, IInstruction, IHydrationContext, IRendering]; }
+  /** @internal */ public static get inject() { return [IRenderLocation, IInstruction, IHydrationContext, IRendering]; }
 
   public readonly view: ISyntheticView;
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
-  private _parentScope: Scope | null = null;
-  private _outerScope: Scope | null = null;
-  private readonly _hasProjection: boolean;
-  private readonly _hdrContext: IHydrationContext;
+  /** @internal */ private _parentScope: Scope | null = null;
+  /** @internal */ private _outerScope: Scope | null = null;
+  /** @internal */ private readonly _hasProjection: boolean;
+  /** @internal */ private readonly _hdrContext: IHydrationContext;
 
   @bindable
   public expose: object | undefined;

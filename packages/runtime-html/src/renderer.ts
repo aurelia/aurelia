@@ -301,7 +301,7 @@ export class SpreadBindingInstruction {
 export class SpreadElementPropBindingInstruction {
   public get type(): InstructionType.spreadElementProp { return InstructionType.spreadElementProp; }
   public constructor(
-    public readonly innerInstruction: IInstruction,
+    public readonly instructions: IInstruction,
   ) {}
 }
 
@@ -1175,10 +1175,10 @@ export class SpreadRenderer implements IRenderer {
             renderSpreadInstruction(ancestor + 1);
             break;
           case InstructionType.spreadElementProp:
-            renderers[(inst as SpreadElementPropBindingInstruction).innerInstruction.type].render(
+            renderers[(inst as SpreadElementPropBindingInstruction).instructions.type].render(
               spreadBinding,
               CustomElement.for(target),
-              (inst as SpreadElementPropBindingInstruction).innerInstruction,
+              (inst as SpreadElementPropBindingInstruction).instructions,
             );
             break;
           default:

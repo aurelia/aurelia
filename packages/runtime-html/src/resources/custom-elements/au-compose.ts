@@ -79,17 +79,17 @@ export class AuCompose {
   /** @internal */ private readonly _contextFactory: CompositionContextFactory;
 
   public constructor(
-    private readonly ctn: IContainer,
-    private readonly parent: ISyntheticView | ICustomElementController,
-    private readonly host: HTMLElement,
-    private readonly p: IPlatform,
+    /** @internal */ private readonly _container: IContainer,
+    /** @internal */ private readonly parent: ISyntheticView | ICustomElementController,
+    /** @internal */ private readonly host: HTMLElement,
+    /** @internal */ private readonly _platform: IPlatform,
     // todo: use this to retrieve au-slot instruction
     //        for later enhancement related to <au-slot/> + compose
     instruction: HydrateElementInstruction,
     contextFactory: CompositionContextFactory,
   ) {
     this._location = instruction.containerless ? convertToRenderLocation(this.host) : void 0;
-    this._rendering = ctn.get(IRendering);
+    this._rendering = _container.get(IRendering);
     this._instruction = instruction;
     this._contextFactory = contextFactory;
   }
@@ -188,7 +188,7 @@ export class AuCompose {
     //       should it throw or try it best to proceed?
     //       current: proceed
     const { view, viewModel, model, initiator } = context.change;
-    const { ctn: container, host, $controller, _location: loc } = this;
+    const { _container: container, host, $controller, _location: loc } = this;
     const srcDef = this.getDef(viewModel);
     const childCtn: IContainer = container.createChild();
     const parentNode = loc == null ? host.parentNode : loc.parentNode;
@@ -208,7 +208,7 @@ export class AuCompose {
         };
       } else {
         // todo: should the host be appended later, during the activation phase instead?
-        compositionHost = parentNode!.insertBefore(this.p.document.createElement(srcDef.name), loc);
+        compositionHost = parentNode!.insertBefore(this._platform.document.createElement(srcDef.name), loc);
         removeCompositionHost = () => {
           compositionHost.remove();
         };
@@ -296,7 +296,7 @@ export class AuCompose {
       return comp;
     }
 
-    const p = this.p;
+    const p = this._platform;
     const isLocation = isRenderLocation(host);
     container.registerResolver(
       p.Element,

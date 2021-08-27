@@ -44,7 +44,7 @@ export interface MiddlewareSettings {
 export declare class Store<T> {
     private readonly initialState;
     private readonly logger;
-    private readonly window;
+    private readonly _window;
     readonly state: Observable<T>;
     private devToolsAvailable;
     private devTools?;
@@ -53,7 +53,7 @@ export declare class Store<T> {
     private readonly _state;
     private readonly options;
     private readonly dispatchQueue;
-    constructor(initialState: T, logger: ILogger, window: IStoreWindow, options?: Partial<StoreOptions>);
+    constructor(initialState: T, logger: ILogger, _window: IStoreWindow, options?: Partial<StoreOptions>);
     registerMiddleware(reducer: Middleware<T, undefined>, placement: MiddlewarePlacement): void;
     registerMiddleware<S extends NonNullable<any>>(reducer: Middleware<T, S>, placement: MiddlewarePlacement, settings: S): void;
     unregisterMiddleware(reducer: Middleware<T>): void;

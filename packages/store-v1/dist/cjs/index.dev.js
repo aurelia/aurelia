@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var kernel = require('@aurelia/kernel');
 var runtimeHtml = require('@aurelia/runtime-html');
 var rxjs = require('rxjs');
-var index_js = require('rxjs/operators/index.js');
+var operators = require('rxjs/operators');
 
 function jump(state, n) {
     if (!isStateHistory(state)) {
@@ -165,11 +165,11 @@ class ActionRegistrationError extends Error {
 class ReducerNoStateError extends Error {
 }
 exports.Store = class Store {
-    constructor(initialState, logger, window, options) {
+    constructor(initialState, logger, _window, options) {
         var _a, _b, _c, _d;
         this.initialState = initialState;
         this.logger = logger;
-        this.window = window;
+        this._window = _window;
         // TODO: need an alternative for the Reporter which supports multiple log levels
         this.devToolsAvailable = false;
         this.actions = new Map();
@@ -377,11 +377,11 @@ exports.Store = class Store {
     }
     setupDevTools() {
         // TODO: needs a better solution for global override
-        if (this.window.__REDUX_DEVTOOLS_EXTENSION__) {
+        if (this._window.__REDUX_DEVTOOLS_EXTENSION__) {
             this.logger[getLogType(this.options, "devToolsStatus", exports.LogLevel.debug)]("DevTools are available");
             this.devToolsAvailable = true;
             // TODO: needs a better solution for global override
-            this.devTools = this.window.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
+            this.devTools = this._window.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
             this.devTools.init(this.initialState);
             this.devTools.subscribe((message) => {
                 var _a, _b;
@@ -448,9 +448,6 @@ function dispatchify(action) {
     };
 }
 
-const skip = index_js.skip;
-const take = index_js.take;
-const delay = index_js.delay;
 async function executeSteps(store, shouldLogResults, ...steps) {
     const logStep = (step, stepIdx) => (res) => {
         if (shouldLogResults) {
@@ -475,10 +472,10 @@ async function executeSteps(store, shouldLogResults, ...steps) {
     return new Promise((resolve, reject) => {
         let currentStep = 0;
         steps.slice(0, -1).forEach((step) => {
-            store.state.pipe(skip(currentStep), take(1), delay(0)).subscribe(tryStep(logStep(step, currentStep), reject));
+            store.state.pipe(operators.skip(currentStep), operators.take(1), operators.delay(0)).subscribe(tryStep(logStep(step, currentStep), reject));
             currentStep++;
         });
-        store.state.pipe(skip(currentStep), take(1)).subscribe(lastStep(tryStep(logStep(steps[steps.length - 1], currentStep), reject), resolve));
+        store.state.pipe(operators.skip(currentStep), operators.take(1)).subscribe(lastStep(tryStep(logStep(steps[steps.length - 1], currentStep), reject), resolve));
     });
 }
 
@@ -506,17 +503,20 @@ function connectTo(settings) {
         return Object.entries({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ...(isSelectorObj ? _settings.selector : fallbackSelector)
-        }).map(([target, selector]) => ({
-            targets: _settings.target && isSelectorObj ? [_settings.target, target] : [target],
-            selector,
-            // numbers are the starting index to slice all the change handling args,
-            // which are prop name, new state and old state
-            changeHandlers: {
-                [_settings.onChanged || '']: 1,
-                [`${_settings.target || target}Changed`]: _settings.target ? 0 : 1,
-                propertyChanged: 0
-            }
-        }));
+        }).map(([target, selector]) => {
+            var _a, _b;
+            return ({
+                targets: _settings.target && isSelectorObj ? [_settings.target, target] : [target],
+                selector,
+                // numbers are the starting index to slice all the change handling args,
+                // which are prop name, new state and old state
+                changeHandlers: {
+                    [(_a = _settings.onChanged) !== null && _a !== void 0 ? _a : '']: 1,
+                    [`${(_b = _settings.target) !== null && _b !== void 0 ? _b : target}Changed`]: _settings.target ? 0 : 1,
+                    propertyChanged: 0
+                }
+            });
+        });
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return function (target) {
@@ -525,7 +525,7 @@ function connectTo(settings) {
             : target.prototype.binding;
         const originalTeardown = typeof settings === 'object' && settings.teardown
             ? target.prototype[settings.teardown]
-            : target.prototype.bound;
+            : target.prototype.unbinding;
         target.prototype[typeof settings === 'object' && settings.setup !== undefined ? settings.setup : 'binding'] = function () {
             if (typeof settings === 'object' &&
                 typeof settings.onChanged === 'string' &&
@@ -555,7 +555,7 @@ function connectTo(settings) {
                 return originalSetup.apply(this, arguments);
             }
         };
-        target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'bound'] = function () {
+        target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'unbinding'] = function () {
             if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) {
                 this._stateSubscriptions.forEach((sub) => {
                     if (sub instanceof rxjs.Subscription && sub.closed === false) {

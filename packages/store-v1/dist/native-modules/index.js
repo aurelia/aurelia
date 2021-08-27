@@ -2,9 +2,9 @@ import { IPlatform as t, ILogger as e, Registration as r } from "../../../kernel
 
 import { IWindow as i, Controller as s } from "../../../runtime-html/dist/native-modules/index.js";
 
-import { BehaviorSubject as n, Subscription as o, Observable as a } from "rxjs";
+import { BehaviorSubject as n, Subscription as o, Observable as c } from "rxjs";
 
-import { skip as c, take as h, delay as u } from "rxjs/operators/index.js";
+import { skip as a, take as h, delay as u } from "rxjs/operators";
 
 function f(t, e) {
     if (!w(t)) throw Error("Provided state is not of type StateHistory");
@@ -18,11 +18,11 @@ function d(t, e) {
     const {past: r, future: i, present: s} = t;
     const n = [ ...r, s, ...i.slice(0, e) ];
     const o = i[e];
-    const a = i.slice(e + 1);
+    const c = i.slice(e + 1);
     return {
         past: n,
         present: o,
-        future: a
+        future: c
     };
 }
 
@@ -31,10 +31,10 @@ function l(t, e) {
     const {past: r, future: i, present: s} = t;
     const n = r.slice(0, e);
     const o = [ ...r.slice(e + 1), s, ...i ];
-    const a = r[e];
+    const c = r[e];
     return {
         past: n,
-        present: a,
+        present: c,
         future: o
     };
 }
@@ -75,7 +75,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */ function y(t, e, r, i) {
     var s = arguments.length, n = s < 3 ? e : null === i ? i = Object.getOwnPropertyDescriptor(e, r) : i, o;
-    if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) n = Reflect.decorate(t, e, r, i); else for (var a = t.length - 1; a >= 0; a--) if (o = t[a]) n = (s < 3 ? o(n) : s > 3 ? o(e, r, n) : o(e, r)) || n;
+    if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) n = Reflect.decorate(t, e, r, i); else for (var c = t.length - 1; c >= 0; c--) if (o = t[c]) n = (s < 3 ? o(n) : s > 3 ? o(e, r, n) : o(e, r)) || n;
     return s > 3 && n && Object.defineProperty(e, r, n), n;
 }
 
@@ -160,19 +160,19 @@ class ReducerNoStateError extends Error {}
 
 let O = class Store {
     constructor(t, e, r, i) {
-        var s, o, a, c;
+        var s, o, c, a;
         this.initialState = t;
         this.logger = e;
-        this.window = r;
+        this.t = r;
         this.devToolsAvailable = false;
         this.actions = new Map;
         this.middlewares = new Map;
         this.dispatchQueue = [];
         this.options = null !== i && void 0 !== i ? i : {};
         const h = true === (null === (o = null === (s = this.options) || void 0 === s ? void 0 : s.history) || void 0 === o ? void 0 : o.undoable);
-        this.t = new n(t);
-        this.state = this.t.asObservable();
-        if (true !== (null === (c = null === (a = this.options) || void 0 === a ? void 0 : a.devToolsOptions) || void 0 === c ? void 0 : c.disable)) this.setupDevTools();
+        this._state = new n(t);
+        this.state = this._state.asObservable();
+        if (true !== (null === (a = null === (c = this.options) || void 0 === c ? void 0 : c.devToolsOptions) || void 0 === a ? void 0 : a.disable)) this.setupDevTools();
         if (h) this.registerHistoryMethods();
     }
     registerMiddleware(t, e, r) {
@@ -201,7 +201,7 @@ let O = class Store {
         return this.actions.has(t);
     }
     resetToState(t) {
-        this.t.next(t);
+        this._state.next(t);
     }
     async dispatch(t, ...e) {
         const r = this.lookupAction(t);
@@ -276,31 +276,31 @@ let O = class Store {
             })))
         };
         if (this.options.logDispatchedActions) this.logger[S(this.options, "dispatchedActions", R.info)](`Dispatching: ${n.name}`);
-        const o = await this.executeMiddlewares(this.t.getValue(), E.Before, n);
+        const o = await this.executeMiddlewares(this._state.getValue(), E.Before, n);
         if (false === o) {
             j.container.get(i).performance.clearMarks();
             j.container.get(i).performance.clearMeasures();
             return;
         }
-        let a = o;
+        let c = o;
         for (const t of s) {
-            a = await t.reducer(a, ...t.params);
-            if (false === a) {
+            c = await t.reducer(c, ...t.params);
+            if (false === c) {
                 j.container.get(i).performance.clearMarks();
                 j.container.get(i).performance.clearMeasures();
                 return;
             }
             j.container.get(i).performance.mark(`dispatch-after-reducer-${t.type}`);
-            if (!a && "object" !== typeof a) throw new ReducerNoStateError("The reducer has to return a new state");
+            if (!c && "object" !== typeof c) throw new ReducerNoStateError("The reducer has to return a new state");
         }
-        let c = await this.executeMiddlewares(a, E.After, n);
-        if (false === c) {
+        let a = await this.executeMiddlewares(c, E.After, n);
+        if (false === a) {
             j.container.get(i).performance.clearMarks();
             j.container.get(i).performance.clearMeasures();
             return;
         }
-        if (w(c) && (null === (e = this.options.history) || void 0 === e ? void 0 : e.limit)) c = v(c, this.options.history.limit);
-        this.t.next(c);
+        if (w(a) && (null === (e = this.options.history) || void 0 === e ? void 0 : e.limit)) a = v(a, this.options.history.limit);
+        this._state.next(a);
         j.container.get(i).performance.mark("dispatch-end");
         if (this.options.measurePerformance === b.StartEnd) {
             j.container.get(i).performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
@@ -316,12 +316,12 @@ let O = class Store {
         this.updateDevToolsState({
             type: n.name,
             params: n.params
-        }, c);
+        }, a);
     }
     executeMiddlewares(t, e, r) {
         return Array.from(this.middlewares).filter((t => t[1].placement === e)).reduce((async (t, s, n) => {
             try {
-                const n = await s[0](await t, this.t.getValue(), s[1].settings, r);
+                const n = await s[0](await t, this._state.getValue(), s[1].settings, r);
                 if (false === n) return false;
                 return n || await t;
             } catch (e) {
@@ -333,10 +333,10 @@ let O = class Store {
         }), t);
     }
     setupDevTools() {
-        if (this.window.i) {
+        if (this.t.__REDUX_DEVTOOLS_EXTENSION__) {
             this.logger[S(this.options, "devToolsStatus", R.debug)]("DevTools are available");
             this.devToolsAvailable = true;
-            this.devTools = this.window.i.connect(this.options.devToolsOptions);
+            this.devTools = this.t.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
             this.devTools.init(this.initialState);
             this.devTools.subscribe((t => {
                 var e, r;
@@ -357,11 +357,11 @@ let O = class Store {
                 if ("DISPATCH" === t.type && t.payload) switch (t.payload.type) {
                   case "JUMP_TO_STATE":
                   case "JUMP_TO_ACTION":
-                    this.t.next(JSON.parse(t.state));
+                    this._state.next(JSON.parse(t.state));
                     return;
 
                   case "COMMIT":
-                    this.devTools.init(this.t.getValue());
+                    this.devTools.init(this._state.getValue());
                     return;
 
                   case "RESET":
@@ -397,13 +397,7 @@ function M(t) {
     };
 }
 
-const N = c;
-
-const $ = h;
-
-const x = u;
-
-async function C(t, e, ...r) {
+async function N(t, e, ...r) {
     const i = (t, r) => i => {
         if (e) {
             console.group(`Step ${r}`);
@@ -424,51 +418,54 @@ async function C(t, e, ...r) {
         e();
     };
     return new Promise(((e, o) => {
-        let a = 0;
+        let c = 0;
         r.slice(0, -1).forEach((e => {
-            t.state.pipe(N(a), $(1), x(0)).subscribe(s(i(e, a), o));
-            a++;
+            t.state.pipe(a(c), h(1), u(0)).subscribe(s(i(e, c), o));
+            c++;
         }));
-        t.state.pipe(N(a), $(1)).subscribe(n(s(i(r[r.length - 1], a), o), e));
+        t.state.pipe(a(c), h(1)).subscribe(n(s(i(r[r.length - 1], c), o), e));
     }));
 }
 
-const P = t => t.state;
+const $ = t => t.state;
 
-function I(t) {
+function x(t) {
     const e = {
-        selector: "function" === typeof t ? t : P,
+        selector: "function" === typeof t ? t : $,
         ...t
     };
     function r(t, e) {
         const r = e(t);
-        if (r instanceof a) return r;
+        if (r instanceof c) return r;
         return t.state;
     }
     function i() {
         const t = "object" === typeof e.selector;
         const r = {
-            [e.target || "state"]: e.selector || P
+            [e.target || "state"]: e.selector || $
         };
         return Object.entries({
             ...t ? e.selector : r
-        }).map((([r, i]) => ({
-            targets: e.target && t ? [ e.target, r ] : [ r ],
-            selector: i,
-            changeHandlers: {
-                [e.onChanged || ""]: 1,
-                [`${e.target || r}Changed`]: e.target ? 0 : 1,
-                propertyChanged: 0
-            }
-        })));
+        }).map((([r, i]) => {
+            var s, n;
+            return {
+                targets: e.target && t ? [ e.target, r ] : [ r ],
+                selector: i,
+                changeHandlers: {
+                    [null !== (s = e.onChanged) && void 0 !== s ? s : ""]: 1,
+                    [`${null !== (n = e.target) && void 0 !== n ? n : r}Changed`]: e.target ? 0 : 1,
+                    propertyChanged: 0
+                }
+            };
+        }));
     }
     return function(e) {
         const n = "object" === typeof t && t.setup ? e.prototype[t.setup] : e.prototype.binding;
-        const a = "object" === typeof t && t.teardown ? e.prototype[t.teardown] : e.prototype.bound;
+        const c = "object" === typeof t && t.teardown ? e.prototype[t.teardown] : e.prototype.unbinding;
         e.prototype["object" === typeof t && void 0 !== t.setup ? t.setup : "binding"] = function() {
             if ("object" === typeof t && "string" === typeof t.onChanged && !(t.onChanged in this)) throw new Error("Provided onChanged handler does not exist on target VM");
             const e = s.getCached(this) ? s.getCached(this).container.get(O) : j.container.get(O);
-            this.h = i().map((t => r(e, t.selector).subscribe((e => {
+            this._stateSubscriptions = i().map((t => r(e, t.selector).subscribe((e => {
                 const r = t.targets.length - 1;
                 const i = t.targets.reduce(((t = {}, e) => t[e]), this);
                 Object.entries(t.changeHandlers).forEach((([s, n]) => {
@@ -481,16 +478,16 @@ function I(t) {
             }))));
             if (n) return n.apply(this, arguments);
         };
-        e.prototype["object" === typeof t && t.teardown ? t.teardown : "bound"] = function() {
-            if (this.h && Array.isArray(this.h)) this.h.forEach((t => {
+        e.prototype["object" === typeof t && t.teardown ? t.teardown : "unbinding"] = function() {
+            if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) this._stateSubscriptions.forEach((t => {
                 if (t instanceof o && false === t.closed) t.unsubscribe();
             }));
-            if (a) return a.apply(this, arguments);
+            if (c) return c.apply(this, arguments);
         };
     };
 }
 
-const J = {
+const C = {
     withInitialState(t) {
         Reflect.set(this, "state", t);
         return this;
@@ -504,8 +501,8 @@ const J = {
         j.container = t;
         const n = Reflect.get(this, "state");
         const o = Reflect.get(this, "options");
-        const a = t.get(e);
-        const c = t.get(i);
+        const c = t.get(e);
+        const a = t.get(i);
         if (!n) throw new Error("initialState must be provided via withInitialState builder method");
         let h = n;
         if ((null === (s = null === o || void 0 === o ? void 0 : o.history) || void 0 === s ? void 0 : s.undoable) && !w(n)) h = {
@@ -513,10 +510,10 @@ const J = {
             present: n,
             future: []
         };
-        r.instance(O, new O(h, a, c, o)).register(t);
+        r.instance(O, new O(h, c, a, o)).register(t);
         return t;
     }
 };
 
-export { ActionRegistrationError, m as DEFAULT_LOCAL_STORAGE_KEY, DevToolsRemoteDispatchError, R as LogLevel, E as MiddlewarePlacement, b as PerformanceMeasurement, ReducerNoStateError, j as STORE, O as Store, J as StoreConfiguration, UnregisteredActionError, v as applyLimits, I as connectTo, M as dispatchify, C as executeSteps, S as getLogType, w as isStateHistory, f as jump, A as localStorageMiddleware, T as logMiddleware, p as nextStateHistory, D as rehydrateFromLocalStorage };
+export { ActionRegistrationError, m as DEFAULT_LOCAL_STORAGE_KEY, DevToolsRemoteDispatchError, R as LogLevel, E as MiddlewarePlacement, b as PerformanceMeasurement, ReducerNoStateError, j as STORE, O as Store, C as StoreConfiguration, UnregisteredActionError, v as applyLimits, x as connectTo, M as dispatchify, N as executeSteps, S as getLogType, w as isStateHistory, f as jump, A as localStorageMiddleware, T as logMiddleware, p as nextStateHistory, D as rehydrateFromLocalStorage };
 //# sourceMappingURL=index.js.map

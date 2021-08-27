@@ -1,7 +1,7 @@
 import { IPlatform, ILogger, Registration } from '@aurelia/kernel';
 import { IWindow, Controller } from '@aurelia/runtime-html';
 import { BehaviorSubject, Subscription, Observable } from 'rxjs';
-import { skip as skip$1, take as take$1, delay as delay$1 } from 'rxjs/operators/index.js';
+import { skip, take, delay } from 'rxjs/operators';
 
 function jump(state, n) {
     if (!isStateHistory(state)) {
@@ -161,11 +161,11 @@ class ActionRegistrationError extends Error {
 class ReducerNoStateError extends Error {
 }
 let Store = class Store {
-    constructor(initialState, logger, window, options) {
+    constructor(initialState, logger, _window, options) {
         var _a, _b, _c, _d;
         this.initialState = initialState;
         this.logger = logger;
-        this.window = window;
+        this._window = _window;
         // TODO: need an alternative for the Reporter which supports multiple log levels
         this.devToolsAvailable = false;
         this.actions = new Map();
@@ -373,11 +373,11 @@ let Store = class Store {
     }
     setupDevTools() {
         // TODO: needs a better solution for global override
-        if (this.window.__REDUX_DEVTOOLS_EXTENSION__) {
+        if (this._window.__REDUX_DEVTOOLS_EXTENSION__) {
             this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
             this.devToolsAvailable = true;
             // TODO: needs a better solution for global override
-            this.devTools = this.window.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
+            this.devTools = this._window.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
             this.devTools.init(this.initialState);
             this.devTools.subscribe((message) => {
                 var _a, _b;
@@ -444,9 +444,6 @@ function dispatchify(action) {
     };
 }
 
-const skip = skip$1;
-const take = take$1;
-const delay = delay$1;
 async function executeSteps(store, shouldLogResults, ...steps) {
     const logStep = (step, stepIdx) => (res) => {
         if (shouldLogResults) {
@@ -502,17 +499,20 @@ function connectTo(settings) {
         return Object.entries({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ...(isSelectorObj ? _settings.selector : fallbackSelector)
-        }).map(([target, selector]) => ({
-            targets: _settings.target && isSelectorObj ? [_settings.target, target] : [target],
-            selector,
-            // numbers are the starting index to slice all the change handling args,
-            // which are prop name, new state and old state
-            changeHandlers: {
-                [_settings.onChanged || '']: 1,
-                [`${_settings.target || target}Changed`]: _settings.target ? 0 : 1,
-                propertyChanged: 0
-            }
-        }));
+        }).map(([target, selector]) => {
+            var _a, _b;
+            return ({
+                targets: _settings.target && isSelectorObj ? [_settings.target, target] : [target],
+                selector,
+                // numbers are the starting index to slice all the change handling args,
+                // which are prop name, new state and old state
+                changeHandlers: {
+                    [(_a = _settings.onChanged) !== null && _a !== void 0 ? _a : '']: 1,
+                    [`${(_b = _settings.target) !== null && _b !== void 0 ? _b : target}Changed`]: _settings.target ? 0 : 1,
+                    propertyChanged: 0
+                }
+            });
+        });
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return function (target) {
@@ -521,7 +521,7 @@ function connectTo(settings) {
             : target.prototype.binding;
         const originalTeardown = typeof settings === 'object' && settings.teardown
             ? target.prototype[settings.teardown]
-            : target.prototype.bound;
+            : target.prototype.unbinding;
         target.prototype[typeof settings === 'object' && settings.setup !== undefined ? settings.setup : 'binding'] = function () {
             if (typeof settings === 'object' &&
                 typeof settings.onChanged === 'string' &&
@@ -551,7 +551,7 @@ function connectTo(settings) {
                 return originalSetup.apply(this, arguments);
             }
         };
-        target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'bound'] = function () {
+        target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'unbinding'] = function () {
             if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) {
                 this._stateSubscriptions.forEach((sub) => {
                     if (sub instanceof Subscription && sub.closed === false) {

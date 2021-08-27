@@ -10,10 +10,10 @@ var e = require("@aurelia/runtime-html");
 
 var r = require("rxjs");
 
-var s = require("rxjs/operators/index.js");
+var s = require("rxjs/operators");
 
 function i(t, e) {
-    if (!h(t)) throw Error("Provided state is not of type StateHistory");
+    if (!u(t)) throw Error("Provided state is not of type StateHistory");
     if (e > 0) return o(t, e - 1);
     if (e < 0) return n(t, t.past.length + e);
     return t;
@@ -55,14 +55,14 @@ function c(t, e) {
 }
 
 function a(t, e) {
-    if (h(t)) {
+    if (u(t)) {
         if (t.past.length > e) t.past = t.past.slice(t.past.length - e);
         if (t.future.length > e) t.future = t.future.slice(0, e);
     }
     return t;
 }
 
-function h(t) {
+function u(t) {
     return "undefined" !== typeof t.present && "undefined" !== typeof t.future && "undefined" !== typeof t.past && Array.isArray(t.future) && Array.isArray(t.past);
 }
 
@@ -79,7 +79,7 @@ INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
 LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */ function u(t, e, r, s) {
+***************************************************************************** */ function h(t, e, r, s) {
     var i = arguments.length, o = i < 3 ? e : null === s ? s = Object.getOwnPropertyDescriptor(e, r) : s, n;
     if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) o = Reflect.decorate(t, e, r, s); else for (var c = t.length - 1; c >= 0; c--) if (n = t[c]) o = (i < 3 ? n(o) : i > 3 ? n(e, r, o) : n(e, r)) || o;
     return i > 3 && o && Object.defineProperty(e, r, o), o;
@@ -169,17 +169,17 @@ exports.Store = class Store {
         var o, n, c, a;
         this.initialState = t;
         this.logger = e;
-        this.window = s;
+        this.t = s;
         this.devToolsAvailable = false;
         this.actions = new Map;
         this.middlewares = new Map;
         this.dispatchQueue = [];
         this.options = null !== i && void 0 !== i ? i : {};
-        const h = true === (null === (n = null === (o = this.options) || void 0 === o ? void 0 : o.history) || void 0 === n ? void 0 : n.undoable);
-        this.t = new r.BehaviorSubject(t);
-        this.state = this.t.asObservable();
+        const u = true === (null === (n = null === (o = this.options) || void 0 === o ? void 0 : o.history) || void 0 === n ? void 0 : n.undoable);
+        this._state = new r.BehaviorSubject(t);
+        this.state = this._state.asObservable();
         if (true !== (null === (a = null === (c = this.options) || void 0 === c ? void 0 : c.devToolsOptions) || void 0 === a ? void 0 : a.disable)) this.setupDevTools();
-        if (h) this.registerHistoryMethods();
+        if (u) this.registerHistoryMethods();
     }
     registerMiddleware(t, e, r) {
         this.middlewares.set(t, {
@@ -207,7 +207,7 @@ exports.Store = class Store {
         return this.actions.has(t);
     }
     resetToState(t) {
-        this.t.next(t);
+        this._state.next(t);
     }
     async dispatch(t, ...e) {
         const r = this.lookupAction(t);
@@ -282,7 +282,7 @@ exports.Store = class Store {
             })))
         };
         if (this.options.logDispatchedActions) this.logger[x(this.options, "dispatchedActions", exports.LogLevel.info)](`Dispatching: ${o.name}`);
-        const n = await this.executeMiddlewares(this.t.getValue(), exports.MiddlewarePlacement.Before, o);
+        const n = await this.executeMiddlewares(this._state.getValue(), exports.MiddlewarePlacement.Before, o);
         if (false === n) {
             w.container.get(e.IWindow).performance.clearMarks();
             w.container.get(e.IWindow).performance.clearMeasures();
@@ -299,14 +299,14 @@ exports.Store = class Store {
             w.container.get(e.IWindow).performance.mark(`dispatch-after-reducer-${t.type}`);
             if (!c && "object" !== typeof c) throw new ReducerNoStateError("The reducer has to return a new state");
         }
-        let u = await this.executeMiddlewares(c, exports.MiddlewarePlacement.After, o);
-        if (false === u) {
+        let h = await this.executeMiddlewares(c, exports.MiddlewarePlacement.After, o);
+        if (false === h) {
             w.container.get(e.IWindow).performance.clearMarks();
             w.container.get(e.IWindow).performance.clearMeasures();
             return;
         }
-        if (h(u) && (null === (r = this.options.history) || void 0 === r ? void 0 : r.limit)) u = a(u, this.options.history.limit);
-        this.t.next(u);
+        if (u(h) && (null === (r = this.options.history) || void 0 === r ? void 0 : r.limit)) h = a(h, this.options.history.limit);
+        this._state.next(h);
         w.container.get(e.IWindow).performance.mark("dispatch-end");
         if (this.options.measurePerformance === exports.PerformanceMeasurement.StartEnd) {
             w.container.get(e.IWindow).performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
@@ -322,12 +322,12 @@ exports.Store = class Store {
         this.updateDevToolsState({
             type: o.name,
             params: o.params
-        }, u);
+        }, h);
     }
     executeMiddlewares(t, r, s) {
         return Array.from(this.middlewares).filter((t => t[1].placement === r)).reduce((async (t, i, o) => {
             try {
-                const o = await i[0](await t, this.t.getValue(), i[1].settings, s);
+                const o = await i[0](await t, this._state.getValue(), i[1].settings, s);
                 if (false === o) return false;
                 return o || await t;
             } catch (e) {
@@ -339,10 +339,10 @@ exports.Store = class Store {
         }), t);
     }
     setupDevTools() {
-        if (this.window.i) {
+        if (this.t.__REDUX_DEVTOOLS_EXTENSION__) {
             this.logger[x(this.options, "devToolsStatus", exports.LogLevel.debug)]("DevTools are available");
             this.devToolsAvailable = true;
-            this.devTools = this.window.i.connect(this.options.devToolsOptions);
+            this.devTools = this.t.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
             this.devTools.init(this.initialState);
             this.devTools.subscribe((t => {
                 var e, r;
@@ -363,11 +363,11 @@ exports.Store = class Store {
                 if ("DISPATCH" === t.type && t.payload) switch (t.payload.type) {
                   case "JUMP_TO_STATE":
                   case "JUMP_TO_ACTION":
-                    this.t.next(JSON.parse(t.state));
+                    this._state.next(JSON.parse(t.state));
                     return;
 
                   case "COMMIT":
-                    this.devTools.init(this.t.getValue());
+                    this.devTools.init(this._state.getValue());
                     return;
 
                   case "RESET":
@@ -394,7 +394,7 @@ exports.Store = class Store {
     }
 };
 
-exports.Store = u([ f(1, t.ILogger), f(2, e.IWindow) ], exports.Store);
+exports.Store = h([ f(1, t.ILogger), f(2, e.IWindow) ], exports.Store);
 
 function y(t) {
     const e = w.container.get(exports.Store);
@@ -403,14 +403,8 @@ function y(t) {
     };
 }
 
-const g = s.skip;
-
-const m = s.take;
-
-const E = s.delay;
-
-async function T(t, e, ...r) {
-    const s = (t, r) => s => {
+async function g(t, e, ...r) {
+    const i = (t, r) => s => {
         if (e) {
             console.group(`Step ${r}`);
             console.log(s);
@@ -418,32 +412,32 @@ async function T(t, e, ...r) {
         }
         t(s);
     };
-    const i = (t, e) => r => {
+    const o = (t, e) => r => {
         try {
             t(r);
         } catch (t) {
             e(t);
         }
     };
-    const o = (t, e) => r => {
+    const n = (t, e) => r => {
         t(r);
         e();
     };
-    return new Promise(((e, n) => {
-        let c = 0;
+    return new Promise(((e, c) => {
+        let a = 0;
         r.slice(0, -1).forEach((e => {
-            t.state.pipe(g(c), m(1), E(0)).subscribe(i(s(e, c), n));
-            c++;
+            t.state.pipe(s.skip(a), s.take(1), s.delay(0)).subscribe(o(i(e, a), c));
+            a++;
         }));
-        t.state.pipe(g(c), m(1)).subscribe(o(i(s(r[r.length - 1], c), n), e));
+        t.state.pipe(s.skip(a), s.take(1)).subscribe(n(o(i(r[r.length - 1], a), c), e));
     }));
 }
 
-const A = t => t.state;
+const m = t => t.state;
 
-function D(t) {
+function E(t) {
     const s = {
-        selector: "function" === typeof t ? t : A,
+        selector: "function" === typeof t ? t : m,
         ...t
     };
     function i(t, e) {
@@ -454,27 +448,30 @@ function D(t) {
     function o() {
         const t = "object" === typeof s.selector;
         const e = {
-            [s.target || "state"]: s.selector || A
+            [s.target || "state"]: s.selector || m
         };
         return Object.entries({
             ...t ? s.selector : e
-        }).map((([e, r]) => ({
-            targets: s.target && t ? [ s.target, e ] : [ e ],
-            selector: r,
-            changeHandlers: {
-                [s.onChanged || ""]: 1,
-                [`${s.target || e}Changed`]: s.target ? 0 : 1,
-                propertyChanged: 0
-            }
-        })));
+        }).map((([e, r]) => {
+            var i, o;
+            return {
+                targets: s.target && t ? [ s.target, e ] : [ e ],
+                selector: r,
+                changeHandlers: {
+                    [null !== (i = s.onChanged) && void 0 !== i ? i : ""]: 1,
+                    [`${null !== (o = s.target) && void 0 !== o ? o : e}Changed`]: s.target ? 0 : 1,
+                    propertyChanged: 0
+                }
+            };
+        }));
     }
     return function(s) {
         const n = "object" === typeof t && t.setup ? s.prototype[t.setup] : s.prototype.binding;
-        const c = "object" === typeof t && t.teardown ? s.prototype[t.teardown] : s.prototype.bound;
+        const c = "object" === typeof t && t.teardown ? s.prototype[t.teardown] : s.prototype.unbinding;
         s.prototype["object" === typeof t && void 0 !== t.setup ? t.setup : "binding"] = function() {
             if ("object" === typeof t && "string" === typeof t.onChanged && !(t.onChanged in this)) throw new Error("Provided onChanged handler does not exist on target VM");
             const r = e.Controller.getCached(this) ? e.Controller.getCached(this).container.get(exports.Store) : w.container.get(exports.Store);
-            this.h = o().map((t => i(r, t.selector).subscribe((e => {
+            this._stateSubscriptions = o().map((t => i(r, t.selector).subscribe((e => {
                 const r = t.targets.length - 1;
                 const s = t.targets.reduce(((t = {}, e) => t[e]), this);
                 Object.entries(t.changeHandlers).forEach((([i, o]) => {
@@ -487,8 +484,8 @@ function D(t) {
             }))));
             if (n) return n.apply(this, arguments);
         };
-        s.prototype["object" === typeof t && t.teardown ? t.teardown : "bound"] = function() {
-            if (this.h && Array.isArray(this.h)) this.h.forEach((t => {
+        s.prototype["object" === typeof t && t.teardown ? t.teardown : "unbinding"] = function() {
+            if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) this._stateSubscriptions.forEach((t => {
                 if (t instanceof r.Subscription && false === t.closed) t.unsubscribe();
             }));
             if (c) return c.apply(this, arguments);
@@ -496,7 +493,7 @@ function D(t) {
     };
 }
 
-const R = {
+const T = {
     withInitialState(t) {
         Reflect.set(this, "state", t);
         return this;
@@ -514,7 +511,7 @@ const R = {
         const c = r.get(e.IWindow);
         if (!i) throw new Error("initialState must be provided via withInitialState builder method");
         let a = i;
-        if ((null === (s = null === o || void 0 === o ? void 0 : o.history) || void 0 === s ? void 0 : s.undoable) && !h(i)) a = {
+        if ((null === (s = null === o || void 0 === o ? void 0 : o.history) || void 0 === s ? void 0 : s.undoable) && !u(i)) a = {
             past: [],
             present: i,
             future: []
@@ -534,21 +531,21 @@ exports.ReducerNoStateError = ReducerNoStateError;
 
 exports.STORE = w;
 
-exports.StoreConfiguration = R;
+exports.StoreConfiguration = T;
 
 exports.UnregisteredActionError = UnregisteredActionError;
 
 exports.applyLimits = a;
 
-exports.connectTo = D;
+exports.connectTo = E;
 
 exports.dispatchify = y;
 
-exports.executeSteps = T;
+exports.executeSteps = g;
 
 exports.getLogType = x;
 
-exports.isStateHistory = h;
+exports.isStateHistory = u;
 
 exports.jump = i;
 

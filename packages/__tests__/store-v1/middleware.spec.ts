@@ -26,7 +26,7 @@ function mockLocalStorage(patch: unknown) {
   });
 }
 
-describe("middlewares", function () {
+describe("store-v1/middleware.spec.ts", function () {
   this.timeout(100);
   this.beforeEach(function () {
     STORE.container = null!;

@@ -10,7 +10,7 @@ import {
 } from './helpers.js';
 import { assert } from '@aurelia/testing';
 
-describe("redux devtools", function () {
+describe("store-v1/redux-devtools.spec.ts", function () {
   this.timeout(100);
   it("should not setup devtools if disabled via options", function () {
     const { logger, storeWindow } = createDI();

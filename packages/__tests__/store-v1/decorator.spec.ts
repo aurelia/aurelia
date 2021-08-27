@@ -40,7 +40,7 @@ function arrange<T>(Component: ConstructableClass<T>) {
   return { initialState, store, sut };
 }
 
-describe("using decorators", function () {
+describe("store-v1/decorator.spec.ts", function () {
   it("should lazy load the store inside the decorator", function () {
     @customElement({
       name: 'connect-to-vm',

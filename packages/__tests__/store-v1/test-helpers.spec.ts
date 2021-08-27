@@ -6,7 +6,7 @@ import {
   testState
 } from "./helpers.js";
 
-describe("test helpers", function () {
+describe("store-v1/test-helpers.spec.ts", function () {
   this.timeout(100);
   it("should provide easy means to test sequences", async function () {
     const { store } = createTestStore();

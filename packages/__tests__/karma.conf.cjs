@@ -20,7 +20,7 @@ const commonChromeFlags = [
   '--disable-translate',
 ];
 
-const allTestDirs = [
+const testDirs = [
   '1-kernel',
   '2-runtime',
   '3-runtime-html',
@@ -34,11 +34,8 @@ const allTestDirs = [
   'validation-i18n',
 ];
 
-const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --coverage --watch-extensions js,html'.split(' ');
+const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html'.split(' ');
 const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
-const testDirs = cliArgs.length > 0
-  ? allTestDirs.filter(d => cliArgs.includes(d))
-  : allTestDirs;
 
 const packageNames = [
   'fetch-client',
@@ -69,6 +66,15 @@ module.exports = function (config) {
   }
   const baseUrl = 'packages/__tests__/dist/esm/__tests__';
 
+  const testFilePatterns = cliArgs.length > 0
+    ? cliArgs.flatMap(arg => [
+        `${baseUrl}/**/*${arg.endsWith('.spec.js') ? arg : `${arg}*.spec.js`}`,
+        `${baseUrl}/**/${arg}/**/*.spec.js`,
+    ])
+    : [`${baseUrl}/**/*.spec.js`];
+
+  console.log('test patterns:', testFilePatterns);
+
   // Karma config reference: https://karma-runner.github.io/5.2/config/files.html
   // --------------------------------------------------------------------------------
   // Summary of why the files are configured the way they are:
@@ -93,8 +99,11 @@ module.exports = function (config) {
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/setup-shared.js` }, // 1.2
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/util.js` }, // 1.3
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/Spy.js` }, // 1.4
+    ...testFilePatterns.map(pattern =>
+      ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: pattern }), // 2.1
+    ), // 2.1 (new)
     ...testDirs.flatMap(name => [
-      { type: 'module', watched: true,  included: true,  nocache: false, pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1
+      // { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1 (old)
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.js.map` }, // 2.2
       { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/${name}/**/!(*.$au)*.js` }, // 2.3
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
@@ -117,7 +126,7 @@ module.exports = function (config) {
     // Only process .js files (not .js.map or .ts files)
     if (/\.js$/.test(file.pattern)) {
       // Only instrument core framework files (not the specs themselves, nor any test utils (for now))
-      if (/__tests__|testing/.test(file.pattern) || !config.coverage) {
+      if (/__tests__|testing|node_modules/.test(file.pattern) || !config.coverage) {
         p[file.pattern] = ['aurelia'];
       } else {
         p[file.pattern] = ['aurelia', 'karma-coverage-istanbul-instrumenter'];

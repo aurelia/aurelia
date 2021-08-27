@@ -1,6 +1,6 @@
 import { skip } from "rxjs/operators";
 
-import { DI, Registration } from '@aurelia/kernel';
+import { Registration } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 import { STORE, dispatchify, Store, UnregisteredActionError } from '@aurelia/store-v1';
 
@@ -18,7 +18,7 @@ function arrange() {
   return { store, container, fakeAction };
 }
 
-describe('dispatchify', function () {
+describe('store-v1/dispatchify.spec.ts', function () {
   this.timeout(100);
 
   it('should help create dispatchifyable functions', function (done) {

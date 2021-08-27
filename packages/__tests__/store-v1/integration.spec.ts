@@ -41,7 +41,7 @@ async function createFixture({ component, options, initialState }: {
   };
 }
 
-describe("when using the store in an aurelia app", function () {
+describe("store-v1/integration.spec.ts", function () {
   this.timeout(100);
 
   it("should allow to use the store without any options by using defaults", async function () {

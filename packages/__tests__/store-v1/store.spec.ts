@@ -16,7 +16,7 @@ import {
 } from "./helpers.js";
 import { assert } from '@aurelia/testing';
 
-describe("store", function () {
+describe("store-v1/store.spec.ts", function () {
   this.timeout(100);
   it("should accept an initial state", function (done) {
     const { initialState, store } = createTestStore();

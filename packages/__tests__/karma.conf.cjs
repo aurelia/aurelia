@@ -42,6 +42,7 @@ const packageNames = [
   'i18n',
   'kernel',
   'metadata',
+  'observable',
   'platform',
   'platform-browser',
   'route-recognizer',

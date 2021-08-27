@@ -71,6 +71,8 @@ const log = createLogger('generate-native-modules');
       }
       fs.writeFileSync(newPath, content);
     }
+
+    log.info(`Done processing package ${pkg.name}\n================`);
   }
 
   log('Done.');

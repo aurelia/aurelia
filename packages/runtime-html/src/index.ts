@@ -292,6 +292,10 @@ export {
 export {
   RefBinding,
 } from './binding/ref-binding.js';
+export {
+  IAstBasedBinding,
+  // BindingFlags,
+} from './binding/interfaces-bindings';
 
 export {
   IRenderer,

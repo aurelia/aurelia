@@ -97,7 +97,34 @@ function createAureliaPreprocessor(karmaConfig, logger) {
                       newSpecifier = path.relative(file.path, i18nextPath).replace(/\\/g, '/');
                       break;
                     }
+                    case 'rxjs': {
+                      const rxjsPath = path.join(basePath, '/base/node_modules/rxjs/_esm5/index.js');
+                      newSpecifier = path.relative(file.path, rxjsPath).replace(/\\/g, '/');
+                      break;
+                    }
+                    case 'rxjs/operators': {
+                      const rxjsOperatorPath = path.join(basePath, '/base/node_modules/rxjs/_esm5/operators/index.js');
+                      newSpecifier = path.relative(file.path, rxjsOperatorPath).replace(/\\/g, '/');
+                      break;
+                    }
+                    case 'rxjs/operators/index.js': {
+                      console.log(file.path)
+                      throw new Error('not handled');
+                    }
+                    case 'tslib': {
+                      const tslibPath = path.join(basePath, '/base/node_modules/tslib/tslib.es6.js');
+                      newSpecifier = path.relative(file.path, tslibPath).replace(/\\/g, '/');
+                      break;
+                    }
                     default: {
+                      if (file.path.includes('/node_modules/rxjs/_esm5/') && specifier.startsWith('.')) {
+                        newSpecifier = specifier.replace(/(?:\.js)?$/, '.js');
+                        break;
+                      }
+                      if (specifier.startsWith('rxjs-compat/')) {
+                        newSpecifier = specifier.replace(/(?:\.js)?$/, '.js');
+                        break;
+                      }
                       log.error(`ERROR: unrecognized specifier '${specifier}' in file '${file.path}'. Make sure to include the .js extension in imports/exports, and add external dependencies to karma-aurelia-preprocessor`);
                       process.exit(1);
                     }

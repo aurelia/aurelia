@@ -78,7 +78,7 @@ export class Store<T> {
   public constructor(
     private readonly initialState: T,
     @ILogger private readonly logger: ILogger,
-    @IWindow private readonly window: IStoreWindow,
+    @IWindow private readonly _window: IStoreWindow,
     options?: Partial<StoreOptions>
   ) {
     this.options = options ?? {};
@@ -346,11 +346,11 @@ export class Store<T> {
 
   private setupDevTools() {
     // TODO: needs a better solution for global override
-    if (this.window.__REDUX_DEVTOOLS_EXTENSION__) {
+    if (this._window.__REDUX_DEVTOOLS_EXTENSION__) {
       this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
       this.devToolsAvailable = true;
       // TODO: needs a better solution for global override
-      this.devTools = this.window.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
+      this.devTools = this._window.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
       this.devTools.init(this.initialState);
 
       this.devTools.subscribe((message) => {

@@ -1,6 +1,6 @@
 /* eslint-disable eqeqeq */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { emptyArray, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
+import { emptyArray, isArrayIndex, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
 import { LifecycleFlags as LF } from '../observation.js';
 import { BindingContext, Scope } from '../observation/binding-context.js';
 import { ISignaler } from '../observation/signaler.js';
@@ -1426,7 +1426,7 @@ export class DestructuringAssignmentExpression {
   public get hasUnbind(): false { return false; }
   public constructor(
     public readonly $kind: ExpressionKind.ArrayDestructuringAssignment | ExpressionKind.ObjectDestructuringAssignment,
-    public readonly list: readonly (DestructuringAssignmentExpression|DestructuringAssignmentSingleExpression|DestructuringAssignmentRestExpression)[],
+    public readonly list: readonly (DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[],
   ) { }
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): undefined {
@@ -1464,7 +1464,7 @@ export class DestructuringAssignmentSingleExpression {
     public readonly defaultValue: AccessScopeExpression | PrimitiveLiteralExpression | AccessKeyedExpression | undefined,
   ) { }
 
-  public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): undefined {
+  public evaluate(_f: LF, _s: Scope, _l: IServiceLocator, _c: IConnectable | null): undefined {
     return void 0;
   }
 
@@ -1484,12 +1484,37 @@ export class DestructuringAssignmentSingleExpression {
 
 export class DestructuringAssignmentRestExpression {
   public get $kind(): ExpressionKind.DestructuringAssignmentLeaf { return ExpressionKind.DestructuringAssignmentLeaf; }
-  public constructor(target: string, startingIndex: number);
-  public constructor(target: string, destructuredProperties: string[]);
   public constructor(
-    public readonly target: string,
+    public readonly target: AccessMemberExpression,
     public readonly indexOrProperties: string[] | number,
   ) { }
+
+  public evaluate(_f: LF, _s: Scope, _l: IServiceLocator, _c: IConnectable | null): undefined {
+    return void 0;
+  }
+
+  public assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void {
+    if (typeof value !== 'object' || value === null) { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
+
+    const indexOrProperties = this.indexOrProperties;
+
+    let restValue: Record<string, unknown> | unknown[];
+    if (isArrayIndex(indexOrProperties)) {
+      if (!Array.isArray(value)) {
+        throw new Error('Cannot use non-array value for array-destructuring assignment.'); // TODO(Sayan): add error code.
+      }
+      restValue = value.slice(indexOrProperties);
+    } else {
+      restValue = Object
+          .entries(value)
+          .reduce((acc, [k, v]) => {
+            if (!indexOrProperties.includes(k)) { acc[k] = v; }
+            return acc;
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          }, {} as Record<string, unknown>);
+    }
+    this.target.assign(f, s, l, restValue);
+  }
 
   public accept<T>(_visitor: IVisitor<T>): T {
     throw new Error('Not implemented'); // TODO(sayan): fix

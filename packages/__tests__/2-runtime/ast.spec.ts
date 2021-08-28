@@ -44,6 +44,7 @@ import {
   UnaryExpression,
   ValueConverterExpression,
   DestructuringAssignmentSingleExpression,
+  DestructuringAssignmentRestExpression,
 } from '@aurelia/runtime';
 import {
   PropertyBinding,
@@ -2442,6 +2443,72 @@ describe.only('DestructuringAssignmentExpression', function () {
         new AccessScopeExpression('prop', 2),
       ).assign(LF.none, Scope.fromParent(Scope.fromParent(ps, Object.create(null)), bc), null, [404]);
       assert.strictEqual(bc.a, 42);
+    });
+  });
+
+  describe('DestructuringAssignmentRestExpression', function () {
+
+    it('{...rest} = {a:1, b:2}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        [],
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
+      assert.deepStrictEqual(bc, { rest: { a: 1, b: 2 } });
+    });
+
+    it('{a, ...rest} = {a:1, b:2}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        ['a'],
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
+      assert.deepStrictEqual(bc, { rest: { b: 2 } });
+    });
+
+    it('{a, b, ...rest} = {a:1, b:2, c:3}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        ['a', 'b'],
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2, c: 3 });
+      assert.deepStrictEqual(bc, { rest: { c: 3 } });
+    });
+
+    it('{a, b, ...rest} = {a:1, b:2}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        ['a', 'b'],
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
+      assert.deepStrictEqual(bc, { rest: { } });
+    });
+
+    it('[...rest] = [1, 2]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        0,
+      ).assign(LF.none, Scope.create(bc), null, [1, 2]);
+      assert.deepStrictEqual(bc, { rest: [1, 2] });
+    });
+
+    it('[,...rest] = [1, 2]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        1,
+      ).assign(LF.none, Scope.create(bc), null, [1, 2]);
+      assert.deepStrictEqual(bc, { rest: [2] });
+    });
+
+    it('[,,...rest] = [1, 2]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        3,
+      ).assign(LF.none, Scope.create(bc), null, [1, 2]);
+      assert.deepStrictEqual(bc, { rest: [] });
     });
   });
 

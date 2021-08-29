@@ -45,6 +45,7 @@ import {
   ValueConverterExpression,
   DestructuringAssignmentSingleExpression,
   DestructuringAssignmentRestExpression,
+  DestructuringAssignmentExpression,
 } from '@aurelia/runtime';
 import {
   PropertyBinding,
@@ -2402,7 +2403,7 @@ describe.only('DestructuringAssignmentExpression', function () {
     });
 
     it('{a=vm_prop} = {x:404}', function () {
-      const ps = Scope.create({prop: 42});
+      const ps = Scope.create({ prop: 42 });
       const bc: Record<string, any> = {};
       new DestructuringAssignmentSingleExpression(
         new AccessMemberExpression($this, 'a'),
@@ -2413,7 +2414,7 @@ describe.only('DestructuringAssignmentExpression', function () {
     });
 
     it('[,a=vm_prop] = [404]', function () {
-      const ps = Scope.create({prop: 42});
+      const ps = Scope.create({ prop: 42 });
       const bc: Record<string, any> = {};
       new DestructuringAssignmentSingleExpression(
         new AccessMemberExpression($this, 'a'),
@@ -2424,7 +2425,7 @@ describe.only('DestructuringAssignmentExpression', function () {
     });
 
     it('{a=$parent.vm_prop} = {x:404}', function () {
-      const ps = Scope.create({prop: 42});
+      const ps = Scope.create({ prop: 42 });
       const bc: Record<string, any> = {};
       new DestructuringAssignmentSingleExpression(
         new AccessMemberExpression($this, 'a'),
@@ -2435,7 +2436,7 @@ describe.only('DestructuringAssignmentExpression', function () {
     });
 
     it('[,a=$parent.vm_prop] = [404]', function () {
-      const ps = Scope.create({prop: 42});
+      const ps = Scope.create({ prop: 42 });
       const bc: Record<string, any> = {};
       new DestructuringAssignmentSingleExpression(
         new AccessMemberExpression($this, 'a'),
@@ -2481,7 +2482,7 @@ describe.only('DestructuringAssignmentExpression', function () {
         new AccessMemberExpression($this, 'rest'),
         ['a', 'b'],
       ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
-      assert.deepStrictEqual(bc, { rest: { } });
+      assert.deepStrictEqual(bc, { rest: {} });
     });
 
     it('[...rest] = [1, 2]', function () {
@@ -2509,6 +2510,317 @@ describe.only('DestructuringAssignmentExpression', function () {
         3,
       ).assign(LF.none, Scope.create(bc), null, [1, 2]);
       assert.deepStrictEqual(bc, { rest: [] });
+    });
+  });
+
+  describe('DestructuringAssignmentExpression', function () {
+
+    it('{a} = {a: 1, b:2}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuringAssignment,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'a'),
+            new AccessMemberExpression($this, 'a'),
+            void 0
+          )
+        ],
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
+      assert.deepStrictEqual(bc, { a: 1 });
+    });
+
+    it('{a, b} = {a: 1, b:2}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuringAssignment,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'a'),
+            new AccessMemberExpression($this, 'a'),
+            void 0
+          ),
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'b'),
+            new AccessMemberExpression($this, 'b'),
+            void 0
+          ),
+        ],
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
+      assert.deepStrictEqual(bc, { a: 1, b: 2 });
+    });
+
+    it('{...rest} = {a: 1, b:2}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuringAssignment,
+        [
+          new DestructuringAssignmentRestExpression(
+            new AccessMemberExpression($this, 'rest'),
+            []
+          ),
+        ],
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
+      assert.deepStrictEqual(bc.rest, { a: 1, b: 2 });
+    });
+
+    it('[a] = [1, 2]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuringAssignment,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'a'),
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+            void 0
+          ),
+        ],
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, [1, 2]);
+      assert.deepStrictEqual(bc, { a: 1 });
+    });
+
+    it('[a, b] = [1, 2]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuringAssignment,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'a'),
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+            void 0
+          ),
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'b'),
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+            void 0
+          ),
+        ],
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, [1, 2]);
+      assert.deepStrictEqual(bc, { a: 1, b: 2 });
+    });
+
+    it('[...rest] = [1, 2]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuringAssignment,
+        [
+          new DestructuringAssignmentRestExpression(
+            new AccessMemberExpression($this, 'rest'),
+            0,
+          ),
+        ],
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, [1, 2]);
+      assert.deepStrictEqual(bc, { rest: [1, 2] });
+    });
+
+    it('{prop1, prop2:{prop21}} = {prop1: "foo", prop2: {prop21: 123}}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuringAssignment,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'prop1'),
+            new AccessMemberExpression($this, 'prop1'),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ObjectDestructuringAssignment,
+            [
+              new DestructuringAssignmentSingleExpression(
+                new AccessMemberExpression($this, 'prop21'),
+                new AccessMemberExpression($this, 'prop21'),
+                void 0
+              ),
+            ],
+            new AccessMemberExpression($this, 'prop2'),
+          ),
+        ],
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, { prop1: 'foo', prop2: { prop21: 123 } });
+      assert.deepStrictEqual(bc, { prop1: 'foo', prop21: 123 });
+    });
+
+    it('{prop1, prop2:{prop21:{prop212:newProp212}, prop22}} = {prop1: "foo", prop2: {prop21: {prop211: 123, prop212: 456}, prop22: "bar" }}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuringAssignment,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'prop1'),
+            new AccessMemberExpression($this, 'prop1'),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ObjectDestructuringAssignment,
+            [
+              new DestructuringAssignmentExpression(
+                ExpressionKind.ObjectDestructuringAssignment,
+                [
+                  new DestructuringAssignmentSingleExpression(
+                    new AccessMemberExpression($this, 'newProp212'),
+                    new AccessMemberExpression($this, 'prop212'),
+                    void 0
+                  ),
+                ],
+                new AccessMemberExpression($this, 'prop21'),
+              ),
+              new DestructuringAssignmentSingleExpression(
+                new AccessMemberExpression($this, 'prop22'),
+                new AccessMemberExpression($this, 'prop22'),
+                void 0
+              ),
+            ],
+            new AccessMemberExpression($this, 'prop2'),
+          ),
+        ],
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, { prop1: 'foo', prop2: { prop21: { prop211: 123, prop212: 456 }, prop22: 'bar' } });
+      assert.deepStrictEqual(bc, { prop1: 'foo', newProp212: 456, prop22: 'bar' });
+    });
+
+    it('{prop1,coll:[,{p2:item2p2}]} = {prop1:"foo",coll:[{p1:1,p2:2},{p1:3,p2:4}]}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuringAssignment,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'prop1'),
+            new AccessMemberExpression($this, 'prop1'),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ArrayDestructuringAssignment,
+            [
+              new DestructuringAssignmentExpression(
+                ExpressionKind.ObjectDestructuringAssignment,
+                [
+                  new DestructuringAssignmentSingleExpression(
+                    new AccessMemberExpression($this, 'item2p2'),
+                    new AccessMemberExpression($this, 'p2'),
+                    void 0,
+                  )
+                ],
+                new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+              )
+            ],
+            new AccessMemberExpression($this, 'coll'),
+          ),
+        ],
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, { prop1: 'foo', coll: [{ p1: 1, p2: 2 }, { p1: 3, p2: 4 }] });
+      assert.deepStrictEqual(bc, { prop1: 'foo', item2p2: 4 });
+    });
+
+    it('{prop1,coll:[,{p:[item21]}]} = {prop1:"foo",coll:[{p:[1,2]},{p:[3,4]}]}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuringAssignment,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'prop1'),
+            new AccessMemberExpression($this, 'prop1'),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ArrayDestructuringAssignment,
+            [
+              new DestructuringAssignmentExpression(
+                ExpressionKind.ObjectDestructuringAssignment,
+                [
+                  new DestructuringAssignmentExpression(
+                    ExpressionKind.ArrayDestructuringAssignment,
+                    [
+                      new DestructuringAssignmentSingleExpression(
+                        new AccessMemberExpression($this, 'item21'),
+                        new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+                        void 0
+                      ),
+                    ],
+                    new AccessMemberExpression($this,'p')
+                  ),
+                ],
+                new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+              )
+            ],
+            new AccessMemberExpression($this, 'coll'),
+          ),
+        ],
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, { prop1: "foo", coll: [{ p: [1, 2] }, { p: [3, 4] }] });
+      assert.deepStrictEqual(bc, { prop1: 'foo', item21: 3 });
+    });
+
+    it('[k, {prop1, prop2:{prop21}}] = ["key",{prop1: "foo", prop2: {prop21: 123}}]', function () {
+      const bc: Record<string, any> = {};
+
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ArrayDestructuringAssignment,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'k'),
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ObjectDestructuringAssignment,
+            [
+              new DestructuringAssignmentSingleExpression(
+                new AccessMemberExpression($this, 'prop1'),
+                new AccessMemberExpression($this, 'prop1'),
+                void 0
+              ),
+              new DestructuringAssignmentExpression(
+                ExpressionKind.ObjectDestructuringAssignment,
+                [
+                  new DestructuringAssignmentSingleExpression(
+                    new AccessMemberExpression($this, 'prop21'),
+                    new AccessMemberExpression($this, 'prop21'),
+                    void 0
+                  ),
+                ],
+                new AccessMemberExpression($this, 'prop2'),
+              ),
+            ],
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+          )
+        ],
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, ['key', { prop1: 'foo', prop2: { prop21: 123 } }]);
+      assert.deepStrictEqual(bc, { k: 'key', prop1: 'foo', prop21: 123 });
+    });
+
+    it('[k, [,item2]] = ["key",[1,2]]', function () {
+      const bc: Record<string, any> = {};
+
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ArrayDestructuringAssignment,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'k'),
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ArrayDestructuringAssignment,
+            [
+              new DestructuringAssignmentSingleExpression(
+                new AccessMemberExpression($this, 'item2'),
+                new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+                void 0
+              )
+            ],
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+          )
+        ],
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, ['key', [1,2]]);
+      assert.deepStrictEqual(bc, { k: 'key', item2: 2 });
     });
   });
 

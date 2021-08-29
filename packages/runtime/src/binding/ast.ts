@@ -1427,9 +1427,10 @@ export class DestructuringAssignmentExpression {
   public constructor(
     public readonly $kind: ExpressionKind.ArrayDestructuringAssignment | ExpressionKind.ObjectDestructuringAssignment,
     public readonly list: readonly (DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[],
+    public readonly source: AccessMemberExpression | AccessKeyedExpression | undefined,
   ) { }
 
-  public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): undefined {
+  public evaluate(_f: LF, _s: Scope, _l: IServiceLocator, _c: IConnectable | null): undefined {
     return void 0;
   }
 
@@ -1442,6 +1443,12 @@ export class DestructuringAssignmentExpression {
       item = list[i];
       switch(item.$kind) {
         case ExpressionKind.DestructuringAssignmentLeaf:
+          item.assign(f, s, l, value);
+          break;
+        case ExpressionKind.ArrayDestructuringAssignment:
+        case ExpressionKind.ObjectDestructuringAssignment:
+          if (typeof value !== 'object' || value === null) { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
+          item.assign(f, s, l, item.source!.evaluate(f, Scope.create(value), l, null));
           break;
       }
     }

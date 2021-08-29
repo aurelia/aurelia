@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.19"></a>
+# 2.0.0-alpha.19 (2021-08-29)
+
+### Bug Fixes:
+
+* **template-compiler:** capture ignore attr command on bindable like props ([0a52fbf](https://github.com/aurelia/aurelia/commit/0a52fbf))
+* ***:** export ITemplateCompiler from aurelia package ([0a52fbf](https://github.com/aurelia/aurelia/commit/0a52fbf))
+
+
+### Refactorings:
+
+* **all:** remove more internal typings ([1ffc38b](https://github.com/aurelia/aurelia/commit/1ffc38b))
+
 <a name="2.0.0-alpha.18"></a>
 # 2.0.0-alpha.18 (2021-08-22)
 

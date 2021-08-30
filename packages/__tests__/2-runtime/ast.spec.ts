@@ -2278,7 +2278,7 @@ describe('ValueConverterExpression', function () {
 });
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-describe.only('DestructuringAssignmentExpression', function () {
+describe('DestructuringAssignmentExpression', function () {
 
   describe('DestructuringAssignmentSingleExpression', function () {
 

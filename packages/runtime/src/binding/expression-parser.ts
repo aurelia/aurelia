@@ -811,6 +811,173 @@ TPrec extends Precedence.Unary ? IsUnary :
   return result as any;
 }
 
+function parseDestructuringAssignment(state: ParserState, access: Access, expressionType: ExpressionType): any {
+  const startingToken = state._currentToken;
+  switch (startingToken) {
+    case Token.OpenBracket:
+    case Token.OpenBrace:
+      break;
+    default:
+      if (__DEV__) {
+        throw new Error(`Unexpected start token ${state._currentToken} for destructuring assignment in ${state.ip}`);
+      } else {
+        throw new Error(`AUR0170:${state.ip}`);
+      }
+  }
+
+  let hasRest!: boolean;
+  let hasAlias!: boolean;
+  let hasInitializer!: boolean;
+  let source!: string;
+  let target!: string;
+  let initializer!: string;
+  reset();
+  const stack: ([Token.OpenBrace, string[], DestructuringAssignmentExpression] | [Token.OpenBracket, number, DestructuringAssignmentExpression])[] = [
+    startingToken === Token.OpenBrace
+      ? [startingToken, [], new DestructuringAssignmentExpression(ExpressionKind.ObjectDestructuringAssignment, [], void 0)]
+      : [startingToken, 0, new DestructuringAssignmentExpression(ExpressionKind.ArrayDestructuringAssignment, [], void 0)]
+  ];
+  let stackLength = 1;
+  let currentToken;
+  while (stackLength !== 0) {
+    nextToken(state);
+    switch (currentToken = state._currentToken) {
+      case Token.OpenBrace: {
+        const top = stack[stackLength - 1];
+        let $source: AccessMemberExpression | AccessKeyedExpression;
+        switch (top[0]) {
+          case Token.OpenBrace:
+            $source = new AccessMemberExpression($this, source);
+            break;
+          case Token.OpenBracket:
+            $source = new AccessKeyedExpression($this, new PrimitiveLiteralExpression(top[1]++));
+            break;
+        }
+        const part = new DestructuringAssignmentExpression(ExpressionKind.ObjectDestructuringAssignment, [], $source);
+        (top[2].list as Writable<(DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[]>).push(part);
+        stackLength = stack.push([currentToken, [], part]);
+        break;
+      }
+
+      case Token.OpenBracket: {
+        const top = stack[stackLength - 1];
+        let $source: AccessMemberExpression | AccessKeyedExpression;
+        switch (top[0]) {
+          case Token.OpenBrace:
+            $source = new AccessMemberExpression($this, source);
+            break;
+          case Token.OpenBracket:
+            $source = new AccessKeyedExpression($this, new PrimitiveLiteralExpression(top[1]++));
+            break;
+        }
+        const part = new DestructuringAssignmentExpression(ExpressionKind.ArrayDestructuringAssignment, [], $source);
+        (top[2].list as Writable<(DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[]>).push(part);
+        stackLength = stack.push([currentToken, 0, part]);
+        break;
+      }
+
+      case Token.CloseBrace:
+        stack.pop();
+        stackLength--;
+        if (stackLength < 0) { unexpectedCharacter(); }
+        break;
+
+      case Token.CloseBracket:
+        stack.pop();
+        stackLength--;
+        if (stackLength < 0) { unexpectedCharacter(); }
+        break;
+
+      case Token.Comma: {
+        addPart();
+        break;
+      }
+
+      case Token.Equals: {
+        hasInitializer = true;
+        let $continue = true;
+        while ($continue) { // TODO(Sayan): apply a hard stop on the length of the initializer expression
+          nextToken(state);
+          switch (state._currentToken) {
+            case Token.Comma:
+            case Token.CloseBrace:
+              $continue = false;
+              break;
+            case Token.CloseBracket: {
+              const nextChar = state.ip[state.index + 1];
+              $continue = nextChar !== ']' && nextChar !== '}';
+              break;
+            }
+            default:
+              initializer += state._currentChar;
+              break;
+          }
+        }
+        break;
+      }
+
+      case Token.Dot:
+        consume(state, Token.Dot);
+        consume(state, Token.Dot);
+        hasRest = true;
+        break;
+
+      case Token.Colon:
+        hasAlias = true;
+        break;
+
+      default:
+        if (hasAlias || hasRest) {
+          target += state._currentChar;
+        } else {
+          source += state._currentChar;
+        }
+        break;
+    }
+  }
+
+  function reset() {
+    hasRest = false;
+    hasAlias = false;
+    hasInitializer = false;
+    source = '';
+    target = '';
+    initializer = '';
+  }
+
+  function unexpectedCharacter(): never {
+    throw new Error(`Unexpected '${state._currentChar}' at position ${state.index} for destructuring assignment in ${state.ip}`); // TODO(Sayan): add error code
+  }
+
+  function addPart() {
+    const initializerExpr = () => hasInitializer ? parse(new ParserState(initializer), Access.Reset, Precedence.Variadic, ExpressionType.None) : (void 0);
+    const targetExpr = () => new AccessMemberExpression($this, hasAlias ? target : source);
+    const top = stack[stackLength - 1];
+    let part;
+    switch (top[0]) {
+      case Token.OpenBrace:
+        if (source === '') { unexpectedCharacter(); }
+        if (hasRest) {
+          part = new DestructuringAssignmentRestExpression(new AccessMemberExpression($this, target), top[1]);
+          if (state.ip[state.index + 1] !== '}') { unexpectedCharacter(); }
+        } else {
+          top[1].push(source);
+          part = new DestructuringAssignmentSingleExpression(targetExpr(), new AccessMemberExpression($this, source), initializerExpr());
+        }
+        break;
+      case Token.OpenBracket:
+        if (hasRest) {
+          part = new DestructuringAssignmentRestExpression(new AccessMemberExpression($this, target), top[1]);
+          if (state.ip[state.index + 1] !== ']') { unexpectedCharacter(); }
+        } else {
+          part = new DestructuringAssignmentSingleExpression(targetExpr(), new AccessKeyedExpression($this, new PrimitiveLiteralExpression(top[1]++)), initializerExpr());
+        }
+        break;
+    }
+    (top[2].list as Writable<(DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[]>).push(part);
+    reset();
+  }
+}
 /**
  * parseArrayLiteralExpression
  * https://tc39.github.io/ecma262/#prod-ArrayLiteralExpression

@@ -263,7 +263,8 @@ export class RoutingScope {
       } else if (useDirectRouting) {
         instructions.push(...instrs);
       }
-      route.instructions = instructions;
+      // Remove empty instructions so that default can be used
+      route.instructions = instructions.filter(instr => instr.component.name !== '');
 
       // const instructions = RoutingInstruction.parse(this.router, instruction);
       // if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(this.router, instructions)) {

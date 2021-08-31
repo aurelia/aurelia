@@ -415,10 +415,14 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
       // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
       expectType('function/class or object', '', instruction);
     } else if (typeof instruction === 'function') {
-      // This is the class itself
-      // CustomElement.getDefinition will throw if the type is not a custom element
-      const definition = CustomElement.getDefinition(instruction as Constructable);
-      return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, definition);
+      if (CustomElement.isType(instruction as Constructable)) {
+        // This is the class itself
+        // CustomElement.getDefinition will throw if the type is not a custom element
+        const definition = CustomElement.getDefinition(instruction as Constructable);
+        return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, definition);
+      } else {
+        return TypedNavigationInstruction.create((instruction as (() => NavigationInstruction))());
+      }
     } else if (instruction instanceof Promise) {
       return new TypedNavigationInstruction(NavigationInstructionType.Promise, instruction);
     } else if (isPartialViewportInstruction(instruction)) {

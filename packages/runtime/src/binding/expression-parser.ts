@@ -1,5 +1,6 @@
 import {
   DI,
+  Writable,
 } from '@aurelia/kernel';
 import {
   AccessKeyedExpression,
@@ -41,6 +42,9 @@ import {
   IsValueConverter,
   UnaryOperator,
   ExpressionKind,
+  DestructuringAssignmentRestExpression,
+  DestructuringAssignmentSingleExpression,
+  DestructuringAssignmentExpression,
 } from './ast.js';
 import { createLookup } from '../utilities-objects.js';
 
@@ -513,11 +517,13 @@ TPrec extends Precedence.Unary ? IsUnary :
         access = Access.Reset;
         break;
       case Token.OpenBracket:
-        result = parseArrayLiteralExpression(state, access, expressionType);
+        // TODO: is there a way to look ahead in a more "parser"y way?
+        result = state.ip.search(/\s+of\s+/) > state.index ? parseDestructuringAssignment(state, access, expressionType) : parseArrayLiteralExpression(state, access, expressionType);
         access = Access.Reset;
         break;
       case Token.OpenBrace:
-        result = parseObjectLiteralExpression(state, expressionType);
+        // TODO: is there a way to look ahead in a more "parser"y way?
+        result = state.ip.search(/\s+of\s+/) > state.index ? parseDestructuringAssignment(state, access, expressionType) : parseObjectLiteralExpression(state, expressionType);
         access = Access.Reset;
         break;
       case Token.TemplateTail:
@@ -811,7 +817,7 @@ TPrec extends Precedence.Unary ? IsUnary :
   return result as any;
 }
 
-function parseDestructuringAssignment(state: ParserState, access: Access, expressionType: ExpressionType): any {
+function parseDestructuringAssignment(state: ParserState, _access: Access, _expressionType: ExpressionType): any {
   const startingToken = state._currentToken;
   switch (startingToken) {
     case Token.OpenBracket:
@@ -831,67 +837,45 @@ function parseDestructuringAssignment(state: ParserState, access: Access, expres
   let source!: string;
   let target!: string;
   let initializer!: string;
+  let root: DestructuringAssignmentExpression;
   reset();
-  const stack: ([Token.OpenBrace, string[], DestructuringAssignmentExpression] | [Token.OpenBracket, number, DestructuringAssignmentExpression])[] = [
+  type StackItem = [Token.OpenBrace, string[], DestructuringAssignmentExpression] | [Token.OpenBracket, number, DestructuringAssignmentExpression];
+
+  const stack: StackItem[] = [
     startingToken === Token.OpenBrace
-      ? [startingToken, [], new DestructuringAssignmentExpression(ExpressionKind.ObjectDestructuringAssignment, [], void 0)]
-      : [startingToken, 0, new DestructuringAssignmentExpression(ExpressionKind.ArrayDestructuringAssignment, [], void 0)]
+      ? [startingToken, [], root = new DestructuringAssignmentExpression(ExpressionKind.ObjectDestructuringAssignment, [], void 0)]
+      : [startingToken, 0, root = new DestructuringAssignmentExpression(ExpressionKind.ArrayDestructuringAssignment, [], void 0)]
   ];
   let stackLength = 1;
-  let currentToken;
+  let currentToken: Token;
   while (stackLength !== 0) {
     nextToken(state);
     switch (currentToken = state._currentToken) {
-      case Token.OpenBrace: {
-        const top = stack[stackLength - 1];
-        let $source: AccessMemberExpression | AccessKeyedExpression;
-        switch (top[0]) {
-          case Token.OpenBrace:
-            $source = new AccessMemberExpression($this, source);
-            break;
-          case Token.OpenBracket:
-            $source = new AccessKeyedExpression($this, new PrimitiveLiteralExpression(top[1]++));
-            break;
-        }
-        const part = new DestructuringAssignmentExpression(ExpressionKind.ObjectDestructuringAssignment, [], $source);
-        (top[2].list as Writable<(DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[]>).push(part);
-        stackLength = stack.push([currentToken, [], part]);
+      case Token.OpenBrace:
+        createParent(ExpressionKind.ObjectDestructuringAssignment);
         break;
-      }
 
-      case Token.OpenBracket: {
-        const top = stack[stackLength - 1];
-        let $source: AccessMemberExpression | AccessKeyedExpression;
-        switch (top[0]) {
-          case Token.OpenBrace:
-            $source = new AccessMemberExpression($this, source);
-            break;
-          case Token.OpenBracket:
-            $source = new AccessKeyedExpression($this, new PrimitiveLiteralExpression(top[1]++));
-            break;
-        }
-        const part = new DestructuringAssignmentExpression(ExpressionKind.ArrayDestructuringAssignment, [], $source);
-        (top[2].list as Writable<(DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[]>).push(part);
-        stackLength = stack.push([currentToken, 0, part]);
+      case Token.OpenBracket:
+        createParent(ExpressionKind.ArrayDestructuringAssignment);
         break;
-      }
 
-      case Token.CloseBrace:
-        stack.pop();
+      case Token.CloseBrace: {
+        addPart(stack.pop());
         stackLength--;
         if (stackLength < 0) { unexpectedCharacter(); }
         break;
+      }
 
-      case Token.CloseBracket:
-        stack.pop();
+      case Token.CloseBracket: {
+        addPart(stack.pop());
         stackLength--;
         if (stackLength < 0) { unexpectedCharacter(); }
         break;
+      }
 
-      case Token.Comma: {
+      case Token.Comma:
         addPart();
         break;
-      }
 
       case Token.Equals: {
         hasInitializer = true;
@@ -936,6 +920,9 @@ function parseDestructuringAssignment(state: ParserState, access: Access, expres
     }
   }
 
+  consume(state, startingToken === Token.OpenBrace ? Token.CloseBrace : Token.CloseBracket);
+  return root;
+
   function reset() {
     hasRest = false;
     hasAlias = false;
@@ -949,10 +936,29 @@ function parseDestructuringAssignment(state: ParserState, access: Access, expres
     throw new Error(`Unexpected '${state._currentChar}' at position ${state.index} for destructuring assignment in ${state.ip}`); // TODO(Sayan): add error code
   }
 
-  function addPart() {
-    const initializerExpr = () => hasInitializer ? parse(new ParserState(initializer), Access.Reset, Precedence.Variadic, ExpressionType.None) : (void 0);
-    const targetExpr = () => new AccessMemberExpression($this, hasAlias ? target : source);
+  function createParent($kind: ExpressionKind.ObjectDestructuringAssignment | ExpressionKind.ArrayDestructuringAssignment) {
     const top = stack[stackLength - 1];
+    let $source: AccessMemberExpression | AccessKeyedExpression;
+    switch (top[0]) {
+      case Token.OpenBrace:
+        $source = new AccessMemberExpression($this, source);
+        break;
+      case Token.OpenBracket:
+        $source = new AccessKeyedExpression($this, new PrimitiveLiteralExpression(top[1]++));
+        break;
+    }
+    const part = new DestructuringAssignmentExpression($kind, [], $source);
+    (top[2].list as Writable<(DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[]>).push(part);
+    stackLength = stack.push(
+      $kind === ExpressionKind.ObjectDestructuringAssignment ? [currentToken as Token.OpenBrace, [], part] : [currentToken as Token.OpenBracket, 0, part]
+    );
+  }
+
+  function addPart(top: StackItem = stack[stackLength - 1]) {
+    if(!(hasRest || hasAlias || source!=='')) { return; }
+    type InitializerExpression = AccessScopeExpression | PrimitiveLiteralExpression | AccessKeyedExpression | AccessMemberExpression;
+    const initializerExpr: () => InitializerExpression | undefined =  () => hasInitializer ? (parseExpression(initializer, ExpressionType.None) as InitializerExpression) : (void 0);
+    const targetExpr = () => new AccessMemberExpression($this, hasAlias ? target : source);
     let part;
     switch (top[0]) {
       case Token.OpenBrace:

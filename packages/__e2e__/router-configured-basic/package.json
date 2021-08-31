@@ -8,8 +8,10 @@
   },
   "version": "0.8.0",
   "scripts": {
+    "dev": "npm run build -- -w",
     "build": "webpack --config webpack.config.js",
     "serve": "node ../../../node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
+    "test:ci": "npm run build && npx playwright test",
     "test": "npx playwright test",
     "test:debugger": "npx playwright test --headed"
   },

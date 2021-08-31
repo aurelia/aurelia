@@ -4,7 +4,7 @@ import template from './app.html';
 @route({
   routes: [
     { id: 'home', path: '', component: import('./pages/home'), title: 'Home' },
-    { path: '/auth', component: import('./pages/auth'), title: 'Sign in' },
+    { path: '/auth', component: () => import('./pages/auth'), title: 'Sign in' },
   ]
 })
 @customElement({

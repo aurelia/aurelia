@@ -217,6 +217,7 @@ export class Runner {
   public static process<T = unknown>(step: Step<T> | null): void {
     const root = step!.root;
     while (step !== null && !step.isDoing && !step.isDone) {
+      root.current = step;
       if (step.isParallelParent) {
         step.isDone = true;
 
@@ -325,6 +326,7 @@ export class Step<T = unknown> {
   public next: Step<T> | null = null;
   public parent: Step<T> | null = null;
   public child: Step<T> | null = null;
+  public current: Step<T> | null = null;
   public finally: OpenPromise<T | T[]> | null = null;
 
   public isDoing: boolean = false;

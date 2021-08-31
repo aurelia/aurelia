@@ -185,7 +185,7 @@ export class Viewport extends Endpoint {
    */
   public get parentViewport(): Viewport | null {
     let scope = this.connectedScope;
-    while (scope.parent !== null) {
+    while (scope?.parent != null) {
       scope = scope.parent;
       if (scope.endpoint.isViewport) {
         return scope.endpoint as Viewport;
@@ -572,6 +572,7 @@ export class Viewport extends Endpoint {
 
     // Run the steps and do the transition
     const result = Runner.run(null,
+      (step: Step<void>) => coordinator.setEndpointStep(this, step.root),
       ...guardSteps,
       ...routingSteps,
       ...lifecycleSteps,
@@ -835,13 +836,18 @@ export class Viewport extends Endpoint {
    * @param step - The previous step in this transition Run
    */
   public cancelContentChange(coordinator: NavigationCoordinator, step: Step<void> | null): void | Step<void> {
+    // if (step == null) {
+    //   console.log('Step is null', this);
+    //   debugger;
+    // }
     const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
     const nextContent = this.contents[nextContentIndex];
     const previousContent = this.contents[nextContentIndex - 1];
+    // console.log('cancelContentChange', nextContent, previousContent, this);
 
     return Runner.run(step,
       (innerStep: Step<void>) => {
-        if (nextContent !== null) {
+        if (nextContent != null) {
           return nextContent.freeContent(
             innerStep,
             this.connectedCE,
@@ -862,8 +868,8 @@ export class Viewport extends Endpoint {
         }
         this.transitionAction = '';
 
-        previousContent.contentStates.delete('checkedUnload');
-        previousContent.contentStates.delete('checkedLoad');
+        previousContent?.contentStates.delete('checkedUnload');
+        previousContent?.contentStates.delete('checkedLoad');
 
         const navigatingPrefix = this.router.configuration.options.indicators.viewportNavigating;
         this.connectedCE?.setActivity?.(navigatingPrefix, false);

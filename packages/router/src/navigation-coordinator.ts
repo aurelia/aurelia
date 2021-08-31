@@ -4,6 +4,7 @@ import { IEndpoint } from './endpoints/endpoint.js';
 import { OpenPromise } from './utilities/open-promise.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { arrayRemove } from './utilities/utils.js';
+import { Step } from './index.js';
 
 /**
  * The navigation coordinator coordinates navigation between endpoints/entities
@@ -64,6 +65,11 @@ class Entity {
    * The (open) promise to resolve when the entity has reached its sync state.
    */
   public syncPromise: OpenPromise | null = null;
+
+  /**
+   * The Runner step that's controlling the transition in the entity.
+   */
+  public step: Step<void> | null = null;
 
   public constructor(
     /**
@@ -169,9 +175,9 @@ export class NavigationCoordinator {
         if (!entity.running) {
           entity.running = true;
           entity.endpoint.transition(this);
-          if (this.cancelled) {
-            break;
-          }
+          // if (this.cancelled) {
+          //   break;
+          // }
         }
       }
     }
@@ -224,6 +230,22 @@ export class NavigationCoordinator {
       // ...and remove it.
       arrayRemove(this.entities, ent => ent === entity);
     }
+  }
+
+  /**
+   * Set the Runner step controlling the transition for an endpoint.
+   *
+   * @param endpoint - The endpoint that gets the step set
+   * @param step - The step that's controlling the transition
+   */
+   public setEndpointStep(endpoint: IEndpoint, step: Step<void>): void {
+    // Find the entity for the endpoint...
+    let entity = this.entities.find(e => e.endpoint === endpoint);
+    if (entity === void 0) {
+      // ...adding it if it doesn't exist.
+      entity = this.addEndpoint(endpoint);
+    }
+    entity.step = step;
   }
 
   /**
@@ -373,7 +395,7 @@ export class NavigationCoordinator {
     this.cancelled = true;
     // TODO: Take care of disabling viewports when cancelling and stateful!
     this.entities.forEach(entity => {
-      const abort = entity.endpoint.cancelContentChange(this, null);
+      const abort = entity.endpoint.cancelContentChange(this, entity.step?.current ?? null);
       if (abort instanceof Promise) {
         abort.catch(error => { throw error; });
       }

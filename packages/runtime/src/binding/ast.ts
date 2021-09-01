@@ -1314,7 +1314,7 @@ export class ForOfStatement {
   public get hasUnbind(): false { return false; }
 
   public constructor(
-    public readonly declaration: BindingIdentifierOrPattern,
+    public readonly declaration: BindingIdentifierOrPattern | DestructuringAssignmentExpression,
     public readonly iterable: IsBindingBehavior,
   ) {}
 

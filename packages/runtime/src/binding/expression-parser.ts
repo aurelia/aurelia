@@ -880,7 +880,7 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
       case Token.Equals: {
         hasInitializer = true;
         let $continue = true;
-        while ($continue) { // TODO(Sayan): apply a hard stop on the length of the initializer expression
+        while ($continue) { // FIX(Sayan): apply a hard stop on the length of the initializer expression
           nextToken(state);
           switch (state._currentToken) {
             case Token.Comma:
@@ -893,7 +893,7 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
               break;
             }
             default:
-              initializer += state._currentChar;
+              initializer += state._tokenRaw;
               break;
           }
         }
@@ -912,9 +912,9 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
 
       default:
         if (hasAlias || hasRest) {
-          target += state._currentChar;
+          target += state._tokenRaw;
         } else {
-          source += state._currentChar;
+          source += state._tokenRaw;
         }
         break;
     }
@@ -933,7 +933,7 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
   }
 
   function unexpectedCharacter(): never {
-    throw new Error(`Unexpected '${state._currentChar}' at position ${state.index} for destructuring assignment in ${state.ip}`); // TODO(Sayan): add error code
+    throw new Error(`Unexpected '${state._tokenRaw}' at position ${state.index} for destructuring assignment in ${state.ip}`); // TODO(Sayan): add error code
   }
 
   function createParent($kind: ExpressionKind.ObjectDestructuringAssignment | ExpressionKind.ArrayDestructuringAssignment) {
@@ -955,32 +955,37 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
   }
 
   function addPart(top: StackItem = stack[stackLength - 1]) {
-    if(!(hasRest || hasAlias || source!=='')) { return; }
     type InitializerExpression = AccessScopeExpression | PrimitiveLiteralExpression | AccessKeyedExpression | AccessMemberExpression;
     const initializerExpr: () => InitializerExpression | undefined =  () => hasInitializer ? (parseExpression(initializer, ExpressionType.None) as InitializerExpression) : (void 0);
     const targetExpr = () => new AccessMemberExpression($this, hasAlias ? target : source);
-    let part;
+    let part: DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression | null = null;
     switch (top[0]) {
       case Token.OpenBrace:
-        if (source === '') { unexpectedCharacter(); }
         if (hasRest) {
+          if (target === '' || state.ip[state.index + 1] !== '}') { unexpectedCharacter(); }
           part = new DestructuringAssignmentRestExpression(new AccessMemberExpression($this, target), top[1]);
-          if (state.ip[state.index + 1] !== '}') { unexpectedCharacter(); }
         } else {
+          if (source === '') { unexpectedCharacter(); }
           top[1].push(source);
           part = new DestructuringAssignmentSingleExpression(targetExpr(), new AccessMemberExpression($this, source), initializerExpr());
         }
         break;
       case Token.OpenBracket:
         if (hasRest) {
+          if (target === '' || state.ip[state.index + 1] !== ']') { unexpectedCharacter(); }
           part = new DestructuringAssignmentRestExpression(new AccessMemberExpression($this, target), top[1]);
-          if (state.ip[state.index + 1] !== ']') { unexpectedCharacter(); }
         } else {
-          part = new DestructuringAssignmentSingleExpression(targetExpr(), new AccessKeyedExpression($this, new PrimitiveLiteralExpression(top[1]++)), initializerExpr());
+          if(source === '') {
+            top[1]++;
+          } else {
+            part = new DestructuringAssignmentSingleExpression(targetExpr(), new AccessKeyedExpression($this, new PrimitiveLiteralExpression(top[1]++)), initializerExpr());
+          }
         }
         break;
     }
-    (top[2].list as Writable<(DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[]>).push(part);
+    if(part!==null) {
+      (top[2].list as Writable<(DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[]>).push(part);
+    }
     reset();
   }
 }

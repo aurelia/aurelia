@@ -5,6 +5,7 @@ import {
   BindingContext,
   Collection,
   CollectionObserver,
+  DestructuringAssignmentExpression,
   ExpressionKind,
   ForOfStatement,
   getCollectionObserver,
@@ -57,6 +58,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   private _innerItemsExpression: IsBindingBehavior | null = null;
 
   private _normalizedItems?: unknown[] = void 0;
+  private _hasDestructuredLocal: boolean = false;
 
   public constructor(
     public location: IRenderLocation,
@@ -92,7 +94,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     this._checkCollectionObserver(flags);
-    this.local = forOf.declaration.evaluate(flags, this.$controller.scope, binding.locator, null) as string;
+    const dec = forOf.declaration;
+    if(!(this._hasDestructuredLocal = dec.$kind === ExpressionKind.ArrayDestructuringAssignment || dec.$kind === ExpressionKind.ObjectDestructuringAssignment)) {
+      this.local = dec.evaluate(flags, this.$controller.scope, binding.locator, null) as string;
+    }
   }
 
   public attaching(
@@ -243,14 +248,21 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     const { $controller, factory, local, location, items } = this;
     const parentScope = $controller.scope;
-    const newLen = this.forOf.count(flags, items);
+    const forOf = this.forOf;
+    const newLen = forOf.count(flags, items);
     const views = this.views = Array(newLen);
+    const hasDestructuredLocal = this._hasDestructuredLocal;
+    const dec = hasDestructuredLocal ? forOf.declaration as DestructuringAssignmentExpression : null;
+    const locator = this._forOfBinding.locator;
 
-    this.forOf.iterate(flags, items, (arr, i, item) => {
+    forOf.iterate(flags, items, (arr, i, item) => {
       view = views[i] = factory.create().setLocation(location);
       view.nodes!.unlink();
-      viewScope = Scope.fromParent(parentScope, BindingContext.create(local, item));
-
+      if(hasDestructuredLocal) {
+        dec!.assign(flags, viewScope = Scope.fromParent(parentScope, BindingContext.create()), locator, item);
+      } else {
+        viewScope = Scope.fromParent(parentScope, BindingContext.create(local, item));
+      }
       setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
 
       ret = view.activate(initiator ?? view, $controller, flags, viewScope);

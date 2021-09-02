@@ -7468,13 +7468,6 @@ class TemplateCompiler {
             const mostInnerTemplate = template;
             // 4.1.1.0. prepare child context for the inner template compilation
             const childContext = context._createChild(instructions == null ? [] : [instructions]);
-            shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
-            // todo: shouldn't have to eagerly replace with a marker like this
-            //       this should be the job of the renderer
-            if (elDef !== null && elDef.containerless) {
-                this._replaceByMarker(el, context);
-            }
-            let child;
             let childEl;
             let targetSlot;
             let projections;
@@ -7484,100 +7477,107 @@ class TemplateCompiler {
             let marker;
             let projectionCompilationContext;
             let j = 0, jj = 0;
-            if (shouldCompileContent) {
-                // 4.1.1.1.
-                //  walks through the child nodes, and perform [au-slot] check
-                //  note: this is a bit different with the summary above, possibly wrong since it will not throw
-                //        on [au-slot] used on a non-custom-element + with a template controller on it
-                if (elDef !== null) {
-                    // for each child element of a custom element
-                    // scan for [au-slot], if there's one
-                    // then extract the element into a projection definition
-                    // this allows support for [au-slot] declared on the same element with anther template controller
-                    // e.g:
-                    //
-                    // can do:
-                    //  <my-el>
-                    //    <div au-slot if.bind="..."></div>
-                    //    <div if.bind="..." au-slot></div>
-                    //  </my-el>
-                    //
-                    // instead of:
-                    //  <my-el>
-                    //    <template au-slot><div if.bind="..."></div>
-                    //  </my-el>
-                    child = el.firstChild;
-                    while (child !== null) {
-                        if (child.nodeType === 1) {
-                            // if has [au-slot] then it's a projection
-                            childEl = child;
-                            child = child.nextSibling;
-                            targetSlot = childEl.getAttribute('au-slot');
-                            if (targetSlot !== null) {
-                                if (targetSlot === '') {
-                                    targetSlot = 'default';
-                                }
-                                childEl.removeAttribute('au-slot');
-                                el.removeChild(childEl);
-                                ((_e = (_g = (slotTemplateRecord !== null && slotTemplateRecord !== void 0 ? slotTemplateRecord : (slotTemplateRecord = {})))[targetSlot]) !== null && _e !== void 0 ? _e : (_g[targetSlot] = [])).push(childEl);
+            // 4.1.1.1.
+            //  walks through the child nodes, and perform [au-slot] check
+            //  note: this is a bit different with the summary above, possibly wrong since it will not throw
+            //        on [au-slot] used on a non-custom-element + with a template controller on it
+            // for each child element of a custom element
+            // scan for [au-slot], if there's one
+            // then extract the element into a projection definition
+            // this allows support for [au-slot] declared on the same element with anther template controller
+            // e.g:
+            //
+            // can do:
+            //  <my-el>
+            //    <div au-slot if.bind="..."></div>
+            //    <div if.bind="..." au-slot></div>
+            //  </my-el>
+            //
+            // instead of:
+            //  <my-el>
+            //    <template au-slot><div if.bind="..."></div>
+            //  </my-el>
+            let child = el.firstChild;
+            if (processContentResult !== false) {
+                while (child !== null) {
+                    if (child.nodeType === 1) {
+                        // if has [au-slot] then it's a projection
+                        childEl = child;
+                        child = child.nextSibling;
+                        targetSlot = childEl.getAttribute('au-slot');
+                        if (targetSlot !== null) {
+                            if (elDef === null) {
+                                throw new Error(`AUR0706:${elName}[${targetSlot}]`);
                             }
-                            // if not a targeted slot then use the common node method
-                            // todo: in the future, there maybe more special case for a content of a custom element
-                            //       it can be all done here
+                            if (targetSlot === '') {
+                                targetSlot = 'default';
+                            }
+                            childEl.removeAttribute('au-slot');
+                            el.removeChild(childEl);
+                            ((_e = (_g = (slotTemplateRecord !== null && slotTemplateRecord !== void 0 ? slotTemplateRecord : (slotTemplateRecord = {})))[targetSlot]) !== null && _e !== void 0 ? _e : (_g[targetSlot] = [])).push(childEl);
                         }
-                        else {
-                            child = child.nextSibling;
-                        }
+                        // if not a targeted slot then use the common node method
+                        // todo: in the future, there maybe more special case for a content of a custom element
+                        //       it can be all done here
                     }
-                    if (slotTemplateRecord != null) {
-                        projections = {};
-                        // aggregate all content targeting the same slot
-                        // into a single template
-                        // with some special rule around <template> element
-                        for (targetSlot in slotTemplateRecord) {
-                            template = context.h('template');
-                            slotTemplates = slotTemplateRecord[targetSlot];
-                            for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
-                                slotTemplate = slotTemplates[j];
-                                if (slotTemplate.nodeName === 'TEMPLATE') {
-                                    // this means user has some thing more than [au-slot] on a template
-                                    // consider this intentional, and use it as is
-                                    // e.g:
-                                    // <my-element>
-                                    //   <template au-slot repeat.for="i of items">
-                                    // ----vs----
-                                    // <my-element>
-                                    //   <template au-slot>this is just some static stuff <b>And a b</b></template>
-                                    if (slotTemplate.attributes.length > 0) {
-                                        template.content.appendChild(slotTemplate);
-                                    }
-                                    else {
-                                        template.content.appendChild(slotTemplate.content);
-                                    }
-                                }
-                                else {
-                                    template.content.appendChild(slotTemplate);
-                                }
-                            }
-                            // after aggregating all the [au-slot] templates into a single one
-                            // compile it
-                            // technically, the most inner template controller compilation context
-                            // is the parent of this compilation context
-                            // but for simplicity in compilation, maybe start with a flatter hierarchy
-                            // also, it wouldn't have any real uses
-                            projectionCompilationContext = context._createChild();
-                            this._compileNode(template.content, projectionCompilationContext);
-                            projections[targetSlot] = CustomElementDefinition.create({
-                                name: _generateElementName(),
-                                template,
-                                instructions: projectionCompilationContext.rows,
-                                needsCompile: false,
-                                isStrictBinding: context.root.def.isStrictBinding,
-                            });
-                        }
-                        elementInstruction.projections = projections;
+                    else {
+                        child = child.nextSibling;
                     }
                 }
+            }
+            if (slotTemplateRecord != null) {
+                projections = {};
+                // aggregate all content targeting the same slot
+                // into a single template
+                // with some special rule around <template> element
+                for (targetSlot in slotTemplateRecord) {
+                    template = context.h('template');
+                    slotTemplates = slotTemplateRecord[targetSlot];
+                    for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
+                        slotTemplate = slotTemplates[j];
+                        if (slotTemplate.nodeName === 'TEMPLATE') {
+                            // this means user has some thing more than [au-slot] on a template
+                            // consider this intentional, and use it as is
+                            // e.g:
+                            // <my-element>
+                            //   <template au-slot repeat.for="i of items">
+                            // ----vs----
+                            // <my-element>
+                            //   <template au-slot>this is just some static stuff <b>And a b</b></template>
+                            if (slotTemplate.attributes.length > 0) {
+                                template.content.appendChild(slotTemplate);
+                            }
+                            else {
+                                template.content.appendChild(slotTemplate.content);
+                            }
+                        }
+                        else {
+                            template.content.appendChild(slotTemplate);
+                        }
+                    }
+                    // after aggregating all the [au-slot] templates into a single one
+                    // compile it
+                    // technically, the most inner template controller compilation context
+                    // is the parent of this compilation context
+                    // but for simplicity in compilation, maybe start with a flatter hierarchy
+                    // also, it wouldn't have any real uses
+                    projectionCompilationContext = context._createChild();
+                    this._compileNode(template.content, projectionCompilationContext);
+                    projections[targetSlot] = CustomElementDefinition.create({
+                        name: _generateElementName(),
+                        template,
+                        instructions: projectionCompilationContext.rows,
+                        needsCompile: false,
+                        isStrictBinding: context.root.def.isStrictBinding,
+                    });
+                }
+                elementInstruction.projections = projections;
+            }
+            if (elDef !== null && elDef.containerless) {
+                this._replaceByMarker(el, context);
+            }
+            shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
+            if (shouldCompileContent) {
                 // 4.1.1.2:
                 //  recursively compiles the child nodes into the inner context
                 // important:
@@ -7650,42 +7650,36 @@ class TemplateCompiler {
             if (instructions != null) {
                 context.rows.push(instructions);
             }
-            shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
-            // todo: shouldn't have to eagerly replace with a marker like this
-            //       this should be the job of the renderer
-            if (elDef !== null && elDef.containerless) {
-                this._replaceByMarker(el, context);
-            }
-            if (shouldCompileContent && el.childNodes.length > 0) {
-                let child = el.firstChild;
-                let childEl;
-                let targetSlot;
-                let projections = null;
-                let slotTemplateRecord;
-                let slotTemplates;
-                let slotTemplate;
-                let template;
-                let projectionCompilationContext;
-                let j = 0, jj = 0;
-                // 4.2.1.
-                //    walks through the child nodes and perform [au-slot] check
-                // --------------------
-                // for each child element of a custom element
-                // scan for [au-slot], if there's one
-                // then extract the element into a projection definition
-                // this allows support for [au-slot] declared on the same element with anther template controller
-                // e.g:
-                //
-                // can do:
-                //  <my-el>
-                //    <div au-slot if.bind="..."></div>
-                //    <div if.bind="..." au-slot></div>
-                //  </my-el>
-                //
-                // instead of:
-                //  <my-el>
-                //    <template au-slot><div if.bind="..."></div>
-                //  </my-el>
+            let child = el.firstChild;
+            let childEl;
+            let targetSlot;
+            let projections = null;
+            let slotTemplateRecord;
+            let slotTemplates;
+            let slotTemplate;
+            let template;
+            let projectionCompilationContext;
+            let j = 0, jj = 0;
+            // 4.2.1.
+            //    walks through the child nodes and perform [au-slot] check
+            // --------------------
+            // for each child element of a custom element
+            // scan for [au-slot], if there's one
+            // then extract the element into a projection definition
+            // this allows support for [au-slot] declared on the same element with anther template controller
+            // e.g:
+            //
+            // can do:
+            //  <my-el>
+            //    <div au-slot if.bind="..."></div>
+            //    <div if.bind="..." au-slot></div>
+            //  </my-el>
+            //
+            // instead of:
+            //  <my-el>
+            //    <template au-slot><div if.bind="..."></div>
+            //  </my-el>
+            if (processContentResult !== false) {
                 while (child !== null) {
                     if (child.nodeType === 1) {
                         // if has [au-slot] then it's a projection
@@ -7711,50 +7705,58 @@ class TemplateCompiler {
                         child = child.nextSibling;
                     }
                 }
-                if (slotTemplateRecord != null) {
-                    projections = {};
-                    // aggregate all content targeting the same slot
-                    // into a single template
-                    // with some special rule around <template> element
-                    for (targetSlot in slotTemplateRecord) {
-                        template = context.h('template');
-                        slotTemplates = slotTemplateRecord[targetSlot];
-                        for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
-                            slotTemplate = slotTemplates[j];
-                            if (slotTemplate.nodeName === 'TEMPLATE') {
-                                // this means user has some thing more than [au-slot] on a template
-                                // consider this intentional, and use it as is
-                                // e.g:
-                                // <my-element>
-                                //   <template au-slot repeat.for="i of items">
-                                // ----vs----
-                                // <my-element>
-                                //   <template au-slot>this is just some static stuff <b>And a b</b></template>
-                                if (slotTemplate.attributes.length > 0) {
-                                    template.content.appendChild(slotTemplate);
-                                }
-                                else {
-                                    template.content.appendChild(slotTemplate.content);
-                                }
-                            }
-                            else {
+            }
+            if (slotTemplateRecord != null) {
+                projections = {};
+                // aggregate all content targeting the same slot
+                // into a single template
+                // with some special rule around <template> element
+                for (targetSlot in slotTemplateRecord) {
+                    template = context.h('template');
+                    slotTemplates = slotTemplateRecord[targetSlot];
+                    for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
+                        slotTemplate = slotTemplates[j];
+                        if (slotTemplate.nodeName === 'TEMPLATE') {
+                            // this means user has some thing more than [au-slot] on a template
+                            // consider this intentional, and use it as is
+                            // e.g:
+                            // <my-element>
+                            //   <template au-slot repeat.for="i of items">
+                            // ----vs----
+                            // <my-element>
+                            //   <template au-slot>this is just some static stuff <b>And a b</b></template>
+                            if (slotTemplate.attributes.length > 0) {
                                 template.content.appendChild(slotTemplate);
                             }
+                            else {
+                                template.content.appendChild(slotTemplate.content);
+                            }
                         }
-                        // after aggregating all the [au-slot] templates into a single one
-                        // compile it
-                        projectionCompilationContext = context._createChild();
-                        this._compileNode(template.content, projectionCompilationContext);
-                        projections[targetSlot] = CustomElementDefinition.create({
-                            name: _generateElementName(),
-                            template,
-                            instructions: projectionCompilationContext.rows,
-                            needsCompile: false,
-                            isStrictBinding: context.root.def.isStrictBinding,
-                        });
+                        else {
+                            template.content.appendChild(slotTemplate);
+                        }
                     }
-                    elementInstruction.projections = projections;
+                    // after aggregating all the [au-slot] templates into a single one
+                    // compile it
+                    projectionCompilationContext = context._createChild();
+                    this._compileNode(template.content, projectionCompilationContext);
+                    projections[targetSlot] = CustomElementDefinition.create({
+                        name: _generateElementName(),
+                        template,
+                        instructions: projectionCompilationContext.rows,
+                        needsCompile: false,
+                        isStrictBinding: context.root.def.isStrictBinding,
+                    });
                 }
+                elementInstruction.projections = projections;
+            }
+            // todo: shouldn't have to eagerly replace with a marker like this
+            //       this should be the job of the renderer
+            if (elDef !== null && elDef.containerless) {
+                this._replaceByMarker(el, context);
+            }
+            shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
+            if (shouldCompileContent && el.childNodes.length > 0) {
                 // 4.2.2
                 //    recursively compiles the child nodes into current context
                 child = el.firstChild;

@@ -5841,58 +5841,54 @@ class TemplateCompiler {
             }
             const i = s;
             const n = e.we(null == w ? [] : [ w ]);
-            W = null === d || !d.containerless && !N && false !== j;
-            if (null !== d && d.containerless) this.be(t, e);
             let r;
             let o;
             let h;
             let a;
             let u;
-            let f;
             let p;
             let m;
             let x;
             let v = 0, g = 0;
-            if (W) {
-                if (null !== d) {
-                    r = t.firstChild;
-                    while (null !== r) if (1 === r.nodeType) {
-                        o = r;
-                        r = r.nextSibling;
-                        h = o.getAttribute("au-slot");
-                        if (null !== h) {
-                            if ("" === h) h = "default";
-                            o.removeAttribute("au-slot");
-                            t.removeChild(o);
-                            (null !== (l = (c = null !== u && void 0 !== u ? u : u = {})[h]) && void 0 !== l ? l : c[h] = []).push(o);
-                        }
-                    } else r = r.nextSibling;
-                    if (null != u) {
-                        a = {};
-                        for (h in u) {
-                            s = e.h("template");
-                            f = u[h];
-                            for (v = 0, g = f.length; g > v; ++v) {
-                                p = f[v];
-                                if ("TEMPLATE" === p.nodeName) if (p.attributes.length > 0) s.content.appendChild(p); else s.content.appendChild(p.content); else s.content.appendChild(p);
-                            }
-                            x = e.we();
-                            this.oe(s.content, x);
-                            a[h] = CustomElementDefinition.create({
-                                name: bi(),
-                                template: s,
-                                instructions: x.rows,
-                                needsCompile: false,
-                                isStrictBinding: e.root.def.isStrictBinding
-                            });
-                        }
-                        q.projections = a;
+            let k = t.firstChild;
+            if (false !== j) while (null !== k) if (1 === k.nodeType) {
+                r = k;
+                k = k.nextSibling;
+                o = r.getAttribute("au-slot");
+                if (null !== o) {
+                    if (null === d) throw new Error(`AUR0706:${f}[${o}]`);
+                    if ("" === o) o = "default";
+                    r.removeAttribute("au-slot");
+                    t.removeChild(r);
+                    (null !== (l = (c = null !== a && void 0 !== a ? a : a = {})[o]) && void 0 !== l ? l : c[o] = []).push(r);
+                }
+            } else k = k.nextSibling;
+            if (null != a) {
+                h = {};
+                for (o in a) {
+                    s = e.h("template");
+                    u = a[o];
+                    for (v = 0, g = u.length; g > v; ++v) {
+                        p = u[v];
+                        if ("TEMPLATE" === p.nodeName) if (p.attributes.length > 0) s.content.appendChild(p); else s.content.appendChild(p.content); else s.content.appendChild(p);
                     }
+                    x = e.we();
+                    this.oe(s.content, x);
+                    h[o] = CustomElementDefinition.create({
+                        name: bi(),
+                        template: s,
+                        instructions: x.rows,
+                        needsCompile: false,
+                        isStrictBinding: e.root.def.isStrictBinding
+                    });
                 }
-                if ("TEMPLATE" === t.nodeName) this.oe(t.content, n); else {
-                    r = t.firstChild;
-                    while (null !== r) r = this.oe(r, n);
-                }
+                q.projections = h;
+            }
+            if (null !== d && d.containerless) this.be(t, e);
+            W = null === d || !d.containerless && !N && false !== j;
+            if (W) if ("TEMPLATE" === t.nodeName) this.oe(t.content, n); else {
+                k = t.firstChild;
+                while (null !== k) k = this.oe(k, n);
             }
             O.def = CustomElementDefinition.create({
                 name: bi(),
@@ -5918,52 +5914,52 @@ class TemplateCompiler {
             e.rows.push([ O ]);
         } else {
             if (null != w) e.rows.push(w);
-            W = null === d || !d.containerless && !N && false !== j;
-            if (null !== d && d.containerless) this.be(t, e);
-            if (W && t.childNodes.length > 0) {
-                let s = t.firstChild;
-                let i;
-                let n;
-                let r = null;
-                let o;
-                let l;
-                let c;
-                let u;
-                let f;
-                let p = 0, m = 0;
-                while (null !== s) if (1 === s.nodeType) {
-                    i = s;
-                    s = s.nextSibling;
-                    n = i.getAttribute("au-slot");
-                    if (null !== n) {
-                        if (null === d) throw new Error(`AUR0706:${t.nodeName}[${n}]`);
-                        if ("" === n) n = "default";
-                        t.removeChild(i);
-                        i.removeAttribute("au-slot");
-                        (null !== (h = (a = null !== o && void 0 !== o ? o : o = {})[n]) && void 0 !== h ? h : a[n] = []).push(i);
-                    }
-                } else s = s.nextSibling;
-                if (null != o) {
-                    r = {};
-                    for (n in o) {
-                        u = e.h("template");
-                        l = o[n];
-                        for (p = 0, m = l.length; m > p; ++p) {
-                            c = l[p];
-                            if ("TEMPLATE" === c.nodeName) if (c.attributes.length > 0) u.content.appendChild(c); else u.content.appendChild(c.content); else u.content.appendChild(c);
-                        }
-                        f = e.we();
-                        this.oe(u.content, f);
-                        r[n] = CustomElementDefinition.create({
-                            name: bi(),
-                            template: u,
-                            instructions: f.rows,
-                            needsCompile: false,
-                            isStrictBinding: e.root.def.isStrictBinding
-                        });
-                    }
-                    q.projections = r;
+            let s = t.firstChild;
+            let i;
+            let n;
+            let r = null;
+            let o;
+            let l;
+            let c;
+            let u;
+            let f;
+            let p = 0, m = 0;
+            if (false !== j) while (null !== s) if (1 === s.nodeType) {
+                i = s;
+                s = s.nextSibling;
+                n = i.getAttribute("au-slot");
+                if (null !== n) {
+                    if (null === d) throw new Error(`AUR0706:${t.nodeName}[${n}]`);
+                    if ("" === n) n = "default";
+                    t.removeChild(i);
+                    i.removeAttribute("au-slot");
+                    (null !== (h = (a = null !== o && void 0 !== o ? o : o = {})[n]) && void 0 !== h ? h : a[n] = []).push(i);
                 }
+            } else s = s.nextSibling;
+            if (null != o) {
+                r = {};
+                for (n in o) {
+                    u = e.h("template");
+                    l = o[n];
+                    for (p = 0, m = l.length; m > p; ++p) {
+                        c = l[p];
+                        if ("TEMPLATE" === c.nodeName) if (c.attributes.length > 0) u.content.appendChild(c); else u.content.appendChild(c.content); else u.content.appendChild(c);
+                    }
+                    f = e.we();
+                    this.oe(u.content, f);
+                    r[n] = CustomElementDefinition.create({
+                        name: bi(),
+                        template: u,
+                        instructions: f.rows,
+                        needsCompile: false,
+                        isStrictBinding: e.root.def.isStrictBinding
+                    });
+                }
+                q.projections = r;
+            }
+            if (null !== d && d.containerless) this.be(t, e);
+            W = null === d || !d.containerless && !N && false !== j;
+            if (W && t.childNodes.length > 0) {
                 s = t.firstChild;
                 while (null !== s) s = this.oe(s, e);
             }

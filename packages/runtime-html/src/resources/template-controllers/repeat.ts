@@ -37,10 +37,9 @@ const wrappedExprs = [
 ];
 
 export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
-  public static inject = [IRenderLocation, IController, IViewFactory];
+  /** @internal */ protected static inject = [IRenderLocation, IController, IViewFactory];
   public readonly id: number = nextId('au$component');
 
-  private _observer?: CollectionObserver = void 0;
   public views: ISyntheticView[] = [];
   public key?: string = void 0;
 
@@ -50,18 +49,19 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable public items: Items<C>;
-  private _innerItems: Items<C> | null;
-  private _forOfBinding!: PropertyBinding;
-  private _observingInnerItems: boolean = false;
-  private _reevaluating: boolean = false;
-  private _innerItemsExpression: IsBindingBehavior | null = null;
 
-  private _normalizedItems?: unknown[] = void 0;
+  /** @internal */ private _observer?: CollectionObserver = void 0;
+  /** @internal */ private _innerItems: Items<C> | null;
+  /** @internal */ private _forOfBinding!: PropertyBinding;
+  /** @internal */ private _observingInnerItems: boolean = false;
+  /** @internal */ private _reevaluating: boolean = false;
+  /** @internal */ private _innerItemsExpression: IsBindingBehavior | null = null;
+  /** @internal */ private _normalizedItems?: unknown[] = void 0;
 
   public constructor(
-    public location: IRenderLocation,
-    public parent: IHydratableController,
-    public factory: IViewFactory
+    /** @internal */ private readonly _location: IRenderLocation,
+    /** @internal */ private readonly _parent: IHydratableController,
+    /** @internal */ private readonly _factory: IViewFactory
   ) {}
 
   public binding(
@@ -69,7 +69,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     parent: IHydratedParentController,
     flags: LF,
   ): void | Promise<void> {
-    const bindings = this.parent.bindings as PropertyBinding[];
+    const bindings = this._parent.bindings as PropertyBinding[];
     const ii = bindings.length;
     let binding: PropertyBinding = (void 0)!;
     let forOf!: ForOfStatement;
@@ -244,7 +244,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let view: ISyntheticView;
     let viewScope: Scope;
 
-    const { $controller, factory, local, location, items } = this;
+    const { $controller, _factory: factory, local, _location: location, items } = this;
     const parentScope = $controller.scope;
     const newLen = this.forOf.count(flags, items);
     const views = this.views = Array(newLen);
@@ -347,7 +347,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let viewScope: Scope;
     let i = 0;
 
-    const { $controller, factory, local, _normalizedItems: normalizedItems, location, views } = this;
+    const { $controller, _factory: factory, local, _normalizedItems: normalizedItems, _location: location, views } = this;
     const mapLen = indexMap.length;
 
     for (; mapLen > i; ++i) {

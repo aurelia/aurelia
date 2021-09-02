@@ -13,13 +13,13 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>;
 
   public constructor(
-    private readonly factory: IViewFactory,
+    factory: IViewFactory,
     location: IRenderLocation,
-    private readonly flags: LifecycleFlags,
+  /** @internal */ private readonly _flags: LifecycleFlags,
   ) {
     this.id = nextId('au$component');
 
-    this.view = this.factory.create().setLocation(location);
+    this.view = factory.create().setLocation(location);
   }
 
   public attaching(
@@ -28,7 +28,7 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { $controller } = this;
-    return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope);
+    return this.view.activate(initiator, $controller, flags | this._flags, $controller.scope);
   }
 
   public detaching(
@@ -52,20 +52,16 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
 }
 
 export class FrequentMutations extends FlagsTemplateController {
-  /**
-   * @internal
-   */
-  public static inject = [IViewFactory, IRenderLocation];
+  /** @internal */ protected static inject = [IViewFactory, IRenderLocation];
+
   public constructor(factory: IViewFactory, location: IRenderLocation) {
     super(factory, location, LifecycleFlags.persistentTargetObserverQueue);
   }
 }
 
 export class ObserveShallow extends FlagsTemplateController {
-  /**
-   * @internal
-   */
-  public static inject = [IViewFactory, IRenderLocation];
+  /** @internal */ protected static inject = [IViewFactory, IRenderLocation];
+
   public constructor(factory: IViewFactory, location: IRenderLocation) {
     super(factory, location, LifecycleFlags.observeLeafPropertiesOnly);
   }

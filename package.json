@@ -1,9 +1,10 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.1-dev.202108270612",
+  "version": "2.0.0-alpha.19",
   "workspaces": [
     "packages/__tests__",
+    "packages/__e2e__/router-configured-basic",
     "packages/au",
     "packages/aurelia",
     "packages/fetch-client",

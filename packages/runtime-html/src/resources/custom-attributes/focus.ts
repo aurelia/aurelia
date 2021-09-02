@@ -9,6 +9,7 @@ import type { ICustomAttributeController, ICustomAttributeViewModel } from '../.
  * Focus attribute for element focus binding
  */
 export class Focus implements ICustomAttributeViewModel {
+  /** @internal */ protected static inject = [INode, IPlatform];
 
   public readonly $controller!: ICustomAttributeController<this>;
 
@@ -17,12 +18,14 @@ export class Focus implements ICustomAttributeViewModel {
 
   /**
    * Indicates whether `apply` should be called when `attached` callback is invoked
+   *
+   * @internal
    */
   private _needsApply: boolean = false;
 
   public constructor(
-    @INode private readonly _element: INode<HTMLElement>,
-    @IPlatform private readonly p: IPlatform,
+    private readonly _element: INode<HTMLElement>,
+    private readonly _platform: IPlatform,
   ) {}
 
   public binding(): void {
@@ -41,7 +44,7 @@ export class Focus implements ICustomAttributeViewModel {
     // thus, there neesd to be a check if it's currently connected or not
     // before applying the value to the element
     if (this.$controller.isActive) {
-      this.apply();
+      this._apply();
     } else {
       // If the element is not currently connect
       // toggle the flag to add pending work for later
@@ -56,11 +59,10 @@ export class Focus implements ICustomAttributeViewModel {
   public attached(): void {
     if (this._needsApply) {
       this._needsApply = false;
-      this.apply();
+      this._apply();
     }
-    const el = this._element;
-    el.addEventListener('focus', this);
-    el.addEventListener('blur', this);
+    this._element.addEventListener('focus', this);
+    this._element.addEventListener('blur', this);
   }
 
   /**
@@ -81,7 +83,7 @@ export class Focus implements ICustomAttributeViewModel {
     // only need to switch the value to true
     if (e.type === 'focus') {
       this.value = true;
-    } else if (!this.isElFocused) {
+    } else if (!this._isElFocused) {
       // else, it's blur event
       // when a blur event happens, there are two situations
       // 1. the element itself lost the focus
@@ -96,9 +98,9 @@ export class Focus implements ICustomAttributeViewModel {
   /**
    * Focus/blur based on current value
    */
-  private apply(): void {
+  private _apply(): void {
     const el = this._element;
-    const isFocused = this.isElFocused;
+    const isFocused = this._isElFocused;
     const shouldFocus = this.value;
     if (shouldFocus && !isFocused) {
       el.focus();
@@ -107,8 +109,8 @@ export class Focus implements ICustomAttributeViewModel {
     }
   }
 
-  private get isElFocused(): boolean {
-    return this._element === this.p.document.activeElement;
+  /** @internal */ private get _isElFocused(): boolean {
+    return this._element === this._platform.document.activeElement;
   }
 }
 

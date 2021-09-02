@@ -4,14 +4,14 @@ import type { ICustomElementViewModel } from '../../templating/controller.js';
 
 export class ViewValueConverter {
   public constructor(
-    @IViewLocator private readonly viewLocator: IViewLocator,
+    /** @internal */ @IViewLocator private readonly _viewLocator: IViewLocator,
   ) {}
 
   public toView<T extends ICustomElementViewModel>(
     object: T | null | undefined,
     viewNameOrSelector?: string | ViewSelector
   ): ComposableObjectComponentType<T> | null {
-    return this.viewLocator.getViewComponentForObject<T>(
+    return this._viewLocator.getViewComponentForObject<T>(
       object,
       viewNameOrSelector
     );

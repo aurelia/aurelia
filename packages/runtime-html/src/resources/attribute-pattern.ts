@@ -442,8 +442,7 @@ export class AttributeParser {
   /** @internal */
   protected static inject = [ISyntaxInterpreter, all(IAttributePattern)];
 
-  /** @internal */
-  private readonly _cache: Record<string, Interpretation> = {};
+  /** @internal */ private readonly _cache: Record<string, Interpretation> = {};
   /**
    * A 2 level record with the same key on both levels.
    * Just a trick to maintain `this` + have simple lookup + support multi patterns per class definition
@@ -451,8 +450,7 @@ export class AttributeParser {
    * @internal
    */
   private readonly _patterns: Record<string, IAttributePattern>;
-  /** @internal */
-  private readonly _interpreter: ISyntaxInterpreter;
+  /** @internal */ private readonly _interpreter: ISyntaxInterpreter;
 
   public constructor(
     interpreter: ISyntaxInterpreter,
@@ -584,6 +582,6 @@ export class AtPrefixedTriggerAttributePattern {
 @attributePattern({ pattern: '...$attrs', symbols: '' })
 export class SpreadAttributePattern {
   public '...$attrs'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-    return new AttrSyntax('...$attrs', '', '', '...$attrs');
+    return new AttrSyntax(rawName, rawValue, '', '...$attrs');
   }
 }

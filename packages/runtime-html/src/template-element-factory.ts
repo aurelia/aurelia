@@ -14,7 +14,7 @@ const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 
 export class TemplateElementFactory {
   public static inject = [IPlatform];
-  private _template: HTMLTemplateElement;
+  /** @internal */ private _template: HTMLTemplateElement;
 
   public constructor(
     private readonly p: IPlatform,

@@ -964,8 +964,7 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
         if (hasRest) {
           if (target === '' || state.ip[state.index + 1] !== '}') { unexpectedCharacter(); }
           part = new DestructuringAssignmentRestExpression(new AccessMemberExpression($this, target), top[1]);
-        } else {
-          if (source === '') { unexpectedCharacter(); }
+        } else if (source !== '') {
           top[1].push(source);
           part = new DestructuringAssignmentSingleExpression(targetExpr(), new AccessMemberExpression($this, source), initializerExpr());
         }

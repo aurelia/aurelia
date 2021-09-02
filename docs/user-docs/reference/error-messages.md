@@ -161,25 +161,25 @@ The section below will list errors by their prefix, and code and give correspond
 
 ### Parser errors \(from 151-200\)
 
-| Error Code | Description |  |
-| :--- | :--- | :--- |
-| AUR0151 | An expression has an invalid character at the start |  |
-| AUR0152 | An expression has `..` or `...` |  |
-| AUR0153 | The parser encounters an unexpected identifier in an expression |  |
-| AUR0154 | The parser encounters an invalid `AccessMember` expression |  |
-| AUR0155 | The parers encounters an unexpected end in an expression |  |
-| AUR0156 | The parser encounters an unconsumable token in an expression |  |
-| AUR0158 | The expression has an invalid assignment |  |
-| AUR0159 | An expression has no valid identifier after the value converter \` | \` symbol |
-| AUR0160 | An expression has no valid identifier after the binding behavior `&` symbol |  |
-| AUR0161 | The parser encounters an invalid `of` keyword |  |
-| AUR0162 | The parser encounters an unconsumed token |  |
-| AUR0163 | The parser encounters an invalid binding identifier at left hand side of an `of` keyword |  |
-| AUR0164 | The parser encounters a literal object with a property declaration that it doesn't understand |  |
-| AUR0165 | An expression has an opening string quote `'` or `"`, but no matching ending quote |  |
-| AUR0166 | An expression has an opening template string quote \`\`\`, but has no matching end |  |
-| AUR0167 | The parser encounters an unexpected token |  |
-| AUR0168 | The parser encounters an unexpected character |  |
+| Error Code | Description |
+| :--- | :--- |
+| AUR0151 | An expression has an invalid character at the start |
+| AUR0152 | An expression has `..` or `...` |
+| AUR0153 | The parser encounters an unexpected identifier in an expression |
+| AUR0154 | The parser encounters an invalid `AccessMember` expression |
+| AUR0155 | The parers encounters an unexpected end in an expression |
+| AUR0156 | The parser encounters an unconsumable token in an expression |
+| AUR0158 | The expression has an invalid assignment |
+| AUR0159 | An expression has no valid identifier after the value converter \` \| \` symbol |
+| AUR0160 | An expression has no valid identifier after the binding behavior `&` symbol |
+| AUR0161 | The parser encounters an invalid `of` keyword |
+| AUR0162 | The parser encounters an unconsumed token |
+| AUR0163 | The parser encounters an invalid binding identifier at left hand side of an `of` keyword |
+| AUR0164 | The parser encounters a literal object with a property declaration that it doesn't understand |
+| AUR0165 | An expression has an opening string quote `'` or `"`, but no matching ending quote |
+| AUR0166 | An expression has an opening template string quote \`\`\`, but has no matching end |
+| AUR0167 | The parser encounters an unexpected token |
+| AUR0168 | The parser encounters an unexpected character |
 
 ### Others \(from 200-300\)
 

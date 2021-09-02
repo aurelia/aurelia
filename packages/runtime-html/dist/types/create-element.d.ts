@@ -9,10 +9,11 @@ export declare function createElement<C extends Constructable = Constructable>(p
  * RenderPlan. Todo: describe goal of this class
  */
 export declare class RenderPlan {
-    private readonly node;
-    private readonly instructions;
-    private readonly dependencies;
-    constructor(node: Node, instructions: IInstruction[][], dependencies: Key[]);
+    /** @internal */ private readonly node;
+    constructor(
+    /** @internal */ node: Node, 
+    /** @internal */ instructions: IInstruction[][], 
+    /** @internal */ _dependencies: Key[]);
     get definition(): CustomElementDefinition;
     createView(parentContainer: IContainer): ISyntheticView;
     getViewFactory(parentContainer: IContainer): IViewFactory;

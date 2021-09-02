@@ -108,7 +108,7 @@ let F = class I18nService {
         this.i = new Set;
         this.i18next = t.i18next;
         this.initPromise = this.h(n);
-        this.l = s;
+        this.u = s;
     }
     evaluate(t, n) {
         const i = t.split(";");
@@ -139,7 +139,7 @@ let F = class I18nService {
         await this.i18next.changeLanguage(t);
         this.ea.publish("i18n:locale:changed", i);
         this.i.forEach((t => t.handleLocaleChange(i)));
-        this.l.dispatchSignal("aurelia-translation-signal");
+        this.u.dispatchSignal("aurelia-translation-signal");
     }
     createNumberFormat(t, n) {
         return Intl.NumberFormat(n || this.getLocale(), t);
@@ -301,13 +301,13 @@ class TranslationBinding {
         this.locator = i;
         this.interceptor = this;
         this.isBound = false;
-        this.u = U;
+        this.B = U;
         this.task = null;
         this.parameter = null;
         this.target = t;
         this.i18n = this.locator.get(D);
         this.platform = s;
-        this.B = new Set;
+        this.T = new Set;
         this.oL = n;
         this.i18n.subscribeLocaleChange(this);
     }
@@ -337,11 +337,11 @@ class TranslationBinding {
         var i;
         if (!this.expr) throw new Error("key expression is missing");
         this.scope = n;
-        this.T = this.expr instanceof a;
-        this.C = this.expr.evaluate(t, n, this.locator, this);
-        this.I();
+        this.C = this.expr instanceof a;
+        this.I = this.expr.evaluate(t, n, this.locator, this);
+        this.P();
         null === (i = this.parameter) || void 0 === i ? void 0 : i.$bind(t, n);
-        this.P(t);
+        this.M(t);
         this.isBound = true;
     }
     $unbind(t) {
@@ -349,7 +349,7 @@ class TranslationBinding {
         if (!this.isBound) return;
         if (this.expr.hasUnbind) this.expr.unbind(t, this.scope, this);
         null === (n = this.parameter) || void 0 === n ? void 0 : n.$unbind(t);
-        this.B.clear();
+        this.T.clear();
         if (null !== this.task) {
             this.task.cancel();
             this.task = null;
@@ -359,49 +359,49 @@ class TranslationBinding {
     }
     handleChange(t, n, i) {
         this.obs.version++;
-        this.C = this.T ? this.expr.evaluate(i, this.scope, this.locator, this) : t;
+        this.I = this.C ? this.expr.evaluate(i, this.scope, this.locator, this) : t;
         this.obs.clear();
-        this.I();
-        this.P(i);
+        this.P();
+        this.M(i);
     }
     handleLocaleChange() {
-        this.P(0);
+        this.M(0);
     }
     useParameter(t) {
         if (null != this.parameter) throw new Error("This translation parameter has already been specified.");
-        this.parameter = new ParameterBinding(this, t, (t => this.P(t)));
+        this.parameter = new ParameterBinding(this, t, (t => this.M(t)));
     }
-    P(t) {
+    M(t) {
         var n;
-        const i = this.i18n.evaluate(this.C, null === (n = this.parameter) || void 0 === n ? void 0 : n.value);
+        const i = this.i18n.evaluate(this.I, null === (n = this.parameter) || void 0 === n ? void 0 : n.value);
         const s = Object.create(null);
         const e = [];
         const r = this.task;
-        this.B.clear();
+        this.T.clear();
         for (const n of i) {
             const i = n.value;
-            const r = this.M(n.attributes);
-            for (const n of r) if (this.A(n)) s[n] = i; else {
+            const r = this.A(n.attributes);
+            for (const n of r) if (this.L(n)) s[n] = i; else {
                 const s = h.for(this.target, Y);
                 const r = s && s.viewModel ? this.oL.getAccessor(s.viewModel, n) : this.oL.getAccessor(this.target, n);
                 const o = 0 === (2 & t) && (4 & r.type) > 0;
                 if (o) e.push(new AccessorUpdateTask(r, i, t, this.target, n)); else r.setValue(i, t, this.target, n);
-                this.B.add(r);
+                this.T.add(r);
             }
         }
         let o = false;
         if (Object.keys(s).length > 0) {
             o = 0 === (2 & t);
-            if (!o) this.L(s, t);
+            if (!o) this.R(s, t);
         }
         if (e.length > 0 || o) this.task = this.platform.domWriteQueue.queueTask((() => {
             this.task = null;
             for (const t of e) t.run();
-            if (o) this.L(s, t);
+            if (o) this.R(s, t);
         }), q);
         null === r || void 0 === r ? void 0 : r.cancel();
     }
-    M(t) {
+    A(t) {
         if (0 === t.length) t = "IMG" === this.target.tagName ? [ "src" ] : [ "textContent" ];
         for (const [n, i] of G) {
             const s = t.findIndex((t => t === n));
@@ -409,27 +409,27 @@ class TranslationBinding {
         }
         return t;
     }
-    A(t) {
-        return this.u.includes(t);
+    L(t) {
+        return this.B.includes(t);
     }
-    L(t, n) {
+    R(t, n) {
         const s = i(this.target.childNodes);
         const e = [];
         const r = "au-i18n";
         for (const t of s) if (!Reflect.get(t, r)) e.push(t);
-        const o = this.R(t, r, e);
+        const o = this.N(t, r, e);
         this.target.innerHTML = "";
         for (const t of i(o.content.childNodes)) this.target.appendChild(t);
     }
-    R(t, n, i) {
+    N(t, n, i) {
         var s;
         const e = this.platform.document.createElement("template");
-        this.N(e, t.prepend, n);
-        if (!this.N(e, null !== (s = t.innerHTML) && void 0 !== s ? s : t.textContent, n)) for (const t of i) e.content.append(t);
-        this.N(e, t.append, n);
+        this.V(e, t.prepend, n);
+        if (!this.V(e, null !== (s = t.innerHTML) && void 0 !== s ? s : t.textContent, n)) for (const t of i) e.content.append(t);
+        this.V(e, t.append, n);
         return e;
     }
-    N(t, n, s) {
+    V(t, n, s) {
         if (void 0 !== n && null !== n) {
             const e = this.platform.document.createElement("div");
             e.innerHTML = n;
@@ -441,9 +441,9 @@ class TranslationBinding {
         }
         return false;
     }
-    I() {
+    P() {
         var t;
-        const n = null !== (t = this.C) && void 0 !== t ? t : this.C = "";
+        const n = null !== (t = this.I) && void 0 !== t ? t : this.I = "";
         const i = typeof n;
         if ("string" !== i) throw new Error(`Expected the i18n key to be a string, but got ${n} of type ${i}`);
     }

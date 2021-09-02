@@ -6,8 +6,8 @@ import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedCo
 import type { INode } from '../../dom.js';
 import type { IInstruction } from '../../renderer.js';
 export declare class Switch implements ICustomAttributeViewModel {
-    private readonly factory;
-    private readonly location;
+    private readonly _factory;
+    private readonly _location;
     readonly id: number;
     readonly $controller: ICustomAttributeController<this>;
     private view;
@@ -18,7 +18,7 @@ export declare class Switch implements ICustomAttributeViewModel {
      * This needs to be removed after the scheduler is ready to handle/queue the floating promises.
      */
     readonly promise: Promise<void> | void;
-    constructor(factory: IViewFactory, location: IRenderLocation);
+    constructor(_factory: IViewFactory, _location: IRenderLocation);
     link(_controller: IHydratableController, _childController: ICustomAttributeController, _target: INode, _instruction: IInstruction): void;
     attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
@@ -30,18 +30,14 @@ export declare class Switch implements ICustomAttributeViewModel {
     accept(visitor: ControllerVisitor): void | true;
 }
 export declare class Case implements ICustomAttributeViewModel {
-    private readonly factory;
-    private readonly locator;
     readonly id: number;
     readonly $controller: ICustomAttributeController<this>;
     value: unknown;
     fallThrough: boolean;
     view: ISyntheticView;
     private $switch;
-    private readonly debug;
-    private readonly logger;
-    private observer;
-    constructor(factory: IViewFactory, locator: IObserverLocator, location: IRenderLocation, logger: ILogger);
+    constructor(factory: IViewFactory, 
+    /** @internal */ _locator: IObserverLocator, location: IRenderLocation, logger: ILogger);
     link(controller: IHydratableController, _childController: ICustomAttributeController, _target: INode, _instruction: IInstruction): void;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     isMatch(value: unknown, flags: LifecycleFlags): boolean;
@@ -51,7 +47,7 @@ export declare class Case implements ICustomAttributeViewModel {
     deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void>;
     dispose(): void;
     protected linkToSwitch(auSwitch: Switch): void;
-    private observeCollection;
+    private _observeCollection;
     accept(visitor: ControllerVisitor): void | true;
 }
 export declare class DefaultCase extends Case {

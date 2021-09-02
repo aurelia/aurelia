@@ -6,10 +6,6 @@ export declare class Show implements ICustomAttributeViewModel {
     private readonly el;
     private readonly p;
     value: unknown;
-    private isToggled;
-    private isActive;
-    private task;
-    private readonly base;
     constructor(el: INode<HTMLElement>, p: IPlatform, instr: HydrateAttributeInstruction);
     binding(): void;
     detaching(): void;

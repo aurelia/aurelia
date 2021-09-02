@@ -3,12 +3,11 @@ import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
 declare abstract class FlagsTemplateController implements ICustomAttributeViewModel {
-    private readonly factory;
-    private readonly flags;
     readonly id: number;
     view: ISyntheticView;
     readonly $controller: ICustomAttributeController<this>;
-    constructor(factory: IViewFactory, location: IRenderLocation, flags: LifecycleFlags);
+    constructor(factory: IViewFactory, location: IRenderLocation, 
+    /** @internal */ _flags: LifecycleFlags);
     attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     dispose(): void;

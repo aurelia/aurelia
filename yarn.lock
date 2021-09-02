@@ -2,25 +2,37 @@
 # yarn lockfile v1
 
 
+"@__e2e__/__router-configured-basic__@file:/home/circleci/repo/packages/__e2e__/router-configured-basic":
+  "resolved" "file:packages/__e2e__/router-configured-basic"
+  "version" "0.8.0"
+  dependencies:
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
+    "perf-monitor" "latest"
+
 "@aurelia/__tests__@file:/home/circleci/repo/packages/__tests__":
   "resolved" "file:packages/__tests__"
   "version" "0.8.0"
   dependencies:
-    "@aurelia/fetch-client" "2.0.0-alpha.18"
-    "@aurelia/i18n" "2.0.0-alpha.18"
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/route-recognizer" "2.0.0-alpha.18"
-    "@aurelia/router" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
-    "@aurelia/store-v1" "2.0.0-alpha.18"
-    "@aurelia/testing" "2.0.0-alpha.18"
-    "@aurelia/validation" "2.0.0-alpha.18"
-    "@aurelia/validation-html" "2.0.0-alpha.18"
-    "@aurelia/validation-i18n" "2.0.0-alpha.18"
+    "@aurelia/fetch-client" "2.0.0-alpha.19"
+    "@aurelia/i18n" "2.0.0-alpha.19"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/route-recognizer" "2.0.0-alpha.19"
+    "@aurelia/router" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
+    "@aurelia/store-v1" "2.0.0-alpha.19"
+    "@aurelia/testing" "2.0.0-alpha.19"
+    "@aurelia/validation" "2.0.0-alpha.19"
+    "@aurelia/validation-html" "2.0.0-alpha.19"
+    "@aurelia/validation-i18n" "2.0.0-alpha.19"
     "i18next" "^17.0.0"
     "jsdom" "^15.2.1"
     "rxjs" "^6.6.7"
@@ -30,19 +42,19 @@
   "resolved" "file:packages-cjs/__tests__"
   "version" "0.8.0"
   dependencies:
-    "@aurelia/aot" "2.0.0-alpha.18"
-    "@aurelia/babel-jest" "2.0.0-alpha.18"
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/plugin-conventions" "2.0.0-alpha.18"
-    "@aurelia/plugin-gulp" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
-    "@aurelia/testing" "2.0.0-alpha.18"
-    "@aurelia/ts-jest" "2.0.0-alpha.18"
-    "@aurelia/webpack-loader" "2.0.0-alpha.18"
+    "@aurelia/aot" "2.0.0-alpha.19"
+    "@aurelia/babel-jest" "2.0.0-alpha.19"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/plugin-conventions" "2.0.0-alpha.19"
+    "@aurelia/plugin-gulp" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
+    "@aurelia/testing" "2.0.0-alpha.19"
+    "@aurelia/ts-jest" "2.0.0-alpha.19"
+    "@aurelia/webpack-loader" "2.0.0-alpha.19"
     "@babel/core" "^7.12.10"
     "@jest/transform" "^27.0.2"
     "@jest/types" "^27.0.6"
@@ -51,221 +63,221 @@
     "typescript" "^4.0.3"
     "vinyl" "^2.2.0"
 
-"@aurelia/aot@2.0.0-alpha.18", "@aurelia/aot@file:/home/circleci/repo/packages-cjs/aot":
+"@aurelia/aot@2.0.0-alpha.19", "@aurelia/aot@file:/home/circleci/repo/packages-cjs/aot":
   "resolved" "file:packages-cjs/aot"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
     "jsdom" "^15.2.1"
     "typescript" "^4.0.3"
 
-"@aurelia/babel-jest@2.0.0-alpha.18", "@aurelia/babel-jest@file:/home/circleci/repo/packages-cjs/babel-jest":
+"@aurelia/babel-jest@2.0.0-alpha.19", "@aurelia/babel-jest@file:/home/circleci/repo/packages-cjs/babel-jest":
   "resolved" "file:packages-cjs/babel-jest"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/plugin-conventions" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/plugin-conventions" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
     "@babel/core" "^7.12.10"
     "babel-jest" "^27.0.2"
 
-"@aurelia/fetch-client@2.0.0-alpha.18", "@aurelia/fetch-client@file:/home/circleci/repo/packages/fetch-client":
+"@aurelia/fetch-client@2.0.0-alpha.19", "@aurelia/fetch-client@file:/home/circleci/repo/packages/fetch-client":
   "resolved" "file:packages/fetch-client"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
 
-"@aurelia/http-server@2.0.0-alpha.18", "@aurelia/http-server@file:/home/circleci/repo/packages/http-server":
+"@aurelia/http-server@2.0.0-alpha.19", "@aurelia/http-server@file:/home/circleci/repo/packages/http-server":
   "resolved" "file:packages/http-server"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
 
-"@aurelia/i18n@2.0.0-alpha.18", "@aurelia/i18n@file:/home/circleci/repo/packages/i18n":
+"@aurelia/i18n@2.0.0-alpha.19", "@aurelia/i18n@file:/home/circleci/repo/packages/i18n":
   "resolved" "file:packages/i18n"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
     "i18next" "^17.0.0"
 
-"@aurelia/kernel@2.0.0-alpha.18", "@aurelia/kernel@file:/home/circleci/repo/packages/kernel":
+"@aurelia/kernel@2.0.0-alpha.19", "@aurelia/kernel@file:/home/circleci/repo/packages/kernel":
   "resolved" "file:packages/kernel"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
 
-"@aurelia/metadata@2.0.0-alpha.18", "@aurelia/metadata@file:/home/circleci/repo/packages/metadata":
+"@aurelia/metadata@2.0.0-alpha.19", "@aurelia/metadata@file:/home/circleci/repo/packages/metadata":
   "resolved" "file:packages/metadata"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
 
-"@aurelia/platform-browser@2.0.0-alpha.18", "@aurelia/platform-browser@file:/home/circleci/repo/packages/platform-browser":
+"@aurelia/platform-browser@2.0.0-alpha.19", "@aurelia/platform-browser@file:/home/circleci/repo/packages/platform-browser":
   "resolved" "file:packages/platform-browser"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/platform" "2.0.0-alpha.18"
+    "@aurelia/platform" "2.0.0-alpha.19"
 
-"@aurelia/platform@2.0.0-alpha.18", "@aurelia/platform@file:/home/circleci/repo/packages/platform":
+"@aurelia/platform@2.0.0-alpha.19", "@aurelia/platform@file:/home/circleci/repo/packages/platform":
   "resolved" "file:packages/platform"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
 
-"@aurelia/plugin-conventions@2.0.0-alpha.18", "@aurelia/plugin-conventions@file:/home/circleci/repo/packages-cjs/plugin-conventions":
+"@aurelia/plugin-conventions@2.0.0-alpha.19", "@aurelia/plugin-conventions@file:/home/circleci/repo/packages-cjs/plugin-conventions":
   "resolved" "file:packages-cjs/plugin-conventions"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
     "modify-code" "^1.2.0"
     "parse5" "^5.1.1"
     "typescript" "^4.0.3"
 
-"@aurelia/plugin-gulp@2.0.0-alpha.18", "@aurelia/plugin-gulp@file:/home/circleci/repo/packages-cjs/plugin-gulp":
+"@aurelia/plugin-gulp@2.0.0-alpha.19", "@aurelia/plugin-gulp@file:/home/circleci/repo/packages-cjs/plugin-gulp":
   "resolved" "file:packages-cjs/plugin-gulp"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/plugin-conventions" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/plugin-conventions" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
     "vinyl" "^2.2.0"
 
 "@aurelia/plugin-parcel@file:/home/circleci/repo/packages-cjs/plugin-parcel":
   "resolved" "file:packages-cjs/plugin-parcel"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
 
-"@aurelia/route-recognizer@2.0.0-alpha.18", "@aurelia/route-recognizer@file:/home/circleci/repo/packages/route-recognizer":
+"@aurelia/route-recognizer@2.0.0-alpha.19", "@aurelia/route-recognizer@file:/home/circleci/repo/packages/route-recognizer":
   "resolved" "file:packages/route-recognizer"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
 
-"@aurelia/router@2.0.0-alpha.18", "@aurelia/router@file:/home/circleci/repo/packages/router":
+"@aurelia/router@2.0.0-alpha.19", "@aurelia/router@file:/home/circleci/repo/packages/router":
   "resolved" "file:packages/router"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/route-recognizer" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/route-recognizer" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
 
-"@aurelia/runtime-html@2.0.0-alpha.18", "@aurelia/runtime-html@file:/home/circleci/repo/packages/runtime-html":
+"@aurelia/runtime-html@2.0.0-alpha.19", "@aurelia/runtime-html@file:/home/circleci/repo/packages/runtime-html":
   "resolved" "file:packages/runtime-html"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
 
-"@aurelia/runtime@2.0.0-alpha.18", "@aurelia/runtime@file:/home/circleci/repo/packages/runtime":
+"@aurelia/runtime@2.0.0-alpha.19", "@aurelia/runtime@file:/home/circleci/repo/packages/runtime":
   "resolved" "file:packages/runtime"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
 
-"@aurelia/store-v1@2.0.0-alpha.18", "@aurelia/store-v1@file:/home/circleci/repo/packages/store-v1":
+"@aurelia/store-v1@2.0.0-alpha.19", "@aurelia/store-v1@file:/home/circleci/repo/packages/store-v1":
   "resolved" "file:packages/store-v1"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
     "rxjs" "^6.6.7"
 
-"@aurelia/testing@2.0.0-alpha.18", "@aurelia/testing@file:/home/circleci/repo/packages/testing":
+"@aurelia/testing@2.0.0-alpha.19", "@aurelia/testing@file:/home/circleci/repo/packages/testing":
   "resolved" "file:packages/testing"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
 
-"@aurelia/ts-jest@2.0.0-alpha.18", "@aurelia/ts-jest@file:/home/circleci/repo/packages-cjs/ts-jest":
+"@aurelia/ts-jest@2.0.0-alpha.19", "@aurelia/ts-jest@file:/home/circleci/repo/packages-cjs/ts-jest":
   "resolved" "file:packages-cjs/ts-jest"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/plugin-conventions" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/plugin-conventions" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
     "ts-jest" "^27.0.4"
 
-"@aurelia/validation-html@2.0.0-alpha.18", "@aurelia/validation-html@file:/home/circleci/repo/packages/validation-html":
+"@aurelia/validation-html@2.0.0-alpha.19", "@aurelia/validation-html@file:/home/circleci/repo/packages/validation-html":
   "resolved" "file:packages/validation-html"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
-    "@aurelia/validation" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
+    "@aurelia/validation" "2.0.0-alpha.19"
 
-"@aurelia/validation-i18n@2.0.0-alpha.18", "@aurelia/validation-i18n@file:/home/circleci/repo/packages/validation-i18n":
+"@aurelia/validation-i18n@2.0.0-alpha.19", "@aurelia/validation-i18n@file:/home/circleci/repo/packages/validation-i18n":
   "resolved" "file:packages/validation-i18n"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/i18n" "2.0.0-alpha.18"
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
-    "@aurelia/validation" "2.0.0-alpha.18"
-    "@aurelia/validation-html" "2.0.0-alpha.18"
+    "@aurelia/i18n" "2.0.0-alpha.19"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
+    "@aurelia/validation" "2.0.0-alpha.19"
+    "@aurelia/validation-html" "2.0.0-alpha.19"
     "i18next" "^17.0.0"
 
-"@aurelia/validation@2.0.0-alpha.18", "@aurelia/validation@file:/home/circleci/repo/packages/validation":
+"@aurelia/validation@2.0.0-alpha.19", "@aurelia/validation@file:/home/circleci/repo/packages/validation":
   "resolved" "file:packages/validation"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
 
-"@aurelia/webpack-loader@2.0.0-alpha.18", "@aurelia/webpack-loader@file:/home/circleci/repo/packages-cjs/webpack-loader":
+"@aurelia/webpack-loader@2.0.0-alpha.19", "@aurelia/webpack-loader@file:/home/circleci/repo/packages-cjs/webpack-loader":
   "resolved" "file:packages-cjs/webpack-loader"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/plugin-conventions" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/plugin-conventions" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
     "loader-utils" "^2.0.0"
 
 "@azure/abort-controller@^1.0.0":
@@ -407,7 +419,7 @@
   "resolved" "https://registry.npmjs.org/@babel/compat-data/-/compat-data-7.15.0.tgz"
   "version" "7.15.0"
 
-"@babel/core@^7.0.0", "@babel/core@^7.0.0-0", "@babel/core@^7.1.0", "@babel/core@^7.12.10", "@babel/core@^7.7.2", "@babel/core@^7.7.5", "@babel/core@^7.8.0", "@babel/core@>=7.0.0-beta.0 <8":
+"@babel/core@^7.0.0", "@babel/core@^7.0.0-0", "@babel/core@^7.1.0", "@babel/core@^7.12.10", "@babel/core@^7.14.8", "@babel/core@^7.7.2", "@babel/core@^7.7.5", "@babel/core@^7.8.0", "@babel/core@>=7.0.0-beta.0 <8":
   "integrity" "sha512-tXtmTminrze5HEUPn/a0JtOzzfp0nk+UEXQ/tqIJo3WDGypl/2OFQEMll/zSFU8f/lfmfLXvTaORHF3cfXIQMw=="
   "resolved" "https://registry.npmjs.org/@babel/core/-/core-7.15.0.tgz"
   "version" "7.15.0"
@@ -437,6 +449,13 @@
     "jsesc" "^2.5.1"
     "source-map" "^0.5.0"
 
+"@babel/helper-annotate-as-pure@^7.14.5":
+  "integrity" "sha512-EivH9EgBIb+G8ij1B2jAwSH36WnGvkQSEC6CkX/6v6ZFlw5fVOHvsgGF4uiEHO2GzMvunZb6tDLQEQSdrdocrA=="
+  "resolved" "https://registry.npmjs.org/@babel/helper-annotate-as-pure/-/helper-annotate-as-pure-7.14.5.tgz"
+  "version" "7.14.5"
+  dependencies:
+    "@babel/types" "^7.14.5"
+
 "@babel/helper-compilation-targets@^7.15.0":
   "integrity" "sha512-h+/9t0ncd4jfZ8wsdAsoIxSa61qhBYlycXiHWqJaQBCXAhDCMbPRSMTGnZIkkmt1u4ag+UQmuqcILwqKzZ4N2A=="
   "resolved" "https://registry.npmjs.org/@babel/helper-compilation-targets/-/helper-compilation-targets-7.15.0.tgz"
@@ -446,6 +465,18 @@
     "@babel/helper-validator-option" "^7.14.5"
     "browserslist" "^4.16.6"
     "semver" "^6.3.0"
+
+"@babel/helper-create-class-features-plugin@^7.14.5", "@babel/helper-create-class-features-plugin@^7.15.0":
+  "integrity" "sha512-MdmDXgvTIi4heDVX/e9EFfeGpugqm9fobBVg/iioE8kueXrOHdRDe36FAY7SnE9xXLVeYCoJR/gdrBEIHRC83Q=="
+  "resolved" "https://registry.npmjs.org/@babel/helper-create-class-features-plugin/-/helper-create-class-features-plugin-7.15.0.tgz"
+  "version" "7.15.0"
+  dependencies:
+    "@babel/helper-annotate-as-pure" "^7.14.5"
+    "@babel/helper-function-name" "^7.14.5"
+    "@babel/helper-member-expression-to-functions" "^7.15.0"
+    "@babel/helper-optimise-call-expression" "^7.14.5"
+    "@babel/helper-replace-supers" "^7.15.0"
+    "@babel/helper-split-export-declaration" "^7.14.5"
 
 "@babel/helper-function-name@^7.14.5":
   "integrity" "sha512-Gjna0AsXWfFvrAuX+VKcN/aNNWonizBj39yGwUzVDVTlMYJMK2Wp6xdpy72mfArFq5uK+NOuexfzZlzI1z9+AQ=="
@@ -505,7 +536,7 @@
   dependencies:
     "@babel/types" "^7.14.5"
 
-"@babel/helper-plugin-utils@^7.0.0", "@babel/helper-plugin-utils@^7.10.4", "@babel/helper-plugin-utils@^7.14.5", "@babel/helper-plugin-utils@^7.8.0":
+"@babel/helper-plugin-utils@^7.0.0", "@babel/helper-plugin-utils@^7.10.4", "@babel/helper-plugin-utils@^7.14.5", "@babel/helper-plugin-utils@^7.8.0", "@babel/helper-plugin-utils@^7.8.3":
   "integrity" "sha512-/37qQCE3K0vvZKwoK4XU/irIJQdIfCJuhU5eKnNxpFDsOkgFaUAwbv+RYw6eYgsC0E4hS7r5KqGULUogqui0fQ=="
   "resolved" "https://registry.npmjs.org/@babel/helper-plugin-utils/-/helper-plugin-utils-7.14.5.tgz"
   "version" "7.14.5"
@@ -526,6 +557,13 @@
   "version" "7.14.8"
   dependencies:
     "@babel/types" "^7.14.8"
+
+"@babel/helper-skip-transparent-expression-wrappers@^7.14.5":
+  "integrity" "sha512-dmqZB7mrb94PZSAOYtr+ZN5qt5owZIAgqtoTuqiFbHFtxgEcmQlRJVI+bO++fciBunXtB6MK7HrzrfcAzIz2NQ=="
+  "resolved" "https://registry.npmjs.org/@babel/helper-skip-transparent-expression-wrappers/-/helper-skip-transparent-expression-wrappers-7.14.5.tgz"
+  "version" "7.14.5"
+  dependencies:
+    "@babel/types" "^7.14.5"
 
 "@babel/helper-split-export-declaration@^7.14.5":
   "integrity" "sha512-hprxVPu6e5Kdp2puZUmvOGjaLv9TCe58E/Fl6hRq4YiVQxIcNvuq6uTM2r1mT/oPskuS9CgR+I94sqAYv0NGKA=="
@@ -567,6 +605,81 @@
   "resolved" "https://registry.npmjs.org/@babel/parser/-/parser-7.15.3.tgz"
   "version" "7.15.3"
 
+"@babel/plugin-proposal-class-properties@^7.14.5":
+  "integrity" "sha512-q/PLpv5Ko4dVc1LYMpCY7RVAAO4uk55qPwrIuJ5QJ8c6cVuAmhu7I/49JOppXL6gXf7ZHzpRVEUZdYoPLM04Gg=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-proposal-class-properties/-/plugin-proposal-class-properties-7.14.5.tgz"
+  "version" "7.14.5"
+  dependencies:
+    "@babel/helper-create-class-features-plugin" "^7.14.5"
+    "@babel/helper-plugin-utils" "^7.14.5"
+
+"@babel/plugin-proposal-dynamic-import@^7.14.5":
+  "integrity" "sha512-ExjiNYc3HDN5PXJx+bwC50GIx/KKanX2HiggnIUAYedbARdImiCU4RhhHfdf0Kd7JNXGpsBBBCOm+bBVy3Gb0g=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-proposal-dynamic-import/-/plugin-proposal-dynamic-import-7.14.5.tgz"
+  "version" "7.14.5"
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.14.5"
+    "@babel/plugin-syntax-dynamic-import" "^7.8.3"
+
+"@babel/plugin-proposal-export-namespace-from@^7.14.5":
+  "integrity" "sha512-g5POA32bXPMmSBu5Dx/iZGLGnKmKPc5AiY7qfZgurzrCYgIztDlHFbznSNCoQuv57YQLnQfaDi7dxCtLDIdXdA=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-proposal-export-namespace-from/-/plugin-proposal-export-namespace-from-7.14.5.tgz"
+  "version" "7.14.5"
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.14.5"
+    "@babel/plugin-syntax-export-namespace-from" "^7.8.3"
+
+"@babel/plugin-proposal-logical-assignment-operators@^7.14.5":
+  "integrity" "sha512-YGn2AvZAo9TwyhlLvCCWxD90Xq8xJ4aSgaX3G5D/8DW94L8aaT+dS5cSP+Z06+rCJERGSr9GxMBZ601xoc2taw=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-proposal-logical-assignment-operators/-/plugin-proposal-logical-assignment-operators-7.14.5.tgz"
+  "version" "7.14.5"
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.14.5"
+    "@babel/plugin-syntax-logical-assignment-operators" "^7.10.4"
+
+"@babel/plugin-proposal-nullish-coalescing-operator@^7.14.5":
+  "integrity" "sha512-gun/SOnMqjSb98Nkaq2rTKMwervfdAoz6NphdY0vTfuzMfryj+tDGb2n6UkDKwez+Y8PZDhE3D143v6Gepp4Hg=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-proposal-nullish-coalescing-operator/-/plugin-proposal-nullish-coalescing-operator-7.14.5.tgz"
+  "version" "7.14.5"
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.14.5"
+    "@babel/plugin-syntax-nullish-coalescing-operator" "^7.8.3"
+
+"@babel/plugin-proposal-numeric-separator@^7.14.5":
+  "integrity" "sha512-yiclALKe0vyZRZE0pS6RXgjUOt87GWv6FYa5zqj15PvhOGFO69R5DusPlgK/1K5dVnCtegTiWu9UaBSrLLJJBg=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-proposal-numeric-separator/-/plugin-proposal-numeric-separator-7.14.5.tgz"
+  "version" "7.14.5"
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.14.5"
+    "@babel/plugin-syntax-numeric-separator" "^7.10.4"
+
+"@babel/plugin-proposal-optional-chaining@^7.14.5":
+  "integrity" "sha512-ycz+VOzo2UbWNI1rQXxIuMOzrDdHGrI23fRiz/Si2R4kv2XZQ1BK8ccdHwehMKBlcH/joGW/tzrUmo67gbJHlQ=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-proposal-optional-chaining/-/plugin-proposal-optional-chaining-7.14.5.tgz"
+  "version" "7.14.5"
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.14.5"
+    "@babel/helper-skip-transparent-expression-wrappers" "^7.14.5"
+    "@babel/plugin-syntax-optional-chaining" "^7.8.3"
+
+"@babel/plugin-proposal-private-methods@^7.14.5":
+  "integrity" "sha512-838DkdUA1u+QTCplatfq4B7+1lnDa/+QMI89x5WZHBcnNv+47N8QEj2k9I2MUU9xIv8XJ4XvPCviM/Dj7Uwt9g=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-proposal-private-methods/-/plugin-proposal-private-methods-7.14.5.tgz"
+  "version" "7.14.5"
+  dependencies:
+    "@babel/helper-create-class-features-plugin" "^7.14.5"
+    "@babel/helper-plugin-utils" "^7.14.5"
+
+"@babel/plugin-proposal-private-property-in-object@^7.14.5":
+  "integrity" "sha512-62EyfyA3WA0mZiF2e2IV9mc9Ghwxcg8YTu8BS4Wss4Y3PY725OmS9M0qLORbJwLqFtGh+jiE4wAmocK2CTUK2Q=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-proposal-private-property-in-object/-/plugin-proposal-private-property-in-object-7.14.5.tgz"
+  "version" "7.14.5"
+  dependencies:
+    "@babel/helper-annotate-as-pure" "^7.14.5"
+    "@babel/helper-create-class-features-plugin" "^7.14.5"
+    "@babel/helper-plugin-utils" "^7.14.5"
+    "@babel/plugin-syntax-private-property-in-object" "^7.14.5"
+
 "@babel/plugin-syntax-async-generators@^7.8.4":
   "version" "7.8.4"
   dependencies:
@@ -582,6 +695,20 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.10.4"
 
+"@babel/plugin-syntax-dynamic-import@^7.8.3":
+  "integrity" "sha512-5gdGbFon+PszYzqs83S3E5mpi7/y/8M9eC90MRTZfduQOYW76ig6SOSPNe41IG5LoP3FGBn2N0RjVDSQiS94kQ=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-syntax-dynamic-import/-/plugin-syntax-dynamic-import-7.8.3.tgz"
+  "version" "7.8.3"
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.8.0"
+
+"@babel/plugin-syntax-export-namespace-from@^7.8.3":
+  "integrity" "sha512-MXf5laXo6c1IbEbegDmzGPwGNTsHZmEy6QGznu5Sh2UCWvueywb2ee+CCE4zQiZstxU9BMoQO9i6zUFSY0Kj0Q=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-syntax-export-namespace-from/-/plugin-syntax-export-namespace-from-7.8.3.tgz"
+  "version" "7.8.3"
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.8.3"
+
 "@babel/plugin-syntax-import-meta@^7.8.3":
   "version" "7.10.4"
   dependencies:
@@ -592,7 +719,7 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.8.0"
 
-"@babel/plugin-syntax-logical-assignment-operators@^7.8.3":
+"@babel/plugin-syntax-logical-assignment-operators@^7.10.4", "@babel/plugin-syntax-logical-assignment-operators@^7.8.3":
   "version" "7.10.4"
   dependencies:
     "@babel/helper-plugin-utils" "^7.10.4"
@@ -602,7 +729,7 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.8.0"
 
-"@babel/plugin-syntax-numeric-separator@^7.8.3":
+"@babel/plugin-syntax-numeric-separator@^7.10.4", "@babel/plugin-syntax-numeric-separator@^7.8.3":
   "version" "7.10.4"
   dependencies:
     "@babel/helper-plugin-utils" "^7.10.4"
@@ -622,17 +749,52 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.8.0"
 
+"@babel/plugin-syntax-private-property-in-object@^7.14.5":
+  "integrity" "sha512-0wVnp9dxJ72ZUJDV27ZfbSj6iHLoytYZmh3rFcxNnvsJF3ktkzLDZPy/mA17HGsaQT3/DQsWYX1f1QGWkCoVUg=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-syntax-private-property-in-object/-/plugin-syntax-private-property-in-object-7.14.5.tgz"
+  "version" "7.14.5"
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.14.5"
+
 "@babel/plugin-syntax-top-level-await@^7.8.3":
   "version" "7.12.1"
   dependencies:
     "@babel/helper-plugin-utils" "^7.10.4"
 
-"@babel/plugin-syntax-typescript@^7.7.2":
+"@babel/plugin-syntax-typescript@^7.14.5", "@babel/plugin-syntax-typescript@^7.7.2":
   "integrity" "sha512-u6OXzDaIXjEstBRRoBCQ/uKQKlbuaeE5in0RvWdA4pN6AhqxTIwUsnHPU1CFZA/amYObMsuWhYfRl3Ch90HD0Q=="
   "resolved" "https://registry.npmjs.org/@babel/plugin-syntax-typescript/-/plugin-syntax-typescript-7.14.5.tgz"
   "version" "7.14.5"
   dependencies:
     "@babel/helper-plugin-utils" "^7.14.5"
+
+"@babel/plugin-transform-modules-commonjs@^7.14.5":
+  "integrity" "sha512-3H/R9s8cXcOGE8kgMlmjYYC9nqr5ELiPkJn4q0mypBrjhYQoc+5/Maq69vV4xRPWnkzZuwJPf5rArxpB/35Cig=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-transform-modules-commonjs/-/plugin-transform-modules-commonjs-7.15.0.tgz"
+  "version" "7.15.0"
+  dependencies:
+    "@babel/helper-module-transforms" "^7.15.0"
+    "@babel/helper-plugin-utils" "^7.14.5"
+    "@babel/helper-simple-access" "^7.14.8"
+    "babel-plugin-dynamic-import-node" "^2.3.3"
+
+"@babel/plugin-transform-typescript@^7.15.0":
+  "integrity" "sha512-WIIEazmngMEEHDaPTx0IZY48SaAmjVWe3TRSX7cmJXn0bEv9midFzAjxiruOWYIVf5iQ10vFx7ASDpgEO08L5w=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-transform-typescript/-/plugin-transform-typescript-7.15.0.tgz"
+  "version" "7.15.0"
+  dependencies:
+    "@babel/helper-create-class-features-plugin" "^7.15.0"
+    "@babel/helper-plugin-utils" "^7.14.5"
+    "@babel/plugin-syntax-typescript" "^7.14.5"
+
+"@babel/preset-typescript@^7.14.5":
+  "integrity" "sha512-lt0Y/8V3y06Wq/8H/u0WakrqciZ7Fz7mwPDHWUJAXlABL5hiUG42BNlRXiELNjeWjO5rWmnNKlx+yzJvxezHow=="
+  "resolved" "https://registry.npmjs.org/@babel/preset-typescript/-/preset-typescript-7.15.0.tgz"
+  "version" "7.15.0"
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.14.5"
+    "@babel/helper-validator-option" "^7.14.5"
+    "@babel/plugin-transform-typescript" "^7.15.0"
 
 "@babel/runtime@^7.3.1":
   "version" "7.12.5"
@@ -678,13 +840,13 @@
   "resolved" "file:test/benchmarking-apps/aurelia2"
   "version" "1.0.0"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
-    "@aurelia/webpack-loader" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
+    "@aurelia/webpack-loader" "2.0.0-alpha.19"
     "@benchmarking-apps/shared" "1.0.0"
 
 "@benchmarking-apps/runner@file:/home/circleci/repo/test/benchmarking-apps/runner":
@@ -710,21 +872,21 @@
   "resolved" "file:test/benchmarking-apps/viewer/client"
   "version" "1.0.0"
   dependencies:
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
-    "@aurelia/validation" "2.0.0-alpha.18"
-    "@aurelia/validation-html" "2.0.0-alpha.18"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
+    "@aurelia/validation" "2.0.0-alpha.19"
+    "@aurelia/validation-html" "2.0.0-alpha.19"
     "@benchmarking-apps/test-result" "1.0.0"
-    "aurelia" "2.0.0-alpha.18"
+    "aurelia" "2.0.0-alpha.19"
     "d3" "^6.7.0"
 
 "@benchmarking-apps/viewer-server@file:/home/circleci/repo/test/benchmarking-apps/viewer/server":
   "resolved" "file:test/benchmarking-apps/viewer/server"
   "version" "1.0.0"
   dependencies:
-    "@aurelia/http-server" "2.0.0-alpha.18"
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
+    "@aurelia/http-server" "2.0.0-alpha.19"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
     "@azure/cosmos" "^3.9.3"
     "@benchmarking-apps/storage" "1.0.0"
 
@@ -845,12 +1007,12 @@
   "resolved" "file:examples/1kcomponents"
   "version" "0.8.0"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
     "d3-scale-chromatic" "^3.0.0"
     "perf-monitor" "latest"
 
@@ -858,42 +1020,42 @@
   "resolved" "file:examples/doc-example"
   "version" "0.8.0"
   dependencies:
-    "@aurelia/fetch-client" "2.0.0-alpha.18"
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/route-recognizer" "2.0.0-alpha.18"
-    "@aurelia/router" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
+    "@aurelia/fetch-client" "2.0.0-alpha.19"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/route-recognizer" "2.0.0-alpha.19"
+    "@aurelia/router" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
     "promise-polyfill" "^8.1.3"
 
 "@examples/fractals-tree@file:/home/circleci/repo/examples/fractals-tree":
   "resolved" "file:examples/fractals-tree"
   "version" "0.8.0"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
     "perf-monitor" "latest"
 
 "@examples/navigation-skeleton@file:/home/circleci/repo/examples/navigation-skeleton":
   "resolved" "file:examples/navigation-skeleton"
   "version" "0.8.0"
   dependencies:
-    "@aurelia/fetch-client" "2.0.0-alpha.18"
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/route-recognizer" "2.0.0-alpha.18"
-    "@aurelia/router" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
+    "@aurelia/fetch-client" "2.0.0-alpha.19"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/route-recognizer" "2.0.0-alpha.19"
+    "@aurelia/router" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
     "bootstrap" "^4.3.1"
     "font-awesome" "^4.6.3"
 
@@ -901,38 +1063,38 @@
   "resolved" "file:examples/rainbow-spiral"
   "version" "0.8.0"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
     "perf-monitor" "latest"
 
 "@examples/realworld-advanced@file:/home/circleci/repo/examples/realworld-advanced":
   "resolved" "file:examples/realworld-advanced"
   "version" "0.8.0"
   dependencies:
-    "aurelia" "2.0.0-alpha.18"
+    "aurelia" "2.0.0-alpha.19"
     "marked" "^3.0.0"
 
 "@examples/realworld@file:/home/circleci/repo/examples/realworld":
   "resolved" "file:examples/realworld"
   "version" "0.8.0"
   dependencies:
-    "aurelia" "2.0.0-alpha.18"
+    "aurelia" "2.0.0-alpha.19"
     "marked" "^3.0.0"
 
 "@examples/sierpinski-triangle@file:/home/circleci/repo/examples/sierpinski-triangle":
   "resolved" "file:examples/sierpinski-triangle"
   "version" "0.8.0"
   dependencies:
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
     "perf-monitor" "latest"
 
 "@humanwhocodes/config-array@^0.5.0":
@@ -1119,6 +1281,17 @@
     "source-map" "^0.6.1"
     "write-file-atomic" "^3.0.0"
 
+"@jest/types@^26.6.2":
+  "integrity" "sha512-fC6QCp7Sc5sX6g8Tvbmj4XUTbyrik0akgRy03yjXbQaBWWNWGE7SGtJk98m0N8nzegD/7SggrUlivxo5ax4KWQ=="
+  "resolved" "https://registry.npmjs.org/@jest/types/-/types-26.6.2.tgz"
+  "version" "26.6.2"
+  dependencies:
+    "@types/istanbul-lib-coverage" "^2.0.0"
+    "@types/istanbul-reports" "^3.0.0"
+    "@types/node" "*"
+    "@types/yargs" "^15.0.0"
+    "chalk" "^4.0.0"
+
 "@jest/types@^27.0.6":
   "integrity" "sha512-aSquT1qa9Pik26JK5/3rvnYb4bGtm1VFNesHKmNTwmPIgOrixvhL2ghIvFRNEpzy3gU+rUgjIF/KodbkFAl++g=="
   "resolved" "https://registry.npmjs.org/@jest/types/-/types-27.0.6.tgz"
@@ -1181,6 +1354,50 @@
 
 "@opentelemetry/context-base@^0.6.1":
   "version" "0.6.1"
+
+"@playwright/test@^1.14.0":
+  "integrity" "sha512-yL/808TEvUmsXxKMPf/Hf6Tajx666QFr8g+hCUZbRy2cbmQOPt7xhwGvXb1cpwMwIlJ4gBx/AiOpnnppsuLgTA=="
+  "resolved" "https://registry.npmjs.org/@playwright/test/-/test-1.14.1.tgz"
+  "version" "1.14.1"
+  dependencies:
+    "@babel/code-frame" "^7.14.5"
+    "@babel/core" "^7.14.8"
+    "@babel/plugin-proposal-class-properties" "^7.14.5"
+    "@babel/plugin-proposal-dynamic-import" "^7.14.5"
+    "@babel/plugin-proposal-export-namespace-from" "^7.14.5"
+    "@babel/plugin-proposal-logical-assignment-operators" "^7.14.5"
+    "@babel/plugin-proposal-nullish-coalescing-operator" "^7.14.5"
+    "@babel/plugin-proposal-numeric-separator" "^7.14.5"
+    "@babel/plugin-proposal-optional-chaining" "^7.14.5"
+    "@babel/plugin-proposal-private-methods" "^7.14.5"
+    "@babel/plugin-proposal-private-property-in-object" "^7.14.5"
+    "@babel/plugin-syntax-async-generators" "^7.8.4"
+    "@babel/plugin-syntax-json-strings" "^7.8.3"
+    "@babel/plugin-syntax-object-rest-spread" "^7.8.3"
+    "@babel/plugin-syntax-optional-catch-binding" "^7.8.3"
+    "@babel/plugin-transform-modules-commonjs" "^7.14.5"
+    "@babel/preset-typescript" "^7.14.5"
+    "colors" "^1.4.0"
+    "commander" "^6.1.0"
+    "debug" "^4.1.1"
+    "expect" "^26.4.2"
+    "extract-zip" "^2.0.1"
+    "https-proxy-agent" "^5.0.0"
+    "jpeg-js" "^0.4.2"
+    "mime" "^2.4.6"
+    "minimatch" "^3.0.3"
+    "ms" "^2.1.2"
+    "pirates" "^4.0.1"
+    "pixelmatch" "^5.2.1"
+    "pngjs" "^5.0.0"
+    "progress" "^2.0.3"
+    "proper-lockfile" "^4.1.1"
+    "proxy-from-env" "^1.1.0"
+    "rimraf" "^3.0.2"
+    "source-map-support" "^0.4.18"
+    "stack-utils" "^2.0.3"
+    "ws" "^7.4.6"
+    "yazl" "^2.5.1"
 
 "@pnpm/constants@4.1.0":
   "version" "4.1.0"
@@ -1312,6 +1529,21 @@
   "version" "7.11.0"
   dependencies:
     "@babel/types" "^7.3.0"
+
+"@types/body-parser@*":
+  "integrity" "sha512-a6bTJ21vFOGIkwM0kzh9Yr89ziVxq4vYH2fQ6N8AeipEzai/cFK6aGMArIkUeIdRIgpwQa+2bXiLuUJCpSf2Cg=="
+  "resolved" "https://registry.npmjs.org/@types/body-parser/-/body-parser-1.19.1.tgz"
+  "version" "1.19.1"
+  dependencies:
+    "@types/connect" "*"
+    "@types/node" "*"
+
+"@types/connect@*":
+  "integrity" "sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ=="
+  "resolved" "https://registry.npmjs.org/@types/connect/-/connect-3.4.35.tgz"
+  "version" "3.4.35"
+  dependencies:
+    "@types/node" "*"
 
 "@types/d3-array@*", "@types/d3-array@^2":
   "version" "2.9.0"
@@ -1491,6 +1723,25 @@
 "@types/expect@^1.20.4":
   "version" "1.20.4"
 
+"@types/express-serve-static-core@^4.17.18":
+  "integrity" "sha512-3UJuW+Qxhzwjq3xhwXm2onQcFHn76frIYVbTu+kn24LFxI+dEhdfISDFovPB8VpEgW8oQCTpRuCe+0zJxB7NEA=="
+  "resolved" "https://registry.npmjs.org/@types/express-serve-static-core/-/express-serve-static-core-4.17.24.tgz"
+  "version" "4.17.24"
+  dependencies:
+    "@types/node" "*"
+    "@types/qs" "*"
+    "@types/range-parser" "*"
+
+"@types/express@^4.17.13":
+  "integrity" "sha512-6bSZTPaTIACxn48l50SR+axgrqm6qXFIxrdAKaG6PaJk3+zuUr35hBlgT7vOmJcum+OEaIBLtHV/qloEAFITeA=="
+  "resolved" "https://registry.npmjs.org/@types/express/-/express-4.17.13.tgz"
+  "version" "4.17.13"
+  dependencies:
+    "@types/body-parser" "*"
+    "@types/express-serve-static-core" "^4.17.18"
+    "@types/qs" "*"
+    "@types/serve-static" "*"
+
 "@types/geojson@*":
   "version" "7946.0.7"
 
@@ -1556,6 +1807,11 @@
     "@types/node" "*"
     "@types/webpack" "^4"
 
+"@types/mime@^1":
+  "integrity" "sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw=="
+  "resolved" "https://registry.npmjs.org/@types/mime/-/mime-1.3.2.tgz"
+  "version" "1.3.2"
+
 "@types/minimatch@*", "@types/minimatch@^3.0.3":
   "version" "3.0.3"
 
@@ -1573,7 +1829,7 @@
     "@types/node" "*"
     "form-data" "^3.0.0"
 
-"@types/node@*", "@types/node@^14.11.5":
+"@types/node@*", "@types/node@^14.11.5", "@types/node@^14.14.22":
   "integrity" "sha512-CMjgRNsks27IDwI785YMY0KLt3co/c0cQ5foxHYv/shC2w8oOnVwz5Ubq1QG5KzrcW+AXk6gzdnxIkDnTvzu3g=="
   "resolved" "https://registry.npmjs.org/@types/node/-/node-14.17.9.tgz"
   "version" "14.17.9"
@@ -1593,10 +1849,28 @@
 "@types/prettier@^2.1.5":
   "version" "2.1.6"
 
+"@types/qs@*":
+  "integrity" "sha512-FGa1F62FT09qcrueBA6qYTrJPVDzah9a+493+o2PCXsesWHIn27G98TsSMs3WPNbZIEj4+VJf6saSFpvD+3Zsw=="
+  "resolved" "https://registry.npmjs.org/@types/qs/-/qs-6.9.7.tgz"
+  "version" "6.9.7"
+
+"@types/range-parser@*":
+  "integrity" "sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw=="
+  "resolved" "https://registry.npmjs.org/@types/range-parser/-/range-parser-1.2.4.tgz"
+  "version" "1.2.4"
+
 "@types/retry@^0.12.0":
   "integrity" "sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA=="
   "resolved" "https://registry.npmjs.org/@types/retry/-/retry-0.12.0.tgz"
   "version" "0.12.0"
+
+"@types/serve-static@*":
+  "integrity" "sha512-nCkHGI4w7ZgAdNkrEu0bv+4xNV/XDqW+DydknebMOQwkpDGx8G+HTlj7R7ABI8i8nKxVw0wtKPi1D+lPOkh4YQ=="
+  "resolved" "https://registry.npmjs.org/@types/serve-static/-/serve-static-1.13.10.tgz"
+  "version" "1.13.10"
+  dependencies:
+    "@types/mime" "^1"
+    "@types/node" "*"
 
 "@types/source-list-map@*":
   "version" "0.1.2"
@@ -1654,6 +1928,13 @@
 
 "@types/yargs-parser@*":
   "version" "20.2.0"
+
+"@types/yargs@^15.0.0":
+  "integrity" "sha512-yEJzHoxf6SyQGhBhIYGXQDSCkJjB6HohDShto7m8vaKg9Yp0Yn8+71J9eakh2bnPg6BfsH9PRMhiRTZnd4eXGQ=="
+  "resolved" "https://registry.npmjs.org/@types/yargs/-/yargs-15.0.14.tgz"
+  "version" "15.0.14"
+  dependencies:
+    "@types/yargs-parser" "*"
 
 "@types/yargs@^16.0.0":
   "integrity" "sha512-T8Yc9wt/5LbJyCaLiHPReJa0kApcIgJ7Bn735GjItUfh08Z1pJvu8QZqb9s+mMvKV6WUQRV7K2R46YbjMXTTJw=="
@@ -2204,26 +2485,26 @@
 
 "au@file:/home/circleci/repo/packages/au":
   "resolved" "file:packages/au"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/http-server" "2.0.0-alpha.18"
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
+    "@aurelia/http-server" "2.0.0-alpha.19"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
 
-"aurelia@2.0.0-alpha.18", "aurelia@file:/home/circleci/repo/packages/aurelia":
+"aurelia@2.0.0-alpha.19", "aurelia@file:/home/circleci/repo/packages/aurelia":
   "resolved" "file:packages/aurelia"
-  "version" "2.0.0-alpha.18"
+  "version" "2.0.0-alpha.19"
   dependencies:
-    "@aurelia/fetch-client" "2.0.0-alpha.18"
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/route-recognizer" "2.0.0-alpha.18"
-    "@aurelia/router" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
+    "@aurelia/fetch-client" "2.0.0-alpha.19"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/route-recognizer" "2.0.0-alpha.19"
+    "@aurelia/router" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
 
 "aws-sign2@~0.7.0":
   "version" "0.7.0"
@@ -2254,6 +2535,13 @@
     "chalk" "^4.0.0"
     "graceful-fs" "^4.2.4"
     "slash" "^3.0.0"
+
+"babel-plugin-dynamic-import-node@^2.3.3":
+  "integrity" "sha512-jZVI+s9Zg3IqA/kdi0i6UDCybUI3aSBLnglhYbSSjKlV7yF1F/5LWv8MakQmvYpnbJDS6fcBL2KzHSxNCMtWSQ=="
+  "resolved" "https://registry.npmjs.org/babel-plugin-dynamic-import-node/-/babel-plugin-dynamic-import-node-2.3.3.tgz"
+  "version" "2.3.3"
+  dependencies:
+    "object.assign" "^4.1.0"
 
 "babel-plugin-istanbul@^6.0.0":
   "version" "6.0.0"
@@ -2824,6 +3112,8 @@
   "version" "1.2.5"
 
 "colors@^1.4.0":
+  "integrity" "sha512-a+UqTh4kgZg/SlGvfbzDHpgRu7AAQOmmqRHJnxhRZICKFUT91brVhNNt58CMWU9PsBbv3PDCZUHbVxuDiH2mtA=="
+  "resolved" "https://registry.npmjs.org/colors/-/colors-1.4.0.tgz"
   "version" "1.4.0"
 
 "combined-stream@^1.0.6", "combined-stream@^1.0.8", "combined-stream@~1.0.6":
@@ -2838,6 +3128,8 @@
   "version" "4.1.1"
 
 "commander@^6.1.0":
+  "integrity" "sha512-U7VdrJFnJgo4xjrHpTzu0yrHPGImdsmD95ZlgYSEajAn2JKzDhDTPG9kBTefmObL2w/ngeZnilk+OV9CG3d7UA=="
+  "resolved" "https://registry.npmjs.org/commander/-/commander-6.2.1.tgz"
   "version" "6.2.1"
 
 "commander@^6.2.0":
@@ -3471,6 +3763,11 @@
 "di@^0.0.1":
   "version" "0.0.1"
 
+"diff-sequences@^26.6.2":
+  "integrity" "sha512-Mv/TDa3nZ9sbc5soK+OoA74BsS3mL37yixCvUAQkiuA4Wz6YtwP/K47n2rv2ovzHZvoiQeA5FTQOschKkEwB0Q=="
+  "resolved" "https://registry.npmjs.org/diff-sequences/-/diff-sequences-26.6.2.tgz"
+  "version" "26.6.2"
+
 "diff-sequences@^27.0.6":
   "integrity" "sha512-ag6wfpBFyNXZ0p8pcuIDS//D8H062ZQJ3fzYxjpmeKjnz8W4pekL3AI8VohmyZmsWW2PWaHgjsmqR6L13101VQ=="
   "resolved" "https://registry.npmjs.org/diff-sequences/-/diff-sequences-27.0.6.tgz"
@@ -4053,6 +4350,18 @@
     "regex-not" "^1.0.0"
     "snapdragon" "^0.8.1"
     "to-regex" "^3.0.1"
+
+"expect@^26.4.2":
+  "integrity" "sha512-9/hlOBkQl2l/PLHJx6JjoDF6xPKcJEsUlWKb23rKE7KzeDqUZKXKNMW27KIue5JMdBV9HgmoJPcc8HtO85t9IA=="
+  "resolved" "https://registry.npmjs.org/expect/-/expect-26.6.2.tgz"
+  "version" "26.6.2"
+  dependencies:
+    "@jest/types" "^26.6.2"
+    "ansi-styles" "^4.0.0"
+    "jest-get-type" "^26.3.0"
+    "jest-matcher-utils" "^26.6.2"
+    "jest-message-util" "^26.6.2"
+    "jest-regex-util" "^26.0.0"
 
 "expect@^27.0.6":
   "integrity" "sha512-psNLt8j2kwg42jGBDSfAlU49CEZxejN1f1PlANWDZqIhBOVU/c2Pm888FcjWJzFewhIsNWfZJeLjUjtKGiPuSw=="
@@ -5413,6 +5722,16 @@
     "micromatch" "^4.0.4"
     "pretty-format" "^27.0.6"
 
+"jest-diff@^26.6.2":
+  "integrity" "sha512-6m+9Z3Gv9wN0WFVasqjCL/06+EFCMTqDEUl/b87HYK2rAPTyfz4ZIuSlPhY51PIQRWx5TaxeF1qmXKe9gfN3sA=="
+  "resolved" "https://registry.npmjs.org/jest-diff/-/jest-diff-26.6.2.tgz"
+  "version" "26.6.2"
+  dependencies:
+    "chalk" "^4.0.0"
+    "diff-sequences" "^26.6.2"
+    "jest-get-type" "^26.3.0"
+    "pretty-format" "^26.6.2"
+
 "jest-diff@^27.0.6":
   "integrity" "sha512-Z1mqgkTCSYaFgwTlP/NUiRzdqgxmmhzHY1Tq17zL94morOHfHu3K4bgSgl+CR4GLhpV8VxkuOYuIWnQ9LnFqmg=="
   "resolved" "https://registry.npmjs.org/jest-diff/-/jest-diff-27.0.6.tgz"
@@ -5465,6 +5784,11 @@
     "@types/node" "*"
     "jest-mock" "^27.0.6"
     "jest-util" "^27.0.6"
+
+"jest-get-type@^26.3.0":
+  "integrity" "sha512-TpfaviN1R2pQWkIihlfEanwOXK0zcxrKEE4MlU6Tn7keoXdN6/3gK/xl0yEh8DOunn5pOVGKf8hB4R9gVh04ig=="
+  "resolved" "https://registry.npmjs.org/jest-get-type/-/jest-get-type-26.3.0.tgz"
+  "version" "26.3.0"
 
 "jest-get-type@^27.0.6":
   "integrity" "sha512-XTkK5exIeUbbveehcSR8w0bhH+c0yloW/Wpl+9vZrjzztCPWrxhHwkIFpZzCt71oRBsgxmuUfxEqOYoZI2macg=="
@@ -5524,6 +5848,16 @@
     "jest-get-type" "^27.0.6"
     "pretty-format" "^27.0.6"
 
+"jest-matcher-utils@^26.6.2":
+  "integrity" "sha512-llnc8vQgYcNqDrqRDXWwMr9i7rS5XFiCwvh6DTP7Jqa2mqpcCBBlpCbn+trkG0KNhPu/h8rzyBkriOtBstvWhw=="
+  "resolved" "https://registry.npmjs.org/jest-matcher-utils/-/jest-matcher-utils-26.6.2.tgz"
+  "version" "26.6.2"
+  dependencies:
+    "chalk" "^4.0.0"
+    "jest-diff" "^26.6.2"
+    "jest-get-type" "^26.3.0"
+    "pretty-format" "^26.6.2"
+
 "jest-matcher-utils@^27.0.6":
   "integrity" "sha512-OFgF2VCQx9vdPSYTHWJ9MzFCehs20TsyFi6bIHbk5V1u52zJOnvF0Y/65z3GLZHKRuTgVPY4Z6LVePNahaQ+tA=="
   "resolved" "https://registry.npmjs.org/jest-matcher-utils/-/jest-matcher-utils-27.0.6.tgz"
@@ -5533,6 +5867,21 @@
     "jest-diff" "^27.0.6"
     "jest-get-type" "^27.0.6"
     "pretty-format" "^27.0.6"
+
+"jest-message-util@^26.6.2":
+  "integrity" "sha512-rGiLePzQ3AzwUshu2+Rn+UMFk0pHN58sOG+IaJbk5Jxuqo3NYO1U2/MIR4S1sKgsoYSXSzdtSa0TgrmtUwEbmA=="
+  "resolved" "https://registry.npmjs.org/jest-message-util/-/jest-message-util-26.6.2.tgz"
+  "version" "26.6.2"
+  dependencies:
+    "@babel/code-frame" "^7.0.0"
+    "@jest/types" "^26.6.2"
+    "@types/stack-utils" "^2.0.0"
+    "chalk" "^4.0.0"
+    "graceful-fs" "^4.2.4"
+    "micromatch" "^4.0.2"
+    "pretty-format" "^26.6.2"
+    "slash" "^3.0.0"
+    "stack-utils" "^2.0.2"
 
 "jest-message-util@^27.0.6":
   "integrity" "sha512-rBxIs2XK7rGy+zGxgi+UJKP6WqQ+KrBbD1YMj517HYN3v2BG66t3Xan3FWqYHKZwjdB700KiAJ+iES9a0M+ixw=="
@@ -5559,6 +5908,11 @@
 
 "jest-pnp-resolver@^1.2.2":
   "version" "1.2.2"
+
+"jest-regex-util@^26.0.0":
+  "integrity" "sha512-Gv3ZIs/nA48/Zvjrl34bf+oD76JHiGDUxNOVgUjh3j890sblXryjY4rss71fPtD/njchl6PSE2hIhvyWa1eT0A=="
+  "resolved" "https://registry.npmjs.org/jest-regex-util/-/jest-regex-util-26.0.0.tgz"
+  "version" "26.0.0"
 
 "jest-regex-util@^27.0.6":
   "integrity" "sha512-SUhPzBsGa1IKm8hx2F4NfTGGp+r7BXJ4CulsZ1k2kI+mGLG+lxGrs76veN2LF/aUdGosJBzKgXmNCw+BzFqBDQ=="
@@ -6433,7 +6787,7 @@
 "minimalistic-assert@^1.0.0":
   "version" "1.0.1"
 
-"minimatch@^3.0.4", "minimatch@2 || 3", "minimatch@3.0.4":
+"minimatch@^3.0.3", "minimatch@^3.0.4", "minimatch@2 || 3", "minimatch@3.0.4":
   "version" "3.0.4"
   dependencies:
     "brace-expansion" "^1.1.7"
@@ -6533,7 +6887,7 @@
     "rimraf" "^2.5.4"
     "run-queue" "^1.0.3"
 
-"ms@^2.1.1", "ms@2.1.2":
+"ms@^2.1.1", "ms@^2.1.2", "ms@2.1.2":
   "version" "2.1.2"
 
 "ms@2.0.0":
@@ -6737,7 +7091,7 @@
   dependencies:
     "isobject" "^3.0.0"
 
-"object.assign@^4.1.2":
+"object.assign@^4.1.0", "object.assign@^4.1.2":
   "version" "4.1.2"
   dependencies:
     "call-bind" "^1.0.0"
@@ -7058,6 +7412,13 @@
   dependencies:
     "node-modules-regexp" "^1.0.0"
 
+"pixelmatch@^5.2.1":
+  "integrity" "sha512-WjcAdYSnKrrdDdqTcVEY7aB7UhhwjYQKYhHiBXdJef0MOaQeYpUdQ+iVyBLa5YBKS8MPVPPMX7rpOByISLpeEQ=="
+  "resolved" "https://registry.npmjs.org/pixelmatch/-/pixelmatch-5.2.1.tgz"
+  "version" "5.2.1"
+  dependencies:
+    "pngjs" "^4.0.1"
+
 "pkg-dir@^2.0.0":
   "integrity" "sha1-9tXREJ4Z1j7fQo4L1X4Sd3YVM0s="
   "resolved" "https://registry.npmjs.org/pkg-dir/-/pkg-dir-2.0.0.tgz"
@@ -7114,6 +7475,11 @@
 
 "pn@^1.1.0":
   "version" "1.1.0"
+
+"pngjs@^4.0.1":
+  "integrity" "sha512-rf5+2/ioHeQxR6IxuYNYGFytUyG3lma/WW1nsmjeHlWwtb2aByla6dkVc8pmJ9nplzkTA0q2xx7mMWrOTqT4Gg=="
+  "resolved" "https://registry.npmjs.org/pngjs/-/pngjs-4.0.1.tgz"
+  "version" "4.0.1"
 
 "pngjs@^5.0.0":
   "version" "5.0.0"
@@ -7186,6 +7552,16 @@
   dependencies:
     "lodash" "^4.17.20"
     "renderkid" "^2.0.6"
+
+"pretty-format@^26.6.2":
+  "integrity" "sha512-7AeGuCYNGmycyQbCqd/3PWH4eOoX/OiCa0uphp57NVTeAGdJGaAliecxwBDHYQCIvrW7aDBZCYeNTP/WX69mkg=="
+  "resolved" "https://registry.npmjs.org/pretty-format/-/pretty-format-26.6.2.tgz"
+  "version" "26.6.2"
+  dependencies:
+    "@jest/types" "^26.6.2"
+    "ansi-regex" "^5.0.0"
+    "ansi-styles" "^4.0.0"
+    "react-is" "^17.0.1"
 
 "pretty-format@^27.0.6":
   "integrity" "sha512-8tGD7gBIENgzqA+UBzObyWqQ5B778VIFZA/S66cclyd5YkFLYs2Js7gxDKf0MXtTc9zcS7t1xhdfcElJ3YIvkQ=="
@@ -8058,6 +8434,13 @@
     "source-map-url" "^0.4.0"
     "urix" "^0.1.0"
 
+"source-map-support@^0.4.18":
+  "integrity" "sha512-try0/JqxPLF9nOjvSta7tVondkP5dwgyLDjVoyMDlmjugT2lRZ1OfsrYTkCd2hkDnJTKRbO/Rl3orm8vlsUzbA=="
+  "resolved" "https://registry.npmjs.org/source-map-support/-/source-map-support-0.4.18.tgz"
+  "version" "0.4.18"
+  dependencies:
+    "source-map" "^0.5.6"
+
 "source-map-support@^0.5.17", "source-map-support@^0.5.19", "source-map-support@^0.5.6", "source-map-support@~0.5.12", "source-map-support@~0.5.19":
   "version" "0.5.19"
   dependencies:
@@ -8071,6 +8454,8 @@
   "version" "0.5.7"
 
 "source-map@^0.5.6":
+  "integrity" "sha1-igOdLRAh0i0eoUyA2OpGi6LvP8w="
+  "resolved" "https://registry.npmjs.org/source-map/-/source-map-0.5.7.tgz"
   "version" "0.5.7"
 
 "source-map@^0.6.0", "source-map@^0.6.1", "source-map@~0.2.0", "source-map@~0.6.0", "source-map@~0.6.1":
@@ -8171,7 +8556,7 @@
   dependencies:
     "figgy-pudding" "^3.5.1"
 
-"stack-utils@^2.0.3":
+"stack-utils@^2.0.2", "stack-utils@^2.0.3":
   "version" "2.0.3"
   dependencies:
     "escape-string-regexp" "^2.0.0"
@@ -8479,14 +8864,14 @@
   "resolved" "file:test/i18n"
   "version" "0.8.0"
   dependencies:
-    "@aurelia/i18n" "2.0.0-alpha.18"
-    "@aurelia/kernel" "2.0.0-alpha.18"
-    "@aurelia/metadata" "2.0.0-alpha.18"
-    "@aurelia/platform" "2.0.0-alpha.18"
-    "@aurelia/platform-browser" "2.0.0-alpha.18"
-    "@aurelia/runtime" "2.0.0-alpha.18"
-    "@aurelia/runtime-html" "2.0.0-alpha.18"
-    "@aurelia/validation" "2.0.0-alpha.18"
+    "@aurelia/i18n" "2.0.0-alpha.19"
+    "@aurelia/kernel" "2.0.0-alpha.19"
+    "@aurelia/metadata" "2.0.0-alpha.19"
+    "@aurelia/platform" "2.0.0-alpha.19"
+    "@aurelia/platform-browser" "2.0.0-alpha.19"
+    "@aurelia/runtime" "2.0.0-alpha.19"
+    "@aurelia/runtime-html" "2.0.0-alpha.19"
+    "@aurelia/validation" "2.0.0-alpha.19"
     "i18next" "^17.0.0"
     "i18next-fetch-backend" "^2.2.0"
     "i18next-intervalplural-postprocessor" "^1.0.0"

@@ -33,23 +33,15 @@ function __param(paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 }
 
-/** @internal */
-const getOwnMetadata = kernel.Metadata.getOwn;
-/** @internal */
-const hasOwnMetadata = kernel.Metadata.hasOwn;
-/** @internal */
-const defineMetadata = kernel.Metadata.define;
+/** @internal */ const getOwnMetadata = kernel.Metadata.getOwn;
+/** @internal */ const hasOwnMetadata = kernel.Metadata.hasOwn;
+/** @internal */ const defineMetadata = kernel.Metadata.define;
 const { annotation, resource } = kernel.Protocol;
-/** @internal */
-const getAnnotationKeyFor = annotation.keyFor;
-/** @internal */
-const getResourceKeyFor = resource.keyFor;
-/** @internal */
-const appendResourceKey = resource.appendTo;
-/** @internal */
-const appendAnnotationKey = annotation.appendTo;
-/** @internal */
-const getAllAnnotations = annotation.getKeys;
+/** @internal */ const getAnnotationKeyFor = annotation.keyFor;
+/** @internal */ const getResourceKeyFor = resource.keyFor;
+/** @internal */ const appendResourceKey = resource.appendTo;
+/** @internal */ const appendAnnotationKey = annotation.appendTo;
+/** @internal */ const getAllAnnotations = annotation.getKeys;
 
 function bindable(configOrTarget, prop) {
     let config;
@@ -673,8 +665,7 @@ const IAttributePattern = kernel.DI.createInterface('IAttributePattern');
 const IAttributeParser = kernel.DI.createInterface('IAttributeParser', x => x.singleton(AttributeParser));
 class AttributeParser {
     constructor(interpreter, attrPatterns) {
-        /** @internal */
-        this._cache = {};
+        /** @internal */ this._cache = {};
         this._interpreter = interpreter;
         const patterns = this._patterns = {};
         const allDefs = attrPatterns.reduce((allDefs, attrPattern) => {
@@ -770,7 +761,7 @@ exports.AtPrefixedTriggerAttributePattern = __decorate([
 ], exports.AtPrefixedTriggerAttributePattern);
 let SpreadAttributePattern = class SpreadAttributePattern {
     '...$attrs'(rawName, rawValue, parts) {
-        return new AttrSyntax('...$attrs', '', '', '...$attrs');
+        return new AttrSyntax(rawName, rawValue, '', '...$attrs');
     }
 };
 SpreadAttributePattern = __decorate([
@@ -1062,12 +1053,9 @@ const IAttrMapper = kernel.DI
 class AttrMapper {
     constructor(svg) {
         this.svg = svg;
-        /** @internal */
-        this.fns = [];
-        /** @internal */
-        this._tagAttrMap = createLookup();
-        /** @internal */
-        this._globalAttrMap = createLookup();
+        /** @internal */ this.fns = [];
+        /** @internal */ this._tagAttrMap = createLookup();
+        /** @internal */ this._globalAttrMap = createLookup();
         this.useMapping({
             LABEL: { for: 'htmlFor' },
             IMG: { usemap: 'useMap' },
@@ -1096,8 +1084,7 @@ class AttrMapper {
             readonly: 'readOnly',
         });
     }
-    /** @internal */
-    static get inject() { return [ISVGAnalyzer]; }
+    /** @internal */ static get inject() { return [ISVGAnalyzer]; }
     /**
      * Allow application to teach Aurelia how to define how to map attributes to properties
      * based on element tagName
@@ -4604,12 +4591,9 @@ const IAppRoot = kernel.DI.createInterface('IAppRoot');
 const IWorkTracker = kernel.DI.createInterface('IWorkTracker', x => x.singleton(WorkTracker));
 class WorkTracker {
     constructor(logger) {
-        /** @internal */
-        this._stack = 0;
-        /** @internal */
-        this._promise = null;
-        /** @internal */
-        this._resolve = null;
+        /** @internal */ this._stack = 0;
+        /** @internal */ this._promise = null;
+        /** @internal */ this._resolve = null;
         this._logger = logger.scopeTo('WorkTracker');
     }
     start() {
@@ -4639,8 +4623,7 @@ class WorkTracker {
         return this._promise;
     }
 }
-/** @internal */
-WorkTracker.inject = [kernel.ILogger];
+/** @internal */ WorkTracker.inject = [kernel.ILogger];
 class AppRoot {
     constructor(config, platform, container, rootProvider) {
         this.config = config;
@@ -5425,8 +5408,8 @@ class SpreadBindingInstruction {
     get type() { return "hs" /* spreadBinding */; }
 }
 class SpreadElementPropBindingInstruction {
-    constructor(innerInstruction) {
-        this.innerInstruction = innerInstruction;
+    constructor(instructions) {
+        this.instructions = instructions;
     }
     get type() { return "hp" /* spreadElementProp */; }
 }
@@ -6057,7 +6040,7 @@ let SpreadRenderer = class SpreadRenderer {
                         renderSpreadInstruction(ancestor + 1);
                         break;
                     case "hp" /* spreadElementProp */:
-                        renderers[inst.innerInstruction.type].render(spreadBinding, CustomElement.for(target), inst.innerInstruction);
+                        renderers[inst.instructions.type].render(spreadBinding, CustomElement.for(target), inst.instructions);
                         break;
                     default:
                         renderers[inst.type].render(spreadBinding, target, inst);
@@ -9580,12 +9563,14 @@ runtime.bindingBehavior('updateTrigger')(UpdateTriggerBindingBehavior);
 /**
  * Focus attribute for element focus binding
  */
-exports.Focus = class Focus {
-    constructor(_element, p) {
+class Focus {
+    constructor(_element, _platform) {
         this._element = _element;
-        this.p = p;
+        this._platform = _platform;
         /**
          * Indicates whether `apply` should be called when `attached` callback is invoked
+         *
+         * @internal
          */
         this._needsApply = false;
     }
@@ -9604,7 +9589,7 @@ exports.Focus = class Focus {
         // thus, there neesd to be a check if it's currently connected or not
         // before applying the value to the element
         if (this.$controller.isActive) {
-            this.apply();
+            this._apply();
         }
         else {
             // If the element is not currently connect
@@ -9619,11 +9604,10 @@ exports.Focus = class Focus {
     attached() {
         if (this._needsApply) {
             this._needsApply = false;
-            this.apply();
+            this._apply();
         }
-        const el = this._element;
-        el.addEventListener('focus', this);
-        el.addEventListener('blur', this);
+        this._element.addEventListener('focus', this);
+        this._element.addEventListener('blur', this);
     }
     /**
      * Invoked when the attribute is afterDetachChildren from the DOM.
@@ -9643,7 +9627,7 @@ exports.Focus = class Focus {
         if (e.type === 'focus') {
             this.value = true;
         }
-        else if (!this.isElFocused) {
+        else if (!this._isElFocused) {
             // else, it's blur event
             // when a blur event happens, there are two situations
             // 1. the element itself lost the focus
@@ -9657,9 +9641,9 @@ exports.Focus = class Focus {
     /**
      * Focus/blur based on current value
      */
-    apply() {
+    _apply() {
         const el = this._element;
-        const isFocused = this.isElFocused;
+        const isFocused = this._isElFocused;
         const shouldFocus = this.value;
         if (shouldFocus && !isFocused) {
             el.focus();
@@ -9668,33 +9652,30 @@ exports.Focus = class Focus {
             el.blur();
         }
     }
-    get isElFocused() {
-        return this._element === this.p.document.activeElement;
+    /** @internal */ get _isElFocused() {
+        return this._element === this._platform.document.activeElement;
     }
-};
+}
+/** @internal */ Focus.inject = [INode, IPlatform];
 __decorate([
     bindable({ mode: runtime.BindingMode.twoWay })
-], exports.Focus.prototype, "value", void 0);
-exports.Focus = __decorate([
-    __param(0, INode),
-    __param(1, IPlatform)
-], exports.Focus);
-customAttribute('focus')(exports.Focus);
+], Focus.prototype, "value", void 0);
+customAttribute('focus')(Focus);
 
 let Show = class Show {
     constructor(el, p, instr) {
         this.el = el;
         this.p = p;
-        this.isActive = false;
-        this.task = null;
+        /** @internal */ this._isActive = false;
+        /** @internal */ this._task = null;
         this.$val = '';
         this.$prio = '';
         this.update = () => {
-            this.task = null;
+            this._task = null;
             // Only compare at the synchronous moment when we're about to update, because the value might have changed since the update was queued.
-            if (Boolean(this.value) !== this.isToggled) {
-                if (this.isToggled === this.base) {
-                    this.isToggled = !this.base;
+            if (Boolean(this.value) !== this._isToggled) {
+                if (this._isToggled === this._base) {
+                    this._isToggled = !this._base;
                     // Note: in v1 we used the 'au-hide' class, but in v2 it's so trivial to conditionally apply classes (e.g. 'hide.class="someCondition"'),
                     // that it's probably better to avoid the CSS inject infra involvement and keep this CA as simple as possible.
                     // Instead, just store and restore the property values (with each mutation, to account for in-between updates), to cover the common cases, until there is convincing feedback to do otherwise.
@@ -9703,7 +9684,7 @@ let Show = class Show {
                     this.el.style.setProperty('display', 'none', 'important');
                 }
                 else {
-                    this.isToggled = this.base;
+                    this._isToggled = this._base;
                     this.el.style.setProperty('display', this.$val, this.$prio);
                     // If the style attribute is now empty, remove it.
                     if (this.el.getAttribute('style') === '') {
@@ -9713,21 +9694,21 @@ let Show = class Show {
             }
         };
         // if this is declared as a 'hide' attribute, then this.base will be false, inverting everything.
-        this.isToggled = this.base = instr.alias !== 'hide';
+        this._isToggled = this._base = instr.alias !== 'hide';
     }
     binding() {
-        this.isActive = true;
+        this._isActive = true;
         this.update();
     }
     detaching() {
         var _a;
-        this.isActive = false;
-        (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
-        this.task = null;
+        this._isActive = false;
+        (_a = this._task) === null || _a === void 0 ? void 0 : _a.cancel();
+        this._task = null;
     }
     valueChanged() {
-        if (this.isActive && this.task === null) {
-            this.task = this.p.domWriteQueue.queueTask(this.update);
+        if (this._isActive && this._task === null) {
+            this._task = this.p.domWriteQueue.queueTask(this.update);
         }
     }
 };
@@ -9746,7 +9727,7 @@ class Portal {
     constructor(factory, originalLoc, p) {
         this.id = kernel.nextId('au$component');
         this.strict = false;
-        this.p = p;
+        this._platform = p;
         // to make the shape of this object consistent.
         // todo: is this necessary
         this._currentTarget = p.document.createElement('div');
@@ -9783,6 +9764,7 @@ class Portal {
             ret.catch(err => { throw err; });
         }
     }
+    /** @internal */
     _activating(initiator, target, flags) {
         const { activating, callbackContext, view } = this;
         view.setHost(target);
@@ -9790,6 +9772,7 @@ class Portal {
             return this._activate(initiator, target, flags);
         });
     }
+    /** @internal */
     _activate(initiator, target, flags) {
         const { $controller, view } = this;
         if (initiator === null) {
@@ -9803,16 +9786,19 @@ class Portal {
         }
         return this._activated(target);
     }
+    /** @internal */
     _activated(target) {
         const { activated, callbackContext, view } = this;
         return activated === null || activated === void 0 ? void 0 : activated.call(callbackContext, target, view);
     }
+    /** @internal */
     _deactivating(initiator, target, flags) {
         const { deactivating, callbackContext, view } = this;
         return kernel.onResolve(deactivating === null || deactivating === void 0 ? void 0 : deactivating.call(callbackContext, target, view), () => {
             return this._deactivate(initiator, target, flags);
         });
     }
+    /** @internal */
     _deactivate(initiator, target, flags) {
         const { $controller, view } = this;
         if (initiator === null) {
@@ -9825,12 +9811,13 @@ class Portal {
         }
         return this._deactivated(target);
     }
+    /** @internal */
     _deactivated(target) {
         const { deactivated, callbackContext, view } = this;
         return deactivated === null || deactivated === void 0 ? void 0 : deactivated.call(callbackContext, target, view);
     }
     _resolveTarget() {
-        const p = this.p;
+        const p = this._platform;
         // with a $ in front to make it less confusing/error prone
         const $document = p.document;
         let target = this.target;
@@ -9902,15 +9889,15 @@ __decorate([
 templateController('portal')(Portal);
 
 class FlagsTemplateController {
-    constructor(factory, location, flags) {
-        this.factory = factory;
-        this.flags = flags;
+    constructor(factory, location, 
+    /** @internal */ _flags) {
+        this._flags = _flags;
         this.id = kernel.nextId('au$component');
-        this.view = this.factory.create().setLocation(location);
+        this.view = factory.create().setLocation(location);
     }
     attaching(initiator, parent, flags) {
         const { $controller } = this;
-        return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope);
+        return this.view.activate(initiator, $controller, flags | this._flags, $controller.scope);
     }
     detaching(initiator, parent, flags) {
         return this.view.deactivate(initiator, this.$controller, flags);
@@ -9931,19 +9918,13 @@ class FrequentMutations extends FlagsTemplateController {
         super(factory, location, 512 /* persistentTargetObserverQueue */);
     }
 }
-/**
- * @internal
- */
-FrequentMutations.inject = [IViewFactory, IRenderLocation];
+/** @internal */ FrequentMutations.inject = [IViewFactory, IRenderLocation];
 class ObserveShallow extends FlagsTemplateController {
     constructor(factory, location) {
         super(factory, location, 128 /* observeLeafPropertiesOnly */);
     }
 }
-/**
- * @internal
- */
-ObserveShallow.inject = [IViewFactory, IRenderLocation];
+/** @internal */ ObserveShallow.inject = [IViewFactory, IRenderLocation];
 templateController('frequent-mutations')(FrequentMutations);
 templateController('observe-shallow')(ObserveShallow);
 
@@ -10089,7 +10070,7 @@ class If {
         }
     }
 }
-If.inject = [IViewFactory, IRenderLocation, IWorkTracker];
+/** @internal */ If.inject = [IViewFactory, IRenderLocation, IWorkTracker];
 __decorate([
     bindable
 ], If.prototype, "value", void 0);
@@ -10129,21 +10110,24 @@ const wrappedExprs = [
     36913 /* ValueConverter */,
 ];
 class Repeat {
-    constructor(location, parent, factory) {
-        this.location = location;
-        this.parent = parent;
-        this.factory = factory;
+    constructor(
+    /** @internal */ _location, 
+    /** @internal */ _parent, 
+    /** @internal */ _factory) {
+        this._location = _location;
+        this._parent = _parent;
+        this._factory = _factory;
         this.id = kernel.nextId('au$component');
-        this._observer = void 0;
         this.views = [];
         this.key = void 0;
-        this._observingInnerItems = false;
-        this._reevaluating = false;
-        this._innerItemsExpression = null;
-        this._normalizedItems = void 0;
+        /** @internal */ this._observer = void 0;
+        /** @internal */ this._observingInnerItems = false;
+        /** @internal */ this._reevaluating = false;
+        /** @internal */ this._innerItemsExpression = null;
+        /** @internal */ this._normalizedItems = void 0;
     }
     binding(initiator, parent, flags) {
-        const bindings = this.parent.bindings;
+        const bindings = this._parent.bindings;
         const ii = bindings.length;
         let binding = (void 0);
         let forOf;
@@ -10287,7 +10271,7 @@ class Repeat {
         let ret;
         let view;
         let viewScope;
-        const { $controller, factory, local, location, items } = this;
+        const { $controller, _factory: factory, local, _location: location, items } = this;
         const parentScope = $controller.scope;
         const newLen = this.forOf.count(flags, items);
         const views = this.views = Array(newLen);
@@ -10366,7 +10350,7 @@ class Repeat {
         let view;
         let viewScope;
         let i = 0;
-        const { $controller, factory, local, _normalizedItems: normalizedItems, location, views } = this;
+        const { $controller, _factory: factory, local, _normalizedItems: normalizedItems, _location: location, views } = this;
         const mapLen = indexMap.length;
         for (; mapLen > i; ++i) {
             if (indexMap[i] === -2) {
@@ -10432,7 +10416,7 @@ class Repeat {
         }
     }
 }
-Repeat.inject = [IRenderLocation, IController, IViewFactory];
+/** @internal */ Repeat.inject = [IRenderLocation, IController, IViewFactory];
 __decorate([
     bindable
 ], Repeat.prototype, "items", void 0);
@@ -10515,11 +10499,9 @@ function setContextualProperties(oc, index, length) {
 
 class With {
     constructor(factory, location) {
-        this.factory = factory;
-        this.location = location;
         this.id = kernel.nextId('au$component');
         this.id = kernel.nextId('au$component');
-        this.view = this.factory.create().setLocation(location);
+        this.view = factory.create().setLocation(location);
     }
     valueChanged(newValue, oldValue, flags) {
         const $controller = this.$controller;
@@ -10552,16 +10534,16 @@ class With {
         }
     }
 }
-With.inject = [IViewFactory, IRenderLocation];
+/** @internal */ With.inject = [IViewFactory, IRenderLocation];
 __decorate([
     bindable
 ], With.prototype, "value", void 0);
 templateController('with')(With);
 
 exports.Switch = class Switch {
-    constructor(factory, location) {
-        this.factory = factory;
-        this.location = location;
+    constructor(_factory, _location) {
+        this._factory = _factory;
+        this._location = _location;
         this.id = kernel.nextId('au$component');
         /** @internal */
         this.cases = [];
@@ -10573,7 +10555,7 @@ exports.Switch = class Switch {
         this.promise = void 0;
     }
     link(_controller, _childController, _target, _instruction) {
-        this.view = this.factory.create(this.$controller).setLocation(this.location);
+        this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
     attaching(initiator, parent, flags) {
         const view = this.view;
@@ -10741,14 +10723,14 @@ exports.Switch = __decorate([
     __param(1, IRenderLocation)
 ], exports.Switch);
 exports.Case = class Case {
-    constructor(factory, locator, location, logger) {
-        this.factory = factory;
-        this.locator = locator;
+    constructor(factory, 
+    /** @internal */ _locator, location, logger) {
+        this._locator = _locator;
         this.id = kernel.nextId('au$component');
         this.fallThrough = false;
-        this.debug = logger.config.level <= 1 /* debug */;
-        this.logger = logger.scopeTo(`${this.constructor.name}-#${this.id}`);
-        this.view = this.factory.create().setLocation(location);
+        this._debug = logger.config.level <= 1 /* debug */;
+        this._logger = logger.scopeTo(`${this.constructor.name}-#${this.id}`);
+        this.view = factory.create().setLocation(location);
     }
     link(controller, _childController, _target, _instruction) {
         const switchController = controller.parent;
@@ -10765,13 +10747,11 @@ exports.Case = class Case {
         return this.deactivate(initiator, flags);
     }
     isMatch(value, flags) {
-        if (this.debug) {
-            this.logger.debug('isMatch()');
-        }
+        this._logger.debug('isMatch()');
         const $value = this.value;
         if (Array.isArray($value)) {
-            if (this.observer === void 0) {
-                this.observer = this.observeCollection(flags, $value);
+            if (this._observer === void 0) {
+                this._observer = this._observeCollection(flags, $value);
             }
             return $value.includes(value);
         }
@@ -10780,11 +10760,11 @@ exports.Case = class Case {
     valueChanged(newValue, _oldValue, flags) {
         var _a;
         if (Array.isArray(newValue)) {
-            (_a = this.observer) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
-            this.observer = this.observeCollection(flags, newValue);
+            (_a = this._observer) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
+            this._observer = this._observeCollection(flags, newValue);
         }
-        else if (this.observer !== void 0) {
-            this.observer.unsubscribe(this);
+        else if (this._observer !== void 0) {
+            this._observer.unsubscribe(this);
         }
         this.$switch.caseChanged(this, flags);
     }
@@ -10807,15 +10787,15 @@ exports.Case = class Case {
     }
     dispose() {
         var _a, _b;
-        (_a = this.observer) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
+        (_a = this._observer) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
         (_b = this.view) === null || _b === void 0 ? void 0 : _b.dispose();
         this.view = (void 0);
     }
     linkToSwitch(auSwitch) {
         auSwitch.cases.push(this);
     }
-    observeCollection(flags, $value) {
-        const observer = this.locator.getArrayObserver($value);
+    _observeCollection(flags, $value) {
+        const observer = this._locator.getArrayObserver($value);
         observer.subscribe(this);
         return observer;
     }
@@ -10827,6 +10807,7 @@ exports.Case = class Case {
         return (_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor);
     }
 };
+/** @internal */ exports.Case.inject = [IViewFactory, runtime.IObserverLocator, IRenderLocation, kernel.ILogger];
 __decorate([
     bindable
 ], exports.Case.prototype, "value", void 0);
@@ -10844,11 +10825,7 @@ __decorate([
     })
 ], exports.Case.prototype, "fallThrough", void 0);
 exports.Case = __decorate([
-    templateController('case'),
-    __param(0, IViewFactory),
-    __param(1, runtime.IObserverLocator),
-    __param(2, IRenderLocation),
-    __param(3, kernel.ILogger)
+    templateController('case')
 ], exports.Case);
 exports.DefaultCase = class DefaultCase extends exports.Case {
     linkToSwitch($switch) {
@@ -10863,17 +10840,20 @@ exports.DefaultCase = __decorate([
 ], exports.DefaultCase);
 
 exports.PromiseTemplateController = class PromiseTemplateController {
-    constructor(factory, location, platform, logger) {
-        this.factory = factory;
-        this.location = location;
-        this.platform = platform;
+    constructor(
+    /** @internal */ _factory, 
+    /** @internal */ _location, 
+    /** @internal */ _platform, logger) {
+        this._factory = _factory;
+        this._location = _location;
+        this._platform = _platform;
         this.id = kernel.nextId('au$component');
         this.preSettledTask = null;
         this.postSettledTask = null;
         this.logger = logger.scopeTo('promise.resolve');
     }
     link(_controller, _childController, _target, _instruction) {
-        this.view = this.factory.create(this.$controller).setLocation(this.location);
+        this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
     attaching(initiator, parent, flags) {
         const view = this.view;
@@ -10893,7 +10873,7 @@ exports.PromiseTemplateController = class PromiseTemplateController {
             this.logger.warn(`The value '${String(value)}' is not a promise. No change will be done.`);
             return;
         }
-        const q = this.platform.domWriteQueue;
+        const q = this._platform.domWriteQueue;
         const fulfilled = this.fulfilled;
         const rejected = this.rejected;
         const pending = this.pending;
@@ -11140,10 +11120,15 @@ function createElement(p, tagOrType, props, children) {
  * RenderPlan. Todo: describe goal of this class
  */
 class RenderPlan {
-    constructor(node, instructions, dependencies) {
+    constructor(
+    // 2 following props accessed in the test, can't mangle
+    // todo: refactor tests
+    /** @internal */ node, 
+    /** @internal */ instructions, 
+    /** @internal */ _dependencies) {
         this.node = node;
         this.instructions = instructions;
-        this.dependencies = dependencies;
+        this._dependencies = _dependencies;
         /** @internal */ this._lazyDef = void 0;
     }
     get definition() {
@@ -11153,7 +11138,7 @@ class RenderPlan {
                 template: this.node,
                 needsCompile: typeof this.node === 'string',
                 instructions: this.instructions,
-                dependencies: this.dependencies,
+                dependencies: this._dependencies,
             });
         }
         return this._lazyDef;
@@ -11162,13 +11147,13 @@ class RenderPlan {
         return this.getViewFactory(parentContainer).create();
     }
     getViewFactory(parentContainer) {
-        return parentContainer.root.get(IRendering).getViewFactory(this.definition, parentContainer.createChild().register(...this.dependencies));
+        return parentContainer.root.get(IRendering).getViewFactory(this.definition, parentContainer.createChild().register(...this._dependencies));
     }
     /** @internal */
     mergeInto(parent, instructions, dependencies) {
         parent.appendChild(this.node);
         instructions.push(...this.instructions);
-        dependencies.push(...this.dependencies);
+        dependencies.push(...this._dependencies);
     }
 }
 function createElementForTag(p, tagName, props, children) {
@@ -11312,15 +11297,18 @@ class AuRender {
             ? kernel.onResolve(subject, resolvedSubject => this._resolveView(resolvedSubject, flags))
             : view, resolvedView => this._activate(this.view = resolvedView, initiator, flags));
     }
+    /** @internal */
     _deactivate(view, initiator, flags) {
         return view === null || view === void 0 ? void 0 : view.deactivate(initiator !== null && initiator !== void 0 ? initiator : view, this.$controller, flags);
     }
+    /** @internal */
     _activate(view, initiator, flags) {
         const { $controller } = this;
         return kernel.onResolve(view === null || view === void 0 ? void 0 : view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, $controller.scope), () => {
             this.composing = false;
         });
     }
+    /** @internal */
     _resolveView(subject, flags) {
         const view = this._provideViewFor(subject, flags);
         if (view) {
@@ -11330,6 +11318,7 @@ class AuRender {
         }
         return void 0;
     }
+    /** @internal */
     _provideViewFor(comp, flags) {
         if (!comp) {
             return void 0;
@@ -11388,19 +11377,23 @@ function isController(subject) {
 // <au-component view.bind="<string>" model.bind="" />
 //
 class AuCompose {
-    constructor(ctn, parent, host, p, 
+    constructor(
+    /** @internal */ _container, 
+    /** @internal */ parent, 
+    /** @internal */ host, 
+    /** @internal */ _platform, 
     // todo: use this to retrieve au-slot instruction
     //        for later enhancement related to <au-slot/> + compose
     instruction, contextFactory) {
-        this.ctn = ctn;
+        this._container = _container;
         this.parent = parent;
         this.host = host;
-        this.p = p;
+        this._platform = _platform;
         this.scopeBehavior = 'auto';
         /** @internal */
         this._composition = void 0;
         this._location = instruction.containerless ? convertToRenderLocation(this.host) : void 0;
-        this._rendering = ctn.get(IRendering);
+        this._rendering = _container.get(IRendering);
         this._instruction = instruction;
         this._contextFactory = contextFactory;
     }
@@ -11490,7 +11483,7 @@ class AuCompose {
         //       should it throw or try it best to proceed?
         //       current: proceed
         const { view, viewModel, model, initiator } = context.change;
-        const { ctn: container, host, $controller, _location: loc } = this;
+        const { _container: container, host, $controller, _location: loc } = this;
         const srcDef = this.getDef(viewModel);
         const childCtn = container.createChild();
         const parentNode = loc == null ? host.parentNode : loc.parentNode;
@@ -11507,7 +11500,7 @@ class AuCompose {
             }
             else {
                 // todo: should the host be appended later, during the activation phase instead?
-                compositionHost = parentNode.insertBefore(this.p.document.createElement(srcDef.name), loc);
+                compositionHost = parentNode.insertBefore(this._platform.document.createElement(srcDef.name), loc);
                 removeCompositionHost = () => {
                     compositionHost.remove();
                 };
@@ -11574,7 +11567,7 @@ class AuCompose {
         if (typeof comp === 'object') {
             return comp;
         }
-        const p = this.p;
+        const p = this._platform;
         const isLocation = isRenderLocation(host);
         container.registerResolver(p.Element, container.registerResolver(INode, new kernel.InstanceProvider('ElementResolver', isLocation ? null : host)));
         container.registerResolver(IRenderLocation, new kernel.InstanceProvider('IRenderLocation', isLocation ? host : null));
@@ -11700,8 +11693,8 @@ class CompositionController {
 class AuSlot {
     constructor(location, instruction, hdrContext, rendering) {
         var _a, _b;
-        this._parentScope = null;
-        this._outerScope = null;
+        /** @internal */ this._parentScope = null;
+        /** @internal */ this._outerScope = null;
         let factory;
         const slotInfo = instruction.auSlot;
         const projection = (_b = (_a = hdrContext.instruction) === null || _a === void 0 ? void 0 : _a.projections) === null || _b === void 0 ? void 0 : _b[slotInfo.name];
@@ -11716,8 +11709,7 @@ class AuSlot {
         this._hdrContext = hdrContext;
         this.view = factory.create().setLocation(location);
     }
-    /** @internal */
-    static get inject() { return [IRenderLocation, IInstruction, IHydrationContext, IRendering]; }
+    /** @internal */ static get inject() { return [IRenderLocation, IInstruction, IHydrationContext, IRendering]; }
     binding(_initiator, _parent, _flags) {
         var _a;
         this._parentScope = this.$controller.scope.parentScope;
@@ -11770,8 +11762,9 @@ const ISanitizer = kernel.DI.createInterface('ISanitizer', x => x.singleton(clas
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */
 exports.SanitizeValueConverter = class SanitizeValueConverter {
-    constructor(sanitizer) {
-        this.sanitizer = sanitizer;
+    constructor(
+    /** @internal */ _sanitizer) {
+        this._sanitizer = _sanitizer;
     }
     /**
      * Process the provided markup that flows to the view.
@@ -11782,7 +11775,7 @@ exports.SanitizeValueConverter = class SanitizeValueConverter {
         if (untrustedMarkup == null) {
             return null;
         }
-        return this.sanitizer.sanitize(untrustedMarkup);
+        return this._sanitizer.sanitize(untrustedMarkup);
     }
 };
 exports.SanitizeValueConverter = __decorate([
@@ -11791,11 +11784,12 @@ exports.SanitizeValueConverter = __decorate([
 runtime.valueConverter('sanitize')(exports.SanitizeValueConverter);
 
 exports.ViewValueConverter = class ViewValueConverter {
-    constructor(viewLocator) {
-        this.viewLocator = viewLocator;
+    constructor(
+    /** @internal */ _viewLocator) {
+        this._viewLocator = _viewLocator;
     }
     toView(object, viewNameOrSelector) {
-        return this.viewLocator.getViewComponentForObject(object, viewNameOrSelector);
+        return this._viewLocator.getViewComponentForObject(object, viewNameOrSelector);
     }
 };
 exports.ViewValueConverter = __decorate([
@@ -11911,7 +11905,7 @@ const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior;
 const AuRenderRegistration = AuRender;
 const AuComposeRegistration = AuCompose;
 const PortalRegistration = Portal;
-const FocusRegistration = exports.Focus;
+const FocusRegistration = Focus;
 const ShowRegistration = Show;
 /**
  * Default HTML-specific (but environment-agnostic) resources:
@@ -12930,6 +12924,7 @@ exports.ElseRegistration = ElseRegistration;
 exports.EventDelegator = EventDelegator;
 exports.EventSubscriber = EventSubscriber;
 exports.ExpressionWatcher = ExpressionWatcher;
+exports.Focus = Focus;
 exports.ForBindingCommandRegistration = ForBindingCommandRegistration;
 exports.FragmentNodeSequence = FragmentNodeSequence;
 exports.FrequentMutations = FrequentMutations;

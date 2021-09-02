@@ -3,9 +3,6 @@ import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
 export declare class With implements ICustomAttributeViewModel {
-    private readonly factory;
-    private readonly location;
-    static inject: (import("@aurelia/kernel").InterfaceSymbol<IViewFactory> | import("@aurelia/kernel").InterfaceSymbol<IRenderLocation<ChildNode>>)[];
     readonly id: number;
     view: ISyntheticView;
     readonly $controller: ICustomAttributeController<this>;

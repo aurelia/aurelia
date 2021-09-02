@@ -191,12 +191,12 @@ class BindableObserver {
         this.o = t;
         this.k = e;
         this.cb = h ? o : s.noop;
-        this.l = c ? l : s.noop;
+        this.u = c ? l : s.noop;
         if (void 0 === this.cb && !c && !a) this.iO = false; else {
             this.iO = true;
             u = t[e];
             this.v = a && void 0 !== u ? n(u) : u;
-            this.u();
+            this.C();
         }
     }
     get type() {
@@ -215,7 +215,7 @@ class BindableObserver {
             this.f = e;
             if (null == this.$controller || this.$controller.isBound) {
                 if (this.t) this.cb.call(this.o, t, s, e);
-                if (this.i) this.l.call(this.o, this.k, t, s, e);
+                if (this.i) this.u.call(this.o, this.k, t, s, e);
             }
             this.queue.add(this);
         } else this.o[this.k] = t;
@@ -224,7 +224,7 @@ class BindableObserver {
         if (false === !this.iO) {
             this.iO = true;
             this.v = this.hs ? this.set(this.o[this.k]) : this.o[this.k];
-            this.u();
+            this.C();
         }
         this.subs.add(t);
     }
@@ -233,7 +233,7 @@ class BindableObserver {
         this.ov = this.v;
         this.subs.notify(this.v, b, this.f);
     }
-    u() {
+    C() {
         Reflect.defineProperty(this.o, this.k, {
             enumerable: true,
             configurable: true,
@@ -259,47 +259,47 @@ class CharSpec {
         this.isInverted = i;
         if (i) switch (t.length) {
           case 0:
-            this.has = this.C;
-            break;
-
-          case 1:
             this.has = this.A;
             break;
 
-          default:
+          case 1:
             this.has = this.R;
-        } else switch (t.length) {
-          case 0:
-            this.has = this.B;
             break;
 
-          case 1:
+          default:
+            this.has = this.B;
+        } else switch (t.length) {
+          case 0:
             this.has = this.I;
             break;
 
-          default:
+          case 1:
             this.has = this.T;
+            break;
+
+          default:
+            this.has = this.P;
         }
     }
     equals(t) {
         return this.chars === t.chars && this.repeat === t.repeat && this.isSymbol === t.isSymbol && this.isInverted === t.isInverted;
     }
-    T(t) {
+    P(t) {
         return this.chars.includes(t);
     }
-    I(t) {
+    T(t) {
         return this.chars === t;
     }
-    B(t) {
+    I(t) {
         return false;
     }
-    R(t) {
+    B(t) {
         return !this.chars.includes(t);
     }
-    A(t) {
+    R(t) {
         return this.chars !== t;
     }
-    C(t) {
+    A(t) {
         return true;
     }
 }
@@ -307,32 +307,32 @@ class CharSpec {
 class Interpretation {
     constructor() {
         this.parts = s.emptyArray;
-        this.P = "";
-        this.$ = {};
+        this.$ = "";
         this.O = {};
+        this.L = {};
     }
     get pattern() {
-        const t = this.P;
+        const t = this.$;
         if ("" === t) return null; else return t;
     }
     set pattern(t) {
         if (null == t) {
-            this.P = "";
+            this.$ = "";
             this.parts = s.emptyArray;
         } else {
-            this.P = t;
-            this.parts = this.O[t];
+            this.$ = t;
+            this.parts = this.L[t];
         }
     }
     append(t, e) {
-        const s = this.$;
+        const s = this.O;
         if (void 0 === s[t]) s[t] = e; else s[t] += e;
     }
     next(t) {
-        const e = this.$;
+        const e = this.O;
         let s;
         if (void 0 !== e[t]) {
-            s = this.O;
+            s = this.L;
             if (void 0 === s[t]) s[t] = [ e[t] ]; else s[t].push(e[t]);
             e[t] = void 0;
         }
@@ -562,9 +562,9 @@ const R = s.DI.createInterface("IAttributeParser", (t => t.singleton(AttributePa
 
 class AttributeParser {
     constructor(t, e) {
-        this.L = {};
-        this.q = t;
-        const i = this.U = {};
+        this.q = {};
+        this.U = t;
+        const i = this.F = {};
         const n = e.reduce(((t, e) => {
             const s = I(e.constructor);
             s.forEach((t => i[t.pattern] = e));
@@ -573,10 +573,10 @@ class AttributeParser {
         t.add(n);
     }
     parse(t, e) {
-        let s = this.L[t];
-        if (null == s) s = this.L[t] = this.q.interpret(t);
+        let s = this.q[t];
+        if (null == s) s = this.q[t] = this.U.interpret(t);
         const i = s.pattern;
-        if (null == i) return new AttrSyntax(t, e, t, null); else return this.U[i][i](t, e, s.parts);
+        if (null == i) return new AttrSyntax(t, e, t, null); else return this.F[i][i](t, e, s.parts);
     }
 }
 
@@ -676,7 +676,7 @@ exports.AtPrefixedTriggerAttributePattern = n([ S({
 
 let D = class SpreadAttributePattern {
     "...$attrs"(t, e, s) {
-        return new AttrSyntax("...$attrs", "", "", "...$attrs");
+        return new AttrSyntax(t, e, "", "...$attrs");
     }
 };
 
@@ -708,7 +708,7 @@ class NoopSVGAnalyzer {
     }
 }
 
-function M(t) {
+function F(t) {
     const e = P();
     let s;
     for (s of t) e[s] = true;
@@ -717,99 +717,99 @@ function M(t) {
 
 class SVGAnalyzer {
     constructor(t) {
-        this.M = Object.assign(P(), {
-            a: M([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "target", "transform", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
-            altGlyph: M([ "class", "dx", "dy", "externalResourcesRequired", "format", "glyphRef", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "rotate", "style", "systemLanguage", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
+        this._ = Object.assign(P(), {
+            a: F([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "target", "transform", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
+            altGlyph: F([ "class", "dx", "dy", "externalResourcesRequired", "format", "glyphRef", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "rotate", "style", "systemLanguage", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
             altglyph: P(),
-            altGlyphDef: M([ "id", "xml:base", "xml:lang", "xml:space" ]),
+            altGlyphDef: F([ "id", "xml:base", "xml:lang", "xml:space" ]),
             altglyphdef: P(),
-            altGlyphItem: M([ "id", "xml:base", "xml:lang", "xml:space" ]),
+            altGlyphItem: F([ "id", "xml:base", "xml:lang", "xml:space" ]),
             altglyphitem: P(),
-            animate: M([ "accumulate", "additive", "attributeName", "attributeType", "begin", "by", "calcMode", "dur", "end", "externalResourcesRequired", "fill", "from", "id", "keySplines", "keyTimes", "max", "min", "onbegin", "onend", "onload", "onrepeat", "repeatCount", "repeatDur", "requiredExtensions", "requiredFeatures", "restart", "systemLanguage", "to", "values", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
-            animateColor: M([ "accumulate", "additive", "attributeName", "attributeType", "begin", "by", "calcMode", "dur", "end", "externalResourcesRequired", "fill", "from", "id", "keySplines", "keyTimes", "max", "min", "onbegin", "onend", "onload", "onrepeat", "repeatCount", "repeatDur", "requiredExtensions", "requiredFeatures", "restart", "systemLanguage", "to", "values", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
-            animateMotion: M([ "accumulate", "additive", "begin", "by", "calcMode", "dur", "end", "externalResourcesRequired", "fill", "from", "id", "keyPoints", "keySplines", "keyTimes", "max", "min", "onbegin", "onend", "onload", "onrepeat", "origin", "path", "repeatCount", "repeatDur", "requiredExtensions", "requiredFeatures", "restart", "rotate", "systemLanguage", "to", "values", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
-            animateTransform: M([ "accumulate", "additive", "attributeName", "attributeType", "begin", "by", "calcMode", "dur", "end", "externalResourcesRequired", "fill", "from", "id", "keySplines", "keyTimes", "max", "min", "onbegin", "onend", "onload", "onrepeat", "repeatCount", "repeatDur", "requiredExtensions", "requiredFeatures", "restart", "systemLanguage", "to", "type", "values", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
-            circle: M([ "class", "cx", "cy", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "r", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
-            clipPath: M([ "class", "clipPathUnits", "externalResourcesRequired", "id", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
-            "color-profile": M([ "id", "local", "name", "rendering-intent", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
-            cursor: M([ "externalResourcesRequired", "id", "requiredExtensions", "requiredFeatures", "systemLanguage", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
-            defs: M([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
-            desc: M([ "class", "id", "style", "xml:base", "xml:lang", "xml:space" ]),
-            ellipse: M([ "class", "cx", "cy", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "rx", "ry", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
-            feBlend: M([ "class", "height", "id", "in", "in2", "mode", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feColorMatrix: M([ "class", "height", "id", "in", "result", "style", "type", "values", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feComponentTransfer: M([ "class", "height", "id", "in", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feComposite: M([ "class", "height", "id", "in", "in2", "k1", "k2", "k3", "k4", "operator", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feConvolveMatrix: M([ "bias", "class", "divisor", "edgeMode", "height", "id", "in", "kernelMatrix", "kernelUnitLength", "order", "preserveAlpha", "result", "style", "targetX", "targetY", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feDiffuseLighting: M([ "class", "diffuseConstant", "height", "id", "in", "kernelUnitLength", "result", "style", "surfaceScale", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feDisplacementMap: M([ "class", "height", "id", "in", "in2", "result", "scale", "style", "width", "x", "xChannelSelector", "xml:base", "xml:lang", "xml:space", "y", "yChannelSelector" ]),
-            feDistantLight: M([ "azimuth", "elevation", "id", "xml:base", "xml:lang", "xml:space" ]),
-            feFlood: M([ "class", "height", "id", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feFuncA: M([ "amplitude", "exponent", "id", "intercept", "offset", "slope", "tableValues", "type", "xml:base", "xml:lang", "xml:space" ]),
-            feFuncB: M([ "amplitude", "exponent", "id", "intercept", "offset", "slope", "tableValues", "type", "xml:base", "xml:lang", "xml:space" ]),
-            feFuncG: M([ "amplitude", "exponent", "id", "intercept", "offset", "slope", "tableValues", "type", "xml:base", "xml:lang", "xml:space" ]),
-            feFuncR: M([ "amplitude", "exponent", "id", "intercept", "offset", "slope", "tableValues", "type", "xml:base", "xml:lang", "xml:space" ]),
-            feGaussianBlur: M([ "class", "height", "id", "in", "result", "stdDeviation", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feImage: M([ "class", "externalResourcesRequired", "height", "id", "preserveAspectRatio", "result", "style", "width", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feMerge: M([ "class", "height", "id", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feMergeNode: M([ "id", "xml:base", "xml:lang", "xml:space" ]),
-            feMorphology: M([ "class", "height", "id", "in", "operator", "radius", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feOffset: M([ "class", "dx", "dy", "height", "id", "in", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            fePointLight: M([ "id", "x", "xml:base", "xml:lang", "xml:space", "y", "z" ]),
-            feSpecularLighting: M([ "class", "height", "id", "in", "kernelUnitLength", "result", "specularConstant", "specularExponent", "style", "surfaceScale", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feSpotLight: M([ "id", "limitingConeAngle", "pointsAtX", "pointsAtY", "pointsAtZ", "specularExponent", "x", "xml:base", "xml:lang", "xml:space", "y", "z" ]),
-            feTile: M([ "class", "height", "id", "in", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            feTurbulence: M([ "baseFrequency", "class", "height", "id", "numOctaves", "result", "seed", "stitchTiles", "style", "type", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            filter: M([ "class", "externalResourcesRequired", "filterRes", "filterUnits", "height", "id", "primitiveUnits", "style", "width", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
-            font: M([ "class", "externalResourcesRequired", "horiz-adv-x", "horiz-origin-x", "horiz-origin-y", "id", "style", "vert-adv-y", "vert-origin-x", "vert-origin-y", "xml:base", "xml:lang", "xml:space" ]),
-            "font-face": M([ "accent-height", "alphabetic", "ascent", "bbox", "cap-height", "descent", "font-family", "font-size", "font-stretch", "font-style", "font-variant", "font-weight", "hanging", "id", "ideographic", "mathematical", "overline-position", "overline-thickness", "panose-1", "slope", "stemh", "stemv", "strikethrough-position", "strikethrough-thickness", "underline-position", "underline-thickness", "unicode-range", "units-per-em", "v-alphabetic", "v-hanging", "v-ideographic", "v-mathematical", "widths", "x-height", "xml:base", "xml:lang", "xml:space" ]),
-            "font-face-format": M([ "id", "string", "xml:base", "xml:lang", "xml:space" ]),
-            "font-face-name": M([ "id", "name", "xml:base", "xml:lang", "xml:space" ]),
-            "font-face-src": M([ "id", "xml:base", "xml:lang", "xml:space" ]),
-            "font-face-uri": M([ "id", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
-            foreignObject: M([ "class", "externalResourcesRequired", "height", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            g: M([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
-            glyph: M([ "arabic-form", "class", "d", "glyph-name", "horiz-adv-x", "id", "lang", "orientation", "style", "unicode", "vert-adv-y", "vert-origin-x", "vert-origin-y", "xml:base", "xml:lang", "xml:space" ]),
-            glyphRef: M([ "class", "dx", "dy", "format", "glyphRef", "id", "style", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
+            animate: F([ "accumulate", "additive", "attributeName", "attributeType", "begin", "by", "calcMode", "dur", "end", "externalResourcesRequired", "fill", "from", "id", "keySplines", "keyTimes", "max", "min", "onbegin", "onend", "onload", "onrepeat", "repeatCount", "repeatDur", "requiredExtensions", "requiredFeatures", "restart", "systemLanguage", "to", "values", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
+            animateColor: F([ "accumulate", "additive", "attributeName", "attributeType", "begin", "by", "calcMode", "dur", "end", "externalResourcesRequired", "fill", "from", "id", "keySplines", "keyTimes", "max", "min", "onbegin", "onend", "onload", "onrepeat", "repeatCount", "repeatDur", "requiredExtensions", "requiredFeatures", "restart", "systemLanguage", "to", "values", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
+            animateMotion: F([ "accumulate", "additive", "begin", "by", "calcMode", "dur", "end", "externalResourcesRequired", "fill", "from", "id", "keyPoints", "keySplines", "keyTimes", "max", "min", "onbegin", "onend", "onload", "onrepeat", "origin", "path", "repeatCount", "repeatDur", "requiredExtensions", "requiredFeatures", "restart", "rotate", "systemLanguage", "to", "values", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
+            animateTransform: F([ "accumulate", "additive", "attributeName", "attributeType", "begin", "by", "calcMode", "dur", "end", "externalResourcesRequired", "fill", "from", "id", "keySplines", "keyTimes", "max", "min", "onbegin", "onend", "onload", "onrepeat", "repeatCount", "repeatDur", "requiredExtensions", "requiredFeatures", "restart", "systemLanguage", "to", "type", "values", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
+            circle: F([ "class", "cx", "cy", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "r", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
+            clipPath: F([ "class", "clipPathUnits", "externalResourcesRequired", "id", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
+            "color-profile": F([ "id", "local", "name", "rendering-intent", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
+            cursor: F([ "externalResourcesRequired", "id", "requiredExtensions", "requiredFeatures", "systemLanguage", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
+            defs: F([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
+            desc: F([ "class", "id", "style", "xml:base", "xml:lang", "xml:space" ]),
+            ellipse: F([ "class", "cx", "cy", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "rx", "ry", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
+            feBlend: F([ "class", "height", "id", "in", "in2", "mode", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feColorMatrix: F([ "class", "height", "id", "in", "result", "style", "type", "values", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feComponentTransfer: F([ "class", "height", "id", "in", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feComposite: F([ "class", "height", "id", "in", "in2", "k1", "k2", "k3", "k4", "operator", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feConvolveMatrix: F([ "bias", "class", "divisor", "edgeMode", "height", "id", "in", "kernelMatrix", "kernelUnitLength", "order", "preserveAlpha", "result", "style", "targetX", "targetY", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feDiffuseLighting: F([ "class", "diffuseConstant", "height", "id", "in", "kernelUnitLength", "result", "style", "surfaceScale", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feDisplacementMap: F([ "class", "height", "id", "in", "in2", "result", "scale", "style", "width", "x", "xChannelSelector", "xml:base", "xml:lang", "xml:space", "y", "yChannelSelector" ]),
+            feDistantLight: F([ "azimuth", "elevation", "id", "xml:base", "xml:lang", "xml:space" ]),
+            feFlood: F([ "class", "height", "id", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feFuncA: F([ "amplitude", "exponent", "id", "intercept", "offset", "slope", "tableValues", "type", "xml:base", "xml:lang", "xml:space" ]),
+            feFuncB: F([ "amplitude", "exponent", "id", "intercept", "offset", "slope", "tableValues", "type", "xml:base", "xml:lang", "xml:space" ]),
+            feFuncG: F([ "amplitude", "exponent", "id", "intercept", "offset", "slope", "tableValues", "type", "xml:base", "xml:lang", "xml:space" ]),
+            feFuncR: F([ "amplitude", "exponent", "id", "intercept", "offset", "slope", "tableValues", "type", "xml:base", "xml:lang", "xml:space" ]),
+            feGaussianBlur: F([ "class", "height", "id", "in", "result", "stdDeviation", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feImage: F([ "class", "externalResourcesRequired", "height", "id", "preserveAspectRatio", "result", "style", "width", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feMerge: F([ "class", "height", "id", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feMergeNode: F([ "id", "xml:base", "xml:lang", "xml:space" ]),
+            feMorphology: F([ "class", "height", "id", "in", "operator", "radius", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feOffset: F([ "class", "dx", "dy", "height", "id", "in", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            fePointLight: F([ "id", "x", "xml:base", "xml:lang", "xml:space", "y", "z" ]),
+            feSpecularLighting: F([ "class", "height", "id", "in", "kernelUnitLength", "result", "specularConstant", "specularExponent", "style", "surfaceScale", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feSpotLight: F([ "id", "limitingConeAngle", "pointsAtX", "pointsAtY", "pointsAtZ", "specularExponent", "x", "xml:base", "xml:lang", "xml:space", "y", "z" ]),
+            feTile: F([ "class", "height", "id", "in", "result", "style", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            feTurbulence: F([ "baseFrequency", "class", "height", "id", "numOctaves", "result", "seed", "stitchTiles", "style", "type", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            filter: F([ "class", "externalResourcesRequired", "filterRes", "filterUnits", "height", "id", "primitiveUnits", "style", "width", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
+            font: F([ "class", "externalResourcesRequired", "horiz-adv-x", "horiz-origin-x", "horiz-origin-y", "id", "style", "vert-adv-y", "vert-origin-x", "vert-origin-y", "xml:base", "xml:lang", "xml:space" ]),
+            "font-face": F([ "accent-height", "alphabetic", "ascent", "bbox", "cap-height", "descent", "font-family", "font-size", "font-stretch", "font-style", "font-variant", "font-weight", "hanging", "id", "ideographic", "mathematical", "overline-position", "overline-thickness", "panose-1", "slope", "stemh", "stemv", "strikethrough-position", "strikethrough-thickness", "underline-position", "underline-thickness", "unicode-range", "units-per-em", "v-alphabetic", "v-hanging", "v-ideographic", "v-mathematical", "widths", "x-height", "xml:base", "xml:lang", "xml:space" ]),
+            "font-face-format": F([ "id", "string", "xml:base", "xml:lang", "xml:space" ]),
+            "font-face-name": F([ "id", "name", "xml:base", "xml:lang", "xml:space" ]),
+            "font-face-src": F([ "id", "xml:base", "xml:lang", "xml:space" ]),
+            "font-face-uri": F([ "id", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
+            foreignObject: F([ "class", "externalResourcesRequired", "height", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            g: F([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
+            glyph: F([ "arabic-form", "class", "d", "glyph-name", "horiz-adv-x", "id", "lang", "orientation", "style", "unicode", "vert-adv-y", "vert-origin-x", "vert-origin-y", "xml:base", "xml:lang", "xml:space" ]),
+            glyphRef: F([ "class", "dx", "dy", "format", "glyphRef", "id", "style", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
             glyphref: P(),
-            hkern: M([ "g1", "g2", "id", "k", "u1", "u2", "xml:base", "xml:lang", "xml:space" ]),
-            image: M([ "class", "externalResourcesRequired", "height", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "preserveAspectRatio", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "width", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
-            line: M([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "x1", "x2", "xml:base", "xml:lang", "xml:space", "y1", "y2" ]),
-            linearGradient: M([ "class", "externalResourcesRequired", "gradientTransform", "gradientUnits", "id", "spreadMethod", "style", "x1", "x2", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y1", "y2" ]),
-            marker: M([ "class", "externalResourcesRequired", "id", "markerHeight", "markerUnits", "markerWidth", "orient", "preserveAspectRatio", "refX", "refY", "style", "viewBox", "xml:base", "xml:lang", "xml:space" ]),
-            mask: M([ "class", "externalResourcesRequired", "height", "id", "maskContentUnits", "maskUnits", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            metadata: M([ "id", "xml:base", "xml:lang", "xml:space" ]),
-            "missing-glyph": M([ "class", "d", "horiz-adv-x", "id", "style", "vert-adv-y", "vert-origin-x", "vert-origin-y", "xml:base", "xml:lang", "xml:space" ]),
-            mpath: M([ "externalResourcesRequired", "id", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
-            path: M([ "class", "d", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "pathLength", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
-            pattern: M([ "class", "externalResourcesRequired", "height", "id", "patternContentUnits", "patternTransform", "patternUnits", "preserveAspectRatio", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "viewBox", "width", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
-            polygon: M([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "points", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
-            polyline: M([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "points", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
-            radialGradient: M([ "class", "cx", "cy", "externalResourcesRequired", "fx", "fy", "gradientTransform", "gradientUnits", "id", "r", "spreadMethod", "style", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
-            rect: M([ "class", "externalResourcesRequired", "height", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "rx", "ry", "style", "systemLanguage", "transform", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            script: M([ "externalResourcesRequired", "id", "type", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
-            set: M([ "attributeName", "attributeType", "begin", "dur", "end", "externalResourcesRequired", "fill", "id", "max", "min", "onbegin", "onend", "onload", "onrepeat", "repeatCount", "repeatDur", "requiredExtensions", "requiredFeatures", "restart", "systemLanguage", "to", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
-            stop: M([ "class", "id", "offset", "style", "xml:base", "xml:lang", "xml:space" ]),
-            style: M([ "id", "media", "title", "type", "xml:base", "xml:lang", "xml:space" ]),
-            svg: M([ "baseProfile", "class", "contentScriptType", "contentStyleType", "externalResourcesRequired", "height", "id", "onabort", "onactivate", "onclick", "onerror", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onresize", "onscroll", "onunload", "onzoom", "preserveAspectRatio", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "version", "viewBox", "width", "x", "xml:base", "xml:lang", "xml:space", "y", "zoomAndPan" ]),
-            switch: M([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
-            symbol: M([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "preserveAspectRatio", "style", "viewBox", "xml:base", "xml:lang", "xml:space" ]),
-            text: M([ "class", "dx", "dy", "externalResourcesRequired", "id", "lengthAdjust", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "rotate", "style", "systemLanguage", "textLength", "transform", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            textPath: M([ "class", "externalResourcesRequired", "id", "lengthAdjust", "method", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "spacing", "startOffset", "style", "systemLanguage", "textLength", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
-            title: M([ "class", "id", "style", "xml:base", "xml:lang", "xml:space" ]),
-            tref: M([ "class", "dx", "dy", "externalResourcesRequired", "id", "lengthAdjust", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "rotate", "style", "systemLanguage", "textLength", "x", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
-            tspan: M([ "class", "dx", "dy", "externalResourcesRequired", "id", "lengthAdjust", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "rotate", "style", "systemLanguage", "textLength", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
-            use: M([ "class", "externalResourcesRequired", "height", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "width", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
-            view: M([ "externalResourcesRequired", "id", "preserveAspectRatio", "viewBox", "viewTarget", "xml:base", "xml:lang", "xml:space", "zoomAndPan" ]),
-            vkern: M([ "g1", "g2", "id", "k", "u1", "u2", "xml:base", "xml:lang", "xml:space" ])
+            hkern: F([ "g1", "g2", "id", "k", "u1", "u2", "xml:base", "xml:lang", "xml:space" ]),
+            image: F([ "class", "externalResourcesRequired", "height", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "preserveAspectRatio", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "width", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
+            line: F([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "x1", "x2", "xml:base", "xml:lang", "xml:space", "y1", "y2" ]),
+            linearGradient: F([ "class", "externalResourcesRequired", "gradientTransform", "gradientUnits", "id", "spreadMethod", "style", "x1", "x2", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y1", "y2" ]),
+            marker: F([ "class", "externalResourcesRequired", "id", "markerHeight", "markerUnits", "markerWidth", "orient", "preserveAspectRatio", "refX", "refY", "style", "viewBox", "xml:base", "xml:lang", "xml:space" ]),
+            mask: F([ "class", "externalResourcesRequired", "height", "id", "maskContentUnits", "maskUnits", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            metadata: F([ "id", "xml:base", "xml:lang", "xml:space" ]),
+            "missing-glyph": F([ "class", "d", "horiz-adv-x", "id", "style", "vert-adv-y", "vert-origin-x", "vert-origin-y", "xml:base", "xml:lang", "xml:space" ]),
+            mpath: F([ "externalResourcesRequired", "id", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
+            path: F([ "class", "d", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "pathLength", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
+            pattern: F([ "class", "externalResourcesRequired", "height", "id", "patternContentUnits", "patternTransform", "patternUnits", "preserveAspectRatio", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "viewBox", "width", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
+            polygon: F([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "points", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
+            polyline: F([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "points", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
+            radialGradient: F([ "class", "cx", "cy", "externalResourcesRequired", "fx", "fy", "gradientTransform", "gradientUnits", "id", "r", "spreadMethod", "style", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
+            rect: F([ "class", "externalResourcesRequired", "height", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "rx", "ry", "style", "systemLanguage", "transform", "width", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            script: F([ "externalResourcesRequired", "id", "type", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
+            set: F([ "attributeName", "attributeType", "begin", "dur", "end", "externalResourcesRequired", "fill", "id", "max", "min", "onbegin", "onend", "onload", "onrepeat", "repeatCount", "repeatDur", "requiredExtensions", "requiredFeatures", "restart", "systemLanguage", "to", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
+            stop: F([ "class", "id", "offset", "style", "xml:base", "xml:lang", "xml:space" ]),
+            style: F([ "id", "media", "title", "type", "xml:base", "xml:lang", "xml:space" ]),
+            svg: F([ "baseProfile", "class", "contentScriptType", "contentStyleType", "externalResourcesRequired", "height", "id", "onabort", "onactivate", "onclick", "onerror", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onresize", "onscroll", "onunload", "onzoom", "preserveAspectRatio", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "version", "viewBox", "width", "x", "xml:base", "xml:lang", "xml:space", "y", "zoomAndPan" ]),
+            switch: F([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "xml:base", "xml:lang", "xml:space" ]),
+            symbol: F([ "class", "externalResourcesRequired", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "preserveAspectRatio", "style", "viewBox", "xml:base", "xml:lang", "xml:space" ]),
+            text: F([ "class", "dx", "dy", "externalResourcesRequired", "id", "lengthAdjust", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "rotate", "style", "systemLanguage", "textLength", "transform", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            textPath: F([ "class", "externalResourcesRequired", "id", "lengthAdjust", "method", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "spacing", "startOffset", "style", "systemLanguage", "textLength", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space" ]),
+            title: F([ "class", "id", "style", "xml:base", "xml:lang", "xml:space" ]),
+            tref: F([ "class", "dx", "dy", "externalResourcesRequired", "id", "lengthAdjust", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "rotate", "style", "systemLanguage", "textLength", "x", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
+            tspan: F([ "class", "dx", "dy", "externalResourcesRequired", "id", "lengthAdjust", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "rotate", "style", "systemLanguage", "textLength", "x", "xml:base", "xml:lang", "xml:space", "y" ]),
+            use: F([ "class", "externalResourcesRequired", "height", "id", "onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "requiredExtensions", "requiredFeatures", "style", "systemLanguage", "transform", "width", "x", "xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type", "xml:base", "xml:lang", "xml:space", "y" ]),
+            view: F([ "externalResourcesRequired", "id", "preserveAspectRatio", "viewBox", "viewTarget", "xml:base", "xml:lang", "xml:space", "zoomAndPan" ]),
+            vkern: F([ "g1", "g2", "id", "k", "u1", "u2", "xml:base", "xml:lang", "xml:space" ])
         });
-        this.F = M([ "a", "altGlyph", "animate", "animateColor", "circle", "clipPath", "defs", "ellipse", "feBlend", "feColorMatrix", "feComponentTransfer", "feComposite", "feConvolveMatrix", "feDiffuseLighting", "feDisplacementMap", "feFlood", "feGaussianBlur", "feImage", "feMerge", "feMorphology", "feOffset", "feSpecularLighting", "feTile", "feTurbulence", "filter", "font", "foreignObject", "g", "glyph", "glyphRef", "image", "line", "linearGradient", "marker", "mask", "missing-glyph", "path", "pattern", "polygon", "polyline", "radialGradient", "rect", "stop", "svg", "switch", "symbol", "text", "textPath", "tref", "tspan", "use" ]);
-        this.V = M([ "alignment-baseline", "baseline-shift", "clip-path", "clip-rule", "clip", "color-interpolation-filters", "color-interpolation", "color-profile", "color-rendering", "color", "cursor", "direction", "display", "dominant-baseline", "enable-background", "fill-opacity", "fill-rule", "fill", "filter", "flood-color", "flood-opacity", "font-family", "font-size-adjust", "font-size", "font-stretch", "font-style", "font-variant", "font-weight", "glyph-orientation-horizontal", "glyph-orientation-vertical", "image-rendering", "kerning", "letter-spacing", "lighting-color", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "overflow", "pointer-events", "shape-rendering", "stop-color", "stop-opacity", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "stroke", "text-anchor", "text-decoration", "text-rendering", "unicode-bidi", "visibility", "word-spacing", "writing-mode" ]);
+        this.M = F([ "a", "altGlyph", "animate", "animateColor", "circle", "clipPath", "defs", "ellipse", "feBlend", "feColorMatrix", "feComponentTransfer", "feComposite", "feConvolveMatrix", "feDiffuseLighting", "feDisplacementMap", "feFlood", "feGaussianBlur", "feImage", "feMerge", "feMorphology", "feOffset", "feSpecularLighting", "feTile", "feTurbulence", "filter", "font", "foreignObject", "g", "glyph", "glyphRef", "image", "line", "linearGradient", "marker", "mask", "missing-glyph", "path", "pattern", "polygon", "polyline", "radialGradient", "rect", "stop", "svg", "switch", "symbol", "text", "textPath", "tref", "tspan", "use" ]);
+        this.V = F([ "alignment-baseline", "baseline-shift", "clip-path", "clip-rule", "clip", "color-interpolation-filters", "color-interpolation", "color-profile", "color-rendering", "color", "cursor", "direction", "display", "dominant-baseline", "enable-background", "fill-opacity", "fill-rule", "fill", "filter", "flood-color", "flood-opacity", "font-family", "font-size-adjust", "font-size", "font-stretch", "font-style", "font-variant", "font-weight", "glyph-orientation-horizontal", "glyph-orientation-vertical", "image-rendering", "kerning", "letter-spacing", "lighting-color", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "overflow", "pointer-events", "shape-rendering", "stop-color", "stop-opacity", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "stroke", "text-anchor", "text-decoration", "text-rendering", "unicode-bidi", "visibility", "word-spacing", "writing-mode" ]);
         this.SVGElement = t.globalThis.SVGElement;
         const e = t.document.createElement("div");
         e.innerHTML = "<svg><altGlyph /></svg>";
         if ("altglyph" === e.firstElementChild.nodeName) {
-            const t = this.M;
+            const t = this._;
             let e = t.altGlyph;
             t.altGlyph = t.altglyph;
             t.altglyph = e;
@@ -830,20 +830,20 @@ class SVGAnalyzer {
     isStandardSvgAttribute(t, e) {
         var s;
         if (!(t instanceof this.SVGElement)) return false;
-        return true === this.F[t.nodeName] && true === this.V[e] || true === (null === (s = this.M[t.nodeName]) || void 0 === s ? void 0 : s[e]);
+        return true === this.M[t.nodeName] && true === this.V[e] || true === (null === (s = this._[t.nodeName]) || void 0 === s ? void 0 : s[e]);
     }
 }
 
 SVGAnalyzer.inject = [ q ];
 
-const F = s.DI.createInterface("IAttrMapper", (t => t.singleton(AttrMapper)));
+const _ = s.DI.createInterface("IAttrMapper", (t => t.singleton(AttrMapper)));
 
 class AttrMapper {
     constructor(t) {
         this.svg = t;
         this.fns = [];
         this.j = P();
-        this._ = P();
+        this.N = P();
         this.useMapping({
             LABEL: {
                 for: "htmlFor"
@@ -898,15 +898,15 @@ class AttrMapper {
             i = t[r];
             n = null !== (e = (s = this.j)[r]) && void 0 !== e ? e : s[r] = P();
             for (o in i) {
-                if (void 0 !== n[o]) throw j(o, r);
+                if (void 0 !== n[o]) throw V(o, r);
                 n[o] = i[o];
             }
         }
     }
     useGlobalMapping(t) {
-        const e = this._;
+        const e = this.N;
         for (const s in t) {
-            if (void 0 !== e[s]) throw j(s, "*");
+            if (void 0 !== e[s]) throw V(s, "*");
             e[s] = t[s];
         }
     }
@@ -914,15 +914,15 @@ class AttrMapper {
         this.fns.push(t);
     }
     isTwoWay(t, e) {
-        return V(t, e) || this.fns.length > 0 && this.fns.some((s => s(t, e)));
+        return M(t, e) || this.fns.length > 0 && this.fns.some((s => s(t, e)));
     }
     map(t, e) {
         var s, i, n;
-        return null !== (n = null !== (i = null === (s = this.j[t.nodeName]) || void 0 === s ? void 0 : s[e]) && void 0 !== i ? i : this._[e]) && void 0 !== n ? n : L(t, e, this.svg) ? e : null;
+        return null !== (n = null !== (i = null === (s = this.j[t.nodeName]) || void 0 === s ? void 0 : s[e]) && void 0 !== i ? i : this.N[e]) && void 0 !== n ? n : L(t, e, this.svg) ? e : null;
     }
 }
 
-function V(t, e) {
+function M(t, e) {
     switch (t.nodeName) {
       case "INPUT":
         switch (t.type) {
@@ -954,7 +954,7 @@ function V(t, e) {
     }
 }
 
-function j(t, e) {
+function V(t, e) {
     return new Error(`Attribute ${t} has been already registered for ${"*" === e ? "all elements" : `<${e}/>`}`);
 }
 
@@ -1005,27 +1005,27 @@ class AttributeObserver {
         this.type = 2 | 1 | 4;
         this.v = null;
         this.ov = null;
-        this.N = false;
+        this.W = false;
         this.f = 0;
         this.o = t;
-        this.W = e;
-        this.H = s;
+        this.H = e;
+        this.G = s;
     }
     getValue() {
         return this.v;
     }
     setValue(t, e) {
         this.v = t;
-        this.N = t !== this.ov;
-        if (0 === (256 & e)) this.G();
+        this.W = t !== this.ov;
+        if (0 === (256 & e)) this.X();
     }
-    G() {
-        if (this.N) {
-            this.N = false;
+    X() {
+        if (this.W) {
+            this.W = false;
             this.ov = this.v;
-            switch (this.H) {
+            switch (this.G) {
               case "class":
-                this.o.classList.toggle(this.W, !!this.v);
+                this.o.classList.toggle(this.H, !!this.v);
                 break;
 
               case "style":
@@ -1036,12 +1036,12 @@ class AttributeObserver {
                         t = "important";
                         e = e.replace("!important", "");
                     }
-                    this.o.style.setProperty(this.W, e, t);
+                    this.o.style.setProperty(this.H, e, t);
                     break;
                 }
 
               default:
-                if (null == this.v) this.o.removeAttribute(this.H); else this.o.setAttribute(this.H, String(this.v));
+                if (null == this.v) this.o.removeAttribute(this.G); else this.o.setAttribute(this.G, String(this.v));
             }
         }
     }
@@ -1049,29 +1049,29 @@ class AttributeObserver {
         let e = false;
         for (let s = 0, i = t.length; i > s; ++s) {
             const i = t[s];
-            if ("attributes" === i.type && i.attributeName === this.W) {
+            if ("attributes" === i.type && i.attributeName === this.H) {
                 e = true;
                 break;
             }
         }
         if (e) {
             let t;
-            switch (this.H) {
+            switch (this.G) {
               case "class":
-                t = this.o.classList.contains(this.W);
+                t = this.o.classList.contains(this.H);
                 break;
 
               case "style":
-                t = this.o.style.getPropertyValue(this.W);
+                t = this.o.style.getPropertyValue(this.H);
                 break;
 
               default:
-                throw new Error(`AUR0651:${this.H}`);
+                throw new Error(`AUR0651:${this.G}`);
             }
             if (t !== this.v) {
                 this.ov = this.v;
                 this.v = t;
-                this.N = false;
+                this.W = false;
                 this.f = 0;
                 this.queue.add(this);
             }
@@ -1079,8 +1079,8 @@ class AttributeObserver {
     }
     subscribe(t) {
         if (this.subs.add(t) && 1 === this.subs.count) {
-            this.v = this.ov = this.o.getAttribute(this.W);
-            _(this.o.ownerDocument.defaultView.MutationObserver, this.o, this);
+            this.v = this.ov = this.o.getAttribute(this.H);
+            j(this.o.ownerDocument.defaultView.MutationObserver, this.o, this);
         }
     }
     unsubscribe(t) {
@@ -1097,7 +1097,7 @@ i.subscriberCollection(AttributeObserver);
 
 i.withFlushQueue(AttributeObserver);
 
-const _ = (t, e, s) => {
+const j = (t, e, s) => {
     if (void 0 === e.$eMObs) e.$eMObs = new Set;
     if (void 0 === e.$mObs) (e.$mObs = new t(W)).observe(e, {
         attributes: true
@@ -1473,7 +1473,7 @@ class LetBinding {
         this.task = null;
         this.target = null;
         this.oL = s;
-        this.X = n;
+        this.K = n;
     }
     handleChange(t, e, s) {
         if (!this.isBound) return;
@@ -1491,7 +1491,7 @@ class LetBinding {
             this.interceptor.$unbind(2 | t);
         }
         this.$scope = e;
-        this.target = this.X ? e.bindingContext : e.overrideContext;
+        this.target = this.K ? e.bindingContext : e.overrideContext;
         const s = this.sourceExpression;
         if (s.hasBind) s.bind(t, e, this.interceptor);
         this.target[this.targetProperty] = this.sourceExpression.evaluate(2 | t, e, this.locator, this.interceptor);
@@ -1797,7 +1797,7 @@ class ChildrenObserver {
             this.observing = true;
             this.children = this.get();
             (null !== (t = this.observer) && void 0 !== t ? t : this.observer = new this.controller.host.ownerDocument.defaultView.MutationObserver((() => {
-                this.K();
+                this.Y();
             }))).observe(this.controller.host, this.options);
         }
     }
@@ -1808,7 +1808,7 @@ class ChildrenObserver {
             this.children = s.emptyArray;
         }
     }
-    K() {
+    Y() {
         this.children = this.get();
         if (void 0 !== this.callback) this.callback.call(this.obj);
         this.subs.notify(this.children, void 0, 0);
@@ -1923,7 +1923,7 @@ const At = Object.freeze({
     },
     for(t, e) {
         var s;
-        return null !== (s = _e(t, kt(e))) && void 0 !== s ? s : void 0;
+        return null !== (s = je(t, kt(e))) && void 0 !== s ? s : void 0;
     },
     define(t, e) {
         const s = CustomAttributeDefinition.create(t, e);
@@ -1990,23 +1990,23 @@ function It(t) {
 
 function Tt(t) {
     if (void 0 === t) return function(t) {
-        _t(t, "shadowOptions", {
+        jt(t, "shadowOptions", {
             mode: "open"
         });
     };
     if ("function" !== typeof t) return function(e) {
-        _t(e, "shadowOptions", t);
+        jt(e, "shadowOptions", t);
     };
-    _t(t, "shadowOptions", {
+    jt(t, "shadowOptions", {
         mode: "open"
     });
 }
 
 function Dt(t) {
     if (void 0 === t) return function(t) {
-        _t(t, "containerless", true);
+        jt(t, "containerless", true);
     };
-    _t(t, "containerless", true);
+    jt(t, "containerless", true);
 }
 
 const Pt = new WeakMap;
@@ -2042,12 +2042,12 @@ class CustomElementDefinition {
         if (null === e) {
             const i = t;
             if ("string" === typeof i) throw new Error(`AUR0761:${t}`);
-            const n = s.fromDefinitionOrDefault("name", i, jt);
+            const n = s.fromDefinitionOrDefault("name", i, Vt);
             if ("function" === typeof i.Type) e = i.Type; else e = Wt.generateType(s.pascalCase(n));
-            return new CustomElementDefinition(e, n, s.mergeArrays(i.aliases), s.fromDefinitionOrDefault("key", i, (() => Wt.keyFrom(n))), s.fromDefinitionOrDefault("cache", i, Ot), s.fromDefinitionOrDefault("capture", i, qt), s.fromDefinitionOrDefault("template", i, Lt), s.mergeArrays(i.instructions), s.mergeArrays(i.dependencies), s.fromDefinitionOrDefault("injectable", i, Lt), s.fromDefinitionOrDefault("needsCompile", i, Ut), s.mergeArrays(i.surrogates), w.from(i.bindables), ft.from(i.childrenObservers), s.fromDefinitionOrDefault("containerless", i, qt), s.fromDefinitionOrDefault("isStrictBinding", i, qt), s.fromDefinitionOrDefault("shadowOptions", i, Lt), s.fromDefinitionOrDefault("hasSlots", i, qt), s.fromDefinitionOrDefault("enhance", i, qt), s.fromDefinitionOrDefault("watches", i, Mt), s.fromAnnotationOrTypeOrDefault("processContent", e, Lt));
+            return new CustomElementDefinition(e, n, s.mergeArrays(i.aliases), s.fromDefinitionOrDefault("key", i, (() => Wt.keyFrom(n))), s.fromDefinitionOrDefault("cache", i, Ot), s.fromDefinitionOrDefault("capture", i, qt), s.fromDefinitionOrDefault("template", i, Lt), s.mergeArrays(i.instructions), s.mergeArrays(i.dependencies), s.fromDefinitionOrDefault("injectable", i, Lt), s.fromDefinitionOrDefault("needsCompile", i, Ut), s.mergeArrays(i.surrogates), w.from(i.bindables), ft.from(i.childrenObservers), s.fromDefinitionOrDefault("containerless", i, qt), s.fromDefinitionOrDefault("isStrictBinding", i, qt), s.fromDefinitionOrDefault("shadowOptions", i, Lt), s.fromDefinitionOrDefault("hasSlots", i, qt), s.fromDefinitionOrDefault("enhance", i, qt), s.fromDefinitionOrDefault("watches", i, Ft), s.fromAnnotationOrTypeOrDefault("processContent", e, Lt));
         }
         if ("string" === typeof t) return new CustomElementDefinition(e, t, s.mergeArrays(Nt(e, "aliases"), e.aliases), Wt.keyFrom(t), s.fromAnnotationOrTypeOrDefault("cache", e, Ot), s.fromAnnotationOrTypeOrDefault("capture", e, qt), s.fromAnnotationOrTypeOrDefault("template", e, Lt), s.mergeArrays(Nt(e, "instructions"), e.instructions), s.mergeArrays(Nt(e, "dependencies"), e.dependencies), s.fromAnnotationOrTypeOrDefault("injectable", e, Lt), s.fromAnnotationOrTypeOrDefault("needsCompile", e, Ut), s.mergeArrays(Nt(e, "surrogates"), e.surrogates), w.from(...w.getAll(e), Nt(e, "bindables"), e.bindables), ft.from(...ft.getAll(e), Nt(e, "childrenObservers"), e.childrenObservers), s.fromAnnotationOrTypeOrDefault("containerless", e, qt), s.fromAnnotationOrTypeOrDefault("isStrictBinding", e, qt), s.fromAnnotationOrTypeOrDefault("shadowOptions", e, Lt), s.fromAnnotationOrTypeOrDefault("hasSlots", e, qt), s.fromAnnotationOrTypeOrDefault("enhance", e, qt), s.mergeArrays(Bt.getAnnotation(e), e.watches), s.fromAnnotationOrTypeOrDefault("processContent", e, Lt));
-        const i = s.fromDefinitionOrDefault("name", t, jt);
+        const i = s.fromDefinitionOrDefault("name", t, Vt);
         return new CustomElementDefinition(e, i, s.mergeArrays(Nt(e, "aliases"), t.aliases, e.aliases), Wt.keyFrom(i), s.fromAnnotationOrDefinitionOrTypeOrDefault("cache", t, e, Ot), s.fromAnnotationOrDefinitionOrTypeOrDefault("capture", t, e, qt), s.fromAnnotationOrDefinitionOrTypeOrDefault("template", t, e, Lt), s.mergeArrays(Nt(e, "instructions"), t.instructions, e.instructions), s.mergeArrays(Nt(e, "dependencies"), t.dependencies, e.dependencies), s.fromAnnotationOrDefinitionOrTypeOrDefault("injectable", t, e, Lt), s.fromAnnotationOrDefinitionOrTypeOrDefault("needsCompile", t, e, Ut), s.mergeArrays(Nt(e, "surrogates"), t.surrogates, e.surrogates), w.from(...w.getAll(e), Nt(e, "bindables"), e.bindables, t.bindables), ft.from(...ft.getAll(e), Nt(e, "childrenObservers"), e.childrenObservers, t.childrenObservers), s.fromAnnotationOrDefinitionOrTypeOrDefault("containerless", t, e, qt), s.fromAnnotationOrDefinitionOrTypeOrDefault("isStrictBinding", t, e, qt), s.fromAnnotationOrDefinitionOrTypeOrDefault("shadowOptions", t, e, Lt), s.fromAnnotationOrDefinitionOrTypeOrDefault("hasSlots", t, e, qt), s.fromAnnotationOrDefinitionOrTypeOrDefault("enhance", t, e, qt), s.mergeArrays(t.watches, Bt.getAnnotation(e), e.watches), s.fromAnnotationOrDefinitionOrTypeOrDefault("processContent", t, e, Lt));
     }
     static getOrCreate(t) {
@@ -2055,7 +2055,7 @@ class CustomElementDefinition {
         if (Pt.has(t)) return Pt.get(t);
         const e = CustomElementDefinition.create(t);
         Pt.set(t, e);
-        h(Ft, e, e.Type);
+        h(_t, e, e.Type);
         return e;
     }
     register(t) {
@@ -2082,32 +2082,32 @@ const qt = () => false;
 
 const Ut = () => true;
 
-const Mt = () => s.emptyArray;
+const Ft = () => s.emptyArray;
 
-const Ft = f("custom-element");
+const _t = f("custom-element");
 
-const Vt = t => `${Ft}:${t}`;
+const Mt = t => `${_t}:${t}`;
 
-const jt = (() => {
+const Vt = (() => {
     let t = 0;
     return () => `unnamed-${++t}`;
 })();
 
-const _t = (t, e, s) => {
+const jt = (t, e, s) => {
     h(u(e), s, t);
 };
 
 const Nt = (t, e) => o(u(e), t);
 
 const Wt = Object.freeze({
-    name: Ft,
-    keyFrom: Vt,
+    name: _t,
+    keyFrom: Mt,
     isType(t) {
-        return "function" === typeof t && l(Ft, t);
+        return "function" === typeof t && l(_t, t);
     },
     for(t, e = $t) {
         if (void 0 === e.name && true !== e.searchParents) {
-            const s = _e(t, Ft);
+            const s = je(t, _t);
             if (null === s) {
                 if (true === e.optional) return null;
                 throw new Error("AUR0762");
@@ -2116,7 +2116,7 @@ const Wt = Object.freeze({
         }
         if (void 0 !== e.name) {
             if (true !== e.searchParents) {
-                const s = _e(t, Ft);
+                const s = je(t, _t);
                 if (null === s) throw new Error("AUR0763");
                 if (s.is(e.name)) return s;
                 return;
@@ -2124,7 +2124,7 @@ const Wt = Object.freeze({
             let s = t;
             let i = false;
             while (null !== s) {
-                const t = _e(s, Ft);
+                const t = je(s, _t);
                 if (null !== t) {
                     i = true;
                     if (t.is(e.name)) return t;
@@ -2136,7 +2136,7 @@ const Wt = Object.freeze({
         }
         let s = t;
         while (null !== s) {
-            const t = _e(s, Ft);
+            const t = je(s, _t);
             if (null !== t) return t;
             s = Xe(s);
         }
@@ -2144,19 +2144,19 @@ const Wt = Object.freeze({
     },
     define(t, e) {
         const s = CustomElementDefinition.create(t, e);
-        h(Ft, s, s.Type);
-        h(Ft, s, s);
-        d(s.Type, Ft);
+        h(_t, s, s.Type);
+        h(_t, s, s);
+        d(s.Type, _t);
         return s.Type;
     },
     getDefinition(t) {
-        const e = o(Ft, t);
+        const e = o(_t, t);
         if (void 0 === e) throw new Error(`AUR0760:${t.name}`);
         return e;
     },
-    annotate: _t,
+    annotate: jt,
     getAnnotation: Nt,
-    generateName: jt,
+    generateName: Vt,
     createInjectable() {
         const t = function(e, i, n) {
             const r = s.DI.getOrCreateAnnotationParamTypes(e);
@@ -2197,7 +2197,7 @@ function zt(t) {
         h(Ht, Gt(t, e), t);
     } : function(e) {
         t = Gt(e, t);
-        const s = o(Ft, e);
+        const s = o(_t, e);
         if (void 0 !== s) s.processContent = t; else h(Ht, t, e);
         return e;
     };
@@ -2216,9 +2216,9 @@ class ClassAttributeAccessor {
         this.type = 2 | 4;
         this.value = "";
         this.ov = "";
-        this.Y = {};
-        this.Z = 0;
-        this.N = false;
+        this.Z = {};
+        this.J = 0;
+        this.W = false;
     }
     get doNotCache() {
         return true;
@@ -2228,19 +2228,19 @@ class ClassAttributeAccessor {
     }
     setValue(t, e) {
         this.value = t;
-        this.N = t !== this.ov;
-        if (0 === (256 & e)) this.G();
+        this.W = t !== this.ov;
+        if (0 === (256 & e)) this.X();
     }
-    G() {
-        if (this.N) {
-            this.N = false;
+    X() {
+        if (this.W) {
+            this.W = false;
             const t = this.value;
-            const e = this.Y;
+            const e = this.Z;
             const s = Xt(t);
-            let i = this.Z;
+            let i = this.J;
             this.ov = t;
-            if (s.length > 0) this.J(s);
-            this.Z += 1;
+            if (s.length > 0) this.tt(s);
+            this.J += 1;
             if (0 === i) return;
             i -= 1;
             for (const t in e) {
@@ -2249,7 +2249,7 @@ class ClassAttributeAccessor {
             }
         }
     }
-    J(t) {
+    tt(t) {
         const e = this.obj;
         const s = t.length;
         let i = 0;
@@ -2257,7 +2257,7 @@ class ClassAttributeAccessor {
         for (;i < s; i++) {
             n = t[i];
             if (0 === n.length) continue;
-            this.Y[n] = this.Z;
+            this.Z[n] = this.J;
             e.classList.add(n);
         }
     }
@@ -2682,26 +2682,26 @@ const ge = s.DI.createInterface("IViewLocator", (t => t.singleton(ViewLocator)))
 
 class ViewLocator {
     constructor() {
-        this.tt = new WeakMap;
-        this.et = new Map;
+        this.et = new WeakMap;
+        this.st = new Map;
     }
     getViewComponentForObject(t, e) {
         if (t) {
             const s = xe.has(t.constructor) ? xe.get(t.constructor) : [];
-            const i = "function" === typeof e ? e(t, s) : this.st(s, e);
-            return this.it(t, s, i);
+            const i = "function" === typeof e ? e(t, s) : this.it(s, e);
+            return this.nt(t, s, i);
         }
         return null;
     }
-    it(t, e, s) {
-        let i = this.tt.get(t);
+    nt(t, e, s) {
+        let i = this.et.get(t);
         let n;
         if (void 0 === i) {
             i = {};
-            this.tt.set(t, i);
+            this.et.set(t, i);
         } else n = i[s];
         if (void 0 === n) {
-            const r = this.nt(t, e, s);
+            const r = this.rt(t, e, s);
             n = Wt.define(Wt.getDefinition(r), class extends r {
                 constructor() {
                     super(t);
@@ -2711,15 +2711,15 @@ class ViewLocator {
         }
         return n;
     }
-    nt(t, e, s) {
-        let n = this.et.get(t.constructor);
+    rt(t, e, s) {
+        let n = this.st.get(t.constructor);
         let r;
         if (void 0 === n) {
             n = {};
-            this.et.set(t.constructor, n);
+            this.st.set(t.constructor, n);
         } else r = n[s];
         if (void 0 === r) {
-            r = Wt.define(this.rt(e, s), class {
+            r = Wt.define(this.ot(e, s), class {
                 constructor(t) {
                     this.viewModel = t;
                 }
@@ -2764,12 +2764,12 @@ class ViewLocator {
         }
         return r;
     }
-    st(t, e) {
+    it(t, e) {
         if (e) return e;
         if (1 === t.length) return t[0].name;
         return "default-view";
     }
-    rt(t, e) {
+    ot(t, e) {
         const s = t.find((t => t.name === e));
         if (void 0 === s) throw new Error(`Could not find view: ${e}`);
         return s;
@@ -2780,20 +2780,20 @@ const we = s.DI.createInterface("IRendering", (t => t.singleton(Rendering)));
 
 class Rendering {
     constructor(t) {
-        this.ot = new WeakMap;
         this.lt = new WeakMap;
-        this.ht = (this.ct = t.root).get(q);
-        this.at = new FragmentNodeSequence(this.ht, this.ht.document.createDocumentFragment());
+        this.ht = new WeakMap;
+        this.ct = (this.at = t.root).get(q);
+        this.ut = new FragmentNodeSequence(this.ct, this.ct.document.createDocumentFragment());
     }
     get renderers() {
-        return null == this.rs ? this.rs = this.ct.getAll(cs, false).reduce(((t, e) => {
+        return null == this.rs ? this.rs = this.at.getAll(cs, false).reduce(((t, e) => {
             t[e.instructionType] = e;
             return t;
         }), P()) : this.rs;
     }
     compile(t, e, s) {
         if (false !== t.needsCompile) {
-            const i = this.ot;
+            const i = this.lt;
             const n = e.get(hs);
             let r = i.get(t);
             if (null == r) i.set(t, r = n.compile(t, e, s)); else e.register(...r.dependencies);
@@ -2805,11 +2805,11 @@ class Rendering {
         return new ViewFactory(e, CustomElementDefinition.getOrCreate(t));
     }
     createNodes(t) {
-        if (true === t.enhance) return new FragmentNodeSequence(this.ht, t.template);
+        if (true === t.enhance) return new FragmentNodeSequence(this.ct, t.template);
         let e;
-        const s = this.lt;
+        const s = this.ht;
         if (s.has(t)) e = s.get(t); else {
-            const i = this.ht;
+            const i = this.ct;
             const n = i.document;
             const r = t.template;
             let o;
@@ -2820,7 +2820,7 @@ class Rendering {
             }
             s.set(t, e);
         }
-        return null == e ? this.at : new FragmentNodeSequence(this.ht, e.cloneNode(true));
+        return null == e ? this.ut : new FragmentNodeSequence(this.ct, e.cloneNode(true));
     }
     render(t, e, s, i) {
         const n = s.instructions;
@@ -2902,17 +2902,17 @@ class Controller {
         this.location = null;
         this.lifecycleHooks = null;
         this.state = 0;
-        this.ut = false;
-        this.ft = s.emptyArray;
+        this.ft = false;
+        this.dt = s.emptyArray;
         this.flags = 0;
         this.$initiator = null;
         this.$flags = 0;
         this.$resolve = void 0;
         this.$reject = void 0;
         this.$promise = void 0;
-        this.dt = 0;
         this.xt = 0;
         this.vt = 0;
+        this.gt = 0;
         this.r = t.root.get(we);
         switch (e) {
           case 1:
@@ -2967,7 +2967,7 @@ class Controller {
         if (r.dependencies.length > 0) t.register(...r.dependencies);
         t.registerResolver(Le, new s.InstanceProvider("IHydrationContext", new HydrationContext(o, n, l)));
         ke.set(e, o);
-        if (null == n || false !== n.hydrate) o.gt(n, l);
+        if (null == n || false !== n.hydrate) o.wt(n, l);
         return o;
     }
     static $attr(t, e, s, i) {
@@ -2975,16 +2975,16 @@ class Controller {
         i = null !== i && void 0 !== i ? i : At.getDefinition(e.constructor);
         const n = new Controller(t, 1, i, null, e, s);
         ke.set(e, n);
-        n.wt();
+        n.bt();
         return n;
     }
     static $view(t, e = void 0) {
         const s = new Controller(t.container, 2, null, t, null, null);
         s.parent = null !== e && void 0 !== e ? e : null;
-        s.bt();
+        s.yt();
         return s;
     }
-    gt(t, e) {
+    wt(t, e) {
         const n = this.container;
         const r = this.flags;
         const o = this.viewModel;
@@ -2992,7 +2992,7 @@ class Controller {
         this.scope = i.Scope.create(o, null, true);
         if (l.watches.length > 0) Be(this, n, l, o);
         Ae(this, l, r, o);
-        this.ft = Re(this, l, o);
+        this.dt = Re(this, l, o);
         if (this.hooks.hasDefine) {
             const t = o.define(this, e, l);
             if (void 0 !== t && t !== l) l = CustomElementDefinition.getOrCreate(t);
@@ -3001,13 +3001,13 @@ class Controller {
         l.register(n);
         if (null !== l.injectable) n.registerResolver(l.injectable, new s.InstanceProvider("definition.injectable", o));
         if (null == t || false !== t.hydrate) {
-            this.yt(t);
-            this.kt();
+            this.kt(t);
+            this.Ct();
         }
     }
-    yt(t) {
+    kt(t) {
         if (this.hooks.hasHydrating) this.viewModel.hydrating(this);
-        const e = this.Ct = this.r.compile(this.definition, this.container, t);
+        const e = this.At = this.r.compile(this.definition, this.container, t);
         const {shadowOptions: s, isStrictBinding: i, hasSlots: n, containerless: r} = e;
         this.isStrictBinding = i;
         if (null !== (this.hostController = Wt.for(this.host, ye))) this.host = this.container.root.get(q).document.createElement(this.definition.name);
@@ -3027,11 +3027,11 @@ class Controller {
         this.nodes = this.r.createNodes(e);
         if (this.hooks.hasHydrated) this.viewModel.hydrated(this);
     }
-    kt() {
-        this.r.render(this, this.nodes.findTargets(), this.Ct, this.host);
+    Ct() {
+        this.r.render(this, this.nodes.findTargets(), this.At, this.host);
         if (this.hooks.hasCreated) this.viewModel.created(this);
     }
-    wt() {
+    bt() {
         const t = this.definition;
         const e = this.viewModel;
         if (t.watches.length > 0) Be(this, this.container, t, e);
@@ -3040,10 +3040,10 @@ class Controller {
         this.lifecycleHooks = ce.resolve(this.container);
         if (this.hooks.hasCreated) this.viewModel.created(this);
     }
-    bt() {
-        this.Ct = this.r.compile(this.viewFactory.def, this.container, null);
-        this.isStrictBinding = this.Ct.isStrictBinding;
-        this.r.render(this, (this.nodes = this.r.createNodes(this.Ct)).findTargets(), this.Ct, void 0);
+    yt() {
+        this.At = this.r.compile(this.viewFactory.def, this.container, null);
+        this.isStrictBinding = this.At.isStrictBinding;
+        this.r.render(this, (this.nodes = this.r.createNodes(this.At)).findTargets(), this.At, void 0);
     }
     activate(t, e, s, i) {
         switch (this.state) {
@@ -3081,15 +3081,15 @@ class Controller {
         if (this.isStrictBinding) s |= 1;
         this.$initiator = t;
         this.$flags = s;
-        this.At();
+        this.Rt();
         if (this.hooks.hasBinding) {
             const t = this.viewModel.binding(this.$initiator, this.parent, this.$flags);
             if (t instanceof Promise) {
-                this.Rt();
+                this.St();
                 t.then((() => {
                     this.bind();
                 })).catch((t => {
-                    this.St(t);
+                    this.Et(t);
                 }));
                 return this.$promise;
             }
@@ -3099,10 +3099,10 @@ class Controller {
     }
     bind() {
         let t = 0;
-        let e = this.ft.length;
+        let e = this.dt.length;
         let s;
         if (e > 0) while (e > t) {
-            this.ft[t].start();
+            this.dt[t].start();
             ++t;
         }
         if (null !== this.bindings) {
@@ -3116,20 +3116,20 @@ class Controller {
         if (this.hooks.hasBound) {
             s = this.viewModel.bound(this.$initiator, this.parent, this.$flags);
             if (s instanceof Promise) {
-                this.Rt();
+                this.St();
                 s.then((() => {
                     this.isBound = true;
-                    this.Et();
+                    this.Bt();
                 })).catch((t => {
-                    this.St(t);
+                    this.Et(t);
                 }));
                 return;
             }
         }
         this.isBound = true;
-        this.Et();
+        this.Bt();
     }
-    Bt(...t) {
+    It(...t) {
         switch (this.mountTarget) {
           case 1:
             this.host.append(...t);
@@ -3147,15 +3147,15 @@ class Controller {
             }
         }
     }
-    Et() {
+    Bt() {
         if (null !== this.hostController) switch (this.mountTarget) {
           case 1:
           case 2:
-            this.hostController.Bt(this.host);
+            this.hostController.It(this.host);
             break;
 
           case 3:
-            this.hostController.Bt(this.location.$start, this.location);
+            this.hostController.It(this.location.$start, this.location);
             break;
         }
         switch (this.mountTarget) {
@@ -3179,12 +3179,12 @@ class Controller {
         if (this.hooks.hasAttaching) {
             const t = this.viewModel.attaching(this.$initiator, this.parent, this.$flags);
             if (t instanceof Promise) {
+                this.St();
                 this.Rt();
-                this.At();
                 t.then((() => {
-                    this.It();
+                    this.Tt();
                 })).catch((t => {
-                    this.St(t);
+                    this.Et(t);
                 }));
             }
         }
@@ -3192,7 +3192,7 @@ class Controller {
             let t = 0;
             for (;t < this.children.length; ++t) void this.children[t].activate(this.$initiator, this, this.$flags, this.scope);
         }
-        this.It();
+        this.Tt();
     }
     deactivate(t, e, s) {
         switch (~16 & this.state) {
@@ -3211,26 +3211,26 @@ class Controller {
         }
         this.$initiator = t;
         this.$flags = s;
-        if (t === this) this.Tt();
+        if (t === this) this.Dt();
         let i = 0;
-        if (this.ft.length) for (;i < this.ft.length; ++i) this.ft[i].stop();
+        if (this.dt.length) for (;i < this.dt.length; ++i) this.dt[i].stop();
         if (null !== this.children) for (i = 0; i < this.children.length; ++i) void this.children[i].deactivate(t, this, s);
         if (this.hooks.hasDetaching) {
             const e = this.viewModel.detaching(this.$initiator, this.parent, this.$flags);
             if (e instanceof Promise) {
-                this.Rt();
-                t.Tt();
+                this.St();
+                t.Dt();
                 e.then((() => {
-                    t.Dt();
+                    t.Pt();
                 })).catch((e => {
-                    t.St(e);
+                    t.Et(e);
                 }));
             }
         }
         if (null === t.head) t.head = this; else t.tail.next = this;
         t.tail = this;
         if (t !== this) return;
-        this.Dt();
+        this.Pt();
         return this.$promise;
     }
     removeNodes() {
@@ -3274,18 +3274,18 @@ class Controller {
         if (32 === (32 & t) && this.$initiator === this) this.dispose();
         this.state = 32 & this.state | 8;
         this.$initiator = null;
-        this.Pt();
+        this.$t();
     }
-    Rt() {
+    St() {
         if (void 0 === this.$promise) {
             this.$promise = new Promise(((t, e) => {
                 this.$resolve = t;
                 this.$reject = e;
             }));
-            if (this.$initiator !== this) this.parent.Rt();
+            if (this.$initiator !== this) this.parent.St();
         }
     }
-    Pt() {
+    $t() {
         if (void 0 !== this.$promise) {
             Ue = this.$resolve;
             this.$resolve = this.$reject = this.$promise = void 0;
@@ -3293,48 +3293,48 @@ class Controller {
             Ue = void 0;
         }
     }
-    St(t) {
+    Et(t) {
         if (void 0 !== this.$promise) {
-            Me = this.$reject;
+            Fe = this.$reject;
             this.$resolve = this.$reject = this.$promise = void 0;
-            Me(t);
-            Me = void 0;
+            Fe(t);
+            Fe = void 0;
         }
-        if (this.$initiator !== this) this.parent.St(t);
+        if (this.$initiator !== this) this.parent.Et(t);
     }
-    At() {
-        ++this.dt;
-        if (this.$initiator !== this) this.parent.At();
-    }
-    It() {
-        if (0 === --this.dt) {
-            if (this.hooks.hasAttached) {
-                Fe = this.viewModel.attached(this.$initiator, this.$flags);
-                if (Fe instanceof Promise) {
-                    this.Rt();
-                    Fe.then((() => {
-                        this.state = 2;
-                        this.Pt();
-                        if (this.$initiator !== this) this.parent.It();
-                    })).catch((t => {
-                        this.St(t);
-                    }));
-                    Fe = void 0;
-                    return;
-                }
-                Fe = void 0;
-            }
-            this.state = 2;
-            this.Pt();
-        }
-        if (this.$initiator !== this) this.parent.It();
+    Rt() {
+        ++this.xt;
+        if (this.$initiator !== this) this.parent.Rt();
     }
     Tt() {
-        ++this.xt;
+        if (0 === --this.xt) {
+            if (this.hooks.hasAttached) {
+                _e = this.viewModel.attached(this.$initiator, this.$flags);
+                if (_e instanceof Promise) {
+                    this.St();
+                    _e.then((() => {
+                        this.state = 2;
+                        this.$t();
+                        if (this.$initiator !== this) this.parent.Tt();
+                    })).catch((t => {
+                        this.Et(t);
+                    }));
+                    _e = void 0;
+                    return;
+                }
+                _e = void 0;
+            }
+            this.state = 2;
+            this.$t();
+        }
+        if (this.$initiator !== this) this.parent.Tt();
     }
     Dt() {
-        if (0 === --this.xt) {
-            this.$t();
+        ++this.vt;
+    }
+    Pt() {
+        if (0 === --this.vt) {
+            this.Ot();
             this.removeNodes();
             let t = this.$initiator.head;
             while (null !== t) {
@@ -3344,28 +3344,28 @@ class Controller {
                 }
                 if (t.hooks.hasUnbinding) {
                     if (t.debug) t.logger.trace("unbinding()");
-                    Fe = t.viewModel.unbinding(t.$initiator, t.parent, t.$flags);
-                    if (Fe instanceof Promise) {
-                        this.Rt();
-                        this.$t();
-                        Fe.then((() => {
-                            this.Ot();
+                    _e = t.viewModel.unbinding(t.$initiator, t.parent, t.$flags);
+                    if (_e instanceof Promise) {
+                        this.St();
+                        this.Ot();
+                        _e.then((() => {
+                            this.Lt();
                         })).catch((t => {
-                            this.St(t);
+                            this.Et(t);
                         }));
                     }
-                    Fe = void 0;
+                    _e = void 0;
                 }
                 t = t.next;
             }
-            this.Ot();
+            this.Lt();
         }
     }
-    $t() {
-        ++this.vt;
-    }
     Ot() {
-        if (0 === --this.vt) {
+        ++this.gt;
+    }
+    Lt() {
+        if (0 === --this.gt) {
             let t = this.$initiator.head;
             let e = null;
             while (null !== t) {
@@ -3628,44 +3628,44 @@ function qe(t) {
 
 let Ue;
 
-let Me;
-
 let Fe;
 
-const Ve = s.DI.createInterface("IAppRoot");
+let _e;
 
-const je = s.DI.createInterface("IWorkTracker", (t => t.singleton(WorkTracker)));
+const Me = s.DI.createInterface("IAppRoot");
+
+const Ve = s.DI.createInterface("IWorkTracker", (t => t.singleton(WorkTracker)));
 
 class WorkTracker {
     constructor(t) {
-        this.Lt = 0;
-        this.qt = null;
-        this.Pt = null;
-        this.Ut = t.scopeTo("WorkTracker");
+        this.qt = 0;
+        this.Ut = null;
+        this.$t = null;
+        this.Ft = t.scopeTo("WorkTracker");
     }
     start() {
-        this.Ut.trace(`start(stack:${this.Lt})`);
-        ++this.Lt;
+        this.Ft.trace(`start(stack:${this.qt})`);
+        ++this.qt;
     }
     finish() {
-        this.Ut.trace(`finish(stack:${this.Lt})`);
-        if (0 === --this.Lt) {
-            const t = this.Pt;
+        this.Ft.trace(`finish(stack:${this.qt})`);
+        if (0 === --this.qt) {
+            const t = this.$t;
             if (null !== t) {
-                this.Pt = this.qt = null;
+                this.$t = this.Ut = null;
                 t();
             }
         }
     }
     wait() {
-        this.Ut.trace(`wait(stack:${this.Lt})`);
-        if (null === this.qt) {
-            if (0 === this.Lt) return Promise.resolve();
-            this.qt = new Promise((t => {
-                this.Pt = t;
+        this.Ft.trace(`wait(stack:${this.qt})`);
+        if (null === this.Ut) {
+            if (0 === this.qt) return Promise.resolve();
+            this.Ut = new Promise((t => {
+                this.$t = t;
             }));
         }
-        return this.qt;
+        return this.Ut;
     }
 }
 
@@ -3677,12 +3677,12 @@ class AppRoot {
         this.platform = e;
         this.container = i;
         this.controller = void 0;
-        this.Mt = void 0;
+        this._t = void 0;
         this.host = t.host;
-        this.work = i.get(je);
+        this.work = i.get(Ve);
         n.prepare(this);
         i.registerResolver(e.HTMLElement, i.registerResolver(e.Element, i.registerResolver(We, new s.InstanceProvider("ElementResolver", t.host))));
-        this.Mt = s.onResolve(this.Ft("beforeCreate"), (() => {
+        this._t = s.onResolve(this.Mt("beforeCreate"), (() => {
             const e = t.component;
             const n = i.createChild();
             let r;
@@ -3692,23 +3692,23 @@ class AppRoot {
                 projections: null
             };
             const l = this.controller = Controller.$el(n, r, this.host, o);
-            l.gt(o, null);
-            return s.onResolve(this.Ft("hydrating"), (() => {
-                l.yt(null);
-                return s.onResolve(this.Ft("hydrated"), (() => {
-                    l.kt();
-                    this.Mt = void 0;
+            l.wt(o, null);
+            return s.onResolve(this.Mt("hydrating"), (() => {
+                l.kt(null);
+                return s.onResolve(this.Mt("hydrated"), (() => {
+                    l.Ct();
+                    this._t = void 0;
                 }));
             }));
         }));
     }
     activate() {
-        return s.onResolve(this.Mt, (() => s.onResolve(this.Ft("beforeActivate"), (() => s.onResolve(this.controller.activate(this.controller, null, 2, void 0), (() => this.Ft("afterActivate")))))));
+        return s.onResolve(this._t, (() => s.onResolve(this.Mt("beforeActivate"), (() => s.onResolve(this.controller.activate(this.controller, null, 2, void 0), (() => this.Mt("afterActivate")))))));
     }
     deactivate() {
-        return s.onResolve(this.Ft("beforeDeactivate"), (() => s.onResolve(this.controller.deactivate(this.controller, null, 0), (() => this.Ft("afterDeactivate")))));
+        return s.onResolve(this.Mt("beforeDeactivate"), (() => s.onResolve(this.controller.deactivate(this.controller, null, 0), (() => this.Mt("afterDeactivate")))));
     }
-    Ft(t) {
+    Mt(t) {
         return s.resolveAll(...this.container.getAll(ot).reduce(((e, s) => {
             if (s.slot === t) e.push(s.run());
             return e;
@@ -3722,7 +3722,7 @@ class AppRoot {
 
 class Refs {}
 
-function _e(t, e) {
+function je(t, e) {
     var s, i;
     return null !== (i = null === (s = t.$au) || void 0 === s ? void 0 : s[e]) && void 0 !== i ? i : null;
 }
@@ -3736,7 +3736,7 @@ function Ne(t, e, s) {
 const We = s.DI.createInterface("INode");
 
 const He = s.DI.createInterface("IEventTarget", (t => t.cachedCallback((t => {
-    if (t.has(Ve, true)) return t.get(Ve).host;
+    if (t.has(Me, true)) return t.get(Me).host;
     return t.get(q).document;
 }))));
 
@@ -4001,35 +4001,35 @@ class ListenerTracker {
     constructor(t, e, s = ss) {
         this.Vt = t;
         this.jt = e;
-        this._t = s;
-        this.Nt = 0;
-        this.Wt = new Map;
+        this.Nt = s;
+        this.Wt = 0;
         this.Ht = new Map;
-    }
-    zt() {
-        if (1 === ++this.Nt) this.Vt.addEventListener(this.jt, this, this._t);
+        this.zt = new Map;
     }
     Gt() {
-        if (0 === --this.Nt) this.Vt.removeEventListener(this.jt, this, this._t);
+        if (1 === ++this.Wt) this.Vt.addEventListener(this.jt, this, this.Nt);
+    }
+    Xt() {
+        if (0 === --this.Wt) this.Vt.removeEventListener(this.jt, this, this.Nt);
     }
     dispose() {
-        if (this.Nt > 0) {
-            this.Nt = 0;
-            this.Vt.removeEventListener(this.jt, this, this._t);
+        if (this.Wt > 0) {
+            this.Wt = 0;
+            this.Vt.removeEventListener(this.jt, this, this.Nt);
         }
-        this.Wt.clear();
         this.Ht.clear();
+        this.zt.clear();
     }
-    Xt(t) {
-        const e = true === this._t.capture ? this.Wt : this.Ht;
+    Kt(t) {
+        const e = true === this.Nt.capture ? this.Ht : this.zt;
         let s = e.get(t);
         if (void 0 === s) e.set(t, s = P());
         return s;
     }
     handleEvent(t) {
-        const e = true === this._t.capture ? this.Wt : this.Ht;
+        const e = true === this.Nt.capture ? this.Ht : this.zt;
         const s = t.composedPath();
-        if (true === this._t.capture) s.reverse();
+        if (true === this.Nt.capture) s.reverse();
         for (const i of s) {
             const s = e.get(i);
             if (void 0 === s) continue;
@@ -4043,15 +4043,15 @@ class ListenerTracker {
 
 class DelegateSubscription {
     constructor(t, e, s, i) {
-        this.Kt = t;
-        this.Yt = e;
+        this.Yt = t;
+        this.Zt = e;
         this.jt = s;
-        t.zt();
+        t.Gt();
         e[s] = i;
     }
     dispose() {
-        this.Kt.Gt();
-        this.Yt[this.jt] = void 0;
+        this.Yt.Xt();
+        this.Zt[this.jt] = void 0;
     }
 }
 
@@ -4079,19 +4079,19 @@ const is = s.DI.createInterface("IEventDelegator", (t => t.singleton(EventDelega
 
 class EventDelegator {
     constructor() {
-        this.Zt = P();
+        this.Jt = P();
     }
     addEventListener(t, e, s, i, n) {
         var r;
         var o;
-        const l = null !== (r = (o = this.Zt)[s]) && void 0 !== r ? r : o[s] = new Map;
+        const l = null !== (r = (o = this.Jt)[s]) && void 0 !== r ? r : o[s] = new Map;
         let h = l.get(t);
         if (void 0 === h) l.set(t, h = new ListenerTracker(t, s, n));
-        return new DelegateSubscription(h, h.Xt(e), s, i);
+        return new DelegateSubscription(h, h.Kt(e), s, i);
     }
     dispose() {
-        for (const t in this.Zt) {
-            const e = this.Zt[t];
+        for (const t in this.Jt) {
+            const e = this.Jt[t];
             for (const t of e.values()) t.dispose();
             e.clear();
         }
@@ -4334,7 +4334,7 @@ class SpreadBindingInstruction {
 
 class SpreadElementPropBindingInstruction {
     constructor(t) {
-        this.innerInstruction = t;
+        this.instructions = t;
     }
     get type() {
         return "hp";
@@ -4425,7 +4425,7 @@ let ms = class CustomElementRenderer {
         const h = i.res;
         const c = i.projections;
         const a = t.container;
-        const u = js(this.p, t, e, i, e, null == c ? void 0 : new AuSlotsInfo(Object.keys(c)));
+        const u = Vs(this.p, t, e, i, e, null == c ? void 0 : new AuSlotsInfo(Object.keys(c)));
         switch (typeof h) {
           case "string":
             n = a.find(Wt, h);
@@ -4476,7 +4476,7 @@ let xs = class CustomAttributeRenderer {
           default:
             n = s.res;
         }
-        const r = _s(this.p, n, t, e, s, void 0, void 0);
+        const r = js(this.p, n, t, e, s, void 0, void 0);
         const o = Controller.$attr(t.container, r, e, n);
         Ne(e, n.key, o);
         const l = this.r.renderers;
@@ -4518,7 +4518,7 @@ let vs = class TemplateControllerRenderer {
         }
         const o = this.r.getViewFactory(s.def, n);
         const l = Ye(e);
-        const h = _s(this.p, r, t, e, s, o, l);
+        const h = js(this.p, r, t, e, s, o, l);
         const c = Controller.$attr(t.container, h, e, r);
         Ne(l, r.key, c);
         null === (i = h.link) || void 0 === i ? void 0 : i.call(h, t, c, e, s);
@@ -4714,12 +4714,12 @@ Es = n([ as("ha") ], Es);
 let Bs = class ListenerBindingRenderer {
     constructor(t, e, s) {
         this.ep = t;
-        this.Jt = e;
+        this.Qt = e;
         this.p = s;
     }
     render(t, e, s) {
         const i = us(this.ep, s.from, 4);
-        const n = new Listener(this.p, s.to, s.strategy, i, e, s.preventDefault, this.Jt, t.container);
+        const n = new Listener(this.p, s.to, s.strategy, i, e, s.preventDefault, this.Qt, t.container);
         t.addBinding(38962 === i.$kind ? Ss(n, i, t.container) : n);
     }
 };
@@ -4787,7 +4787,7 @@ $s = n([ as("hc") ], $s);
 
 let Os = class SpreadRenderer {
     constructor(t, e) {
-        this.Qt = t;
+        this.te = t;
         this.r = e;
     }
     static get inject() {
@@ -4811,7 +4811,7 @@ let Os = class SpreadRenderer {
             var n, r;
             const c = l(i);
             const a = qs(c);
-            const u = this.Qt.compileSpread(c.controller.definition, null !== (r = null === (n = c.instruction) || void 0 === n ? void 0 : n.captures) && void 0 !== r ? r : s.emptyArray, c.controller.container, e);
+            const u = this.te.compileSpread(c.controller.definition, null !== (r = null === (n = c.instruction) || void 0 === n ? void 0 : n.captures) && void 0 !== r ? r : s.emptyArray, c.controller.container, e);
             let f;
             for (f of u) switch (f.type) {
               case "hs":
@@ -4819,7 +4819,7 @@ let Os = class SpreadRenderer {
                 break;
 
               case "hp":
-                o[f.innerInstruction.type].render(a, Wt.for(e), f.innerInstruction);
+                o[f.instructions.type].render(a, Wt.for(e), f.instructions);
                 break;
 
               default:
@@ -4835,8 +4835,8 @@ Os = n([ as("hs") ], Os);
 
 class SpreadBinding {
     constructor(t, e) {
-        this.te = t;
-        this.ee = e;
+        this.ee = t;
+        this.se = e;
         this.interceptor = this;
         this.isBound = false;
         this.ctrl = e.controller;
@@ -4855,16 +4855,16 @@ class SpreadBinding {
         var s;
         if (this.isBound) return;
         this.isBound = true;
-        const i = this.$scope = null !== (s = this.ee.controller.scope.parentScope) && void 0 !== s ? s : void 0;
+        const i = this.$scope = null !== (s = this.se.controller.scope.parentScope) && void 0 !== s ? s : void 0;
         if (null == i) throw new Error("Invalid spreading. Context scope is null/undefined");
-        this.te.forEach((e => e.$bind(t, i)));
+        this.ee.forEach((e => e.$bind(t, i)));
     }
     $unbind(t) {
-        this.te.forEach((e => e.$unbind(t)));
+        this.ee.forEach((e => e.$unbind(t)));
         this.isBound = false;
     }
     addBinding(t) {
-        this.te.push(t);
+        this.ee.push(t);
     }
     addChild(t) {
         if (1 !== t.vmKind) throw new Error("Spread binding does not support spreading custom attributes/template controllers");
@@ -4885,20 +4885,20 @@ const qs = t => new SpreadBinding([], t);
 
 const Us = "IController";
 
-const Ms = "IInstruction";
+const Fs = "IInstruction";
 
-const Fs = "IRenderLocation";
+const _s = "IRenderLocation";
 
-const Vs = "IAuSlotsInfo";
+const Ms = "IAuSlotsInfo";
 
-function js(t, e, i, n, r, o) {
+function Vs(t, e, i, n, r, o) {
     const l = e.container.createChild();
     l.registerResolver(t.HTMLElement, l.registerResolver(t.Element, l.registerResolver(We, new s.InstanceProvider("ElementResolver", i))));
     l.registerResolver(Oe, new s.InstanceProvider(Us, e));
-    l.registerResolver(os, new s.InstanceProvider(Ms, n));
-    l.registerResolver(ze, null == r ? Ns : new s.InstanceProvider(Fs, r));
+    l.registerResolver(os, new s.InstanceProvider(Fs, n));
+    l.registerResolver(ze, null == r ? Ns : new s.InstanceProvider(_s, r));
     l.registerResolver(ue, Ws);
-    l.registerResolver(rs, null == o ? Hs : new s.InstanceProvider(Vs, o));
+    l.registerResolver(rs, null == o ? Hs : new s.InstanceProvider(Ms, o));
     return l;
 }
 
@@ -4917,23 +4917,23 @@ class ViewFactoryProvider {
     }
 }
 
-function _s(t, e, i, n, r, o, l, h) {
+function js(t, e, i, n, r, o, l, h) {
     const c = i.container.createChild();
     c.registerResolver(t.HTMLElement, c.registerResolver(t.Element, c.registerResolver(We, new s.InstanceProvider("ElementResolver", n))));
     i = i instanceof Controller ? i : i.ctrl;
     c.registerResolver(Oe, new s.InstanceProvider(Us, i));
-    c.registerResolver(os, new s.InstanceProvider(Ms, r));
-    c.registerResolver(ze, null == l ? Ns : new s.InstanceProvider(Fs, l));
+    c.registerResolver(os, new s.InstanceProvider(Fs, r));
+    c.registerResolver(ze, null == l ? Ns : new s.InstanceProvider(_s, l));
     c.registerResolver(ue, null == o ? Ws : new ViewFactoryProvider(o));
-    c.registerResolver(rs, null == h ? Hs : new s.InstanceProvider(Vs, h));
+    c.registerResolver(rs, null == h ? Hs : new s.InstanceProvider(Ms, h));
     return c.invoke(e.Type);
 }
 
-const Ns = new s.InstanceProvider(Fs);
+const Ns = new s.InstanceProvider(_s);
 
 const Ws = new ViewFactoryProvider(null);
 
-const Hs = new s.InstanceProvider(Vs, new AuSlotsInfo(s.emptyArray));
+const Hs = new s.InstanceProvider(Ms, new AuSlotsInfo(s.emptyArray));
 
 exports.CommandType = void 0;
 
@@ -5019,7 +5019,7 @@ exports.OneTimeBindingCommand = class OneTimeBindingCommand {
     }
 };
 
-exports.OneTimeBindingCommand.inject = [ F, i.IExpressionParser ];
+exports.OneTimeBindingCommand.inject = [ _, i.IExpressionParser ];
 
 exports.OneTimeBindingCommand = n([ zs("one-time") ], exports.OneTimeBindingCommand);
 
@@ -5045,7 +5045,7 @@ exports.ToViewBindingCommand = class ToViewBindingCommand {
     }
 };
 
-exports.ToViewBindingCommand.inject = [ F, i.IExpressionParser ];
+exports.ToViewBindingCommand.inject = [ _, i.IExpressionParser ];
 
 exports.ToViewBindingCommand = n([ zs("to-view") ], exports.ToViewBindingCommand);
 
@@ -5071,7 +5071,7 @@ exports.FromViewBindingCommand = class FromViewBindingCommand {
     }
 };
 
-exports.FromViewBindingCommand.inject = [ F, i.IExpressionParser ];
+exports.FromViewBindingCommand.inject = [ _, i.IExpressionParser ];
 
 exports.FromViewBindingCommand = n([ zs("from-view") ], exports.FromViewBindingCommand);
 
@@ -5097,7 +5097,7 @@ exports.TwoWayBindingCommand = class TwoWayBindingCommand {
     }
 };
 
-exports.TwoWayBindingCommand.inject = [ F, i.IExpressionParser ];
+exports.TwoWayBindingCommand.inject = [ _, i.IExpressionParser ];
 
 exports.TwoWayBindingCommand = n([ zs("two-way") ], exports.TwoWayBindingCommand);
 
@@ -5131,7 +5131,7 @@ exports.DefaultBindingCommand = class DefaultBindingCommand {
     }
 };
 
-exports.DefaultBindingCommand.inject = [ F, i.IExpressionParser ];
+exports.DefaultBindingCommand.inject = [ _, i.IExpressionParser ];
 
 exports.DefaultBindingCommand = n([ zs("bind") ], exports.DefaultBindingCommand);
 
@@ -5311,18 +5311,18 @@ const ti = {};
 class TemplateElementFactory {
     constructor(t) {
         this.p = t;
-        this.se = t.document.createElement("template");
+        this.ie = t.document.createElement("template");
     }
     createTemplate(t) {
         var e;
         if ("string" === typeof t) {
             let e = ti[t];
             if (void 0 === e) {
-                const s = this.se;
+                const s = this.ie;
                 s.innerHTML = t;
                 const i = s.content.firstElementChild;
                 if (null == i || "TEMPLATE" !== i.nodeName || null != i.nextElementSibling) {
-                    this.se = this.p.document.createElement("template");
+                    this.ie = this.p.document.createElement("template");
                     e = s;
                 } else {
                     s.content.removeChild(i);
@@ -5371,7 +5371,7 @@ class TemplateCompiler {
         if (false === h.needsCompile) return h;
         null !== i && void 0 !== i ? i : i = ni;
         const c = new CompilationContext(t, e, i, null, null, void 0);
-        const a = "string" === typeof h.template || !t.enhance ? c.ie.createTemplate(h.template) : h.template;
+        const a = "string" === typeof h.template || !t.enhance ? c.ne.createTemplate(h.template) : h.template;
         const u = "TEMPLATE" === a.nodeName && null != a.content;
         const f = u ? a.content : a;
         const d = e.get(ei(mi));
@@ -5382,14 +5382,14 @@ class TemplateCompiler {
             ++m;
         }
         if (a.hasAttribute(fi)) throw new Error("AUR0701");
-        this.ne(f, c);
         this.re(f, c);
+        this.oe(f, c);
         return CustomElementDefinition.create({
             ...t,
             name: t.name || bi(),
             dependencies: (null !== (o = t.dependencies) && void 0 !== o ? o : s.emptyArray).concat(null !== (l = c.deps) && void 0 !== l ? l : s.emptyArray),
             instructions: c.rows,
-            surrogates: u ? this.oe(a, c) : s.emptyArray,
+            surrogates: u ? this.le(a, c) : s.emptyArray,
             template: a,
             hasSlots: c.hasSlot,
             needsCompile: false
@@ -5399,7 +5399,7 @@ class TemplateCompiler {
         var r;
         const o = new CompilationContext(t, i, ni, null, null, void 0);
         const l = [];
-        const h = o.le(n.nodeName.toLowerCase());
+        const h = o.he(n.nodeName.toLowerCase());
         const c = o.ep;
         const a = e.length;
         let u = 0;
@@ -5419,7 +5419,7 @@ class TemplateCompiler {
             f = e[u];
             k = f.target;
             C = f.rawValue;
-            w = o.he(f);
+            w = o.ce(f);
             if (null !== w && (1 & w.type) > 0) {
                 oi.node = n;
                 oi.attr = f;
@@ -5428,12 +5428,12 @@ class TemplateCompiler {
                 l.push(w.build(oi));
                 continue;
             }
-            d = o.ce(k);
+            d = o.ae(k);
             if (null !== d) {
                 if (d.isTemplateController) throw new Error(`AUR0703:${k}`);
                 x = BindablesInfo.from(d, true);
                 y = false === d.noMultiBindings && null === w && si(C);
-                if (y) m = this.ae(n, C, d, o); else {
+                if (y) m = this.ue(n, C, d, o); else {
                     g = x.primary;
                     if (null === w) {
                         b = c.parse(C, 1);
@@ -5496,7 +5496,7 @@ class TemplateCompiler {
         if (null != p) return p.concat(l);
         return l;
     }
-    oe(t, e) {
+    le(t, e) {
         var i;
         const n = [];
         const r = t.attributes;
@@ -5521,11 +5521,11 @@ class TemplateCompiler {
             c = r[h];
             a = c.name;
             u = c.value;
-            f = e.ue.parse(a, u);
+            f = e.fe.parse(a, u);
             y = f.target;
             k = f.rawValue;
             if (li[y]) throw new Error(`AUR0702:${a}`);
-            g = e.he(f);
+            g = e.ce(f);
             if (null !== g && (1 & g.type) > 0) {
                 oi.node = t;
                 oi.attr = f;
@@ -5534,12 +5534,12 @@ class TemplateCompiler {
                 n.push(g.build(oi));
                 continue;
             }
-            d = e.ce(y);
+            d = e.ae(y);
             if (null !== d) {
                 if (d.isTemplateController) throw new Error(`AUR0703:${y}`);
                 x = BindablesInfo.from(d, true);
                 b = false === d.noMultiBindings && null === g && si(k);
-                if (b) m = this.ae(t, k, d, e); else {
+                if (b) m = this.ue(t, k, d, e); else {
                     v = x.primary;
                     if (null === g) {
                         w = o.parse(k, 1);
@@ -5589,30 +5589,30 @@ class TemplateCompiler {
         if (null != p) return p.concat(n);
         return n;
     }
-    re(t, e) {
+    oe(t, e) {
         switch (t.nodeType) {
           case 1:
             switch (t.nodeName) {
               case "LET":
-                return this.fe(t, e);
+                return this.de(t, e);
 
               default:
-                return this.de(t, e);
+                return this.pe(t, e);
             }
 
           case 3:
-            return this.pe(t, e);
+            return this.me(t, e);
 
           case 11:
             {
                 let s = t.firstChild;
-                while (null !== s) s = this.re(s, e);
+                while (null !== s) s = this.oe(s, e);
                 break;
             }
         }
         return t.nextSibling;
     }
-    fe(t, e) {
+    de(t, e) {
         const n = t.attributes;
         const r = n.length;
         const o = [];
@@ -5635,10 +5635,10 @@ class TemplateCompiler {
                 h = true;
                 continue;
             }
-            u = e.ue.parse(f, d);
+            u = e.fe.parse(f, d);
             m = u.target;
             x = u.rawValue;
-            p = e.he(u);
+            p = e.ce(u);
             if (null !== p) switch (p.name) {
               case "to-view":
               case "bind":
@@ -5652,14 +5652,14 @@ class TemplateCompiler {
             o.push(new LetBindingInstruction(null === v ? new i.PrimitiveLiteralExpression(x) : v, s.camelCase(m)));
         }
         e.rows.push([ new HydrateLetElementInstruction(o, h) ]);
-        return this.me(t).nextSibling;
+        return this.xe(t).nextSibling;
     }
-    de(t, e) {
+    pe(t, e) {
         var i, n, r, o, l, h;
         var c, a;
         const u = t.nextSibling;
         const f = (null !== (i = t.getAttribute("as-element")) && void 0 !== i ? i : t.nodeName).toLowerCase();
-        const d = e.le(f);
+        const d = e.he(f);
         const p = !!(null === d || void 0 === d ? void 0 : d.capture);
         const m = p ? [] : s.emptyArray;
         const x = e.ep;
@@ -5688,15 +5688,15 @@ class TemplateCompiler {
         let L;
         let q;
         let U = null;
-        let M;
         let F;
+        let _;
+        let M;
         let V;
-        let j;
-        let _ = true;
+        let j = true;
         let N = false;
         if ("slot" === f) e.root.hasSlot = true;
         if (null !== d) {
-            _ = null === (n = d.processContent) || void 0 === n ? void 0 : n.call(d.Type, t, e.p);
+            j = null === (n = d.processContent) || void 0 === n ? void 0 : n.call(d.Type, t, e.p);
             g = t.attributes;
             b = g.length;
         }
@@ -5712,19 +5712,19 @@ class TemplateCompiler {
                 if (!N) N = "containerless" === C;
                 continue;
             }
-            R = e.ue.parse(C, A);
-            U = e.he(R);
-            V = R.target;
-            j = R.rawValue;
+            R = e.fe.parse(C, A);
+            U = e.ce(R);
+            M = R.target;
+            V = R.rawValue;
             if (p) {
                 if (null != U && 1 & U.type) {
                     v();
                     m.push(R);
                     continue;
                 }
-                if ("au-slot" !== V) {
-                    M = BindablesInfo.from(d, false);
-                    if (null == M.attrs[V] && !(null === (r = e.ce(V)) || void 0 === r ? void 0 : r.isTemplateController)) {
+                if ("au-slot" !== M) {
+                    F = BindablesInfo.from(d, false);
+                    if (null == F.attrs[M] && !(null === (r = e.ae(M)) || void 0 === r ? void 0 : r.isTemplateController)) {
                         v();
                         m.push(R);
                         continue;
@@ -5740,49 +5740,49 @@ class TemplateCompiler {
                 v();
                 continue;
             }
-            B = e.ce(V);
+            B = e.ae(M);
             if (null !== B) {
-                M = BindablesInfo.from(B, true);
+                F = BindablesInfo.from(B, true);
                 I = false === B.noMultiBindings && null === U && si(A);
-                if (I) P = this.ae(t, A, B, e); else {
-                    F = M.primary;
+                if (I) P = this.ue(t, A, B, e); else {
+                    _ = F.primary;
                     if (null === U) {
                         L = x.parse(A, 1);
-                        P = [ null === L ? new SetPropertyInstruction(A, F.property) : new InterpolationInstruction(L, F.property) ];
+                        P = [ null === L ? new SetPropertyInstruction(A, _.property) : new InterpolationInstruction(L, _.property) ];
                     } else {
                         oi.node = t;
                         oi.attr = R;
-                        oi.bindable = F;
+                        oi.bindable = _;
                         oi.def = B;
                         P = [ U.build(oi) ];
                     }
                 }
                 v();
-                if (B.isTemplateController) (null !== $ && void 0 !== $ ? $ : $ = []).push(new HydrateTemplateController(ri, this.resolveResources ? B : B.name, void 0, P)); else (null !== D && void 0 !== D ? D : D = []).push(new HydrateAttributeInstruction(this.resolveResources ? B : B.name, null != B.aliases && B.aliases.includes(V) ? V : void 0, P));
+                if (B.isTemplateController) (null !== $ && void 0 !== $ ? $ : $ = []).push(new HydrateTemplateController(ri, this.resolveResources ? B : B.name, void 0, P)); else (null !== D && void 0 !== D ? D : D = []).push(new HydrateAttributeInstruction(this.resolveResources ? B : B.name, null != B.aliases && B.aliases.includes(M) ? M : void 0, P));
                 continue;
             }
             if (null === U) {
                 if (null !== d) {
-                    M = BindablesInfo.from(d, false);
-                    T = M.attrs[V];
+                    F = BindablesInfo.from(d, false);
+                    T = F.attrs[M];
                     if (void 0 !== T) {
-                        L = x.parse(j, 1);
-                        (null !== E && void 0 !== E ? E : E = []).push(null == L ? new SetPropertyInstruction(j, T.property) : new InterpolationInstruction(L, T.property));
+                        L = x.parse(V, 1);
+                        (null !== E && void 0 !== E ? E : E = []).push(null == L ? new SetPropertyInstruction(V, T.property) : new InterpolationInstruction(L, T.property));
                         v();
                         continue;
                     }
                 }
-                L = x.parse(j, 1);
+                L = x.parse(V, 1);
                 if (null != L) {
                     v();
-                    (null !== S && void 0 !== S ? S : S = []).push(new InterpolationInstruction(L, null !== (o = e.m.map(t, V)) && void 0 !== o ? o : s.camelCase(V)));
+                    (null !== S && void 0 !== S ? S : S = []).push(new InterpolationInstruction(L, null !== (o = e.m.map(t, M)) && void 0 !== o ? o : s.camelCase(M)));
                 }
                 continue;
             }
             v();
             if (null !== d) {
-                M = BindablesInfo.from(d, false);
-                T = M.attrs[V];
+                F = BindablesInfo.from(d, false);
+                T = F.attrs[M];
                 if (void 0 !== T) {
                     oi.node = t;
                     oi.attr = R;
@@ -5799,19 +5799,19 @@ class TemplateCompiler {
             (null !== S && void 0 !== S ? S : S = []).push(U.build(oi));
         }
         ii();
-        if (this.xe(t) && null != S && S.length > 1) this.ve(t, S);
+        if (this.ve(t) && null != S && S.length > 1) this.ge(t, S);
         if (null !== d) {
             q = new HydrateElementInstruction(this.resolveResources ? d : d.name, void 0, null !== E && void 0 !== E ? E : s.emptyArray, null, N, m);
             if ("au-slot" === f) {
                 const s = t.getAttribute("name") || "default";
                 const i = e.h("template");
-                const n = e.ge();
+                const n = e.we();
                 let r = t.firstChild;
                 while (null !== r) {
                     if (1 === r.nodeType && r.hasAttribute("au-slot")) t.removeChild(r); else i.content.appendChild(r);
                     r = t.firstChild;
                 }
-                this.re(i.content, n);
+                this.oe(i.content, n);
                 q.auSlot = {
                     name: s,
                     fallback: CustomElementDefinition.create({
@@ -5821,12 +5821,12 @@ class TemplateCompiler {
                         needsCompile: false
                     })
                 };
-                t = this.we(t, e);
+                t = this.be(t, e);
             }
         }
         if (null != S || null != q || null != D) {
             w = s.emptyArray.concat(null !== q && void 0 !== q ? q : s.emptyArray, null !== D && void 0 !== D ? D : s.emptyArray, null !== S && void 0 !== S ? S : s.emptyArray);
-            this.me(t);
+            this.xe(t);
         }
         let W;
         if (null != $) {
@@ -5834,15 +5834,15 @@ class TemplateCompiler {
             y = b;
             O = $[y];
             let s;
-            this.we(t, e);
+            this.be(t, e);
             if ("TEMPLATE" === t.nodeName) s = t; else {
                 s = e.h("template");
                 s.content.appendChild(t);
             }
             const i = s;
-            const n = e.ge(null == w ? [] : [ w ]);
-            W = null === d || !d.containerless && !N && false !== _;
-            if (null !== d && d.containerless) this.we(t, e);
+            const n = e.we(null == w ? [] : [ w ]);
+            W = null === d || !d.containerless && !N && false !== j;
+            if (null !== d && d.containerless) this.be(t, e);
             let r;
             let o;
             let h;
@@ -5876,8 +5876,8 @@ class TemplateCompiler {
                                 p = f[v];
                                 if ("TEMPLATE" === p.nodeName) if (p.attributes.length > 0) s.content.appendChild(p); else s.content.appendChild(p.content); else s.content.appendChild(p);
                             }
-                            x = e.ge();
-                            this.re(s.content, x);
+                            x = e.we();
+                            this.oe(s.content, x);
                             a[h] = CustomElementDefinition.create({
                                 name: bi(),
                                 template: s,
@@ -5889,9 +5889,9 @@ class TemplateCompiler {
                         q.projections = a;
                     }
                 }
-                if ("TEMPLATE" === t.nodeName) this.re(t.content, n); else {
+                if ("TEMPLATE" === t.nodeName) this.oe(t.content, n); else {
                     r = t.firstChild;
-                    while (null !== r) r = this.re(r, n);
+                    while (null !== r) r = this.oe(r, n);
                 }
             }
             O.def = CustomElementDefinition.create({
@@ -5918,8 +5918,8 @@ class TemplateCompiler {
             e.rows.push([ O ]);
         } else {
             if (null != w) e.rows.push(w);
-            W = null === d || !d.containerless && !N && false !== _;
-            if (null !== d && d.containerless) this.we(t, e);
+            W = null === d || !d.containerless && !N && false !== j;
+            if (null !== d && d.containerless) this.be(t, e);
             if (W && t.childNodes.length > 0) {
                 let s = t.firstChild;
                 let i;
@@ -5952,8 +5952,8 @@ class TemplateCompiler {
                             c = l[p];
                             if ("TEMPLATE" === c.nodeName) if (c.attributes.length > 0) u.content.appendChild(c); else u.content.appendChild(c.content); else u.content.appendChild(c);
                         }
-                        f = e.ge();
-                        this.re(u.content, f);
+                        f = e.we();
+                        this.oe(u.content, f);
                         r[n] = CustomElementDefinition.create({
                             name: bi(),
                             template: u,
@@ -5965,12 +5965,12 @@ class TemplateCompiler {
                     q.projections = r;
                 }
                 s = t.firstChild;
-                while (null !== s) s = this.re(s, e);
+                while (null !== s) s = this.oe(s, e);
             }
         }
         return u;
     }
-    pe(t, e) {
+    me(t, e) {
         let s = "";
         let i = t;
         while (null !== i && 3 === i.nodeType) {
@@ -5980,7 +5980,7 @@ class TemplateCompiler {
         const n = e.ep.parse(s, 1);
         if (null === n) return i;
         const r = t.parentNode;
-        r.insertBefore(this.me(e.h("au-m")), t);
+        r.insertBefore(this.xe(e.h("au-m")), t);
         e.rows.push([ new TextBindingInstruction(n, !!e.def.isStrictBinding) ]);
         t.textContent = "";
         i = t.nextSibling;
@@ -5990,7 +5990,7 @@ class TemplateCompiler {
         }
         return t.nextSibling;
     }
-    ae(t, e, s, i) {
+    ue(t, e, s, i) {
         const n = BindablesInfo.from(s, true);
         const r = e.length;
         const o = [];
@@ -6016,8 +6016,8 @@ class TemplateCompiler {
                     }
                 }
                 if (void 0 === h) h = e.slice(c);
-                f = i.ue.parse(l, h);
-                d = i.he(f);
+                f = i.fe.parse(l, h);
+                d = i.ce(f);
                 p = n.attrs[f.target];
                 if (null == p) throw new Error(`AUR0707:${s.name}.${f.target}`);
                 if (null === d) {
@@ -6039,7 +6039,7 @@ class TemplateCompiler {
         ii();
         return o;
     }
-    ne(t, e) {
+    re(t, e) {
         const i = t;
         const n = s.toArray(i.querySelectorAll("template[as-custom-element]"));
         const r = n.length;
@@ -6073,17 +6073,17 @@ class TemplateCompiler {
                 if (i.length > 0) ;
                 l.removeChild(t);
             }
-            e.be(Wt.define({
+            e.ye(Wt.define({
                 name: n,
                 template: t
             }, r));
             i.removeChild(t);
         }
     }
-    xe(t) {
+    ve(t) {
         return "INPUT" === t.nodeName && 1 === hi[t.type];
     }
-    ve(t, e) {
+    ge(t, e) {
         switch (t.nodeName) {
           case "INPUT":
             {
@@ -6112,14 +6112,14 @@ class TemplateCompiler {
             }
         }
     }
-    me(t) {
+    xe(t) {
         t.classList.add("au");
         return t;
     }
-    we(t, e) {
+    be(t, e) {
         const s = t.parentNode;
         const i = e.h("au-m");
-        this.me(s.insertBefore(i, t));
+        this.xe(s.insertBefore(i, t));
         s.removeChild(t);
         return i;
     }
@@ -6128,23 +6128,23 @@ class TemplateCompiler {
 class CompilationContext {
     constructor(t, e, n, r, o, l) {
         this.hasSlot = false;
-        this.ye = P();
+        this.ke = P();
         const h = null !== r;
         this.c = e;
         this.root = null === o ? this : o;
         this.def = t;
         this.ci = n;
         this.parent = r;
-        this.ie = h ? r.ie : e.get(Qs);
-        this.ue = h ? r.ue : e.get(R);
+        this.ne = h ? r.ne : e.get(Qs);
+        this.fe = h ? r.fe : e.get(R);
         this.ep = h ? r.ep : e.get(i.IExpressionParser);
-        this.m = h ? r.m : e.get(F);
-        this.Ut = h ? r.Ut : e.get(s.ILogger);
+        this.m = h ? r.m : e.get(_);
+        this.Ft = h ? r.Ft : e.get(s.ILogger);
         this.p = h ? r.p : e.get(q);
         this.localEls = h ? r.localEls : new Set;
         this.rows = null !== l && void 0 !== l ? l : [];
     }
-    be(t) {
+    ye(t) {
         var e;
         var s;
         (null !== (e = (s = this.root).deps) && void 0 !== e ? e : s.deps = []).push(t);
@@ -6155,24 +6155,24 @@ class CompilationContext {
         if ("template" === t) this.p.document.adoptNode(e.content);
         return e;
     }
-    le(t) {
+    he(t) {
         return this.c.find(Wt, t);
     }
-    ce(t) {
+    ae(t) {
         return this.c.find(At, t);
     }
-    ge(t) {
+    we(t) {
         return new CompilationContext(this.def, this.c, this.ci, this, this.root, t);
     }
-    he(t) {
-        if (this.root !== this) return this.root.he(t);
+    ce(t) {
+        if (this.root !== this) return this.root.ce(t);
         const e = t.command;
         if (null === e) return null;
-        let s = this.ye[e];
+        let s = this.ke[e];
         if (void 0 === s) {
             s = this.c.create(Ys, e);
             if (null === s) throw new Error(`AUR0713:${e}`);
-            this.ye[e] = s;
+            this.ke[e] = s;
         }
         return s;
     }
@@ -6344,15 +6344,15 @@ const bi = Wt.generateName;
 class BindingModeBehavior {
     constructor(t) {
         this.mode = t;
-        this.ke = new Map;
+        this.Ce = new Map;
     }
     bind(t, e, s) {
-        this.ke.set(s, s.mode);
+        this.Ce.set(s, s.mode);
         s.mode = this.mode;
     }
     unbind(t, e, s) {
-        s.mode = this.ke.get(s);
-        this.ke.delete(s);
+        s.mode = this.Ce.get(s);
+        this.Ce.delete(s);
     }
 }
 
@@ -6442,21 +6442,21 @@ i.bindingBehavior("debounce")(DebounceBindingBehavior);
 
 class SignalBindingBehavior {
     constructor(t) {
-        this.Yt = new Map;
-        this.Ce = t;
+        this.Zt = new Map;
+        this.Ae = t;
     }
     bind(t, e, s, ...i) {
         if (!("handleChange" in s)) throw new Error("AUR0817");
         if (0 === i.length) throw new Error("AUR0818");
-        this.Yt.set(s, i);
+        this.Zt.set(s, i);
         let n;
-        for (n of i) this.Ce.addSignalListener(n, s);
+        for (n of i) this.Ae.addSignalListener(n, s);
     }
     unbind(t, e, s) {
-        const i = this.Yt.get(s);
-        this.Yt.delete(s);
+        const i = this.Zt.get(s);
+        this.Zt.delete(s);
         let n;
-        for (n of i) this.Ce.removeSignalListener(n, s);
+        for (n of i) this.Ae.removeSignalListener(n, s);
     }
 }
 
@@ -6477,11 +6477,11 @@ class ThrottleBindingBehavior extends i.BindingInterceptor {
         this.lastCall = 0;
         this.delay = 0;
         this.p = t.locator.get(s.IPlatform);
-        this.Ae = this.p.taskQueue;
+        this.Re = this.p.taskQueue;
         if (e.args.length > 0) this.firstArg = e.args[0];
     }
     callSource(t) {
-        this.Re((() => this.binding.callSource(t)));
+        this.Se((() => this.binding.callSource(t)));
         return;
     }
     handleChange(t, e, s) {
@@ -6493,16 +6493,16 @@ class ThrottleBindingBehavior extends i.BindingInterceptor {
         this.binding.handleChange(t, e, s);
     }
     updateSource(t, e) {
-        this.Re((() => this.binding.updateSource(t, e)));
+        this.Se((() => this.binding.updateSource(t, e)));
     }
-    Re(t) {
+    Se(t) {
         const e = this.opts;
         const s = this.p;
         const i = this.lastCall + e.delay - s.performanceNow();
         if (i > 0) {
             const n = this.task;
             e.delay = i;
-            this.task = this.Ae.queueTask((() => {
+            this.task = this.Re.queueTask((() => {
                 this.lastCall = s.performanceNow();
                 this.task = null;
                 e.delay = this.delay;
@@ -6605,8 +6605,8 @@ class CheckedObserver {
         this.type = 2 | 1 | 4;
         this.v = void 0;
         this.ov = void 0;
-        this.Se = void 0;
         this.Ee = void 0;
+        this.Be = void 0;
         this.f = 0;
         this.o = t;
         this.oL = i;
@@ -6620,17 +6620,17 @@ class CheckedObserver {
         this.v = t;
         this.ov = s;
         this.f = e;
-        this.Be();
         this.Ie();
+        this.Te();
         this.queue.add(this);
     }
     handleCollectionChange(t, e) {
-        this.Ie();
+        this.Te();
     }
     handleChange(t, e, s) {
-        this.Ie();
+        this.Te();
     }
-    Ie() {
+    Te() {
         const t = this.v;
         const e = this.o;
         const s = $.call(e, "model") ? e.model : e.value;
@@ -6693,14 +6693,14 @@ class CheckedObserver {
     }
     start() {
         this.handler.subscribe(this.o, this);
-        this.Be();
+        this.Ie();
     }
     stop() {
         var t, e;
         this.handler.dispose();
-        null === (t = this.Se) || void 0 === t ? void 0 : t.unsubscribe(this);
-        this.Se = void 0;
-        null === (e = this.Ee) || void 0 === e ? void 0 : e.unsubscribe(this);
+        null === (t = this.Ee) || void 0 === t ? void 0 : t.unsubscribe(this);
+        this.Ee = void 0;
+        null === (e = this.Be) || void 0 === e ? void 0 : e.unsubscribe(this);
     }
     subscribe(t) {
         if (this.subs.add(t) && 1 === this.subs.count) this.start();
@@ -6713,13 +6713,13 @@ class CheckedObserver {
         this.ov = this.v;
         this.subs.notify(this.v, Ei, this.f);
     }
-    Be() {
+    Ie() {
         var t, e, s, i, n, r, o;
         const l = this.o;
-        null === (n = null !== (t = this.Ee) && void 0 !== t ? t : this.Ee = null !== (s = null === (e = l.$observers) || void 0 === e ? void 0 : e.model) && void 0 !== s ? s : null === (i = l.$observers) || void 0 === i ? void 0 : i.value) || void 0 === n ? void 0 : n.subscribe(this);
-        null === (r = this.Se) || void 0 === r ? void 0 : r.unsubscribe(this);
-        this.Se = void 0;
-        if ("checkbox" === l.type) null === (o = this.Se = Vi(this.v, this.oL)) || void 0 === o ? void 0 : o.subscribe(this);
+        null === (n = null !== (t = this.Be) && void 0 !== t ? t : this.Be = null !== (s = null === (e = l.$observers) || void 0 === e ? void 0 : e.model) && void 0 !== s ? s : null === (i = l.$observers) || void 0 === i ? void 0 : i.value) || void 0 === n ? void 0 : n.subscribe(this);
+        null === (r = this.Ee) || void 0 === r ? void 0 : r.unsubscribe(this);
+        this.Ee = void 0;
+        if ("checkbox" === l.type) null === (o = this.Ee = Mi(this.v, this.oL)) || void 0 === o ? void 0 : o.subscribe(this);
     }
 }
 
@@ -6746,9 +6746,9 @@ class SelectValueObserver {
         this.type = 2 | 1 | 4;
         this.v = void 0;
         this.ov = void 0;
-        this.N = false;
-        this.Te = void 0;
+        this.W = false;
         this.De = void 0;
+        this.Pe = void 0;
         this.iO = false;
         this.o = t;
         this.oL = i;
@@ -6760,13 +6760,13 @@ class SelectValueObserver {
     setValue(t, e) {
         this.ov = this.v;
         this.v = t;
-        this.N = t !== this.ov;
-        this.Pe(t instanceof Array ? t : null);
-        if (0 === (256 & e)) this.G();
+        this.W = t !== this.ov;
+        this.$e(t instanceof Array ? t : null);
+        if (0 === (256 & e)) this.X();
     }
-    G() {
-        if (this.N) {
-            this.N = false;
+    X() {
+        if (this.W) {
+            this.W = false;
             this.syncOptions();
         }
     }
@@ -6835,32 +6835,32 @@ class SelectValueObserver {
         this.v = r;
         return true;
     }
-    $e() {
-        (this.De = new this.o.ownerDocument.defaultView.MutationObserver(this.Oe.bind(this))).observe(this.o, Ii);
-        this.Pe(this.v instanceof Array ? this.v : null);
+    Oe() {
+        (this.Pe = new this.o.ownerDocument.defaultView.MutationObserver(this.Le.bind(this))).observe(this.o, Ii);
+        this.$e(this.v instanceof Array ? this.v : null);
         this.iO = true;
     }
-    Le() {
+    qe() {
         var t;
-        this.De.disconnect();
-        null === (t = this.Te) || void 0 === t ? void 0 : t.unsubscribe(this);
-        this.De = this.Te = void 0;
+        this.Pe.disconnect();
+        null === (t = this.De) || void 0 === t ? void 0 : t.unsubscribe(this);
+        this.Pe = this.De = void 0;
         this.iO = false;
     }
-    Pe(t) {
+    $e(t) {
         var e;
-        null === (e = this.Te) || void 0 === e ? void 0 : e.unsubscribe(this);
-        this.Te = void 0;
+        null === (e = this.De) || void 0 === e ? void 0 : e.unsubscribe(this);
+        this.De = void 0;
         if (null != t) {
             if (!this.o.multiple) throw new Error("AUR0654");
-            (this.Te = this.oL.getArrayObserver(t)).subscribe(this);
+            (this.De = this.oL.getArrayObserver(t)).subscribe(this);
         }
     }
     handleEvent() {
         const t = this.syncValue();
         if (t) this.queue.add(this);
     }
-    Oe(t) {
+    Le(t) {
         this.syncOptions();
         const e = this.syncValue();
         if (e) this.queue.add(this);
@@ -6868,13 +6868,13 @@ class SelectValueObserver {
     subscribe(t) {
         if (this.subs.add(t) && 1 === this.subs.count) {
             this.handler.subscribe(this.o, this);
-            this.$e();
+            this.Oe();
         }
     }
     unsubscribe(t) {
         if (this.subs.remove(t) && 0 === this.subs.count) {
             this.handler.dispose();
-            this.Le();
+            this.qe();
         }
     }
     flush() {
@@ -6914,17 +6914,17 @@ class StyleAttributeAccessor {
         this.ov = "";
         this.styles = {};
         this.version = 0;
-        this.N = false;
+        this.W = false;
     }
     getValue() {
         return this.obj.style.cssText;
     }
     setValue(t, e) {
         this.value = t;
-        this.N = t !== this.ov;
-        if (0 === (256 & e)) this.G();
+        this.W = t !== this.ov;
+        if (0 === (256 & e)) this.X();
     }
-    qe(t) {
+    Ue(t) {
         const e = [];
         const s = /url\([^)]+$/;
         let i = 0;
@@ -6950,7 +6950,7 @@ class StyleAttributeAccessor {
         }
         return e;
     }
-    Ue(t) {
+    Fe(t) {
         let e;
         let i;
         const n = [];
@@ -6965,32 +6965,32 @@ class StyleAttributeAccessor {
                 n.push([ s.kebabCase(i), e ]);
                 continue;
             }
-            n.push(...this.Me(e));
+            n.push(...this._e(e));
         }
         return n;
     }
-    Fe(t) {
+    Me(t) {
         const e = t.length;
         if (e > 0) {
             const s = [];
             let i = 0;
-            for (;e > i; ++i) s.push(...this.Me(t[i]));
+            for (;e > i; ++i) s.push(...this._e(t[i]));
             return s;
         }
         return s.emptyArray;
     }
-    Me(t) {
-        if ("string" === typeof t) return this.qe(t);
-        if (t instanceof Array) return this.Fe(t);
-        if (t instanceof Object) return this.Ue(t);
+    _e(t) {
+        if ("string" === typeof t) return this.Ue(t);
+        if (t instanceof Array) return this.Me(t);
+        if (t instanceof Object) return this.Fe(t);
         return s.emptyArray;
     }
-    G() {
-        if (this.N) {
-            this.N = false;
+    X() {
+        if (this.W) {
+            this.W = false;
             const t = this.value;
             const e = this.styles;
-            const s = this.Me(t);
+            const s = this._e(t);
             let i;
             let n = this.version;
             this.ov = t;
@@ -7035,7 +7035,7 @@ class ValueAttributeObserver {
         this.type = 2 | 1 | 4;
         this.v = "";
         this.ov = "";
-        this.N = false;
+        this.W = false;
         this.o = t;
         this.k = e;
     }
@@ -7046,13 +7046,13 @@ class ValueAttributeObserver {
         if (Object.is(t, this.v)) return;
         this.ov = this.v;
         this.v = t;
-        this.N = true;
-        if (!this.handler.config.readonly && 0 === (256 & e)) this.G(e);
+        this.W = true;
+        if (!this.handler.config.readonly && 0 === (256 & e)) this.X(e);
     }
-    G(t) {
+    X(t) {
         var e;
-        if (this.N) {
-            this.N = false;
+        if (this.W) {
+            this.W = false;
             this.o[this.k] = null !== (e = this.v) && void 0 !== e ? e : this.handler.config.default;
             if (0 === (2 & t)) this.queue.add(this);
         }
@@ -7061,7 +7061,7 @@ class ValueAttributeObserver {
         this.ov = this.v;
         this.v = this.o[this.k];
         if (this.ov !== this.v) {
-            this.N = false;
+            this.W = false;
             this.queue.add(this);
         }
     }
@@ -7093,7 +7093,7 @@ const qi = "http://www.w3.org/XML/1998/namespace";
 
 const Ui = "http://www.w3.org/2000/xmlns/";
 
-const Mi = Object.assign(P(), {
+const Fi = Object.assign(P(), {
     "xlink:actuate": [ "actuate", Li ],
     "xlink:arcrole": [ "arcrole", Li ],
     "xlink:href": [ "href", Li ],
@@ -7107,9 +7107,9 @@ const Mi = Object.assign(P(), {
     "xmlns:xlink": [ "xlink", Ui ]
 });
 
-const Fi = new i.PropertyAccessor;
+const _i = new i.PropertyAccessor;
 
-Fi.type = 2 | 4;
+_i.type = 2 | 4;
 
 class NodeObserverConfig {
     constructor(t) {
@@ -7130,8 +7130,8 @@ class NodeObserverLocator {
         this.allowDirtyCheck = true;
         this.Ve = P();
         this.je = P();
-        this._e = P();
         this.Ne = P();
+        this.We = P();
         const n = [ "change", "input" ];
         const r = {
             events: n,
@@ -7198,20 +7198,20 @@ class NodeObserverLocator {
         let o;
         if ("string" === typeof t) {
             o = null !== (i = r[t]) && void 0 !== i ? i : r[t] = P();
-            if (null == o[e]) o[e] = new NodeObserverConfig(s); else ji(t, e);
+            if (null == o[e]) o[e] = new NodeObserverConfig(s); else Vi(t, e);
         } else for (const s in t) {
             o = null !== (n = r[s]) && void 0 !== n ? n : r[s] = P();
             const i = t[s];
-            for (e in i) if (null == o[e]) o[e] = new NodeObserverConfig(i[e]); else ji(s, e);
+            for (e in i) if (null == o[e]) o[e] = new NodeObserverConfig(i[e]); else Vi(s, e);
         }
     }
     useConfigGlobal(t, e) {
         const s = this.je;
-        if ("object" === typeof t) for (const e in t) if (null == s[e]) s[e] = new NodeObserverConfig(t[e]); else ji("*", e); else if (null == s[t]) s[t] = new NodeObserverConfig(e); else ji("*", t);
+        if ("object" === typeof t) for (const e in t) if (null == s[e]) s[e] = new NodeObserverConfig(t[e]); else Vi("*", e); else if (null == s[t]) s[t] = new NodeObserverConfig(e); else Vi("*", t);
     }
     getAccessor(t, e, i) {
         var n;
-        if (e in this.Ne || e in (null !== (n = this._e[t.tagName]) && void 0 !== n ? n : s.emptyObject)) return this.getObserver(t, e, i);
+        if (e in this.We || e in (null !== (n = this.Ne[t.tagName]) && void 0 !== n ? n : s.emptyObject)) return this.getObserver(t, e, i);
         switch (e) {
           case "src":
           case "href":
@@ -7220,10 +7220,10 @@ class NodeObserverLocator {
 
           default:
             {
-                const s = Mi[e];
+                const s = Fi[e];
                 if (void 0 !== s) return AttributeNSAccessor.forNs(s[1]);
                 if (L(t, e, this.svgAnalyzer)) return Ci;
-                return Fi;
+                return _i;
             }
         }
     }
@@ -7232,15 +7232,15 @@ class NodeObserverLocator {
         var n, r;
         let o;
         if ("string" === typeof t) {
-            o = null !== (s = (n = this._e)[t]) && void 0 !== s ? s : n[t] = P();
+            o = null !== (s = (n = this.Ne)[t]) && void 0 !== s ? s : n[t] = P();
             o[e] = true;
         } else for (const e in t) for (const s of t[e]) {
-            o = null !== (i = (r = this._e)[e]) && void 0 !== i ? i : r[e] = P();
+            o = null !== (i = (r = this.Ne)[e]) && void 0 !== i ? i : r[e] = P();
             o[s] = true;
         }
     }
     overrideAccessorGlobal(...t) {
-        for (const e of t) this.Ne[e] = true;
+        for (const e of t) this.We[e] = true;
     }
     getObserver(t, e, s) {
         var n, r;
@@ -7257,7 +7257,7 @@ class NodeObserverLocator {
         }
         const o = null !== (r = null === (n = this.Ve[t.tagName]) || void 0 === n ? void 0 : n[e]) && void 0 !== r ? r : this.je[e];
         if (null != o) return new o.type(t, e, new EventSubscriber(o), s, this.locator);
-        const l = Mi[e];
+        const l = Fi[e];
         if (void 0 !== l) return AttributeNSAccessor.forNs(l[1]);
         if (L(t, e, this.svgAnalyzer)) return Ci;
         if (e in t.constructor.prototype) {
@@ -7269,13 +7269,13 @@ class NodeObserverLocator {
 
 NodeObserverLocator.inject = [ s.IServiceLocator, q, i.IDirtyChecker, U ];
 
-function Vi(t, e) {
+function Mi(t, e) {
     if (t instanceof Array) return e.getArrayObserver(t);
     if (t instanceof Map) return e.getMapObserver(t);
     if (t instanceof Set) return e.getSetObserver(t);
 }
 
-function ji(t, e) {
+function Vi(t, e) {
     throw new Error(`AUR0653:${String(e)}@${t}`);
 }
 
@@ -7308,158 +7308,157 @@ UpdateTriggerBindingBehavior.inject = [ i.IObserverLocator ];
 
 i.bindingBehavior("updateTrigger")(UpdateTriggerBindingBehavior);
 
-exports.Focus = class Focus {
+class Focus {
     constructor(t, e) {
-        this.We = t;
+        this.He = t;
         this.p = e;
-        this.He = false;
+        this.ze = false;
     }
     binding() {
         this.valueChanged();
     }
     valueChanged() {
-        if (this.$controller.isActive) this.apply(); else this.He = true;
+        if (this.$controller.isActive) this.Ge(); else this.ze = true;
     }
     attached() {
-        if (this.He) {
-            this.He = false;
-            this.apply();
+        if (this.ze) {
+            this.ze = false;
+            this.Ge();
         }
-        const t = this.We;
-        t.addEventListener("focus", this);
-        t.addEventListener("blur", this);
+        this.He.addEventListener("focus", this);
+        this.He.addEventListener("blur", this);
     }
     afterDetachChildren() {
-        const t = this.We;
+        const t = this.He;
         t.removeEventListener("focus", this);
         t.removeEventListener("blur", this);
     }
     handleEvent(t) {
-        if ("focus" === t.type) this.value = true; else if (!this.isElFocused) this.value = false;
+        if ("focus" === t.type) this.value = true; else if (!this.Xe) this.value = false;
     }
-    apply() {
-        const t = this.We;
-        const e = this.isElFocused;
+    Ge() {
+        const t = this.He;
+        const e = this.Xe;
         const s = this.value;
         if (s && !e) t.focus(); else if (!s && e) t.blur();
     }
-    get isElFocused() {
-        return this.We === this.p.document.activeElement;
+    get Xe() {
+        return this.He === this.p.document.activeElement;
     }
-};
+}
+
+Focus.inject = [ We, q ];
 
 n([ x({
     mode: i.BindingMode.twoWay
-}) ], exports.Focus.prototype, "value", void 0);
+}) ], Focus.prototype, "value", void 0);
 
-exports.Focus = n([ r(0, We), r(1, q) ], exports.Focus);
+wt("focus")(Focus);
 
-wt("focus")(exports.Focus);
-
-let _i = class Show {
+let ji = class Show {
     constructor(t, e, s) {
         this.el = t;
         this.p = e;
-        this.isActive = false;
-        this.task = null;
+        this.Ke = false;
+        this.Ye = null;
         this.$val = "";
         this.$prio = "";
         this.update = () => {
-            this.task = null;
-            if (Boolean(this.value) !== this.isToggled) if (this.isToggled === this.base) {
-                this.isToggled = !this.base;
+            this.Ye = null;
+            if (Boolean(this.value) !== this.Ze) if (this.Ze === this.Je) {
+                this.Ze = !this.Je;
                 this.$val = this.el.style.getPropertyValue("display");
                 this.$prio = this.el.style.getPropertyPriority("display");
                 this.el.style.setProperty("display", "none", "important");
             } else {
-                this.isToggled = this.base;
+                this.Ze = this.Je;
                 this.el.style.setProperty("display", this.$val, this.$prio);
                 if ("" === this.el.getAttribute("style")) this.el.removeAttribute("style");
             }
         };
-        this.isToggled = this.base = "hide" !== s.alias;
+        this.Ze = this.Je = "hide" !== s.alias;
     }
     binding() {
-        this.isActive = true;
+        this.Ke = true;
         this.update();
     }
     detaching() {
         var t;
-        this.isActive = false;
-        null === (t = this.task) || void 0 === t ? void 0 : t.cancel();
-        this.task = null;
+        this.Ke = false;
+        null === (t = this.Ye) || void 0 === t ? void 0 : t.cancel();
+        this.Ye = null;
     }
     valueChanged() {
-        if (this.isActive && null === this.task) this.task = this.p.domWriteQueue.queueTask(this.update);
+        if (this.Ke && null === this.Ye) this.Ye = this.p.domWriteQueue.queueTask(this.update);
     }
 };
 
-n([ x ], _i.prototype, "value", void 0);
+n([ x ], ji.prototype, "value", void 0);
 
-_i = n([ r(0, We), r(1, q), r(2, os) ], _i);
+ji = n([ r(0, We), r(1, q), r(2, os) ], ji);
 
-i.alias("hide")(_i);
+i.alias("hide")(ji);
 
-wt("show")(_i);
+wt("show")(ji);
 
 class Portal {
     constructor(t, e, i) {
         this.id = s.nextId("au$component");
         this.strict = false;
         this.p = i;
-        this.ze = i.document.createElement("div");
+        this.Qe = i.document.createElement("div");
         this.view = t.create();
         Ke(this.view.nodes, e);
     }
     attaching(t, e, s) {
         if (null == this.callbackContext) this.callbackContext = this.$controller.scope.bindingContext;
-        const i = this.ze = this.Ge();
+        const i = this.Qe = this.ts();
         this.view.setHost(i);
-        return this.Xe(t, i, s);
+        return this.es(t, i, s);
     }
     detaching(t, e, s) {
-        return this.Ke(t, this.ze, s);
+        return this.ss(t, this.Qe, s);
     }
     targetChanged() {
         const {$controller: t} = this;
         if (!t.isActive) return;
-        const e = this.ze;
-        const i = this.ze = this.Ge();
+        const e = this.Qe;
+        const i = this.Qe = this.ts();
         if (e === i) return;
         this.view.setHost(i);
-        const n = s.onResolve(this.Ke(null, i, t.flags), (() => this.Xe(null, i, t.flags)));
+        const n = s.onResolve(this.ss(null, i, t.flags), (() => this.es(null, i, t.flags)));
         if (n instanceof Promise) n.catch((t => {
             throw t;
         }));
     }
-    Xe(t, e, i) {
+    es(t, e, i) {
         const {activating: n, callbackContext: r, view: o} = this;
         o.setHost(e);
-        return s.onResolve(null === n || void 0 === n ? void 0 : n.call(r, e, o), (() => this.Ye(t, e, i)));
+        return s.onResolve(null === n || void 0 === n ? void 0 : n.call(r, e, o), (() => this.os(t, e, i)));
     }
-    Ye(t, e, i) {
+    os(t, e, i) {
         const {$controller: n, view: r} = this;
-        if (null === t) r.nodes.appendTo(e); else return s.onResolve(r.activate(null !== t && void 0 !== t ? t : r, n, i, n.scope), (() => this.Ze(e)));
-        return this.Ze(e);
+        if (null === t) r.nodes.appendTo(e); else return s.onResolve(r.activate(null !== t && void 0 !== t ? t : r, n, i, n.scope), (() => this.ls(e)));
+        return this.ls(e);
     }
-    Ze(t) {
+    ls(t) {
         const {activated: e, callbackContext: s, view: i} = this;
         return null === e || void 0 === e ? void 0 : e.call(s, t, i);
     }
-    Ke(t, e, i) {
+    ss(t, e, i) {
         const {deactivating: n, callbackContext: r, view: o} = this;
-        return s.onResolve(null === n || void 0 === n ? void 0 : n.call(r, e, o), (() => this.Je(t, e, i)));
+        return s.onResolve(null === n || void 0 === n ? void 0 : n.call(r, e, o), (() => this.cs(t, e, i)));
     }
-    Je(t, e, i) {
+    cs(t, e, i) {
         const {$controller: n, view: r} = this;
-        if (null === t) r.nodes.remove(); else return s.onResolve(r.deactivate(t, n, i), (() => this.Qe(e)));
-        return this.Qe(e);
+        if (null === t) r.nodes.remove(); else return s.onResolve(r.deactivate(t, n, i), (() => this.us(e)));
+        return this.us(e);
     }
-    Qe(t) {
+    us(t) {
         const {deactivated: e, callbackContext: s, view: i} = this;
         return null === e || void 0 === e ? void 0 : e.call(s, t, i);
     }
-    Ge() {
+    ts() {
         const t = this.p;
         const e = t.document;
         let s = this.target;
@@ -7518,14 +7517,13 @@ bt("portal")(Portal);
 
 class FlagsTemplateController {
     constructor(t, e, i) {
-        this.factory = t;
-        this.flags = i;
+        this.fs = i;
         this.id = s.nextId("au$component");
-        this.view = this.factory.create().setLocation(e);
+        this.view = t.create().setLocation(e);
     }
     attaching(t, e, s) {
         const {$controller: i} = this;
-        return this.view.activate(t, i, s | this.flags, i.scope);
+        return this.view.activate(t, i, s | this.fs, i.scope);
     }
     detaching(t, e, s) {
         return this.view.deactivate(t, this.$controller, s);
@@ -7573,14 +7571,14 @@ class If {
         this.value = false;
         this.cache = true;
         this.pending = void 0;
-        this.ts = false;
-        this.es = 0;
+        this.ds = false;
+        this.ps = 0;
     }
     attaching(t, e, i) {
         let n;
         const r = this.$controller;
-        const o = this.es++;
-        const l = () => !this.ts && this.es === o + 1;
+        const o = this.ps++;
+        const l = () => !this.ds && this.ps === o + 1;
         return s.onResolve(this.pending, (() => {
             var e;
             if (!l()) return;
@@ -7594,10 +7592,10 @@ class If {
         }));
     }
     detaching(t, e, i) {
-        this.ts = true;
+        this.ds = true;
         return s.onResolve(this.pending, (() => {
             var e;
-            this.ts = false;
+            this.ds = false;
             this.pending = void 0;
             void (null === (e = this.view) || void 0 === e ? void 0 : e.deactivate(t, this.$controller, i));
         }));
@@ -7610,8 +7608,8 @@ class If {
         this.work.start();
         const n = this.view;
         const r = this.$controller;
-        const o = this.es++;
-        const l = () => !this.ts && this.es === o + 1;
+        const o = this.ps++;
+        const l = () => !this.ds && this.ps === o + 1;
         let h;
         return s.onResolve(s.onResolve(this.pending, (() => this.pending = s.onResolve(null === n || void 0 === n ? void 0 : n.deactivate(n, r, i), (() => {
             var e;
@@ -7636,7 +7634,7 @@ class If {
     }
 }
 
-If.inject = [ ue, ze, je ];
+If.inject = [ ue, ze, Ve ];
 
 n([ x ], If.prototype, "value", void 0);
 
@@ -7672,20 +7670,20 @@ const Wi = [ 38962, 36913 ];
 
 class Repeat {
     constructor(t, e, i) {
-        this.location = t;
-        this.parent = e;
-        this.factory = i;
+        this.l = t;
+        this.xs = e;
+        this.f = i;
         this.id = s.nextId("au$component");
-        this.ss = void 0;
         this.views = [];
         this.key = void 0;
-        this.os = false;
-        this.ls = false;
-        this.cs = null;
-        this.us = void 0;
+        this.vs = void 0;
+        this.gs = false;
+        this.ws = false;
+        this.bs = null;
+        this.ys = void 0;
     }
     binding(t, e, s) {
-        const i = this.parent.bindings;
+        const i = this.xs.bindings;
         const n = i.length;
         let r;
         let o;
@@ -7694,34 +7692,34 @@ class Repeat {
             r = i[l];
             if (r.target === this && "items" === r.targetProperty) {
                 o = this.forOf = r.sourceExpression;
-                this.ds = r;
+                this.ks = r;
                 let t = o.iterable;
                 while (null != t && Wi.includes(t.$kind)) {
                     t = t.expression;
-                    this.os = true;
+                    this.gs = true;
                 }
-                this.cs = t;
+                this.bs = t;
                 break;
             }
         }
-        this.ps(s);
+        this.Cs(s);
         this.local = o.declaration.evaluate(s, this.$controller.scope, r.locator, null);
     }
     attaching(t, e, s) {
-        this.xs(s);
-        return this.vs(t, s);
+        this.As(s);
+        return this.Rs(t, s);
     }
     detaching(t, e, s) {
-        this.ps(s);
-        return this.gs(t, s);
+        this.Cs(s);
+        return this.Ss(t, s);
     }
     itemsChanged(t) {
         const {$controller: e} = this;
         if (!e.isActive) return;
         t |= e.flags;
-        this.ps(t);
-        this.xs(t);
-        const i = s.onResolve(this.gs(null, t), (() => this.vs(null, t)));
+        this.Cs(t);
+        this.As(t);
+        const i = s.onResolve(this.Ss(null, t), (() => this.Rs(null, t)));
         if (i instanceof Promise) i.catch((t => {
             throw t;
         }));
@@ -7729,17 +7727,17 @@ class Repeat {
     handleCollectionChange(t, e) {
         const {$controller: n} = this;
         if (!n.isActive) return;
-        if (this.os) {
-            if (this.ls) return;
-            this.ls = true;
-            this.items = this.forOf.iterable.evaluate(e, n.scope, this.ds.locator, null);
-            this.ls = false;
+        if (this.gs) {
+            if (this.ws) return;
+            this.ws = true;
+            this.items = this.forOf.iterable.evaluate(e, n.scope, this.ks.locator, null);
+            this.ws = false;
             return;
         }
         e |= n.flags;
-        this.xs(e);
+        this.As(e);
         if (void 0 === t) {
-            const t = s.onResolve(this.gs(null, e), (() => this.vs(null, e)));
+            const t = s.onResolve(this.Ss(null, e), (() => this.Rs(null, e)));
             if (t instanceof Promise) t.catch((t => {
                 throw t;
             }));
@@ -7748,35 +7746,35 @@ class Repeat {
             i.applyMutationsToIndices(t);
             if (t.deletedItems.length > 0) {
                 t.deletedItems.sort(s.compareNumber);
-                const i = s.onResolve(this.ws(t, e), (() => this.bs(n, t, e)));
+                const i = s.onResolve(this.Es(t, e), (() => this.Bs(n, t, e)));
                 if (i instanceof Promise) i.catch((t => {
                     throw t;
                 }));
-            } else this.bs(n, t, e);
+            } else this.Bs(n, t, e);
         }
     }
-    ps(t) {
+    Cs(t) {
         var e;
         const s = this.$controller.scope;
-        let n = this.ys;
-        let r = this.os;
+        let n = this.Is;
+        let r = this.gs;
         if (r) {
-            n = this.ys = null !== (e = this.cs.evaluate(t, s, this.ds.locator, null)) && void 0 !== e ? e : null;
-            r = this.os = !Object.is(this.items, n);
+            n = this.Is = null !== (e = this.bs.evaluate(t, s, this.ks.locator, null)) && void 0 !== e ? e : null;
+            r = this.gs = !Object.is(this.items, n);
         }
-        const o = this.ss;
+        const o = this.vs;
         if (4 & t) {
             if (void 0 !== o) o.unsubscribe(this);
         } else if (this.$controller.isActive) {
-            const t = this.ss = i.getCollectionObserver(r ? n : this.items);
+            const t = this.vs = i.getCollectionObserver(r ? n : this.items);
             if (o !== t && o) o.unsubscribe(this);
             if (t) t.subscribe(this);
         }
     }
-    xs(t) {
+    As(t) {
         const e = this.items;
         if (e instanceof Array) {
-            this.us = e;
+            this.ys = e;
             return;
         }
         const s = this.forOf;
@@ -7785,14 +7783,14 @@ class Repeat {
         this.forOf.iterate(t, e, ((t, e, s) => {
             i[e] = s;
         }));
-        this.us = i;
+        this.ys = i;
     }
-    vs(t, e) {
+    Rs(t, e) {
         let s;
         let n;
         let r;
         let o;
-        const {$controller: l, factory: h, local: c, location: a, items: u} = this;
+        const {$controller: l, f: h, local: c, l: a, items: u} = this;
         const f = l.scope;
         const d = this.forOf.count(e, u);
         const p = this.views = Array(d);
@@ -7806,7 +7804,7 @@ class Repeat {
         }));
         if (void 0 !== s) return 1 === s.length ? s[0] : Promise.all(s);
     }
-    gs(t, e) {
+    Ss(t, e) {
         let s;
         let i;
         let n;
@@ -7821,7 +7819,7 @@ class Repeat {
         }
         if (void 0 !== s) return 1 === s.length ? s[0] : Promise.all(s);
     }
-    ws(t, e) {
+    Es(t, e) {
         let s;
         let i;
         let n;
@@ -7843,14 +7841,14 @@ class Repeat {
         }
         if (void 0 !== s) return 1 === s.length ? s[0] : Promise.all(s);
     }
-    bs(t, e, s) {
+    Bs(t, e, s) {
         var n;
         let r;
         let o;
         let l;
         let h;
         let c = 0;
-        const {$controller: a, factory: u, local: f, us: d, location: p, views: m} = this;
+        const {$controller: a, f: u, local: f, ys: d, l: p, views: m} = this;
         const x = e.length;
         for (;x > c; ++c) if (-2 === e[c]) {
             l = u.create();
@@ -7972,11 +7970,9 @@ function Ki(t, e, s) {
 
 class With {
     constructor(t, e) {
-        this.factory = t;
-        this.location = e;
         this.id = s.nextId("au$component");
         this.id = s.nextId("au$component");
-        this.view = this.factory.create().setLocation(e);
+        this.view = t.create().setLocation(e);
     }
     valueChanged(t, e, s) {
         const n = this.$controller;
@@ -8014,15 +8010,15 @@ bt("with")(With);
 
 exports.Switch = class Switch {
     constructor(t, e) {
-        this.factory = t;
-        this.location = e;
+        this.f = t;
+        this.l = e;
         this.id = s.nextId("au$component");
         this.cases = [];
         this.activeCases = [];
         this.promise = void 0;
     }
     link(t, e, s, i) {
-        this.view = this.factory.create(this.$controller).setLocation(this.location);
+        this.view = this.f.create(this.$controller).setLocation(this.l);
     }
     attaching(t, e, s) {
         const i = this.view;
@@ -8048,14 +8044,14 @@ exports.Switch = class Switch {
         this.queue((() => this.swap(null, s, this.value)));
     }
     caseChanged(t, e) {
-        this.queue((() => this.ks(t, e)));
+        this.queue((() => this.Ts(t, e)));
     }
-    ks(t, e) {
+    Ts(t, e) {
         const i = t.isMatch(this.value, e);
         const n = this.activeCases;
         const r = n.length;
         if (!i) {
-            if (r > 0 && n[0].id === t.id) return this.Cs(null, e);
+            if (r > 0 && n[0].id === t.id) return this.Ds(null, e);
             return;
         }
         if (r > 0 && n[0].id < t.id) return;
@@ -8070,9 +8066,9 @@ exports.Switch = class Switch {
                 l = s.fallThrough;
             }
         }
-        return s.onResolve(this.Cs(null, e, o), (() => {
+        return s.onResolve(this.Ds(null, e, o), (() => {
             this.activeCases = o;
-            return this.As(null, e);
+            return this.Ps(null, e);
         }));
     }
     swap(t, e, i) {
@@ -8087,13 +8083,13 @@ exports.Switch = class Switch {
         }
         const o = this.defaultCase;
         if (0 === n.length && void 0 !== o) n.push(o);
-        return s.onResolve(this.activeCases.length > 0 ? this.Cs(t, e, n) : void 0, (() => {
+        return s.onResolve(this.activeCases.length > 0 ? this.Ds(t, e, n) : void 0, (() => {
             this.activeCases = n;
             if (0 === n.length) return;
-            return this.As(t, e);
+            return this.Ps(t, e);
         }));
     }
-    As(t, e) {
+    Ps(t, e) {
         const i = this.$controller;
         if (!i.isActive) return;
         const n = this.activeCases;
@@ -8103,7 +8099,7 @@ exports.Switch = class Switch {
         if (1 === r) return n[0].activate(t, e, o);
         return s.resolveAll(...n.map((s => s.activate(t, e, o))));
     }
-    Cs(t, e, i = []) {
+    Ds(t, e, i = []) {
         const n = this.activeCases;
         const r = n.length;
         if (0 === r) return;
@@ -8141,13 +8137,12 @@ exports.Switch = n([ bt("switch"), r(0, ue), r(1, ze) ], exports.Switch);
 
 exports.Case = class Case {
     constructor(t, e, i, n) {
-        this.factory = t;
-        this.locator = e;
+        this.$s = e;
         this.id = s.nextId("au$component");
         this.fallThrough = false;
-        this.debug = n.config.level <= 1;
-        this.logger = n.scopeTo(`${this.constructor.name}-#${this.id}`);
-        this.view = this.factory.create().setLocation(i);
+        this.Os = n.config.level <= 1;
+        this.Ft = n.scopeTo(`${this.constructor.name}-#${this.id}`);
+        this.view = t.create().setLocation(i);
     }
     link(t, e, s, i) {
         const n = t.parent;
@@ -8161,10 +8156,10 @@ exports.Case = class Case {
         return this.deactivate(t, s);
     }
     isMatch(t, e) {
-        if (this.debug) this.logger.debug("isMatch()");
+        this.Ft.debug("isMatch()");
         const s = this.value;
         if (Array.isArray(s)) {
-            if (void 0 === this.observer) this.observer = this.observeCollection(e, s);
+            if (void 0 === this.vs) this.vs = this.Ls(e, s);
             return s.includes(t);
         }
         return s === t;
@@ -8172,9 +8167,9 @@ exports.Case = class Case {
     valueChanged(t, e, s) {
         var i;
         if (Array.isArray(t)) {
-            null === (i = this.observer) || void 0 === i ? void 0 : i.unsubscribe(this);
-            this.observer = this.observeCollection(s, t);
-        } else if (void 0 !== this.observer) this.observer.unsubscribe(this);
+            null === (i = this.vs) || void 0 === i ? void 0 : i.unsubscribe(this);
+            this.vs = this.Ls(s, t);
+        } else if (void 0 !== this.vs) this.vs.unsubscribe(this);
         this.$switch.caseChanged(this, s);
     }
     handleCollectionChange(t, e) {
@@ -8192,15 +8187,15 @@ exports.Case = class Case {
     }
     dispose() {
         var t, e;
-        null === (t = this.observer) || void 0 === t ? void 0 : t.unsubscribe(this);
+        null === (t = this.vs) || void 0 === t ? void 0 : t.unsubscribe(this);
         null === (e = this.view) || void 0 === e ? void 0 : e.dispose();
         this.view = void 0;
     }
     linkToSwitch(t) {
         t.cases.push(this);
     }
-    observeCollection(t, e) {
-        const s = this.locator.getArrayObserver(e);
+    Ls(t, e) {
+        const s = this.$s.getArrayObserver(e);
         s.subscribe(this);
         return s;
     }
@@ -8210,6 +8205,8 @@ exports.Case = class Case {
         return null === (e = this.view) || void 0 === e ? void 0 : e.accept(t);
     }
 };
+
+exports.Case.inject = [ ue, i.IObserverLocator, ze, s.ILogger ];
 
 n([ x ], exports.Case.prototype, "value", void 0);
 
@@ -8229,7 +8226,7 @@ n([ x({
     mode: i.BindingMode.oneTime
 }) ], exports.Case.prototype, "fallThrough", void 0);
 
-exports.Case = n([ bt("case"), r(0, ue), r(1, i.IObserverLocator), r(2, ze), r(3, s.ILogger) ], exports.Case);
+exports.Case = n([ bt("case") ], exports.Case);
 
 exports.DefaultCase = class DefaultCase extends exports.Case {
     linkToSwitch(t) {
@@ -8242,16 +8239,16 @@ exports.DefaultCase = n([ bt("default-case") ], exports.DefaultCase);
 
 exports.PromiseTemplateController = class PromiseTemplateController {
     constructor(t, e, i, n) {
-        this.factory = t;
-        this.location = e;
-        this.platform = i;
+        this.f = t;
+        this.l = e;
+        this.p = i;
         this.id = s.nextId("au$component");
         this.preSettledTask = null;
         this.postSettledTask = null;
         this.logger = n.scopeTo("promise.resolve");
     }
     link(t, e, s, i) {
-        this.view = this.factory.create(this.$controller).setLocation(this.location);
+        this.view = this.f.create(this.$controller).setLocation(this.l);
     }
     attaching(t, e, n) {
         const r = this.view;
@@ -8269,7 +8266,7 @@ exports.PromiseTemplateController = class PromiseTemplateController {
             this.logger.warn(`The value '${String(r)}' is not a promise. No change will be done.`);
             return;
         }
-        const o = this.platform.domWriteQueue;
+        const o = this.p.domWriteQueue;
         const l = this.fulfilled;
         const h = this.rejected;
         const c = this.pending;
@@ -8479,29 +8476,29 @@ class RenderPlan {
     constructor(t, e, s) {
         this.node = t;
         this.instructions = e;
-        this.dependencies = s;
-        this.Rs = void 0;
+        this.qs = s;
+        this.Us = void 0;
     }
     get definition() {
-        if (void 0 === this.Rs) this.Rs = CustomElementDefinition.create({
+        if (void 0 === this.Us) this.Us = CustomElementDefinition.create({
             name: Wt.generateName(),
             template: this.node,
             needsCompile: "string" === typeof this.node,
             instructions: this.instructions,
-            dependencies: this.dependencies
+            dependencies: this.qs
         });
-        return this.Rs;
+        return this.Us;
     }
     createView(t) {
         return this.getViewFactory(t).create();
     }
     getViewFactory(t) {
-        return t.root.get(we).getViewFactory(this.definition, t.createChild().register(...this.dependencies));
+        return t.root.get(we).getViewFactory(this.definition, t.createChild().register(...this.qs));
     }
     mergeInto(t, e, s) {
         t.appendChild(this.node);
         e.push(...this.instructions);
-        s.push(...this.dependencies);
+        s.push(...this.qs);
     }
 }
 
@@ -8568,54 +8565,54 @@ function rn(t, e) {
 class AuRender {
     constructor(t, e, i, n) {
         this.p = t;
-        this.Ss = e;
-        this.Es = i;
+        this.Fs = e;
+        this._s = i;
         this.r = n;
         this.id = s.nextId("au$component");
         this.component = void 0;
         this.composing = false;
         this.view = void 0;
-        this.Bs = void 0;
-        this.Is = e.props.reduce(rn, {});
+        this.Ms = void 0;
+        this.Vs = e.props.reduce(rn, {});
     }
     attaching(t, e, s) {
         const {component: i, view: n} = this;
-        if (void 0 === n || this.Bs !== i) {
-            this.Bs = i;
+        if (void 0 === n || this.Ms !== i) {
+            this.Ms = i;
             this.composing = true;
             return this.compose(void 0, i, t, s);
         }
         return this.compose(n, i, t, s);
     }
     detaching(t, e, s) {
-        return this.Je(this.view, t, s);
+        return this.cs(this.view, t, s);
     }
     componentChanged(t, e, i) {
         const {$controller: n} = this;
         if (!n.isActive) return;
-        if (this.Bs === t) return;
-        this.Bs = t;
+        if (this.Ms === t) return;
+        this.Ms = t;
         this.composing = true;
         i |= n.flags;
-        const r = s.onResolve(this.Je(this.view, null, i), (() => this.compose(void 0, t, null, i)));
+        const r = s.onResolve(this.cs(this.view, null, i), (() => this.compose(void 0, t, null, i)));
         if (r instanceof Promise) r.catch((t => {
             throw t;
         }));
     }
     compose(t, e, i, n) {
-        return s.onResolve(void 0 === t ? s.onResolve(e, (t => this.Ts(t, n))) : t, (t => this.Ye(this.view = t, i, n)));
+        return s.onResolve(void 0 === t ? s.onResolve(e, (t => this.js(t, n))) : t, (t => this.os(this.view = t, i, n)));
     }
-    Je(t, e, s) {
+    cs(t, e, s) {
         return null === t || void 0 === t ? void 0 : t.deactivate(null !== e && void 0 !== e ? e : t, this.$controller, s);
     }
-    Ye(t, e, i) {
+    os(t, e, i) {
         const {$controller: n} = this;
         return s.onResolve(null === t || void 0 === t ? void 0 : t.activate(null !== e && void 0 !== e ? e : t, n, i, n.scope), (() => {
             this.composing = false;
         }));
     }
-    Ts(t, e) {
-        const s = this.Ds(t, e);
+    js(t, e) {
+        const s = this.Ns(t, e);
         if (s) {
             s.setLocation(this.$controller.location);
             s.lockScope(this.$controller.scope);
@@ -8623,9 +8620,9 @@ class AuRender {
         }
         return;
     }
-    Ds(t, e) {
+    Ns(t, e) {
         if (!t) return;
-        const s = this.Es.controller.container;
+        const s = this._s.controller.container;
         if ("object" === typeof t) {
             if (on(t)) return t;
             if ("createView" in t) return t.createView(s);
@@ -8637,7 +8634,7 @@ class AuRender {
             if (null == e) throw new Error(`AUR0809:${t}`);
             t = e.Type;
         }
-        return tn(this.p, t, this.Is, this.$controller.host.childNodes).createView(s);
+        return tn(this.p, t, this.Vs, this.$controller.host.childNodes).createView(s);
     }
     dispose() {
         var t;
@@ -8671,55 +8668,55 @@ function on(t) {
 
 class AuCompose {
     constructor(t, e, s, i, n, r) {
-        this.ctn = t;
+        this.c = t;
         this.parent = e;
         this.host = s;
         this.p = i;
         this.scopeBehavior = "auto";
-        this.Ps = void 0;
-        this.$s = n.containerless ? Ye(this.host) : void 0;
+        this.Ws = void 0;
+        this.l = n.containerless ? Ye(this.host) : void 0;
         this.r = t.get(we);
-        this.Ss = n;
-        this.Os = r;
+        this.Fs = n;
+        this.Hs = r;
     }
     static get inject() {
         return [ s.IContainer, Oe, We, q, os, s.transient(CompositionContextFactory) ];
     }
     get pending() {
-        return this.Ls;
+        return this.zs;
     }
     get composition() {
-        return this.Ps;
+        return this.Ws;
     }
     attaching(t, e, i) {
-        return this.Ls = s.onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, t, void 0)), (t => {
-            if (this.Os.isCurrent(t)) this.Ls = void 0;
+        return this.zs = s.onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, t, void 0)), (t => {
+            if (this.Hs.isCurrent(t)) this.zs = void 0;
         }));
     }
     detaching(t) {
-        const e = this.Ps;
-        const i = this.Ls;
-        this.Os.invalidate();
-        this.Ps = this.Ls = void 0;
+        const e = this.Ws;
+        const i = this.zs;
+        this.Hs.invalidate();
+        this.Ws = this.zs = void 0;
         return s.onResolve(i, (() => null === e || void 0 === e ? void 0 : e.deactivate(t)));
     }
     propertyChanged(t) {
-        if ("model" === t && null != this.Ps) {
-            this.Ps.update(this.model);
+        if ("model" === t && null != this.Ws) {
+            this.Ws.update(this.model);
             return;
         }
-        this.Ls = s.onResolve(this.Ls, (() => s.onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, void 0, t)), (t => {
-            if (this.Os.isCurrent(t)) this.Ls = void 0;
+        this.zs = s.onResolve(this.zs, (() => s.onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, void 0, t)), (t => {
+            if (this.Hs.isCurrent(t)) this.zs = void 0;
         }))));
     }
     queue(t) {
-        const e = this.Os;
-        const i = this.Ps;
+        const e = this.Hs;
+        const i = this.Ws;
         return s.onResolve(e.create(t), (n => {
             if (e.isCurrent(n)) return s.onResolve(this.compose(n), (r => {
                 if (e.isCurrent(n)) return s.onResolve(r.activate(), (() => {
                     if (e.isCurrent(n)) {
-                        this.Ps = r;
+                        this.Ws = r;
                         return s.onResolve(null === i || void 0 === i ? void 0 : i.deactivate(t.initiator), (() => n));
                     } else return s.onResolve(r.controller.deactivate(r.controller, this.$controller, 4), (() => {
                         r.controller.dispose();
@@ -8737,7 +8734,7 @@ class AuCompose {
         let n;
         let r;
         const {view: o, viewModel: l, model: h, initiator: c} = t.change;
-        const {ctn: a, host: u, $controller: f, $s: d} = this;
+        const {c: a, host: u, $controller: f, l: d} = this;
         const p = this.getDef(l);
         const m = a.createChild();
         const x = null == d ? u.parentNode : d.parentNode;
@@ -8760,7 +8757,7 @@ class AuCompose {
         const v = () => {
             if (null !== p) {
                 const i = Controller.$el(m, e, n, {
-                    projections: this.Ss.projections
+                    projections: this.Fs.projections
                 }, p);
                 return new CompositionController(i, (() => i.activate(null !== c && void 0 !== c ? c : i, f, 2, f.scope.parentScope)), (t => s.onResolve(i.deactivate(null !== t && void 0 !== t ? t : i, f, 4), r)), (t => {
                     var s;
@@ -8897,19 +8894,19 @@ class CompositionController {
 class AuSlot {
     constructor(t, e, s, i) {
         var n, r;
-        this.qs = null;
-        this.Us = null;
+        this.Gs = null;
+        this.Xs = null;
         let o;
         const l = e.auSlot;
         const h = null === (r = null === (n = s.instruction) || void 0 === n ? void 0 : n.projections) || void 0 === r ? void 0 : r[l.name];
         if (null == h) {
             o = i.getViewFactory(l.fallback, s.controller.container);
-            this.Ms = false;
+            this.Ks = false;
         } else {
             o = i.getViewFactory(h, s.parent.controller.container);
-            this.Ms = true;
+            this.Ks = true;
         }
-        this.Es = s;
+        this._s = s;
         this.view = o.create().setLocation(t);
     }
     static get inject() {
@@ -8917,21 +8914,21 @@ class AuSlot {
     }
     binding(t, e, s) {
         var n;
-        this.qs = this.$controller.scope.parentScope;
+        this.Gs = this.$controller.scope.parentScope;
         let r;
-        if (this.Ms) {
-            r = this.Es.controller.scope.parentScope;
-            (this.Us = i.Scope.fromParent(r, r.bindingContext)).overrideContext.$host = null !== (n = this.expose) && void 0 !== n ? n : this.qs.bindingContext;
+        if (this.Ks) {
+            r = this._s.controller.scope.parentScope;
+            (this.Xs = i.Scope.fromParent(r, r.bindingContext)).overrideContext.$host = null !== (n = this.expose) && void 0 !== n ? n : this.Gs.bindingContext;
         }
     }
     attaching(t, e, s) {
-        return this.view.activate(t, this.$controller, s, this.Ms ? this.Us : this.qs);
+        return this.view.activate(t, this.$controller, s, this.Ks ? this.Xs : this.Gs);
     }
     detaching(t, e, s) {
         return this.view.deactivate(t, this.$controller, s);
     }
     exposeChanged(t) {
-        if (this.Ms && null != this.Us) this.Us.overrideContext.$host = t;
+        if (this.Ks && null != this.Xs) this.Xs.overrideContext.$host = t;
     }
     dispose() {
         this.view.dispose();
@@ -8961,11 +8958,11 @@ const hn = s.DI.createInterface("ISanitizer", (t => t.singleton(class {
 
 exports.SanitizeValueConverter = class SanitizeValueConverter {
     constructor(t) {
-        this.sanitizer = t;
+        this.Ys = t;
     }
     toView(t) {
         if (null == t) return null;
-        return this.sanitizer.sanitize(t);
+        return this.Ys.sanitize(t);
     }
 };
 
@@ -8975,10 +8972,10 @@ i.valueConverter("sanitize")(exports.SanitizeValueConverter);
 
 exports.ViewValueConverter = class ViewValueConverter {
     constructor(t) {
-        this.viewLocator = t;
+        this.Zs = t;
     }
     toView(t, e) {
-        return this.viewLocator.getViewComponentForObject(t, e);
+        return this.Zs.getViewComponentForObject(t, e);
     }
 };
 
@@ -9044,15 +9041,15 @@ const qn = exports.DelegateBindingCommand;
 
 const Un = exports.CaptureBindingCommand;
 
-const Mn = exports.AttrBindingCommand;
+const Fn = exports.AttrBindingCommand;
 
-const Fn = exports.ClassBindingCommand;
+const _n = exports.ClassBindingCommand;
 
-const Vn = exports.StyleBindingCommand;
+const Mn = exports.StyleBindingCommand;
 
-const jn = Js;
+const Vn = Js;
 
-const _n = [ Bn, Dn, Tn, Pn, $n, En, In, On, Ln, qn, Un, Fn, Vn, Mn, jn ];
+const jn = [ Bn, Dn, Tn, Pn, $n, En, In, On, Ln, qn, Un, _n, Mn, Fn, Vn ];
 
 const Nn = exports.SanitizeValueConverter;
 
@@ -9102,9 +9099,9 @@ const ur = AuCompose;
 
 const fr = Portal;
 
-const dr = exports.Focus;
+const dr = Focus;
 
-const pr = _i;
+const pr = ji;
 
 const mr = [ cn, an, un, fn, dn, pn, mn, Nn, Wn, Hn, zn, Gn, Xn, Kn, Yn, Zn, Jn, Qn, tr, er, sr, ir, nr, rr, or, lr, hr, cr, ar, ur, fr, dr, pr, AuSlot ];
 
@@ -9148,7 +9145,7 @@ const Or = [ kr, br, xr, Cr, wr, Ar, gr, vr, Rr, yr, Sr, Er, Br, Ir, Tr, Dr, Pr,
 
 const Lr = {
     register(t) {
-        return t.register(...gn, ...mr, ...Rn, ..._n, ...Or);
+        return t.register(...gn, ...mr, ...Rn, ...jn, ...Or);
     },
     createContainer() {
         return this.register(s.DI.createContainer());
@@ -9161,45 +9158,45 @@ class Aurelia {
     constructor(t = s.DI.createContainer()) {
         this.container = t;
         this.ir = false;
-        this.Fs = false;
-        this.Vs = false;
-        this.js = void 0;
+        this.Js = false;
+        this.Qs = false;
+        this.ti = void 0;
         this.next = void 0;
-        this._s = void 0;
-        this.Ns = void 0;
+        this.ei = void 0;
+        this.si = void 0;
         if (t.has(qr, true)) throw new Error("AUR0768");
         t.registerResolver(qr, new s.InstanceProvider("IAurelia", this));
-        t.registerResolver(Ve, this.Ws = new s.InstanceProvider("IAppRoot"));
+        t.registerResolver(Me, this.ii = new s.InstanceProvider("IAppRoot"));
     }
     get isRunning() {
         return this.ir;
     }
     get isStarting() {
-        return this.Fs;
+        return this.Js;
     }
     get isStopping() {
-        return this.Vs;
+        return this.Qs;
     }
     get root() {
-        if (null == this.js) {
+        if (null == this.ti) {
             if (null == this.next) throw new Error("AUR0767");
             return this.next;
         }
-        return this.js;
+        return this.ti;
     }
     register(...t) {
         this.container.register(...t);
         return this;
     }
     app(t) {
-        this.next = new AppRoot(t, this.Hs(t.host), this.container, this.Ws);
+        this.next = new AppRoot(t, this.ni(t.host), this.container, this.ii);
         return this;
     }
     enhance(t, e) {
         var i;
         const n = null !== (i = t.container) && void 0 !== i ? i : this.container.createChild();
         const r = t.host;
-        const o = this.Hs(r);
+        const o = this.ni(r);
         const l = t.component;
         let h;
         if ("function" === typeof l) {
@@ -9221,7 +9218,7 @@ class Aurelia {
         await t.domReadQueue.yield();
         await t.taskQueue.yield();
     }
-    Hs(t) {
+    ni(t) {
         let i;
         if (!this.container.has(q, false)) {
             if (null === t.ownerDocument.defaultView) throw new Error("AUR0769");
@@ -9232,40 +9229,40 @@ class Aurelia {
     }
     start(t = this.next) {
         if (null == t) throw new Error("AUR0770");
-        if (this._s instanceof Promise) return this._s;
-        return this._s = s.onResolve(this.stop(), (() => {
+        if (this.ei instanceof Promise) return this.ei;
+        return this.ei = s.onResolve(this.stop(), (() => {
             Reflect.set(t.host, "$aurelia", this);
-            this.Ws.prepare(this.js = t);
-            this.Fs = true;
+            this.ii.prepare(this.ti = t);
+            this.Js = true;
             return s.onResolve(t.activate(), (() => {
                 this.ir = true;
-                this.Fs = false;
-                this._s = void 0;
-                this.zs(t, "au-started", t.host);
+                this.Js = false;
+                this.ei = void 0;
+                this.ri(t, "au-started", t.host);
             }));
         }));
     }
     stop(t = false) {
-        if (this.Ns instanceof Promise) return this.Ns;
+        if (this.si instanceof Promise) return this.si;
         if (true === this.ir) {
-            const e = this.js;
+            const e = this.ti;
             this.ir = false;
-            this.Vs = true;
-            return this.Ns = s.onResolve(e.deactivate(), (() => {
+            this.Qs = true;
+            return this.si = s.onResolve(e.deactivate(), (() => {
                 Reflect.deleteProperty(e.host, "$aurelia");
                 if (t) e.dispose();
-                this.js = void 0;
-                this.Ws.dispose();
-                this.Vs = false;
-                this.zs(e, "au-stopped", e.host);
+                this.ti = void 0;
+                this.ii.dispose();
+                this.Qs = false;
+                this.ri(e, "au-stopped", e.host);
             }));
         }
     }
     dispose() {
-        if (this.ir || this.Vs) throw new Error("AUR0771");
+        if (this.ir || this.Qs) throw new Error("AUR0771");
         this.container.dispose();
     }
-    zs(t, e, s) {
+    ri(t, e, s) {
         const i = new t.platform.window.CustomEvent(e, {
             detail: this,
             bubbles: true,
@@ -9284,13 +9281,13 @@ exports.DefinitionType = void 0;
 
 const Ur = s.DI.createInterface("IDialogService");
 
-const Mr = s.DI.createInterface("IDialogController");
+const Fr = s.DI.createInterface("IDialogController");
 
-const Fr = s.DI.createInterface("IDialogDomRenderer");
+const _r = s.DI.createInterface("IDialogDomRenderer");
 
-const Vr = s.DI.createInterface("IDialogDom");
+const Mr = s.DI.createInterface("IDialogDom");
 
-const jr = s.DI.createInterface("IDialogGlobalSettings");
+const Vr = s.DI.createInterface("IDialogGlobalSettings");
 
 class DialogOpenResult {
     constructor(t, e) {
@@ -9326,8 +9323,8 @@ class DialogController {
         this.p = t;
         this.ctn = e;
         this.closed = new Promise(((t, e) => {
-            this.Pt = t;
-            this.St = e;
+            this.$t = t;
+            this.Et = e;
         }));
     }
     static get inject() {
@@ -9337,14 +9334,14 @@ class DialogController {
         var e;
         const i = this.ctn.createChild();
         const {model: n, template: r, rejectOnCancel: o} = t;
-        const l = i.get(Fr);
+        const l = i.get(_r);
         const h = null !== (e = t.host) && void 0 !== e ? e : this.p.document.body;
         const c = this.dom = l.render(h, t);
         const a = i.has(He, true) ? i.get(He) : null;
         const u = c.contentHost;
         this.settings = t;
         if (null == a || !a.contains(h)) i.register(s.Registration.instance(He, h));
-        i.register(s.Registration.instance(We, u), s.Registration.instance(Vr, c));
+        i.register(s.Registration.instance(We, u), s.Registration.instance(Mr, c));
         return new Promise((e => {
             var s, r;
             const o = Object.assign(this.cmp = this.getOrCreateVm(i, t, u), {
@@ -9355,7 +9352,7 @@ class DialogController {
             var l;
             if (true !== e) {
                 c.dispose();
-                if (o) throw _r(null, "Dialog activation rejected");
+                if (o) throw jr(null, "Dialog activation rejected");
                 return DialogOpenResult.create(true, this);
             }
             const h = this.cmp;
@@ -9377,7 +9374,7 @@ class DialogController {
         }));
     }
     deactivate(t, e) {
-        if (this.Gs) return this.Gs;
+        if (this.oi) return this.oi;
         let i = true;
         const {controller: n, dom: r, cmp: o, settings: {mouseEvent: l, rejectOnCancel: h}} = this;
         const c = DialogCloseResult.create(t, e);
@@ -9387,22 +9384,22 @@ class DialogController {
                 var u;
                 if (true !== a) {
                     i = false;
-                    this.Gs = void 0;
-                    if (h) throw _r(null, "Dialog cancellation rejected");
+                    this.oi = void 0;
+                    if (h) throw jr(null, "Dialog cancellation rejected");
                     return DialogCloseResult.create("abort");
                 }
                 return s.onResolve(null === (u = o.deactivate) || void 0 === u ? void 0 : u.call(o, c), (() => s.onResolve(n.deactivate(n, null, 4), (() => {
                     r.dispose();
                     r.overlay.removeEventListener(null !== l && void 0 !== l ? l : "click", this);
-                    if (!h && "error" !== t) this.Pt(c); else this.St(_r(e, "Dialog cancelled with a rejection on cancel"));
+                    if (!h && "error" !== t) this.$t(c); else this.Et(jr(e, "Dialog cancelled with a rejection on cancel"));
                     return c;
                 }))));
             })));
         })).catch((t => {
-            this.Gs = void 0;
+            this.oi = void 0;
             throw t;
         }));
-        this.Gs = i ? a : void 0;
+        this.oi = i ? a : void 0;
         return a;
     }
     ok(t) {
@@ -9417,7 +9414,7 @@ class DialogController {
             var i, n;
             return t(s.onResolve(null === (n = (i = this.cmp).deactivate) || void 0 === n ? void 0 : n.call(i, DialogCloseResult.create("error", e)), (() => s.onResolve(this.controller.deactivate(this.controller, null, 4), (() => {
                 this.dom.dispose();
-                this.St(e);
+                this.Et(e);
             })))));
         }));
     }
@@ -9440,7 +9437,7 @@ class DialogController {
 
 class EmptyComponent {}
 
-function _r(t, e) {
+function jr(t, e) {
     const s = new Error(e);
     s.wasCancelled = true;
     s.value = t;
@@ -9456,9 +9453,9 @@ function Nr(t) {
 
 class DialogService {
     constructor(t, e, s) {
-        this.ct = t;
+        this.at = t;
         this.p = e;
-        this.Xs = s;
+        this.li = s;
         this.dlgs = [];
     }
     get controllers() {
@@ -9469,7 +9466,7 @@ class DialogService {
         return t.length > 0 ? t[t.length - 1] : null;
     }
     static get inject() {
-        return [ s.IContainer, q, jr ];
+        return [ s.IContainer, q, Vr ];
     }
     static register(t) {
         t.register(s.Registration.singleton(Ur, this), lt.beforeDeactivate(Ur, (t => s.onResolve(t.closeAll(), (t => {
@@ -9479,11 +9476,11 @@ class DialogService {
     open(t) {
         return Hr(new Promise((e => {
             var i;
-            const n = DialogSettings.from(this.Xs, t);
-            const r = null !== (i = n.container) && void 0 !== i ? i : this.ct.createChild();
+            const n = DialogSettings.from(this.li, t);
+            const r = null !== (i = n.container) && void 0 !== i ? i : this.at.createChild();
             e(s.onResolve(n.load(), (t => {
                 const e = r.invoke(DialogController);
-                r.register(s.Registration.instance(Mr, e));
+                r.register(s.Registration.instance(Fr, e));
                 r.register(s.Registration.callback(DialogController, (() => {
                     throw new Error("AUR0902");
                 })));
@@ -9523,7 +9520,7 @@ class DialogService {
 
 class DialogSettings {
     static from(...t) {
-        return Object.assign(new DialogSettings, ...t).Ys().Ks();
+        return Object.assign(new DialogSettings, ...t).ai().hi();
     }
     load() {
         const t = this;
@@ -9536,11 +9533,11 @@ class DialogSettings {
         })) : void 0);
         return n instanceof Promise ? n.then((() => t)) : t;
     }
-    Ys() {
+    ai() {
         if (null == this.component && null == this.template) throw new Error("AUR0903");
         return this;
     }
-    Ks() {
+    hi() {
         if (null == this.keyboard) this.keyboard = this.lock ? [] : [ "Enter", "Escape" ];
         if ("boolean" !== typeof this.overlayDismiss) this.overlayDismiss = !this.lock;
         return this;
@@ -9569,7 +9566,7 @@ class DefaultDialogGlobalSettings {
         this.rejectOnCancel = false;
     }
     static register(t) {
-        s.Registration.singleton(jr, this).register(t);
+        s.Registration.singleton(Vr, this).register(t);
     }
 }
 
@@ -9583,7 +9580,7 @@ class DefaultDialogDomRenderer {
         this.hostCss = "position:relative;margin:auto;";
     }
     static register(t) {
-        s.Registration.singleton(Fr, this).register(t);
+        s.Registration.singleton(_r, this).register(t);
     }
     render(t) {
         const e = this.p.document;
@@ -9615,7 +9612,7 @@ class DefaultDialogDom {
 function Xr(t, e) {
     return {
         settingsProvider: t,
-        register: s => s.register(...e, lt.beforeCreate((() => t(s.get(jr))))),
+        register: s => s.register(...e, lt.beforeCreate((() => t(s.get(Vr))))),
         customize(t, s) {
             return Xr(t, null !== s && void 0 !== s ? s : e);
         }
@@ -9626,7 +9623,7 @@ const Kr = Xr((() => {
     throw new Error("AUR0904");
 }), [ class NoopDialogGlobalSettings {
     static register(t) {
-        t.register(s.Registration.singleton(jr, this));
+        t.register(s.Registration.singleton(Vr, this));
     }
 } ]);
 
@@ -9902,7 +9899,7 @@ exports.AttrBindingBehavior = AttrBindingBehavior;
 
 exports.AttrBindingBehaviorRegistration = lr;
 
-exports.AttrBindingCommandRegistration = Mn;
+exports.AttrBindingCommandRegistration = Fn;
 
 exports.AttrSyntax = AttrSyntax;
 
@@ -9964,7 +9961,7 @@ exports.ChildrenObserver = ChildrenObserver;
 
 exports.ClassAttributeAccessor = ClassAttributeAccessor;
 
-exports.ClassBindingCommandRegistration = Fn;
+exports.ClassBindingCommandRegistration = _n;
 
 exports.ColonPrefixedBindAttributePatternRegistration = yn;
 
@@ -9992,7 +9989,7 @@ exports.DebounceBindingBehaviorRegistration = cn;
 
 exports.DefaultBindingCommandRegistration = Bn;
 
-exports.DefaultBindingLanguage = _n;
+exports.DefaultBindingLanguage = jn;
 
 exports.DefaultBindingSyntax = Rn;
 
@@ -10034,6 +10031,8 @@ exports.EventSubscriber = EventSubscriber;
 
 exports.ExpressionWatcher = ExpressionWatcher;
 
+exports.Focus = Focus;
+
 exports.ForBindingCommandRegistration = In;
 
 exports.FragmentNodeSequence = FragmentNodeSequence;
@@ -10054,11 +10053,11 @@ exports.HydrateLetElementInstruction = HydrateLetElementInstruction;
 
 exports.HydrateTemplateController = HydrateTemplateController;
 
-exports.IAppRoot = Ve;
+exports.IAppRoot = Me;
 
 exports.IAppTask = ot;
 
-exports.IAttrMapper = F;
+exports.IAttrMapper = _;
 
 exports.IAttributeParser = R;
 
@@ -10070,13 +10069,13 @@ exports.IAurelia = qr;
 
 exports.IController = Oe;
 
-exports.IDialogController = Mr;
+exports.IDialogController = Fr;
 
-exports.IDialogDom = Vr;
+exports.IDialogDom = Mr;
 
-exports.IDialogDomRenderer = Fr;
+exports.IDialogDomRenderer = _r;
 
-exports.IDialogGlobalSettings = jr;
+exports.IDialogGlobalSettings = Vr;
 
 exports.IDialogService = Ur;
 
@@ -10136,7 +10135,7 @@ exports.IWcElementRegistry = Zr;
 
 exports.IWindow = Je;
 
-exports.IWorkTracker = je;
+exports.IWorkTracker = Ve;
 
 exports.If = If;
 
@@ -10252,7 +10251,7 @@ exports.StandardConfiguration = Lr;
 
 exports.StyleAttributeAccessor = StyleAttributeAccessor;
 
-exports.StyleBindingCommandRegistration = Vn;
+exports.StyleBindingCommandRegistration = Mn;
 
 exports.StyleConfiguration = ee;
 
@@ -10336,7 +10335,7 @@ exports.customElement = It;
 
 exports.getEffectiveParentNode = Xe;
 
-exports.getRef = _e;
+exports.getRef = je;
 
 exports.isCustomElementController = Ie;
 

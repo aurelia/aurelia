@@ -3471,10 +3471,15 @@ class TypedNavigationInstruction {
             expectType('function/class or object', '', instruction);
         }
         else if (typeof instruction === 'function') {
-            // This is the class itself
-            // CustomElement.getDefinition will throw if the type is not a custom element
-            const definition = CustomElement.getDefinition(instruction);
-            return new TypedNavigationInstruction(2 /* CustomElementDefinition */, definition);
+            if (CustomElement.isType(instruction)) {
+                // This is the class itself
+                // CustomElement.getDefinition will throw if the type is not a custom element
+                const definition = CustomElement.getDefinition(instruction);
+                return new TypedNavigationInstruction(2 /* CustomElementDefinition */, definition);
+            }
+            else {
+                return TypedNavigationInstruction.create(instruction());
+            }
         }
         else if (instruction instanceof Promise) {
             return new TypedNavigationInstruction(3 /* Promise */, instruction);
@@ -3980,10 +3985,14 @@ class RouteContext {
          * The (fully resolved) configured child routes of this context's `RouteDefinition`
          */
         this.childRoutes = [];
+        /** @internal */
         this._resolved = null;
+        /** @internal */
         this._allResolved = null;
         this.prevNode = null;
+        /** @internal */
         this._node = null;
+        /** @internal */
         this._vpa = null;
         this._vpa = viewportAgent;
         if (parent === null) {
@@ -4059,11 +4068,9 @@ class RouteContext {
     get depth() {
         return this.path.length - 1;
     }
-    /** @internal */
     get resolved() {
         return this._resolved;
     }
-    /** @internal */
     get allResolved() {
         return this._allResolved;
     }

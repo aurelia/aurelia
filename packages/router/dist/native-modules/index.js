@@ -2872,10 +2872,10 @@ class TypedNavigationInstruction {
     }
     static create(t) {
         if (t instanceof TypedNavigationInstruction) return t;
-        if ("string" === typeof t) return new TypedNavigationInstruction(0, t); else if (!r(t)) Y("function/class or object", "", t); else if ("function" === typeof t) {
+        if ("string" === typeof t) return new TypedNavigationInstruction(0, t); else if (!r(t)) Y("function/class or object", "", t); else if ("function" === typeof t) if (y.isType(t)) {
             const e = y.getDefinition(t);
             return new TypedNavigationInstruction(2, e);
-        } else if (t instanceof Promise) return new TypedNavigationInstruction(3, t); else if (G(t)) {
+        } else return TypedNavigationInstruction.create(t()); else if (t instanceof Promise) return new TypedNavigationInstruction(3, t); else if (G(t)) {
             const e = ViewportInstruction.create(t);
             return new TypedNavigationInstruction(1, e);
         } else if (v(t)) return new TypedNavigationInstruction(4, t); else if (t instanceof S) return new TypedNavigationInstruction(2, t); else if (F(t)) {

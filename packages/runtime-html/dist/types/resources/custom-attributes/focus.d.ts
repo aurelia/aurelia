@@ -6,14 +6,10 @@ import type { ICustomAttributeController, ICustomAttributeViewModel } from '../.
  */
 export declare class Focus implements ICustomAttributeViewModel {
     private readonly _element;
-    private readonly p;
+    private readonly _platform;
     readonly $controller: ICustomAttributeController<this>;
     value: unknown;
-    /**
-     * Indicates whether `apply` should be called when `attached` callback is invoked
-     */
-    private _needsApply;
-    constructor(_element: INode<HTMLElement>, p: IPlatform);
+    constructor(_element: INode<HTMLElement>, _platform: IPlatform);
     binding(): void;
     /**
      * Invoked everytime the bound value changes.
@@ -36,7 +32,6 @@ export declare class Focus implements ICustomAttributeViewModel {
     /**
      * Focus/blur based on current value
      */
-    private apply;
-    private get isElFocused();
+    private _apply;
 }
 //# sourceMappingURL=focus.d.ts.map

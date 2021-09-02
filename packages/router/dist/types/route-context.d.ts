@@ -44,13 +44,11 @@ export declare class RouteContext {
      * The (fully resolved) configured child routes of this context's `RouteDefinition`
      */
     readonly childRoutes: (RouteDefinition | Promise<RouteDefinition>)[];
-    private _resolved;
-    private _allResolved;
+    get resolved(): Promise<void> | null;
+    get allResolved(): Promise<void> | null;
     private prevNode;
-    private _node;
     get node(): RouteNode;
     set node(value: RouteNode);
-    private _vpa;
     /**
      * The viewport hosting the component associated with this RouteContext.
      * The root RouteContext has no ViewportAgent and will throw when attempting to access this property.

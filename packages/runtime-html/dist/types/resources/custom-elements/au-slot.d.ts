@@ -7,10 +7,6 @@ import type { HydrateElementInstruction } from '../../renderer.js';
 export declare class AuSlot implements ICustomElementViewModel {
     readonly view: ISyntheticView;
     readonly $controller: ICustomElementController<this>;
-    private _parentScope;
-    private _outerScope;
-    private readonly _hasProjection;
-    private readonly _hdrContext;
     expose: object | undefined;
     constructor(location: IRenderLocation, instruction: HydrateElementInstruction, hdrContext: IHydrationContext, rendering: IRendering);
     binding(_initiator: IHydratedController, _parent: IHydratedParentController, _flags: LifecycleFlags): void | Promise<void>;

@@ -7,9 +7,6 @@ import { ICustomAttributeController, ICustomAttributeViewModel, IHydratableContr
 import { IViewFactory } from '../../templating/view.js';
 import { AttrSyntax } from '../attribute-pattern.js';
 export declare class PromiseTemplateController implements ICustomAttributeViewModel {
-    private readonly factory;
-    private readonly location;
-    private readonly platform;
     readonly id: number;
     readonly $controller: ICustomAttributeController<this>;
     private view;
@@ -21,8 +18,10 @@ export declare class PromiseTemplateController implements ICustomAttributeViewMo
     private preSettledTask;
     private postSettledTask;
     private postSettlePromise;
-    private readonly logger;
-    constructor(factory: IViewFactory, location: IRenderLocation, platform: IPlatform, logger: ILogger);
+    constructor(
+    /** @internal */ _factory: IViewFactory, 
+    /** @internal */ _location: IRenderLocation, 
+    /** @internal */ _platform: IPlatform, logger: ILogger);
     link(_controller: IHydratableController, _childController: ICustomAttributeController, _target: INode, _instruction: IInstruction): void;
     attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags): void;

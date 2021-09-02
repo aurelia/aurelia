@@ -2878,10 +2878,10 @@ class TypedNavigationInstruction {
     }
     static create(i) {
         if (i instanceof TypedNavigationInstruction) return i;
-        if ("string" === typeof i) return new TypedNavigationInstruction(0, i); else if (!t.isObject(i)) d("function/class or object", "", i); else if ("function" === typeof i) {
+        if ("string" === typeof i) return new TypedNavigationInstruction(0, i); else if (!t.isObject(i)) d("function/class or object", "", i); else if ("function" === typeof i) if (e.CustomElement.isType(i)) {
             const t = e.CustomElement.getDefinition(i);
             return new TypedNavigationInstruction(2, t);
-        } else if (i instanceof Promise) return new TypedNavigationInstruction(3, i); else if (l(i)) {
+        } else return TypedNavigationInstruction.create(i()); else if (i instanceof Promise) return new TypedNavigationInstruction(3, i); else if (l(i)) {
             const t = ViewportInstruction.create(i);
             return new TypedNavigationInstruction(1, t);
         } else if (e.isCustomElementViewModel(i)) return new TypedNavigationInstruction(4, i); else if (i instanceof e.CustomElementDefinition) return new TypedNavigationInstruction(2, i); else if (h(i)) {

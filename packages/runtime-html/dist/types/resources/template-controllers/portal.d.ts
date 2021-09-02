@@ -18,18 +18,10 @@ export declare class Portal<T extends Node & ParentNode = Node & ParentNode> imp
     activated?: PortalLifecycleCallback;
     callbackContext: unknown;
     view: ISyntheticView;
-    private _currentTarget?;
-    private readonly p;
     constructor(factory: IViewFactory, originalLoc: IRenderLocation, p: IPlatform);
     attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     targetChanged(): void;
-    private _activating;
-    private _activate;
-    private _activated;
-    private _deactivating;
-    private _deactivate;
-    private _deactivated;
     private _resolveTarget;
     dispose(): void;
     accept(visitor: ControllerVisitor): void | true;

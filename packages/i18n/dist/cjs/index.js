@@ -120,7 +120,7 @@ exports.I18nService = class I18nService {
         this.i = new Set;
         this.i18next = t.i18next;
         this.initPromise = this.h(s);
-        this.l = i;
+        this.u = i;
     }
     evaluate(t, s) {
         const n = t.split(";");
@@ -151,7 +151,7 @@ exports.I18nService = class I18nService {
         await this.i18next.changeLanguage(t);
         this.ea.publish("i18n:locale:changed", n);
         this.i.forEach((t => t.handleLocaleChange(n)));
-        this.l.dispatchSignal("aurelia-translation-signal");
+        this.u.dispatchSignal("aurelia-translation-signal");
     }
     createNumberFormat(t, s) {
         return Intl.NumberFormat(s || this.getLocale(), t);
@@ -313,13 +313,13 @@ class TranslationBinding {
         this.locator = n;
         this.interceptor = this;
         this.isBound = false;
-        this.u = f;
+        this.T = f;
         this.task = null;
         this.parameter = null;
         this.target = t;
         this.i18n = this.locator.get(d);
         this.platform = i;
-        this.T = new Set;
+        this.B = new Set;
         this.oL = s;
         this.i18n.subscribeLocaleChange(this);
     }
@@ -349,11 +349,11 @@ class TranslationBinding {
         var i;
         if (!this.expr) throw new Error("key expression is missing");
         this.scope = n;
-        this.B = this.expr instanceof s.Interpolation;
-        this.C = this.expr.evaluate(t, n, this.locator, this);
-        this.I();
+        this.C = this.expr instanceof s.Interpolation;
+        this.I = this.expr.evaluate(t, n, this.locator, this);
+        this.M();
         null === (i = this.parameter) || void 0 === i ? void 0 : i.$bind(t, n);
-        this.M(t);
+        this.P(t);
         this.isBound = true;
     }
     $unbind(t) {
@@ -361,7 +361,7 @@ class TranslationBinding {
         if (!this.isBound) return;
         if (this.expr.hasUnbind) this.expr.unbind(t, this.scope, this);
         null === (s = this.parameter) || void 0 === s ? void 0 : s.$unbind(t);
-        this.T.clear();
+        this.B.clear();
         if (null !== this.task) {
             this.task.cancel();
             this.task = null;
@@ -371,49 +371,49 @@ class TranslationBinding {
     }
     handleChange(t, s, n) {
         this.obs.version++;
-        this.C = this.B ? this.expr.evaluate(n, this.scope, this.locator, this) : t;
+        this.I = this.C ? this.expr.evaluate(n, this.scope, this.locator, this) : t;
         this.obs.clear();
-        this.I();
-        this.M(n);
+        this.M();
+        this.P(n);
     }
     handleLocaleChange() {
-        this.M(0);
+        this.P(0);
     }
     useParameter(t) {
         if (null != this.parameter) throw new Error("This translation parameter has already been specified.");
-        this.parameter = new ParameterBinding(this, t, (t => this.M(t)));
+        this.parameter = new ParameterBinding(this, t, (t => this.P(t)));
     }
-    M(t) {
+    P(t) {
         var n;
-        const i = this.i18n.evaluate(this.C, null === (n = this.parameter) || void 0 === n ? void 0 : n.value);
+        const i = this.i18n.evaluate(this.I, null === (n = this.parameter) || void 0 === n ? void 0 : n.value);
         const e = Object.create(null);
         const r = [];
         const o = this.task;
-        this.T.clear();
+        this.B.clear();
         for (const n of i) {
             const i = n.value;
-            const o = this.P(n.attributes);
-            for (const n of o) if (this.A(n)) e[n] = i; else {
+            const o = this.A(n.attributes);
+            for (const n of o) if (this.L(n)) e[n] = i; else {
                 const e = s.CustomElement.for(this.target, g);
                 const o = e && e.viewModel ? this.oL.getAccessor(e.viewModel, n) : this.oL.getAccessor(this.target, n);
                 const a = 0 === (2 & t) && (4 & o.type) > 0;
                 if (a) r.push(new AccessorUpdateTask(o, i, t, this.target, n)); else o.setValue(i, t, this.target, n);
-                this.T.add(o);
+                this.B.add(o);
             }
         }
         let a = false;
         if (Object.keys(e).length > 0) {
             a = 0 === (2 & t);
-            if (!a) this.L(e, t);
+            if (!a) this.R(e, t);
         }
         if (r.length > 0 || a) this.task = this.platform.domWriteQueue.queueTask((() => {
             this.task = null;
             for (const t of r) t.run();
-            if (a) this.L(e, t);
+            if (a) this.R(e, t);
         }), m);
         null === o || void 0 === o ? void 0 : o.cancel();
     }
-    P(t) {
+    A(t) {
         if (0 === t.length) t = "IMG" === this.target.tagName ? [ "src" ] : [ "textContent" ];
         for (const [s, n] of x) {
             const i = t.findIndex((t => t === s));
@@ -421,27 +421,27 @@ class TranslationBinding {
         }
         return t;
     }
-    A(t) {
-        return this.u.includes(t);
+    L(t) {
+        return this.T.includes(t);
     }
-    L(s, n) {
+    R(s, n) {
         const i = t.toArray(this.target.childNodes);
         const e = [];
         const r = "au-i18n";
         for (const t of i) if (!Reflect.get(t, r)) e.push(t);
-        const o = this.R(s, r, e);
+        const o = this._(s, r, e);
         this.target.innerHTML = "";
         for (const s of t.toArray(o.content.childNodes)) this.target.appendChild(s);
     }
-    R(t, s, n) {
+    _(t, s, n) {
         var i;
         const e = this.platform.document.createElement("template");
-        this._(e, t.prepend, s);
-        if (!this._(e, null !== (i = t.innerHTML) && void 0 !== i ? i : t.textContent, s)) for (const t of n) e.content.append(t);
-        this._(e, t.append, s);
+        this.N(e, t.prepend, s);
+        if (!this.N(e, null !== (i = t.innerHTML) && void 0 !== i ? i : t.textContent, s)) for (const t of n) e.content.append(t);
+        this.N(e, t.append, s);
         return e;
     }
-    _(s, n, i) {
+    N(s, n, i) {
         if (void 0 !== n && null !== n) {
             const e = this.platform.document.createElement("div");
             e.innerHTML = n;
@@ -453,9 +453,9 @@ class TranslationBinding {
         }
         return false;
     }
-    I() {
+    M() {
         var t;
-        const s = null !== (t = this.C) && void 0 !== t ? t : this.C = "";
+        const s = null !== (t = this.I) && void 0 !== t ? t : this.I = "";
         const n = typeof s;
         if ("string" !== n) throw new Error(`Expected the i18n key to be a string, but got ${s} of type ${n}`);
     }

@@ -243,9 +243,9 @@ export declare class SpreadBindingInstruction {
     get type(): InstructionType.spreadBinding;
 }
 export declare class SpreadElementPropBindingInstruction {
-    readonly innerInstruction: IInstruction;
+    readonly instructions: IInstruction;
     get type(): InstructionType.spreadElementProp;
-    constructor(innerInstruction: IInstruction);
+    constructor(instructions: IInstruction);
 }
 export declare const ITemplateCompiler: import("@aurelia/kernel").InterfaceSymbol<ITemplateCompiler>;
 export interface ITemplateCompiler {

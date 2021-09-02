@@ -20,7 +20,7 @@ class BrowserPlatform extends t.Platform {
         this.t = false;
         this.i = -1;
         this.h = false;
-        this.l = -1;
+        this.u = -1;
         ("Node,Element,HTMLElement,CustomEvent,CSSStyleSheet,ShadowRoot,MutationObserver," + "window,document,location,history,navigator,customElements").split(",").forEach((t => {
             this[t] = t in e ? e[t] : i[t];
         }));
@@ -43,7 +43,7 @@ class BrowserPlatform extends t.Platform {
     }
     requestDomRead() {
         this.t = true;
-        if (-1 === this.l) this.l = this.requestAnimationFrame(this.flushDomWrite);
+        if (-1 === this.u) this.u = this.requestAnimationFrame(this.flushDomWrite);
     }
     cancelDomRead() {
         this.t = false;
@@ -51,9 +51,9 @@ class BrowserPlatform extends t.Platform {
             this.clearTimeout(this.i);
             this.i = -1;
         }
-        if (false === this.h && this.l > -1) {
-            this.cancelAnimationFrame(this.l);
-            this.l = -1;
+        if (false === this.h && this.u > -1) {
+            this.cancelAnimationFrame(this.u);
+            this.u = -1;
         }
     }
     flushDomRead() {
@@ -65,17 +65,17 @@ class BrowserPlatform extends t.Platform {
     }
     requestDomWrite() {
         this.h = true;
-        if (-1 === this.l) this.l = this.requestAnimationFrame(this.flushDomWrite);
+        if (-1 === this.u) this.u = this.requestAnimationFrame(this.flushDomWrite);
     }
     cancelDomWrite() {
         this.h = false;
-        if (this.l > -1 && (false === this.t || this.i > -1)) {
-            this.cancelAnimationFrame(this.l);
-            this.l = -1;
+        if (this.u > -1 && (false === this.t || this.i > -1)) {
+            this.cancelAnimationFrame(this.u);
+            this.u = -1;
         }
     }
     flushDomWrite() {
-        this.l = -1;
+        this.u = -1;
         if (true === this.h) {
             this.h = false;
             this.domWriteQueue.flush();

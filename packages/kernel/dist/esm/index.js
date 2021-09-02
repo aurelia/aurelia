@@ -818,12 +818,12 @@ class Container {
         if (null === t) {
             this.root = this;
             this.u = new Map;
-            this.l = new Map;
+            this.h = new Map;
             this.res = Object.create(null);
         } else {
             this.root = t.root;
             this.u = new Map;
-            this.l = t.l;
+            this.h = t.h;
             if (e.inheritParentResources) this.res = Object.assign(Object.create(null), t.res, this.root.res); else this.res = Object.create(null);
         }
         this.u.set(K, at);
@@ -902,7 +902,7 @@ class Container {
             if (null == r) {
                 if (null == n.parent) {
                     const r = vt(t) ? this : n;
-                    return e ? this.h(t, r) : null;
+                    return e ? this.R(t, r) : null;
                 }
                 n = n.parent;
             } else return r;
@@ -922,7 +922,7 @@ class Container {
             if (null == n) {
                 if (null == e.parent) {
                     const r = vt(t) ? this : e;
-                    n = this.h(t, r);
+                    n = this.R(t, r);
                     return n.resolve(e, this);
                 }
                 e = e.parent;
@@ -957,15 +957,15 @@ class Container {
         if (void 0 === e) return new t(...z(t).map(ct, this)); else return new t(...z(t).map(ct, this), ...e);
     }
     getFactory(t) {
-        let e = this.l.get(t);
+        let e = this.h.get(t);
         if (void 0 === e) {
             if ($(t)) throw Et(t);
-            this.l.set(t, e = new Factory(t, z(t)));
+            this.h.set(t, e = new Factory(t, z(t)));
         }
         return e;
     }
     registerFactory(t, e) {
-        this.l.set(t, e);
+        this.h.set(t, e);
     }
     createChild(t) {
         if (void 0 === t && this.config.inheritParentResources) {
@@ -1020,7 +1020,7 @@ class Container {
         if (this.i.size > 0) this.disposeResolvers();
         this.u.clear();
     }
-    h(t, e) {
+    R(t, e) {
         if ("function" !== typeof t) throw new Error(`AUR0009:${t}`);
         if (pt.has(t.name)) throw new Error(`AUR0010:${t.name}`);
         if (ht(t)) {
@@ -1100,25 +1100,25 @@ const bt = {
 
 class InstanceProvider {
     constructor(t, e) {
-        this.R = null;
-        this.C = t;
-        if (void 0 !== e) this.R = e;
+        this.C = null;
+        this.$ = t;
+        if (void 0 !== e) this.C = e;
     }
     get friendlyName() {
-        return this.C;
+        return this.$;
     }
     prepare(t) {
-        this.R = t;
+        this.C = t;
     }
     get $isResolver() {
         return true;
     }
     resolve() {
-        if (null == this.R) throw new Error(`AUR0013:${this.C}`);
-        return this.R;
+        if (null == this.C) throw new Error(`AUR0013:${this.$}`);
+        return this.C;
     }
     dispose() {
-        this.R = null;
+        this.C = null;
     }
 }
 
@@ -1479,31 +1479,31 @@ function qt(t) {
 class ModuleTransformer {
     constructor(t) {
         this.$transform = t;
-        this.$ = new Map;
         this.A = new Map;
+        this.j = new Map;
     }
     transform(t) {
-        if (t instanceof Promise) return this.j(t); else if ("object" === typeof t && null !== t) return this.O(t); else throw new Error(`Invalid input: ${String(t)}. Expected Promise or Object.`);
-    }
-    j(t) {
-        if (this.$.has(t)) return this.$.get(t);
-        const e = t.then((t => this.O(t)));
-        this.$.set(t, e);
-        void e.then((e => {
-            this.$.set(t, e);
-        }));
-        return e;
+        if (t instanceof Promise) return this.O(t); else if ("object" === typeof t && null !== t) return this.I(t); else throw new Error(`Invalid input: ${String(t)}. Expected Promise or Object.`);
     }
     O(t) {
         if (this.A.has(t)) return this.A.get(t);
-        const e = this.$transform(this.I(t));
+        const e = t.then((t => this.I(t)));
         this.A.set(t, e);
-        if (e instanceof Promise) void e.then((e => {
+        void e.then((e => {
             this.A.set(t, e);
         }));
         return e;
     }
     I(t) {
+        if (this.j.has(t)) return this.j.get(t);
+        const e = this.$transform(this.M(t));
+        this.j.set(t, e);
+        if (e instanceof Promise) void e.then((e => {
+            this.j.set(t, e);
+        }));
+        return e;
+    }
+    M(t) {
         let e;
         let n;
         let r;

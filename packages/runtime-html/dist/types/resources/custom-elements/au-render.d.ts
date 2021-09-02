@@ -24,10 +24,6 @@ export declare class AuRender implements ICustomElementViewModel {
     detaching(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void>;
     componentChanged(newValue: Subject | Promise<Subject>, previousValue: Subject | Promise<Subject>, flags: LifecycleFlags): void;
     private compose;
-    private _deactivate;
-    private _activate;
-    private _resolveView;
-    private _provideViewFor;
     dispose(): void;
     accept(visitor: ControllerVisitor): void | true;
 }

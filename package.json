@@ -7,7 +7,8 @@
     "test/karma-aurelia-preprocessor",
     "examples/base-url",
     "examples/lazy-loading-config",
-    "packages/__tests__"
+    "packages/__tests__",
+    "packages/__e2e__"
   ],
   "license": "MIT",
   "engines": {
@@ -46,7 +47,8 @@
     "pregenerate-tests:template-compiler.static": "tsc --resolveJsonModule --module commonjs --moduleResolution node --outDir scripts/dist scripts/generate-tests/template-compiler.static.ts",
     "generate-tests:template-compiler.static": "node scripts/dist/scripts/generate-tests/template-compiler.static.js",
     "generate-tests:template-compiler.mutations": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.mutations.ts",
-    "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts"
+    "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts",
+    "test:e2e": "npm run build && cd packages/__e2e__ && npm run test"
   },
   "devDependencies": {
     "@aurelia/testing": "latest",

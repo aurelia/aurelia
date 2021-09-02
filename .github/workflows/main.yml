@@ -1,5 +1,5 @@
 name: Github Actions
-on: [push]
+on: [push, pull_request]
 env:
   PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property
 
@@ -15,56 +15,6 @@ jobs:
   #         node-version: 12
   #     - run: npm ci
   #     - run: npm run lint:packages -- -- -- --quite
-
-  node:
-    timeout-minutes: 10
-    strategy:
-      matrix:
-        suite: [
-          "kernel",
-          "runtime",
-          "runtime-html",
-          "router",
-          "i18n",
-          "validation",
-        ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 15
-      - run: npm ci
-      - run: npm run build
-      - run: npm run test-node:${{matrix.suite}}
-        working-directory: packages/__tests__
-
-  node-cjs:
-    timeout-minutes: 10
-    strategy:
-      matrix:
-        suite: [
-          "aot",
-          "babel-jest",
-          "plugin-conventions",
-          "plugin-gulp",
-          "ts-jest",
-          "webpack-loader",
-        ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 15
-      - run: npm ci
-      - run: npm run build
-      - run: npm run change-tsconfigs:invert
-      - run: npm run build
-      - run: npm run change-tsconfigs:restore
-      - run: npm run change-package-refs:release -- commonjs
-      - run: npm run test-node:${{matrix.suite}}
-        working-directory: packages-cjs/__tests__
 
   browsers:
     timeout-minutes: 15
@@ -82,19 +32,18 @@ jobs:
       - run: npm run test-${{matrix.browser}}
         working-directory: packages/__tests__
 
-  testapps:
-    timeout-minutes: 15
+  router-e2e:
     runs-on: ubuntu-latest
     container:
-      image: "circleci/node:15.4.0-buster-browsers"
+      image: "circleci/node:16.3.0-buster-browsers"
       options: --user 1001
     steps:
       - uses: actions/checkout@v2
       - run: npm ci
       - run: npm run build
-      - run: npm run build
-        working-directory: examples/1kcomponents
-      - run: npm run build
-        working-directory: examples/fractals-tree
-      - run: npm run build
-        working-directory: examples/sierpinski-triangle
+        name: build all packages
+      - name: run e2e tests
+        working-directory: packages/__e2e__
+        run: |
+          npx playwright install chromium
+          npm run test

@@ -76,11 +76,9 @@ jobs:
       - run: npm ci
       - run: npm run build
         name: build all packages
-      - run: npm run build:ci
-        name: build e2e projects
-        working-directory: packages/__e2e__
       - run: npm run test:ci
-        working-directory: packages/__e2e__
+        name: build e2e projects
+        working-directory: packages/__e2e__/router-configured-basic
 
   browsers:
     timeout-minutes: 15

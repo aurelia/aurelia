@@ -10,7 +10,6 @@
   "scripts": {
     "dev": "npm run build -- -w",
     "build": "webpack --config webpack.config.js",
-    "serve": "node ../../../node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
     "test:ci": "npm run build && npx playwright test",
     "test": "npx playwright test",
     "test:debugger": "npx playwright test --headed"
@@ -20,14 +19,18 @@
     "@aurelia/metadata": "2.0.0-alpha.19",
     "@aurelia/platform": "2.0.0-alpha.19",
     "@aurelia/platform-browser": "2.0.0-alpha.19",
-    "@aurelia/runtime-html": "2.0.0-alpha.19",
     "@aurelia/runtime": "2.0.0-alpha.19",
+    "@aurelia/runtime-html": "2.0.0-alpha.19",
     "perf-monitor": "latest"
   },
   "devDependencies": {
     "@aurelia/http-server": "2.0.0-alpha.19",
-    "webpack-cli": "^4.2.0",
+    "@playwright/test": "^1.14.0",
+    "@types/express": "^4.17.13",
+    "@types/node": "^14.14.22",
+    "express": "^4.17.1",
     "webpack": "^5.10.3",
-    "webpack-bundle-analyzer": "^4.4.2"
+    "webpack-bundle-analyzer": "^4.4.2",
+    "webpack-cli": "^4.2.0"
   }
 }

@@ -4,3 +4,6 @@
   <a href="auth">Register</a>
 </nav>
 <au-viewport></au-viewport>
+<hr>
+<button click.trigger="toggleIframe()">Show iframe</button>
+<iframe if.bind="iframeVisible" src.bind='iframeSrc'></iframe>

@@ -1,8 +1,10 @@
 import { test as base, expect } from '@playwright/test';
 import type { Server } from 'http';
 
-const express = require('express');
+import express from 'express';
+import path from 'path';
 const PORT = 9001;
+const appUrl = `http://127.0.0.1:${PORT}`;
 
 interface IRouterTest {
   prepareServer: Server;
@@ -13,7 +15,19 @@ const test = base.extend<{}, IRouterTest>({
   prepareServer: [ async ({  }, use) => {
     // Setup express app.
     const app = express();
-    app.use(express.static('dist'));
+    app.use(express.static('dist', ));
+    // TODO
+    app.use('/api/*', (req, res, next) => {
+      next();
+    });
+    app.use('*', (req, res) => {
+      const fileDirectory = path.resolve(__dirname, '.', '../dist/');
+
+      res.sendFile('index.html', {root: fileDirectory}, (err) => {
+        res.end();
+        if (err) throw(err);
+      });
+    });
 
     // Start the server.
     let server: Server;
@@ -34,16 +48,29 @@ const test = base.extend<{}, IRouterTest>({
 });
 
 test('Loads basic home route', async ({ page }) => {
-  await page.goto(`http://127.0.0.1:${PORT}/`);
+  await page.goto(appUrl);
   const name = await page.innerText('au-viewport', { timeout: 50 });
   expect(name).toBe('Home page');
 });
 
 test('Navigates to auth when clicks on auth anchor', async ({ page }) => {
-  await page.goto(`http://127.0.0.1:${PORT}/`);
+  await page.goto(appUrl);
   const anchor = await page.$('a[href=auth]');
   expect(anchor).not.toBeNull();
   await anchor.click();
   const name = await page.innerText('au-viewport', { timeout: 50 });
   expect(name).toContain('Auth page');
+});
+
+test('loads the right component when navigating from inside an iframe', async ({ page }) => {
+  await page.goto(appUrl);
+  await page.click(':text("Show iframe")');
+  const frame = await (await page.$('iframe')).contentFrame();
+  await Promise.all([
+    page.waitForNavigation(),
+    frame.click(':text("Goto auth")'),
+  ]);
+  const viewportText = await page.textContent('au-viewport', { timeout: 50 });
+  expect(viewportText).toContain('Auth page');
+  expect(page.url()).toBe(`${appUrl}/auth`);
 });

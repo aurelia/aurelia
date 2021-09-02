@@ -421,7 +421,7 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
         const definition = CustomElement.getDefinition(instruction as Constructable);
         return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, definition);
       } else {
-        return TypedNavigationInstruction.create((instruction as (() => NavigationInstruction))());
+        return TypedNavigationInstruction.create((instruction as () => NavigationInstruction)());
       }
     } else if (instruction instanceof Promise) {
       return new TypedNavigationInstruction(NavigationInstructionType.Promise, instruction);

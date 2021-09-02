@@ -42,6 +42,8 @@ jobs:
       - run: npm ci
       - run: npm run build
         name: build all packages
-      - run: npm run test
-        name: run e2e tests
+      - name: run e2e tests
         working-directory: packages/__e2e__
+        run: |
+          npx playwright install chromium
+          npm run test

@@ -5,7 +5,7 @@
     "esModuleInterop": true,
     "strict": false,
     "target": "es2021",
-    "module": "CommonJS",
+    "module": "esnext",
     "outDir": "dist",
     "lib": ["esnext", "dom"]
   },

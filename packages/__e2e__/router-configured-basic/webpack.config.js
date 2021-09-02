@@ -10,10 +10,10 @@ module.exports = function () {
     entry: {
       'configured-basic': ['./src/index.ts']
     },
-    // optimization: {
-    //   minimize: false,
-    //   concatenateModules: false
-    // },
+    optimization: {
+      minimize: false,
+      concatenateModules: false,
+    },
     output: {
       path: resolve(__dirname, 'dist'),
       filename: '[name].js',

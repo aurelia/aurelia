@@ -1,5 +1,5 @@
 {
-  "name": "@e2e/router-configured-basic",
+  "name": "@__e2e__/__router-configured-basic__",
   "license": "MIT",
   "private": true,
   "engines": {

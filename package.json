@@ -7,7 +7,8 @@
     "test/karma-aurelia-preprocessor",
     "examples/base-url",
     "examples/lazy-loading-config",
-    "packages/__tests__"
+    "packages/__tests__",
+    "packages/__e2e__"
   ],
   "license": "MIT",
   "engines": {

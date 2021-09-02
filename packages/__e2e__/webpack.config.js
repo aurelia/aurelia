@@ -12,7 +12,7 @@ module.exports = function () {
     },
     optimization: {
       minimize: false,
-      concatenateModules: false,
+      // concatenateModules: false,
     },
     output: {
       path: resolve(__dirname, 'dist'),
@@ -25,8 +25,10 @@ module.exports = function () {
     },
     module: {
       rules: [
-        { test: /\.ts$/i, use: ['ts-loader'], exclude: /node_modules/ },
-        { test: /[/\\]src[/\\].+\.html$/i, use: 'html-loader', exclude: /node_modules/ },
+        // { test: /\.ts$/i, use: ['ts-loader'], exclude: /node_modules/ },
+        // { test: /[/\\]src[/\\].+\.html$/i, use: 'html-loader', exclude: /node_modules/ },
+        { test: /\.ts$/i, use: ['ts-loader', '@aurelia/webpack-loader'], exclude: /node_modules/ },
+        { test: /[/\\]src[/\\].+\.html$/i, use: '@aurelia/webpack-loader', exclude: /node_modules/ },
       ]
     },
     plugins: [

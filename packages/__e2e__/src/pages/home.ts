@@ -1,10 +1,10 @@
-import { customElement } from '@aurelia/runtime-html'
-import template from './home.html';
+// import { customElement } from '@aurelia/runtime-html'
+// import template from './home.html';
 
-@customElement({
-  name: 'home',
-  template
-})
+// @customElement({
+//   name: 'home',
+//   template
+// })
 export class Home {
   
 }

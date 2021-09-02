@@ -47,17 +47,23 @@ const test = base.extend<{}, IRouterTest>({
   }, { scope: 'worker', auto: true } ],
 });
 
+test.beforeEach(async ({ page }) => {
+  // await page.goto(appUrl);
+  console.log('Page ready', page.url());
+});
+
 test('Loads basic home route', async ({ page }) => {
   await page.goto(appUrl);
   const name = await page.innerText('au-viewport', { timeout: 50 });
+  await page.pause();
   expect(name).toBe('Home page');
 });
 
 test('Navigates to auth when clicks on auth anchor', async ({ page }) => {
   await page.goto(appUrl);
-  const anchor = await page.$('a[href=auth]');
-  expect(anchor).not.toBeNull();
-  await anchor.click();
+  // timeout 50/100 is not enough on Binh's machine
+  // todo(jurgen): why does it take so long?
+  await page.click('a:text("Register")', { timeout: 150 });
   const name = await page.innerText('au-viewport', { timeout: 50 });
   expect(name).toContain('Auth page');
 });
@@ -72,5 +78,5 @@ test('loads the right component when navigating from inside an iframe', async ({
   ]);
   const viewportText = await page.textContent('au-viewport', { timeout: 50 });
   expect(viewportText).toContain('Auth page');
-  expect(page.url()).toBe(`${appUrl}/auth`);
+  expect(page.url()).toBe(`${appUrl}/#/auth`);
 });

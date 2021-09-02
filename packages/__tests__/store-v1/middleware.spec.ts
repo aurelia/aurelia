@@ -184,6 +184,7 @@ describe("store-v1/middleware.spec.ts", function () {
   });
 
   describe("which are applied before action dispatches", function () {
+    this.retries(3);
     it("should synchronously change the provided present state", async function () {
       const store = createStoreWithState(initialState);
 

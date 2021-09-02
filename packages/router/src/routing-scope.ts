@@ -231,7 +231,10 @@ export class RoutingScope {
     if (typeof instruction === 'string') {
       const instructions: RoutingInstruction[] = [];
       const instrs = RoutingInstruction.parse(this.router, instruction);
-
+      // Make sure empty route is also processed
+      if (instruction === '' || instruction === '-') {
+        instrs.push(new RoutingInstruction(''));
+      }
       if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(this.router, instrs)) {
         for (const instr of instrs) {
           if (instr.isClear(this.router) || instr.isClearAll(this.router)) {
@@ -260,7 +263,8 @@ export class RoutingScope {
       } else if (useDirectRouting) {
         instructions.push(...instrs);
       }
-      route.instructions = instructions;
+      // Remove empty instructions so that default can be used
+      route.instructions = instructions.filter(instr => instr.component.name !== '');
 
       // const instructions = RoutingInstruction.parse(this.router, instruction);
       // if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(this.router, instructions)) {

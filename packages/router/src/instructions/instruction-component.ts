@@ -146,13 +146,14 @@ export class InstructionComponent {
         this.set((component as unknown as { default: ComponentAppellation }).default);
         return;
       }
-      if (Object.keys(component).length === 0) {
+      const keys = Object.keys(component).filter(key => !key.startsWith('__'));
+      if (keys.length === 0) {
         throw new Error(`Failed to load component Type from resolved Promise since no export was specified.`);
       }
-      if (Object.keys(component).length > 1) {
+      if (keys.length > 1) {
         throw new Error(`Failed to load component Type from resolved Promise since no 'default' export was specified when having multiple exports.`);
       }
-      const key = Object.keys(component)[0];
+      const key = keys[0];
       // TODO(alpha): Fix type here
       this.set((component as any)[key] as ComponentAppellation);
     }) as Promise<ComponentAppellation>;

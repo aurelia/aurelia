@@ -113,7 +113,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
       pathname,
       search.slice(1),
       hash,
-      (this.options.useUrlFragmentHash ?? false) ? hash.slice(1) : pathname,
+      (this.options.useUrlFragmentHash ?? false) ? hash.slice(1) : `${pathname}${search}`,
     );
   }
 

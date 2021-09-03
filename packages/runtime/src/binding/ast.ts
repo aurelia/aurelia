@@ -76,7 +76,7 @@ export type IsBindingBehavior = IsValueConverter | BindingBehaviorExpression;
 export type IsAssignable = AccessScopeExpression | AccessKeyedExpression | AccessMemberExpression | AssignExpression;
 export type IsExpression = IsBindingBehavior | Interpolation;
 export type BindingIdentifierOrPattern = BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern;
-export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | HtmlLiteralExpression;
+export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | HtmlLiteralExpression | DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression;
 export type AnyBindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
 
 export interface IExpressionHydrator {
@@ -107,6 +107,9 @@ export interface IVisitor<T = unknown> {
   visitTemplate(expr: TemplateExpression): T;
   visitUnary(expr: UnaryExpression): T;
   visitValueConverter(expr: ValueConverterExpression): T;
+  visitDestructuringAssignmentExpression(expr: DestructuringAssignmentExpression): T;
+  visitDestructuringAssignmentSingleExpression(expr: DestructuringAssignmentSingleExpression): T;
+  visitDestructuringAssignmentRestExpression(expr: DestructuringAssignmentRestExpression): T;
 }
 
 export class Unparser implements IVisitor<void> {
@@ -345,6 +348,51 @@ export class Unparser implements IVisitor<void> {
       this.text += parts[i + 1];
     }
     this.text += '}';
+  }
+
+  public visitDestructuringAssignmentExpression(expr: DestructuringAssignmentExpression): void {
+    const $kind = expr.$kind;
+    const isObjDes = $kind === ExpressionKind.ObjectDestructuringAssignment;
+    this.text += isObjDes ? '{' : '[';
+    const list = expr.list;
+    const len = list.length;
+    let i: number;
+    let item: DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression;
+    for(i = 0; i< len; i++) {
+      item = list[i];
+      switch(item.$kind) {
+        case ExpressionKind.DestructuringAssignmentLeaf:
+          item.accept(this);
+          break;
+        case ExpressionKind.ArrayDestructuringAssignment:
+        case ExpressionKind.ObjectDestructuringAssignment: {
+          const source = item.source;
+          if(source) {
+            source.accept(this);
+            this.text += ':';
+          }
+          item.accept(this);
+          break;
+        }
+      }
+    }
+    this.text += isObjDes ? '}' : ']';
+  }
+
+  public visitDestructuringAssignmentSingleExpression(expr: DestructuringAssignmentSingleExpression): void {
+    expr.source.accept(this);
+    this.text += ':';
+    expr.target.accept(this);
+    const initializer = expr.initializer;
+    if(initializer !== void 0) {
+      this.text +='=';
+      initializer.accept(this);
+    }
+  }
+
+  public visitDestructuringAssignmentRestExpression(expr: DestructuringAssignmentRestExpression): void {
+    this.text += '...';
+    expr.accept(this);
   }
 
   private writeArgs(args: readonly IsBindingBehavior[]): void {
@@ -1454,12 +1502,12 @@ export class DestructuringAssignmentExpression {
     }
   }
 
-  public accept<T>(_visitor: IVisitor<T>): T {
-    throw new Error('Not implemented'); // TODO(sayan): fix
+  public accept<T>(visitor: IVisitor<T>): T {
+    return visitor.visitDestructuringAssignmentExpression(this);
   }
 
   public toString(): string {
-    throw new Error('Not implemented'); // TODO(sayan): fix
+    return Unparser.unparse(this);
   }
 }
 
@@ -1480,12 +1528,12 @@ export class DestructuringAssignmentSingleExpression {
     this.target.assign(f, s, l, this.source.evaluate(f, Scope.create(value), l, null) ?? this.initializer?.evaluate(f, s, l, null));
   }
 
-  public accept<T>(_visitor: IVisitor<T>): T {
-    throw new Error('Not implemented'); // TODO(sayan): fix
+  public accept<T>(visitor: IVisitor<T>): T {
+    return visitor.visitDestructuringAssignmentSingleExpression(this);
   }
 
   public toString(): string {
-    throw new Error('Not implemented'); // TODO(sayan): fix
+    return Unparser.unparse(this);
   }
 }
 
@@ -1524,11 +1572,11 @@ export class DestructuringAssignmentRestExpression {
   }
 
   public accept<T>(_visitor: IVisitor<T>): T {
-    throw new Error('Not implemented'); // TODO(sayan): fix
+    return _visitor.visitDestructuringAssignmentRestExpression(this);
   }
 
   public toString(): string {
-    throw new Error('Not implemented'); // TODO(sayan): fix
+    return Unparser.unparse(this);
   }
 }
 

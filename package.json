@@ -88,7 +88,8 @@
     "generate-tests:template-compiler.static": "node scripts/dist/scripts/generate-tests/template-compiler.static.js",
     "generate-tests:template-compiler.mutations": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.mutations.ts",
     "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts",
-    "rollup": "lage rollup"
+    "rollup": "lage rollup",
+    "test:debugger": "cd packages/__tests__ && npm run test-chrome:debugger"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.2.0",

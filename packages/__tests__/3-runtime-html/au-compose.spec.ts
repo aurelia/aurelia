@@ -1061,47 +1061,49 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     await tearDown();
   });
 
-  it('works with promise in attach/detach', async function () {
-    const El1 = CustomElement.define({
-      name: 'el1',
-      template: `<template ref="host"><p>Heollo??`
-    }, class Element1 {
-      public host: HTMLElement;
-      public async attaching() {
-        return this.host.animate([{ color: 'red' }, { color: 'blue' }], 50).finished;
-      }
-      public async detaching() {
-        return this.host.animate([{ color: 'blue' }, { color: 'green' }], { duration: 50 }).finished;
-      }
+  if (typeof window !== 'undefined') {
+    it('works with promise in attach/detach', async function () {
+      const El1 = CustomElement.define({
+        name: 'el1',
+        template: `<template ref="host"><p>Heollo??`
+      }, class Element1 {
+        public host: HTMLElement;
+        public async attaching() {
+          return this.host.animate([{ color: 'red' }, { color: 'blue' }], 50).finished;
+        }
+        public async detaching() {
+          return this.host.animate([{ color: 'blue' }, { color: 'green' }], { duration: 50 }).finished;
+        }
+      });
+      const { component, startPromise, tearDown } = createFixture(
+        `<au-compose repeat.for="vm of components" view-model.bind="vm">`,
+        class App {
+          public message = 'Aurelia';
+          public components: any[] = [];
+          public vm = El1;
+
+          public render() {
+            this.components.push(El1);
+          }
+
+          public remove() {
+            this.components.pop();
+          }
+        }
+      );
+
+      await startPromise;
+
+      component.render();
+      await new Promise(r => setTimeout(r, 100));
+
+      component.render();
+      await new Promise(r => setTimeout(r, 100));
+
+      component.remove();
+      await new Promise(r => setTimeout(r, 150));
+
+      await tearDown();
     });
-    const { component, startPromise, tearDown } = createFixture(
-      `<au-compose repeat.for="vm of components" view-model.bind="vm">`,
-      class App {
-        public message = 'Aurelia';
-        public components: any[] = [];
-        public vm = El1;
-
-        public render() {
-          this.components.push(El1);
-        }
-
-        public remove() {
-          this.components.pop();
-        }
-      }
-    );
-
-    await startPromise;
-
-    component.render();
-    await new Promise(r => setTimeout(r, 100));
-
-    component.render();
-    await new Promise(r => setTimeout(r, 100));
-
-    component.remove();
-    await new Promise(r => setTimeout(r, 150));
-
-    await tearDown();
-  });
+  }
 });

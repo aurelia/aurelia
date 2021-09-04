@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.20"></a>
+# 2.0.0-alpha.20 (2021-09-04)
+
+### Features:
+
+* **router:** add support for component factory ([8541b48](https://github.com/aurelia/aurelia/commit/8541b48))
+
 <a name="2.0.0-alpha.19"></a>
 # 2.0.0-alpha.19 (2021-08-29)
 

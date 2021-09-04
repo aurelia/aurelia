@@ -439,6 +439,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _hydrateCustomAttribute(): void {
     const definition = this.definition as CustomAttributeDefinition;
     const instance = this.viewModel!;
@@ -612,6 +613,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._attach();
   }
 
+  /** @internal */
   private _append(...nodes: Node[]): void {
     switch (this.mountTarget) {
       case MountTarget.host:
@@ -630,6 +632,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _attach(): void {
     if (__DEV__ && this.debug) { this.logger!.trace(`attach()`); }
 
@@ -850,6 +853,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private $reject: ((err: unknown) => void) | undefined = void 0;
   private $promise: Promise<void> | undefined = void 0;
 
+  /** @internal */
   private _ensurePromise(): void {
     if (this.$promise === void 0) {
       this.$promise = new Promise((resolve, reject) => {
@@ -862,6 +866,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _resolve(): void {
     if (this.$promise !== void 0) {
       _resolve = this.$resolve!;
@@ -871,6 +876,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _reject(err: Error): void {
     if (this.$promise !== void 0) {
       _reject = this.$reject!;
@@ -883,13 +889,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _activatingStack: number = 0;
+  /** @internal */
   private _enterActivating(): void {
     ++this._activatingStack;
     if (this.$initiator !== this) {
       (this.parent as Controller)._enterActivating();
     }
   }
+  /** @internal */
   private _leaveActivating(): void {
     if (--this._activatingStack === 0) {
       if (this.hooks.hasAttached) {
@@ -923,10 +932,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _detachingStack: number = 0;
+  /** @internal */
   private _enterDetaching(): void {
     ++this._detachingStack;
   }
+  /** @internal */
   private _leaveDetaching(): void {
     if (--this._detachingStack === 0) {
       // Note: this controller is the initiator (detach is only ever called on the initiator)
@@ -966,10 +978,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _unbindingStack: number = 0;
+  /** @internal */
   private _enterUnbinding(): void {
     ++this._unbindingStack;
   }
+  /** @internal */
   private _leaveUnbinding(): void {
     if (--this._unbindingStack === 0) {
       if (__DEV__ && this.debug) { this.logger!.trace(`unbind()`); }

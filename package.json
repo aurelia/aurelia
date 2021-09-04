@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.1.0-dev.202109021206",
+  "version": "2.0.0-alpha.20",
   "workspaces": [
     "packages/__tests__",
     "packages/__e2e__/router-configured-basic",
@@ -88,7 +88,8 @@
     "generate-tests:template-compiler.static": "node scripts/dist/scripts/generate-tests/template-compiler.static.js",
     "generate-tests:template-compiler.mutations": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.mutations.ts",
     "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts",
-    "rollup": "lage rollup"
+    "rollup": "lage rollup",
+    "test:debugger": "cd packages/__tests__ && npm run test-chrome:debugger"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.2.0",

@@ -23,3 +23,6 @@ export const isDataAttribute = (obj: Node, key: PropertyKey, svgAnalyzer: ISVGAn
     prefix === 'data-' ||
     svgAnalyzer.isStandardSvgAttribute(obj, key);
 };
+
+/** @internal */
+export const isPromise = <T>(v: unknown): v is Promise<T> => v instanceof Promise;

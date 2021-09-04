@@ -116,31 +116,16 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
      * Semi private API
      */
     static $view(viewFactory: IViewFactory, parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
-    private _hydrateCustomAttribute;
     private $initiator;
     private $flags;
     activate(initiator: IHydratedController, parent: IHydratedController | null, flags: LifecycleFlags, scope?: Scope | null): void | Promise<void>;
     private bind;
-    private _append;
-    private _attach;
     deactivate(initiator: IHydratedController, parent: IHydratedController | null, flags: LifecycleFlags): void | Promise<void>;
     private removeNodes;
     private unbind;
     private $resolve;
     private $reject;
     private $promise;
-    private _ensurePromise;
-    private _resolve;
-    private _reject;
-    private _activatingStack;
-    private _enterActivating;
-    private _leaveActivating;
-    private _detachingStack;
-    private _enterDetaching;
-    private _leaveDetaching;
-    private _unbindingStack;
-    private _enterUnbinding;
-    private _leaveUnbinding;
     addBinding(binding: IBinding): void;
     addChild(controller: Controller): void;
     is(name: string): boolean;

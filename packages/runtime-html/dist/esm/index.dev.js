@@ -787,6 +787,8 @@ const isDataAttribute = (obj, key, svgAnalyzer) => {
             prefix === 'data-' ||
             svgAnalyzer.isStandardSvgAttribute(obj, key);
 };
+/** @internal */
+const isPromise = (v) => v instanceof Promise;
 
 const IPlatform = IPlatform$1;
 
@@ -3634,8 +3636,11 @@ class Controller {
         this.$resolve = void 0;
         this.$reject = void 0;
         this.$promise = void 0;
+        /** @internal */
         this._activatingStack = 0;
+        /** @internal */
         this._detachingStack = 0;
+        /** @internal */
         this._unbindingStack = 0;
         this._rendering = container.root.get(IRendering);
         switch (vmKind) {
@@ -3862,6 +3867,7 @@ class Controller {
             this.viewModel.created(this);
         }
     }
+    /** @internal */
     _hydrateCustomAttribute() {
         const definition = this.definition;
         const instance = this.viewModel;
@@ -3989,6 +3995,7 @@ class Controller {
         this.isBound = true;
         this._attach();
     }
+    /** @internal */
     _append(...nodes) {
         switch (this.mountTarget) {
             case 1 /* host */:
@@ -4006,6 +4013,7 @@ class Controller {
             }
         }
     }
+    /** @internal */
     _attach() {
         if (this.hostController !== null) {
             switch (this.mountTarget) {
@@ -4182,6 +4190,7 @@ class Controller {
         this.$initiator = null;
         this._resolve();
     }
+    /** @internal */
     _ensurePromise() {
         if (this.$promise === void 0) {
             this.$promise = new Promise((resolve, reject) => {
@@ -4193,6 +4202,7 @@ class Controller {
             }
         }
     }
+    /** @internal */
     _resolve() {
         if (this.$promise !== void 0) {
             _resolve = this.$resolve;
@@ -4201,6 +4211,7 @@ class Controller {
             _resolve = void 0;
         }
     }
+    /** @internal */
     _reject(err) {
         if (this.$promise !== void 0) {
             _reject = this.$reject;
@@ -4212,12 +4223,14 @@ class Controller {
             this.parent._reject(err);
         }
     }
+    /** @internal */
     _enterActivating() {
         ++this._activatingStack;
         if (this.$initiator !== this) {
             this.parent._enterActivating();
         }
     }
+    /** @internal */
     _leaveActivating() {
         if (--this._activatingStack === 0) {
             if (this.hooks.hasAttached) {
@@ -4247,9 +4260,11 @@ class Controller {
             this.parent._leaveActivating();
         }
     }
+    /** @internal */
     _enterDetaching() {
         ++this._detachingStack;
     }
+    /** @internal */
     _leaveDetaching() {
         if (--this._detachingStack === 0) {
             this._enterUnbinding();
@@ -4283,9 +4298,11 @@ class Controller {
             this._leaveUnbinding();
         }
     }
+    /** @internal */
     _enterUnbinding() {
         ++this._unbindingStack;
     }
+    /** @internal */
     _leaveUnbinding() {
         if (--this._unbindingStack === 0) {
             let cur = this.$initiator.head;
@@ -11408,7 +11425,7 @@ class AuCompose {
         return this._composition;
     }
     attaching(initiator, parent, flags) {
-        return this._pending = onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, initiator, void 0)), (context) => {
+        return this._pending = onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, void 0), initiator), (context) => {
             if (this._contextFactory.isCurrent(context)) {
                 this._pending = void 0;
             }
@@ -11428,14 +11445,14 @@ class AuCompose {
             this._composition.update(this.model);
             return;
         }
-        this._pending = onResolve(this._pending, () => onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, void 0, name)), (context) => {
+        this._pending = onResolve(this._pending, () => onResolve(this.queue(new ChangeInfo(this.view, this.viewModel, this.model, name), void 0), (context) => {
             if (this._contextFactory.isCurrent(context)) {
                 this._pending = void 0;
             }
         }));
     }
     /** @internal */
-    queue(change) {
+    queue(change, initiator) {
         const factory = this._contextFactory;
         const compositionCtrl = this._composition;
         // todo: handle consequitive changes that create multiple queues
@@ -11447,14 +11464,14 @@ class AuCompose {
                     // Don't activate [stale] controller
                     // by always ensuring that the composition context is the latest one
                     if (factory.isCurrent(context)) {
-                        return onResolve(result.activate(), () => {
+                        return onResolve(result.activate(initiator), () => {
                             // Don't conclude the [stale] composition
                             // by always ensuring that the composition context is the latest one
                             if (factory.isCurrent(context)) {
                                 // after activation, if the composition context is still the most recent one
                                 // then the job is done
                                 this._composition = result;
-                                return onResolve(compositionCtrl === null || compositionCtrl === void 0 ? void 0 : compositionCtrl.deactivate(change.initiator), () => context);
+                                return onResolve(compositionCtrl === null || compositionCtrl === void 0 ? void 0 : compositionCtrl.deactivate(initiator), () => context);
                             }
                             else {
                                 // the stale controller should be deactivated
@@ -11482,7 +11499,7 @@ class AuCompose {
         // todo: when both view model and view are empty
         //       should it throw or try it best to proceed?
         //       current: proceed
-        const { view, viewModel, model, initiator } = context.change;
+        const { view, viewModel, model } = context.change;
         const { _container: container, host, $controller, _location: loc } = this;
         const srcDef = this.getDef(viewModel);
         const childCtn = container.createChild();
@@ -11517,7 +11534,7 @@ class AuCompose {
             // custom element based composition
             if (srcDef !== null) {
                 const controller = Controller.$el(childCtn, comp, compositionHost, { projections: this._instruction.projections }, srcDef);
-                return new CompositionController(controller, () => controller.activate(initiator !== null && initiator !== void 0 ? initiator : controller, $controller, 2 /* fromBind */, $controller.scope.parentScope), 
+                return new CompositionController(controller, (attachInitiator) => controller.activate(attachInitiator !== null && attachInitiator !== void 0 ? attachInitiator : controller, $controller, 2 /* fromBind */, $controller.scope.parentScope), 
                 // todo: call deactivate on the component view model
                 (deactachInitiator) => onResolve(controller.deactivate(deactachInitiator !== null && deactachInitiator !== void 0 ? deactachInitiator : controller, $controller, 4 /* fromUnbind */), removeCompositionHost), 
                 // casting is technically incorrect
@@ -11540,7 +11557,7 @@ class AuCompose {
                 else {
                     controller.setHost(compositionHost);
                 }
-                return new CompositionController(controller, () => controller.activate(initiator !== null && initiator !== void 0 ? initiator : controller, $controller, 2 /* fromBind */, scope), 
+                return new CompositionController(controller, (attachInitiator) => controller.activate(attachInitiator !== null && attachInitiator !== void 0 ? attachInitiator : controller, $controller, 2 /* fromBind */, scope), 
                 // todo: call deactivate on the component view model
                 // a difference with composing custom element is that we leave render location/host alone
                 // as they all share the same host/render location
@@ -11611,14 +11628,11 @@ class CompositionContextFactory {
     constructor() {
         this.id = 0;
     }
-    isFirst(context) {
-        return context.id === 0;
-    }
     isCurrent(context) {
-        return context.id === this.id - 1;
+        return context.id === this.id;
     }
     create(changes) {
-        return onResolve(changes.load(), (loaded) => new CompositionContext(this.id++, loaded));
+        return onResolve(changes.load(), (loaded) => new CompositionContext(++this.id, loaded));
     }
     // simplify increasing the id will invalidate all previously created context
     invalidate() {
@@ -11626,32 +11640,30 @@ class CompositionContextFactory {
     }
 }
 class ChangeInfo {
-    constructor(view, viewModel, model, initiator, src) {
+    constructor(view, viewModel, model, src) {
         this.view = view;
         this.viewModel = viewModel;
         this.model = model;
-        this.initiator = initiator;
         this.src = src;
     }
     load() {
-        if (this.view instanceof Promise || this.viewModel instanceof Promise) {
+        if (isPromise(this.view) || isPromise(this.viewModel)) {
             return Promise
                 .all([this.view, this.viewModel])
                 .then(([view, viewModel]) => {
-                return new LoadedChangeInfo(view, viewModel, this.model, this.initiator, this.src);
+                return new LoadedChangeInfo(view, viewModel, this.model, this.src);
             });
         }
         else {
-            return new LoadedChangeInfo(this.view, this.viewModel, this.model, this.initiator, this.src);
+            return new LoadedChangeInfo(this.view, this.viewModel, this.model, this.src);
         }
     }
 }
 class LoadedChangeInfo {
-    constructor(view, viewModel, model, initiator, src) {
+    constructor(view, viewModel, model, src) {
         this.view = view;
         this.viewModel = viewModel;
         this.model = model;
-        this.initiator = initiator;
         this.src = src;
     }
 }
@@ -11670,12 +11682,12 @@ class CompositionController {
         this.context = context;
         this.state = 0;
     }
-    activate() {
+    activate(initiator) {
         if (this.state !== 0) {
             throw new Error(`AUR0807:${this.controller.name}`);
         }
         this.state = 1;
-        return this.start();
+        return this.start(initiator);
     }
     deactivate(detachInitator) {
         switch (this.state) {

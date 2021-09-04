@@ -15,16 +15,16 @@
     "test:debugger": "npx playwright test --headed"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.20",
-    "@aurelia/metadata": "2.0.0-alpha.20",
-    "@aurelia/platform": "2.0.0-alpha.20",
-    "@aurelia/platform-browser": "2.0.0-alpha.20",
-    "@aurelia/runtime": "2.0.0-alpha.20",
-    "@aurelia/runtime-html": "2.0.0-alpha.20",
+    "@aurelia/kernel": "2.0.1-dev.202109040758",
+    "@aurelia/metadata": "2.0.1-dev.202109040758",
+    "@aurelia/platform": "2.0.1-dev.202109040758",
+    "@aurelia/platform-browser": "2.0.1-dev.202109040758",
+    "@aurelia/runtime": "2.0.1-dev.202109040758",
+    "@aurelia/runtime-html": "2.0.1-dev.202109040758",
     "perf-monitor": "latest"
   },
   "devDependencies": {
-    "@aurelia/http-server": "2.0.0-alpha.20",
+    "@aurelia/http-server": "2.0.1-dev.202109040758",
     "@playwright/test": "^1.14.0",
     "@types/express": "^4.17.13",
     "@types/node": "^14.14.22",
@@ -32,5 +32,7 @@
     "webpack": "^5.10.3",
     "webpack-bundle-analyzer": "^4.4.2",
     "webpack-cli": "^4.2.0"
-  }
+  },
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js"
 }

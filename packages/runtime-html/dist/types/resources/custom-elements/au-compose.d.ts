@@ -33,13 +33,12 @@ export declare class AuCompose {
 export interface ICompositionController {
     readonly controller: IHydratedController;
     readonly context: CompositionContext;
-    activate(): void | Promise<void>;
+    activate(initiator?: IHydratedController): void | Promise<void>;
     deactivate(detachInitator?: IHydratedController): void | Promise<void>;
     update(model: unknown): void | Promise<void>;
 }
 declare class CompositionContextFactory {
     private id;
-    isFirst(context: CompositionContext): boolean;
     isCurrent(context: CompositionContext): boolean;
     create(changes: ChangeInfo): MaybePromise<CompositionContext>;
     invalidate(): void;
@@ -48,18 +47,16 @@ declare class ChangeInfo {
     readonly view: MaybePromise<string> | undefined;
     readonly viewModel: MaybePromise<Constructable | object> | undefined;
     readonly model: unknown | undefined;
-    readonly initiator: IHydratedController | undefined;
     readonly src: ChangeSource | undefined;
-    constructor(view: MaybePromise<string> | undefined, viewModel: MaybePromise<Constructable | object> | undefined, model: unknown | undefined, initiator: IHydratedController | undefined, src: ChangeSource | undefined);
+    constructor(view: MaybePromise<string> | undefined, viewModel: MaybePromise<Constructable | object> | undefined, model: unknown | undefined, src: ChangeSource | undefined);
     load(): MaybePromise<LoadedChangeInfo>;
 }
 declare class LoadedChangeInfo {
     readonly view: string | undefined;
     readonly viewModel: Constructable | object | undefined;
     readonly model: unknown | undefined;
-    readonly initiator: IHydratedController | undefined;
     readonly src: ChangeSource | undefined;
-    constructor(view: string | undefined, viewModel: Constructable | object | undefined, model: unknown | undefined, initiator: IHydratedController | undefined, src: ChangeSource | undefined);
+    constructor(view: string | undefined, viewModel: Constructable | object | undefined, model: unknown | undefined, src: ChangeSource | undefined);
 }
 declare class CompositionContext {
     readonly id: number;

@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.20"></a>
+# 2.0.0-alpha.20 (2021-09-04)
+
+### Features:
+
+* **au-slot:** work with containerless ([9fa0a06](https://github.com/aurelia/aurelia/commit/9fa0a06))
+
+
+### Refactorings:
+
+* **au-compose:** move initiator out of change info, add tests for #1299 ([8f2bf0c](https://github.com/aurelia/aurelia/commit/8f2bf0c))
+
 <a name="2.0.0-alpha.19"></a>
 # 2.0.0-alpha.19 (2021-08-29)
 

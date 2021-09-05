@@ -1516,7 +1516,7 @@ export class DestructuringAssignmentSingleExpression {
   public constructor(
     public readonly target: AccessMemberExpression,
     public readonly source: AccessMemberExpression | AccessKeyedExpression,
-    public readonly initializer: AccessScopeExpression | PrimitiveLiteralExpression | AccessKeyedExpression | AccessMemberExpression | undefined,
+    public readonly initializer: IsBindingBehavior | undefined,
   ) { }
 
   public evaluate(_f: LF, _s: Scope, _l: IServiceLocator, _c: IConnectable | null): undefined {

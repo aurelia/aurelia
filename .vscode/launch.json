@@ -255,9 +255,10 @@
        "--colors",
        "--recursive",
        "--timeout",
-       "5000",
+       "50000",
        "--watch-extensions",
        "js",
+       "--bail",
        "${workspaceRoot}/packages/__tests__/dist/esm/__tests__/setup-node.js",
        "${workspaceRoot}/packages/__tests__/dist/esm/__tests__/2-runtime/*.spec.js"
       ],

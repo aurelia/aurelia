@@ -352,6 +352,25 @@ export class ParserState {
     this.length = ip.length;
     this._currentChar = ip.charCodeAt(0);
   }
+
+  /**
+   * Returns the next token, without changing the state.
+   */
+  public lookahead(): Token {
+    const startIdx = this._startIndex;
+    const idx = this.index;
+    const token = this._currentToken;
+    const tokenValue = this._tokenValue;
+    const char = this._currentChar;
+    nextToken(this);
+    const $nextToken = this._currentToken;
+    this._startIndex = startIdx;
+    this.index = idx;
+    this._currentToken = token;
+    this._tokenValue = tokenValue;
+    this._currentChar = char;
+    return $nextToken;
+  }
 }
 
 const $state = new ParserState('');
@@ -880,6 +899,7 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
       }
 
       case Token.Comma:
+        if(state.lookahead() === Token.Comma && stack[stackLength-1][0] === Token.OpenBrace) { unexpectedCharacter(); }
         addPart();
         break;
 
@@ -907,8 +927,7 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
             case Token.CloseBrace:
               if (opened > 0) {
                 opened--;
-              }
-              if (opened === 0) {
+              } else if (opened === 0) {
                 $continue = false;
                 nextTokenRead = true;
                 add = false;
@@ -919,21 +938,12 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
                 opened--;
               }
               if (opened !== 0) { break; }
-              const startIdx = state._startIndex;
-              const idx = state.index;
-              const tokenValue = state._tokenValue;
-              const char = state._currentChar;
-              nextToken(state);
-              if (state._currentToken === Token.CloseBracket || state._currentToken === Token.OfKeyword) {
+              const next = state.lookahead();
+              if (next === Token.CloseBracket || next === Token.OfKeyword) {
                 $continue = false;
-                add = state._currentToken === Token.CloseBracket;
-                nextTokenRead = state._currentToken !== Token.CloseBracket;
+                add = next === Token.CloseBracket;
+                nextTokenRead = next !== Token.CloseBracket;
               }
-              state._startIndex = startIdx;
-              state.index = idx;
-              state._currentToken = Token.CloseBracket;
-              state._tokenValue = tokenValue;
-              state._currentChar = char;
               break;
             }
           }
@@ -954,6 +964,7 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
         break;
 
       case Token.Colon:
+        if (stack[stackLength - 1][0] === Token.OpenBracket) { unexpectedCharacter(); }
         hasAlias = true;
         break;
 
@@ -1015,7 +1026,7 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
     switch (top[0]) {
       case Token.OpenBrace:
         if (hasRest) {
-          if (target === '' || state.ip[state.index + 1] !== '}') { unexpectedCharacter(); }
+          if (target === '' || state._currentToken !== Token.CloseBrace) { unexpectedCharacter(); }
           part = new DestructuringAssignmentRestExpression(new AccessMemberExpression($this, target), top[1]);
         } else if (source !== '') {
           top[1].push(source);
@@ -1024,7 +1035,7 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
         break;
       case Token.OpenBracket:
         if (hasRest) {
-          if (target === '' || state.ip[state.index + 1] !== ']') { unexpectedCharacter(); }
+          if (target === '' || state._currentToken !== Token.CloseBracket) { unexpectedCharacter(); }
           part = new DestructuringAssignmentRestExpression(new AccessMemberExpression($this, target), top[1]);
         } else {
           if (source === '') {

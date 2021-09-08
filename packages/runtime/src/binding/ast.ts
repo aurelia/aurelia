@@ -1524,8 +1524,9 @@ export class DestructuringAssignmentSingleExpression {
   }
 
   public assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void {
-    if (typeof value !== 'object' || value === null) { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
-    this.target.assign(f, s, l, this.source.evaluate(f, Scope.create(value), l, null) ?? this.initializer?.evaluate(f, s, l, null));
+    if(value == null) { return; }
+    if (typeof value !== 'object') { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
+    this.target.assign(f, s, l, this.source.evaluate(f, Scope.create(value!), l, null) ?? this.initializer?.evaluate(f, s, l, null));
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -1549,7 +1550,8 @@ export class DestructuringAssignmentRestExpression {
   }
 
   public assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void {
-    if (typeof value !== 'object' || value === null) { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
+    if(value == null) { return; }
+    if (typeof value !== 'object') { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
 
     const indexOrProperties = this.indexOrProperties;
 
@@ -1561,7 +1563,7 @@ export class DestructuringAssignmentRestExpression {
       restValue = value.slice(indexOrProperties);
     } else {
       restValue = Object
-          .entries(value)
+          .entries(value!)
           .reduce((acc, [k, v]) => {
             if (!indexOrProperties.includes(k)) { acc[k] = v; }
             return acc;

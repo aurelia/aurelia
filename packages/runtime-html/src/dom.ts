@@ -59,6 +59,8 @@ export interface INodeSequence<T extends INode = INode> {
    */
   findTargets(): ArrayLike<T>;
 
+  insert(refNode: Node, position: `${'before' | 'after'}${'begin' | 'end'}`): void;
+
   /**
    * Insert this sequence as a sibling before refNode
    */
@@ -263,6 +265,86 @@ export class FragmentNodeSequence implements INodeSequence {
 
   public findTargets(): ArrayLike<Node> {
     return this.targets;
+  }
+
+  public insert(refNode: Node, position: `${'before' | 'after'}${'begin' | 'end'}`): void {
+    let i = 0;
+    let insertRefNode: Node | null;
+    const parentNode = refNode.parentNode;
+    const childNodes = this.childNodes;
+    const childCount = childNodes.length;
+    switch (position) {
+      case 'afterend': {
+        if (parentNode == null) {
+          return;
+        }
+        insertRefNode = refNode.nextSibling;
+        if (insertRefNode === null) {
+          if (this.isMounted) {
+            for (; childCount > i; ++i) {
+              parentNode.appendChild(this.childNodes[i]);
+            }
+          } else {
+            parentNode.appendChild(this.fragment);
+          }
+        } else {
+          if (this.isMounted) {
+            for (; childCount > i; ++i) {
+              parentNode.insertBefore(this.childNodes[i], insertRefNode);
+            }
+          } else {
+            parentNode.insertBefore(this.fragment, insertRefNode);
+          }
+        }
+        break;
+      }
+      case 'beforebegin': {
+        if (parentNode == null) {
+          return;
+        }
+        if (this.isMounted) {
+          for (; childCount > i; ++i) {
+            parentNode.insertBefore(this.childNodes[i], refNode);
+          }
+        } else {
+          parentNode.insertBefore(this.fragment, refNode);
+        }
+        break;
+      }
+      case 'afterbegin': {
+        insertRefNode = refNode.firstChild;
+        if (insertRefNode === null) {
+          if (this.isMounted) {
+            for (; childCount > i; ++i) {
+              refNode.appendChild(this.childNodes[i]);
+            }
+          } else {
+            refNode.appendChild(this.fragment);
+          }
+        } else {
+          if (this.isMounted) {
+            for (; childCount > i; ++i) {
+              refNode.insertBefore(this.childNodes[i], insertRefNode);
+            }
+          } else {
+            refNode.insertBefore(this.fragment, insertRefNode);
+          }
+        }
+        break;
+      }
+      case 'beforeend': {
+        if (this.isMounted) {
+          for (; childCount > i; ++i) {
+            refNode.appendChild(this.childNodes[i]);
+          }
+        } else {
+          refNode.appendChild(this.fragment);
+        }
+        break;
+      }
+      default:
+        throw new Error('Invalid position. Only accept "beforebegin" or "beforeend" or "afterbegin" or "afterend"');
+    }
   }
 
   public insertBefore(refNode: IRenderLocation & Comment): void {

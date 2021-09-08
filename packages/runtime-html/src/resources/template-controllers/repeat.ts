@@ -1,4 +1,4 @@
-import { compareNumber, nextId, IDisposable, onResolve } from '@aurelia/kernel';
+import { nextId, IDisposable, onResolve } from '@aurelia/kernel';
 import {
   applyMutationsToIndices,
   BindingBehaviorExpression,
@@ -24,6 +24,7 @@ import { bindable } from '../../bindable.js';
 
 import type { PropertyBinding } from '../../binding/property-binding.js';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
+import { isPromise } from '../../utilities-html.js';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
 
@@ -57,6 +58,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _reevaluating: boolean = false;
   /** @internal */ private _innerItemsExpression: IsBindingBehavior | null = null;
   /** @internal */ private _normalizedItems?: unknown[] = void 0;
+  private _handler = CollectionHandler.from(null);
 
   public constructor(
     /** @internal */ private readonly _location: IRenderLocation,
@@ -186,6 +188,45 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         this._createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
       }
     }
+  }
+
+  public applyIndexMap(indexMap: IndexMap) {
+    const views = this.views;
+    const deactivationPromises = [];
+    for (let i = 0; i < indexMap.deletedItems.length; ++i) {
+      const view = views[indexMap.deletedItems[i]];
+      const ret = view.deactivate(this.$controller, this.$controller, LF.none);
+      if (isPromise(ret)) {
+        deactivationPromises.push(ret);
+      }
+    }
+
+    for (let i = 0; i < indexMap.length; ++i) {
+      let promises: Promise<void>[] | undefined = void 0;
+      let ret: void | Promise<void>;
+      let view: ISyntheticView;
+      let viewScope: Scope;
+      let i = 0;
+  
+      const { $controller, _factory: factory, local, _normalizedItems: normalizedItems, _location: location, views } = this;
+      const mapLen = indexMap.length;
+  
+      for (; mapLen > i; ++i) {
+        if (indexMap[i] === -2) {
+          view = factory.create();
+          views.splice(i, 0, view);
+        }
+      }
+    }
+    // option 1:
+    // loop through the indexmap and
+    // old index = -2: new view
+    // old index same: continue
+    // old index else: update the item & force re-activate (for one-time-binding)
+    // ------------------
+    // option 2:
+    // loop through existing views
+    // index = 
   }
 
   // todo: subscribe to collection from inner expression
@@ -521,3 +562,146 @@ function setContextualProperties(oc: IRepeatOverrideContext, index: number, leng
   oc.$odd = !isEven;
   oc.$length = length;
 }
+
+interface IRepeater {
+  applyIndexMap(indexMap: IndexMap): void;
+}
+
+interface ICollectionHandler extends IDisposable {
+  readonly value: any[] | Set<any> | Map<any, any>;
+  transition(collection: any, matcher: any): [ICollectionHandler, IndexMap];
+  count(): number;
+  at(index: number): any;
+  subscribe(subscriber: any): void;
+  unsubscribe(subscriber: any): void;
+}
+
+interface ICollectionHandlerSubcriber {
+  handleIndexMap(indexMap: IndexMap): void;
+}
+
+/**
+ * A compare function to pass to `Array.prototype.sort` for sorting numbers.
+ * This is needed for numeric sort, since the default sorts them as strings.
+ */
+function compareNumber(a: number, b: number): number {
+  return a - b;
+}
+
+class CollectionHandler implements ICollectionHandler {
+  public static from(collection: any) {
+    return new CollectionHandler(collection);
+  }
+
+  public static normalize(collection: any): any[] {
+    if (collection == null) {
+      return [];
+    }
+    if (typeof collection === 'number') {
+      return Array.from({ length: collection }, (_, idx) => idx);
+    }
+    if (collection instanceof Array) {
+      return collection.slice(0);
+    }
+    if (Symbol.iterator in collection) {
+      return Array.from(collection);
+    }
+    throw new Error('Unrecognised collection');
+  }
+
+  private readonly _subs: Set<ICollectionHandlerSubcriber> = new Set();
+  private _observer: CollectionObserver | undefined;
+  private _normalized: any[];
+
+  private constructor(
+    public readonly value: any,
+    normalized?: any[],
+  ) {
+    this._normalized = normalized == null ? CollectionHandler.normalize(value) : normalized;
+  }
+
+  public transition(collection: any, matcher: any): [ICollectionHandler, IndexMap] {
+    const isMap = this.value instanceof Map;
+    const newNormalized = CollectionHandler.normalize(collection);
+    if (this.count() === 0) {
+      return [new CollectionHandler(collection, newNormalized), Array(newNormalized.length).fill(-2) as IndexMap];
+    }
+
+    const removedItems = [];
+    for (let i = 0; this._normalized.length > i; ++i) {
+      const oldItem = this._normalized[i];
+      const newIndex = indexOf(newNormalized, isMap ? oldItem[0] : oldItem, matcher, i);
+      if (newIndex === -1) {
+        removedItems[removedItems.length] = i;
+      }
+    }
+
+    const result = Array(newNormalized.length) as IndexMap;
+    for (let i = 0; newNormalized.length > i; ++i) {
+      const newItem = newNormalized[i];
+      const oldIndex = indexOf(
+        this._normalized,
+        // when it's transitioning from a map
+        // should use the key(or value) instead of the key/value pair
+        isMap ? newItem[0] : newItem,
+        matcher,
+        0
+      );
+      if (oldIndex === -1) {
+        result[i] = -2;
+      } else {
+        result[i] = oldIndex;
+      }
+    }
+    result.deletedItems = removedItems;
+    return [new CollectionHandler(collection, newNormalized), result];
+  }
+
+  count(): number {
+    throw new Error('Method not implemented.');
+  }
+
+  at(index: number) {
+    throw new Error('Method not implemented.');
+  }
+
+  subscribe(subscriber: any): void {
+    if (!this._subs.has(subscriber) && this._subs.add(subscriber).size === 1) {
+      (this._observer = getCollectionObserver(this.value))?.subscribe(this);
+    }
+  }
+
+  unsubscribe(subscriber: any): void {
+    if (this._subs.delete(subscriber) && this._subs.size === 0) {
+      this._observer?.unsubscribe(this);
+    } 
+  }
+
+  dispose(): void {
+    this._subs.clear();
+    this._observer?.unsubscribe(this);
+  }
+
+  handleCollectionChange(indexMap: IndexMap, flags: LF) {
+
+  }
+}
+
+/**
+ * Returns the index of the element in an array, optionally using a matcher function.
+ */
+function indexOf(array: any[], item: any, matcher: any, startIndex?: number) {
+  if (!matcher) {
+    // native indexOf is more performant than a for loop
+    return array.indexOf(item);
+  }
+  const length = array.length;
+  let index = startIndex || 0;
+  for (; index < length; index++) {
+    if (matcher(array[index], item)) {
+      return index;
+    }
+  }
+  return -1;
+}
+

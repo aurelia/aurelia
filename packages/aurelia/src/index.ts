@@ -185,7 +185,6 @@ export {
   toArray,
   // nextId,
   // resetId,
-  // compareNumber,
   // mergeDistinct,
   // isNumberOrBigInt,
   // isStringOrDate,

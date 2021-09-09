@@ -16,9 +16,11 @@ import {
   TestExecutionContext,
   TestFunction,
 } from '../util.js';
-import { Person } from '../validation/_test-resources.js';
+import {
+  Person,
+} from '../validation/_test-resources.js';
 
-describe.only('3-runtime-html/repeater.destructured-declaration.spec.ts', function () {
+describe('3-runtime-html/repeater.destructured-declaration.spec.ts', function () {
   interface TestSetupContext<TApp> {
     template: string;
     registrations: any[];
@@ -143,5 +145,9 @@ describe.only('3-runtime-html/repeater.destructured-declaration.spec.ts', functi
     $it('{name:n,address:{pin,...r}} of Person[]', function ({ host }: TestExecutionContext<App>) {
       assert.html.innerEqual(host, '<div>p1 - c1</div><div>p2</div><div>p3</div>');
     }, { app: App, template: `<div repeat.for="{name:n,address:{pin,...r}} of arr">\${n}<template if.bind="pin.toString().startsWith('11')"> - \${r.city}</template></div>` });
+
+    $it('{name:n,address:{city}={city:"unknown"}} of Person[]', function ({ host }: TestExecutionContext<App>) {
+      assert.html.innerEqual(host, '<div>p1 - c1</div><div>p2 - c2</div><div>p3 - atlantis</div>');
+    }, { app: App, template: `<div repeat.for="{name:n,address:{city}={city:'atlantis'}} of arr">\${n} - \${city}</div>` });
   }
 });

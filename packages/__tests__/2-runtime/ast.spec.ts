@@ -2526,6 +2526,7 @@ describe('DestructuringAssignmentExpression', function () {
             void 0
           )
         ],
+        void 0,
         void 0
       ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
       assert.deepStrictEqual(bc, { a: 1 });
@@ -2547,6 +2548,7 @@ describe('DestructuringAssignmentExpression', function () {
             void 0
           ),
         ],
+        void 0,
         void 0
       ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
       assert.deepStrictEqual(bc, { a: 1, b: 2 });
@@ -2562,6 +2564,7 @@ describe('DestructuringAssignmentExpression', function () {
             []
           ),
         ],
+        void 0,
         void 0
       ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
       assert.deepStrictEqual(bc.rest, { a: 1, b: 2 });
@@ -2578,6 +2581,7 @@ describe('DestructuringAssignmentExpression', function () {
             void 0
           ),
         ],
+        void 0,
         void 0
       ).assign(LF.none, Scope.create(bc), null, [1, 2]);
       assert.deepStrictEqual(bc, { a: 1 });
@@ -2599,6 +2603,7 @@ describe('DestructuringAssignmentExpression', function () {
             void 0
           ),
         ],
+        void 0,
         void 0
       ).assign(LF.none, Scope.create(bc), null, [1, 2]);
       assert.deepStrictEqual(bc, { a: 1, b: 2 });
@@ -2614,6 +2619,7 @@ describe('DestructuringAssignmentExpression', function () {
             0,
           ),
         ],
+        void 0,
         void 0
       ).assign(LF.none, Scope.create(bc), null, [1, 2]);
       assert.deepStrictEqual(bc, { rest: [1, 2] });
@@ -2639,9 +2645,11 @@ describe('DestructuringAssignmentExpression', function () {
               ),
             ],
             new AccessMemberExpression($this, 'prop2'),
+            void 0,
           ),
         ],
-        void 0
+        void 0,
+        void 0,
       ).assign(LF.none, Scope.create(bc), null, { prop1: 'foo', prop2: { prop21: 123 } });
       assert.deepStrictEqual(bc, { prop1: 'foo', prop21: 123 });
     });
@@ -2669,6 +2677,7 @@ describe('DestructuringAssignmentExpression', function () {
                   ),
                 ],
                 new AccessMemberExpression($this, 'prop21'),
+                void 0,
               ),
               new DestructuringAssignmentSingleExpression(
                 new AccessMemberExpression($this, 'prop22'),
@@ -2677,9 +2686,11 @@ describe('DestructuringAssignmentExpression', function () {
               ),
             ],
             new AccessMemberExpression($this, 'prop2'),
-          ),
+            void 0,
+        ),
         ],
-        void 0
+        void 0,
+        void 0,
       ).assign(LF.none, Scope.create(bc), null, { prop1: 'foo', prop2: { prop21: { prop211: 123, prop212: 456 }, prop22: 'bar' } });
       assert.deepStrictEqual(bc, { prop1: 'foo', newProp212: 456, prop22: 'bar' });
     });
@@ -2707,13 +2718,16 @@ describe('DestructuringAssignmentExpression', function () {
                   )
                 ],
                 new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+                void 0,
               )
             ],
             new AccessMemberExpression($this, 'coll'),
-          ),
+        void 0,
+        ),
         ],
-        void 0
-      ).assign(LF.none, Scope.create(bc), null, { prop1: 'foo', coll: [{ p1: 1, p2: 2 }, { p1: 3, p2: 4 }] });
+        void 0,
+        void 0,
+        ).assign(LF.none, Scope.create(bc), null, { prop1: 'foo', coll: [{ p1: 1, p2: 2 }, { p1: 3, p2: 4 }] });
       assert.deepStrictEqual(bc, { prop1: 'foo', item2p2: 4 });
     });
 
@@ -2742,16 +2756,20 @@ describe('DestructuringAssignmentExpression', function () {
                         void 0
                       ),
                     ],
-                    new AccessMemberExpression($this,'p')
+                    new AccessMemberExpression($this,'p'),
+                    void 0,
                   ),
                 ],
                 new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+                void 0,
               )
             ],
             new AccessMemberExpression($this, 'coll'),
+            void 0,
           ),
         ],
-        void 0
+        void 0,
+        void 0,
       ).assign(LF.none, Scope.create(bc), null, { prop1: "foo", coll: [{ p: [1, 2] }, { p: [3, 4] }] });
       assert.deepStrictEqual(bc, { prop1: 'foo', item21: 3 });
     });
@@ -2785,13 +2803,16 @@ describe('DestructuringAssignmentExpression', function () {
                   ),
                 ],
                 new AccessMemberExpression($this, 'prop2'),
+                void 0,
               ),
             ],
             new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+            void 0,
           )
         ],
         void 0,
-      ).assign(LF.none, Scope.create(bc), null, ['key', { prop1: 'foo', prop2: { prop21: 123 } }]);
+        void 0,
+        ).assign(LF.none, Scope.create(bc), null, ['key', { prop1: 'foo', prop2: { prop21: 123 } }]);
       assert.deepStrictEqual(bc, { k: 'key', prop1: 'foo', prop21: 123 });
     });
 
@@ -2816,11 +2837,43 @@ describe('DestructuringAssignmentExpression', function () {
               )
             ],
             new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+            void 0,
           )
         ],
         void 0,
-      ).assign(LF.none, Scope.create(bc), null, ['key', [1,2]]);
+        void 0,
+        ).assign(LF.none, Scope.create(bc), null, ['key', [1,2]]);
       assert.deepStrictEqual(bc, { k: 'key', item2: 2 });
+    });
+
+    it('{a,b:{c}={c:42}} = {a:42}', function () {
+      const bc: Record<string, any> = {};
+
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuringAssignment,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'a'),
+            new AccessMemberExpression($this, 'a'),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ObjectDestructuringAssignment,
+            [
+              new DestructuringAssignmentSingleExpression(
+                new AccessMemberExpression($this, 'c'),
+                new AccessMemberExpression($this, 'c'),
+                void 0
+                )
+            ],
+            new AccessMemberExpression($this, 'b'),
+            new ObjectLiteralExpression(['c'], [new PrimitiveLiteralExpression(42)]),
+          )
+        ],
+        void 0,
+        void 0,
+        ).assign(LF.none, Scope.create(bc), null, {a:42});
+      assert.deepStrictEqual(bc, { a:42, c:42});
     });
   });
 

@@ -1476,7 +1476,12 @@ export class DestructuringAssignmentExpression {
     public readonly $kind: ExpressionKind.ArrayDestructuringAssignment | ExpressionKind.ObjectDestructuringAssignment,
     public readonly list: readonly (DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[],
     public readonly source: AccessMemberExpression | AccessKeyedExpression | undefined,
-  ) { }
+    public readonly initializer: IsBindingBehavior | undefined,
+  ) {
+    if(initializer !== void 0 && source === void 0) {
+      throw new Error('The destructuring root cannot have a default value'); // TODO(Sayan): add error code.
+    }
+  }
 
   public evaluate(_f: LF, _s: Scope, _l: IServiceLocator, _c: IConnectable | null): undefined {
     return void 0;
@@ -1494,10 +1499,15 @@ export class DestructuringAssignmentExpression {
           item.assign(f, s, l, value);
           break;
         case ExpressionKind.ArrayDestructuringAssignment:
-        case ExpressionKind.ObjectDestructuringAssignment:
+        case ExpressionKind.ObjectDestructuringAssignment: {
           if (typeof value !== 'object' || value === null) { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
-          item.assign(f, s, l, item.source!.evaluate(f, Scope.create(value), l, null));
+          let source = item.source!.evaluate(f, Scope.create(value), l, null);
+          if(source === void 0) {
+            source = item.initializer?.evaluate(f, s, l, null);
+          }
+          item.assign(f, s, l, source);
           break;
+        }
       }
     }
   }
@@ -1526,7 +1536,11 @@ export class DestructuringAssignmentSingleExpression {
   public assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void {
     if(value == null) { return; }
     if (typeof value !== 'object') { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
-    this.target.assign(f, s, l, this.source.evaluate(f, Scope.create(value!), l, null) ?? this.initializer?.evaluate(f, s, l, null));
+    let source = this.source.evaluate(f, Scope.create(value!), l, null);
+    if(source === void 0) {
+      source = this.initializer?.evaluate(f, s, l, null);
+    }
+    this.target.assign(f, s, l, source);
   }
 
   public accept<T>(visitor: IVisitor<T>): T {

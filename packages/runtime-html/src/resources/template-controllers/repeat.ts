@@ -102,7 +102,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     parent: IHydratedParentController,
     flags: LF,
   ): void | Promise<void> {
-    this._normalizeToArray(flags);
+    this.applyTransition(...this._handler.transition(this.items, (a: any, b: any) => a === b));
+    // this._normalizeToArray(flags);
 
     return this._activateAllViews(initiator, flags);
   }
@@ -190,7 +191,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 
-  public applyIndexMap(indexMap: IndexMap) {
+  public applyTransition(collectionHandler: ICollectionHandler, indexMap: IndexMap) {
     const views = this.views;
     const deactivationPromises = [];
     for (let i = 0; i < indexMap.deletedItems.length; ++i) {
@@ -201,21 +202,29 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
     }
 
-    for (let i = 0; i < indexMap.length; ++i) {
-      let promises: Promise<void>[] | undefined = void 0;
-      let ret: void | Promise<void>;
-      let view: ISyntheticView;
-      let viewScope: Scope;
-      let i = 0;
-  
-      const { $controller, _factory: factory, local, _normalizedItems: normalizedItems, _location: location, views } = this;
-      const mapLen = indexMap.length;
-  
-      for (; mapLen > i; ++i) {
-        if (indexMap[i] === -2) {
-          view = factory.create();
-          views.splice(i, 0, view);
+    const activationPromises = [];
+    for (let i = 0; i < indexMap.length; ++i) {  
+      const item = collectionHandler.at(i);
+      const { $controller, _factory: factory, local, _location } = this;
+      const oldIndex = indexMap[i];
+      const isNewView = oldIndex === -2;
+      if (isNewView) {
+        const view = factory.create($controller);
+        const viewScope = Scope.fromParent($controller.scope, BindingContext.create(local, item));
+        const ret = view.activate($controller, $controller, LF.none, viewScope);
+        if (isPromise(ret)) {
+          activationPromises.push(ret);
         }
+        if (i > 0) {
+          view.nodes.insert(views[i - 1].nodes.lastChild, 'afterend');
+        } else {
+          view.nodes.insert(_location.$start!, 'afterbegin');
+        }
+        views[i] = view;
+      } else if (oldIndex !== i && !indexMap.deletedItems.includes(i)) {
+        const view = views[oldIndex];
+        view.scope.bindingContext[local] = BindingContext.create(local, item);
+        // todo: support one time binding
       }
     }
     // option 1:
@@ -662,7 +671,7 @@ class CollectionHandler implements ICollectionHandler {
   }
 
   at(index: number) {
-    throw new Error('Method not implemented.');
+    return this._normalized[index];
   }
 
   subscribe(subscriber: any): void {

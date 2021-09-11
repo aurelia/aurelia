@@ -3,7 +3,8 @@ import {
   StoreOptions,
   StateHistory,
   DevToolsOptions,
-  IStoreWindow
+  IStoreWindow,
+  STORE
 } from '@aurelia/store-v1';
 import { DI, ILogger, IPlatform, Registration } from '@aurelia/kernel';
 import { BrowserPlatform, IWindow } from '@aurelia/runtime-html';
@@ -21,7 +22,7 @@ export class DevToolsMock {
   }
   public send(): void { /**/ }
 
-  public constructor(public devToolsOptions: DevToolsOptions) { }
+  public constructor(public devToolsOptions: DevToolsOptions) {}
 }
 
 const devtoolsInstalled = Symbol();
@@ -43,10 +44,13 @@ export function createDI(mockWindow?: object) {
     }
     return $win;
   })();
-  container.register(Registration.instance(IPlatform, platform));
-  container.register(Registration.instance(IWindow, win));
+  container.register(
+    Registration.instance(IPlatform, platform),
+    Registration.instance(IWindow, win)
+  );
 
   return {
+    container,
     logger: container.get(ILogger),
     storeWindow: container.get<IStoreWindow>(IWindow)
   };
@@ -55,10 +59,10 @@ export function createDI(mockWindow?: object) {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createTestStore() {
   const initialState = { foo: "bar" };
-  const { logger, storeWindow } = createDI();
+  const { container, logger, storeWindow } = createDI();
   const store: Store<testState> = new Store(initialState, logger, storeWindow);
 
-  return { initialState, store };
+  return { container, initialState, store };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
@@ -78,13 +82,15 @@ export function createUndoableTestStore() {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createStoreWithState<T>(state: T, withUndo = false) {
   const options = withUndo ? { history: { undoable: true } } : {};
-  const { logger, storeWindow } = createDI();
+  const { container, logger, storeWindow } = createDI();
+  STORE.container = container;
   return new Store<T>(state, logger, storeWindow, options);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createStoreWithStateAndOptions<T>(state: T, options: Partial<StoreOptions>) {
-  const { logger, storeWindow } = createDI();
+  const { container, logger, storeWindow } = createDI();
+  STORE.container = container;
   return new Store<T>(state, logger, storeWindow, options);
 }
 

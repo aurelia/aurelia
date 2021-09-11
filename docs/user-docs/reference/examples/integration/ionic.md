@@ -2,7 +2,8 @@
 
 If the example doesn't seem obvious, the following prerequisite reads are recommended:
 
-* [extending templating syntax](https://github.com/aurelia/aurelia/tree/869a9ec4f2fedc41c333e0bd02c905de2ae709da/docs/user-docs/app-basics/extening-templating-syntax.md)
+{% page-ref page="../../../developer-guides/extending-templating-syntax.md" %}
+* [extending templating syntax](../../../developer-guides/extending-templating-syntax.md)
 
 The following is a code example of how to teach Aurelia to work seamlessly with [Ionic Framework](https://ionicframework.com/):
 

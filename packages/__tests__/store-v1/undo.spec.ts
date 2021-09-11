@@ -13,7 +13,8 @@ import {
   testState
 } from "./helpers.js";
 
-describe("an undoable store", function () {
+describe("store-v1/undo.spec.ts", function () {
+  this.timeout(100);
   it("should throw if state is not matching type of StateHistory", function () {
     const simpleState: testState = {
       foo: "Bar"

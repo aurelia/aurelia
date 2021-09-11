@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.20"></a>
+# 2.0.0-alpha.20 (2021-09-04)
+
+**Note:** Version bump only for package @aurelia/store-v1
+
+<a name="2.0.0-alpha.19"></a>
+# 2.0.0-alpha.19 (2021-08-29)
+
+### Bug Fixes:
+
+* **store-v1:** revert back to strings for setup/teardown ([02ebd33](https://github.com/aurelia/aurelia/commit/02ebd33))
+* **store-v1:** rename _state to $state, short timeout ([2177b79](https://github.com/aurelia/aurelia/commit/2177b79))
+* **store-v1:** unbinding instead of bound for teardown defaults ([c5c128f](https://github.com/aurelia/aurelia/commit/c5c128f))
+
+<a name="2.0.0-alpha.18"></a>
+# 2.0.0-alpha.18 (2021-08-22)
+
+**Note:** Version bump only for package @aurelia/store-v1
+
 <a name="2.0.0-alpha.17"></a>
 # 2.0.0-alpha.17 (2021-08-16)
 

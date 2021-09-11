@@ -15,10 +15,12 @@ description: The basics of integrating web component libraries with Aurelia.
 ## Integrating with [Microsoft FAST web components](https://www.fast.design/)
 
 [The guide for the integration here](ms-fast.md)
+{% page-ref page="ms-fast.md" %}
 
 ## Integrating with [Ionic web components](https://ionicframework.com/docs/components)
 
 [The guide for the integration here](ionic.md)
+{% page-ref page="ionic.md" %}
 
 {% hint style="info" %}
 **For our community**

@@ -425,8 +425,6 @@ export class CustomExpression {
   }
 }
 
-/** @internal - only exists to workaround circular reference caused by emitted metadata */
-export interface IBindingBehaviorExpression extends BindingBehaviorExpression {}
 export class BindingBehaviorExpression {
   public get $kind(): ExpressionKind.BindingBehavior { return ExpressionKind.BindingBehavior; }
   public get hasBind(): true { return true; }

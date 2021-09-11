@@ -8,9 +8,10 @@ import {
   IteratorBindingInstruction,
   RefBindingInstruction,
   ListenerBindingInstruction,
+  SpreadBindingInstruction,
 } from '../renderer.js';
 import { DefinitionType } from './resources-shared.js';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../shared.js';
 
 import type {
   Constructable,
@@ -66,12 +67,12 @@ export type BindingCommandInstance<T extends {} = {}> = {
 
 export type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
 export type BindingCommandKind = IResourceKind<BindingCommandType, BindingCommandDefinition> & {
-  isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never);
+  // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never);
   define<T extends Constructable>(name: string, Type: T): BindingCommandType<T>;
   define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
-  getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T>;
-  annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void;
+  // getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T>;
+  // annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void;
   getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K];
 };
 
@@ -136,9 +137,9 @@ const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
 export const BindingCommand = Object.freeze<BindingCommandKind>({
   name: cmdBaseName,
   keyFrom: getCommandKeyFrom,
-  isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
-    return typeof value === 'function' && hasOwnMetadata(cmdBaseName, value);
-  },
+  // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
+  //   return typeof value === 'function' && hasOwnMetadata(cmdBaseName, value);
+  // },
   define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
     const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
     defineMetadata(cmdBaseName, definition, definition.Type);
@@ -147,20 +148,20 @@ export const BindingCommand = Object.freeze<BindingCommandKind>({
 
     return definition.Type as BindingCommandType<T>;
   },
-  getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T> {
-    const def = getOwnMetadata(cmdBaseName, Type);
-    if (def === void 0) {
-      if (__DEV__)
-        throw new Error(`No definition found for type ${Type.name}`);
-      else
-        throw new Error(`AUR0758:${Type.name}`);
-    }
+  // getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T> {
+  //   const def = getOwnMetadata(cmdBaseName, Type);
+  //   if (def === void 0) {
+  //     if (__DEV__)
+  //       throw new Error(`No definition found for type ${Type.name}`);
+  //     else
+  //       throw new Error(`AUR0758:${Type.name}`);
+  //   }
 
-    return def;
-  },
-  annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void {
-    defineMetadata(getAnnotationKeyFor(prop), value, Type);
-  },
+  //   return def;
+  // },
+  // annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void {
+  //   defineMetadata(getAnnotationKeyFor(prop), value, Type);
+  // },
   getAnnotation: getCommandAnnotation,
 });
 
@@ -525,7 +526,12 @@ export class RefBindingCommand implements BindingCommandInstance {
   }
 }
 
-// @bindingCommand('...$attrs')
-// export class SpreadCaptureBindingCommand implements BindingCommandInstance {
+@bindingCommand('...$attrs')
+export class SpreadBindingCommand implements BindingCommandInstance {
+  public readonly type: CommandType = CommandType.IgnoreAttr;
+  public get name(): string { return '...$attrs'; }
 
-// }
+  public build(info: ICommandBuildInfo): IInstruction {
+    return new SpreadBindingInstruction();
+  }
+}

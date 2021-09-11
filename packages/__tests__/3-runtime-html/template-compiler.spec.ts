@@ -46,6 +46,8 @@ import {
   ITemplateCompilerHooks,
   IAttributeParser,
   HydrateAttributeInstruction,
+  AttrSyntax,
+  If,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -720,6 +722,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         instructions: [[childInstr]],
         needsCompile: false,
         enhance: false,
+        capture: false,
         processContent: null,
       },
       props: createTplCtrlAttributeInstruction(attr, value),
@@ -734,6 +737,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
+      capture: false,
       processContent: null,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
@@ -758,6 +762,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         instructions,
         needsCompile: false,
         enhance: false,
+        capture: false,
         processContent: null,
       },
       props: createTplCtrlAttributeInstruction(attr, value),
@@ -773,6 +778,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
+      capture: false,
       processContent: null,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
@@ -798,6 +804,7 @@ function createCustomElement(
     auSlot: null,
     containerless: false,
     projections: null,
+    captures: [],
   };
   const def = typeof tagNameOrDef === 'string'
     ? ctx.container.find(CustomElement, tagNameOrDef)
@@ -842,6 +849,7 @@ function createCustomElement(
     needsCompile: false,
     enhance: false,
     watches: [],
+    capture: false,
     processContent: null,
   };
   return [input, output];
@@ -877,7 +885,7 @@ function createCustomAttribute(
   // new behavior: if it's custom attribute, remove
   const outputMarkup = ctx.createElementFromMarkup(`<div>${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
   outputMarkup.classList.add('au');
-  const output = {
+  const output: PartialCustomElementDefinition & { key: string } = {
     ...defaultCustomElementDefinitionProperties,
     name: 'unnamed',
     key: 'au:resource:custom-element:unnamed',
@@ -885,6 +893,7 @@ function createCustomAttribute(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     enhance: false,
+    capture: false,
     watches: [],
     processContent: null,
   };
@@ -998,13 +1007,14 @@ describe(`TemplateCompiler - combinations`, function () {
             instructions: [],
             surrogates: [],
           } as unknown as PartialCustomElementDefinition;
-          const expected = {
+          const expected: PartialCustomElementDefinition = {
             ...defaultCustomElementDefinitionProperties,
             template: ctx.createElementFromMarkup(`<template><${el} plain data-attr="value" class="abc au" ${debugMode ? `${n1}="${v1}" ` : ''}></${el}></template>`),
             instructions: [[i1]],
             surrogates: [],
             needsCompile: false,
             enhance: false,
+            capture: false,
             processContent: null,
           };
 
@@ -1023,13 +1033,14 @@ describe(`TemplateCompiler - combinations`, function () {
             instructions: [],
             surrogates: [],
           } as unknown as PartialCustomElementDefinition;
-          const expected = {
+          const expected: PartialCustomElementDefinition = {
             ...defaultCustomElementDefinitionProperties,
             template: ctx.createElementFromMarkup(`<template><${el} plain data-attr="value" ${debugMode ? `${n1}="${v1}" ` : ''}class="au"></${el}></template>`),
             instructions: [[i1]],
             surrogates: [],
             needsCompile: false,
             enhance: false,
+            capture: false,
             processContent: null,
           };
 
@@ -1073,6 +1084,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           enhance: false,
+          capture: false,
           processContent: null,
         };
 
@@ -1151,6 +1163,7 @@ describe(`TemplateCompiler - combinations`, function () {
             surrogates: [],
             needsCompile: false,
             enhance: false,
+            capture: false,
             watches: [],
             processContent: null,
           };
@@ -1448,12 +1461,13 @@ describe(`TemplateCompiler - combinations`, function () {
         );
         sut.resolveResources = resolveRes;
 
-        const output = {
+        const output: PartialCustomElementDefinition = {
           ...defaultCustomElementDefinitionProperties,
           template: ctx.createElementFromMarkup(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           needsCompile: false,
           enhance: false,
+          capture: false,
           watches: [],
           processContent: null,
         };
@@ -1632,6 +1646,93 @@ describe(`TemplateCompiler - combinations`, function () {
           throw err;
         }
       });
+    });
+  });
+
+  describe('captures & ...$attrs', function () {
+    const MyElement = CustomElement.define({
+      name: 'my-element',
+      capture: true,
+      bindables: ['prop1']
+    });
+    const MyAttr = CustomAttribute.define({
+      name: 'my-attr',
+      bindables: ['value']
+    }, class MyAttr {});
+
+    it('captures normal attributes', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element value.bind="value">',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        (definition.instructions[0][0] as any).captures,
+        [new AttrSyntax('value.bind', 'value', 'value', 'bind')]
+      );
+    });
+
+    it('does not capture bindable', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element prop1.bind="value">',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual((definition.instructions[0][0] as any).captures, []);
+    });
+
+    it('captures bindable-like on ignore-attr command', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element prop1.trigger="value()">',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        (definition.instructions[0][0] as any).captures,
+        [new AttrSyntax('prop1.trigger', 'value()', 'prop1', 'trigger')]
+      );
+    });
+
+    it('captures custom attribute', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement, MyAttr);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element my-attr.bind="myAttrValue">',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        (definition.instructions[0][0] as any).captures,
+        [new AttrSyntax('my-attr.bind', 'myAttrValue', 'my-attr', 'bind')]
+      );
+    });
+
+    it('captures ...$attrs command', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement, MyAttr);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element ...$attrs>',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        (definition.instructions[0][0] as any).captures,
+        [new AttrSyntax('...$attrs', '', '', '...$attrs')]
+      );
+    });
+
+    it('does not capture template controller', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement, If);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element if.bind>',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        ((definition.instructions[0][0] as HydrateTemplateController).def.instructions[0][0] as any).captures,
+        []
+      );
     });
   });
 });

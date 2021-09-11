@@ -21,16 +21,11 @@ export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot');
 export interface IWorkTracker extends WorkTracker {}
 export const IWorkTracker = DI.createInterface<IWorkTracker>('IWorkTracker', x => x.singleton(WorkTracker));
 export class WorkTracker {
-  /** @internal */
-  protected static inject = [ILogger];
-  /** @internal */
-  private _stack: number = 0;
-  /** @internal */
-  private _promise: Promise<void> | null = null;
-  /** @internal */
-  private _resolve: (() => void) | null = null;
-  /** @internal */
-  private readonly _logger: ILogger;
+  /** @internal */ protected static inject = [ILogger];
+  /** @internal */ private _stack: number = 0;
+  /** @internal */ private _promise: Promise<void> | null = null;
+  /** @internal */ private _resolve: (() => void) | null = null;
+  /** @internal */ private readonly _logger: ILogger;
 
   public constructor(logger: ILogger) {
     this._logger = logger.scopeTo('WorkTracker');

@@ -32,13 +32,14 @@ export function createElement<C extends Constructable = Constructable>(
  * RenderPlan. Todo: describe goal of this class
  */
 export class RenderPlan {
-  /** @internal */
-  private _lazyDef?: CustomElementDefinition = void 0;
+  /** @internal */ private _lazyDef?: CustomElementDefinition = void 0;
 
   public constructor(
-    private readonly node: Node,
-    private readonly instructions: IInstruction[][],
-    private readonly dependencies: Key[]
+    // 2 following props accessed in the test, can't mangle
+    // todo: refactor tests
+    /** @internal */ private readonly node: Node,
+    /** @internal */ private readonly instructions: IInstruction[][],
+    /** @internal */ private readonly _dependencies: Key[]
   ) {}
 
   public get definition(): CustomElementDefinition {
@@ -48,7 +49,7 @@ export class RenderPlan {
         template: this.node,
         needsCompile: typeof this.node === 'string',
         instructions: this.instructions,
-        dependencies: this.dependencies,
+        dependencies: this._dependencies,
       });
     }
     return this._lazyDef;
@@ -61,7 +62,7 @@ export class RenderPlan {
   public getViewFactory(parentContainer: IContainer): IViewFactory {
     return parentContainer.root.get(IRendering).getViewFactory(
       this.definition,
-      parentContainer.createChild().register(...this.dependencies)
+      parentContainer.createChild().register(...this._dependencies)
     );
   }
 
@@ -69,7 +70,7 @@ export class RenderPlan {
   public mergeInto(parent: Node & ParentNode, instructions: IInstruction[][], dependencies: Key[]): void {
     parent.appendChild(this.node);
     instructions.push(...this.instructions);
-    dependencies.push(...this.dependencies);
+    dependencies.push(...this._dependencies);
   }
 }
 
@@ -125,7 +126,7 @@ function createElementForType(
     dependencies.push(Type);
   }
 
-  instructions.push(new HydrateElementInstruction(definition, void 0, childInstructions, null, false));
+  instructions.push(new HydrateElementInstruction(definition, void 0, childInstructions, null, false, void 0));
 
   if (props) {
     Object.keys(props)

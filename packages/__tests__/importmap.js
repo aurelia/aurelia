@@ -20,5 +20,8 @@ document.write(`<script type="importmap">${JSON.stringify({
   ].reduce((map, pkg) => {
     map[`@aurelia/${pkg}`] = `/base/packages/${pkg}/dist/esm/index.js`;
     return map;
-  }, {})
+  }, {
+    'rxjs': '/base/node_modules/rxjs/_esm5/index.js',
+    'rxjs/operators': '/base/node_modules/rxjs/_esm5/operators/index.js',
+  })
 })}</script>`);

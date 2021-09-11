@@ -14,6 +14,7 @@ export const terserNameCache = (() => {
         $_isDirty: 'D',
         $_isRunning: 'ir',
         $_key: 'k',
+        $_location: 'l',
         $_obj: 'o',
         $_observerLocator: 'oL',
         $_observing: 'iO',

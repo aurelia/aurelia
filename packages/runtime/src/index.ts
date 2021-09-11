@@ -20,7 +20,6 @@ export {
   ExpressionKind,
   CallFunctionExpression,
   CustomExpression,
-  IBindingBehaviorExpression,
   BindingBehaviorExpression,
   ValueConverterExpression,
   AssignExpression,

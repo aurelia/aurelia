@@ -57,19 +57,20 @@ export class RouteContext {
    */
   public readonly childRoutes: (RouteDefinition | Promise<RouteDefinition>)[] = [];
 
-  private _resolved: Promise<void> | null = null;
   /** @internal */
+  private _resolved: Promise<void> | null = null;
   public get resolved(): Promise<void> | null {
     return this._resolved;
   }
 
-  private _allResolved: Promise<void> | null = null;
   /** @internal */
+  private _allResolved: Promise<void> | null = null;
   public get allResolved(): Promise<void> | null {
     return this._allResolved;
   }
 
   private prevNode: RouteNode | null = null;
+  /** @internal */
   private _node: RouteNode | null = null;
   public get node(): RouteNode {
     const node = this._node;
@@ -86,6 +87,7 @@ export class RouteContext {
     }
   }
 
+  /** @internal */
   private _vpa: ViewportAgent | null = null;
   /**
    * The viewport hosting the component associated with this RouteContext.

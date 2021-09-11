@@ -23,7 +23,7 @@ export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer', x => x.si
  */
 export class SanitizeValueConverter {
   public constructor(
-    @ISanitizer private readonly sanitizer: ISanitizer,
+    /** @internal */ @ISanitizer private readonly _sanitizer: ISanitizer,
   ) {}
 
   /**
@@ -36,7 +36,7 @@ export class SanitizeValueConverter {
       return null;
     }
 
-    return this.sanitizer.sanitize(untrustedMarkup);
+    return this._sanitizer.sanitize(untrustedMarkup);
   }
 }
 

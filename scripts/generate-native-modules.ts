@@ -17,7 +17,12 @@ import * as fs from 'fs';
 const log = createLogger('generate-native-modules');
 
 (async function (): Promise<void> {
-  const packages = project.packages.filter(pkg => !pkg.name.kebab.includes('_') && pkg.folder.includes('packages') && !pkg.folder.includes('packages-cjs'));
+  const packages = project.packages.filter(pkg =>
+    !pkg.name.kebab.includes('_')
+    && pkg.folder.includes('packages')
+    && !pkg.folder.includes('__e2e__')
+    && !pkg.folder.includes('packages-cjs')
+  );
 
   for (const pkg of packages) {
     const distPath = path.join(pkg.path, 'dist');

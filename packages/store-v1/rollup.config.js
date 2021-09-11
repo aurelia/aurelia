@@ -25,7 +25,7 @@ const terserPluginCfg = terser({
   mangle: {
     properties: {
       regex: /^_/,
-      reserved: ['__esModule']
+      reserved: ['__esModule', '_stateSubscriptions', '_state', '__REDUX_DEVTOOLS_EXTENSION__']
     }
   },
   nameCache: terserNameCache,
@@ -37,7 +37,7 @@ const terserPluginCfg = terser({
 
 export default {
   input: 'src/index.ts',
-  external: Object.keys(pkg.dependencies).concat('rxjs/operators/index.js'),
+  external: Object.keys(pkg.dependencies).concat('rxjs/operators'),
   output: [
     {
       file: `dist/esm/index.dev.js`,

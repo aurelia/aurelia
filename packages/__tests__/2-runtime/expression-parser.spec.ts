@@ -1285,6 +1285,7 @@ describe('ExpressionParser', function () {
       [`{b=42,a}`,                       new DAE(oknd, [dase('b', null, new PLE(42)), dase('a')], void 0, void 0)],
       [`{a,b=42,c}`,                     new DAE(oknd, [dase('a'), dase('b', null, new PLE(42)), dase('c')], void 0, void 0)],
       [`{a,b=42,c=24}`,                  new DAE(oknd, [dase('a'), dase('b', null, new PLE(42)), dase('c', null, new PLE(24))], void 0, void 0)],
+      [`{a,b:c=42}`,                     new DAE(oknd, [dase('a'), dase('b', 'c', new PLE(42))], void 0, void 0)],
       [`{a,b=p}`,                        new DAE(oknd, [dase('a'), dase('b', null, new ASE('p',0))], void 0, void 0)],
       [`{a,b=$parent.p}`,                new DAE(oknd, [dase('a'), dase('b', null, new ASE('p',1))], void 0, void 0)],
       [`{a,b=$parent.$parent.p}`,        new DAE(oknd, [dase('a'), dase('b', null, new ASE('p',2))], void 0, void 0)],

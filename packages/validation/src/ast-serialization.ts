@@ -244,7 +244,7 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"$TYPE":"${ASTExpressionTypes.Interpolation}","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
   public visitDestructuringAssignmentExpression(expr: AST.DestructuringAssignmentExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.DestructuringAssignment}","$kind":${serializePrimitive(expr.$kind)},"list":${this.serializeExpressions(expr.list)},"source":${expr.source === void 0 ? serializePrimitive(expr.source) : expr.source.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.DestructuringAssignment}","$kind":${serializePrimitive(expr.$kind)},"list":${this.serializeExpressions(expr.list)},"source":${expr.source === void 0 ? serializePrimitive(expr.source) : expr.source.accept(this)},"initializer":${expr.initializer === void 0 ? serializePrimitive(expr.initializer) : expr.initializer.accept(this)}}`;
   }
   public visitDestructuringAssignmentSingleExpression(expr: AST.DestructuringAssignmentSingleExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.DestructuringSingleAssignment}","source":${expr.source.accept(this)},"target":${expr.target.accept(this)},"initializer":${expr.initializer === void 0 ? serializePrimitive(expr.initializer) : expr.initializer.accept(this)}}`;

@@ -1477,11 +1477,7 @@ export class DestructuringAssignmentExpression {
     public readonly list: readonly (DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[],
     public readonly source: AccessMemberExpression | AccessKeyedExpression | undefined,
     public readonly initializer: IsBindingBehavior | undefined,
-  ) {
-    if(initializer !== void 0 && source === void 0) {
-      throw new Error('The destructuring root cannot have a default value'); // TODO(Sayan): add error code.
-    }
-  }
+  ) { }
 
   public evaluate(_f: LF, _s: Scope, _l: IServiceLocator, _c: IConnectable | null): undefined {
     return void 0;
@@ -1500,7 +1496,13 @@ export class DestructuringAssignmentExpression {
           break;
         case ExpressionKind.ArrayDestructuringAssignment:
         case ExpressionKind.ObjectDestructuringAssignment: {
-          if (typeof value !== 'object' || value === null) { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
+          if (typeof value !== 'object' || value === null) {
+            if (__DEV__) {
+              throw new Error('Cannot use non-object value for destructuring assignment.');
+            } else {
+              throw new Error('AUR0112');
+            }
+          }
           let source = item.source!.evaluate(f, Scope.create(value), l, null);
           if(source === void 0) {
             source = item.initializer?.evaluate(f, s, l, null);
@@ -1535,7 +1537,13 @@ export class DestructuringAssignmentSingleExpression {
 
   public assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void {
     if(value == null) { return; }
-    if (typeof value !== 'object') { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
+    if (typeof value !== 'object' || value === null) {
+      if (__DEV__) {
+        throw new Error('Cannot use non-object value for destructuring assignment.');
+      } else {
+        throw new Error('AUR0112');
+      }
+    }
     let source = this.source.evaluate(f, Scope.create(value!), l, null);
     if(source === void 0) {
       source = this.initializer?.evaluate(f, s, l, null);
@@ -1565,14 +1573,24 @@ export class DestructuringAssignmentRestExpression {
 
   public assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void {
     if(value == null) { return; }
-    if (typeof value !== 'object') { throw new Error('Cannot use non-object value for destructuring assignment.'); } // TODO(Sayan): add error code.
+    if (typeof value !== 'object' || value === null) {
+      if (__DEV__) {
+        throw new Error('Cannot use non-object value for destructuring assignment.');
+      } else {
+        throw new Error('AUR0112');
+      }
+    }
 
     const indexOrProperties = this.indexOrProperties;
 
     let restValue: Record<string, unknown> | unknown[];
     if (isArrayIndex(indexOrProperties)) {
       if (!Array.isArray(value)) {
-        throw new Error('Cannot use non-array value for array-destructuring assignment.'); // TODO(Sayan): add error code.
+        if (__DEV__) {
+          throw new Error('Cannot use non-array value for array-destructuring assignment.');
+        } else {
+          throw new Error('AUR0112');
+        }
       }
       restValue = value.slice(indexOrProperties);
     } else {

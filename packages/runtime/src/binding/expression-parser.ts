@@ -42,9 +42,9 @@ import {
   IsValueConverter,
   UnaryOperator,
   ExpressionKind,
-  DestructuringAssignmentRestExpression,
-  DestructuringAssignmentSingleExpression,
-  DestructuringAssignmentExpression,
+  DestructuringAssignmentRestExpression as DARE,
+  DestructuringAssignmentSingleExpression as DASE,
+  DestructuringAssignmentExpression as DAE,
 } from './ast.js';
 import { createLookup } from '../utilities-objects.js';
 
@@ -351,25 +351,6 @@ export class ParserState {
   ) {
     this.length = ip.length;
     this._currentChar = ip.charCodeAt(0);
-  }
-
-  /**
-   * Returns the next token, without changing the state.
-   */
-  public lookahead(): Token {
-    const startIdx = this._startIndex;
-    const idx = this.index;
-    const token = this._currentToken;
-    const tokenValue = this._tokenValue;
-    const char = this._currentChar;
-    nextToken(this);
-    const $nextToken = this._currentToken;
-    this._startIndex = startIdx;
-    this.index = idx;
-    this._currentToken = token;
-    this._tokenValue = tokenValue;
-    this._currentChar = char;
-    return $nextToken;
   }
 }
 
@@ -836,38 +817,28 @@ TPrec extends Precedence.Unary ? IsUnary :
   return result as any;
 }
 
-// eslint-disable-next-line max-lines-per-function
+/**
+ * parseDestructuringAssignment
+ * https://tc39.es/ecma262/#sec-destructuring-assignment
+ */
 function parseDestructuringAssignment(state: ParserState, _access: Access, _expressionType: ExpressionType): any {
   const startingToken = state._currentToken;
-  switch (startingToken) {
-    case Token.OpenBracket:
-    case Token.OpenBrace:
-      break;
-    default:
-      if (__DEV__) {
-        throw new Error(`Unexpected start token ${state._currentToken} for destructuring assignment in ${state.ip}`);
-      } else {
-        throw new Error(`AUR0170:${state.ip}`);
-      }
+  if(startingToken !== Token.OpenBracket && startingToken !== Token.OpenBrace){
+    unexpectedCharacter();
   }
 
   let hasRest!: boolean;
   let hasAlias!: boolean;
-  let hasInitializer!: boolean;
   let source!: string;
   let target!: string;
-  let initializer!: string;
-  let root: DestructuringAssignmentExpression;
+  let initializer!: IsBindingBehavior | undefined;
+  let root: DAE;
   reset();
-  type StackItem = [Token.OpenBrace, string[], DestructuringAssignmentExpression] | [Token.OpenBracket, number, DestructuringAssignmentExpression];
-
+  type StackItem = [string[]|number, DAE];
   const stack: StackItem[] = [
-    startingToken === Token.OpenBrace
-      ? [startingToken, [], root = new DestructuringAssignmentExpression(ExpressionKind.ObjectDestructuringAssignment, [], void 0, void 0)]
-      : [startingToken, 0, root = new DestructuringAssignmentExpression(ExpressionKind.ArrayDestructuringAssignment, [], void 0, void 0)]
+    startingToken === Token.OpenBrace ? [[], root = new DAE(ExpressionKind.ObjectDestructuringAssignment, [], void 0, void 0)] : [0, root = new DAE(ExpressionKind.ArrayDestructuringAssignment, [], void 0, void 0)]
   ];
   let stackLength = 1;
-  let currentToken: Token;
   let nextTokenRead: boolean = false;
   while (stackLength !== 0) {
     if (!nextTokenRead) {
@@ -875,7 +846,7 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
     } else {
       nextTokenRead = false;
     }
-    switch (currentToken = state._currentToken) {
+    switch (state._currentToken) {
       case Token.OpenBrace:
         createParent(ExpressionKind.ObjectDestructuringAssignment);
         break;
@@ -887,11 +858,10 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
       case Token.CloseBrace:
       case Token.CloseBracket: {
         const top = stack.pop()!;
-        if(state.lookahead() === Token.Equals) {
+        if(lookahead(state) === Token.Equals) {
           nextToken(state);
-          setInitializer();
-          (top[2] as Writable<DestructuringAssignmentExpression>).initializer = createInitializerExpr();
-          hasInitializer = false;
+          (top[1] as Writable<DAE>).initializer = createInitializer();
+          initializer = void 0;
         }
         addPart(top);
         stackLength--;
@@ -900,13 +870,13 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
       }
 
       case Token.Comma:
-        if (state.lookahead() === Token.Comma && stack[stackLength - 1][0] === Token.OpenBrace) { unexpectedCharacter(); }
+        if (lookahead(state) === Token.Comma && stack[stackLength - 1][1].$kind === ExpressionKind.ObjectDestructuringAssignment) { unexpectedCharacter(); }
         addPart();
         break;
 
       case Token.Equals: {
         if (hasRest) { unexpectedCharacter(); }
-        setInitializer();
+        createInitializer();
         break;
       }
 
@@ -917,7 +887,7 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
         break;
 
       case Token.Colon:
-        if (stack[stackLength - 1][0] === Token.OpenBracket) { unexpectedCharacter(); }
+        if (stack[stackLength - 1][1].$kind === ExpressionKind.ArrayDestructuringAssignment) { unexpectedCharacter(); }
         hasAlias = true;
         break;
 
@@ -940,23 +910,24 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
   function reset() {
     hasRest = false;
     hasAlias = false;
-    hasInitializer = false;
     source = '';
     target = '';
-    initializer = '';
+    initializer = void 0;
   }
 
   function unexpectedCharacter(): never {
-    throw new Error(`Unexpected '${state._tokenRaw}' at position ${state.index - 1} for destructuring assignment in ${state.ip}`); // TODO(Sayan): add error code
+    if (__DEV__) {
+      throw new Error(`Unexpected '${state._tokenRaw}' at position ${state.index - 1} for destructuring assignment in ${state.ip}`);
+    } else {
+      throw new Error(`AUR0170:${state.ip}`);
+    }
   }
 
-  function setInitializer() {
-    hasInitializer = true;
+  function createInitializer(): IsBindingBehavior {
+    let $initializer = '';
     let $continue = true;
     let opened = 0;
     let add = true;
-    let current = 0;
-    const max = 100;
     while ($continue) {
       nextToken(state);
       switch (state._currentToken) {
@@ -985,7 +956,7 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
             opened--;
           }
           if (opened !== 0) { break; }
-          const next = state.lookahead();
+          const next = lookahead(state);
           if (next === Token.CloseBracket || next === Token.OfKeyword) {
             $continue = false;
             add = next === Token.CloseBracket;
@@ -993,73 +964,56 @@ function parseDestructuringAssignment(state: ParserState, _access: Access, _expr
           }
           break;
         }
+        case Token.OfKeyword:
+          unexpectedCharacter();
       }
       if (add) {
-        initializer += state._tokenRaw;
-      }
-      if (current++ >= max) {
-        throw new Error(`The initializer ${initializer} in ${state.ip} is too long.`); // TODO(Sayan): add error code
+        $initializer += state._tokenRaw;
       }
     }
+    return initializer = parse(new ParserState($initializer), Access.Reset, Precedence.Variadic, ExpressionType.None);
   }
 
   function createParent($kind: ExpressionKind.ObjectDestructuringAssignment | ExpressionKind.ArrayDestructuringAssignment) {
     const top = stack[stackLength - 1];
-    let $source: AccessMemberExpression | AccessKeyedExpression;
-    switch (top[0]) {
-      case Token.OpenBrace:
-        $source = new AccessMemberExpression($this, source);
-        break;
-      case Token.OpenBracket:
-        $source = new AccessKeyedExpression($this, new PrimitiveLiteralExpression(top[1]++));
-        break;
-    }
-    const part = new DestructuringAssignmentExpression($kind, [], $source, void 0); // TODO(Sayan): corret the initializer part
-    (top[2].list as Writable<(DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[]>).push(part);
-    stackLength = stack.push(
-      $kind === ExpressionKind.ObjectDestructuringAssignment ? [currentToken as Token.OpenBrace, [], part] : [currentToken as Token.OpenBracket, 0, part]
-    );
+    const expr = top[1];
+    const part = new DAE($kind, [], expr.$kind === ExpressionKind.ObjectDestructuringAssignment
+      ? new AccessMemberExpression($this, source)
+      : new AccessKeyedExpression($this, new PrimitiveLiteralExpression((top[0] as number)++)), void 0);
+    (expr.list as Writable<(DAE | DASE | DARE)[]>).push(part);
+    stackLength = stack.push([$kind === ExpressionKind.ObjectDestructuringAssignment ? [] : 0, part]);
     reset();
-  }
-
-  function createInitializerExpr(): IsBindingBehavior | undefined {
-    return hasInitializer
-      ? (parse(new ParserState(initializer), Access.Reset, Precedence.Variadic, ExpressionType.None) as IsBindingBehavior)
-      : (void 0);
   }
 
   function addPart(top: StackItem = stack[stackLength - 1]) {
     const targetExpr = () => new AccessMemberExpression($this, hasAlias ? target : source);
-    let part: DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression | null = null;
-    switch (top[0]) {
-      case Token.OpenBrace:
-        if (hasRest) {
-          if (target === '' || state._currentToken !== Token.CloseBrace) { unexpectedCharacter(); }
-          part = new DestructuringAssignmentRestExpression(new AccessMemberExpression($this, target), top[1]);
-        } else if (source !== '') {
-          top[1].push(source);
-          part = new DestructuringAssignmentSingleExpression(targetExpr(), new AccessMemberExpression($this, source), createInitializerExpr());
-        }
-        break;
-      case Token.OpenBracket:
-        if (hasRest) {
-          if (target === '' || state._currentToken !== Token.CloseBracket) { unexpectedCharacter(); }
-          part = new DestructuringAssignmentRestExpression(new AccessMemberExpression($this, target), top[1]);
-        } else {
-          if (source === '') {
-            top[1]++;
-          } else {
-            part = new DestructuringAssignmentSingleExpression(targetExpr(), new AccessKeyedExpression($this, new PrimitiveLiteralExpression(top[1]++)), createInitializerExpr());
-          }
-        }
-        break;
+    let part: DASE | DARE | null = null;
+    const expr = top[1];
+    if (expr.$kind === ExpressionKind.ObjectDestructuringAssignment) {
+      if (hasRest) {
+        if (target === '' || state._currentToken !== Token.CloseBrace) { unexpectedCharacter(); }
+        part = new DARE(new AccessMemberExpression($this, target), top[0]);
+      } else if (source !== '') {
+        (top[0] as string[]).push(source);
+        part = new DASE(targetExpr(), new AccessMemberExpression($this, source), initializer);
+      }
+    } else {
+      if (hasRest) {
+        if (target === '' || state._currentToken !== Token.CloseBracket) { unexpectedCharacter(); }
+        part = new DARE(new AccessMemberExpression($this, target), top[0]);
+      } else if (source === '') {
+        (top[0] as number)++;
+      } else {
+        part = new DASE(targetExpr(), new AccessKeyedExpression($this, new PrimitiveLiteralExpression((top[0] as number)++)), initializer);
+      }
     }
     if (part !== null) {
-      (top[2].list as Writable<(DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[]>).push(part);
+      (expr.list as Writable<(DAE | DASE | DARE)[]>).push(part);
     }
     reset();
   }
 }
+
 /**
  * parseArrayLiteralExpression
  * https://tc39.github.io/ecma262/#prod-ArrayLiteralExpression
@@ -1277,6 +1231,25 @@ function parseTemplate(state: ParserState, access: Access, expressionType: Expre
     nextToken(state);
     return new TemplateExpression(cooked, expressions);
   }
+}
+
+/**
+ * Returns the next token, without changing the state.
+ */
+ function lookahead(state: ParserState): Token {
+  const startIdx = state._startIndex;
+  const idx = state.index;
+  const token = state._currentToken;
+  const tokenValue = state._tokenValue;
+  const char = state._currentChar;
+  nextToken(state);
+  const $nextToken = state._currentToken;
+  state._startIndex = startIdx;
+  state.index = idx;
+  state._currentToken = token;
+  state._tokenValue = tokenValue;
+  state._currentChar = char;
+  return $nextToken;
 }
 
 function nextToken(state: ParserState): void {

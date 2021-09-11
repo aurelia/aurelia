@@ -158,6 +158,7 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0109 | This happens when an unary expression is evaluated with an unknown operator |
 | AUR0110 | This happens when a tagged template \(function call\) is but the function specified isn't a function |
 | AUR0111 | This happens when a function call AST is evaluated but no function is found |
+| AUR0112 | This happens when a non-object or non-array value is assigned for destructured declaration for a `repeat.for` statement  |
 
 ### Parser errors \(from 151-200\)
 
@@ -180,6 +181,7 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0166 | An expression has an opening template string quote \`\`\`, but has no matching end |
 | AUR0167 | The parser encounters an unexpected token |
 | AUR0168 | The parser encounters an unexpected character |
+| AUR0169 | The parser encounters an unexpected character while parsing destructuring assignment expression |
 
 ### Others \(from 200-300\)
 

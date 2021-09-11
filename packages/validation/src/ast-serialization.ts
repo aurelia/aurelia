@@ -136,7 +136,7 @@ export class Deserializer implements IExpressionHydrator {
         return new AST.Interpolation(this.hydrate(expr.cooked), this.hydrate(expr.expressions));
       }
       case ASTExpressionTypes.DestructuringAssignment: {
-        return new AST.DestructuringAssignmentExpression(this.hydrate(raw.$kind), this.hydrate(raw.list), this.hydrate(raw.source));
+        return new AST.DestructuringAssignmentExpression(this.hydrate(raw.$kind), this.hydrate(raw.list), this.hydrate(raw.source), this.hydrate(raw.initializer));
       }
       case ASTExpressionTypes.DestructuringSingleAssignment: {
         return new AST.DestructuringAssignmentSingleExpression(this.hydrate(raw.target), this.hydrate(raw.source), this.hydrate(raw.initializer));

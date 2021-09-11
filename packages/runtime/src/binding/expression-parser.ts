@@ -517,13 +517,11 @@ TPrec extends Precedence.Unary ? IsUnary :
         access = Access.Reset;
         break;
       case Token.OpenBracket:
-        // TODO: is there a way to look ahead in a more "parser"y way?
-        result = state.ip.search(/\s+of\s+/) > state.index ? parseDestructuringAssignment(state, access, expressionType) : parseArrayLiteralExpression(state, access, expressionType);
+        result = state.ip.search(/\s+of\s+/) > state.index ? parseDestructuringAssignment(state) : parseArrayLiteralExpression(state, access, expressionType);
         access = Access.Reset;
         break;
       case Token.OpenBrace:
-        // TODO: is there a way to look ahead in a more "parser"y way?
-        result = state.ip.search(/\s+of\s+/) > state.index ? parseDestructuringAssignment(state, access, expressionType) : parseObjectLiteralExpression(state, expressionType);
+        result = state.ip.search(/\s+of\s+/) > state.index ? parseDestructuringAssignment(state) : parseObjectLiteralExpression(state, expressionType);
         access = Access.Reset;
         break;
       case Token.TemplateTail:
@@ -821,7 +819,7 @@ TPrec extends Precedence.Unary ? IsUnary :
  * parseDestructuringAssignment
  * https://tc39.es/ecma262/#sec-destructuring-assignment
  */
-function parseDestructuringAssignment(state: ParserState, _access: Access, _expressionType: ExpressionType): any {
+function parseDestructuringAssignment(state: ParserState): DAE {
   const startingToken = state._currentToken;
   if(startingToken !== Token.OpenBracket && startingToken !== Token.OpenBrace){
     unexpectedCharacter();

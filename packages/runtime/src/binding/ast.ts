@@ -1535,7 +1535,7 @@ export class DestructuringAssignmentSingleExpression {
 
   public assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void {
     if(value == null) { return; }
-    if (typeof value !== 'object' || value === null) {
+    if (typeof value !== 'object') {
       if (__DEV__) {
         throw new Error('Cannot use non-object value for destructuring assignment.');
       } else {
@@ -1571,7 +1571,7 @@ export class DestructuringAssignmentRestExpression {
 
   public assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void {
     if(value == null) { return; }
-    if (typeof value !== 'object' || value === null) {
+    if (typeof value !== 'object') {
       if (__DEV__) {
         throw new Error('Cannot use non-object value for destructuring assignment.');
       } else {

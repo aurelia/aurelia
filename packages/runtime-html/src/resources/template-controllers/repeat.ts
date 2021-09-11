@@ -251,15 +251,12 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const forOf = this.forOf;
     const newLen = forOf.count(flags, items);
     const views = this.views = Array(newLen);
-    const hasDestructuredLocal = this._hasDestructuredLocal;
-    const dec = hasDestructuredLocal ? forOf.declaration as DestructuringAssignmentExpression : null;
-    const locator = this._forOfBinding.locator;
 
     forOf.iterate(flags, items, (arr, i, item) => {
       view = views[i] = factory.create().setLocation(location);
       view.nodes!.unlink();
-      if(hasDestructuredLocal) {
-        dec!.assign(flags, viewScope = Scope.fromParent(parentScope, BindingContext.create()), locator, item);
+      if(this._hasDestructuredLocal) {
+        (forOf.declaration as DestructuringAssignmentExpression)!.assign(flags, viewScope = Scope.fromParent(parentScope, BindingContext.create()), this._forOfBinding.locator, item);
       } else {
         viewScope = Scope.fromParent(parentScope, BindingContext.create(local, item));
       }
@@ -389,7 +386,11 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view.nodes!.link(next?.nodes ?? location);
 
       if (indexMap[i] === -2) {
-        viewScope = Scope.fromParent(parentScope, BindingContext.create(local, normalizedItems![i]));
+        if(this._hasDestructuredLocal) {
+          (this.forOf.declaration as DestructuringAssignmentExpression)!.assign(flags, viewScope = Scope.fromParent(parentScope, BindingContext.create()), this._forOfBinding.locator, normalizedItems![i]);
+        } else {
+          viewScope = Scope.fromParent(parentScope, BindingContext.create(local, normalizedItems![i]));
+        }
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.setLocation(location);
 

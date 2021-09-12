@@ -5,7 +5,7 @@ import { FragmentNodeSequence, INode, INodeSequence } from '../dom.js';
 import { IPlatform } from '../platform.js';
 import { ICompliationInstruction, IInstruction, IRenderer, ITemplateCompiler } from '../renderer.js';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
-import { createLookup } from '../utilities-html.js';
+import { createLookup, isString } from '../utilities.js';
 import { IViewFactory, ViewFactory } from './view.js';
 import type { IHydratableController } from './controller.js';
 
@@ -91,7 +91,7 @@ export class Rendering {
         }
       } else {
         tpl = doc.createElement('template');
-        if (typeof template === 'string') {
+        if (isString(template)) {
           tpl.innerHTML = template;
         }
         doc.adoptNode(fragment = tpl.content);

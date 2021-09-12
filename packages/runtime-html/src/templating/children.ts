@@ -2,6 +2,7 @@ import { firstDefined, getPrototypeChain, emptyArray } from '@aurelia/kernel';
 import { LifecycleFlags, subscriberCollection } from '@aurelia/runtime';
 import { CustomElement } from '../resources/custom-element.js';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../shared.js';
+import { isString } from '../utilities.js';
 
 import type { IIndexable, Constructable } from '@aurelia/kernel';
 import type { ISubscriberCollection, IAccessor, ISubscribable, IObserver } from '@aurelia/runtime';
@@ -59,7 +60,7 @@ export function children(configOrTarget?: PartialChildrenDefinition | {}, prop?:
     config = {};
     decorator(configOrTarget!, prop!);
     return;
-  } else if (typeof configOrTarget === 'string') {
+  } else if (isString(configOrTarget)) {
     // ClassDecorator
     // - @children('bar')
     // Direct call:

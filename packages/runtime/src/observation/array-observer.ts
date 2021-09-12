@@ -19,7 +19,7 @@ import type {
   IndexMap,
   ISubscriber,
 } from '../observation.js';
-import { def, defineHiddenProp } from '../utilities-objects.js';
+import { def, defineHiddenProp, isFunction } from '../utilities-objects.js';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 
@@ -319,7 +319,7 @@ const observe = {
       }
       i++;
     }
-    if (compareFn === void 0 || typeof compareFn !== 'function'/* spec says throw a TypeError, should we do that too? */) {
+    if (compareFn === void 0 || !isFunction(compareFn)/* spec says throw a TypeError, should we do that too? */) {
       compareFn = sortCompare;
     }
     quickSort(this, o.indexMap, 0, i, compareFn);

@@ -1,7 +1,7 @@
 import { IContainer } from './di.js';
 import { Constructable } from './interfaces.js';
 import { emptyArray } from './platform.js';
-import { defineMetadata, hasOwnMetadata, getOwnMetadata } from './shared.js';
+import { defineMetadata, hasOwnMetadata, getOwnMetadata } from './utilities.js';
 
 export type ResourceType<
   TUserType extends Constructable = Constructable,

@@ -7,7 +7,7 @@ import { subscriberCollection } from './subscriber-collection.js';
 import { enterConnectable, exitConnectable } from './connectable-switcher.js';
 import { connectable } from '../binding/connectable.js';
 import { wrap, unwrap } from './proxy-observation.js';
-import { def } from '../utilities-objects.js';
+import { def, isFunction } from '../utilities-objects.js';
 import { withFlushQueue } from './flush-queue.js';
 
 import type {
@@ -114,7 +114,7 @@ export class ComputedObserver implements
 
   // deepscan-disable-next-line
   public setValue(v: unknown, _flags: LifecycleFlags): void {
-    if (typeof this.set === 'function') {
+    if (isFunction(this.set)) {
       if (v !== this._value) {
         // setting running true as a form of batching
         this._isRunning = true;

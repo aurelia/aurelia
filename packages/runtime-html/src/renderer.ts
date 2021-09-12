@@ -28,6 +28,8 @@ import { IPlatform } from './platform.js';
 import { IViewFactory } from './templating/view.js';
 import { IRendering } from './templating/rendering.js';
 import { defineMetadata, getOwnMetadata } from './shared.js';
+import { AttrSyntax } from './resources/attribute-pattern.js';
+import { isString } from './utilities.js';
 
 import type { IServiceLocator, IContainer, Class, IRegistry, Constructable, IResolver } from '@aurelia/kernel';
 import type {
@@ -42,7 +44,6 @@ import type {
 } from '@aurelia/runtime';
 import type { IHydratableController } from './templating/controller.js';
 import type { PartialCustomElementDefinition } from './resources/custom-element.js';
-import { AttrSyntax } from './resources/attribute-pattern.js';
 
 export const enum InstructionType {
   hydrateElement = 'ra',
@@ -76,7 +77,7 @@ export const IInstruction = DI.createInterface<IInstruction>('Instruction');
 
 export function isInstruction(value: unknown): value is IInstruction {
   const type = (value as { type?: string }).type;
-  return typeof type === 'string' && type.length === 2;
+  return isString(type) && type.length === 2;
 }
 
 export class InterpolationInstruction {
@@ -402,7 +403,7 @@ export function renderer<TType extends string>(instructionType: TType): Instruct
 }
 
 function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, expressionType: ExpressionType): Exclude<TFrom, string> {
-  if (typeof srcOrExpr === 'string') {
+  if (isString(srcOrExpr)) {
     return parser.parse(srcOrExpr, expressionType) as unknown as Exclude<TFrom, string>;
   }
   return srcOrExpr as Exclude<TFrom, string>;
@@ -1330,7 +1331,7 @@ class ViewFactoryProvider implements IResolver {
       else
         throw new Error('AUR7055');
     }
-    if (typeof f.name !== 'string' || f.name.length === 0) {
+    if (!isString(f.name) || f.name.length === 0) {
       if (__DEV__)
         throw new Error('Cannot resolve ViewFactory without a (valid) name.');
       else

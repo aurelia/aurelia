@@ -3,6 +3,7 @@ import { Scope } from '@aurelia/runtime';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element.js';
 import { Controller } from './controller.js';
 import { defineMetadata, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
+import { isFunction, isString } from '../utilities.js';
 
 import type { Constructable, ConstructableClass, IContainer } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
@@ -46,7 +47,7 @@ export class ViewFactory implements IViewFactory {
     if (size) {
       if (size === '*') {
         size = ViewFactory.maxCacheSize;
-      } else if (typeof size === 'string') {
+      } else if (isString(size)) {
         size = parseInt(size, 10);
       }
 
@@ -107,10 +108,10 @@ const viewsBaseName = getResourceKeyFor('views');
 export const Views = Object.freeze({
   name: viewsBaseName,
   has(value: object): boolean {
-    return typeof value === 'function' && (hasOwnMetadata(viewsBaseName, value) || '$views' in value);
+    return isFunction(value) && (hasOwnMetadata(viewsBaseName, value) || '$views' in value);
   },
   get(value: object | Constructable): readonly CustomElementDefinition[] {
-    if (typeof value === 'function' && '$views' in value) {
+    if (isFunction(value) && '$views' in value) {
       // TODO: a `get` operation with side effects is not a good thing. Should refactor this to a proper resource kind.
       const $views = (value as { $views: PartialCustomElementDefinition[] }).$views;
       const definitions = $views.filter(notYetSeen).map(toCustomElementDefinition);
@@ -166,7 +167,7 @@ export class ViewLocator {
   ): ComposableObjectComponentType<T> | null {
     if (object) {
       const availableViews = Views.has(object.constructor) ? Views.get(object.constructor) : [];
-      const resolvedViewName = typeof viewNameOrSelector === 'function'
+      const resolvedViewName = isFunction(viewNameOrSelector)
         ? viewNameOrSelector(object, availableViews)
         : this._getViewName(availableViews, viewNameOrSelector);
 

@@ -4,7 +4,7 @@ import { Class, Constructable } from './interfaces.js';
 import { getAnnotationKeyFor } from './resource.js';
 import { Metadata } from '@aurelia/metadata';
 import { IPlatform } from './platform.js';
-import { defineMetadata } from './shared.js';
+import { defineMetadata, isFunction } from './utilities.js';
 
 export const enum LogLevel {
   /**
@@ -667,7 +667,7 @@ export class DefaultLogger {
   }
 
   private emit(sinks: ISink[], level: LogLevel, msgOrGetMsg: unknown, optionalParams: unknown[]): void {
-    const message = typeof msgOrGetMsg === 'function' ? msgOrGetMsg() : msgOrGetMsg;
+    const message = isFunction(msgOrGetMsg) ? msgOrGetMsg() : msgOrGetMsg;
     const event = this.factory.createLogEvent(this, level, message, optionalParams);
     for (let i = 0, ii = sinks.length; i < ii; ++i) {
       sinks[i].handleEvent(event);
@@ -709,7 +709,7 @@ export const LoggerConfiguration = toLookup({
           Registration.instance(ILogConfig, new LogConfig(colorOptions, level)),
         );
         for (const $sink of sinks) {
-          if (typeof $sink === 'function') {
+          if (isFunction($sink)) {
             container.register(Registration.singleton(ISink, $sink));
           } else {
             container.register($sink);

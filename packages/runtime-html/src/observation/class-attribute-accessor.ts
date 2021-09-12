@@ -1,5 +1,6 @@
 import { emptyArray } from '@aurelia/kernel';
 import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
+import { isString } from '../utilities.js';
 
 import type { IAccessor } from '@aurelia/runtime';
 
@@ -94,7 +95,7 @@ export class ClassAttributeAccessor implements IAccessor {
 }
 
 export function getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
-  if (typeof object === 'string') {
+  if (isString(object)) {
     return splitClassString(object);
   }
   if (typeof object !== 'object') {

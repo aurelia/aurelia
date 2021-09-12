@@ -12,13 +12,14 @@ import {
   DialogCloseError,
 } from './dialog-interfaces.js';
 import { IEventTarget, INode } from '../../dom.js';
+import { IPlatform } from '../../platform.js';
+import { CustomElement, CustomElementDefinition } from '../../resources/custom-element.js';
+import { isFunction } from '../../utilities.js';
 
 import type {
   IDialogComponent,
   IDialogLoadedSettings,
 } from './dialog-interfaces.js';
-import { IPlatform } from '../../platform.js';
-import { CustomElement, CustomElementDefinition } from '../../resources/custom-element.js';
 
 /**
  * A controller object for a Dialog instance.
@@ -259,7 +260,7 @@ export class DialogController implements IDialogController {
   }
 
   private getDefinition(component?: object | Constructable) {
-    const Ctor = (typeof component === 'function'
+    const Ctor = (isFunction(component)
       ? component
       : component?.constructor) as Constructable;
     return CustomElement.isType(Ctor)

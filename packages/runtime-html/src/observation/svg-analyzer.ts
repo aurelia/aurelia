@@ -1,6 +1,6 @@
 import { DI, Registration } from '@aurelia/kernel';
 import { IPlatform } from '../platform.js';
-import { createLookup } from '../utilities-html.js';
+import { createLookup } from '../utilities.js';
 
 import type { IContainer, IResolver } from '@aurelia/kernel';
 import type { INode } from '../dom.js';

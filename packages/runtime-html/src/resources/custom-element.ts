@@ -15,6 +15,7 @@ import { Children } from '../templating/children.js';
 import { Watch } from '../watch.js';
 import { DefinitionType } from './resources-shared.js';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
+import { isFunction, isString } from '../utilities.js';
 
 import type {
   Constructable,
@@ -160,7 +161,7 @@ export function useShadowDOM(targetOrOptions?: Constructable | ShadowOptions): v
     };
   }
 
-  if (typeof targetOrOptions !== 'function') {
+  if (!isFunction(targetOrOptions)) {
     return function ($target: Constructable) {
       annotateElementMetadata($target, 'shadowOptions', targetOrOptions);
     };
@@ -251,7 +252,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
   ): CustomElementDefinition {
     if (Type === null) {
       const def = nameOrDef;
-      if (typeof def === 'string') {
+      if (isString(def)) {
         if (__DEV__)
           throw new Error(`Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
         else
@@ -259,7 +260,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       }
 
       const name = fromDefinitionOrDefault('name', def, generateElementName);
-      if (typeof (def as CustomElementDefinition).Type === 'function') {
+      if (isFunction((def as CustomElementDefinition).Type)) {
         // This needs to be a clone (it will usually be the compiler calling this signature)
 
         // TODO: we need to make sure it's documented that passing in the type via the definition (while passing in null
@@ -297,7 +298,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     // If a type is passed in, we ignore the Type property on the definition if it exists.
     // TODO: document this behavior
 
-    if (typeof nameOrDef === 'string') {
+    if (isString(nameOrDef)) {
       return new CustomElementDefinition(
         Type,
         nameOrDef,
@@ -438,7 +439,7 @@ export const CustomElement = Object.freeze<CustomElementKind>({
   name: ceBaseName,
   keyFrom: getElementKeyFrom,
   isType<C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never) {
-    return typeof value === 'function' && hasOwnMetadata(ceBaseName, value);
+    return isFunction(value) && hasOwnMetadata(ceBaseName, value);
   },
   for<C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: ForOpts = defaultForOpts): ICustomElementController<C> {
     if (opts.name === void 0 && opts.searchParents !== true) {
@@ -612,17 +613,16 @@ export function processContent<TClass>(hook?: ProcessContentHook): CustomElement
 }
 
 function ensureHook<TClass>(target: Constructable<TClass>, hook: string | ProcessContentHook): ProcessContentHook {
-  if (typeof hook === 'string') {
+  if (isString(hook)) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
     hook = (target as any)[hook] as ProcessContentHook;
   }
 
-  const hookType = typeof hook;
-  if (hookType !== 'function') {
+  if (!isFunction(hook)) {
     if (__DEV__)
-      throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
+      throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${typeof hook}.`);
     else
-      throw new Error(`AUR0766:${hookType}`);
+      throw new Error(`AUR0766:${typeof hook}`);
   }
   return hook;
 }

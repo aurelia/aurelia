@@ -1,5 +1,6 @@
 import { LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { emptyArray, kebabCase } from '@aurelia/kernel';
+import { isFunction, isString } from '../utilities.js';
 import type { IAccessor } from '@aurelia/runtime';
 
 const customPropertyPrefix: string = '--';
@@ -74,7 +75,7 @@ export class StyleAttributeAccessor implements IAccessor {
       if (value == null) {
         continue;
       }
-      if (typeof value === 'string') {
+      if (isString(value)) {
         // Custom properties should not be tampered with
         if (property.startsWith(customPropertyPrefix)) {
           styles.push([property, value]);
@@ -104,7 +105,7 @@ export class StyleAttributeAccessor implements IAccessor {
   }
 
   private _getStyleTuples(currentValue: unknown): [string, string][] {
-    if (typeof currentValue === 'string') {
+    if (isString(currentValue)) {
       return this._getStyleTuplesFromString(currentValue);
     }
 
@@ -164,7 +165,7 @@ export class StyleAttributeAccessor implements IAccessor {
   public setProperty(style: string, value: string): void {
     let priority = '';
 
-    if (value != null && typeof value.indexOf === 'function' && value.includes('!important')) {
+    if (value != null && isFunction(value.indexOf) && value.includes('!important')) {
       priority = 'important';
       value = value.replace('!important', '');
     }

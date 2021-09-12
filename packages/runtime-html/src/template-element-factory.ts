@@ -1,5 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { IPlatform } from './platform.js';
+import { isString } from './utilities.js';
 
 /**
  * Utility that creates a `HTMLTemplateElement` out of string markup or an existing DOM node.
@@ -26,7 +27,7 @@ export class TemplateElementFactory {
   public createTemplate(node: Node): HTMLTemplateElement;
   public createTemplate(input: string | Node): HTMLTemplateElement;
   public createTemplate(input: string | Node): HTMLTemplateElement {
-    if (typeof input === 'string') {
+    if (isString(input)) {
       let result = markupCache[input];
       if (result === void 0) {
         const template = this._template;

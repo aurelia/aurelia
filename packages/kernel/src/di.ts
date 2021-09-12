@@ -6,7 +6,7 @@ import { isArrayIndex, isNativeFunction } from './functions.js';
 import { Class, Constructable, IDisposable } from './interfaces.js';
 import { emptyArray } from './platform.js';
 import { appendAnnotation, getAnnotationKeyFor, IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource.js';
-import { defineMetadata, getOwnMetadata } from './shared.js';
+import { defineMetadata, getOwnMetadata, isFunction, isString } from './utilities.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -247,8 +247,8 @@ export const DI = {
    * - @param friendlyName used to improve error messaging
    */
   createInterface<K extends Key>(configureOrName?: string | ((builder: ResolverBuilder<K>) => IResolver<K>), configuror?: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
-    const configure = typeof configureOrName === 'function' ? configureOrName : configuror;
-    const friendlyName = typeof configureOrName === 'string' ? configureOrName : undefined;
+    const configure = isFunction(configureOrName) ? configureOrName : configuror;
+    const friendlyName = isString(configureOrName) ? configureOrName : undefined;
 
     const Interface = function (target: Injectable<K>, property: string, index: number): void {
       if (target == null || new.target !== undefined) {
@@ -391,7 +391,7 @@ function getDependencies(Type: Constructable | Injectable): Key[] {
           // Only go up the prototype if neither static inject nor any of the paramtypes is defined, as
           // there is no sound way to merge a type's deps with its prototype's deps
           const Proto = Object.getPrototypeOf(Type);
-          if (typeof Proto === 'function' && Proto !== Function.prototype) {
+          if (isFunction(Proto) && Proto !== Function.prototype) {
             dependencies = cloneArrayWithPossibleProps(getDependencies(Proto));
           } else {
             dependencies = [];
@@ -529,7 +529,7 @@ export function singleton<T extends Constructable>(options?: SingletonOptions): 
  */
 export function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 export function singleton<T extends Constructable>(targetOrOptions?: (T & Partial<RegisterSelf<T>>) | SingletonOptions): T & RegisterSelf<T> | typeof singletonDecorator {
-  if (typeof targetOrOptions === 'function') {
+  if (isFunction(targetOrOptions)) {
     return DI.singleton(targetOrOptions);
   }
   return function <T extends Constructable>($target: T) {
@@ -850,7 +850,7 @@ const containerResolver: IResolver = {
 };
 
 function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistry {
-  return typeof obj.register === 'function';
+  return isFunction(obj.register);
 }
 
 function isSelfRegistry<T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> {
@@ -866,7 +866,7 @@ function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {
 }
 
 function isResourceKey(key: Key): key is string {
-  return typeof key === 'string' && key.indexOf(':') > 0;
+  return isString(key) && key.indexOf(':') > 0;
 }
 
 const InstrinsicTypeNames = new Set<string>([
@@ -1292,7 +1292,7 @@ export class Container implements IContainer {
       return null;
     }
 
-    if (typeof resolver.getFactory === 'function') {
+    if (isFunction(resolver.getFactory)) {
       const factory = resolver.getFactory(this);
       if (factory === null || factory === void 0) {
         return null;
@@ -1331,8 +1331,9 @@ export class Container implements IContainer {
     this._resolvers.clear();
   }
 
+  /** @internal */
   private _jitRegister(keyAsValue: any, handler: Container): IResolver {
-    if (typeof keyAsValue !== 'function') {
+    if (!isFunction(keyAsValue)) {
       if (__DEV__) {
         throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
       } else {

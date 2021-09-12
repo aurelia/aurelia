@@ -8,6 +8,7 @@ import { CustomElement, customElement, CustomElementDefinition } from '../custom
 import { bindable } from '../../bindable.js';
 import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, IHydrationContext, ISyntheticView } from '../../templating/controller.js';
 import { IRendering } from '../../templating/rendering.js';
+import { isString } from '../../utilities.js';
 
 export type Subject = string | IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;
@@ -178,7 +179,7 @@ export class AuRender implements ICustomElementViewModel {
       }
     }
 
-    if (typeof comp === 'string') {
+    if (isString(comp)) {
       const def = ctxContainer.find(CustomElement, comp);
       if (def == null) {
         if (__DEV__)

@@ -6,6 +6,7 @@ import { IEventTarget, INode } from './dom.js';
 import { IPlatform } from './platform.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller.js';
+import { isFunction } from './utilities.js';
 
 import type {
   Constructable,
@@ -85,7 +86,7 @@ export class Aurelia implements IDisposable {
     const p = this._initPlatform(host);
     const comp = config.component as K;
     let bc: ICustomElementViewModel & K;
-    if (typeof comp === 'function') {
+    if (isFunction(comp)) {
       ctn.registerResolver(
         p.HTMLElement,
         ctn.registerResolver(

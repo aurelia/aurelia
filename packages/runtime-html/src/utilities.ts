@@ -24,7 +24,7 @@ const IsDataAttribute: Record<string, boolean> = createLookup();
 
 /** @internal */ export const isPromise = <T>(v: unknown): v is Promise<T> => v instanceof Promise;
 
-// eslint-ignore-next-line
+// eslint-disable-next-line @typescript-eslint/ban-types
 /** @internal */ export const isFunction = <T, K extends Function>(v: unknown): v is K => typeof v === 'function';
 
 /** @internal */ export const isString = (v: unknown): v is string => typeof v === 'string';

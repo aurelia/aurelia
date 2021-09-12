@@ -223,7 +223,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
       return $document.body as unknown as T;
     }
 
-    if (isString( target)) {
+    if (isString(target)) {
       let queryContext: ParentNode = $document;
       if (isString(context)) {
         context = $document.querySelector(context) as ResolvedTarget;

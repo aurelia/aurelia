@@ -1,8 +1,8 @@
 import { LifecycleFlags as LF } from '../observation.js';
+import { IConnectableBinding } from './connectable.js';
 import type { IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
 import type { Collection, IBindingContext, IOverrideContext, IConnectable } from '../observation.js';
 import type { Scope } from '../observation/binding-context.js';
-import { IConnectableBinding } from './connectable.js';
 export declare const enum ExpressionKind {
     CallsFunction = 128,
     HasAncestor = 256,

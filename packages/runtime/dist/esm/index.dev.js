@@ -9,12 +9,11 @@ export { Platform, Task, TaskAbortError, TaskQueue, TaskQueuePriority, TaskStatu
  * @internal
  */
 const hasOwnProp = Object.prototype.hasOwnProperty;
-/** @internal */
-const def = Reflect.defineProperty;
-/** @internal */
-const isFunction = (v) => typeof v === 'function';
-/** @internal */
-function defineHiddenProp(obj, key, value) {
+/** @internal */ const def = Reflect.defineProperty;
+// eslint-disable-next-line @typescript-eslint/ban-types
+/** @internal */ const isFunction = (v) => typeof v === 'function';
+/** @internal */ const isString = (v) => typeof v === 'string';
+/** @internal */ function defineHiddenProp(obj, key, value) {
     def(obj, key, {
         enumerable: false,
         configurable: true,
@@ -23,26 +22,18 @@ function defineHiddenProp(obj, key, value) {
     });
     return value;
 }
-/** @internal */
-function ensureProto(proto, key, defaultValue, force = false) {
+/** @internal */ function ensureProto(proto, key, defaultValue, force = false) {
     if (force || !hasOwnProp.call(proto, key)) {
         defineHiddenProp(proto, key, defaultValue);
     }
 }
-/** @internal */
-const createLookup = () => Object.create(null);
-/** @internal */
-const getOwnMetadata = Metadata.getOwn;
-/** @internal */
-const hasOwnMetadata = Metadata.hasOwn;
-/** @internal */
-const defineMetadata = Metadata.define;
-/** @internal */
-const getAnnotationKeyFor = Protocol.annotation.keyFor;
-/** @internal */
-const getResourceKeyFor = Protocol.resource.keyFor;
-/** @internal */
-const appendResourceKey = Protocol.resource.appendTo;
+/** @internal */ const createLookup = () => Object.create(null);
+/** @internal */ const getOwnMetadata = Metadata.getOwn;
+/** @internal */ const hasOwnMetadata = Metadata.hasOwn;
+/** @internal */ const defineMetadata = Metadata.define;
+/** @internal */ const getAnnotationKeyFor = Protocol.annotation.keyFor;
+/** @internal */ const getResourceKeyFor = Protocol.resource.keyFor;
+/** @internal */ const appendResourceKey = Protocol.resource.appendTo;
 
 function alias(...aliases) {
     return function (target) {
@@ -254,7 +245,7 @@ class BindingBehaviorDefinition {
     static create(nameOrDef, Type) {
         let name;
         let def;
-        if (typeof nameOrDef === 'string') {
+        if (isString(nameOrDef)) {
             name = nameOrDef;
             def = { name };
         }
@@ -367,7 +358,7 @@ const BindingBehavior = Object.freeze({
         return `${bbBaseName}:${name}`;
     },
     isType(value) {
-        return typeof value === 'function' && hasOwnMetadata(bbBaseName, value);
+        return isFunction(value) && hasOwnMetadata(bbBaseName, value);
     },
     define(nameOrDef, Type) {
         const definition = BindingBehaviorDefinition.create(nameOrDef, Type);
@@ -404,7 +395,7 @@ class ValueConverterDefinition {
     static create(nameOrDef, Type) {
         let name;
         let def;
-        if (typeof nameOrDef === 'string') {
+        if (isString(nameOrDef)) {
             name = nameOrDef;
             def = { name };
         }
@@ -427,7 +418,7 @@ const ValueConverter = Object.freeze({
     name: vcBaseName,
     keyFrom: (name) => `${vcBaseName}:${name}`,
     isType(value) {
-        return typeof value === 'function' && hasOwnMetadata(vcBaseName, value);
+        return isFunction(value) && hasOwnMetadata(vcBaseName, value);
     },
     define(nameOrDef, Type) {
         const definition = ValueConverterDefinition.create(nameOrDef, Type);
@@ -552,7 +543,7 @@ class Unparser {
     }
     visitPrimitiveLiteral(expr) {
         this.text += '(';
-        if (typeof expr.value === 'string') {
+        if (isString(expr.value)) {
             const escaped = expr.value.replace(/'/g, '\\\'');
             this.text += `'${escaped}'`;
         }
@@ -762,7 +753,7 @@ class BindingBehaviorExpression {
         const key = this.behaviorKey;
         const $b = b;
         if ($b[key] !== void 0) {
-            if (typeof $b[key].unbind === 'function') {
+            if (isFunction($b[key].unbind)) {
                 $b[key].unbind(f, s, b);
             }
             $b[key] = void 0;
@@ -1106,7 +1097,7 @@ class CallFunctionExpression {
     get hasUnbind() { return false; }
     evaluate(f, s, l, c) {
         const func = this.func.evaluate(f, s, l, c);
-        if (typeof func === 'function') {
+        if (isFunction(func)) {
             return func(...this.args.map(a => a.evaluate(f, s, l, c)));
         }
         if (!(f & 8 /* mustEvaluate */) && (func == null)) {
@@ -1151,7 +1142,7 @@ class BinaryExpression {
                 return this.left.evaluate(f, s, l, c) !== this.right.evaluate(f, s, l, c);
             case 'instanceof': {
                 const right = this.right.evaluate(f, s, l, c);
-                if (typeof right === 'function') {
+                if (isFunction(right)) {
                     return this.left.evaluate(f, s, l, c) instanceof right;
                 }
                 return false;
@@ -1388,7 +1379,7 @@ class TaggedTemplateExpression {
     evaluate(f, s, l, c) {
         const results = this.expressions.map(e => e.evaluate(f, s, l, c));
         const func = this.func.evaluate(f, s, l, c);
-        if (typeof func !== 'function') {
+        if (!isFunction(func)) {
             throw new Error(`AUR0110`);
         }
         return func(this.cooked, ...results);
@@ -1580,7 +1571,7 @@ class Interpolation {
 }
 function getFunction(f, obj, name) {
     const func = obj == null ? null : obj[name];
-    if (typeof func === 'function') {
+    if (isFunction(func)) {
         return func;
     }
     if (!(f & 8 /* mustEvaluate */) && func == null) {
@@ -2387,7 +2378,7 @@ const observe$3 = {
             }
             i++;
         }
-        if (compareFn === void 0 || typeof compareFn !== 'function' /* spec says throw a TypeError, should we do that too? */) {
+        if (compareFn === void 0 || !isFunction(compareFn) /* spec says throw a TypeError, should we do that too? */) {
             compareFn = sortCompare;
         }
         quickSort(this, o.indexMap, 0, i, compareFn);
@@ -4685,7 +4676,7 @@ class ComputedObserver {
     }
     // deepscan-disable-next-line
     setValue(v, _flags) {
-        if (typeof this.set === 'function') {
+        if (isFunction(this.set)) {
             if (v !== this._value) {
                 // setting running true as a form of batching
                 this._isRunning = true;

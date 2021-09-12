@@ -7,11 +7,11 @@ import { INode } from './dom.js';
 import { IController } from './templating/controller.js';
 import { IPlatform } from './platform.js';
 import { IRendering } from './templating/rendering.js';
+import { AttrSyntax } from './resources/attribute-pattern.js';
 import type { IServiceLocator, IContainer, Class, IRegistry } from '@aurelia/kernel';
 import type { Interpolation, IsBindingBehavior, IInterceptableBinding, ForOfStatement, DelegationStrategy } from '@aurelia/runtime';
 import type { IHydratableController } from './templating/controller.js';
 import type { PartialCustomElementDefinition } from './resources/custom-element.js';
-import { AttrSyntax } from './resources/attribute-pattern.js';
 export declare const enum InstructionType {
     hydrateElement = "ra",
     hydrateAttribute = "rb",

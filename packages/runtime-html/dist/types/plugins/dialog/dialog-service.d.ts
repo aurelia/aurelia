@@ -1,7 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { IDialogService, IDialogController, IDialogGlobalSettings } from './dialog-interfaces.js';
-import type { DialogOpenPromise, IDialogSettings } from './dialog-interfaces.js';
 import { IPlatform } from '../../platform.js';
+import type { DialogOpenPromise, IDialogSettings } from './dialog-interfaces.js';
 /**
  * A default implementation for the dialog service allowing for the creation of dialogs.
  */

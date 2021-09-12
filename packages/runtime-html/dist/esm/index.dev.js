@@ -41,6 +41,29 @@ const { annotation, resource } = Protocol;
 /** @internal */ const appendAnnotationKey = annotation.appendTo;
 /** @internal */ const getAllAnnotations = annotation.getKeys;
 
+/** @internal */ const createLookup = () => Object.create(null);
+/** @internal */ const hasOwnProperty = Object.prototype.hasOwnProperty;
+const IsDataAttribute = createLookup();
+/** @internal */ const isDataAttribute = (obj, key, svgAnalyzer) => {
+    if (IsDataAttribute[key] === true) {
+        return true;
+    }
+    if (!isString(key)) {
+        return false;
+    }
+    const prefix = key.slice(0, 5);
+    // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
+    // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
+    return IsDataAttribute[key] =
+        prefix === 'aria-' ||
+            prefix === 'data-' ||
+            svgAnalyzer.isStandardSvgAttribute(obj, key);
+};
+/** @internal */ const isPromise = (v) => v instanceof Promise;
+// eslint-disable-next-line @typescript-eslint/ban-types
+/** @internal */ const isFunction = (v) => typeof v === 'function';
+/** @internal */ const isString = (v) => typeof v === 'string';
+
 function bindable(configOrTarget, prop) {
     let config;
     function decorator($target, $prop) {
@@ -62,7 +85,7 @@ function bindable(configOrTarget, prop) {
         decorator(configOrTarget, prop);
         return;
     }
-    else if (typeof configOrTarget === 'string') {
+    else if (isString(configOrTarget)) {
         // ClassDecorator
         // - @bindable('bar')
         // Direct call:
@@ -112,7 +135,7 @@ const Bindable = Object.freeze({
             add(configOrProp) {
                 let prop;
                 let config;
-                if (typeof configOrProp === 'string') {
+                if (isString(configOrProp)) {
                     prop = configOrProp;
                     config = { property: prop };
                 }
@@ -202,8 +225,8 @@ class BindableObserver {
         this.f = 0 /* none */;
         const cb = obj[cbName];
         const cbAll = obj.propertyChanged;
-        const hasCb = this._hasCb = typeof cb === 'function';
-        const hasCbAll = this._hasCbAll = typeof cbAll === 'function';
+        const hasCb = this._hasCb = isFunction(cb);
+        const hasCbAll = this._hasCbAll = isFunction(cbAll);
         const hasSetter = this._hasSetter = set !== noop;
         let val;
         this._obj = obj;
@@ -766,30 +789,6 @@ SpreadAttributePattern = __decorate([
     attributePattern({ pattern: '...$attrs', symbols: '' })
 ], SpreadAttributePattern);
 
-/** @internal */
-const createLookup = () => Object.create(null);
-/** @internal */
-const hasOwnProperty = Object.prototype.hasOwnProperty;
-const IsDataAttribute = createLookup();
-/** @internal */
-const isDataAttribute = (obj, key, svgAnalyzer) => {
-    if (IsDataAttribute[key] === true) {
-        return true;
-    }
-    if (typeof key !== 'string') {
-        return false;
-    }
-    const prefix = key.slice(0, 5);
-    // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-    // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-    return IsDataAttribute[key] =
-        prefix === 'aria-' ||
-            prefix === 'data-' ||
-            svgAnalyzer.isStandardSvgAttribute(obj, key);
-};
-/** @internal */
-const isPromise = (v) => v instanceof Promise;
-
 const IPlatform = IPlatform$1;
 
 const ISVGAnalyzer = DI.createInterface('ISVGAnalyzer', x => x.singleton(NoopSVGAnalyzer));
@@ -1291,7 +1290,7 @@ class AttributeObserver {
                 case 'style': {
                     let priority = '';
                     let newValue = this._value;
-                    if (typeof newValue === 'string' && newValue.includes('!important')) {
+                    if (isString(newValue) && newValue.includes('!important')) {
                         priority = 'important';
                         newValue = newValue.replace('!important', '');
                     }
@@ -2137,7 +2136,7 @@ const AppTask = Object.freeze({
 });
 function createAppTaskSlotHook(slotName) {
     function appTaskFactory(keyOrCallback, callback) {
-        if (typeof callback === 'function') {
+        if (isFunction(callback)) {
             return new $AppTask(slotName, keyOrCallback, callback);
         }
         return new $AppTask(slotName, null, keyOrCallback);
@@ -2166,7 +2165,7 @@ function children(configOrTarget, prop) {
         decorator(configOrTarget, prop);
         return;
     }
-    else if (typeof configOrTarget === 'string') {
+    else if (isString(configOrTarget)) {
         // ClassDecorator
         // - @children('bar')
         // Direct call:
@@ -2345,7 +2344,7 @@ function customAttribute(nameOrDef) {
 }
 function templateController(nameOrDef) {
     return function (target) {
-        return CustomAttribute.define(typeof nameOrDef === 'string'
+        return CustomAttribute.define(isString(nameOrDef)
             ? { isTemplateController: true, name: nameOrDef }
             : { isTemplateController: true, ...nameOrDef }, target);
     };
@@ -2367,7 +2366,7 @@ class CustomAttributeDefinition {
     static create(nameOrDef, Type) {
         let name;
         let def;
-        if (typeof nameOrDef === 'string') {
+        if (isString(nameOrDef)) {
             name = nameOrDef;
             def = { name };
         }
@@ -2391,7 +2390,7 @@ const CustomAttribute = Object.freeze({
     name: caBaseName,
     keyFrom: getAttributeKeyFrom,
     isType(value) {
-        return typeof value === 'function' && hasOwnMetadata(caBaseName, value);
+        return isFunction(value) && hasOwnMetadata(caBaseName, value);
     },
     for(node, name) {
         var _a;
@@ -2427,12 +2426,12 @@ function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
         const watchDef = new WatchDefinition(expressionOrPropertyAccessFn, isClassDecorator ? changeHandlerOrCallback : descriptor.value);
         // basic validation
         if (isClassDecorator) {
-            if (typeof changeHandlerOrCallback !== 'function'
+            if (!isFunction(changeHandlerOrCallback)
                 && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in Type.prototype))) {
                 throw new Error(`AUR0773:${String(changeHandlerOrCallback)}@${Type.name}}`);
             }
         }
-        else if (typeof (descriptor === null || descriptor === void 0 ? void 0 : descriptor.value) !== 'function') {
+        else if (!isFunction(descriptor === null || descriptor === void 0 ? void 0 : descriptor.value)) {
             throw new Error(`AUR0774:${String(key)}`);
         }
         Watch.add(Type, watchDef);
@@ -2488,7 +2487,7 @@ function useShadowDOM(targetOrOptions) {
             annotateElementMetadata($target, 'shadowOptions', { mode: 'open' });
         };
     }
-    if (typeof targetOrOptions !== 'function') {
+    if (!isFunction(targetOrOptions)) {
         return function ($target) {
             annotateElementMetadata($target, 'shadowOptions', targetOrOptions);
         };
@@ -2532,11 +2531,11 @@ class CustomElementDefinition {
     static create(nameOrDef, Type = null) {
         if (Type === null) {
             const def = nameOrDef;
-            if (typeof def === 'string') {
+            if (isString(def)) {
                 throw new Error(`AUR0761:${nameOrDef}`);
             }
             const name = fromDefinitionOrDefault('name', def, generateElementName);
-            if (typeof def.Type === 'function') {
+            if (isFunction(def.Type)) {
                 // This needs to be a clone (it will usually be the compiler calling this signature)
                 // TODO: we need to make sure it's documented that passing in the type via the definition (while passing in null
                 // as the "Type" parameter) effectively skips type analysis, so it should only be used this way for cloning purposes.
@@ -2549,7 +2548,7 @@ class CustomElementDefinition {
         }
         // If a type is passed in, we ignore the Type property on the definition if it exists.
         // TODO: document this behavior
-        if (typeof nameOrDef === 'string') {
+        if (isString(nameOrDef)) {
             return new CustomElementDefinition(Type, nameOrDef, mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), fromAnnotationOrTypeOrDefault('cache', Type, returnZero), fromAnnotationOrTypeOrDefault('capture', Type, returnFalse), fromAnnotationOrTypeOrDefault('template', Type, returnNull), mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions), mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies), fromAnnotationOrTypeOrDefault('injectable', Type, returnNull), fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue), mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers), fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse), fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse), fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull), fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse), fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse), mergeArrays(Watch.getAnnotation(Type), Type.watches), fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // This is the typical default behavior, e.g. from regular CustomElement.define invocations or from @customElement deco
@@ -2605,7 +2604,7 @@ const CustomElement = Object.freeze({
     name: ceBaseName,
     keyFrom: getElementKeyFrom,
     isType(value) {
-        return typeof value === 'function' && hasOwnMetadata(ceBaseName, value);
+        return isFunction(value) && hasOwnMetadata(ceBaseName, value);
     },
     for(node, opts = defaultForOpts) {
         if (opts.name === void 0 && opts.searchParents !== true) {
@@ -2739,13 +2738,12 @@ function processContent(hook) {
         };
 }
 function ensureHook(target, hook) {
-    if (typeof hook === 'string') {
+    if (isString(hook)) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
         hook = target[hook];
     }
-    const hookType = typeof hook;
-    if (hookType !== 'function') {
-        throw new Error(`AUR0766:${hookType}`);
+    if (!isFunction(hook)) {
+        throw new Error(`AUR0766:${typeof hook}`);
     }
     return hook;
 }
@@ -2826,7 +2824,7 @@ class ClassAttributeAccessor {
     }
 }
 function getClassesToAdd(object) {
-    if (typeof object === 'string') {
+    if (isString(object)) {
         return splitClassString(object);
     }
     if (typeof object !== 'object') {
@@ -3229,7 +3227,7 @@ class ViewFactory {
             if (size === '*') {
                 size = ViewFactory.maxCacheSize;
             }
-            else if (typeof size === 'string') {
+            else if (isString(size)) {
                 size = parseInt(size, 10);
             }
             if (this.cacheSize === -1 || !doNotOverrideIfAlreadySet) {
@@ -3278,10 +3276,10 @@ const viewsBaseName = getResourceKeyFor('views');
 const Views = Object.freeze({
     name: viewsBaseName,
     has(value) {
-        return typeof value === 'function' && (hasOwnMetadata(viewsBaseName, value) || '$views' in value);
+        return isFunction(value) && (hasOwnMetadata(viewsBaseName, value) || '$views' in value);
     },
     get(value) {
-        if (typeof value === 'function' && '$views' in value) {
+        if (isFunction(value) && '$views' in value) {
             // TODO: a `get` operation with side effects is not a good thing. Should refactor this to a proper resource kind.
             const $views = value.$views;
             const definitions = $views.filter(notYetSeen).map(toCustomElementDefinition);
@@ -3323,7 +3321,7 @@ class ViewLocator {
     getViewComponentForObject(object, viewNameOrSelector) {
         if (object) {
             const availableViews = Views.has(object.constructor) ? Views.get(object.constructor) : [];
-            const resolvedViewName = typeof viewNameOrSelector === 'function'
+            const resolvedViewName = isFunction(viewNameOrSelector)
                 ? viewNameOrSelector(object, availableViews)
                 : this._getViewName(availableViews, viewNameOrSelector);
             return this._getOrCreateBoundComponent(object, availableViews, resolvedViewName);
@@ -3517,7 +3515,7 @@ class Rendering {
             }
             else {
                 tpl = doc.createElement('template');
-                if (typeof template === 'string') {
+                if (isString(template)) {
                     tpl.innerHTML = template;
                 }
                 doc.adoptNode(fragment = tpl.content);
@@ -4501,20 +4499,20 @@ function createWatchers(controller, context, definition, instance) {
     let i = 0;
     for (; ii > i; ++i) {
         ({ expression, callback } = watches[i]);
-        callback = typeof callback === 'function'
+        callback = isFunction(callback)
             ? callback
             : Reflect.get(instance, callback);
-        if (typeof callback !== 'function') {
+        if (!isFunction(callback)) {
             throw new Error(`AUR0506:${String(callback)}`);
         }
-        if (typeof expression === 'function') {
+        if (isFunction(expression)) {
             controller.addBinding(new ComputedWatcher(instance, observerLocator, expression, callback, 
             // there should be a flag to purposely disable proxy
             // AOT: not true for IE11
             true));
         }
         else {
-            ast = typeof expression === 'string'
+            ast = isString(expression)
                 ? expressionParser.parse(expression, 8 /* IsProperty */)
                 : getAccessScopeAst(expression);
             controller.addBinding(new ExpressionWatcher(scope, context, observerLocator, ast, callback));
@@ -5110,7 +5108,7 @@ class ListenerTracker {
             if (listener === void 0) {
                 continue;
             }
-            if (typeof listener === 'function') {
+            if (isFunction(listener)) {
                 listener(event);
             }
             else {
@@ -5228,7 +5226,7 @@ var InstructionType;
 const IInstruction = DI.createInterface('Instruction');
 function isInstruction(value) {
     const type = value.type;
-    return typeof type === 'string' && type.length === 2;
+    return isString(type) && type.length === 2;
 }
 class InterpolationInstruction {
     constructor(from, to) {
@@ -5457,7 +5455,7 @@ function renderer(instructionType) {
     };
 }
 function ensureExpression(parser, srcOrExpr, expressionType) {
-    if (typeof srcOrExpr === 'string') {
+    if (isString(srcOrExpr)) {
         return parser.parse(srcOrExpr, expressionType);
     }
     return srcOrExpr;
@@ -6170,7 +6168,7 @@ class ViewFactoryProvider {
         if (f === null) {
             throw new Error('AUR7055');
         }
-        if (typeof f.name !== 'string' || f.name.length === 0) {
+        if (!isString(f.name) || f.name.length === 0) {
             throw new Error('AUR0756');
         }
         return f;
@@ -6227,7 +6225,7 @@ class BindingCommandDefinition {
     static create(nameOrDef, Type) {
         let name;
         let def;
-        if (typeof nameOrDef === 'string') {
+        if (isString(nameOrDef)) {
             name = nameOrDef;
             def = { name };
         }
@@ -6251,7 +6249,7 @@ const BindingCommand = Object.freeze({
     name: cmdBaseName,
     keyFrom: getCommandKeyFrom,
     // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
-    //   return typeof value === 'function' && hasOwnMetadata(cmdBaseName, value);
+    //   return isFunction(value) && hasOwnMetadata(cmdBaseName, value);
     // },
     define(nameOrDef, Type) {
         const definition = BindingCommandDefinition.create(nameOrDef, Type);
@@ -6601,7 +6599,7 @@ class TemplateElementFactory {
     }
     createTemplate(input) {
         var _a;
-        if (typeof input === 'string') {
+        if (isString(input)) {
             let result = markupCache[input];
             if (result === void 0) {
                 const template = this._template;
@@ -6693,7 +6691,7 @@ class TemplateCompiler {
         }
         compilationInstruction !== null && compilationInstruction !== void 0 ? compilationInstruction : (compilationInstruction = emptyCompilationInstructions);
         const context = new CompilationContext(partialDefinition, container, compilationInstruction, null, null, void 0);
-        const template = typeof definition.template === 'string' || !partialDefinition.enhance
+        const template = isString(definition.template) || !partialDefinition.enhance
             ? context._templateFactory.createTemplate(definition.template)
             : definition.template;
         const isTemplateElement = template.nodeName === 'TEMPLATE' && template.content != null;
@@ -9131,7 +9129,7 @@ class StyleAttributeAccessor {
             if (value == null) {
                 continue;
             }
-            if (typeof value === 'string') {
+            if (isString(value)) {
                 // Custom properties should not be tampered with
                 if (property.startsWith(customPropertyPrefix)) {
                     styles.push([property, value]);
@@ -9157,7 +9155,7 @@ class StyleAttributeAccessor {
         return emptyArray;
     }
     _getStyleTuples(currentValue) {
-        if (typeof currentValue === 'string') {
+        if (isString(currentValue)) {
             return this._getStyleTuplesFromString(currentValue);
         }
         if (currentValue instanceof Array) {
@@ -9206,7 +9204,7 @@ class StyleAttributeAccessor {
     }
     setProperty(style, value) {
         let priority = '';
-        if (value != null && typeof value.indexOf === 'function' && value.includes('!important')) {
+        if (value != null && isFunction(value.indexOf) && value.includes('!important')) {
             priority = 'important';
             value = value.replace('!important', '');
         }
@@ -9385,7 +9383,7 @@ class NodeObserverLocator {
         var _a, _b;
         const lookup = this._events;
         let existingMapping;
-        if (typeof nodeNameOrConfig === 'string') {
+        if (isString(nodeNameOrConfig)) {
             existingMapping = (_a = lookup[nodeNameOrConfig]) !== null && _a !== void 0 ? _a : (lookup[nodeNameOrConfig] = createLookup());
             if (existingMapping[key] == null) {
                 existingMapping[key] = new NodeObserverConfig(eventsConfig);
@@ -9462,7 +9460,7 @@ class NodeObserverLocator {
         var _a, _b;
         var _c, _d;
         let existingTagOverride;
-        if (typeof tagNameOrOverrides === 'string') {
+        if (isString(tagNameOrOverrides)) {
             existingTagOverride = (_a = (_c = this._overrides)[tagNameOrOverrides]) !== null && _a !== void 0 ? _a : (_c[tagNameOrOverrides] = createLookup());
             existingTagOverride[key] = true;
         }
@@ -9845,9 +9843,9 @@ class Portal {
             }
             return $document.body;
         }
-        if (typeof target === 'string') {
+        if (isString(target)) {
             let queryContext = $document;
-            if (typeof context === 'string') {
+            if (isString(context)) {
                 context = $document.querySelector(context);
             }
             if (context instanceof p.Node) {
@@ -11125,7 +11123,7 @@ RejectedAttributePattern = __decorate([
 ], RejectedAttributePattern);
 
 function createElement(p, tagOrType, props, children) {
-    if (typeof tagOrType === 'string') {
+    if (isString(tagOrType)) {
         return createElementForTag(p, tagOrType, props, children);
     }
     if (CustomElement.isType(tagOrType)) {
@@ -11153,7 +11151,7 @@ class RenderPlan {
             this._lazyDef = CustomElementDefinition.create({
                 name: CustomElement.generateName(),
                 template: this.node,
-                needsCompile: typeof this.node === 'string',
+                needsCompile: isString(this.node),
                 instructions: this.instructions,
                 dependencies: this._dependencies,
             });
@@ -11355,7 +11353,7 @@ class AuRender {
                 return this._rendering.getViewFactory(CustomElementDefinition.getOrCreate(comp), ctxContainer).create();
             }
         }
-        if (typeof comp === 'string') {
+        if (isString(comp)) {
             const def = ctxContainer.find(CustomElement, comp);
             if (def == null) {
                 throw new Error(`AUR0809:${comp}`);
@@ -11594,7 +11592,7 @@ class AuCompose {
     }
     /** @internal */
     getDef(component) {
-        const Ctor = (typeof component === 'function'
+        const Ctor = (isFunction(component)
             ? component
             : component === null || component === void 0 ? void 0 : component.constructor);
         return CustomElement.isType(Ctor)
@@ -12099,7 +12097,7 @@ class Aurelia {
         const p = this._initPlatform(host);
         const comp = config.component;
         let bc;
-        if (typeof comp === 'function') {
+        if (isFunction(comp)) {
             ctn.registerResolver(p.HTMLElement, ctn.registerResolver(p.Element, ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))));
             bc = ctn.invoke(comp);
         }
@@ -12399,7 +12397,7 @@ class DialogController {
         return container.invoke(Component);
     }
     getDefinition(component) {
-        const Ctor = (typeof component === 'function'
+        const Ctor = (isFunction(component)
             ? component
             : component === null || component === void 0 ? void 0 : component.constructor);
         return CustomElement.isType(Ctor)
@@ -12560,7 +12558,7 @@ class DialogSettings {
             cmp == null
                 ? void 0
                 : onResolve(cmp(), loadedCmp => { loaded.component = loadedCmp; }),
-            typeof template === 'function'
+            isFunction(template)
                 ? onResolve(template(), loadedTpl => { loaded.template = loadedTpl; })
                 : void 0
         ]);

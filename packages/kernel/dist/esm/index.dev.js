@@ -482,12 +482,12 @@ function resolveAll(...maybePromises) {
     return Promise.all(promises);
 }
 
-/** @internal */
-const getOwnMetadata = Metadata.getOwn;
-/** @internal */
-const hasOwnMetadata = Metadata.hasOwn;
-/** @internal */
-const defineMetadata = Metadata.define;
+/** @internal */ const getOwnMetadata = Metadata.getOwn;
+/** @internal */ const hasOwnMetadata = Metadata.hasOwn;
+/** @internal */ const defineMetadata = Metadata.define;
+// eslint-disable-next-line @typescript-eslint/ban-types
+/** @internal */ const isFunction = (v) => typeof v === 'function';
+/** @internal */ const isString = (v) => typeof v === 'string';
 
 const annoBaseName = 'au:annotation';
 /** @internal */
@@ -740,8 +740,8 @@ const DI = {
      * - @param friendlyName used to improve error messaging
      */
     createInterface(configureOrName, configuror) {
-        const configure = typeof configureOrName === 'function' ? configureOrName : configuror;
-        const friendlyName = typeof configureOrName === 'string' ? configureOrName : undefined;
+        const configure = isFunction(configureOrName) ? configureOrName : configuror;
+        const friendlyName = isString(configureOrName) ? configureOrName : undefined;
         const Interface = function (target, property, index) {
             if (target == null || new.target !== undefined) {
                 {
@@ -876,7 +876,7 @@ function getDependencies(Type) {
                     // Only go up the prototype if neither static inject nor any of the paramtypes is defined, as
                     // there is no sound way to merge a type's deps with its prototype's deps
                     const Proto = Object.getPrototypeOf(Type);
-                    if (typeof Proto === 'function' && Proto !== Function.prototype) {
+                    if (isFunction(Proto) && Proto !== Function.prototype) {
                         dependencies = cloneArrayWithPossibleProps(getDependencies(Proto));
                     }
                     else {
@@ -957,7 +957,7 @@ function transient(target) {
 }
 const defaultSingletonOptions = { scoped: false };
 function singleton(targetOrOptions) {
-    if (typeof targetOrOptions === 'function') {
+    if (isFunction(targetOrOptions)) {
         return DI.singleton(targetOrOptions);
     }
     return function ($target) {
@@ -1203,7 +1203,7 @@ const containerResolver = {
     }
 };
 function isRegistry(obj) {
-    return typeof obj.register === 'function';
+    return isFunction(obj.register);
 }
 function isSelfRegistry(obj) {
     return isRegistry(obj) && typeof obj.registerInRequestor === 'boolean';
@@ -1215,7 +1215,7 @@ function isClass(obj) {
     return obj.prototype !== void 0;
 }
 function isResourceKey(key) {
-    return typeof key === 'string' && key.indexOf(':') > 0;
+    return isString(key) && key.indexOf(':') > 0;
 }
 const InstrinsicTypeNames = new Set([
     'Array',
@@ -1566,7 +1566,7 @@ class Container {
         if (resolver === null) {
             return null;
         }
-        if (typeof resolver.getFactory === 'function') {
+        if (isFunction(resolver.getFactory)) {
             const factory = resolver.getFactory(this);
             if (factory === null || factory === void 0) {
                 return null;
@@ -1600,8 +1600,9 @@ class Container {
         }
         this._resolvers.clear();
     }
+    /** @internal */
     _jitRegister(keyAsValue, handler) {
-        if (typeof keyAsValue !== 'function') {
+        if (!isFunction(keyAsValue)) {
             {
                 throw new Error(`AUR0009:${keyAsValue}`);
             }
@@ -2247,7 +2248,7 @@ let DefaultLogger = class DefaultLogger {
         return scopedLogger;
     }
     emit(sinks, level, msgOrGetMsg, optionalParams) {
-        const message = typeof msgOrGetMsg === 'function' ? msgOrGetMsg() : msgOrGetMsg;
+        const message = isFunction(msgOrGetMsg) ? msgOrGetMsg() : msgOrGetMsg;
         const event = this.factory.createLogEvent(this, level, message, optionalParams);
         for (let i = 0, ii = sinks.length; i < ii; ++i) {
             sinks[i].handleEvent(event);
@@ -2305,7 +2306,7 @@ const LoggerConfiguration = toLookup({
             register(container) {
                 container.register(Registration.instance(ILogConfig, new LogConfig(colorOptions, level)));
                 for (const $sink of sinks) {
-                    if (typeof $sink === 'function') {
+                    if (isFunction($sink)) {
                         container.register(Registration.singleton(ISink, $sink));
                     }
                     else {
@@ -2379,12 +2380,12 @@ class ModuleTransformer {
                     if (value === null) {
                         continue;
                     }
-                    isRegistry = typeof value.register === 'function';
+                    isRegistry = isFunction(value.register);
                     isConstructable = false;
                     definitions = emptyArray;
                     break;
                 case 'function':
-                    isRegistry = typeof value.register === 'function';
+                    isRegistry = isFunction(value.register);
                     isConstructable = value.prototype !== void 0;
                     definitions = Protocol.resource.getAll(value);
                     break;
@@ -2458,7 +2459,7 @@ class EventAggregator {
         if (!channelOrInstance) {
             throw new Error(`Invalid channel name or instance: ${channelOrInstance}.`);
         }
-        if (typeof channelOrInstance === 'string') {
+        if (isString(channelOrInstance)) {
             let subscribers = this.eventLookup[channelOrInstance];
             if (subscribers !== void 0) {
                 subscribers = subscribers.slice();
@@ -2482,7 +2483,7 @@ class EventAggregator {
         }
         let handler;
         let subscribers;
-        if (typeof channelOrType === 'string') {
+        if (isString(channelOrType)) {
             if (this.eventLookup[channelOrType] === void 0) {
                 this.eventLookup[channelOrType] = [];
             }

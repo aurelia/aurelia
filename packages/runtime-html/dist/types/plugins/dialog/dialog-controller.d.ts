@@ -1,7 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { DialogDeactivationStatuses, IDialogController, DialogCloseResult } from './dialog-interfaces.js';
-import type { IDialogLoadedSettings } from './dialog-interfaces.js';
 import { IPlatform } from '../../platform.js';
+import type { IDialogLoadedSettings } from './dialog-interfaces.js';
 /**
  * A controller object for a Dialog instance.
  */

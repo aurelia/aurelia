@@ -15,7 +15,7 @@ import { Children } from '../templating/children.js';
 import { Watch } from '../watch.js';
 import { DefinitionType } from './resources-shared.js';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
-import { isFunction } from '../utilities.js';
+import { isFunction, isString } from '../utilities.js';
 
 import type {
   Constructable,
@@ -252,7 +252,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
   ): CustomElementDefinition {
     if (Type === null) {
       const def = nameOrDef;
-      if (typeof def === 'string') {
+      if (isString(def)) {
         if (__DEV__)
           throw new Error(`Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
         else
@@ -298,7 +298,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     // If a type is passed in, we ignore the Type property on the definition if it exists.
     // TODO: document this behavior
 
-    if (typeof nameOrDef === 'string') {
+    if (isString(nameOrDef)) {
       return new CustomElementDefinition(
         Type,
         nameOrDef,
@@ -613,7 +613,7 @@ export function processContent<TClass>(hook?: ProcessContentHook): CustomElement
 }
 
 function ensureHook<TClass>(target: Constructable<TClass>, hook: string | ProcessContentHook): ProcessContentHook {
-  if (typeof hook === 'string') {
+  if (isString(hook)) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
     hook = (target as any)[hook] as ProcessContentHook;
   }

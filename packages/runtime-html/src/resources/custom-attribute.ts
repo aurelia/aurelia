@@ -5,7 +5,7 @@ import { Watch } from '../watch.js';
 import { getRef } from '../dom.js';
 import { DefinitionType } from './resources-shared.js';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
-import { isFunction } from '../utilities.js';
+import { isFunction, isString } from '../utilities.js';
 
 import type {
   Constructable,
@@ -85,7 +85,7 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
 export function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
   return function (target) {
     return CustomAttribute.define(
-      typeof nameOrDef === 'string'
+      isString(nameOrDef)
         ? { isTemplateController: true, name: nameOrDef }
         : { isTemplateController: true, ...nameOrDef },
       target
@@ -115,7 +115,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
   ): CustomAttributeDefinition<T> {
     let name: string;
     let def: PartialCustomAttributeDefinition;
-    if (typeof nameOrDef === 'string') {
+    if (isString(nameOrDef)) {
       name = nameOrDef;
       def = { name };
     } else {

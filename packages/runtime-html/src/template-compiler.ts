@@ -24,7 +24,7 @@ import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import { BindingCommand, CommandType } from './resources/binding-command.js';
-import { createLookup } from './utilities.js';
+import { createLookup, isString } from './utilities.js';
 import { allResources } from './utilities-di.js';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from './shared.js';
 
@@ -64,7 +64,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     compilationInstruction ??= emptyCompilationInstructions;
 
     const context = new CompilationContext(partialDefinition, container, compilationInstruction, null, null, void 0);
-    const template = typeof definition.template === 'string' || !partialDefinition.enhance
+    const template = isString(definition.template) || !partialDefinition.enhance
       ? context._templateFactory.createTemplate(definition.template)
       : definition.template as HTMLElement;
     const isTemplateElement = template.nodeName === 'TEMPLATE' && (template as HTMLTemplateElement).content != null;

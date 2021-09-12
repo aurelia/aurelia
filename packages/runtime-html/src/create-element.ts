@@ -10,6 +10,7 @@ import { IPlatform } from './platform.js';
 import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element.js';
 import { IViewFactory } from './templating/view.js';
 import { IRendering } from './templating/rendering.js';
+import { isString } from './utilities.js';
 
 import type { ISyntheticView } from './templating/controller.js';
 
@@ -19,7 +20,7 @@ export function createElement<C extends Constructable = Constructable>(
   props?: Record<string, string | IInstruction>,
   children?: ArrayLike<unknown>
 ): RenderPlan {
-  if (typeof tagOrType === 'string') {
+  if (isString(tagOrType)) {
     return createElementForTag(p, tagOrType, props, children);
   }
   if (CustomElement.isType(tagOrType)) {
@@ -47,7 +48,7 @@ export class RenderPlan {
       this._lazyDef = CustomElementDefinition.create({
         name: CustomElement.generateName(),
         template: this.node,
-        needsCompile: typeof this.node === 'string',
+        needsCompile: isString(this.node),
         instructions: this.instructions,
         dependencies: this._dependencies,
       });

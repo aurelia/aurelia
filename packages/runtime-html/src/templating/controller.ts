@@ -27,7 +27,7 @@ import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
 import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
 import { LifecycleHooks } from './lifecycle-hooks.js';
 import { IRendering } from './rendering.js';
-import { isFunction } from '../utilities.js';
+import { isFunction, isString } from '../utilities.js';
 
 import type {
   IContainer,
@@ -1268,7 +1268,7 @@ function createWatchers(
         true,
       ));
     } else {
-      ast = typeof expression === 'string'
+      ast = isString(expression)
         ? expressionParser.parse(expression, ExpressionType.IsProperty)
         : getAccessScopeAst(expression);
 

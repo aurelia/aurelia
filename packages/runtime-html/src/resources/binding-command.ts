@@ -12,6 +12,7 @@ import {
 } from '../renderer.js';
 import { DefinitionType } from './resources-shared.js';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../shared.js';
+import { isString } from '../utilities.js';
 
 import type {
   Constructable,
@@ -102,7 +103,7 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
 
     let name: string;
     let def: PartialBindingCommandDefinition;
-    if (typeof nameOrDef === 'string') {
+    if (isString(nameOrDef)) {
       name = nameOrDef;
       def = { name };
     } else {

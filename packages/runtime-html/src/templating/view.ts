@@ -3,7 +3,7 @@ import { Scope } from '@aurelia/runtime';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element.js';
 import { Controller } from './controller.js';
 import { defineMetadata, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
-import { isFunction } from '../utilities.js';
+import { isFunction, isString } from '../utilities.js';
 
 import type { Constructable, ConstructableClass, IContainer } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
@@ -47,7 +47,7 @@ export class ViewFactory implements IViewFactory {
     if (size) {
       if (size === '*') {
         size = ViewFactory.maxCacheSize;
-      } else if (typeof size === 'string') {
+      } else if (isString(size)) {
         size = parseInt(size, 10);
       }
 

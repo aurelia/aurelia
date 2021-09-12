@@ -1,6 +1,7 @@
 import { kebabCase, firstDefined, getPrototypeChain, noop } from '@aurelia/kernel';
 import { BindingMode } from '@aurelia/runtime';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './shared.js';
+import { isString } from './utilities.js';
 
 import type { Constructable, Writable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
@@ -62,7 +63,7 @@ export function bindable(configOrTarget?: PartialBindableDefinition | {}, prop?:
     config = {};
     decorator(configOrTarget!, prop!);
     return;
-  } else if (typeof configOrTarget === 'string') {
+  } else if (isString(configOrTarget)) {
     // ClassDecorator
     // - @bindable('bar')
     // Direct call:
@@ -153,7 +154,7 @@ export const Bindable = Object.freeze({
       add(configOrProp: string | PartialBindableDefinitionPropertyRequired): BFluent & B12345 {
         let prop: string;
         let config: PartialBindableDefinitionPropertyRequired;
-        if (typeof configOrProp === 'string') {
+        if (isString(configOrProp)) {
           prop = configOrProp;
           config = { property: prop };
         } else {

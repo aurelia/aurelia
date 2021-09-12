@@ -5,6 +5,7 @@ import { IPlatform } from '../../platform.js';
 import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
 import { bindable } from '../../bindable.js';
+import { isString } from '../../utilities.js';
 import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 
 export type PortalTarget<T extends Node & ParentNode = Node & ParentNode> = string | T | null | undefined;
@@ -222,9 +223,9 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
       return $document.body as unknown as T;
     }
 
-    if (typeof target === 'string') {
+    if (isString( target)) {
       let queryContext: ParentNode = $document;
-      if (typeof context === 'string') {
+      if (isString(context)) {
         context = $document.querySelector(context) as ResolvedTarget;
       }
       if (context instanceof p.Node) {

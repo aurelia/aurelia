@@ -618,12 +618,11 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
     hook = (target as any)[hook] as ProcessContentHook;
   }
 
-  const hookType = typeof hook;
-  if (!isFunction( hookType)) {
+  if (!isFunction(hook)) {
     if (__DEV__)
-      throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
+      throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${typeof hook}.`);
     else
-      throw new Error(`AUR0766:${hookType}`);
+      throw new Error(`AUR0766:${typeof hook}`);
   }
   return hook;
 }

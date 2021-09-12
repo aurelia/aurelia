@@ -6,6 +6,8 @@ import { BindingContext } from '../observation/binding-context.js';
 import { ISignaler } from '../observation/signaler.js';
 import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior.js';
 import { ValueConverter, ValueConverterInstance } from '../value-converter.js';
+import { IConnectableBinding } from './connectable.js';
+import { isFunction, isString } from '../utilities-objects.js';
 
 import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
 import type {
@@ -17,7 +19,6 @@ import type {
   ISubscriber,
 } from '../observation.js';
 import type { Scope } from '../observation/binding-context.js';
-import { IConnectableBinding } from './connectable.js';
 
 export const enum ExpressionKind {
   CallsFunction        = 0b000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()
@@ -176,7 +177,7 @@ export class Unparser implements IVisitor<void> {
 
   public visitPrimitiveLiteral(expr: PrimitiveLiteralExpression): void {
     this.text += '(';
-    if (typeof expr.value === 'string') {
+    if (isString(expr.value)) {
       const escaped = expr.value.replace(/'/g, '\\\'');
       this.text += `'${escaped}'`;
     } else {
@@ -425,7 +426,7 @@ export class BindingBehaviorExpression {
     const key = this.behaviorKey;
     const $b = b as BindingWithBehavior;
     if ($b[key] !== void 0) {
-      if (typeof $b[key]!.unbind === 'function') {
+      if (isFunction($b[key]!.unbind)) {
         $b[key]!.unbind(f, s, b);
       }
       $b[key] = void 0;
@@ -839,7 +840,7 @@ export class CallFunctionExpression {
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
     const func = this.func.evaluate(f, s, l, c);
-    if (typeof func === 'function') {
+    if (isFunction(func)) {
       return func(...this.args.map(a => a.evaluate(f, s, l, c)));
     }
     if (!(f & LF.mustEvaluate) && (func == null)) {
@@ -893,7 +894,7 @@ export class BinaryExpression {
         return this.left.evaluate(f, s, l, c) !== this.right.evaluate(f, s, l, c);
       case 'instanceof': {
         const right = this.right.evaluate(f, s, l, c);
-        if (typeof right === 'function') {
+        if (isFunction(right)) {
           return this.left.evaluate(f, s, l, c) instanceof right;
         }
         return false;
@@ -1181,7 +1182,7 @@ export class TaggedTemplateExpression {
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): string {
     const results = this.expressions.map(e => e.evaluate(f, s, l, c));
     const func = this.func.evaluate(f, s, l, c);
-    if (typeof func !== 'function') {
+    if (!isFunction(func)) {
       if (__DEV__)
         throw new Error(`Left-hand side of tagged template expression is not a function.`);
       else
@@ -1418,7 +1419,7 @@ export class Interpolation {
 
 function getFunction(f: LF, obj: object, name: string): ((...args: unknown[]) => unknown) | null {
   const func = obj == null ? null : (obj as IIndexable)[name];
-  if (typeof func === 'function') {
+  if (isFunction(func)) {
     return func as (...args: unknown[]) => unknown;
   }
   if (!(f & LF.mustEvaluate) && func == null) {

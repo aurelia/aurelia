@@ -1,5 +1,6 @@
 import { noop } from '@aurelia/kernel';
 import { subscriberCollection, AccessorType, LifecycleFlags, withFlushQueue } from '@aurelia/runtime';
+import { isFunction } from '../utilities.js';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type {
@@ -70,8 +71,8 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
   ) {
     const cb = obj[cbName] as typeof BindableObserver.prototype.cb;
     const cbAll = (obj as IMayHavePropertyChangedCallback).propertyChanged!;
-    const hasCb = this._hasCb = typeof cb === 'function';
-    const hasCbAll = this._hasCbAll = typeof cbAll === 'function';
+    const hasCb = this._hasCb = isFunction(cb);
+    const hasCbAll = this._hasCbAll = isFunction(cbAll);
     const hasSetter = this._hasSetter = set !== noop;
     let val: unknown;
 

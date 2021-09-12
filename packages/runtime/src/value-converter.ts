@@ -4,7 +4,7 @@ import {
   firstDefined,
 } from '@aurelia/kernel';
 import { registerAliases } from './alias.js';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from './utilities-objects.js';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata, isFunction, isString } from './utilities-objects.js';
 
 import type {
   Constructable,
@@ -59,7 +59,7 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
 
     let name: string;
     let def: PartialValueConverterDefinition;
-    if (typeof nameOrDef === 'string') {
+    if (isString(nameOrDef)) {
       name = nameOrDef;
       def = { name };
     } else {
@@ -93,7 +93,7 @@ export const ValueConverter = Object.freeze<ValueConverterKind>({
   name: vcBaseName,
   keyFrom: (name: string): string => `${vcBaseName}:${name}`,
   isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never) {
-    return typeof value === 'function' && hasOwnMetadata(vcBaseName, value);
+    return isFunction(value) && hasOwnMetadata(vcBaseName, value);
   },
   define<T extends Constructable<ValueConverterInstance>>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T> {
     const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable<ValueConverterInstance>);

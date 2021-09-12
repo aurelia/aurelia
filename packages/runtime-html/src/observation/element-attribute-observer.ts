@@ -1,4 +1,5 @@
 import { LifecycleFlags, subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
+import { isString } from '../utilities.js';
 
 import type {
   IObserver,
@@ -95,7 +96,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
         case 'style': {
           let priority = '';
           let newValue = this._value as string;
-          if (typeof newValue === 'string' && newValue.includes('!important')) {
+          if (isString(newValue) && newValue.includes('!important')) {
             priority = 'important';
             newValue = newValue.replace('!important', '');
           }

@@ -12,6 +12,7 @@ import {
 } from '../renderer.js';
 import { DefinitionType } from './resources-shared.js';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../shared.js';
+import { isString } from '../utilities.js';
 
 import type {
   Constructable,
@@ -102,7 +103,7 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
 
     let name: string;
     let def: PartialBindingCommandDefinition;
-    if (typeof nameOrDef === 'string') {
+    if (isString(nameOrDef)) {
       name = nameOrDef;
       def = { name };
     } else {
@@ -138,7 +139,7 @@ export const BindingCommand = Object.freeze<BindingCommandKind>({
   name: cmdBaseName,
   keyFrom: getCommandKeyFrom,
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
-  //   return typeof value === 'function' && hasOwnMetadata(cmdBaseName, value);
+  //   return isFunction(value) && hasOwnMetadata(cmdBaseName, value);
   // },
   define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
     const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);

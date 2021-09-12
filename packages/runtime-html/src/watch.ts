@@ -2,6 +2,7 @@ import { emptyArray } from '@aurelia/kernel';
 import { CustomAttribute } from './resources/custom-attribute.js';
 import { CustomElement } from './resources/custom-element.js';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './shared.js';
+import { isFunction } from './utilities.js';
 
 import type { Constructable } from '@aurelia/kernel';
 import type { IConnectable } from '@aurelia/runtime';
@@ -75,7 +76,7 @@ export function watch<T extends object = object>(
 
     // basic validation
     if (isClassDecorator) {
-      if (typeof changeHandlerOrCallback !== 'function'
+      if (!isFunction(changeHandlerOrCallback)
         && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in Type.prototype))
       ) {
         if (__DEV__)
@@ -83,7 +84,7 @@ export function watch<T extends object = object>(
         else
           throw new Error(`AUR0773:${String(changeHandlerOrCallback)}@${Type.name}}`);
       }
-    } else if (typeof descriptor?.value !== 'function') {
+    } else if (!isFunction(descriptor?.value)) {
       if (__DEV__)
         throw new Error(`decorated target ${String(key)} is not a class method.`);
       else

@@ -6,7 +6,7 @@ import { IPlatform } from '../../platform.js';
 import { HydrateElementInstruction, IInstruction } from '../../renderer.js';
 import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller.js';
 import { IRendering } from '../../templating/rendering.js';
-import { isPromise } from '../../utilities-html.js';
+import { isFunction, isPromise } from '../../utilities.js';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element.js';
 
 /**
@@ -319,7 +319,7 @@ export class AuCompose {
 
   /** @internal */
   private getDef(component?: object | Constructable) {
-    const Ctor = (typeof component === 'function'
+    const Ctor = (isFunction(component)
       ? component
       : component?.constructor) as Constructable;
     return CustomElement.isType(Ctor)

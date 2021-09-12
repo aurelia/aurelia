@@ -27,6 +27,7 @@ import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
 import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
 import { LifecycleHooks } from './lifecycle-hooks.js';
 import { IRendering } from './rendering.js';
+import { isFunction, isString } from '../utilities.js';
 
 import type {
   IContainer,
@@ -1247,16 +1248,16 @@ function createWatchers(
 
   for (; ii > i; ++i) {
     ({ expression, callback } = watches[i]);
-    callback = typeof callback === 'function'
+    callback = isFunction(callback)
       ? callback
       : Reflect.get(instance, callback) as IWatcherCallback<object>;
-    if (typeof callback !== 'function') {
+    if (!isFunction(callback)) {
       if (__DEV__)
         throw new Error(`Invalid callback for @watch decorator: ${String(callback)}`);
       else
         throw new Error(`AUR0506:${String(callback)}`);
     }
-    if (typeof expression === 'function') {
+    if (isFunction(expression)) {
       controller.addBinding(new ComputedWatcher(
         instance as IObservable,
         observerLocator,
@@ -1267,7 +1268,7 @@ function createWatchers(
         true,
       ));
     } else {
-      ast = typeof expression === 'string'
+      ast = isString(expression)
         ? expressionParser.parse(expression, ExpressionType.IsProperty)
         : getAccessScopeAst(expression);
 

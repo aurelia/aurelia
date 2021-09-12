@@ -11,13 +11,14 @@ import {
   IDialogLoadedSettings,
 } from './dialog-interfaces.js';
 import { DialogController } from './dialog-controller.js';
+import { AppTask } from '../../app-task.js';
+import { IPlatform } from '../../platform.js';
+import { isFunction } from '../../utilities.js';
 
 import type {
   DialogOpenPromise,
   IDialogSettings,
 } from './dialog-interfaces.js';
-import { AppTask } from '../../app-task.js';
-import { IPlatform } from '../../platform.js';
 
 /**
  * A default implementation for the dialog service allowing for the creation of dialogs.
@@ -193,7 +194,7 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
       cmp == null
         ? void 0
         : onResolve(cmp(), loadedCmp => { loaded.component = loadedCmp; }),
-      typeof template === 'function'
+      isFunction(template)
         ? onResolve(template(), loadedTpl => { loaded.template = loadedTpl; })
         : void 0
     ]);

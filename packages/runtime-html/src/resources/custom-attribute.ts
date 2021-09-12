@@ -5,6 +5,7 @@ import { Watch } from '../watch.js';
 import { getRef } from '../dom.js';
 import { DefinitionType } from './resources-shared.js';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
+import { isFunction } from '../utilities.js';
 
 import type {
   Constructable,
@@ -154,7 +155,7 @@ export const CustomAttribute = Object.freeze<CustomAttributeKind>({
   name: caBaseName,
   keyFrom: getAttributeKeyFrom,
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never) {
-    return typeof value === 'function' && hasOwnMetadata(caBaseName, value);
+    return isFunction(value) && hasOwnMetadata(caBaseName, value);
   },
   for<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(node: Node, name: string): ICustomAttributeController<C> | undefined {
     return (getRef(node, getAttributeKeyFrom(name)) ?? void 0) as ICustomAttributeController<C> | undefined;

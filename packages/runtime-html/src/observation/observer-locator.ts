@@ -17,7 +17,7 @@ import { SelectValueObserver } from './select-value-observer.js';
 import { StyleAttributeAccessor } from './style-attribute-accessor.js';
 import { ISVGAnalyzer } from './svg-analyzer.js';
 import { ValueAttributeObserver } from './value-attribute-observer.js';
-import { createLookup, isDataAttribute } from '../utilities-html.js';
+import { createLookup, isDataAttribute } from '../utilities.js';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
 import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';

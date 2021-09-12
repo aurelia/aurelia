@@ -1,14 +1,12 @@
 import type { ISVGAnalyzer } from './observation/svg-analyzer';
 
-/** @internal */
-export const createLookup = <T = unknown>() => Object.create(null) as Record<string, T>;
+/** @internal */ export const createLookup = <T = unknown>() => Object.create(null) as Record<string, T>;
 
-/** @internal */
-export const hasOwnProperty = Object.prototype.hasOwnProperty;
+/** @internal */ export const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 const IsDataAttribute: Record<string, boolean> = createLookup();
-/** @internal */
-export const isDataAttribute = (obj: Node, key: PropertyKey, svgAnalyzer: ISVGAnalyzer): boolean => {
+
+/** @internal */ export const isDataAttribute = (obj: Node, key: PropertyKey, svgAnalyzer: ISVGAnalyzer): boolean => {
   if (IsDataAttribute[key as string] === true) {
     return true;
   }
@@ -24,5 +22,6 @@ export const isDataAttribute = (obj: Node, key: PropertyKey, svgAnalyzer: ISVGAn
     svgAnalyzer.isStandardSvgAttribute(obj, key);
 };
 
-/** @internal */
-export const isPromise = <T>(v: unknown): v is Promise<T> => v instanceof Promise;
+/** @internal */ export const isPromise = <T>(v: unknown): v is Promise<T> => v instanceof Promise;
+
+/** @internal */ export const isFunction = <T, K extends Function>(v: unknown): v is K => typeof v === 'function';

@@ -138,7 +138,7 @@ export const BindingCommand = Object.freeze<BindingCommandKind>({
   name: cmdBaseName,
   keyFrom: getCommandKeyFrom,
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
-  //   return typeof value === 'function' && hasOwnMetadata(cmdBaseName, value);
+  //   return isFunction(value) && hasOwnMetadata(cmdBaseName, value);
   // },
   define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
     const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);

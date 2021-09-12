@@ -24,7 +24,7 @@ import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import { BindingCommand, CommandType } from './resources/binding-command.js';
-import { createLookup } from './utilities-html.js';
+import { createLookup } from './utilities.js';
 import { allResources } from './utilities-di.js';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from './shared.js';
 

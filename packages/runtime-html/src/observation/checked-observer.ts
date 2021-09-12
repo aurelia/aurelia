@@ -7,7 +7,7 @@ import {
   withFlushQueue,
 } from '@aurelia/runtime';
 import { getCollectionObserver } from './observer-locator.js';
-import { hasOwnProperty } from '../utilities-html.js';
+import { hasOwnProperty } from '../utilities.js';
 
 import type { INode } from '../dom.js';
 import type { EventSubscriber } from './event-delegator.js';

@@ -15,6 +15,7 @@ import { Children } from '../templating/children.js';
 import { Watch } from '../watch.js';
 import { DefinitionType } from './resources-shared.js';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
+import { isFunction } from '../utilities.js';
 
 import type {
   Constructable,
@@ -160,7 +161,7 @@ export function useShadowDOM(targetOrOptions?: Constructable | ShadowOptions): v
     };
   }
 
-  if (typeof targetOrOptions !== 'function') {
+  if (!isFunction(targetOrOptions)) {
     return function ($target: Constructable) {
       annotateElementMetadata($target, 'shadowOptions', targetOrOptions);
     };
@@ -259,7 +260,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       }
 
       const name = fromDefinitionOrDefault('name', def, generateElementName);
-      if (typeof (def as CustomElementDefinition).Type === 'function') {
+      if (isFunction((def as CustomElementDefinition).Type)) {
         // This needs to be a clone (it will usually be the compiler calling this signature)
 
         // TODO: we need to make sure it's documented that passing in the type via the definition (while passing in null
@@ -438,7 +439,7 @@ export const CustomElement = Object.freeze<CustomElementKind>({
   name: ceBaseName,
   keyFrom: getElementKeyFrom,
   isType<C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never) {
-    return typeof value === 'function' && hasOwnMetadata(ceBaseName, value);
+    return isFunction(value) && hasOwnMetadata(ceBaseName, value);
   },
   for<C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: ForOpts = defaultForOpts): ICustomElementController<C> {
     if (opts.name === void 0 && opts.searchParents !== true) {
@@ -618,7 +619,7 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
   }
 
   const hookType = typeof hook;
-  if (hookType !== 'function') {
+  if (!isFunction( hookType)) {
     if (__DEV__)
       throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
     else

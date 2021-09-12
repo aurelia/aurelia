@@ -1,5 +1,6 @@
 import { DI, Registration } from '@aurelia/kernel';
 import type { IContainer, IRegistry, Key, Resolved } from '@aurelia/kernel';
+import { isFunction } from './utilities.js';
 
 export type TaskSlot = (
   'beforeCreate' |
@@ -69,7 +70,7 @@ function createAppTaskSlotHook(slotName: TaskSlot) {
   function appTaskFactory<T extends Key = Key>(callback: AppTaskCallbackNoArg): IRegistry;
   function appTaskFactory<T extends Key = Key>(key: T, callback: AppTaskCallback<T>): IRegistry;
   function appTaskFactory<T extends Key = Key>(keyOrCallback: T | AppTaskCallback<T> | AppTaskCallbackNoArg, callback?: AppTaskCallback<T>): IRegistry {
-    if (typeof callback === 'function') {
+    if (isFunction(callback)) {
       return new $AppTask(slotName, keyOrCallback as T, callback);
     }
     return new $AppTask(slotName, null, keyOrCallback as Exclude<typeof keyOrCallback, T>);

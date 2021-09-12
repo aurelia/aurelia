@@ -856,7 +856,7 @@ function parseDestructuringAssignment(state: ParserState): DAE {
       case Token.CloseBrace:
       case Token.CloseBracket: {
         const top = stack.pop()!;
-        if(lookahead(state) === Token.Equals) {
+        if(lookAhead(state) === Token.Equals) {
           nextToken(state);
           (top[1] as Writable<DAE>).initializer = createInitializer();
           initializer = void 0;
@@ -868,7 +868,7 @@ function parseDestructuringAssignment(state: ParserState): DAE {
       }
 
       case Token.Comma:
-        if (lookahead(state) === Token.Comma && stack[stackLength - 1][1].$kind === ExpressionKind.ObjectDestructuringAssignment) { unexpectedCharacter(); }
+        if (lookAhead(state) === Token.Comma && stack[stackLength - 1][1].$kind === ExpressionKind.ObjectDestructuringAssignment) { unexpectedCharacter(); }
         addPart();
         break;
 
@@ -954,7 +954,7 @@ function parseDestructuringAssignment(state: ParserState): DAE {
             opened--;
           }
           if (opened !== 0) { break; }
-          const next = lookahead(state);
+          const next = lookAhead(state);
           if (next === Token.CloseBracket || next === Token.OfKeyword) {
             $continue = false;
             add = next === Token.CloseBracket;
@@ -1234,7 +1234,7 @@ function parseTemplate(state: ParserState, access: Access, expressionType: Expre
 /**
  * Returns the next token, without changing the state.
  */
- function lookahead(state: ParserState): Token {
+ function lookAhead(state: ParserState): Token {
   const startIdx = state._startIndex;
   const idx = state.index;
   const token = state._currentToken;

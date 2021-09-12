@@ -78,7 +78,7 @@ When iterating over a map, the declaration expression contains a pair of key and
 <p repeat.for="pair of map">key:${pair[0]} | value: ${pair[1]}</p>
 ```
 
-However, you can also destructured assignment expression.
+However, you can also destructure the `pair`.
 
 
 ```markup
@@ -100,7 +100,7 @@ You can also initialize any `undefined` or missing property in the input.
 <p repeat.for="{name, age = 42} of personArray">${name} is ${age} years old</p>
 ```
 
-You can even alias your destructured properties.
+Aliasing destructured properties is also supported.
 
 ```markup
 <p repeat.for="{name:n, age:a=42} of personArray">${n} is ${a} years old</p>

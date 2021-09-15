@@ -40,6 +40,7 @@
   * [Creating components](getting-to-know-aurelia/components/creating-components/README.md)
     * [Using @customElement decorator](getting-to-know-aurelia/components/creating-components/using-customelement-decorator.md)
     * [HTML only components](getting-to-know-aurelia/components/creating-components/html-only-components.md)
+    * [Viewless Components](getting-to-know-aurelia/components/creating-components/viewless-components.md)
   * [Bindable properties](getting-to-know-aurelia/components/bindable-properties/README.md)
     * [The basics](getting-to-know-aurelia/components/bindable-properties/the-basics.md)
     * [Binding modes](getting-to-know-aurelia/components/bindable-properties/binding-modes.md)

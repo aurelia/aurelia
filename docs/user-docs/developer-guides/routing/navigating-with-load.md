@@ -55,7 +55,7 @@ export class MyComponent {
     }
 
     async viewProduct() {
-        await this.router.load('product(12)');
+        await this.router.load('product/12');
     }
 }
 ```
@@ -99,4 +99,10 @@ export class MyComponent {
 ## HTML load attribute
 
 The router also allows you to decorate links and buttons in your application using a `load` attribute which works the same way as the router instance `load` method.
+
+If you have routes defined on a root level \(inside of `my-app.ts`\) you will need to add a forward slash in front of any routes you attempt to load.
+
+```markup
+<a load="/products/12">Product #12</a>
+```
 

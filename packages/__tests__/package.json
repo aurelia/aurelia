@@ -44,7 +44,7 @@
     "@aurelia/validation": "latest",
     "@aurelia/validation-html": "latest",
     "@aurelia/validation-i18n": "latest",
-    "aurelia-direct-router": "2.0.0-alpha.18.2",
+    "aurelia-direct-router": "2.0.0-alpha.21.0",
     "i18next": "^17.0.0",
     "jsdom": "^15.2.1",
     "typescript": "^4.3.5"

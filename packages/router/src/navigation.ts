@@ -52,7 +52,12 @@ export class StoredNavigation {
   /**
    * The query of the navigation
    */
-  public query?: string;
+   public query?: string;
+
+  /**
+   * The fragment of the navigation
+   */
+   public fragment?: string;
 
   /**
    * The parameters of the navigation
@@ -77,6 +82,7 @@ export class StoredNavigation {
     this.path = entry.path;
     this.title = entry.title;
     this.query = entry.query;
+    this.fragment = entry.fragment;
     this.parameters = entry.parameters;
     this.data = entry.data;
   }
@@ -92,6 +98,7 @@ export class StoredNavigation {
       path: this.path,
       title: this.title,
       query: this.query,
+      fragment: this.fragment,
       parameters: this.parameters,
       data: this.data,
     };

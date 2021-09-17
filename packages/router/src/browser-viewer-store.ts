@@ -109,11 +109,17 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
    */
   public get viewerState(): NavigatorViewerState {
     const { pathname, search, hash } = this.location;
+    const instruction = (this.options.useUrlFragmentHash ?? false)
+      ? hash.slice(1)
+      : `${pathname}${search}`;
+    const fragment = (this.options.useUrlFragmentHash ?? false)
+      ? (hash.slice(1).includes('#') ? hash.slice(hash.slice(1).indexOf('#', 1)) : '')
+      : hash.slice(1);
     return new NavigatorViewerState(
       pathname,
       search.slice(1),
-      hash,
-      (this.options.useUrlFragmentHash ?? false) ? hash.slice(1) : `${pathname}${search}`,
+      fragment,
+      instruction,
     );
   }
 

@@ -75,9 +75,14 @@ export interface ILoadOptions {
   query?: string;
 
   /**
-   * The parameters to use for this load. If specified and no `query` is
-   * specified, `query` will be created and set based on this.
+   * The fragment to use/set with this load
    */
+  fragment?: string;
+
+  /**
+  * The parameters to use for this load. If specified and no `query` is
+  * specified, `query` will be created and set based on this.
+  */
   parameters?: string | Record<string, unknown>;
 
   /**
@@ -317,9 +322,14 @@ export class Router implements IRouter {
     //   }
     // });
     // const result = this.navigator.navigate(entry);
+    const { instruction, hash } = this.viewer.viewerState;
     const result = this.load(
-      this.viewer.viewerState.instruction,
-      { replacing: true, fromBrowser: false });
+      instruction,
+      {
+        fragment: hash,
+        replacing: true,
+        fromBrowser: false
+      });
     this.loadedFirst = true;
     return result;
   }
@@ -825,6 +835,7 @@ export class Router implements IRouter {
    */
   public async load(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): Promise<boolean | void> {
     options = options ?? {};
+    instructions = this.extractFragment(instructions, options);
     instructions = this.extractQuery(instructions, options);
 
     let scope: RoutingScope | null = null;
@@ -844,6 +855,7 @@ export class Router implements IRouter {
       title: options.title,
       data: options.data,
       query: options.query,
+      fragment: options.fragment,
       parameters: options.parameters as Record<string, unknown>,
       replacing: (options.replacing ?? false) || options.replace,
       repeating: options.append,
@@ -1201,9 +1213,10 @@ export class Router implements IRouter {
       basePath = '';
     }
 
-    const query = (navigation.query && navigation.query.length ? "?" + navigation.query : '');
+    const query = ((navigation.query?.length ?? 0) > 0 ? "?" + navigation.query : '');
+    const fragment = ((navigation.fragment?.length ?? 0) > 0 ? "#" + navigation.fragment : '');
     // if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {
-    navigation.path = basePath + state + query;
+    navigation.path = basePath + state + query + fragment;
     // }
 
     const fullViewportStates = [RoutingInstruction.create(RoutingInstruction.clear(this)) as RoutingInstruction];
@@ -1218,6 +1231,25 @@ export class Router implements IRouter {
     }
 
     return Promise.resolve();
+  }
+
+  /**
+   * Extract and setup the fragment from instructions or options.
+   *
+   * @param instructions - The instructions to extract the fragment from
+   * @param options - The options containing the fragment
+   *
+   * TODO: Review query extraction; different pos for path and fragment
+   */
+  private extractFragment(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): LoadInstruction | LoadInstruction[] {
+    // If instructions is a string and contains a fragment, extract it
+    if (typeof instructions === 'string' && options.fragment == null) {
+      const [path, fragment] = instructions.split('#');
+      instructions = path;
+      options.fragment = fragment;
+    }
+
+    return instructions;
   }
 
   /**

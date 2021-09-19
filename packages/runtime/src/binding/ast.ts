@@ -1468,6 +1468,7 @@ export class Interpolation {
 }
 
 // spec: https://tc39.es/ecma262/#sec-destructuring-assignment
+/** @internal */
 export class DestructuringAssignmentExpression {
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
@@ -1522,6 +1523,7 @@ export class DestructuringAssignmentExpression {
   }
 }
 
+/** @internal */
 export class DestructuringAssignmentSingleExpression {
   public get $kind(): ExpressionKind.DestructuringAssignmentLeaf { return ExpressionKind.DestructuringAssignmentLeaf; }
   public constructor(
@@ -1559,6 +1561,7 @@ export class DestructuringAssignmentSingleExpression {
   }
 }
 
+/** @internal */
 export class DestructuringAssignmentRestExpression {
   public get $kind(): ExpressionKind.DestructuringAssignmentLeaf { return ExpressionKind.DestructuringAssignmentLeaf; }
   public constructor(

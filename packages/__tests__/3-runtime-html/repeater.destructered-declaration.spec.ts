@@ -20,7 +20,7 @@ import {
   Person,
 } from '../validation/_test-resources.js';
 
-describe.only('3-runtime-html/repeater.destructured-declaration.spec.ts', function () {
+describe('3-runtime-html/repeater.destructured-declaration.spec.ts', function () {
   interface TestSetupContext<TApp> {
     template: string;
     registrations: any[];

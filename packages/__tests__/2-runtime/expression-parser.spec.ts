@@ -32,12 +32,10 @@ import {
   ParserState,
   DestructuringAssignmentExpression,
   DestructuringAssignmentSingleExpression,
-  DestructuringAssignmentRestExpression,
   IsBindingBehavior,
 } from '@aurelia/runtime';
 import {
   assert,
-  generateCartesianProduct,
 } from '@aurelia/testing';
 import {
   latin1IdentifierPartChars,

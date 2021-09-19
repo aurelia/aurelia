@@ -1,6 +1,5 @@
 import {
   DI,
-  Writable,
 } from '@aurelia/kernel';
 import {
   AccessKeyedExpression,
@@ -42,7 +41,6 @@ import {
   IsValueConverter,
   UnaryOperator,
   ExpressionKind,
-  DestructuringAssignmentRestExpression as DARE,
   DestructuringAssignmentSingleExpression as DASE,
   DestructuringAssignmentExpression as DAE,
 } from './ast.js';

@@ -78,60 +78,9 @@ When iterating over a map, the declaration expression contains a pair of key and
 <p repeat.for="pair of map">key:${pair[0]} | value: ${pair[1]}</p>
 ```
 
-However, you can also destructure the `pair`.
+You can also destructure the `pair`.
 
 
 ```markup
 <p repeat.for="[k,v] of map">key:${k} | value: ${v}</p>
 ```
-
-### Destructured assignment declaration
-
-The last example in the previous section is not something special for map.
-In fact, you can use the destructured declaration for any kind of iterable collection.
-
-```markup
-<p repeat.for="{name, age} of personArray">${name} is ${age} years old</p>
-```
-
-You can also initialize any `undefined` or missing property in the input.
-
-```markup
-<p repeat.for="{name, age = 42} of personArray">${name} is ${age} years old</p>
-```
-
-Aliasing destructured properties is also supported.
-
-```markup
-<p repeat.for="{name:n, age:a=42} of personArray">${n} is ${a} years old</p>
-```
-
-#### Limitation
-
-The destructured assignment supports wide range of complex expressions.
-However, the limitation of this is that the destructured inputs are not observed; i.e. mutations of any destructured property will not trigger change in the view.
-
-Taking the following template as example, if we change the `personArray[0].name = 'foo'` post `attach`, the change won't be reflected on the view.
-
-```markup
-<p repeat.for="{name, age} of personArray">${name} is ${age} years old</p>
-```
-
-In that sense you can think the following JavaScript analogous to the example above; that is if you change the `personArray[i].name` post assignment, that change won't be propagated to the `name`;
-
-```javascript
-const {name, age} = personArray[i];
-```
-
-Note that this does not affect if the iterable collection is changed.
-For the example above if the `personArray` is reassigned, the changes will be reflected as expected.
-
-However, note that if you don't destructure an object, then the changes made in the object will be propagated to view.
-Consider the following example.
-
-```markup
-<p repeat.for="[k,p] of personMap">${p.name} is ${p.age} years old</p>
-```
-
-If in the example above, we set the `personMap.get('a').name = 'foo'` post `attach`, the changes will be reflected on the view.
-

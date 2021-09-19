@@ -2,7 +2,7 @@
 description: The basics of the web-component plugin for Aurelia.
 ---
 
-# Web-Component
+# Web Components
 
 ## Introduction
 
@@ -20,10 +20,11 @@ Extending built-in elements is supported via the 3rd parameter of the `define` c
 
 * Each of WC custom element will be backed by a view model, like a normal Aurelia element component.
 * For each `define` call, a corresponding native custom element class will be created and defined.
-* Each of the bindable property on the backing Aurelia view model will be converted to a reactive attribute (via `observedAttributes`) and reactive property (on the prototype of the extended HTML Element class created).
+* Each of the bindable property on the backing Aurelia view model will be converted to a reactive attribute \(via `observedAttributes`\) and reactive property \(on the prototype of the extended HTML Element class created\).
 * Slot: `[au-slot]` is not supported when upgrading an existing element. `slot` can be used as a normal WC custom element.
 
 Notes:
+
 * WC custom element works independently with Aurelia component. This means the same class can be both a WC custom element and Aurelia element component. Though this should be avoided as it could result in double rendering.
 * `containerless` mode is not supported, use extend-built-in instead if you want to avoid wrappers.
 * the defined WC custom elements will continue working even after the owning Aurelia application has stopped.
@@ -67,7 +68,7 @@ Aurelia
   .start();
 ```
 
-2. Defining a `tick-clock` element using shadow DOM with `open` mode
+1. Defining a `tick-clock` element using shadow DOM with `open` mode
 
 ```typescript
 import { Aurelia, IWcElementRegistry } from 'aurelia';
@@ -99,7 +100,7 @@ Aurelia
   .start();
 ```
 
-3. Injecting the host element into the view model
+1. Injecting the host element into the view model
 
 ```typescript
 import { INode, Aurelia, IWcElementRegistry } from 'aurelia';
@@ -138,7 +139,7 @@ Aurelia
   .start();
 ```
 
-4. Defining a `tick-clock` element with `format` bindable property for formatting
+1. Defining a `tick-clock` element with `format` bindable property for formatting
 
 ```typescript
 import { INode, Aurelia, IWcElementRegistry } from 'aurelia';
@@ -180,7 +181,7 @@ Aurelia
   .start();
 ```
 
-4. Defining a `tick-clock` element extending built-in `div` element:
+1. Defining a `tick-clock` element extending built-in `div` element:
 
 ```typescript
 import { Aurelia, IWcElementRegistry } from 'aurelia';
@@ -212,3 +213,4 @@ Aurelia
   .app(class App {})
   .start();
 ```
+

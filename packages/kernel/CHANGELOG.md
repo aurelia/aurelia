@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.21"></a>
+# 2.0.0-alpha.21 (2021-09-12)
+
+### Refactorings:
+
+* **kernel:** use isType utilities for fn & string ([009562b](https://github.com/aurelia/aurelia/commit/009562b))
+
 <a name="2.0.0-alpha.20"></a>
 # 2.0.0-alpha.20 (2021-09-04)
 

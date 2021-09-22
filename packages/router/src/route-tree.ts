@@ -3,7 +3,7 @@ import { ILogger, resolveAll, onResolve, Writable } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement } from '@aurelia/runtime-html';
 
 import { IRouteContext, $RecognizedRoute } from './route-context.js';
-import { IRouter, NavigationOptions } from './router.js';
+import { emptyQuery, IRouter, NavigationOptions } from './router.js';
 import { ViewportInstructionTree, ViewportInstruction, NavigationInstructionType, Params, ITypedNavigationInstruction_ResolvedComponent, ITypedNavigationInstruction_string } from './instructions.js';
 import { RouteDefinition } from './route-definition.js';
 import { ViewportRequest } from './viewport-agent.js';
@@ -101,7 +101,7 @@ export class RouteNode implements IRouteNode {
       /* originalIns */input.instruction,
       /* instruction */input.instruction,
       /*      params */input.params ?? {},
-      /* queryParams */input.queryParams ?? Object.freeze(new URLSearchParams()),
+      /* queryParams */input.queryParams ?? emptyQuery,
       /*    fragment */input.fragment ?? null,
       /*        data */input.data ?? {},
       /*    viewport */input.viewport ?? null,

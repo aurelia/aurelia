@@ -6,7 +6,7 @@ import { IRouteViewModel } from './component-agent.js';
 import { RouteType } from './route.js';
 import { IRouteContext } from './route-context.js';
 import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation.js';
-import { INavigationOptions, NavigationOptions } from './router.js';
+import { emptyQuery, INavigationOptions, NavigationOptions } from './router.js';
 import { RouteExpression } from './route-expression.js';
 import { tryStringify } from './util.js';
 
@@ -289,7 +289,7 @@ export class ViewportInstructionTree {
         $options,
         false,
         instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)),
-        Object.freeze(new URLSearchParams()),
+        emptyQuery,
         null,
       );
     }
@@ -303,7 +303,7 @@ export class ViewportInstructionTree {
       $options,
       false,
       [ViewportInstruction.create(instructionOrInstructions, $options.context)],
-      Object.freeze(new URLSearchParams()),
+      emptyQuery,
       null,
     );
   }

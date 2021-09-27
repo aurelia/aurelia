@@ -821,7 +821,7 @@ TPrec extends Precedence.Unary ? IsUnary :
  */
 function parseArrayDestructuring(state: ParserState): DAE {
   const items: DASE[] = [];
-  const dae = new DAE(ExpressionKind.ArrayDestructuringAssignment, items, void 0, void 0);
+  const dae = new DAE(ExpressionKind.ArrayDestructuring, items, void 0, void 0);
   let target: string = '';
   let $continue = true;
   let index = 0;

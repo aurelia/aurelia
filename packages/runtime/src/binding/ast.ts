@@ -56,8 +56,8 @@ export const enum ExpressionKind {
   BindingIdentifier             = 0b0100000000000_10110, //
   ForOfStatement                = 0b0000011000001_10111, //
   Interpolation                 = 0b0000000000000_11000, //
-  ArrayDestructuringAssignment  = 0b0101100000000_11001, // IsAssignable
-  ObjectDestructuringAssignment = 0b0110100000000_11001, // IsAssignable
+  ArrayDestructuring            = 0b0101100000000_11001, // IsAssignable
+  ObjectDestructuring           = 0b0110100000000_11001, // IsAssignable
   DestructuringAssignmentLeaf   = 0b1000100000000_11001, // IsAssignable
 }
 
@@ -353,7 +353,7 @@ export class Unparser implements IVisitor<void> {
 
   public visitDestructuringAssignmentExpression(expr: DestructuringAssignmentExpression): void {
     const $kind = expr.$kind;
-    const isObjDes = $kind === ExpressionKind.ObjectDestructuringAssignment;
+    const isObjDes = $kind === ExpressionKind.ObjectDestructuring;
     this.text += isObjDes ? '{' : '[';
     const list = expr.list;
     const len = list.length;
@@ -365,8 +365,8 @@ export class Unparser implements IVisitor<void> {
         case ExpressionKind.DestructuringAssignmentLeaf:
           item.accept(this);
           break;
-        case ExpressionKind.ArrayDestructuringAssignment:
-        case ExpressionKind.ObjectDestructuringAssignment: {
+        case ExpressionKind.ArrayDestructuring:
+        case ExpressionKind.ObjectDestructuring: {
           const source = item.source;
           if(source) {
             source.accept(this);
@@ -1473,7 +1473,7 @@ export class DestructuringAssignmentExpression {
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
   public constructor(
-    public readonly $kind: ExpressionKind.ArrayDestructuringAssignment | ExpressionKind.ObjectDestructuringAssignment,
+    public readonly $kind: ExpressionKind.ArrayDestructuring | ExpressionKind.ObjectDestructuring,
     public readonly list: readonly (DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[],
     public readonly source: AccessMemberExpression | AccessKeyedExpression | undefined,
     public readonly initializer: IsBindingBehavior | undefined,
@@ -1494,8 +1494,8 @@ export class DestructuringAssignmentExpression {
         case ExpressionKind.DestructuringAssignmentLeaf:
           item.assign(f, s, l, value);
           break;
-        case ExpressionKind.ArrayDestructuringAssignment:
-        case ExpressionKind.ObjectDestructuringAssignment: {
+        case ExpressionKind.ArrayDestructuring:
+        case ExpressionKind.ObjectDestructuring: {
           if (typeof value !== 'object' || value === null) {
             if (__DEV__) {
               throw new Error('Cannot use non-object value for destructuring assignment.');

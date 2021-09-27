@@ -1,6 +1,6 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params } from '@aurelia/router';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route } from '@aurelia/router';
 import { Aurelia, customElement, CustomElement } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
@@ -890,4 +890,103 @@ describe('router (smoke tests)', function () {
 
     await au.stop();
   });
+
+  {
+    @customElement({ name: 'vm-a', template: `view-a foo: \${params.foo} | query: \${query.toString()}` })
+    class VmA {
+      public params!: Params;
+      public query!: Readonly<URLSearchParams>;
+
+      public load(params: Params, next: RouteNode) {
+        this.params = params;
+        this.query = next.queryParams;
+      }
+    }
+    @customElement({ name: 'vm-b', template: 'view-b' })
+    class VmB {
+      public constructor(
+        @IRouter public readonly router: IRouter,
+      ) { }
+      public async redirect1() {
+        await this.router.load('a?foo=bar');
+      }
+      public async redirect2() {
+        await this.router.load('a', { queryParams: { foo: 'bar' } });
+      }
+      public async redirect3() {
+        await this.router.load('a?foo=fizz', { queryParams: { foo: 'bar' } });
+      }
+      public async redirect4() {
+        await this.router.load('a/fizz', { queryParams: { foo: 'bar' } });
+      }
+    }
+
+    @route({
+      routes: [
+        { path: ['a', 'a/:foo'], component: VmA, title: 'A', },
+        { path: ['', 'b'], component: VmB, title: 'B' },
+      ],
+    })
+    @customElement({ name: 'app-root', template: '<au-viewport></au-viewport>' })
+    class AppRoot { }
+
+    // eslint-disable-next-line no-inner-declarations
+    async function start() {
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(TestRouterConfiguration.for(ctx, LogLevel.warn));
+      container.register(RouterConfiguration);
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      await au.app({ component: AppRoot, host }).start();
+      return { host, au };
+    }
+
+    it('queryString - #1', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirect1();
+
+      assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar');
+
+      await au.stop();
+    });
+
+    it('queryString - #2', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirect2();
+
+      assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar');
+
+      await au.stop();
+    });
+
+    it('queryString - #3', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirect3();
+
+      assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar');
+
+      await au.stop();
+    });
+
+    it('queryString - #4', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirect4();
+
+      assert.html.textContent(host, 'view-a foo: fizz | query: foo=bar');
+
+      await au.stop();
+    });
+  }
 });

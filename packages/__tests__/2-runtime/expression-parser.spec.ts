@@ -1238,7 +1238,7 @@ describe('ExpressionParser', function () {
     const AME = AccessMemberExpression;
     const PLE = PrimitiveLiteralExpression;
     const AKE = AccessKeyedExpression;
-    const aknd = ExpressionKind.ArrayDestructuringAssignment;
+    const aknd = ExpressionKind.ArrayDestructuring;
 
     const SimpleForDeclarations: [string, any][] = [
       [`a`,           new BindingIdentifier('a')],

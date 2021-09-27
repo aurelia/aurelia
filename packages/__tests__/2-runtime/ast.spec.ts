@@ -2517,7 +2517,7 @@ describe('DestructuringAssignmentExpression', function () {
     it('{a} = {a: 1, b:2}', function () {
       const bc: Record<string, any> = {};
       new DestructuringAssignmentExpression(
-        ExpressionKind.ObjectDestructuringAssignment,
+        ExpressionKind.ObjectDestructuring,
         [
           new DestructuringAssignmentSingleExpression(
             new AccessMemberExpression($this, 'a'),
@@ -2534,7 +2534,7 @@ describe('DestructuringAssignmentExpression', function () {
     it('{a, b} = {a: 1, b:2}', function () {
       const bc: Record<string, any> = {};
       new DestructuringAssignmentExpression(
-        ExpressionKind.ObjectDestructuringAssignment,
+        ExpressionKind.ObjectDestructuring,
         [
           new DestructuringAssignmentSingleExpression(
             new AccessMemberExpression($this, 'a'),
@@ -2556,7 +2556,7 @@ describe('DestructuringAssignmentExpression', function () {
     it('{...rest} = {a: 1, b:2}', function () {
       const bc: Record<string, any> = {};
       new DestructuringAssignmentExpression(
-        ExpressionKind.ObjectDestructuringAssignment,
+        ExpressionKind.ObjectDestructuring,
         [
           new DestructuringAssignmentRestExpression(
             new AccessMemberExpression($this, 'rest'),
@@ -2572,7 +2572,7 @@ describe('DestructuringAssignmentExpression', function () {
     it('[a] = [1, 2]', function () {
       const bc: Record<string, any> = {};
       new DestructuringAssignmentExpression(
-        ExpressionKind.ObjectDestructuringAssignment,
+        ExpressionKind.ObjectDestructuring,
         [
           new DestructuringAssignmentSingleExpression(
             new AccessMemberExpression($this, 'a'),
@@ -2589,7 +2589,7 @@ describe('DestructuringAssignmentExpression', function () {
     it('[a, b] = [1, 2]', function () {
       const bc: Record<string, any> = {};
       new DestructuringAssignmentExpression(
-        ExpressionKind.ObjectDestructuringAssignment,
+        ExpressionKind.ObjectDestructuring,
         [
           new DestructuringAssignmentSingleExpression(
             new AccessMemberExpression($this, 'a'),
@@ -2611,7 +2611,7 @@ describe('DestructuringAssignmentExpression', function () {
     it('[...rest] = [1, 2]', function () {
       const bc: Record<string, any> = {};
       new DestructuringAssignmentExpression(
-        ExpressionKind.ObjectDestructuringAssignment,
+        ExpressionKind.ObjectDestructuring,
         [
           new DestructuringAssignmentRestExpression(
             new AccessMemberExpression($this, 'rest'),
@@ -2627,7 +2627,7 @@ describe('DestructuringAssignmentExpression', function () {
     it('{prop1, prop2:{prop21}} = {prop1: "foo", prop2: {prop21: 123}}', function () {
       const bc: Record<string, any> = {};
       new DestructuringAssignmentExpression(
-        ExpressionKind.ObjectDestructuringAssignment,
+        ExpressionKind.ObjectDestructuring,
         [
           new DestructuringAssignmentSingleExpression(
             new AccessMemberExpression($this, 'prop1'),
@@ -2635,7 +2635,7 @@ describe('DestructuringAssignmentExpression', function () {
             void 0
           ),
           new DestructuringAssignmentExpression(
-            ExpressionKind.ObjectDestructuringAssignment,
+            ExpressionKind.ObjectDestructuring,
             [
               new DestructuringAssignmentSingleExpression(
                 new AccessMemberExpression($this, 'prop21'),
@@ -2656,7 +2656,7 @@ describe('DestructuringAssignmentExpression', function () {
     it('{prop1, prop2:{prop21:{prop212:newProp212}, prop22}} = {prop1: "foo", prop2: {prop21: {prop211: 123, prop212: 456}, prop22: "bar" }}', function () {
       const bc: Record<string, any> = {};
       new DestructuringAssignmentExpression(
-        ExpressionKind.ObjectDestructuringAssignment,
+        ExpressionKind.ObjectDestructuring,
         [
           new DestructuringAssignmentSingleExpression(
             new AccessMemberExpression($this, 'prop1'),
@@ -2664,10 +2664,10 @@ describe('DestructuringAssignmentExpression', function () {
             void 0
           ),
           new DestructuringAssignmentExpression(
-            ExpressionKind.ObjectDestructuringAssignment,
+            ExpressionKind.ObjectDestructuring,
             [
               new DestructuringAssignmentExpression(
-                ExpressionKind.ObjectDestructuringAssignment,
+                ExpressionKind.ObjectDestructuring,
                 [
                   new DestructuringAssignmentSingleExpression(
                     new AccessMemberExpression($this, 'newProp212'),
@@ -2697,7 +2697,7 @@ describe('DestructuringAssignmentExpression', function () {
     it('{prop1,coll:[,{p2:item2p2}]} = {prop1:"foo",coll:[{p1:1,p2:2},{p1:3,p2:4}]}', function () {
       const bc: Record<string, any> = {};
       new DestructuringAssignmentExpression(
-        ExpressionKind.ObjectDestructuringAssignment,
+        ExpressionKind.ObjectDestructuring,
         [
           new DestructuringAssignmentSingleExpression(
             new AccessMemberExpression($this, 'prop1'),
@@ -2705,10 +2705,10 @@ describe('DestructuringAssignmentExpression', function () {
             void 0
           ),
           new DestructuringAssignmentExpression(
-            ExpressionKind.ArrayDestructuringAssignment,
+            ExpressionKind.ArrayDestructuring,
             [
               new DestructuringAssignmentExpression(
-                ExpressionKind.ObjectDestructuringAssignment,
+                ExpressionKind.ObjectDestructuring,
                 [
                   new DestructuringAssignmentSingleExpression(
                     new AccessMemberExpression($this, 'item2p2'),
@@ -2733,7 +2733,7 @@ describe('DestructuringAssignmentExpression', function () {
     it('{prop1,coll:[,{p:[item21]}]} = {prop1:"foo",coll:[{p:[1,2]},{p:[3,4]}]}', function () {
       const bc: Record<string, any> = {};
       new DestructuringAssignmentExpression(
-        ExpressionKind.ObjectDestructuringAssignment,
+        ExpressionKind.ObjectDestructuring,
         [
           new DestructuringAssignmentSingleExpression(
             new AccessMemberExpression($this, 'prop1'),
@@ -2741,13 +2741,13 @@ describe('DestructuringAssignmentExpression', function () {
             void 0
           ),
           new DestructuringAssignmentExpression(
-            ExpressionKind.ArrayDestructuringAssignment,
+            ExpressionKind.ArrayDestructuring,
             [
               new DestructuringAssignmentExpression(
-                ExpressionKind.ObjectDestructuringAssignment,
+                ExpressionKind.ObjectDestructuring,
                 [
                   new DestructuringAssignmentExpression(
-                    ExpressionKind.ArrayDestructuringAssignment,
+                    ExpressionKind.ArrayDestructuring,
                     [
                       new DestructuringAssignmentSingleExpression(
                         new AccessMemberExpression($this, 'item21'),
@@ -2777,7 +2777,7 @@ describe('DestructuringAssignmentExpression', function () {
       const bc: Record<string, any> = {};
 
       new DestructuringAssignmentExpression(
-        ExpressionKind.ArrayDestructuringAssignment,
+        ExpressionKind.ArrayDestructuring,
         [
           new DestructuringAssignmentSingleExpression(
             new AccessMemberExpression($this, 'k'),
@@ -2785,7 +2785,7 @@ describe('DestructuringAssignmentExpression', function () {
             void 0
           ),
           new DestructuringAssignmentExpression(
-            ExpressionKind.ObjectDestructuringAssignment,
+            ExpressionKind.ObjectDestructuring,
             [
               new DestructuringAssignmentSingleExpression(
                 new AccessMemberExpression($this, 'prop1'),
@@ -2793,7 +2793,7 @@ describe('DestructuringAssignmentExpression', function () {
                 void 0
               ),
               new DestructuringAssignmentExpression(
-                ExpressionKind.ObjectDestructuringAssignment,
+                ExpressionKind.ObjectDestructuring,
                 [
                   new DestructuringAssignmentSingleExpression(
                     new AccessMemberExpression($this, 'prop21'),
@@ -2819,7 +2819,7 @@ describe('DestructuringAssignmentExpression', function () {
       const bc: Record<string, any> = {};
 
       new DestructuringAssignmentExpression(
-        ExpressionKind.ArrayDestructuringAssignment,
+        ExpressionKind.ArrayDestructuring,
         [
           new DestructuringAssignmentSingleExpression(
             new AccessMemberExpression($this, 'k'),
@@ -2827,7 +2827,7 @@ describe('DestructuringAssignmentExpression', function () {
             void 0
           ),
           new DestructuringAssignmentExpression(
-            ExpressionKind.ArrayDestructuringAssignment,
+            ExpressionKind.ArrayDestructuring,
             [
               new DestructuringAssignmentSingleExpression(
                 new AccessMemberExpression($this, 'item2'),
@@ -2849,7 +2849,7 @@ describe('DestructuringAssignmentExpression', function () {
       const bc: Record<string, any> = {};
 
       new DestructuringAssignmentExpression(
-        ExpressionKind.ObjectDestructuringAssignment,
+        ExpressionKind.ObjectDestructuring,
         [
           new DestructuringAssignmentSingleExpression(
             new AccessMemberExpression($this, 'a'),
@@ -2857,7 +2857,7 @@ describe('DestructuringAssignmentExpression', function () {
             void 0
           ),
           new DestructuringAssignmentExpression(
-            ExpressionKind.ObjectDestructuringAssignment,
+            ExpressionKind.ObjectDestructuring,
             [
               new DestructuringAssignmentSingleExpression(
                 new AccessMemberExpression($this, 'c'),

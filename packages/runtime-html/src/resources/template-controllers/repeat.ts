@@ -95,7 +95,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     this._checkCollectionObserver(flags);
     const dec = forOf.declaration;
-    if(!(this._hasDestructuredLocal = dec.$kind === ExpressionKind.ArrayDestructuringAssignment || dec.$kind === ExpressionKind.ObjectDestructuringAssignment)) {
+    if(!(this._hasDestructuredLocal = dec.$kind === ExpressionKind.ArrayDestructuring || dec.$kind === ExpressionKind.ObjectDestructuring)) {
       this.local = dec.evaluate(flags, this.$controller.scope, binding.locator, null) as string;
     }
   }

@@ -6,7 +6,7 @@
 // const paramTerminal = ['=', ',', ')'];
 
 import { ViewportInstructionTree, ViewportInstruction, Params } from './instructions.js';
-import { NavigationOptions } from './router.js';
+import { emptyQuery, NavigationOptions } from './router.js';
 
 // These are the currently used terminal symbols.
 // We're deliberately having every "special" (including the not-in-use '&', ''', '~', ';') as a terminal symbol,
@@ -164,7 +164,7 @@ export class RouteExpression {
         '',
         false,
         SegmentExpression.EMPTY,
-        Object.freeze(queryParams ?? new URLSearchParams()),
+        queryParams != null ? Object.freeze(queryParams) : emptyQuery,
         fragment,
         fragmentIsRoute,
       );
@@ -191,15 +191,21 @@ export class RouteExpression {
     state.ensureDone();
 
     const raw = state.playback();
-    return new RouteExpression(raw, isAbsolute, root, Object.freeze(queryParams ?? new URLSearchParams()), fragment, fragmentIsRoute);
+    return new RouteExpression(raw, isAbsolute, root, queryParams !=null ? Object.freeze(queryParams) : emptyQuery, fragment, fragmentIsRoute);
   }
 
   public toInstructionTree(options: NavigationOptions): ViewportInstructionTree {
+    let query = this.queryParams;
+    const optQuery = options.queryParams;
+    if(optQuery != null) {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      query = new URLSearchParams({...Object.fromEntries(query.entries()), ...optQuery} as Record<string, string>);
+    }
     return new ViewportInstructionTree(
       options,
       this.isAbsolute,
       this.root.toInstructions(options.append, 0, 0),
-      this.queryParams,
+      query,
       this.fragment,
     );
   }

@@ -13,6 +13,8 @@ import { Batch, mergeDistinct, UnwrapPromise } from './util.js';
 import { RouteDefinition } from './route-definition.js';
 import { ViewportAgent } from './viewport-agent.js';
 
+/** @internal */
+export const emptyQuery = Object.freeze(new URLSearchParams());
 export const AuNavId = 'au-nav-id' as const;
 export type AuNavId = typeof AuNavId;
 
@@ -368,7 +370,7 @@ export class Router {
       const ctx = this.ctx;
       routeTree = this._routeTree = new RouteTree(
         NavigationOptions.create({ ...this.options }),
-        Object.freeze(new URLSearchParams()),
+        emptyQuery,
         null,
         RouteNode.create({
           path: '',

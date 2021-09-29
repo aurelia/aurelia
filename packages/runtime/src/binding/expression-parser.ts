@@ -41,6 +41,8 @@ import {
   IsValueConverter,
   UnaryOperator,
   ExpressionKind,
+  DestructuringAssignmentSingleExpression as DASE,
+  DestructuringAssignmentExpression as DAE,
 } from './ast.js';
 import { createLookup } from '../utilities-objects.js';
 
@@ -513,7 +515,7 @@ TPrec extends Precedence.Unary ? IsUnary :
         access = Access.Reset;
         break;
       case Token.OpenBracket:
-        result = parseArrayLiteralExpression(state, access, expressionType);
+        result = state.ip.search(/\s+of\s+/) > state.index ? parseArrayDestructuring(state) : parseArrayLiteralExpression(state, access, expressionType);
         access = Access.Reset;
         break;
       case Token.OpenBrace:
@@ -809,6 +811,52 @@ TPrec extends Precedence.Unary ? IsUnary :
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return result as any;
+}
+
+/**
+ * [key,]
+ * [key]
+ * [,value]
+ * [key,value]
+ */
+function parseArrayDestructuring(state: ParserState): DAE {
+  const items: DASE[] = [];
+  const dae = new DAE(ExpressionKind.ArrayDestructuring, items, void 0, void 0);
+  let target: string = '';
+  let $continue = true;
+  let index = 0;
+  while ($continue) {
+    nextToken(state);
+    switch (state._currentToken) {
+      case Token.CloseBracket:
+        $continue = false;
+        addItem();
+        break;
+      case Token.Comma:
+        addItem();
+        break;
+      case Token.Identifier:
+        target = state._tokenRaw;
+        break;
+      default:
+        if (__DEV__) {
+          throw new Error(`Unexpected '${state._tokenRaw}' at position ${state.index - 1} for destructuring assignment in ${state.ip}`);
+        } else {
+          throw new Error(`AUR0170:${state.ip}`);
+        }
+    }
+  }
+  consume(state, Token.CloseBracket);
+  return dae;
+
+  function addItem() {
+    if (target !== '') {
+      items.push(new DASE(new AccessMemberExpression($this, target), new AccessKeyedExpression($this, new PrimitiveLiteralExpression(index++)), void 0));
+      target = '';
+    } else {
+      index++;
+    }
+  }
 }
 
 /**

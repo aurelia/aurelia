@@ -16,7 +16,7 @@ npm i @aurelia/store-v1
 
 When registering the Aurelia Store plugin, you need to pass in the initial state of your application. This is an object which defines the data structure of your application, it needs to be done upfront so the plugin can watch it and act accordingly when it changes.
 
-Create a new file in the `src` directory called `initiastate.ts` with your state object inside:
+Create a new file in the `src` directory called `initialstate.ts` with your state object inside:
 
 ```typescript
 export const initialState = {

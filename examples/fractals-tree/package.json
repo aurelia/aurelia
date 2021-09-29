@@ -12,16 +12,16 @@
     "serve": "node ../../node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.1-dev.202109161239",
-    "@aurelia/metadata": "2.0.1-dev.202109161239",
-    "@aurelia/platform": "2.0.1-dev.202109161239",
-    "@aurelia/platform-browser": "2.0.1-dev.202109161239",
-    "@aurelia/runtime-html": "2.0.1-dev.202109161239",
-    "@aurelia/runtime": "2.0.1-dev.202109161239",
+    "@aurelia/kernel": "2.1.0-dev.202109291104",
+    "@aurelia/metadata": "2.1.0-dev.202109291104",
+    "@aurelia/platform": "2.1.0-dev.202109291104",
+    "@aurelia/platform-browser": "2.1.0-dev.202109291104",
+    "@aurelia/runtime-html": "2.1.0-dev.202109291104",
+    "@aurelia/runtime": "2.1.0-dev.202109291104",
     "perf-monitor": "latest"
   },
   "devDependencies": {
-    "@aurelia/http-server": "2.0.1-dev.202109161239",
+    "@aurelia/http-server": "2.1.0-dev.202109291104",
     "webpack-cli": "^4.2.0",
     "webpack": "^5.10.3",
     "webpack-bundle-analyzer": "^4.4.2"

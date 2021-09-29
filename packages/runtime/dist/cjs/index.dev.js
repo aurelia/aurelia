@@ -481,7 +481,10 @@ exports.ExpressionKind = void 0;
     ExpressionKind[ExpressionKind["ObjectBindingPattern"] = 65557] = "ObjectBindingPattern";
     ExpressionKind[ExpressionKind["BindingIdentifier"] = 65558] = "BindingIdentifier";
     ExpressionKind[ExpressionKind["ForOfStatement"] = 6199] = "ForOfStatement";
-    ExpressionKind[ExpressionKind["Interpolation"] = 24] = "Interpolation"; //
+    ExpressionKind[ExpressionKind["Interpolation"] = 24] = "Interpolation";
+    ExpressionKind[ExpressionKind["ArrayDestructuring"] = 90137] = "ArrayDestructuring";
+    ExpressionKind[ExpressionKind["ObjectDestructuring"] = 106521] = "ObjectDestructuring";
+    ExpressionKind[ExpressionKind["DestructuringAssignmentLeaf"] = 139289] = "DestructuringAssignmentLeaf";
 })(exports.ExpressionKind || (exports.ExpressionKind = {}));
 class Unparser {
     constructor() {
@@ -698,6 +701,48 @@ class Unparser {
             this.text += parts[i + 1];
         }
         this.text += '}';
+    }
+    visitDestructuringAssignmentExpression(expr) {
+        const $kind = expr.$kind;
+        const isObjDes = $kind === 106521 /* ObjectDestructuring */;
+        this.text += isObjDes ? '{' : '[';
+        const list = expr.list;
+        const len = list.length;
+        let i;
+        let item;
+        for (i = 0; i < len; i++) {
+            item = list[i];
+            switch (item.$kind) {
+                case 139289 /* DestructuringAssignmentLeaf */:
+                    item.accept(this);
+                    break;
+                case 90137 /* ArrayDestructuring */:
+                case 106521 /* ObjectDestructuring */: {
+                    const source = item.source;
+                    if (source) {
+                        source.accept(this);
+                        this.text += ':';
+                    }
+                    item.accept(this);
+                    break;
+                }
+            }
+        }
+        this.text += isObjDes ? '}' : ']';
+    }
+    visitDestructuringAssignmentSingleExpression(expr) {
+        expr.source.accept(this);
+        this.text += ':';
+        expr.target.accept(this);
+        const initializer = expr.initializer;
+        if (initializer !== void 0) {
+            this.text += '=';
+            initializer.accept(this);
+        }
+    }
+    visitDestructuringAssignmentRestExpression(expr) {
+        this.text += '...';
+        expr.accept(this);
     }
     writeArgs(args) {
         this.text += '(';
@@ -1567,6 +1612,139 @@ class Interpolation {
     }
     accept(visitor) {
         return visitor.visitInterpolation(this);
+    }
+    toString() {
+        return Unparser.unparse(this);
+    }
+}
+// spec: https://tc39.es/ecma262/#sec-destructuring-assignment
+/** This is an internal API */
+class DestructuringAssignmentExpression {
+    constructor($kind, list, source, initializer) {
+        this.$kind = $kind;
+        this.list = list;
+        this.source = source;
+        this.initializer = initializer;
+    }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
+    evaluate(_f, _s, _l, _c) {
+        return void 0;
+    }
+    assign(f, s, l, value) {
+        var _a;
+        const list = this.list;
+        const len = list.length;
+        let i;
+        let item;
+        for (i = 0; i < len; i++) {
+            item = list[i];
+            switch (item.$kind) {
+                case 139289 /* DestructuringAssignmentLeaf */:
+                    item.assign(f, s, l, value);
+                    break;
+                case 90137 /* ArrayDestructuring */:
+                case 106521 /* ObjectDestructuring */: {
+                    if (typeof value !== 'object' || value === null) {
+                        {
+                            throw new Error('AUR0112');
+                        }
+                    }
+                    let source = item.source.evaluate(f, Scope.create(value), l, null);
+                    if (source === void 0) {
+                        source = (_a = item.initializer) === null || _a === void 0 ? void 0 : _a.evaluate(f, s, l, null);
+                    }
+                    item.assign(f, s, l, source);
+                    break;
+                }
+            }
+        }
+    }
+    accept(visitor) {
+        return visitor.visitDestructuringAssignmentExpression(this);
+    }
+    toString() {
+        return Unparser.unparse(this);
+    }
+}
+/** This is an internal API */
+class DestructuringAssignmentSingleExpression {
+    constructor(target, source, initializer) {
+        this.target = target;
+        this.source = source;
+        this.initializer = initializer;
+    }
+    get $kind() { return 139289 /* DestructuringAssignmentLeaf */; }
+    evaluate(_f, _s, _l, _c) {
+        return void 0;
+    }
+    assign(f, s, l, value) {
+        var _a;
+        if (value == null) {
+            return;
+        }
+        if (typeof value !== 'object') {
+            {
+                throw new Error('AUR0112');
+            }
+        }
+        let source = this.source.evaluate(f, Scope.create(value), l, null);
+        if (source === void 0) {
+            source = (_a = this.initializer) === null || _a === void 0 ? void 0 : _a.evaluate(f, s, l, null);
+        }
+        this.target.assign(f, s, l, source);
+    }
+    accept(visitor) {
+        return visitor.visitDestructuringAssignmentSingleExpression(this);
+    }
+    toString() {
+        return Unparser.unparse(this);
+    }
+}
+/** This is an internal API */
+class DestructuringAssignmentRestExpression {
+    constructor(target, indexOrProperties) {
+        this.target = target;
+        this.indexOrProperties = indexOrProperties;
+    }
+    get $kind() { return 139289 /* DestructuringAssignmentLeaf */; }
+    evaluate(_f, _s, _l, _c) {
+        return void 0;
+    }
+    assign(f, s, l, value) {
+        if (value == null) {
+            return;
+        }
+        if (typeof value !== 'object') {
+            {
+                throw new Error('AUR0112');
+            }
+        }
+        const indexOrProperties = this.indexOrProperties;
+        let restValue;
+        if (kernel.isArrayIndex(indexOrProperties)) {
+            if (!Array.isArray(value)) {
+                {
+                    throw new Error('AUR0112');
+                }
+            }
+            restValue = value.slice(indexOrProperties);
+        }
+        else {
+            restValue = Object
+                .entries(value)
+                .reduce((acc, [k, v]) => {
+                if (!indexOrProperties.includes(k)) {
+                    acc[k] = v;
+                }
+                return acc;
+                // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+            }, {});
+        }
+        this.target.assign(f, s, l, restValue);
+    }
+    accept(_visitor) {
+        return _visitor.visitDestructuringAssignmentRestExpression(this);
     }
     toString() {
         return Unparser.unparse(this);
@@ -3359,7 +3537,7 @@ function parse(state, access, minPrecedence, expressionType) {
                 access = 0 /* Reset */;
                 break;
             case 671757 /* OpenBracket */:
-                result = parseArrayLiteralExpression(state, access, expressionType);
+                result = state.ip.search(/\s+of\s+/) > state.index ? parseArrayDestructuring(state) : parseArrayLiteralExpression(state, access, expressionType);
                 access = 0 /* Reset */;
                 break;
             case 131080 /* OpenBrace */:
@@ -3625,6 +3803,49 @@ function parse(state, access, minPrecedence, expressionType) {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result;
+}
+/**
+ * [key,]
+ * [key]
+ * [,value]
+ * [key,value]
+ */
+function parseArrayDestructuring(state) {
+    const items = [];
+    const dae = new DestructuringAssignmentExpression(90137 /* ArrayDestructuring */, items, void 0, void 0);
+    let target = '';
+    let $continue = true;
+    let index = 0;
+    while ($continue) {
+        nextToken(state);
+        switch (state._currentToken) {
+            case 1835022 /* CloseBracket */:
+                $continue = false;
+                addItem();
+                break;
+            case 1572876 /* Comma */:
+                addItem();
+                break;
+            case 1024 /* Identifier */:
+                target = state._tokenRaw;
+                break;
+            default:
+                {
+                    throw new Error(`AUR0170:${state.ip}`);
+                }
+        }
+    }
+    consume(state, 1835022 /* CloseBracket */);
+    return dae;
+    function addItem() {
+        if (target !== '') {
+            items.push(new DestructuringAssignmentSingleExpression(new AccessMemberExpression($this, target), new AccessKeyedExpression($this, new PrimitiveLiteralExpression(index++)), void 0));
+            target = '';
+        }
+        else {
+            index++;
+        }
+    }
 }
 /**
  * parseArrayLiteralExpression
@@ -5412,6 +5633,9 @@ exports.ComputedObserver = ComputedObserver;
 exports.ConditionalExpression = ConditionalExpression;
 exports.ConnectableSwitcher = ConnectableSwitcher;
 exports.CustomExpression = CustomExpression;
+exports.DestructuringAssignmentExpression = DestructuringAssignmentExpression;
+exports.DestructuringAssignmentRestExpression = DestructuringAssignmentRestExpression;
+exports.DestructuringAssignmentSingleExpression = DestructuringAssignmentSingleExpression;
 exports.DirtyCheckProperty = DirtyCheckProperty;
 exports.DirtyCheckSettings = DirtyCheckSettings;
 exports.FlushQueue = FlushQueue;

@@ -10142,6 +10142,7 @@ class Repeat {
         /** @internal */ this._reevaluating = false;
         /** @internal */ this._innerItemsExpression = null;
         /** @internal */ this._normalizedItems = void 0;
+        /** @internal */ this._hasDestructuredLocal = false;
     }
     binding(initiator, parent, flags) {
         const bindings = this._parent.bindings;
@@ -10164,7 +10165,10 @@ class Repeat {
             }
         }
         this._checkCollectionObserver(flags);
-        this.local = forOf.declaration.evaluate(flags, this.$controller.scope, binding.locator, null);
+        const dec = forOf.declaration;
+        if (!(this._hasDestructuredLocal = dec.$kind === 90137 /* ArrayDestructuring */ || dec.$kind === 106521 /* ObjectDestructuring */)) {
+            this.local = dec.evaluate(flags, this.$controller.scope, binding.locator, null);
+        }
     }
     attaching(initiator, parent, flags) {
         this._normalizeToArray(flags);
@@ -10290,12 +10294,18 @@ class Repeat {
         let viewScope;
         const { $controller, _factory: factory, local, _location: location, items } = this;
         const parentScope = $controller.scope;
-        const newLen = this.forOf.count(flags, items);
+        const forOf = this.forOf;
+        const newLen = forOf.count(flags, items);
         const views = this.views = Array(newLen);
-        this.forOf.iterate(flags, items, (arr, i, item) => {
+        forOf.iterate(flags, items, (arr, i, item) => {
             view = views[i] = factory.create().setLocation(location);
             view.nodes.unlink();
-            viewScope = runtime.Scope.fromParent(parentScope, runtime.BindingContext.create(local, item));
+            if (this._hasDestructuredLocal) {
+                forOf.declaration.assign(flags, viewScope = runtime.Scope.fromParent(parentScope, runtime.BindingContext.create()), this._forOfBinding.locator, item);
+            }
+            else {
+                viewScope = runtime.Scope.fromParent(parentScope, runtime.BindingContext.create(local, item));
+            }
             setContextualProperties(viewScope.overrideContext, i, newLen);
             ret = view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, viewScope);
             if (ret instanceof Promise) {
@@ -10393,7 +10403,12 @@ class Repeat {
             next = views[i + 1];
             view.nodes.link((_a = next === null || next === void 0 ? void 0 : next.nodes) !== null && _a !== void 0 ? _a : location);
             if (indexMap[i] === -2) {
-                viewScope = runtime.Scope.fromParent(parentScope, runtime.BindingContext.create(local, normalizedItems[i]));
+                if (this._hasDestructuredLocal) {
+                    this.forOf.declaration.assign(flags, viewScope = runtime.Scope.fromParent(parentScope, runtime.BindingContext.create()), this._forOfBinding.locator, normalizedItems[i]);
+                }
+                else {
+                    viewScope = runtime.Scope.fromParent(parentScope, runtime.BindingContext.create(local, normalizedItems[i]));
+                }
                 setContextualProperties(viewScope.overrideContext, i, newLen);
                 view.setLocation(location);
                 ret = view.activate(view, $controller, flags, viewScope);

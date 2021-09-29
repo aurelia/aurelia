@@ -803,6 +803,9 @@ var ASTExpressionTypes;
     ASTExpressionTypes["BindingIdentifier"] = "BindingIdentifier";
     ASTExpressionTypes["ForOfStatement"] = "ForOfStatement";
     ASTExpressionTypes["Interpolation"] = "Interpolation";
+    ASTExpressionTypes["DestructuringAssignment"] = "DestructuringAssignment";
+    ASTExpressionTypes["DestructuringSingleAssignment"] = "DestructuringSingleAssignment";
+    ASTExpressionTypes["DestructuringRestAssignment"] = "DestructuringRestAssignment";
 })(ASTExpressionTypes || (ASTExpressionTypes = {}));
 class Deserializer {
     static deserialize(serializedExpr) {
@@ -904,6 +907,15 @@ class Deserializer {
                 const expr = raw;
                 return new AST.Interpolation(this.hydrate(expr.cooked), this.hydrate(expr.expressions));
             }
+            case ASTExpressionTypes.DestructuringAssignment: {
+                return new AST.DestructuringAssignmentExpression(this.hydrate(raw.$kind), this.hydrate(raw.list), this.hydrate(raw.source), this.hydrate(raw.initializer));
+            }
+            case ASTExpressionTypes.DestructuringSingleAssignment: {
+                return new AST.DestructuringAssignmentSingleExpression(this.hydrate(raw.target), this.hydrate(raw.source), this.hydrate(raw.initializer));
+            }
+            case ASTExpressionTypes.DestructuringRestAssignment: {
+                return new AST.DestructuringAssignmentRestExpression(this.hydrate(raw.target), this.hydrate(raw.indexOrProperties));
+            }
             default:
                 if (Array.isArray(raw)) {
                     if (typeof raw[0] === 'object') {
@@ -1004,6 +1016,15 @@ class Serializer {
     }
     visitInterpolation(expr) {
         return `{"$TYPE":"${ASTExpressionTypes.Interpolation}","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+    }
+    visitDestructuringAssignmentExpression(expr) {
+        return `{"$TYPE":"${ASTExpressionTypes.DestructuringAssignment}","$kind":${serializePrimitive(expr.$kind)},"list":${this.serializeExpressions(expr.list)},"source":${expr.source === void 0 ? serializePrimitive(expr.source) : expr.source.accept(this)},"initializer":${expr.initializer === void 0 ? serializePrimitive(expr.initializer) : expr.initializer.accept(this)}}`;
+    }
+    visitDestructuringAssignmentSingleExpression(expr) {
+        return `{"$TYPE":"${ASTExpressionTypes.DestructuringSingleAssignment}","source":${expr.source.accept(this)},"target":${expr.target.accept(this)},"initializer":${expr.initializer === void 0 ? serializePrimitive(expr.initializer) : expr.initializer.accept(this)}}`;
+    }
+    visitDestructuringAssignmentRestExpression(expr) {
+        return `{"$TYPE":"${ASTExpressionTypes.DestructuringRestAssignment}","target":${expr.target.accept(this)},"indexOrProperties":${Array.isArray(expr.indexOrProperties) ? serializePrimitives(expr.indexOrProperties) : serializePrimitive(expr.indexOrProperties)}}`;
     }
     serializeExpressions(args) {
         let text = '[';

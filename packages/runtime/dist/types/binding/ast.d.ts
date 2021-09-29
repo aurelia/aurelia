@@ -1,8 +1,8 @@
 import { LifecycleFlags as LF } from '../observation.js';
+import { Scope } from '../observation/binding-context.js';
 import { IConnectableBinding } from './connectable.js';
 import type { IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
 import type { Collection, IBindingContext, IOverrideContext, IConnectable } from '../observation.js';
-import type { Scope } from '../observation/binding-context.js';
 export declare const enum ExpressionKind {
     CallsFunction = 128,
     HasAncestor = 256,
@@ -38,7 +38,10 @@ export declare const enum ExpressionKind {
     ObjectBindingPattern = 65557,
     BindingIdentifier = 65558,
     ForOfStatement = 6199,
-    Interpolation = 24
+    Interpolation = 24,
+    ArrayDestructuring = 90137,
+    ObjectDestructuring = 106521,
+    DestructuringAssignmentLeaf = 139289
 }
 export declare type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 export declare type BinaryOperator = '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
@@ -54,7 +57,7 @@ export declare type IsBindingBehavior = IsValueConverter | BindingBehaviorExpres
 export declare type IsAssignable = AccessScopeExpression | AccessKeyedExpression | AccessMemberExpression | AssignExpression;
 export declare type IsExpression = IsBindingBehavior | Interpolation;
 export declare type BindingIdentifierOrPattern = BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern;
-export declare type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | HtmlLiteralExpression;
+export declare type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | HtmlLiteralExpression | DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression;
 export declare type AnyBindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
 export interface IExpressionHydrator {
     hydrate(jsonExpr: any): any;
@@ -84,6 +87,9 @@ export interface IVisitor<T = unknown> {
     visitTemplate(expr: TemplateExpression): T;
     visitUnary(expr: UnaryExpression): T;
     visitValueConverter(expr: ValueConverterExpression): T;
+    visitDestructuringAssignmentExpression(expr: DestructuringAssignmentExpression): T;
+    visitDestructuringAssignmentSingleExpression(expr: DestructuringAssignmentSingleExpression): T;
+    visitDestructuringAssignmentRestExpression(expr: DestructuringAssignmentRestExpression): T;
 }
 export declare class Unparser implements IVisitor<void> {
     text: string;
@@ -112,6 +118,9 @@ export declare class Unparser implements IVisitor<void> {
     visitHtmlLiteral(expr: HtmlLiteralExpression): void;
     visitForOfStatement(expr: ForOfStatement): void;
     visitInterpolation(expr: Interpolation): void;
+    visitDestructuringAssignmentExpression(expr: DestructuringAssignmentExpression): void;
+    visitDestructuringAssignmentSingleExpression(expr: DestructuringAssignmentSingleExpression): void;
+    visitDestructuringAssignmentRestExpression(expr: DestructuringAssignmentRestExpression): void;
     private writeArgs;
 }
 export declare class CustomExpression {
@@ -403,12 +412,12 @@ export declare class BindingIdentifier {
     toString(): string;
 }
 export declare class ForOfStatement {
-    readonly declaration: BindingIdentifierOrPattern;
+    readonly declaration: BindingIdentifierOrPattern | DestructuringAssignmentExpression;
     readonly iterable: IsBindingBehavior;
     get $kind(): ExpressionKind.ForOfStatement;
     get hasBind(): false;
     get hasUnbind(): false;
-    constructor(declaration: BindingIdentifierOrPattern, iterable: IsBindingBehavior);
+    constructor(declaration: BindingIdentifierOrPattern | DestructuringAssignmentExpression, iterable: IsBindingBehavior);
     evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(_f: LF, _s: Scope, _l: IServiceLocator, _obj: unknown): unknown;
     count(_f: LF, result: Collection | number | null | undefined): number;
@@ -430,6 +439,43 @@ export declare class Interpolation {
     evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): string;
     assign(_f: LF, _s: Scope, _l: IServiceLocator, _obj: unknown): unknown;
     accept<T>(visitor: IVisitor<T>): T;
+    toString(): string;
+}
+/** This is an internal API */
+export declare class DestructuringAssignmentExpression {
+    readonly $kind: ExpressionKind.ArrayDestructuring | ExpressionKind.ObjectDestructuring;
+    readonly list: readonly (DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[];
+    readonly source: AccessMemberExpression | AccessKeyedExpression | undefined;
+    readonly initializer: IsBindingBehavior | undefined;
+    get hasBind(): false;
+    get hasUnbind(): false;
+    constructor($kind: ExpressionKind.ArrayDestructuring | ExpressionKind.ObjectDestructuring, list: readonly (DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[], source: AccessMemberExpression | AccessKeyedExpression | undefined, initializer: IsBindingBehavior | undefined);
+    evaluate(_f: LF, _s: Scope, _l: IServiceLocator, _c: IConnectable | null): undefined;
+    assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void;
+    accept<T>(visitor: IVisitor<T>): T;
+    toString(): string;
+}
+/** This is an internal API */
+export declare class DestructuringAssignmentSingleExpression {
+    readonly target: AccessMemberExpression;
+    readonly source: AccessMemberExpression | AccessKeyedExpression;
+    readonly initializer: IsBindingBehavior | undefined;
+    get $kind(): ExpressionKind.DestructuringAssignmentLeaf;
+    constructor(target: AccessMemberExpression, source: AccessMemberExpression | AccessKeyedExpression, initializer: IsBindingBehavior | undefined);
+    evaluate(_f: LF, _s: Scope, _l: IServiceLocator, _c: IConnectable | null): undefined;
+    assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void;
+    accept<T>(visitor: IVisitor<T>): T;
+    toString(): string;
+}
+/** This is an internal API */
+export declare class DestructuringAssignmentRestExpression {
+    readonly target: AccessMemberExpression;
+    readonly indexOrProperties: string[] | number;
+    get $kind(): ExpressionKind.DestructuringAssignmentLeaf;
+    constructor(target: AccessMemberExpression, indexOrProperties: string[] | number);
+    evaluate(_f: LF, _s: Scope, _l: IServiceLocator, _c: IConnectable | null): undefined;
+    assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void;
+    accept<T>(_visitor: IVisitor<T>): T;
     toString(): string;
 }
 //# sourceMappingURL=ast.d.ts.map

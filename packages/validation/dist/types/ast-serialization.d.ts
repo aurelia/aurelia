@@ -31,6 +31,9 @@ export declare class Serializer implements AST.IVisitor<string> {
     visitHtmlLiteral(_expr: AST.HtmlLiteralExpression): string;
     visitForOfStatement(expr: AST.ForOfStatement): string;
     visitInterpolation(expr: AST.Interpolation): string;
+    visitDestructuringAssignmentExpression(expr: AST.DestructuringAssignmentExpression): string;
+    visitDestructuringAssignmentSingleExpression(expr: AST.DestructuringAssignmentSingleExpression): string;
+    visitDestructuringAssignmentRestExpression(expr: AST.DestructuringAssignmentRestExpression): string;
     private serializeExpressions;
 }
 export declare function serializePrimitives(values: readonly unknown[]): string;

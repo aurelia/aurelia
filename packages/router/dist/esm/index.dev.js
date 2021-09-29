@@ -1554,7 +1554,7 @@ class RouteExpression {
             queryParams = new URLSearchParams(queryString);
         }
         if (path === '') {
-            return new RouteExpression('', false, SegmentExpression.EMPTY, Object.freeze(queryParams !== null && queryParams !== void 0 ? queryParams : new URLSearchParams()), fragment, fragmentIsRoute);
+            return new RouteExpression('', false, SegmentExpression.EMPTY, queryParams != null ? Object.freeze(queryParams) : emptyQuery, fragment, fragmentIsRoute);
         }
         /*
          * Now parse the actual route
@@ -1575,10 +1575,16 @@ class RouteExpression {
         const root = CompositeSegmentExpression.parse(state);
         state.ensureDone();
         const raw = state.playback();
-        return new RouteExpression(raw, isAbsolute, root, Object.freeze(queryParams !== null && queryParams !== void 0 ? queryParams : new URLSearchParams()), fragment, fragmentIsRoute);
+        return new RouteExpression(raw, isAbsolute, root, queryParams != null ? Object.freeze(queryParams) : emptyQuery, fragment, fragmentIsRoute);
     }
     toInstructionTree(options) {
-        return new ViewportInstructionTree(options, this.isAbsolute, this.root.toInstructions(options.append, 0, 0), this.queryParams, this.fragment);
+        let query = this.queryParams;
+        const optQuery = options.queryParams;
+        if (optQuery != null) {
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+            query = new URLSearchParams({ ...Object.fromEntries(query.entries()), ...optQuery });
+        }
+        return new ViewportInstructionTree(options, this.isAbsolute, this.root.toInstructions(options.append, 0, 0), query, this.fragment);
     }
     toString() {
         return this.raw;
@@ -2064,7 +2070,7 @@ class RouteNode {
         /* originalIns */ input.instruction, 
         /* instruction */ input.instruction, 
         /*      params */ (_a = input.params) !== null && _a !== void 0 ? _a : {}, 
-        /* queryParams */ (_b = input.queryParams) !== null && _b !== void 0 ? _b : Object.freeze(new URLSearchParams()), 
+        /* queryParams */ (_b = input.queryParams) !== null && _b !== void 0 ? _b : emptyQuery, 
         /*    fragment */ (_c = input.fragment) !== null && _c !== void 0 ? _c : null, 
         /*        data */ (_d = input.data) !== null && _d !== void 0 ? _d : {}, 
         /*    viewport */ (_e = input.viewport) !== null && _e !== void 0 ? _e : null, 
@@ -2588,6 +2594,8 @@ function appendNode(log, node, childNode) {
     });
 }
 
+/** @internal */
+const emptyQuery = Object.freeze(new URLSearchParams());
 const AuNavId = 'au-nav-id';
 function isManagedState(state) {
     return isObject(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
@@ -2855,7 +2863,7 @@ let Router = class Router {
             // Lazy instantiation for only the very first (synthetic) tree.
             // Doing it here instead of in the constructor to delay it until we have the context.
             const ctx = this.ctx;
-            routeTree = this._routeTree = new RouteTree(NavigationOptions.create({ ...this.options }), Object.freeze(new URLSearchParams()), null, RouteNode.create({
+            routeTree = this._routeTree = new RouteTree(NavigationOptions.create({ ...this.options }), emptyQuery, null, RouteNode.create({
                 path: '',
                 finalPath: '',
                 context: ctx,
@@ -3400,13 +3408,13 @@ class ViewportInstructionTree {
             return new ViewportInstructionTree($options, instructionOrInstructions.isAbsolute, instructionOrInstructions.children.map(x => ViewportInstruction.create(x, $options.context)), instructionOrInstructions.queryParams, instructionOrInstructions.fragment);
         }
         if (instructionOrInstructions instanceof Array) {
-            return new ViewportInstructionTree($options, false, instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)), Object.freeze(new URLSearchParams()), null);
+            return new ViewportInstructionTree($options, false, instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)), emptyQuery, null);
         }
         if (typeof instructionOrInstructions === 'string') {
             const expr = RouteExpression.parse(instructionOrInstructions, $options.useUrlFragmentHash);
             return expr.toInstructionTree($options);
         }
-        return new ViewportInstructionTree($options, false, [ViewportInstruction.create(instructionOrInstructions, $options.context)], Object.freeze(new URLSearchParams()), null);
+        return new ViewportInstructionTree($options, false, [ViewportInstruction.create(instructionOrInstructions, $options.context)], emptyQuery, null);
     }
     equals(other) {
         const thisChildren = this.children;

@@ -61,3 +61,26 @@ Inside of the `repeat.for` these can be accessed. In the following example we di
 </ul>
 ```
 
+### Iterating over a set
+
+With `repeat.for` you can iterate over a [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) using the same syntax as shown above.
+
+```markup
+<p repeat.for="i of set">${i}</p>
+```
+
+### Iterating over a map
+
+You can also iterate over a map using the `repeat.for`.
+When iterating over a map, the declaration expression contains a pair of key and value.
+
+```markup
+<p repeat.for="pair of map">key:${pair[0]} | value: ${pair[1]}</p>
+```
+
+You can also destructure the `pair`.
+
+
+```markup
+<p repeat.for="[k,v] of map">key:${k} | value: ${v}</p>
+```

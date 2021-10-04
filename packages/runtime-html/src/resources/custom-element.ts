@@ -283,7 +283,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('injectable', def, returnNull),
         fromDefinitionOrDefault('needsCompile', def, returnTrue),
         mergeArrays(def.surrogates),
-        Bindable.from(def.bindables),
+        Bindable.from(Type, def.bindables),
         Children.from(def.childrenObservers),
         fromDefinitionOrDefault('containerless', def, returnFalse),
         fromDefinitionOrDefault('isStrictBinding', def, returnFalse),
@@ -313,6 +313,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue),
         mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates),
         Bindable.from(
+          Type,
           ...Bindable.getAll(Type),
           getElementAnnotation(Type, 'bindables'),
           Type.bindables,
@@ -352,6 +353,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue),
       mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates),
       Bindable.from(
+        Type,
         ...Bindable.getAll(Type),
         getElementAnnotation(Type, 'bindables'),
         Type.bindables,

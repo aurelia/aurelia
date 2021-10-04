@@ -1,10 +1,13 @@
-import { kebabCase, firstDefined, getPrototypeChain, noop } from '@aurelia/kernel';
+import { kebabCase, firstDefined, getPrototypeChain, noop, Class } from '@aurelia/kernel';
 import { BindingMode } from '@aurelia/runtime';
+import { configurationOptions } from './configuration-options.js';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './shared.js';
 import { isString } from './utilities.js';
 
 import type { Constructable, Writable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
+
+type PropertyType = typeof Number | typeof String | typeof Boolean | { coercer: InterceptorFunc } | Class<unknown>;
 
 export type PartialBindableDefinition = {
   mode?: BindingMode;
@@ -13,6 +16,7 @@ export type PartialBindableDefinition = {
   property?: string;
   primary?: boolean;
   set?: InterceptorFunc;
+  type?: PropertyType;
 };
 
 type PartialBindableDefinitionPropertyRequired = PartialBindableDefinition & {
@@ -53,7 +57,7 @@ export function bindable(configOrTarget?: PartialBindableDefinition | {}, prop?:
       config.property = $prop;
     }
 
-    defineMetadata(baseName, BindableDefinition.create($prop, config), $target.constructor, $prop);
+    defineMetadata(baseName, BindableDefinition.create($prop, $target as Constructable, config), $target.constructor, $prop);
     appendAnnotationKey($target.constructor as Constructable, Bindable.keyFrom($prop));
   }
 
@@ -120,17 +124,17 @@ const baseName = getAnnotationKeyFor('bindable');
 export const Bindable = Object.freeze({
   name: baseName,
   keyFrom: (name: string): string => `${baseName}:${name}`,
-  from(...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
+  from(type: Constructable, ...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
     const bindables: Record<string, BindableDefinition> = {};
 
     const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
 
     function addName(name: string): void {
-      bindables[name] = BindableDefinition.create(name);
+      bindables[name] = BindableDefinition.create(name, type);
     }
 
     function addDescription(name: string, def: PartialBindableDefinition): void {
-      bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, def);
+      bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, type, def);
     }
 
     function addList(maybeList: BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined): void {
@@ -162,7 +166,7 @@ export const Bindable = Object.freeze({
           config = configOrProp;
         }
 
-        def = BindableDefinition.create(prop, config) as Writable<BindableDefinition>;
+        def = BindableDefinition.create(prop, Type, config) as Writable<BindableDefinition>;
         if (!hasOwnMetadata(baseName, Type, prop)) {
           appendAnnotationKey(Type, Bindable.keyFrom(prop));
         }
@@ -232,14 +236,14 @@ export class BindableDefinition {
     public readonly set: InterceptorFunc,
   ) { }
 
-  public static create(prop: string, def: PartialBindableDefinition = {}): BindableDefinition {
+  public static create(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}): BindableDefinition {
     return new BindableDefinition(
       firstDefined(def.attribute, kebabCase(prop)),
       firstDefined(def.callback, `${prop}Changed`),
       firstDefined(def.mode, BindingMode.toView),
       firstDefined(def.primary, false),
       firstDefined(def.property, prop),
-      firstDefined(def.set, noop),
+      firstDefined(def.set, getInterceptor(prop, target, def)),
     );
   }
 }
@@ -317,3 +321,52 @@ function apiTypeCheck() {
     .add('prop').primary();
 }
 /* eslint-enable @typescript-eslint/no-unused-vars,spaced-comment */
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+declare namespace Reflect {
+  function getMetadata(metadataKey: any, target: any, propertyKey?: string | symbol): any;
+}
+
+export function coercer(target: Constructable<unknown>, property: string, _descriptor: PropertyDescriptor): void {
+  Coercer.define(target, property);
+}
+
+const Coercer = {
+  key: getAnnotationKeyFor('coercer'),
+  define(target: Constructable<unknown>, property: string) {
+    defineMetadata(Coercer.key, ((target as any)[property] as InterceptorFunc).bind(target), target);
+  },
+  for(target: Constructable<unknown>) {
+    return getOwnMetadata(Coercer.key, target) as InterceptorFunc;
+  }
+};
+
+function getInterceptor(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}){
+  let coercer: InterceptorFunc = noop;
+  if (configurationOptions.coerceBindables) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const type: PropertyType | null = def.type ?? Reflect.getMetadata('design:type', target, prop) ?? null;
+    if(type == null) {
+      if (__DEV__)
+        throw new Error(`The type of the bindable property '${prop}' is cannot be determined which is needed for type coercion.`);
+      else
+        throw new Error(`AUR0717:${prop}`);
+    }
+    switch(true) {
+      case type === Number:
+      case type === Boolean:
+      case type === String:
+        coercer = type as (typeof Number | typeof Boolean | typeof String);
+        break;
+      /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+      case typeof (type as any).coercer === 'function':
+        coercer = ((type as any).coercer as InterceptorFunc).bind(type);
+        break;
+      /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+      default:
+        coercer = Coercer.for(target);
+        break;
+    }
+  }
+  return coercer;
+}

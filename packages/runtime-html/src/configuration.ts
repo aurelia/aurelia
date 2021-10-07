@@ -81,10 +81,6 @@ import { AuSlot } from './resources/custom-elements/au-slot.js';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize.js';
 import { ViewValueConverter } from './resources/value-converters/view.js';
 import { NodeObserverLocator } from './observation/observer-locator.js';
-import {
-  ConfigOptionsProvider,
-  configurationOptions,
-} from './configuration-options.js';
 
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
@@ -316,32 +312,24 @@ export const DefaultRenderers = [
  * - `DefaultResources`
  * - `DefaultRenderers`
  */
-function createConfiguration(configProvider: ConfigOptionsProvider) {
-  return {
-    configProvider,
-    /**
-     * Apply this configuration to the provided container.
-     */
-    register(container: IContainer): IContainer {
-      configProvider(configurationOptions);
+export const StandardConfiguration = {
+  /**
+   * Apply this configuration to the provided container.
+   */
+  register(container: IContainer): IContainer {
 
-      return container.register(
-        ...DefaultComponents,
-        ...DefaultResources,
-        ...DefaultBindingSyntax,
-        ...DefaultBindingLanguage,
-        ...DefaultRenderers,
-      );
-    },
-    /**
-     * Create a new container with this configuration applied to it.
-     */
-    createContainer(): IContainer {
-      return this.register(DI.createContainer());
-    },
-    customize(cb?: ConfigOptionsProvider) {
-      return createConfiguration(cb ?? configProvider);
-    }
-  };
-}
-export const StandardConfiguration = createConfiguration(noop);
+    return container.register(
+      ...DefaultComponents,
+      ...DefaultResources,
+      ...DefaultBindingSyntax,
+      ...DefaultBindingLanguage,
+      ...DefaultRenderers,
+    );
+  },
+  /**
+   * Create a new container with this configuration applied to it.
+   */
+  createContainer(): IContainer {
+    return this.register(DI.createContainer());
+  },
+};

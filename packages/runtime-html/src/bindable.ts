@@ -341,32 +341,20 @@ const Coercer = {
   }
 };
 
-function getInterceptor(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}){
-  let coercer: InterceptorFunc = noop;
-  if (configurationOptions.coerceBindables) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const type: PropertyType | null = def.type ?? Reflect.getMetadata('design:type', target, prop) ?? null;
-    if(type == null) {
-      if (__DEV__)
-        throw new Error(`The type of the bindable property '${prop}' is cannot be determined which is needed for type coercion.`);
-      else
-        throw new Error(`AUR0717:${prop}`);
-    }
-    switch(true) {
-      case type === Number:
-      case type === Boolean:
-      case type === String:
-        coercer = type as (typeof Number | typeof Boolean | typeof String);
-        break;
-      /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-      case typeof (type as any).coercer === 'function':
-        coercer = ((type as any).coercer as InterceptorFunc).bind(type);
-        break;
-      /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-      default:
-        coercer = Coercer.for(target);
-        break;
-    }
+function getInterceptor(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}) {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const type: PropertyType | null = def.type ?? Reflect.getMetadata('design:type', target, prop) ?? null;
+  if (type == null) { return noop; }
+  switch (true) {
+    case type === Number:
+    case type === Boolean:
+    case type === String:
+      return type as (typeof Number | typeof Boolean | typeof String);
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+    case typeof (type as any).coercer === 'function':
+      return ((type as any).coercer as InterceptorFunc).bind(type);
+    /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+    default:
+      return Coercer.for(target) ?? noop;
   }
-  return coercer;
 }

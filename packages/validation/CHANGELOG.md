@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.22"></a>
+# 2.0.0-alpha.22 (2021-10-24)
+
+### Bug Fixes:
+
+* ***:** broken test ([257326c](https://github.com/aurelia/aurelia/commit/257326c))
+* ***:** broken build ([3ececf2](https://github.com/aurelia/aurelia/commit/3ececf2))
+
 <a name="2.0.0-alpha.21"></a>
 # 2.0.0-alpha.21 (2021-09-12)
 

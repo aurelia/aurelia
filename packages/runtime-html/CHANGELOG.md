@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.22"></a>
+# 2.0.0-alpha.22 (2021-10-24)
+
+### Bug Fixes:
+
+* ***:** build issues ([1a32a43](https://github.com/aurelia/aurelia/commit/1a32a43))
+
+
+### Refactorings:
+
+* **repeat:** destructuring support WIP ([a6257f0](https://github.com/aurelia/aurelia/commit/a6257f0))
+
 <a name="2.0.0-alpha.21"></a>
 # 2.0.0-alpha.21 (2021-09-12)
 

@@ -62,7 +62,7 @@ export class MyComponent {
 
 ## Views and view models
 
-In Aurelia, your view is where your templates live. A view is just HTML with a little bit of Aurelia-guided enhancement. A view model \(also known by some as a controller\) is where your business logic goes. You load data in here, store values and have callback functions triggered by events or user input.
+In Aurelia, your view is where your templates live. A view is just HTML with a little bit of Aurelia-guided enhancement. A view model (also known by some as a controller) is where your business logic goes. You load data in here, store values and have callback functions triggered by events or user input.
 
 By default, Aurelia expects your components to have both a view and a view model, they are a pair. As you will discover in the Building Components section, you can have HTML-only custom elements as well.
 
@@ -89,7 +89,7 @@ In Aurelia, a custom element is a lowercase tag, separated by hyphens. In our ab
 <my-component></my-component>
 ```
 
-Similarly, a custom attribute allows you to decorate an existing HTML element \(including custom elements\). A custom attribute is a kebab-case value that is used on an element. The naming convention is the same for both custom elements and attributes.
+Similarly, a custom attribute allows you to decorate an existing HTML element (including custom elements). A custom attribute is a kebab-case value that is used on an element. The naming convention is the same for both custom elements and attributes.
 
 ```typescript
 export class MyAttributeCustomAttribute {
@@ -103,5 +103,4 @@ Which in turn, would be used in the following way:
 <div my-attribute></div>
 ```
 
-You can learn more about how to create custom elements and attributes in the [Building Components]() section.
-
+You can learn more about how to create custom elements and attributes in the [Building Components](broken-reference) section.

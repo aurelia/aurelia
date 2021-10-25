@@ -23,7 +23,7 @@ For this setting to work, you need to install the related package as well.
 npm i markdown-loader -D
 ```
 
-As a final step, we need to introduce the `.md` files into the TypeScript so find the `resource.d.ts` under `src` folder and **append** the following code into it.
+As a final step, we need to introduce the `.md` files into the TypeScript so find the `resource.d.ts` under `src` folder and **append **the following code into it.
 
 ```typescript
 declare module '*.md' {
@@ -41,11 +41,10 @@ declare module '*.md' {
 
 Now, you are able to define`Markdown`files for your views and use them beside HTML files.
 
-```text
+```
 my-app.css
 my-app.html or my-app.md
 my-app.ts
 ```
 
 ![](../../.gitbook/assets/markdown.png)
-

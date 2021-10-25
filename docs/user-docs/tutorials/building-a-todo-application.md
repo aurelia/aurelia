@@ -15,12 +15,12 @@ Todo applications are overdone, but it is hard to argue that they do not showcas
 A todo application comprised of the following features:
 
 * Displays a list of one or more todo items
-* Todo items can be completed \(a strikethrough will denote a completed todo\)
+* Todo items can be completed (a strikethrough will denote a completed todo)
 * Todo items can be deleted
 * Todo items can be added and will be pushed to the top of the list.
 
 {% hint style="success" %}
-See what you are getting yourself into before you continue. There is a working example of this application [here](https://upbeat-clarke-fe622b.netlify.app/).
+See what you are getting yourself into before you continue. There is a working example of this application [here](https://upbeat-clarke-fe622b.netlify.app).
 {% endhint %}
 
 ## Prerequisites
@@ -39,13 +39,13 @@ When creating a new Aurelia 2 application, it is considered best practice to use
 npx makes aurelia new-project-name -s dev
 ```
 
-Unlike other tutorials in the Aurelia 2 docs, we will not be using any CSS preprocessors, only using plain old Javascript instead of TypeScript \(Aurelia can support both\). This tutorial highlights just how basic an Aurelia application can be; CSS, Javascript and HTML.
+Unlike other tutorials in the Aurelia 2 docs, we will not be using any CSS preprocessors, only using plain old Javascript instead of TypeScript (Aurelia can support both). This tutorial highlights just how basic an Aurelia application can be; CSS, Javascript and HTML.
 
 ## Add some base styling
 
 Because this is an Aurelia tutorial, we are not going to delve into the CSS. To provide you with a beautiful todo list, all styling is provided.
 
-Copy and paste the following CSS and add it into `my-app.css` which should have been created as part of the CLI generation \(if not, create it\). This just gives us a nice font and some CSS grid styling for the layout to make our todo application look like a proper app and not a backyard DIY job.
+Copy and paste the following CSS and add it into `my-app.css` which should have been created as part of the CLI generation (if not, create it). This just gives us a nice font and some CSS grid styling for the layout to make our todo application look like a proper app and not a backyard DIY job.
 
 ```css
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400;1,700&display=swap');
@@ -82,7 +82,7 @@ button {
 
 ## Create the todo component
 
-The todo component is going to be the main part of our application, it will contain the logic and markup for our entire app, with a singular child component for the todo items themselves being the only other component \(we will create that one next\).
+The todo component is going to be the main part of our application, it will contain the logic and markup for our entire app, with a singular child component for the todo items themselves being the only other component (we will create that one next).
 
 Create three new files inside of a folder called `components`
 
@@ -130,13 +130,13 @@ export class TodoComponent {
 
 * We export a class which is the name of our component
 * **Line 2:** we create an empty string called `todo` this is where any todos we author are stored temporarily
-* **Line 4:** an array of todo items \(and any new ones that get added\)
+* **Line 4:** an array of todo items (and any new ones that get added)
 * **Line 15:** `newTodo` is a function that gets called on keypress in the view
-  * We check if the key pressed is enter \(keycode 13\)
+  * We check if the key pressed is enter (keycode 13)
   * If it is, we `unshift` our todo into the `todos` array
   * We then reset the `todo` property
 * **Line 21:** Aurelia will prevent all events by default when you bind to them, so we need to return true outside of our if statement or typing will break in our input field
-* **Line 24:** `deleteTodo` will remove a todo from our `todos` array and is passed an index
+* **Line 24: **`deleteTodo` will remove a todo from our `todos` array and is passed an index
   * We call Array.splice on the `todos` array and tell it we want to delete one item
 
 Believe it or not, this entire view model code forms the basis of adding and deleting todos. If we didn't have example todos in there, the code would be so much smaller.
@@ -163,9 +163,9 @@ The view is the most simple part of our application. Inside of `todo-component.h
 </div>
 ```
 
-* **Line 1:** importing an as of yet nonexistent todo-item component
-* **Line 8:** we define a text input field and bind its value to `todo` and also a `keypress.trigger` to listen to keyboard events \(we want to know when the user hits enter\)
-* **Line 12:** using a repeater, we are looping over the todos in our view model and binding them onto the `todo-item` element
+* **Line 1: **importing an as of yet nonexistent todo-item component
+* **Line 8: **we define a text input field and bind its value to `todo` and also a `keypress.trigger` to listen to keyboard events (we want to know when the user hits enter)
+* **Line 12: **using a repeater, we are looping over the todos in our view model and binding them onto the `todo-item` element
   * `todo.bind="todo"` we have a bindable property defined on the `todo-item` element called todo
   * `index.bind="$index"` another bindable property defined in the `todo-item` element, we pass in the current loop index denoted by its special simple prefix `$index`
   * `delete-todo.call="deleteTodo($index)"` this is a callback function that will call `deleteTodo` when a todo is deleted from inside of the `todo-item`
@@ -241,11 +241,11 @@ For this component, we are going to be creating a HTML only component. It means 
 </div>
 ```
 
-* **Line 1,2 & 3:** the bindable attribute allows us to specify bindable properties for our custom element. This allows us to bind to these values and read them inside of our view. The `deleteTogo` bindable is interesting because that is a bindable for a function that gets passed in.
-* **Line 5:** we use the `.class` binding to add a class to our element of `completed` if the `todo.completed` property is true or remove it if it's false.
-* **Line 6:** we bind the native checkbox `checked` event to the `completed` property which sets it to true or false
-* **Line 7:** we are making our paragraph element a `contenteditable` element which allows it to be edited \(it doesn't save, but we can temporarily edit our text\). We also display the text value using our interpolation `${}`
-* **Line 8:** lastly, we have a `click.trigger` to call our passed in `deleteTodo` bindable function callback when clicked
+* **Line 1,2 & 3: **the bindable attribute allows us to specify bindable properties for our custom element. This allows us to bind to these values and read them inside of our view. The `deleteTogo` bindable is interesting because that is a bindable for a function that gets passed in.
+* **Line 5: **we use the `.class` binding to add a class to our element of `completed` if the `todo.completed` property is true or remove it if it's false.
+* **Line 6: **we bind the native checkbox `checked` event to the `completed` property which sets it to true or false
+* **Line 7: **we are making our paragraph element a `contenteditable` element which allows it to be edited (it doesn't save, but we can temporarily edit our text). We also display the text value using our interpolation `${}`
+* **Line 8: **lastly, we have a `click.trigger` to call our passed in `deleteTodo` bindable function callback when clicked
 
 ## Styling for our todo item component
 
@@ -313,5 +313,4 @@ Now, let's run the app: `npm start` on the command line and wait for the browser
 
 ![](../.gitbook/assets/image.png)
 
-In case you missed the link in the beginning, a working example can be seen [here](https://upbeat-clarke-fe622b.netlify.app/). The code for this tutorial can also be found [on GitHub here](https://github.com/Vheissu/aurelia2-todo).
-
+In case you missed the link in the beginning, a working example can be seen [here](https://upbeat-clarke-fe622b.netlify.app). The code for this tutorial can also be found [on GitHub here](https://github.com/Vheissu/aurelia2-todo).

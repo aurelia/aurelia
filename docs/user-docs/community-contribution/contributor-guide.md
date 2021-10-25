@@ -4,7 +4,7 @@ description: Learn about our coding rules and contributing process.
 
 # Contributor guide
 
-We'd love for you to contribute to Aurelia's source code and help make our projects even better than they are today! ❤ To help you out, we've put together some guidelines we all like to follow.
+We'd love for you to contribute to Aurelia's source code and help make our projects even better than they are today! :heart: To help you out, we've put together some guidelines we all like to follow.
 
 {% hint style="success" %}
 **Here's what you'll learn...**
@@ -18,7 +18,7 @@ We'd love for you to contribute to Aurelia's source code and help make our proje
 
 ## Got a Question or Problem?
 
-If you have questions about how to use Aurelia, please direct these to [Discord](https://discordapp.com/channels/448698263508615178/448698263508615180), [Discourse](https://discourse.aurelia.io/), or [StackOverflow](https://stackoverflow.com/questions/tagged/aurelia).
+If you have questions about how to use Aurelia, please direct these to [Discord](https://discordapp.com/channels/448698263508615178/448698263508615180), [Discourse](https://discourse.aurelia.io), or [StackOverflow](https://stackoverflow.com/questions/tagged/aurelia).
 
 ## Found an Issue?
 
@@ -48,79 +48,72 @@ Before you submit your issue, search the archive. It may be that it was already 
 Before you submit your pull request consider the following guidelines:
 
 * Search the appropriate GitHub Repository for an open or closed Pull Request that relates to your submission. You don't want to duplicate effort.
-* Make your changes in a new git branch:
+*   Make your changes in a new git branch:
 
-  ```bash
-  git checkout -b my-fix-branch master
-  ```
-
+    ```bash
+    git checkout -b my-fix-branch master
+    ```
 * Create your patch, **including appropriate test cases**.
-* Follow our code rules \(see below\).
+* Follow our code rules (see below).
 * Run the full test suite and ensure that all tests pass.
-* Commit your changes using a descriptive commit message that follows our commit message conventions \(see below\). Adherence to the commit message conventions is required because release notes are automatically generated from these messages.
+*   Commit your changes using a descriptive commit message that follows our commit message conventions (see below). Adherence to the commit message conventions is required because release notes are automatically generated from these messages.
 
-  ```bash
-  git commit -a
-  ```
+    ```bash
+    git commit -a
+    ```
 
-  > **Note**: The optional commit `-a` command line option will automatically "add" and "rm" edited files.
+    > **Note**: The optional commit `-a` command line option will automatically "add" and "rm" edited files.
+*   Build your changes locally and ensure all the tests in `__tests__` pass:
 
-* Build your changes locally and ensure all the tests in `__tests__` pass:
+    ```bash
+    npm run test-chrome
+    ```
+*   Push your branch to GitHub:
 
-  ```bash
-  npm run test-chrome
-  ```
-
-* Push your branch to GitHub:
-
-  ```bash
-  git push origin my-fix-branch
-  ```
-
+    ```bash
+    git push origin my-fix-branch
+    ```
 * In GitHub, send a Pull Request to the master branch.
 * If we suggest changes then:
   * Make the required updates.
   * Re-run the test suite to ensure tests are still passing.
-  * Rebase your branch and force push to your GitHub Repository \(this will update your Pull Request\):
+  *   Rebase your branch and force push to your GitHub Repository (this will update your Pull Request):
 
-    ```bash
-    git rebase master -i
-    git push -f
-    ```
+      ```bash
+      git rebase master -i
+      git push -f
+      ```
 
 {% hint style="warning" %}
 **Important**
 
-The first time you submit a PR to a project under the Aurelia organization on GitHub, you will be prompted to sign the Contributor License Agreement \(CLA\). We cannot accept the PR without this \(see below for details\).
+The first time you submit a PR to a project under the Aurelia organization on GitHub, you will be prompted to sign the Contributor License Agreement (CLA). We cannot accept the PR without this (see below for details).
 {% endhint %}
 
 ### After Your Pull Request is Merged
 
-After your pull request is merged, you can safely delete your branch and pull the changes from the main \(upstream\) repository:
+After your pull request is merged, you can safely delete your branch and pull the changes from the main (upstream) repository:
 
-* Delete the remote branch on GitHub either through the GitHub web UI or your local shell as follows:
+*   Delete the remote branch on GitHub either through the GitHub web UI or your local shell as follows:
 
-  ```bash
-  git push origin --delete my-fix-branch
-  ```
+    ```bash
+    git push origin --delete my-fix-branch
+    ```
+*   Check out the master branch:
 
-* Check out the master branch:
+    ```bash
+    git checkout master -f
+    ```
+*   Delete the local branch:
 
-  ```bash
-  git checkout master -f
-  ```
+    ```bash
+    git branch -D my-fix-branch
+    ```
+*   Update your master with the latest upstream version:
 
-* Delete the local branch:
-
-  ```bash
-  git branch -D my-fix-branch
-  ```
-
-* Update your master with the latest upstream version:
-
-  ```bash
-  git pull --ff upstream master
-  ```
+    ```bash
+    git pull --ff upstream master
+    ```
 
 ## Coding Rules
 
@@ -139,7 +132,7 @@ We have very precise rules over how our git commit messages can be formatted. Th
 
 Each commit message consists of a **header**, a **body** and a **footer**. The header has a special format that includes a **type**, a **scope**, and a **subject**:
 
-```text
+```
 <type>(<scope>): <subject>
 <BLANK LINE>
 <body>
@@ -156,7 +149,7 @@ Please use one of the following:
 * **feat**: A new feature
 * **fix**: A bug fix
 * **docs**: Documentation only changes
-* **style**: Changes that do not affect the meaning of the code \(white-space, formatting, missing semi-colons, etc.\)
+* **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc.)
 * **refactor**: A code change that neither fixes a bug or adds a feature
 * **perf**: A code change that improves performance
 * **test**: Adding missing tests
@@ -172,7 +165,7 @@ The subject contains a succinct description of the change:
 
 * Use the imperative, present tense: "change" not "changed" nor "changes".
 * Don't capitalize the first letter.
-* Do not add a dot \(.\) at the end.
+* Do not add a dot (.) at the end.
 
 #### Body
 
@@ -185,4 +178,3 @@ The footer should contain any information about **Breaking Changes** and is also
 ## Joining the Core Team
 
 [The Aurelia Core Team](https://github.com/orgs/aurelia/people) is made up of select community members who are committed to maintaining and evolving Aurelia over the long-term. The team may grow or shrink depending on project needs, member availability, and other factors. Core team members are typically long-time Aurelia community members who have shown enthusiasm while taking the initiative to improve Aurelia in various ways, including fixing bugs, implementing features, writing documentation/books/blogs, triaging issues, and more. Each member has shown a consistency of quality and cadence in their contributions. If you are interested in joining the core team, please reach out to aurelia-team@bluespire.com. We'd be happy to discuss opportunities with you.
-

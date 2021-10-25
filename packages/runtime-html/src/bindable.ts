@@ -1,13 +1,12 @@
 import { kebabCase, firstDefined, getPrototypeChain, noop, Class } from '@aurelia/kernel';
 import { BindingMode } from '@aurelia/runtime';
-import { configurationOptions } from './configuration-options.js';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './shared.js';
 import { isString } from './utilities.js';
 
 import type { Constructable, Writable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
 
-type PropertyType = typeof Number | typeof String | typeof Boolean | { coercer: InterceptorFunc } | Class<unknown>;
+type PropertyType = typeof Number | typeof String | typeof Boolean | typeof BigInt | { coercer: InterceptorFunc } | Class<unknown>;
 
 export type PartialBindableDefinition = {
   mode?: BindingMode;
@@ -17,6 +16,7 @@ export type PartialBindableDefinition = {
   primary?: boolean;
   set?: InterceptorFunc;
   type?: PropertyType;
+  nullable?: boolean;
 };
 
 type PartialBindableDefinitionPropertyRequired = PartialBindableDefinition & {
@@ -345,16 +345,32 @@ function getInterceptor(prop: string, target: Constructable<unknown>, def: Parti
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const type: PropertyType | null = def.type ?? Reflect.getMetadata('design:type', target, prop) ?? null;
   if (type == null) { return noop; }
+  const nullable = def.nullable ?? true;
+  let coercer: InterceptorFunc;
   switch (true) {
     case type === Number:
     case type === Boolean:
     case type === String:
-      return type as (typeof Number | typeof Boolean | typeof String);
+    case type === BigInt:
+      coercer = type as InterceptorFunc;
+      break;
     /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
     case typeof (type as any).coercer === 'function':
-      return ((type as any).coercer as InterceptorFunc).bind(type);
+      coercer = ((type as any).coercer as InterceptorFunc).bind(type);
+      break;
     /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
     default:
-      return Coercer.for(target) ?? noop;
+      coercer = Coercer.for(type as Constructable) ?? noop;
+      break;
   }
+  if (coercer === noop) { return coercer; }
+  return nullable
+    ? createNullableCoercer(coercer) // inlined function avoided to reduce closure.
+    : coercer;
+}
+
+function createNullableCoercer<TInput, TOutput>(coercer: InterceptorFunc<TInput, TOutput>): InterceptorFunc<TInput, TOutput> {
+  return function (value: TInput): TOutput {
+    return value == null ? value as unknown as TOutput : coercer(value);
+  };
 }

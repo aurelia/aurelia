@@ -462,6 +462,8 @@ export {
   PartialBindableDefinition,
   // BindableDefinition,
   Bindable,
+  coercer,
+  coercionConfiguration,
 
   // PartialChildrenDefinition,
   // ChildrenDefinition,

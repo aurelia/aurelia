@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Class, noop } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, CustomElement, IPlatform, coercer } from '@aurelia/runtime-html';
+import { Aurelia, bindable, customElement, CustomElement, IPlatform, coercer, coercionConfiguration } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
@@ -814,4 +814,72 @@ describe('bindable-coercer.spec.ts', function () {
       assert.strictEqual(ctx.app.myEl.prop, true);
     }, { app: App, template: `<my-el view-model.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
   }
+
+  it('auto-coercion can be disabled globally', async function () {
+    coercionConfiguration.disableCoercion = true;
+
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+
+    @customElement({ name: 'my-el', template: 'irrelevant' })
+    class MyEl {
+      @bindable({ type: Number }) public prop: number;
+    }
+    @customElement({ name: 'app', isStrictBinding: true, template: '<my-el view-model.ref="myEl" prop.bind="true"></my-el>' })
+    class App {
+      public readonly myEl!: MyEl;
+    }
+
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    await au
+      .register(MyEl)
+      .app({ host, component: App })
+      .start();
+    const component = au.root.controller.viewModel as App;
+    assert.strictEqual(component.myEl.prop, true);
+
+    await au.stop();
+
+    assert.strictEqual(host.textContent, '', `host.textContent`);
+
+    ctx.doc.body.removeChild(host);
+
+    coercionConfiguration.disableCoercion = false;
+  });
+
+  it('auto-coercion of falsy values can be enforced globally', async function () {
+    coercionConfiguration.coerceFalsy = true;
+
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+
+    @customElement({ name: 'my-el', template: 'irrelevant' })
+    class MyEl {
+      @bindable({ type: Number }) public prop: number;
+    }
+    @customElement({ name: 'app', isStrictBinding: true, template: '<my-el view-model.ref="myEl" prop.bind="null"></my-el>' })
+    class App {
+      public readonly myEl!: MyEl;
+    }
+
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    await au
+      .register(MyEl)
+      .app({ host, component: App })
+      .start();
+    const component = au.root.controller.viewModel as App;
+    assert.strictEqual(component.myEl.prop, 0);
+
+    await au.stop();
+
+    assert.strictEqual(host.textContent, '', `host.textContent`);
+
+    ctx.doc.body.removeChild(host);
+
+    coercionConfiguration.coerceFalsy = false;
+  });
 });

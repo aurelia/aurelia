@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Class } from '@aurelia/kernel';
+import { Class, noop } from '@aurelia/kernel';
 import { Aurelia, bindable, customElement, CustomElement, IPlatform, coercer } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
@@ -766,4 +766,52 @@ describe('bindable-coercer.spec.ts', function () {
   }
   /* eslint-enable no-useless-escape */
 
+  {
+    @customElement({ name: 'my-el', template: 'irrelevant' })
+    class MyEl {
+      @bindable public prop: string | number;
+    }
+    class App {
+      public readonly myEl!: MyEl;
+    }
+    $it('auto-coercing does not work for type union', async function (ctx: TestExecutionContext<App>) {
+      assert.strictEqual(ctx.app.myEl.prop, true);
+    }, { app: App, template: `<my-el view-model.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
+  }
+  {
+    @customElement({ name: 'my-el', template: 'irrelevant' })
+    class MyEl {
+      @bindable({ type: Number }) public prop: string | number;
+    }
+    class App {
+      public readonly myEl!: MyEl;
+    }
+    $it('auto-coercing can be coerced with explicit type for type union', async function (ctx: TestExecutionContext<App>) {
+      assert.strictEqual(ctx.app.myEl.prop, 1);
+    }, { app: App, template: `<my-el view-model.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
+  }
+  {
+    @customElement({ name: 'my-el', template: 'irrelevant' })
+    class MyEl {
+      @bindable({ type: Object }) public prop: number;
+    }
+    class App {
+      public readonly myEl!: MyEl;
+    }
+    $it('auto-coercing can be disabled with explicit Object type', async function (ctx: TestExecutionContext<App>) {
+      assert.strictEqual(ctx.app.myEl.prop, true);
+    }, { app: App, template: `<my-el view-model.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
+  }
+  {
+    @customElement({ name: 'my-el', template: 'irrelevant' })
+    class MyEl {
+      @bindable({ set: noop }) public prop: number;
+    }
+    class App {
+      public readonly myEl!: MyEl;
+    }
+    $it('auto-coercing can be disabled with explicit noop set interceptor function', async function (ctx: TestExecutionContext<App>) {
+      assert.strictEqual(ctx.app.myEl.prop, true);
+    }, { app: App, template: `<my-el view-model.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
+  }
 });

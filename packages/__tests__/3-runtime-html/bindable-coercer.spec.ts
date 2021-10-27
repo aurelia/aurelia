@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Class, noop } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, CustomElement, IPlatform, coercer, coercionConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, bindable, customElement, CustomElement, IPlatform, coercer, coercionConfiguration, customAttribute, CustomAttribute } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
@@ -12,6 +12,7 @@ describe('bindable-coercer.spec.ts', function () {
   }
   const $it = createSpecFunction(testRepeatForCustomElement);
   async function testRepeatForCustomElement<TApp>(
+    this: Mocha.Context,
     testFunction: TestFunction<TestExecutionContext<TApp>>,
     {
       template,
@@ -532,11 +533,12 @@ describe('bindable-coercer.spec.ts', function () {
   class Person {
     public static coerced: number = 0;
     public constructor(
-      public readonly name: string,
-      public readonly age: number,
+      public name: string,
+      public age: number,
     ) { }
   }
   function createPerson(this: typeof Person, value: unknown): Person {
+    if (value instanceof this) return value;
     this.coerced++;
     if (typeof value === 'string') {
       try {
@@ -660,6 +662,8 @@ describe('bindable-coercer.spec.ts', function () {
     }
   }
   {
+    // eslint-disable-next-line mocha/no-hooks
+    beforeEach(function () { Person2.coerced = 0; });
     class Person2 extends Person {
       @coercer
       public static createPerson(value: unknown) { return createPerson.bind(Person2)(value) as Person2; }
@@ -763,6 +767,59 @@ describe('bindable-coercer.spec.ts', function () {
         }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
     }
+
+    {
+      @customElement({ name: 'my-el', template: 'irrelevant' })
+      class MyEl {
+        @bindable public person: Person2;
+      }
+      class App {
+        public readonly myEl!: MyEl;
+        public prop: any = { name: 'john', age: 42 };
+      }
+      $it(`change propagation - class`, async function (ctx: TestExecutionContext<App>) {
+        const app = ctx.app;
+        const myEl = app.myEl;
+        assert.deepStrictEqual(myEl.person, new Person2('john', 42), 'error1');
+        assert.strictEqual(Person2.coerced, 1, 'error2');
+
+        app.prop.age = 84;
+        await ctx.platform.domWriteQueue.yield();
+        assert.deepStrictEqual(myEl.person, new Person2('john', 42), 'error3');
+        assert.strictEqual(Person2.coerced, 1, 'error4');
+
+        const person = app.prop = new Person2('john', 84);
+        await ctx.platform.domWriteQueue.yield();
+        assert.strictEqual(myEl.person, person, 'error5');
+        assert.strictEqual(Person2.coerced, 1, 'error6');
+
+        person.age = 42;
+        await ctx.platform.domWriteQueue.yield();
+        assert.strictEqual(myEl.person.age, 42, 'error7');
+        assert.strictEqual(Person2.coerced, 1, 'error8');
+      }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
+    }
+
+    {
+      @customElement({ name: 'my-el', template: 'irrelevant' })
+      class MyEl {
+        @bindable public person: Person2;
+      }
+      class App {
+        public readonly myEl!: MyEl;
+        public prop: any = { name: 'john', age: 42 };
+      }
+      $it(`change propagation - class - two-way`, async function (ctx: TestExecutionContext<App>) {
+        const app = ctx.app;
+        const myEl = app.myEl;
+        assert.deepStrictEqual(myEl.person, new Person2('john', 42), 'error1');
+        assert.strictEqual(Person2.coerced, 1, 'error2');
+        assert.notInstanceOf(app.prop, Person2);
+
+        const person = myEl.person = new Person2('foo', 42);
+        assert.strictEqual(app.prop, person);
+      }, { app: App, template: `<my-el view-model.ref="myEl" person.two-way="prop"></my-el>`, registrations: [MyEl] });
+    }
   }
   /* eslint-enable no-useless-escape */
 
@@ -850,7 +907,7 @@ describe('bindable-coercer.spec.ts', function () {
   });
 
   it('auto-coercion of falsy values can be enforced globally', async function () {
-    coercionConfiguration.coerceFalsy = true;
+    coercionConfiguration.coerceNullLike = true;
 
     const ctx = TestContext.create();
     const host = ctx.doc.createElement('div');
@@ -880,6 +937,19 @@ describe('bindable-coercer.spec.ts', function () {
 
     ctx.doc.body.removeChild(host);
 
-    coercionConfiguration.coerceFalsy = false;
+    coercionConfiguration.coerceNullLike = false;
   });
+
+  {
+    @customAttribute({ name: 'my-attr' })
+    class MyAttr {
+      @bindable public value: number;
+    }
+    class App { }
+
+    $it('auto-coercion works for custom element', async function (ctx: TestExecutionContext<App>) {
+      const myAttr = CustomAttribute.for(ctx.host.querySelector('div'), 'my-attr').viewModel as MyAttr;
+      assert.strictEqual(myAttr.value, 42);
+    }, { app: App, template: `<div my-attr="42"></div>`, registrations: [MyAttr] });
+  }
 });

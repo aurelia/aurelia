@@ -348,7 +348,7 @@ function getInterceptor(prop: string, target: Constructable<unknown>, def: Parti
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const type: PropertyType | null = def.type ?? Reflect.getMetadata('design:type', target, prop) ?? null;
   if (type == null) { return noop; }
-  const nullable = def.nullable ?? (coercionConfiguration.coerceFalsy ? false : true);
+  const nullable = def.nullable ?? (coercionConfiguration.coerceNullLike ? false : true);
   let coercer: InterceptorFunc;
   switch (true) {
     case type === Number:
@@ -382,5 +382,5 @@ export const coercionConfiguration = {
   /** When set to `true`, disables the automatic type-coercion for bindables globally. */
   disableCoercion: false,
   /** When set to `true`, coerces the `null` and `undefined` values to the target types. This is ineffective when `disableCoercion` is set to `true.` */
-  coerceFalsy: false
+  coerceNullLike: false
 };

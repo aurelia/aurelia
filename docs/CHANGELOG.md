@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.22"></a>
+# 2.0.0-alpha.22 (2021-10-24)
+
+### Features:
+
+* ***:** destructure map pair ([961f1a6](https://github.com/aurelia/aurelia/commit/961f1a6))
+* ***:** parse destructuring assignment ([c0555de](https://github.com/aurelia/aurelia/commit/c0555de))
+* ***:** destructuring assignment expr ([d06f7bd](https://github.com/aurelia/aurelia/commit/d06f7bd))
+* ***:** rest expr in destructuring assignment ([f4b1652](https://github.com/aurelia/aurelia/commit/f4b1652))
+* **runtime:** added destructuring AST ([0b4d579](https://github.com/aurelia/aurelia/commit/0b4d579))
+
+
+### Bug Fixes:
+
+* ***:** build issues ([1a32a43](https://github.com/aurelia/aurelia/commit/1a32a43))
+* ***:** deepscan issue ([582686b](https://github.com/aurelia/aurelia/commit/582686b))
+* ***:** linting error ([35e11c8](https://github.com/aurelia/aurelia/commit/35e11c8))
+* ***:** broken test ([257326c](https://github.com/aurelia/aurelia/commit/257326c))
+* ***:** broken build ([3ececf2](https://github.com/aurelia/aurelia/commit/3ececf2))
+* **runtime:** correction in expression kinf flag ([f05684f](https://github.com/aurelia/aurelia/commit/f05684f))
+
+
+### Refactorings:
+
+* **router:** querystring propagation ([3defa87](https://github.com/aurelia/aurelia/commit/3defa87))
+* **repeat:** destructuring support ([a6257f0](https://github.com/aurelia/aurelia/commit/a6257f0))
+
 <a name="2.0.0-alpha.21"></a>
 # 2.0.0-alpha.21 (2021-09-12)
 

@@ -24,13 +24,13 @@ Breaking this intuitive syntax down, it works like this:
 
 If you were to write the above in Javascript form, it would look like this:
 
-```text
+```
 for (let item of items) {
     console.log(item.name);
 }
 ```
 
-### Creating ranges with repeat.for
+## Creating ranges with repeat.for
 
 The `repeat.for` functionality doesn't just allow you to work with collections, it can be used to generate ranges.
 
@@ -41,7 +41,7 @@ In the following example, we generate a range of numbers to 10. We subtract the 
 <p>Blast Off!<p>
 ```
 
-### Getting the index \(and other contextual properties\) inside of repeat.for
+## Getting the index (and other contextual properties) inside of repeat.for
 
 Aurelia's binding engine makes several special properties available to you in your binding expressions. Some properties are available everywhere, while others are only available in a particular context. Below is a brief summary of the available contextual properties within repeats.
 
@@ -61,25 +61,23 @@ Inside of the `repeat.for` these can be accessed. In the following example we di
 </ul>
 ```
 
-### Iterating over a set
+## Iterating over a set
 
-With `repeat.for` you can iterate over a [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) using the same syntax as shown above.
+With `repeat.for` you can iterate over a [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global\_Objects/Set) using the same syntax as shown above.
 
 ```markup
 <p repeat.for="i of set">${i}</p>
 ```
 
-### Iterating over a map
+## Iterating over a map
 
-You can also iterate over a map using the `repeat.for`.
-When iterating over a map, the declaration expression contains a pair of key and value.
+You can also iterate over a map using the `repeat.for`. When iterating over a map, the declaration expression contains a pair of key and value.
 
 ```markup
 <p repeat.for="pair of map">key:${pair[0]} | value: ${pair[1]}</p>
 ```
 
 You can also destructure the `pair`.
-
 
 ```markup
 <p repeat.for="[k,v] of map">key:${k} | value: ${v}</p>

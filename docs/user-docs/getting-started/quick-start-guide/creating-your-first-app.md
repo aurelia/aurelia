@@ -18,11 +18,10 @@ npx makes aurelia
 ```
 {% endcode %}
 
-`makes` will then start the Aurelia project wizard, asking you a few questions to help you get things set up properly. When prompted, give your project the name "hello-world" and then select a default setup, either ESNext \(Javascript\) or TypeScript, depending on your preference. Finally, choose "yes" to install the project dependencies.
+`makes` will then start the Aurelia project wizard, asking you a few questions to help you get things set up properly. When prompted, give your project the name "hello-world" and then select a default setup, either ESNext (Javascript) or TypeScript, depending on your preference. Finally, choose "yes" to install the project dependencies.
 
 You have now created a hello world app without writing a single line code, well done. However, we'll be updating our app to allow for text input so we can make it say, "Hello" to whoever we want in the next section.
 
 You now have an Aurelia setup ready for you to run, debug, or deploy. To ensure that everything is working properly, `cd` into your project folder and run `npm start`. Your project will then build and a web browser will open, displaying the message "Hello World".
 
-Congratulations! 🎊 You just ran your first Aurelia app. Now, let's get building.
-
+Congratulations! :confetti\_ball: You just ran your first Aurelia app. Now, let's get building.

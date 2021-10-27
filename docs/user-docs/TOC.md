@@ -58,7 +58,7 @@
     * [Using observerLocator](getting-to-know-aurelia/components/observation/using-observerlocator.md)
   * [Shadow DOM](getting-to-know-aurelia/components/shadow-dom.md)
 * [Custom attributes](getting-to-know-aurelia/custom-attributes.md)
-* [Dependency injection \(DI\)](getting-to-know-aurelia/dependency-injection-di.md)
+* [Dependency injection (DI)](getting-to-know-aurelia/dependency-injection-di.md)
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
 * [Scope and context](getting-to-know-aurelia/scope-and-binding-context.md)
 
@@ -74,7 +74,7 @@
   * [Configuring the viewport](developer-guides/routing/configuring-the-viewport.md)
 * [Forms](developer-guides/forms.md)
 * [Validation](developer-guides/validation/README.md)
-  * [Registering the Plugin](developer-guides/validation/registering-the-plugin.md)
+  * [Plugin configuration](developer-guides/validation/registering-the-plugin.md)
   * [Defining & Customizing Rules](developer-guides/validation/defining-rules.md)
   * [Architecture](developer-guides/validation/architecture.md)
   * [Tagging Rules](developer-guides/validation/tagging-rules.md)
@@ -84,7 +84,7 @@
   * [Displaying Errors](developer-guides/validation/displaying-errors.md)
   * [I18n Internationalization](developer-guides/validation/i18n-internationalization.md)
   * [Migration Guide & Breaking Changes](developer-guides/validation/migration-guide.md)
-* [Internationalization \(i18n\)](developer-guides/internationalization.md)
+* [Internationalization (i18n)](developer-guides/internationalization.md)
 * [Store](developer-guides/store/README.md)
   * [Configuration and setup](developer-guides/store/configuration-and-setup.md)
   * [Middleware](developer-guides/store/middleware.md)
@@ -155,4 +155,3 @@
 * [The Aurelia Team](resources/the-aurelia-team.md)
 * [Glossary](resources/glossary.md)
 * [Cheat Sheet](resources/cheat-sheet.md)
-

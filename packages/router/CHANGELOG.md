@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.22"></a>
+# 2.0.0-alpha.22 (2021-10-24)
+
+### Refactorings:
+
+* **router:** querystring propagation ([3defa87](https://github.com/aurelia/aurelia/commit/3defa87))
+
 <a name="2.0.0-alpha.21"></a>
 # 2.0.0-alpha.21 (2021-09-12)
 

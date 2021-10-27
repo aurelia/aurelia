@@ -6,12 +6,12 @@ description: "Binding expression examples,\_demonstrating valid syntax and optio
 
 Aurelia's expression parser implements a subset of [ECMAScript Expressions](https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions). For the features that are supported, you can typically expect the JavaScript in your view to work the same way as it would in your view-model, or in the browser console. In addition there are two adjustments:
 
-* The Ampersand `&` represents a `BindingBehavior` \(instead of Bitwise AND\)
-* The Bar `|` represents a `ValueConverter` \(instead of a Bitwise OR\)
+* The Ampersand `&` represents a `BindingBehavior` (instead of Bitwise AND)
+* The Bar `|` represents a `ValueConverter` (instead of a Bitwise OR)
 
-Non-expression syntax \(statements, declarations, function and class definitions\) is not supported.
+Non-expression syntax (statements, declarations, function and class definitions) is not supported.
 
-As an overview of various expressions that are possible, the following list is for illustrative purposes and not exhaustive \(and not necessarily recommended, either\), but should give you a fairly good idea of what you can do.
+As an overview of various expressions that are possible, the following list is for illustrative purposes and not exhaustive (and not necessarily recommended, either), but should give you a fairly good idea of what you can do.
 
 ## Primary Expressions
 
@@ -23,7 +23,7 @@ As an overview of various expressions that are possible, the following list is f
 {% hint style="info" %}
 **Info**
 
-non-ASCII characters in the [Latin](https://en.wikipedia.org/wiki/Latin_script_in_Unicode#Table_of_characters) script are supported. This script contains 1,350 characters covering the vast majority of languages. Other [Non-BMP characters / Surrogate Pairs](https://en.wikipedia.org/wiki/Plane_%28Unicode) are not supported.
+non-ASCII characters in the [Latin](https://en.wikipedia.org/wiki/Latin\_script\_in\_Unicode#Table\_of\_characters) script are supported. This script contains 1,350 characters covering the vast majority of languages. Other [Non-BMP characters / Surrogate Pairs](https://en.wikipedia.org/wiki/Plane\_\(Unicode) are not supported.
 {% endhint %}
 
 ### Identifiers with special meaning in Aurelia
@@ -51,13 +51,13 @@ non-ASCII characters in the [Latin](https://en.wikipedia.org/wiki/Latin_script_i
 {% hint style="warning" %}
 **Warning**
 
-Unsupported string literals include `'\x61'` \(2-point hex escape\), `'\u{61}'` or `'\u{000061}'` \(n-point braced unicode escape\), and Non-BMP characters and Surrogate Pairs.
+Unsupported string literals include `'\x61'` (2-point hex escape), `'\u{61}'` or `'\u{000061}'` (n-point braced unicode escape), and Non-BMP characters and Surrogate Pairs.
 {% endhint %}
 
 ### Template literals
 
-* ```foo```  - Equivalent to `'foo'`
-* ```foo\${bar}baz\${qux}quux```  - Equivalent to `'foo'+bar+'baz'+qux+'quux'`
+* `` `foo`  `` - Equivalent to `'foo'`
+* `` `foo\${bar}baz\${qux}quux`  `` - Equivalent to `'foo'+bar+'baz'+qux+'quux'`
 
 #### Numeric literals
 
@@ -70,7 +70,7 @@ Unsupported string literals include `'\x61'` \(2-point hex escape\), `'\u{61}'` 
 {% hint style="warning" %}
 **Warning**
 
-Unsupported numeric literals include `0b01` \(binary integer literal\), `0o07` \(octal integer literal\), and `0x0F` \(hex integer literal\).
+Unsupported numeric literals include `0b01` (binary integer literal), `0o07` (octal integer literal), and `0x0F` (hex integer literal).
 {% endhint %}
 
 ### Array literals
@@ -95,14 +95,14 @@ Unsupported array literals include `[,]` - [Elision](https://tc39.github.io/ecma
 {% hint style="warning" %}
 **Warning**
 
-Unsupported object literals include `{[foo]: bar}` or `{['foo']: bar}` \(computed property names\).
+Unsupported object literals include `{[foo]: bar}` or `{['foo']: bar}` (computed property names).
 {% endhint %}
 
 ## Unary Expressions
 
 **`foo` here represents any valid primary expression or unary expression.**
 
-* `+foo` or `+1` - Equivalent to `foo` or `1` \(the `+` unary operator is always ignored\)
+* `+foo` or `+1` - Equivalent to `foo` or `1` (the `+` unary operator is always ignored)
 * `-foo` or `-1` - Equivalent to `0-foo` or `0-1`
 * `!foo` - Negates `foo`
 * `typeof foo` - Returns the primitive type name of `foo`
@@ -111,10 +111,10 @@ Unsupported object literals include `{[foo]: bar}` or `{['foo']: bar}` \(compute
 {% hint style="warning" %}
 **Warning**
 
-Unary increment \(`++foo` or `foo++`\), decrement \(`--foo` or `foo--`\), bitwise \(`~`\), `delete`, `await` and `yield` operators are not supported.
+Unary increment (`++foo` or `foo++`), decrement (`--foo` or `foo--`), bitwise (`~`), `delete`, `await` and `yield` operators are not supported.
 {% endhint %}
 
-## Binary Expressions \(from highest to lowest precedence\)
+## Binary Expressions (from highest to lowest precedence)
 
 **`a` and `b` here represent any valid primary, unary or binary expression.**
 
@@ -128,7 +128,7 @@ Unary increment \(`++foo` or `foo++`\), decrement \(`--foo` or `foo--`\), bitwis
 {% hint style="warning" %}
 **Warning**
 
-Exponentiation \(`a**b`\) and bitwise operators are not supported.
+Exponentiation (`a**b`) and bitwise operators are not supported.
 {% endhint %}
 
 ## Conditional Expressions
@@ -140,7 +140,7 @@ Exponentiation \(`a**b`\) and bitwise operators are not supported.
 
 ## Assignment Expressions
 
-**`foo` here must be an assignable expression \(a simple accessor, a member accessor or an indexed member accessor\). `bar` can any valid primary, unary, binary, conditional or assignment expression.**
+**`foo` here must be an assignable expression (a simple accessor, a member accessor or an indexed member accessor). `bar` can any valid primary, unary, binary, conditional or assignment expression.**
 
 * `foo = bar`
 * `foo = bar = baz`
@@ -151,11 +151,11 @@ Member expressions with special meaning in Aurelia:
 
 * `$parent.foo` - Access the `foo` variable in the parent view-model
 * `$parent.$parent.foo` - Access the `foo` variable in the parent's parent view-model
-* `$this` - Access the current view-model \(equivalent to simply `this` inside the view-model if it's an ES class\)
+* `$this` - Access the current view-model (equivalent to simply `this` inside the view-model if it's an ES class)
 
 Normal member and call expressions:
 
-**`foo` here represents any valid member, call, assignment, conditional, binary, unary or primary expression \(provided the expression as a whole is also valid JavaScript\).**
+**`foo` here represents any valid member, call, assignment, conditional, binary, unary or primary expression (provided the expression as a whole is also valid JavaScript).**
 
 * `foo.bar` - Member accessor
 * `foo['bar']` - Keyed member accessor
@@ -167,14 +167,14 @@ Tagged template literals:
 
 **`foo` here should be a function that can be called. The string parts of the template are passed as an array to the first argument and the expression parts are passed as consecutive arguments.**
 
-* ``foo`bar```  - Equivalent to `foo(['bar'])`
-* ``foo`bar\${baz}qux```  - Equivalent to `foo(['bar','qux'], baz)`
-* ``foo`bar\${baz}qux\${quux}corge```  - Equivalent to `foo(['bar','qux','corge'],baz,quux)`
-* ``foo`\${bar}\${baz}\${qux}```  - Equivalent to `foo(['','','',''],bar,baz,qux)`
+* ``foo`bar` `` - Equivalent to `foo(['bar'])`
+* ``foo`bar\${baz}qux` `` - Equivalent to `foo(['bar','qux'], baz)`
+* ``foo`bar\${baz}qux\${quux}corge` `` - Equivalent to `foo(['bar','qux','corge'],baz,quux)`
+* ``foo`\${bar}\${baz}\${qux}` `` - Equivalent to `foo(['','','',''],bar,baz,qux)`
 
 ## Binding Behaviors and Value Converters
 
-These are not considered to be a part of normal expressions and must always come at the end of an expression \(though multiple can be chained\). Furthermore, BindingBehaviors must come after ValueConverters. \(note: BindingBehavior and ValueConverter are abbreviated to BB and VC for readability\)
+These are not considered to be a part of normal expressions and must always come at the end of an expression (though multiple can be chained). Furthermore, BindingBehaviors must come after ValueConverters. (note: BindingBehavior and ValueConverter are abbreviated to BB and VC for readability)
 
 Valid BB expressions:
 
@@ -183,7 +183,7 @@ Valid BB expressions:
 * `foo & bar:baz:qux` - Applies the BB `bar` to the variable `foo`, and passes the variables `baz` and `qux` as arguments to the BB
 * `'foo' & bar` - Applies the BB `bar` to the literal string `'foo'`
 
-Valid VC expressions \(likewise\):
+Valid VC expressions (likewise):
 
 * `foo | bar | baz`
 * `foo | bar:'baz'`
@@ -196,8 +196,7 @@ Combined BB and VC expressions:
 * `foo | bar:42:43 & baz:'qux':'quux'`
 * `foo | bar | baz & qux & quux`
 
-Invalid combined BB and VC expressions \(BB must come at the end\):
+Invalid combined BB and VC expressions (BB must come at the end):
 
 * `foo & bar | baz`
 * `foo | bar & baz | qux`
-

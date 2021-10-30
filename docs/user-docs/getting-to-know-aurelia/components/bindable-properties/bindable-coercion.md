@@ -1,8 +1,7 @@
 # Coercing bindable values
 
-You have seen in the [bindable setter](bindable-setter.md) section how to adapt the value that is being bound to a `@bindable` property.
-One of frequent usage of the setter is to coerce the values that are bound from the view.
-
+The [bindable setter](bindable-setter.md) section shows how to adapt the value being bound to a `@bindable` property.
+One of the common usage of the setter is to coerce the values that are bound from the view.
 Consider the following example.
 
 {% tabs %}
@@ -14,7 +13,7 @@ export class MyEl {
 }
 ```
 {% endtab %}
-{% tab title="my-app.html" %}
+{% tab title="my-app.ts" %}
 ```typescript
 @customElement({ name:'my-app', template: '<my-el num="42"></my-el>' })
 export class MyApp { }
@@ -22,14 +21,16 @@ export class MyApp { }
 {% endtab %}
 {% endtabs %}
 
-Without any setter for the `@bindable` num we might end up the string `'42'` as the value for `num` in `MyEl`.
+Without any setter for the `@bindable` num we might end up with the string `'42'` as the value for `num` in `MyEl`.
 You can write a setter to coerce the value.
 
 However, it is bit annoying to write a setter for every `@bindable`s.
-To address this issue Aurelia2 supports type coercion out of the box.
-Which means that thanks to the type-coercion you might never end up with values of unexpected types for the `@bindable`s.
+To address this issue, Aurelia2 supports type coercion.
+This means that because of the type-coercion you will never end up with values of unexpected types for the `@bindable`s.
 
-## How to leverage the type-coercion?
+## How to use the type-coercion?
+
+Depending on whether you are using TypeScript or JavaScript for your app, there can be several ways to use type-coercion.
 
 ### For TypeScript development
 
@@ -55,12 +56,12 @@ The rest of the document is based on TypeScript examples. However, we trust that
 
 ## Coercing primitive types
 
-Currently coercion for four primitive types are supported out-of-the-box.
+Currently coercing four primitive types are supported out-of-the-box.
 These are `number`, `string`, `boolean`, and `bigint`.
 The coercion functions for these type are respectively `Number(value)`, `String(value)`, `Boolean(value)`, and `BigInt(value)`.
 
 {% hint style="warning" %}
-Be mindful when dealing with `bigint` as the `BigInt(value)` will throw if the `value` cannot be converted to bigint; for example `null`, `undefined` or non-numeric string literal etc.
+Be mindful when dealing with `bigint` as the `BigInt(value)` will throw if the `value` cannot be converted to bigint; for example `null`, `undefined`, or non-numeric string literal.
 {% endhint %}
 
 ## Coercing to instances of classes
@@ -126,7 +127,7 @@ According to `Person#coercer` implementation, for the example above `MyEl#person
 ### Using the `@coercer` decorator
 
 Aurelia2 also offers a `@coercer` decorator to declare a static method in the class as the coercer.
-With that the previous example can be re-written as follows.
+The previous example can be re-written as follows using the `@coercer` decorator.
 
 {% tabs %}
 {% tab title="person.ts" %}
@@ -183,8 +184,8 @@ With `@coercer` decorator you are free to name the static method as you like.
 
 ## Coercing nullable values
 
-To maintain the compatibility, Aurelia2 does not attempt to coerce `null` and `undefined` values.
-We believe that this default choice should avoid unnecessary surprises and code-breaks when migrating to new version of Aurelia.
+To maintain backward compatibility, Aurelia2 does not attempt to coerce `null` and `undefined` values.
+We believe that this default choice should avoid unnecessary surprises and code-breaks when migrating to newer versions of Aurelia.
 
 However, you can explicitly mark a `@bindable` to be not nullable.
 
@@ -199,7 +200,7 @@ When `nullable` is set to `false`, Aurelia2 will try to coerce the `null` and `u
 
 ## Global coercing configuration
 
-Aurelia2 coerce the types of the `@bindable`s by default.
+The implicit type-coercion is the default.
 However, it is possible to disable the coercion globally by registering a customized `StandardConfiguration`, as shows below.
 
 ```typescript
@@ -215,8 +216,8 @@ new Aurelia()
 ```
 
 There are two relevant configuration options.
-- **`disableCoercion`**: The default value for this property is `false`; that is Aurelia2 coerce the types of the `@bindable`s by default. It can be set to `true` to disable the coercion for all `@bindable`s.
-- **`coerceNullLike`**: The default value for this property is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of the global counterpart of the `nullable` property in the bindable definition.
+- **`disableCoercion`**: The default value for this property is `false`; that is Aurelia2 coerces the types of the `@bindable`s by default. It can be set to `true` to disable the coercion for all `@bindable`s.
+- **`coerceNullLike`**: The default value for this property is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of as the global counterpart of the `nullable` property in the bindable definition.
 
 ## `set` and auto-coercion
 
@@ -234,8 +235,8 @@ Aurelia2 already exposes a `noop` function saving your effort to write such bori
 
 ## Union types
 
-When using TypeScript usages of union types are not rare.
-However, using union types for `@bindable` will effectively deactivate the auto-coercion.
+When using TypeScript, usages of union types are not rare.
+However, using union types for `@bindable` will deactivate the auto-coercion.
 
 ```typescript
 @customElement({ name:'my-el', template: 'not-important' })
@@ -247,7 +248,6 @@ export class MyEl {
 For the example above, the type metadata supplied by TypeScript will be `Object` disabling the auto-coercion.
 It can be worked around by specifying an explicit `type` or `set` function in the bindable definition.
 
-
 {% hint style="info" %}
-Even though using a `noop` function for `set` function is a straightforward choice, `Object` can be used for `type` in the bindable definition to disable the auto-coercion for selective `@bindable`s.
+Even though using a `noop` function for `set` function is a straightforward choice, `Object` can also be used for `type` in the bindable definition to disable the auto-coercion for selective `@bindable`s.
 {% endhint %}

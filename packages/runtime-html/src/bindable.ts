@@ -342,13 +342,11 @@ const Coercer = {
 };
 
 function getInterceptor(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}) {
-
   if (coercionConfiguration.disableCoercion) { return noop; }
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const type: PropertyType | null = def.type ?? Reflect.getMetadata('design:type', target, prop) ?? null;
   if (type == null) { return noop; }
-  const nullable = def.nullable ?? (coercionConfiguration.coerceNullLike ? false : true);
   let coercer: InterceptorFunc;
   switch (true) {
     case type === Number:
@@ -366,15 +364,17 @@ function getInterceptor(prop: string, target: Constructable<unknown>, def: Parti
       coercer = Coercer.for(type as Constructable) ?? noop;
       break;
   }
-  if (coercer === noop) { return coercer; }
-  return nullable
-    ? createNullableCoercer(coercer) // inlined function avoided to reduce closure.
-    : coercer;
+  return coercer === noop
+    ? coercer
+    : createCoercer(coercer, def.nullable);
 }
 
-function createNullableCoercer<TInput, TOutput>(coercer: InterceptorFunc<TInput, TOutput>): InterceptorFunc<TInput, TOutput> {
+function createCoercer<TInput, TOutput>(coercer: InterceptorFunc<TInput, TOutput>, nullable: boolean | undefined): InterceptorFunc<TInput, TOutput> {
   return function (value: TInput): TOutput {
-    return value == null ? value as unknown as TOutput : coercer(value);
+    if (coercionConfiguration.disableCoercion) return value as unknown as TOutput;
+    return ((nullable ?? (coercionConfiguration.coerceNullLike ? false : true)) && value == null)
+      ? value as unknown as TOutput
+      : coercer(value);
   };
 }
 

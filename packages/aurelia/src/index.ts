@@ -463,7 +463,6 @@ export {
   // BindableDefinition,
   Bindable,
   coercer,
-  coercionConfiguration,
 
   // PartialChildrenDefinition,
   // ChildrenDefinition,

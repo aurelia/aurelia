@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Class, noop } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, CustomElement, IPlatform, coercer, coercionConfiguration, customAttribute, CustomAttribute } from '@aurelia/runtime-html';
-import { assert, TestContext } from '@aurelia/testing';
+import { Class, DI, noop, Registration } from '@aurelia/kernel';
+import { Aurelia, bindable, customElement, CustomElement, IPlatform, coercer, customAttribute, CustomAttribute, StandardConfiguration } from '@aurelia/runtime-html';
+import { assert, PLATFORMRegistration, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
 describe('bindable-coercer.spec.ts', function () {
@@ -9,6 +9,8 @@ describe('bindable-coercer.spec.ts', function () {
     template: string;
     registrations: any[];
     app: Class<TApp>;
+    disableCoercion: false;
+    coerceNullLike: false;
   }
   const $it = createSpecFunction(testRepeatForCustomElement);
   async function testRepeatForCustomElement<TApp>(
@@ -18,18 +20,30 @@ describe('bindable-coercer.spec.ts', function () {
       template,
       registrations = [],
       app,
+      disableCoercion = false,
+      coerceNullLike = false,
     }: Partial<TestSetupContext<TApp>>
   ) {
     const ctx = TestContext.create();
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
 
-    const container = ctx.container;
+    const container = ctx['_container'] = DI.createContainer();
+    container.register(
+      StandardConfiguration
+        .customize((opt) => {
+          opt.coercingOptions.disableCoercion = disableCoercion;
+          opt.coercingOptions.coerceNullLike = coerceNullLike;
+        }),
+      Registration.instance(TestContext, ctx),
+      ...registrations,
+    );
+    if (container.has(IPlatform, true) === false) {
+      container.register(PLATFORMRegistration);
+    }
+
     const au = new Aurelia(container);
     await au
-      .register(
-        ...registrations
-      )
       .app({
         host,
         component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, app ?? class { })
@@ -872,73 +886,35 @@ describe('bindable-coercer.spec.ts', function () {
     }, { app: App, template: `<my-el view-model.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
   }
 
-  it('auto-coercion can be disabled globally', async function () {
-    coercionConfiguration.disableCoercion = true;
-
-    const ctx = TestContext.create();
-    const host = ctx.doc.createElement('div');
-    ctx.doc.body.appendChild(host);
+  {
 
     @customElement({ name: 'my-el', template: 'irrelevant' })
     class MyEl {
       @bindable({ type: Number }) public prop: number;
     }
-    @customElement({ name: 'app', isStrictBinding: true, template: '<my-el view-model.ref="myEl" prop.bind="true"></my-el>' })
     class App {
       public readonly myEl!: MyEl;
     }
 
-    const container = ctx.container;
-    const au = new Aurelia(container);
-    await au
-      .register(MyEl)
-      .app({ host, component: App })
-      .start();
-    const component = au.root.controller.viewModel as App;
-    assert.strictEqual(component.myEl.prop, true);
+    $it('auto-coercion can be disabled globally', async function (ctx: TestExecutionContext<App>) {
+      assert.strictEqual(ctx.app.myEl.prop, true);
+    }, { app: App, template: '<my-el view-model.ref="myEl" prop.bind="true"></my-el>', registrations: [MyEl], disableCoercion: true });
+  }
 
-    await au.stop();
-
-    assert.strictEqual(host.textContent, '', `host.textContent`);
-
-    ctx.doc.body.removeChild(host);
-
-    coercionConfiguration.disableCoercion = false;
-  });
-
-  it('auto-coercion of falsy values can be enforced globally', async function () {
-    coercionConfiguration.coerceNullLike = true;
-
-    const ctx = TestContext.create();
-    const host = ctx.doc.createElement('div');
-    ctx.doc.body.appendChild(host);
+  {
 
     @customElement({ name: 'my-el', template: 'irrelevant' })
     class MyEl {
       @bindable({ type: Number }) public prop: number;
     }
-    @customElement({ name: 'app', isStrictBinding: true, template: '<my-el view-model.ref="myEl" prop.bind="null"></my-el>' })
     class App {
       public readonly myEl!: MyEl;
     }
 
-    const container = ctx.container;
-    const au = new Aurelia(container);
-    await au
-      .register(MyEl)
-      .app({ host, component: App })
-      .start();
-    const component = au.root.controller.viewModel as App;
-    assert.strictEqual(component.myEl.prop, 0);
-
-    await au.stop();
-
-    assert.strictEqual(host.textContent, '', `host.textContent`);
-
-    ctx.doc.body.removeChild(host);
-
-    coercionConfiguration.coerceNullLike = false;
-  });
+    $it('auto-coercion of null-like values can be enforced globally', async function (ctx: TestExecutionContext<App>) {
+      assert.strictEqual(ctx.app.myEl.prop, 0);
+    }, { app: App, template: '<my-el view-model.ref="myEl" prop.bind="null"></my-el>', registrations: [MyEl], coerceNullLike: true });
+  }
 
   {
     @customAttribute({ name: 'my-attr' })

@@ -56,7 +56,7 @@ The rest of the document is based on TypeScript examples. However, we trust that
 ## Coercing primitive types
 
 Currently coercion for four primitive types are supported out-of-the-box.
-These are `number`, `string`, `boolean`, and `bignit`.
+These are `number`, `string`, `boolean`, and `bigint`.
 The coercion functions for these type are respectively `Number(value)`, `String(value)`, `Boolean(value)`, and `BigInt(value)`.
 
 {% hint style="warning" %}
@@ -195,14 +195,59 @@ export class MyEl {
 }
 ```
 
-When this `nullable` is explicitly set to `false`, Aurelia2 will try to coerce the `null` and `undefined` values.
+When `nullable` is set to `false`, Aurelia2 will try to coerce the `null` and `undefined` values.
 
-<!-- TODO: globally enable or disable type coercion -->
-<!-- TODO: globally enable or disable nullable coercion -->
+## Global coercing configuration
+
+Aurelia2 coerce the types of the `@bindable`s by default.
+However, it is possible to disable the coercion globally by registering a customized `StandardConfiguration`, as shows below.
+
+```typescript
+new Aurelia()
+    .register(
+      StandardConfiguration
+        .customize((config) => {
+          config.coercingOptions.disableCoercion = true;
+          config.coercingOptions.coerceNullLike = false;
+        }),
+      ...
+    );
+```
+
+There are two relevant configuration options.
+- **`disableCoercion`**: The default value for this property is `false`; that is Aurelia2 coerce the types of the `@bindable`s by default. It can be set to `true` to disable the coercion for all `@bindable`s.
+- **`coerceNullLike`**: The default value for this property is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of the global counterpart of the `nullable` property in the bindable definition.
+
+## `set` and auto-coercion
+
+It is important to note that an explicit `set` (see [bindable setter](bindable-setter.md)) function is always prioritized over the `type`.
+In fact, the auto-coercion is the fallback for the `set` function.
+Hence whenever `set` is defined, the auto-coercion becomes non-operational.
+
+However, this gives you an opportunity to:
+- Override any of the default primitive type coercing behavior, or
+- Disable coercion selectively for few selective `@bindable`s by using a `noop` function for `set`.
+
+{% hint style="info" %}
+Aurelia2 already exposes a `noop` function saving your effort to write such boring functions.
+{% endhint %}
+
+## Union types
+
+When using TypeScript usages of union types are not rare.
+However, using union types for `@bindable` will effectively deactivate the auto-coercion.
+
+```typescript
+@customElement({ name:'my-el', template: 'not-important' })
+export class MyEl {
+  @bindable public num: number | string;
+}
+```
+
+For the example above, the type metadata supplied by TypeScript will be `Object` disabling the auto-coercion.
+It can be worked around by specifying an explicit `type` or `set` function in the bindable definition.
 
 
-<!-- TODO: ## Pitfalls
-
-- Setter preceds type
-- union type
- -->
+{% hint style="info" %}
+Even though using a `noop` function for `set` function is a straightforward choice, `Object` can be used for `type` in the bindable definition to disable the auto-coercion for selective `@bindable`s.
+{% endhint %}

@@ -10,7 +10,7 @@ describe('bindable-coercer.spec.ts', function () {
     registrations: any[];
     app: Class<TApp>;
     disableCoercion: false;
-    coerceNullLike: false;
+    coerceNullish: false;
   }
   const $it = createSpecFunction(testRepeatForCustomElement);
   async function testRepeatForCustomElement<TApp>(
@@ -21,7 +21,7 @@ describe('bindable-coercer.spec.ts', function () {
       registrations = [],
       app,
       disableCoercion = false,
-      coerceNullLike = false,
+      coerceNullish = false,
     }: Partial<TestSetupContext<TApp>>
   ) {
     const ctx = TestContext.create();
@@ -33,7 +33,7 @@ describe('bindable-coercer.spec.ts', function () {
       StandardConfiguration
         .customize((opt) => {
           opt.coercingOptions.disableCoercion = disableCoercion;
-          opt.coercingOptions.coerceNullLike = coerceNullLike;
+          opt.coercingOptions.coerceNullish = coerceNullish;
         }),
       Registration.instance(TestContext, ctx),
       ...registrations,
@@ -913,7 +913,7 @@ describe('bindable-coercer.spec.ts', function () {
 
     $it('auto-coercion of null-like values can be enforced globally', async function (ctx: TestExecutionContext<App>) {
       assert.strictEqual(ctx.app.myEl.prop, 0);
-    }, { app: App, template: '<my-el view-model.ref="myEl" prop.bind="null"></my-el>', registrations: [MyEl], coerceNullLike: true });
+    }, { app: App, template: '<my-el view-model.ref="myEl" prop.bind="null"></my-el>', registrations: [MyEl], coerceNullish: true });
   }
 
   {

@@ -372,7 +372,7 @@ function getInterceptor(prop: string, target: Constructable<unknown>, def: Parti
 function createCoercer<TInput, TOutput>(coercer: InterceptorFunc<TInput, TOutput>, nullable: boolean | undefined): InterceptorFunc<TInput, TOutput> {
   return function (value: TInput): TOutput {
     if (coercionConfiguration.disableCoercion) return value as unknown as TOutput;
-    return ((nullable ?? (coercionConfiguration.coerceNullLike ? false : true)) && value == null)
+    return ((nullable ?? (coercionConfiguration.coerceNullish ? false : true)) && value == null)
       ? value as unknown as TOutput
       : coercer(value);
   };
@@ -382,5 +382,5 @@ export const coercionConfiguration = {
   /** When set to `true`, disables the automatic type-coercion for bindables globally. */
   disableCoercion: false,
   /** When set to `true`, coerces the `null` and `undefined` values to the target types. This is ineffective when `disableCoercion` is set to `true.` */
-  coerceNullLike: false
+  coerceNullish: false
 };

@@ -1,7 +1,7 @@
 # Coercing bindable values
 
 The [bindable setter](bindable-setter.md) section shows how to adapt the value being bound to a `@bindable` property.
-One of the common usage of the setter is to coerce the values that are bound from the view.
+One common usage of the setter is to coerce the values that are bound from the view.
 Consider the following example.
 
 {% tabs %}
@@ -24,7 +24,7 @@ export class MyApp { }
 Without any setter for the `@bindable` num we might end up with the string `'42'` as the value for `num` in `MyEl`.
 You can write a setter to coerce the value.
 
-However, it is bit annoying to write a setter for every `@bindable`s.
+However, it is bit annoying to write setters for every `@bindable`s.
 To address this issue, Aurelia2 supports type coercion.
 This means that because of the type-coercion you will never end up with values of unexpected types for the `@bindable`s.
 
@@ -122,7 +122,7 @@ export class MyApp { }
 {% endtab %}
 {% endtabs %}
 
-According to `Person#coercer` implementation, for the example above `MyEl#person` will be assigned an instance of `Person` that is equivalent to `new Person('john', null)`.
+According to the `Person#coercer` implementation, for the example above `MyEl#person` will be assigned an instance of `Person` that is equivalent to `new Person('john', null)`.
 
 ### Using the `@coercer` decorator
 
@@ -180,7 +180,7 @@ export class MyApp { }
 {% endtab %}
 {% endtabs %}
 
-With `@coercer` decorator you are free to name the static method as you like.
+With the `@coercer` decorator you are free to name the static method as you like.
 
 ## Coercing nullable values
 
@@ -200,7 +200,7 @@ When `nullable` is set to `false`, Aurelia2 will try to coerce the `null` and `u
 
 ## Global coercing configuration
 
-The implicit type-coercion is the default.
+Implicit type-coercion is the default.
 However, it is possible to disable the coercion globally by registering a customized `StandardConfiguration`, as shows below.
 
 ```typescript

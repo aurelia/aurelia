@@ -246,7 +246,24 @@ export class MyEl {
 ```
 
 For the example above, the type metadata supplied by TypeScript will be `Object` disabling the auto-coercion.
-It can be worked around by specifying an explicit `type` or `set` function in the bindable definition.
+
+To coerce union types you can explicitly specify a `type`.
+
+```typescript
+@customElement({ name:'my-el', template: 'not-important' })
+export class MyEl {
+  @bindable({type: String}) public num: number | string;
+}
+```
+
+However to use a setter would be more straightforward to this end.
+
+```typescript
+@customElement({ name:'my-el', template: 'not-important' })
+export class MyEl {
+  @bindable({set(v: unknown) {... return coercedV;}}) public num: number | string;
+}
+```
 
 {% hint style="info" %}
 Even though using a `noop` function for `set` function is a straightforward choice, `Object` can also be used for `type` in the bindable definition to disable the auto-coercion for selective `@bindable`s.

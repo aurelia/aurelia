@@ -209,7 +209,7 @@ new Aurelia()
       StandardConfiguration
         .customize((config) => {
           config.coercingOptions.disableCoercion = true;
-          config.coercingOptions.coerceNullLike = false;
+          config.coercingOptions.coerceNullish = false;
         }),
       ...
     );
@@ -217,7 +217,7 @@ new Aurelia()
 
 There are two relevant configuration options.
 - **`disableCoercion`**: The default value for this property is `false`; that is Aurelia2 coerces the types of the `@bindable`s by default. It can be set to `true` to disable the coercion for all `@bindable`s.
-- **`coerceNullLike`**: The default value for this property is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of as the global counterpart of the `nullable` property in the bindable definition.
+- **`coerceNullish`**: The default value for this property is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of as the global counterpart of the `nullable` property in the bindable definition.
 
 ## `set` and auto-coercion
 

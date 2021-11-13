@@ -7,7 +7,7 @@ Consider the following example.
 {% tabs %}
 {% tab title="my-el.ts" %}
 ```typescript
-@customElement({ name:'my-el', template: 'not-important' })
+@customElement({ name:'my-el', template: 'not important' })
 export class MyEl {
   @bindable public num: number;
 }
@@ -44,7 +44,7 @@ If for some reason you cannot do that then refer the next section.
 For JavaScript development you need to explicitly specify the `type` in the `@bindable` definition.
 
 ```javascript
-@customElement({ name:'my-el', template: 'not-important' })
+@customElement({ name:'my-el', template: 'not important' })
 export class MyEl {
   @bindable({ type: Number }) num;
 }
@@ -108,7 +108,7 @@ export class Person {
 {% tab title="my-el.ts" %}
 ```typescript
 import { Person } from './person.ts';
-@customElement({ name:'my-el', template: 'not-important' })
+@customElement({ name:'my-el', template: 'not important' })
 export class MyEl {
   @bindable public person: Person;
 }
@@ -166,7 +166,7 @@ export class Person {
 ```typescript
 import { Person } from './person.ts';
 
-@customElement({ name:'my-el', template: 'not-important' })
+@customElement({ name:'my-el', template: 'not important' })
 export class MyEl {
   @bindable public person: Person;
 }
@@ -190,7 +190,7 @@ We believe that this default choice should avoid unnecessary surprises and code-
 However, you can explicitly mark a `@bindable` to be not nullable.
 
 ```typescript
-@customElement({ name:'my-el', template: 'not-important' })
+@customElement({ name:'my-el', template: 'not important' })
 export class MyEl {
   @bindable({ nullable: false }) public num: number;
 }
@@ -239,7 +239,7 @@ When using TypeScript, usages of union types are not rare.
 However, using union types for `@bindable` will deactivate the auto-coercion.
 
 ```typescript
-@customElement({ name:'my-el', template: 'not-important' })
+@customElement({ name:'my-el', template: 'not important' })
 export class MyEl {
   @bindable public num: number | string;
 }
@@ -250,7 +250,7 @@ For the example above, the type metadata supplied by TypeScript will be `Object`
 To coerce union types you can explicitly specify a `type`.
 
 ```typescript
-@customElement({ name:'my-el', template: 'not-important' })
+@customElement({ name:'my-el', template: 'not important' })
 export class MyEl {
   @bindable({type: String}) public num: number | string;
 }
@@ -259,7 +259,7 @@ export class MyEl {
 However to use a setter would be more straightforward to this end.
 
 ```typescript
-@customElement({ name:'my-el', template: 'not-important' })
+@customElement({ name:'my-el', template: 'not important' })
 export class MyEl {
   @bindable({set(v: unknown) {... return coercedV;}}) public num: number | string;
 }

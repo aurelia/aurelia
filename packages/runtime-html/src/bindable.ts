@@ -322,6 +322,7 @@ function apiTypeCheck() {
 }
 /* eslint-enable @typescript-eslint/no-unused-vars,spaced-comment */
 
+/** @internal */
 // eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace Reflect {
   function getMetadata(metadataKey: any, target: any, propertyKey?: string | symbol): any;
@@ -334,6 +335,7 @@ export function coercer(target: Constructable<unknown>, property: string, _descr
 const Coercer = {
   key: getAnnotationKeyFor('coercer'),
   define(target: Constructable<unknown>, property: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
     defineMetadata(Coercer.key, ((target as any)[property] as InterceptorFunc).bind(target), target);
   },
   for(target: Constructable<unknown>) {
@@ -348,21 +350,21 @@ function getInterceptor(prop: string, target: Constructable<unknown>, def: Parti
   const type: PropertyType | null = def.type ?? Reflect.getMetadata('design:type', target, prop) ?? null;
   if (type == null) { return noop; }
   let coercer: InterceptorFunc;
-  switch (true) {
-    case type === Number:
-    case type === Boolean:
-    case type === String:
-    case type === BigInt:
+  switch (type) {
+    case Number:
+    case Boolean:
+    case String:
+    case BigInt:
       coercer = type as InterceptorFunc;
       break;
-    /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-    case typeof (type as any).coercer === 'function':
-      coercer = ((type as any).coercer as InterceptorFunc).bind(type);
+    default: {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+      const $coercer: InterceptorFunc = (type as any).coercer as InterceptorFunc;
+      coercer = typeof $coercer === 'function'
+        ? $coercer.bind(type)
+        : (Coercer.for(type as Constructable) ?? noop);
       break;
-    /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-    default:
-      coercer = Coercer.for(type as Constructable) ?? noop;
-      break;
+    }
   }
   return coercer === noop
     ? coercer

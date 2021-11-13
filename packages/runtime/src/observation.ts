@@ -13,8 +13,8 @@ export interface IBinding {
 
 export const ICoercionConfiguration = DI.createInterface<ICoercionConfiguration>('ICoercionConfiguration');
 export interface ICoercionConfiguration {
-  /** When set to `true`, disables the automatic type-coercion for bindables globally. */
-  disableCoercion: boolean;
+  /** When set to `true`, enables the automatic type-coercion for bindables globally. */
+  enableCoercion: boolean;
   /** When set to `true`, coerces the `null` and `undefined` values to the target types. This is ineffective when `disableCoercion` is set to `true.` */
   coerceNullish: boolean;
 }

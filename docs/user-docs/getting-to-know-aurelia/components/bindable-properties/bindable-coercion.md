@@ -26,11 +26,28 @@ You can write a setter to coerce the value.
 
 However, it is bit annoying to write setters for every `@bindable`s.
 To address this issue, Aurelia2 supports type coercion.
-This means that because of the type-coercion you will never end up with values of unexpected types for the `@bindable`s.
 
 ## How to use the type-coercion?
 
-Depending on whether you are using TypeScript or JavaScript for your app, there can be several ways to use type-coercion.
+To maintain the backward-compatibility, automatic type coercion is disabled by default, and it needs to be enabled explicitly.
+
+```typescript
+new Aurelia()
+    .register(
+      StandardConfiguration
+        .customize((config) => {
+          config.coercingOptions.enableCoercion = true;
+          // config.coercingOptions.coerceNullish = true;
+        }),
+      ...
+    );
+```
+
+There are two relevant configuration options.
+- **`enableCoercion`**: The default value for this property is `false`; that is Aurelia2 does not coerce the types of the `@bindable`s by default. It can be set to `true` to enable the automatic type-coercion.
+- **`coerceNullish`**: The default value for this property is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of as the global counterpart of the `nullable` property in the bindable definition (see [Coercing nullable values](#coercing-nullable-values) section).
+
+Additionally, depending on whether you are using TypeScript or JavaScript for your app, there can be several ways to use automatic type-coercion.
 
 ### For TypeScript development
 
@@ -197,27 +214,6 @@ export class MyEl {
 ```
 
 When `nullable` is set to `false`, Aurelia2 will try to coerce the `null` and `undefined` values.
-
-## Global coercing configuration
-
-Implicit type-coercion is the default.
-However, it is possible to disable the coercion globally by registering a customized `StandardConfiguration`, as shows below.
-
-```typescript
-new Aurelia()
-    .register(
-      StandardConfiguration
-        .customize((config) => {
-          config.coercingOptions.disableCoercion = true;
-          config.coercingOptions.coerceNullish = false;
-        }),
-      ...
-    );
-```
-
-There are two relevant configuration options.
-- **`disableCoercion`**: The default value for this property is `false`; that is Aurelia2 coerces the types of the `@bindable`s by default. It can be set to `true` to disable the coercion for all `@bindable`s.
-- **`coerceNullish`**: The default value for this property is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of as the global counterpart of the `nullable` property in the bindable definition.
 
 ## `set` and auto-coercion
 

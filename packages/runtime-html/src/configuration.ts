@@ -317,7 +317,7 @@ function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
     register(container: IContainer): IContainer {
       const runtimeConfigurationOptions: IRuntimeHtmlConfigurationOptions = {
         coercingOptions: {
-          disableCoercion: false,
+          enableCoercion: false,
           coerceNullish: false
         }
       };

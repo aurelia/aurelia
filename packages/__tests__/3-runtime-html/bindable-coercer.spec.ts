@@ -9,8 +9,8 @@ describe('bindable-coercer.spec.ts', function () {
     template: string;
     registrations: any[];
     app: Class<TApp>;
-    disableCoercion: false;
-    coerceNullish: false;
+    enableCoercion: boolean;
+    coerceNullish: boolean;
   }
   const $it = createSpecFunction(testRepeatForCustomElement);
   async function testRepeatForCustomElement<TApp>(
@@ -20,7 +20,7 @@ describe('bindable-coercer.spec.ts', function () {
       template,
       registrations = [],
       app,
-      disableCoercion = false,
+      enableCoercion = true,
       coerceNullish = false,
     }: Partial<TestSetupContext<TApp>>
   ) {
@@ -32,7 +32,7 @@ describe('bindable-coercer.spec.ts', function () {
     container.register(
       StandardConfiguration
         .customize((opt) => {
-          opt.coercingOptions.disableCoercion = disableCoercion;
+          opt.coercingOptions.enableCoercion = enableCoercion;
           opt.coercingOptions.coerceNullish = coerceNullish;
         }),
       Registration.instance(TestContext, ctx),
@@ -898,7 +898,7 @@ describe('bindable-coercer.spec.ts', function () {
 
     $it('auto-coercion can be disabled globally', async function (ctx: TestExecutionContext<App>) {
       assert.strictEqual(ctx.app.myEl.prop, true);
-    }, { app: App, template: '<my-el view-model.ref="myEl" prop.bind="true"></my-el>', registrations: [MyEl], disableCoercion: true });
+    }, { app: App, template: '<my-el view-model.ref="myEl" prop.bind="true"></my-el>', registrations: [MyEl], enableCoercion: false });
   }
 
   {

@@ -1,4 +1,4 @@
-import { kebabCase, firstDefined, getPrototypeChain, noop, Class, DI } from '@aurelia/kernel';
+import { kebabCase, firstDefined, getPrototypeChain, noop, Class } from '@aurelia/kernel';
 import { BindingMode, ICoercionConfiguration } from '@aurelia/runtime';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './shared.js';
 import { isString } from './utilities.js';

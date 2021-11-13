@@ -1,5 +1,5 @@
-import { kebabCase, firstDefined, getPrototypeChain, noop, Class } from '@aurelia/kernel';
-import { BindingMode } from '@aurelia/runtime';
+import { kebabCase, firstDefined, getPrototypeChain, noop, Class, DI } from '@aurelia/kernel';
+import { BindingMode, ICoercionConfiguration } from '@aurelia/runtime';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './shared.js';
 import { isString } from './utilities.js';
 
@@ -344,8 +344,6 @@ const Coercer = {
 };
 
 function getInterceptor(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}) {
-  if (coercionConfiguration.disableCoercion) { return noop; }
-
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const type: PropertyType | null = def.type ?? Reflect.getMetadata('design:type', target, prop) ?? null;
   if (type == null) { return noop; }
@@ -372,17 +370,10 @@ function getInterceptor(prop: string, target: Constructable<unknown>, def: Parti
 }
 
 function createCoercer<TInput, TOutput>(coercer: InterceptorFunc<TInput, TOutput>, nullable: boolean | undefined): InterceptorFunc<TInput, TOutput> {
-  return function (value: TInput): TOutput {
-    if (coercionConfiguration.disableCoercion) return value as unknown as TOutput;
+  return function (value: TInput, coercionConfiguration: ICoercionConfiguration | null): TOutput {
+    if (coercionConfiguration === null || coercionConfiguration.disableCoercion) return value as unknown as TOutput;
     return ((nullable ?? (coercionConfiguration.coerceNullish ? false : true)) && value == null)
       ? value as unknown as TOutput
-      : coercer(value);
+      : coercer(value, coercionConfiguration);
   };
 }
-
-export const coercionConfiguration = {
-  /** When set to `true`, disables the automatic type-coercion for bindables globally. */
-  disableCoercion: false,
-  /** When set to `true`, coerces the `null` and `undefined` values to the target types. This is ineffective when `disableCoercion` is set to `true.` */
-  coerceNullish: false
-};

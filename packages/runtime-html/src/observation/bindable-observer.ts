@@ -1,5 +1,5 @@
 import { noop } from '@aurelia/kernel';
-import { subscriberCollection, AccessorType, LifecycleFlags, withFlushQueue } from '@aurelia/runtime';
+import { subscriberCollection, AccessorType, LifecycleFlags, withFlushQueue, ICoercionConfiguration } from '@aurelia/runtime';
 import { isFunction } from '../utilities.js';
 
 import type { IIndexable } from '@aurelia/kernel';
@@ -68,6 +68,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
     // this observer can become more static, as in immediately available when used
     // in the form of a decorator
     public readonly $controller: IController | null,
+    private readonly coercionConfig: ICoercionConfiguration | null,
   ) {
     const cb = obj[cbName] as typeof BindableObserver.prototype.cb;
     const cbAll = (obj as IMayHavePropertyChangedCallback).propertyChanged!;
@@ -90,7 +91,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
       this._observing = true;
 
       val = obj[key];
-      this._value = hasSetter && val !== void 0 ? set(val) : val;
+      this._value = hasSetter && val !== void 0 ? set(val, this.coercionConfig) : val;
       this._createGetterSetter();
     }
   }
@@ -101,7 +102,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     if (this._hasSetter) {
-      newValue = this.set(newValue);
+      newValue = this.set(newValue, this.coercionConfig);
     }
 
     const currentValue = this._value;
@@ -135,7 +136,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
     if (!this._observing === false) {
       this._observing = true;
       this._value = this._hasSetter
-        ? this.set(this._obj[this._key])
+        ? this.set(this._obj[this._key], this.coercionConfig)
         : this._obj[this._key];
       this._createGetterSetter();
     }

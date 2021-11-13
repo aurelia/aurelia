@@ -1,4 +1,4 @@
-import { DI, IContainer, IRegistry, noop } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, noop, Registration } from '@aurelia/kernel';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
@@ -81,7 +81,7 @@ import { AuSlot } from './resources/custom-elements/au-slot.js';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize.js';
 import { ViewValueConverter } from './resources/value-converters/view.js';
 import { NodeObserverLocator } from './observation/observer-locator.js';
-import { coercionConfiguration } from './bindable.js';
+import { ICoercionConfiguration } from '@aurelia/runtime';
 
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
@@ -315,6 +315,13 @@ function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
      * Apply this configuration to the provided container.
      */
     register(container: IContainer): IContainer {
+      const runtimeConfigurationOptions: IRuntimeHtmlConfigurationOptions = {
+        coercingOptions: {
+          disableCoercion: false,
+          coerceNullish: false
+        }
+      };
+
       optionsProvider(runtimeConfigurationOptions);
 
       /**
@@ -325,6 +332,7 @@ function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
        * - `DefaultRenderers`
        */
       return container.register(
+        Registration.instance(ICoercionConfiguration, runtimeConfigurationOptions.coercingOptions),
         ...DefaultComponents,
         ...DefaultResources,
         ...DefaultBindingSyntax,
@@ -345,10 +353,6 @@ function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
 }
 
 export type ConfigurationOptionsProvider = (options: IRuntimeHtmlConfigurationOptions) => void;
-
-const runtimeConfigurationOptions: IRuntimeHtmlConfigurationOptions = {
-  coercingOptions: coercionConfiguration
-};
 interface IRuntimeHtmlConfigurationOptions {
-  coercingOptions: typeof coercionConfiguration;
+  coercingOptions: ICoercionConfiguration;
 }

@@ -377,7 +377,7 @@ function getInterceptor(prop: string, target: Constructable<unknown>, def: Parti
 
 function createCoercer<TInput, TOutput>(coercer: InterceptorFunc<TInput, TOutput>, nullable: boolean | undefined): InterceptorFunc<TInput, TOutput> {
   return function (value: TInput, coercionConfiguration: ICoercionConfiguration | null): TOutput {
-    if (!(coercionConfiguration?.enableCoercion ?? false)) return value as unknown as TOutput;
+    if (!coercionConfiguration?.enableCoercion) return value as unknown as TOutput;
     return ((nullable ?? ((coercionConfiguration?.coerceNullish ?? false) ? false : true)) && value == null)
       ? value as unknown as TOutput
       : coercer(value, coercionConfiguration);

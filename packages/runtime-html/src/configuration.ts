@@ -340,12 +340,6 @@ function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
         ...DefaultRenderers,
       );
     },
-    /**
-     * Create a new container with this configuration applied to it.
-     */
-    createContainer(): IContainer {
-      return this.register(DI.createContainer());
-    },
     customize(cb?: ConfigurationOptionsProvider) {
       return createConfiguration(cb ?? optionsProvider);
     },

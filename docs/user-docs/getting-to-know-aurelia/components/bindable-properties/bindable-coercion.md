@@ -21,7 +21,7 @@ export class MyApp { }
 {% endtab %}
 {% endtabs %}
 
-Without any setter for the `@bindable` num we might end up with the string `'42'` as the value for `num` in `MyEl`.
+Without any setter for the `@bindable` num we will end up with the string `'42'` as the value for `num` in `MyEl`.
 You can write a setter to coerce the value.
 
 However, it is bit annoying to write setters for every `@bindable`s.
@@ -29,7 +29,7 @@ To address this issue, Aurelia2 supports type coercion.
 
 ## How to use the type-coercion?
 
-To maintain the backward-compatibility, automatic type coercion is disabled by default, and it needs to be enabled explicitly.
+To maintain the backward-compatibility, automatic type-coercion is disabled by default, and it needs to be enabled explicitly.
 
 ```typescript
 new Aurelia()
@@ -44,8 +44,8 @@ new Aurelia()
 ```
 
 There are two relevant configuration options.
-- **`enableCoercion`**: The default value for this property is `false`; that is Aurelia2 does not coerce the types of the `@bindable`s by default. It can be set to `true` to enable the automatic type-coercion.
-- **`coerceNullish`**: The default value for this property is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of as the global counterpart of the `nullable` property in the bindable definition (see [Coercing nullable values](#coercing-nullable-values) section).
+- **`enableCoercion`**: The default value is `false`; that is Aurelia2 does not coerce the types of the `@bindable`s by default. It can be set to `true` to enable the automatic type-coercion.
+- **`coerceNullish`**: The default value is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of as the global counterpart of the `nullable` property in the bindable definition (see [Coercing nullable values](#coercing-nullable-values) section).
 
 Additionally, depending on whether you are using TypeScript or JavaScript for your app, there can be several ways to use automatic type-coercion.
 
@@ -262,5 +262,5 @@ export class MyEl {
 ```
 
 {% hint style="info" %}
-Even though using a `noop` function for `set` function is a straightforward choice, `Object` can also be used for `type` in the bindable definition to disable the auto-coercion for selective `@bindable`s.
+Even though using a `noop` function for `set` function is a straightforward choice, `Object` can also be used for `type` in the bindable definition to disable the auto-coercion for selective `@bindable`s (that is when the automatic type-coercion is enabled).
 {% endhint %}

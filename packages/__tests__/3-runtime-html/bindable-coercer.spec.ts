@@ -121,35 +121,35 @@ describe('bindable-coercer.spec.ts', function () {
         assert.strictEqual(myEl.num, undefined);
 
         app.prop = null;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, null);
 
         app.prop = '0';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, 0);
 
         app.prop = '42';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, 42);
 
         app.prop = 0;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, 0);
 
         app.prop = 84;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, 84);
 
         app.prop = true;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, 1);
 
         app.prop = 'true';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(Number.isNaN(myEl.num), true);
 
         app.prop = {};
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(Number.isNaN(myEl.num), true);
       }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -169,15 +169,15 @@ describe('bindable-coercer.spec.ts', function () {
         assert.strictEqual(Number.isNaN(myEl.num), true);
 
         app.prop = null;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, 0);
 
         app.prop = '42';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, 42);
 
         app.prop = 0;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, 0);
       }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -232,35 +232,35 @@ describe('bindable-coercer.spec.ts', function () {
         assert.strictEqual(myEl.str, undefined);
 
         app.prop = null;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.str, null);
 
         app.prop = '0';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.str, '0');
 
         app.prop = '42';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.str, '42');
 
         app.prop = 0;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.str, '0');
 
         app.prop = 42;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.str, '42');
 
         app.prop = true;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.str, 'true');
 
         app.prop = false;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.str, 'false');
 
         app.prop = {};
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.str, '[object Object]');
       }, { app: App, template: `<my-el view-model.ref="myEl" str.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -280,15 +280,15 @@ describe('bindable-coercer.spec.ts', function () {
         assert.strictEqual(myEl.str, 'undefined');
 
         app.prop = null;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.str, 'null');
 
         app.prop = '42';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.str, '42');
 
         app.prop = 0;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.str, '0');
       }, { app: App, template: `<my-el view-model.ref="myEl" str.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -359,51 +359,51 @@ describe('bindable-coercer.spec.ts', function () {
         assert.strictEqual(myEl.bool, undefined);
 
         app.prop = null;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, null);
 
         app.prop = '0';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = '1';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = '42';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = 0;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, false);
 
         app.prop = 1;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = 42;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = true;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = false;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, false);
 
         app.prop = 'true';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = 'false';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = {};
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, true);
       }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -423,15 +423,15 @@ describe('bindable-coercer.spec.ts', function () {
         assert.strictEqual(myEl.bool, false);
 
         app.prop = null;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, false);
 
         app.prop = '42';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = 0;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.bool, false);
       }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -483,27 +483,27 @@ describe('bindable-coercer.spec.ts', function () {
         assert.strictEqual(myEl.num, undefined);
 
         app.prop = null;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, null);
 
         app.prop = '0';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, BigInt(0));
 
         app.prop = '42';
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, BigInt(42));
 
         app.prop = 0;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, BigInt(0));
 
         app.prop = 84;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, BigInt(84));
 
         app.prop = true;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, BigInt(1));
 
         assert.throws(() => {
@@ -538,7 +538,7 @@ describe('bindable-coercer.spec.ts', function () {
         });
 
         app.prop = 0;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.num, BigInt(0));
       }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -629,23 +629,23 @@ describe('bindable-coercer.spec.ts', function () {
           assert.strictEqual(myEl.person, undefined);
 
           app.prop = null;
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.strictEqual(myEl.person, null);
 
           app.prop = 'john';
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.deepStrictEqual(myEl.person, new Person1('john', null!));
 
           app.prop = JSON.stringify(new Person1('john', 42));
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.deepStrictEqual(myEl.person, new Person1('john', 42));
 
           app.prop = 42;
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.deepStrictEqual(myEl.person, new Person1(null!, 42));
 
           app.prop = { name: 'john', age: 42 };
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.deepStrictEqual(myEl.person, new Person1('john', 42));
         }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
@@ -665,11 +665,11 @@ describe('bindable-coercer.spec.ts', function () {
           assert.deepStrictEqual(myEl.person, new Person1(null!, null!));
 
           app.prop = null;
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.deepStrictEqual(myEl.person, new Person1(null!, null!));
 
           app.prop = { name: 'john', age: 42 };
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.deepStrictEqual(myEl.person, new Person1('john', 42));
         }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
@@ -736,23 +736,23 @@ describe('bindable-coercer.spec.ts', function () {
           assert.strictEqual(myEl.person, undefined);
 
           app.prop = null;
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.strictEqual(myEl.person, null);
 
           app.prop = 'john';
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.deepStrictEqual(myEl.person, new Person2('john', null!));
 
           app.prop = JSON.stringify(new Person2('john', 42));
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.deepStrictEqual(myEl.person, new Person2('john', 42));
 
           app.prop = 42;
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.deepStrictEqual(myEl.person, new Person2(null!, 42));
 
           app.prop = { name: 'john', age: 42 };
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.deepStrictEqual(myEl.person, new Person2('john', 42));
         }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
@@ -772,11 +772,11 @@ describe('bindable-coercer.spec.ts', function () {
           assert.deepStrictEqual(myEl.person, new Person2(null!, null!));
 
           app.prop = null;
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.deepStrictEqual(myEl.person, new Person2(null!, null!));
 
           app.prop = { name: 'john', age: 42 };
-          await ctx.platform.domWriteQueue.yield();
+          // await ctx.platform.domWriteQueue.yield();
           assert.deepStrictEqual(myEl.person, new Person2('john', 42));
         }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
@@ -798,17 +798,17 @@ describe('bindable-coercer.spec.ts', function () {
         assert.strictEqual(Person2.coerced, 1, 'error2');
 
         app.prop.age = 84;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.deepStrictEqual(myEl.person, new Person2('john', 42), 'error3');
         assert.strictEqual(Person2.coerced, 1, 'error4');
 
         const person = app.prop = new Person2('john', 84);
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.person, person, 'error5');
         assert.strictEqual(Person2.coerced, 1, 'error6');
 
         person.age = 42;
-        await ctx.platform.domWriteQueue.yield();
+        // await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(myEl.person.age, 42, 'error7');
         assert.strictEqual(Person2.coerced, 1, 'error8');
       }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });

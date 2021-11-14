@@ -16,6 +16,12 @@ export type PartialBindableDefinition = {
   primary?: boolean;
   set?: InterceptorFunc;
   type?: PropertyType;
+
+  /**
+   * When set to `false` and automatic type-coercion is enabled, `null` and `undefined` will be coerced into target type.
+   *
+   * @default true
+   */
   nullable?: boolean;
 };
 

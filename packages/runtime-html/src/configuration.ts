@@ -1,4 +1,4 @@
-import { DI, IContainer, IRegistry, noop, Registration } from '@aurelia/kernel';
+import { IContainer, IRegistry, noop, Registration } from '@aurelia/kernel';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,

@@ -363,7 +363,7 @@ function getInterceptor(prop: string, target: Constructable<unknown>, def: Parti
       break;
     default: {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-      const $coercer: InterceptorFunc = (type as any).coercer as InterceptorFunc;
+      const $coercer: InterceptorFunc = (type as any).coerce as InterceptorFunc;
       coercer = typeof $coercer === 'function'
         ? $coercer.bind(type)
         : (Coercer.for(type as Constructable) ?? noop);

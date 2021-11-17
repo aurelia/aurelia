@@ -86,9 +86,9 @@ Be mindful when dealing with `bigint` as the `BigInt(value)` will throw if the `
 It is also possible to coerce values to instances of classes.
 There are two ways how that can be done.
 
-### Using a static `coercer` method
+### Using a static `coerce` method
 
-You can define a static method named `coercer` in the class that is used as a `@bindable` type.
+You can define a static method named `coerce` in the class that is used as a `@bindable` type.
 This method will be called by Aurelia2 automatically in order to coerce the bound value.
 
 This is shown in the following example with the `Person` class.
@@ -101,7 +101,7 @@ export class Person {
     public readonly name: string,
     public readonly age: number,
   ) { }
-  public static coercer(value: unknown): Person {
+  public static coerce(value: unknown): Person {
     if (value instanceof Person) return value;
     if (typeof value === 'string') {
       try {

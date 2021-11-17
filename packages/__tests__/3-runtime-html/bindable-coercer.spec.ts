@@ -529,7 +529,7 @@ describe('bindable-coercer.spec.ts', function () {
   /* eslint-disable no-useless-escape */
   {
     class Person1 extends Person {
-      public static coercer = createPerson.bind(Person1);
+      public static coerce = createPerson.bind(Person1);
     }
     for (const type of [undefined, Person1]) {
       @customElement({ name: 'my-el', template: 'irrelevant' })

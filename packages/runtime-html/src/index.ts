@@ -17,6 +17,7 @@ export {
   Bindable,
   BindableDefinition,
   PartialBindableDefinition,
+  coercer,
 } from './bindable.js';
 
 export {

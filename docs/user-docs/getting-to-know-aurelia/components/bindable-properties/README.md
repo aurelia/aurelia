@@ -12,6 +12,8 @@ When creating components, sometimes you will want the ability for data to be pas
 
 {% page-ref page="bindable-setter.md" %}
 
+{% page-ref page="bindable-coercion.md" %}
+
 
 
 

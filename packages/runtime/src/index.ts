@@ -226,4 +226,5 @@ export {
   copyIndexMap,
   cloneIndexMap,
   createIndexMap,
+  ICoercionConfiguration,
 } from './observation.js';

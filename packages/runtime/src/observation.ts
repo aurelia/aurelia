@@ -1,4 +1,4 @@
-import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import { DI, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { Scope } from './observation/binding-context.js';
 import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer.js';
 
@@ -11,7 +11,15 @@ export interface IBinding {
   $unbind(flags: LifecycleFlags): void;
 }
 
-export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
+export const ICoercionConfiguration = DI.createInterface<ICoercionConfiguration>('ICoercionConfiguration');
+export interface ICoercionConfiguration {
+  /** When set to `true`, enables the automatic type-coercion for bindables globally. */
+  enableCoercion: boolean;
+  /** When set to `true`, coerces the `null` and `undefined` values to the target types. This is ineffective when `disableCoercion` is set to `true.` */
+  coerceNullish: boolean;
+}
+
+export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput, coercionConfig: ICoercionConfiguration | null) => TOutput;
 
 /*
 * Note: the oneTime binding now has a non-zero value for 2 reasons:

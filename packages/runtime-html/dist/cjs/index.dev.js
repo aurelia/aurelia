@@ -77,7 +77,7 @@ function bindable(configOrTarget, prop) {
             // - @bindable({...opts})
             config.property = $prop;
         }
-        defineMetadata(baseName$1, BindableDefinition.create($prop, config), $target.constructor, $prop);
+        defineMetadata(baseName$1, BindableDefinition.create($prop, $target, config), $target.constructor, $prop);
         appendAnnotationKey($target.constructor, Bindable.keyFrom($prop));
     }
     if (arguments.length > 1) {
@@ -108,14 +108,14 @@ const baseName$1 = getAnnotationKeyFor('bindable');
 const Bindable = Object.freeze({
     name: baseName$1,
     keyFrom: (name) => `${baseName$1}:${name}`,
-    from(...bindableLists) {
+    from(type, ...bindableLists) {
         const bindables = {};
         const isArray = Array.isArray;
         function addName(name) {
-            bindables[name] = BindableDefinition.create(name);
+            bindables[name] = BindableDefinition.create(name, type);
         }
         function addDescription(name, def) {
-            bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, def);
+            bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, type, def);
         }
         function addList(maybeList) {
             if (isArray(maybeList)) {
@@ -145,7 +145,7 @@ const Bindable = Object.freeze({
                     prop = configOrProp.property;
                     config = configOrProp;
                 }
-                def = BindableDefinition.create(prop, config);
+                def = BindableDefinition.create(prop, Type, config);
                 if (!hasOwnMetadata(baseName$1, Type, prop)) {
                     appendAnnotationKey(Type, Bindable.keyFrom(prop));
                 }
@@ -205,20 +205,71 @@ class BindableDefinition {
         this.property = property;
         this.set = set;
     }
-    static create(prop, def = {}) {
-        return new BindableDefinition(kernel.firstDefined(def.attribute, kernel.kebabCase(prop)), kernel.firstDefined(def.callback, `${prop}Changed`), kernel.firstDefined(def.mode, runtime.BindingMode.toView), kernel.firstDefined(def.primary, false), kernel.firstDefined(def.property, prop), kernel.firstDefined(def.set, kernel.noop));
+    static create(prop, target, def = {}) {
+        return new BindableDefinition(kernel.firstDefined(def.attribute, kernel.kebabCase(prop)), kernel.firstDefined(def.callback, `${prop}Changed`), kernel.firstDefined(def.mode, runtime.BindingMode.toView), kernel.firstDefined(def.primary, false), kernel.firstDefined(def.property, prop), kernel.firstDefined(def.set, getInterceptor(prop, target, def)));
     }
 }
-/* eslint-enable @typescript-eslint/no-unused-vars,spaced-comment */
+function coercer(target, property, _descriptor) {
+    Coercer.define(target, property);
+}
+const Coercer = {
+    key: getAnnotationKeyFor('coercer'),
+    define(target, property) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+        defineMetadata(Coercer.key, target[property].bind(target), target);
+    },
+    for(target) {
+        return getOwnMetadata(Coercer.key, target);
+    }
+};
+function getInterceptor(prop, target, def = {}) {
+    var _a, _b, _c;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const type = (_b = (_a = def.type) !== null && _a !== void 0 ? _a : Reflect.getMetadata('design:type', target, prop)) !== null && _b !== void 0 ? _b : null;
+    if (type == null) {
+        return kernel.noop;
+    }
+    let coercer;
+    switch (type) {
+        case Number:
+        case Boolean:
+        case String:
+        case BigInt:
+            coercer = type;
+            break;
+        default: {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+            const $coercer = type.coerce;
+            coercer = typeof $coercer === 'function'
+                ? $coercer.bind(type)
+                : ((_c = Coercer.for(type)) !== null && _c !== void 0 ? _c : kernel.noop);
+            break;
+        }
+    }
+    return coercer === kernel.noop
+        ? coercer
+        : createCoercer(coercer, def.nullable);
+}
+function createCoercer(coercer, nullable) {
+    return function (value, coercionConfiguration) {
+        var _a;
+        if (!(coercionConfiguration === null || coercionConfiguration === void 0 ? void 0 : coercionConfiguration.enableCoercion))
+            return value;
+        return ((nullable !== null && nullable !== void 0 ? nullable : (((_a = coercionConfiguration === null || coercionConfiguration === void 0 ? void 0 : coercionConfiguration.coerceNullish) !== null && _a !== void 0 ? _a : false) ? false : true)) && value == null)
+            ? value
+            : coercer(value, coercionConfiguration);
+    };
+}
 
 class BindableObserver {
     constructor(obj, key, cbName, set, 
     // todo: a future feature where the observer is not instantiated via a controller
     // this observer can become more static, as in immediately available when used
     // in the form of a decorator
-    $controller) {
+    $controller, _coercionConfig) {
         this.set = set;
         this.$controller = $controller;
+        this._coercionConfig = _coercionConfig;
         /** @internal */
         this._value = void 0;
         /** @internal */
@@ -245,7 +296,7 @@ class BindableObserver {
         else {
             this._observing = true;
             val = obj[key];
-            this._value = hasSetter && val !== void 0 ? set(val) : val;
+            this._value = hasSetter && val !== void 0 ? set(val, this._coercionConfig) : val;
             this._createGetterSetter();
         }
     }
@@ -255,7 +306,7 @@ class BindableObserver {
     }
     setValue(newValue, flags) {
         if (this._hasSetter) {
-            newValue = this.set(newValue);
+            newValue = this.set(newValue, this._coercionConfig);
         }
         const currentValue = this._value;
         if (this._observing) {
@@ -287,7 +338,7 @@ class BindableObserver {
         if (!this._observing === false) {
             this._observing = true;
             this._value = this._hasSetter
-                ? this.set(this._obj[this._key])
+                ? this.set(this._obj[this._key], this._coercionConfig)
                 : this._obj[this._key];
             this._createGetterSetter();
         }
@@ -2376,7 +2427,7 @@ class CustomAttributeDefinition {
             name = nameOrDef.name;
             def = nameOrDef;
         }
-        return new CustomAttributeDefinition(Type, kernel.firstDefined(getAttributeAnnotation(Type, 'name'), name), kernel.mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), kernel.firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, runtime.BindingMode.toView), kernel.firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables), kernel.firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), kernel.mergeArrays(Watch.getAnnotation(Type), Type.watches));
+        return new CustomAttributeDefinition(Type, kernel.firstDefined(getAttributeAnnotation(Type, 'name'), name), kernel.mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), kernel.firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, runtime.BindingMode.toView), kernel.firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(Type, ...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables), kernel.firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), kernel.mergeArrays(Watch.getAnnotation(Type), Type.watches));
     }
     register(container) {
         const { Type, key, aliases } = this;
@@ -2546,19 +2597,19 @@ class CustomElementDefinition {
             else {
                 Type = CustomElement.generateType(kernel.pascalCase(name));
             }
-            return new CustomElementDefinition(Type, name, kernel.mergeArrays(def.aliases), kernel.fromDefinitionOrDefault('key', def, () => CustomElement.keyFrom(name)), kernel.fromDefinitionOrDefault('cache', def, returnZero), kernel.fromDefinitionOrDefault('capture', def, returnFalse), kernel.fromDefinitionOrDefault('template', def, returnNull), kernel.mergeArrays(def.instructions), kernel.mergeArrays(def.dependencies), kernel.fromDefinitionOrDefault('injectable', def, returnNull), kernel.fromDefinitionOrDefault('needsCompile', def, returnTrue), kernel.mergeArrays(def.surrogates), Bindable.from(def.bindables), Children.from(def.childrenObservers), kernel.fromDefinitionOrDefault('containerless', def, returnFalse), kernel.fromDefinitionOrDefault('isStrictBinding', def, returnFalse), kernel.fromDefinitionOrDefault('shadowOptions', def, returnNull), kernel.fromDefinitionOrDefault('hasSlots', def, returnFalse), kernel.fromDefinitionOrDefault('enhance', def, returnFalse), kernel.fromDefinitionOrDefault('watches', def, returnEmptyArray), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
+            return new CustomElementDefinition(Type, name, kernel.mergeArrays(def.aliases), kernel.fromDefinitionOrDefault('key', def, () => CustomElement.keyFrom(name)), kernel.fromDefinitionOrDefault('cache', def, returnZero), kernel.fromDefinitionOrDefault('capture', def, returnFalse), kernel.fromDefinitionOrDefault('template', def, returnNull), kernel.mergeArrays(def.instructions), kernel.mergeArrays(def.dependencies), kernel.fromDefinitionOrDefault('injectable', def, returnNull), kernel.fromDefinitionOrDefault('needsCompile', def, returnTrue), kernel.mergeArrays(def.surrogates), Bindable.from(Type, def.bindables), Children.from(def.childrenObservers), kernel.fromDefinitionOrDefault('containerless', def, returnFalse), kernel.fromDefinitionOrDefault('isStrictBinding', def, returnFalse), kernel.fromDefinitionOrDefault('shadowOptions', def, returnNull), kernel.fromDefinitionOrDefault('hasSlots', def, returnFalse), kernel.fromDefinitionOrDefault('enhance', def, returnFalse), kernel.fromDefinitionOrDefault('watches', def, returnEmptyArray), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // If a type is passed in, we ignore the Type property on the definition if it exists.
         // TODO: document this behavior
         if (isString(nameOrDef)) {
-            return new CustomElementDefinition(Type, nameOrDef, kernel.mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), kernel.fromAnnotationOrTypeOrDefault('cache', Type, returnZero), kernel.fromAnnotationOrTypeOrDefault('capture', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('template', Type, returnNull), kernel.mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies), kernel.fromAnnotationOrTypeOrDefault('injectable', Type, returnNull), kernel.fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue), kernel.mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers), kernel.fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull), kernel.fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse), kernel.mergeArrays(Watch.getAnnotation(Type), Type.watches), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
+            return new CustomElementDefinition(Type, nameOrDef, kernel.mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), kernel.fromAnnotationOrTypeOrDefault('cache', Type, returnZero), kernel.fromAnnotationOrTypeOrDefault('capture', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('template', Type, returnNull), kernel.mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies), kernel.fromAnnotationOrTypeOrDefault('injectable', Type, returnNull), kernel.fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue), kernel.mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(Type, ...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers), kernel.fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull), kernel.fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse), kernel.mergeArrays(Watch.getAnnotation(Type), Type.watches), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // This is the typical default behavior, e.g. from regular CustomElement.define invocations or from @customElement deco
         // The ViewValueConverter also uses this signature and passes in a definition where everything except for the 'hooks'
         // property needs to be copied. So we have that exception for 'hooks', but we may need to revisit that default behavior
         // if this turns out to be too opinionated.
         const name = kernel.fromDefinitionOrDefault('name', nameOrDef, generateElementName);
-        return new CustomElementDefinition(Type, name, kernel.mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull), kernel.mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue), kernel.mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse), kernel.mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull));
+        return new CustomElementDefinition(Type, name, kernel.mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull), kernel.mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue), kernel.mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(Type, ...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse), kernel.mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull));
     }
     static getOrCreate(partialDefinition) {
         if (partialDefinition instanceof CustomElementDefinition) {
@@ -4447,11 +4498,13 @@ _flags, instance) {
         let bindable;
         let i = 0;
         const observers = getLookup(instance);
+        const container = controller.container;
+        const coercionConfiguration = container.has(runtime.ICoercionConfiguration, true) ? container.get(runtime.ICoercionConfiguration) : null;
         for (; i < length; ++i) {
             name = observableNames[i];
             if (observers[name] === void 0) {
                 bindable = bindables[name];
-                observers[name] = new BindableObserver(instance, name, bindable.callback, bindable.set, controller);
+                observers[name] = new BindableObserver(instance, name, bindable.callback, bindable.set, controller, coercionConfiguration);
             }
         }
     }
@@ -8177,11 +8230,11 @@ class BindablesInfo {
                 else if (!hasPrimary && primary == null) {
                     primary = bindable;
                 }
-                attrs[attr] = BindableDefinition.create(prop, bindable);
+                attrs[attr] = BindableDefinition.create(prop, def.Type, bindable);
             }
             if (bindable == null && isAttr) {
                 // if no bindables are present, default to "value"
-                primary = attrs.value = BindableDefinition.create('value', { mode: defaultBindingMode });
+                primary = attrs.value = BindableDefinition.create('value', def.Type, { mode: defaultBindingMode });
             }
             bindableAttrsInfoCache.set(def, info = new BindablesInfo(attrs, bindables, primary));
         }
@@ -12034,27 +12087,35 @@ const DefaultRenderers = [
     TextBindingRendererRegistration,
     SpreadRendererRegistration,
 ];
-/**
- * A DI configuration object containing html-specific (but environment-agnostic) registrations:
- * - `RuntimeConfiguration` from `@aurelia/runtime`
- * - `DefaultComponents`
- * - `DefaultResources`
- * - `DefaultRenderers`
- */
-const StandardConfiguration = {
-    /**
-     * Apply this configuration to the provided container.
-     */
-    register(container) {
-        return container.register(...DefaultComponents, ...DefaultResources, ...DefaultBindingSyntax, ...DefaultBindingLanguage, ...DefaultRenderers);
-    },
-    /**
-     * Create a new container with this configuration applied to it.
-     */
-    createContainer() {
-        return this.register(kernel.DI.createContainer());
-    }
-};
+const StandardConfiguration = createConfiguration(kernel.noop);
+function createConfiguration(optionsProvider) {
+    return {
+        optionsProvider,
+        /**
+         * Apply this configuration to the provided container.
+         */
+        register(container) {
+            const runtimeConfigurationOptions = {
+                coercingOptions: {
+                    enableCoercion: false,
+                    coerceNullish: false
+                }
+            };
+            optionsProvider(runtimeConfigurationOptions);
+            /**
+             * Standard DI configuration containing html-specific (but environment-agnostic) registrations:
+             * - `RuntimeConfiguration` from `@aurelia/runtime`
+             * - `DefaultComponents`
+             * - `DefaultResources`
+             * - `DefaultRenderers`
+             */
+            return container.register(kernel.Registration.instance(runtime.ICoercionConfiguration, runtimeConfigurationOptions.coercingOptions), ...DefaultComponents, ...DefaultResources, ...DefaultBindingSyntax, ...DefaultBindingLanguage, ...DefaultRenderers);
+        },
+        customize(cb) {
+            return createConfiguration(cb !== null && cb !== void 0 ? cb : optionsProvider);
+        },
+    };
+}
 
 const IAurelia = kernel.DI.createInterface('IAurelia');
 class Aurelia {
@@ -13096,6 +13157,7 @@ exports.attributePattern = attributePattern;
 exports.bindable = bindable;
 exports.bindingCommand = bindingCommand;
 exports.children = children;
+exports.coercer = coercer;
 exports.containerless = containerless;
 exports.convertToRenderLocation = convertToRenderLocation;
 exports.createElement = createElement;

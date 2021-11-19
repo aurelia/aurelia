@@ -2,7 +2,7 @@ export { Platform, Task, TaskAbortError, TaskQueue, TaskQueuePriority, TaskStatu
 import { BrowserPlatform } from '../../../platform-browser/dist/native-modules/index.js';
 export { BrowserPlatform } from '../../../platform-browser/dist/native-modules/index.js';
 import { Metadata, Protocol, getPrototypeChain, firstDefined, kebabCase, noop, DI, emptyArray, all, Registration, IPlatform as IPlatform$1, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, IContainer, nextId, optional, InstanceProvider, isObject, ILogger, onResolve, resolveAll, camelCase, toArray, emptyObject, IServiceLocator, compareNumber, transient } from '../../../kernel/dist/native-modules/index.js';
-import { BindingMode, subscriberCollection, withFlushQueue, connectable, registerAliases, ConnectableSwitcher, ProxyObservable, Scope, IObserverLocator, IExpressionParser, AccessScopeExpression, DelegationStrategy, BindingBehaviorExpression, BindingBehaviorFactory, PrimitiveLiteralExpression, bindingBehavior, BindingInterceptor, ISignaler, PropertyAccessor, INodeObserverLocator, SetterObserver, IDirtyChecker, alias, applyMutationsToIndices, getCollectionObserver as getCollectionObserver$1, BindingContext, synchronizeIndices, valueConverter } from '../../../runtime/dist/native-modules/index.js';
+import { BindingMode, subscriberCollection, withFlushQueue, connectable, registerAliases, ConnectableSwitcher, ProxyObservable, Scope, ICoercionConfiguration, IObserverLocator, IExpressionParser, AccessScopeExpression, DelegationStrategy, BindingBehaviorExpression, BindingBehaviorFactory, PrimitiveLiteralExpression, bindingBehavior, BindingInterceptor, ISignaler, PropertyAccessor, INodeObserverLocator, SetterObserver, IDirtyChecker, alias, applyMutationsToIndices, getCollectionObserver as getCollectionObserver$1, BindingContext, synchronizeIndices, valueConverter } from '../../../runtime/dist/native-modules/index.js';
 export { Access, AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, AccessorType, ArrayBindingPattern, ArrayIndexObserver, ArrayLiteralExpression, ArrayObserver, AssignExpression, BinaryExpression, BindingBehavior, BindingBehaviorDefinition, BindingBehaviorExpression, BindingBehaviorFactory, BindingBehaviorStrategy, BindingContext, BindingIdentifier, BindingInterceptor, BindingMediator, BindingMode, CallFunctionExpression, CallMemberExpression, CallScopeExpression, Char, CollectionKind, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConditionalExpression, CustomExpression, DelegationStrategy, DirtyCheckProperty, DirtyCheckSettings, ExpressionKind, ExpressionType, ForOfStatement, HtmlLiteralExpression, IDirtyChecker, IExpressionParser, INodeObserverLocator, IObserverLocator, ISignaler, Interpolation, LifecycleFlags, MapObserver, ObjectBindingPattern, ObjectLiteralExpression, ObserverLocator, OverrideContext, Precedence, PrimitiveLiteralExpression, PrimitiveObserver, PropertyAccessor, Scope, SetObserver, SetterObserver, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverter, ValueConverterDefinition, ValueConverterExpression, alias, applyMutationsToIndices, bindingBehavior, cloneIndexMap, connectable, copyIndexMap, createIndexMap, disableArrayObservation, disableMapObservation, disableSetObservation, enableArrayObservation, enableMapObservation, enableSetObservation, getCollectionObserver, isIndexMap, observable, parseExpression, registerAliases, subscriberCollection, synchronizeIndices, valueConverter } from '../../../runtime/dist/native-modules/index.js';
 
 /*! *****************************************************************************
@@ -75,7 +75,7 @@ function bindable(configOrTarget, prop) {
             // - @bindable({...opts})
             config.property = $prop;
         }
-        defineMetadata(baseName$1, BindableDefinition.create($prop, config), $target.constructor, $prop);
+        defineMetadata(baseName$1, BindableDefinition.create($prop, $target, config), $target.constructor, $prop);
         appendAnnotationKey($target.constructor, Bindable.keyFrom($prop));
     }
     if (arguments.length > 1) {
@@ -106,14 +106,14 @@ const baseName$1 = getAnnotationKeyFor('bindable');
 const Bindable = Object.freeze({
     name: baseName$1,
     keyFrom: (name) => `${baseName$1}:${name}`,
-    from(...bindableLists) {
+    from(type, ...bindableLists) {
         const bindables = {};
         const isArray = Array.isArray;
         function addName(name) {
-            bindables[name] = BindableDefinition.create(name);
+            bindables[name] = BindableDefinition.create(name, type);
         }
         function addDescription(name, def) {
-            bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, def);
+            bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, type, def);
         }
         function addList(maybeList) {
             if (isArray(maybeList)) {
@@ -143,7 +143,7 @@ const Bindable = Object.freeze({
                     prop = configOrProp.property;
                     config = configOrProp;
                 }
-                def = BindableDefinition.create(prop, config);
+                def = BindableDefinition.create(prop, Type, config);
                 if (!hasOwnMetadata(baseName$1, Type, prop)) {
                     appendAnnotationKey(Type, Bindable.keyFrom(prop));
                 }
@@ -203,20 +203,71 @@ class BindableDefinition {
         this.property = property;
         this.set = set;
     }
-    static create(prop, def = {}) {
-        return new BindableDefinition(firstDefined(def.attribute, kebabCase(prop)), firstDefined(def.callback, `${prop}Changed`), firstDefined(def.mode, BindingMode.toView), firstDefined(def.primary, false), firstDefined(def.property, prop), firstDefined(def.set, noop));
+    static create(prop, target, def = {}) {
+        return new BindableDefinition(firstDefined(def.attribute, kebabCase(prop)), firstDefined(def.callback, `${prop}Changed`), firstDefined(def.mode, BindingMode.toView), firstDefined(def.primary, false), firstDefined(def.property, prop), firstDefined(def.set, getInterceptor(prop, target, def)));
     }
 }
-/* eslint-enable @typescript-eslint/no-unused-vars,spaced-comment */
+function coercer(target, property, _descriptor) {
+    Coercer.define(target, property);
+}
+const Coercer = {
+    key: getAnnotationKeyFor('coercer'),
+    define(target, property) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+        defineMetadata(Coercer.key, target[property].bind(target), target);
+    },
+    for(target) {
+        return getOwnMetadata(Coercer.key, target);
+    }
+};
+function getInterceptor(prop, target, def = {}) {
+    var _a, _b, _c;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const type = (_b = (_a = def.type) !== null && _a !== void 0 ? _a : Reflect.getMetadata('design:type', target, prop)) !== null && _b !== void 0 ? _b : null;
+    if (type == null) {
+        return noop;
+    }
+    let coercer;
+    switch (type) {
+        case Number:
+        case Boolean:
+        case String:
+        case BigInt:
+            coercer = type;
+            break;
+        default: {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+            const $coercer = type.coerce;
+            coercer = typeof $coercer === 'function'
+                ? $coercer.bind(type)
+                : ((_c = Coercer.for(type)) !== null && _c !== void 0 ? _c : noop);
+            break;
+        }
+    }
+    return coercer === noop
+        ? coercer
+        : createCoercer(coercer, def.nullable);
+}
+function createCoercer(coercer, nullable) {
+    return function (value, coercionConfiguration) {
+        var _a;
+        if (!(coercionConfiguration === null || coercionConfiguration === void 0 ? void 0 : coercionConfiguration.enableCoercion))
+            return value;
+        return ((nullable !== null && nullable !== void 0 ? nullable : (((_a = coercionConfiguration === null || coercionConfiguration === void 0 ? void 0 : coercionConfiguration.coerceNullish) !== null && _a !== void 0 ? _a : false) ? false : true)) && value == null)
+            ? value
+            : coercer(value, coercionConfiguration);
+    };
+}
 
 class BindableObserver {
     constructor(obj, key, cbName, set, 
     // todo: a future feature where the observer is not instantiated via a controller
     // this observer can become more static, as in immediately available when used
     // in the form of a decorator
-    $controller) {
+    $controller, _coercionConfig) {
         this.set = set;
         this.$controller = $controller;
+        this._coercionConfig = _coercionConfig;
         /** @internal */
         this._value = void 0;
         /** @internal */
@@ -243,7 +294,7 @@ class BindableObserver {
         else {
             this._observing = true;
             val = obj[key];
-            this._value = hasSetter && val !== void 0 ? set(val) : val;
+            this._value = hasSetter && val !== void 0 ? set(val, this._coercionConfig) : val;
             this._createGetterSetter();
         }
     }
@@ -253,7 +304,7 @@ class BindableObserver {
     }
     setValue(newValue, flags) {
         if (this._hasSetter) {
-            newValue = this.set(newValue);
+            newValue = this.set(newValue, this._coercionConfig);
         }
         const currentValue = this._value;
         if (this._observing) {
@@ -285,7 +336,7 @@ class BindableObserver {
         if (!this._observing === false) {
             this._observing = true;
             this._value = this._hasSetter
-                ? this.set(this._obj[this._key])
+                ? this.set(this._obj[this._key], this._coercionConfig)
                 : this._obj[this._key];
             this._createGetterSetter();
         }
@@ -2374,7 +2425,7 @@ class CustomAttributeDefinition {
             name = nameOrDef.name;
             def = nameOrDef;
         }
-        return new CustomAttributeDefinition(Type, firstDefined(getAttributeAnnotation(Type, 'name'), name), mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView), firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables), firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), mergeArrays(Watch.getAnnotation(Type), Type.watches));
+        return new CustomAttributeDefinition(Type, firstDefined(getAttributeAnnotation(Type, 'name'), name), mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView), firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(Type, ...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables), firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), mergeArrays(Watch.getAnnotation(Type), Type.watches));
     }
     register(container) {
         const { Type, key, aliases } = this;
@@ -2544,19 +2595,19 @@ class CustomElementDefinition {
             else {
                 Type = CustomElement.generateType(pascalCase(name));
             }
-            return new CustomElementDefinition(Type, name, mergeArrays(def.aliases), fromDefinitionOrDefault('key', def, () => CustomElement.keyFrom(name)), fromDefinitionOrDefault('cache', def, returnZero), fromDefinitionOrDefault('capture', def, returnFalse), fromDefinitionOrDefault('template', def, returnNull), mergeArrays(def.instructions), mergeArrays(def.dependencies), fromDefinitionOrDefault('injectable', def, returnNull), fromDefinitionOrDefault('needsCompile', def, returnTrue), mergeArrays(def.surrogates), Bindable.from(def.bindables), Children.from(def.childrenObservers), fromDefinitionOrDefault('containerless', def, returnFalse), fromDefinitionOrDefault('isStrictBinding', def, returnFalse), fromDefinitionOrDefault('shadowOptions', def, returnNull), fromDefinitionOrDefault('hasSlots', def, returnFalse), fromDefinitionOrDefault('enhance', def, returnFalse), fromDefinitionOrDefault('watches', def, returnEmptyArray), fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
+            return new CustomElementDefinition(Type, name, mergeArrays(def.aliases), fromDefinitionOrDefault('key', def, () => CustomElement.keyFrom(name)), fromDefinitionOrDefault('cache', def, returnZero), fromDefinitionOrDefault('capture', def, returnFalse), fromDefinitionOrDefault('template', def, returnNull), mergeArrays(def.instructions), mergeArrays(def.dependencies), fromDefinitionOrDefault('injectable', def, returnNull), fromDefinitionOrDefault('needsCompile', def, returnTrue), mergeArrays(def.surrogates), Bindable.from(Type, def.bindables), Children.from(def.childrenObservers), fromDefinitionOrDefault('containerless', def, returnFalse), fromDefinitionOrDefault('isStrictBinding', def, returnFalse), fromDefinitionOrDefault('shadowOptions', def, returnNull), fromDefinitionOrDefault('hasSlots', def, returnFalse), fromDefinitionOrDefault('enhance', def, returnFalse), fromDefinitionOrDefault('watches', def, returnEmptyArray), fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // If a type is passed in, we ignore the Type property on the definition if it exists.
         // TODO: document this behavior
         if (isString(nameOrDef)) {
-            return new CustomElementDefinition(Type, nameOrDef, mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), fromAnnotationOrTypeOrDefault('cache', Type, returnZero), fromAnnotationOrTypeOrDefault('capture', Type, returnFalse), fromAnnotationOrTypeOrDefault('template', Type, returnNull), mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions), mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies), fromAnnotationOrTypeOrDefault('injectable', Type, returnNull), fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue), mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers), fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse), fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse), fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull), fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse), fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse), mergeArrays(Watch.getAnnotation(Type), Type.watches), fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
+            return new CustomElementDefinition(Type, nameOrDef, mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), fromAnnotationOrTypeOrDefault('cache', Type, returnZero), fromAnnotationOrTypeOrDefault('capture', Type, returnFalse), fromAnnotationOrTypeOrDefault('template', Type, returnNull), mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions), mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies), fromAnnotationOrTypeOrDefault('injectable', Type, returnNull), fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue), mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(Type, ...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers), fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse), fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse), fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull), fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse), fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse), mergeArrays(Watch.getAnnotation(Type), Type.watches), fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // This is the typical default behavior, e.g. from regular CustomElement.define invocations or from @customElement deco
         // The ViewValueConverter also uses this signature and passes in a definition where everything except for the 'hooks'
         // property needs to be copied. So we have that exception for 'hooks', but we may need to revisit that default behavior
         // if this turns out to be too opinionated.
         const name = fromDefinitionOrDefault('name', nameOrDef, generateElementName);
-        return new CustomElementDefinition(Type, name, mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero), fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull), mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull), fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue), mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull), fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse), mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches), fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull));
+        return new CustomElementDefinition(Type, name, mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero), fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull), mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull), fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue), mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(Type, ...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), getElementAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull), fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse), fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse), mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches), fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull));
     }
     static getOrCreate(partialDefinition) {
         if (partialDefinition instanceof CustomElementDefinition) {
@@ -4445,11 +4496,13 @@ _flags, instance) {
         let bindable;
         let i = 0;
         const observers = getLookup(instance);
+        const container = controller.container;
+        const coercionConfiguration = container.has(ICoercionConfiguration, true) ? container.get(ICoercionConfiguration) : null;
         for (; i < length; ++i) {
             name = observableNames[i];
             if (observers[name] === void 0) {
                 bindable = bindables[name];
-                observers[name] = new BindableObserver(instance, name, bindable.callback, bindable.set, controller);
+                observers[name] = new BindableObserver(instance, name, bindable.callback, bindable.set, controller, coercionConfiguration);
             }
         }
     }
@@ -8175,11 +8228,11 @@ class BindablesInfo {
                 else if (!hasPrimary && primary == null) {
                     primary = bindable;
                 }
-                attrs[attr] = BindableDefinition.create(prop, bindable);
+                attrs[attr] = BindableDefinition.create(prop, def.Type, bindable);
             }
             if (bindable == null && isAttr) {
                 // if no bindables are present, default to "value"
-                primary = attrs.value = BindableDefinition.create('value', { mode: defaultBindingMode });
+                primary = attrs.value = BindableDefinition.create('value', def.Type, { mode: defaultBindingMode });
             }
             bindableAttrsInfoCache.set(def, info = new BindablesInfo(attrs, bindables, primary));
         }
@@ -12032,27 +12085,35 @@ const DefaultRenderers = [
     TextBindingRendererRegistration,
     SpreadRendererRegistration,
 ];
-/**
- * A DI configuration object containing html-specific (but environment-agnostic) registrations:
- * - `RuntimeConfiguration` from `@aurelia/runtime`
- * - `DefaultComponents`
- * - `DefaultResources`
- * - `DefaultRenderers`
- */
-const StandardConfiguration = {
-    /**
-     * Apply this configuration to the provided container.
-     */
-    register(container) {
-        return container.register(...DefaultComponents, ...DefaultResources, ...DefaultBindingSyntax, ...DefaultBindingLanguage, ...DefaultRenderers);
-    },
-    /**
-     * Create a new container with this configuration applied to it.
-     */
-    createContainer() {
-        return this.register(DI.createContainer());
-    }
-};
+const StandardConfiguration = createConfiguration(noop);
+function createConfiguration(optionsProvider) {
+    return {
+        optionsProvider,
+        /**
+         * Apply this configuration to the provided container.
+         */
+        register(container) {
+            const runtimeConfigurationOptions = {
+                coercingOptions: {
+                    enableCoercion: false,
+                    coerceNullish: false
+                }
+            };
+            optionsProvider(runtimeConfigurationOptions);
+            /**
+             * Standard DI configuration containing html-specific (but environment-agnostic) registrations:
+             * - `RuntimeConfiguration` from `@aurelia/runtime`
+             * - `DefaultComponents`
+             * - `DefaultResources`
+             * - `DefaultRenderers`
+             */
+            return container.register(Registration.instance(ICoercionConfiguration, runtimeConfigurationOptions.coercingOptions), ...DefaultComponents, ...DefaultResources, ...DefaultBindingSyntax, ...DefaultBindingLanguage, ...DefaultRenderers);
+        },
+        customize(cb) {
+            return createConfiguration(cb !== null && cb !== void 0 ? cb : optionsProvider);
+        },
+    };
+}
 
 const IAurelia = DI.createInterface('IAurelia');
 class Aurelia {
@@ -12785,5 +12846,5 @@ class WcCustomElementRegistry {
 /** @internal */
 WcCustomElementRegistry.inject = [IContainer, IPlatform, IRendering];
 
-export { AdoptedStyleSheetsStyles, AppRoot, AppTask, AtPrefixedTriggerAttributePattern, AtPrefixedTriggerAttributePatternRegistration, AttrBindingBehavior, AttrBindingBehaviorRegistration, AttrBindingCommand, AttrBindingCommandRegistration, AttrSyntax, AttributeBinding, AttributeBindingInstruction, AttributeBindingRendererRegistration, AttributeNSAccessor, AttributePattern, AuCompose, AuRender, AuRenderRegistration, AuSlot, AuSlotsInfo, Aurelia, Bindable, BindableDefinition, BindableObserver, BindablesInfo, BindingCommand, BindingCommandDefinition, BindingModeBehavior, CSSModulesProcessorRegistry, CallBinding, CallBindingCommand, CallBindingCommandRegistration, CallBindingInstruction, CallBindingRendererRegistration, CaptureBindingCommand, CaptureBindingCommandRegistration, Case, CheckedObserver, Children, ChildrenDefinition, ChildrenObserver, ClassAttributeAccessor, ClassBindingCommand, ClassBindingCommandRegistration, ColonPrefixedBindAttributePattern, ColonPrefixedBindAttributePatternRegistration, CommandType, ComputedWatcher, Controller, CustomAttribute, CustomAttributeDefinition, CustomAttributeRendererRegistration, CustomElement, CustomElementDefinition, CustomElementRendererRegistration, DataAttributeAccessor, DebounceBindingBehavior, DebounceBindingBehaviorRegistration, DefaultBindingCommand, DefaultBindingCommandRegistration, DefaultBindingLanguage, DefaultBindingSyntax, DefaultCase, DefaultComponents, DefaultDialogDom, DefaultDialogDomRenderer, DefaultDialogGlobalSettings, DefaultRenderers, DefaultResources, DefinitionType, DelegateBindingCommand, DelegateBindingCommandRegistration, DialogCloseResult, DialogConfiguration, DialogController, DialogDeactivationStatuses, DialogDefaultConfiguration, DialogOpenResult, DialogService, DotSeparatedAttributePattern, DotSeparatedAttributePatternRegistration, Else, ElseRegistration, EventDelegator, EventSubscriber, ExpressionWatcher, Focus, ForBindingCommand, ForBindingCommandRegistration, FragmentNodeSequence, FrequentMutations, FromViewBindingBehavior, FromViewBindingBehaviorRegistration, FromViewBindingCommand, FromViewBindingCommandRegistration, FulfilledTemplateController, HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, IAppRoot, IAppTask, IAttrMapper, IAttributeParser, IAttributePattern, IAuSlotsInfo, IAurelia, IController, IDialogController, IDialogDom, IDialogDomRenderer, IDialogGlobalSettings, IDialogService, IEventDelegator, IEventTarget, IHistory, IHydrationContext, IInstruction, ILifecycleHooks, ILocation, INode, INodeObserverLocatorRegistration, IPlatform, IProjections, IRenderLocation, IRenderer, IRendering, ISVGAnalyzer, ISanitizer, IShadowDOMGlobalStyles, IShadowDOMStyleFactory, IShadowDOMStyles, ISyntaxInterpreter, ITemplateCompiler, ITemplateCompilerHooks, ITemplateCompilerRegistration, ITemplateElementFactory, IViewFactory, IViewLocator, IWcElementRegistry, IWindow, IWorkTracker, If, IfRegistration, InstructionType, InterpolationBinding, InterpolationBindingRendererRegistration, InterpolationInstruction, Interpretation, IteratorBindingInstruction, IteratorBindingRendererRegistration, LetBinding, LetBindingInstruction, LetElementRendererRegistration, LifecycleHooks, LifecycleHooksDefinition, LifecycleHooksEntry, Listener, ListenerBindingInstruction, ListenerBindingRendererRegistration, NodeObserverConfig, NodeObserverLocator, NodeType, NoopSVGAnalyzer, ObserveShallow, OneTimeBindingBehavior, OneTimeBindingBehaviorRegistration, OneTimeBindingCommand, OneTimeBindingCommandRegistration, PendingTemplateController, Portal, PromiseTemplateController, PropertyBinding, PropertyBindingInstruction, PropertyBindingRendererRegistration, RefAttributePattern, RefAttributePatternRegistration, RefBinding, RefBindingCommandRegistration, RefBindingInstruction, RefBindingRendererRegistration, RejectedTemplateController, RenderPlan, Rendering, Repeat, RepeatRegistration, SVGAnalyzer, SVGAnalyzerRegistration, SanitizeValueConverter, SanitizeValueConverterRegistration, SelectValueObserver, SelfBindingBehavior, SelfBindingBehaviorRegistration, SetAttributeInstruction, SetAttributeRendererRegistration, SetClassAttributeInstruction, SetClassAttributeRendererRegistration, SetPropertyInstruction, SetPropertyRendererRegistration, SetStyleAttributeInstruction, SetStyleAttributeRendererRegistration, ShadowDOMRegistry, ShortHandBindingSyntax, SignalBindingBehavior, SignalBindingBehaviorRegistration, StandardConfiguration, StyleAttributeAccessor, StyleBindingCommand, StyleBindingCommandRegistration, StyleConfiguration, StyleElementStyles, StylePropertyBindingInstruction, StylePropertyBindingRendererRegistration, Switch, TemplateCompiler, TemplateCompilerHooks, TemplateControllerRendererRegistration, TextBindingInstruction, TextBindingRendererRegistration, ThrottleBindingBehavior, ThrottleBindingBehaviorRegistration, ToViewBindingBehavior, ToViewBindingBehaviorRegistration, ToViewBindingCommand, ToViewBindingCommandRegistration, TriggerBindingCommand, TriggerBindingCommandRegistration, TwoWayBindingBehavior, TwoWayBindingBehaviorRegistration, TwoWayBindingCommand, TwoWayBindingCommandRegistration, UpdateTriggerBindingBehavior, UpdateTriggerBindingBehaviorRegistration, ValueAttributeObserver, ViewFactory, ViewLocator, ViewModelKind, ViewValueConverter, ViewValueConverterRegistration, Views, Watch, WcCustomElementRegistry, With, WithRegistration, allResources, attributePattern, bindable, bindingCommand, children, containerless, convertToRenderLocation, createElement, cssModules, customAttribute, customElement, getEffectiveParentNode, getRef, isCustomElementController, isCustomElementViewModel, isInstruction, isRenderLocation, lifecycleHooks, processContent, renderer, setEffectiveParentNode, setRef, shadowCSS, templateCompilerHooks, templateController, useShadowDOM, view, watch };
+export { AdoptedStyleSheetsStyles, AppRoot, AppTask, AtPrefixedTriggerAttributePattern, AtPrefixedTriggerAttributePatternRegistration, AttrBindingBehavior, AttrBindingBehaviorRegistration, AttrBindingCommand, AttrBindingCommandRegistration, AttrSyntax, AttributeBinding, AttributeBindingInstruction, AttributeBindingRendererRegistration, AttributeNSAccessor, AttributePattern, AuCompose, AuRender, AuRenderRegistration, AuSlot, AuSlotsInfo, Aurelia, Bindable, BindableDefinition, BindableObserver, BindablesInfo, BindingCommand, BindingCommandDefinition, BindingModeBehavior, CSSModulesProcessorRegistry, CallBinding, CallBindingCommand, CallBindingCommandRegistration, CallBindingInstruction, CallBindingRendererRegistration, CaptureBindingCommand, CaptureBindingCommandRegistration, Case, CheckedObserver, Children, ChildrenDefinition, ChildrenObserver, ClassAttributeAccessor, ClassBindingCommand, ClassBindingCommandRegistration, ColonPrefixedBindAttributePattern, ColonPrefixedBindAttributePatternRegistration, CommandType, ComputedWatcher, Controller, CustomAttribute, CustomAttributeDefinition, CustomAttributeRendererRegistration, CustomElement, CustomElementDefinition, CustomElementRendererRegistration, DataAttributeAccessor, DebounceBindingBehavior, DebounceBindingBehaviorRegistration, DefaultBindingCommand, DefaultBindingCommandRegistration, DefaultBindingLanguage, DefaultBindingSyntax, DefaultCase, DefaultComponents, DefaultDialogDom, DefaultDialogDomRenderer, DefaultDialogGlobalSettings, DefaultRenderers, DefaultResources, DefinitionType, DelegateBindingCommand, DelegateBindingCommandRegistration, DialogCloseResult, DialogConfiguration, DialogController, DialogDeactivationStatuses, DialogDefaultConfiguration, DialogOpenResult, DialogService, DotSeparatedAttributePattern, DotSeparatedAttributePatternRegistration, Else, ElseRegistration, EventDelegator, EventSubscriber, ExpressionWatcher, Focus, ForBindingCommand, ForBindingCommandRegistration, FragmentNodeSequence, FrequentMutations, FromViewBindingBehavior, FromViewBindingBehaviorRegistration, FromViewBindingCommand, FromViewBindingCommandRegistration, FulfilledTemplateController, HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, IAppRoot, IAppTask, IAttrMapper, IAttributeParser, IAttributePattern, IAuSlotsInfo, IAurelia, IController, IDialogController, IDialogDom, IDialogDomRenderer, IDialogGlobalSettings, IDialogService, IEventDelegator, IEventTarget, IHistory, IHydrationContext, IInstruction, ILifecycleHooks, ILocation, INode, INodeObserverLocatorRegistration, IPlatform, IProjections, IRenderLocation, IRenderer, IRendering, ISVGAnalyzer, ISanitizer, IShadowDOMGlobalStyles, IShadowDOMStyleFactory, IShadowDOMStyles, ISyntaxInterpreter, ITemplateCompiler, ITemplateCompilerHooks, ITemplateCompilerRegistration, ITemplateElementFactory, IViewFactory, IViewLocator, IWcElementRegistry, IWindow, IWorkTracker, If, IfRegistration, InstructionType, InterpolationBinding, InterpolationBindingRendererRegistration, InterpolationInstruction, Interpretation, IteratorBindingInstruction, IteratorBindingRendererRegistration, LetBinding, LetBindingInstruction, LetElementRendererRegistration, LifecycleHooks, LifecycleHooksDefinition, LifecycleHooksEntry, Listener, ListenerBindingInstruction, ListenerBindingRendererRegistration, NodeObserverConfig, NodeObserverLocator, NodeType, NoopSVGAnalyzer, ObserveShallow, OneTimeBindingBehavior, OneTimeBindingBehaviorRegistration, OneTimeBindingCommand, OneTimeBindingCommandRegistration, PendingTemplateController, Portal, PromiseTemplateController, PropertyBinding, PropertyBindingInstruction, PropertyBindingRendererRegistration, RefAttributePattern, RefAttributePatternRegistration, RefBinding, RefBindingCommandRegistration, RefBindingInstruction, RefBindingRendererRegistration, RejectedTemplateController, RenderPlan, Rendering, Repeat, RepeatRegistration, SVGAnalyzer, SVGAnalyzerRegistration, SanitizeValueConverter, SanitizeValueConverterRegistration, SelectValueObserver, SelfBindingBehavior, SelfBindingBehaviorRegistration, SetAttributeInstruction, SetAttributeRendererRegistration, SetClassAttributeInstruction, SetClassAttributeRendererRegistration, SetPropertyInstruction, SetPropertyRendererRegistration, SetStyleAttributeInstruction, SetStyleAttributeRendererRegistration, ShadowDOMRegistry, ShortHandBindingSyntax, SignalBindingBehavior, SignalBindingBehaviorRegistration, StandardConfiguration, StyleAttributeAccessor, StyleBindingCommand, StyleBindingCommandRegistration, StyleConfiguration, StyleElementStyles, StylePropertyBindingInstruction, StylePropertyBindingRendererRegistration, Switch, TemplateCompiler, TemplateCompilerHooks, TemplateControllerRendererRegistration, TextBindingInstruction, TextBindingRendererRegistration, ThrottleBindingBehavior, ThrottleBindingBehaviorRegistration, ToViewBindingBehavior, ToViewBindingBehaviorRegistration, ToViewBindingCommand, ToViewBindingCommandRegistration, TriggerBindingCommand, TriggerBindingCommandRegistration, TwoWayBindingBehavior, TwoWayBindingBehaviorRegistration, TwoWayBindingCommand, TwoWayBindingCommandRegistration, UpdateTriggerBindingBehavior, UpdateTriggerBindingBehaviorRegistration, ValueAttributeObserver, ViewFactory, ViewLocator, ViewModelKind, ViewValueConverter, ViewValueConverterRegistration, Views, Watch, WcCustomElementRegistry, With, WithRegistration, allResources, attributePattern, bindable, bindingCommand, children, coercer, containerless, convertToRenderLocation, createElement, cssModules, customAttribute, customElement, getEffectiveParentNode, getRef, isCustomElementController, isCustomElementViewModel, isInstruction, isRenderLocation, lifecycleHooks, processContent, renderer, setEffectiveParentNode, setRef, shadowCSS, templateCompilerHooks, templateController, useShadowDOM, view, watch };
 //# sourceMappingURL=index.dev.js.map

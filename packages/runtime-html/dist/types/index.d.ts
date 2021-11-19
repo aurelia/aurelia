@@ -1,6 +1,6 @@
 export { Platform, TaskQueue, Task, TaskAbortError, TaskQueuePriority, TaskStatus, QueueTaskOptions, ITask, } from '@aurelia/platform';
 export { BrowserPlatform, } from '@aurelia/platform-browser';
-export { bindable, Bindable, BindableDefinition, PartialBindableDefinition, } from './bindable.js';
+export { bindable, Bindable, BindableDefinition, PartialBindableDefinition, coercer, } from './bindable.js';
 export { BindableObserver, } from './observation/bindable-observer.js';
 export { DebounceBindingBehaviorRegistration, OneTimeBindingBehaviorRegistration, ToViewBindingBehaviorRegistration, FromViewBindingBehaviorRegistration, SignalBindingBehaviorRegistration, ThrottleBindingBehaviorRegistration, TwoWayBindingBehaviorRegistration, } from './configuration.js';
 export { BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, } from './binding-behaviors/binding-mode.js';

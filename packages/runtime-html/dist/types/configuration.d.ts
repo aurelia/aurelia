@@ -1,5 +1,6 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
 import { AuSlot } from './resources/custom-elements/au-slot.js';
+import { ICoercionConfiguration } from '@aurelia/runtime';
 export declare const DebounceBindingBehaviorRegistration: IRegistry;
 export declare const OneTimeBindingBehaviorRegistration: IRegistry;
 export declare const ToViewBindingBehaviorRegistration: IRegistry;
@@ -128,21 +129,17 @@ export declare const SpreadRendererRegistration: IRegistry;
  * - TextBinding: `${}`
  */
 export declare const DefaultRenderers: IRegistry[];
-/**
- * A DI configuration object containing html-specific (but environment-agnostic) registrations:
- * - `RuntimeConfiguration` from `@aurelia/runtime`
- * - `DefaultComponents`
- * - `DefaultResources`
- * - `DefaultRenderers`
- */
 export declare const StandardConfiguration: {
+    optionsProvider: ConfigurationOptionsProvider;
     /**
      * Apply this configuration to the provided container.
      */
     register(container: IContainer): IContainer;
-    /**
-     * Create a new container with this configuration applied to it.
-     */
-    createContainer(): IContainer;
+    customize(cb?: ConfigurationOptionsProvider | undefined): any;
 };
+export declare type ConfigurationOptionsProvider = (options: IRuntimeHtmlConfigurationOptions) => void;
+interface IRuntimeHtmlConfigurationOptions {
+    coercingOptions: ICoercionConfiguration;
+}
+export {};
 //# sourceMappingURL=configuration.d.ts.map

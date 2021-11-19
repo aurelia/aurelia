@@ -224,6 +224,8 @@ exports.bindingCommand = r.bindingCommand;
 
 exports.children = r.children;
 
+exports.coercer = r.coercer;
+
 exports.containerless = r.containerless;
 
 exports.createElement = r.createElement;

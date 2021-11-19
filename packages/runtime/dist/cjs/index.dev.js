@@ -1789,6 +1789,7 @@ function $number(result, func) {
     $array(arr, func);
 }
 
+const ICoercionConfiguration = kernel.DI.createInterface('ICoercionConfiguration');
 /*
 * Note: the oneTime binding now has a non-zero value for 2 reasons:
 *  - plays nicer with bitwise operations (more consistent code, more explicit settings)
@@ -5242,7 +5243,7 @@ class SetterNotifier {
     setValue(value, flags) {
         var _a;
         if (this._hasSetter) {
-            value = this._setter(value);
+            value = this._setter(value, null);
         }
         if (!Object.is(value, this._value)) {
             this._oldValue = this._value;
@@ -5641,6 +5642,7 @@ exports.DirtyCheckSettings = DirtyCheckSettings;
 exports.FlushQueue = FlushQueue;
 exports.ForOfStatement = ForOfStatement;
 exports.HtmlLiteralExpression = HtmlLiteralExpression;
+exports.ICoercionConfiguration = ICoercionConfiguration;
 exports.IDirtyChecker = IDirtyChecker;
 exports.IExpressionParser = IExpressionParser;
 exports.INodeObserverLocator = INodeObserverLocator;

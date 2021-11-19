@@ -135,6 +135,7 @@ exports.bindable = runtimeHtml.bindable;
 exports.bindingBehavior = runtimeHtml.bindingBehavior;
 exports.bindingCommand = runtimeHtml.bindingCommand;
 exports.children = runtimeHtml.children;
+exports.coercer = runtimeHtml.coercer;
 exports.containerless = runtimeHtml.containerless;
 exports.createElement = runtimeHtml.createElement;
 exports.cssModules = runtimeHtml.cssModules;

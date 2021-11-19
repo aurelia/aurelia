@@ -1,4 +1,4 @@
-import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { Scope } from './observation/binding-context.js';
 import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer.js';
 export interface IBinding {
@@ -9,7 +9,14 @@ export interface IBinding {
     $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
 }
-export declare type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
+export declare const ICoercionConfiguration: import("@aurelia/kernel").InterfaceSymbol<ICoercionConfiguration>;
+export interface ICoercionConfiguration {
+    /** When set to `true`, enables the automatic type-coercion for bindables globally. */
+    enableCoercion: boolean;
+    /** When set to `true`, coerces the `null` and `undefined` values to the target types. This is ineffective when `disableCoercion` is set to `true.` */
+    coerceNullish: boolean;
+}
+export declare type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput, coercionConfig: ICoercionConfiguration | null) => TOutput;
 export declare enum BindingMode {
     oneTime = 1,
     toView = 2,

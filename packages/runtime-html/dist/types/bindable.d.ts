@@ -1,6 +1,10 @@
+import { Class } from '@aurelia/kernel';
 import { BindingMode } from '@aurelia/runtime';
 import type { Constructable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
+declare type PropertyType = typeof Number | typeof String | typeof Boolean | typeof BigInt | {
+    coercer: InterceptorFunc;
+} | Class<unknown>;
 export declare type PartialBindableDefinition = {
     mode?: BindingMode;
     callback?: string;
@@ -8,6 +12,13 @@ export declare type PartialBindableDefinition = {
     property?: string;
     primary?: boolean;
     set?: InterceptorFunc;
+    type?: PropertyType;
+    /**
+     * When set to `false` and automatic type-coercion is enabled, `null` and `undefined` will be coerced into target type.
+     *
+     * @default true
+     */
+    nullable?: boolean;
 };
 declare type PartialBindableDefinitionPropertyRequired = PartialBindableDefinition & {
     property: string;
@@ -58,7 +69,7 @@ declare type B12345 = B2345 & B1<B2345>;
 export declare const Bindable: Readonly<{
     name: string;
     keyFrom: (name: string) => string;
-    from(...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition>;
+    from(type: Constructable, ...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition>;
     for(Type: Constructable): BFluent;
     getAll(Type: Constructable): readonly BindableDefinition[];
 }>;
@@ -70,7 +81,8 @@ export declare class BindableDefinition {
     readonly property: string;
     readonly set: InterceptorFunc;
     private constructor();
-    static create(prop: string, def?: PartialBindableDefinition): BindableDefinition;
+    static create(prop: string, target: Constructable<unknown>, def?: PartialBindableDefinition): BindableDefinition;
 }
+export declare function coercer(target: Constructable<unknown>, property: string, _descriptor: PropertyDescriptor): void;
 export {};
 //# sourceMappingURL=bindable.d.ts.map

@@ -21,16 +21,16 @@ export function createSpecFunction<TTestContext extends TestExecutionContext<any
       if (setupContext?.timeout !== void 0) {
         this.timeout(setupContext.timeout);
       }
-      await wrap(testFunction, setupContext);
+      await wrap.bind(this)(testFunction.bind(this), setupContext);
     });
   }
 
   $it.only = function (title: string, testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) {
-    it.only(title, async function () { await wrap(testFunction, setupContext); });
+    it.only(title, async function () { await wrap.bind(this)(testFunction.bind(this), setupContext); });
   };
 
   $it.skip = function (title: string, testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) {
-    it.skip(title, async function () { await wrap(testFunction, setupContext); });
+    it.skip(title, async function () { await wrap.bind(this)(testFunction.bind(this), setupContext); });
   };
   return $it;
 }

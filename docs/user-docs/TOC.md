@@ -45,6 +45,7 @@
     * [The basics](getting-to-know-aurelia/components/bindable-properties/the-basics.md)
     * [Binding modes](getting-to-know-aurelia/components/bindable-properties/binding-modes.md)
     * [Bindable setter](getting-to-know-aurelia/components/bindable-properties/bindable-setter.md)
+    * [Bindable coercion](getting-to-know-aurelia/components/bindable-properties/bindable-coercion.md)
   * [Component styles](getting-to-know-aurelia/components/component-styles.md)
   * [Sharing data between components](getting-to-know-aurelia/components/sharing-data-between-components.md)
   * [Dynamic composition](getting-to-know-aurelia/components/dynamic-composition.md)

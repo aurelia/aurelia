@@ -1,10 +1,12 @@
-import { kebabCase, firstDefined, getPrototypeChain, noop } from '@aurelia/kernel';
-import { BindingMode } from '@aurelia/runtime';
+import { kebabCase, firstDefined, getPrototypeChain, noop, Class } from '@aurelia/kernel';
+import { BindingMode, ICoercionConfiguration } from '@aurelia/runtime';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './shared.js';
 import { isString } from './utilities.js';
 
 import type { Constructable, Writable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
+
+type PropertyType = typeof Number | typeof String | typeof Boolean | typeof BigInt | { coercer: InterceptorFunc } | Class<unknown>;
 
 export type PartialBindableDefinition = {
   mode?: BindingMode;
@@ -13,6 +15,14 @@ export type PartialBindableDefinition = {
   property?: string;
   primary?: boolean;
   set?: InterceptorFunc;
+  type?: PropertyType;
+
+  /**
+   * When set to `false` and automatic type-coercion is enabled, `null` and `undefined` will be coerced into target type.
+   *
+   * @default true
+   */
+  nullable?: boolean;
 };
 
 type PartialBindableDefinitionPropertyRequired = PartialBindableDefinition & {
@@ -53,7 +63,7 @@ export function bindable(configOrTarget?: PartialBindableDefinition | {}, prop?:
       config.property = $prop;
     }
 
-    defineMetadata(baseName, BindableDefinition.create($prop, config), $target.constructor, $prop);
+    defineMetadata(baseName, BindableDefinition.create($prop, $target as Constructable, config), $target.constructor, $prop);
     appendAnnotationKey($target.constructor as Constructable, Bindable.keyFrom($prop));
   }
 
@@ -120,17 +130,17 @@ const baseName = getAnnotationKeyFor('bindable');
 export const Bindable = Object.freeze({
   name: baseName,
   keyFrom: (name: string): string => `${baseName}:${name}`,
-  from(...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
+  from(type: Constructable, ...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
     const bindables: Record<string, BindableDefinition> = {};
 
     const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
 
     function addName(name: string): void {
-      bindables[name] = BindableDefinition.create(name);
+      bindables[name] = BindableDefinition.create(name, type);
     }
 
     function addDescription(name: string, def: PartialBindableDefinition): void {
-      bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, def);
+      bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, type, def);
     }
 
     function addList(maybeList: BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined): void {
@@ -162,7 +172,7 @@ export const Bindable = Object.freeze({
           config = configOrProp;
         }
 
-        def = BindableDefinition.create(prop, config) as Writable<BindableDefinition>;
+        def = BindableDefinition.create(prop, Type, config) as Writable<BindableDefinition>;
         if (!hasOwnMetadata(baseName, Type, prop)) {
           appendAnnotationKey(Type, Bindable.keyFrom(prop));
         }
@@ -232,14 +242,14 @@ export class BindableDefinition {
     public readonly set: InterceptorFunc,
   ) { }
 
-  public static create(prop: string, def: PartialBindableDefinition = {}): BindableDefinition {
+  public static create(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}): BindableDefinition {
     return new BindableDefinition(
       firstDefined(def.attribute, kebabCase(prop)),
       firstDefined(def.callback, `${prop}Changed`),
       firstDefined(def.mode, BindingMode.toView),
       firstDefined(def.primary, false),
       firstDefined(def.property, prop),
-      firstDefined(def.set, noop),
+      firstDefined(def.set, getInterceptor(prop, target, def)),
     );
   }
 }
@@ -317,3 +327,59 @@ function apiTypeCheck() {
     .add('prop').primary();
 }
 /* eslint-enable @typescript-eslint/no-unused-vars,spaced-comment */
+
+/** @internal */
+// eslint-disable-next-line @typescript-eslint/no-namespace
+declare namespace Reflect {
+  function getMetadata(metadataKey: any, target: any, propertyKey?: string | symbol): any;
+}
+
+export function coercer(target: Constructable<unknown>, property: string, _descriptor: PropertyDescriptor): void {
+  Coercer.define(target, property);
+}
+
+const Coercer = {
+  key: getAnnotationKeyFor('coercer'),
+  define(target: Constructable<unknown>, property: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+    defineMetadata(Coercer.key, ((target as any)[property] as InterceptorFunc).bind(target), target);
+  },
+  for(target: Constructable<unknown>) {
+    return getOwnMetadata(Coercer.key, target) as InterceptorFunc;
+  }
+};
+
+function getInterceptor(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}) {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const type: PropertyType | null = def.type ?? Reflect.getMetadata('design:type', target, prop) ?? null;
+  if (type == null) { return noop; }
+  let coercer: InterceptorFunc;
+  switch (type) {
+    case Number:
+    case Boolean:
+    case String:
+    case BigInt:
+      coercer = type as InterceptorFunc;
+      break;
+    default: {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+      const $coercer: InterceptorFunc = (type as any).coerce as InterceptorFunc;
+      coercer = typeof $coercer === 'function'
+        ? $coercer.bind(type)
+        : (Coercer.for(type as Constructable) ?? noop);
+      break;
+    }
+  }
+  return coercer === noop
+    ? coercer
+    : createCoercer(coercer, def.nullable);
+}
+
+function createCoercer<TInput, TOutput>(coercer: InterceptorFunc<TInput, TOutput>, nullable: boolean | undefined): InterceptorFunc<TInput, TOutput> {
+  return function (value: TInput, coercionConfiguration: ICoercionConfiguration | null): TOutput {
+    if (!coercionConfiguration?.enableCoercion) return value as unknown as TOutput;
+    return ((nullable ?? ((coercionConfiguration?.coerceNullish ?? false) ? false : true)) && value == null)
+      ? value as unknown as TOutput
+      : coercer(value, coercionConfiguration);
+  };
+}

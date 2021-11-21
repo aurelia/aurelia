@@ -209,6 +209,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     definition = definition ?? CustomElement.getDefinition(viewModel.constructor as Constructable);
+    if (definition.enhance && host.nodeName !== 'TEMPLATE' && !host.isConnected) {
+      const template = ctn.get(IPlatform).document.createElement('template');
+      template.content.append(host);
+      host = template;
+    }
 
     const controller = new Controller<C>(
       /* container      */ctn,
@@ -1443,13 +1448,13 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
 }
 
 export const enum State {
-  none                     = 0b00_00_00,
-  activating               = 0b00_00_01,
-  activated                = 0b00_00_10,
-  deactivating             = 0b00_01_00,
-  deactivated              = 0b00_10_00,
-  released                 = 0b01_00_00,
-  disposed                 = 0b10_00_00,
+  none = 0b00_00_00,
+  activating = 0b00_00_01,
+  activated = 0b00_00_10,
+  deactivating = 0b00_01_00,
+  deactivated = 0b00_10_00,
+  released = 0b01_00_00,
+  disposed = 0b10_00_00,
 }
 
 export function stringifyState(state: State): string {

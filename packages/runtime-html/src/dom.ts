@@ -225,9 +225,13 @@ export class FragmentNodeSequence implements INodeSequence {
     public readonly platform: IPlatform,
     private readonly fragment: DocumentFragment,
   ) {
-    const targetNodeList = fragment.querySelectorAll('.au');
+    let targetNodeList = fragment.querySelectorAll('.au');
     let i = 0;
     let ii = targetNodeList.length;
+    if(ii === 0 && ((fragment as Node as Element)?.classList?.contains('au') ?? false)) {
+      targetNodeList = [fragment] as unknown as NodeListOf<Element>;
+      ii = 1;
+    }
     let target: Element;
     // eslint-disable-next-line
     let targets = this.targets = Array(ii);

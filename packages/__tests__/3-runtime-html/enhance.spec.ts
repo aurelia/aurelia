@@ -442,4 +442,23 @@ describe('3-runtime/enhance.spec.ts', function () {
     await controller2.deactivate(controller2, null, LifecycleFlags.none);
     await controller.deactivate(controller, null, LifecycleFlags.none);
   });
+
+  it('can enhance a custom-element root', async function () {
+    // eslint-disable-next-line no-template-curly-in-string
+    @customElement({ name: 'my-element', template: '<span>${prop}</span>' })
+    class MyElement {
+      @bindable public prop: unknown;
+    }
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('my-element');
+    host.setAttribute('prop.bind', '');
+
+    const container = ctx.container;
+    container.register(MyElement);
+    const au = new Aurelia(container);
+    const controller = await au.enhance({ host, component: { prop: 42 } });
+    assert.html.innerEqual(host, '<span>42</span>');
+    await controller.deactivate(controller, void 0!, LifecycleFlags.none);
+    controller.dispose();
+  });
 });

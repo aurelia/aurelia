@@ -1,4 +1,4 @@
-import { DI, IContainer, IRegistry } from '@aurelia/kernel';
+import { IContainer, IRegistry, noop, Registration } from '@aurelia/kernel';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
@@ -81,6 +81,7 @@ import { AuSlot } from './resources/custom-elements/au-slot.js';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize.js';
 import { ViewValueConverter } from './resources/value-converters/view.js';
 import { NodeObserverLocator } from './observation/observer-locator.js';
+import { ICoercionConfiguration } from '@aurelia/runtime';
 
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
@@ -305,30 +306,47 @@ export const DefaultRenderers = [
   SpreadRendererRegistration,
 ];
 
-/**
- * A DI configuration object containing html-specific (but environment-agnostic) registrations:
- * - `RuntimeConfiguration` from `@aurelia/runtime`
- * - `DefaultComponents`
- * - `DefaultResources`
- * - `DefaultRenderers`
- */
-export const StandardConfiguration = {
-  /**
-   * Apply this configuration to the provided container.
-   */
-  register(container: IContainer): IContainer {
-    return container.register(
-      ...DefaultComponents,
-      ...DefaultResources,
-      ...DefaultBindingSyntax,
-      ...DefaultBindingLanguage,
-      ...DefaultRenderers,
-    );
-  },
-  /**
-   * Create a new container with this configuration applied to it.
-   */
-  createContainer(): IContainer {
-    return this.register(DI.createContainer());
-  }
-};
+export const StandardConfiguration = createConfiguration(noop);
+
+function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
+  return {
+    optionsProvider,
+    /**
+     * Apply this configuration to the provided container.
+     */
+    register(container: IContainer): IContainer {
+      const runtimeConfigurationOptions: IRuntimeHtmlConfigurationOptions = {
+        coercingOptions: {
+          enableCoercion: false,
+          coerceNullish: false
+        }
+      };
+
+      optionsProvider(runtimeConfigurationOptions);
+
+      /**
+       * Standard DI configuration containing html-specific (but environment-agnostic) registrations:
+       * - `RuntimeConfiguration` from `@aurelia/runtime`
+       * - `DefaultComponents`
+       * - `DefaultResources`
+       * - `DefaultRenderers`
+       */
+      return container.register(
+        Registration.instance(ICoercionConfiguration, runtimeConfigurationOptions.coercingOptions),
+        ...DefaultComponents,
+        ...DefaultResources,
+        ...DefaultBindingSyntax,
+        ...DefaultBindingLanguage,
+        ...DefaultRenderers,
+      );
+    },
+    customize(cb?: ConfigurationOptionsProvider) {
+      return createConfiguration(cb ?? optionsProvider);
+    },
+  };
+}
+
+export type ConfigurationOptionsProvider = (options: IRuntimeHtmlConfigurationOptions) => void;
+interface IRuntimeHtmlConfigurationOptions {
+  coercingOptions: ICoercionConfiguration;
+}

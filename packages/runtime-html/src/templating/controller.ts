@@ -16,6 +16,7 @@ import {
   LifecycleFlags,
   IObserverLocator,
   IExpressionParser,
+  ICoercionConfiguration,
 } from '@aurelia/runtime';
 import { BindableObserver } from '../observation/bindable-observer.js';
 import { convertToRenderLocation, setRef } from '../dom.js';
@@ -1165,6 +1166,8 @@ function createObservers(
     let bindable: BindableDefinition;
     let i = 0;
     const observers = getLookup(instance as IIndexable);
+    const container = controller.container;
+    const coercionConfiguration = container.has(ICoercionConfiguration, true) ? container.get(ICoercionConfiguration) : null;
 
     for (; i < length; ++i) {
       name = observableNames[i];
@@ -1178,6 +1181,7 @@ function createObservers(
           bindable.callback,
           bindable.set,
           controller,
+          coercionConfiguration,
         );
       }
     }

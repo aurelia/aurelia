@@ -1781,11 +1781,11 @@ export class BindablesInfo<T extends 0 | 1 = 0> {
           primary = bindable;
         }
 
-        attrs[attr] = BindableDefinition.create(prop, bindable);
+        attrs[attr] = BindableDefinition.create(prop, def.Type, bindable);
       }
       if (bindable == null && isAttr) {
         // if no bindables are present, default to "value"
-        primary = attrs.value = BindableDefinition.create('value', { mode: defaultBindingMode });
+        primary = attrs.value = BindableDefinition.create('value', def.Type, { mode: defaultBindingMode });
       }
 
       bindableAttrsInfoCache.set(def, info = new BindablesInfo(attrs, bindables, primary));

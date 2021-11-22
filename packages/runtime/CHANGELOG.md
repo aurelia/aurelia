@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.23"></a>
+# 2.0.0-alpha.23 (2021-11-22)
+
+### Refactorings:
+
+* ***:** disabling type-coercion by default ([e5028c1](https://github.com/aurelia/aurelia/commit/e5028c1))
+* ***:** injectable coercion configuration ([b901c4b](https://github.com/aurelia/aurelia/commit/b901c4b))
+
 <a name="2.0.0-alpha.22"></a>
 # 2.0.0-alpha.22 (2021-10-24)
 

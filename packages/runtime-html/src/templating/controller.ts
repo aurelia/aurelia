@@ -1452,13 +1452,13 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
 }
 
 export const enum State {
-  none = 0b00_00_00,
-  activating = 0b00_00_01,
-  activated = 0b00_00_10,
+  none         = 0b00_00_00,
+  activating   = 0b00_00_01,
+  activated    = 0b00_00_10,
   deactivating = 0b00_01_00,
-  deactivated = 0b00_10_00,
-  released = 0b01_00_00,
-  disposed = 0b10_00_00,
+  deactivated  = 0b00_10_00,
+  released     = 0b01_00_00,
+  disposed     = 0b10_00_00,
 }
 
 export function stringifyState(state: State): string {

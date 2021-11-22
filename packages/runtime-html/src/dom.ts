@@ -228,7 +228,7 @@ export class FragmentNodeSequence implements INodeSequence {
     let targetNodeList = fragment.querySelectorAll('.au');
     let i = 0;
     let ii = targetNodeList.length;
-    if(ii === 0 && ((fragment as Node as Element)?.classList?.contains('au') ?? false)) {
+    if(ii === 0 && ((fragment as Node as Element).classList?.contains('au') ?? false)) {
       targetNodeList = [fragment] as unknown as NodeListOf<Element>;
       ii = 1;
     }

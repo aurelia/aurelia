@@ -15,16 +15,16 @@
     "test:debugger": "npx playwright test --headed"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.23",
-    "@aurelia/metadata": "2.0.0-alpha.23",
-    "@aurelia/platform": "2.0.0-alpha.23",
-    "@aurelia/platform-browser": "2.0.0-alpha.23",
-    "@aurelia/runtime": "2.0.0-alpha.23",
-    "@aurelia/runtime-html": "2.0.0-alpha.23",
+    "@aurelia/kernel": "2.0.1-dev.202111220341",
+    "@aurelia/metadata": "2.0.1-dev.202111220341",
+    "@aurelia/platform": "2.0.1-dev.202111220341",
+    "@aurelia/platform-browser": "2.0.1-dev.202111220341",
+    "@aurelia/runtime": "2.0.1-dev.202111220341",
+    "@aurelia/runtime-html": "2.0.1-dev.202111220341",
     "perf-monitor": "latest"
   },
   "devDependencies": {
-    "@aurelia/http-server": "2.0.0-alpha.23",
+    "@aurelia/http-server": "2.0.1-dev.202111220341",
     "@playwright/test": "^1.14.0",
     "@types/express": "^4.17.13",
     "@types/node": "^14.14.22",

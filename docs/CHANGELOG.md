@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.23"></a>
+# 2.0.0-alpha.23 (2021-11-22)
+
+### Features:
+
+* **bindable:** auto discover coercer https://github.com/aurelia/aurelia/pull/1313
+
 <a name="2.0.0-alpha.22"></a>
 # 2.0.0-alpha.22 (2021-10-24)
 

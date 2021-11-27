@@ -464,7 +464,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   /** @internal */
   private _compileNode(node: Node, context: CompilationContext): Node | null {
     switch (node.nodeType) {
-      case 1:
+       case 1: /* Node.ELEMENT_NODE */
         switch (node.nodeName) {
           case 'LET':
             return this._compileLet(node as Element, context);
@@ -481,9 +481,9 @@ export class TemplateCompiler implements ITemplateCompiler {
           default:
             return this._compileElement(node as Element, context);
         }
-      case 3:
+      case 3:  /* Node.TEXT_NODE */
         return this._compileText(node as Text, context);
-      case 11: {
+      case 11: /* Node.DOCUMENT_FRAGMENT_NODE */ {
         let current: Node | null = (node as DocumentFragment).firstChild;
         while (current !== null) {
           current = this._compileNode(current, context);

@@ -210,11 +210,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     definition = definition ?? CustomElement.getDefinition(viewModel.constructor as Constructable);
-    if (definition.enhance && host.nodeName !== 'TEMPLATE' && !host.isConnected) {
-      const template = ctn.get(IPlatform).document.createElement('template');
-      template.content.append(host);
-      host = template;
-    }
 
     const controller = new Controller<C>(
       /* container      */ctn,

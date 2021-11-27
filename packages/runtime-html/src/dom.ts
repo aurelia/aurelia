@@ -207,6 +207,11 @@ export function isRenderLocation(node: INode | INodeSequence): node is IRenderLo
   return (node as Comment).textContent === 'au-end';
 }
 
+export function isEnhanceLocation(node: INode | INodeSequence): node is IRenderLocation {
+  return (node as Comment).nodeType === 8 /* Node.COMMENT_NODE */
+    && (node as Comment).textContent === 'au-enhance';
+}
+
 export class FragmentNodeSequence implements INodeSequence {
   public isMounted: boolean = false;
   public isLinked: boolean = false;
@@ -224,17 +229,29 @@ export class FragmentNodeSequence implements INodeSequence {
   public constructor(
     public readonly platform: IPlatform,
     private readonly fragment: DocumentFragment,
+    enhance: boolean
   ) {
-    let targetNodeList = fragment.querySelectorAll('.au');
+    const targetNodeList = fragment.querySelectorAll('.au');
     let i = 0;
     let ii = targetNodeList.length;
-    if(ii === 0 && ((fragment as Node as Element).classList?.contains('au') ?? false)) {
-      targetNodeList = [fragment] as unknown as NodeListOf<Element>;
-      ii = 1;
+    const childNodeList = fragment.childNodes;
+
+    // enhance root is simply `<custom-element ...></custom-element>`
+    if (ii === 0
+      && enhance
+      && ((fragment as Node as Element).classList?.contains('au') ?? false)
+      && childNodeList.length === 0
+    ) {
+      const marker = document.createComment('au-enhance');
+      (fragment as Node as Element).appendChild(marker);
+      this.targets = [marker] as unknown as NodeListOf<Element>;
+      this.firstChild = marker;
+      this.lastChild = marker;
+      this.childNodes = [marker];
+      return;
     }
     let target: Element;
-    // eslint-disable-next-line
-    let targets = this.targets = Array(ii);
+    const targets = this.targets = Array(ii);
 
     while (ii > i) {
       // eagerly convert all markers to RenderLocations (otherwise the renderer
@@ -253,7 +270,6 @@ export class FragmentNodeSequence implements INodeSequence {
       ++i;
     }
 
-    const childNodeList = fragment.childNodes;
     const childNodes = this.childNodes = Array(ii = childNodeList.length);
     i = 0;
     while (ii > i) {
@@ -297,6 +313,13 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 
   public appendTo(parent: Node, enhance: boolean = false): void {
+    if (isEnhanceLocation(parent)) {
+      /**
+       * If this is a enhance-location (created in ctor) then simply go one level up.
+       * This jump is completely predictable given the circumstances the enhance-location is created.
+       */
+      parent = parent.parentElement as Node;
+    }
     if (this.isMounted) {
       let current = this.firstChild;
       let next: Node;

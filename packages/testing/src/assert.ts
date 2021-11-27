@@ -713,6 +713,7 @@ function isInnerHtmlEqual(elementOrSelector: string | Node, expected: string, me
     actual = actual
       .replace(/<!--au-start-->/g, '')
       .replace(/<!--au-end-->/g, '')
+      .replace(/<!--au-enhance-->/g, '')
       .replace(/\s+/g, ' ')
       .trim();
   }

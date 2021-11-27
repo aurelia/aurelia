@@ -1,5 +1,4 @@
 import { DI, IContainer } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
 
 import { FragmentNodeSequence, INode, INodeSequence } from '../dom.js';
 import { IPlatform } from '../platform.js';
@@ -38,7 +37,7 @@ export class Rendering {
 
   public constructor(container: IContainer) {
     this._p = (this._ctn = container.root).get(IPlatform);
-    this._empty = new FragmentNodeSequence(this._p, this._p.document.createDocumentFragment());
+    this._empty = new FragmentNodeSequence(this._p, this._p.document.createDocumentFragment(), false);
   }
 
   public compile(
@@ -70,7 +69,7 @@ export class Rendering {
 
   public createNodes(definition: CustomElementDefinition): INodeSequence {
     if (definition.enhance === true) {
-      return new FragmentNodeSequence(this._p, definition.template as DocumentFragment);
+      return new FragmentNodeSequence(this._p, definition.template as DocumentFragment, true);
     }
     let fragment: DocumentFragment | null | undefined;
     const cache = this._fragmentCache;
@@ -100,7 +99,7 @@ export class Rendering {
     }
     return fragment == null
       ? this._empty
-      : new FragmentNodeSequence(this._p, fragment.cloneNode(true) as DocumentFragment);
+      : new FragmentNodeSequence(this._p, fragment.cloneNode(true) as DocumentFragment, false);
   }
 
   public render(

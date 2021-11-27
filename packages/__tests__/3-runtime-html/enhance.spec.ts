@@ -307,7 +307,7 @@ describe('3-runtime/enhance.spec.ts', function () {
           public static inject = [IAurelia];
           public div: HTMLDivElement;
           public enhancedView: ICustomElementController;
-          public constructor(private readonly au$: Aurelia) {}
+          public constructor(private readonly au$: Aurelia) { }
 
           public async attaching() {
             this.div.removeAttribute('class');
@@ -460,5 +460,45 @@ describe('3-runtime/enhance.spec.ts', function () {
     assert.html.innerEqual(host, '<span>42</span>');
     await controller.deactivate(controller, void 0!, LifecycleFlags.none);
     controller.dispose();
+  });
+
+  it('can enhance a connected custom-element root', async function () {
+    // eslint-disable-next-line no-template-curly-in-string
+    @customElement({ name: 'my-element', template: '<span>${prop}</span>' })
+    class MyElement {
+      @bindable public prop: unknown;
+    }
+    @customElement({ name: 'app', template: 'irrelevant' })
+    class App { }
+
+    const ctx = TestContext.create();
+    const doc = ctx.doc;
+    // create host
+    const appHost = doc.createElement('div');
+    // create single CE enhanceTarget
+    const enhanceTarget = doc.createElement('my-element');
+    enhanceTarget.setAttribute('prop.bind', '');
+
+    // connect
+    doc.body.append(appHost, enhanceTarget);
+
+    const container = ctx.container;
+    container.register(MyElement);
+    const au = new Aurelia(container);
+
+    // start
+    await au.app({ host: appHost, component: App }).start();
+
+    // enhance
+    const controller = await au.enhance({ host: enhanceTarget, component: { prop: 42 } });
+    assert.html.innerEqual(enhanceTarget, '<span>42</span>');
+
+    // cleanup
+    await controller.deactivate(controller, void 0!, LifecycleFlags.none);
+    controller.dispose();
+    await au.stop();
+
+    appHost.remove();
+    enhanceTarget.remove();
   });
 });

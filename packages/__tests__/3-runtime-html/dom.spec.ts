@@ -11,7 +11,7 @@ describe('FragmentNodeSequence', function () {
       it(`should correctly assign children (depth=1,width=${width})`, function () {
         const node = ctx.doc.createElement('div');
         const fragment = createFragment(ctx, node, 0, 1, width);
-        sut = new FragmentNodeSequence(ctx.platform, fragment, false);
+        sut = new FragmentNodeSequence(ctx.platform, fragment, false, null);
         assert.strictEqual(sut.childNodes.length, width, `sut.childNodes.length`);
         assert.strictEqual(sut.childNodes[0] === sut.firstChild, true, `sut.childNodes[0] === sut.firstChild`);
         assert.strictEqual(sut.childNodes[width - 1] === sut.lastChild, true, `sut.childNodes[width - 1] === sut.lastChild`);
@@ -26,7 +26,7 @@ describe('FragmentNodeSequence', function () {
         it(`should return empty array when there are no targets (depth=${depth},width=${width})`, function () {
           const node = ctx.doc.createElement('div');
           const fragment = createFragment(ctx, node, 0, depth, width);
-          sut = new FragmentNodeSequence(ctx.platform, fragment, false);
+          sut = new FragmentNodeSequence(ctx.platform, fragment, false, null);
           const actual = sut.findTargets();
           assert.strictEqual(actual.length, 0, `actual.length`);
         });
@@ -35,7 +35,7 @@ describe('FragmentNodeSequence', function () {
           const node = ctx.doc.createElement('div');
           node.classList.add('au');
           const fragment = createFragment(ctx, node, 0, depth, width);
-          sut = new FragmentNodeSequence(ctx.platform, fragment, false);
+          sut = new FragmentNodeSequence(ctx.platform, fragment, false, null);
           const actual = sut.findTargets();
           assert.strictEqual(actual.length, fragment.querySelectorAll('div').length, `actual.length`);
         });
@@ -49,7 +49,7 @@ describe('FragmentNodeSequence', function () {
         it(`should insert the view before the refNode under the parent of the refNode (depth=${depth},width=${width})`, function () {
           const node = ctx.doc.createElement('div');
           const fragment = createFragment(ctx, node, 0, depth, width);
-          sut = new FragmentNodeSequence(ctx.platform, fragment, false);
+          sut = new FragmentNodeSequence(ctx.platform, fragment, false, null);
           const parent = ctx.doc.createElement('div');
           const ref1 = ctx.doc.createElement('div');
           const ref2 = ctx.doc.createElement('div');
@@ -77,7 +77,7 @@ describe('FragmentNodeSequence', function () {
         it(`should append the view to the parent (depth=${depth},width=${width})`, function () {
           const node = ctx.doc.createElement('div');
           const fragment = createFragment(ctx, node, 0, depth, width);
-          sut = new FragmentNodeSequence(ctx.platform, fragment, false);
+          sut = new FragmentNodeSequence(ctx.platform, fragment, false, null);
           const parent = ctx.doc.createElement('div');
           sut.appendTo(parent);
           assert.strictEqual(parent.childNodes.length, width, `parent.childNodes.length`);
@@ -98,7 +98,7 @@ describe('FragmentNodeSequence', function () {
         it(`should put the view back into the fragment (depth=${depth},width=${width})`, function () {
           const node = ctx.doc.createElement('div');
           const fragment = createFragment(ctx, node, 0, depth, width);
-          sut = new FragmentNodeSequence(ctx.platform, fragment, false);
+          sut = new FragmentNodeSequence(ctx.platform, fragment, false, null);
           const parent = ctx.doc.createElement('div');
           assert.strictEqual(parent.childNodes.length, 0, `parent.childNodes.length`);
           assert.strictEqual(fragment.childNodes.length, width, `fragment.childNodes.length`);

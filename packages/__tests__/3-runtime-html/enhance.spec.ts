@@ -443,7 +443,7 @@ describe('3-runtime/enhance.spec.ts', function () {
     await controller.deactivate(controller, null, LifecycleFlags.none);
   });
 
-  it('can enhance a custom-element root', async function () {
+  it('custom-element root can be enhanced', async function () {
     // eslint-disable-next-line no-template-curly-in-string
     @customElement({ name: 'my-element', template: '<span>${prop}</span>' })
     class MyElement {
@@ -462,7 +462,7 @@ describe('3-runtime/enhance.spec.ts', function () {
     controller.dispose();
   });
 
-  it('can enhance a connected custom-element root', async function () {
+  it('connected custom-element root can be enhanced', async function () {
     // eslint-disable-next-line no-template-curly-in-string
     @customElement({ name: 'my-element', template: '<span>${prop}</span>' })
     class MyElement {
@@ -500,5 +500,43 @@ describe('3-runtime/enhance.spec.ts', function () {
 
     appHost.remove();
     enhanceTarget.remove();
+  });
+
+  it('native element root can be enhanced', async function () {
+    const ctx = TestContext.create();
+    const doc = ctx.doc;
+    const host = doc.createElement('div');
+    host.setAttribute('data-foo.bind', 'foo');
+    // extra container just to ease assertion
+    const div = doc.createElement('div');
+    div.append(host);
+
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    const controller = await au.enhance({ host, component: { foo: 42 } });
+
+    assert.html.innerEqual(div, '<div class="au" data-foo="42"></div>');
+
+    await controller.deactivate(controller, void 0!, LifecycleFlags.none);
+    controller.dispose();
+  });
+
+  it('template controller needs to be wrapped as always', async function () {
+    // eslint-disable-next-line no-template-curly-in-string
+    @customElement({ name: 'my-element', template: '<span>${prop}</span>' })
+    class MyElement {
+      @bindable public prop: unknown;
+    }
+    const ctx = TestContext.create();
+    const host = new ctx.DOMParser()
+      .parseFromString('<div><div repeat.for="i of 2"><my-element prop.bind="prop + i"></my-element></div></div>', 'text/html').body.firstElementChild as HTMLElement;
+
+    const container = ctx.container;
+    container.register(MyElement);
+    const au = new Aurelia(container);
+    const controller = await au.enhance({ host, component: { prop: 'foo' } });
+    assert.html.innerEqual(host, '<div><my-element class="au"><span>foo0</span></my-element></div><div><my-element class="au"><span>foo1</span></my-element></div>');
+    await controller.deactivate(controller, void 0!, LifecycleFlags.none);
+    controller.dispose();
   });
 });

@@ -1,9 +1,9 @@
 import { DI, IContainer } from '@aurelia/kernel';
 
-import { FragmentNodeSequence, INode, INodeSequence } from '../dom.js';
+import { CustomElementProvider, FragmentNodeSequence, INode, INodeSequence } from '../dom.js';
 import { IPlatform } from '../platform.js';
 import { ICompliationInstruction, IInstruction, IRenderer, ITemplateCompiler } from '../renderer.js';
-import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
+import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { createLookup, isString } from '../utilities.js';
 import { IViewFactory, ViewFactory } from './view.js';
 import type { IHydratableController } from './controller.js';
@@ -25,6 +25,7 @@ export class Rendering {
   private readonly _fragmentCache: WeakMap<CustomElementDefinition, DocumentFragment | null> = new WeakMap();
   /** @internal */
   private readonly _empty: INodeSequence;
+  private readonly customElementProvider: CustomElementProvider;
 
   public get renderers(): Record<string, IRenderer> {
     return this.rs == null
@@ -37,7 +38,8 @@ export class Rendering {
 
   public constructor(container: IContainer) {
     this._p = (this._ctn = container.root).get(IPlatform);
-    this._empty = new FragmentNodeSequence(this._p, this._p.document.createDocumentFragment(), false);
+    const customElementProvider = this.customElementProvider = (name) => container.find(CustomElement, name);
+    this._empty = new FragmentNodeSequence(this._p, this._p.document.createDocumentFragment(), false, customElementProvider);
   }
 
   public compile(
@@ -69,7 +71,7 @@ export class Rendering {
 
   public createNodes(definition: CustomElementDefinition): INodeSequence {
     if (definition.enhance === true) {
-      return new FragmentNodeSequence(this._p, definition.template as DocumentFragment, true);
+      return new FragmentNodeSequence(this._p, definition.template as DocumentFragment, true, this.customElementProvider);
     }
     let fragment: DocumentFragment | null | undefined;
     const cache = this._fragmentCache;
@@ -99,7 +101,7 @@ export class Rendering {
     }
     return fragment == null
       ? this._empty
-      : new FragmentNodeSequence(this._p, fragment.cloneNode(true) as DocumentFragment, false);
+      : new FragmentNodeSequence(this._p, fragment.cloneNode(true) as DocumentFragment, false, this.customElementProvider);
   }
 
   public render(

@@ -1,7 +1,7 @@
 import { DI, Writable } from '@aurelia/kernel';
 import { IAppRoot } from './app-root.js';
 import { IPlatform } from './platform.js';
-import { CustomElement } from './resources/custom-element.js';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import { MountTarget } from './templating/controller.js';
 import type { IHydratedController } from './templating/controller.js';
 
@@ -212,6 +212,9 @@ export function isEnhanceLocation(node: INode | INodeSequence): node is IRenderL
     && (node as Comment).textContent === 'au-enhance';
 }
 
+/** @internal */
+export type CustomElementProvider = ((name: string) => (CustomElementDefinition | null)) | null;
+
 export class FragmentNodeSequence implements INodeSequence {
   public isMounted: boolean = false;
   public isLinked: boolean = false;
@@ -229,25 +232,37 @@ export class FragmentNodeSequence implements INodeSequence {
   public constructor(
     public readonly platform: IPlatform,
     private readonly fragment: DocumentFragment,
-    enhance: boolean
+    enhance: boolean,
+    // full container is not used here to reduce coupling
+    customElementProvider: CustomElementProvider,
   ) {
     const targetNodeList = fragment.querySelectorAll('.au');
     let i = 0;
     let ii = targetNodeList.length;
     const childNodeList = fragment.childNodes;
 
-    // enhance root is simply `<custom-element ...></custom-element>`
+    // Single hydratable root without child
     if (ii === 0
       && enhance
-      && ((fragment as Node as Element).classList?.contains('au') ?? false)
       && childNodeList.length === 0
+      && ((fragment as Node as Element).classList?.contains('au') ?? false)
+      && customElementProvider != null
     ) {
-      const marker = platform.document.createComment('au-enhance');
-      fragment.appendChild(marker);
-      this.targets = [marker];
-      this.childNodes = [marker];
-      this.firstChild = marker;
-      this.lastChild = marker;
+      // example: <my-ce class="au"></my-ce>
+      if (customElementProvider((fragment as Node).nodeName.toLowerCase()) !== null) {
+        const marker = platform.document.createComment('au-enhance');
+        fragment.appendChild(marker);
+        this.targets = [marker];
+        this.childNodes = [marker];
+        this.firstChild = marker;
+        this.lastChild = marker;
+        return;
+      }
+      // example: <div class="au"></div>
+      this.targets = [fragment];
+      this.childNodes = Array.from(fragment.childNodes);
+      this.firstChild = fragment.firstChild!;
+      this.lastChild = fragment.lastChild!;
       return;
     }
     let target: Element;

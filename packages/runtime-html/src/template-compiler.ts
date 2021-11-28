@@ -1627,6 +1627,10 @@ class CompilationContext {
     this.root.c.register(dep);
   }
 
+  /**
+   * Creates a new element as specified by the `name`.
+   * The name is inspired from hyperscript.
+   */
   public h<K extends keyof HTMLElementTagNameMap>(name: K): HTMLElementTagNameMap[K];
   public h<K extends string>(name: string): HTMLElement;
   public h(name: string): HTMLElement {

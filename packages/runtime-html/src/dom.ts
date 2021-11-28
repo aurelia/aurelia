@@ -243,11 +243,11 @@ export class FragmentNodeSequence implements INodeSequence {
       && childNodeList.length === 0
     ) {
       const marker = document.createComment('au-enhance');
-      (fragment as Node as Element).appendChild(marker);
-      this.targets = [marker] as unknown as NodeListOf<Element>;
+      fragment.appendChild(marker);
+      this.targets = [marker];
+      this.childNodes = [marker];
       this.firstChild = marker;
       this.lastChild = marker;
-      this.childNodes = [marker];
       return;
     }
     let target: Element;

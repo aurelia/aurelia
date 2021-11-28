@@ -242,7 +242,7 @@ export class FragmentNodeSequence implements INodeSequence {
       && ((fragment as Node as Element).classList?.contains('au') ?? false)
       && childNodeList.length === 0
     ) {
-      const marker = document.createComment('au-enhance');
+      const marker = platform.document.createComment('au-enhance');
       fragment.appendChild(marker);
       this.targets = [marker];
       this.childNodes = [marker];

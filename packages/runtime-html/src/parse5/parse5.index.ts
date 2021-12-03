@@ -1,8 +1,8 @@
 import { TemplateCompiler } from "../template-compiler";
 import { ITemplateCompiler } from "../renderer";
 import { DI, IPlatform, Registration } from "@aurelia/kernel";
-import { Document, parse, TreeAdapter } from "parse5";
-import * as parse5TreeAdapter from "./pars5-adapter";
+import { Node, Document, parse, TreeAdapter } from "parse5";
+import * as treeAdapter from "./pars5-adapter";
 
 const container = DI.createContainer();
 
@@ -15,16 +15,23 @@ const tempCompiler = container.get(ITemplateCompiler);
 
 function doParse5AndAureliaStuff() {
   const rawTemplate = "<template>${foo}</template>";
-  const document = parse(rawTemplate);
+  const document = parse(rawTemplate, { treeAdapter });
 
-  walkTree(document, parse5TreeAdapter, (node) => {
-    Registration.instance(IPlatform, { document: parse5TreeAdapter }).register(
+  walkTree(document, treeAdapter, (node: Node | undefined) => {
+    if (node == null) return;
+    Registration.instance(IPlatform, { document: treeAdapter }).register(
       container
     );
-    container.register(IPlatform, IPlatform);
-    // node; /* ? */
+    const justRawInputNode =
+      // @ts-ignore
+      node?.childNodes[1].parentNode?.childNodes[0].childNodes[0];
     const result = tempCompiler.compile(
-      { name: "", template: node, surrogates: [], instructions: [] },
+      {
+        name: "template",
+        template: justRawInputNode,
+        surrogates: [],
+        instructions: [],
+      },
       container,
       null
     );

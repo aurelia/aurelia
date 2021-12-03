@@ -50,7 +50,8 @@ export class TemplateElementFactory {
 
       return result.cloneNode(true) as HTMLTemplateElement;
     }
-    if (input.nodeName !== 'TEMPLATE') {
+    console.log(input.nodeName !== 'template');
+    if (input.nodeName !== 'template') {
       // if we get one node that is not a template, wrap it in one
       const template = this.p.document.createElement('template');
       template.content.appendChild(input);

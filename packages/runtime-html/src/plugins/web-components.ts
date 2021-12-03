@@ -1,11 +1,11 @@
 import { Constructable, DI, IContainer, IIndexable, InstanceProvider } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 
-import { INode, setRef } from '../dom.js';
-import { IPlatform } from '../platform.js';
-import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
-import { Controller, ICustomElementController } from '../templating/controller.js';
-import { IRendering } from '../templating/rendering.js';
+import { INode, setRef } from '../dom';
+import { IPlatform } from '../platform';
+import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
+import { Controller, ICustomElementController } from '../templating/controller';
+import { IRendering } from '../templating/rendering';
 
 export const IWcElementRegistry = DI.createInterface<IAuElementRegistry>(x => x.singleton(WcCustomElementRegistry));
 export interface IAuElementRegistry {

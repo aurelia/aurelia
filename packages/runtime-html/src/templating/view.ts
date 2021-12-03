@@ -1,9 +1,9 @@
 import { DI, Protocol } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
-import { CustomElement, CustomElementDefinition } from '../resources/custom-element.js';
-import { Controller } from './controller.js';
-import { defineMetadata, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
-import { isFunction, isString } from '../utilities.js';
+import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
+import { Controller } from './controller';
+import { defineMetadata, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared';
+import { isFunction, isString } from '../utilities';
 
 import type { Constructable, ConstructableClass, IContainer } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
@@ -18,8 +18,8 @@ import type {
   IHydratedController,
   IHydratedParentController,
   IHydrationContext,
-} from './controller.js';
-import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
+} from './controller';
+import type { PartialCustomElementDefinition } from '../resources/custom-element';
 
 export interface IViewFactory extends ViewFactory {}
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory');

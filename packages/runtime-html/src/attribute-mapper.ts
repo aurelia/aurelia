@@ -1,6 +1,6 @@
 import { DI } from '@aurelia/kernel';
-import { createLookup, isDataAttribute } from './utilities.js';
-import { ISVGAnalyzer } from './observation/svg-analyzer.js';
+import { createLookup, isDataAttribute } from './utilities';
+import { ISVGAnalyzer } from './observation/svg-analyzer';
 
 export interface IAttrMapper extends AttrMapper {}
 export const IAttrMapper = DI

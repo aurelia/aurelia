@@ -1,13 +1,13 @@
 import { Constructable, IContainer, InstanceProvider, onResolve, transient } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
-import { bindable } from '../../bindable.js';
-import { convertToRenderLocation, INode, IRenderLocation, isRenderLocation } from '../../dom.js';
-import { IPlatform } from '../../platform.js';
-import { HydrateElementInstruction, IInstruction } from '../../renderer.js';
-import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller.js';
-import { IRendering } from '../../templating/rendering.js';
-import { isFunction, isPromise } from '../../utilities.js';
-import { CustomElement, customElement, CustomElementDefinition } from '../custom-element.js';
+import { bindable } from '../../bindable';
+import { convertToRenderLocation, INode, IRenderLocation, isRenderLocation } from '../../dom';
+import { IPlatform } from '../../platform';
+import { HydrateElementInstruction, IInstruction } from '../../renderer';
+import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
+import { IRendering } from '../../templating/rendering';
+import { isFunction, isPromise } from '../../utilities';
+import { CustomElement, customElement, CustomElementDefinition } from '../custom-element';
 
 /**
  * An optional interface describing the dialog activate convention.
@@ -123,7 +123,7 @@ export class AuCompose {
     }
     this._pending = onResolve(this._pending, () =>
       onResolve(
-        this.queue(new ChangeInfo(this.view!, this.viewModel, this.model, name), void 0),
+        this.queue(new ChangeInfo(this.view, this.viewModel, this.model, name), void 0),
         (context) => {
           if (this._contextFactory.isCurrent(context)) {
             this._pending = void 0;

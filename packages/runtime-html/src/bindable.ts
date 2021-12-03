@@ -1,7 +1,7 @@
 import { kebabCase, firstDefined, getPrototypeChain, noop } from '@aurelia/kernel';
 import { BindingMode } from '@aurelia/runtime';
-import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './shared.js';
-import { isString } from './utilities.js';
+import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './shared';
+import { isString } from './utilities';
 
 import type { Constructable, Writable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';

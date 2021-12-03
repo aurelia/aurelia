@@ -1,6 +1,6 @@
-import {
-  DI,
-} from '@aurelia/kernel';
+// import {
+//   DI,
+// } from '@aurelia/kernel';
 import {
   AccessKeyedExpression,
   AccessMemberExpression,
@@ -43,11 +43,11 @@ import {
   ExpressionKind,
   DestructuringAssignmentSingleExpression as DASE,
   DestructuringAssignmentExpression as DAE,
-} from './ast.js';
-import { createLookup } from '../utilities-objects.js';
+} from './ast.ts';
+import { createLookup } from '../utilities-objects.ts';
 
 export interface IExpressionParser extends ExpressionParser {}
-export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
+// export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
 
 export class ExpressionParser {
   /** @internal */ private readonly _expressionLookup: Record<string, IsBindingBehavior> = createLookup();
@@ -62,7 +62,7 @@ export class ExpressionParser {
     let found: AnyBindingExpression;
     switch (expressionType) {
       case ExpressionType.IsCustom:
-        return new CustomExpression(expression) as AnyBindingExpression;
+        return new CustomExpression(expression) ;
       case ExpressionType.Interpolation:
         found = this._interpolationLookup[expression];
         if (found === void 0) {
@@ -366,6 +366,8 @@ TType extends ExpressionType.Interpolation ? Interpolation :
   return parse($state, Access.Reset, Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
 }
 
+parseExpression('arr[qux] | hello', ExpressionType.None);/* ? */
+
 // This is performance-critical code which follows a subset of the well-known ES spec.
 // Knowing the spec, or parsers in general, will help with understanding this code and it is therefore not the
 // single source of information for being able to figure it out.
@@ -529,7 +531,7 @@ TPrec extends Precedence.Unary ? IsUnary :
         access = Access.Reset;
         break;
       case Token.TemplateContinuation:
-        result = parseTemplate(state, access, expressionType, result as IsLeftHandSide, false);
+        result = parseTemplate(state, access, expressionType, result , false);
         access = Access.Reset;
         break;
       case Token.StringLiteral:
@@ -564,7 +566,7 @@ TPrec extends Precedence.Unary ? IsUnary :
 
     if (expressionType & ExpressionType.IsIterator) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return parseForOfStatement(state, result as BindingIdentifierOrPattern) as any;
+      return parseForOfStatement(state, result) as any;
     }
     if (Precedence.LeftHandSide < minPrecedence) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -622,14 +624,14 @@ TPrec extends Precedence.Unary ? IsUnary :
           if (access & Access.Scope) {
             result = new AccessScopeExpression(name, (result as AccessScopeExpression | AccessThisExpression).ancestor);
           } else { // if it's not $Scope, it's $Member
-            result = new AccessMemberExpression(result as IsLeftHandSide, name);
+            result = new AccessMemberExpression(result , name);
           }
           continue;
         case Token.OpenBracket:
           state._assignable = true;
           nextToken(state);
           access = Access.Keyed;
-          result = new AccessKeyedExpression(result as IsLeftHandSide, parse(state, Access.Reset, Precedence.Assign, expressionType));
+          result = new AccessKeyedExpression(result , parse(state, Access.Reset, Precedence.Assign, expressionType));
           consume(state, Token.CloseBracket);
           break;
         case Token.OpenParen:
@@ -645,20 +647,20 @@ TPrec extends Precedence.Unary ? IsUnary :
           if (access & Access.Scope) {
             result = new CallScopeExpression(name, args, (result as AccessScopeExpression | AccessThisExpression).ancestor);
           } else if (access & Access.Member) {
-            result = new CallMemberExpression(result as IsLeftHandSide, name, args);
+            result = new CallMemberExpression(result , name, args);
           } else {
-            result = new CallFunctionExpression(result as IsLeftHandSide, args);
+            result = new CallFunctionExpression(result , args);
           }
           access = 0;
           break;
         case Token.TemplateTail:
           state._assignable = false;
           strings = [state._tokenValue as string];
-          result = new TaggedTemplateExpression(strings, strings, result as IsLeftHandSide);
+          result = new TaggedTemplateExpression(strings, strings, result);
           nextToken(state);
           break;
         case Token.TemplateContinuation:
-          result = parseTemplate(state, access, expressionType, result as IsLeftHandSide, true);
+          result = parseTemplate(state, access, expressionType, result , true);
         default:
       }
     }
@@ -702,7 +704,7 @@ TPrec extends Precedence.Unary ? IsUnary :
       break;
     }
     nextToken(state);
-    result = new BinaryExpression(TokenValues[opToken & Token.Type] as BinaryOperator, result as IsBinary, parse(state, access, opToken & Token.Precedence, expressionType));
+    result = new BinaryExpression(TokenValues[opToken & Token.Type] as BinaryOperator, result , parse(state, access, opToken & Token.Precedence, expressionType));
     state._assignable = false;
   }
   if (Precedence.Conditional < minPrecedence) {
@@ -725,7 +727,7 @@ TPrec extends Precedence.Unary ? IsUnary :
   if (consumeOpt(state, Token.Question)) {
     const yes = parse(state, access, Precedence.Assign, expressionType);
     consume(state, Token.Colon);
-    result = new ConditionalExpression(result as IsBinary, yes, parse(state, access, Precedence.Assign, expressionType));
+    result = new ConditionalExpression(result , yes, parse(state, access, Precedence.Assign, expressionType));
     state._assignable = false;
   }
   if (Precedence.Assign < minPrecedence) {
@@ -751,7 +753,7 @@ TPrec extends Precedence.Unary ? IsUnary :
       else
         throw new Error(`AUR0158:${state.ip}`);
     }
-    result = new AssignExpression(result as IsAssignable, parse(state, access, Precedence.Assign, expressionType));
+    result = new AssignExpression(result , parse(state, access, Precedence.Assign, expressionType));
   }
   if (Precedence.Variadic < minPrecedence) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -773,7 +775,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     while (consumeOpt(state, Token.Colon)) {
       args.push(parse(state, access, Precedence.Assign, expressionType));
     }
-    result = new ValueConverterExpression(result as IsValueConverter, name, args);
+    result = new ValueConverterExpression(result , name, args);
   }
 
   /** parseBindingBehavior
@@ -791,7 +793,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     while (consumeOpt(state, Token.Colon)) {
       args.push(parse(state, access, Precedence.Assign, expressionType));
     }
-    result = new BindingBehaviorExpression(result as IsBindingBehavior, name, args);
+    result = new BindingBehaviorExpression(result , name, args);
   }
   if (state._currentToken !== Token.EOF) {
     if (expressionType & ExpressionType.Interpolation) {

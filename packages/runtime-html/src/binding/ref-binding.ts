@@ -2,7 +2,7 @@ import { LifecycleFlags } from '@aurelia/runtime';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { IsBindingBehavior, Scope } from '@aurelia/runtime';
-import type { IAstBasedBinding } from './interfaces-bindings.js';
+import type { IAstBasedBinding } from './interfaces-bindings';
 
 export interface RefBinding extends IAstBasedBinding {}
 export class RefBinding implements IAstBasedBinding {
@@ -32,7 +32,7 @@ export class RefBinding implements IAstBasedBinding {
       this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.sourceExpression.assign!(flags, this.$scope, this.locator, this.target);
+    this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -45,7 +45,7 @@ export class RefBinding implements IAstBasedBinding {
 
     let sourceExpression = this.sourceExpression;
     if (sourceExpression.evaluate(flags, this.$scope!, this.locator, null) === this.target) {
-      sourceExpression.assign!(flags, this.$scope!, this.locator, null);
+      sourceExpression.assign(flags, this.$scope!, this.locator, null);
     }
 
     // source expression might have been modified durring assign, via a BB

@@ -5,7 +5,7 @@ import {
   SpreadAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern,
-} from './resources/attribute-pattern.js';
+} from './resources/attribute-pattern';
 import {
   CallBindingCommand,
   DefaultBindingCommand,
@@ -22,8 +22,8 @@ import {
   StyleBindingCommand,
   TriggerBindingCommand,
   SpreadBindingCommand,
-} from './resources/binding-command.js';
-import { TemplateCompiler } from './template-compiler.js';
+} from './resources/binding-command';
+import { TemplateCompiler } from './template-compiler';
 import {
   CallBindingRenderer,
   CustomAttributeRenderer,
@@ -43,28 +43,28 @@ import {
   SetClassAttributeRenderer,
   SetStyleAttributeRenderer,
   SpreadRenderer,
-} from './renderer.js';
+} from './renderer';
 import {
   FromViewBindingBehavior,
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
   TwoWayBindingBehavior,
-} from './binding-behaviors/binding-mode.js';
-import { DebounceBindingBehavior } from './binding-behaviors/debounce.js';
-import { SignalBindingBehavior } from './binding-behaviors/signals.js';
-import { ThrottleBindingBehavior } from './binding-behaviors/throttle.js';
-import { SVGAnalyzer } from './observation/svg-analyzer.js';
-import { AttrBindingBehavior } from './resources/binding-behaviors/attr.js';
-import { SelfBindingBehavior } from './resources/binding-behaviors/self.js';
-import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger.js';
-import { Focus } from './resources/custom-attributes/focus.js';
-import { Show } from './resources/custom-attributes/show.js';
-import { Portal } from './resources/template-controllers/portal.js';
-import { FrequentMutations, ObserveShallow } from './resources/template-controllers/flags.js';
-import { Else, If } from './resources/template-controllers/if.js';
-import { Repeat } from './resources/template-controllers/repeat.js';
-import { With } from './resources/template-controllers/with.js';
-import { Switch, Case, DefaultCase } from './resources/template-controllers/switch.js';
+} from './binding-behaviors/binding-mode';
+import { DebounceBindingBehavior } from './binding-behaviors/debounce';
+import { SignalBindingBehavior } from './binding-behaviors/signals';
+import { ThrottleBindingBehavior } from './binding-behaviors/throttle';
+import { SVGAnalyzer } from './observation/svg-analyzer';
+import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
+import { SelfBindingBehavior } from './resources/binding-behaviors/self';
+import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
+import { Focus } from './resources/custom-attributes/focus';
+import { Show } from './resources/custom-attributes/show';
+import { Portal } from './resources/template-controllers/portal';
+import { FrequentMutations, ObserveShallow } from './resources/template-controllers/flags';
+import { Else, If } from './resources/template-controllers/if';
+import { Repeat } from './resources/template-controllers/repeat';
+import { With } from './resources/template-controllers/with';
+import { Switch, Case, DefaultCase } from './resources/template-controllers/switch';
 import {
   PromiseTemplateController,
   PendingTemplateController,
@@ -74,13 +74,13 @@ import {
   PromiseAttributePattern,
   FulfilledAttributePattern,
   RejectedAttributePattern,
-} from './resources/template-controllers/promise.js';
-import { AuRender } from './resources/custom-elements/au-render.js';
-import { AuCompose } from './resources/custom-elements/au-compose.js';
-import { AuSlot } from './resources/custom-elements/au-slot.js';
-import { SanitizeValueConverter } from './resources/value-converters/sanitize.js';
-import { ViewValueConverter } from './resources/value-converters/view.js';
-import { NodeObserverLocator } from './observation/observer-locator.js';
+} from './resources/template-controllers/promise';
+import { AuRender } from './resources/custom-elements/au-render';
+import { AuCompose } from './resources/custom-elements/au-compose';
+import { AuSlot } from './resources/custom-elements/au-slot';
+import { SanitizeValueConverter } from './resources/value-converters/sanitize';
+import { ViewValueConverter } from './resources/value-converters/view';
+import { NodeObserverLocator } from './observation/observer-locator';
 
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;

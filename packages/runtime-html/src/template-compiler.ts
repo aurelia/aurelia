@@ -1,7 +1,7 @@
 import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop } from '@aurelia/kernel';
 import { BindingMode, ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
-import { IAttrMapper } from './attribute-mapper.js';
-import { ITemplateElementFactory } from './template-element-factory.js';
+import { IAttrMapper } from './attribute-mapper';
+import { ITemplateElementFactory } from './template-element-factory';
 import {
   HydrateAttributeInstruction,
   HydrateElementInstruction,
@@ -17,16 +17,16 @@ import {
   ITemplateCompiler,
   PropertyBindingInstruction,
   SpreadElementPropBindingInstruction,
-} from './renderer.js';
-import { IPlatform } from './platform.js';
-import { Bindable, BindableDefinition } from './bindable.js';
-import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
-import { CustomAttribute } from './resources/custom-attribute.js';
-import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
-import { BindingCommand, CommandType } from './resources/binding-command.js';
-import { createLookup, isString } from './utilities.js';
-import { allResources } from './utilities-di.js';
-import { appendResourceKey, defineMetadata, getResourceKeyFor } from './shared.js';
+} from './renderer';
+import { IPlatform } from './platform';
+import { Bindable, BindableDefinition } from './bindable';
+import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern';
+import { CustomAttribute } from './resources/custom-attribute';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element';
+import { BindingCommand, CommandType } from './resources/binding-command';
+import { createLookup, isString } from './utilities';
+import { allResources } from './utilities-di';
+import { appendResourceKey, defineMetadata, getResourceKeyFor } from './shared';
 
 import type {
   IContainer,
@@ -35,11 +35,11 @@ import type {
   Writable,
 } from '@aurelia/kernel';
 import type { AnyBindingExpression } from '@aurelia/runtime';
-import type { CustomAttributeDefinition } from './resources/custom-attribute.js';
-import type { PartialCustomElementDefinition } from './resources/custom-element.js';
-import type { IProjections } from './resources/slot-injectables.js';
-import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command.js';
-import type { ICompliationInstruction, IInstruction, } from './renderer.js';
+import type { CustomAttributeDefinition } from './resources/custom-attribute';
+import type { PartialCustomElementDefinition } from './resources/custom-element';
+import type { IProjections } from './resources/slot-injectables';
+import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command';
+import type { ICompliationInstruction, IInstruction, } from './renderer';
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -1432,7 +1432,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   /** @internal */
   private _compileLocalElement(template: Element | DocumentFragment, context: CompilationContext) {
     const root: Element | DocumentFragment = template;
-    const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) as HTMLTemplateElement[];
+    const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) ;
     const numLocalTemplates = localTemplates.length;
     if (numLocalTemplates === 0) { return; }
     if (numLocalTemplates === root.childElementCount) {

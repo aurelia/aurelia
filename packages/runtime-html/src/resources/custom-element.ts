@@ -9,13 +9,13 @@ import {
   emptyArray,
 } from '@aurelia/kernel';
 import { registerAliases } from '@aurelia/runtime';
-import { Bindable } from '../bindable.js';
-import { getEffectiveParentNode, getRef } from '../dom.js';
-import { Children } from '../templating/children.js';
-import { Watch } from '../watch.js';
-import { DefinitionType } from './resources-shared.js';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
-import { isFunction, isString } from '../utilities.js';
+import { Bindable } from '../bindable';
+import { getEffectiveParentNode, getRef } from '../dom';
+import { Children } from '../templating/children';
+import { Watch } from '../watch';
+import { DefinitionType } from './resources-shared';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared';
+import { isFunction, isString } from '../utilities';
 
 import type {
   Constructable,
@@ -29,13 +29,13 @@ import type {
   IResolver,
   Writable,
 } from '@aurelia/kernel';
-import type { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
-import type { INode } from '../dom.js';
-import type { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children.js';
-import type { Controller, ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
-import type { IPlatform } from '../platform.js';
-import type { IInstruction } from '../renderer.js';
-import type { IWatchDefinition } from '../watch.js';
+import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
+import type { INode } from '../dom';
+import type { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children';
+import type { Controller, ICustomElementViewModel, ICustomElementController } from '../templating/controller';
+import type { IPlatform } from '../platform';
+import type { IInstruction } from '../renderer';
+import type { IWatchDefinition } from '../watch';
 
 declare module '@aurelia/kernel' {
   interface IContainer {
@@ -265,9 +265,9 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
 
         // TODO: we need to make sure it's documented that passing in the type via the definition (while passing in null
         // as the "Type" parameter) effectively skips type analysis, so it should only be used this way for cloning purposes.
-        Type = (def as CustomElementDefinition).Type as CustomElementType;
+        Type = (def as CustomElementDefinition).Type ;
       } else {
-        Type = CustomElement.generateType(pascalCase(name)) as CustomElementType;
+        Type = CustomElement.generateType(pascalCase(name)) ;
       }
 
       return new CustomElementDefinition(

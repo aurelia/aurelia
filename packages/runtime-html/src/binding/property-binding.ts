@@ -1,5 +1,5 @@
 import { AccessorType, BindingMode, connectable, ExpressionKind, LifecycleFlags } from '@aurelia/runtime';
-import { BindingTargetSubscriber } from './binding-utils.js';
+import { BindingTargetSubscriber } from './binding-utils';
 
 import type { IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
 import type {
@@ -10,7 +10,7 @@ import type {
   IsBindingBehavior,
   Scope,
 } from '@aurelia/runtime';
-import type { IAstBasedBinding } from './interfaces-bindings.js';
+import type { IAstBasedBinding } from './interfaces-bindings';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -63,7 +63,7 @@ export class PropertyBinding implements IAstBasedBinding {
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags, this.$scope!, this.locator, value);
+    this.sourceExpression.assign(flags, this.$scope!, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {

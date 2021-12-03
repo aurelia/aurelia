@@ -1,15 +1,15 @@
 import { alias } from '@aurelia/runtime';
 
-import { INode } from '../../dom.js';
-import { IPlatform } from '../../platform.js';
-import { customAttribute } from '../custom-attribute.js';
-import { bindable } from '../../bindable.js';
-import { IInstruction } from '../../renderer.js';
+import { INode } from '../../dom';
+import { IPlatform } from '../../platform';
+import { customAttribute } from '../custom-attribute';
+import { bindable } from '../../bindable';
+import { IInstruction } from '../../renderer';
 
 import type { ITask } from '@aurelia/runtime';
 
-import type { ICustomAttributeViewModel } from '../../templating/controller.js';
-import type { HydrateAttributeInstruction } from '../../renderer.js';
+import type { ICustomAttributeViewModel } from '../../templating/controller';
+import type { HydrateAttributeInstruction } from '../../renderer';
 
 export class Show implements ICustomAttributeViewModel {
   @bindable public value: unknown;

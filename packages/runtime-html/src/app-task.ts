@@ -1,6 +1,6 @@
 import { DI, Registration } from '@aurelia/kernel';
 import type { IContainer, IRegistry, Key, Resolved } from '@aurelia/kernel';
-import { isFunction } from './utilities.js';
+import { isFunction } from './utilities';
 
 export type TaskSlot = (
   'beforeCreate' |

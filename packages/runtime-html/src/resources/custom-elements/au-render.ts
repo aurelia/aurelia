@@ -1,14 +1,14 @@
 import { Constructable, nextId, onResolve } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags } from '@aurelia/runtime';
-import { createElement, RenderPlan } from '../../create-element.js';
-import { HydrateElementInstruction, IInstruction } from '../../renderer.js';
-import { IPlatform } from '../../platform.js';
-import { IViewFactory } from '../../templating/view.js';
-import { CustomElement, customElement, CustomElementDefinition } from '../custom-element.js';
-import { bindable } from '../../bindable.js';
-import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, IHydrationContext, ISyntheticView } from '../../templating/controller.js';
-import { IRendering } from '../../templating/rendering.js';
-import { isString } from '../../utilities.js';
+import { createElement, RenderPlan } from '../../create-element';
+import { HydrateElementInstruction, IInstruction } from '../../renderer';
+import { IPlatform } from '../../platform';
+import { IViewFactory } from '../../templating/view';
+import { CustomElement, customElement, CustomElementDefinition } from '../custom-element';
+import { bindable } from '../../bindable';
+import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, IHydrationContext, ISyntheticView } from '../../templating/controller';
+import { IRendering } from '../../templating/rendering';
+import { isString } from '../../utilities';
 
 export type Subject = string | IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;

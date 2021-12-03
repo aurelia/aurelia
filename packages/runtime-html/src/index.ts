@@ -17,11 +17,11 @@ export {
   Bindable,
   BindableDefinition,
   PartialBindableDefinition,
-} from './bindable.js';
+} from './bindable';
 
 export {
   BindableObserver,
-} from './observation/bindable-observer.js';
+} from './observation/bindable-observer';
 
 export {
   DebounceBindingBehaviorRegistration,
@@ -31,7 +31,7 @@ export {
   SignalBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
-} from './configuration.js';
+} from './configuration';
 
 export {
   BindingModeBehavior,
@@ -39,16 +39,16 @@ export {
   ToViewBindingBehavior,
   FromViewBindingBehavior,
   TwoWayBindingBehavior,
-} from './binding-behaviors/binding-mode.js';
+} from './binding-behaviors/binding-mode';
 export {
   DebounceBindingBehavior,
-} from './binding-behaviors/debounce.js';
+} from './binding-behaviors/debounce';
 export {
   SignalBindingBehavior,
-} from './binding-behaviors/signals.js';
+} from './binding-behaviors/signals';
 export {
   ThrottleBindingBehavior,
-} from './binding-behaviors/throttle.js';
+} from './binding-behaviors/throttle';
 
 export {
   alias,
@@ -217,20 +217,20 @@ export {
   Aurelia,
   IAurelia,
   IEnhancementConfig,
-} from './aurelia.js';
+} from './aurelia';
 export {
   ISinglePageApp,
   AppRoot,
   IAppRoot,
   IWorkTracker,
-} from './app-root.js';
+} from './app-root';
 export {
   TaskSlot,
   AppTask,
   IAppTask,
   AppTaskCallback,
   AppTaskCallbackNoArg,
-} from './app-task.js';
+} from './app-task';
 export {
   AttrSyntax,
   IAttributeParser,
@@ -244,7 +244,7 @@ export {
   ColonPrefixedBindAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern,
-} from './resources/attribute-pattern.js';
+} from './resources/attribute-pattern';
 export {
   bindingCommand,
   ICommandBuildInfo,
@@ -267,31 +267,31 @@ export {
   AttrBindingCommand,
   ClassBindingCommand,
   StyleBindingCommand,
-} from './resources/binding-command.js';
+} from './resources/binding-command';
 export {
   IAttrMapper,
-} from './attribute-mapper.js';
+} from './attribute-mapper';
 export {
   Listener,
-} from './binding/listener.js';
+} from './binding/listener';
 export {
   AttributeBinding,
-} from './binding/attribute.js';
+} from './binding/attribute';
 export {
   CallBinding,
-} from './binding/call-binding.js';
+} from './binding/call-binding';
 export {
   InterpolationBinding,
-} from './binding/interpolation-binding.js';
+} from './binding/interpolation-binding';
 export {
   LetBinding,
-} from './binding/let-binding.js';
+} from './binding/let-binding';
 export {
   PropertyBinding,
-} from './binding/property-binding.js';
+} from './binding/property-binding';
 export {
   RefBinding,
-} from './binding/ref-binding.js';
+} from './binding/ref-binding';
 
 export {
   IRenderer,
@@ -321,61 +321,61 @@ export {
   InstructionTypeName,
   IInstruction,
   InstructionType,
-} from './renderer.js';
+} from './renderer';
 
 export {
   AttributeNSAccessor,
-} from './observation/attribute-ns-accessor.js';
+} from './observation/attribute-ns-accessor';
 export {
   IInputElement,
   CheckedObserver,
-} from './observation/checked-observer.js';
+} from './observation/checked-observer';
 export {
   ClassAttributeAccessor,
-} from './observation/class-attribute-accessor.js';
+} from './observation/class-attribute-accessor';
 export {
   DataAttributeAccessor,
-} from './observation/data-attribute-accessor.js';
+} from './observation/data-attribute-accessor';
 export {
   IEventDelegator,
   EventSubscriber,
   EventDelegator,
-} from './observation/event-delegator.js';
+} from './observation/event-delegator';
 export {
   NodeObserverConfig,
   NodeObserverLocator,
   INodeObserverConfig,
   IHtmlObserverConstructor,
-} from './observation/observer-locator.js';
+} from './observation/observer-locator';
 export {
   ISelectElement,
   IOptionElement,
   SelectValueObserver
-} from './observation/select-value-observer.js';
+} from './observation/select-value-observer';
 export {
   StyleAttributeAccessor
-} from './observation/style-attribute-accessor.js';
+} from './observation/style-attribute-accessor';
 export {
   ISVGAnalyzer,
   SVGAnalyzer,
   NoopSVGAnalyzer,
-} from './observation/svg-analyzer.js';
+} from './observation/svg-analyzer';
 export {
   ValueAttributeObserver,
-} from './observation/value-attribute-observer.js';
+} from './observation/value-attribute-observer';
 
 export {
   AttrBindingBehavior,
-} from './resources/binding-behaviors/attr.js';
+} from './resources/binding-behaviors/attr';
 export {
   SelfableBinding,
   SelfBindingBehavior,
-} from './resources/binding-behaviors/self.js';
+} from './resources/binding-behaviors/self';
 export {
   UpdateTriggerBindingBehavior,
   UpdateTriggerableBinding,
   UpdateTriggerableObserver,
-} from './resources/binding-behaviors/update-trigger.js';
+} from './resources/binding-behaviors/update-trigger';
 
 export {
   customAttribute,
@@ -386,54 +386,54 @@ export {
   CustomAttributeType,
   PartialCustomAttributeDefinition,
   templateController,
-} from './resources/custom-attribute.js';
+} from './resources/custom-attribute';
 export {
   FrequentMutations,
   ObserveShallow,
-} from './resources/template-controllers/flags.js';
+} from './resources/template-controllers/flags';
 export {
   If,
   Else,
-} from './resources/template-controllers/if.js';
+} from './resources/template-controllers/if';
 export {
   Repeat
-} from './resources/template-controllers/repeat.js';
+} from './resources/template-controllers/repeat';
 export {
   With
-} from './resources/template-controllers/with.js';
+} from './resources/template-controllers/with';
 export {
   Switch,
   Case,
   DefaultCase,
-} from './resources/template-controllers/switch.js';
+} from './resources/template-controllers/switch';
 export {
   PromiseTemplateController,
   FulfilledTemplateController,
   PendingTemplateController,
   RejectedTemplateController,
-} from './resources/template-controllers/promise.js';
+} from './resources/template-controllers/promise';
 
 export {
   Focus,
-} from './resources/custom-attributes/focus.js';
+} from './resources/custom-attributes/focus';
 
 export {
   Portal,
   PortalTarget,
   PortalLifecycleCallback,
-} from './resources/template-controllers/portal.js';
+} from './resources/template-controllers/portal';
 
 export {
   AuSlot,
-} from './resources/custom-elements/au-slot.js';
+} from './resources/custom-elements/au-slot';
 export {
   IProjections,
   AuSlotsInfo,
   IAuSlotsInfo,
-} from './resources/slot-injectables.js';
+} from './resources/slot-injectables';
 export {
   DefinitionType,
-} from './resources/resources-shared.js';
+} from './resources/resources-shared';
 
 export {
   containerless,
@@ -446,23 +446,23 @@ export {
   PartialCustomElementDefinition,
   useShadowDOM,
   processContent,
-} from './resources/custom-element.js';
+} from './resources/custom-element';
 
 export {
   Subject,
   AuRender,
-} from './resources/custom-elements/au-render.js';
+} from './resources/custom-elements/au-render';
 export {
   AuCompose,
   IDynamicComponentActivate,
-} from './resources/custom-elements/au-compose.js';
+} from './resources/custom-elements/au-compose';
 export {
   ISanitizer,
   SanitizeValueConverter,
-} from './resources/value-converters/sanitize.js';
+} from './resources/value-converters/sanitize';
 export {
   ViewValueConverter,
-} from './resources/value-converters/view.js';
+} from './resources/value-converters/view';
 
 export {
   ITemplateCompilerRegistration,
@@ -534,21 +534,21 @@ export {
   DefaultRenderers,
 
   StandardConfiguration
-} from './configuration.js';
+} from './configuration';
 export {
   ITemplateElementFactory
-} from './template-element-factory.js';
+} from './template-element-factory';
 export {
   BindablesInfo,
   TemplateCompiler,
   ITemplateCompilerHooks,
   TemplateCompilerHooks,
   templateCompilerHooks,
-} from './template-compiler.js';
+} from './template-compiler';
 
 export {
   allResources,
-} from './utilities-di.js';
+} from './utilities-di';
 
 export {
   PartialChildrenDefinition,
@@ -556,7 +556,7 @@ export {
   Children,
   children,
   ChildrenObserver,
-} from './templating/children.js';
+} from './templating/children';
 
 // These exports are temporary until we have a proper way to unit test them
 export {
@@ -584,7 +584,7 @@ export {
   IHydratedCustomElementViewModel,
   IHydratedCustomAttributeViewModel,
   ISyntheticView,
-} from './templating/controller.js';
+} from './templating/controller';
 export {
   ILifecycleHooks,
   LifecycleHooksEntry,
@@ -593,11 +593,11 @@ export {
   LifecycleHook,
   LifecycleHooks,
   lifecycleHooks,
-} from './templating/lifecycle-hooks.js';
+} from './templating/lifecycle-hooks';
 export {
   IRendering,
   Rendering,
-} from './templating/rendering.js';
+} from './templating/rendering';
 export {
   ViewFactory,
   IViewFactory,
@@ -605,11 +605,11 @@ export {
   ViewLocator,
   view,
   Views,
-} from './templating/view.js';
+} from './templating/view';
 export {
   createElement,
   RenderPlan
-} from './create-element.js';
+} from './create-element';
 export {
   INode,
   IEventTarget,
@@ -626,10 +626,10 @@ export {
   isRenderLocation,
   getRef,
   setRef,
-} from './dom.js';
+} from './dom';
 export {
   IPlatform,
-} from './platform.js';
+} from './platform';
 
 export {
   CSSModulesProcessorRegistry,
@@ -643,7 +643,7 @@ export {
   StyleElementStyles,
   IShadowDOMStyles,
   IShadowDOMGlobalStyles,
-} from './templating/styles.js';
+} from './templating/styles';
 
 export {
   Watch,
@@ -651,12 +651,12 @@ export {
   IWatchDefinition,
   IWatcherCallback,
   IDepCollectionFn,
-} from './watch.js';
+} from './watch';
 
 export {
   ComputedWatcher,
   ExpressionWatcher,
-} from './templating/watchers.js';
+} from './templating/watchers';
 
 export {
   // configurations
@@ -702,10 +702,10 @@ export {
   IDialogComponentCanActivate,
   IDialogComponentDeactivate,
   IDialogComponentCanDeactivate,
-} from './dialog.js';
+} from './dialog';
 
 export {
   IWcElementRegistry,
   WebComponentViewModelClass,
   WcCustomElementRegistry,
-} from './plugins/web-components.js';
+} from './plugins/web-components';

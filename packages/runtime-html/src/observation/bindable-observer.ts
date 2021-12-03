@@ -1,6 +1,6 @@
 import { noop } from '@aurelia/kernel';
 import { subscriberCollection, AccessorType, LifecycleFlags, withFlushQueue } from '@aurelia/runtime';
-import { isFunction } from '../utilities.js';
+import { isFunction } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type {

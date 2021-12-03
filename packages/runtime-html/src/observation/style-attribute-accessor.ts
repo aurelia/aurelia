@@ -1,6 +1,6 @@
 import { LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { emptyArray, kebabCase } from '@aurelia/kernel';
-import { isFunction, isString } from '../utilities.js';
+import { isFunction, isString } from '../utilities';
 import type { IAccessor } from '@aurelia/runtime';
 
 const customPropertyPrefix: string = '--';

@@ -1,5 +1,5 @@
 import { LifecycleFlags, bindingBehavior } from '@aurelia/runtime';
-import { Listener } from '../../binding/listener.js';
+import { Listener } from '../../binding/listener';
 
 import type { Scope } from '@aurelia/runtime';
 

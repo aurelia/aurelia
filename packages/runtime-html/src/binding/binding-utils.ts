@@ -1,5 +1,5 @@
 import type { ISubscriber, LifecycleFlags } from '@aurelia/runtime';
-import type { IAstBasedBinding } from './interfaces-bindings.js';
+import type { IAstBasedBinding } from './interfaces-bindings';
 
 interface ITwoWayBindingImpl extends IAstBasedBinding {
   updateSource(value: unknown, flags: LifecycleFlags): void;

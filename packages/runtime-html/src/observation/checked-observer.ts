@@ -6,12 +6,12 @@ import {
   AccessorType,
   withFlushQueue,
 } from '@aurelia/runtime';
-import { getCollectionObserver } from './observer-locator.js';
-import { hasOwnProperty } from '../utilities.js';
+import { getCollectionObserver } from './observer-locator';
+import { hasOwnProperty } from '../utilities';
 
-import type { INode } from '../dom.js';
-import type { EventSubscriber } from './event-delegator.js';
-import type { ValueAttributeObserver } from './value-attribute-observer.js';
+import type { INode } from '../dom';
+import type { EventSubscriber } from './event-delegator';
+import type { ValueAttributeObserver } from './value-attribute-observer';
 import type {
   ICollectionObserver,
   IndexMap,
@@ -106,7 +106,7 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
   private _synchronizeElement(): void {
     const currentValue = this._value;
     const obj = this._obj;
-    const elementValue = hasOwnProperty.call(obj, 'model') as boolean ? obj.model : obj.value;
+    const elementValue = hasOwnProperty.call(obj, 'model')  ? obj.model : obj.value;
     const isRadio = obj.type === 'radio';
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 
@@ -144,7 +144,7 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
   public handleEvent(): void {
     let currentValue = this._oldValue = this._value;
     const obj = this._obj;
-    const elementValue = hasOwnProperty.call(obj, 'model') as boolean ? obj.model : obj.value;
+    const elementValue = hasOwnProperty.call(obj, 'model')  ? obj.model : obj.value;
     const isChecked = obj.checked;
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 

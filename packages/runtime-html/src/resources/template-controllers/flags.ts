@@ -1,9 +1,9 @@
 import { nextId } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
-import { IRenderLocation } from '../../dom.js';
-import { IViewFactory } from '../../templating/view.js';
-import { templateController } from '../custom-attribute.js';
-import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
+import { IRenderLocation } from '../../dom';
+import { IViewFactory } from '../../templating/view';
+import { templateController } from '../custom-attribute';
+import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 
 abstract class FlagsTemplateController implements ICustomAttributeViewModel {
   public readonly id: number;

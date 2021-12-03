@@ -1,6 +1,6 @@
 import { emptyArray } from '@aurelia/kernel';
 import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
-import { isString } from '../utilities.js';
+import { isString } from '../utilities';
 
 import type { IAccessor } from '@aurelia/runtime';
 
@@ -120,7 +120,7 @@ export function getClassesToAdd(object: Record<string, unknown> | [] | string): 
   let property: string;
   for (property in object) {
     // Let non typical values also evaluate true so disable bool check
-    if (Boolean(object[property])) {
+    if (object[property]) {
       // We must do this in case object property has a space in the name which results in two classes
       if (property.includes(' ')) {
         classes.push(...splitClassString(property));

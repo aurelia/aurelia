@@ -1,6 +1,6 @@
 import { camelCase, Registration, mergeArrays, firstDefined } from '@aurelia/kernel';
 import { BindingMode, ExpressionType, DelegationStrategy, IExpressionParser, IsBindingBehavior, registerAliases } from '@aurelia/runtime';
-import { IAttrMapper } from '../attribute-mapper.js';
+import { IAttrMapper } from '../attribute-mapper';
 import {
   AttributeBindingInstruction,
   PropertyBindingInstruction,
@@ -9,10 +9,10 @@ import {
   RefBindingInstruction,
   ListenerBindingInstruction,
   SpreadBindingInstruction,
-} from '../renderer.js';
-import { DefinitionType } from './resources-shared.js';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../shared.js';
-import { isString } from '../utilities.js';
+} from '../renderer';
+import { DefinitionType } from './resources-shared';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../shared';
+import { isString } from '../utilities';
 
 import type {
   Constructable,
@@ -22,11 +22,11 @@ import type {
   ResourceDefinition,
   PartialResourceDefinition,
 } from '@aurelia/kernel';
-import type { IInstruction } from '../renderer.js';
-import type { AttrSyntax } from './attribute-pattern.js';
-import type { BindableDefinition } from '../bindable.js';
-import type { CustomAttributeDefinition } from './custom-attribute.js';
-import type { CustomElementDefinition } from './custom-element.js';
+import type { IInstruction } from '../renderer';
+import type { AttrSyntax } from './attribute-pattern';
+import type { BindableDefinition } from '../bindable';
+import type { CustomAttributeDefinition } from './custom-attribute';
+import type { CustomElementDefinition } from './custom-element';
 
 /**
  * Characteristics of a binding command.

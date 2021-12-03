@@ -1,5 +1,5 @@
 import { AccessorType } from '@aurelia/runtime';
-import { createLookup } from '../utilities.js';
+import { createLookup } from '../utilities';
 
 import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
 

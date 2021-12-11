@@ -3,6 +3,10 @@ import { ITemplateCompiler } from "../renderer";
 import { DI, IPlatform, Registration } from "@aurelia/kernel";
 import { Node, Document, parse, TreeAdapter } from "parse5";
 import * as treeAdapter from "./pars5-adapter";
+import { ExpressionType, parseExpression } from '..';
+
+// parseExpression('${foo.} ${bar}<p></p>', ExpressionType.Interpolation);/* ? */
+parseExpression('${foo} ${bar.}<p></p>', ExpressionType.Interpolation);/* ? */
 
 const container = DI.createContainer();
 

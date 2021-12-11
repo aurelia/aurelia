@@ -1,13 +1,13 @@
 /* eslint-disable eqeqeq */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { emptyArray, isArrayIndex, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
-import { LifecycleFlags as LF } from '../observation.js';
-import { BindingContext, Scope } from '../observation/binding-context.js';
-import { ISignaler } from '../observation/signaler.js';
-import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior.js';
-import { ValueConverter, ValueConverterInstance } from '../value-converter.js';
-import { IConnectableBinding } from './connectable.js';
-import { isFunction, isString } from '../utilities-objects.js';
+import { LifecycleFlags as LF } from '../observation';
+import { BindingContext, Scope } from '../observation/binding-context';
+import { ISignaler } from '../observation/signaler';
+import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior';
+import { ValueConverter, ValueConverterInstance } from '../value-converter';
+import { IConnectableBinding } from './connectable';
+import { isFunction, isString } from '../utilities-objects';
 
 import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
 import type {
@@ -17,7 +17,7 @@ import type {
   IOverrideContext,
   IConnectable,
   ISubscriber,
-} from '../observation.js';
+} from '../observation';
 
 export const enum ExpressionKind {
   CallsFunction                 = 0b0000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()
@@ -825,7 +825,7 @@ export class CallScopeExpression {
     // todo: did it ever surprise anyone?
     const func = getFunction(f, context, this.name);
     if (func) {
-      return func.apply(context, args as unknown[]);
+      return func.apply(context, args);
     }
     return void 0;
   }
@@ -860,7 +860,7 @@ export class CallMemberExpression {
     const args = this.args.map(a => a.evaluate(f, s, l, c));
     const func = getFunction(f, instance, this.name);
     if (func) {
-      return func.apply(instance, args as unknown[]);
+      return func.apply(instance, args);
     }
     return void 0;
   }

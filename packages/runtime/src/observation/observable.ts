@@ -1,12 +1,12 @@
-import { IObserver, LifecycleFlags } from '../observation.js';
-import { SetterNotifier } from './setter-observer.js';
-import { def } from '../utilities-objects.js';
-import { currentConnectable } from './connectable-switcher.js';
+import { IObserver, LifecycleFlags } from '../observation';
+import { SetterNotifier } from './setter-observer';
+import { def } from '../utilities-objects';
+import { currentConnectable } from './connectable-switcher';
 
 import type { Constructable, IIndexable } from '@aurelia/kernel';
-import type { IBindingContext, InterceptorFunc, IObservable } from '../observation.js';
-import type { ObservableGetter } from './observer-locator.js';
-import type { SetterObserver } from './setter-observer.js';
+import type { IBindingContext, InterceptorFunc, IObservable } from '../observation';
+import type { ObservableGetter } from './observer-locator';
+import type { SetterObserver } from './setter-observer';
 
 export interface IObservableDefinition {
   name?: PropertyKey;

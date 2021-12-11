@@ -1,5 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import { connecting, currentConnectable } from './connectable-switcher.js';
+import { connecting, currentConnectable } from './connectable-switcher';
 
 const R$get = Reflect.get;
 const toStringTag = Object.prototype.toString;

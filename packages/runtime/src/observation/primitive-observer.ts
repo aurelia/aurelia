@@ -1,7 +1,7 @@
 import { Primitive } from '@aurelia/kernel';
-import { AccessorType } from '../observation.js';
+import { AccessorType } from '../observation';
 
-import type { IAccessor, ISubscribable } from '../observation.js';
+import type { IAccessor, ISubscribable } from '../observation';
 
 export class PrimitiveObserver implements IAccessor, ISubscribable {
   public get doNotCache(): true { return true; }

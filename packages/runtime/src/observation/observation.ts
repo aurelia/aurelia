@@ -1,10 +1,10 @@
 import { DI } from '@aurelia/kernel';
-import { connectable } from '../binding/connectable.js';
-import { enterConnectable, exitConnectable } from './connectable-switcher.js';
-import { IObserverLocator } from './observer-locator.js';
+import { connectable } from '../binding/connectable';
+import { enterConnectable, exitConnectable } from './connectable-switcher';
+import { IObserverLocator } from './observer-locator';
 
-import type { ICollectionSubscriber, IConnectable, ISubscriber } from '../observation.js';
-import type { BindingObserverRecord } from '../binding/connectable.js';
+import type { ICollectionSubscriber, IConnectable, ISubscriber } from '../observation';
+import type { BindingObserverRecord } from '../binding/connectable';
 
 export interface IObservation extends Observation {}
 export const IObservation = DI.createInterface<IObservation>('IObservation', x => x.singleton(Observation));

@@ -4,13 +4,13 @@ import {
   AccessorType,
   ISubscriberCollection,
   ICollectionSubscriberCollection,
-} from '../observation.js';
+} from '../observation';
 import {
   CollectionLengthObserver,
-} from './collection-length-observer.js';
+} from './collection-length-observer';
 import {
   subscriberCollection,
-} from './subscriber-collection.js';
+} from './subscriber-collection';
 
 import type {
   CollectionKind,
@@ -18,8 +18,8 @@ import type {
   IArrayIndexObserver,
   IndexMap,
   ISubscriber,
-} from '../observation.js';
-import { def, defineHiddenProp, isFunction } from '../utilities-objects.js';
+} from '../observation';
+import { def, defineHiddenProp, isFunction } from '../utilities-objects';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 

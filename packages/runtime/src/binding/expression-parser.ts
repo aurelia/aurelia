@@ -366,7 +366,7 @@ TType extends ExpressionType.Interpolation ? Interpolation :
   return parse($state, Access.Reset, Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
 }
 
-parseExpression('arr[qux] | hello', ExpressionType.None);/* ? */
+// parseExpression('arr[qux] | hello', ExpressionType.None);/* ? */
 
 // This is performance-critical code which follows a subset of the well-known ES spec.
 // Knowing the spec, or parsers in general, will help with understanding this code and it is therefore not the

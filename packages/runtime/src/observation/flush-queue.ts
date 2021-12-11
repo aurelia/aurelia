@@ -1,4 +1,4 @@
-import { def } from '../utilities-objects.js';
+import { def } from '../utilities-objects';
 
 /* eslint-disable @typescript-eslint/ban-types */
 /**

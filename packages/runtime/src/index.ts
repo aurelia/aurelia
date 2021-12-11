@@ -15,7 +15,7 @@ export {
 export {
   alias,
   registerAliases,
-} from './alias.js';
+} from './alias';
 export {
   ExpressionKind,
   CallFunctionExpression,
@@ -64,7 +64,7 @@ export {
   DestructuringAssignmentExpression,
   DestructuringAssignmentSingleExpression,
   DestructuringAssignmentRestExpression,
-} from './binding/ast.js';
+} from './binding/ast';
 export {
   IObserverLocatorBasedConnectable,
   IConnectableBinding,
@@ -72,7 +72,7 @@ export {
   BindingMediator,
   MediatedBinding,
   BindingObserverRecord,
-} from './binding/connectable.js';
+} from './binding/connectable';
 export {
   IExpressionParser,
   ExpressionType,
@@ -82,7 +82,7 @@ export {
   Precedence,
   parse,
   ParserState,
-} from './binding/expression-parser.js';
+} from './binding/expression-parser';
 
 export {
   ArrayObserver,
@@ -91,50 +91,50 @@ export {
   disableArrayObservation,
   applyMutationsToIndices,
   synchronizeIndices,
-} from './observation/array-observer.js';
+} from './observation/array-observer';
 export {
   MapObserver,
   enableMapObservation,
   disableMapObservation,
-} from './observation/map-observer.js';
+} from './observation/map-observer';
 export {
   SetObserver,
   enableSetObservation,
   disableSetObservation
-} from './observation/set-observer.js';
+} from './observation/set-observer';
 export {
   BindingContext,
   Scope,
   OverrideContext,
-} from './observation/binding-context.js';
+} from './observation/binding-context';
 export {
   CollectionLengthObserver,
   CollectionSizeObserver,
-} from './observation/collection-length-observer.js';
+} from './observation/collection-length-observer';
 export {
   ComputedObserver,
-} from './observation/computed-observer.js';
+} from './observation/computed-observer';
 export {
   IDirtyChecker,
   DirtyCheckProperty,
   DirtyCheckSettings,
-} from './observation/dirty-checker.js';
+} from './observation/dirty-checker';
 export {
   IFlushable,
   IWithFlushQueue,
   FlushQueue,
   withFlushQueue,
-} from './observation/flush-queue.js';
+} from './observation/flush-queue';
 export {
   IEffect,
   IObservation,
   Observation,
   EffectFunc,
-} from './observation/observation.js';
+} from './observation/observation';
 export {
   IObservableDefinition,
   observable,
-} from './observation/observable.js';
+} from './observation/observable';
 export {
   IObjectObservationAdapter,
   IObserverLocator,
@@ -143,29 +143,29 @@ export {
   ObserverLocator,
   ObservableGetter,
   ObservableSetter,
-} from './observation/observer-locator.js';
+} from './observation/observer-locator';
 export {
   PrimitiveObserver,
-} from './observation/primitive-observer.js';
+} from './observation/primitive-observer';
 export {
   PropertyAccessor,
-} from './observation/property-accessor.js';
+} from './observation/property-accessor';
 export {
   ProxyObservable,
-} from './observation/proxy-observation.js';
+} from './observation/proxy-observation';
 export {
   SetterObserver,
-} from './observation/setter-observer.js';
+} from './observation/setter-observer';
 export {
   ISignaler,
-} from './observation/signaler.js';
+} from './observation/signaler';
 export {
   SubscriberRecord,
   subscriberCollection,
-} from './observation/subscriber-collection.js';
+} from './observation/subscriber-collection';
 export {
   ConnectableSwitcher,
-} from './observation/connectable-switcher.js';
+} from './observation/connectable-switcher';
 
 export {
   bindingBehavior,
@@ -180,7 +180,7 @@ export {
   BindingBehaviorFactory,
   BindingBehaviorStrategy,
   IInterceptableBinding,
-} from './binding-behavior.js';
+} from './binding-behavior';
 
 export {
   ValueConverter,
@@ -191,7 +191,7 @@ export {
   ValueConverterInstance,
   ValueConverterType,
   valueConverter,
-} from './value-converter.js';
+} from './value-converter';
 
 export {
   BindingMode,
@@ -226,4 +226,4 @@ export {
   copyIndexMap,
   cloneIndexMap,
   createIndexMap,
-} from './observation.js';
+} from './observation';

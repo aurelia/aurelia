@@ -7,6 +7,7 @@ import {
   fromAnnotationOrTypeOrDefault,
   fromAnnotationOrDefinitionOrTypeOrDefault,
   emptyArray,
+  ILogger,
 } from '@aurelia/kernel';
 import { registerAliases } from '@aurelia/runtime';
 import { Bindable } from '../bindable.js';
@@ -592,7 +593,7 @@ export const CustomElement = Object.freeze<CustomElementKind>({
 });
 
 type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
-type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
+type ProcessContentHook = (node: INode, platform: IPlatform, logger: ILogger, bindableMap: Map<string, unknown>) => boolean | void;
 
 const pcHookMetadataProperty = getAnnotationKeyFor('processContent');
 export function processContent(hook: ProcessContentHook): CustomElementDecorator;

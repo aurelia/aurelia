@@ -49,6 +49,7 @@ describe('3-runtime-html/template-compiler.convention.spec.ts \n\thtml conventio
         { name: '', template, surrogates: [], instructions: [] },
         ctx.container,
         null,
+        null,
       );
 
       const expectedElInstructions: IExpectedInstruction[] = [
@@ -96,6 +97,7 @@ describe('3-runtime-html/template-compiler.convention.spec.ts \n\thtml conventio
       const { instructions: rootInstructions } = compiler.compile(
         { name: '', template, surrogates: [], instructions: [] },
         ctx.container,
+        null,
         null,
       );
 

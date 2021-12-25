@@ -1,5 +1,5 @@
 import { DI, IContainer } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
+import { Scope } from '@aurelia/runtime';
 
 import { FragmentNodeSequence, INode, INodeSequence } from '../dom.js';
 import { IPlatform } from '../platform.js';
@@ -45,13 +45,14 @@ export class Rendering {
     definition: PartialCustomElementDefinition,
     container: IContainer,
     compilationInstruction: ICompliationInstruction | null,
+    scope: Scope | null,
   ): CustomElementDefinition {
     if (definition.needsCompile !== false) {
       const compiledMap = this._compilationCache;
       const compiler = container.get(ITemplateCompiler);
       let compiled = compiledMap.get(definition);
       if (compiled == null) {
-        compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction));
+        compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction, scope));
       } else {
         // todo:
         // should only register if the compiled def resolution is string

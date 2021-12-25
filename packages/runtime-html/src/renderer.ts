@@ -325,6 +325,7 @@ export interface ITemplateCompiler {
     partialDefinition: PartialCustomElementDefinition,
     context: IContainer,
     compilationInstruction: ICompliationInstruction | null,
+    scope: Scope | null,
   ): CustomElementDefinition;
 
   /**

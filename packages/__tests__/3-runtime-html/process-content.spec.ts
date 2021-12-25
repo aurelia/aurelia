@@ -1,5 +1,5 @@
 /* eslint-disable no-template-curly-in-string */
-import { IContainer, noop, toArray } from '@aurelia/kernel';
+import { IContainer, ILogger, noop, toArray } from '@aurelia/kernel';
 import { Aurelia, bindable, BindingMode, CustomElement, customElement, INode, IPlatform, LifecycleFlags, processContent } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext as $TestExecutionContext, TestFunction } from '../util.js';
@@ -638,6 +638,87 @@ describe('processContent', function () {
           <tab header="Tab3"> Nothing to see here. </tab>
         </tabs>
         `,
+      });
+  }
+
+  // complex bindables
+  {
+    interface IFoo {
+      fizz: string | null;
+      hasBuzz: boolean;
+    }
+    class Bar {
+
+      public constructor(
+        public ct: string,
+        public cr: string,
+      ) { }
+
+      public toString() {
+        return `${this.ct}:${this.cr}`;
+      }
+    }
+    @customElement({
+      name: 'my-el',
+      isStrictBinding: true,
+      template: 'irrelevant'
+    })
+    class MyEl {
+      @bindable public foos: IFoo[];
+      @bindable public bar: Bar;
+      public static processContent(content: HTMLElement, platform: IPlatform, logger: ILogger, bindableMap: Map<string, unknown>) {
+        const children = content.querySelectorAll('foo-bar');
+        const len = children.length;
+
+        const foos: IFoo[] = new Array<IFoo>(len);
+        for (let i = 0; i < len; i++) {
+          const child = children[i];
+          foos[i] = {
+            fizz: child.getAttribute('fizz'),
+            hasBuzz: child.hasAttribute('buzz'),
+          };
+          child.remove();
+        }
+        bindableMap.set('foos.bind', foos);
+
+        const ct = content.getAttribute('ct');
+        if (ct !== null) {
+          content.removeAttribute('ct');
+        }
+        const cr = content.getAttribute('cr');
+        if (cr !== null) {
+          content.removeAttribute('cr');
+        }
+        bindableMap.set('bar.bind', new Bar(ct, cr));
+      }
+    }
+    $it('semi-real-life example with tabs',
+      async function (ctx) {
+        const host = ctx.host;
+        const el = host.querySelector('my-el');
+        const elVm = CustomElement.for<MyEl>(el).viewModel;
+        assert.deepStrictEqual(
+          elVm.foos,
+          [
+            { fizz: 'ab', hasBuzz: true },
+            { fizz: 'cd', hasBuzz: false },
+            { fizz: 'ef', hasBuzz: true },
+          ]
+        );
+        assert.deepStrictEqual(
+          elVm.bar.toString(),
+          'rd:person'
+        );
+      },
+      {
+        registrations: [MyEl],
+        template: `
+      <my-el ct="rd" cr="person">
+        <foo-bar fizz="ab" buzz></foo-bar>
+        <foo-bar fizz="cd"></foo-bar>
+        <foo-bar fizz="ef" buzz></foo-bar>
+      </my-el>
+      `,
       });
   }
 });

@@ -1,5 +1,5 @@
 import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop } from '@aurelia/kernel';
-import { BindingMode, ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { BindingMode, ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression, Scope } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
 import {
@@ -53,6 +53,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     partialDefinition: PartialCustomElementDefinition,
     container: IContainer,
     compilationInstruction: ICompliationInstruction | null,
+    scope: Scope | null,
   ): CustomElementDefinition {
     const definition = CustomElementDefinition.getOrCreate(partialDefinition);
     if (definition.template === null || definition.template === void 0) {
@@ -63,7 +64,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
     compilationInstruction ??= emptyCompilationInstructions;
 
-    const context = new CompilationContext(partialDefinition, container, compilationInstruction, null, null, void 0);
+    const context = new CompilationContext(partialDefinition, container, compilationInstruction, null, null, void 0, scope);
     const template = isString(definition.template) || !partialDefinition.enhance
       ? context._templateFactory.createTemplate(definition.template)
       : definition.template as HTMLElement;
@@ -108,7 +109,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     container: IContainer,
     el: Element,
   ): IInstruction[] {
-    const context = new CompilationContext(definition, container, emptyCompilationInstructions, null, null, void 0);
+    const context = new CompilationContext(definition, container, emptyCompilationInstructions, null, null, void 0, null);
     const instructions: IInstruction[] = [];
     const elDef = context._findElement(el.nodeName.toLowerCase());
     const exprParser = context._exprParser;
@@ -667,7 +668,21 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (elDef !== null) {
       // todo: this is a bit ... powerful
       // maybe do not allow it to process its own attributes
-      processContentResult = elDef.processContent?.call(elDef.Type, el, context.p);
+      const bindableMap= new Map<string, unknown>();
+      processContentResult = elDef.processContent?.call(elDef.Type, el, context.p, context._logger, bindableMap);
+      if(bindableMap.size > 0) {
+        const scope = context._scope;
+        if(scope === null) {
+          throw new Error(__DEV__
+            ? 'Expected a non-null scope. This is an internal error; reach the Aurelia core team by creating a GitHub issue (if not already present) or via Discord.'
+            : 'AUR0717');
+        }
+        for(const [bindableName, bindableValue] of bindableMap) {
+          const propName = SyntheticPropertyName.generate();
+          el.setAttribute(bindableName, propName);
+          scope.overrideContext[propName] = bindableValue;
+        }
+      }
       // might have changed during the process
       attrs = el.attributes;
       ii = attrs.length;
@@ -1593,6 +1608,7 @@ class CompilationContext {
   public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
   public deps: unknown[] | undefined;
+  public readonly _scope: Scope | null;
 
   /** @internal */
   private readonly c: IContainer;
@@ -1604,6 +1620,7 @@ class CompilationContext {
     parent: CompilationContext | null,
     root: CompilationContext | null,
     instructions: IInstruction[][] | undefined,
+    scope: Scope | null,
   ) {
     const hasParent = parent !== null;
     this.c = container;
@@ -1620,6 +1637,7 @@ class CompilationContext {
     this.p = hasParent ? parent!.p : container.get(IPlatform);
     this.localEls = hasParent ? parent!.localEls : new Set();
     this.rows = instructions ?? [];
+    this._scope = scope;
   }
 
   public _addDep(dep: unknown) {
@@ -1655,7 +1673,7 @@ class CompilationContext {
    * Create a new child compilation context
    */
   public _createChild(instructions?: IInstruction[][]) {
-    return new CompilationContext(this.def, this.c, this.ci, this, this.root, instructions);
+    return new CompilationContext(this.def, this.c, this.ci, this, this.root, instructions, null);
   }
 
   // todo: ideally binding command shouldn't have to be cached
@@ -1906,3 +1924,11 @@ export const templateCompilerHooks = (target?: Function) => {
 /* eslint-enable */
 
 const _generateElementName = CustomElement.generateName;
+
+const SyntheticPropertyName = {
+  base: '$synthProp',
+  id: 1,
+  generate() {
+    return `${this.base}${this.id++}`;
+  }
+};

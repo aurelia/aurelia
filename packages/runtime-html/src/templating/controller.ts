@@ -388,7 +388,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       (this.viewModel as BindingContext<C>).hydrating(this as ICustomElementController);
     }
 
-    const compiledDef = this._compiledDef = this._rendering.compile(this.definition as CustomElementDefinition, this.container, hydrationInst);
+    const compiledDef = this._compiledDef = this._rendering.compile(this.definition as CustomElementDefinition, this.container, hydrationInst, this.scope!);
     const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledDef;
 
     this.isStrictBinding = isStrictBinding;
@@ -462,7 +462,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   private _hydrateSynthetic(): void {
-    this._compiledDef = this._rendering.compile(this.viewFactory!.def!, this.container, null);
+    this._compiledDef = this._rendering.compile(this.viewFactory!.def!, this.container, null, null);
     this.isStrictBinding = this._compiledDef.isStrictBinding;
     this._rendering.render(
       /* controller */this as ISyntheticView,

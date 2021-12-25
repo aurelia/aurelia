@@ -57,6 +57,7 @@ The section below will list errors by their prefix, and code and give correspond
 | AUR0714 | This happens when a custom element or attribute definition has more than 1 primary bindable property |
 | AUR0715 | This happens when an `as-local-template` template has the value of `as-local-template` as an empty string |
 | AUR0716 | This happens when a custom element has 2 or more local elements with the same name |
+| AUR0717 | This happens when the `processContent` hook of a custom element registers bindables, but there is no scope found to register the values. This is an internal error and should not occur on users' end. If you are facing this error, please open a GH issue (if one is not present) or reach the core team via Discord. |
 
 ### Templating Errors \(From 750-800\)
 

@@ -695,10 +695,10 @@ The signature of the hook function is as follows.
 
 ```typescript
 // pseudo-code; `typeof TCustomElement` doesn't work in Generics form.
-<TCustomElement>(this: typeof TCustomElement, node: INode, platform: IPlatform) => boolean | void;
+<TCustomElement>(this: typeof TCustomElement, node: INode, platform: IPlatform, logger: ILogger, bindableMap: Map<string, unknown>) => boolean | void;
 ```
 
-There are two important things to note here.
+There are couple of things to note here.
 
 First is the `node` argument. It is the DOM tree on the usage-side for the custom element. For example, if there is a custom element named `my-element`, on which a 'processContent' hook is defined, and it is used somewhere as shown in the following markup, then when the hook is invoked, the `node` argument will provide the DOM tree that represents the following markup.
 
@@ -709,9 +709,11 @@ First is the `node` argument. It is the DOM tree on the usage-side for the custo
 </my-element>
 ```
 
-Then inside the hook this DOM tree can be transformed/mutated into a different DOM tree. The mutation can be addition/removal of attributes or element nodes.
+Then inside the hook, this DOM tree can be transformed/mutated into a different DOM tree. The mutation can be addition/removal of attributes or element nodes.
 
-Second is the return type `boolean | void`. Returning from this function is optional. Only an explicit `false` return value results in skipping the compilation \(and thereby enhancing\) of the child nodes in the DOM tree. The implication of skipping the compilation of the child nodes is that Aurelia will not touch those DOM fragments and will be kept as it is. In other words, if the mutated node contains custom elements, custom attributes, or template controllers, those will not be hydrated.
+Second is the `bindableMap` of type `Map<string, unknown>`. This can be used to register any bindable attribute. This is especially useful for the binding complex values to the bindable properties.
+
+Third is the return type `boolean | void`. Returning from this function is optional. Only an explicit `false` return value results in skipping the compilation \(and thereby enhancing\) of the child nodes in the DOM tree. The implication of skipping the compilation of the child nodes is that Aurelia will not touch those DOM fragments and will be kept as it is. In other words, if the mutated node contains custom elements, custom attributes, or template controllers, those will not be hydrated.
 
 The `platform` argument is just the helper to have platform-agnostic operations as it abstracts the platform. Lastly the `this` argument signifies that the hook function always gets bound to the custom element class function for which the hook is defined.
 
@@ -721,20 +723,20 @@ The most straight forward way to define the hook is to use the `processContent` 
 import { customElement, INode, IPlatform } from '@aurelia/runtime-html';
 
 // Use a standalone function
-function processContent(node: INode, platform: IPlatform) { }
+function processContent(node: INode, platform: IPlatform, logger: ILogger, bindableMap: Map<string, unknown>) { }
 @customElement({ name: 'my-element', processContent })
 export class MyElement { }
 
 // ... or use a static method explicitly
 @customElement({ name: 'my-element', processContent: MyElement.processContent })
 export class MyElement {
-  static processContent(node: INode, platform: IPlatform) { }
+  static processContent(node: INode, platform: IPlatform, logger: ILogger, bindableMap: Map<string, unknown>) { }
 }
 
 // ... or use a static method named 'processContent' (convention)
 @customElement({ name: 'my-element' })
 export class MyElement {
-  static processContent(node: INode, platform: IPlatform) { }
+  static processContent(node: INode, platform: IPlatform, logger: ILogger, bindableMap: Map<string, unknown>) { }
 }
 ```
 
@@ -746,11 +748,11 @@ import { customElement, INode, IPlatform, processContent } from '@aurelia/runtim
 // Reference a static method
 @processContent(MyElement.processContent)
 export class MyElement {
-  static processContent(node: INode, platform: IPlatform) { }
+  static processContent(node: INode, platform: IPlatform, logger: ILogger, bindableMap: Map<string, unknown>) { }
 }
 
 // ...or a standalone method
-function processContent(this: typeof MyElement, node: INode, platform: IPlatform) { }
+function processContent(this: typeof MyElement, node: INode, platform: IPlatform, logger: ILogger, bindableMap: Map<string, unknown>) { }
 @processContent(processContent)
 export class MyElement {
 }
@@ -758,7 +760,7 @@ export class MyElement {
 // ...or the method-level decorator
 export class MyElement {
   @processContent()
-  static processContent(node: INode, platform: IPlatform) { }
+  static processContent(node: INode, platform: IPlatform, logger: ILogger, bindableMap: Map<string, unknown>) { }
 }
 ```
 
@@ -799,12 +801,13 @@ Now note that there is no custom element named `tab`. The idea is to keep the us
 
 ```typescript
 // tabs.ts
+import { ILogger } from '@aurelia/kernel';
 import { INode, IPlatform, processContent } from '@aurelia/runtime-html';
 
 @processContent(Tabs.processTabs)
 class Tabs {
 
-  public static processTabs(node: INode, p: IPlatform): boolean {
+  public static processTabs(node: INode, p: IPlatform, logger: ILogger, bindableMap: Map<string, unknown>): boolean {
     const el = node as Element;
 
     // At first we prepare two templates that will provide the projections to the `header` and `content` slot respectively.
@@ -821,29 +824,29 @@ class Tabs {
       // Add header.
       const header = p.document.createElement('button');
       // Add a class binding to mark the active tab.
-      header.setAttribute('class.bind', `activeTabId=='${i}'?'active':''`);
+      header.setAttribute('class.bind', `activeTabId==${i}?'active':''`);
       // Add a click delegate to activate a tab.
-      header.setAttribute('click.delegate', `showTab('${i}')`);
+      header.setAttribute('click.delegate', `showTab(${i})`);
       header.appendChild(p.document.createTextNode(tab.getAttribute('header')));
       headerTemplate.content.appendChild(header);
 
       // Add content.
       const content = p.document.createElement('div');
       // Show the content if the tab is activated.
-      content.setAttribute('if.bind', `activeTabId=='${i}'`);
+      content.setAttribute('if.bind', `activeTabId==${i}`);
       content.append(...toArray(tab.childNodes));
       contentTemplate.content.appendChild(content);
 
       el.removeChild(tab);
     }
     // Set the first tab as the initial active tab.
-    el.setAttribute('active-tab-id', '0');
+    bindableMap.set('active-tab-id.bind', 0);
 
     el.append(headerTemplate, contentTemplate);
   }
 
-  @bindable public activeTabId: string;
-  public showTab(tabId: string) {
+  @bindable public activeTabId: number;
+  public showTab(tabId: number) {
     this.activeTabId = tabId;
   }
 }
@@ -854,7 +857,7 @@ class Tabs {
 If you have used [`au-slot`](components-revisited.md#au-slot), you might have noticed that in order to provide a projection the usage of `[au-slot]` attribute is mandatory, even if the projections are targeted to the default `au-slot`. With the help of the 'processContent' hook we can workaround this minor inconvenience. The following is a sample transformation function that loops over the direct children under `node` and demotes the nodes without any `[au-slot]` attribute to a synthetic `template[au-slot]` node.
 
 ```typescript
-processContent(node: INode, p: IPlatform) {
+processContent(node: INode, p: IPlatform, logger: ILogger, bindableMap: Map<string, unknown>) {
   const projection = p.document.createElement('template');
   projection.setAttribute('au-slot', '');
   const content = projection.content;

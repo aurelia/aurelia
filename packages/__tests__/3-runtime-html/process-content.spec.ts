@@ -692,7 +692,7 @@ describe('processContent', function () {
         bindableMap.set('bar.bind', new Bar(ct, cr));
       }
     }
-    $it('semi-real-life example with tabs',
+    $it('non-primitive typed bindables',
       async function (ctx) {
         const host = ctx.host;
         const el = host.querySelector('my-el');

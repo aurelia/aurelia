@@ -40,11 +40,11 @@ You can also bind values without the `.bind` part, as can be seen the following 
 <loader loading="true"></loader>
 ```
 
-However, there is a subtle difference. In this case, Aurelia consider the attribute value as a string. Thus, instead of a boolean `true` value the string `'true'` gets bound to the `loading` property. This might cause some unexpected issues. However, you can apply coercion using a [bindable setter](bindable-setter.md) or [defining the bindable datatype explicitly](bindable-coercion.md).
+However, there is a subtle difference. In this case, Aurelia considers the attribute value as a string. Thus, instead of a boolean `true` value the string `'true'` gets bound to the `loading` property. This might cause some unexpected issues. However, you can apply coercion using a [bindable setter](bindable-setter.md) or [defining the bindable datatype explicitly](bindable-coercion.md).
 
 ## Attribute naming
 
-As can be seen in the examples above, the `@bindable`s defined inside a custom element can be used a HTML attribute while using the custom element. For example, the `@bindable loading` property is used as the attribute `loading.bind` in the view.
+As can be seen in the examples above, the `@bindable`s defined inside a custom element can be used as an HTML attribute while using the custom element. For example, the `@bindable loading` property is used as the attribute `loading.bind` in the view.
 
 By convention the property name is converted to kebab-case and used as the attribute name. For example, a bindable property named `fooBar` will be converted to `foo-bar` attribute.
 

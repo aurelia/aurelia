@@ -698,7 +698,7 @@ The signature of the hook function is as follows.
 <TCustomElement>(this: typeof TCustomElement, node: INode, platform: IPlatform, logger: ILogger, bindableMap: Map<string, unknown>) => boolean | void;
 ```
 
-There are couple of things to note here.
+There are a couple of things to note here.
 
 First is the `node` argument. It is the DOM tree on the usage-side for the custom element. For example, if there is a custom element named `my-element`, on which a 'processContent' hook is defined, and it is used somewhere as shown in the following markup, then when the hook is invoked, the `node` argument will provide the DOM tree that represents the following markup.
 

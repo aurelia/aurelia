@@ -388,7 +388,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       (this.viewModel as BindingContext<C>).hydrating(this as ICustomElementController);
     }
 
-    const compiledDef = this._compiledDef = this._rendering.compile(this.definition as CustomElementDefinition, this.container, hydrationInst, this.scope!);
+    const bindableMap = new Map<string, unknown>();
+    const compiledDef = this._compiledDef = this._rendering.compile(this.definition as CustomElementDefinition, this.container, hydrationInst, bindableMap);
+    if(bindableMap.size > 0){
+      const scope = this.scope!;
+      for(const [propName, value] of bindableMap) {
+        scope.overrideContext[propName] = value;
+      }
+    }
     const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledDef;
 
     this.isStrictBinding = isStrictBinding;

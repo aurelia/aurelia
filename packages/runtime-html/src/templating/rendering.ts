@@ -45,14 +45,14 @@ export class Rendering {
     definition: PartialCustomElementDefinition,
     container: IContainer,
     compilationInstruction: ICompliationInstruction | null,
-    scope: Scope | null,
+    bindableMap: Map<string, unknown> | null,
   ): CustomElementDefinition {
     if (definition.needsCompile !== false) {
       const compiledMap = this._compilationCache;
       const compiler = container.get(ITemplateCompiler);
       let compiled = compiledMap.get(definition);
       if (compiled == null) {
-        compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction, scope));
+        compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction, bindableMap));
       } else {
         // todo:
         // should only register if the compiled def resolution is string

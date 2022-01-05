@@ -53,7 +53,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     partialDefinition: PartialCustomElementDefinition,
     container: IContainer,
     compilationInstruction: ICompliationInstruction | null,
-    scope: Scope | null,
+    bindableMap: Map<string, unknown>,
   ): CustomElementDefinition {
     const definition = CustomElementDefinition.getOrCreate(partialDefinition);
     if (definition.template === null || definition.template === void 0) {
@@ -64,7 +64,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
     compilationInstruction ??= emptyCompilationInstructions;
 
-    const context = new CompilationContext(partialDefinition, container, compilationInstruction, null, null, void 0, scope);
+    const context = new CompilationContext(partialDefinition, container, compilationInstruction, null, null, void 0, bindableMap);
     const template = isString(definition.template) || !partialDefinition.enhance
       ? context._templateFactory.createTemplate(definition.template)
       : definition.template as HTMLElement;
@@ -668,19 +668,19 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (elDef !== null) {
       // todo: this is a bit ... powerful
       // maybe do not allow it to process its own attributes
-      const bindableMap= new Map<string, unknown>();
+      const bindableMap = new Map<string, unknown>();
       processContentResult = elDef.processContent?.call(elDef.Type, el, context.p, context._logger, bindableMap);
-      if(bindableMap.size > 0) {
-        const scope = context._scope;
-        if(scope === null) {
+      if (bindableMap.size > 0) {
+        const $bindableMap = context._bindableMap;
+        if ($bindableMap === null) {
           throw new Error(__DEV__
-            ? 'Expected a non-null scope. This is an internal error; reach the Aurelia core team by creating a GitHub issue (if not already present) or via Discord.'
+            ? 'Expected a non-null bindableMap. This is an internal error; reach the Aurelia core team by creating a GitHub issue (if not already present) or via Discord.'
             : 'AUR0717');
         }
-        for(const [bindableName, bindableValue] of bindableMap) {
+        for (const [bindableName, bindableValue] of bindableMap) {
           const propName = SyntheticPropertyName.generate();
           el.setAttribute(bindableName, propName);
-          scope.overrideContext[propName] = bindableValue;
+          $bindableMap.set(propName, bindableValue);
         }
       }
       // might have changed during the process
@@ -1608,7 +1608,7 @@ class CompilationContext {
   public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
   public deps: unknown[] | undefined;
-  public readonly _scope: Scope | null;
+  public readonly _bindableMap: Map<string, unknown> | null;
 
   /** @internal */
   private readonly c: IContainer;
@@ -1620,7 +1620,7 @@ class CompilationContext {
     parent: CompilationContext | null,
     root: CompilationContext | null,
     instructions: IInstruction[][] | undefined,
-    scope: Scope | null,
+    bindableMap: Map<string, unknown> | null,
   ) {
     const hasParent = parent !== null;
     this.c = container;
@@ -1637,7 +1637,7 @@ class CompilationContext {
     this.p = hasParent ? parent!.p : container.get(IPlatform);
     this.localEls = hasParent ? parent!.localEls : new Set();
     this.rows = instructions ?? [];
-    this._scope = scope;
+    this._bindableMap = bindableMap;
   }
 
   public _addDep(dep: unknown) {

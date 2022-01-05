@@ -1,5 +1,5 @@
 import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop } from '@aurelia/kernel';
-import { BindingMode, ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression, Scope } from '@aurelia/runtime';
+import { BindingMode, ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
 import {

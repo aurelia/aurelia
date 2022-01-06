@@ -51,5 +51,8 @@ If you want more control over your components or you are a plugin author, you mi
 
 {% page-ref page="using-customelement-decorator.md" %}
 
+## Register your Custom Element
 
+To enable the custom markup to be available within your template or globally you must register your element.
 
+{% page-ref page="consuming-a-custom-element.md" %}

@@ -147,17 +147,23 @@ export function customElement(nameOrDef: string | PartialCustomElementDefinition
 type ShadowOptions = Pick<PartialCustomElementDefinition, 'shadowOptions'>['shadowOptions'];
 
 /**
- * Decorator: Indicates that the custom element should render its view in ShadowDOM.
+ * Decorator: Indicates whether and how the custom element should render its view in ShadowDOM.
  */
 export function useShadowDOM(options?: ShadowOptions): (target: Constructable) => void;
 /**
- * Decorator: Indicates that the custom element should render its view in ShadowDOM.
+ * Decorator: Indicates whether and how the custom element should render its view in ShadowDOM.
  */
 export function useShadowDOM(target: Constructable): void;
-export function useShadowDOM(targetOrOptions?: Constructable | ShadowOptions): void | ((target: Constructable) => void) {
+export function useShadowDOM(targetOrOptions?: Constructable | ShadowOptions | false): void | ((target: Constructable) => void) {
   if (targetOrOptions === void 0) {
     return function ($target: Constructable) {
       annotateElementMetadata($target, 'shadowOptions', { mode: 'open' });
+    };
+  }
+
+  if (targetOrOptions === false) {
+    return function ($target: Constructable) {
+      annotateElementMetadata($target, 'shadowOptions', null);
     };
   }
 

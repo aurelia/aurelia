@@ -95,7 +95,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
             rejected?.deactivate(initiator, flags),
             pending?.activate(initiator, flags, s)
           );
-        }, defaultQueuingOptions)).result,
+        }, defaultQueuingOptions)).result.catch((err) => { if (!(err instanceof TaskAbortError)) throw err; }),
         value
           .then(
             (data) => {
@@ -113,11 +113,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
               if (this.preSettledTask!.status === TaskStatus.running) {
                 void preSettlePromise.then(fulfill);
               } else {
-                try {
-                  this.preSettledTask!.cancel();
-                } catch (err) {
-                  if (!(err instanceof TaskAbortError)) throw err;
-                }
+                this.preSettledTask!.cancel();
                 fulfill();
               }
             },
@@ -136,11 +132,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
               if (this.preSettledTask!.status === TaskStatus.running) {
                 void preSettlePromise.then(reject);
               } else {
-                try {
-                  this.preSettledTask!.cancel();
-                } catch (err) {
-                  if (!(err instanceof TaskAbortError)) throw err;
-                }
+                this.preSettledTask!.cancel();
                 reject();
               }
             },

@@ -1,4 +1,4 @@
-import { ILogger, nextId, onResolve, resolveAll, Task, TaskStatus } from '@aurelia/kernel';
+import { ILogger, nextId, onResolve, resolveAll, Task, TaskAbortError, TaskStatus } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable.js';
 import { INode, IRenderLocation } from '../../dom.js';
@@ -113,7 +113,11 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
               if (this.preSettledTask!.status === TaskStatus.running) {
                 void preSettlePromise.then(fulfill);
               } else {
-                this.preSettledTask!.cancel();
+                try {
+                  this.preSettledTask!.cancel();
+                } catch (err) {
+                  if (!(err instanceof TaskAbortError)) throw err;
+                }
                 fulfill();
               }
             },
@@ -132,7 +136,11 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
               if (this.preSettledTask!.status === TaskStatus.running) {
                 void preSettlePromise.then(reject);
               } else {
-                this.preSettledTask!.cancel();
+                try {
+                  this.preSettledTask!.cancel();
+                } catch (err) {
+                  if (!(err instanceof TaskAbortError)) throw err;
+                }
                 reject();
               }
             },

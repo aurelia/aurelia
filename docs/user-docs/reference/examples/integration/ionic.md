@@ -2,11 +2,13 @@
 
 If the example doesn't seem obvious, the following prerequisite reads are recommended:
 
-{% page-ref page="../../../developer-guides/extending-templating-syntax.md" %}
+{% content-ref url="../../../developer-guides/scenarios/extending-templating-syntax.md" %}
+[extending-templating-syntax.md](../../../developer-guides/scenarios/extending-templating-syntax.md)
+{% endcontent-ref %}
 
-* [extending templating syntax](../../../developer-guides/extending-templating-syntax.md)
+* [extending templating syntax](../../../developer-guides/scenarios/extending-templating-syntax.md)
 
-The following is a code example of how to teach Aurelia to work seamlessly with [Ionic Framework](https://ionicframework.com/):
+The following is a code example of how to teach Aurelia to work seamlessly with [Ionic Framework](https://ionicframework.com):
 
 ```typescript
 export class IonicFramework implements IRegistry {
@@ -64,4 +66,3 @@ Aurelia.register(IonicFramework, StandardConfiguration);
 ```
 
 Ordering **matters** when registering conventionally. Please look at the [FAST Integration](ms-fast.md) for a more verbose way where order does not matter.
-

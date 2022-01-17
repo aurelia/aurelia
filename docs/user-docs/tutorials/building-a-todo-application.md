@@ -27,7 +27,7 @@ See what you are getting yourself into before you continue. There is a working e
 
 Before going any further, you should be familiar with some basic Aurelia concepts and some fundamental Javascript ones. While **these are not hard prerequisites**, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
-* You have familiarized yourself with the [Aurelia template syntax](../getting-to-know-aurelia/introduction/).
+* You have familiarized yourself with the [Aurelia template syntax](broken-reference).
 * You have familiarized yourself with [components in Aurelia](../getting-to-know-aurelia/components/).
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 
@@ -136,7 +136,7 @@ export class TodoComponent {
   * If it is, we `unshift` our todo into the `todos` array
   * We then reset the `todo` property
 * **Line 21:** Aurelia will prevent all events by default when you bind to them, so we need to return true outside of our if statement or typing will break in our input field
-* **Line 24: **`deleteTodo` will remove a todo from our `todos` array and is passed an index
+* **Line 24:** `deleteTodo` will remove a todo from our `todos` array and is passed an index
   * We call Array.splice on the `todos` array and tell it we want to delete one item
 
 Believe it or not, this entire view model code forms the basis of adding and deleting todos. If we didn't have example todos in there, the code would be so much smaller.
@@ -163,9 +163,9 @@ The view is the most simple part of our application. Inside of `todo-component.h
 </div>
 ```
 
-* **Line 1: **importing an as of yet nonexistent todo-item component
-* **Line 8: **we define a text input field and bind its value to `todo` and also a `keypress.trigger` to listen to keyboard events (we want to know when the user hits enter)
-* **Line 12: **using a repeater, we are looping over the todos in our view model and binding them onto the `todo-item` element
+* **Line 1:** importing an as of yet nonexistent todo-item component
+* **Line 8:** we define a text input field and bind its value to `todo` and also a `keypress.trigger` to listen to keyboard events (we want to know when the user hits enter)
+* **Line 12:** using a repeater, we are looping over the todos in our view model and binding them onto the `todo-item` element
   * `todo.bind="todo"` we have a bindable property defined on the `todo-item` element called todo
   * `index.bind="$index"` another bindable property defined in the `todo-item` element, we pass in the current loop index denoted by its special simple prefix `$index`
   * `delete-todo.call="deleteTodo($index)"` this is a callback function that will call `deleteTodo` when a todo is deleted from inside of the `todo-item`
@@ -241,11 +241,11 @@ For this component, we are going to be creating a HTML only component. It means 
 </div>
 ```
 
-* **Line 1,2 & 3: **the bindable attribute allows us to specify bindable properties for our custom element. This allows us to bind to these values and read them inside of our view. The `deleteTogo` bindable is interesting because that is a bindable for a function that gets passed in.
-* **Line 5: **we use the `.class` binding to add a class to our element of `completed` if the `todo.completed` property is true or remove it if it's false.
-* **Line 6: **we bind the native checkbox `checked` event to the `completed` property which sets it to true or false
-* **Line 7: **we are making our paragraph element a `contenteditable` element which allows it to be edited (it doesn't save, but we can temporarily edit our text). We also display the text value using our interpolation `${}`
-* **Line 8: **lastly, we have a `click.trigger` to call our passed in `deleteTodo` bindable function callback when clicked
+* **Line 1,2 & 3:** the bindable attribute allows us to specify bindable properties for our custom element. This allows us to bind to these values and read them inside of our view. The `deleteTogo` bindable is interesting because that is a bindable for a function that gets passed in.
+* **Line 5:** we use the `.class` binding to add a class to our element of `completed` if the `todo.completed` property is true or remove it if it's false.
+* **Line 6:** we bind the native checkbox `checked` event to the `completed` property which sets it to true or false
+* **Line 7:** we are making our paragraph element a `contenteditable` element which allows it to be edited (it doesn't save, but we can temporarily edit our text). We also display the text value using our interpolation `${}`
+* **Line 8:** lastly, we have a `click.trigger` to call our passed in `deleteTodo` bindable function callback when clicked
 
 ## Styling for our todo item component
 

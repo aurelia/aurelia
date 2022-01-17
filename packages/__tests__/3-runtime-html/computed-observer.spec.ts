@@ -1,4 +1,4 @@
-import { ComputedObserver } from '@aurelia/runtime';
+import { ComputedObserver, ConnectableSwitcher } from '@aurelia/runtime';
 import {
   IObserverLocator,
   CustomElement,
@@ -19,11 +19,11 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
     title: string;
     template: string;
     ViewModel?: Constructable<T>;
-    assertFn: AssertionFn;
+    assertFn: AssertionFn<T>;
     only?: boolean;
   }
 
-  interface AssertionFn<T extends IApp = IApp> {
+  interface AssertionFn<T extends IApp> {
     // eslint-disable-next-line @typescript-eslint/prefer-function-type
     (ctx: TestContext, testHost: HTMLElement, component: T): void | Promise<void>;
   }
@@ -40,7 +40,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
     isDone?: boolean;
   }
 
-  const computedObserverTestCases: IComputedObserverTestCase[] = [
+  const computedObserverTestCases: IComputedObserverTestCase<IApp>[] = [
     {
       title: 'works in basic scenario',
       template: `\${total}`,
@@ -366,7 +366,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
             return this.instrinsic.someProp;
           }
         },
-        assertFn: (ctx, host, component: IApp & { instrinsic: any; someProp: any }) => {
+        assertFn: (ctx, host, component: IApp & { instrinsic?: any; someProp?: any }) => {
           assert.strictEqual(host.textContent, 'no value');
 
           component.instrinsic.someProp = 'value';
@@ -403,7 +403,56 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
     },
   );
 
-  async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+  it('works with two layers of getter', async function () {
+    const { appHost, tearDown } = await createFixture(
+      '${msg}',
+      class MyApp {
+        public get one() {
+          return 'One';
+        }
+        public get onetwo() { 
+          return this.one + ' two';
+        }
+        
+        public get msg(): string {
+          return this.onetwo;
+        }
+      }
+    );
+
+    assert.html.textContent(appHost, 'One two');
+
+    tearDown();
+  });
+
+  it('observers property in 2nd layer getter', async function () {
+    const { ctx, component, appHost, tearDown } = await createFixture(
+      '${msg}',
+      class MyApp {
+        message = 'One';
+        public get one() {
+          return this.message;
+        }
+        public get onetwo() { 
+          return this.one + ' two';
+        }
+        
+        public get msg(): string {
+          return this.onetwo;
+        }
+      }
+    );
+
+    assert.html.textContent(appHost, 'One two');
+
+    component.message = '1';
+    ctx.platform.domWriteQueue.flush();
+    assert.html.textContent(appHost, '1 two');
+
+    tearDown();
+  });
+
+  async function createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
     const ctx = TestContext.create();
     const { container, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations]));

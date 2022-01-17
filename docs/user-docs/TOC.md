@@ -100,7 +100,8 @@
 ## Reference
 
 * [Distributable](reference/distributable.md)
-* [Error messages](reference/error-messages.md)
+* [Error messages](reference/error-messages/README.md)
+  * [Dependency Injection errors](reference/error-messages/dependency-injection-errors.md)
 * [Examples](reference/examples/README.md)
   * [Binding & Templating](reference/examples/binding-and-templating/README.md)
     * [Looping with Repeat.for](reference/examples/binding-and-templating/looping-with-repeat.for.md)

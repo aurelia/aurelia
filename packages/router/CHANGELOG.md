@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.24"></a>
+# 2.0.0-alpha.24 (2022-01-18)
+
+**Note:** Version bump only for package @aurelia/router
+
 <a name="2.0.0-alpha.23"></a>
 # 2.0.0-alpha.23 (2021-11-22)
 

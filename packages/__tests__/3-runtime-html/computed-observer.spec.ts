@@ -1,4 +1,4 @@
-import { ComputedObserver, ConnectableSwitcher } from '@aurelia/runtime';
+import { ComputedObserver } from '@aurelia/runtime';
 import {
   IObserverLocator,
   CustomElement,
@@ -40,7 +40,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
     isDone?: boolean;
   }
 
-  const computedObserverTestCases: IComputedObserverTestCase<IApp>[] = [
+  const computedObserverTestCases: IComputedObserverTestCase[] = [
     {
       title: 'works in basic scenario',
       template: `\${total}`,
@@ -405,15 +405,15 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
 
   it('works with two layers of getter', async function () {
     const { appHost, tearDown } = await createFixture(
-      '${msg}',
+      `\${msg}`,
       class MyApp {
         public get one() {
           return 'One';
         }
-        public get onetwo() { 
-          return this.one + ' two';
+        public get onetwo() {
+          return `${this.one} two`;
         }
-        
+
         public get msg(): string {
           return this.onetwo;
         }
@@ -422,21 +422,21 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
 
     assert.html.textContent(appHost, 'One two');
 
-    tearDown();
+    await tearDown();
   });
 
   it('observers property in 2nd layer getter', async function () {
     const { ctx, component, appHost, tearDown } = await createFixture(
-      '${msg}',
+      `\${msg}`,
       class MyApp {
-        message = 'One';
+        public message = 'One';
         public get one() {
           return this.message;
         }
-        public get onetwo() { 
-          return this.one + ' two';
+        public get onetwo() {
+          return `${this.one} two`;
         }
-        
+
         public get msg(): string {
           return this.onetwo;
         }
@@ -449,7 +449,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
     ctx.platform.domWriteQueue.flush();
     assert.html.textContent(appHost, '1 two');
 
-    tearDown();
+    await tearDown();
   });
 
   async function createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {

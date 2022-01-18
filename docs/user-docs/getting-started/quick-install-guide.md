@@ -4,7 +4,29 @@ description: >-
   prerequisites.
 ---
 
-# Quick install guide
+# Quick start
+
+## Introduction
+
+Aurelia was designed to make building web applications and rich UI's easy. Living by the mantra of; Simple, Powerful and Unobtrusive, you have everything you need right out of the box to start building feature-rich web applications.
+
+This section aims to give you a brief technical overview of how Aurelia works, but it is not intended to be a tutorial or reference. If you are looking for a nice gentle introduction to Aurelia that will only take a few minutes of your time the [Hello World tutorial](quick-start-guide/) is a great place to start.
+
+## Core concepts
+
+The core concepts of Aurelia are simple; HTML, CSS and Javascript. While Aurelia does introduce its own templating language you will need to become familiar with, it is enhanced HTML, so the syntax and concepts will feel familiar to you already.
+
+### View models and views
+
+Underpinning Aurelia is the view-model and view convention. Out-of-the-box, Aurelia assumes that your components are made up of both a view model (.js or .ts file) as well as an accompanying view with a .html file extension.
+
+If you have worked with .NET or other frameworks that use similar concepts, the view-model and view paradigm will be familiar with you. The view-model contains the business logic and data, the view is responsible for displaying it.
+
+Like all concepts in Aurelia, these are default conventions and can be changed as needed.
+
+### Dependency injection
+
+Much like other fully-featured Javascript frameworks and once again, .NET, Aurelia features a robust dependency injection system that allows you to manage your in-app dependencies. You will learn about the benefits of dependency injection in other parts of the documentation, but it plays a fundamental part in Aurelia.
 
 ## Install node.js
 
@@ -18,9 +40,8 @@ Aurelia does not require you to install any global Node packages, instead of usi
 npx makes aurelia
 ```
 
-You will then be presented with the Aurelia CLI screen which will first ask for a project name, then guide you through some options. The fastest way to get started is by choosing either the ESNext or TypeScript default options \(1 and 2\).
+You will then be presented with the Aurelia CLI screen which will first ask for a project name, then guide you through some options. The fastest way to get started is by choosing either the ESNext or TypeScript default options (1 and 2).
 
 ## Run the app
 
 Once the CLI process is finished and you have installed the dependencies for your new app, run `npm start` in the project directory, a browser window will open up with the new Aurelia application you just generated running.
-

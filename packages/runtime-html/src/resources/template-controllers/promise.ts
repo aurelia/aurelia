@@ -1,4 +1,4 @@
-import { ILogger, nextId, onResolve, resolveAll, Task, TaskStatus } from '@aurelia/kernel';
+import { ILogger, nextId, onResolve, resolveAll, Task, TaskAbortError, TaskStatus } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable.js';
 import { INode, IRenderLocation } from '../../dom.js';
@@ -95,7 +95,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
             rejected?.deactivate(initiator, flags),
             pending?.activate(initiator, flags, s)
           );
-        }, defaultQueuingOptions)).result,
+        }, defaultQueuingOptions)).result.catch((err) => { if (!(err instanceof TaskAbortError)) throw err; }),
         value
           .then(
             (data) => {

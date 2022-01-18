@@ -1,4 +1,4 @@
-# Markdown Integration
+# Markdown integration
 
 One of the interesting features of Aurelia 2 is the use of different file types such as Markdown as View along with HTML. To do this, follow the steps below:
 
@@ -23,7 +23,7 @@ For this setting to work, you need to install the related package as well.
 npm i markdown-loader -D
 ```
 
-As a final step, we need to introduce the `.md` files into the TypeScript so find the `resource.d.ts` under `src` folder and **append **the following code into it.
+As a final step, we need to introduce the `.md` files into the TypeScript so find the `resource.d.ts` under `src` folder and **append** the following code into it.
 
 ```typescript
 declare module '*.md' {

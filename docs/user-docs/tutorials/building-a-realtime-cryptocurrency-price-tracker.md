@@ -28,11 +28,11 @@ A demo of the application you will be building can be found [here](https://vheis
 
 Before going any further, you should be familiar with some basic Aurelia concepts as well as some fundamental Javascript ones as well. While these are not hard prerequisites, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
-* You have familiarized yourself with the [Aurelia template syntax](../getting-to-know-aurelia/introduction/).
-* You are somewhat familiar with [component lifecycles](../getting-to-know-aurelia/components/component-lifecycles.md) \(we will be using `binding` in this tutorial\).
-* You are familiar with [Aurelia value converters](../getting-to-know-aurelia/introduction/value-converters.md) and how they can be used to transform data.
+* You have familiarized yourself with the [Aurelia template syntax](broken-reference).
+* You are somewhat familiar with [component lifecycles](../getting-to-know-aurelia/components/component-lifecycles.md) (we will be using `binding` in this tutorial).
+* You are familiar with [Aurelia value converters](../getting-to-know-aurelia/components/value-converters.md) and how they can be used to transform data.
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
-* You are familiar with `async/await` syntax. A great resource for learning can be found [here](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Async_await).
+* You are familiar with `async/await` syntax. A great resource for learning can be found [here](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Async\_await).
 
 ## Create the app
 
@@ -40,11 +40,11 @@ We will be using TypeScript & Webpack for this tutorial as well as enabling Shad
 
 For this, we will be using the Aurelia `makes` command-line tool to create a new Aurelia application and to save time, passing in the options we want.
 
-```text
+```
 npx makes aurelia crypto-prices -s dev,typescript,shadow-dom,mocha
 ```
 
-This is shorthand syntax to tell the Aurelia CLI to create a new project configured with TypeScript, Shadow DOM for style encapsulation and Mocha for unit testing \(we won't be writing tests in this tutorial\).
+This is shorthand syntax to tell the Aurelia CLI to create a new project configured with TypeScript, Shadow DOM for style encapsulation and Mocha for unit testing (we won't be writing tests in this tutorial).
 
 ## Create our configuration file
 
@@ -70,7 +70,7 @@ This is just a JSON object with an array of cryptos called `coins`. Feel free to
 
 ## Create an API service
 
-A good practice when working with API's in Aurelia is to create a service \(a singleton class\) that makes the calls to the API and returns the data. This keeps the logic separate from our view models, it also allows it to be tested and is just a good habit to get into.
+A good practice when working with API's in Aurelia is to create a service (a singleton class) that makes the calls to the API and returns the data. This keeps the logic separate from our view models, it also allows it to be tested and is just a good habit to get into.
 
 Create a new directory inside of `src` called `services` and then create a new file called `api.ts`. Now, let's inject the Aurelia Fetch Client and write a method to fetch the prices.
 
@@ -97,8 +97,8 @@ export class Api {
 Let's go over this line-by-line. Firstly, this is TypeScript and it looks/works very similar to Javascript, except it aims to provide some safety by alerting you to simple mistakes or errors before you build or deploy them.
 
 * We import the the `IHttpClient` interface which we will inject into our app on the `constructor` method. The benefit of using TypeScript is you get auto injection instead of needing to manually inject the client. The Aurelia Fetch Client wraps the native Fetch API and makes it more "Aureliafied".
-* We create a `getPrices` method which accepts an array of strings \(our cryptocurrencies\). We make this method async to make working with the promises that Fetch returns a lot cleaner then it would be chaining `.then` and `.catch` functions in our code.
-* When dealing with `async/await`, it is good practice to wrap your calls in a `try/catch` to catch any errors that might occur \(timeouts, erreonous requests, missing credentials\).
+* We create a `getPrices` method which accepts an array of strings (our cryptocurrencies). We make this method async to make working with the promises that Fetch returns a lot cleaner then it would be chaining `.then` and `.catch` functions in our code.
+* When dealing with `async/await`, it is good practice to wrap your calls in a `try/catch` to catch any errors that might occur (timeouts, erreonous requests, missing credentials).
 * We then make a request to the Coingecko API passing in our cryptocurrencies. By calling the `Array.toString()` method, it will automatically create a comma separated string of values like the API expects. You could also use `.join` to do this as well.
 * When making Fetch requests, the resulting Fetch call with allow us to get the response value, we know we are going to be getting JSON, so we return the `request.json()` call which is a promise.
 
@@ -137,7 +137,7 @@ export class MyApp {
 
 ## Displaying the data
 
-We now have our crypto prices, let's display them. Inside of `my-app.html` \(our view for the app\) we'll reference these price values.
+We now have our crypto prices, let's display them. Inside of `my-app.html` (our view for the app) we'll reference these price values.
 
 ```markup
 <div class="panels">
@@ -183,7 +183,7 @@ We poll the Coingecko API every second to update prices and store it in the `pri
 
 We have the basis of a functional web application that we can now run. Open up a Command Prompt/Terminal window and navigate to your project directory, then run the `start` command:
 
-```text
+```
 npm run start
 ```
 
@@ -193,11 +193,11 @@ This will run the Aurelia development server and a browser window/tab should ope
 
 You might have noticed our prices are being displayed, but they're not formatted. At the time of this tutorial, the price of 1 Bitcoin was $34,354.00 USD, however, it is being displayed without currency formatting as 34354.
 
-So, now we are going to create a value converter using the [Internationalization API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl) to format our currency values as properly formed values in our view.
+So, now we are going to create a value converter using the [Internationalization API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global\_Objects/Intl) to format our currency values as properly formed values in our view.
 
 Inside of `src` create a new folder called `resources` and then inside of `resources` another folder called `value-converters`. It is considered best practice to have your resources inside of a resources/components folder like this. Create a new file called `currency-value-converter.ts`.
 
-To understand what this value converter is doing, you can read about value converters [here](../getting-to-know-aurelia/introduction/value-converters.md).
+To understand what this value converter is doing, you can read about value converters [here](../getting-to-know-aurelia/components/value-converters.md).
 
 ```typescript
 import { valueConverter } from 'aurelia';
@@ -219,7 +219,7 @@ export class CurrencyValueConverter {
 }
 ```
 
-We are not going to be going into detail about the [Internationalization API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl), but it is highly recommended you read up on it as this is intended to be the standard way to work with dates, times, currencies and other types of localization data on the web.
+We are not going to be going into detail about the [Internationalization API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global\_Objects/Intl), but it is highly recommended you read up on it as this is intended to be the standard way to work with dates, times, currencies and other types of localization data on the web.
 
 ### Import and use our new value converter
 
@@ -245,7 +245,7 @@ Open up `my-app.html` again and add in the following:
 
 This looks the same as it did earlier, except we are importing our new value converter. You might also notice we are using the value converter syntax with a pipe `|` followed by `currency` which is the name of our value converter.
 
-If you still have the app running, it should automatically refresh with the new changes and you should now see properly formatted currency values \(complete with a dollar sign and thousand separators\).
+If you still have the app running, it should automatically refresh with the new changes and you should now see properly formatted currency values (complete with a dollar sign and thousand separators).
 
 ## Styling it with Bootstrap
 
@@ -284,7 +284,7 @@ Aurelia
   .start();
 ```
 
-This now injects Bootstrap styles into all of our Shadow DOM components. The only downside is the global styles targeting elements like `html` or `body` do not get carried over \(an intentional limitation of Shadow DOM\). However, you can fix this by adding the Bootstrap CSS into the header of our `index.html` if you want those. Or, you can add them in yourself. If you want them, add the Bootstrap CDN include in the header of `index.html`. You can get the most up to date style include [here](https://getbootstrap.com/docs/5.0/getting-started/introduction/).
+This now injects Bootstrap styles into all of our Shadow DOM components. The only downside is the global styles targeting elements like `html` or `body` do not get carried over (an intentional limitation of Shadow DOM). However, you can fix this by adding the Bootstrap CSS into the header of our `index.html` if you want those. Or, you can add them in yourself. If you want them, add the Bootstrap CDN include in the header of `index.html`. You can get the most up to date style include [here](https://getbootstrap.com/docs/5.0/getting-started/introduction/).
 
 ```markup
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
@@ -347,11 +347,10 @@ You just created an Aurelia application that utilized a few common concepts. All
 
 * Reactive binding using interpolation to display values
 * Aurelia's dependency injection to include a separate file that handled our API calls
-* How to transform values in your view using value converters \(taking one value and making it something else\)
+* How to transform values in your view using value converters (taking one value and making it something else)
 * How to work with Shadow DOM and specifically, what to do in the case of global style packages like Bootstrap
 * How to work with the Fetch client to make requests as well as `async/await` to work with promises in a cleaner way.
 
 {% hint style="success" %}
 A working example of this tutorial can be found [here](https://vheissu.github.io/aurelia-crypto-prices/dist/).
 {% endhint %}
-

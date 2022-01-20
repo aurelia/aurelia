@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.24"></a>
+# 2.0.0-alpha.24 (2022-01-18)
+
+### Bug Fixes:
+
+* **computed-obs:** fix typo, ensure multiple layers of getter work ([09971a2](https://github.com/aurelia/aurelia/commit/09971a2))
+* **promise:** suppressed TaskAbortError on cancellation ([b917470](https://github.com/aurelia/aurelia/commit/b917470))
+
+
+### Refactorings:
+
+* **promise:** pre-settled task result rejection ([0e5d75d](https://github.com/aurelia/aurelia/commit/0e5d75d))
+
 <a name="2.0.0-alpha.23"></a>
 # 2.0.0-alpha.23 (2021-11-22)
 

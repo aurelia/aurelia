@@ -1,58 +1,47 @@
-# Common routing tasks
+# Routing fundamentals
 
-This section details common scenarios and tasks using the router in your Aurelia applications.
+This section details common scenarios and tasks using the router in your Aurelia applications. These basic concepts allow you to set route titles, pass data between routes and do other things you might commonly do with a router.
 
-## Prerequisites
+It is highly recommended that you familiarize yourself with other parts of the router documentation before consulting this section, as we will introduce concepts that you might not be familiar with just yet that are mentioned in other sections of the router documentation.
 
-Before proceeding, this section assumes you are familiar with the following topics:
+## Setting The Title
 
-* A basic understanding of Aurelia fundamentals, specifically view and view models
-* An understanding of [routing basics](routing-syntax.md)
-* An understanding of [custom router hooks](router-hooks.md) and the `lifecyclehooks` API
-* An understanding of [router lifecycle hooks](lifecycle-hooks.md)
+While you would in many cases set the title of a route in your route configuration object using the `title` property, sometimes you want the ability to specify the title property from within the routed component itself.
 
-## Passing information between routes
-
-Quite a common scenario in routing is passing contextual information to the route, usually in the form of a slug or ID. When the route loads, you might want to pull out one or more values from the route and make an API request.
-
-In the following example, we create a route for a product page that accepts an ID parameter. Required parameters are denoted by a colon `:` followed by the parameter name, which in this case is called `id`.
+You can achieve this from within the `canLoad` and `load` methods in your component. By setting the `next.title` property, you can override or transform the title.
 
 ```typescript
-@route({
-  routes: [
-    { id: 'home', path: '', component: import('./home'), title: 'Home' },
-    { path: 'product/:id', component: import('./product'), title: 'Product' }
-  ]
-})
-export class MyApp {
+import { IRouteViewModel, Params, RouteNode } from "aurelia";
 
-}
-```
+export class ProductPage implements IRouteViewModel {
 
-Inside of our product component, we can access this parameter value and get the value. The first argument of the `load` lifecycle hook with be the parameters from the URL.
-
-{% code title="product-page.ts" %}
-```typescript
-import { Params } from 'aurelia';
-
-export class ProductPage {
-    load(params: Params) {
-        console.log(params.id);
+    load(params: Params, next: RouteNode, current: RouteNode) {
+        next.title = 'COOL PRODUCT';
     }
 }
 ```
-{% endcode %}
 
-## Redirecting routes
+## Passing information between routes
 
-The router allows you to redirect to other parts of your application using the `redirectTo` property. By specifying the path in the `redirectTo` property, the route will navigate to the specified value.
+We went over creating routes with support for parameters in the creating routes section, but there is an additional property you can specify on a route called `data` which allows you to associate metadata with a route.
 
 ```typescript
 @route({
   routes: [
-    { path: '', redirectTo: 'products' },
-    { path: 'products', component: import('./products'), title: 'Products' },
-    { path: 'product/:id', component: import('./product'), title: 'Product' }
+    { 
+      id: 'home', 
+      path: '', 
+      component: import('./home'), 
+      title: 'Home' 
+    },
+    { 
+      path: 'product/:id', 
+      component: import('./product'), 
+      title: 'Product',
+      data: {
+          requiresAuth: false
+      }
+    }
   ]
 })
 export class MyApp {
@@ -60,3 +49,38 @@ export class MyApp {
 }
 ```
 
+This data property will be available in the routable component and can be a great place to store data associated with a route such as roles and auth permissions. In some instances, the route parameters can be used to pass data, but for other use cases, you should use the data property.
+
+## Loading data inside of components
+
+A common router scenario is you want to route to a specific component, say a component that displays product information based on the ID in the URL. You make a request to the API to get the information and display it.
+
+There are two asynchronous lifecycles that are perfect for dealing with loading data: `canLoad` and `load` - both supporting returning a promise (or async/await).
+
+If the component you are loading absolutely requires the data to exist on the server and be returned, the `canLoad` lifecycle method is the best place to do it. Using our example of a product page, if you couldn't load product information the page would be useful, right?
+
+From the inside of `canLoad` you can redirect the user elsewhere or return false to throw an error.
+
+```typescript
+import { IRouteViewModel, Params } from "aurelia";
+
+export class MyComponent implements IRouteViewModel {
+    async canLoad(params: Params) {
+        this.product = await this.api.getProduct(params.productId);
+    }
+}
+```
+
+Similarly, if you want the view to still load even if we can't get the data, you would use the `load` lifecycle callback.
+
+```typescript
+import { IRouteViewModel, Params } from "aurelia";
+
+export class MyComponent implements IRouteViewModel {
+    async load(params: Params) {
+        this.product = await this.api.getProduct(params.productId);
+    }
+}
+```
+
+When you use `load` and `async` the component will wait for the data to load before rendering.

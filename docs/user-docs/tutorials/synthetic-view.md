@@ -21,7 +21,7 @@ You can see a working example [here](https://stackblitz.com/edit/typescript-hh9a
 
 Before going any further, you should be familiar with some basic Aurelia concepts as well as some fundamental Javascript ones as well. While these are not hard prerequisites, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
-* Creating a new Aurelia app. THis won't be covered in this tutorial and you may refer the other tutorials to this end.
+* Creating a new Aurelia app. This won't be covered in this tutorial and you may refer the other tutorials to this end.
 * You have familiarized yourself with the [Aurelia template syntax](broken-reference).
 * You have familiarized yourself with [components in Aurelia](../getting-to-know-aurelia/components/).
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
@@ -354,7 +354,7 @@ export class App implements ICustomElementViewModel {
     await view.activate(
       view,
       controller,
-      LifecycleFlags.None,
+      LifecycleFlags.none,
       Scope.create(this.bc),
     );
   }
@@ -384,7 +384,7 @@ Removing involves simply deactivating the view.
 export class App implements ICustomElementViewModel {
   //...
   private async remove() {
-    await this.view.deactivate(view, this.$controller, LifecycleFlags.None);
+    await this.view.deactivate(view, this.$controller, LifecycleFlags.none);
   }
 }
 

@@ -1,133 +1,64 @@
----
-description: As you will soon discover, Aurelia is enhanced HTML.
----
+# Attribute and property bindings
 
-# Enhanced HTML
+Attribute binding in Aurelia allows you to bind to any native HTML attribute in your templates. Binding to HTML attributes in Aurelia allows you to modify classes, style properties, attribute states and more.
 
-All of Aurelia's templating is HTML driven, with some Aurelia-specific concepts sprinkled over the top in the form of enhanced HTML.
+The basic syntax for most attributes being bound is:
 
-{% hint style="warning" %}
-As a security precaution, Aurelia will not allow you to use script elements inside of your Aurelia views.  This is to prevent script injection attacks and other forms of unsafe code from making your Aurelia applications insecure.
-{% endhint %}
+```html
+<div attribute-name.bind="value"></div>
+```
 
-## Interpolation
+You can bind basically every attribute from this list [here](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes). Some examples of what you are able to bind to can be found below with code examples.
 
-String interpolation allows you to display values within your template views. By leveraging `${}` which is a dollar sign followed by opening and closing curly braces, you can display values inside of your views. If you are familiar with [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template\_literals), the syntax will be familiar to you.
+### Binding to images
 
-### Displaying values with interpolation
+You can bind to numerous image properties, but the most common one of those is the `src` attribute that allows you to bind the image source. The value in the below example is `imageSrc` which is a property inside of the view model.
 
-Interpolation can be used to display the value of variables within your HTML templates, as well as object properties and other forms of valid data.
+```html
+<img src.bind="imageSrc">
+```
 
-To show how interpolation works, here is an example.
+Want to bind to the alt text attribute?
 
-{% code title="my-app.ts" %}
+```html
+<img src.bind="imageSrc" alt.bind="altValue">
+```
+
+### Disabling buttons and inputs
+
+You can easily disable a button by binding to the native `disabled` attribute of buttons and inputs.
+
+{% code title="my-component.html" %}
+```html
+<button disabled.bind="disableButton">Disabled Button</button>
+```
+{% endcode %}
+
+The `disableButton` value is a class property boolean. When `disableButton` is `true`, the button is disabled.
+
+{% code title="my-component.ts" %}
 ```typescript
-export class MyApp {
-  myName = 'Aurelia';
+export class MyComponent {
+    disableButton = true;
 }
 ```
 {% endcode %}
 
-{% code title="my-app.html" %}
-```markup
-<p>Hello, my name is ${myName}</p>
-```
-{% endcode %}
+### Binding to innerhtml and textcontent
 
-Notice how the variable we reference in our HTML template is the same as it is defined inside of our view model? Anything specified on our view model class is accessible in the view. Aurelia will replace `${myName}` with `Aurelia` think of it as a fancy string replacement. All properties defined in your view-model will be accessible inside of your templates.
+The native innerhtml and textcontent properties allow you to set the values of HTML elements. When binding to these properties, the difference between what to choose is `textcontent` will not display HTML tags and `innerhtml` will.
 
-### Template expressions
-
-A template expression allows you to perform code operations inside of `${}` we learned about earlier. You can perform addition, subtraction and even call functions inside of interpolation.
-
-In the following simple example, we are adding two and two together, the value that will be displayed will be `4`.
-
-```
-<p>Quick maths: ${2 + 2}</p>
-```
-
-If you have a function inside of your view model, you can also call functions with parameters.
-
-{% code title="my-app.ts" %}
-```typescript
-export class MyApp {
-  adder(val1, val2) {
-    return parseInt(val1) + parseInt(val2);
-  }
-}
-```
-{% endcode %}
-
-{% code title="my-app.html" %}
-```markup
-<p>Behold mathematics, 6 + 1 = ${adder(6, 1)}</p>
-```
-{% endcode %}
-
-You can also use ternaries inside of your interpolation expressions:
-
-```markup
-<p>${isTrue ? 'True' : 'False'}</p>
-```
-
-### Syntax
-
-You would be forgiven for thinking that you can do pretty much anything that Javascript allows you to do, but there are limitations in what you can do inside of interpolation you need to be aware of.
-
-1. Expressions cannot be chained using `;` or `,`
-2. You cannot use primitives such as `Boolean`, `String`, `instanceOf`, `typeof` and so on
-3. Quite a few of the operators introduced in ES2015 and beyond including nullish coalescing and optional chaining
-4. You can only use the pipe separator `|` when using value converters, but not as a bitwise operator
-
-## Binding to properties
-
-Property binding in Aurelia allows you to set values on elements such as text inputs, showing/hiding content or waiting for a promise to resolve. Most of Aurelia's core template binding features leverage `.bind` prefixed with the property binding attribute.
-
-Most native DOM properties can be bound. From the `src` attribute on images to HTML and Textcontent of a DIV, Aurelia will not stand in your way if it's a native property.
-
-For example, if you wanted to bind to the `src` attribute on an image, this is what it would look like:
-
-```markup
-<img src.bind="myImageSource">
-```
-
-In our above example `myImageSource` refers to a class property in our view model. If you wanted to bind to other properties on our image such as alt, it would look like this.
-
-```markup
-<img src.bind="myImageSource" alt.bind="altValue">
-```
-
-The code examples look pretty much identical, right? We use `.bind` to bind onto those native DOM properties.
-
-#### Binding to the textcontent property
-
+{% code title="my-component.html" %}
 ```html
 <div textcontent.bind="myContent"></div>
 ```
+{% endcode %}
 
-**Binding to the innerhtml property**
-
+{% code title="my-component.html" %}
 ```html
 <div innerhtml.bind="myContent"></div>
 ```
-
-## Toggling native boolean properties
-
-Some HTML elements have native boolean properties you can bind to, a good example of this is disabled on form elements (buttons and inputs) allowing you to programmatically disable and enable a form element using our new friend `.bind` and the property name.
-
-```markup
-<button type="submit" disabled.bind="btnDisabled">Submit</button>
-```
-
-Inside of our view model, we would define this variable and give it a default boolean value. For this example, we will make it `true` to disable the button.&#x20;
-
-```typescript
-export class MyViewModel {
-  btnDisabled = true;
-}
-```
-
-There are quite a few useful native boolean properties you can leverage Aurelia's binding system to work with including; `checked`, `readonly` and `required`.
+{% endcode %}
 
 ## Binding values to custom elements
 
@@ -160,7 +91,7 @@ The class binding allows you to bind one or more classes to an element and its n
 
 Adding or removing a single class value from an element can be done using the `.class` binding. By prefixing the `.class` binding with the name of the class you want to conditionally display, for example, `selected.class="myBool"` you can add a selected class to an element. The value you pass into this binding is a boolean value (either true or false), if it is `true` the class will be added, otherwise, it will be removed.
 
-```
+```html
 <p selected.class="isSelected">I am selected (I think)</p>
 ```
 

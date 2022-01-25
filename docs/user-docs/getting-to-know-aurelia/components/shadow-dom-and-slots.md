@@ -1,11 +1,21 @@
-# Using au-slot
+# Content projection
 
-Aurelia provides another way of content projection with `au-slot`. This is similar to the native `slot` in terms of content projection, however, it does not use Shadow DOM. `au-slot` is useful where you want externally defined styles to penetrate the component boundary, to facilitate easy styling of components. If you are creating your own set of custom elements that are solely used in your application, then you might want to avoid the native slots in the custom elements as it might be difficult to style those elements from your application. However, if you still want to have slot-like behavior, then you can use `au-slot`, as that makes the styling those custom elements/components easier. Instead of using shadow DOM, the resulting view is composed purely by Aurelia compilation pipeline. There are other aspects of `au-slot` as well which will be explored in this section with examples.
+## Slot
+
+When working with Shadow DOM components, the `<slot>` element is a native way to allow for content projection into components. In some instances, the `<slot>` element will not be the right choice and you will need to consider `<au-slot>` (referenced below) instead.
+
+## Au-slot
+
+Aurelia provides another way of content projection with `au-slot`. This is similar to the native `slot` in terms of content projection, however, it does not use Shadow DOM. `au-slot` is useful where you want externally defined styles to penetrate the component boundary, to facilitate easy styling of components.&#x20;
+
+If you are creating your own set of custom elements that are solely used in your application, then you might want to avoid the native slots in the custom elements as it might be difficult to style those elements from your application.&#x20;
+
+However, if you still want to have slot-like behavior, then you can use `au-slot`, as that makes the styling those custom elements/components easier. Instead of using shadow DOM, the resulting view is composed purely by Aurelia compilation pipeline. There are other aspects of `au-slot` as well which will be explored in this section with examples.
 
 {% hint style="info" %}
 * An obvious question might be "Why not simply 'turn off' shadow DOM, and use the `slot` itself"? We feel that goes in the opposite direction of Aurelia's promise of keeping things as close to native behavior as possible. Moreover, using a different name like `au-slot` makes it clear that the native slot is not used in this case, however still bringing slotting behavior to use.
 * If you have used the `replaceable` and `replace part` before or with Aurelia1, it is replaced with `au-slot`.
-* The following examples use [local templates](../../../developer-guides/components-revisited.md#getting-started/components/local-templates) for succinctness only; the examples should also work for full-fledged custom elements.
+* The following examples use [local templates](../../developer-guides/components-revisited.md#getting-started/components/local-templates) for succinctness only; the examples should also work for full-fledged custom elements.
 {% endhint %}
 
 ## Basic templating usage
@@ -62,7 +72,7 @@ Like `slot`, a "projection target"/"slot" can be defined using a `<au-slot>` ele
 
 In the example above, the `my-element` custom element defines two slots: one default, and one named. The slots can optionally have fallback content; i.e. when no projection is provided for the slot, the fallback content will be displayed. Projecting to a slot is therefore also optional. However, when a projection is provided for a slot, that overrides the fallback content of that slot.
 
-An important point to note here is that using the `[au-slot]` attribute to provide projection is mandatory \(a workaround can be made for the default `au-slot` using 'processContent' hook; refer the [documentation](../../../developer-guides/components-revisited.md#the-processContent-hook) for an example transformation function.\). Projection without `[au-slot]` attribute is not supported and may result in unexpected behavior.
+An important point to note here is that using the `[au-slot]` attribute to provide projection is mandatory (a workaround can be made for the default `au-slot` using 'processContent' hook; refer the [documentation](../../developer-guides/components-revisited.md#the-processContent-hook) for an example transformation function.). Projection without `[au-slot]` attribute is not supported and may result in unexpected behavior.
 
 {% code title="my-app.html" %}
 ```markup
@@ -144,7 +154,7 @@ class MyElement {
 
 Following would be logged to the console for the instances of `my-element`.
 
-```text
+```
 // my_element_instance_1
 ['default', 's1']
 
@@ -518,7 +528,7 @@ class Person {
 In the example above, we replace the 'content' template of the grid, defined in `my-element`, from `my-app`. While doing so, we can grab the scope of the `<au-slot name="content" />` and use the properties made available by the binding `expose.bind="{ person, $even, $odd, $index }"`, and use those in the projection template. Note that `$host` allows us to access whatever the `<au-slot/>` element exposes, and this value can be changed to enable powerful scenarios. Without the `$host` it might have been difficult to provide a template for the repeater from outside.
 
 {% hint style="info" %}
-The last example is also interesting from another aspect. It shows that while working with a grid, many parts of the grid can be replaced with projection. This includes, the header of the grid \(`au-slot="header"`\), the template column of the grid \(`au-slot="content"`\), or even the whole grid itself \(`au-slot="grid"`\).
+The last example is also interesting from another aspect. It shows that while working with a grid, many parts of the grid can be replaced with projection. This includes, the header of the grid (`au-slot="header"`), the template column of the grid (`au-slot="content"`), or even the whole grid itself (`au-slot="grid"`).
 {% endhint %}
 
 {% hint style="warning" %}
@@ -604,4 +614,3 @@ Having more than one `<au-slot>` with same name is also supported. This lets us 
 {% endcode %}
 
 Note that projection for the name is provided once, but it gets duplicated in 2 slots. You can also see this example in action [here](https://stackblitz.com/edit/au-slot-duplicate-slots?file=my-app.html).
-

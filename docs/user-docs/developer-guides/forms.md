@@ -8,7 +8,7 @@ In Aurelia, the binding system uses `two-way` binding as a default for form elem
 
 Before working with forms, this guide assumes the following that you should have an understanding of:
 
-* A basic understanding of [templating in Aurelia](broken-reference) and its syntax. Specifically, [property binding](broken-reference) as well as[ two-way binding](../getting-to-know-aurelia/components/two-way-binding.md) and [event binding](../getting-to-know-aurelia/components/event-binding.md).
+* A basic understanding of [templating in Aurelia](broken-reference) and its syntax. Specifically, [property binding](broken-reference) as well as[ two-way binding](broken-reference) and [event binding](../getting-to-know-aurelia/templates/event-binding.md).
 * An understanding of Aurelia fundamentals
 
 ## Data flow in forms

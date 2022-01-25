@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Attribute transferring is a way to relay the binding\(s\) on a custom element to it's child element\(s\).
+Attribute transferring is a way to relay the binding(s) on a custom element to it's child element(s).
 
 As an application grows, the components inside it also grow. Something that starts simple like the following component
 
@@ -77,7 +77,7 @@ To transfer attributes & bindings from a custom element, there are two steps:
 })
 ```
 
-As the name suggests, this is to signal the template compiler that all the bindings & attributes, with some exceptions should be captured for future usages.
+As the name suggests, this is to signal the template compiler that all the bindings & attributes, with some exceptions, should be captured for future usages.
 
 * Spread the captured attributes onto an element:
 
@@ -123,12 +123,11 @@ What are captured:
 * `value.bind="extraComment"`
 * `class="form-control"`
 * `style="background: var(--theme-purple)"`
-* `tooltip="Hello, ${tooltip}"`
+*   `tooltip="Hello, ${tooltip}"`
 
-  What are not captured:
-
-* `if.bind="needsComment"` \(`if` is a template controller\)
-* `label.bind="label"` \(`label` is a bindable property\)
+    What are not captured:
+* `if.bind="needsComment"` (`if` is a template controller)
+* `label.bind="label"` (`label` is a bindable property)
 
 ### How will attributes be applied in ...$attrs
 
@@ -147,4 +146,3 @@ input-field.html
 ```
 
 if `value` is a bindable property of `my-input`, the end result will be a binding that connect the `message` property of the corresponding `app.html` view model with `<my-input>` view model `value` property. Binding mode is also preserved like normal attributes.
-

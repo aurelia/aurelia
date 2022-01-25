@@ -1,8 +1,73 @@
 # Content projection
 
+In Aurelia, we have a couple of different ways we can project content into custom elements. In the case of Shadow DOM is enabled, we can use `<slot>` and for situations where Shadow DOM is disabled but we want content project functionality, we have `<au-slot>`
+
 ## Slot
 
 When working with Shadow DOM components, the `<slot>` element is a native way to allow for content projection into components. In some instances, the `<slot>` element will not be the right choice and you will need to consider `<au-slot>` (referenced below) instead.
+
+{% hint style="warning" %}
+`The slot element will only work when Shadow DOM is enabled for your component. Attempting to use the slot element with it disabled will result in an error being thrown.`
+{% endhint %}
+
+In the case of a fictional but realistic example, we have a modal element. The user can provide content which is rendered inside of the element.
+
+```html
+<div class="modal">
+    <div class="modal-inner">
+        <slot></slot>
+    </div>
+</div>
+```
+
+Now, assuming this is a Shadow DOM enabled component, all is well. We have a custom element that allows for content to be used inside of it.
+
+Because we named our component `au-modal` we will then use it like this:
+
+```html
+<au-modal>
+    <div slot>
+        <p>Modal content inside of the modal</p>
+    </div>
+</au-modal>
+```
+
+Notice how we use the attribute `slot` on our content being passed in? This tells Aurelia to project our content into the default slot. Now, custom elements can have multiple slots, so how do we tell Aurelia where to project our content?
+
+### Named slots
+
+A named slot is no different to a conventional slot. The only difference is the slot has a name we can reference. A slot without a name gets the name `default` by default.
+
+```html
+<div class="modal">
+    <div class="modal-inner">
+        <slot name="content"></slot>
+    </div>
+</div>
+```
+
+Now, to use our element with named slot, you can do this:
+
+```html
+<au-modal>
+    <div slot="name">
+        <p>Modal content inside of the modal</p>
+    </div>
+</au-modal>
+```
+
+### Fallback content
+
+A slot can have default content that is displayed when nothing is explicitly projected into it. Fallback content works for default and named slot elements.
+
+```html
+<div class="modal">
+    <button type="button" data-action="close" class="close" aria-label="Close" click.trigger="close()" ><span aria-hidden="true">&times;</span></button>
+    <div class="modal-inner">
+        <slot>This is default content shown if the user does not supply anything.</slot>
+    </div>
+</div>
+```
 
 ## Au-slot
 
@@ -15,22 +80,22 @@ However, if you still want to have slot-like behavior, then you can use `au-slot
 {% hint style="info" %}
 * An obvious question might be "Why not simply 'turn off' shadow DOM, and use the `slot` itself"? We feel that goes in the opposite direction of Aurelia's promise of keeping things as close to native behavior as possible. Moreover, using a different name like `au-slot` makes it clear that the native slot is not used in this case, however still bringing slotting behavior to use.
 * If you have used the `replaceable` and `replace part` before or with Aurelia1, it is replaced with `au-slot`.
-* The following examples use [local templates](../../developer-guides/components-revisited.md#getting-started/components/local-templates) for succinctness only; the examples should also work for full-fledged custom elements.
 {% endhint %}
 
 ## Basic templating usage
 
 Like `slot`, a "projection target"/"slot" can be defined using a `<au-slot>` element, and a projection to that slot can be provided using a `[au-slot]` attribute. Consider the following example.
 
+{% code title="my-element.html" %}
+```html
+static content
+<au-slot>fallback content for default slot.</au-slot>
+<au-slot name="s1">fallback content for s1 slot.</au-slot>
+```
+{% endcode %}
+
 {% code title="my-app.html" %}
 ```markup
-<!-- A custom element with <au-slot> -->
-<template as-custom-element="my-element">
-  static content
-  <au-slot>fallback content for default slot.</au-slot>
-  <au-slot name="s1">fallback content for s1 slot.</au-slot>
-</template>
-
 <!-- Usage without projection -->
 <my-element></my-element>
 <!-- Rendered (simplified): -->
@@ -308,7 +373,7 @@ export class MyElement {
 {% endtab %}
 {% endtabs %}
 
-Note that in the absence of projection, the fallback content uses the scope of `my-element`. For completeness the following example shows that it also holds while binding values to the `@bindable`s in custom elements.
+Note that in the absence of projection, the fallback content uses the scope of `my-element`. For completeness, the following example shows that it also holds while binding values to the `@bindable`s in custom elements.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -535,17 +600,19 @@ The last example is also interesting from another aspect. It shows that while wo
 The `$host` keyword can only be used in context of projection. Using it in any other context is not supported, and will throw error with high probability.
 {% endhint %}
 
-## Multiple projections for single slot
+## Multiple projections for a single slot
 
 It is possible to provide multiple projections to single slot.
 
+{% code title="my-element.html" %}
+```html
+<au-slot name="s1">s1</au-slot>
+<au-slot name="s2">s2</au-slot>
+```
+{% endcode %}
+
 {% code title="my-app.html" %}
 ```markup
-<template as-custom-element="my-element">
-  <au-slot name="s1">s1</au-slot>
-  <au-slot name="s2">s2</au-slot>
-</template>
-
 <my-element>
   <div au-slot="s2">p20</div>
   <div au-slot="s1">p11</div>
@@ -567,13 +634,15 @@ It is possible to provide multiple projections to single slot.
 
 This is useful for many cases. One evident example would a 'tabs' custom element.
 
+{% code title="my-element.html" %}
+```html
+<au-slot name="header"></au-slot>
+<au-slot name="content"></au-slot>
+```
+{% endcode %}
+
 {% code title="my-app.html" %}
 ```markup
-<template as-custom-element="my-tabs">
-  <au-slot name="header"></au-slot>
-  <au-slot name="content"></au-slot>
-</template>
-
 <my-tabs>
   <h3 au-slot="header">Tab1</h3>
   <div au-slot="content">Tab1 content</div>
@@ -586,25 +655,27 @@ This is useful for many cases. One evident example would a 'tabs' custom element
 ```
 {% endcode %}
 
-This helps keeping things closer that belong together. For example, keeping the tab-header and tab-content next to each other, provides better readability and understanding of the code to the developer. On other hand, it still places the projected contents at the right slot.
+This helps keep things closer that belong together. For example, keeping the tab-header and tab-content next to each other provides better readability and understanding of the code to the developer. On other hand, it still places the projected contents at the right slot.
 
 ## Duplicate slots
 
-Having more than one `<au-slot>` with same name is also supported. This lets us projecting same content to multiple slots declaratively, as can be seen from the following example.
+Having more than one `<au-slot>` with same name is also supported. This lets us project the same content to multiple slots declaratively, as can be seen from the following example.
+
+{% code title="person-card.html" %}
+```html
+<let details-shown.bind="false"></let>
+<au-slot name="name"></au-slot>
+<button click.delegate="detailsShown=!detailsShown">Toggle details</button>
+<div if.bind="detailsShown">
+  <au-slot name="name"></au-slot>
+  <au-slot name="role"></au-slot>
+  <au-slot name="details"></au-slot>
+</div>
+```
+{% endcode %}
 
 {% code title="my-app.html" %}
 ```markup
-<template as-custom-element="person-card">
-  <let details-shown.bind="false"></let>
-  <au-slot name="name"></au-slot>
-  <button click.delegate="detailsShown=!detailsShown">Toggle details</button>
-  <div if.bind="detailsShown">
-    <au-slot name="name"></au-slot>
-    <au-slot name="role"></au-slot>
-    <au-slot name="details"></au-slot>
-  </div>
-</template>
-
 <person-card>
   <span au-slot="name"> John Doe </span>
   <span au-slot="role"> Role1 </span>

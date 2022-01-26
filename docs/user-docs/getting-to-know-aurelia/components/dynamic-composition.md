@@ -84,5 +84,3 @@ When composing without a custom element as view-model, the result component will
 
     * auto: in view only composition: inherit the parent scope
     * scoped: never inherit parent scope even in view only composition
-* **naming** (BREAKING CHANGE): `compose` (v1) is changed to `au-compose` (v2)
-  * (v2 only): the existing `au-compose` is renamed to `au-render`.

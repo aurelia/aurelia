@@ -68,6 +68,7 @@
 * [Store](developer-guides/store/README.md)
   * [Configuration and setup](developer-guides/store/configuration-and-setup.md)
   * [Middleware](developer-guides/store/middleware.md)
+* [Testing](developer-guides/testing.md)
 * [Dialog](developer-guides/dialog.md)
 * [Web Components](developer-guides/web-components.md)
 * [Recipes](developer-guides/scenarios/README.md)
@@ -82,7 +83,6 @@
   * [Extending templating syntax](developer-guides/scenarios/extending-templating-syntax.md)
   * [Modifying template parsing with AttributePattern](developer-guides/scenarios/attributepattern.md)
   * [Using the template compiler](developer-guides/scenarios/the-template-compiler.md)
-* [Components revisited](developer-guides/components-revisited.md)
 
 ## Tutorials
 

@@ -4,13 +4,6 @@ Handling forms and user input is quite a common task in applications. Whether yo
 
 In Aurelia, the binding system uses `two-way` binding as a default for form elements. Text inputs, text areas and even `contenteditable` elements all use a `two-way` binding.
 
-## Prerequisites
-
-Before working with forms, this guide assumes the following that you should have an understanding of:
-
-* A basic understanding of [templating in Aurelia](broken-reference) and its syntax. Specifically, [property binding](broken-reference) as well as[ two-way binding](broken-reference) and [event binding](../getting-to-know-aurelia/templates/event-binding.md).
-* An understanding of Aurelia fundamentals
-
 ## Data flow in forms
 
 In Aurelia, form elements are reactive and their changes are directly tied to the underlying view model. Updates flow from the view to the view model and updates from the view model flow to the view (hence, two-way).

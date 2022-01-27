@@ -137,7 +137,7 @@ static content
 
 In the example above, the `my-element` custom element defines two slots: one default, and one named. The slots can optionally have fallback content; i.e. when no projection is provided for the slot, the fallback content will be displayed. Projecting to a slot is therefore also optional. However, when a projection is provided for a slot, that overrides the fallback content of that slot.
 
-An important point to note here is that using the `[au-slot]` attribute to provide projection is mandatory (a workaround can be made for the default `au-slot` using 'processContent' hook; refer the [documentation](../../developer-guides/components-revisited.md#the-processContent-hook) for an example transformation function.). Projection without `[au-slot]` attribute is not supported and may result in unexpected behavior.
+An important point to note here is that using the `[au-slot]` attribute to provide projection is mandatory (a workaround can be made for the default `au-slot` using 'processContent' hook; refer the [documentation](broken-reference) for an example transformation function.). Projection without `[au-slot]` attribute is not supported and may result in unexpected behavior.
 
 {% code title="my-app.html" %}
 ```markup

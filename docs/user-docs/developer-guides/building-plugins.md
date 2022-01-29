@@ -1,10 +1,17 @@
-# Write Custom Plugins
+---
+description: >-
+  Aurelia makes it easy to create your own plugins. Learn how you can create
+  individual plugins, register them and work with tasks to run code at certain
+  parts of the lifecycle process.
+---
+
+# Building plugins
 
 One of the most important needs of users is to design custom plugins. In the following, we want to get acquainted with how to design a plugin in the form of a mono-repository structure with configuration.
 
-### What is mono-repository?
+### What is a mono-repository?
 
-A monorepo \(mono repository\) is a single repository that stores all of your code and assets for every project. Using a monorepo is important for many reasons. It creates a single source of truth. It makes it easier to share code. It even makes it easier to refactor code.
+A monorepo (mono repository) is a single repository that stores all of your code and assets for every project. Using a monorepo is important for many reasons. It creates a single source of truth. It makes it easier to share code. It even makes it easier to refactor code.
 
 ### How NPM v7 helps us?
 
@@ -55,7 +62,7 @@ Create a `packages` folder and `package.json` inside it.
 }
 ```
 
-The mono repository's name is `@my-plugin`. We defined our workspaces \(projects\) under `packages` folder.
+The mono repository's name is `@my-plugin`. We defined our workspaces (projects) under `packages` folder.
 
 Open your `packages` folder and install the projects inside it.
 
@@ -67,7 +74,7 @@ npx makes aurelia demo -s typescript
 
 After creating, delete all files inside `src` folders of `bootstrap-v5-core` and `bootstrap-v5` but `resource.d.ts`. We will add our files there.
 
-![](../../.gitbook/assets/1.png)
+![](../.gitbook/assets/1.png)
 
 ## How to manage dependencies?
 
@@ -305,7 +312,7 @@ export class BootstrapButton {
 }
 ```
 
-As you can see we are able to access to plugin options easy via `ctor` \(DI\) and react appropriately to its values.
+As you can see we are able to access to plugin options easy via `ctor` (DI) and react appropriately to its values.
 
 ```typescript
 @IBootstrapV5Options private options: IBootstrapV5Options
@@ -408,8 +415,7 @@ To run the `demo` easily, go to the `my-plugin` root folder and add the followin
 
 Then, call the command
 
-```bash
+```shell
 npm run start
 npm start
 ```
-

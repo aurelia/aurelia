@@ -69,6 +69,7 @@
   * [Configuration and setup](developer-guides/store/configuration-and-setup.md)
   * [Middleware](developer-guides/store/middleware.md)
 * [Testing](developer-guides/testing.md)
+* [Building plugins](developer-guides/building-plugins.md)
 * [Dialog](developer-guides/dialog.md)
 * [Web Components](developer-guides/web-components.md)
 * [Recipes](developer-guides/scenarios/README.md)
@@ -76,34 +77,27 @@
   * [CSS-in-JS with Emotion](developer-guides/scenarios/css-in-js-with-emotion.md)
   * [TailwindCSS integration](developer-guides/scenarios/tailwindcss-integration.md)
   * [Strongly-typed Template](developer-guides/scenarios/strongly-typed-template.md)
-  * [How to create custom plugins](developer-guides/scenarios/write-custom-plugin.md)
   * [DOM style injection](developer-guides/scenarios/dom-style-injection.md)
   * [Markdown integration](developer-guides/scenarios/markdown-integration.md)
   * [Securing an app](developer-guides/scenarios/securing-an-app.md)
   * [Extending templating syntax](developer-guides/scenarios/extending-templating-syntax.md)
   * [Modifying template parsing with AttributePattern](developer-guides/scenarios/attributepattern.md)
   * [Using the template compiler](developer-guides/scenarios/the-template-compiler.md)
+* [Error messages](developer-guides/error-messages/README.md)
+  * [Dependency Injection errors](developer-guides/error-messages/dependency-injection-errors.md)
+* [Playground](developer-guides/playground/README.md)
+  * [Binding & Templating](developer-guides/playground/binding-and-templating.md)
+  * [Custom Attributes](developer-guides/playground/custom-attributes/README.md)
+    * [Binding to Element Size](developer-guides/playground/custom-attributes/binding-to-element-size.md)
+  * [Integration](developer-guides/playground/integration/README.md)
+    * [Microsoft FAST](developer-guides/playground/integration/ms-fast.md)
+    * [Ionic](developer-guides/playground/integration/ionic.md)
 
 ## Tutorials
 
 * [Building a realtime cryptocurrency price tracker](tutorials/building-a-realtime-cryptocurrency-price-tracker.md)
 * [Building a widget-based dashboard](tutorials/create-a-dashboard-using-dynamic-composition.md)
 * [Building a todo application](tutorials/building-a-todo-application.md)
-
-## Reference
-
-* [Distributable](reference/distributable.md)
-* [Error messages](reference/error-messages/README.md)
-  * [Dependency Injection errors](reference/error-messages/dependency-injection-errors.md)
-* [Examples](reference/examples/README.md)
-  * [Binding & Templating](reference/examples/binding-and-templating/README.md)
-    * [Looping with Repeat.for](reference/examples/binding-and-templating/looping-with-repeat.for.md)
-    * [Expression Syntax](reference/examples/binding-and-templating/expression-syntax.md)
-  * [Custom Attributes](reference/examples/custom-attributes/README.md)
-    * [Binding to Element Size](reference/examples/custom-attributes/binding-to-element-size.md)
-  * [Integration](reference/examples/integration/README.md)
-    * [Microsoft FAST](reference/examples/integration/ms-fast.md)
-    * [Ionic](reference/examples/integration/ionic.md)
 
 ## Side-by-Side Comparison
 

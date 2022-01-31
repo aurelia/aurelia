@@ -145,3 +145,29 @@ export class MyComponent implements ICustomElementViewModel {
     }
  }   
 ```
+
+## Working with authentication bearer tokens
+
+A common scenario in applications using authentication is to use bearer tokens sent in the headers of each request.
+
+To achieve this, we can use a request interceptor to add the token to the headers of each request. The following example assumes you are getting the bearer token from somewhere (session or local storage, etc).
+
+```typescript
+import { HttpClient } from '@aurelia/fetch-client';
+import { newInstanceOf } from '@aurelia/kernel';
+import { ICustomElementViewModel } from 'aurelia';
+
+export class MyComponent implements ICustomElementViewModel {    
+    constructor(@newInstanceOf(IHttpClient) readonly http: IHttpClient) {
+      http.configure(config => {
+        config
+          .withInterceptor({
+            request(request) {
+              request.headers.append('Authorization', 'Bearer ' + YOUR_BEARER_TOKEN);
+              return request;
+            }
+          });
+      });
+    }
+ }   
+```

@@ -27,9 +27,8 @@ Every article has several things in common:
 
 * **Title** - An article has a clear, short title. The title is not only displayed at the top of the article, but also within the Table of Contents (ToC), index pages, and search results. It's also encoded in the page's metadata, which is used by search engines.
 * **Description** - An article has a 1 sentence or short fragment description, designed to help the reader understand whether it covers the material they are interested in. The description is displayed at the top of the article and on some index pages.
-* **Introduction** - A short 3 - 5 sentence introduction to the article. It should be immediately followed by the "Here's what you'll learn..." box.
-* **Here's what you'll learn...** - At the top of every article, there's a bulleted list of what the reader will learn by the end of the article. This should be 3-5 high-level bullet points. They do NOT need to map directly to the sections within the document. Use a Hint Box with the "success" style to contain the the list.
-* **H1s** - Each article should be broken down into major sections, delineated by level-1 headers. The headers should be clear, but short. They are displayed not only in the article itself, but also in the in-page ToC. Additionally, the full-text search indexes by section, allowing search results to deep-link to a particular section within a document. Articles MAY contain level-2 and level-3 headers as well.
+* **Introduction** - A short 3 - 5 sentence introduction to the article.
+* **H1s** - Each article should be broken down into major sections, delineated by level-1 headers. The headers should be clear, but short. They are displayed not only in the article itself but also in the in-page ToC. Additionally, the full-text search indexes by section, allowing search results to deep-link to a particular section within a document. Articles MAY contain level-2 and level-3 headers as well.
 * **Additional Resources** (Optional) - If appropriate, articles MAY specify a set of additional resources for readers, including links to relevant HTML specifications, other articles, API Reference, code examples within the site, sandboxes, or any other item related to the current article content. Use a Hint Box with the "info" style to contain the resources, and a bulleted list for the links.
 
 #### Article Syntax

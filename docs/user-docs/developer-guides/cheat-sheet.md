@@ -2,6 +2,8 @@
 
 ## Cheat Sheet
 
+A quick reference for different aspects of Aurelia with minimal explanation.
+
 ## Bootstrapping
 
 ### Simple
@@ -18,7 +20,7 @@ await au.app({
 }).start();
 ```
 
-### Script tag \(Vanilla JS\)
+### Script tag (Vanilla JS)
 
 Note: you can copy-paste the markup below into an html file and open it directly in the browser. There is no need for any tooling for this example.
 
@@ -47,7 +49,7 @@ Note: you can copy-paste the markup below into an html file and open it directly
 </html>
 ```
 
-### Script tag \(Vanilla JS - enhance\)
+### Script tag (Vanilla JS - enhance)
 
 Note: you can copy-paste the markup below into an html file and open it directly in the browser. There is no need for any tooling for this example.
 
@@ -105,7 +107,7 @@ export class LoginWall {
 }
 ```
 
-### Advanced \(low-level\)
+### Advanced (low-level)
 
 When you need more control over the wireup and/or want to override some of the defaults wrapped by the 'aurelia' package and/or maximize tree-shaking of unused parts of the framework:
 
@@ -422,7 +424,7 @@ export class BananaInBox {
 
 ## Binding commands / instruction renderer
 
-TODO \(api not yet mature enough\)
+TODO (api not yet mature enough)
 
 ## Templating syntax
 
@@ -479,7 +481,7 @@ TODO \(api not yet mature enough\)
 <div>${timestamp | formatDate}</div>
 ```
 
-## Built-in custom attributes & template controllers \(AKA directives\)
+## Built-in custom attributes & template controllers (AKA directives)
 
 ```markup
 <!-- Conditionally render this nav-link (element is not created and will not exist in DOM if false) -->
@@ -511,14 +513,14 @@ TODO \(api not yet mature enough\)
 ### Migrating from v1
 
 * Rename `bind` to `binding`
-  * If you had timing issues in `bind` and used the `queueMicroTask` to add some delay \(or used `attached` for things that really _should_ be in `bind`\), you could try using `bound` instead \(and remove the `queueMicroTask`\). This hook was added to address some edge cases where you need information that's not yet available in `bind`, such as `from-view` bindings and `ref`s.
-  * If you used `CompositionTransaction` in the `bind` hook to await async work, you can remove that and simply return a promise \(or use `async`/`await`\) in `binding` instead. The promise will be awaited by the framework before rendering the component or binding and of its children.
+  * If you had timing issues in `bind` and used the `queueMicroTask` to add some delay (or used `attached` for things that really _should_ be in `bind`), you could try using `bound` instead (and remove the `queueMicroTask`). This hook was added to address some edge cases where you need information that's not yet available in `bind`, such as `from-view` bindings and `ref`s.
+  * If you used `CompositionTransaction` in the `bind` hook to await async work, you can remove that and simply return a promise (or use `async`/`await`) in `binding` instead. The promise will be awaited by the framework before rendering the component or binding and of its children.
 * Rename `attached` to `attaching`
   * If you had timing issues in `attached` and used `queueMicroTask` or even `queueTask` to add some delay, you can probably remove the `queueMicroTask` / `queueTask` and keep your logic in the `attached` hook. Where `attaching` is the new "called as soon as _this_ thing is added to the DOM", `attached` now runs much later than it did in v1 and guarantees that all child components have been attached as well.
-* Rename `unbind` to `unbinding` \(there is no `unbound`\)
-* Rename `detached` to `detaching` \(there is no more `detached`\)
+* Rename `unbind` to `unbinding` (there is no `unbound`)
+* Rename `detached` to `detaching` (there is no more `detached`)
   * If you _really_ need to run logic _after_ the component is removed from the DOM, use `unbinding` instead.
-* If you need the `owningView`, consider the interface shown below: what was "view" in v1 is now called "controller", and what was called "owningView" in v1 is now called "parentController" \(or simply parent in this case\). You can inject it via DI with the `@IController` decorator / `IController` interface, therefore it's no longer passed-in as an argument to `created`.
+* If you need the `owningView`, consider the interface shown below: what was "view" in v1 is now called "controller", and what was called "owningView" in v1 is now called "parentController" (or simply parent in this case). You can inject it via DI with the `@IController` decorator / `IController` interface, therefore it's no longer passed-in as an argument to `created`.
 
 ### The view model interfaces
 
@@ -595,13 +597,13 @@ Most stuff from v1 will still work as-is, but we do recommend that you consider 
 
 Consumers can use these as either parameter decorators or as direct values to `.get(...)` / `static inject = [...]`.
 
-Benefit of parameter decorators is that they also work in Vanilla JS with babel, and will work natively in browsers \(without any tooling\) in the future once the browsers implement them.
+Benefit of parameter decorators is that they also work in Vanilla JS with babel, and will work natively in browsers (without any tooling) in the future once the browsers implement them.
 
 They are therefore generally the more forward-compatible and consumer-friendly option.
 
 ### Creating an interface
 
-Note: this is a multi-purpose "injection token" that can be used as a plain value \(also in VanillaJS\) or as a parameter decorator \(in TypeScript only\)
+Note: this is a multi-purpose "injection token" that can be used as a plain value (also in VanillaJS) or as a parameter decorator (in TypeScript only)
 
 #### Strongly-typed with default
 
@@ -615,7 +617,7 @@ export interface IApiClient extends ApiClient {}
 export const IApiClient = DI.createInterface<IApiClient>('IApiClient', x => x.singleton(ApiClient));
 ```
 
-#### No default \(more loosely coupled\)
+#### No default (more loosely coupled)
 
 ```typescript
 export interface IApiClient {
@@ -644,9 +646,9 @@ export class MyComponent {
 
 #### Creating resolvers explicitly
 
-This is more loosely coupled \(keys can be declared independently of their implementations\) but also results in more boilerplate. More typical for plugins that want to allow effective tree-shaking, less typical in apps.
+This is more loosely coupled (keys can be declared independently of their implementations) but also results in more boilerplate. More typical for plugins that want to allow effective tree-shaking, less typical in apps.
 
-These can be provided directly to e.g. `au.register(dep1, dep2)` as global dependencies \(available in all components\) or to the `static dependencies = [dep1, dep1]` of components as local dependencies.
+These can be provided directly to e.g. `au.register(dep1, dep2)` as global dependencies (available in all components) or to the `static dependencies = [dep1, dep1]` of components as local dependencies.
 
 ```typescript
 Registration.singleton(key, SomeClass); // Single container-wide instance
@@ -720,7 +722,7 @@ export class MyComponent {
 
 Not to be confused with v1's `TaskQueue`, the new TaskQueue is a sophisticated scheduler designed to prevent a variety of timing issues, memory leaks, race conditions and more bad things that tend to result from `setTimeout`, `setInterval`, floating promises, etc.
 
-### `setTimeout` \(synchronous\)
+### `setTimeout` (synchronous)
 
 #### From
 
@@ -746,9 +748,9 @@ const task = PLATFORM.taskQueue.queueTask(() => {
 task.cancel();
 ```
 
-Now, in your unit/integration/e2e tests or in other components, you can `await PLATFORM.taskQueue.yield()` to deterministically wait for the task to be done \(and not a millisecond longer than needed\), or even `PLATFORM.taskQueue.flush()` to immediately run all queued tasks. End result: no more flaky tests or flaky code in general. No more intermittent and hard-to-debug failures.
+Now, in your unit/integration/e2e tests or in other components, you can `await PLATFORM.taskQueue.yield()` to deterministically wait for the task to be done (and not a millisecond longer than needed), or even `PLATFORM.taskQueue.flush()` to immediately run all queued tasks. End result: no more flaky tests or flaky code in general. No more intermittent and hard-to-debug failures.
 
-### `setTimeout` \(async/await\)
+### `setTimeout` (async/await)
 
 #### From
 
@@ -883,7 +885,7 @@ PLATFORM.domReadQueue.queueTask(() => {
 
 ### Using lifecycle hooks in a non-blocking fashion but keeping things awaitable
 
-#### Example that blocks rendering \(but is simplest to develop\)
+#### Example that blocks rendering (but is simplest to develop)
 
 ```markup
 <div>${data}</div>
@@ -897,7 +899,7 @@ export class MyComponent {
 }
 ```
 
-#### Example that does not block rendering and avoids race conditions \(without task queue\)
+#### Example that does not block rendering and avoids race conditions (without task queue)
 
 ```markup
 <div if.bind="loadDataPromise">Loading...</div>
@@ -918,7 +920,7 @@ export class MyComponent {
 }
 ```
 
-#### Example that does not block rendering and avoids race conditions \(_with_ task queue\)
+#### Example that does not block rendering and avoids race conditions (_with_ task queue)
 
 ```markup
 <div if.bind="loadDataTask">Loading...</div>
@@ -949,7 +951,7 @@ await Promise.all([
 
 In the future, time-slicing will be enabled via these TaskQueue APIs as well, which will allow you to easily chunk work that's been dispatched via the task queues.
 
-## Integration \(plugins, shared components, etc\)
+## Integration (plugins, shared components, etc)
 
 ### Migrating from v1
 
@@ -957,7 +959,7 @@ One of the biggest differences compared to Aurelia v1 is the way integrations wo
 
 In v1, you would have a `configure` function like so:
 
-**index.ts** \(producer\)
+**index.ts** (producer)
 
 ```typescript
 export function configure(config: FrameworkConfiguration) {
@@ -967,7 +969,7 @@ export function configure(config: FrameworkConfiguration) {
 
 Which would then be consumed as either a `plugin` or a `feature` like so:
 
-**main.ts** \(consumer\)
+**main.ts** (consumer)
 
 #### consumer
 
@@ -981,7 +983,7 @@ In v2 the string-based conventions are no longer a thing. We use native ES modul
 
 The most literal translation from v1 to v2 of the above, would be as follows:
 
-**index.ts** \(producer\)
+**index.ts** (producer)
 
 ```typescript
 import { MyComponent } from './my-component';
@@ -993,7 +995,7 @@ export const Producer = {
 };
 ```
 
-**main.ts** \(consumer\)
+**main.ts** (consumer)
 
 #### consumer
 
@@ -1003,9 +1005,9 @@ au.register(Producer);
 
 ### The `register` method
 
-In Aurelia v2, everything \(including the framework itself\) is glued together via DI. The concept is largely the same whether you're building a plugin, a shared component or a service class.
+In Aurelia v2, everything (including the framework itself) is glued together via DI. The concept is largely the same whether you're building a plugin, a shared component or a service class.
 
-The producer \(or the `export`ing side\) exposes an object with a `register` method, and the consumer \(the `import`ing side\) passes that object into its `au.register` call \(for global registration\) or into the `dependencies` array of a custom element \(for local registration\).
+The producer (or the `export`ing side) exposes an object with a `register` method, and the consumer (the `import`ing side) passes that object into its `au.register` call (for global registration) or into the `dependencies` array of a custom element (for local registration).
 
 The DI container calls that `register` method and passes itself in as the only argument. The producer can then register resources / components / tasks to that container. Internally, things like resources and tasks have special metadata associated with them which allows the framework to discover and consume them at the appropriate times.
 
@@ -1013,7 +1015,7 @@ Below are some examples of how integrations can be produced and consumed:
 
 #### 1.1 Simple object literal with a register method
 
-**index.ts** \(producer\)
+**index.ts** (producer)
 
 ```typescript
 export const MyPluginConfiguration = {
@@ -1026,15 +1028,15 @@ export const MyPluginConfiguration = {
 };
 ```
 
-**main.ts** \(consumer\)
+**main.ts** (consumer)
 
 ```typescript
 au.register(MyPluginConfiguration).app(...);
 ```
 
-#### 1.2 A function that returns an object literal with a register method \(to pass in e.g. plugin options\)
+#### 1.2 A function that returns an object literal with a register method (to pass in e.g. plugin options)
 
-**index.ts** \(producer\)
+**index.ts** (producer)
 
 ```typescript
 function configure(container: IContainer, config: MyPluginConfig) {
@@ -1062,7 +1064,7 @@ export const MyPluginConfiguration = {
 };
 ```
 
-**main.ts** \(consumer\)
+**main.ts** (consumer)
 
 ```typescript
 au.register(MyPluginConfiguration).app(...);
@@ -1072,7 +1074,7 @@ au.register(MyPluginConfiguration.customize({ storageType: 'localStorage' }))
 
 #### 1.3 An interface
 
-**index.ts** \(producer\)
+**index.ts** (producer)
 
 ```typescript
 export const IStorageClient = DI.createInterface<IStorageClient>('IStorageClient', x => x.singleton(LocalStorageClient));
@@ -1080,18 +1082,18 @@ export const IStorageClient = DI.createInterface<IStorageClient>('IStorageClient
 
 Interfaces and classes do not need to be registered explicitly. They can immediately be injected. The container will "jit register" them the first time they are requested.
 
-#### 1.4 A class \(typically a resource\)
+#### 1.4 A class (typically a resource)
 
-**index.ts** \(producer\)
+**index.ts** (producer)
 
 ```typescript
 @customElement({ name: 'name-tag', template: `<span>\${name}</span>` })
 export class NameTag {}
 ```
 
-**main.ts** \(consumer\)
+**main.ts** (consumer)
 
-To register it as a global resource \(available in all components\)
+To register it as a global resource (available in all components)
 
 ```typescript
 au.register(NameTag).app(...);
@@ -1099,9 +1101,9 @@ au.register(NameTag).app(...);
 
 OR:
 
-**name-list.ts** \(consumer\)
+**name-list.ts** (consumer)
 
-To register it as a local resource \(available only in that specific custom element\)
+To register it as a local resource (available only in that specific custom element)
 
 ```typescript
 export class NameListCustomElement {
@@ -1112,9 +1114,9 @@ export class NameListCustomElement {
 export class NameListCustomElement {}
 ```
 
-#### 1.5 A \(module-like\) object with any of the above as its properties
+#### 1.5 A (module-like) object with any of the above as its properties
 
-**resources/index.ts** \(producer\)
+**resources/index.ts** (producer)
 
 ```typescript
 export * from './my-button';
@@ -1122,7 +1124,7 @@ export * from './my-input';
 export * from './my-nav';
 ```
 
-**main.ts** \(consumer\)
+**main.ts** (consumer)
 
 ```typescript
 import * as GlobalResources from './resources';
@@ -1138,25 +1140,25 @@ au.register(GlobalResources).app(...);
 
 ### Migrating from v1
 
-* Move the routes from the `config.map(...)` call in your `configureRouter` method to either `static routes = [...]` or to the `@route({ routes: [...] })` decorator \(in the near future there will also be a separate `@routes` decorator as a shorthand\). For each route config object:
+* Move the routes from the `config.map(...)` call in your `configureRouter` method to either `static routes = [...]` or to the `@route({ routes: [...] })` decorator (in the near future there will also be a separate `@routes` decorator as a shorthand). For each route config object:
   * Rename `route` to `path`
   * Rename `name` to `id`
-  * Change `moduleId: 'folder/my-component'` to `component: MyComponent` \(where `MyComponent` is the actual `import`ed component\)
+  * Change `moduleId: 'folder/my-component'` to `component: MyComponent` (where `MyComponent` is the actual `import`ed component)
   * Rename `settings` to `data`
 * Rename `canActivate` to `canLoad`
 * Rename `activate` to `load`
 * Rename `canDeactivate` to `canUnload`
 * Rename `deactivate` to `unload`
-* For pipeline steps, use the `@lifecycleHooks` api \(TODO: link to examples / docs\)
+* For pipeline steps, use the `@lifecycleHooks` api (TODO: link to examples / docs)
 * Rename `router-view` to `au-viewport`
 * Rename `'router:navigation:processing'` to `'au:router:navigation-start'`
 * Rename `'router:navigation:cancel'` to `'au:router:navigation-cancel'`
 * Rename `'router:navigation:error'` to `'au:router:navigation-error'`
 * Rename `'router:navigation:success'`and `'router:navigation:complete'` to `'au:router:navigation-end'`
 
-\(more migration notes will be added based on incoming questions\)
+(more migration notes will be added based on incoming questions)
 
-### New in v2: routing without configuration \(direct routing\)
+### New in v2: routing without configuration (direct routing)
 
 By default, components can be navigated to by using their name as the path, as long as they are registered as either global or local resources.
 
@@ -1197,4 +1199,3 @@ export class App {
 <a href="/home">Home</a>
 <au-viewport></au-viewport>
 ```
-

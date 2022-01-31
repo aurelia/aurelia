@@ -74,6 +74,9 @@
 * [Testing](developer-guides/testing.md)
 * [Dialog](developer-guides/dialog.md)
 * [Web Components](developer-guides/web-components.md)
+* [Building plugins](developer-guides/building-plugins.md)
+* [Error messages](reference/error-messages/README.md)
+  * [Dependency Injection errors](reference/error-messages/dependency-injection-errors.md)
 * [Recipes](developer-guides/scenarios/README.md)
   * [Integrating 3rd Party Libraries](developer-guides/scenarios/integrating-3rd-party-libraries.md)
   * [CSS-in-JS with Emotion](developer-guides/scenarios/css-in-js-with-emotion.md)
@@ -85,7 +88,6 @@
   * [Extending templating syntax](developer-guides/scenarios/extending-templating-syntax.md)
   * [Modifying template parsing with AttributePattern](developer-guides/scenarios/attributepattern.md)
   * [Using the template compiler](developer-guides/scenarios/the-template-compiler.md)
-* [Building plugins](developer-guides/building-plugins.md)
 * [Playground](reference/examples/README.md)
   * [Binding & Templating](reference/examples/binding-and-templating/README.md)
   * [Custom Attributes](reference/examples/custom-attributes/README.md)
@@ -93,24 +95,15 @@
   * [Integration](reference/examples/integration/README.md)
     * [Microsoft FAST](reference/examples/integration/ms-fast.md)
     * [Ionic](reference/examples/integration/ionic.md)
-* [Error messages](reference/error-messages/README.md)
-  * [Dependency Injection errors](reference/error-messages/dependency-injection-errors.md)
+* [Migrating to Aurelia 2](developer-guides/migrating-to-aurelia-2/README.md)
+  * [Side-by-side comparison](developer-guides/migrating-to-aurelia-2/side-by-side-comparison.md)
+* [Cheat Sheet](developer-guides/cheat-sheet.md)
 
 ## Tutorials
 
 * [Building a realtime cryptocurrency price tracker](tutorials/building-a-realtime-cryptocurrency-price-tracker.md)
 * [Building a widget-based dashboard](tutorials/create-a-dashboard-using-dynamic-composition.md)
 * [Building a todo application](tutorials/building-a-todo-application.md)
-
-## Side-by-Side Comparison
-
-* [Creating a skeleton](side-by-side-comparison/creating-a-skeleton.md)
-* [Bootstrapping](side-by-side-comparison/bootstrapping.md)
-* [Components](side-by-side-comparison/components.md)
-* [Dependency injection](side-by-side-comparison/dependency-injection.md)
-* [Logging](side-by-side-comparison/logging.md)
-* [Router](side-by-side-comparison/router.md)
-* [Binding](side-by-side-comparison/binding.md)
 
 ## Community Contribution
 
@@ -120,13 +113,3 @@
 * [Building and testing aurelia](community-contribution/building-and-testing-aurelia.md)
 * [Writing documentation](community-contribution/writing-documentation.md)
 * [Translating documentation](community-contribution/translating-documentation.md)
-
-## Resources
-
-* [FAQ](resources/faq.md)
-* [Versioning Policy](resources/versioning-policy.md)
-* [Framework Comparison](resources/framework-comparison.md)
-* [Migrating to Aurelia 2](resources/migrating-to-aurelia-2.md)
-* [The Aurelia Team](resources/the-aurelia-team.md)
-* [Glossary](resources/glossary.md)
-* [Cheat Sheet](resources/cheat-sheet.md)

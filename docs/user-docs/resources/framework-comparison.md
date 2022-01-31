@@ -1,4 +1,0 @@
-# Framework Comparison
-
-Placeholder...
-

@@ -257,3 +257,53 @@ Adding your element to be used within the template is as easy as adding the foll
 ```html
 <import from="./path-to/some-element"></import>
 ```
+
+## Containerless components
+
+In some scenarios, you want the ability to use a component, but remove the tags from your markup leaving behind the inner part and removing the outer custom element tags. You can achieve this using containerless functionality.
+
+### Configuring the customElement
+
+If you are creating components using the `customElement` decorator, you can denote components are containerless using the `containerless` boolean configuration property.
+
+```typescript
+import { customElement, ICustomElementViewModel } from 'aurelia';
+
+@customElement({
+    name: 'my-component',
+    containerless: true
+})
+export class MyComponent implements ICustomElementViewModel {    
+    constructor() {
+
+    }
+ }   
+```
+
+### The containerless decorator
+
+Aurelia provides a convenient decorator to mark your components as containerless.
+
+```typescript
+import { ICustomElementViewModel } from 'aurelia';
+import { containerless } from '@aurelia/runtime-html';
+
+@containerless
+export class MyComponent implements ICustomElementViewModel {    
+    constructor() {
+
+    }
+ }   
+```
+
+When referencing our component using `<my-component></my-component>` Aurelia will strip out the tags and leave the inner part.
+
+### Containerless element in views
+
+Inside of your views, you can denote a component is containerless by using the `<containerless>` element. Unlike the other approaches, you specify this element inside of your HTML views.
+
+```html
+<containerless>
+
+<p>My custom element markup</p>
+```

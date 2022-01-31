@@ -52,6 +52,7 @@
   * [Redirecting](developer-guides/routing/redirecting.md)
   * [Navigating](developer-guides/routing/navigating.md)
   * [Route hooks](developer-guides/routing/router-hooks.md)
+  * [Route events](developer-guides/routing/route-events.md)
 * [Validation](developer-guides/validation/README.md)
   * [Plugin configuration](developer-guides/validation/registering-the-plugin.md)
   * [Defining & Customizing Rules](developer-guides/validation/defining-rules.md)

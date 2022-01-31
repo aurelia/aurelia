@@ -198,7 +198,7 @@ Without these properties in the override context, the properties get created in 
 ## Working with collections of data using repeat.for
 
 {% hint style="success" %}
-To see live examples of `repeat.for` being used, you can consult the examples page for `repeat.for` [over here](broken-reference).
+To see live examples of `repeat.for` being used, you can consult the examples page for `repeat.for` [over here](../../reference/examples/binding-and-templating/looping-with-repeat.for.md).
 {% endhint %}
 
 You can use the `repeat.for` binding to iterate over collections of data in your templates. Think of `repeat.for` as a for loop, it can iterate arrays, maps and sets.

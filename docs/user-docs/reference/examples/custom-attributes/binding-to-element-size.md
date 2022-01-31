@@ -120,4 +120,3 @@ For the polyfill at [https://github.com/que-etc/resize-observer-polyfill](https:
 +    this.value = entry.contentRect;
   }
 ```
-

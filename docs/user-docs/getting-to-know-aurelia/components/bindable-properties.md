@@ -8,8 +8,6 @@ When creating components, sometimes you will want the ability for data to be pas
 
 The `@bindable` attribute also can be used with custom attributes as well as custom elements.
 
-## A simple example
-
 Bindable properties on components are denoted by the `@bindable` decorator on the view model of a component.
 
 {% tabs %}
@@ -46,7 +44,52 @@ You can also bind values without the `.bind` part, as can be seen the following 
 
 However, there is a subtle difference. In this case, Aurelia considers the attribute value as a string. Thus, instead of a boolean `true` value the string `'true'` gets bound to the `loading` property. This might cause some unexpected issues. However, you can apply coercion using a bindable setter (further below in this section) or specifying the bindable type explicitly.
 
-## Binding modes
+The `@bindable` decorator signals to Aurelia that a property is bindable in our custom element. Let's create a custom element where we define two bindable properties.
+
+{% tabs %}
+{% tab title="name-component.ts" %}
+```typescript
+import { bindable } from 'aurelia'; 
+
+export class NameComponent {
+    @bindable firstName = '';
+    @bindable lastName  = '';
+}
+```
+{% endtab %}
+
+{% tab title="name-component.html" %}
+```markup
+<p>Hello ${firstName} ${lastName}. How are you today?</p>
+```
+{% endtab %}
+{% endtabs %}
+
+You can then use the component in this way: \``<name-component first-name="John" last-name="Smith"></name-component>`
+
+By default, Aurelia will call a change callback (if it exists) which takes the bindable property name followed by `Changed` added to the end. For example, `firstNameChanged(newVal, previousVal)` would fire every time the `firstName` bindable property is changed.
+
+## Configuring bindable properties
+
+Like almost everything in Aurelia, you can configure how bindable properties work.&#x20;
+
+* You can specify the binding mode using the `mode` property and passing in a valid `BindingMode` to it; `@bindable({ mode: BindingMode.twoWay})` - this determines which way changes flow in your binding. By default, this will be `BindingMode.oneWay`
+* You can change the name of the callback that is fired when a change is made `@bindable({ callback: 'propChanged' })`
+
+{% tabs %}
+{% tab title="name-component.ts" %}
+```typescript
+import { bindable } from 'aurelia'; 
+
+export class NameComponent {
+    @bindable({ mode: BindingMode.twoWay}) firstName = '';
+    @bindable({ callback: 'lnameChanged' }) lastName  = '';
+    
+    lnameChanged(val) {}
+}
+```
+{% endtab %}
+{% endtabs %}
 
 Bindable properties support many different binding modes determining the direction the data is bound in as well as how it is bound.
 
@@ -64,7 +107,7 @@ export class Loader {
 }
 ```
 
-### Twoway binding
+### Two-way binding
 
 Unlike the default, the two-way binding mode allows data to flow in both directions. If the value is changed with your component it flows back out and so forth.
 
@@ -75,6 +118,22 @@ export class Loader {
     @bindable({ mode: BindingMode.twoWay})
 }
 ```
+
+## Two-way binding
+
+Much like most facets of binding in Aurelia, two-way binding is intuitive. Instead of `.bind` you use `.two-way` if you need to be explicit, but in most instances, you will specify the type of binding relationship a bindable property is using with `@bindable` instead.
+
+**Explicit two-way binding looks like this:**
+
+```
+<input type="text" value.two-way="myVal">
+```
+
+Whenever the text input is updated, the `myVal` variable will get the new value. Similarly, if `myVal` were updated from within the view model, the input would get the updated value.
+
+{% hint style="info" %}
+When using `.bind` for input/form control values such as text inputs, select dropdowns and other form elements, Aurelia will automatically create a two-way binding relationship. So, the above example using a text input can be rewritten to just be `value.bind="myVal"` and it would still be a two-way binding.
+{% endhint %}
 
 ## Bindable setter
 
@@ -118,7 +177,7 @@ Define your property like this:
 @bindable({ set: /* ? */, mode: BindingMode.toView }) public navigator: BooleanString = false;
 ```
 
-For `set` part, we need functionality to check the input, If the value is one of the following, we want to return `true`, otherwise we return the `false` value.
+For `set` part, we need functionality to check the input, If the value is one of the following, we want to return `true`, otherwise, we return the `false` value.
 
 * `''`: No input for a standalone `navigator` property.
 * `true`: When the `navigator` property set to `true`.
@@ -144,7 +203,7 @@ Although, there is another way to write the functionality too
 @bindable({ set: v => v === '' || v === true || v === "true", mode: BindingMode.toView }) public navigator: BooleanString = false;
 ```
 
-You can simply use any of the above four methods to enable/disable your feature.
+You can simply use any of the above four methods to enable/disable your feature. As you can see, `set` can be used to transform the values being bound into your bindable property and offer more predictable results when dealing with primitives like booleans and numbers.
 
 ## Bindable coercion
 
@@ -170,11 +229,7 @@ export class MyApp { }
 
 Without any setter for the `@bindable` num we will end up with the string `'42'` as the value for `num` in `MyEl`. You can write a setter to coerce the value.
 
-However, it is bit annoying to write setters for every `@bindable`s. To address this issue, Aurelia2 supports type coercion.
-
-## How to use the type-coercion?
-
-To maintain the backward-compatibility, automatic type-coercion is disabled by default, and it needs to be enabled explicitly.
+However, it is bit annoying to write setters for every `@bindable`. To address this issue, Aurelia 2 supports type coercion. To maintain the backward-compatibility, automatic type-coercion is disabled by default, and it needs to be enabled explicitly.
 
 ```typescript
 new Aurelia()
@@ -190,16 +245,16 @@ new Aurelia()
 
 There are two relevant configuration options.
 
-* **`enableCoercion`**: The default value is `false`; that is Aurelia2 does not coerce the types of the `@bindable`s by default. It can be set to `true` to enable the automatic type-coercion.
+* **`enableCoercion`**: The default value is `false`; that is Aurelia 2 does not coerce the types of the `@bindable`s by default. It can be set to `true` to enable the automatic type-coercion.
 * **`coerceNullish`**: The default value is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of as the global counterpart of the `nullable` property in the bindable definition (see [Coercing nullable values](bindable-properties.md#coercing-nullable-values) section).
 
 Additionally, depending on whether you are using TypeScript or JavaScript for your app, there can be several ways to use automatic type-coercion.
 
 ### For TypeScript development
 
-For TypeScript development this gets easier when the `emitDecoratorMetadata` configuration property in `tsconfig.json` is set to `true`. When this property is set and the `@bindable` properties are annotated with types, there is no need to do anything else; Aurelia2 will do the rest.
+For TypeScript development this gets easier when the `emitDecoratorMetadata` configuration property in `tsconfig.json` is set to `true`. When this property is set and the `@bindable` properties are annotated with types, there is no need to do anything else; Aurelia 2 will do the rest.
 
-If for some reason you cannot do that then refer the next section.
+If for some reason you cannot do that then refer to the next section.
 
 ### For JavaScript development
 

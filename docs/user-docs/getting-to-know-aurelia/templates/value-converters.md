@@ -2,6 +2,18 @@
 
 Use value converters to transform how values are displayed in your applications. You can use value converters to transform strings, format dates, currency display and other forms of manipulation. They can be used within interpolation as well as with bindings, working with data to and from the view.
 
+## Understanding value converter data flow
+
+Most commonly you'll be creating value converters that translate model data to a format suitable for the view; however, there are situations where you'll need to convert data from the view to a format expected by the view model, typically when using two-way binding with input elements.
+
+### toView
+
+The `toView` method always receives the supplied value as the first argument and subsequent parameters are configuration values (if applicable). This specifies what happens to values going to the view and allows you to modify them before display.
+
+### fromView
+
+The `fromView` method always receives the supplied value as the first argument and subsequent parameters are configuration values (if applicable). This specifies what happens to values going out of the view to the view model and allows you to modify them before the view model receives the changed value.
+
 ## Using value converters
 
 To apply a value converter you use the pipe `|` character followed by the name of the value converter you want to use. If you have worked with Angular before, you would know value converters as pipes.
@@ -10,6 +22,19 @@ While Aurelia itself comes with no prebuilt value converters, this is what using
 
 ```markup
 <h1>${someValue | toLowercase}</h1>
+```
+
+The code for this value converter might look something like this:
+
+```typescript
+import { valueConverter } from 'aurelia';
+
+@valueConverter('toLowercase')
+export class ToLowercase {
+    toView(value) {
+        return value.toLowerCase();
+    }
+}
 ```
 
 ## Transforming data using multiple value converters and parameters
@@ -26,7 +51,7 @@ Value converters can be chained, meaning you can transform a value and then tran
 
 You can also create value converters that accept one or more parameters. For value converters that format data, you might want to allow the developer to specify what that format is for say a currency or date formatting value converter.
 
-Parameters are supplied using the colon `:` character and like the pipe, for multiple parameters you can chain them. Parameters can be supplied as one or more strings \(passed through to the value converter method as one or more arguments\) or a singular object.
+Parameters are supplied using the colon `:` character and like the pipe, for multiple parameters you can chain them. Parameters can be supplied as one or more strings (passed through to the value converter method as one or more arguments) or a singular object.
 
 #### Static parameters
 
@@ -52,25 +77,13 @@ export class MyApp {
 
 If your value converter is going to have a lot of parameters, the existing approaches will fall apart quite quickly. You can specify your value converters take a single object of one or more parameters. Using object parameters will also let you name them unlike other forms of parameters.
 
-```text
+```
 <ul>
     <li repeat.for="user of users | sort: { propertyName: 'age', direction: 'descending' }">${user.name}</li>
 </ul>
 ```
 
 On our `fromView` and `toView` methods, the second argument will be the supplied object which we can then reference.
-
-## Understanding value converter data flow
-
-Most commonly you'll be creating value converters that translate model data to a format suitable for the view; however, there are situations where you'll need to convert data from the view to a format expected by the view model, typically when using two-way binding with input elements.
-
-### toView
-
-The `toView` method always receives the supplied value as the first argument and subsequent parameters are configuration values \(if applicable\). This specifies what happens to values going to the view and allows you to modify them before display.
-
-### fromView
-
-The `fromView` method always receives the supplied value as the first argument and subsequent parameters are configuration values \(if applicable\). This specifies what happens to values going out of the view to the view model and allows you to modify them before the view model receives the changed value.
 
 ## Creating value converters
 
@@ -124,23 +137,22 @@ export class FormatDateValueConverter {
 
 Import your value converter in your view
 
-```text
+```
 <import from="./date-value-converter" />
 ```
 
 This example value below will display `June 22, 2021` in your view. Because our default date format is US, it will display as month-date-year.
 
-```text
+```
 <p>${'2021-06-22T09:21:26.699Z' | date}</p>
 ```
 
 We specified that our value converter supports a parameter called locale which allows us to change how our dates are displayed. Say you're in the UK or Australia, the default format is then date-month-year.
 
-```text
+```
 <p>${'2021-06-22T09:21:26.699Z' | date:'en-GB'}</p>
 ```
 
 To see our value converter in action, here is what it looks like:
 
-{% embed url="https://stackblitz.com/edit/aurelia-date-value-converter?embed=1&file=my-app.html&hideExplorer=1&view=preview" caption="" %}
-
+{% embed url="https://stackblitz.com/edit/aurelia-date-value-converter?embed=1&file=my-app.html&hideExplorer=1&view=preview" %}

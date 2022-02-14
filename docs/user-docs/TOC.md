@@ -104,6 +104,7 @@
 * [Building a realtime cryptocurrency price tracker](tutorials/building-a-realtime-cryptocurrency-price-tracker.md)
 * [Building a widget-based dashboard](tutorials/create-a-dashboard-using-dynamic-composition.md)
 * [Building a todo application](tutorials/building-a-todo-application.md)
+* [Synthetic view](tutorials/synthetic-view.md)
 
 ## Community Contribution
 

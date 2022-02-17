@@ -42,6 +42,12 @@ npx makes aurelia
 
 You will then be presented with the Aurelia CLI screen which will first ask for a project name, then guide you through some options. The fastest way to get started is by choosing either the ESNext or TypeScript default options (1 and 2).
 
+We highly recommend choosing TypeScript for any new Aurelia applications. With TypeScript you get the benefits of intellisense and type safety.
+
 ## Run the app
 
 Once the CLI process is finished and you have installed the dependencies for your new app, run `npm start` in the project directory, a browser window will open up with the new Aurelia application you just generated running.
+
+## Ready to dive deeper?
+
+Take a look at our beginner-friendly obligatory hello world introduction to Aurelia [here](quick-start-guide/). And if you want to dive even deeper (perhaps you've dabbled in Aurelia before) we have a fantastic selection of tutorials [here](broken-reference).

@@ -1,6 +1,6 @@
 # Strongly-typed Template
 
-Many users may be familiar with libraries such as [FAST Element](https://www.fast.design/docs/fast-element/declaring-templates) or [lit-html ](https://lit-html.polymer-project.org/). They want to know how to write strongly-typed templates with Aurelia.
+Many users may be familiar with libraries such as [FAST Element](https://www.fast.design/docs/fast-element/declaring-templates) or [lit-html ](https://lit-html.polymer-project.org). They want to know how to write strongly-typed templates with Aurelia.
 
 In the following, we will see how to write a template as follows and introduce it to Aurelia.
 
@@ -12,11 +12,10 @@ export const buttonTemplate = html<BootstrapButton>`
 `;
 ```
 
-To do this, we need two simple functionality so, create a `strongly-typed-template` file.
+To do this, we need two simple pieces of functionality so, create a `strongly-typed-template` file.
 
+{% code title="strongly-typed-template.ts" %}
 ```typescript
-// strongly-typed-template.ts
-
 type TemplateValue<T> = { [P in keyof T]: T[P] extends Function ? never : P }[keyof T] | ((val: T) => unknown);;
 
 function parse(val: any) {
@@ -55,20 +54,19 @@ export const html = <TSource = any>(
     return html;
 }
 ```
+{% endcode %}
 
 The idea behind the code is really simple. First, we separate strings and variables parts inside `html` function.
 
-string\(s\):
+string(s):
 
 ```markup
-<button class="btn btn-primary btn-
-
-" ref="atButtonTemplate">
+<button class="btn btn-primary btn-lg" ref="atButtonTemplate">
 
 </button>
 ```
 
-variable\(s\):
+variable(s):
 
 ```typescript
 x => x.size
@@ -78,13 +76,12 @@ x => x.block ? 'btn-block' : ''
 (x) => x.getName()
 ```
 
-Then, for variable parts, we remove the lambda part \(`VARIABLE => VARIABLE.`\) by regex via `parse` function. Finally, an HTML is created according to the acceptable standards for the Aurelia template engine.
+Then, for variable parts, we remove the lambda part (`VARIABLE => VARIABLE.`) by regex via `parse` function. Finally, an HTML is created according to the acceptable standards for the Aurelia template engine.
 
 The generic parameter in this function is actually your **view-model**.
 
+{% code title="bs-button-template.ts" %}
 ```typescript
-// bs-button-temlate.ts
-
 import { html } from './strongly-typed-template';
 
 // BootstrapButton is my view-model
@@ -94,12 +91,12 @@ export const buttonTemplate = html<BootstrapButton>`
     </button>
 `;
 ```
+{% endcode %}
 
 Now, we have to introduce this strongly-typed template to Aurelia via `template` option.
 
+{% code title="bs-button.ts" %}
 ```typescript
-// bs-button.ts
-
 import { buttonTemplate } from "./bs-button-temlate";
 
 @customElement({ name: "bs-button", template: buttonTemplate /* HERE */ })
@@ -111,4 +108,4 @@ export class BootstrapButton /* view-model */ {
     }
 }
 ```
-
+{% endcode %}

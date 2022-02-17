@@ -41,6 +41,7 @@
 * [Dependency injection (DI)](getting-to-know-aurelia/dependency-injection-di.md)
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
 * [Scope and context](getting-to-know-aurelia/scope-and-binding-context.md)
+* [Logging](getting-to-know-aurelia/logging.md)
 
 ## Developer Guides
 

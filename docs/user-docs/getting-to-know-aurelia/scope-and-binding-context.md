@@ -97,7 +97,9 @@ export class App implements ICustomElementViewModel {
 ```
 {% endcode %}
 
-Note that we haven't assigned any value explicitly to the `$controller` property; and that is assigned by the Aurelia pipeline. We can use the `$controller.scope` to access the scope, and subsequently `$controller.scope.bindingContext` can be used to access the binding context. Note how the `bindingContext` in the above example points to `this`, that is the current instance of `App` (with template controllers, this gets little bit more involved; but we will leave that one out for now). However, in the context of evaluating expressions, we refer the source of data as a "context".
+Note that we haven't assigned any value explicitly to the `$controller` property; and that is assigned by the Aurelia pipeline. We can use the `$controller.scope` to access the scope, and subsequently `$controller.scope.bindingContext` can be used to access the binding context.&#x20;
+
+Note how the `bindingContext` in the above example points to `this`, that is the current instance of `App` (with template controllers, this gets little bit more involved; but we will leave that one out for now). However, in the context of evaluating expressions, we refer the source of data as a "context".
 
 The relations explored so far can be expressed as follows.
 

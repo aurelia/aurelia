@@ -40,6 +40,7 @@
 * [Custom attributes](getting-to-know-aurelia/custom-attributes.md)
 * [Dependency injection (DI)](getting-to-know-aurelia/dependency-injection-di.md)
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
+* [App Tasks](getting-to-know-aurelia/app-tasks.md)
 * [Scope and context](getting-to-know-aurelia/scope-and-binding-context.md)
 * [Logging](getting-to-know-aurelia/logging.md)
 

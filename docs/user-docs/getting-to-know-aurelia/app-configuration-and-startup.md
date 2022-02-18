@@ -108,22 +108,6 @@ new Aurelia()
   .start();
 ```
 
-## App Tasks
-
-Falling somewhere in between component lifecycles and lifecycle hooks, app tasks offer injection points into Aurelia applications that occur at certain points of the compiler lifecycle. Think of them as low-level framework hooks.
-
-The app task API has the following calls:
-
-* beforeCreate
-* hydrating
-* hydrated
-* beforeActivate
-* afterActivate
-* beforeDeactivate
-* afterDeactivate
-
-You register the app tasks with the container, so during the instantiation of Aurelia or within a plugin (which Aurelia instantiates). In fact, there are many examples of using app tasks throughout the documentation. Such as [MS Fast integration](../reference/examples/integration/ms-fast.md), [building plugins](../developer-guides/building-plugins.md), and the section on using the [template compiler](../developer-guides/scenarios/the-template-compiler.md).
-
 ## Enhance
 
 The startup sections showed how to start Aurelia for an empty root node. While that's the most frequent use case, there might be other scenarios where we would like to work with an existing DOM tree with Aurelia.&#x20;

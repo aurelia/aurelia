@@ -4,6 +4,28 @@ This section details common scenarios and tasks using the router in your Aurelia
 
 It is highly recommended that you familiarize yourself with other parts of the router documentation before consulting this section, as we will introduce concepts that you might not be familiar with just yet that are mentioned in other sections of the router documentation.
 
+## Styling Active Router Links
+
+A common scenario is styling an active router link with styling to signify that the link is active, such as making the text bold. The `load` attribute has a bindable property named `active` which you can bind to a property on your view-model to use for conditionally applying a class:
+
+```css
+.active {
+    font-weight: bold;
+}
+```
+
+```html
+<a active.class="_settings" load="route:settings; active.bind:_settings">
+    Settings
+</a>
+```
+
+The `active` property is a boolean value that we bind to. In this example, we use an underscore to signify this is a private property.
+
+{% hint style="info" %}
+You do not need to explicitly declare this property in your view model since it is a from-view binding. The underscore prefix of \_settings has no special meaning to the framework, it is just a common convention for private properties which can make sense for properties that are not explicitly declared in the view model.
+{% endhint %}
+
 ## Setting The Title
 
 While you would in many cases set the title of a route in your route configuration object using the `title` property, sometimes you want the ability to specify the title property from within the routed component itself.

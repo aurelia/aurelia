@@ -47,7 +47,7 @@
 ## Developer Guides
 
 * [Routing](developer-guides/routing/README.md)
-  * [Routing fundamentals](developer-guides/routing/common-routing-tasks.md)
+  * [Router configuration](developer-guides/routing/router-configuration.md)
   * [Creating routes](developer-guides/routing/creating-routes.md)
   * [Routing lifecycle](developer-guides/routing/routing-lifecycle.md)
   * [Viewports](developer-guides/routing/viewports.md)
@@ -55,6 +55,8 @@
   * [Navigating](developer-guides/routing/navigating.md)
   * [Route hooks](developer-guides/routing/router-hooks.md)
   * [Route events](developer-guides/routing/route-events.md)
+  * [Direct Routing](developer-guides/routing/direct-routing.md)
+  * [Routing fundamentals](developer-guides/routing/common-routing-tasks.md)
 * [Validation](developer-guides/validation/README.md)
   * [Plugin configuration](developer-guides/validation/registering-the-plugin.md)
   * [Defining & Customizing Rules](developer-guides/validation/defining-rules.md)

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { IContainer, ILogger, isObject, DI, IDisposable, onResolve } from '@aurelia/kernel';
+import { IContainer, ILogger, isObject, DI, IDisposable, onResolve, Writable } from '@aurelia/kernel';
 import { CustomElementDefinition, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context.js';
@@ -106,6 +106,13 @@ export class RouterOptions {
      * Default: `ignore`
      */
     public readonly sameUrlStrategy: ValueOrFunc<SameUrlStrategy>,
+
+    /**
+     * An optional handler to build the tile.
+     * When configured, the work of building the title string is completely handed over to this function.
+     * If this function returns `null`, the title is not updated.
+     */
+    public readonly buildTitle: ((transition: Transition) => string | null) | null,
   ) { }
 
   public static create(input: IRouterOptions): RouterOptions {
@@ -120,6 +127,7 @@ export class RouterOptions {
       input.fragmentStrategy ?? 'overwrite',
       input.historyStrategy ?? 'push',
       input.sameUrlStrategy ?? 'ignore',
+      input.buildTitle ?? null,
     );
   }
   /** @internal */
@@ -166,6 +174,7 @@ export class RouterOptions {
       this.fragmentStrategy,
       this.historyStrategy,
       this.sameUrlStrategy,
+      this.buildTitle,
     );
   }
 
@@ -217,6 +226,7 @@ export class NavigationOptions extends RouterOptions {
       routerOptions.fragmentStrategy,
       routerOptions.historyStrategy,
       routerOptions.sameUrlStrategy,
+      routerOptions.buildTitle,
     );
   }
 
@@ -426,6 +436,9 @@ export class Router {
   private nextTr: Transition | null = null;
   private locationChangeSubscription: IDisposable | null = null;
 
+  /** @internal */
+  public readonly hasTitleBuilder: boolean = false;
+
   public constructor(
     @IContainer private readonly container: IContainer,
     @IPlatform private readonly p: IPlatform,
@@ -454,6 +467,7 @@ export class Router {
 
   public start(routerOptions: IRouterOptions, performInitialNavigation: boolean): void | Promise<boolean> {
     this.options = RouterOptions.create(routerOptions);
+    (this as Writable<Router>).hasTitleBuilder = typeof this.options.buildTitle === 'function';
 
     this.locationMgr.startListening();
     this.locationChangeSubscription = this.events.subscribe('au:router:location-change', e => {
@@ -884,6 +898,7 @@ export class Router {
   }
 
   private getTitle(tr: Transition): string {
+    if(this.hasTitleBuilder) return this.options.buildTitle!(tr) ?? '';
     switch (typeof tr.options.title) {
       case 'function':
         return tr.options.title.call(void 0, tr.routeTree.root) ?? '';

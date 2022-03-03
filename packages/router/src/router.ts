@@ -898,7 +898,6 @@ export class Router {
   }
 
   private getTitle(tr: Transition): string {
-    if(this.hasTitleBuilder) return this.options.buildTitle!(tr) ?? '';
     switch (typeof tr.options.title) {
       case 'function':
         return tr.options.title.call(void 0, tr.routeTree.root) ?? '';
@@ -910,7 +909,7 @@ export class Router {
   }
 
   private updateTitle(tr: Transition): string {
-    const title = this.getTitle(tr);
+    const title = this.hasTitleBuilder ? (this.options.buildTitle!(tr) ?? '') : this.getTitle(tr);
     if (title.length > 0) {
       this.p.document.title = title;
     }

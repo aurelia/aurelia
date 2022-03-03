@@ -908,7 +908,7 @@ export class Router {
     }
   }
 
-  private updateTitle(tr: Transition): string {
+  public updateTitle(tr: Transition = this.currentTr): string {
     const title = this.hasTitleBuilder ? (this.options.buildTitle!(tr) ?? '') : this.getTitle(tr);
     if (title.length > 0) {
       this.p.document.title = title;

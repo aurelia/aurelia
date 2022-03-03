@@ -1,7 +1,7 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route } from '@aurelia/router';
-import { Aurelia, customElement, CustomElement } from '@aurelia/runtime-html';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, IRouterOptions } from '@aurelia/router';
+import { Aurelia, customElement, CustomElement, IPlatform } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
 
@@ -922,6 +922,7 @@ describe('router (smoke tests)', function () {
     }
 
     @route({
+      title: 'base',
       routes: [
         { path: ['a', 'a/:foo'], component: VmA, title: 'A', },
         { path: ['', 'b'], component: VmB, title: 'B' },
@@ -931,18 +932,20 @@ describe('router (smoke tests)', function () {
     class AppRoot { }
 
     // eslint-disable-next-line no-inner-declarations
-    async function start() {
+    async function start(buildTitle: IRouterOptions['buildTitle'] | null = null) {
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(ctx, LogLevel.warn));
-      container.register(RouterConfiguration);
+      container.register(
+        TestRouterConfiguration.for(ctx, LogLevel.warn),
+        RouterConfiguration.customize({ buildTitle }),
+      );
 
       const au = new Aurelia(container);
       const host = ctx.createElement('div');
 
       await au.app({ component: AppRoot, host }).start();
-      return { host, au };
+      return { host, au, container };
     }
 
     it('queryString - #1', async function () {
@@ -985,6 +988,33 @@ describe('router (smoke tests)', function () {
       await vmb.redirect4();
 
       assert.html.textContent(host, 'view-a foo: fizz | query: foo=bar');
+
+      await au.stop();
+    });
+
+    it('shows title correctly', async function () {
+      const { host, au, container } = await start();
+      assert.strictEqual(container.get(IPlatform).document.title, 'B | base');
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirect1();
+
+      assert.strictEqual(container.get(IPlatform).document.title, 'A | base');
+
+      await au.stop();
+    });
+
+    it('respects custom buildTitle', async function () {
+      const { host, au, container } = await start((tr) => {
+        const root = tr.routeTree.root;
+        return `${root.context.definition.config.title} - ${root.children.map(c => c.title).join(' - ')}`;
+      });
+      assert.strictEqual(container.get(IPlatform).document.title, 'base - B');
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirect1();
+
+      assert.strictEqual(container.get(IPlatform).document.title, 'base - A');
 
       await au.stop();
     });

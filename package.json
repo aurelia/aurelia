@@ -13,7 +13,7 @@
     "packages/metadata",
     "packages/platform",
     "packages/platform-browser",
-    "packages/router",
+    "packages/router-lite",
     "packages/route-recognizer",
     "packages/runtime",
     "packages/runtime-html",

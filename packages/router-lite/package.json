@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/router",
+  "name": "@aurelia/router-lite",
   "version": "2.0.0-alpha.24",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",

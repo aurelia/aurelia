@@ -1,5 +1,5 @@
 import { customElement } from '@aurelia/runtime-html';
-import { IRouter } from '@aurelia/router';
+import { IRouter } from '@aurelia/router-lite';
 import { BooksRepository } from '../../repositories/books';
 import { Information } from './information';
 import { RedirectAbout } from './redirect-about';

@@ -6,7 +6,7 @@ import {
   IRouter,
   route,
   RouterConfiguration
-} from '@aurelia/router';
+} from '@aurelia/router-lite';
 import {
   Aurelia,
   CustomAttribute,

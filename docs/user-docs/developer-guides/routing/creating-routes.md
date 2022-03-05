@@ -133,7 +133,7 @@ If you have more than a few routes, it might be best practice to write your rout
 The syntax for routes stays the same using the decorator, just how they are defined changes slightly.
 
 ```typescript
-import { route, IRouteViewModel } from '@aurelia/router'; 
+import { route, IRouteViewModel } from '@aurelia/router-lite';
 
 @route({
     routes: [

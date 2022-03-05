@@ -20,7 +20,7 @@ import {
   RouteNode as RN,
   NavigationInstruction as NI,
   RouterConfiguration,
-} from '@aurelia/router';
+} from '@aurelia/router-lite';
 import { assert, TestContext } from '@aurelia/testing';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';

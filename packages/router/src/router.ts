@@ -108,7 +108,7 @@ export class RouterOptions {
     public readonly sameUrlStrategy: ValueOrFunc<SameUrlStrategy>,
 
     /**
-     * An optional handler to build the tile.
+     * An optional handler to build the title.
      * When configured, the work of building the title string is completely handed over to this function.
      * If this function returns `null`, the title is not updated.
      */
@@ -437,7 +437,7 @@ export class Router {
   private locationChangeSubscription: IDisposable | null = null;
 
   /** @internal */
-  public readonly hasTitleBuilder: boolean = false;
+  public readonly _hasTitleBuilder: boolean = false;
 
   public constructor(
     @IContainer private readonly container: IContainer,
@@ -467,7 +467,7 @@ export class Router {
 
   public start(routerOptions: IRouterOptions, performInitialNavigation: boolean): void | Promise<boolean> {
     this.options = RouterOptions.create(routerOptions);
-    (this as Writable<Router>).hasTitleBuilder = typeof this.options.buildTitle === 'function';
+    (this as Writable<Router>)._hasTitleBuilder = typeof this.options.buildTitle === 'function';
 
     this.locationMgr.startListening();
     this.locationChangeSubscription = this.events.subscribe('au:router:location-change', e => {
@@ -909,7 +909,7 @@ export class Router {
   }
 
   public updateTitle(tr: Transition = this.currentTr): string {
-    const title = this.hasTitleBuilder ? (this.options.buildTitle!(tr) ?? '') : this.getTitle(tr);
+    const title = this._hasTitleBuilder ? (this.options.buildTitle!(tr) ?? '') : this.getTitle(tr);
     if (title.length > 0) {
       this.p.document.title = title;
     }

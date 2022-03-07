@@ -182,6 +182,7 @@ module.exports = function (config) {
       'karma-coverage-istanbul-reporter',
       'karma-min-reporter',
       'karma-chrome-launcher',
+      'karma-firefox-launcher',
     ]
   };
 

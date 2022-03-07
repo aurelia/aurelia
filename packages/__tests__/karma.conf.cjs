@@ -180,6 +180,7 @@ module.exports = function (config) {
       'karma-aurelia-preprocessor',
       'karma-coverage-istanbul-instrumenter',
       'karma-coverage-istanbul-reporter',
+      'karma-min-reporter',
       'karma-chrome-launcher',
     ]
   };

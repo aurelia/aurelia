@@ -175,6 +175,13 @@ module.exports = function (config) {
     },
     logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
     // logLevel: config.LOG_DEBUG,
+    plugins: [
+      'karma-mocha',
+      'karma-aurelia-preprocessor',
+      'karma-coverage-istanbul-instrumenter',
+      'karma-coverage-istanbul-reporter',
+      'karma-chrome-launcher',
+    ]
   };
 
   if (config.coverage) {

@@ -30,6 +30,7 @@
     "test-chrome:debugger": "karma start karma.conf.cjs --browsers=ChromeDebugging --watch-extensions js,html",
     "test-chrome:debugger:verbose": "karma start karma.conf.cjs --browsers=ChromeDebugging --watch-extensions js,html --reporter=mocha",
     "test:debugger": "npm run test-chrome:debugger",
+    "test": "npm run test-chrome",
     "build": "tsc --build",
     "dev": "tsc --build -w --preserveWatchOutput",
     "rollup": "npm run build"

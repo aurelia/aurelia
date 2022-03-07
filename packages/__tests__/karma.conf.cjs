@@ -68,7 +68,7 @@ module.exports = function (config) {
 
   const testFilePatterns = cliArgs.length > 0
     ? cliArgs.flatMap(arg => [
-        `${baseUrl}/**/*${arg.replace(/(?:\.spec(?:\.[tj]s)?)?$/, '.spec.js')}`,
+        `${baseUrl}/**/*${arg.replace(/(?:\.spec(?:\.[tj]s)?)?$/, '*.spec.js')}`,
         `${baseUrl}/**/${arg}/**/*.spec.js`,
     ])
     : [`${baseUrl}/**/*.spec.js`];

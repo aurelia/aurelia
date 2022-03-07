@@ -89,6 +89,9 @@
     "generate-tests:template-compiler.mutations": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.mutations.ts",
     "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts",
     "rollup": "lage rollup",
+    "test": "cd packages/__tests__ && npm run test",
+    "test:ci": "npm ci && npm run test",
+    "test:watch": "cd packages/__tests__ && npm run test-chrome:watch",
     "test:debugger": "cd packages/__tests__ && npm run test-chrome:debugger"
   },
   "devDependencies": {

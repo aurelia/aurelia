@@ -257,7 +257,7 @@ export class RouteNode implements IRouteNode {
       }).join(',')}`);
     }
 
-    return `RN(ctx:'${this.context.friendlyPath}',${props.join(',')})`;
+    return `RN(ctx:'${this.context?.friendlyPath}',${props.join(',')})`;
   }
 }
 

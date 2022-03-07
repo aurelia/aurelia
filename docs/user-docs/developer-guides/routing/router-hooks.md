@@ -154,7 +154,7 @@ In this example, we will create a service class that will contain our methods fo
 In a real application, your login and logout methods would obtain a token and authentication data. For the purposes of this example, we have an if statement which checks for a specific username and password being supplied.
 
 {% hint style="warning" %}
-This is only an example. It is by no means an officially recommended way in how you should handle authentication using router hooks. Please use this code as a guide for creating your own solutions.
+This is only an example. Please use this code as a guide for creating your own solutions. Never blindly copy and paste code without taking the time to understand it first, especially when it comes to authentication.
 {% endhint %}
 
 {% tabs %}

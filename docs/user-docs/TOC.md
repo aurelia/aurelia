@@ -40,12 +40,14 @@
 * [Custom attributes](getting-to-know-aurelia/custom-attributes.md)
 * [Dependency injection (DI)](getting-to-know-aurelia/dependency-injection-di.md)
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
+* [App Tasks](getting-to-know-aurelia/app-tasks.md)
 * [Scope and context](getting-to-know-aurelia/scope-and-binding-context.md)
+* [Logging](getting-to-know-aurelia/logging.md)
 
 ## Developer Guides
 
 * [Routing](developer-guides/routing/README.md)
-  * [Routing fundamentals](developer-guides/routing/common-routing-tasks.md)
+  * [Router configuration](developer-guides/routing/router-configuration.md)
   * [Creating routes](developer-guides/routing/creating-routes.md)
   * [Routing lifecycle](developer-guides/routing/routing-lifecycle.md)
   * [Viewports](developer-guides/routing/viewports.md)
@@ -53,6 +55,8 @@
   * [Navigating](developer-guides/routing/navigating.md)
   * [Route hooks](developer-guides/routing/router-hooks.md)
   * [Route events](developer-guides/routing/route-events.md)
+  * [Direct Routing](developer-guides/routing/direct-routing.md)
+  * [Routing fundamentals](developer-guides/routing/common-routing-tasks.md)
 * [Validation](developer-guides/validation/README.md)
   * [Plugin configuration](developer-guides/validation/registering-the-plugin.md)
   * [Defining & Customizing Rules](developer-guides/validation/defining-rules.md)
@@ -104,6 +108,7 @@
 * [Building a realtime cryptocurrency price tracker](tutorials/building-a-realtime-cryptocurrency-price-tracker.md)
 * [Building a widget-based dashboard](tutorials/create-a-dashboard-using-dynamic-composition.md)
 * [Building a todo application](tutorials/building-a-todo-application.md)
+* [Synthetic view](tutorials/synthetic-view.md)
 
 ## Community Contribution
 

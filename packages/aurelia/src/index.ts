@@ -464,6 +464,8 @@ export {
   Bindable,
   coercer,
 
+  observable,
+
   // PartialChildrenDefinition,
   // ChildrenDefinition,
   // Children,

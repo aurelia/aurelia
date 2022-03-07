@@ -758,12 +758,6 @@ describe('router config', function () {
   });
 });
 
-function join(sep: string, ...parts: string[]): string {
-  return parts.filter(function (x) {
-    return x && x.split('@')[0];
-  }).join(sep);
-}
-
 function getAllAsyncSpecs(count: number): HookSpecs {
   return HookSpecs.create({
     binding: hookSpecsMap.binding.async(count),

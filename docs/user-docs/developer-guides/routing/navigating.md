@@ -105,10 +105,11 @@ And where things really start to get interesting is when you want to pass parame
 <a load="route:profile; params.bind:{name: 'rob'}">View Profile</a>
 ```
 
-In the above example, we provide the route value. But, then also provide an object of parameters. These parameter values correspond to any parameters configured in your route definition. In our case, our route looks like this:
+In the above example, we provide the route (`id`) value (via `route: profile`). But, then also provide an object of parameters (via `params.bind: { name: 'rob' }`). These parameter values correspond to any parameters configured in your route definition. In our case, our route looks like this:
 
 ```typescript
 {
+    id: 'profile',
     path: 'profile/:name',
     component: () => import('./view-profile'),
     title: 'View Profile'

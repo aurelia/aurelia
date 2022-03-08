@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-alpha.24",
+  "version": "2.0.0-alpha.25",
   "workspaces": [
     "packages/__tests__",
     "packages/__e2e__/router-configured-basic",

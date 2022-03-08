@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.25"></a>
+# 2.0.0-alpha.25 (2022-03-08)
+
+### Features:
+
+* **router:** custom title builder ([765df97](https://github.com/aurelia/aurelia/commit/765df97))
+
+
+### Bug Fixes:
+
+* **deps:** update dependency marked to v4 [security] (#1323) ([da0436c](https://github.com/aurelia/aurelia/commit/da0436c))
+* **router:** ensured base title ([2d01292](https://github.com/aurelia/aurelia/commit/2d01292))
+
+
+### BREAKING CHANGES:
+
+* **router:** renamed `@aurelia/router` to `@aurelia/router-lite` ([a28be0c](https://github.com/aurelia/aurelia/commit/a28be0c))
+
 <a name="2.0.0-alpha.24"></a>
 # 2.0.0-alpha.24 (2022-01-18)
 

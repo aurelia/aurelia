@@ -22,7 +22,7 @@
   },
   "include": ["."],
   "exclude": [
-    "router/e2e",
+    "router-lite/e2e",
     "dist"
   ]
 }

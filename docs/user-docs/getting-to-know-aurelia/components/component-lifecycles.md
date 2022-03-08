@@ -17,7 +17,7 @@ When the framework instantiates a component, it calls your class's constructor, 
 Furthermore, the constructor is where you handle the injection of depencies using dependency injection. You will learn about DI in the dependency injection section, but here is a basic example of where the constructor is used.
 
 ```typescript
-import { IRouter } from '@aurelia/router'; 
+import { IRouter } from '@aurelia/router-lite';
 
 export class MyComponent {
     constructor(@IRouter readonly router: IRouter) {
@@ -36,7 +36,7 @@ To make a change only the first time the hook is invoked for an instance underne
 ```typescript
 export class MyComponent {
     define(controller: IDryCustomElementController<this>, hydrationContext: IHydrationContext<unknown>, definition: CustomElementDefinition<Constructable<{}>>) {
-        
+
     }
 }
 ```
@@ -52,7 +52,7 @@ From a caching perspective, it has a direct 1-1 parity with the `define` hook: t
 ```typescript
 export class MyComponent {
     hydrating(controller: IContextualCustomElementController<this>) {
-        
+
     }
 }
 ```
@@ -66,7 +66,7 @@ The "hydrated" hook is a good place to contextually influence the way child comp
 ```typescript
 export class MyComponent {
     hydrated(controller: IContextualCustomElementController<this>) {
-        
+
     }
 }
 ```
@@ -82,7 +82,7 @@ Here you can perform any last-minute work that requires having all child compone
 ```typescript
 export class MyComponent {
     created(controller: IContextualCustomElementController<this>) {
-        
+
     }
 }
 ```
@@ -100,7 +100,7 @@ You can optionally return a `Promise` either making the method asynchronous or c
 ```typescript
 export class MyComponent {
     binding(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags) {
-        
+
     }
 }
 ```
@@ -114,7 +114,7 @@ If your component has a method named "bound", then the framework will invoke it 
 ```typescript
 export class MyComponent {
     bound(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags) {
-        
+
     }
 }
 ```
@@ -128,7 +128,7 @@ If your component has a method named "attaching", then the framework will invoke
 ```typescript
 export class MyComponent {
     attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags) {
-        
+
     }
 }
 ```
@@ -142,7 +142,7 @@ If your component has a method named "attached", then the framework will invoke 
 ```typescript
 export class MyComponent {
     attached(initiator: IHydratedController, flags: LifecycleFlags) {
-        
+
     }
 }
 ```
@@ -156,7 +156,7 @@ If your component has a method named "detaching", then the framework will invoke
 ```typescript
 export class MyComponent {
     detaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags) {
-        
+
     }
 }
 ```
@@ -170,7 +170,7 @@ If your component has a method named "unbinding", then the framework will invoke
 ```typescript
 export class MyComponent {
     unbinding(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags) {
-        
+
     }
 }
 ```

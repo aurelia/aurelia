@@ -213,7 +213,7 @@ export {
 
   RouterConfiguration,
   RouterRegistration,
-} from '@aurelia/router';
+} from '@aurelia/router-lite';
 
 export {
   // CallFunctionExpression,

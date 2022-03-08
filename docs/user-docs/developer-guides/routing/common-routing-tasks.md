@@ -33,7 +33,7 @@ The title can be configured in the root level, as well as in the individual rout
 This can be seen in the following example using the `@route` decorator.
 
 ```typescript
-import { route, IRouteViewModel } from '@aurelia/router';
+import { route, IRouteViewModel } from '@aurelia/router-lite';
 
 @route({
     title: 'Aurelia', // <-- this is the base title
@@ -74,7 +74,7 @@ Using the `buildTitle` method from the router customization the default title-bu
 
 ```typescript
 // main.ts
-import { RouterConfiguration, Transition } from '@aurelia/router';
+import { RouterConfiguration, Transition } from '@aurelia/router-lite';
 import { Aurelia } from '@aurelia/runtime-html';
 
 const au = new Aurelia();
@@ -126,7 +126,7 @@ In the next step we make use of the `buildTitle` customization as well as a `App
 ```typescript
 import { I18N, Signals } from '@aurelia/i18n';
 import { IEventAggregator } from '@aurelia/kernel';
-import { IRouter, RouterConfiguration, Transition } from '@aurelia/router';
+import { IRouter, RouterConfiguration, Transition } from '@aurelia/router-lite';
 import { AppTask, Aurelia } from '@aurelia/runtime-html';
 
 (async function () {

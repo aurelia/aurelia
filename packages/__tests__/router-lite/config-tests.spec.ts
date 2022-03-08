@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { customElement, ICustomElementController } from '@aurelia/runtime-html';
-import { IRouterOptions, ResolutionMode, SwapStrategy, route, Route } from '@aurelia/router';
+import { IRouterOptions, ResolutionMode, SwapStrategy, route, Route } from '@aurelia/router-lite';
 import { assert } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker.js';
@@ -757,12 +757,6 @@ describe('router config', function () {
     });
   });
 });
-
-function join(sep: string, ...parts: string[]): string {
-  return parts.filter(function (x) {
-    return x && x.split('@')[0];
-  }).join(sep);
-}
 
 function getAllAsyncSpecs(count: number): HookSpecs {
   return HookSpecs.create({

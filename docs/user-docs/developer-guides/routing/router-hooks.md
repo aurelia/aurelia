@@ -112,7 +112,7 @@ class Log2 {
 
 export class MyComponent {
     static dependencies = [Log1, Log2];
-    
+
     async load() {
         console.log('3.start');
         await Promise.resolve();
@@ -138,7 +138,7 @@ export class LifecycleLogger {
         console.log(`invoking canLoad on ${next.component.name}`);
         return true;
     }
-    
+
     load(viewModel, params, next, current) {
         console.log(`invoking load on ${next.component.name}`);
     }
@@ -168,14 +168,14 @@ export class AuthHook {
 
     constructor(readonly api: Api) {
     }
-    
+
     canLoad(viewModel, params: Params, next: RouteNode, current: RouteNode) {
         const canProceed = next.data.isAuth && this.auth.isLoggedIn;
-        
+
         if (canProceed) {
             return true;
         }
-        
+
         return 'no-access';
     }
 }
@@ -184,7 +184,7 @@ export class AuthHook {
 
 {% tab title="src/services/auth-service.ts" %}
 ```typescript
-import { IRouter} from '@aurelia/router';
+import { IRouter} from '@aurelia/router-lite';
 
 export class AuthService {
     isLoggedIn = false;
@@ -228,13 +228,13 @@ export class AuthService {
 import { IRouteViewModel } from "aurelia";
 
 // Import our hook
-import { AuthHook } from './router-hooks/auth-hook'; 
+import { AuthHook } from './router-hooks/auth-hook';
 
 export class SettingsPage implements IRouteViewModel {
     // Register the hook with this component
-    
+
     static dependencies = [AuthHook];
-    
+
     static data = { isAuth: true };
 }
 ```

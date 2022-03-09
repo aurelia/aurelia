@@ -80,8 +80,6 @@ export {
   RoutingMode,
   ResolutionMode,
   SwapStrategy,
-  QueryParamsStrategy,
-  FragmentStrategy,
   HistoryStrategy,
   SameUrlStrategy,
 } from './router.js';

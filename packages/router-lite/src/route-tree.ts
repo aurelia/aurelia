@@ -572,8 +572,8 @@ function createConfiguredNode(
           ...node.params,
           ...rr.route.params
         },
-        queryParams: rt.queryParams, // TODO: queryParamsStrategy
-        fragment: rt.fragment, // TODO: fragmentStrategy
+        queryParams: rt.queryParams,
+        fragment: rt.fragment,
         data: $handler.data,
         viewport: vpName,
         component: ced,
@@ -720,8 +720,8 @@ function createDirectNode(
       ...ctx.node.params,
       ...vi.params,
     },
-    queryParams: rt.queryParams, // TODO: queryParamsStrategy
-    fragment: rt.fragment, // TODO: fragmentStrategy
+    queryParams: rt.queryParams,
+    fragment: rt.fragment,
     data: rd.data,
     viewport: vpName,
     component: ced,

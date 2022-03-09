@@ -33,8 +33,6 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
 export type RoutingMode = 'configured-only' | 'configured-first';
 export type SwapStrategy = 'sequential-add-first' | 'sequential-remove-first' | 'parallel-remove-first';
 export type ResolutionMode = 'static' | 'dynamic';
-export type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
-export type FragmentStrategy = 'overwrite' | 'preserve';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
 export type SameUrlStrategy = 'ignore' | 'reload';
 export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
@@ -61,29 +59,17 @@ export class RouterOptions {
      * Default: `configured-first`
      */
     public readonly routingMode: RoutingMode,
+    /**
+     * The strategy to deactivate the current component and activate the next one.
+     *
+     * - `sequential-add-first`: the next component is activated before deactivating the current component; this happens sequentially.
+     * - `sequential-remove-first`: the current component is deactivated before activating the next component; this happens sequentially (default).
+     * - `parallel-remove-first`: the deactivation of the current component and the activation of the next component happens on parallel.
+     *
+     * Default: `sequential-remove-first`
+     */
     public readonly swapStrategy: SwapStrategy,
     public readonly resolutionMode: ResolutionMode,
-    /**
-     * The strategy to use for determining the query parameters when both the previous and the new url has a query string.
-     *
-     * - `overwrite`: uses the query params of the new url. (default)
-     * - `preserve`: uses the query params of the previous url.
-     * - `merge`: uses the query params of both the previous and the new url. When a param name exists in both, the value from the new url is used.
-     * - A function that returns one of the 3 above values based on the navigation.
-     *
-     * Default: `overwrite`
-     */
-    public readonly queryParamsStrategy: ValueOrFunc<QueryParamsStrategy>,
-    /**
-     * The strategy to use for determining the fragment (value that comes after `#`) when both the previous and the new url have one.
-     *
-     * - `overwrite`: uses the fragment of the new url. (default)
-     * - `preserve`: uses the fragment of the previous url.
-     * - A function that returns one of the 2 above values based on the navigation.
-     *
-     * Default: `overwrite`
-     */
-    public readonly fragmentStrategy: ValueOrFunc<FragmentStrategy>,
     /**
      * The strategy to use for interacting with the browser's `history` object (if applicable).
      *
@@ -121,20 +107,10 @@ export class RouterOptions {
       input.routingMode ?? 'configured-first',
       input.swapStrategy ?? 'sequential-remove-first',
       input.resolutionMode ?? 'dynamic',
-      input.queryParamsStrategy ?? 'overwrite',
-      input.fragmentStrategy ?? 'overwrite',
       input.historyStrategy ?? 'push',
       input.sameUrlStrategy ?? 'ignore',
       input.buildTitle ?? null,
     );
-  }
-  /** @internal */
-  public getQueryParamsStrategy(instructions: ViewportInstructionTree): QueryParamsStrategy {
-    return valueOrFuncToValue(instructions, this.queryParamsStrategy);
-  }
-  /** @internal */
-  public getFragmentStrategy(instructions: ViewportInstructionTree): FragmentStrategy {
-    return valueOrFuncToValue(instructions, this.fragmentStrategy);
   }
   /** @internal */
   public getHistoryStrategy(instructions: ViewportInstructionTree): HistoryStrategy {
@@ -150,8 +126,6 @@ export class RouterOptions {
       ['routingMode', 'mode'],
       ['swapStrategy', 'swap'],
       ['resolutionMode', 'resolution'],
-      ['queryParamsStrategy', 'queryParams'],
-      ['fragmentStrategy', 'fragment'],
       ['historyStrategy', 'history'],
       ['sameUrlStrategy', 'sameUrl'],
     ] as const).map(([key, name]) => {
@@ -167,8 +141,6 @@ export class RouterOptions {
       this.routingMode,
       this.swapStrategy,
       this.resolutionMode,
-      this.queryParamsStrategy,
-      this.fragmentStrategy,
       this.historyStrategy,
       this.sameUrlStrategy,
       this.buildTitle,
@@ -218,8 +190,6 @@ export class NavigationOptions extends RouterOptions {
       routerOptions.routingMode,
       routerOptions.swapStrategy,
       routerOptions.resolutionMode,
-      routerOptions.queryParamsStrategy,
-      routerOptions.fragmentStrategy,
       routerOptions.historyStrategy,
       routerOptions.sameUrlStrategy,
       routerOptions.buildTitle,

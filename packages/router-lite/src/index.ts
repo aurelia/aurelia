@@ -79,7 +79,6 @@ export {
   Navigation,
   RoutingMode,
   ResolutionMode,
-  SwapStrategy,
   HistoryStrategy,
   SameUrlStrategy,
 } from './router.js';

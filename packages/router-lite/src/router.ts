@@ -31,7 +31,6 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
 }
 
 export type RoutingMode = 'configured-only' | 'configured-first';
-export type SwapStrategy = 'sequential-add-first' | 'sequential-remove-first' | 'parallel-remove-first';
 export type ResolutionMode = 'static' | 'dynamic';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
 export type SameUrlStrategy = 'ignore' | 'reload';
@@ -59,16 +58,6 @@ export class RouterOptions {
      * Default: `configured-first`
      */
     public readonly routingMode: RoutingMode,
-    /**
-     * The strategy to deactivate the current component and activate the next one.
-     *
-     * - `sequential-add-first`: the next component is activated before deactivating the current component; this happens sequentially.
-     * - `sequential-remove-first`: the current component is deactivated before activating the next component; this happens sequentially (default).
-     * - `parallel-remove-first`: the deactivation of the current component and the activation of the next component happens on parallel.
-     *
-     * Default: `sequential-remove-first`
-     */
-    public readonly swapStrategy: SwapStrategy,
     public readonly resolutionMode: ResolutionMode,
     /**
      * The strategy to use for interacting with the browser's `history` object (if applicable).
@@ -105,7 +94,6 @@ export class RouterOptions {
       input.useUrlFragmentHash ?? false,
       input.useHref ?? true,
       input.routingMode ?? 'configured-first',
-      input.swapStrategy ?? 'sequential-remove-first',
       input.resolutionMode ?? 'dynamic',
       input.historyStrategy ?? 'push',
       input.sameUrlStrategy ?? 'ignore',
@@ -124,7 +112,6 @@ export class RouterOptions {
   protected stringifyProperties(): string {
     return ([
       ['routingMode', 'mode'],
-      ['swapStrategy', 'swap'],
       ['resolutionMode', 'resolution'],
       ['historyStrategy', 'history'],
       ['sameUrlStrategy', 'sameUrl'],
@@ -139,7 +126,6 @@ export class RouterOptions {
       this.useUrlFragmentHash,
       this.useHref,
       this.routingMode,
-      this.swapStrategy,
       this.resolutionMode,
       this.historyStrategy,
       this.sameUrlStrategy,
@@ -188,7 +174,6 @@ export class NavigationOptions extends RouterOptions {
       routerOptions.useUrlFragmentHash,
       routerOptions.useHref,
       routerOptions.routingMode,
-      routerOptions.swapStrategy,
       routerOptions.resolutionMode,
       routerOptions.historyStrategy,
       routerOptions.sameUrlStrategy,

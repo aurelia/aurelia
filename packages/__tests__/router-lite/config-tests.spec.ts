@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { customElement, ICustomElementController } from '@aurelia/runtime-html';
-import { IRouterOptions, ResolutionMode, SwapStrategy, route, Route } from '@aurelia/router-lite';
+import { IRouterOptions, ResolutionMode, route, Route } from '@aurelia/router-lite';
 import { assert } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker.js';
@@ -82,7 +82,6 @@ export function* interleave(
 
 export interface IRouterOptionsSpec {
   resolution: ResolutionMode;
-  swapStrategy: SwapStrategy;
   toString(): string;
 }
 
@@ -109,27 +108,10 @@ export abstract class SimpleActivityTrackingVMBase {
 
 describe('router config', function () {
   describe.skip('monomorphic timings', function () {
-    const deferUntils: ResolutionMode[] = [
+    const routerOptionsSpecs: IRouterOptionsSpec[] = ([
       'dynamic',
       'static',
-    ];
-    const swapStrategies: SwapStrategy[] = [
-      'parallel-remove-first',
-      'sequential-add-first',
-      'sequential-remove-first',
-    ];
-    const routerOptionsSpecs: IRouterOptionsSpec[] = [];
-    for (const resolution of deferUntils) {
-      for (const swapStrategy of swapStrategies) {
-        routerOptionsSpecs.push({
-          resolution,
-          swapStrategy,
-          toString() {
-            return `resolution:'${resolution}',swapStrategy:'${swapStrategy}'`;
-          },
-        });
-      }
-    }
+    ] as const).map((resolution) => ({ resolution, toString() { return `resolution:'${resolution}'`; } }));
 
     const componentSpecs: IComponentSpec[] = [
       {
@@ -274,30 +256,8 @@ describe('router config', function () {
                       yield `${phase}.${$t1c}.unload`;
                       yield `${phase}.${$t2c}.load`;
 
-                      switch (routerOptionsSpec.swapStrategy) {
-                        case 'parallel-remove-first':
-                          switch (componentSpec.kind) {
-                            case 'all-sync':
-                              yield* prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose');
-                              yield* prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached');
-                              break;
-                            case 'all-async':
-                              yield* interleave(
-                                prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose'),
-                                prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached'),
-                              );
-                              break;
-                          }
-                          break;
-                        case 'sequential-remove-first':
-                          yield* prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose');
-                          yield* prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached');
-                          break;
-                        case 'sequential-add-first':
-                          yield* prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached');
-                          yield* prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose');
-                          break;
-                      }
+                      yield* prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose');
+                      yield* prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached');
                     }
 
                     yield `stop.root2.detaching`;

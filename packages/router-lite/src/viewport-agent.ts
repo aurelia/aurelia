@@ -550,67 +550,26 @@ export class ViewportAgent {
         const deactivateFlags = this.viewport.stateful ? LifecycleFlags.none : LifecycleFlags.dispose;
         const activateFlags = LifecycleFlags.none;
         b.push();
-        switch (tr.options.swapStrategy) {
-          case 'sequential-add-first':
-            Batch.start(b1 => {
-              tr.run(() => {
-                b1.push();
-                return nextCA.activate(null, controller, activateFlags);
-              }, () => {
-                b1.pop();
-              });
-            }).continueWith(b1 => {
-              this.processDynamicChildren(tr, b1);
-            }).continueWith(() => {
-              tr.run(() => {
-                return curCA.deactivate(null, controller, deactivateFlags);
-              }, () => {
-                b.pop();
-              });
-            }).start();
-            return;
-          case 'sequential-remove-first':
-            Batch.start(b1 => {
-              tr.run(() => {
-                b1.push();
-                return curCA.deactivate(null, controller, deactivateFlags);
-              }, () => {
-                b1.pop();
-              });
-            }).continueWith(b1 => {
-              tr.run(() => {
-                b1.push();
-                return nextCA.activate(null, controller, activateFlags);
-              }, () => {
-                b1.pop();
-              });
-            }).continueWith(b1 => {
-              this.processDynamicChildren(tr, b1);
-            }).continueWith(() => {
-              b.pop();
-            }).start();
-            return;
-          case 'parallel-remove-first':
-            tr.run(() => {
-              b.push();
-              return curCA.deactivate(null, controller, deactivateFlags);
-            }, () => {
-              b.pop();
-            });
-            Batch.start(b1 => {
-              tr.run(() => {
-                b1.push();
-                return nextCA.activate(null, controller, activateFlags);
-              }, () => {
-                b1.pop();
-              });
-            }).continueWith(b1 => {
-              this.processDynamicChildren(tr, b1);
-            }).continueWith(() => {
-              b.pop();
-            }).start();
-            return;
-        }
+        Batch.start(b1 => {
+          tr.run(() => {
+            b1.push();
+            return curCA.deactivate(null, controller, deactivateFlags);
+          }, () => {
+            b1.pop();
+          });
+        }).continueWith(b1 => {
+          tr.run(() => {
+            b1.push();
+            return nextCA.activate(null, controller, activateFlags);
+          }, () => {
+            b1.pop();
+          });
+        }).continueWith(b1 => {
+          this.processDynamicChildren(tr, b1);
+        }).continueWith(() => {
+          b.pop();
+        }).start();
+        return;
       }
     }
   }

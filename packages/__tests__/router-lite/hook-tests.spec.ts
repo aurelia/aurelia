@@ -14,7 +14,6 @@ import {
 import {
   IRouterOptions,
   ResolutionMode,
-  SwapStrategy,
   IRouter,
   Params as P,
   RouteNode as RN,
@@ -472,7 +471,6 @@ function* interleave(
 }
 export interface Iopts {
   resolutionMode: ResolutionMode;
-  swapStrategy: SwapStrategy;
 }
 
 export interface IComponentSpec {
@@ -539,18 +537,11 @@ function $forEachRouterOptions(cb: (opts: Iopts) => void) {
       'dynamic',
       'static',
     ] as ResolutionMode[]) {
-      for (const swapStrategy of [
-        'parallel-remove-first',
-        'sequential-add-first',
-        'sequential-remove-first',
-      ] as SwapStrategy[]) {
-        describe(`resolution:'${resolutionMode}', swap:'${swapStrategy}'`, function () {
-          cb({
-            resolutionMode,
-            swapStrategy,
-          });
+      describe(`resolution:'${resolutionMode}'`, function () {
+        cb({
+          resolutionMode,
         });
-      }
+      });
     }
   };
 }
@@ -661,17 +652,8 @@ describe('router hooks', function () {
                       yield* $(phase, $t1, ticks, 'unload');
                       yield* $(phase, $t2, ticks, 'load');
 
-                      switch (opts.swapStrategy) {
-                        case 'parallel-remove-first':
-                        case 'sequential-remove-first':
-                          yield* $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose');
-                          yield* $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached');
-                          break;
-                        case 'sequential-add-first':
-                          yield* $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached');
-                          yield* $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose');
-                          break;
-                      }
+                      yield* $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose');
+                      yield* $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached');
                     }
 
                     yield* $('stop', [t4, 'root2'], ticks, 'detaching');
@@ -692,22 +674,8 @@ describe('router hooks', function () {
                       yield* $(phase, $t1, ticks, 'unload');
                       yield* $(phase, $t2, ticks, 'load');
 
-                      switch (opts.swapStrategy) {
-                        case 'parallel-remove-first':
-                          yield* interleave(
-                            $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose'),
-                            $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached'),
-                          );
-                          break;
-                        case 'sequential-remove-first':
-                          yield* $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose');
-                          yield* $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached');
-                          break;
-                        case 'sequential-add-first':
-                          yield* $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached');
-                          yield* $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose');
-                          break;
-                      }
+                      yield* $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose');
+                      yield* $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached');
                     }
 
                     yield* interleave(
@@ -832,21 +800,10 @@ describe('router hooks', function () {
                       if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'load'); }
                       if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'load'); }
 
-                      switch (opts.swapStrategy) {
-                        case 'parallel-remove-first':
-                        case 'sequential-remove-first':
-                          if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); }
-                          if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                          if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); }
-                          if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                          break;
-                        case 'sequential-add-first':
-                          if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                          if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); }
-                          if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                          if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); }
-                          break;
-                      }
+                      if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); }
+                      if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); }
+                      if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); }
+                      if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); }
                     }
 
                     yield* $('stop', [t2.vp0, t2.vp1, 'root2'], ticks, 'detaching');
@@ -883,40 +840,16 @@ describe('router hooks', function () {
                         (function* () { if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'load'); } })(),
                       );
 
-                      switch (opts.swapStrategy) {
-                        case 'parallel-remove-first':
-                          yield* interleave(
-                            (function* () { if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); } })(),
-                            (function* () { if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); } })(),
-                            (function* () { if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); } })(),
-                            (function* () { if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); } })(),
-                          );
-                          break;
-                        case 'sequential-remove-first':
-                          yield* interleave(
-                            (function* () {
-                              if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); }
-                              if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                            })(),
-                            (function* () {
-                              if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); }
-                              if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                            })(),
-                          );
-                          break;
-                        case 'sequential-add-first':
-                          yield* interleave(
-                            (function* () {
-                              if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                              if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); }
-                            })(),
-                            (function* () {
-                              if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                              if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); }
-                            })(),
-                          );
-                          break;
-                      }
+                      yield* interleave(
+                        (function* () {
+                          if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); }
+                          if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); }
+                        })(),
+                        (function* () {
+                          if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); }
+                          if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); }
+                        })(),
+                      );
                     }
 
                     yield* interleave(
@@ -1037,17 +970,8 @@ describe('router hooks', function () {
                         yield* $(phase, $t1.c, ticks, 'unload');
                         yield* $(phase, $t2.c, ticks, 'load');
 
-                        switch (opts.swapStrategy) {
-                          case 'parallel-remove-first':
-                          case 'sequential-remove-first':
-                            yield* $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose');
-                            yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
-                            break;
-                          case 'sequential-add-first':
-                            yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
-                            yield* $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose');
-                            break;
-                        }
+                        yield* $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose');
+                        yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
                       } else {
                         yield* $(phase, [$t1.c, $t1.p], ticks, 'canUnload');
                         yield* $(phase, $t2.p, ticks, 'canLoad');
@@ -1064,18 +988,10 @@ describe('router hooks', function () {
                             break;
                         }
 
-                        switch (opts.swapStrategy) {
-                          case 'parallel-remove-first':
-                          case 'sequential-remove-first':
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'detaching');
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unbinding');
-                            yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
-                            yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching');
-                            break;
-                          case 'sequential-add-first':
-                            yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching');
-                            break;
-                        }
+                        yield* $(phase, [$t1.c, $t1.p], ticks, 'detaching');
+                        yield* $(phase, [$t1.c, $t1.p], ticks, 'unbinding');
+                        yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
+                        yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching');
 
                         switch (opts.resolutionMode) {
                           case 'dynamic':
@@ -1085,14 +1001,6 @@ describe('router hooks', function () {
                           case 'static':
                             yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
                             yield* $(phase, $t2.p, ticks, 'attached');
-                            break;
-                        }
-
-                        switch (opts.swapStrategy) {
-                          case 'sequential-add-first':
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'detaching');
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unbinding');
-                            yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
                             break;
                         }
                       }
@@ -1134,22 +1042,8 @@ describe('router hooks', function () {
                         yield* $(phase, $t1.c, ticks, 'unload');
                         yield* $(phase, $t2.c, ticks, 'load');
 
-                        switch (opts.swapStrategy) {
-                          case 'parallel-remove-first':
-                            yield* interleave(
-                              $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose'),
-                              $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached'),
-                            );
-                            break;
-                          case 'sequential-remove-first':
-                            yield* $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose');
-                            yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
-                            break;
-                          case 'sequential-add-first':
-                            yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
-                            yield* $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose');
-                            break;
-                        }
+                        yield* $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose');
+                        yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
                       } else {
                         yield* $(phase, [$t1.c, $t1.p], ticks, 'canUnload');
                         yield* $(phase, $t2.p, ticks, 'canLoad');
@@ -1165,108 +1059,24 @@ describe('router hooks', function () {
                             yield* $(phase, [$t2.p, $t2.c], ticks, 'load');
                             break;
                         }
+                        yield* interleave(
+                          $(phase, $t1.c, ticks, 'detaching', 'unbinding'),
+                          $(phase, $t1.p, ticks, 'detaching', 'unbinding'),
+                        );
+                        yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
 
-                        switch (opts.swapStrategy) {
-                          case 'parallel-remove-first':
-                            yield* interleave(
-                              $(phase, $t1.c, ticks, 'detaching'),
-                              $(phase, $t1.p, ticks, 'detaching'),
-                              $(phase, $t2.p, ticks, 'binding'),
-                            );
-                            // If there's a parent + child, then the Promise.all of the 'detaching' and 'unbinding' hooks
-                            // add one extra tick overhead putting the next phase one tick behind relatively.
-                            // The empty yields are to account for that, pushing those hooks one tick down.
-                            yield* interleave(
-                              (function* () {
-                                yield* $(phase, $t1.c, ticks, 'unbinding');
-                              })(),
-                              (function* () {
-                                yield* $(phase, $t1.p, ticks, 'unbinding');
-                              })(),
-                              (function* () {
-                                yield* $(phase, $t2.p, ticks, 'bound');
-                              })(),
-                            );
-
-                            switch (opts.resolutionMode) {
-                              case 'dynamic':
-                                yield* interleave(
-                                  (function* () {
-                                    yield* $(phase, $t1.p, ticks, 'dispose');
-                                  })(),
-                                  (function* () {
-                                    yield* $(phase, $t1.c, ticks, 'dispose');
-                                  })(),
-                                  (function* () {
-                                    yield* $(phase, $t2.p, ticks, 'attaching');
-                                  })(),
-                                );
-                                yield* $(phase, $t2.p, ticks, 'attached');
-                                yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
-                                break;
-                              case 'static':
-                                yield* interleave(
-                                  (function* () {
-                                    yield* $(phase, $t1.p, ticks, 'dispose');
-                                  })(),
-                                  (function* () {
-                                    yield* $(phase, $t1.c, ticks, 'dispose');
-                                  })(),
-                                  (function* () {
-                                    yield* $(phase, $t2.p, ticks, 'attaching');
-                                  })(),
-                                  (function* () {
-                                    yield* $(phase, $t2.c, ticks, 'binding');
-                                  })(),
-                                );
-                                yield* $(phase, $t2.c, ticks, 'bound', 'attaching', 'attached');
-                                yield* $(phase, $t2.p, ticks, 'attached');
-                                break;
-                            }
+                        switch (opts.resolutionMode) {
+                          case 'dynamic':
+                            yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
+                            yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                             break;
-                          case 'sequential-remove-first':
+                          case 'static':
+                            yield* $(phase, $t2.p, ticks, 'binding', 'bound');
                             yield* interleave(
-                              $(phase, $t1.c, ticks, 'detaching', 'unbinding'),
-                              $(phase, $t1.p, ticks, 'detaching', 'unbinding'),
+                              $(phase, $t2.p, ticks, 'attaching'),
+                              $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached'),
                             );
-                            yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
-
-                            switch (opts.resolutionMode) {
-                              case 'dynamic':
-                                yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
-                                yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
-                                break;
-                              case 'static':
-                                yield* $(phase, $t2.p, ticks, 'binding', 'bound');
-                                yield* interleave(
-                                  $(phase, $t2.p, ticks, 'attaching'),
-                                  $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached'),
-                                );
-                                yield* $(phase, $t2.p, ticks, 'attached');
-                                break;
-                            }
-                            break;
-                          case 'sequential-add-first':
-                            switch (opts.resolutionMode) {
-                              case 'dynamic':
-                                yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
-                                yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
-                                break;
-                              case 'static':
-                                yield* $(phase, $t2.p, ticks, 'binding', 'bound');
-                                yield* interleave(
-                                  $(phase, $t2.p, ticks, 'attaching'),
-                                  $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached'),
-                                );
-                                yield* $(phase, $t2.p, ticks, 'attached');
-                                break;
-                            }
-
-                            yield* interleave(
-                              $(phase, $t1.c, ticks, 'detaching', 'unbinding'),
-                              $(phase, $t1.p, ticks, 'detaching', 'unbinding'),
-                            );
-                            yield* $(phase, [$t1.p,  $t1.c], ticks, 'dispose');
+                            yield* $(phase, $t2.p, ticks, 'attached');
                             break;
                         }
                       }
@@ -2144,20 +1954,6 @@ describe('router hooks', function () {
         'detaching',
         'unbinding',
       ] as HookName[]) {
-        let throwsInTarget1: boolean;
-        switch (opts.swapStrategy) {
-          case 'sequential-add-first':
-            throwsInTarget1 = false;
-            break;
-          case 'sequential-remove-first':
-            throwsInTarget1 = true;
-            break;
-          case 'parallel-remove-first':
-            // Would be hookName === 'detaching' if things were async
-            throwsInTarget1 = true;
-            break;
-        }
-
         runTest({
           async action(router, container) {
             const target1 = CustomElement.define({ name: 'a', template: null }, class Target1 {
@@ -2177,8 +1973,8 @@ describe('router hooks', function () {
             await router.load(target1);
             await router.load(target2);
           },
-          messageMatcher: new RegExp(`error in ${throwsInTarget1 ? hookName : 'binding'}`),
-          stackMatcher: new RegExp(`${throwsInTarget1 ? 'Target1' : 'Target2'}.${throwsInTarget1 ? hookName : 'binding'}`),
+          messageMatcher: new RegExp(`error in ${hookName}`),
+          stackMatcher: new RegExp(`Target1.${hookName}`),
           toString() {
             return `${String(this.messageMatcher)} with binding,bound,attaching`;
           },

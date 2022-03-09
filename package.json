@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-alpha.24",
+  "version": "2.0.0-alpha.25",
   "workspaces": [
     "packages/__tests__",
     "packages/__e2e__/router-configured-basic",
@@ -89,6 +89,9 @@
     "generate-tests:template-compiler.mutations": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.mutations.ts",
     "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts",
     "rollup": "lage rollup",
+    "test": "cd packages/__tests__ && npm run test",
+    "test:ci": "npm ci && npm run test",
+    "test:watch": "cd packages/__tests__ && npm run test-chrome:watch",
     "test:debugger": "cd packages/__tests__ && npm run test-chrome:debugger"
   },
   "devDependencies": {
@@ -106,7 +109,7 @@
     "eslint-plugin-mocha": "^8.2.0",
     "fancy-log": "^1.3.3",
     "husky": "^4.3.0",
-    "lage": "^0.26.2",
+    "lage": "^0.31.2",
     "rimraf": "^3.0.0",
     "rollup": "^2.56.2",
     "rollup-plugin-terser": "^7.0.2",

@@ -52,7 +52,6 @@ export class RouterOptions {
   protected constructor(
     public readonly useUrlFragmentHash: boolean,
     public readonly useHref: boolean,
-    public readonly statefulHistoryLength: number,
     /**
      * The operating mode of the router that determines how components are resolved based on a url.
      *
@@ -119,7 +118,6 @@ export class RouterOptions {
     return new RouterOptions(
       input.useUrlFragmentHash ?? false,
       input.useHref ?? true,
-      input.statefulHistoryLength ?? 0,
       input.routingMode ?? 'configured-first',
       input.swapStrategy ?? 'sequential-remove-first',
       input.resolutionMode ?? 'dynamic',
@@ -166,7 +164,6 @@ export class RouterOptions {
     return new RouterOptions(
       this.useUrlFragmentHash,
       this.useHref,
-      this.statefulHistoryLength,
       this.routingMode,
       this.swapStrategy,
       this.resolutionMode,
@@ -218,7 +215,6 @@ export class NavigationOptions extends RouterOptions {
     super(
       routerOptions.useUrlFragmentHash,
       routerOptions.useHref,
-      routerOptions.statefulHistoryLength,
       routerOptions.routingMode,
       routerOptions.swapStrategy,
       routerOptions.resolutionMode,

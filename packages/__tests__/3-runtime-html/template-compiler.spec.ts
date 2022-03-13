@@ -1,3 +1,7 @@
+/* eslint-disable no-extra-boolean-cast */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import {
   Constructable,
   IContainer,
@@ -13,6 +17,7 @@ import {
 import {
   ExpressionType,
   ForOfStatement,
+  Interpolation,
   parseExpression,
 } from '@aurelia/runtime';
 import {
@@ -48,6 +53,9 @@ import {
   HydrateAttributeInstruction,
   AttrSyntax,
   If,
+  attributePattern,
+  PropertyBindingInstruction,
+  InterpolationInstruction,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -1735,6 +1743,126 @@ describe(`TemplateCompiler - combinations`, function () {
       );
     });
   });
+
+  describe('with attribute patterns', function () {
+    // all tests are using pattern that is `my-attr`
+    // and the template will have an element with an attribute `my-attr`
+    const createPattern = (createSyntax: (rawName: string, rawValue: string, parts: string[]) => AttrSyntax) => {
+      @attributePattern(
+        { pattern: 'my-attr', symbols: '' }
+      )
+      class MyAttrPattern {
+        public 'my-attr'(rawName: string, rawValue: string, parts: string[]) {
+          return createSyntax(rawName, rawValue, parts);
+        }
+      }
+      return MyAttrPattern;
+    };
+    const compileWithPattern = (Pattern: Constructable, extras: any[] = []) => {
+      const { sut, container } = createFixture(TestContext.create(), Pattern, ...extras);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<div my-attr>',
+      }, container, { projections: null });
+
+      return { sut, container, definition };
+    };
+
+    it('works with pattern returning command', function () {
+      const MyPattern = createPattern((name, val, _parts) => new AttrSyntax(name, val, 'id', 'bind'));
+      const { definition } = compileWithPattern(MyPattern);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        [new PropertyBindingInstruction(new PrimitiveLiteralExpression(''), 'id', BindingMode.toView)]
+      );
+    });
+
+    it('works when pattern returning interpolation', function () {
+      const MyPattern = createPattern((name, _val, _parts) => new AttrSyntax(name, `\${a}a`, 'id', null));
+      const { definition } = compileWithPattern(MyPattern);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        [new InterpolationInstruction(new Interpolation(['', 'a'], [new AccessScopeExpression('a')]), 'id')]
+      );
+    });
+
+    it('ignores when pattern DOES NOT return command or interpolation', function () {
+      const MyPattern = createPattern((name, val, _parts) => new AttrSyntax(name, val, 'id', null));
+      const { definition } = compileWithPattern(MyPattern);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        undefined
+      );
+      assert.deepStrictEqual(
+        (definition.template as HTMLTemplateElement).content.querySelector('div').className,
+        ''
+      );
+    });
+
+    it('lets pattern control the binding value', function () {
+      const MyPattern = createPattern((name, _val, _parts) => new AttrSyntax(name, 'bb', 'id', 'bind'));
+      const { definition } = compileWithPattern(MyPattern);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        // default value is '' attr pattern changed it to 'bb'
+        [new PropertyBindingInstruction(new AccessScopeExpression('bb'), 'id', BindingMode.toView)]
+      );
+    });
+
+    it('works with pattern returning custom attribute + command', function () {
+      @customAttribute({
+        name: 'my-attr'
+      })
+      class MyAttr {}
+      const MyPattern = createPattern((name, _val, _parts) => new AttrSyntax(name, 'bb', 'my-attr', 'bind'));
+      const { definition } = compileWithPattern(MyPattern, [MyAttr]);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
+          new PropertyBindingInstruction(new AccessScopeExpression('bb'), 'value', BindingMode.toView)
+        ])]
+      );
+    });
+
+    it('works with pattern returning custom attribute + multi bindings', function () {
+      @customAttribute({
+        name: 'my-attr'
+      })
+      class MyAttr {}
+      const MyPattern = createPattern((name, _val, _parts) => new AttrSyntax(name, 'value.bind: bb', 'my-attr', null));
+      const { definition } = compileWithPattern(MyPattern, [MyAttr]);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
+          new PropertyBindingInstruction(new AccessScopeExpression('bb'), 'value', BindingMode.toView)
+        ])]
+      );
+    });
+
+    it('works with pattern returning custom attribute + interpolation', function () {
+      @customAttribute({
+        name: 'my-attr'
+      })
+      class MyAttr {}
+      const MyPattern = createPattern((name, _val, _parts) =>
+        new AttrSyntax(name, `\${bb}`, 'my-attr', null)
+      );
+      const { definition } = compileWithPattern(MyPattern, [MyAttr]);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
+          new InterpolationInstruction(new Interpolation(['', ''], [new AccessScopeExpression('bb')]), 'value')
+        ])]
+      );
+    });
+  });
 });
 
 describe('TemplateCompiler - local templates', function () {
@@ -2401,7 +2529,7 @@ class BindablesInfo<T extends 0 | 1 = 0> {
       primary = attrs.value = BindableDefinition.create('value', def.Type, { mode: defaultBindingMode });
     }
 
-    return new BindablesInfo(attrs, bindables, primary!);
+    return new BindablesInfo(attrs, bindables, primary);
   }
 
   protected constructor(

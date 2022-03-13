@@ -588,6 +588,14 @@ describe('router hooks', function () {
 
       const A1 = [A11, A12, A13, A14];
 
+      @route({
+        routes: [
+          { path: 'a01', component: A01 },
+          { path: 'a02', component: A02 },
+          { path: 'a03', component: A03 },
+          { path: 'a04', component: A04 },
+        ]
+      })
       @customElement({ name: 'root2', template: vp(2) })
       class Root2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
       @customElement({ name: 'a21', template: vp(2) })

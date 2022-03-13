@@ -7,6 +7,7 @@ import { IRouteContext } from './route-context.js';
 import { isPartialChildRouteConfig, isPartialRedirectRouteConfig } from './validation.js';
 import { ensureArrayOfStrings, ensureString } from './util.js';
 
+export const defaultViewportName = 'default';
 export class RouteDefinition {
   public readonly hasExplicitPath: boolean;
   public readonly caseSensitive: boolean;
@@ -24,7 +25,7 @@ export class RouteDefinition {
     this.caseSensitive = config.caseSensitive;
     this.path = ensureArrayOfStrings(config.path ?? component!.name);
     this.redirectTo = config.redirectTo ?? null;
-    this.viewport = config.viewport ?? 'default';
+    this.viewport = config.viewport ?? defaultViewportName;
     this.id = ensureString(config.id ?? this.path);
     this.data = config.data ?? {};
   }

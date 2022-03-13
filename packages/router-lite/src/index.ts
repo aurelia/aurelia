@@ -77,7 +77,6 @@ export {
   NavigationOptions,
   Transition,
   Navigation,
-  RoutingMode,
   ResolutionMode,
   HistoryStrategy,
   SameUrlStrategy,

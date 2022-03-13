@@ -23,11 +23,11 @@ export async function createFixture<T extends Constructable>(
   Component: T,
   deps: Constructable[],
   createHIAConfig: () => IHIAConfig,
-  createRouterOptions: () => IRouterOptions,
+  createRouterOptions?: () => IRouterOptions,
   level: LogLevel = LogLevel.fatal,
 ) {
   const hiaConfig = createHIAConfig();
-  const routerOptions = createRouterOptions();
+  const routerOptions = createRouterOptions?.();
   const ctx = TestContext.create();
   const { container, platform } = ctx;
 

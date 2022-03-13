@@ -11,6 +11,7 @@ import { IRouteContext } from './route-context.js';
 import { Transition, ResolutionMode, NavigationOptions } from './router.js';
 import { TransitionPlan } from './route.js';
 import { Batch, mergeDistinct } from './util.js';
+import { defaultViewportName } from './route-definition.js';
 
 export class ViewportRequest {
   public constructor(
@@ -19,15 +20,6 @@ export class ViewportRequest {
     public readonly resolution: ResolutionMode,
     public readonly append: boolean,
   ) { }
-
-  public static create(input: ViewportRequest): ViewportRequest {
-    return new ViewportRequest(
-      input.viewportName,
-      input.componentName,
-      input.resolution,
-      input.append,
-    );
-  }
 
   public toString(): string {
     return `VR(viewport:'${this.viewportName}',component:'${this.componentName}',resolution:'${this.resolution}',append:${this.append})`;
@@ -156,7 +148,7 @@ export class ViewportAgent {
       return false;
     }
 
-    if (req.viewportName.length > 0 && this.viewport.name !== req.viewportName) {
+    if (req.viewportName !== defaultViewportName && this.viewport.name !== req.viewportName) {
       this.logger.trace(`handles(req:%s) -> false (names don't match)`, req);
       return false;
     }

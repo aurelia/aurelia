@@ -560,6 +560,12 @@ describe('router (smoke tests)', function () {
       class A {}
       @customElement({ name: 'b', template: 'b' })
       class B {}
+      @route({
+        routes: [
+          { path: 'a', component: A },
+          { path: 'b', component: B },
+        ]
+      })
       @customElement({
         name: 'root',
         template: `root<au-viewport default="a"></au-viewport>`,
@@ -602,6 +608,12 @@ describe('router (smoke tests)', function () {
       class A {}
       @customElement({ name: 'b', template: 'b' })
       class B {}
+      @route({
+        routes: [
+          { path: 'a', component: A },
+          { path: 'b', component: B },
+        ]
+      })
       @customElement({
         name: 'root',
         template: `root<au-viewport name="a" default="a"></au-viewport><au-viewport name="b"></au-viewport>`,
@@ -666,6 +678,13 @@ describe('router (smoke tests)', function () {
         dependencies: [B, C],
       })
       class A {}
+      @route({
+        routes: [
+          { path: 'a', component: A },
+          { path: 'b', component: B },
+          { path: 'c', component: C },
+        ]
+      })
       @customElement({
         name: 'root',
         template: `root<au-viewport default="a">`,
@@ -722,6 +741,11 @@ describe('router (smoke tests)', function () {
     it(`will load the fallback when navigating to a non-existing route with mode: ${mode}`, async function () {
       @customElement({ name: 'a', template: 'a' })
       class A {}
+      @route({
+        routes: [
+          { path: 'a', component: A },
+        ]
+      })
       @customElement({
         name: 'root',
         template: `root<au-viewport fallback="a">`,
@@ -761,12 +785,14 @@ describe('router (smoke tests)', function () {
     const a2Params: Params[] = [];
     const b1Params: Params[] = [];
     const b2arams: Params[] = [];
+    @route({ path: 'b1' })
     @customElement({ name: 'b1', template: null })
     class B1 {
       public load(params: Params) {
         b1Params.push(params);
       }
     }
+    @route({ path: 'b2' })
     @customElement({ name: 'b2', template: null })
     class B2 {
       public load(params: Params) {
@@ -793,6 +819,14 @@ describe('router (smoke tests)', function () {
         a2Params.push(params);
       }
     }
+    @route({
+      routes: [
+        { path: 'a1', component: A1 },
+        { path: 'a2', component: A2 },
+        { path: 'b1', component: B1 },
+        { path: 'b2', component: B2 },
+      ]
+    })
     @customElement({
       name: 'root',
       template: `<au-viewport name="a1"></au-viewport><au-viewport name="a2"></au-viewport>`,

@@ -30,7 +30,6 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
   return { ...state, [AuNavId]: navId };
 }
 
-export type RoutingMode = 'configured-only' | 'configured-first';
 export type ResolutionMode = 'static' | 'dynamic';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
 export type SameUrlStrategy = 'ignore' | 'reload';
@@ -49,15 +48,6 @@ export class RouterOptions {
   protected constructor(
     public readonly useUrlFragmentHash: boolean,
     public readonly useHref: boolean,
-    /**
-     * The operating mode of the router that determines how components are resolved based on a url.
-     *
-     * - `configured-only`: only match the url against configured routes.
-     * - `configured-first`: first tries to resolve by configured routes, then by component name from available dependencies. (default)
-     *
-     * Default: `configured-first`
-     */
-    public readonly routingMode: RoutingMode,
     public readonly resolutionMode: ResolutionMode,
     /**
      * The strategy to use for interacting with the browser's `history` object (if applicable).
@@ -93,7 +83,6 @@ export class RouterOptions {
     return new RouterOptions(
       input.useUrlFragmentHash ?? false,
       input.useHref ?? true,
-      input.routingMode ?? 'configured-first',
       input.resolutionMode ?? 'dynamic',
       input.historyStrategy ?? 'push',
       input.sameUrlStrategy ?? 'ignore',
@@ -111,7 +100,6 @@ export class RouterOptions {
 
   protected stringifyProperties(): string {
     return ([
-      ['routingMode', 'mode'],
       ['resolutionMode', 'resolution'],
       ['historyStrategy', 'history'],
       ['sameUrlStrategy', 'sameUrl'],
@@ -125,7 +113,6 @@ export class RouterOptions {
     return new RouterOptions(
       this.useUrlFragmentHash,
       this.useHref,
-      this.routingMode,
       this.resolutionMode,
       this.historyStrategy,
       this.sameUrlStrategy,
@@ -173,7 +160,6 @@ export class NavigationOptions extends RouterOptions {
     super(
       routerOptions.useUrlFragmentHash,
       routerOptions.useHref,
-      routerOptions.routingMode,
       routerOptions.resolutionMode,
       routerOptions.historyStrategy,
       routerOptions.sameUrlStrategy,

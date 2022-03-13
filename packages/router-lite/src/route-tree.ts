@@ -553,12 +553,12 @@ function createConfiguredNode(
       const vpName = $handler.viewport;
       const ced = $handler.component!;
 
-      const vpa = ctx.resolveViewportAgent(ViewportRequest.create({
-        viewportName: vpName,
-        componentName: ced.name,
+      const vpa = ctx.resolveViewportAgent(new ViewportRequest(
+        vpName,
+        ced.name,
+        rt.options.resolutionMode,
         append,
-        resolution: rt.options.resolutionMode,
-      }));
+      ));
 
       const router = ctx.container.get(IRouter);
       const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.container);
@@ -695,14 +695,14 @@ function createDirectNode(
 ): RouteNode {
   const ctx = node.context;
   const rt = node.tree;
-  const vpName = vi.viewport ?? 'default';
+  const vpName = vi.viewport ?? defaultViewportName;
 
-  const vpa = ctx.resolveViewportAgent(ViewportRequest.create({
-    viewportName: vpName,
-    componentName: ced.name,
+  const vpa = ctx.resolveViewportAgent(new ViewportRequest(
+    vpName,
+    ced.name,
+    rt.options.resolutionMode,
     append,
-    resolution: rt.options.resolutionMode,
-  }));
+  ));
 
   const router = ctx.container.get(IRouter);
   const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.container);

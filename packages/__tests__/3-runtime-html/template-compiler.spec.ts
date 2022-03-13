@@ -1744,7 +1744,7 @@ describe(`TemplateCompiler - combinations`, function () {
     });
   });
 
-  describe.only('with attribute patterns', function () {
+  describe('with attribute patterns', function () {
     // all tests are using pattern that is `my-attr`
     // and the template will have an element with an attribute `my-attr`
     const createPattern = (createSyntax: (rawName: string, rawValue: string, parts: string[]) => AttrSyntax) => {

@@ -1,4 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { Constructable, IRegistry } from '@aurelia/kernel';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
@@ -26,7 +25,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             public items: any[];
           }
         ),
-        assertionFn: (ctx, host, component) => {
+        assertionFn: (ctx, host, _component) => {
           assert.equal(host.childElementCount, 0, 'It should have been empty.');
           assert.notEqual(
             childrenQuerySelector(ctx.doc.body, '.portaled'),
@@ -55,7 +54,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             public items: any[];
           }
         ),
-        assertionFn: (ctx, host, comp) => {
+        assertionFn: (ctx, host, _comp) => {
 
           assert.equal(host.childElementCount, 0, 'It should have been empty.');
           assert.notEqual(
@@ -78,7 +77,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             public items: any[];
           }
         ),
-        assertionFn: (ctx, host, comp) => {
+        assertionFn: (ctx, host, _comp) => {
           assert.equal(host.childElementCount, 0, 'It should have been empty.');
           assert.notEqual(
             childrenQuerySelector(ctx.doc.body, '.divdiv'),
@@ -105,7 +104,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             public items: any[];
           }
         ),
-        assertionFn: (ctx, host, comp) => {
+        assertionFn: (ctx, host, _comp) => {
           assert.equal(host.childElementCount, 0, 'It should have been empty.');
           assert.notEqual(
             childrenQuerySelector(ctx.doc.body, '.divdiv'),
@@ -163,7 +162,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             'There shoulda been 1 <div.divdiv>'
           );
         },
-        postTeardownAssertionFn: (ctx, host) => {
+        postTeardownAssertionFn: (ctx, _host) => {
           assert.equal(
             childrenQuerySelector(ctx.doc.body, '.divdiv'),
             null,
@@ -186,7 +185,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             public items: any[];
           }
         ),
-        assertionFn: (ctx, host, comp) => {
+        assertionFn: (_ctx, _host, comp) => {
           // should work, or should work after a small waiting time for binding to update
           assert.notEqual(
             childrenQuerySelector(comp.localDiv, '.divdiv'),
@@ -210,14 +209,14 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             public items: any[];
           }
         ),
-        assertionFn: (ctx, host, comp) => {
+        assertionFn: (_ctx, _host, comp) => {
           assert.notEqual(
             childrenQuerySelector(comp.localDiv, '.divdiv'),
             null,
             'comp.localDiv should have contained .divdiv'
           );
         },
-        postTeardownAssertionFn: (ctx, host, comp) => {
+        postTeardownAssertionFn: (ctx, _host, _comp) => {
           assert.equal(
             childrenQuerySelectorAll(ctx.doc.body, '.divdiv').length,
             0,
@@ -241,7 +240,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             public $if: boolean;
           }
         ),
-        assertionFn: (ctx, host, comp: IPortalTestRootVm & { target: any; divdiv: HTMLDivElement }) => {
+        assertionFn: (ctx, _host, comp: IPortalTestRootVm & { target: any; divdiv: HTMLDivElement }) => {
           assert.equal(
             childrenQuerySelector(comp.localDiv, '.divdiv'),
             null,
@@ -308,7 +307,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             public $if: boolean;
           }
         ),
-        assertionFn: (ctx, host, comp: { target: any; divdiv: HTMLDivElement }) => {
+        assertionFn: (ctx, _host, comp: { target: any; divdiv: HTMLDivElement }) => {
           assert.notStrictEqual(
             childrenQuerySelector(ctx.doc.body, '.divdiv'),
             null,
@@ -402,6 +401,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
         }
 
         only
+          // eslint-disable-next-line mocha/no-exclusive-tests
           ? it.only(typeof title === 'string' ? title : title(), testFn)
           : it(typeof title === 'string' ? title : title(), testFn);
       }
@@ -433,7 +433,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
     const component = new Root();
 
     au.app({ host, component });
-    au.start();
+    void au.start();
 
     return {
       ctx,

@@ -76,22 +76,22 @@ describe('CustomAttribute', function () {
     );
   });
 
-  xit('works with alias decorator before customAttribute decorator', function () {
-    let created = false;
+  // xit('works with alias decorator before customAttribute decorator', function () {
+  //   let created = false;
 
-    @alias('au-alias')
-    @customAttribute('au-name')
-    class AuAttr {
-      public constructor() { created = true; }
-    }
+  //   @alias('au-alias')
+  //   @customAttribute('au-name')
+  //   class AuAttr {
+  //     public constructor() { created = true; }
+  //   }
 
-    @customElement({ name: 'app', template: '<div au-alias></div>', dependencies: [AuAttr] })
-    class App {}
+  //   @customElement({ name: 'app', template: '<div au-alias></div>', dependencies: [AuAttr] })
+  //   class App {}
 
-    startAndStop(App);
+  //   startAndStop(App);
 
-    assert.strictEqual(created, true, 'created');
-  });
+  //   assert.strictEqual(created, true, 'created');
+  // });
 
   it('works with alias decorator after customAttribute decorator', function () {
     let created = false;

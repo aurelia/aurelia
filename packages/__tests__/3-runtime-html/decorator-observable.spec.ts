@@ -114,6 +114,8 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       const { component, platform, testHost, tearDown, startPromise } = createFixture(`<div ref="div"></div>\${div.tagName}`, App);
       await startPromise;
 
+      assert.notDeepStrictEqual($div, noValue);
+
       assert.strictEqual(testHost.textContent, 'DIV');
       component.div = { tagName: 'hello' };
 
@@ -128,7 +130,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       class App {
         @observable
         public v: any;
-        public vChanged(input) {
+        public vChanged(_input) {
           changeCount++;
         }
       }
@@ -164,7 +166,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
           set: v => Number(v) || 0
         })
         public v: any;
-        public vChanged(input) {
+        public vChanged(_input) {
           changeCount++;
         }
       }
@@ -219,7 +221,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
           set: v => Number(v) || 0
         })
         public v: any;
-        public vChanged(input) {
+        public vChanged(_input) {
           changeCount++;
         }
       }

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   noop
 } from '@aurelia/kernel';
@@ -364,6 +362,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
       public items = getItems();
     }
     const suit = (_title: string, fn: any) => only
+      // eslint-disable-next-line mocha/no-exclusive-tests
       ? it.only(_title, fn)
       : it(_title, fn);
 

@@ -1,5 +1,4 @@
 import {
-  IPlatform,
   LifecycleFlags,
   AttributeNSAccessor,
   ClassAttributeAccessor,
@@ -32,7 +31,6 @@ function createFixture() {
 describe('AttributeNSAccessor', function () {
   let sut: AttributeNSAccessor;
   let el: HTMLElement;
-  let platform: IPlatform;
 
   const tests = [
     { name: 'href', value: '#shape1' },
@@ -72,7 +70,6 @@ describe('AttributeNSAccessor', function () {
 describe('DataAttributeAccessor', function () {
   let sut: DataAttributeAccessor;
   let el: HTMLElement;
-  let platform: IPlatform;
 
   const valueArr = [undefined, null, '', 'foo'];
   describe('getValue()', function () {
@@ -193,12 +190,12 @@ describe('StyleAccessor', function () {
     {
       title: `style binding array string/object (kebab) returns correct with static style`,
       staticStyle: `display: block;`,
-      input: ['background-color:red', { ['border-color']: 'black' }],
+      input: ['background-color:red', { 'border-color': 'black' }],
       expected: 'display: block; background-color: red; border-color: black;',
     },
     {
       title: `style binding array string/object (kebab) returns correct with no static style`,
-      input: ['background-color:red', { ['border-color']: 'black' }],
+      input: ['background-color:red', { 'border-color': 'black' }],
       expected: 'background-color: red; border-color: black;',
     },
     {
@@ -274,7 +271,7 @@ describe('StyleAccessor', function () {
         },
         {
           title: `style object (kebab) with base64 url string returns correct with static style`,
-          input: { ['background']: 'linear-gradient(90deg, rgba(255,255,255,1) 40%, rgba(255,255,255,0) 70%, rgba(255,255,255,1) 95%), url(data:image/png;base64,TEST) 110px -60px no-repeat', height: '32px' },
+          input: { background: 'linear-gradient(90deg, rgba(255,255,255,1) 40%, rgba(255,255,255,0) 70%, rgba(255,255,255,1) 95%), url(data:image/png;base64,TEST) 110px -60px no-repeat', height: '32px' },
           staticStyle: `display: block;`,
           expected: 'display: block; background: linear-gradient(90deg, rgb(255, 255, 255) 40%, rgba(255, 255, 255, 0) 70%, rgb(255, 255, 255) 95%), url("data:image/png;base64,TEST") 110px -60px no-repeat; height: 32px;',
         },
@@ -282,13 +279,13 @@ describe('StyleAccessor', function () {
     ),
     {
       title: `style object (kebab) returns correct with static style`,
-      input: { ['background-color']: 'red', height: '32px' },
+      input: { 'background-color': 'red', 'height': '32px' },
       staticStyle: `display: block;`,
       expected: 'display: block; background-color: red; height: 32px;',
     },
     {
       title: `style object (kebab) returns correct without static style`,
-      input: { ['background-color']: 'red', height: '32px' },
+      input: { 'background-color': 'red', 'height': '32px' },
       expected: 'background-color: red; height: 32px;',
     },
     {
@@ -304,35 +301,35 @@ describe('StyleAccessor', function () {
     },
     {
       title: `style object (kebab) string/object returns correct with static style`,
-      input: { ['background-color']: 'red', test: { height: '32px' } },
+      input: { 'background-color': 'red', 'test': { height: '32px' } },
       staticStyle: `display: block;`,
       expected: 'display: block; background-color: red; height: 32px;',
     },
     {
       title: `style object (kebab) string/object returns correct with no static style`,
-      input: { ['background-color']: 'red', test: { height: '32px' } },
+      input: { 'background-color': 'red', 'test': { height: '32px' } },
       expected: 'background-color: red; height: 32px;',
     },
     {
       title: `style object (kebab) string/object (kebab) returns correct with static style`,
-      input: { ['background-color']: 'red', test: { ['border-color']: 'black' } },
+      input: { 'background-color': 'red', 'test': { 'border-color': 'black' } },
       staticStyle: `display: block;`,
       expected: 'display: block; background-color: red; border-color: black;',
     },
     {
       title: `style object (kebab) string/object (kebab) returns correct no with static style`,
-      input: { ['background-color']: 'red', test: { ['border-color']: 'black' } },
+      input: { 'background-color': 'red', 'test': { 'border-color': 'black' } },
       expected: 'background-color: red; border-color: black;',
     },
     {
       title: `style binding array string/array (kebab) returns correct with static style`,
-      input: ['background-color:red', ['height:32px', { ['border-color']: 'black' }]],
+      input: ['background-color:red', ['height:32px', { 'border-color': 'black' }]],
       staticStyle: `display: block;`,
       expected: 'display: block; background-color: red; height: 32px; border-color: black;',
     },
     {
       title: `style binding array string/array (kebab) returns correct with no static style`,
-      input: ['background-color:red', ['height:32px', { ['border-color']: 'black' }]],
+      input: ['background-color:red', ['height:32px', { 'border-color': 'black' }]],
       expected: 'background-color: red; height: 32px; border-color: black;',
     },
   ];
@@ -406,6 +403,7 @@ describe('ClassAccessor', function () {
   for (const markup of markupArr) {
     for (const classList of classListArr) {
 
+      // eslint-disable-next-line no-inner-declarations
       function createFixture() {
         const ctx = TestContext.create();
         const el = ctx.createElementFromMarkup(markup);

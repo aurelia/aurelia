@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable no-template-curly-in-string */
 import { Class } from '@aurelia/kernel';
 import {
   customElement,
@@ -261,7 +259,7 @@ describe(spec, function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count" text.bind="theText"></foo>`,
     };
-    $it('repeater with custom element + inner bindable with different name than outer property, reversed - initialized property', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element + inner bindable with different name than outer property, reversed - initialized property', async function ({ platform, host }: TestExecutionContext<App>) {
       await platform.domWriteQueue.yield();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
@@ -279,7 +277,7 @@ describe(spec, function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count" text.bind="theText"></foo>`,
     };
-    $it('repeater with custom element + inner bindable with same name as outer property, reversed - initialized property', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element + inner bindable with same name as outer property, reversed - initialized property', async function ({ platform, host }: TestExecutionContext<App>) {
       await platform.domWriteQueue.yield();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
@@ -529,7 +527,7 @@ describe(spec, function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count & keyed" text.bind="theText"></foo>`,
     };
-    $it('repeater with custom element + inner bindable with same name as outer property, reversed', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element + inner bindable with same name as outer property, reversed', async function ({ platform, host }: TestExecutionContext<App>) {
       await platform.domWriteQueue.yield();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
@@ -625,7 +623,7 @@ describe(spec, function () {
       registrations: [FooEl],
       template: `<foo-el cnt.bind="cnt" max.bind="max" cur="0" txt.bind="txt" repeat.for="i of cnt" ref.bind="'foo'+i"></foo-el>`,
     };
-    $it('repeater with custom element and children observer', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element and children observer', async function ({ host, app }: TestExecutionContext<App>) {
       const content = getVisibleText(host, true);
 
       let expectedCount = 10 + 10 ** 2 + 10 ** 3;

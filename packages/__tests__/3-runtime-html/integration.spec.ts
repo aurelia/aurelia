@@ -1,8 +1,3 @@
-/* eslint-disable
-  @typescript-eslint/no-unsafe-member-access,
-  @typescript-eslint/no-unsafe-assignment,
-  no-template-curly-in-string,
-*/
 import {
   Class,
   IContainer,

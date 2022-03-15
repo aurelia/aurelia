@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   DefaultLogEvent,
   DI,
@@ -2672,7 +2669,6 @@ describe('promise template-controller', function () {
 
               const tc = (ctx.app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
               const postSettleTask = tc['postSettledTask'];
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               const taskNums = [q['pending'].length, q['processing'].length, q['delayed'].length];
 
               try {
@@ -2687,7 +2683,6 @@ describe('promise template-controller', function () {
               }
               await q.yield();
               assert.strictEqual(tc['postSettledTask'], postSettleTask);
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               assert.deepStrictEqual([q['pending'].length, q['processing'].length, q['delayed'].length], taskNums);
             },
           );

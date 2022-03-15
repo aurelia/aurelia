@@ -141,7 +141,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
               )
             ],
             assertFn: (ctx, host) => {
-              const ceEl = host.querySelector('c-e') as HTMLElement;
+              const ceEl = host.querySelector<HTMLElement>('c-e');
               const $celVm = CustomElement.for(ceEl).viewModel as object;
               for (let i = 0, ii = arr.length; ii > i; ++i) {
                 assert.strictEqual(CustomAttribute.for(ceEl, `c-a-${i}`).viewModel, $celVm[`ca${i}`]);
@@ -427,7 +427,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
       root,
       resources = [],
       only,
-      browserOnly,
+      // browserOnly,
       assertFn,
       assertFnAfterDestroy = noop,
       testWillThrow
@@ -436,6 +436,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
     //   continue;
     // }
     const suit = (_title: string, fn: any) => only
+      // eslint-disable-next-line mocha/no-exclusive-tests
       ? it.only(_title, fn)
       : it(_title, fn);
 

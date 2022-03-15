@@ -220,7 +220,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* host           */host,
     );
     // the hydration context this controller is provided with
-    const hydrationContext = ctn.get(optional(IHydrationContext));
+    const hydrationContext = ctn.get(optional(IHydrationContext)) as IHydrationContext;
 
     if (definition.dependencies.length > 0) {
       ctn.register(...definition.dependencies);
@@ -557,7 +557,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this._ensurePromise();
         ret.then(() => {
           this.bind();
-        }).catch(err => {
+        }).catch((err: Error) => {
           this._reject(err);
         });
         return this.$promise;
@@ -604,7 +604,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         ret.then(() => {
           this.isBound = true;
           this._attach();
-        }).catch(err => {
+        }).catch((err: Error) => {
           this._reject(err);
         });
         return;
@@ -677,7 +677,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this._enterActivating();
         ret.then(() => {
           this._leaveActivating();
-        }).catch(err => {
+        }).catch((err: Error) => {
           this._reject(err);
         });
       }
@@ -754,7 +754,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         (initiator as Controller)._enterDetaching();
         ret.then(() => {
           (initiator as Controller)._leaveDetaching();
-        }).catch(err => {
+        }).catch((err: Error) => {
           (initiator as Controller)._reject(err);
         });
       }
@@ -916,7 +916,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
             if (this.$initiator !== this) {
               (this.parent as Controller)._leaveActivating();
             }
-          }).catch(err => {
+          }).catch((err: Error) => {
             this._reject(err);
           });
           _retPromise = void 0;
@@ -966,7 +966,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
             this._enterUnbinding();
             _retPromise.then(() => {
               this._leaveUnbinding();
-            }).catch(err => {
+            }).catch((err: Error) => {
               this._reject(err);
             });
           }

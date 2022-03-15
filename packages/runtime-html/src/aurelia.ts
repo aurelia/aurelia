@@ -80,11 +80,11 @@ export class Aurelia implements IDisposable {
   /**
    * @param parentController - The owning controller of the view created by this enhance call
    */
-  public enhance<T extends unknown, K = T extends Constructable<infer I> ? I : T>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController | null): ICustomElementController<K> | Promise<ICustomElementController<K>> {
+  public enhance<T, K = T extends Constructable<infer I> ? I : T>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController | null): ICustomElementController<K> | Promise<ICustomElementController<K>> {
     const ctn = config.container ?? this.container.createChild();
     const host = config.host as HTMLElement;
     const p = this._initPlatform(host);
-    const comp = config.component as K;
+    const comp = config.component as unknown as K;
     let bc: ICustomElementViewModel & K;
     if (isFunction(comp)) {
       ctn.registerResolver(

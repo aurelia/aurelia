@@ -69,13 +69,13 @@ export function observable(
     //      @observable() prop
     //      @observable({ callback: ... }) prop2
     //    }
-    return ((t: Constructable, k: PropertyKey, d: PropertyDescriptor) => deco(t, k, d, targetOrConfig)) as ClassDecorator;
+    return ((t: Constructable, k: PropertyKey, d: PropertyDescriptor) => deco(t, k, d, targetOrConfig as PropertyKey | IObservableDefinition)) as ClassDecorator;
   }
   // for:
   //    class {
   //      @observable prop
   //    }
-  return deco(targetOrConfig as Constructable['prototype'], key, descriptor) as PropertyDecorator;
+  return deco(targetOrConfig, key, descriptor) as PropertyDecorator;
 
   function deco(
     target: Constructable | Constructable['prototype'],
@@ -87,6 +87,7 @@ export function observable(
     const isClassDecorator = key === void 0;
     config = typeof config !== 'object'
       ? { name: config }
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       : (config || {});
 
     if (isClassDecorator) {
@@ -101,6 +102,7 @@ export function observable(
     }
 
     // determine callback name based on config or convention.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/strict-boolean-expressions
     const callback = config.callback || `${String(key)}Changed`;
     let initialValue = noValue;
     if (descriptor) {
@@ -134,7 +136,7 @@ export function observable(
     };
 
     if (isClassDecorator) {
-      def((target as Constructable).prototype, key, descriptor);
+      def((target as Constructable).prototype as object, key, descriptor);
     } else {
       return descriptor;
     }

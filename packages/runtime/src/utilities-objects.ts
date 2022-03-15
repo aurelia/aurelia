@@ -11,11 +11,11 @@ export const hasOwnProp = Object.prototype.hasOwnProperty;
 /** @internal */ export const def = Reflect.defineProperty;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-/** @internal */ export const isFunction = <T, K extends Function>(v: unknown): v is K => typeof v === 'function';
+/** @internal */ export const isFunction = <K extends Function>(v: unknown): v is K => typeof v === 'function';
 
 /** @internal */ export const isString = (v: unknown): v is string => typeof v === 'string';
 
-/** @internal */ export function defineHiddenProp<T extends unknown>(obj: object, key: PropertyKey, value: T): T {
+/** @internal */ export function defineHiddenProp<T>(obj: object, key: PropertyKey, value: T): T {
   def(obj, key, {
     enumerable: false,
     configurable: true,
@@ -36,7 +36,7 @@ export const hasOwnProp = Object.prototype.hasOwnProperty;
   }
 }
 
-/** @internal */ export const createLookup = <T>(): Record<string, T> => Object.create(null);
+/** @internal */ export const createLookup = <T>(): Record<string, T> => Object.create(null) as Record<string, T>;
 
 /** @internal */ export const getOwnMetadata = Metadata.getOwn;
 /** @internal */ export const hasOwnMetadata = Metadata.hasOwn;

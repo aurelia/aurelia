@@ -359,8 +359,8 @@ export class RouteContext {
     return new $RecognizedRoute(result, residue);
   }
 
-  public addRoute(routeable: Promise<IModule>): Promise<void>
-  public addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>
+  public addRoute(routeable: Promise<IModule>): Promise<void>;
+  public addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>;
   public addRoute(routeable: Routeable): void | Promise<void> {
     this.logger.trace(`addRoute(routeable:'${routeable}')`);
     return onResolve(RouteDefinition.resolve(routeable, this), routeDef => {

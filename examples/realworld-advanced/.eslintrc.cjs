@@ -25,6 +25,7 @@ module.exports = {
   ],
   reportUnusedDisableDirectives: true,
   rules: {
+    '@typescript-eslint/no-unsafe-argument': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
   },
 };

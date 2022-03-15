@@ -72,7 +72,10 @@ export function watch<T extends object = object>(
   ): void {
     const isClassDecorator = key == null;
     const Type = isClassDecorator ? target : target.constructor;
-    const watchDef = new WatchDefinition(expressionOrPropertyAccessFn, isClassDecorator ? changeHandlerOrCallback : descriptor!.value);
+    const watchDef = new WatchDefinition<T>(
+      expressionOrPropertyAccessFn,
+      isClassDecorator ? changeHandlerOrCallback : descriptor!.value
+    );
 
     // basic validation
     if (isClassDecorator) {
@@ -91,7 +94,7 @@ export function watch<T extends object = object>(
         throw new Error(`AUR0774:${String(key)}`);
     }
 
-    Watch.add(Type, watchDef);
+    Watch.add(Type, watchDef as IWatchDefinition);
 
     // if the code looks like this:
     // @watch(...)
@@ -104,10 +107,10 @@ export function watch<T extends object = object>(
     // temporarily works around this order sensitivity by manually add the watch def
     // manual
     if (CustomAttribute.isType(Type)) {
-      CustomAttribute.getDefinition(Type).watches.push(watchDef);
+      CustomAttribute.getDefinition(Type).watches.push(watchDef as IWatchDefinition);
     }
     if (CustomElement.isType(Type)) {
-      CustomElement.getDefinition(Type).watches.push(watchDef);
+      CustomElement.getDefinition(Type).watches.push(watchDef as IWatchDefinition);
     }
   };
 }

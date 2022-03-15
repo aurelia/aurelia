@@ -23,7 +23,7 @@ function canWrap(obj: unknown): obj is object {
 
 export const rawKey = '__raw__';
 
-export function wrap<T extends unknown>(v: T): T {
+export function wrap<T>(v: T): T {
   return canWrap(v) ? getProxy(v) : v;
 }
 export function getProxy<T extends object>(obj: T): T {
@@ -35,7 +35,7 @@ export function getRaw<T extends object>(obj: T): T {
   // todo: get in a weakmap if null/undef
   return (obj as IIndexable)[rawKey] as T ?? obj;
 }
-export function unwrap<T extends unknown>(v: T): T {
+export function unwrap<T>(v: T): T {
   return canWrap(v) && (v as IIndexable)[rawKey] as T || v;
 }
 

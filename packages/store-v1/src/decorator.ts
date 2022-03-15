@@ -28,8 +28,7 @@ const defaultSelector = <T>(store: Store<T>) => store.state;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const _settings: ConnectToSettings<T, any> = {
+  const _settings: ConnectToSettings<T> = {
     selector: typeof settings === 'function' ? settings : defaultSelector,
     ...settings
   };
@@ -51,8 +50,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
     };
 
     return Object.entries({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...((isSelectorObj ? _settings.selector : fallbackSelector) as MultipleSelector<T, any>)
+      ...((isSelectorObj ? _settings.selector : fallbackSelector) as MultipleSelector<T>)
     }).map(([target, selector]) => ({
       targets: _settings.target && isSelectorObj ? [_settings.target, target] : [target],
       selector,

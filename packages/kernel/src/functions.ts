@@ -1,5 +1,6 @@
 import { emptyArray } from './platform.js';
 import { Constructable, Overwrite } from './interfaces.js';
+import { createObject } from './utilities.js';
 
 const isNumericLookup: Record<string, boolean> = {};
 
@@ -84,7 +85,7 @@ const baseCase = (function () {
   }
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const isDigit = Object.assign(Object.create(null) as {}, {
+  const isDigit = Object.assign(createObject(), {
     '0': true,
     '1': true,
     '2': true,
@@ -176,7 +177,7 @@ const baseCase = (function () {
  * Results are cached.
  */
 export const camelCase = (function () {
-  const cache = Object.create(null) as Record<string, string | undefined>;
+  const cache: Record<string, string | undefined> = createObject();
 
   function callback(char: string, sep: boolean): string {
     return sep ? char.toUpperCase() : char.toLowerCase();
@@ -202,7 +203,7 @@ export const camelCase = (function () {
  * Results are cached.
  */
 export const pascalCase = (function () {
-  const cache = Object.create(null) as Record<string, string | undefined>;
+  const cache: Record<string, string | undefined> = createObject();
 
   return function (input: string): string {
     let output = cache[input];
@@ -228,7 +229,7 @@ export const pascalCase = (function () {
  * Results are cached.
  */
 export const kebabCase = (function () {
-  const cache = Object.create(null) as Record<string, string | undefined>;
+  const cache: Record<string, string | undefined> = createObject();
 
   function callback(char: string, sep: boolean): string {
     return sep ? `-${char.toLowerCase()}` : char.toLowerCase();
@@ -252,7 +253,7 @@ export const kebabCase = (function () {
 export function toArray<T = unknown>(input: ArrayLike<T>): T[] {
   // benchmark: http://jsben.ch/xjsyF
   const { length } = input;
-  const arr = Array(length);
+  const arr = Array(length) as T[];
   let i = 0;
   for (; i < length; ++i) {
     arr[i] = input[i];
@@ -312,7 +313,7 @@ export function mergeDistinct<T>(
 ): T[] {
   if (arr1 === void 0 || arr1 === null || arr1 === emptyArray) {
     if (arr2 === void 0 || arr2 === null || arr2 === emptyArray) {
-      return emptyArray;
+      return emptyArray as T[];
     } else {
       return slice ? arr2.slice(0) : arr2 as T[];
     }
@@ -351,14 +352,14 @@ export function bound<T extends Function>(target: Object, key: string | symbol, 
     configurable: true,
     enumerable: descriptor.enumerable,
     get(): T {
-      const boundFn = descriptor.value!.bind(this);
+      const boundFn = descriptor.value!.bind(this) as TypedPropertyDescriptor<T>;
       Reflect.defineProperty(this, key, {
         value: boundFn,
         writable: true,
         configurable: true,
         enumerable: descriptor.enumerable,
       });
-      return boundFn;
+      return boundFn as T;
     },
   };
 }
@@ -427,6 +428,7 @@ export const getPrototypeChain = (function () {
     if (chain === void 0) {
       cache.set(Type, chain = [proto = Type]);
       i = 0;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       while ((proto = getPrototypeOf(proto)) !== functionPrototype) {
         chain[++i] = proto;
       }
@@ -481,7 +483,8 @@ export function toLookup<
   obj5: T5,
 ): Readonly<T1 & T2 & T3 & T4 & T5>;
 export function toLookup(...objs: {}[]): Readonly<{}> {
-  return Object.assign(Object.create(null) as {}, ...objs);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return Object.assign(createObject(), ...objs);
 }
 
 /**

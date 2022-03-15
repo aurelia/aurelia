@@ -45,7 +45,7 @@ export class ClassAttributeAccessor implements IAccessor {
       this._hasChanges = false;
       const currentValue = this.value;
       const nameIndex = this._nameIndex;
-      const classesToAdd = getClassesToAdd(currentValue as any);
+      const classesToAdd = getClassesToAdd(currentValue as string | Record<string, unknown> | []);
       let version = this._version;
       this._oldValue = currentValue;
 

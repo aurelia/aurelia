@@ -2,7 +2,7 @@ import { IContainer } from '@aurelia/kernel';
 import { IPlatform, valueConverter } from '@aurelia/runtime-html';
 import { TestContext } from '@aurelia/testing';
 
-export interface TestExecutionContext<TApp extends any> {
+export interface TestExecutionContext<TApp> {
   ctx: TestContext;
   container: IContainer;
   host: HTMLElement;

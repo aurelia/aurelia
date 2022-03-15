@@ -33,6 +33,7 @@ export type PartialResourceDefinition<TDef extends {} = {}> = {
   readonly aliases?: readonly string[];
 } & TDef;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface IResourceKind<TType extends ResourceType, TDef extends ResourceDefinition> {
   readonly name: string;
   keyFrom(name: string): string;
@@ -89,8 +90,10 @@ const resource = Object.freeze({
   getAll(target: Constructable): readonly ResourceDefinition[] {
     const keys = getOwnMetadata(resBaseName, target) as string[];
     if (keys === void 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return emptyArray;
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return keys.map(k => getOwnMetadata(k, target));
     }
   },

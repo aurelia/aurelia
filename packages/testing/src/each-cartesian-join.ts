@@ -47,7 +47,7 @@ export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10
   arrays: [(() => T1)[], ((arg1: T1) => T2)[], ((arg1: T1, arg2: T2) => T3)[], ((arg1: T1, arg2: T2, arg3: T3) => T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4) => T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => T8)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8) => T9)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9) => T10)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, arg10: T10) => T11)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, arg10: T10, arg11: T11) => T12)[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, arg10: T10, arg11: T11, arg12: T12) => U): void;
 
-export function eachCartesianJoinFactory<T extends any, U>(
+export function eachCartesianJoinFactory<T, U>(
   arrays: ((...args: T[]) => T)[][],
   callback: (...args: any[]) => U): void {
 
@@ -94,7 +94,7 @@ export function eachCartesianJoinFactory<T extends any, U>(
     throw new Error(msg);
   }
 }
-function updateElementByIndicesFactory<T extends any>(arrays: ((...args: T[]) => T)[][], args: T[], indices: number[]): T[] {
+function updateElementByIndicesFactory<T>(arrays: ((...args: T[]) => T)[][], args: T[], indices: number[]): T[] {
   for (let i = 0, ii = arrays.length; ii > i; ++i) {
     args[i] = arrays[i][indices[i]](...args);
   }
@@ -137,7 +137,7 @@ export function eachCartesianJoin<T1, T2, T3, T4, T5, T6, T7, T8, T9, U>(
   arrays: [T1[], T2[], T3[], T4[], T5[], T6[], T7[], T8[], T9[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, callIndex: number) => U): void;
 
-export function eachCartesianJoin<T extends any, U>(
+export function eachCartesianJoin<T, U>(
   arrays: T[][],
   callback: (...args: any[]) => U): void {
 
@@ -207,7 +207,7 @@ export function eachCartesianJoinAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, U>(
   arrays: [T1[], T2[], T3[], T4[], T5[], T6[], T7[], T8[], T9[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, callIndex: number) => U): Promise<void>;
 
-export async function eachCartesianJoinAsync<T extends any, U extends Promise<any>>(
+export async function eachCartesianJoinAsync<T, U extends Promise<any>>(
   arrays: T[][],
   callback: (...args: any[]) => U): Promise<void> {
 
@@ -240,7 +240,7 @@ export async function eachCartesianJoinAsync<T extends any, U extends Promise<an
     }
   }
 }
-function updateIndices<T extends any>(arrays: T[][], indices: number[]): boolean {
+function updateIndices<T>(arrays: T[][], indices: number[]): boolean {
   let arrIndex = arrays.length;
   while (arrIndex--) {
     if (indices[arrIndex] === arrays[arrIndex].length - 1) {
@@ -258,7 +258,7 @@ function updateIndices<T extends any>(arrays: T[][], indices: number[]): boolean
   }
   return false;
 }
-function updateElementByIndices<T extends any>(arrays: T[][], args: T[], indices: number[]): T[] {
+function updateElementByIndices<T>(arrays: T[][], args: T[], indices: number[]): T[] {
   for (let i = 0, ii = arrays.length; ii > i; ++i) {
     args[i] = arrays[i][indices[i]];
   }
@@ -270,7 +270,7 @@ export function generateCartesianProduct<T1, T2>(arrays: [T1[], T2[]]): Generato
 export function generateCartesianProduct<T1, T2, T3>(arrays: [T1[], T2[], T3[]]): Generator<[T1, T2, T3]>;
 export function generateCartesianProduct<T1, T2, T3, T4>(arrays: [T1[], T2[], T3[], T4[]]): Generator<[T1, T2, T3, T4]>;
 export function generateCartesianProduct<T1, T2, T3, T4, T5>(arrays: [T1[], T2[], T3[], T4[], T5[]]): Generator<[T1, T2, T3, T4, T5]>;
-export function* generateCartesianProduct<T extends any>(arrays: T[][]): Generator<T[]> {
+export function* generateCartesianProduct<T>(arrays: T[][]): Generator<T[]> {
   const [head, ...tail] = arrays;
   const tailCombinations: Generator<[any]> | [][] = tail.length > 0 ? generateCartesianProduct(tail as any) : [[]];
   for (const t of tailCombinations) {

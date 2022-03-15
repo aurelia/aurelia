@@ -34,7 +34,6 @@ export function getViewModel<T>(element: Element): T {
   const { viewModel } = (CustomElement.for(element) as unknown) as { viewModel: T };
   return viewModel;
 }
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function assertCalls(calls: Call[], fromIndex: number, instance: any, expectedCalls: string[], unexpectedCalls?: string[], message?: string): void {
   const recentCalls = new Set(calls.slice(fromIndex).map(c => Object.is(ProxyObservable.unwrap(c.instance), instance) && c.method));
   for (const expectedCall of expectedCalls) {

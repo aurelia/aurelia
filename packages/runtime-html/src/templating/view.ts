@@ -1,4 +1,4 @@
-import { DI, Protocol } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element.js';
 import { Controller } from './controller.js';

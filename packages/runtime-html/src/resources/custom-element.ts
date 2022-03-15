@@ -291,7 +291,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('hasSlots', def, returnFalse),
         fromDefinitionOrDefault('enhance', def, returnFalse),
         fromDefinitionOrDefault('watches', def as CustomElementDefinition, returnEmptyArray),
-        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
       );
     }
 
@@ -306,10 +306,10 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         CustomElement.keyFrom(nameOrDef),
         fromAnnotationOrTypeOrDefault('cache', Type, returnZero),
         fromAnnotationOrTypeOrDefault('capture', Type, returnFalse),
-        fromAnnotationOrTypeOrDefault('template', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('template', Type, returnNull as () => string | Node | null),
         mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions),
         mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies),
-        fromAnnotationOrTypeOrDefault('injectable', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('injectable', Type, returnNull as () => InjectableToken | null),
         fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue),
         mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates),
         Bindable.from(
@@ -325,11 +325,11 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         ),
         fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse),
-        fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull as () => { mode: 'open' | 'closed' } | null),
         fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse),
         mergeArrays(Watch.getAnnotation(Type), Type.watches),
-        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
       );
     }
 
@@ -417,7 +417,7 @@ const defaultForOpts: ForOpts = {
   optional: false,
 };
 const returnZero = () => 0;
-const returnNull = <T>(): T | null | any => null;
+const returnNull = <T>(): T | null => null;
 const returnFalse = () => false;
 const returnTrue = () => true;
 const returnEmptyArray = () => emptyArray;

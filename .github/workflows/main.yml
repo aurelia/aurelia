@@ -5,16 +5,18 @@ env:
 
 jobs:
 
-  # lint:
-  #   timeout-minutes: 10
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - uses: actions/setup-node@v1
-  #       with:
-  #         node-version: 12
-  #     - run: npm ci
-  #     - run: npm run lint:packages -- -- -- --quite
+  lint:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 15
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint:packages:ci
+      - run: npm run lint:other:ci
 
   node:
     timeout-minutes: 10

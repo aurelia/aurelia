@@ -1,5 +1,4 @@
 import { DI, IContainer } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
 
 import { FragmentNodeSequence, INode, INodeSequence } from '../dom.js';
 import { IPlatform } from '../platform.js';

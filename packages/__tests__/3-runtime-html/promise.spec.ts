@@ -49,7 +49,7 @@ describe('promise template-controller', function () {
   const phost = 'pending-host';
   const fhost = 'fulfilled-host';
   const rhost = 'rejected-host';
-  type PromiseWithId<TValue extends unknown = unknown> = Promise<TValue> & { id?: number };
+  type PromiseWithId<TValue = unknown> = Promise<TValue> & { id?: number };
   class Config {
     public constructor(
       public hasPromise: boolean,

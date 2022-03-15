@@ -76,7 +76,7 @@ export class ShadowDOMRegistry implements IRegistry {
 
 class AdoptedStyleSheetsStylesFactory {
   public static inject = [IPlatform];
-  private readonly cache = new Map();
+  private readonly cache = new Map<string, CSSStyleSheet>();
 
   public constructor(private readonly p: IPlatform) {}
 

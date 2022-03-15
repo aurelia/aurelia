@@ -8,7 +8,7 @@ export interface ISignaler extends Signaler {}
 export const ISignaler = DI.createInterface<ISignaler>('ISignaler', x => x.singleton(Signaler));
 
 export class Signaler {
-  public signals: Record<string, Set<ISubscriber>> = createLookup();
+  public signals: Record<string, Set<ISubscriber> | undefined> = createLookup();
 
   public dispatchSignal(name: Signal, flags?: LifecycleFlags): void {
     const listeners = this.signals[name];

@@ -53,6 +53,7 @@ export class EventAggregator {
     channelOrInstance: T extends Constructable ? InstanceType<T> : T,
     message?: unknown,
   ): void {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!channelOrInstance) {
       throw new Error(`Invalid channel name or instance: ${channelOrInstance}.`);
     }
@@ -101,6 +102,7 @@ export class EventAggregator {
     channelOrType: string | Constructable,
     callback: (...args: unknown[]) => void,
   ): IDisposable {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!channelOrType) {
       throw new Error(`Invalid channel name or type: ${channelOrType}.`);
     }

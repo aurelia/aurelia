@@ -87,6 +87,7 @@ const vcBaseName = getResourceKeyFor('value-converter');
 const getConverterAnnotation = <K extends keyof PartialValueConverterDefinition>(
   Type: Constructable,
   prop: K,
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 ): PartialValueConverterDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 
 export const ValueConverter = Object.freeze<ValueConverterKind>({
@@ -104,6 +105,7 @@ export const ValueConverter = Object.freeze<ValueConverterKind>({
     return definition.Type as ValueConverterType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const def = getOwnMetadata(vcBaseName, Type);
     if (def === void 0) {
       if (__DEV__)
@@ -112,6 +114,7 @@ export const ValueConverter = Object.freeze<ValueConverterKind>({
         throw new Error(`AUR0152:${Type.name}`);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return def;
   },
   annotate<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K, value: PartialValueConverterDefinition[K]): void {

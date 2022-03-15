@@ -464,7 +464,7 @@ export class AttributeParser {
         patternDefs.forEach(def => patterns[def.pattern] = attrPattern);
         return allDefs.concat(patternDefs);
       },
-      emptyArray
+      emptyArray as AttributePatternDefinition[]
     );
     interpreter.add(allDefs);
   }

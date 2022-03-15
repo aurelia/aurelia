@@ -48,7 +48,7 @@
     "@aurelia/runtime": "2.0.0-alpha.26"
   },
   "devDependencies": {
-    "typescript": "^4.3.5"
+    "typescript": "^4.6.2"
   },
   "engines": {
     "node": ">=14.17.0"

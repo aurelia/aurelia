@@ -330,7 +330,7 @@ export class NodeFileSystem implements IFileSystem {
         content = await readFile(path, encoding as BufferEncoding) as string;
         --this.pendingReads;
       } catch (err) {
-        if (err.code === 'EMFILE') {
+        if ((err as Error & { code: string}).code === 'EMFILE') {
           --this.pendingReads;
           this.maxConcurrentReads = this.pendingReads;
           await tick.wait();

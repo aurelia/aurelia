@@ -66,7 +66,7 @@ export function eachCartesianJoinFactory<T extends any, U>(
     args = updateElementByIndicesFactory(arrays, Array(arrays.length), argsIndices);
     callback(...args);
   } catch (e) {
-    errors.push(e);
+    errors.push(e as Error);
   }
   let callCount = 1;
   if (totalCallCount === callCount) {
@@ -79,7 +79,7 @@ export function eachCartesianJoinFactory<T extends any, U>(
       try {
         callback(...updateElementByIndicesFactory(arrays, args, argsIndices));
       } catch (e) {
-        errors.push(e);
+        errors.push(e as Error);
       }
       callCount++;
       if (totalCallCount < callCount) {

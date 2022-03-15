@@ -30,7 +30,7 @@ export type NavigationInstruction = string | IViewportInstruction | RouteableCom
  * - `PartialCustomElementDefinition`: either a complete `CustomElementDefinition` or a partial definition (e.g. an object literal with at least the `name` property)
  * - `IRouteViewModel`: an existing component instance.
  */
-export type RouteableComponent = RouteType | Promise<IModule> | PartialCustomElementDefinition | IRouteViewModel;
+export type RouteableComponent = RouteType | (() => RouteType) | Promise<IModule> | PartialCustomElementDefinition | IRouteViewModel;
 
 export type Params = { [key: string]: string | undefined };
 

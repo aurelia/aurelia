@@ -600,7 +600,7 @@ export class Task<T = any> implements ITask {
       if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'run sync error'); }
 
       if (reject !== void 0) {
-        reject(err);
+        reject(err as TaskAbortError<T>);
       } else {
         throw err;
       }

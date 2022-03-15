@@ -62,7 +62,7 @@ export class HttpServer implements IHttpServer {
         await handler.handleRequest(context);
       }
     } catch (err) {
-      this.logger.error(`handleRequest Error: ${err.message}\n${err.stack}`);
+      this.logger.error(`handleRequest Error: ${(err as Error).message}\n${(err as Error).stack}`);
 
       res.statusCode = HTTPStatusCode.InternalServerError;
       res.end();
@@ -121,7 +121,7 @@ export class Http2Server implements IHttpServer {
       const context = new HttpContext(this.container, req, res, null!);
       this.http2FileServer.handleRequest(context);
     } catch (err) {
-      this.logger.error(`handleRequest Error: ${err.message}\n${err.stack}`);
+      this.logger.error(`handleRequest Error: ${(err as Error).message}\n${(err as Error).stack}`);
 
       res.statusCode = HTTPStatusCode.InternalServerError;
       res.end();

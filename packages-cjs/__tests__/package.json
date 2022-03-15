@@ -41,7 +41,7 @@
     "@jest/types": "^27.0.6",
     "i18next": "^17.0.0",
     "jsdom": "^15.2.1",
-    "typescript": "^4.0.3",
+    "typescript": "^4.6.2",
     "vinyl": "^2.2.0"
   },
   "devDependencies": {

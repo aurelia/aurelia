@@ -848,7 +848,7 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
 
   // #region custom attribute
   $it('can be used with custom attribute - change trigger',
-    async function ({ app, host, platform, ctx }: TestExecutionContext<App>) {
+    async function ({ app, host, platform }: TestExecutionContext<App>) {
       const controller = app.controller;
       const person = app.person;
 
@@ -1086,7 +1086,7 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
   );
   // #region collection and nested properties
   $it('can be used to validate nested collection - collection replace',
-    async function ({ app, host, platform, ctx }: TestExecutionContext<App>) {
+    async function ({ app, host, platform }: TestExecutionContext<App>) {
       const controller = app.controller;
 
       const target: HTMLInputElement = host.querySelector('#target');
@@ -1118,7 +1118,7 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
     { template: `<employee-list id="target" employees.two-way="org.employees & validate:'change'"></employee-list>` }
   );
   $it('can be used to validate nested collection - collection observer',
-    async function ({ app, host, platform, ctx }: TestExecutionContext<App>) {
+    async function ({ app, host, platform }: TestExecutionContext<App>) {
       const controller = app.controller;
 
       assert.equal(!!app.employeesMediator, true, 'mediator should have been instantiated');

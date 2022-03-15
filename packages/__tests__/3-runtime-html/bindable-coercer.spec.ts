@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Class, DI, noop, Registration } from '@aurelia/kernel';
 import { Aurelia, bindable, customElement, CustomElement, IPlatform, coercer, customAttribute, CustomAttribute, StandardConfiguration } from '@aurelia/runtime-html';
 import { assert, PLATFORMRegistration, TestContext } from '@aurelia/testing';

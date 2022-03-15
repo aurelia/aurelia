@@ -84,7 +84,7 @@ describe(`createElement() creates element based on tag`, function () {
           TestContext.create
         ],
         [
-          ctx => [['foo', 'bar'], 'foobar'],
+          _ctx => [['foo', 'bar'], 'foobar'],
           ctx => [[ctx.createElementFromMarkup('<div>foo</div>'), ctx.createElementFromMarkup('<div>bar</div>')], 'foobar'],
           ctx => [['foo', ctx.createElementFromMarkup('<div>bar</div>')], 'foobar']
         ] as ((ctx: TestContext) => [(RenderPlan | string | INode)[], string])[],
@@ -209,7 +209,7 @@ describe(`createElement() creates element based on type`, function () {
           TestContext.create
         ],
         [
-          ctx => [['foo', 'bar'], 'foobar'],
+          _ctx => [['foo', 'bar'], 'foobar'],
           ctx => [[ctx.createElementFromMarkup('<div>foo</div>'), ctx.createElementFromMarkup('<div>bar</div>')], 'foobar'],
           ctx => [['foo', ctx.createElementFromMarkup('<div>bar</div>')], 'foobar']
         ] as ((ctx: TestContext) => [(RenderPlan | string | INode)[], string])[],

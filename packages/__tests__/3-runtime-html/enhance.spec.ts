@@ -202,7 +202,6 @@ describe('3-runtime/enhance.spec.ts', function () {
   });
 
   it(`enhance works on detached node`, async function () {
-    // eslint-disable-next-line no-template-curly-in-string
     @customElement({ name: 'my-element', template: '<span>${value}</span>' })
     class MyElement {
       @bindable public value: string;

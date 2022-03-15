@@ -266,6 +266,7 @@ describe('ObserverLocator', function () {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   for (const hasGetObserver of [true, false]) {
     for (const hasAdapterObserver of [true, false]) {
       for (const adapterIsDefined of hasAdapterObserver ? [true, false] : [false]) {

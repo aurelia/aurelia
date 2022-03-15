@@ -86,7 +86,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
     {
       expected: testDateString,
       expectedValueAfterChange: ThreeDaysDateString,
-      changeFnc: (val: Date) => {
+      changeFnc: (_val: Date) => {
         return new Date(ThreeDaysDateString);
       }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
       interpolation: `$\{value}`, it: 'Date works and setDate triggers change properly'
@@ -95,7 +95,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
       expected: testDateString,
       expectedStrictMode: `undefined${testDateString}`,
       expectedValueAfterChange: ThreeDaysDateString,
-      changeFnc: (val: Date) => {
+      changeFnc: (_val: Date) => {
         return new Date(ThreeDaysDateString);
       }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
       interpolation: `$\{undefined + value}`, it: 'Date works with undefined expression and setDate triggers change properly'
@@ -104,7 +104,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
       expected: testDateString,
       expectedStrictMode: `null${testDateString}`,
       expectedValueAfterChange: ThreeDaysDateString,
-      changeFnc: (val: Date) => {
+      changeFnc: (_val: Date) => {
         return new Date(ThreeDaysDateString);
       }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
       interpolation: `$\{null + value}`, it: 'Date works with null expression and setDate triggers change properly'
@@ -112,7 +112,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
     {
       expected: testDateString,
       expectedValueAfterChange: ThreeHoursAheadDateString,
-      changeFnc: (val: Date) => {
+      changeFnc: (_val: Date) => {
         return new Date(ThreeHoursAheadDateString);
       }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
       interpolation: `$\{value}`, it: 'Date works and setHours triggers change properly'
@@ -231,7 +231,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
     {
       expected: 'test foo-node out',
       expectedValueAfterChange: 'test 1,2,3 out',
-      changeFnc: (_, platform) => {
+      changeFnc: (_, _platform) => {
         return [1, 2, 3];
       },
       app: class {
@@ -269,7 +269,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
         component.value = (component.value as number || 0) + 1;
       }
       platform.domWriteQueue.flush();
-      assert.strictEqual(appHost.textContent, (x.expectedValueAfterChange && x.expectedValueAfterChange.toString()) || (x.expected as number + 1).toString(), `host.textContent`);
+      assert.strictEqual(appHost.textContent, (x.expectedValueAfterChange?.toString()) || (x.expected as number + 1).toString(), `host.textContent`);
       await tearDown();
     });
     if (x.expectedStrictMode) {
@@ -490,7 +490,8 @@ describe('3-runtime/interpolation.spec.ts', function () {
     await startPromise;
 
     assert.includes(appHost.textContent, 'Selected product IDs: ');
-    const [box1, box2, box3] = Array.from(appHost.querySelectorAll('input'));
+
+    const [box1, box2, _box3] = Array.from(appHost.querySelectorAll('input'));
     box1.checked = true;
     box1.dispatchEvent(new ctx.CustomEvent('change'));
     assert.includes(appHost.textContent, 'Selected product IDs: ');

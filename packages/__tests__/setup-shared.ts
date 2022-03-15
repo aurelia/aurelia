@@ -13,7 +13,7 @@ function getRootSuite(suite: ExtendedSuite): ExtendedSuite {
   return suite;
 }
 
-export function $setup(platform: BrowserPlatform) {
+export function $setup(platform: BrowserPlatform): void {
   setPlatform(platform);
   BrowserPlatform.set(globalThis, platform);
 

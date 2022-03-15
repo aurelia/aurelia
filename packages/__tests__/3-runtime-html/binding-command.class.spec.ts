@@ -206,8 +206,6 @@ describe('3-runtime-html/template-compiler.binding-commands.class.spec.ts', func
     }
   );
 
-  function noop() {/**/}
-
   interface IApp {
     value: any;
   }

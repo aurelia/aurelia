@@ -249,7 +249,7 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
     ctx.doc.body.appendChild(el);
 
     const sut = ctx.observerLocator.getObserver(el, 'value') as ValueAttributeObserver;
-    const observer = ctx.observerLocator.getObserver(el, 'value');
+    ctx.observerLocator.getObserver(el, 'value');
 
     const tearDown = () => {
       el.remove();

@@ -240,7 +240,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
 
   eachCartesianJoin(
     [testCases],
-    (testCase, callIndex) => {
+    (testCase, _callIndex) => {
       const { title, template, ViewModel, assertFn, only } = testCase;
       // eslint-disable-next-line mocha/no-exclusive-tests
       const $it = (title_: string, fn: Mocha.Func) => only ? it.only(title_, fn) : it(title_, fn);
@@ -353,7 +353,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
       return { ctx, container, observerLocator, el, sut, subscriber, platform };
     }
 
-    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
+    function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
     }
 
@@ -431,7 +431,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
       return { ctx, container, observerLocator, el, sut, subscriber, platform };
     }
 
-    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
+    function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
     }
 
@@ -503,6 +503,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
       return { ctx, container, observerLocator, platform, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(elA);
       ctx.doc.body.removeChild(elB);
@@ -612,6 +613,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
       return { ctx, container, observerLocator, platform, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(elA);
       ctx.doc.body.removeChild(elB);
@@ -659,6 +661,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
     }
   });
 
+  // eslint-disable-next-line mocha/no-skipped-tests
   describe.skip('setValue() - array - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean, value: any, prop: string) {
       const ctx = TestContext.create();
@@ -679,7 +682,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
       return { ctx, value, container, observerLocator, platform, el, sut, subscriber };
     }
 
-    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
+    function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
     }
 
@@ -699,8 +702,8 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
 
                   it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
 
-                    const changeCountBefore = 1;
-                    const changeCountAfter = checkedBefore !== checkedAfter ? 1 : 0;
+                    // const changeCountBefore = 1;
+                    // const changeCountAfter = checkedBefore !== checkedAfter ? 1 : 0;
 
                     const { ctx, sut, el, subscriber } = createFixture(hasSubscriber, value, prop);
 
@@ -753,7 +756,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
       return { ctx, value, container, observerLocator, platform, el, sut, subscriber };
     }
 
-    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
+    function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
     }
 
@@ -820,7 +823,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
       return { ctx, value, container, observerLocator, el, sut, subscriber, platform };
     }
 
-    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
+    function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
     }
 
@@ -907,6 +910,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
     }
   });
 
+  // eslint-disable-next-line mocha/no-skipped-tests
   describe.skip('SelectValueObserver.setValue() - array - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean, value: any, prop: string) {
       const ctx = TestContext.create();
@@ -926,7 +930,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
       return { ctx, value, container, observerLocator, platform, el, sut, subscriber, valueOrModelObserver };
     }
 
-    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
+    function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
     }
 

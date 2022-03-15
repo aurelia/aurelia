@@ -16,11 +16,11 @@ export class RandomGenerator {
     this.generate();
   }
 
-  public generate() {
+  public generate(): void {
     this.random = Math.round(Math.random() * 10000);
   }
 
-  public doSomething() {
+  public doSomething(): void {
     console.log('random-generator.ts__doSomething()');
   }
 }

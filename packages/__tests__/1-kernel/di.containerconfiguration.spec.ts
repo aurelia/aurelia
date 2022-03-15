@@ -1,4 +1,4 @@
-import { ContainerConfiguration, DefaultResolver, DI, IContainer, Registration } from '@aurelia/kernel';
+import { ContainerConfiguration, DefaultResolver, DI, IContainer } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('IContainerConfiguration', function () {

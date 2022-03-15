@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { IFileSystem, Encoding, IFile, IDirent, IStats } from '@aurelia/aot';
 import type { WriteFileOptions } from 'fs';
 

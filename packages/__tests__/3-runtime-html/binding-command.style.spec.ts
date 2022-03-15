@@ -52,7 +52,7 @@ describe('template-compiler.binding-commands.style', function () {
         <child value.bind="value"></child>
         <child repeat.for="i of 5" value.bind="value"></child>`;
       },
-      assert: (au, platform, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase) => {
+      assert: (au, platform, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], _testCase) => {
         const childEls = host.querySelectorAll('child') as ArrayLike<HTMLElement>;
         const hasImportant = ruleValue.includes('!important');
         const ruleValueNoPriority = hasImportant ? ruleValue.replace('!important', '') : ruleValue;
@@ -251,8 +251,6 @@ describe('template-compiler.binding-commands.style', function () {
       });
     }
   );
-
-  function noop() {/**/}
 
   interface IApp {
     value: any;

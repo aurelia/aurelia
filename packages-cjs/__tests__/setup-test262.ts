@@ -314,9 +314,9 @@ class TestRunner {
     const root = resolve(__dirname, '..', '..', '..', 'test262');
 
     const testDir = join(root, 'test');
-    const annexBDir = join(testDir, 'annexB');
-    const builtInsDir = join(testDir, 'built-ins', 'Array');
-    const intl402Dir = join(testDir, 'intl402');
+    const _annexBDir = join(testDir, 'annexB');
+    const _builtInsDir = join(testDir, 'built-ins', 'Array');
+    const _intl402Dir = join(testDir, 'intl402');
     const languageDir = join(testDir, 'language');
 
     const harnessDir = join(root, 'harness');
@@ -338,6 +338,7 @@ class TestRunner {
     ]) {
       logger.info(`Loading test files from ${dir}`);
 
+      // eslint-disable-next-line no-await-in-loop
       files.push(...(await fs.getFiles(dir, true)).filter(x => !x.shortName.endsWith('FIXTURE')));
     }
 
@@ -372,6 +373,7 @@ class TestRunner {
 
     for (const tc of testCases) {
       try {
+        // eslint-disable-next-line no-await-in-loop
         const result = await tc.run();
 
         if (tc.meta.negative === null) {

@@ -29,7 +29,7 @@ export class SynchronizingCollectionSubscriber implements ICollectionSubscriber 
     this.newArr = newArr;
   }
 
-  public handleCollectionChange(indexMap: IndexMap, flags: LF): void {
+  public handleCollectionChange(indexMap: IndexMap, _flags: LF): void {
     applyMutationsToIndices(indexMap);
 
     const newArr = this.newArr;
@@ -175,10 +175,10 @@ describe(`ArrayObserver`, function () {
         repeatArr,
       ],
       function (init, items, repeat) {
-        it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function () {
+        it(`size=${padRight(init.length, 2)} itemCount=${padRight(items?.length, 9)} repeat=${repeat} - behaves as native`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
-          const newItems = items && items.slice();
+          const newItems = items?.slice();
           sut = new ArrayObserver(arr);
           let expectedResult;
           let actualResult;
@@ -198,10 +198,10 @@ describe(`ArrayObserver`, function () {
           }
         });
 
-        it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function () {
+        it(`size=${padRight(init.length, 2)} itemCount=${padRight(items?.length, 9)} repeat=${repeat} - tracks changes`, function () {
           const arr = init.slice();
           const copy = init.slice();
-          const newItems = items && items.slice();
+          const newItems = items?.slice();
           sut = new ArrayObserver(arr);
           sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
 
@@ -233,10 +233,10 @@ describe(`ArrayObserver`, function () {
         repeatArr,
       ],
       function (init, items, repeat) {
-        it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function () {
+        it(`size=${padRight(init.length, 2)} itemCount=${padRight(items?.length, 9)} repeat=${repeat} - behaves as native`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
-          const newItems = items && items.slice();
+          const newItems = items?.slice();
           sut = new ArrayObserver(arr);
           let expectedResult;
           let actualResult;
@@ -256,10 +256,10 @@ describe(`ArrayObserver`, function () {
           }
         });
 
-        it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function () {
+        it(`size=${padRight(init.length, 2)} itemCount=${padRight(items?.length, 9)} repeat=${repeat} - tracks changes`, function () {
           const arr = init.slice();
           const copy = init.slice();
-          const newItems = items && items.slice();
+          const newItems = items?.slice();
           sut = new ArrayObserver(arr);
           sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
@@ -378,10 +378,10 @@ describe(`ArrayObserver`, function () {
         repeatArr,
       ],
       function (init, start, deleteCount, items, repeat) {
-        it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function () {
+        it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items?.length, 9)} repeat=${repeat} - behaves as native`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
-          const newItems = items && items.slice();
+          const newItems = items?.slice();
           sut = new ArrayObserver(arr);
           let expectedResult;
           let actualResult;
@@ -411,10 +411,10 @@ describe(`ArrayObserver`, function () {
           }
         });
 
-        it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function () {
+        it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items?.length, 9)} repeat=${repeat} - tracks changes`, function () {
           const arr = init.slice();
           const copy = init.slice();
-          const newItems = items && items.slice();
+          const newItems = items?.slice();
           sut = new ArrayObserver(arr);
           sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
@@ -550,10 +550,10 @@ describe(`ArrayObserver`, function () {
   });
 });
 
-function padLeft(input: unknown, len: number): string {
-  const str = `${input}`;
-  return new Array(len - str.length + 1).join(' ') + str;
-}
+// function padLeft(input: unknown, len: number): string {
+//   const str = `${input}`;
+//   return new Array(len - str.length + 1).join(' ') + str;
+// }
 
 function padRight(input: unknown, len: number): string {
   const str = `${input}`;

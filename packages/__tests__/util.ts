@@ -14,7 +14,6 @@ export type $TestSetupContext = Record<string, any> & { timeout?: number };
 export type TestFunction<TTestContext extends TestExecutionContext<any>> = (ctx: TTestContext) => void | Promise<void>;
 export type WrapperFunction<TTestContext extends TestExecutionContext<any>, TSetupContext extends $TestSetupContext = $TestSetupContext> = (testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) => void | Promise<void>;
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createSpecFunction<TTestContext extends TestExecutionContext<any>, TSetupContext extends $TestSetupContext = $TestSetupContext>(wrap: WrapperFunction<TTestContext, TSetupContext>) {
   function $it(title: string, testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) {
     it(title, async function () {

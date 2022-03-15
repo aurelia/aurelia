@@ -24,7 +24,6 @@ export class SpecsViewer {
 
 @valueConverter('viewer')
 export class ViewerValueConverter {
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public toView(thing: Thing) {
     switch (true) {
       case thing instanceof Camera: return CameraSpecsViewer;

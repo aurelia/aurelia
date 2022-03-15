@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-skipped-tests */
 import { DI, LoggerConfiguration, LogLevel, ColorOptions, Registration, ConsoleSink } from '@aurelia/kernel';
 import { IFileSystem, FileKind, ServiceHost, $Undefined, $ESModule } from '@aurelia/aot';
 import { VirtualFileSystem } from './virtual-file-system.js';

@@ -38,7 +38,15 @@ module.exports = {
     // Things we maybe need to fix some day, so are marked as off for now as they're quite noisy:
     'mocha/max-top-level-suites': 'off',
     'mocha/no-setup-in-describe': 'off',
-    'mocha/no-synchronous-tests': 'off'
+    'mocha/no-synchronous-tests': 'off',
+
+    '@typescript-eslint/no-unused-vars': ["warn", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_" }],
+    '@typescript-eslint/no-unsafe-assignment': 'off',
+    '@typescript-eslint/no-unsafe-member-access': 'off',
+    '@typescript-eslint/no-unsafe-call': 'off',
+    '@typescript-eslint/no-unsafe-return': 'off',
+    '@typescript-eslint/restrict-template-expressions': 'off',
+    '@typescript-eslint/no-unnecessary-type-assertion': 'off',
   },
   overrides: [{ // Specific overrides for JS files as some TS rules don't make sense there.
     files: ['3-runtime-html/generated/**'],

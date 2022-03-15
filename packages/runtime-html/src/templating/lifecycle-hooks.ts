@@ -6,6 +6,8 @@ type FuncPropNames<T> = {
   // eslint-disable-next-line @typescript-eslint/ban-types
   [K in keyof T]: K extends 'constructor' ? never : Required<T>[K] extends Function ? K : never;
 }[keyof T];
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 export type LifecycleHook<TViewModel, TKey extends FuncPropNames<TViewModel>> = (vm: TViewModel, ...args: Parameters<Required<TViewModel>[TKey]>) => ReturnType<Required<TViewModel>[TKey]>;
 
 export type ILifecycleHooks<TViewModel = {}, TKey extends FuncPropNames<TViewModel> = FuncPropNames<TViewModel>> = { [K in TKey]: LifecycleHook<TViewModel, K>; };
@@ -93,7 +95,7 @@ export const LifecycleHooks = Object.freeze({
       let entries: LifecycleHooksEntry[];
 
       for (instance of instances) {
-        definition = getOwnMetadata(lhBaseName, instance.constructor);
+        definition = getOwnMetadata(lhBaseName, instance.constructor) as LifecycleHooksDefinition;
         entry = new LifecycleHooksEntry(definition, instance);
         for (name of definition.propertyNames) {
           entries = lookup[name] as LifecycleHooksEntry[];

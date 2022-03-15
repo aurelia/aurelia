@@ -207,7 +207,7 @@ function getActual(fn: (...args: any[]) => any): Error | symbol {
   try {
     fn();
   } catch (e) {
-    return e;
+    return e as Error;
   }
   return noException;
 }
@@ -223,7 +223,7 @@ async function waitForActual(promiseFn: (() => Promise<any>) | Promise<any>): Pr
   try {
     await resultPromise;
   } catch (e) {
-    return e;
+    return e as Error;
   }
   return noException;
 }

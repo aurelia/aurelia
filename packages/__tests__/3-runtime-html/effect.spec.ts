@@ -285,7 +285,6 @@ describe('3-runtime-html/effect.spec.ts', function () {
     // effect are independent of application
     // so even after app torn down, it still runs
     // can only stop it via `effect.stop()`
-    // eslint-disable-next-line require-atomic-updates
     runCount = 10;
     errorCaught = null;
     try {

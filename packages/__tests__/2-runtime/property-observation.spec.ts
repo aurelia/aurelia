@@ -172,8 +172,8 @@ describe('SetterObserver', function () {
 });
 
 describe('BindableObserver', function () {
-  function createFixture(flags: LF, obj: IIndexable, key: string) {
-    const ctx = TestContext.create();
+  function createFixture(_flags: LF, obj: IIndexable, key: string) {
+    const _ctx = TestContext.create();
     const sut = new BindableObserver(obj, key, `${key ? key.toString() : `${key}`}Changed`, noop, { } as any, {enableCoercion: false, coerceNullish: false});
 
     return { sut };
@@ -181,7 +181,7 @@ describe('BindableObserver', function () {
 
   it('initializes the default callback to undefined', function () {
     const values = createObjectArr();
-    values.forEach(value => {
+    values.forEach(_value => {
       const observer = createFixture(LF.none, {}, 'a');
       assert.strictEqual(observer['callback'], void 0, `observer['callback']`);
     });

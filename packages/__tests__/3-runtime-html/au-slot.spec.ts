@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { IContainer } from '@aurelia/kernel';
 import { Aurelia, AuSlotsInfo, bindable, BindingMode, customElement, CustomElement, IAuSlotsInfo, IPlatform } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
@@ -1633,7 +1631,7 @@ describe('au-slot', function () {
         '<my-element-user></my-element-user>',
         [MyElementUser, createMyElement('<au-slot></au-slot>')],
         {},
-        async function ({ au, host, platform }) {
+        async function ({ host, platform }) {
           platform.domWriteQueue.flush();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');
@@ -1665,7 +1663,7 @@ describe('au-slot', function () {
         '<my-element-user></my-element-user>',
         [MyElementUser, MyElement],
         {},
-        async function ({ au, host, platform }) {
+        async function ({ host, platform }) {
           platform.domWriteQueue.flush();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');

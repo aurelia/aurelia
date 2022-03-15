@@ -1,6 +1,7 @@
 import { LifecycleFlags as LF, ValueAttributeObserver } from '@aurelia/runtime-html';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
+// eslint-disable-next-line mocha/no-skipped-tests
 describe.skip('ValueAttributeObserver', function () {
   const eventDefaults = { bubbles: true };
 

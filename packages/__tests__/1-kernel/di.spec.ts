@@ -316,7 +316,8 @@ describe(`The DI object`, function () {
     it(`uses getDesignParamtypes() if the static inject property does not exist`, function () {
       class Bar {}
       @decorator()
-      class Foo { public constructor(bar: Bar) { return; } }
+      // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+      class Foo { public constructor(_bar: Bar) { /* empty */ } }
       DI.getDependencies(Foo);
 
       assert.deepStrictEqual(
@@ -331,7 +332,8 @@ describe(`The DI object`, function () {
     it(`uses getDesignParamtypes() if the static inject property is undefined`, function () {
       class Bar {}
       @decorator()
-      class Foo { public static inject; public constructor(bar: Bar) { return; } }
+      // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+      class Foo { public static inject; public constructor(_bar: Bar) { /* empty */ } }
       DI.getDependencies(Foo);
 
       assert.deepStrictEqual(
@@ -439,7 +441,6 @@ describe(`The DI object`, function () {
       const expected = 'InterfaceSymbol<(anonymous)>';
       assert.strictEqual(sut.toString(), expected, `sut.toString() === '${expected}'`);
       assert.strictEqual(String(sut), expected, `String(sut) === '${expected}'`);
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       assert.strictEqual(`${sut}`, expected, `\`\${sut}\` === '${expected}'`);
     });
 
@@ -448,7 +449,6 @@ describe(`The DI object`, function () {
       const expected = 'InterfaceSymbol<IFoo>';
       assert.strictEqual(sut.toString(), expected, `sut.toString() === '${expected}'`);
       assert.strictEqual(String(sut), expected, `String(sut) === '${expected}'`);
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       assert.strictEqual(`${sut}`, expected, `\`\${sut}\` === '${expected}'`);
     });
   });
@@ -474,7 +474,8 @@ describe(`The inject decorator`, function () {
   // });
 
   it(`can decorate constructor parameters explicitly`, function () {
-    class Foo { public constructor(@inject(Dep1)dep1, @inject(Dep2)dep2, @inject(Dep3)dep3) { return; } }
+    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+    class Foo { public constructor(@inject(Dep1)_dep1, @inject(Dep2)_dep2, @inject(Dep3)_dep3) { /* empty */ } }
 
     assert.deepStrictEqual(DI.getDependencies(Foo), [Dep1, Dep2, Dep3], `Foo['inject']`);
   });
@@ -486,6 +487,7 @@ describe(`The inject decorator`, function () {
   // });
 
   it(`can decorate properties explicitly`, function () {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     class Foo { @inject(Dep1)public dep1; @inject(Dep2)public dep2; @inject(Dep3)public dep3; }
 
@@ -495,6 +497,7 @@ describe(`The inject decorator`, function () {
   });
 
   it(`cannot decorate properties implicitly`, function () {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     class Foo { @inject()public dep1: Dep1; @inject()public dep2: Dep2; @inject()public dep3: Dep3; }
 
@@ -1379,6 +1382,8 @@ describe(`The Container class`, function () {
       // it's not only wasteful, but also inappropriate
       // a change in the way resources information is carried forward resulted in this test being skipped
       // but kept as a reminder how it used to be, in case someone relying on this behavior ran into the odd behavior
+      //
+      // eslint-disable-next-line mocha/no-skipped-tests
       it.skip(`stores resource resolvers in resourceResolvers in parent and inherits them from root but does not from parent`, function () {
         const type = class {};
         const keyFromRoot = 'foo:bar' as any;

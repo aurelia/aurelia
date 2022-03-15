@@ -245,7 +245,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
         }
 
         function select(...options: SelectValidChild[]): (ctx: TestContext) => HTMLSelectElement {
-          return function (ctx: TestContext) {
+          return function (_ctx: TestContext) {
             return h(
               'select',
               { multiple: true },
@@ -257,7 +257,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
     });
 
     function option(attributes: Record<string, any>) {
-      return function (ctx: TestContext) {
+      return function (_ctx: TestContext) {
         return h('option', attributes);
       };
     }

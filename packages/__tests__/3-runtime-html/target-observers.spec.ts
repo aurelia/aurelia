@@ -403,7 +403,6 @@ describe('ClassAccessor', function () {
   for (const markup of markupArr) {
     for (const classList of classListArr) {
 
-      // eslint-disable-next-line no-inner-declarations
       function createFixture() {
         const ctx = TestContext.create();
         const el = ctx.createElementFromMarkup(markup);

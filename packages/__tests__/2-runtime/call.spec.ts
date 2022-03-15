@@ -19,6 +19,7 @@ import {
   createContainer
 } from '@aurelia/testing';
 
+// eslint-disable-next-line mocha/no-skipped-tests
 describe.skip('CallBinding', function () {
   function createFixture(sourceExpression: IsBindingBehavior, target: any, targetProperty: string) {
     const container = createContainer(); // Note: used to be RuntimeConfiguration.createContainer, needs deps

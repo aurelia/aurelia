@@ -77,7 +77,7 @@ describe('3-runtime-html/au-render.spec.ts', function () {
     // },
     {
       t: '6',
-      createSubject: ctx => new RenderPlan(`<div>Hello!</div>` as any, [], []),
+      createSubject: _ctx => new RenderPlan(`<div>Hello!</div>` as any, [], []),
       expectedText: 'Hello!'
     }
   ];

@@ -14,8 +14,8 @@ export type $TestSetupContext = Record<string, any> & { timeout?: number };
 export type TestFunction<TTestContext extends TestExecutionContext<any>> = (ctx: TTestContext) => void | Promise<void>;
 export type WrapperFunction<TTestContext extends TestExecutionContext<any>, TSetupContext extends $TestSetupContext = $TestSetupContext> = (testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) => void | Promise<void>;
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createSpecFunction<TTestContext extends TestExecutionContext<any>, TSetupContext extends $TestSetupContext = $TestSetupContext>(wrap: WrapperFunction<TTestContext, TSetupContext>) {
-
   function $it(title: string, testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) {
     it(title, async function () {
       if (setupContext?.timeout !== void 0) {
@@ -26,12 +26,15 @@ export function createSpecFunction<TTestContext extends TestExecutionContext<any
   }
 
   $it.only = function (title: string, testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) {
+    // eslint-disable-next-line mocha/no-exclusive-tests
     it.only(title, async function () { await wrap.bind(this)(testFunction.bind(this), setupContext); });
   };
 
   $it.skip = function (title: string, testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) {
-    it.skip(title, async function () { await wrap.bind(this)(testFunction.bind(this), setupContext); });
+    // eslint-disable-next-line mocha/no-skipped-tests
+    return it.skip(title, async function () { await wrap.bind(this)(testFunction.bind(this), setupContext); });
   };
+
   return $it;
 }
 

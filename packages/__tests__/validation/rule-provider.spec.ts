@@ -207,7 +207,7 @@ describe('validation/validation.spec.ts/ValidationRules', function () {
   });
 
   it('can be used to define custom validation rules fluently', function () {
-    const { sut, container } = setup();
+    const { sut } = setup();
     const propName = 'fooBar';
     let executed = false;
     class CustomRule extends BaseValidationRule {
@@ -959,9 +959,9 @@ describe('validation/validation.spec.ts/parsePropertyName', function () {
     { property: true },
     { property: false },
     { property: {} },
-    { property: (o) => { while (true) { /* noop */ } } },
+    { property: (_o) => { while (true) { /* noop */ } } },
     { property: (o) => { while (true) { /* noop */ } return o.prop; } },
-    { property: function (o) { while (true) { /* noop */ } } },
+    { property: function (_o) { while (true) { /* noop */ } } },
     { property: function (o) { while (true) { /* noop */ } return o.prop; } },
   ];
   for(const { property } of negativeDataRows) {

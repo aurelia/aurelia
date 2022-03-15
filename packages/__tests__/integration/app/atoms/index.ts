@@ -8,7 +8,7 @@ import { Command } from './command/command.js';
 import { SelectDropdown } from './select-dropdown/select-dropdown.js';
 
 export const atoms = {
-  register(container: IContainer) {
+  register(container: IContainer): void {
     container
       .register(
         ReadOnlyText,

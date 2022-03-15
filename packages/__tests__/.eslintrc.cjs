@@ -37,13 +37,14 @@ module.exports = {
     'no-extra-boolean-cast': 'off',
     'no-template-curly-in-string': 'off',
     'no-inner-declarations': 'off',
+    'require-atomic-updates': 'off',
 
     // Things we maybe need to fix some day, so are marked as off for now as they're quite noisy:
     'mocha/max-top-level-suites': 'off',
     'mocha/no-setup-in-describe': 'off',
     'mocha/no-synchronous-tests': 'off',
 
-    '@typescript-eslint/no-unused-vars': ["warning", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_" }],
+    '@typescript-eslint/no-unused-vars': ["warn", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_" }],
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-member-access': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',

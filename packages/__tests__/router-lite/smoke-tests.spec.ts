@@ -110,8 +110,8 @@ describe('router (smoke tests)', function () {
     @customElement({ name: 'b01', template: `b01${vp(0)}` })
     class B01 {
       public async canUnload(
-        next: RouteNode | null,
-        current: RouteNode,
+        _next: RouteNode | null,
+        _current: RouteNode,
       ): Promise<true> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return true;
@@ -120,8 +120,8 @@ describe('router (smoke tests)', function () {
     @customElement({ name: 'b02', template: `b02${vp(0)}` })
     class B02 {
       public async canUnload(
-        next: RouteNode | null,
-        current: RouteNode,
+        _next: RouteNode | null,
+        _current: RouteNode,
       ): Promise<false> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return false;
@@ -132,8 +132,8 @@ describe('router (smoke tests)', function () {
     @customElement({ name: 'b11', template: `b11${vp(1)}` })
     class B11 {
       public async canUnload(
-        next: RouteNode | null,
-        current: RouteNode,
+        _next: RouteNode | null,
+        _current: RouteNode,
       ): Promise<true> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return true;
@@ -142,8 +142,8 @@ describe('router (smoke tests)', function () {
     @customElement({ name: 'b12', template: `b12${vp(1)}` })
     class B12 {
       public async canUnload(
-        next: RouteNode | null,
-        current: RouteNode,
+        _next: RouteNode | null,
+        _current: RouteNode,
       ): Promise<false> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return false;
@@ -931,7 +931,6 @@ describe('router (smoke tests)', function () {
     @customElement({ name: 'app-root', template: '<au-viewport></au-viewport>' })
     class AppRoot { }
 
-    // eslint-disable-next-line no-inner-declarations
     async function start(buildTitle: IRouterOptions['buildTitle'] | null = null) {
       const ctx = TestContext.create();
       const { container } = ctx;

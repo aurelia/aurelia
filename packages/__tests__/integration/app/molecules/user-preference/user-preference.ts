@@ -34,33 +34,33 @@ export class User {
     this.arr = new TestArray();
   }
 
-  public get fullNameStatic() {
+  public get fullNameStatic(): string {
     return `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
 
   // default setting, that is no decorator === `@computed({ static: false })`
-  public get fullNameNonStatic() {
+  public get fullNameNonStatic(): string {
     if (this.age < 1) {
       return 'infant';
     }
     return `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
 
-  public get fullNameWrongStatic() {
+  public get fullNameWrongStatic(): string {
     if (this.age < 1) {
       return `infant`;
     }
     return `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
 
-  public get $role() {
+  public get $role(): string {
     return `${this.role}, ${this.organization}`;
   }
   public set $role(value: string) {
     this.role = value;
   }
 
-  public get $location() {
+  public get $location(): string {
     return `${this.city}, ${this.country}`;
   }
   public set $location(value: string) {

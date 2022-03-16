@@ -1,4 +1,4 @@
-name: Github Actions
+name: main
 on: [push]
 env:
   PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property
@@ -18,55 +18,57 @@ jobs:
       - run: npm run lint:packages:ci
       - run: npm run lint:other:ci
 
-  node:
-    timeout-minutes: 10
-    strategy:
-      matrix:
-        suite: [
-          "kernel",
-          "runtime",
-          "runtime-html",
-          "router-lite",
-          "i18n",
-          "validation",
-        ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 15
-      - run: npm ci
-      - run: npm run rollup
-      - run: npm run test-node:${{matrix.suite}}
-        working-directory: packages/__tests__
+  # Only turn on if necessary per branch
+  #
+  # node:
+  #   timeout-minutes: 10
+  #   strategy:
+  #     matrix:
+  #       suite: [
+  #         "kernel",
+  #         "runtime",
+  #         "runtime-html",
+  #         "router-lite",
+  #         "i18n",
+  #         "validation",
+  #       ]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v1
+  #       with:
+  #         node-version: 15
+  #     - run: npm ci
+  #     - run: npm run rollup
+  #     - run: npm run test-node:${{matrix.suite}}
+  #       working-directory: packages/__tests__
 
-  node-cjs:
-    timeout-minutes: 10
-    strategy:
-      matrix:
-        suite: [
-          "aot",
-          "babel-jest",
-          "plugin-conventions",
-          "plugin-gulp",
-          "ts-jest",
-          "webpack-loader",
-        ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 15
-      - run: npm ci
-      - run: npm run build
-      - run: npm run change-tsconfigs:invert
-      - run: npm run build
-      - run: npm run change-tsconfigs:restore
-      - run: npm run change-package-refs:release -- commonjs
-      - run: npm run test-node:${{matrix.suite}}
-        working-directory: packages-cjs/__tests__
+  # test-packages-cjs:
+  #   timeout-minutes: 10
+  #   strategy:
+  #     matrix:
+  #       suite: [
+  #         "aot",
+  #         "babel-jest",
+  #         "plugin-conventions",
+  #         "plugin-gulp",
+  #         "ts-jest",
+  #         "webpack-loader",
+  #       ]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v1
+  #       with:
+  #         node-version: 15
+  #     - run: npm ci
+  #     - run: npm run build
+  #     - run: npm run change-tsconfigs:invert
+  #     - run: npm run build
+  #     - run: npm run change-tsconfigs:restore
+  #     - run: npm run change-package-refs:release -- commonjs
+  #     - run: npm run test-node:${{matrix.suite}}
+  #       working-directory: packages-cjs/__tests__
 
   router-e2e:
     runs-on: ubuntu-latest
@@ -82,7 +84,7 @@ jobs:
         name: build e2e projects
         working-directory: packages/__e2e__/router-configured-basic
 
-  browsers:
+  packages:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     container:
@@ -98,7 +100,38 @@ jobs:
       - run: npm run test-${{matrix.browser}}
         working-directory: packages/__tests__
 
-  testapps:
+  packages-in-node:
+    name: packages (node)
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 15
+      - run: npm ci
+      - run: npm run build:test
+      - run: npm run test-node
+        working-directory: packages/__tests__
+
+  packages-cjs:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 15
+      - run: npm ci
+      - run: npm run build
+      - run: npm run change-tsconfigs:invert
+      - run: npm run build
+      - run: npm run change-tsconfigs:restore
+      - run: npm run change-package-refs:release -- commonjs
+      - run: npm run test-node
+        working-directory: packages-cjs/__tests__
+
+  example-apps:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     container:

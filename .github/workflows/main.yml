@@ -1,4 +1,4 @@
-name: On commit
+name: main
 on: [push]
 env:
   PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property
@@ -101,7 +101,7 @@ jobs:
         working-directory: packages/__tests__
 
   packages-in-node:
-    name: package (node)
+    name: packages (node)
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:

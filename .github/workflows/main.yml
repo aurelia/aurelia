@@ -101,6 +101,7 @@ jobs:
         working-directory: packages/__tests__
 
   packages-in-node:
+    name: package (node)
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:

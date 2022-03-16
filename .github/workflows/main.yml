@@ -1,4 +1,4 @@
-name: Github Actions
+name: On commit
 on: [push]
 env:
   PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property
@@ -84,7 +84,7 @@ jobs:
         name: build e2e projects
         working-directory: packages/__e2e__/router-configured-basic
 
-  test-packages-in-browsers:
+  packages:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     container:
@@ -100,7 +100,7 @@ jobs:
       - run: npm run test-${{matrix.browser}}
         working-directory: packages/__tests__
 
-  test-packages-in-node:
+  packages-in-node:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
@@ -113,7 +113,7 @@ jobs:
       - run: npm run test-node
         working-directory: packages/__tests__
 
-  test-packages-cjs:
+  packages-cjs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -130,7 +130,7 @@ jobs:
       - run: npm run test-node
         working-directory: packages-cjs/__tests__
 
-  testapps:
+  example-apps:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     container:

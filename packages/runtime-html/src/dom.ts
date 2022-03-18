@@ -250,10 +250,10 @@ export class FragmentNodeSequence implements INodeSequence {
     }
 
     const childNodeList = fragment.childNodes;
-    const childNodes = this.childNodes = Array(ii = childNodeList.length);
+    const childNodes = this.childNodes = Array(ii = childNodeList.length) as Node[];
     i = 0;
     while (ii > i) {
-      childNodes[i] = childNodeList[i] as Writable<Node>;
+      childNodes[i] = childNodeList[i];
       ++i;
     }
 

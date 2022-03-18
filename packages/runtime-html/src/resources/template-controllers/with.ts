@@ -26,8 +26,8 @@ export class With implements ICustomAttributeViewModel {
 
   public valueChanged(
     newValue: unknown,
-    oldValue: unknown,
-    flags: LifecycleFlags,
+    _oldValue: unknown,
+    _flags: LifecycleFlags,
   ): void {
     const $controller = this.$controller;
     const bindings = this.view.bindings;

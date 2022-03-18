@@ -306,6 +306,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
 export type CollectionObserver = ICollectionObserver<CollectionKind>;
 
 export interface IBindingContext {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 

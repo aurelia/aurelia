@@ -95,7 +95,7 @@ export class AuCompose {
     this._contextFactory = contextFactory;
   }
 
-  public attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+  public attaching(initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): void | Promise<void> {
     return this._pending = onResolve(
       this.queue(new ChangeInfo(this.view, this.viewModel, this.model, void 0), initiator),
       (context) => {
@@ -123,7 +123,7 @@ export class AuCompose {
     }
     this._pending = onResolve(this._pending, () =>
       onResolve(
-        this.queue(new ChangeInfo(this.view!, this.viewModel, this.model, name), void 0),
+        this.queue(new ChangeInfo(this.view, this.viewModel, this.model, name), void 0),
         (context) => {
           if (this._contextFactory.isCurrent(context)) {
             this._pending = void 0;
@@ -303,12 +303,12 @@ export class AuCompose {
       p.Element,
       container.registerResolver(
         INode,
-        new InstanceProvider('ElementResolver', isLocation ? null : host as HTMLElement)
+        new InstanceProvider('ElementResolver', isLocation ? null : host)
       )
     );
     container.registerResolver(
       IRenderLocation,
-      new InstanceProvider('IRenderLocation', isLocation ? host as IRenderLocation : null)
+      new InstanceProvider('IRenderLocation', isLocation ? host : null)
     );
 
     const instance = container.invoke(comp);

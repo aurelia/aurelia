@@ -1336,9 +1336,9 @@ decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
 
 // IdentifierPart lookup
 const IdParts = new Uint8Array(0xFFFF);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-argument
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 decompress(IdParts as any, null, codes.IdStart, 1);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-argument
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 decompress(IdParts as any, null, codes.Digit, 1);
 
 type CharScanner = ((p: ParserState) => Token | null) & { notMapped?: boolean };

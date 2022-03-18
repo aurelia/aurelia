@@ -1,6 +1,6 @@
 import { LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { emptyArray, kebabCase } from '@aurelia/kernel';
-import { isFunction, isString } from '../utilities.js';
+import { hasOwnProperty, isFunction, isString } from '../utilities.js';
 import type { IAccessor } from '@aurelia/runtime';
 
 const customPropertyPrefix: string = '--';
@@ -35,6 +35,7 @@ export class StyleAttributeAccessor implements IAccessor {
     }
   }
 
+  /** @internal */
   private _getStyleTuplesFromString(currentValue: string): [string, string][] {
     const styleTuples: [string, string][] = [];
     const urlRegexTester = /url\([^)]+$/;
@@ -66,6 +67,7 @@ export class StyleAttributeAccessor implements IAccessor {
     return styleTuples;
   }
 
+  /** @internal */
   private _getStyleTuplesFromObject(currentValue: Record<string, unknown>): [string, string][] {
     let value: unknown;
     let property: string;
@@ -91,6 +93,7 @@ export class StyleAttributeAccessor implements IAccessor {
     return styles;
   }
 
+  /** @internal */
   private _getStyleTuplesFromArray(currentValue: unknown[]): [string, string][] {
     const len = currentValue.length;
     if (len > 0) {
@@ -104,6 +107,7 @@ export class StyleAttributeAccessor implements IAccessor {
     return emptyArray;
   }
 
+  /** @internal */
   private _getStyleTuples(currentValue: unknown): [string, string][] {
     if (isString(currentValue)) {
       return this._getStyleTuplesFromString(currentValue);
@@ -154,7 +158,7 @@ export class StyleAttributeAccessor implements IAccessor {
 
       version -= 1;
       for (style in styles) {
-        if (!Object.prototype.hasOwnProperty.call(styles, style) || styles[style] !== version) {
+        if (!hasOwnProperty.call(styles, style) || styles[style] !== version) {
           continue;
         }
         this.obj.style.removeProperty(style);
@@ -173,7 +177,7 @@ export class StyleAttributeAccessor implements IAccessor {
     this.obj.style.setProperty(style, value, priority);
   }
 
-  public bind(flags: LifecycleFlags): void {
+  public bind(_flags: LifecycleFlags): void {
     this.value = this._oldValue = this.obj.style.cssText;
   }
 }

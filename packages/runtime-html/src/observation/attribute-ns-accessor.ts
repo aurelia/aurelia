@@ -32,7 +32,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   }
 
   public setValue(newValue: string | null, f: LifecycleFlags, obj: HTMLElement, key: string): void {
-    if (newValue == void 0) {
+    if (newValue == null) {
       obj.removeAttributeNS(this.ns, key);
     } else {
       obj.setAttributeNS(this.ns, key, newValue);

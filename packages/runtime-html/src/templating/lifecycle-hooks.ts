@@ -39,7 +39,6 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
    */
   public static create<T extends Constructable>(def: {}, Type: T): LifecycleHooksDefinition<T> {
     const propertyNames = new Set<string>();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     let proto = Type.prototype;
     while (proto !== Object.prototype) {
       for (const name of Object.getOwnPropertyNames(proto)) {
@@ -48,7 +47,6 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
           propertyNames.add(name);
         }
       }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       proto = Object.getPrototypeOf(proto);
     }
 
@@ -60,6 +58,7 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const containerLookup = new WeakMap<IContainer, LifecycleHooksLookup<any>>();
 
 const lhBaseName = getAnnotationKeyFor('lifecycle-hooks');

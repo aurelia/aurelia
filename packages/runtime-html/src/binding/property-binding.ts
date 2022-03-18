@@ -63,7 +63,7 @@ export class PropertyBinding implements IAstBasedBinding {
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags, this.$scope!, this.locator, value);
+    this.sourceExpression.assign(flags, this.$scope!, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {

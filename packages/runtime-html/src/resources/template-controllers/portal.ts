@@ -60,7 +60,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     this._currentTarget = p.document.createElement('div');
 
     this.view = factory.create();
-    setEffectiveParentNode(this.view.nodes!, originalLoc as unknown as Node);
+    setEffectiveParentNode(this.view.nodes, originalLoc as unknown as Node);
   }
 
   public attaching(

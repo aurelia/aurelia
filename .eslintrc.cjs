@@ -193,8 +193,8 @@ module.exports = {
     }],
 
     // Things we maybe need to fix some day, so are marked as warnings for now:
-    '@typescript-eslint/no-unsafe-argument': 'warn',
-    '@typescript-eslint/no-unsafe-assignment': 'warn',
+    '@typescript-eslint/no-unsafe-argument': 'off',
+    '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-member-access': 'warn',
     '@typescript-eslint/no-unsafe-call': 'warn',
     '@typescript-eslint/no-unsafe-return': 'warn',
@@ -211,7 +211,7 @@ module.exports = {
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
     '@typescript-eslint/require-array-sort-compare': 'warn',
     '@typescript-eslint/restrict-plus-operands': ['warn', { 'checkCompoundAssignments': true }],
-    '@typescript-eslint/restrict-template-expressions': ['warn', { 'allowNumber': true, 'allowBoolean': true, 'allowNullish': true, 'allowAny': true }],
+    '@typescript-eslint/restrict-template-expressions': ['off', { 'allowNumber': true, 'allowBoolean': true, 'allowNullish': true, 'allowAny': true }],
     '@typescript-eslint/strict-boolean-expressions': 'warn',
     '@typescript-eslint/typedef': ['warn', { arrowParameter: false, parameter: false, variableDeclaration: false }],
     '@typescript-eslint/unbound-method': 'off', // Only false positives seen so far

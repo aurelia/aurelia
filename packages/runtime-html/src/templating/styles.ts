@@ -22,7 +22,7 @@ export class CSSModulesProcessorRegistry implements IRegistry {
       name: 'class',
       bindables: ['value'],
     }, class CustomAttributeClass {
-      public static inject: any[] = [INode];
+      public static inject: unknown[] = [INode];
 
       public value!: string;
       public constructor(
@@ -124,6 +124,7 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
 
         if (sheet === void 0) {
           sheet = new p.CSSStyleSheet();
+          // eslint-disable-next-line
           (sheet as any).replaceSync(x);
           styleSheetCache.set(x, sheet);
         }

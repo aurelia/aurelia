@@ -167,13 +167,12 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 
   @bindable({ mode: BindingMode.toView }) public value!: Promise<unknown>;
 
-  public view: ISyntheticView;
+  public view: ISyntheticView | null = null;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
-    @IRenderLocation location: IRenderLocation,
+    @IRenderLocation private readonly location: IRenderLocation,
   ) {
-    this.view = this.factory.create().setLocation(location);
   }
 
   public link(
@@ -186,14 +185,14 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   }
 
   public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope): void | Promise<void> {
-    const view = this.view;
+    const view = this.view ??= this.factory.create().setLocation(this.location);
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, flags, scope);
   }
 
   public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view;
-    if (!view.isActive) { return; }
+    if (view == null || !view.isActive) { return; }
     return view.deactivate(view, this.$controller, flags);
   }
 
@@ -214,14 +213,12 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
   @bindable({ mode: BindingMode.fromView }) public value!: unknown;
 
-  public view: ISyntheticView;
+  public view: ISyntheticView | null = null;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
-    @IRenderLocation location: IRenderLocation,
-  ) {
-    this.view = this.factory.create().setLocation(location);
-  }
+    @IRenderLocation private readonly location: IRenderLocation,
+  ) { }
 
   public link(
     controller: IHydratableController,
@@ -234,14 +231,14 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
   public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, resolvedValue: unknown): void | Promise<void> {
     this.value = resolvedValue;
-    const view = this.view;
+    const view = this.view ??= this.factory.create().setLocation(this.location);
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, flags, scope);
   }
 
   public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view;
-    if (!view.isActive) { return; }
+    if (view == null || !view.isActive) { return; }
     return view.deactivate(view, this.$controller, flags);
   }
 
@@ -262,14 +259,12 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
 
   @bindable({ mode: BindingMode.fromView }) public value!: unknown;
 
-  public view: ISyntheticView;
+  public view: ISyntheticView | null = null;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
-    @IRenderLocation location: IRenderLocation,
-  ) {
-    this.view = this.factory.create().setLocation(location);
-  }
+    @IRenderLocation private readonly location: IRenderLocation,
+  ) { }
 
   public link(
     controller: IHydratableController,
@@ -282,14 +277,14 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
 
   public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, error: unknown): void | Promise<void> {
     this.value = error;
-    const view = this.view;
+    const view = this.view ??= this.factory.create().setLocation(this.location);
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, flags, scope);
   }
 
   public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view;
-    if (!view.isActive) { return; }
+    if (view == null || !view.isActive) { return; }
     return view.deactivate(view, this.$controller, flags);
   }
 

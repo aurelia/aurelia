@@ -74,11 +74,11 @@ describe('promise template-controller', function () {
         @optional(Config) private readonly config: Config,
         @ILogger private readonly $logger: ILogger,
         @IContainer container: IContainer,
-        @INode node: HTMLElement,
+        @INode node: INode,
       ) {
-        if (node.dataset.logCtor !== void 0) {
+        if ((node as HTMLElement).dataset.logCtor !== void 0) {
           (this.logger = $logger.scopeTo(name)).debug('ctor');
-          delete node.dataset.logCtor;
+          delete (node as HTMLElement).dataset.logCtor;
         }
         if (config == null) {
           const lookup = container.get(configLookup);

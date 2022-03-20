@@ -86,12 +86,12 @@ describe('3-runtime-html/switch.spec.ts', function () {
       public constructor(
         private readonly config: Config,
         @ILogger private readonly $logger: ILogger,
-        @INode node: HTMLElement,
+        @INode node: INode,
       ) {
-        const ceId = node.dataset.ceId;
+        const ceId = (node as HTMLElement).dataset.ceId;
         if (ceId) {
           (this.logger = $logger.scopeTo(`${name}-${ceId}`)).debug('ctor');
-          delete node.dataset.ceId;
+          delete (node as HTMLElement).dataset.ceId;
         }
       }
 

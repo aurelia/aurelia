@@ -258,7 +258,7 @@ export class Case implements ICustomAttributeViewModel {
   })
   public fallThrough: boolean = false;
 
-  public view: ISyntheticView | null = null;
+  public view: ISyntheticView | undefined = void 0;
   private $switch!: Switch;
   /** @internal */ private readonly _debug: boolean;
   /** @internal */ private readonly _logger: ILogger;
@@ -331,7 +331,7 @@ export class Case implements ICustomAttributeViewModel {
 
   public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view;
-    if (view == null || !view.isActive) { return; }
+    if (view === void 0 || !view.isActive) { return; }
     return view.deactivate(initiator ?? view, this.$controller, flags);
   }
 

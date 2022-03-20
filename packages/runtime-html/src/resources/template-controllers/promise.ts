@@ -167,7 +167,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 
   @bindable({ mode: BindingMode.toView }) public value!: Promise<unknown>;
 
-  public view: ISyntheticView | null = null;
+  public view: ISyntheticView | undefined = void 0;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
@@ -192,7 +192,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 
   public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view;
-    if (view == null || !view.isActive) { return; }
+    if (view === void 0 || !view.isActive) { return; }
     return view.deactivate(view, this.$controller, flags);
   }
 
@@ -213,7 +213,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
   @bindable({ mode: BindingMode.fromView }) public value!: unknown;
 
-  public view: ISyntheticView | null = null;
+  public view: ISyntheticView | undefined = void 0;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
@@ -238,7 +238,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
   public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view;
-    if (view == null || !view.isActive) { return; }
+    if (view === void 0 || !view.isActive) { return; }
     return view.deactivate(view, this.$controller, flags);
   }
 
@@ -259,7 +259,7 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
 
   @bindable({ mode: BindingMode.fromView }) public value!: unknown;
 
-  public view: ISyntheticView | null = null;
+  public view: ISyntheticView | undefined = void 0;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
@@ -284,7 +284,7 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
 
   public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view;
-    if (view == null || !view.isActive) { return; }
+    if (view === void 0 || !view.isActive) { return; }
     return view.deactivate(view, this.$controller, flags);
   }
 

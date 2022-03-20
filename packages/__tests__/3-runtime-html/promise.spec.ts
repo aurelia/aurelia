@@ -34,6 +34,7 @@ import {
   ISyntheticView,
   ICustomElementController,
   bindable,
+  INode,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -73,7 +74,12 @@ describe('promise template-controller', function () {
         @optional(Config) private readonly config: Config,
         @ILogger private readonly $logger: ILogger,
         @IContainer container: IContainer,
+        @INode node: HTMLElement,
       ) {
+        if (node.dataset.logCtor !== void 0) {
+          (this.logger = $logger.scopeTo(name)).debug('ctor');
+          delete node.dataset.logCtor;
+        }
         if (config == null) {
           const lookup = container.get(configLookup);
           this.config = lookup.get(name);
@@ -81,7 +87,7 @@ describe('promise template-controller', function () {
       }
 
       public async binding(): Promise<void> {
-        this.logger = this.ceId === null ? this.$logger.scopeTo(name) : this.$logger.scopeTo(`${name}-${this.ceId}`) ;
+        this.logger = this.ceId === null ? this.$logger.scopeTo(name) : this.$logger.scopeTo(`${name}-${this.ceId}`);
         if (this.config.hasPromise) {
           await this.config.wait('binding');
         }
@@ -324,10 +330,10 @@ describe('promise template-controller', function () {
     }
   }
 
-  function getActivationSequenceFor(name: string | string[]) {
+  function getActivationSequenceFor(name: string | string[], withCtor: boolean = false) {
     return typeof name === 'string'
-      ? [`${name}.binding`, `${name}.bound`, `${name}.attaching`, `${name}.attached`]
-      : ['binding', 'bound', 'attaching', 'attached'].flatMap(x => name.map(n => `${n}.${x}`));
+      ? [...(withCtor ? [`${name}.ctor`] : []), `${name}.binding`, `${name}.bound`, `${name}.attaching`, `${name}.attached`]
+      : [...(withCtor ? [`${name}.ctor`] : []), 'binding', 'bound', 'attaching', 'attached'].flatMap(x => name.map(n => `${n}.${x}`));
   }
   function getDeactivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'
@@ -612,12 +618,20 @@ describe('promise template-controller', function () {
             }
           );
           yield new TestData(
-            'reacts to change in promise value - fulfilled -> (pending -> fulfilled)',
+            'reacts to change in promise value - fulfilled -> (pending -> fulfilled) + deferred view-instantiation assertion',
             Promise.resolve(42),
-            { delayPromise, template: template1 },
+            {
+              delayPromise, template: `
+            <template>
+              <template ${pattribute}="promise">
+                <pending-host pending p.bind="promise" data-log-ctor></pending-host>
+                <fulfilled-host ${fattribute}="data" data.bind="data" data-log-ctor></fulfilled-host>
+                <rejected-host ${rattribute}="err" err.bind="err" data-log-ctor></rejected-host>
+              </template>
+            </template>` },
             config(),
             wrap('resolved with 42', 'f'),
-            getActivationSequenceFor(fhost),
+            getActivationSequenceFor(fhost, true),
             getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
@@ -629,7 +643,7 @@ describe('promise template-controller', function () {
               await p.domWriteQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost, true)]);
               ctx.clear();
 
               resolve(84);
@@ -2862,7 +2876,7 @@ describe('promise template-controller', function () {
     ) { }
   }
 
-  function *getNegativeTestData() {
+  function* getNegativeTestData() {
     yield new NegativeTestData(
       `pending cannot be used in isolation`,
       `<template><template pending>pending</template></template>`

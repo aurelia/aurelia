@@ -30,6 +30,7 @@ import {
   ICustomElementViewModel,
   ICustomElementController,
   bindable,
+  INode,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -85,10 +86,17 @@ describe('3-runtime-html/switch.spec.ts', function () {
       public constructor(
         private readonly config: Config,
         @ILogger private readonly $logger: ILogger,
-      ) { }
+        @INode node: HTMLElement,
+      ) {
+        const ceId = node.dataset.ceId;
+        if (ceId) {
+          (this.logger = $logger.scopeTo(`${name}-${ceId}`)).debug('ctor');
+          delete node.dataset.ceId;
+        }
+      }
 
       public async binding(): Promise<void> {
-        this.logger = this.ceId === null ? this.$logger.scopeTo(name) : this.$logger.scopeTo(`${name}-${this.ceId}`) ;
+        this.logger ??= this.ceId === null ? this.$logger.scopeTo(name) : this.$logger.scopeTo(`${name}-${this.ceId}`);
         if (this.config.hasPromise) {
           await this.config.wait();
         }
@@ -330,10 +338,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
     ) { }
   }
 
-  function getActivationSequenceFor(name: string | string[]) {
+  function getActivationSequenceFor(name: string | string[], withCtor: boolean = false) {
     return typeof name === 'string'
-      ? [`${name}.binding`, `${name}.bound`, `${name}.attaching`, `${name}.attached`]
-      : ['binding', 'bound', 'attaching', 'attached'].flatMap(x => name.map(n => `${n}.${x}`));
+      ? [...(withCtor ? [`${name}.ctor`] : []), `${name}.binding`, `${name}.bound`, `${name}.attaching`, `${name}.attached`]
+      : [...(withCtor ? ['ctor'] : []), 'binding', 'bound', 'attaching', 'attached'].flatMap(x => name.map(n => `${n}.${x}`));
   }
   function getDeactivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'
@@ -445,22 +453,30 @@ describe('3-runtime-html/switch.spec.ts', function () {
       );
 
       yield new TestData(
-        'reacts to switch value change',
+        'reacts to switch value change + deferred view-instantiation assertion',
         {
           initialStatus: Status.dispatched,
-          template: enumTemplate
+          template: `
+          <template>
+            <template switch.bind="status">
+              <case-host case="received"   data-ce-id="1">Order received.</case-host>
+              <case-host case="dispatched" data-ce-id="2">On the way.</case-host>
+              <case-host case="processing" data-ce-id="3">Processing your order.</case-host>
+              <case-host case="delivered"  data-ce-id="4">Delivered.</case-host>
+            </template>
+          </template>`
         },
         config(),
         wrap('On the way.'),
-        [1, 2, ...getActivationSequenceFor('case-host-2')],
-        getDeactivationSequenceFor('case-host-1'),
+        [1, 2, ...getActivationSequenceFor('case-host-2', true)],
+        getDeactivationSequenceFor('case-host-2'),
         async (ctx) => {
           const $switch = ctx.getSwitches()[0];
           await ctx.assertChange(
             $switch,
             () => { ctx.app.status = Status.delivered; },
             wrap('Delivered.'),
-            [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('case-host-4')]
+            [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('case-host-4', true)]
           );
           await ctx.assertChange(
             $switch,
@@ -472,9 +488,15 @@ describe('3-runtime-html/switch.spec.ts', function () {
             $switch,
             () => { ctx.app.status = Status.received; },
             wrap('Order received.'),
-            [1, ...getActivationSequenceFor('case-host-1')]
+            [1, ...getActivationSequenceFor('case-host-1', true)]
           );
-        }
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.dispatched; },
+            wrap('On the way.'),
+            [1, 2, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('case-host-2')]
+          );
+        },
       );
 
       const templateWithDefaultCase = `

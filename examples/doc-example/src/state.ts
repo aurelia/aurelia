@@ -1,4 +1,4 @@
-import { ViewportInstruction } from '@aurelia/router';
+import { ViewportInstruction } from '@aurelia/router-lite';
 
 export class State {
   public noDelay: boolean = true;

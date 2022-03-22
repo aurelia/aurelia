@@ -1,8 +1,3 @@
-/* eslint-disable
-  @typescript-eslint/no-unsafe-member-access,
-  @typescript-eslint/no-unsafe-assignment,
-  no-template-curly-in-string,
-*/
 import {
   Class,
   IContainer,
@@ -71,7 +66,7 @@ describe('runtime-html.integration', function () {
     ctx.doc.body.removeChild(host);
   }
 
-  class IntegrationTestExecutionContext<TApp extends unknown> implements TestExecutionContext<any> {
+  class IntegrationTestExecutionContext<TApp> implements TestExecutionContext<any> {
     private _platform: IPlatform;
     public constructor(
       public ctx: TestContext,
@@ -84,7 +79,7 @@ describe('runtime-html.integration', function () {
     public get platform(): IPlatform { return this._platform ?? (this._platform = this.container.get(IPlatform)); }
   }
 
-  interface TestSetupContext<TAppPrototype extends unknown> {
+  interface TestSetupContext<TAppPrototype> {
     component: Class<TAppPrototype>;
     registrations: any[];
   }

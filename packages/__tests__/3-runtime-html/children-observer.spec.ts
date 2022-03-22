@@ -153,6 +153,7 @@ describe('ChildrenObserver', function () {
     const ctx = TestContext.create();
     const { container } = ctx;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const HostElement = defineAndRegisterElementWithChildren(container, childrenOptions);
     const ChildOne = defineAndRegisterElement('child-one', container);
     const ChildTwo = defineAndRegisterElement('child-two', container);

@@ -85,7 +85,7 @@ export class ObserverLocator {
   }
 
   public getAccessor(obj: object, key: string): AccessorOrObserver {
-    const cached = (obj as IObservable).$observers?.[key] as AccessorOrObserver | undefined;
+    const cached = (obj as IObservable).$observers?.[key];
     if (cached !== void 0) {
       return cached;
     }

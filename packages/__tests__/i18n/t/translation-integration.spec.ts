@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
 import { Class, IContainer } from '@aurelia/kernel';
 import { Aurelia, bindable, customElement, INode, IPlatform, ISignaler } from '@aurelia/runtime-html';
@@ -16,12 +15,12 @@ describe('translation-integration', function () {
     @bindable public date: string;
   }
 
-  interface TestSetupContext<TApp extends any> {
+  interface TestSetupContext<TApp> {
     component: Class<TApp>;
     aliases?: string[];
     skipTranslationOnMissingKey?: boolean;
   }
-  class I18nIntegrationTestContext<TApp extends any> implements TestExecutionContext<TApp> {
+  class I18nIntegrationTestContext<TApp> implements TestExecutionContext<TApp> {
     public readonly container: IContainer;
     public constructor(
       public readonly en: Record<string, any>,
@@ -50,7 +49,7 @@ describe('translation-integration', function () {
     }
   }
 
-  async function runTest<TApp extends any>(
+  async function runTest<TApp>(
     testFunction: TestFunction<I18nIntegrationTestContext<TApp>>,
     { component, aliases, skipTranslationOnMissingKey = false }: TestSetupContext<TApp>,
   ) {

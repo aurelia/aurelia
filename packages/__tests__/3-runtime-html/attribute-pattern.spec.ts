@@ -228,7 +228,7 @@ describe('@attributePattern', function () {
       ],
     ],
   ] as [AttributePatternDefinition[], [string, string, string[]][]][]) {
-    describe(`parse [${defs.map(d => d.pattern)}]`, function () {
+    describe(`[UNIT] parse [${defs.map(d => d.pattern)}]`, function () {
       for (const [value, match, parts] of tests) {
         it(`parse [${defs.map(d => d.pattern)}] -> interpret [${value}] -> match=[${match}]`, function () {
           let receivedRawName: string;

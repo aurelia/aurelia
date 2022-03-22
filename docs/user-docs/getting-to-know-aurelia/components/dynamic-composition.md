@@ -1,10 +1,6 @@
 # Dynamic composition
 
-In this section, we are going to be learning how you can dynamically render components in your applications by utilizing Aurelia's dynamic composition functionality.
-
-When using Aurelia's `<au-compose>` element, inside of the view-model being used, you have access to all of Aurelia's standard view lifecycle events, as well as an extra `activate`.
-
-## Composing UI
+In this section, we are going to be learning how you can dynamically render components in your applications by utilizing Aurelia's dynamic composition functionality. When using Aurelia's `<au-compose>` element, inside of the view-model being used, you have access to all of Aurelia's standard view lifecycle events, as well as an extra `activate`.
 
 The `<au-compose>` element allows us to compose view/view model pairs as well as just views, kind of like a custom element without having to specify a tag name.
 
@@ -18,10 +14,13 @@ Here is a simple example showcasing how to dynamically compose a view/view model
 
 The `au-compose` element can be used to render any custom element given to its `view-model` property. A basic example is:
 
+{% code title="my-app.html" %}
 ```markup
 <au-compose view-model.bind="MyField"></au-compose>
 ```
+{% endcode %}
 
+{% code title="my-component.ts" %}
 ```javascript
 import { CustomElement } from '@aurelia/runtime-html';
 
@@ -32,6 +31,7 @@ export class App {
   })
 }
 ```
+{% endcode %}
 
 {% hint style="info" %}
 With a custom element as view model, all standard lifecycles, and `activate` will be called during the composition.
@@ -65,31 +65,63 @@ When composing without a custom element as view-model, the result component will
 
 `activate` method on the view model, regardless of whether a custom element or a plain object is provided, will be called during the first composition and subsequent changes of the `model` property on the `<au-compose>` element.
 
-## Migrating from v1 &lt;compose&gt;
+```html
+<au-compose model.bind="myObject"></au-compose>
+```
 
-* `view`/`view-model` \(BREAKING CHANGE\): passing a string to either view/ view model no longer means module name. The composer only understands string as a template for view and objects and classes for view-model now. Though if it's still possible to treat a string as a module name, with the help of a value converter:
+You can also pass an object inline from the template too:
 
-  ```markup
-    <au-compose view="https://my-server.com/views/${componentName} | loadView">
-  ```
+```html
+<au-compose model.bind="{myProp: 'value', test: 'something'}"></au-compose>
+```
 
-  ```javascript
-    class LoadViewValueConverter {
-      toView(v) { return fetch(v).then(r => r.text()) }
+Inside of the component view model being composed, the `activate` method will receive the object as its first argument.
+
+```typescript
+export class MyComponent {
+    activate(model) {
+        // Model contains the passed in model object
     }
-  ```
+}
+```
 
-* `scope` \(BREAKING CHANGE\): context is no longer inherited by default. It will only inherit parent scope when it's not a custom element composition \(can be view only, or with a plain object as view model\). Users can also disable this using the `scope-behavior` bindable:
+## Migrating from v1 \<compose>
 
-  ```markup
-    <au-compose scope-behavior="scoped">
-  ```
+Composition in Aurelia 2 is fundamentally different than it was in Aurelia 1. The same ease of use is still there, but the way in which some things worked in v1 does not work the same in v2.
 
-    **Possible values are:**
+### View and view model breaking changes
 
-  * auto: in view only composition: inherit the parent scope
-  * scoped: never inherit parent scope even in view only composition
+In Aurelia 2, passing a string to the view or view-model properties no longer means module name. In Aurelia 1, the module would be resolved to a file. In v2, the view property only understands string values and the view-model property only understands objects and classes.
 
-* **naming** \(BREAKING CHANGE\): `compose` \(v1\) is changed to `au-compose` \(v2\)
-  * \(v2 only\): the existing `au-compose` is renamed to `au-render`.
+For views, if you still want the ability for a view to support a dynamically loaded module, you can create a value converter that achieves this.
 
+{% code title="my-component.html" %}
+```markup
+  <au-compose view="https://my-server.com/views/${componentName} | loadView">
+```
+{% endcode %}
+
+{% code title="load-view.ts" %}
+```javascript
+  class LoadViewValueConverter {
+    toView(v) { return fetch(v).then(r => r.text()) }
+  }
+```
+{% endcode %}
+
+The above value converter will load the URL and then return the text response. For view models, something similar can be achieved where an object or class can be returned.
+
+### Scope breaking changes
+
+By default, when composing the outer scope will not be inherited by default. The parent scope will only be inherited when it is not a custom element being composed. This means when composing using only a view or plain object as the view model, the outer scope will will be used.
+
+You can disable this behavior using the `scope-behavior` attribute.
+
+```markup
+  <au-compose scope-behavior="scoped">
+```
+
+&#x20; **Possible values are:**
+
+* auto: in view only composition: inherit the parent scope
+* scoped: never inherit parent scope even in view only composition

@@ -27,14 +27,14 @@ const testDirs = [
   'fetch-client',
   'i18n',
   'integration',
-  'router',
+  'router-lite',
   'store-v1',
   'validation',
   'validation-html',
   'validation-i18n',
 ];
 
-const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html'.split(' ');
+const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html --bail'.split(' ');
 const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
 
 const packageNames = [
@@ -45,7 +45,7 @@ const packageNames = [
   'platform',
   'platform-browser',
   'route-recognizer',
-  'router',
+  'router-lite',
   'runtime',
   'runtime-html',
   'store-v1',
@@ -68,7 +68,7 @@ module.exports = function (config) {
 
   const testFilePatterns = cliArgs.length > 0
     ? cliArgs.flatMap(arg => [
-        `${baseUrl}/**/*${arg.replace(/(?:\.spec(?:\.[tj]s)?)?$/, '.spec.js')}`,
+        `${baseUrl}/**/*${arg.replace(/(?:\.spec(?:\.[tj]s)?)?$/, '*.spec.js')}`,
         `${baseUrl}/**/${arg}/**/*.spec.js`,
     ])
     : [`${baseUrl}/**/*.spec.js`];
@@ -175,6 +175,15 @@ module.exports = function (config) {
     },
     logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
     // logLevel: config.LOG_DEBUG,
+    plugins: [
+      'karma-mocha',
+      'karma-aurelia-preprocessor',
+      'karma-coverage-istanbul-instrumenter',
+      'karma-coverage-istanbul-reporter',
+      'karma-min-reporter',
+      'karma-chrome-launcher',
+      'karma-firefox-launcher',
+    ]
   };
 
   if (config.coverage) {

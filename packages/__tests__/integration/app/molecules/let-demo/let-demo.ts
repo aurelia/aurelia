@@ -22,7 +22,7 @@ export class LetDemo {
 
 @valueConverter({ name: 'sqrt' })
 export class SqrtValueConverter {
-  public toView(value: number) {
+  public toView(value: number): number {
     return Math.sqrt(value);
   }
 }

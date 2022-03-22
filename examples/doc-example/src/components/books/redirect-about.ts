@@ -1,5 +1,5 @@
 import { customElement } from '@aurelia/runtime-html';
-import { ViewportInstruction } from '@aurelia/router';
+import { ViewportInstruction } from '@aurelia/router-lite';
 
 @customElement({
   name: 'redirect-about',

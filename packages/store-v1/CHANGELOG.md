@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.26"></a>
+# 2.0.0-alpha.26 (2022-03-13)
+
+**Note:** Version bump only for package @aurelia/store-v1
+
+<a name="2.0.0-alpha.25"></a>
+# 2.0.0-alpha.25 (2022-03-08)
+
+**Note:** Version bump only for package @aurelia/store-v1
+
 <a name="2.0.0-alpha.24"></a>
 # 2.0.0-alpha.24 (2022-01-18)
 

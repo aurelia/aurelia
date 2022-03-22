@@ -6,7 +6,7 @@ description: The basics of the dialog plugin for Aurelia.
 
 ## Introduction
 
-This article covers the dialog plugin for Aurelia. This plugin is created for showing dialogs \(sometimes referred to as modals\) in our application. The plugin supports the use of dynamic content for all aspects and is easily configurable / overridable.
+This article covers the dialog plugin for Aurelia. This plugin is created for showing dialogs (sometimes referred to as modals) in our application. The plugin supports the use of dynamic content for all aspects and is easily configurable / overridable.
 
 {% hint style="success" %}
 **Here's what you'll learn...**
@@ -38,47 +38,47 @@ Aurelia.register(DialogDefaultConfiguration).app(MyApp).start();
 
 The export `DialogDefaultConfiguration` is a preset of default behaviors & implementations that are done in a way suitable to most common scenarios.
 
-* If it's desirable to change some of the behaviors or implementations of, we can either change the first or the 2nd parameter of the `customize` function on this object.
+If it's desirable to change some of the behaviors or implementations of we can either change the first or the 2nd parameter of the `customize` function on this object.
 
-  An example of changing the behavior for configuring the global settings is:
+An example of changing the behavior for configuring the global settings is:
 
-  ```typescript
-  Aurelia.register(DialogDefaultConfiguration.customize(globalSettings => {
-    // change global settings ...
-  })).app(MyApp).start()
-  ```
+```typescript
+Aurelia.register(DialogDefaultConfiguration.customize(globalSettings => {
+  // change global settings ...
+})).app(MyApp).start()
+```
 
-* If it's desirable to change some of the default implementations, we can **instead** use the export named `DialogConfiguration` and pass in the list of implementation for the main interfaces:
+If it's desirable to change some of the default implementations, we can **instead** use the export named `DialogConfiguration` and pass in the list of implementation for the main interfaces:
 
-  ```typescript
-  import { DialogConfiguration } from '@aurelia/runtime-html';
+```typescript
+import { DialogConfiguration } from '@aurelia/runtime-html';
 
-  Aurelia.register(DialogConfiguration.customize(settings => {
+Aurelia.register(DialogConfiguration.customize(settings => {
 
-  }, [
-    // all custom implementation
-    MyDialogService,
-    MyDialogRenderer,
-    MyDialogGlobalSettings,
-  ]))
-  ```
+}, [
+  // all custom implementation
+  MyDialogService,
+  MyDialogRenderer,
+  MyDialogGlobalSettings,
+]))
+```
 
-  If there's a need to only swap some implementation, say `IDialogDomRenderer` for example, then the default implementation can be imported and mixed like the following example:
+If there's a need to only swap some implementation, say `IDialogDomRenderer` for example, then the default implementation can be imported and mixed like the following example:
 
-  ```typescript
-  import { DialogConfiguration, DialogService, DefaultDialogGlobalSettings } from '@aurelia/runtime-html';
+```typescript
+import { DialogConfiguration, DialogService, DefaultDialogGlobalSettings } from '@aurelia/runtime-html';
 
-  Aurelia.register(DialogConfiguration.customize(settings => {
+Aurelia.register(DialogConfiguration.customize(settings => {
 
-  }, [
-    // use default dialog service
-    DialogService,
-    // BYO dialog dom renderer
-    MyDialogRenderer,
-    // use default dialog global settings
-    DefaultDialogGlobalSettings,
-  ]))
-  ```
+}, [
+  // use default dialog service
+  DialogService,
+  // BYO dialog dom renderer
+  MyDialogRenderer,
+  // use default dialog global settings
+  DefaultDialogGlobalSettings,
+]))
+```
 
 ## Using The Default Implementation
 
@@ -97,15 +97,15 @@ Make all dialogs, by default:
 
 * not dismissable by clicking outside of it, or hitting the ESC key
 * have starting CSS `z-index` of 5
-* if not locked, closable by hitting the `ESC` key
+*   if not locked, closable by hitting the `ESC` key
 
-  ```typescript
-  Aurelia.register(DialogDefaultConfiguration.customize(settings => {
-  settings.lock = true;
-  settings.startingZIndex = 5;
-  settings.keyboard = true;
-  })).app(MyApp).start()
-  ```
+    ```typescript
+    Aurelia.register(DialogDefaultConfiguration.customize(settings => {
+    settings.lock = true;
+    settings.startingZIndex = 5;
+    settings.keyboard = true;
+    })).app(MyApp).start()
+    ```
 
 An example of configuring a single dialog, via `open` method of the dialog service:
 
@@ -127,8 +127,8 @@ The settings that are available in the `open` method of the dialog service:
 * `host` allows providing the element which will parent the dialog - if not provided the document body will be used.
 * `container` allows specifying the DI Container instance to be used for the dialog. If not provided a new child container will be created from the root one.
 * `lock` makes the dialog not dismissable via clicking outside, or using keyboard.
-* `keyboard` allows configuring keyboard keys that close the dialog. To disable set to an empty array `[]`. To cancel close a dialog when the _ESC_ key is pressed set to an array containing `'Escape'` - `['Escape']`. To close with confirmation when the _ENTER_ key is pressed set to an array containing `'Enter'` - `['Enter']`. To combine the _ESC_ and _ENTER_ keys set to `['Enter', 'Escape']` - the order is irrelevant. \(takes precedence over `lock`\)
-* `overlayDismiss` if set to `true` cancel closes the dialog when clicked outside of it. \(takes precedence over `lock`\)
+* `keyboard` allows configuring keyboard keys that close the dialog. To disable set to an empty array `[]`. To cancel close a dialog when the _ESC_ key is pressed set to an array containing `'Escape'` - `['Escape']`. To close with confirmation when the _ENTER_ key is pressed set to an array containing `'Enter'` - `['Enter']`. To combine the _ESC_ and _ENTER_ keys set to `['Enter', 'Escape']` - the order is irrelevant. (takes precedence over `lock`)
+* `overlayDismiss` if set to `true` cancel closes the dialog when clicked outside of it. (takes precedence over `lock`)
 * `rejectOnCancel` is a boolean that must be set to `true` if cancellations should be treated as rejection. The reason will be an `IDialogCancelError` - the property `wasCancelled` will be set to `true` and if cancellation data was provided it will be set to the `value` property.
 
 The default global settings has the following values:
@@ -182,85 +182,84 @@ interface IDialogController {
 }
 ```
 
-An important feature of the dialog plugin is that it is possible to resolve and close \(using `cancel`/`ok`/`error` methods\) a dialog in the same context where it's open.
+An important feature of the dialog plugin is that it is possible to resolve and close (using `cancel`/`ok`/`error` methods) a dialog in the same context where it's open.
 
-* Example of controlling the opening and closing of a dialog in promise style:
+*   Example of controlling the opening and closing of a dialog in promise style:
 
-  ```typescript
-  import { EditPerson } from './edit-person';
-  import { IDialogService, DialogDeactivationStatuses } from '@aurelia/runtime-html';
+    ```typescript
+    import { EditPerson } from './edit-person';
+    import { IDialogService, DialogDeactivationStatuses } from '@aurelia/runtime-html';
 
-  export class Welcome {
-    static inject = [IDialogService];
+    export class Welcome {
+      static inject = [IDialogService];
 
-    person = { firstName: 'Wade', middleName: 'Owen', lastName: 'Watts' };
-    constructor(dialogService) {
-      this.dialogService = dialogService;
-    }
-
-    submit() {
-      this.dialogService
-        .open({ component: () => EditPerson, model: this.person })
-        .then(openDialogResult => {
-          // Note:
-          // We get here when the dialog is opened,
-          // and we are able to close dialog
-          setTimeout(() => {
-            openDialogResult.dialog.cancel('Failed to finish editing after 3 seconds');
-          }, 3000);
-
-          // each dialog controller should expose a promise for attaching callbacks
-          // to be executed for when it has been closed
-          return openDialogResult.dialog.closed;
-        })
-        .then((response) => {
-          if (response.status === DialogDeactivationStatuses.Ok) {
-            console.log('good');
-          } else {
-            console.log('bad');
-          }
-          console.log(response);
-        });
-    }
-  }
-  ```
-
-* Example of controlling the opening and closing of a dialog using `async/await`:
-
-  ```typescript
-  import { EditPerson } from './edit-person';
-  import { IDialogService, DialogDeactivationStatuses } from '@aurelia/runtime-html';
-
-  export class Welcome {
-    static inject = [IDialogService];
-
-    person = { firstName: 'Wade', middleName: 'Owen', lastName: 'Watts' };
-    constructor(dialogService) {
-      this.dialogService = dialogService;
-    }
-
-    async submit() {
-      const { dialog } = await this.dialogService.open({
-        component: () => EditPerson,
-        model: this.person
-      });
-      // Note:
-      // We get here when the dialog is opened,
-      // and we are able to close dialog
-      setTimeout(() => {
-        dialog.cancel('Failed to finish editing after 3 seconds');
-      }, 3000);
-
-      const response = await dialog.closed;
-      if (response.status === DialogDeactivationStatuses.Ok) {
-        console.log('good');
-      } else {
-        console.log('bad');
+      person = { firstName: 'Wade', middleName: 'Owen', lastName: 'Watts' };
+      constructor(dialogService) {
+        this.dialogService = dialogService;
       }
-      console.log(response);
+
+      submit() {
+        this.dialogService
+          .open({ component: () => EditPerson, model: this.person })
+          .then(openDialogResult => {
+            // Note:
+            // We get here when the dialog is opened,
+            // and we are able to close dialog
+            setTimeout(() => {
+              openDialogResult.dialog.cancel('Failed to finish editing after 3 seconds');
+            }, 3000);
+
+            // each dialog controller should expose a promise for attaching callbacks
+            // to be executed for when it has been closed
+            return openDialogResult.dialog.closed;
+          })
+          .then((response) => {
+            if (response.status === DialogDeactivationStatuses.Ok) {
+              console.log('good');
+            } else {
+              console.log('bad');
+            }
+            console.log(response);
+          });
+      }
     }
-  }
-  ```
+    ```
+*   Example of controlling the opening and closing of a dialog using `async/await`:
+
+    ```typescript
+    import { EditPerson } from './edit-person';
+    import { IDialogService, DialogDeactivationStatuses } from '@aurelia/runtime-html';
+
+    export class Welcome {
+      static inject = [IDialogService];
+
+      person = { firstName: 'Wade', middleName: 'Owen', lastName: 'Watts' };
+      constructor(dialogService) {
+        this.dialogService = dialogService;
+      }
+
+      async submit() {
+        const { dialog } = await this.dialogService.open({
+          component: () => EditPerson,
+          model: this.person
+        });
+        // Note:
+        // We get here when the dialog is opened,
+        // and we are able to close dialog
+        setTimeout(() => {
+          dialog.cancel('Failed to finish editing after 3 seconds');
+        }, 3000);
+
+        const response = await dialog.closed;
+        if (response.status === DialogDeactivationStatuses.Ok) {
+          console.log('good');
+        } else {
+          console.log('bad');
+        }
+        console.log(response);
+      }
+    }
+    ```
 
 By default, when an application is destroyed, the dialog service of that application will also try to close all the open dialogs that are registered with it via `closeAll` method. It can also be used whenever there's a need to forcefully close all open dialogs, as per following example:
 
@@ -382,7 +381,7 @@ dialogService.open({
 
 By default, the dialog DOM structure is rendered as follow:
 
-```text
+```
 > (1) Dialog host element
   > (2) Dialog Wrapper Element
     > (3) Dialog Overlay Element
@@ -485,7 +484,7 @@ This hook can be used to do any necessary init work. The hook is invoked with on
 
 This hook can be used to cancel the closing of a dialog. To do so return `false` - `null` and `undefined` will be coerced to `true`. The passed in result parameter has a property `status`, indicating if the dialog was closed or cancelled, or the deactivation process itself has been aborted, and an `value` property with the dialog result which can be manipulated before dialog deactivation.
 
-The `DialogCloseResult` has the following interface \(simplified\):
+The `DialogCloseResult` has the following interface (simplified):
 
 ```typescript
 interface DialogCloseResult {
@@ -498,13 +497,13 @@ interface DialogCloseResult {
 
 #### `.deactivate(result: DialogCloseResult)`
 
-This hook can be used to do any clean up work. The hook is invoked with one result parameter that has a property `status`, indicating if the dialog was closed \(`Ok`\) or cancelled \(`Cancel`\), and an `value` property with the dialog result.
+This hook can be used to do any clean up work. The hook is invoked with one result parameter that has a property `status`, indicating if the dialog was closed (`Ok`) or cancelled (`Cancel`), and an `value` property with the dialog result.
 
 #### Order of Invocation
 
 Each dialog instance goes through the full lifecycle once.
 
---- activation phase:
+\--- activation phase:
 
 1. `constructor()`
 2. `.canActivate()` - `dialog` _specific_
@@ -518,7 +517,7 @@ Each dialog instance goes through the full lifecycle once.
 10. `attaching`
 11. `attached`
 
---- deactivation phase:
+\--- deactivation phase:
 
 1. `.canDeactivate()` - `dialog` _specific_
 2. `.deactivate()` - `dialog` _specific_
@@ -532,55 +531,51 @@ Each dialog instance goes through the full lifecycle once.
 * `viewModel` setting in `DialogService.prototype.open` is changed to `component`.
 * `view` setting in `DialogService.prototype.open` is changed to `template`.
 * `keyboard` setting in `DialogService.prototype.open` is changed to accept an array of `Enter`/`Escape` only. Boolean variants are no longer valid. In the future, the API may become less strict.
-* The resolved of `DialogService.prototype.open` is changed from:
+*   The resolved of `DialogService.prototype.open` is changed from:
 
-  ```typescript
-    interface DialogOpenResult {
-      wasCancelled: boolean;
-      controller: DialogController;
-      closeResult: Promise<DialogCloseResult>;
-    }
-  ```
+    ```typescript
+      interface DialogOpenResult {
+        wasCancelled: boolean;
+        controller: DialogController;
+        closeResult: Promise<DialogCloseResult>;
+      }
+    ```
 
-  to:
+    to:
 
-  ```typescript
-    interface DialogOpenResult {
-      wasCancelled: boolean;
-      dialog: IDialogController;
-    }
-  ```
+    ```typescript
+      interface DialogOpenResult {
+        wasCancelled: boolean;
+        dialog: IDialogController;
+      }
+    ```
+*   `closeResult` is removed from the returned object. Uses `closed` property on the dialog controller instead, example of open a dialog with hello world text, and automaticlly close after 2 seconds:
 
-* `closeResult` is removed from the returned object. Uses `closed` property on the dialog controller instead, example of open a dialog with hello world text, and automaticlly close after 2 seconds:
+    ```typescript
+      dialogService
+        .open({ template: 'hello world' })
+        .then(({ dialog }) => {
+          setTimeout(() => { dialog.ok() }, 2000)
+          return dialog.closed
+        });
+    ```
+*   The interface of dialog close results is changed from:
 
-  ```typescript
-    dialogService
-      .open({ template: 'hello world' })
-      .then(({ dialog }) => {
-        setTimeout(() => { dialog.ok() }, 2000)
-        return dialog.closed
-      });
-  ```
+    ```typescript
+      interface DialogCloseResult {
+        wasCancelled: boolean;
+        output?: unknown;
+      }
+    ```
 
-* The interface of dialog close results is changed from:
+    to:
 
-  ```typescript
-    interface DialogCloseResult {
-      wasCancelled: boolean;
-      output?: unknown;
-    }
-  ```
-
-  to:
-
-  ```typescript
-    interface DialogCloseResult {
-      status: DialogDeactivationStatus;
-      value?: unknown;
-    }
-  ```
-
-* The dialog controller is assigned to property `$dialog` \(v2\) on the view model, instead of property `controller` \(v1\)
+    ```typescript
+      interface DialogCloseResult {
+        status: DialogDeactivationStatus;
+        value?: unknown;
+      }
+    ```
+* The dialog controller is assigned to property `$dialog` (v2) on the view model, instead of property `controller` (v1)
 
 TODO: links to advanced examples/playground
-

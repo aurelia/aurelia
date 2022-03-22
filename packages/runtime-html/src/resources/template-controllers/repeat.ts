@@ -257,7 +257,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     forOf.iterate(flags, items, (arr, i, item) => {
       view = views[i] = factory.create().setLocation(location);
-      view.nodes!.unlink();
+      view.nodes.unlink();
       if(this._hasDestructuredLocal) {
         (forOf.declaration as DestructuringAssignmentExpression)!.assign(flags, viewScope = Scope.fromParent(parentScope, BindingContext.create()), this._forOfBinding.locator, item);
       } else {
@@ -389,7 +389,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view = views[i];
       next = views[i + 1];
 
-      view.nodes!.link(next?.nodes ?? location);
+      view.nodes.link(next?.nodes ?? location);
 
       if (indexMap[i] === -2) {
         if(this._hasDestructuredLocal) {
@@ -405,11 +405,11 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           (promises ?? (promises = [])).push(ret);
         }
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
-        setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
+        setContextualProperties(view.scope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.nodes.insertBefore(view.location!);
       } else {
         if (oldLength !== newLen) {
-          setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
+          setContextualProperties(view.scope.overrideContext as IRepeatOverrideContext, i, newLen);
         }
         --j;
       }

@@ -9,7 +9,7 @@ export type ResourceType<
   TResType extends {} = {},
   TUserInstance extends InstanceType<TUserType> = InstanceType<TUserType>,
 > = (
-  new (...args: any[]) => TResInstance & TUserInstance
+  new (...args: unknown[]) => TResInstance & TUserInstance
 ) & {
   readonly aliases?: readonly string[];
 } & TResType & TUserType;
@@ -33,6 +33,7 @@ export type PartialResourceDefinition<TDef extends {} = {}> = {
   readonly aliases?: readonly string[];
 } & TDef;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface IResourceKind<TType extends ResourceType, TDef extends ResourceDefinition> {
   readonly name: string;
   keyFrom(name: string): string;

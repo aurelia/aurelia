@@ -4,7 +4,7 @@ import { Class, Constructable } from './interfaces.js';
 import { getAnnotationKeyFor } from './resource.js';
 import { Metadata } from '@aurelia/metadata';
 import { IPlatform } from './platform.js';
-import { defineMetadata, isFunction } from './utilities.js';
+import { createObject, defineMetadata, isFunction } from './utilities.js';
 
 export const enum LogLevel {
   /**
@@ -404,7 +404,7 @@ export class DefaultLogger {
   /** @internal */
   public readonly fatalSinks: ISink[];
 
-  private readonly scopedLoggers: { [key: string]: ILogger | undefined } = Object.create(null);
+  private readonly scopedLoggers: { [key: string]: ILogger | undefined } = createObject();
 
   public constructor(
     /**
@@ -667,7 +667,7 @@ export class DefaultLogger {
   }
 
   private emit(sinks: ISink[], level: LogLevel, msgOrGetMsg: unknown, optionalParams: unknown[]): void {
-    const message = isFunction(msgOrGetMsg) ? msgOrGetMsg() : msgOrGetMsg;
+    const message = (isFunction(msgOrGetMsg) ? msgOrGetMsg() : msgOrGetMsg) as string;
     const event = this.factory.createLogEvent(this, level, message, optionalParams);
     for (let i = 0, ii = sinks.length; i < ii; ++i) {
       sinks[i].handleEvent(event);

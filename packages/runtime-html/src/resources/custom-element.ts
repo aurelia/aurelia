@@ -123,7 +123,7 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
   generateName(): string;
-  createInjectable<T extends Key = Key>(): InjectableToken;
+  createInjectable<T extends Key = Key>(): InjectableToken<T>;
   generateType<P extends {} = {}>(
     name: string,
     proto?: P,
@@ -234,19 +234,19 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly processContent: ProcessContentHook | null,
   ) {}
 
-  public static create<T extends Constructable = Constructable>(
+  public static create(
     def: PartialCustomElementDefinition,
     Type?: null,
   ): CustomElementDefinition;
-  public static create<T extends Constructable = Constructable>(
+  public static create(
     name: string,
     Type: CustomElementType,
   ): CustomElementDefinition;
   public static create<T extends Constructable = Constructable>(
     nameOrDef: string | PartialCustomElementDefinition,
-    Type?: CustomElementType | null,
-  ): CustomElementDefinition;
-  public static create<T extends Constructable = Constructable>(
+    Type?: CustomElementType<T> | null,
+  ): CustomElementDefinition<T>;
+  public static create(
     nameOrDef: string | PartialCustomElementDefinition,
     Type: CustomElementType | null = null,
   ): CustomElementDefinition {
@@ -265,9 +265,9 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
 
         // TODO: we need to make sure it's documented that passing in the type via the definition (while passing in null
         // as the "Type" parameter) effectively skips type analysis, so it should only be used this way for cloning purposes.
-        Type = (def as CustomElementDefinition).Type as CustomElementType;
+        Type = (def as CustomElementDefinition).Type;
       } else {
-        Type = CustomElement.generateType(pascalCase(name)) as CustomElementType;
+        Type = CustomElement.generateType(pascalCase(name));
       }
 
       return new CustomElementDefinition(
@@ -291,7 +291,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('hasSlots', def, returnFalse),
         fromDefinitionOrDefault('enhance', def, returnFalse),
         fromDefinitionOrDefault('watches', def as CustomElementDefinition, returnEmptyArray),
-        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
       );
     }
 
@@ -306,10 +306,10 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         CustomElement.keyFrom(nameOrDef),
         fromAnnotationOrTypeOrDefault('cache', Type, returnZero),
         fromAnnotationOrTypeOrDefault('capture', Type, returnFalse),
-        fromAnnotationOrTypeOrDefault('template', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('template', Type, returnNull as () => string | Node | null),
         mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions),
         mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies),
-        fromAnnotationOrTypeOrDefault('injectable', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('injectable', Type, returnNull as () => InjectableToken | null),
         fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue),
         mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates),
         Bindable.from(
@@ -325,11 +325,11 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         ),
         fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse),
-        fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull as () => { mode: 'open' | 'closed' } | null),
         fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse),
         mergeArrays(Watch.getAnnotation(Type), Type.watches),
-        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
       );
     }
 
@@ -401,7 +401,9 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type InjectableToken<K = any> = (target: Injectable<K>, property: string, index: number) => void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InternalInjectableToken<K = any> = InjectableToken<K> & {
   register?(container: IContainer): IResolver<K>;
 };
@@ -417,7 +419,7 @@ const defaultForOpts: ForOpts = {
   optional: false,
 };
 const returnZero = () => 0;
-const returnNull = <T>(): T | null | any => null;
+const returnNull = <T>(): T | null => null;
 const returnFalse = () => false;
 const returnTrue = () => true;
 const returnEmptyArray = () => emptyArray;
@@ -536,13 +538,14 @@ export const CustomElement = Object.freeze<CustomElementKind>({
   getAnnotation: getElementAnnotation,
   generateName: generateElementName,
   createInjectable<K extends Key = Key>(): InjectableToken<K> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const $injectable: InternalInjectableToken<K> = function (target, property, index): any {
       const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
       annotationParamtypes[index] = $injectable;
       return target;
     };
 
-    $injectable.register = function (container) {
+    $injectable.register = function (_container) {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return {
         resolve(container, requestor) {

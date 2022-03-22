@@ -230,7 +230,6 @@ describe('validation/serialization.spec.ts/validation de/serialization', functio
     ];
     for (const tag of [undefined, "foo-tag"]) {
       for (const { name, displayName, ruleNameMatcher, errorMessages, target } of data1) {
-        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
         const item = simpleRuleList.find((rule) => rule.name.match(ruleNameMatcher) !== null);
         it(`simple property - ${item.name} - tag: ${tag}`, async function () {
           const modelBasedRule = new ModelBasedRule([{ $TYPE: 'PropertyRule', property: { $TYPE: 'RuleProperty', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }], tag);
@@ -243,7 +242,6 @@ describe('validation/serialization.spec.ts/validation de/serialization', functio
         });
       }
       for (const { name, displayName, ruleNameMatcher, errorMessages, target } of data2) {
-        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
         const item = simpleRuleList.find((rule) => rule.name.match(ruleNameMatcher) !== null);
         it(`collection property - ${item.name} - tag: ${tag}`, async function () {
           const modelBasedRule = new ModelBasedRule([{ $TYPE: 'PropertyRule', property: { $TYPE: 'RuleProperty', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }], tag);
@@ -255,7 +253,6 @@ describe('validation/serialization.spec.ts/validation de/serialization', functio
         });
       }
       for (const { name, displayName, ruleNameMatcher, errorMessages, target } of data3) {
-        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
         const item = simpleRuleList.find((rule) => rule.name.match(ruleNameMatcher) !== null);
         it(`nested property - ${item.name} - tag: ${tag}`, async function () {
           const modelBasedRule = new ModelBasedRule([{ $TYPE: 'PropertyRule', property: { $TYPE: 'RuleProperty', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }], tag);
@@ -268,7 +265,6 @@ describe('validation/serialization.spec.ts/validation de/serialization', functio
         });
       }
       for (const { name, displayName, ruleNameMatcher, errorMessages, target } of data4) {
-        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
         const item = simpleRuleList.find((rule) => rule.name.match(ruleNameMatcher) !== null);
         it(`keyed property - ${item.name} - tag: ${tag}`, async function () {
           const modelBasedRule = new ModelBasedRule([{ $TYPE: 'PropertyRule', property: { $TYPE: 'RuleProperty', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }], tag);

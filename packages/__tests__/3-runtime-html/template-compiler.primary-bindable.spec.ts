@@ -51,7 +51,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
 
         return [Square];
       },
-      assertFn: (ctx, host, comp, attrs) => {
+      assertFn: (_ctx, host, _comp, _attrs) => {
         assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
       }
     },
@@ -77,7 +77,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
 
         return [Square];
       },
-      assertFn: (ctx, host, comp, attrs) => {
+      assertFn: (_ctx, host, _comp, _attrs) => {
         assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
       }
     },
@@ -103,7 +103,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
 
         return [Square];
       },
-      assertFn: (ctx, host, comp, attrs) => {
+      assertFn: (_ctx, host, _comp, _attrs) => {
         assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
       }
     },
@@ -127,7 +127,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
 
         return [Square];
       },
-      assertFn: (ctx, host, comp, attrs) => {
+      assertFn: (_ctx, host, _comp, _attrs) => {
         assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
       }
     },
@@ -155,7 +155,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
 
         return [Square];
       },
-      assertFn: (ctx, host, comp, attrs) => {
+      assertFn: (_ctx, host, _comp, _attrs) => {
         assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
       }
     },
@@ -182,7 +182,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
 
         return [Square];
       },
-      assertFn: (ctx, host, comp, attrs) => {
+      assertFn: (_ctx, host, _comp, _attrs) => {
         assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
       }
     },
@@ -210,7 +210,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
 
         return [Square];
       },
-      assertFn: (ctx, host, comp, attrs) => {
+      assertFn: (_ctx, host, _comp, _attrs) => {
         assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
         assert.equal(host.querySelector('div').style.width, '5px');
       }
@@ -230,7 +230,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         }
         return [Square];
       },
-      assertFn: (ctx, host, comp) => {
+      assertFn: (_ctx, host, _comp) => {
         assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
       }
     },
@@ -272,7 +272,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         root: class App {
           public color = 'red';
         },
-        assertFn: (ctx, host, comp) => {
+        assertFn: (_ctx, host, _comp) => {
           assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
         }
       };
@@ -297,7 +297,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         }
         return [Square];
       },
-      assertFn: (ctx, host, comp, attrs) => {
+      assertFn: (_ctx, _host, _comp, _attrs) => {
         throw new Error('Should not have run');
       }
     },
@@ -320,7 +320,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         }
         return [Square];
       },
-      assertFn: (ctx, host, comp, attrs) => {
+      assertFn: (_ctx, _host, _comp, _attrs) => {
         throw new Error('Should not have run');
       }
     },
@@ -350,7 +350,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         }
         return [Square];
       },
-      assertFn: (ctx, host) => {
+      assertFn: (_ctx, host) => {
         assert.strictEqual(host.querySelector('div').style.borderRadius, '5px');
       }
     },
@@ -378,7 +378,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         }
         return [Square];
       },
-      assertFn: (ctx, host) => {
+      assertFn: (_ctx, host) => {
         const divEl = host.querySelector('div');
         assert.strictEqual(divEl.style.borderRadius, '5px');
         assert.strictEqual(divEl.style.color, 'red');
@@ -408,7 +408,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         }
         return [Square];
       },
-      assertFn: (ctx, host) => {
+      assertFn: (_ctx, host) => {
         const divEl = host.querySelector('div');
         assert.strictEqual(divEl.style.borderRadius, '5px');
         assert.strictEqual(divEl.style.color, 'red');
@@ -424,7 +424,6 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       attrResources = () => [],
       resources = [],
       only,
-      browserOnly,
       assertFn,
       testWillThrow
     } = testCase;
@@ -432,6 +431,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
     //   continue;
     // }
     const suit = (_title: string, fn: any) => only
+      // eslint-disable-next-line mocha/no-exclusive-tests
       ? it.only(_title, fn)
       : it(_title, fn);
 

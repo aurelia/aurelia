@@ -4,7 +4,7 @@ description: Understand the scope and binding context.
 
 # Scope and context
 
-You might have noticed these words "Scope", "binding context", and "override context" in other places in the documentation or while working with Aurelia in general. Although you can go a long way without even understanding what these are (Aurelia is cool that way), these are some (of many) powerful concepts those are essential when you need to deal with the lower level Aurelia2 API. This section explains what these terms mean.
+You might have noticed these words "Scope", "binding context", and "override context" in other places in the documentation or while working with Aurelia in general. Although you can go a long way without even understanding what these are (Aurelia is cool that way), these are some (of many) powerful concepts that are essential when you need to deal with the lower level Aurelia2 API. This section explains what these terms mean.
 
 {% hint style="success" %}
 **Here's what you'll learn...**
@@ -97,7 +97,9 @@ export class App implements ICustomElementViewModel {
 ```
 {% endcode %}
 
-Note that we haven't assigned any value explicitly to the `$controller` property; and that is assigned by the Aurelia pipeline. We can use the `$controller.scope` to access the scope, and subsequently `$controller.scope.bindingContext` can be used to access the binding context. Note how the `bindingContext` in the above example points to `this`, that is the current instance of `App` (with template controllers, this gets little bit more involved; but we will leave that one out for now). However, in the context of evaluating expressions, we refer the source of data as a "context".
+Note that we haven't assigned any value explicitly to the `$controller` property; and that is assigned by the Aurelia pipeline. We can use the `$controller.scope` to access the scope, and subsequently `$controller.scope.bindingContext` can be used to access the binding context.&#x20;
+
+Note how the `bindingContext` in the above example points to `this`, that is the current instance of `App` (with template controllers, this gets little bit more involved; but we will leave that one out for now). However, in the context of evaluating expressions, we refer the source of data as a "context".
 
 The relations explored so far can be expressed as follows.
 
@@ -147,7 +149,7 @@ export class App implements ICustomElementViewModel {
 
 With the assignment to `overrideContext.message` the rendered output is now `<div>Hello Aurelia!</div>` instead of `<div>Hello World!</div>`. This is because of the existence of the property `message` in the override context. As the assignment is made pre-binding phase (`created` hook in the example above), context [selection process](scope-and-binding-context.md#context-selection) sees that the required property exists in the override context, and selects that with higher precedence even though a property with the same name exists in the binding context as well.
 
-Now with this information we also have a new diagram.
+Now with this information, we also have a new diagram.
 
 ```
 +-----------------------+
@@ -174,7 +176,9 @@ Now with this information we also have a new diagram.
 
 Now let's address the question 'Why do we need override context at all?'. The reason it exists has to do with the template controllers (mostly). While writing template controllers, many times we want a context object that is not the underlying view-model instance. One such prominent example is the [`repeat.for`](broken-reference) template controller. As you might know that `repeat.for` template controller provides contextual properties such as `$index`, `$first`, `$last` etc. These properties end up being in the override context.
 
-Now imagine if those properties actually end up being in the binding context, which is often the underlying view-model instance, it would have caused a lot of other issues. First of all, that would have restricted you having properties with the same name to avoid conflicts. Which in turn means that you need to know the template controllers you are using thoroughly, to know about such restrictions, which is not a sound idea in itself. And with that if you define a property with the same name, as used by the template controller, coupled with change observation etc., we could have found ourselves dealing with numerous bugs in the process. Override context helps us to get out of that horrific mess.
+Now imagine if those properties actually end up being in the binding context, which is often the underlying view-model instance, it would have caused a lot of other issues. First of all, that would have restricted you having properties with the same name to avoid conflicts.&#x20;
+
+This in turn means that you need to know the template controllers you are using thoroughly, to know about such restrictions, which is not a sound idea in itself. And with that if you define a property with the same name, as used by the template controller, coupled with change observation etc., we could have found ourselves dealing with numerous bugs in the process. Override context helps us to get out of that horrific mess.
 
 Another prominent use-case for override context is the `let` binding. When not specified otherwise, the properties bound via the `let` binding ends up in the override context. This can be seen in the example below.
 
@@ -349,7 +353,7 @@ Note that the `parentScope` for the scope of the root component is `null`.
 
 ## Host scope
 
-As we are talking about scope, it needs to be noted that the term 'host scope' is used in the context of `au-slot`. There is no difference between a "normal" scope and a host scope, just it acts as the special marker to instruct the scope selection process to use the scope of the host element, instead of scope of the parent element. Moreover, this is a special kind of scope that is valid only in the context of `au-slot`. This is already discussed in detail in the [`au-slot` documentation](../developer-guides/components-revisited.md#au-slot), and thus not repeated here.
+As we are talking about scope, it needs to be noted that the term 'host scope' is used in the context of `au-slot`. There is no difference between a "normal" scope and a host scope, just it acts as the special marker to instruct the scope selection process to use the scope of the host element, instead of scope of the parent element. Moreover, this is a special kind of scope that is valid only in the context of `au-slot`. This is already discussed in detail in the [`au-slot` documentation](broken-reference), and thus not repeated here.
 
 ## Context and change observation
 
@@ -511,7 +515,7 @@ Note that the example above introduces the `message` property in the override co
 
 ## Context selection
 
-So far we have seen various aspect of scope, binding and override context. One thing we have not addressed so far is how the contexts are selected for expression evaluation or assignment. In this section we will look into that aspect.
+So far we have seen various aspects of scope, binding and override context. One thing we have not addressed so far is how the contexts are selected for expression evaluation or assignment. In this section, we will look into that aspect.
 
 The context selection process can be summed up (simplified) as follows.
 
@@ -523,7 +527,7 @@ The context selection process can be summed up (simplified) as follows.
    2. IF the desired property is found in the override context return override context.
    3. ELSE RETURN binding context.
 
-The first rule involving `$parent` should be self explanatory. We will focus on the second part.
+The first rule involving `$parent` should be self-explanatory. We will focus on the second part.
 
 Let us first see an example to demonstrate the utility of the rule `#2.1.`.
 
@@ -568,7 +572,7 @@ Hello Foo-Bar! 2 0
 Hello Foo-Bar! 2 1
 ```
 
-Note that both `App` and `FooBar` initializes their own `message` properties. According to our rule `#2.3.` binding context is selected, and the corresponding `message` property is bound to the view. However, it is important to note that if the `FooBar#message` stays uninitialized, that is the `message` property exists neither in binding context nor in override context (of `FooBar`'s scope), the output would have been as following.
+Note that both `App` and `FooBar` initializes their own `message` properties. According to our rule `#2.3.` binding context is selected, and the corresponding `message` property is bound to the view. However, it is important to note that if the `FooBar#message` stays uninitialized, that is the `message` property exists neither in binding context nor in override context (of `FooBar`'s scope), the output would have been as follows.
 
 ```
 0 0
@@ -579,7 +583,9 @@ Note that both `App` and `FooBar` initializes their own `message` properties. Ac
 2 1
 ```
 
-Although it should be quite as per expectation, the point to be noted here is that the scope traversal never reaches to `App` in the process. This is because of the 'component boundary' clause in rule `#2.1.`. In case of this example the expression evaluation starts with the scope of the innermost `repeat.for`, and traversed upwards. When traversal hits the scope of `FooBar`, it recognize the scope as a component boundary, and stops traversing any further, irrespective of whether the property is found or not. Contextually note that if you want to cross the component boundary, you need to explicitly use `$parent` keyword.
+Although it should be quite as per expectation, the point to be noted here is that the scope traversal never reaches to `App` in the process. This is because of the 'component boundary' clause in rule `#2.1.`. In case of this example the expression evaluation starts with the scope of the innermost `repeat.for`, and traversed upwards.&#x20;
+
+When traversal hits the scope of `FooBar`, it recognize the scope as a component boundary, and stops traversing any further, irrespective of whether the property is found or not. Contextually note that if you want to cross the component boundary, you need to explicitly use `$parent` keyword.
 
 The rule `#2.2.` is also self explanatory, as we have seen plenty examples of override context precedence so far. Thus the last bit of this story boils down to the rule `#2.3.`. This rule facilitates using an uninitialized property in binding context by default or as fallback, as can be seen in the example below.
 

@@ -1,26 +1,50 @@
 # Routing
 
-## Getting Started
+## Getting started
 
-The Aurelia Router is included in the Aurelia package, which means when you create a new Aurelia project or `npm install aurelia` you are also installing the router package alongside it.
+Aurelia being a fully-featured framework comes with a router package ready to use in the framework. To register the plugin in your application, you can pass in the router object to the `register` method inside of the file containing your Aurelia initialization code.&#x20;
 
-All routing modes rely on the presence of a `<au-viewport></au-viewport>` element pair where components are rendered/projected from the router. The contents of `au-viewport` gets replaced with whatever route is being loaded.
+{% hint style="success" %}
+Looking for a shortcut? If you generate a new Aurelia application using `npx makes aurelia` and choose routing, you can skip over this getting started section as we talk about code that is automatically added in for you as part of the scaffolding process.
+{% endhint %}
 
-## Routing Modes \(explained\)
+We import the `RouterConfiguration` class from the `aurelia` package, which allows us to register our router and change configuration settings.
 
-### Direct Routing
+This file is generated from the `npx makes aurelia` scaffolding tool and is found in `src/main.ts`
 
-Direct routing is zero-configuration convention-based routing. This means you can route to components within your Aurelia applications by simply referencing them by name, no need to create convoluted objects or call API's: just components.
+{% code title="main.ts" %}
+```typescript
+import Aurelia, { RouterConfiguration } from 'aurelia';
 
-Understandably, despite the simplicity of Direct Routing, it's a new paradigm for developers to learn. Traditionally routers are based on configuration, having to define your routes upfront while direct routing does not.
+Aurelia
+  .register(RouterConfiguration)
+  .app(component)
+  .start();
+```
+{% endcode %}
 
-To use the direct router, all you have to do is ensure your components have been registered with Dependency Injection. An easy way you can do this is using the `<import>` element inside of your views. You can also specify dependencies on the custom element itself \(using the decorator\) or inside of your main file which instantiates Aurelia.
+The `RouterConfiguration` object is highly configurable and allows us to change how routing works in our Aurelia applications. It will use some default settings if you don't change anything (like we have done). By default, the router will assume you are using pushState routing.
 
-### Configured Routing
+{% hint style="info" %}
+A scaffolded Aurelia application using `makes` and routing selected will automatically add in router configuration for you. The code above is taken from a newly generated Aurelia application and shown for reference.
+{% endhint %}
 
-This is the routing style most developers are accustomed to. Whether it is Aurelia v1 routing, Express.js routing or routing in other front-end frameworks and libraries, configured routing is the traditional routing approach where you define an array of routing objects.
+### Create a viewport
 
-### Component Configured Routing
+After registering the router plugin, we need to add a viewport element to the default root component. If you scaffolded your application using Makes, then your root component by default is `my-app.ts` and `my-app.html`.
 
-In many ways, component configured routing is just Direct Routing with the ability to specify router configuration settings on a per-component basis. If this sounds confusing to you, think of it this way. The Direct Router can be used without writing a single line of configuration code, but you can specify the names of your route parameters from within components. 
+Inside of `my-app.html` you can add the following to get you started:
 
+```html
+<au-viewport></au-viewport>
+```
+
+We will get into the specifics of the `<au-viewport>` element later on. Right now, all you need is this one simple element in the same view as the accompanying view model that contains the routes.
+
+{% hint style="info" %}
+Like router configuration, using `makes` will automatically add in a `au-viewport` element to `my-app.html` if you choose routing as part of the scaffolding decision process.
+{% endhint %}
+
+{% hint style="success" %}
+To learn more about configuring the viewport, please see the router docs on configuring the viewport in the [viewports section](viewports.md)
+{% endhint %}

@@ -276,7 +276,7 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
         public receiver: Receiver;
       }
 
-      const { au, host, ctx } = $createFixture();
+      const { au, host } = $createFixture();
 
       const component = new App();
       au.app({ component, host });
@@ -451,7 +451,7 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
         public receiver: Receiver;
       }
 
-      const { au, host, ctx } = $createFixture();
+      const { au, host } = $createFixture();
 
       const component = new App();
       au.app({ component, host });

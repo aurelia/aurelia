@@ -23,7 +23,7 @@ function canWrap(obj: unknown): obj is object {
 
 export const rawKey = '__raw__';
 
-export function wrap<T extends unknown>(v: T): T {
+export function wrap<T>(v: T): T {
   return canWrap(v) ? getProxy(v) : v;
 }
 export function getProxy<T extends object>(obj: T): T {
@@ -35,7 +35,7 @@ export function getRaw<T extends object>(obj: T): T {
   // todo: get in a weakmap if null/undef
   return (obj as IIndexable)[rawKey] as T ?? obj;
 }
-export function unwrap<T extends unknown>(v: T): T {
+export function unwrap<T>(v: T): T {
   return canWrap(v) && (v as IIndexable)[rawKey] as T || v;
 }
 
@@ -159,7 +159,7 @@ const arrayHandler: ProxyHandler<unknown[]> = {
   // for (let i in array) ...
   ownKeys(target: unknown[]): (string | symbol)[] {
     currentConnectable()?.observe(target, 'length');
-    return Reflect.ownKeys(target) as (string | symbol)[];
+    return Reflect.ownKeys(target);
   },
 };
 
@@ -256,7 +256,7 @@ function wrappedArrayUnshift(this: unknown[], ...args: unknown[]): unknown {
 function wrappedArraySplice(this: unknown[], ...args: [number, number, ...unknown[]]): unknown {
   return wrap(getRaw(this).splice(...args));
 }
-function wrappedArrayReverse(this: unknown[], ...args: unknown[]): unknown[] {
+function wrappedArrayReverse(this: unknown[], ..._args: unknown[]): unknown[] {
   const raw = getRaw(this);
   const res = raw.reverse();
   currentConnectable()?.observeCollection(raw);

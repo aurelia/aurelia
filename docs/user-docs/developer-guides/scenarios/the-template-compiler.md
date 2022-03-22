@@ -1,10 +1,10 @@
-# The Template Compiler
+# Using the template compiler
 
 ## Hooks
 
 There are scenarios where an application wants to control how to preprocess a template before it is compiled. There could be various reasons such as accessibility validation, adding debugging attributes etc...
 
-Aurelia supports this via template compiler hooks, that is enabled with the default template compiler. To use this features, declare and then register the desired hooks with either global \(at startup\) or local container \(at dependencies \(runtime\) or `<import>` with convention\).
+Aurelia supports this via template compiler hooks, that is enabled with the default template compiler. To use this features, declare and then register the desired hooks with either global (at startup) or local container (at dependencies (runtime) or `<import>` with convention).
 
 An example of declaring global hooks, that will be called for every template:
 
@@ -70,8 +70,8 @@ List of attributes that are considered expressions:
 * containerless
 * as-element
 * ref
-* attr with binding expression \(`attr.command="..."`\)
-* attr with interpolation \(`attr="${someExpression}"`\)
+* attr with binding expression (`attr.command="..."`)
+* attr with interpolation (`attr="${someExpression}"`)
 * custom attribute
 * custom element bindables
 
@@ -95,6 +95,3 @@ The default template compiler will turn a template, either in string or already 
 * `Element.prototype.classList.add`
 
 If it is desirable to use the default template compiler in any other environment other than HTML, make sure the template compiler can hydrate the input string or object into some object with the above APIs.
-
-TODO: examples of some hydrator for different environments
-

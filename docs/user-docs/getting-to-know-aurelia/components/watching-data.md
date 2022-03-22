@@ -29,10 +29,10 @@ class MyClass {
 }
 ```
 
-| Name | Type | Description |
-| :--- | :--- | :--- |
-| expressionOrPropertyAccessFn | string \| IPropertyAccessFn | Watch expression specifier |
-| changeHandlerOrCallback | string \| IWatcherCallback | The callback that will be invoked when the value evaluated from watch expression has changed. If a name is given, it will be used to resolve the callback `ONCE`. This callback will be called with 3 parameters: \(1st\) new value from the watched expression. \(2nd\) old value from the watched expression \(3rd\) the watched instance. And the context of the function call will be the instance, same with the 3rd parameter. |
+| Name                         | Type                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| expressionOrPropertyAccessFn | string \| IPropertyAccessFn | Watch expression specifier                                                                                                                                                                                                                                                                                                                                                                                                     |
+| changeHandlerOrCallback      | string \| IWatcherCallback  | The callback that will be invoked when the value evaluated from watch expression has changed. If a name is given, it will be used to resolve the callback `ONCE`. This callback will be called with 3 parameters: (1st) new value from the watched expression. (2nd) old value from the watched expression (3rd) the watched instance. And the context of the function call will be the instance, same with the 3rd parameter. |
 
 ## Reacting to property changes with @watch
 
@@ -73,7 +73,7 @@ class PostOffice {
 
 ## Using computed functions to react to changes
 
-Sometimes you want to watch multiple values in a component, for that you need to create an expression. An computed function is a function provided to the `@watch` decorator which allows you to do comparisons on multiple values.
+Sometimes you want to watch multiple values in a component, for that you need to create an expression. A computed function is a function provided to the `@watch` decorator which allows you to do comparisons on multiple values.
 
 To illustrate how you can do this, here is an example:
 
@@ -92,7 +92,7 @@ class PostOffice {
 }
 ```
 
-In this example, the `log` method of `PostOffice` will be called whenever there's a new package added to, or an existing package removed from the `packages` array.
+In this example, the `log` method of `PostOffice` will be called whenever there's a new package added to or an existing package removed from the `packages` array. The first argument of our callback function is the viewmodel, allowing us to access class properties and methods.
 
 ## Usage examples
 
@@ -322,37 +322,37 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
 
 * If a string, or a symbol is given, it will be used as an expression to observe, similar to how an expression in Aurelia templating works.
 * If a function is given, it will be used as a computed getter to observe dependencies and evaluate the value to pass into the specified method. There are two mechanisms that can be employed:
-  * For JavaScript environments with native proxy support: Proxy will be used to trap & observe property read. It will also observe collections \(such as array, map and set\) based on the method invoked. For example, calling `.map(item => item.value)` on an array should observe the mutation of that array, and the property `value` of each item inside the array.
-  * For environments without native proxy support: A 2nd parameter inside computed getter can be used to manually observe \(or register\) dependencies. This is the corresponding watcher created from a `@watch` decorator. It has the following interface:
+  * For JavaScript environments with native proxy support: Proxy will be used to trap & observe property read. It will also observe collections (such as array, map and set) based on the method invoked. For example, calling `.map(item => item.value)` on an array should observe the mutation of that array, and the property `value` of each item inside the array.
+  *   For environments without native proxy support: A 2nd parameter inside computed getter can be used to manually observe (or register) dependencies. This is the corresponding watcher created from a `@watch` decorator. It has the following interface:
 
-    ```typescript
-    interface IWatcher {
-    observeProperty(obj: object, key: string | number | symbol): void;
-    observeCollection(collection: Array | Map | Set): void;
-    }
-    ```
-
-    An example is:
-
-    ```typescript
-    class Contact {
-    firstName = 'Chorris';
-    lastName = 'Nuck';
-
-    @watch((contact, watcher) => {
-      watcher.observeProperty(contact, 'firstName');
-      watcher.observeProperty(contact, 'lastName');
-      return `${contact.firstName} ${contact.lastName}`;
-    })
-    validateFullName(fullName) {
-      if (fullName === 'Chuck Norris') {
-        this.faint();
+      ```typescript
+      interface IWatcher {
+      observeProperty(obj: object, key: string | number | symbol): void;
+      observeCollection(collection: Array | Map | Set): void;
       }
-    }
-    }
-    ```
+      ```
 
-    The `firstName` and `lastName` properties of `contact` components is being observed manually. And every time either `firstName`, or `lastName` change, the computed getter is run again and the dependencies will be observed again. Observers are cached and the same observer won't be added more than once, old observers from the old computed getter run will also be disposed, so you won't have to worry about stale dependencies or memory leak.
+      An example is:
+
+      ```typescript
+      class Contact {
+      firstName = 'Chorris';
+      lastName = 'Nuck';
+
+      @watch((contact, watcher) => {
+        watcher.observeProperty(contact, 'firstName');
+        watcher.observeProperty(contact, 'lastName');
+        return `${contact.firstName} ${contact.lastName}`;
+      })
+      validateFullName(fullName) {
+        if (fullName === 'Chuck Norris') {
+          this.faint();
+        }
+      }
+      }
+      ```
+
+      The `firstName` and `lastName` properties of `contact` components is being observed manually. And every time either `firstName`, or `lastName` change, the computed getter is run again and the dependencies will be observed again. Observers are cached and the same observer won't be added more than once, old observers from the old computed getter run will also be disposed, so you won't have to worry about stale dependencies or memory leak.
 
 {% hint style="warning" %}
 **Automatic array observation**
@@ -362,55 +362,52 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
 
 ## Best practices
 
-* It is best to avoid mutation on dependencies collected inside a computed getter. For example:
+*   It is best to avoid mutation on dependencies collected inside a computed getter. For example:
 
-  ```typescript
-  // don't do this
-  @watch(object => object.counter++)
-  someMethod() {}
+    ```typescript
+    // don't do this
+    @watch(object => object.counter++)
+    someMethod() {}
 
-  // don't do these
-  @watch(object => object.someArray.push(...args))
-  @watch(object => object.someArray.pop())
-  @watch(object => object.someArray.shift())
-  @watch(object => object.someArray.unshift())
-  @watch(object => object.someArray.splice(...args))
-  @watch(object => object.someArray.reverse())
-  someMethod() {}
-  ```
+    // don't do these
+    @watch(object => object.someArray.push(...args))
+    @watch(object => object.someArray.pop())
+    @watch(object => object.someArray.shift())
+    @watch(object => object.someArray.unshift())
+    @watch(object => object.someArray.splice(...args))
+    @watch(object => object.someArray.reverse())
+    someMethod() {}
+    ```
+*   To ensure identity equality with proxies, always be careful with objects that are not accessed from the first parameter passed into the computed getter. Better, get the raw underlying object before doing the strict comparison with `===`. For example:
 
-* To ensure identity equality with proxies, always be careful with objects that are not accessed from the first parameter passed into the computed getter. Better, get the raw underlying object before doing the strict comparison with `===`. For example:
+    ```typescript
+    const defaultOptions = {};
 
-  ```typescript
-  const defaultOptions = {};
+    class MyClass {
+      options = defaultOptions;
 
-  class MyClass {
-    options = defaultOptions;
-
-    @watch(myClass => myClass.options === defaultOptions ? null : myClass.options)
-    applyCustomOptions() {
-      // ...
+      @watch(myClass => myClass.options === defaultOptions ? null : myClass.options)
+      applyCustomOptions() {
+        // ...
+      }
     }
-  }
-  ```
+    ```
 
-  In this example, even if `options` on a `MyClass` instance has never been changed, the comparison of `myClass.options === defaultOptions` will still return false, as the actual value for `myClass.options` is a proxied object wrapping the real object, and thus is always different with `defaultOptions`.
+    In this example, even if `options` on a `MyClass` instance has never been changed, the comparison of `myClass.options === defaultOptions` will still return false, as the actual value for `myClass.options` is a proxied object wrapping the real object, and thus is always different with `defaultOptions`.
+*   Dependency tracking inside a watch computed getter is done synchronously, which means returning a promise, or having an async function won't work properly. Don't do the following:
 
-* Dependency tracking inside a watch computed getter is done synchronously, which means returning a promise, or having an async function won't work properly. Don't do the following:
+    ```typescript
+    class MyClass {
 
-  ```typescript
-  class MyClass {
+      // don't do this
+      @watch(async myClassInstance => myClassinstance.options)
+      applyCustomOptions() {}
 
-    // don't do this
-    @watch(async myClassInstance => myClassinstance.options)
-    applyCustomOptions() {}
-
-    // don't do this
-    @watch(myClassInstance => {
-      Promise.resolve().then(() => {
-        return myClassinstance.options
+      // don't do this
+      @watch(myClassInstance => {
+        Promise.resolve().then(() => {
+          return myClassinstance.options
+        })
       })
-    })
-  }
-  ```
-
+    }
+    ```

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IServiceLocator, Writable, IIndexable } from '@aurelia/kernel';
 import {
   eachCartesianJoin,
@@ -28,13 +27,13 @@ import {
   ConditionalExpression,
   ExpressionKind,
   IConnectableBinding,
-  IsBinary,
+  // IsBinary,
   IsBindingBehavior,
   Scope,
   ISignaler,
   IsLeftHandSide,
-  IsPrimary,
-  IsUnary,
+  // IsPrimary,
+  // IsUnary,
   LifecycleFlags as LF,
   ObjectLiteralExpression,
   OverrideContext,
@@ -55,7 +54,7 @@ const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
 const $null = PrimitiveLiteralExpression.$null;
 const $undefined = PrimitiveLiteralExpression.$undefined;
-const $str = PrimitiveLiteralExpression.$empty;
+// const $str = PrimitiveLiteralExpression.$empty;
 const $arr = ArrayLiteralExpression.$empty;
 const $obj = ObjectLiteralExpression.$empty;
 const $tpl = TemplateExpression.$empty;
@@ -99,13 +98,13 @@ function throwsOn<
     err = e;
   }
   assert.notStrictEqual(err, null, 'err');
-  if (msg && msg.length) {
+  if (msg?.length) {
     assert.includes(err.message, msg, 'err.message.includes(msg)');
   }
 }
 
-const $num1 = new PrimitiveLiteralExpression(1);
-const $str1 = new PrimitiveLiteralExpression('1');
+// const $num1 = new PrimitiveLiteralExpression(1);
+// const $str1 = new PrimitiveLiteralExpression('1');
 
 describe('AST', function () {
 
@@ -136,11 +135,11 @@ describe('AST', function () {
     [`true`, $true],
     [`false`, $false]
   ];
-  const PrimitiveLiteralList: [string, PrimitiveLiteralExpression][] = [
-    ...StringLiteralList,
-    ...NumberLiteralList,
-    ...KeywordLiteralList
-  ];
+  // const PrimitiveLiteralList: [string, PrimitiveLiteralExpression][] = [
+  //   ...StringLiteralList,
+  //   ...NumberLiteralList,
+  //   ...KeywordLiteralList
+  // ];
 
   const ArrayLiteralList: [string, ArrayLiteralExpression][] = [
     [`[]`, $arr]
@@ -151,30 +150,30 @@ describe('AST', function () {
   const TemplateLiteralList: [string, TemplateExpression][] = [
     [`\`\``, $tpl]
   ];
-  const LiteralList: [string, IsPrimary][] = [
-    ...PrimitiveLiteralList,
-    ...TemplateLiteralList,
-    ...ArrayLiteralList,
-    ...ObjectLiteralList
-  ];
+  // const LiteralList: [string, IsPrimary][] = [
+  //   ...PrimitiveLiteralList,
+  //   ...TemplateLiteralList,
+  //   ...ArrayLiteralList,
+  //   ...ObjectLiteralList
+  // ];
   const TemplateInterpolationList: [string, TemplateExpression][] = [
     [`\`\${a}\``, new TemplateExpression(['', ''], [new AccessScopeExpression('a')])]
   ];
-  const PrimaryList: [string, IsPrimary][] = [
-    ...AccessThisList,
-    ...AccessScopeList,
-    ...LiteralList
-  ];
+  // const PrimaryList: [string, IsPrimary][] = [
+  //   ...AccessThisList,
+  //   ...AccessScopeList,
+  //   ...LiteralList
+  // ];
   // 2. parseMemberExpression.MemberExpression [ AssignmentExpression ]
-  const SimpleAccessKeyedList: [string, IsLeftHandSide][] = [
-    ...AccessScopeList
-      .map(([input, expr]) => [`${input}[b]`, new AccessKeyedExpression(expr, new AccessScopeExpression('b'))] as [string, any])
-  ];
+  // const SimpleAccessKeyedList: [string, IsLeftHandSide][] = [
+  //   ...AccessScopeList
+  //     .map(([input, expr]) => [`${input}[b]`, new AccessKeyedExpression(expr, new AccessScopeExpression('b'))] as [string, any])
+  // ];
   // 3. parseMemberExpression.MemberExpression . IdentifierName
-  const SimpleAccessMemberList: [string, IsLeftHandSide][] = [
-    ...AccessScopeList
-      .map(([input, expr]) => [`${input}.b`, new AccessMemberExpression(expr, 'b')] as [string, any])
-  ];
+  // const SimpleAccessMemberList: [string, IsLeftHandSide][] = [
+  //   ...AccessScopeList
+  //     .map(([input, expr]) => [`${input}.b`, new AccessMemberExpression(expr, 'b')] as [string, any])
+  // ];
   // 4. parseMemberExpression.MemberExpression TemplateLiteral
   const SimpleTaggedTemplateList: [string, IsLeftHandSide][] = [
     ...AccessScopeList
@@ -199,22 +198,22 @@ describe('AST', function () {
       .map(([input, expr]) => [`${input}.b()`, new CallMemberExpression(expr, 'b', [])] as [string, any])
   ];
   // concatenation of 1-3 of MemberExpression and 1-3 of CallExpression
-  const SimpleLeftHandSideList: [string, IsLeftHandSide][] = [
-    ...SimpleAccessKeyedList,
-    ...SimpleAccessMemberList,
-    ...SimpleTaggedTemplateList,
-    ...SimpleCallFunctionList,
-    ...SimpleCallScopeList,
-    ...SimpleCallMemberList
-  ];
+  // const SimpleLeftHandSideList: [string, IsLeftHandSide][] = [
+  //   ...SimpleAccessKeyedList,
+  //   ...SimpleAccessMemberList,
+  //   ...SimpleTaggedTemplateList,
+  //   ...SimpleCallFunctionList,
+  //   ...SimpleCallScopeList,
+  //   ...SimpleCallMemberList
+  // ];
 
   // concatenation of Primary and Member+CallExpression
   // This forms the group Precedence.LeftHandSide
   // used only for testing complex UnaryExpression expressions
-  const SimpleIsLeftHandSideList: [string, IsLeftHandSide][] = [
-    ...PrimaryList,
-    ...SimpleLeftHandSideList
-  ];
+  // const SimpleIsLeftHandSideList: [string, IsLeftHandSide][] = [
+  //   ...PrimaryList,
+  //   ...SimpleLeftHandSideList
+  // ];
 
   // parseUnaryExpression (this is actually at the top in the parser due to the order in which expressions must be parsed)
   const SimpleUnaryList: [string, UnaryExpression][] = [
@@ -226,10 +225,10 @@ describe('AST', function () {
   ];
   // concatenation of UnaryExpression + LeftHandSide
   // This forms the group Precedence.LeftHandSide and includes Precedence.UnaryExpression
-  const SimpleIsUnaryList: [string, IsUnary][] = [
-    ...SimpleIsLeftHandSideList,
-    ...SimpleUnaryList
-  ];
+  // const SimpleIsUnaryList: [string, IsUnary][] = [
+  //   ...SimpleIsLeftHandSideList,
+  //   ...SimpleUnaryList
+  // ];
 
   // This forms the group Precedence.Multiplicative
   const SimpleMultiplicativeList: [string, BinaryExpression][] = [
@@ -237,20 +236,20 @@ describe('AST', function () {
     [`$8%$9`, new BinaryExpression('%', new AccessScopeExpression('$8'), new AccessScopeExpression('$9'))],
     [`$10/$11`, new BinaryExpression('/', new AccessScopeExpression('$10'), new AccessScopeExpression('$11'))]
   ];
-  const SimpleIsMultiplicativeList: [string, IsBinary][] = [
-    ...SimpleIsUnaryList,
-    ...SimpleMultiplicativeList
-  ];
+  // const SimpleIsMultiplicativeList: [string, IsBinary][] = [
+  //   ...SimpleIsUnaryList,
+  //   ...SimpleMultiplicativeList
+  // ];
 
   // This forms the group Precedence.Additive
   const SimpleAdditiveList: [string, BinaryExpression][] = [
     [`$12+$13`, new BinaryExpression('+', new AccessScopeExpression('$12'), new AccessScopeExpression('$13'))],
     [`$14-$15`, new BinaryExpression('-', new AccessScopeExpression('$14'), new AccessScopeExpression('$15'))]
   ];
-  const SimpleIsAdditiveList: [string, IsBinary][] = [
-    ...SimpleIsMultiplicativeList,
-    ...SimpleAdditiveList
-  ];
+  // const SimpleIsAdditiveList: [string, IsBinary][] = [
+  //   ...SimpleIsMultiplicativeList,
+  //   ...SimpleAdditiveList
+  // ];
 
   // This forms the group Precedence.Relational
   const SimpleRelationalList: [string, BinaryExpression][] = [
@@ -261,10 +260,10 @@ describe('AST', function () {
     [`$24 in $25`, new BinaryExpression('in', new AccessScopeExpression('$24'), new AccessScopeExpression('$25'))],
     [`$26 instanceof $27`, new BinaryExpression('instanceof', new AccessScopeExpression('$26'), new AccessScopeExpression('$27'))]
   ];
-  const SimpleIsRelationalList: [string, IsBinary][] = [
-    ...SimpleIsAdditiveList,
-    ...SimpleRelationalList
-  ];
+  // const SimpleIsRelationalList: [string, IsBinary][] = [
+  //   ...SimpleIsAdditiveList,
+  //   ...SimpleRelationalList
+  // ];
 
   // This forms the group Precedence.Equality
   const SimpleEqualityList: [string, BinaryExpression][] = [
@@ -273,10 +272,10 @@ describe('AST', function () {
     [`$32===$33`, new BinaryExpression('===', new AccessScopeExpression('$32'), new AccessScopeExpression('$33'))],
     [`$34!==$35`, new BinaryExpression('!==', new AccessScopeExpression('$34'), new AccessScopeExpression('$35'))]
   ];
-  const SimpleIsEqualityList: [string, IsBinary][] = [
-    ...SimpleIsRelationalList,
-    ...SimpleEqualityList
-  ];
+  // const SimpleIsEqualityList: [string, IsBinary][] = [
+  //   ...SimpleIsRelationalList,
+  //   ...SimpleEqualityList
+  // ];
 
   // This forms the group Precedence.LogicalAND
   const SimpleLogicalANDList: [string, BinaryExpression][] = [
@@ -294,9 +293,9 @@ describe('AST', function () {
   ];
 
   // This forms the group Precedence.AssignExpression
-  const SimpleAssignList: [string, AssignExpression][] = [
-    [`a=b`, new AssignExpression(new AccessScopeExpression('a'), new AccessScopeExpression('b'))]
-  ];
+  // const SimpleAssignList: [string, AssignExpression][] = [
+  //   [`a=b`, new AssignExpression(new AccessScopeExpression('a'), new AccessScopeExpression('b'))]
+  // ];
 
   // This forms the group Precedence.Variadic
   const SimpleValueConverterList: [string, ValueConverterExpression][] = [
@@ -539,7 +538,7 @@ describe('AccessMemberExpression', function () {
   ];
 
   const props: ((input: [string, any, boolean, boolean]) => [string, any, any])[] = [
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = null as any;
       const value = {};
       if (canHaveProperty) {
@@ -547,7 +546,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`null={}     `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = undefined as any;
       const value = {};
       if (canHaveProperty) {
@@ -555,7 +554,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`undefined={}`, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = '' as any;
       const value = {};
       if (canHaveProperty) {
@@ -563,7 +562,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`''={}       `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = 'a' as any;
       const value = {};
       if (canHaveProperty) {
@@ -571,7 +570,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`'a'={}      `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = false as any;
       const value = {};
       if (canHaveProperty) {
@@ -579,7 +578,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`false={}    `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = 1 as any;
       const value = {};
       if (canHaveProperty) {
@@ -587,7 +586,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`1={}        `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = true as any;
       const value = {};
       if (canHaveProperty) {
@@ -595,7 +594,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`true={}     `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = Symbol() as any;
       const value = {};
       if (canHaveProperty) {
@@ -603,7 +602,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`Symbol()={} `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = {} as any;
       const value = {};
       if (canHaveProperty) {
@@ -616,7 +615,7 @@ describe('AccessMemberExpression', function () {
 
   const expression: AccessMemberExpression = new AccessMemberExpression(new AccessScopeExpression('foo', 0), 'bar');
 
-  eachCartesianJoinFactory.call(this, inputs, (([t1, obj, isFalsey, canHaveProperty], [t2, prop, value]) => {
+  eachCartesianJoinFactory.call(this, inputs, (([t1, obj, _isFalsey, canHaveProperty], [t2, prop, value]) => {
     it(`STRICT - ${t1}.${t2}.evaluate() -> connect -> assign`, function () {
       const scope = createScopeForTest({ foo: obj });
       const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
@@ -1707,7 +1706,7 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const bindVariations: (($1: $1, $2: $2, $3: $3) => /* bind */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([_t1, flags], [_t2, $kind], [_t3, scope, sut, mock, locator, binding, _value, argValues]) => () => {
       assert.strictEqual(binding['au:resource:binding-behavior:mock'], undefined, `binding['au:resource:binding-behavior:mock']`);
 
       // act
@@ -1752,7 +1751,7 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([_t1, flags], [_t2, $kind], [_t3, scope, sut, mock, _locator, binding, value, _argValues]) => () => {
       // act
       const actual = sut.evaluate(flags, scope, binding.locator, null);
 
@@ -1775,7 +1774,7 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const connectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([_t1, flags], [_t2, $kind], [_t3, scope, sut, mock, locator, binding, _value, _argValues]) => () => {
       assert.strictEqual(binding.obs.count, 0, `binding.obs.count`);
 
       // act
@@ -1800,7 +1799,7 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const assignVariations: (($1: $1, $2: $2, $3: $3) => /* assign */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([_t1, flags], [_t2, $kind], [_t3, scope, sut, mock, _locator, binding, _value, _argValues]) => () => {
       const newValue = {};
 
       // act
@@ -1826,7 +1825,7 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */(value: any) => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => (newValue) => {
+    ([_t1, flags], [_t2, $kind], [_t3, scope, sut, mock, _locator, binding, _value, _argValues]) => (newValue) => {
       // act
       const actual = sut.evaluate(flags, scope, binding.locator, null);
 
@@ -1849,7 +1848,7 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const unbindVariations: (($1: $1, $2: $2, $3: $3) => /* unbind */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([_t1, flags], [_t2, $kind], [_t3, scope, sut, mock, _locator, binding, _value, _argValues]) => () => {
       assert.strictEqual(binding['au:resource:binding-behavior:mock'], mock, `binding['au:resource:binding-behavior:mock']`);
 
       // act
@@ -2030,7 +2029,7 @@ describe('ValueConverterExpression', function () {
   ];
 
   const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */() => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
+    ([_t1, flags], [_t2, _signals, _signaler], [_t3, scope, sut, mock, _locator, binding, value, argValues, methods]) => () => {
       const $1stAssertStrictEqual = createPrefixedAssertEqual('1st eval');
 
       // act
@@ -2080,7 +2079,7 @@ describe('ValueConverterExpression', function () {
   ];
 
   const evaluateWithConnectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
+    ([_t1, flags], [_t2, signals, signaler], [_t3, scope, sut, mock, locator, binding, _value, argValues, methods]) => () => {
       assert.strictEqual(binding.obs.count, 0, `binding.obs.count`);
 
       // act
@@ -2130,7 +2129,7 @@ describe('ValueConverterExpression', function () {
   ];
 
   const assignVariations: (($1: $1, $2: $2, $3: $3) => /* assign */() => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
+    ([_t1, flags], [_t2, _signals, _signaler], [_t3, scope, sut, mock, _locator, binding, _value, argValues, methods]) => () => {
       const newValue = {};
 
       // act
@@ -2184,7 +2183,7 @@ describe('ValueConverterExpression', function () {
   ];
 
   const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */(value: any) => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => (newValue) => {
+    ([_t1, flags], [_t2, _signals, _signaler], [_t3, scope, sut, mock, _locator, binding, _value, argValues, methods]) => (newValue) => {
 
       const $2ndAssertStrictEqual = createPrefixedAssertEqual('2nd eval');
 
@@ -2234,7 +2233,7 @@ describe('ValueConverterExpression', function () {
   ];
 
   const unbindVariations: (($1: $1, $2: $2, $3: $3) => /* unbind */() => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
+    ([_t1, flags], [_t2, signals, signaler], [_t3, scope, sut, _mock, _locator, binding, _value, _argValues, _methods]) => () => {
       // act
       sut.unbind(flags, scope, binding);
 

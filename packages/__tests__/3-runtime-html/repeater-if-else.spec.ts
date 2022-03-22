@@ -375,7 +375,7 @@ describe(spec, function () {
   const mutationSpecs: MutationSpec[] = [
     {
       t: '01',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, _elseText: string): void {
         component.display = true;
         platform.domWriteQueue.flush();
 
@@ -384,7 +384,7 @@ describe(spec, function () {
     },
     {
       t: '02',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
         component.display = true;
         platform.domWriteQueue.flush();
         component.display = false;
@@ -395,7 +395,7 @@ describe(spec, function () {
     },
     {
       t: '03',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, _elseText: string): void {
         component.items = [{if: 2, else: 1}, {if: 4, else: 3}];
         platform.domWriteQueue.flush();
 
@@ -404,7 +404,7 @@ describe(spec, function () {
     },
     {
       t: '04',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
         component.items[0].if = 5;
         component.items[0].else = 6;
         component.items[1].if = 7;
@@ -416,7 +416,7 @@ describe(spec, function () {
     },
     {
       t: '05',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
         component.items.reverse();
         platform.domWriteQueue.flush();
 
@@ -425,7 +425,7 @@ describe(spec, function () {
     },
     {
       t: '06',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, _elseText: string): void {
         component.items.reverse();
         component.display = true;
         platform.domWriteQueue.flush();
@@ -435,7 +435,7 @@ describe(spec, function () {
     },
     {
       t: '07',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, _elseText: string): void {
         component.items = [{if: 'a', else: 'b'}];
         platform.domWriteQueue.flush();
 
@@ -444,7 +444,7 @@ describe(spec, function () {
     },
     {
       t: '08',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, _elseText: string): void {
         component.items = [{if: 'a', else: 'b'}];
         component.display = true;
         platform.domWriteQueue.flush();
@@ -454,7 +454,7 @@ describe(spec, function () {
     },
     {
       t: '09',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
         component.items.pop();
         platform.domWriteQueue.flush();
 
@@ -463,7 +463,7 @@ describe(spec, function () {
     },
     {
       t: '10',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, _elseText: string): void {
         component.items.pop();
         component.display = true;
         platform.domWriteQueue.flush();
@@ -473,7 +473,7 @@ describe(spec, function () {
     },
     {
       t: '11',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
         component.items = component.items.slice().concat({if: 'x', else: 'y'});
         platform.domWriteQueue.flush();
 
@@ -482,7 +482,7 @@ describe(spec, function () {
     },
     {
       t: '12',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, _elseText: string): void {
         component.items = [{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}];
         component.display = true;
         platform.domWriteQueue.flush();
@@ -492,7 +492,7 @@ describe(spec, function () {
     },
     {
       t: '13',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
         component.items.push({if: 5, else: 6});
         platform.domWriteQueue.flush();
 
@@ -501,7 +501,7 @@ describe(spec, function () {
     },
     {
       t: '14',
-      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, _elseText: string): void {
         component.items.push({if: 5, else: 6});
         component.display = true;
         platform.domWriteQueue.flush();

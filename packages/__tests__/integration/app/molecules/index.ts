@@ -1,5 +1,4 @@
 import { IContainer, noop } from '@aurelia/kernel';
-import { StyleConfiguration } from '@aurelia/runtime-html';
 import { Cards } from './cards/cards.js';
 import { LetDemo, SqrtValueConverter } from './let-demo/let-demo.js';
 import { CameraSpecsViewer } from './specs-viewer/camera-specs-viewer.js';

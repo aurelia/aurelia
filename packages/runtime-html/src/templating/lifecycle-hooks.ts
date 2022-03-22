@@ -6,6 +6,8 @@ type FuncPropNames<T> = {
   // eslint-disable-next-line @typescript-eslint/ban-types
   [K in keyof T]: K extends 'constructor' ? never : Required<T>[K] extends Function ? K : never;
 }[keyof T];
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 export type LifecycleHook<TViewModel, TKey extends FuncPropNames<TViewModel>> = (vm: TViewModel, ...args: Parameters<Required<TViewModel>[TKey]>) => ReturnType<Required<TViewModel>[TKey]>;
 
 export type ILifecycleHooks<TViewModel = {}, TKey extends FuncPropNames<TViewModel> = FuncPropNames<TViewModel>> = { [K in TKey]: LifecycleHook<TViewModel, K>; };
@@ -37,7 +39,6 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
    */
   public static create<T extends Constructable>(def: {}, Type: T): LifecycleHooksDefinition<T> {
     const propertyNames = new Set<string>();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     let proto = Type.prototype;
     while (proto !== Object.prototype) {
       for (const name of Object.getOwnPropertyNames(proto)) {
@@ -46,7 +47,6 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
           propertyNames.add(name);
         }
       }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       proto = Object.getPrototypeOf(proto);
     }
 
@@ -58,6 +58,7 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const containerLookup = new WeakMap<IContainer, LifecycleHooksLookup<any>>();
 
 const lhBaseName = getAnnotationKeyFor('lifecycle-hooks');
@@ -93,7 +94,7 @@ export const LifecycleHooks = Object.freeze({
       let entries: LifecycleHooksEntry[];
 
       for (instance of instances) {
-        definition = getOwnMetadata(lhBaseName, instance.constructor);
+        definition = getOwnMetadata(lhBaseName, instance.constructor) as LifecycleHooksDefinition;
         entry = new LifecycleHooksEntry(definition, instance);
         for (name of definition.propertyNames) {
           entries = lookup[name] as LifecycleHooksEntry[];

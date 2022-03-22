@@ -15,7 +15,6 @@ describe('ISignaler', function () {
   type $3 = [string, LifecycleFlags];
   type $4 = [string, (sut: ISignaler) => void];
   type $5 = [string, (sut: ISignaler) => void];
-  type $6 = [string, (sut: ISignaler) => void];
 
   const sutVariations: (() => [string, ISignaler, MockPropertySubscriber[]])[] = [
     () => {
@@ -71,7 +70,7 @@ describe('ISignaler', function () {
   ];
 
   const addSignalVariations: (($1: $1, $2: $2, $3: $3) => [string, (sut: ISignaler) => void])[] = [
-    ([$11, $12, mocks], [$21, signals], [$31, flags]) => [`addSignalListener   `, sut => {
+    ([_$11, _$12, mocks], [_$21, signals], [_$31, _flags]) => [`addSignalListener   `, sut => {
       for (let i = 0, ii = signals.length; i < ii; ++i) {
         const signal = signals[i];
         for (let j = 0, jj = mocks.length; j < jj; ++j) {
@@ -83,7 +82,7 @@ describe('ISignaler', function () {
         assert.strictEqual(sut['signals'][signal].size, mocks.length, `sut['signals'][signal].size`);
       }
     }],
-    ([$11, $12, mocks], [$21, signals], [$31, flags]) => [`addSignalListener x2`, sut => {
+    ([_$11, _$12, mocks], [_$21, signals], [_$31, _flags]) => [`addSignalListener x2`, sut => {
       for (let i = 0, ii = signals.length; i < ii; ++i) {
         const signal = signals[i];
         for (let j = 0, jj = mocks.length; j < jj; ++j) {
@@ -99,14 +98,14 @@ describe('ISignaler', function () {
   ];
 
   const dispatchSignalVariations: (($1: $1, $2: $2, $3: $3, $4: $4) => [string, (sut: ISignaler) => void])[] = [
-    ([$11, $12, mocks], [$21, signals], [$31, flags]) => [`dispatch nonexisting signal`, sut => {
+    ([_$11, _$12, mocks], [_$21, _signals], [_$31, flags]) => [`dispatch nonexisting signal`, sut => {
       sut.dispatchSignal('asdf', flags);
       for (let j = 0, jj = mocks.length; j < jj; ++j) {
         const mock = mocks[j];
         assert.strictEqual(mock.calls.length, 0, `mock.calls.length`);
       }
     }],
-    ([$11, $12, mocks], [$21, signals], [$31, flags]) => [`dispatchSignal             `, sut => {
+    ([_$11, _$12, mocks], [_$21, signals], [_$31, flags]) => [`dispatchSignal             `, sut => {
       for (let i = 0, ii = signals.length; i < ii; ++i) {
         const signal = signals[i];
         sut.dispatchSignal(signal, flags);
@@ -120,7 +119,7 @@ describe('ISignaler', function () {
         }
       }
     }],
-    ([$11, $12, mocks], [$21, signals], [$31, flags]) => [`dispatchSignal x2          `, sut => {
+    ([_$11, _$12, mocks], [_$21, signals], [_$31, flags]) => [`dispatchSignal x2          `, sut => {
       for (let i = 0, ii = signals.length; i < ii; ++i) {
         const signal = signals[i];
         sut.dispatchSignal(signal, flags);
@@ -142,7 +141,7 @@ describe('ISignaler', function () {
   ];
 
   const removeSignalVariations: (($1: $1, $2: $2, $3: $3, $4: $4, $5: $5) => [string, (sut: ISignaler) => void])[] = [
-    ([$11, $12, mocks], [$21, signals], [$31, flags]) => [`removeSignalListener     -> dispatchSignal`, sut => {
+    ([_$11, _$12, mocks], [_$21, signals], [_$31, flags]) => [`removeSignalListener     -> dispatchSignal`, sut => {
       for (let i = 0, ii = mocks.length; i < ii; ++i) {
         const mock = mocks[i];
         for (let j = 0, jj = signals.length; j < jj; ++j) {
@@ -163,7 +162,7 @@ describe('ISignaler', function () {
         }
       }
     }],
-    ([$11, $12, mocks], [$21, signals], [$31, flags]) => [`remove nonexisting signal -> dispatchSignal`, sut => {
+    ([_$11, _$12, mocks], [_$21, signals], [_$31, flags]) => [`remove nonexisting signal -> dispatchSignal`, sut => {
       for (let i = 0, ii = mocks.length; i < ii; ++i) {
         const mock = mocks[i];
         sut.removeSignalListener('asdf', mock);
@@ -186,7 +185,7 @@ describe('ISignaler', function () {
   const inputs: [typeof sutVariations, typeof signalsVariations, typeof flagsVariations, typeof addSignalVariations, typeof dispatchSignalVariations, typeof removeSignalVariations]
     = [sutVariations, signalsVariations, flagsVariations, addSignalVariations, dispatchSignalVariations, removeSignalVariations];
 
-  eachCartesianJoinFactory(inputs, ([t1, sut, mocks], [t2, signals], [t3, flags], [t4, addSignalListener], [t5, dispatchSignal], [t6, removeSignalListener]) => {
+  eachCartesianJoinFactory(inputs, ([t1, sut, _mocks], [t2, _signals], [t3, _flags], [t4, addSignalListener], [t5, dispatchSignal], [t6, removeSignalListener]) => {
       it(`${t1}, signals=${t2}, flags=${t3} -> ${t4} -> ${t5} -> ${t6}`, function () {
         addSignalListener(sut);
         dispatchSignal(sut);

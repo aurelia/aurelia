@@ -7,7 +7,7 @@ By convention, the change handler is a method whose name is composed of the prop
 This is what a basic observable would look like using conventions:
 
 ```typescript
-import { observable } from '@aurelia/runtime';
+import { observable } from 'aurelia';
 
 export class Car {
   @observable color = 'blue';
@@ -21,7 +21,7 @@ export class Car {
 If you prefer, can also put the `@observable` decorator on classes:
 
 ```typescript
-import { observable } from '@aurelia/runtime';
+import { observable } from 'aurelia';
 
 @observable('color')
 @observable({ name: 'speed', callback: 'speedCallback' })
@@ -48,7 +48,7 @@ You do not have to check if `newValue` and `oldValue` are different. The change 
 If you do not want to use the convention, you can define the callback name for the change handler by setting the `callback` property of the `@observable` decorator:
 
 ```typescript
-import { observable } from '@aurelia/runtime';
+import { observable } from 'aurelia';
 
 export class Car {
   @observable({ callback: 'myCallback' })
@@ -59,6 +59,3 @@ export class Car {
   }
 }
 ```
-
-
-

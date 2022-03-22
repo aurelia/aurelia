@@ -2,7 +2,7 @@ import { IContainer } from '@aurelia/kernel';
 import { IPlatform, valueConverter } from '@aurelia/runtime-html';
 import { TestContext } from '@aurelia/testing';
 
-export interface TestExecutionContext<TApp extends any> {
+export interface TestExecutionContext<TApp> {
   ctx: TestContext;
   container: IContainer;
   host: HTMLElement;
@@ -15,7 +15,6 @@ export type TestFunction<TTestContext extends TestExecutionContext<any>> = (ctx:
 export type WrapperFunction<TTestContext extends TestExecutionContext<any>, TSetupContext extends $TestSetupContext = $TestSetupContext> = (testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) => void | Promise<void>;
 
 export function createSpecFunction<TTestContext extends TestExecutionContext<any>, TSetupContext extends $TestSetupContext = $TestSetupContext>(wrap: WrapperFunction<TTestContext, TSetupContext>) {
-
   function $it(title: string, testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) {
     it(title, async function () {
       if (setupContext?.timeout !== void 0) {
@@ -26,12 +25,15 @@ export function createSpecFunction<TTestContext extends TestExecutionContext<any
   }
 
   $it.only = function (title: string, testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) {
+    // eslint-disable-next-line mocha/no-exclusive-tests
     it.only(title, async function () { await wrap.bind(this)(testFunction.bind(this), setupContext); });
   };
 
   $it.skip = function (title: string, testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) {
-    it.skip(title, async function () { await wrap.bind(this)(testFunction.bind(this), setupContext); });
+    // eslint-disable-next-line mocha/no-skipped-tests
+    return it.skip(title, async function () { await wrap.bind(this)(testFunction.bind(this), setupContext); });
   };
+
   return $it;
 }
 

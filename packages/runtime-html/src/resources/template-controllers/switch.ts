@@ -250,7 +250,6 @@ export class Case implements ICustomAttributeViewModel {
       switch (v) {
         case 'true': return true;
         case 'false': return false;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         default: return !!v;
       }
     },
@@ -258,21 +257,20 @@ export class Case implements ICustomAttributeViewModel {
   })
   public fallThrough: boolean = false;
 
-  public view: ISyntheticView;
+  public view: ISyntheticView | undefined = void 0;
   private $switch!: Switch;
   /** @internal */ private readonly _debug: boolean;
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private _observer: ICollectionObserver<CollectionKind.array> | undefined;
 
   public constructor(
-    factory: IViewFactory,
+    /** @internal */ private readonly _factory: IViewFactory,
     /** @internal */ private readonly _locator: IObserverLocator,
-    location: IRenderLocation,
+    /** @internal */ private readonly _location: IRenderLocation,
     logger: ILogger,
   ) {
     this._debug = logger.config.level <= LogLevel.debug;
     this._logger = logger.scopeTo(`${this.constructor.name}-#${this.id}`);
-    this.view = factory.create().setLocation(location);
   }
 
   public link(
@@ -325,14 +323,17 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope): void | Promise<void> {
-    const view = this.view;
+    let view = this.view;
+    if(view === void 0) {
+      view = this.view = this._factory.create().setLocation(this._location);
+    }
     if (view.isActive) { return; }
     return view.activate(initiator ?? view, this.$controller, flags, scope);
   }
 
   public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view;
-    if (!view.isActive) { return; }
+    if (view === void 0 || !view.isActive) { return; }
     return view.deactivate(initiator ?? view, this.$controller, flags);
   }
 

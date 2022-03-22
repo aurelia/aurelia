@@ -12,11 +12,11 @@ import { attributePattern, AttrSyntax } from '@aurelia/runtime-html';
   { pattern: 'PART.attr', symbols: '.' }
 )
 export class AttrAttributePattern {
-  public ['attr.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public 'attr.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[1], 'attr');
   }
 
-  public ['PART.attr'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public 'PART.attr'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'attr');
   }
 }
@@ -39,11 +39,11 @@ export class AttrAttributePattern {
   { pattern: 'PART.style', symbols: '.' }
 )
 export class StyleAttributePattern {
-  public ['style.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public 'style.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[1], 'style');
   }
 
-  public ['PART.style'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public 'PART.style'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'style');
   }
 }
@@ -62,11 +62,11 @@ export class StyleAttributePattern {
   { pattern: 'PART.class', symbols: '.' }
 )
 export class ClassAttributePattern {
-  public ['class.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public 'class.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[1], 'class');
   }
 
-  public ['PART.class'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public 'PART.class'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'class');
   }
 }

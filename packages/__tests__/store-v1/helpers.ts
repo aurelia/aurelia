@@ -27,7 +27,6 @@ export class DevToolsMock {
 
 const devtoolsInstalled = Symbol();
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createDI(mockWindow?: object) {
   const container = DI.createContainer();
   const platform = BrowserPlatform.getOrCreate(globalThis);
@@ -56,7 +55,6 @@ export function createDI(mockWindow?: object) {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createTestStore() {
   const initialState = { foo: "bar" };
   const { container, logger, storeWindow } = createDI();
@@ -65,7 +63,6 @@ export function createTestStore() {
   return { container, initialState, store };
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createUndoableTestStore() {
   const initialState: StateHistory<testState> = {
     past: [],
@@ -79,7 +76,6 @@ export function createUndoableTestStore() {
   return { initialState, store };
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createStoreWithState<T>(state: T, withUndo = false) {
   const options = withUndo ? { history: { undoable: true } } : {};
   const { container, logger, storeWindow } = createDI();
@@ -87,14 +83,12 @@ export function createStoreWithState<T>(state: T, withUndo = false) {
   return new Store<T>(state, logger, storeWindow, options);
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createStoreWithStateAndOptions<T>(state: T, options: Partial<StoreOptions>) {
   const { container, logger, storeWindow } = createDI();
   STORE.container = container;
   return new Store<T>(state, logger, storeWindow, options);
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createCallCounter(object: any, forMethod: string, callThrough = true) {
   const spyObj = {
     callCounter: 0,

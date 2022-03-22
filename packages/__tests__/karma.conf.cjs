@@ -34,7 +34,7 @@ const testDirs = [
   'validation-i18n',
 ];
 
-const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html'.split(' ');
+const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html --bail'.split(' ');
 const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
 
 const packageNames = [

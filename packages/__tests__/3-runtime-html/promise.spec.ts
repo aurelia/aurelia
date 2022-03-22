@@ -33,6 +33,8 @@ import {
   If,
   ISyntheticView,
   ICustomElementController,
+  bindable,
+  INode,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -62,19 +64,22 @@ describe('promise template-controller', function () {
   }
 
   const configLookup = DI.createInterface<Map<string, Config>>();
-  let nameIdMap: Map<string, number>;
   function createComponentType(name: string, template: string = '', bindables: string[] = []) {
     @customElement({ name, template, bindables, isStrictBinding: true })
     class Component {
-      private readonly logger: ILogger;
+      private logger: ILogger;
+      @bindable
+      private readonly ceId: unknown = null;
       public constructor(
         @optional(Config) private readonly config: Config,
-        @ILogger logger: ILogger,
+        @ILogger private readonly $logger: ILogger,
         @IContainer container: IContainer,
+        @INode node: INode,
       ) {
-        let id = nameIdMap.get(name) ?? 1;
-        this.logger = logger.scopeTo(`${name}-${id}`);
-        nameIdMap.set(name, ++id);
+        if ((node as HTMLElement).dataset.logCtor !== void 0) {
+          (this.logger = $logger.scopeTo(name)).debug('ctor');
+          delete (node as HTMLElement).dataset.logCtor;
+        }
         if (config == null) {
           const lookup = container.get(configLookup);
           this.config = lookup.get(name);
@@ -82,6 +87,7 @@ describe('promise template-controller', function () {
       }
 
       public async binding(): Promise<void> {
+        this.logger = this.ceId === null ? this.$logger.scopeTo(name) : this.$logger.scopeTo(`${name}-${this.ceId}`);
         if (this.config.hasPromise) {
           await this.config.wait('binding');
         }
@@ -191,7 +197,7 @@ describe('promise template-controller', function () {
     public assertCallSet(expected: string[], message: string = '') {
       const actual = this.log;
       assert.strictEqual(actual.length, expected.length, `${message} - calls.length - ${actual}`);
-      assert.strictEqual(actual.filter((c) => !expected.includes(c)).length, 0, `${message} - calls set equality - ${actual}`);
+      assert.strictEqual(actual.filter((c) => !expected.includes(c)).length, 0, `${message} - calls set equality -\n actual: \t ${actual}\n expected: \t ${expected}\n`);
     }
   }
 
@@ -213,7 +219,6 @@ describe('promise template-controller', function () {
       appType,
     }: Partial<TestSetupContext<TApp>> = {}
   ) {
-    nameIdMap = new Map<string, number>();
     const ctx = TestContext.create();
 
     const host = ctx.doc.createElement('div');
@@ -325,10 +330,10 @@ describe('promise template-controller', function () {
     }
   }
 
-  function getActivationSequenceFor(name: string | string[]) {
+  function getActivationSequenceFor(name: string | string[], withCtor: boolean = false) {
     return typeof name === 'string'
-      ? [`${name}.binding`, `${name}.bound`, `${name}.attaching`, `${name}.attached`]
-      : ['binding', 'bound', 'attaching', 'attached'].flatMap(x => name.map(n => `${n}.${x}`));
+      ? [...(withCtor ? [`${name}.ctor`] : []), `${name}.binding`, `${name}.bound`, `${name}.attaching`, `${name}.attached`]
+      : [...(withCtor ? [`${name}.ctor`] : []), 'binding', 'bound', 'attaching', 'attached'].flatMap(x => name.map(n => `${n}.${x}`));
   }
   function getDeactivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'
@@ -480,8 +485,8 @@ describe('promise template-controller', function () {
               { delayPromise, template: templateDiv, },
               config(),
               `<div> ${wrap('pending0', 'p')} </div>`,
-              getActivationSequenceFor(`${phost}-1`),
-              getDeactivationSequenceFor(`${fhost}-1`),
+              getActivationSequenceFor(phost),
+              getDeactivationSequenceFor(fhost),
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
@@ -491,7 +496,7 @@ describe('promise template-controller', function () {
                 // on the next tick wait the queued task
                 await p.domWriteQueue.yield();
                 assert.html.innerEqual(ctx.host, `<div> ${wrap('resolved with 42', 'f')} </div>`);
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
               }
             );
           }
@@ -503,8 +508,8 @@ describe('promise template-controller', function () {
               { delayPromise, template: templateDiv },
               config(),
               `<div> ${wrap('pending0', 'p')} </div>`,
-              getActivationSequenceFor(`${phost}-1`),
-              getDeactivationSequenceFor(`${rhost}-1`),
+              getActivationSequenceFor(phost),
+              getDeactivationSequenceFor(rhost),
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
@@ -512,7 +517,7 @@ describe('promise template-controller', function () {
                 await p.domWriteQueue.yield();
                 await p.domWriteQueue.yield();
                 assert.html.innerEqual(ctx.host, `<div> ${wrap('rejected with foo-bar', 'r')} </div>`);
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
               }
             );
           }
@@ -524,8 +529,8 @@ describe('promise template-controller', function () {
               { delayPromise, template: template1, },
               config(),
               wrap('pending0', 'p'),
-              getActivationSequenceFor(`${phost}-1`),
-              getDeactivationSequenceFor(`${fhost}-1`),
+              getActivationSequenceFor(phost),
+              getDeactivationSequenceFor(fhost),
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
@@ -535,8 +540,8 @@ describe('promise template-controller', function () {
                 // on the next tick wait the queued task
                 await p.domWriteQueue.yield();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
-              }
+                ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
+              },
             );
           }
           {
@@ -547,8 +552,8 @@ describe('promise template-controller', function () {
               { delayPromise, template: template1 },
               config(),
               wrap('pending0', 'p'),
-              getActivationSequenceFor(`${phost}-1`),
-              getDeactivationSequenceFor(`${rhost}-1`),
+              getActivationSequenceFor(phost),
+              getDeactivationSequenceFor(rhost),
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
@@ -556,7 +561,7 @@ describe('promise template-controller', function () {
                 await p.domWriteQueue.yield();
                 await p.domWriteQueue.yield();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
               }
             );
           }
@@ -566,8 +571,8 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('resolved with 42', 'f'),
-            getActivationSequenceFor(`${fhost}-1`),
-            getDeactivationSequenceFor(`${fhost}-1`),
+            getActivationSequenceFor(fhost),
+            getDeactivationSequenceFor(fhost),
           );
           yield new TestData(
             'shows content for rejected promise',
@@ -575,8 +580,8 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('rejected with foo-bar', 'r'),
-            getActivationSequenceFor(`${rhost}-1`),
-            getDeactivationSequenceFor(`${rhost}-1`),
+            getActivationSequenceFor(rhost),
+            getDeactivationSequenceFor(rhost),
           );
           yield new TestData(
             'reacts to change in promise value - fulfilled -> fulfilled',
@@ -584,8 +589,8 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('resolved with 42', 'f'),
-            getActivationSequenceFor(`${fhost}-1`),
-            getDeactivationSequenceFor(`${fhost}-1`),
+            getActivationSequenceFor(fhost),
+            getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
@@ -601,25 +606,33 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('resolved with 42', 'f'),
-            getActivationSequenceFor(`${fhost}-1`),
-            getDeactivationSequenceFor(`${rhost}-1`),
+            getActivationSequenceFor(fhost),
+            getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
               ctx.app.promise = Promise.reject(new Error('foo-bar'));
               await p.domWriteQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(rhost)]);
             }
           );
           yield new TestData(
-            'reacts to change in promise value - fulfilled -> (pending -> fulfilled)',
+            'reacts to change in promise value - fulfilled -> (pending -> fulfilled) + deferred view-instantiation assertion',
             Promise.resolve(42),
-            { delayPromise, template: template1 },
+            {
+              delayPromise, template: `
+            <template>
+              <template ${pattribute}="promise">
+                <pending-host pending p.bind="promise" data-log-ctor></pending-host>
+                <fulfilled-host ${fattribute}="data" data.bind="data" data-log-ctor></fulfilled-host>
+                <rejected-host ${rattribute}="err" err.bind="err" data-log-ctor></rejected-host>
+              </template>
+            </template>` },
             config(),
             wrap('resolved with 42', 'f'),
-            getActivationSequenceFor(`${fhost}-1`),
-            getDeactivationSequenceFor(`${fhost}-1`),
+            getActivationSequenceFor(fhost, true),
+            getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
@@ -630,14 +643,14 @@ describe('promise template-controller', function () {
               await p.domWriteQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost, true)]);
               ctx.clear();
 
               resolve(84);
               await p.domWriteQueue.yield();
               await p.domWriteQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
           );
           yield new TestData(
@@ -646,8 +659,8 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('resolved with 42', 'f'),
-            getActivationSequenceFor(`${fhost}-1`),
-            getDeactivationSequenceFor(`${rhost}-1`),
+            getActivationSequenceFor(fhost),
+            getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
@@ -658,14 +671,14 @@ describe('promise template-controller', function () {
               await p.domWriteQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)]);
               ctx.clear();
 
               reject(new Error('foo-bar'));
               await p.domWriteQueue.yield();
               await p.domWriteQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
             }
           );
           yield new TestData(
@@ -674,8 +687,8 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('rejected with foo-bar', 'r'),
-            getActivationSequenceFor(`${rhost}-1`),
-            getDeactivationSequenceFor(`${rhost}-1`),
+            getActivationSequenceFor(rhost),
+            getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
@@ -691,15 +704,15 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('rejected with foo-bar', 'r'),
-            getActivationSequenceFor(`${rhost}-1`),
-            getDeactivationSequenceFor(`${fhost}-1`),
+            getActivationSequenceFor(rhost),
+            getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
               ctx.app.promise = Promise.resolve(42);
               await p.domWriteQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(rhost), ...getActivationSequenceFor(fhost)]);
             }
           );
           yield new TestData(
@@ -708,8 +721,8 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('rejected with foo-bar', 'r'),
-            getActivationSequenceFor(`${rhost}-1`),
-            getDeactivationSequenceFor(`${fhost}-1`),
+            getActivationSequenceFor(rhost),
+            getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
@@ -720,14 +733,14 @@ describe('promise template-controller', function () {
               await p.domWriteQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-1`), ...getActivationSequenceFor(`${phost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(rhost), ...getActivationSequenceFor(phost)]);
               ctx.clear();
 
               resolve(84);
               await p.domWriteQueue.yield();
               await p.domWriteQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
           );
           yield new TestData(
@@ -736,8 +749,8 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('rejected with foo-bar', 'r'),
-            getActivationSequenceFor(`${rhost}-1`),
-            getDeactivationSequenceFor(`${rhost}-1`),
+            getActivationSequenceFor(rhost),
+            getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
@@ -748,14 +761,14 @@ describe('promise template-controller', function () {
               await p.domWriteQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-1`), ...getActivationSequenceFor(`${phost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(rhost), ...getActivationSequenceFor(phost)]);
               ctx.clear();
 
               reject(new Error('foo-bar'));
               await p.domWriteQueue.yield();
               await p.domWriteQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
             }
           );
           yield new TestData(
@@ -764,8 +777,8 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('pending0', 'p'),
-            getActivationSequenceFor(`${phost}-1`),
-            getDeactivationSequenceFor(`${phost}-1`),
+            getActivationSequenceFor(phost),
+            getDeactivationSequenceFor(phost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
@@ -782,8 +795,8 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('pending0', 'p'),
-            getActivationSequenceFor(`${phost}-1`),
-            getDeactivationSequenceFor(`${fhost}-1`),
+            getActivationSequenceFor(phost),
+            getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
@@ -791,7 +804,7 @@ describe('promise template-controller', function () {
               await p.domWriteQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
           );
           yield new TestData(
@@ -800,8 +813,8 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('pending0', 'p'),
-            getActivationSequenceFor(`${phost}-1`),
-            getDeactivationSequenceFor(`${rhost}-1`),
+            getActivationSequenceFor(phost),
+            getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
@@ -809,7 +822,7 @@ describe('promise template-controller', function () {
               await p.domWriteQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
             }
           );
           yield new TestData(
@@ -818,8 +831,8 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('pending0', 'p'),
-            getActivationSequenceFor(`${phost}-1`),
-            getDeactivationSequenceFor(`${fhost}-1`),
+            getActivationSequenceFor(phost),
+            getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
@@ -834,7 +847,7 @@ describe('promise template-controller', function () {
               await p.domWriteQueue.yield();
               await p.domWriteQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
           );
           yield new TestData(
@@ -843,8 +856,8 @@ describe('promise template-controller', function () {
             { delayPromise, template: template1 },
             config(),
             wrap('pending0', 'p'),
-            getActivationSequenceFor(`${phost}-1`),
-            getDeactivationSequenceFor(`${rhost}-1`),
+            getActivationSequenceFor(phost),
+            getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
               const p = ctx.platform;
@@ -859,7 +872,7 @@ describe('promise template-controller', function () {
               await p.domWriteQueue.yield();
               await p.domWriteQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
             }
           );
           yield new TestData(
@@ -885,7 +898,7 @@ describe('promise template-controller', function () {
               { delayPromise, template: pTemplt },
               config(),
               wrap('pending0', 'p'),
-              getActivationSequenceFor(`${phost}-1`),
+              getActivationSequenceFor(phost),
               [],
               async (ctx) => {
                 ctx.clear();
@@ -894,7 +907,7 @@ describe('promise template-controller', function () {
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, '');
-                ctx.assertCallSet(getDeactivationSequenceFor(`${phost}-1`));
+                ctx.assertCallSet(getDeactivationSequenceFor(phost));
               }
             );
           }
@@ -906,7 +919,7 @@ describe('promise template-controller', function () {
               { delayPromise, template: pTemplt },
               config(),
               wrap('pending0', 'p'),
-              getActivationSequenceFor(`${phost}-1`),
+              getActivationSequenceFor(phost),
               [],
               async (ctx) => {
                 ctx.clear();
@@ -915,7 +928,7 @@ describe('promise template-controller', function () {
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, '');
-                ctx.assertCallSet(getDeactivationSequenceFor(`${phost}-1`));
+                ctx.assertCallSet(getDeactivationSequenceFor(phost));
               }
             );
           }
@@ -934,8 +947,8 @@ describe('promise template-controller', function () {
               { delayPromise, template: pfCombTemplt },
               config(),
               wrap('pending0', 'p'),
-              getActivationSequenceFor(`${phost}-1`),
-              getDeactivationSequenceFor(`${fhost}-1`),
+              getActivationSequenceFor(phost),
+              getDeactivationSequenceFor(fhost),
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
@@ -943,7 +956,7 @@ describe('promise template-controller', function () {
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
               }
             );
           }
@@ -955,7 +968,7 @@ describe('promise template-controller', function () {
               { delayPromise, template: pfCombTemplt },
               config(),
               wrap('pending0', 'p'),
-              getActivationSequenceFor(`${phost}-1`),
+              getActivationSequenceFor(phost),
               [],
               async (ctx) => {
                 ctx.clear();
@@ -964,7 +977,7 @@ describe('promise template-controller', function () {
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, '');
-                ctx.assertCallSet(getDeactivationSequenceFor(`${phost}-1`));
+                ctx.assertCallSet(getDeactivationSequenceFor(phost));
               }
             );
           }
@@ -983,7 +996,7 @@ describe('promise template-controller', function () {
               { delayPromise, template: prCombTemplt },
               config(),
               wrap('pending0', 'p'),
-              getActivationSequenceFor(`${phost}-1`),
+              getActivationSequenceFor(phost),
               [],
               async (ctx) => {
                 ctx.clear();
@@ -992,7 +1005,7 @@ describe('promise template-controller', function () {
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, '');
-                ctx.assertCallSet(getDeactivationSequenceFor(`${phost}-1`));
+                ctx.assertCallSet(getDeactivationSequenceFor(phost));
               }
             );
           }
@@ -1004,8 +1017,8 @@ describe('promise template-controller', function () {
               { delayPromise, template: prCombTemplt },
               config(),
               wrap('pending0', 'p'),
-              getActivationSequenceFor(`${phost}-1`),
-              getDeactivationSequenceFor(`${rhost}-1`),
+              getActivationSequenceFor(phost),
+              getDeactivationSequenceFor(rhost),
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
@@ -1013,7 +1026,7 @@ describe('promise template-controller', function () {
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
               }
             );
           }
@@ -1032,7 +1045,7 @@ describe('promise template-controller', function () {
               config(),
               '',
               [],
-              getDeactivationSequenceFor(`${fhost}-1`),
+              getDeactivationSequenceFor(fhost),
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
@@ -1040,7 +1053,7 @@ describe('promise template-controller', function () {
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
-                ctx.assertCallSet(getActivationSequenceFor(`${fhost}-1`));
+                ctx.assertCallSet(getActivationSequenceFor(fhost));
               }
             );
           }
@@ -1101,7 +1114,7 @@ describe('promise template-controller', function () {
               config(),
               '',
               [],
-              getDeactivationSequenceFor(`${rhost}-1`),
+              getDeactivationSequenceFor(rhost),
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
@@ -1109,7 +1122,7 @@ describe('promise template-controller', function () {
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-                ctx.assertCallSet(getActivationSequenceFor(`${rhost}-1`));
+                ctx.assertCallSet(getActivationSequenceFor(rhost));
               }
             );
           }
@@ -1129,7 +1142,7 @@ describe('promise template-controller', function () {
               config(),
               '',
               [],
-              getDeactivationSequenceFor(`${fhost}-1`),
+              getDeactivationSequenceFor(fhost),
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
@@ -1137,7 +1150,7 @@ describe('promise template-controller', function () {
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
-                ctx.assertCallSet(getActivationSequenceFor(`${fhost}-1`));
+                ctx.assertCallSet(getActivationSequenceFor(fhost));
               }
             );
           }
@@ -1150,7 +1163,7 @@ describe('promise template-controller', function () {
               config(),
               '',
               [],
-              getDeactivationSequenceFor(`${rhost}-1`),
+              getDeactivationSequenceFor(rhost),
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
@@ -1158,7 +1171,7 @@ describe('promise template-controller', function () {
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-                ctx.assertCallSet(getActivationSequenceFor(`${rhost}-1`));
+                ctx.assertCallSet(getActivationSequenceFor(rhost));
               }
             );
           }
@@ -1201,8 +1214,8 @@ describe('promise template-controller', function () {
               },
               config(),
               wrap('pending0', 'p'),
-              getActivationSequenceFor(`${phost}-1`),
-              getDeactivationSequenceFor('fulfilled-host1-1'),
+              getActivationSequenceFor(phost),
+              getDeactivationSequenceFor('fulfilled-host1'),
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
@@ -1212,7 +1225,7 @@ describe('promise template-controller', function () {
                 // on the next tick wait the queued task
                 await p.domWriteQueue.yield();
                 assert.html.innerEqual(ctx.host, '<fulfilled-host1 class="au">resolved</fulfilled-host1>');
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor('fulfilled-host1-1')]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor('fulfilled-host1')]);
               }
             );
           }
@@ -1230,8 +1243,8 @@ describe('promise template-controller', function () {
               },
               config(),
               wrap('pending0', 'p'),
-              getActivationSequenceFor(`${phost}-1`),
-              getDeactivationSequenceFor('rejected-host1-1'),
+              getActivationSequenceFor(phost),
+              getDeactivationSequenceFor('rejected-host1'),
               async (ctx) => {
                 ctx.clear();
                 reject(new Error());
@@ -1241,7 +1254,7 @@ describe('promise template-controller', function () {
                 // on the next tick wait the queued task
                 await p.domWriteQueue.yield();
                 assert.html.innerEqual(ctx.host, '<rejected-host1 class="au">rejected</rejected-host1>');
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor('rejected-host1-1')]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor('rejected-host1')]);
               }
             );
           }
@@ -1262,8 +1275,8 @@ describe('promise template-controller', function () {
             },
             config(),
             wrap('resolved with 42', 'f'),
-            getActivationSequenceFor(`${fhost}-1`),
-            getDeactivationSequenceFor(`${fhost}-1`),
+            getActivationSequenceFor(fhost),
+            getDeactivationSequenceFor(fhost),
           );
           yield new TestData(
             'works in nested template - fulfilled>rejected',
@@ -1283,8 +1296,8 @@ describe('promise template-controller', function () {
             },
             config(),
             '<rejected-host class="au">rejected with foo-bar1</rejected-host>',
-            getActivationSequenceFor(`${rhost}-1`),
-            getDeactivationSequenceFor(`${rhost}-1`),
+            getActivationSequenceFor(rhost),
+            getDeactivationSequenceFor(rhost),
           );
           yield new TestData(
             'works in nested template - rejected>fulfilled',
@@ -1294,9 +1307,9 @@ describe('promise template-controller', function () {
             <template>
               <template ${pattribute}="promise">
                 <pending-host pending p.bind="promise"></pending-host>
-                <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+                <fulfilled-host ${fattribute}="data" data.bind="data" ce-id="1"></fulfilled-host>
                 <template ${rattribute}="response" ${pattribute}="response.json()">
-                  <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+                  <fulfilled-host ${fattribute}="data" data.bind="data" ce-id="2"></fulfilled-host>
                   <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
                 </template>
               </template>
@@ -1325,8 +1338,8 @@ describe('promise template-controller', function () {
             },
             config(),
             wrap('rejected with foo-bar', 'r'),
-            getActivationSequenceFor(`${rhost}-1`),
-            getDeactivationSequenceFor(`${rhost}-1`),
+            getActivationSequenceFor(rhost),
+            getDeactivationSequenceFor(rhost),
           );
 
           for (const $resolve of [true, false]) {
@@ -1345,8 +1358,8 @@ describe('promise template-controller', function () {
               },
               config(),
               $resolve ? wrap('resolved with 42 42', 'f') : wrap('rejected with 42 42', 'r'),
-              getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
-              getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+              getActivationSequenceFor($resolve ? fhost : rhost),
+              getDeactivationSequenceFor($resolve ? fhost : rhost),
             );
 
             yield new TestData(
@@ -1365,7 +1378,7 @@ describe('promise template-controller', function () {
               config(),
               null,
               null,
-              getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+              getDeactivationSequenceFor($resolve ? fhost : rhost),
               async (ctx) => {
                 const q = ctx.platform.domWriteQueue;
                 await q.yield();
@@ -1382,7 +1395,7 @@ describe('promise template-controller', function () {
                 } else {
                   assert.html.innerEqual(ctx.host, wrap('rejected with 42 42', 'r'), 'rejected');
                 }
-                ctx.assertCallSet([...getActivationSequenceFor(`${phost}-1`), ...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
+                ctx.assertCallSet([...getActivationSequenceFor(phost), ...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)]);
               },
             );
 
@@ -1401,8 +1414,8 @@ describe('promise template-controller', function () {
               },
               config(),
               $resolve ? wrap('resolved with 42', 'f') : wrap('rejected with foo-bar', 'r'),
-              getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
-              getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+              getActivationSequenceFor($resolve ? fhost : rhost),
+              getDeactivationSequenceFor($resolve ? fhost : rhost),
             );
 
             yield new TestData(
@@ -1423,8 +1436,8 @@ describe('promise template-controller', function () {
               },
               config(),
               wrap('pending0', 'p'),
-              getActivationSequenceFor(`${phost}-1`),
-              getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+              getActivationSequenceFor(phost),
+              getDeactivationSequenceFor($resolve ? fhost : rhost),
               async (ctx) => {
                 ctx.clear();
                 const q = ctx.platform.domWriteQueue;
@@ -1441,7 +1454,7 @@ describe('promise template-controller', function () {
                 } else {
                   assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
                 }
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)]);
               },
             );
 
@@ -1467,8 +1480,8 @@ describe('promise template-controller', function () {
                 },
                 config(),
                 `${staticPart} ${wrap('pending0', 'p')}`,
-                getActivationSequenceFor(`${phost}-1`),
-                getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+                getActivationSequenceFor(phost),
+                getDeactivationSequenceFor($resolve ? fhost : rhost),
                 async (ctx) => {
                   ctx.clear();
                   if ($resolve) {
@@ -1482,7 +1495,7 @@ describe('promise template-controller', function () {
                   // on the next tick wait the queued task
                   await p.domWriteQueue.yield();
                   assert.html.innerEqual(ctx.host, `${staticPart} ${$resolve ? wrap('resolved with 42', 'f') : wrap('rejected with foo-bar', 'r')}`);
-                  ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
+                  ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)]);
                 }
               );
             }
@@ -1497,20 +1510,20 @@ describe('promise template-controller', function () {
             <template ${pattribute}="42|promisify:true">
               <pending-host pending></pending-host>
               <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
-              <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
+              <rejected-host ${rattribute}="err" err.bind="err" ce-id="1"></rejected-host>
             </template>
 
             <template ${pattribute}="'forty-two'|promisify:false">
               <pending-host pending></pending-host>
               <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
-              <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
+              <rejected-host ${rattribute}="err" err.bind="err" ce-id="2"></rejected-host>
             </template>
           </template>`
             },
             config(),
             `${wrap('resolved with 42', 'f')} ${wrap('rejected with forty-two', 'r')}`,
-            getActivationSequenceFor([`${fhost}-1`, `${rhost}-2`]),
-            getDeactivationSequenceFor([`${fhost}-1`, `${rhost}-2`]),
+            getActivationSequenceFor([fhost, `${rhost}-2`]),
+            getDeactivationSequenceFor([fhost, `${rhost}-2`]),
           );
 
           yield new TestData(
@@ -1524,8 +1537,8 @@ describe('promise template-controller', function () {
             <template repeat.for="item of items">
               <template ${pattribute}="item[0] | promisify:item[1]">
                 <let data.bind="null" err.bind="null"></let>
-                <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
-                <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
+                <fulfilled-host ${fattribute}="data" data.bind="data" ce-id.bind="$index + 1"></fulfilled-host>
+                <rejected-host ${rattribute}="err" err.bind="err" ce-id.bind="$index + 1"></rejected-host>
               </template>
             </template>
           </template>`,
@@ -1546,8 +1559,8 @@ describe('promise template-controller', function () {
             <let items.bind="[[42, true], ['foo-bar', false], ['forty-two', true], ['fizz-bazz', false]]"></let>
               <template repeat.for="item of items" ${pattribute}="item[0] | promisify:item[1]">
                 <let data.bind="null" err.bind="null"></let>
-                <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
-                <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
+                <fulfilled-host ${fattribute}="data" data.bind="data" ce-id.bind="$index + 1"></fulfilled-host>
+                <rejected-host ${rattribute}="err" err.bind="err" ce-id.bind="$index + 1"></rejected-host>
               </template>
           </template>`,
             },
@@ -1564,7 +1577,7 @@ describe('promise template-controller', function () {
               delayPromise, template: `
           <template>
             <template ${pattribute}="[42, 'forty-two'] | promisify:true">
-              <fulfilled-host ${fattribute}="items" repeat.for="data of items" data.bind="data"></fulfilled-host>
+              <fulfilled-host ${fattribute}="items" repeat.for="data of items" data.bind="data" ce-id.bind="$index+1"></fulfilled-host>
               <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
             </template>
           </template>`,
@@ -1583,7 +1596,7 @@ describe('promise template-controller', function () {
           <template>
             <template ${pattribute}="[42, 'forty-two'] | promisify:true">
               <template ${fattribute}="items">
-                <fulfilled-host repeat.for="data of items" data.bind="data"></fulfilled-host>
+                <fulfilled-host repeat.for="data of items" data.bind="data" ce-id.bind="$index+1"></fulfilled-host>
               </template>
               <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
             </template>
@@ -1614,7 +1627,7 @@ describe('promise template-controller', function () {
           <template>
             <template ${pattribute}="[42, 'forty-two'] | promisify:false">
               <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
-              <rej-host ${rattribute}="error" repeat.for="err of error | parseError" err.bind="err"></rej-host>
+              <rej-host ${rattribute}="error" repeat.for="err of error | parseError" err.bind="err" ce-id.bind="$index + 1"></rej-host>
             </template>
           </template>`,
                 registrations,
@@ -1633,7 +1646,7 @@ describe('promise template-controller', function () {
             <template ${pattribute}="[42, 'forty-two'] | promisify:false">
               <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
               <template ${rattribute}="error">
-                <rej-host repeat.for="err of error | parseError" err.bind="err"></rej-host>
+                <rej-host repeat.for="err of error | parseError" err.bind="err" ce-id.bind="$index + 1"></rej-host>
               </template>
             </template>
           </template>`,
@@ -1653,18 +1666,18 @@ describe('promise template-controller', function () {
               delayPromise, template: `
           <let flag.bind="false"></let>
           <template if.bind="flag" ${pattribute}="42 | promisify:true">
-            <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
-            <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
+            <fulfilled-host ${fattribute}="data" data.bind="data" ce-id="1"></fulfilled-host>
+            <rejected-host ${rattribute}="err" err.bind="err" ce-id="1"></rejected-host>
           </template>
           <template else ${pattribute}="'forty-two' | promisify:false">
-            <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
-            <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
+            <fulfilled-host ${fattribute}="data" data.bind="data" ce-id="2"></fulfilled-host>
+            <rejected-host ${rattribute}="err" err.bind="err" ce-id="2"></rejected-host>
           </template>`,
             },
             config(),
             wrap('rejected with forty-two', 'r'),
-            getActivationSequenceFor(`${rhost}-1`),
-            getDeactivationSequenceFor(`${fhost}-2`),
+            getActivationSequenceFor(`${rhost}-2`),
+            getDeactivationSequenceFor(`${fhost}-1`),
             async (ctx) => {
               const q = ctx.platform.domWriteQueue;
               const app = ctx.app;
@@ -1683,7 +1696,7 @@ describe('promise template-controller', function () {
               await q.yield();
 
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-1`), ...getActivationSequenceFor(`${fhost}-2`)]);
+              ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-2`), ...getActivationSequenceFor(`${fhost}-1`)]);
             },
           );
 
@@ -1702,7 +1715,7 @@ describe('promise template-controller', function () {
             config(),
             '',
             [],
-            getDeactivationSequenceFor(`${phost}-1`),
+            getDeactivationSequenceFor(phost),
             async (ctx) => {
               ctx.clear();
               const q = ctx.platform.domWriteQueue;
@@ -1715,7 +1728,7 @@ describe('promise template-controller', function () {
               await q.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
-              ctx.assertCallSet(getActivationSequenceFor(`${phost}-1`));
+              ctx.assertCallSet(getActivationSequenceFor(phost));
             },
           );
 
@@ -1734,7 +1747,7 @@ describe('promise template-controller', function () {
             config(),
             '',
             [],
-            getDeactivationSequenceFor(`${fhost}-1`),
+            getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
               const app = ctx.app;
@@ -1745,7 +1758,7 @@ describe('promise template-controller', function () {
               await ((tc['fulfilled']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
 
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
-              ctx.assertCallSet(getActivationSequenceFor(`${fhost}-1`));
+              ctx.assertCallSet(getActivationSequenceFor(fhost));
             },
           );
 
@@ -1765,7 +1778,7 @@ describe('promise template-controller', function () {
             config(),
             '',
             [],
-            getDeactivationSequenceFor(`${fhost}-1`),
+            getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
               const q = ctx.platform.domWriteQueue;
@@ -1780,7 +1793,7 @@ describe('promise template-controller', function () {
               await ((tc['fulfilled']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
 
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
-              ctx.assertCallSet(getActivationSequenceFor(`${fhost}-1`));
+              ctx.assertCallSet(getActivationSequenceFor(fhost));
             },
           );
 
@@ -1799,7 +1812,7 @@ describe('promise template-controller', function () {
             config(),
             '',
             [],
-            getDeactivationSequenceFor(`${rhost}-1`),
+            getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
               const app = ctx.app;
@@ -1810,7 +1823,7 @@ describe('promise template-controller', function () {
               await ((tc['rejected']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
 
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-              ctx.assertCallSet(getActivationSequenceFor(`${rhost}-1`));
+              ctx.assertCallSet(getActivationSequenceFor(rhost));
             },
           );
 
@@ -1830,7 +1843,7 @@ describe('promise template-controller', function () {
             config(),
             '',
             [],
-            getDeactivationSequenceFor(`${rhost}-1`),
+            getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
               const q = ctx.platform.domWriteQueue;
@@ -1849,7 +1862,7 @@ describe('promise template-controller', function () {
               await ((tc['rejected']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
 
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-              ctx.assertCallSet(getActivationSequenceFor(`${rhost}-1`));
+              ctx.assertCallSet(getActivationSequenceFor(rhost));
             },
           );
 
@@ -1881,7 +1894,7 @@ describe('promise template-controller', function () {
               config(),
               'Unknown',
               [],
-              getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+              getDeactivationSequenceFor($resolve ? fhost : rhost),
               async (ctx) => {
                 ctx.clear();
                 const q = ctx.platform.domWriteQueue;
@@ -1898,7 +1911,7 @@ describe('promise template-controller', function () {
                 await q.yield();
 
                 assert.html.innerEqual(ctx.host, $resolve ? wrap('resolved with 42', 'f') : wrap('rejected with foo-bar', 'r'));
-                ctx.assertCallSet(getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`));
+                ctx.assertCallSet(getActivationSequenceFor($resolve ? fhost : rhost));
               },
             );
           }
@@ -1912,8 +1925,8 @@ describe('promise template-controller', function () {
             <template ${pattribute}="promise">
               <pending-host pending p.bind="promise"></pending-host>
               <template ${fattribute}="status" switch.bind="status">
-                <fulfilled-host case='processing' data="processing"></fulfilled-host>
-                <fulfilled-host default-case data="unknown"></fulfilled-host>
+                <fulfilled-host case='processing' data="processing" ce-id="1"></fulfilled-host>
+                <fulfilled-host default-case data="unknown" ce-id="2"></fulfilled-host>
               </template>
               <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
             </template>
@@ -1949,8 +1962,8 @@ describe('promise template-controller', function () {
           <template ${pattribute}="promise">
             <pending-host pending p.bind="promise"></pending-host>
             <template then switch.bind="status">
-              <fulfilled-host case='processing' data="processing"></fulfilled-host>
-              <fulfilled-host default-case data="unknown"></fulfilled-host>
+              <fulfilled-host case='processing' data="processing" ce-id="1"></fulfilled-host>
+              <fulfilled-host default-case data="unknown" ce-id="2"></fulfilled-host>
             </template>
             <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
           </template>`,
@@ -1982,8 +1995,8 @@ describe('promise template-controller', function () {
               <pending-host pending p.bind="promise"></pending-host>
               <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
               <template ${rattribute}="err" switch.bind="err.message">
-                <rejected-host case='processing' err.bind="{message: 'processing'}"></rejected-host>
-                <rejected-host default-case  err.bind="{message: 'unknown'}"></rejected-host>
+                <rejected-host case='processing' err.bind="{message: 'processing'}" ce-id="1"></rejected-host>
+                <rejected-host default-case  err.bind="{message: 'unknown'}" ce-id="2"></rejected-host>
               </template>
             </template>
           </template>`,
@@ -2026,8 +2039,8 @@ describe('promise template-controller', function () {
             <pending-host pending p.bind="promise"></pending-host>
             <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
             <template catch switch.bind="status">
-              <rejected-host case='processing' err.bind="{message: 'processing'}"></rejected-host>
-              <rejected-host default-case  err.bind="{message: 'unknown'}"></rejected-host>
+              <rejected-host case='processing' err.bind="{message: 'processing'}" ce-id="1"></rejected-host>
+              <rejected-host default-case  err.bind="{message: 'unknown'}" ce-id="2"></rejected-host>
             </template>
           </template>`,
             },
@@ -2095,8 +2108,8 @@ describe('promise template-controller', function () {
               },
               config(),
               `<div> ${wrap('pending0', 'p')} </div>`,
-              getActivationSequenceFor(`${phost}-1`),
-              getDeactivationSequenceFor(`${rhost}-1`),
+              getActivationSequenceFor(phost),
+              getDeactivationSequenceFor(rhost),
               async (ctx) => {
                 ctx.clear();
                 const q = ctx.platform.domWriteQueue;
@@ -2105,7 +2118,7 @@ describe('promise template-controller', function () {
                 await q.yield();
 
                 assert.html.innerEqual(ctx.host, `<div> ${wrap('resolved with 42', 'f')} </div>`, 'fulfilled');
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
 
                 ctx.clear();
                 ctx.app.promise = Promise.reject(new Error('foo-bar'));
@@ -2113,7 +2126,7 @@ describe('promise template-controller', function () {
                 await q.yield();
 
                 assert.html.innerEqual(ctx.host, `<div> ${wrap('rejected with foo-bar', 'r')} </div>`, 'rejected');
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(rhost)]);
               }
             );
           }
@@ -2138,8 +2151,8 @@ describe('promise template-controller', function () {
               },
               config(),
               `<foo-bar class="au"> ${wrap('pending0', 'p')} foo bar </foo-bar>`,
-              getActivationSequenceFor(`${phost}-1`),
-              getDeactivationSequenceFor(`${rhost}-1`),
+              getActivationSequenceFor(phost),
+              getDeactivationSequenceFor(rhost),
               async (ctx) => {
                 ctx.clear();
                 const q = ctx.platform.domWriteQueue;
@@ -2148,7 +2161,7 @@ describe('promise template-controller', function () {
                 await q.yield();
 
                 assert.html.innerEqual(ctx.host, `<foo-bar class="au"> ${wrap('resolved with 42', 'f')} foo bar </foo-bar>`, 'fulfilled');
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
 
                 ctx.clear();
                 ctx.app.promise = Promise.reject(new Error('foo-bar'));
@@ -2156,7 +2169,7 @@ describe('promise template-controller', function () {
                 await q.yield();
 
                 assert.html.innerEqual(ctx.host, `<foo-bar class="au"> ${wrap('rejected with foo-bar', 'r')} foo bar </foo-bar>`, 'rejected');
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(rhost)]);
               }
             );
           }
@@ -2186,8 +2199,8 @@ describe('promise template-controller', function () {
               },
               config(),
               `<foo-bar class="au"> <fiz-baz class="au"> ${wrap('pending0', 'p')} fiz baz </fiz-baz> foo bar </foo-bar>`,
-              getActivationSequenceFor(`${phost}-1`),
-              getDeactivationSequenceFor(`${rhost}-1`),
+              getActivationSequenceFor(phost),
+              getDeactivationSequenceFor(rhost),
               async (ctx) => {
                 ctx.clear();
                 const q = ctx.platform.domWriteQueue;
@@ -2196,7 +2209,7 @@ describe('promise template-controller', function () {
                 await q.yield();
 
                 assert.html.innerEqual(ctx.host, `<foo-bar class="au"> <fiz-baz class="au"> ${wrap('resolved with 42', 'f')} fiz baz </fiz-baz> foo bar </foo-bar>`, 'fulfilled');
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
 
                 ctx.clear();
                 ctx.app.promise = Promise.reject(new Error('foo-bar'));
@@ -2204,7 +2217,7 @@ describe('promise template-controller', function () {
                 await q.yield();
 
                 assert.html.innerEqual(ctx.host, `<foo-bar class="au"> <fiz-baz class="au"> ${wrap('rejected with foo-bar', 'r')} fiz baz </fiz-baz> foo bar </foo-bar>`, 'rejected');
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+                ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(rhost)]);
               }
             );
           }
@@ -2231,7 +2244,7 @@ describe('promise template-controller', function () {
             null,
             null,
             null,
-            getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+            getDeactivationSequenceFor($resolve ? fhost : rhost),
             async (ctx) => {
               const q = ctx.platform.domWriteQueue;
 
@@ -2248,7 +2261,7 @@ describe('promise template-controller', function () {
               } else {
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
               }
-              ctx.assertCallSet([...getActivationSequenceFor(`${phost}-1`), ...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
+              ctx.assertCallSet([...getActivationSequenceFor(phost), ...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)]);
             },
           );
 
@@ -2282,7 +2295,7 @@ describe('promise template-controller', function () {
               null,
               null,
               null,
-              getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+              getDeactivationSequenceFor($resolve ? fhost : rhost),
               async (ctx) => {
                 const q = ctx.platform.domWriteQueue;
                 await q.yield();
@@ -2293,7 +2306,7 @@ describe('promise template-controller', function () {
                 const tc = (app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
                 const task = tc['preSettledTask'] as (Task<void | Promise<void>> | null);
                 const logs = task.status === TaskStatus.running || task.status === TaskStatus.completed
-                  ? [...getActivationSequenceFor(`${phost}-1`), ...getDeactivationSequenceFor(`${phost}-1`)]
+                  ? [...getActivationSequenceFor(phost), ...getDeactivationSequenceFor(phost)]
                   : [];
 
                 try {
@@ -2308,7 +2321,7 @@ describe('promise template-controller', function () {
                 } else {
                   assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
                 }
-                ctx.assertCallSet([...logs, ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch; presettled task status: ${task.status}`);
+                ctx.assertCallSet([...logs, ...getActivationSequenceFor($resolve ? fhost : rhost)], `calls mismatch; presettled task status: ${task.status}`);
               }
             );
           }
@@ -2328,8 +2341,8 @@ describe('promise template-controller', function () {
             },
             null,
             wrap(`resolved with 42`, 'f'),
-            getActivationSequenceFor(`${fhost}-1`),
-            getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+            getActivationSequenceFor(fhost),
+            getDeactivationSequenceFor($resolve ? fhost : rhost),
             async (ctx) => {
               ctx.clear();
               const app = ctx.app;
@@ -2338,7 +2351,7 @@ describe('promise template-controller', function () {
               const q = ctx.platform.domWriteQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending');
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
               ctx.clear();
 
               try {
@@ -2354,7 +2367,7 @@ describe('promise template-controller', function () {
               } else {
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar foo-bar', 'r'), 'rejected');
               }
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch2`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)], `calls mismatch2`);
             },
           );
 
@@ -2373,8 +2386,8 @@ describe('promise template-controller', function () {
             },
             null,
             wrap(`resolved with 42`, 'f'),
-            getActivationSequenceFor(`${fhost}-1`),
-            getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+            getActivationSequenceFor(fhost),
+            getDeactivationSequenceFor($resolve ? fhost : rhost),
             async (ctx) => {
               ctx.clear();
               const app = ctx.app;
@@ -2383,7 +2396,7 @@ describe('promise template-controller', function () {
               const q = ctx.platform.domWriteQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
               ctx.clear();
 
               // interrupt; the previous promise is of longer duration because it is never settled.
@@ -2411,7 +2424,7 @@ describe('promise template-controller', function () {
               } else {
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar foo-bar', 'r'), 'rejected');
               }
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch2`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)], `calls mismatch2`);
             },
           );
 
@@ -2430,8 +2443,8 @@ describe('promise template-controller', function () {
             },
             null,
             wrap(`resolved with 42`, 'f'),
-            getActivationSequenceFor(`${fhost}-1`),
-            getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+            getActivationSequenceFor(fhost),
+            getDeactivationSequenceFor($resolve ? fhost : rhost),
             async (ctx) => {
               ctx.clear();
               const app = ctx.app;
@@ -2442,7 +2455,7 @@ describe('promise template-controller', function () {
               const q = ctx.platform.domWriteQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
               ctx.clear();
 
               try {
@@ -2479,7 +2492,7 @@ describe('promise template-controller', function () {
               } else {
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar foo-bar', 'r'), 'rejected 2');
               }
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch4`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)], `calls mismatch4`);
             },
           );
 
@@ -2498,8 +2511,8 @@ describe('promise template-controller', function () {
             },
             null,
             wrap(`resolved with 42`, 'f'),
-            getActivationSequenceFor(`${fhost}-1`),
-            getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+            getActivationSequenceFor(fhost),
+            getDeactivationSequenceFor($resolve ? fhost : rhost),
             async (ctx) => {
               ctx.clear();
               const app = ctx.app;
@@ -2511,7 +2524,7 @@ describe('promise template-controller', function () {
               const q = ctx.platform.domWriteQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
               ctx.clear();
 
               try {
@@ -2535,12 +2548,12 @@ describe('promise template-controller', function () {
               } else {
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected 1');
               }
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch2`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)], `calls mismatch2`);
               ctx.clear();
 
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending1', 'p'), 'pending1');
-              ctx.assertCallSet([...getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch3`);
+              ctx.assertCallSet([...getDeactivationSequenceFor($resolve ? fhost : rhost), ...getActivationSequenceFor(phost)], `calls mismatch3`);
               ctx.clear();
 
               try {
@@ -2560,7 +2573,7 @@ describe('promise template-controller', function () {
               } else {
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar foo-bar', 'r'), 'rejected 2');
               }
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch4`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)], `calls mismatch4`);
             },
           );
 
@@ -2579,8 +2592,8 @@ describe('promise template-controller', function () {
             },
             null,
             wrap(`resolved with 42`, 'f'),
-            getActivationSequenceFor(`${fhost}-1`),
-            getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+            getActivationSequenceFor(fhost),
+            getDeactivationSequenceFor($resolve ? fhost : rhost),
             async (ctx) => {
               ctx.clear();
               const app = ctx.app;
@@ -2592,7 +2605,7 @@ describe('promise template-controller', function () {
               const q = ctx.platform.domWriteQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
               ctx.clear();
 
               try {
@@ -2618,7 +2631,7 @@ describe('promise template-controller', function () {
               } else {
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected 1');
               }
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch2`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)], `calls mismatch2`);
             },
           );
 
@@ -2637,8 +2650,8 @@ describe('promise template-controller', function () {
             },
             null,
             wrap(`resolved with 42`, 'f'),
-            getActivationSequenceFor(`${fhost}-1`),
-            getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+            getActivationSequenceFor(fhost),
+            getDeactivationSequenceFor($resolve ? fhost : rhost),
             async (ctx) => {
               ctx.clear();
               const app = ctx.app;
@@ -2650,7 +2663,7 @@ describe('promise template-controller', function () {
               const q = ctx.platform.domWriteQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
               ctx.clear();
 
               try {
@@ -2665,7 +2678,7 @@ describe('promise template-controller', function () {
               } else {
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected 1');
               }
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch2`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)], `calls mismatch2`);
 
               const tc = (ctx.app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
               const postSettleTask = tc['postSettledTask'];
@@ -2863,7 +2876,7 @@ describe('promise template-controller', function () {
     ) { }
   }
 
-  function *getNegativeTestData() {
+  function* getNegativeTestData() {
     yield new NegativeTestData(
       `pending cannot be used in isolation`,
       `<template><template pending>pending</template></template>`

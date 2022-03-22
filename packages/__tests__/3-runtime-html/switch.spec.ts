@@ -27,6 +27,10 @@ import {
   valueConverter,
   Aurelia,
   IPlatform,
+  ICustomElementViewModel,
+  ICustomElementController,
+  bindable,
+  INode,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -72,21 +76,27 @@ describe('3-runtime-html/switch.spec.ts', function () {
     }
   }
 
-  let nameIdMap: Map<string, number>;
   function createComponentType(name: string, template: string, bindables: string[] = []) {
     @customElement({ name, template, bindables })
-    class Component {
-      private readonly logger: ILogger;
+    class Component implements ICustomElementViewModel {
+      private logger: ILogger;
+      public readonly $controller: ICustomElementController<this>;
+      @bindable
+      private readonly ceId: unknown = null;
       public constructor(
         private readonly config: Config,
-        @ILogger logger: ILogger,
+        @ILogger private readonly $logger: ILogger,
+        @INode node: INode,
       ) {
-        let id = nameIdMap.get(name) ?? 1;
-        this.logger = logger.scopeTo(`${name}-${id}`);
-        nameIdMap.set(name, ++id);
+        const ceId = (node as HTMLElement).dataset.ceId;
+        if (ceId) {
+          (this.logger = $logger.scopeTo(`${name}-${ceId}`)).debug('ctor');
+          delete (node as HTMLElement).dataset.ceId;
+        }
       }
 
       public async binding(): Promise<void> {
+        this.logger ??= this.ceId === null ? this.$logger.scopeTo(name) : this.$logger.scopeTo(`${name}-${this.ceId}`);
         if (this.config.hasPromise) {
           await this.config.wait();
         }
@@ -211,7 +221,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
       expected = this.transformCalls(expected);
       const actual = this.log;
       assert.strictEqual(actual.length, expected.length, `${message} - calls.length`);
-      assert.strictEqual(actual.filter((c) => !expected.includes(c)).length, 0, `${message} - calls set equality`);
+      assert.strictEqual(actual.filter((c) => !expected.includes(c)).length, 0, `${message} - calls set equality \n actual:\t${actual} \n expected:\t ${expected}`);
     }
 
     public async assertChange($switch: Switch, act: () => void, expectedHtml: string, expectedLog: (string | number)[]) {
@@ -241,7 +251,6 @@ describe('3-runtime-html/switch.spec.ts', function () {
       verifyStopCallsAsSet = false,
     }: Partial<TestSetupContext> = {}
   ) {
-    nameIdMap = new Map<string, number>();
     const ctx = TestContext.create();
 
     const host = ctx.doc.createElement('div');
@@ -329,10 +338,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
     ) { }
   }
 
-  function getActivationSequenceFor(name: string | string[]) {
+  function getActivationSequenceFor(name: string | string[], withCtor: boolean = false) {
     return typeof name === 'string'
-      ? [`${name}.binding`, `${name}.bound`, `${name}.attaching`, `${name}.attached`]
-      : ['binding', 'bound', 'attaching', 'attached'].flatMap(x => name.map(n => `${n}.${x}`));
+      ? [...(withCtor ? [`${name}.ctor`] : []), `${name}.binding`, `${name}.bound`, `${name}.attaching`, `${name}.attached`]
+      : [...(withCtor ? ['ctor'] : []), 'binding', 'bound', 'attaching', 'attached'].flatMap(x => name.map(n => `${n}.${x}`));
   }
   function getDeactivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'
@@ -360,6 +369,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
       public readonly expectedStartLog: (string | number)[],
       public readonly expectedStopLog: string[],
       public readonly additionalAssertions: ((ctx: SwitchTestExecutionContext) => Promise<void> | void) | null = null,
+      public readonly only: boolean = false,
     ) {
       this.initialStatus = initialStatus;
       this.initialStatusNum = initialStatusNum;
@@ -423,10 +433,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
       const enumTemplate = `
     <template>
       <template switch.bind="status">
-        <case-host case="received">Order received.</case-host>
-        <case-host case="dispatched">On the way.</case-host>
-        <case-host case="processing">Processing your order.</case-host>
-        <case-host case="delivered">Delivered.</case-host>
+        <case-host case="received"   ce-id="1">Order received.</case-host>
+        <case-host case="dispatched" ce-id="2">On the way.</case-host>
+        <case-host case="processing" ce-id="3">Processing your order.</case-host>
+        <case-host case="delivered"  ce-id="4">Delivered.</case-host>
       </template>
     </template>`;
 
@@ -443,22 +453,30 @@ describe('3-runtime-html/switch.spec.ts', function () {
       );
 
       yield new TestData(
-        'reacts to switch value change',
+        'reacts to switch value change + deferred view-instantiation assertion',
         {
           initialStatus: Status.dispatched,
-          template: enumTemplate
+          template: `
+          <template>
+            <template switch.bind="status">
+              <case-host case="received"   data-ce-id="1">Order received.</case-host>
+              <case-host case="dispatched" data-ce-id="2">On the way.</case-host>
+              <case-host case="processing" data-ce-id="3">Processing your order.</case-host>
+              <case-host case="delivered"  data-ce-id="4">Delivered.</case-host>
+            </template>
+          </template>`
         },
         config(),
         wrap('On the way.'),
-        [1, 2, ...getActivationSequenceFor('case-host-2')],
-        getDeactivationSequenceFor('case-host-1'),
+        [1, 2, ...getActivationSequenceFor('case-host-2', true)],
+        getDeactivationSequenceFor('case-host-2'),
         async (ctx) => {
           const $switch = ctx.getSwitches()[0];
           await ctx.assertChange(
             $switch,
             () => { ctx.app.status = Status.delivered; },
             wrap('Delivered.'),
-            [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('case-host-4')]
+            [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('case-host-4', true)]
           );
           await ctx.assertChange(
             $switch,
@@ -470,19 +488,25 @@ describe('3-runtime-html/switch.spec.ts', function () {
             $switch,
             () => { ctx.app.status = Status.received; },
             wrap('Order received.'),
-            [1, ...getActivationSequenceFor('case-host-1')]
+            [1, ...getActivationSequenceFor('case-host-1', true)]
           );
-        }
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.dispatched; },
+            wrap('On the way.'),
+            [1, 2, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('case-host-2')]
+          );
+        },
       );
 
       const templateWithDefaultCase = `
     <template>
       <template switch.bind="status">
-        <case-host case="received">Order received.</case-host>
-        <case-host case="dispatched">On the way.</case-host>
-        <case-host case="processing">Processing your order.</case-host>
-        <case-host case="delivered">Delivered.</case-host>
-        <default-case-host default-case>Not found.</default-case-host>
+        <case-host case="received"   ce-id="1">Order received.</case-host>
+        <case-host case="dispatched" ce-id="2">On the way.</case-host>
+        <case-host case="processing" ce-id="3">Processing your order.</case-host>
+        <case-host case="delivered"  ce-id="4">Delivered.</case-host>
+        <default-case-host default-case ce-id="1">Not found.</default-case-host>
       </template>
     </template>`;
 
@@ -532,10 +556,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
     <template>
       <template switch.bind="true">
-        <case-host case.bind="status === 'received'">Order received.</case-host>
-        <case-host case.bind="status === 'processing'">Processing your order.</case-host>
-        <case-host case.bind="status === 'dispatched'">On the way.</case-host>
-        <case-host case.bind="status === 'delivered'">Delivered.</case-host>
+        <case-host case.bind="status === 'received'"   ce-id="1">Order received.</case-host>
+        <case-host case.bind="status === 'processing'" ce-id="2">Processing your order.</case-host>
+        <case-host case.bind="status === 'dispatched'" ce-id="3">On the way.</case-host>
+        <case-host case.bind="status === 'delivered'"  ce-id="4">Delivered.</case-host>
       </template>
     </template>`,
         },
@@ -561,10 +585,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
     <template>
       <template switch.bind="status">
-        <case-host case.bind="status1">Order received.</case-host>
-        <case-host case.bind="status2">Processing your order.</case-host>
-        <case-host case="dispatched">On the way.</case-host>
-        <case-host case="delivered">Delivered.</case-host>
+        <case-host case.bind="status1" ce-id="1">Order received.</case-host>
+        <case-host case.bind="status2" ce-id="2">Processing your order.</case-host>
+        <case-host case="dispatched"   ce-id="3">On the way.</case-host>
+        <case-host case="delivered"    ce-id="4">Delivered.</case-host>
       </template>
     </template>`,
         },
@@ -602,9 +626,9 @@ describe('3-runtime-html/switch.spec.ts', function () {
     <template>
       <let num.bind="9"></let>
       <template switch.bind="true">
-        <case-host case.bind="num % 3 === 0 && num % 5 === 0">FizzBuzz</case-host>
-        <case-host case.bind="num % 3 === 0">Fizz</case-host>
-        <case-host case.bind="num % 5 === 0">Buzz</case-host>
+        <case-host case.bind="num % 3 === 0 && num % 5 === 0" ce-id="1">FizzBuzz</case-host>
+        <case-host case.bind="num % 3 === 0" ce-id="2">Fizz</case-host>
+        <case-host case.bind="num % 5 === 0" ce-id="3">Buzz</case-host>
       </template>
     </template>`,
         },
@@ -636,9 +660,9 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
     <template>
       <template switch.bind="status">
-        <case-host case.bind="['received', 'processing']">Processing.</case-host>
-        <case-host case="dispatched">On the way.</case-host>
-        <case-host case="delivered">Delivered.</case-host>
+        <case-host case.bind="['received', 'processing']" ce-id="1">Processing.</case-host>
+        <case-host case="dispatched" ce-id="2">On the way.</case-host>
+        <case-host case="delivered"  ce-id="3">Delivered.</case-host>
       </template>
     </template>`,
         },
@@ -670,9 +694,9 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
     <template>
       <template switch.bind="status">
-        <case-host case.bind="statuses">Processing.</case-host>
-        <case-host case="dispatched">On the way.</case-host>
-        <case-host case="delivered">Delivered.</case-host>
+        <case-host case.bind="statuses" ce-id="1">Processing.</case-host>
+        <case-host case="dispatched"    ce-id="2">On the way.</case-host>
+        <case-host case="delivered"     ce-id="3">Delivered.</case-host>
       </template>
     </template>`,
         },
@@ -704,10 +728,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
     <template>
       <template switch.bind="status">
-        <case-host case.bind="statuses">Processing.</case-host>
-        <case-host case="dispatched">On the way.</case-host>
-        <case-host case="delivered">Delivered.</case-host>
-        <default-case-host default-case>Unknown.</default-case-host>
+        <case-host case.bind="statuses" ce-id="1">Processing.</case-host>
+        <case-host case="dispatched"    ce-id="2">On the way.</case-host>
+        <case-host case="delivered"     ce-id="3">Delivered.</case-host>
+        <default-case-host default-case ce-id="1">Unknown.</default-case-host>
       </template>
     </template>`,
         },
@@ -745,10 +769,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
     <template>
       <template switch.bind="status">
-        <case-host case.bind="statuses">Processing.</case-host>
-        <case-host case="dispatched">On the way.</case-host>
-        <case-host case="delivered">Delivered.</case-host>
-        <default-case-host default-case>Unknown.</default-case-host>
+        <case-host case.bind="statuses" ce-id="1">Processing.</case-host>
+        <case-host case="dispatched"    ce-id="2">On the way.</case-host>
+        <case-host case="delivered"     ce-id="3">Delivered.</case-host>
+        <default-case-host default-case ce-id="1">Unknown.</default-case-host>
       </template>
     </template>`,
         },
@@ -782,10 +806,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
       const fallThroughTemplate = `
       <template>
         <template switch.bind="status">
-          <case-host case="received">Order received.</case-host>
-          <case-host case="value:dispatched; fall-through.bind:true">On the way.</case-host>
-          <case-host case="value.bind:'processing'; fall-through:true">Processing your order.</case-host>
-          <case-host case="delivered">Delivered.</case-host>
+          <case-host case="received"                                   ce-id="1">Order received.</case-host>
+          <case-host case="value:dispatched; fall-through.bind:true"   ce-id="2">On the way.</case-host>
+          <case-host case="value.bind:'processing'; fall-through:true" ce-id="3">Processing your order.</case-host>
+          <case-host case="delivered"                                  ce-id="4">Delivered.</case-host>
         </template>
       </template>`;
 
@@ -838,10 +862,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
     <template>
       <template switch.bind="true">
-        <case-host case.bind="status === 'received'">Order received.</case-host>
-        <case-host case="value.bind:status === 'processing'; fall-through:true">Processing your order.</case-host>
-        <case-host case="value.bind:status === 'dispatched'; fall-through.bind:true">On the way.</case-host>
-        <case-host case.bind="status === 'delivered'">Delivered.</case-host>
+        <case-host case.bind="status === 'received'"                                 ce-id="1">Order received.</case-host>
+        <case-host case="value.bind:status === 'processing'; fall-through:true"      ce-id="2">Processing your order.</case-host>
+        <case-host case="value.bind:status === 'dispatched'; fall-through.bind:true" ce-id="3">On the way.</case-host>
+        <case-host case.bind="status === 'delivered'"                                ce-id="4">Delivered.</case-host>
       </template>
     </template>`,
         },
@@ -889,10 +913,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
       <template>
         <template switch.bind="status">
-          <case-host case="received">Order received.</case-host>
-          <case-host case="dispatched">On the way.</case-host>
-          <case-host case="processing">Processing your order.</case-host>
-          <case-host case="delivered">Delivered.</case-host>
+          <case-host case="received"   ce-id="1">Order received.</case-host>
+          <case-host case="dispatched" ce-id="2">On the way.</case-host>
+          <case-host case="processing" ce-id="3">Processing your order.</case-host>
+          <case-host case="delivered"  ce-id="4">Delivered.</case-host>
           <span>foobar</span>
           <span if.bind="true">foo</span><span else>bar</span>
           <span if.bind="false">foo</span><span else>bar</span>
@@ -904,8 +928,8 @@ describe('3-runtime-html/switch.spec.ts', function () {
         },
         config(),
         `${wrap('Delivered.')} <span>foobar</span> <span>foo</span> <span>bar</span> <span>0</span><span>1</span><span>2</span> <my-echo class="au">Echoed 'awesome possum'</my-echo>`,
-        [...getActivationSequenceFor('my-echo-1'), 1, 2, 3, 4, ...getActivationSequenceFor('case-host-4')],
-        getDeactivationSequenceFor(['case-host-4', 'my-echo-1']),
+        [...getActivationSequenceFor('my-echo'), 1, 2, 3, 4, ...getActivationSequenceFor('case-host-4')],
+        getDeactivationSequenceFor(['case-host-4', 'my-echo']),
       );
 
       yield new TestData(
@@ -915,10 +939,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
       <template>
         <template switch.bind="statusNum | toStatusString">
-          <case-host case="received">Order received.</case-host>
-          <case-host case="dispatched">On the way.</case-host>
-          <case-host case="processing">Processing your order.</case-host>
-          <case-host case="delivered">Delivered.</case-host>
+          <case-host case="received"   ce-id="1">Order received.</case-host>
+          <case-host case="dispatched" ce-id="2">On the way.</case-host>
+          <case-host case="processing" ce-id="3">Processing your order.</case-host>
+          <case-host case="delivered"  ce-id="4">Delivered.</case-host>
         </template>
       </template>`,
         },
@@ -944,10 +968,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
       <template>
         <template switch.bind="status">
-          <case-host case.bind="1 | toStatusString">Order received.</case-host>
-          <case-host case.bind="3 | toStatusString">On the way.</case-host>
-          <case-host case.bind="2 | toStatusString">Processing your order.</case-host>
-          <case-host case.bind="4 | toStatusString">Delivered.</case-host>
+          <case-host case.bind="1 | toStatusString" ce-id="1">Order received.</case-host>
+          <case-host case.bind="3 | toStatusString" ce-id="2">On the way.</case-host>
+          <case-host case.bind="2 | toStatusString" ce-id="3">Processing your order.</case-host>
+          <case-host case.bind="4 | toStatusString" ce-id="4">Delivered.</case-host>
         </template>
       </template>`,
         },
@@ -973,10 +997,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
       <template>
         <template switch.bind="status & noop">
-          <case-host case="received">Order received.</case-host>
-          <case-host case="dispatched">On the way.</case-host>
-          <case-host case="processing">Processing your order.</case-host>
-          <case-host case="delivered">Delivered.</case-host>
+          <case-host case="received"   ce-id="1">Order received.</case-host>
+          <case-host case="dispatched" ce-id="2">On the way.</case-host>
+          <case-host case="processing" ce-id="3">Processing your order.</case-host>
+          <case-host case="delivered"  ce-id="4">Delivered.</case-host>
         </template>
       </template>`,
         },
@@ -1002,10 +1026,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
       <template>
         <template switch.bind="status">
-          <case-host case.bind="'received' & noop">Order received.</case-host>
-          <case-host case.bind="'dispatched' & noop">On the way.</case-host>
-          <case-host case.bind="'processing' & noop">Processing your order.</case-host>
-          <case-host case.bind="'delivered' & noop">Delivered.</case-host>
+          <case-host case.bind="'received' & noop"   ce-id="1">Order received.</case-host>
+          <case-host case.bind="'dispatched' & noop" ce-id="2">On the way.</case-host>
+          <case-host case.bind="'processing' & noop" ce-id="3">Processing your order.</case-host>
+          <case-host case.bind="'delivered' & noop"  ce-id="4">Delivered.</case-host>
         </template>
       </template>`,
         },
@@ -1032,10 +1056,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
       <template>
         <div repeat.for="s of ['received', 'dispatched']">
           <template switch.bind="s">
-            <case-host case="received">Order received.</case-host>
-            <case-host case="dispatched">On the way.</case-host>
-            <case-host case="processing">Processing your order.</case-host>
-            <case-host case="delivered">Delivered.</case-host>
+            <case-host case="received"   ce-id.bind="$index * 4 + 1">Order received.</case-host>
+            <case-host case="dispatched" ce-id.bind="$index * 4 + 2">On the way.</case-host>
+            <case-host case="processing" ce-id.bind="$index * 4 + 3">Processing your order.</case-host>
+            <case-host case="delivered"  ce-id.bind="$index * 4 + 4">Delivered.</case-host>
           </template>
         </div>
       </template>`,
@@ -1055,7 +1079,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
             `Case-#${switches[1]['cases'][1].id}.isMatch()`,
             ...getActivationSequenceFor('case-host-6')
           ], 'post-start lifecycle calls');
-        }
+        },
       );
 
       yield new TestData(
@@ -1065,10 +1089,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
       <template>
         <div repeat.for="s of ['received', 'dispatched']" switch.bind="s">
-          <case-host case="received">Order received.</case-host>
-          <case-host case="dispatched">On the way.</case-host>
-          <case-host case="processing">Processing your order.</case-host>
-          <case-host case="delivered">Delivered.</case-host>
+          <case-host case="received"   ce-id.bind="$index * 4 + 1">Order received.</case-host>
+          <case-host case="dispatched" ce-id.bind="$index * 4 + 2">On the way.</case-host>
+          <case-host case="processing" ce-id.bind="$index * 4 + 3">Processing your order.</case-host>
+          <case-host case="delivered"  ce-id.bind="$index * 4 + 4">Delivered.</case-host>
         </div>
       </template>`,
         },
@@ -1097,16 +1121,16 @@ describe('3-runtime-html/switch.spec.ts', function () {
           initialStatus: Status.delivered,
           template: `
         <div if.bind="true" switch.bind="status">
-          <case-host case="received">Order received.</case-host>
-          <case-host case="dispatched">On the way.</case-host>
-          <case-host case="processing">Processing your order.</case-host>
-          <case-host case="delivered">Delivered.</case-host>
+          <case-host case="received"   ce-id="1">Order received.</case-host>
+          <case-host case="dispatched" ce-id="2">On the way.</case-host>
+          <case-host case="processing" ce-id="3">Processing your order.</case-host>
+          <case-host case="delivered"  ce-id="4">Delivered.</case-host>
         </div>
         <div if.bind="false" switch.bind="status">
-          <case-host case="received">Order received.</case-host>
-          <case-host case="dispatched">On the way.</case-host>
-          <case-host case="processing">Processing your order.</case-host>
-          <case-host case="delivered">Delivered.</case-host>
+          <case-host case="received"   ce-id="5">Order received.</case-host>
+          <case-host case="dispatched" ce-id="6">On the way.</case-host>
+          <case-host case="processing" ce-id="7">Processing your order.</case-host>
+          <case-host case="delivered"  ce-id="8">Delivered.</case-host>
         </div>
       `,
         },
@@ -1123,8 +1147,8 @@ describe('3-runtime-html/switch.spec.ts', function () {
           initialStatus: Status.delivered,
           template: `
         <div switch.bind="status">
-          <case-host case="processing">Processing your order.</case-host>
-          <case-host case="delivered" if.bind="true">Delivered.</case-host>
+          <case-host case="processing" ce-id="1">Processing your order.</case-host>
+          <case-host case="delivered" if.bind="true" ce-id="2">Delivered.</case-host>
         </div>`,
         },
         config(),
@@ -1140,7 +1164,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
           initialStatus: Status.delivered,
           template: `
         <div switch.bind="status">
-          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="processing" ce-id="1">Processing your order.</case-host>
           <span if.bind="false" case="delivered">Delivered.</span>
         </div>`,
         },
@@ -1157,8 +1181,8 @@ describe('3-runtime-html/switch.spec.ts', function () {
           initialStatus: Status.delivered,
           template: `
         <div switch.bind="status">
-          <case-host case="processing">Processing your order.</case-host>
-          <case-host case="delivered" if.bind="false">Delivered.</case-host>
+          <case-host case="processing" ce-id="1">Processing your order.</case-host>
+          <case-host case="delivered" if.bind="false" ce-id="2">Delivered.</case-host>
         </div>`,
         },
         config(),
@@ -1175,10 +1199,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
       <template>
         <template switch.bind="status">
-          <case-host case.bind="s" repeat.for="s of ['received','dispatched','processing','delivered',]">\${s}</case-host>
+          <case-host case.bind="s" repeat.for="s of ['received','dispatched','processing','delivered',]" ce-id="1">\${s}</case-host>
         </template>
         <template switch.bind="status">
-          <case-host case.bind="s" repeat.for="s of ['delivered','received','dispatched','processing',]">\${s}</case-host>
+          <case-host case.bind="s" repeat.for="s of ['delivered','received','dispatched','processing',]" ce-id="2">\${s}</case-host>
         </template>
       </template>`,
         },
@@ -1196,8 +1220,8 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
       <template>
         <template switch.bind="status">
-          <case-host case="processing">Processing your order.</case-host>
-          <case-host case="received" repeat.for="i of 3">\${i}</case-host>
+          <case-host case="processing" ce-id="1">Processing your order.</case-host>
+          <case-host case="received" repeat.for="i of 3" ce-id.bind="2+i">\${i}</case-host>
         </template>
       </template>`,
         },
@@ -1215,14 +1239,14 @@ describe('3-runtime-html/switch.spec.ts', function () {
       <template>
         <let day.bind="2"></let>
         <template switch.bind="status">
-          <case-host case="received">Order received.</case-host>
-          <case-host case="dispatched">On the way.</case-host>
-          <case-host case="processing">Processing your order.</case-host>
-          <case-host case="delivered" switch.bind="day">
+          <case-host case="received"   ce-id="1">Order received.</case-host>
+          <case-host case="dispatched" ce-id="2">On the way.</case-host>
+          <case-host case="processing" ce-id="3">Processing your order.</case-host>
+          <case-host case="delivered"  ce-id="4" switch.bind="day">
             Expected to be delivered
-            <case-host case.bind="1">tomorrow.</case-host>
-            <case-host case.bind="2">in 2 days.</case-host>
-            <case-host default-case>in few days.</case-host>
+            <case-host case.bind="1" ce-id="5">tomorrow.</case-host>
+            <case-host case.bind="2" ce-id="6">in 2 days.</case-host>
+            <case-host default-case  ce-id="7">in few days.</case-host>
           </case-host>
         </template>
       </template>`,
@@ -1250,10 +1274,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
       <template as-custom-element="foo-bar">
         <bindable property="status"></bindable>
         <div switch.bind="status">
-          <case-host case="received">Order received.</case-host>
-          <case-host case="dispatched">On the way.</case-host>
-          <case-host case="processing">Processing your order.</case-host>
-          <case-host case="delivered">Delivered.</case-host>
+          <case-host case="received"   ce-id="1">Order received.</case-host>
+          <case-host case="dispatched" ce-id="2">On the way.</case-host>
+          <case-host case="processing" ce-id="3">Processing your order.</case-host>
+          <case-host case="delivered"  ce-id="4">Delivered.</case-host>
         </div>
       </template>
 
@@ -1319,10 +1343,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
           template: `
       <template>
         <template switch.bind="status">
-          <case-host case="received">Order received.</case-host>
-          <case-host case="dispatched">On the way.</case-host>
-          <case-host case="processing">Processing your order.</case-host>
-          <my-echo case="delivered" message="Delivered."></my-echo>
+          <case-host case="received"   ce-id="1">Order received.</case-host>
+          <case-host case="dispatched" ce-id="2">On the way.</case-host>
+          <case-host case="processing" ce-id="3">Processing your order.</case-host>
+          <my-echo case="delivered"    message="Delivered."></my-echo>
         </template>
       </template>`,
           registrations: [MyEcho]
@@ -1330,14 +1354,14 @@ describe('3-runtime-html/switch.spec.ts', function () {
         config(),
         wrap('Order received.'),
         [1, ...getActivationSequenceFor('case-host-1')],
-        getDeactivationSequenceFor('my-echo-1'),
+        getDeactivationSequenceFor('my-echo'),
         async (ctx) => {
           const $switch = ctx.getSwitches()[0];
           await ctx.assertChange(
             $switch,
             () => { ctx.app.status = Status.delivered; },
             '<my-echo class="au">Echoed \'Delivered.\'</my-echo>',
-            [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('my-echo-1')]
+            [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('my-echo')]
           );
         }
       );
@@ -1354,10 +1378,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
       <foo-bar>
         <template au-slot="s1">
           <template switch.bind="status">
-            <case-host case="received">Order received.</case-host>
-            <case-host case="dispatched">On the way.</case-host>
-            <case-host case="processing">Processing your order.</case-host>
-            <case-host case="delivered">Delivered.</case-host>
+            <case-host case="received"   ce-id="1">Order received.</case-host>
+            <case-host case="dispatched" ce-id="2">On the way.</case-host>
+            <case-host case="processing" ce-id="3">Processing your order.</case-host>
+            <case-host case="delivered"  ce-id="4">Delivered.</case-host>
           </template>
         </template>
       </foo-bar>
@@ -1390,10 +1414,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
         <template switch.bind="status">
           <div>
             <div>
-              <case-host case="received">Order received.</case-host>
-              <case-host case="dispatched">On the way.</case-host>
-              <case-host case="processing">Processing your order.</case-host>
-              <case-host case="delivered">Delivered.</case-host>
+              <case-host case="received"   ce-id="1">Order received.</case-host>
+              <case-host case="dispatched" ce-id="2">On the way.</case-host>
+              <case-host case="processing" ce-id="3">Processing your order.</case-host>
+              <case-host case="delivered"  ce-id="4">Delivered.</case-host>
             </div>
           </div>
         </template>
@@ -1417,8 +1441,8 @@ describe('3-runtime-html/switch.spec.ts', function () {
 
       <template switch.bind="status">
         <foo-bar>
-          <case-host case="dispatched">On the way.</case-host>
-          <case-host case="delivered">Delivered.</case-host>
+          <case-host case="dispatched" ce-id="1">On the way.</case-host>
+          <case-host case="delivered"  ce-id="2">Delivered.</case-host>
         </foo-bar>
       </template>`,
         },
@@ -1443,8 +1467,8 @@ describe('3-runtime-html/switch.spec.ts', function () {
       <template switch.bind="status">
         <foo-bar>
           <fiz-baz>
-            <case-host case="dispatched">On the way.</case-host>
-            <case-host case="delivered">Delivered.</case-host>
+            <case-host case="dispatched" ce-id="1">On the way.</case-host>
+            <case-host case="delivered"  ce-id="2">Delivered.</case-host>
           </fiz-baz>
         </foo-bar>
       </template>`,
@@ -1463,10 +1487,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
       <template>
         <let s.bind="'received'"></let>
         <template switch.bind="status">
-          <case-host case.bind="s">Order received.</case-host>
-          <case-host case="dispatched">On the way.</case-host>
-          <case-host case="processing">Processing your order.</case-host>
-          <case-host case="delivered">Delivered.</case-host>
+          <case-host case.bind="s"     ce-id="1">Order received.</case-host>
+          <case-host case="dispatched" ce-id="2">On the way.</case-host>
+          <case-host case="processing" ce-id="3">Processing your order.</case-host>
+          <case-host case="delivered"  ce-id="4">Delivered.</case-host>
         </template>
       </template>`,
         },
@@ -1543,7 +1567,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
   }
 
   for (const data of getTestData()) {
-    $it(data.name,
+    (data.only ? $it.only : $it)(data.name,
       async function (ctx) {
 
         assert.strictEqual(ctx.error, null);

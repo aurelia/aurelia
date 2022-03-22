@@ -24,9 +24,9 @@ import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '
 import type { INode } from '../dom.js';
 
 // https://infra.spec.whatwg.org/#namespaces
-const htmlNS = 'http://www.w3.org/1999/xhtml';
-const mathmlNS = 'http://www.w3.org/1998/Math/MathML';
-const svgNS = 'http://www.w3.org/2000/svg';
+// const htmlNS = 'http://www.w3.org/1999/xhtml';
+// const mathmlNS = 'http://www.w3.org/1998/Math/MathML';
+// const svgNS = 'http://www.w3.org/2000/svg';
 const xlinkNS = 'http://www.w3.org/1999/xlink';
 const xmlNS = 'http://www.w3.org/XML/1998/namespace';
 const xmlnsNS = 'http://www.w3.org/2000/xmlns/';
@@ -221,10 +221,8 @@ export class NodeObserverLocator implements INodeObserverLocator {
       //
       // TODO: there are (many) more situation where we want to default to DataAttributeAccessor,
       // but for now stick to what vCurrent does
-      case 'src':
-      case 'href':
-      // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-      case 'role':
+      case 'src': case 'href': case 'role':
+        // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
         return attrAccessor;
       default: {
         const nsProps = nsAttributes[key as string];

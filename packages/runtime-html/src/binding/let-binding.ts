@@ -46,7 +46,7 @@ export class LetBinding implements IAstBasedBinding {
     }
 
     const target = this.target as IIndexable;
-    const targetProperty = this.targetProperty as string;
+    const targetProperty = this.targetProperty;
     const previousValue: unknown = target[targetProperty];
     this.obs.version++;
     newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);

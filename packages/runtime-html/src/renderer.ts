@@ -1143,7 +1143,7 @@ export class SpreadRenderer implements IRenderer {
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
-    instruction: SpreadBindingInstruction,
+    _instruction: SpreadBindingInstruction,
   ): void {
     const container = renderingCtrl.container;
     const hydrationContext = container.get(IHydrationContext);
@@ -1220,7 +1220,7 @@ class SpreadBinding implements IBinding {
     this.locator = this.ctrl.container;
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(flags: LifecycleFlags, _scope: Scope): void {
     if (this.isBound) {
       return;
     }

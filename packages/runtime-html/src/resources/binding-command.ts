@@ -133,7 +133,8 @@ const getCommandKeyFrom = (name: string): string => `${cmdBaseName}:${name}`;
 const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
   Type: Constructable,
   prop: K,
-): PartialBindingCommandDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
+): PartialBindingCommandDefinition[K] =>
+  getOwnMetadata(getAnnotationKeyFor(prop), Type) as PartialBindingCommandDefinition[K];
 
 export const BindingCommand = Object.freeze<BindingCommandKind>({
   name: cmdBaseName,
@@ -341,7 +342,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def!.type === DefinitionType.Element) {
+      if (value === '' && info.def.type === DefinitionType.Element) {
         value = camelCase(target);
       }
       defaultMode = (info.def as CA).defaultBindingMode;
@@ -532,7 +533,7 @@ export class SpreadBindingCommand implements BindingCommandInstance {
   public readonly type: CommandType = CommandType.IgnoreAttr;
   public get name(): string { return '...$attrs'; }
 
-  public build(info: ICommandBuildInfo): IInstruction {
+  public build(_info: ICommandBuildInfo): IInstruction {
     return new SpreadBindingInstruction();
   }
 }

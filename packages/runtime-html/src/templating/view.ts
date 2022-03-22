@@ -65,7 +65,7 @@ export class ViewFactory implements IViewFactory {
     this.isCaching = this.cacheSize > 0;
   }
 
-  public canReturnToCache(controller: ISyntheticView): boolean {
+  public canReturnToCache(_controller: ISyntheticView): boolean {
     return this.cache != null && this.cache.length < this.cacheSize;
   }
 

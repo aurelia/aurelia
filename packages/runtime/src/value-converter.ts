@@ -105,7 +105,6 @@ export const ValueConverter = Object.freeze<ValueConverterKind>({
     return definition.Type as ValueConverterType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const def = getOwnMetadata(vcBaseName, Type);
     if (def === void 0) {
       if (__DEV__)

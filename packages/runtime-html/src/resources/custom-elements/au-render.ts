@@ -155,7 +155,7 @@ export class AuRender implements ICustomElementViewModel {
   }
 
   /** @internal */
-  private _provideViewFor(comp: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
+  private _provideViewFor(comp: Subject | undefined, _flags: LifecycleFlags): ISyntheticView | undefined {
     if (!comp) {
       return void 0;
     }

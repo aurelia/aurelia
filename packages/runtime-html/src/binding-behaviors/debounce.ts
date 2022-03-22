@@ -41,7 +41,7 @@ export class DebounceBindingBehavior extends BindingInterceptor {
       this.task.cancel();
       this.task = null;
     }
-    this.binding.handleChange!(newValue, oldValue, flags);
+    this.binding.handleChange(newValue, oldValue, flags);
   }
 
   public updateSource(newValue: unknown, flags: LifecycleFlags): void {

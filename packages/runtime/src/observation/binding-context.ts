@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { LifecycleFlags } from '../observation.js';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type { IBinding, IBindingContext, IOverrideContext } from '../observation.js';
+import { hasOwnProp } from '../utilities-objects.js';
 
 const marker = Object.freeze({});
 
@@ -17,7 +17,7 @@ export class BindingContext implements IBindingContext {
       } else {
         // can either be some random object or another bindingContext to clone from
         for (const prop in keyOrObj as IIndexable) {
-          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop) as boolean) {
+          if (hasOwnProp.call(keyOrObj, prop)) {
             this[prop] = (keyOrObj as IIndexable)[prop];
           }
         }

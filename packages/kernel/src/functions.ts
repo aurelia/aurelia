@@ -428,7 +428,6 @@ export const getPrototypeChain = (function () {
     if (chain === void 0) {
       cache.set(Type, chain = [proto = Type]);
       i = 0;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       while ((proto = getPrototypeOf(proto)) !== functionPrototype) {
         chain[++i] = proto;
       }

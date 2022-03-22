@@ -89,7 +89,7 @@ export class AttributeBinding implements IAstBasedBinding {
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags, this.$scope, this.locator, value);
+    this.sourceExpression.assign(flags, this.$scope, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -158,7 +158,7 @@ export class AttributeBinding implements IAstBasedBinding {
       sourceExpression.bind(flags, scope, this.interceptor);
     }
 
-    let targetObserver = this.targetObserver as IObserver;
+    let targetObserver = this.targetObserver;
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
         this.target as HTMLElement,
@@ -202,7 +202,7 @@ export class AttributeBinding implements IAstBasedBinding {
     this.value = void 0;
 
     if (this.targetSubscriber) {
-      (this.targetObserver as IObserver).unsubscribe(this.targetSubscriber);
+      this.targetObserver.unsubscribe(this.targetSubscriber);
     }
 
     this.task?.cancel();

@@ -270,7 +270,6 @@ const observe = {
       while (i < itemCount) {
         inserts[i++] = - 2;
       }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       $splice.call(indexMap, start, deleteCount, ...inserts);
     } else {
       $splice.apply(indexMap, args);

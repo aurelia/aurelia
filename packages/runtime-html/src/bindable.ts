@@ -350,7 +350,6 @@ const Coercer = {
 };
 
 function getInterceptor(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}) {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const type: PropertyType | null = def.type ?? Reflect.getMetadata('design:type', target, prop) ?? null;
   if (type == null) { return noop; }
   let coercer: InterceptorFunc;

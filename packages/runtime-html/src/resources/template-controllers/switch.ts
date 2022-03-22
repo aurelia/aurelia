@@ -250,7 +250,6 @@ export class Case implements ICustomAttributeViewModel {
       switch (v) {
         case 'true': return true;
         case 'false': return false;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         default: return !!v;
       }
     },

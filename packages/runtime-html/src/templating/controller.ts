@@ -249,7 +249,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
    * @param ctn - own container associated with the custom attribute object
    * @param viewModel - the view model object
    * @param host - host element where this custom attribute is used
-   * @param flags
+   * @param flags - todo(comment)
    * @param definition - the definition of the custom attribute,
    * will be used to override the definition associated with the view model object contructor if given
    */
@@ -289,8 +289,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /**
    * Create a synthetic view (controller) for a given factory
    *
-   * @param viewFactory
-   * @param flags
+   * @param viewFactory - todo(comment)
+   * @param flags - todo(comment)
    * @param parentController - the parent controller to connect the created view with. Used in activation
    *
    * Semi private API
@@ -1201,7 +1201,7 @@ function createChildrenObservers(
     for (; i < length; ++i) {
       name = childObserverNames[i];
 
-      if (observers[name] == void 0) {
+      if (observers[name] == null) {
         childrenDescription = childrenObservers[name];
         obs[obs.length] = observers[name] = new ChildrenObserver(
           controller as ICustomElementController,
@@ -1218,7 +1218,7 @@ function createChildrenObservers(
     return obs;
   }
 
-  return emptyArray;
+  return emptyArray as ChildrenObserver[];
 }
 
 const AccessScopeAstMap = new Map<PropertyKey, AccessScopeExpression>();
@@ -1383,6 +1383,7 @@ export type ControllerVisitor = (controller: IHydratedController) => void | true
  *
  * Every controller, regardless of their type and state, will have at least the properties/methods in this interface.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface IController<C extends IViewModel = IViewModel> extends IDisposable {
   /** @internal */readonly id: number;
   /**
@@ -1799,6 +1800,6 @@ function callDispose(disposable: IDisposable): void {
 }
 
 // some reuseable variables to avoid creating nested blocks inside hot paths of controllers
-let _resolve: undefined | (() => any);
-let _reject: undefined | ((err: unknown) => any);
+let _resolve: undefined | (() => unknown);
+let _reject: undefined | ((err: unknown) => unknown);
 let _retPromise: void | Promise<void>;

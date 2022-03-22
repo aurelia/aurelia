@@ -66,7 +66,7 @@ class ListenerTracker implements IDisposable {
       if (isFunction(listener)) {
         listener(event);
       } else {
-        (listener as EventListenerObject).handleEvent(event);
+        listener.handleEvent(event);
       }
       if (event.cancelBubble === true) {
         return;

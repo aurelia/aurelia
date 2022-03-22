@@ -157,7 +157,7 @@ export function totalDuration(target: Partial<Measurement>, property: string): a
   const _internal = Symbol(`_${property}`);
   return {
     get(this: Partial<Measurement>): number {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
       let totalDuration: number = (this as any)[_internal];
       if (totalDuration !== void 0) { return totalDuration; }
 

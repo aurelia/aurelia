@@ -9,7 +9,7 @@ export interface ISVGAnalyzer extends NoopSVGAnalyzer {}
 export const ISVGAnalyzer = DI.createInterface<ISVGAnalyzer>('ISVGAnalyzer', x => x.singleton(NoopSVGAnalyzer));
 
 export class NoopSVGAnalyzer {
-  public isStandardSvgAttribute(node: INode, attributeName: string): boolean {
+  public isStandardSvgAttribute(_node: INode, _attributeName: string): boolean {
     return false;
   }
 }

@@ -67,7 +67,7 @@ export class Aurelia implements IDisposable {
     container.registerResolver(IAppRoot, this._rootProvider = new InstanceProvider('IAppRoot'));
   }
 
-  public register(...params: any[]): this {
+  public register(...params: unknown[]): this {
     this.container.register(...params);
     return this;
   }

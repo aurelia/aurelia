@@ -5,7 +5,7 @@ import type { Constructable, IResourceKind, ResourceDefinition, IContainer } fro
 export function alias(...aliases: readonly string[]) {
   return function (target: Constructable) {
     const key = getAnnotationKeyFor('aliases');
-    const existing = getOwnMetadata(key, target);
+    const existing = getOwnMetadata(key, target) as string[] | undefined;
     if (existing === void 0) {
       defineMetadata(key, aliases, target);
     } else {

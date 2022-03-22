@@ -718,7 +718,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
 
         if (realAttrTarget !== 'au-slot') {
-          bindablesInfo = BindablesInfo.from(elDef!, false);
+          bindablesInfo = BindablesInfo.from(elDef, false);
           // if capture is on, capture everything except:
           // - as-element
           // - containerless
@@ -1432,7 +1432,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   /** @internal */
   private _compileLocalElement(template: Element | DocumentFragment, context: CompilationContext) {
     const root: Element | DocumentFragment = template;
-    const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) as HTMLTemplateElement[];
+    const localTemplates = toArray(root.querySelectorAll<HTMLTemplateElement>('template[as-custom-element]'));
     const numLocalTemplates = localTemplates.length;
     if (numLocalTemplates === 0) { return; }
     if (numLocalTemplates === root.childElementCount) {
@@ -1611,14 +1611,14 @@ class CompilationContext {
     this.def = def;
     this.ci = compilationInstruction;
     this.parent = parent;
-    this._templateFactory = hasParent ? parent!._templateFactory : container.get(ITemplateElementFactory);
+    this._templateFactory = hasParent ? parent._templateFactory : container.get(ITemplateElementFactory);
     // todo: attr parser should be retrieved based in resource semantic (current leaf + root + ignore parent)
-    this._attrParser = hasParent ? parent!._attrParser : container.get(IAttributeParser);
-    this._exprParser = hasParent ? parent!._exprParser : container.get(IExpressionParser);
-    this._attrMapper = hasParent ? parent!._attrMapper : container.get(IAttrMapper);
-    this._logger = hasParent ? parent!._logger : container.get(ILogger);
-    this.p = hasParent ? parent!.p : container.get(IPlatform);
-    this.localEls = hasParent ? parent!.localEls : new Set();
+    this._attrParser = hasParent ? parent._attrParser : container.get(IAttributeParser);
+    this._exprParser = hasParent ? parent._exprParser : container.get(IExpressionParser);
+    this._attrMapper = hasParent ? parent._attrMapper : container.get(IAttrMapper);
+    this._logger = hasParent ? parent._logger : container.get(ILogger);
+    this.p = hasParent ? parent.p : container.get(IPlatform);
+    this.localEls = hasParent ? parent.localEls : new Set();
     this.rows = instructions ?? [];
   }
 
@@ -1628,7 +1628,7 @@ class CompilationContext {
   }
 
   public h<K extends keyof HTMLElementTagNameMap>(name: K): HTMLElementTagNameMap[K];
-  public h<K extends string>(name: string): HTMLElement;
+  public h(name: string): HTMLElement;
   public h(name: string): HTMLElement {
     const el = this.p.document.createElement(name);
     if (name === 'template') {

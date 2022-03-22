@@ -159,7 +159,7 @@ const arrayHandler: ProxyHandler<unknown[]> = {
   // for (let i in array) ...
   ownKeys(target: unknown[]): (string | symbol)[] {
     currentConnectable()?.observe(target, 'length');
-    return Reflect.ownKeys(target) as (string | symbol)[];
+    return Reflect.ownKeys(target);
   },
 };
 
@@ -256,7 +256,7 @@ function wrappedArrayUnshift(this: unknown[], ...args: unknown[]): unknown {
 function wrappedArraySplice(this: unknown[], ...args: [number, number, ...unknown[]]): unknown {
   return wrap(getRaw(this).splice(...args));
 }
-function wrappedArrayReverse(this: unknown[], ...args: unknown[]): unknown[] {
+function wrappedArrayReverse(this: unknown[], ..._args: unknown[]): unknown[] {
   const raw = getRaw(this);
   const res = raw.reverse();
   currentConnectable()?.observeCollection(raw);

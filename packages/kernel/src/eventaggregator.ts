@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { DI } from './di.js';
 import { Constructable, IDisposable } from './interfaces.js';
 import { isString } from './utilities.js';

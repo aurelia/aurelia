@@ -9,7 +9,7 @@ export type ResourceType<
   TResType extends {} = {},
   TUserInstance extends InstanceType<TUserType> = InstanceType<TUserType>,
 > = (
-  new (...args: any[]) => TResInstance & TUserInstance
+  new (...args: unknown[]) => TResInstance & TUserInstance
 ) & {
   readonly aliases?: readonly string[];
 } & TResType & TUserType;
@@ -90,10 +90,8 @@ const resource = Object.freeze({
   getAll(target: Constructable): readonly ResourceDefinition[] {
     const keys = getOwnMetadata(resBaseName, target) as string[];
     if (keys === void 0) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return emptyArray;
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return keys.map(k => getOwnMetadata(k, target));
     }
   },

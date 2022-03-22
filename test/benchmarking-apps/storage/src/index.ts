@@ -105,7 +105,6 @@ class CosmosStorage implements IStorage {
 
   public async getLatestBenchmarkResult(branch: string = 'master', commit: string | undefined = void 0): Promise<Partial<BenchmarkMeasurements>> {
     const hasCommit = commit !== void 0;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const measurements = (await this.client
       .database('benchmarks')
       .container('measurements')

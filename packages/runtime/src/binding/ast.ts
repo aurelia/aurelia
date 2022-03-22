@@ -1,5 +1,3 @@
-/* eslint-disable eqeqeq */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { emptyArray, isArrayIndex, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
 import { LifecycleFlags as LF } from '../observation.js';
 import { BindingContext, Scope } from '../observation/binding-context.js';
@@ -81,8 +79,10 @@ export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIde
 export type AnyBindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
 
 export interface IExpressionHydrator {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   hydrate(jsonExpr: any): any;
 }
+
 export interface IVisitor<T = unknown> {
   visitAccessKeyed(expr: AccessKeyedExpression): T;
   visitAccessMember(expr: AccessMemberExpression): T;
@@ -331,7 +331,7 @@ export class Unparser implements IVisitor<void> {
     this.text += expr.name;
   }
 
-  public visitHtmlLiteral(expr: HtmlLiteralExpression): void { throw new Error('visitHtmlLiteral'); }
+  public visitHtmlLiteral(_expr: HtmlLiteralExpression): void { throw new Error('visitHtmlLiteral'); }
 
   public visitForOfStatement(expr: ForOfStatement): void {
     expr.declaration.accept(this);
@@ -612,6 +612,7 @@ export class ConditionalExpression {
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     return this.condition.evaluate(f, s, l, c) ? this.yes.evaluate(f, s, l, c) : this.no.evaluate(f, s, l, c);
   }
 
@@ -743,6 +744,7 @@ export class AccessMemberExpression {
     if (c !== null && instance instanceof Object) {
       c.observe(instance, this.name);
     }
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     return instance ? instance[this.name] : '';
   }
 
@@ -825,7 +827,7 @@ export class CallScopeExpression {
     // todo: did it ever surprise anyone?
     const func = getFunction(f, context, this.name);
     if (func) {
-      return func.apply(context, args as unknown[]);
+      return func.apply(context, args);
     }
     return void 0;
   }
@@ -860,7 +862,7 @@ export class CallMemberExpression {
     const args = this.args.map(a => a.evaluate(f, s, l, c));
     const func = getFunction(f, instance, this.name);
     if (func) {
-      return func.apply(instance, args as unknown[]);
+      return func.apply(instance, args);
     }
     return void 0;
   }
@@ -935,10 +937,12 @@ export class BinaryExpression {
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         return this.left.evaluate(f, s, l, c) || this.right.evaluate(f, s, l, c);
       case '==':
+        // eslint-disable-next-line eqeqeq
         return this.left.evaluate(f, s, l, c) == this.right.evaluate(f, s, l, c);
       case '===':
         return this.left.evaluate(f, s, l, c) === this.right.evaluate(f, s, l, c);
       case '!=':
+        // eslint-disable-next-line eqeqeq
         return this.left.evaluate(f, s, l, c) != this.right.evaluate(f, s, l, c);
       case '!==':
         return this.left.evaluate(f, s, l, c) !== this.right.evaluate(f, s, l, c);
@@ -961,8 +965,8 @@ export class BinaryExpression {
       // this makes bugs in user code easier to track down for end users
       // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
       case '+': {
-        const left: any = this.left.evaluate(f, s, l, c);
-        const right: any = this.right.evaluate(f, s, l, c);
+        const left: unknown = this.left.evaluate(f, s, l, c);
+        const right: unknown = this.right.evaluate(f, s, l, c);
 
         if ((f & LF.isStrictBindingStrategy) > 0) {
           return (left as number) + (right as number);
@@ -1545,7 +1549,7 @@ export class DestructuringAssignmentSingleExpression {
         throw new Error('AUR0112');
       }
     }
-    let source = this.source.evaluate(f, Scope.create(value!), l, null);
+    let source = this.source.evaluate(f, Scope.create(value), l, null);
     if(source === void 0) {
       source = this.initializer?.evaluate(f, s, l, null);
     }
@@ -1597,7 +1601,7 @@ export class DestructuringAssignmentRestExpression {
       restValue = value.slice(indexOrProperties);
     } else {
       restValue = Object
-          .entries(value!)
+          .entries(value)
           .reduce((acc, [k, v]) => {
             if (!indexOrProperties.includes(k)) { acc[k] = v; }
             return acc;

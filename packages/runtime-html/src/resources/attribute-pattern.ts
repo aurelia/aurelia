@@ -66,7 +66,7 @@ export class CharSpec implements ICharSpec {
     return this.chars === char;
   }
 
-  private _hasOfNone(char: string): boolean {
+  private _hasOfNone(_char: string): boolean {
     return false;
   }
 
@@ -78,7 +78,7 @@ export class CharSpec implements ICharSpec {
     return this.chars !== char;
   }
 
-  private _hasOfNoneInverse(char: string): boolean {
+  private _hasOfNoneInverse(_char: string): boolean {
     return true;
   }
 }
@@ -556,7 +556,7 @@ export class DotSeparatedAttributePattern {
   { pattern: 'PART.ref', symbols: '.' }
 )
 export class RefAttributePattern {
-  public 'ref'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public 'ref'(rawName: string, rawValue: string, _parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, 'element', 'ref');
   }
 
@@ -581,7 +581,7 @@ export class AtPrefixedTriggerAttributePattern {
 
 @attributePattern({ pattern: '...$attrs', symbols: '' })
 export class SpreadAttributePattern {
-  public '...$attrs'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public '...$attrs'(rawName: string, rawValue: string, _parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, '', '...$attrs');
   }
 }

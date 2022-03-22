@@ -1069,7 +1069,6 @@ describe('3-runtime-html/switch.spec.ts', function () {
         null,
         getDeactivationSequenceFor(['case-host-1', 'case-host-6']),
         (ctx) => {
-          // console.log(ctx.host.outerHTML);
           const switches = (ctx.controller.children[0] as Controller<Repeat>).viewModel
             .views
             .map((v) => v.children[0].viewModel as Switch);

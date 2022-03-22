@@ -170,10 +170,9 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   public view: ISyntheticView | undefined = void 0;
 
   public constructor(
-    @IViewFactory private readonly factory: IViewFactory,
-    @IRenderLocation private readonly location: IRenderLocation,
-  ) {
-  }
+    /** @internal */ @IViewFactory private readonly _factory: IViewFactory,
+    /** @internal */ @IRenderLocation private readonly _location: IRenderLocation,
+  ) { }
 
   public link(
     controller: IHydratableController,
@@ -185,7 +184,10 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   }
 
   public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope): void | Promise<void> {
-    const view = this.view ??= this.factory.create().setLocation(this.location);
+    let view = this.view;
+    if(view === void 0) {
+      view = this.view = this._factory.create().setLocation(this._location);
+    }
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, flags, scope);
   }
@@ -216,8 +218,8 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   public view: ISyntheticView | undefined = void 0;
 
   public constructor(
-    @IViewFactory private readonly factory: IViewFactory,
-    @IRenderLocation private readonly location: IRenderLocation,
+    /** @internal */ @IViewFactory private readonly _factory: IViewFactory,
+    /** @internal */ @IRenderLocation private readonly _location: IRenderLocation,
   ) { }
 
   public link(
@@ -231,7 +233,10 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
   public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, resolvedValue: unknown): void | Promise<void> {
     this.value = resolvedValue;
-    const view = this.view ??= this.factory.create().setLocation(this.location);
+    let view = this.view;
+    if(view === void 0) {
+      view = this.view = this._factory.create().setLocation(this._location);
+    }
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, flags, scope);
   }
@@ -262,8 +267,8 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
   public view: ISyntheticView | undefined = void 0;
 
   public constructor(
-    @IViewFactory private readonly factory: IViewFactory,
-    @IRenderLocation private readonly location: IRenderLocation,
+    @IViewFactory private readonly _factory: IViewFactory,
+    @IRenderLocation private readonly _location: IRenderLocation,
   ) { }
 
   public link(
@@ -277,7 +282,10 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
 
   public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, error: unknown): void | Promise<void> {
     this.value = error;
-    const view = this.view ??= this.factory.create().setLocation(this.location);
+    let view = this.view;
+    if(view === void 0) {
+      view = this.view = this._factory.create().setLocation(this._location);
+    }
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, flags, scope);
   }

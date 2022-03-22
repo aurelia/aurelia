@@ -265,9 +265,9 @@ export class Case implements ICustomAttributeViewModel {
   /** @internal */ private _observer: ICollectionObserver<CollectionKind.array> | undefined;
 
   public constructor(
-    private readonly factory: IViewFactory,
+    /** @internal */ private readonly _factory: IViewFactory,
     /** @internal */ private readonly _locator: IObserverLocator,
-    private readonly location: IRenderLocation,
+    /** @internal */ private readonly _location: IRenderLocation,
     logger: ILogger,
   ) {
     this._debug = logger.config.level <= LogLevel.debug;
@@ -324,7 +324,10 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope): void | Promise<void> {
-    const view = this.view ??= this.factory.create().setLocation(this.location);
+    let view = this.view;
+    if(view === void 0) {
+      view = this.view = this._factory.create().setLocation(this._location);
+    }
     if (view.isActive) { return; }
     return view.activate(initiator ?? view, this.$controller, flags, scope);
   }

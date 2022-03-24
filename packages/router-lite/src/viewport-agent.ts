@@ -148,8 +148,10 @@ export class ViewportAgent {
       return false;
     }
 
-    if (req.viewportName !== defaultViewportName && this.viewport.name !== req.viewportName) {
-      this.logger.trace(`handles(req:%s) -> false (names don't match)`, req);
+    const reqVp = req.viewportName;
+    const vp = this.viewport.name;
+    if (reqVp !== defaultViewportName && vp !== defaultViewportName && vp !== reqVp) {
+      this.logger.trace(`handles(req:%s) -> false (viewport names don't match '%s')`, req, vp);
       return false;
     }
 
@@ -158,7 +160,7 @@ export class ViewportAgent {
       return false;
     }
 
-    this.logger.trace(`handles(req:%s) -> true`, req);
+    this.logger.trace(`viewport '%s' handles(req:%s) -> true`, vp, req);
     return true;
   }
 

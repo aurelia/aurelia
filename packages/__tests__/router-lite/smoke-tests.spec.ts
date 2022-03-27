@@ -790,14 +790,12 @@ describe.only('router (smoke tests)', function () {
     const a2Params: Params[] = [];
     const b1Params: Params[] = [];
     const b2arams: Params[] = [];
-    // @route({ path: 'b1' })
     @customElement({ name: 'b1', template: null })
     class B1 {
       public load(params: Params) {
         b1Params.push(params);
       }
     }
-    // @route({ path: 'b2' })
     @customElement({ name: 'b2', template: null })
     class B2 {
       public load(params: Params) {
@@ -806,7 +804,7 @@ describe.only('router (smoke tests)', function () {
     }
     @route({
       routes: [
-        { path: 'b1', component: B1 },
+        { path: 'b1/:b', component: B1 },
       ]
     })
     @customElement({
@@ -821,7 +819,7 @@ describe.only('router (smoke tests)', function () {
     }
     @route({
       routes: [
-        { path: 'b2', component: B2 },
+        { path: 'b2/:d', component: B2 },
       ]
     })
     @customElement({
@@ -836,8 +834,8 @@ describe.only('router (smoke tests)', function () {
     }
     @route({
       routes: [
-        { path: /* ['a1', */ 'a1/:a'/* ] */, component: A1 },
-        { path: 'a2', component: A2 },
+        { path: 'a1/:a', component: A1 },
+        { path: 'a2/:c', component: A2 },
       ]
     })
     @customElement({
@@ -850,7 +848,7 @@ describe.only('router (smoke tests)', function () {
     const ctx = TestContext.create();
     const { container } = ctx;
 
-    container.register(TestRouterConfiguration.for(ctx, LogLevel.debug));
+    container.register(TestRouterConfiguration.for(ctx, LogLevel.warn));
     container.register(RouterConfiguration);
 
     const component = container.get(Root);
@@ -862,13 +860,10 @@ describe.only('router (smoke tests)', function () {
     au.app({ component, host });
 
     await au.start();
-    await router.load('a1/a');
-    // await router.load('a1/a/b1(b)+a2(c)/b2(d)');
-    // await router.load('a1(a=a)/b1(b=b)+a2(c=c)/b2(d=d)');
-    // await router.load('a1(a,a=a)/b1(b,b=b)+a2(c,c=c)/b2(d,d=d)');
-    // await router.load('a1(a=a,a)/b1(b=b,b)+a2(c=c,c)/b2(d=d,d)');
-    // await router.load('a1(a=a,a)/b1(b,b=b)+a2(c=c,c)/b2(d,d=d)');
+    await router.load('a1/a/b1/b+a2/c/b2/d');
+    await router.load('a1/1/b1/2+a2/3/b2/4');
 
+    // TODO(sayan): avoid adding parent parameters; or add those to a separate property.
     assert.deepStrictEqual(
       [
         a1Params,
@@ -878,32 +873,20 @@ describe.only('router (smoke tests)', function () {
       ],
       [
         [
-          // { 0: 'a' },
-          // { a: 'a' },
-          // { 0: 'a', a: 'a' },
-          // { 1: 'a', a: 'a' },
-          // { 1: 'a', a: 'a' },
+          { a: 'a' },
+          { a: '1' },
         ],
         [
-          // { 0: 'b' },
-          // { a: 'a', b: 'b' },
-          // { 0: 'b', a: 'a', b: 'b' },
-          // { 1: 'b', a: 'a', b: 'b' },
-          // { 0: 'b', 1: 'a', a: 'a', b: 'b' },
+          { a: 'a', b: 'b' },
+          { a: '1', b: '2' },
         ],
         [
-          // { 0: 'c' },
-          // { c: 'c' },
-          // { 0: 'c', c: 'c' },
-          // { 1: 'c', c: 'c' },
-          // { 1: 'c', c: 'c' },
+          { c: 'c' },
+          { c: '3' },
         ],
         [
-          // { 0: 'd' },
-          // { c: 'c', d: 'd' },
-          // { 0: 'd', c: 'c', d: 'd' },
-          // { 1: 'd', c: 'c', d: 'd' },
-          // { 0: 'd', 1: 'c', c: 'c', d: 'd' },
+          { c: 'c', d: 'd' },
+          { c: '3', d: '4' },
         ],
       ],
     );
@@ -911,6 +894,8 @@ describe.only('router (smoke tests)', function () {
     await au.stop(true);
     assert.areTaskQueuesEmpty();
   });
+
+  // TODO(sayan): add more tests for parameter parsing with multiple route parameters including optional parameter.
 
   it('does not interfere with standard "href" attribute', async function () {
     const ctx = TestContext.create();

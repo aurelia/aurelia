@@ -2,7 +2,7 @@
 import { ILogger, resolveAll, onResolve, Writable, LoggerConfiguration } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement } from '@aurelia/runtime-html';
 
-import { IRouteContext, $RecognizedRoute } from './route-context.js';
+import { IRouteContext, $RecognizedRoute, RESIDUE } from './route-context.js';
 import { emptyQuery, IRouter, NavigationOptions } from './router.js';
 import { ViewportInstructionTree, ViewportInstruction, NavigationInstructionType, Params, ITypedNavigationInstruction_ResolvedComponent, ITypedNavigationInstruction_string } from './instructions.js';
 import { defaultViewportName, RouteDefinition } from './route-definition.js';
@@ -93,6 +93,8 @@ export class RouteNode implements IRouteNode {
   }
 
   public static create(input: IRouteNode): RouteNode {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [RESIDUE]: _, ...params } = input.params ?? {};
     return new RouteNode(
       /*          id */++nodeId,
       /*        path */input.path,
@@ -100,7 +102,7 @@ export class RouteNode implements IRouteNode {
       /*     context */input.context,
       /* originalIns */input.instruction,
       /* instruction */input.instruction,
-      /*      params */input.params ?? {},
+      /*      params */params,
       /* queryParams */input.queryParams ?? emptyQuery,
       /*    fragment */input.fragment ?? null,
       /*        data */input.data ?? {},
@@ -534,29 +536,21 @@ function createNode(
     // }
   }
 
-  // TODO(sayan): simplify the following readjustment
   // readjust the children wrt. the residue
   const residue = rr.residue;
   log.trace('createNode residue:', rr.residue);
-  if (residue === null) {
-    (vi.component as Writable<ITypedNavigationInstruction_string>).value = path;
-    for (let i = 0; i < collapse; ++i) {
-      const child = vi.children[0];
-      (vi as Writable<ViewportInstruction>).children = child.children;
-    }
-  } else {
-    const finalPath = path.slice(0, -(residue.length + 1));
-    (vi.component as Writable<ITypedNavigationInstruction_string>).value = finalPath;
-    const parts = path.split('/');
-    const len = parts.length;
-    let i = 1; // ignore the root
-    for (; i < len; i++) {
-      if (residue.startsWith(parts[i])) break;
-      vi.children.shift();
-    }
-    (rr as Writable<$RecognizedRoute>).residue = null;
+  const noResidue = residue === null;
+  (rr as Writable<$RecognizedRoute>).residue = null;
+  (vi.component as Writable<ITypedNavigationInstruction_string>).value = noResidue
+    ? path
+    : path.slice(0, -(residue!.length + 1));
+
+  for (let i = 0; i < collapse; ++i) {
+    const child = vi.children[0];
+    if (residue?.startsWith(child.component.value as string)) break;
+    (vi as Writable<ViewportInstruction>).children = child.children;
   }
-  log.trace('createNode after collapsing vi:%s', vi);
+  log.trace('createNode after adjustment vi:%s', vi);
   return createConfiguredNode(log, node, vi, append, rr);
 }
 
@@ -607,7 +601,7 @@ function createConfiguredNode(
         append,
         title: $handler.config.title,
         residue: [
-          // TODO(sayan): inspect a valid case for residue
+           // TODO(sayan): this can be removed; need to inspect more.
           ...(rr.residue === null ? [] : [ViewportInstruction.create(rr.residue)]),
           ...vi.children,
         ],

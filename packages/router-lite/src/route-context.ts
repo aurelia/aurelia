@@ -16,7 +16,7 @@ import { ensureArrayOfStrings } from './util.js';
 export interface IRouteContext extends RouteContext {}
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
 
-const RESIDUE = 'au$residue' as const;
+export const RESIDUE = 'au$residue' as const;
 
 /**
  * Holds the information of a component in the context of a specific container. May or may not have statically configured routes.

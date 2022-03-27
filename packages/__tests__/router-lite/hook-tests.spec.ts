@@ -19,6 +19,7 @@ import {
   RouteNode as RN,
   NavigationInstruction as NI,
   RouterConfiguration,
+  route,
 } from '@aurelia/router-lite';
 import { assert, TestContext } from '@aurelia/testing';
 

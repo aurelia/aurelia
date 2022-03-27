@@ -81,7 +81,7 @@ async function createFixture<T extends Constructable>(
   };
 }
 
-describe.only('router (smoke tests)', function () {
+describe('router (smoke tests)', function () {
   // describe('without any configuration, deps registered globally', function () {
   //   @customElement({ name: 'a01', template: `a01${vp(0)}` })
   //   class A01 {}

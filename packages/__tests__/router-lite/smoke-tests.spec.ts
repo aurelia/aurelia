@@ -667,7 +667,7 @@ describe.only('router (smoke tests)', function () {
       assert.areTaskQueuesEmpty();
     });
 
-    it.only(`can load a named default with one sibling at a child with mode: ${mode}`, async function () {
+    it(`can load a named default with one sibling at a child with mode: ${mode}`, async function () {
       @customElement({ name: 'b', template: 'b' })
       class B {}
       @customElement({ name: 'c', template: 'c' })
@@ -699,7 +699,7 @@ describe.only('router (smoke tests)', function () {
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(ctx, LogLevel.trace));
+      container.register(TestRouterConfiguration.for(ctx, LogLevel.warn));
       container.register(RouterConfiguration.customize({ resolutionMode: mode }));
 
       const component = container.get(Root);
@@ -726,7 +726,6 @@ describe.only('router (smoke tests)', function () {
 
       assertComponentsVisible(host, [Root, [A, [B, C]]], '4');
 
-      console.log('\n\n\t\t-------------------------------\n\n');
       await router.load('a/c@b');
 
       assertComponentsVisible(host, [Root, [A, [C]]], '5');

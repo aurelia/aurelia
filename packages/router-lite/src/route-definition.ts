@@ -111,7 +111,7 @@ export class RouteDefinition {
   public toString(): string {
     const path = this.config.path === null ? 'null' : `'${this.config.path}'`;
     if (this.component !== null) {
-      return `RD(config.path:${path},c.name:'${this.component.name}')`;
+      return `RD(config.path:${path},c.name:'${this.component.name}',vp:'${this.viewport}')`;
     } else {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       return `RD(config.path:${path},redirectTo:'${this.redirectTo}')`;

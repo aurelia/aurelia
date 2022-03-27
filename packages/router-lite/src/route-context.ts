@@ -351,7 +351,8 @@ export class RouteContext {
     let residue: string | null;
     if (Reflect.has(result.params, RESIDUE)) {
       residue = result.params[RESIDUE] ?? null;
-      Reflect.deleteProperty(result.params, RESIDUE);
+      // TODO(sayan): Fred did this to fix some issue in lazy-loading. Inspect if this is really needed.
+      // Reflect.deleteProperty(result.params, RESIDUE);
     } else {
       residue = null;
     }

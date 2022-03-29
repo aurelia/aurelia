@@ -61,6 +61,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly enhance?: boolean;
   readonly watches?: IWatchDefinition[];
   readonly processContent?: ProcessContentHook | null;
+  readonly isLocalElement?: boolean;
 }>;
 
 export type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
@@ -232,6 +233,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly enhance: boolean,
     public readonly watches: IWatchDefinition[],
     public readonly processContent: ProcessContentHook | null,
+    public readonly isLocalElement: boolean,
   ) {}
 
   public static create(
@@ -292,6 +294,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('enhance', def, returnFalse),
         fromDefinitionOrDefault('watches', def as CustomElementDefinition, returnEmptyArray),
         fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
+        fromAnnotationOrTypeOrDefault('isLocalElement', Type, returnFalse),
       );
     }
 
@@ -330,6 +333,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse),
         mergeArrays(Watch.getAnnotation(Type), Type.watches),
         fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
+        fromAnnotationOrTypeOrDefault('isLocalElement', Type, returnFalse),
       );
     }
 
@@ -372,6 +376,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse),
       mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches),
       fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull),
+      fromAnnotationOrDefinitionOrTypeOrDefault('isLocalElement', nameOrDef, Type, returnFalse),
     );
   }
 

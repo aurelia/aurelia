@@ -41,6 +41,11 @@ import type { IProjections } from './resources/slot-injectables.js';
 import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command.js';
 import type { ICompliationInstruction, IInstruction, } from './renderer.js';
 
+declare module '@aurelia/kernel' {
+  interface IContainer {
+    parent: IContainer | null;
+  }
+}
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
     return Registration.singleton(ITemplateCompiler, this).register(container);
@@ -1501,7 +1506,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         content.removeChild(bindableEl);
       }
 
-      context._addDep(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
+      context._addDep(CustomElement.define({ name, template: localTemplate, isLocalElement: true }, LocalTemplateType));
 
       root.removeChild(localTemplate);
     }
@@ -1641,14 +1646,14 @@ class CompilationContext {
    * Find the custom element definition of a given name
    */
   public _findElement(name: string): CustomElementDefinition | null {
-    return this.c.find(CustomElement, name);
+    return this.c.find(CustomElement, name) ?? (this.def.isLocalElement === true ? this.c.parent?.find(CustomElement, name) ?? null : null);
   }
 
   /**
    * Find the custom attribute definition of a given name
    */
   public _findAttr(name: string): CustomAttributeDefinition | null {
-    return this.c.find(CustomAttribute, name);
+    return this.c.find(CustomAttribute, name) ?? (this.def.isLocalElement === true ? this.c.parent?.find(CustomAttribute, name) ?? null : null);
   }
 
   /**

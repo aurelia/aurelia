@@ -728,6 +728,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         enhance: false,
         capture: false,
         processContent: null,
+        isLocalElement: false,
       },
       props: createTplCtrlAttributeInstruction(attr, value),
     };
@@ -743,6 +744,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       enhance: false,
       capture: false,
       processContent: null,
+      isLocalElement: false,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   } else {
@@ -768,6 +770,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         enhance: false,
         capture: false,
         processContent: null,
+        isLocalElement: false,
       },
       props: createTplCtrlAttributeInstruction(attr, value),
     };
@@ -784,6 +787,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       enhance: false,
       capture: false,
       processContent: null,
+      isLocalElement: false,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
@@ -857,6 +861,7 @@ function createCustomElement(
     watches: [],
     capture: false,
     processContent: null,
+    isLocalElement: false,
   };
   return [input, output];
 }
@@ -902,6 +907,7 @@ function createCustomAttribute(
     capture: false,
     watches: [],
     processContent: null,
+    isLocalElement: false,
   };
   return [input, output];
 }
@@ -1022,6 +1028,7 @@ describe(`TemplateCompiler - combinations`, function () {
             enhance: false,
             capture: false,
             processContent: null,
+            isLocalElement: false,
           };
 
           const { sut, container } = createFixture(ctx);
@@ -1048,6 +1055,7 @@ describe(`TemplateCompiler - combinations`, function () {
             enhance: false,
             capture: false,
             processContent: null,
+            isLocalElement: false,
           };
 
           const { sut, container } = createFixture(ctx);
@@ -1092,6 +1100,7 @@ describe(`TemplateCompiler - combinations`, function () {
           enhance: false,
           capture: false,
           processContent: null,
+          isLocalElement: false,
         };
 
         const { sut, container } = createFixture(ctx);
@@ -1172,6 +1181,7 @@ describe(`TemplateCompiler - combinations`, function () {
             capture: false,
             watches: [],
             processContent: null,
+            isLocalElement: false,
           };
 
           const { sut, container } = createFixture(ctx, $def);
@@ -1476,6 +1486,7 @@ describe(`TemplateCompiler - combinations`, function () {
           capture: false,
           watches: [],
           processContent: null,
+          isLocalElement: false,
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);
@@ -2122,6 +2133,36 @@ describe('TemplateCompiler - local templates', function () {
     au.dispose();
   });
 
+  it('works with non-global dependencies', async function () {
+    @customElement({ name: 'my-ce', template: 'my-ce-content' })
+    class MyCe { }
+
+    const template = `
+    <my-ce></my-ce>
+    <my-le></my-le>
+    <template as-custom-element="my-le">
+      my-le-content
+      <my-ce></my-ce>
+    </template>
+    `;
+    @customElement({ name: 'my-app', template, dependencies: [MyCe] })
+    class App { }
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    assert.html.textContent(host, 'my-ce-content my-le-content my-ce-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
   it('throws error if a root template is a local template', function () {
     const template = `<template as-custom-element="foo-bar">I have local root!</template>`;
     const { container, sut } = createFixture();
@@ -2237,7 +2278,6 @@ describe('TemplateCompiler - local templates', function () {
       );
     }
   });
-
 });
 
 describe('TemplateCompiler - au-slot', function () {

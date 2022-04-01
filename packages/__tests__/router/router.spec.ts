@@ -237,12 +237,12 @@ describe('Router', function () {
     const historyLength = router.viewer.history.length;
     await $load('foo@left', router, platform);
     assert.includes(host.textContent, 'foo', `host.textContent`);
-    assert.strictEqual(router.viewer.history.length, historyLength + 1, `router.viewer.history.length`);
+    assert.strictEqual(router.viewer.history.length, historyLength + 1, `router.viewer.history.length, actual after foo: ${router.viewer.history.length}`);
 
     await router.load('bar@left', { replace: true });
 
     assert.includes(host.textContent, 'bar', `host.textContent`);
-    assert.strictEqual(router.viewer.history.length, historyLength + 1, `router.viewer.history.length`);
+    assert.strictEqual(router.viewer.history.length, historyLength + 1, `router.viewer.history.length, actual after bar: ${router.viewer.history.length}`);
 
     await tearDown();
   });
@@ -1229,7 +1229,7 @@ describe('Router', function () {
     for (let i = 0, ii = names.length; i < ii; i++) {
       const name = names[i];
       const fallback = i < ii - 1 ? names[i + 1] : null;
-      const viewport = fallback ? `<au-viewport name="${name}" fallback="${fallback}"}></au-viewport>` : '';
+      const viewport = fallback ? `<au-viewport name="${name}" fallback="${fallback}"></au-viewport>` : '';
       const template = `!${name}\${param ? ":" + param : ""}!${viewport}`;
       dependencies.push(CustomElement.define({ name, template }, class {
         public static parameters = ['id'];

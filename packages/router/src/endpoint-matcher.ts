@@ -385,6 +385,6 @@ export class EndpointMatcher {
         rem.scope = endpoint instanceof Viewport ? endpoint.scope : endpoint.scope.scope;
       }
     }
-    return remaining;
+    return []; // remaining;
   }
 }

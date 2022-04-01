@@ -240,9 +240,12 @@ export class ViewportContent extends EndpointContent {
       // If we got here, an earlier check has already stated it can be loaded
       return true;
     }
-    this.contentStates.set('checkedLoad', void 0);
-
     const instance = this.instruction.component.instance!;
+    if (instance == null) {
+      return true;
+    }
+
+    this.contentStates.set('checkedLoad', void 0);
 
     // Propagate parent parameters
     // TODO: Do we really want this?

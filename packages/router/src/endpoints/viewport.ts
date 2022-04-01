@@ -465,7 +465,7 @@ export class Viewport extends Endpoint {
       (step: Step<boolean>) => {
         if (this.isActiveNavigation(coordinator)) {
           if (!(step.previousValue as boolean)) { // canUnloadResult: boolean
-            step.cancel();
+            // step.cancel();
             coordinator.cancel();
           } else {
             if (this.router.isRestrictedNavigation) { // Create the component early if restricted navigation
@@ -718,11 +718,12 @@ export class Viewport extends Endpoint {
    * @param flags - The lifecycle flags for `deactivate`
    */
   public deactivate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
-    if (this.getContent().componentInstance !== null &&
-      !this.getContent().reload &&
-      this.getContent().componentInstance !== this.getNextContent()?.componentInstance) {
+    const content = this.getContent();
+    if (content?.componentInstance != null &&
+      !content.reload &&
+      content.componentInstance !== this.getNextContent()?.componentInstance) {
 
-      return this.getContent()?.deactivateComponent(
+      return content.deactivateComponent(
         step,
         initiator,
         parent as ICustomElementController,

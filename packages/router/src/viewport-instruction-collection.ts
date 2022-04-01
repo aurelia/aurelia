@@ -27,12 +27,12 @@ export class RoutingInstructionCollection extends Array<RoutingInstruction> {
     return new RoutingInstructionCollection(...this.filter(instruction => !instruction.default));
   }
 
-  public getEndpoints(configuredRoutePath: string | null): IEndpoint[] {
-    return this
-      .filter(instr => instr.endpoint.instance !== null && instr.endpoint.instance.path === configuredRoutePath)
-      .map(instr => instr.endpoint.instance)
-      .filter((value, index, arr) => arr.indexOf(value) === index) as IEndpoint[];
-  }
+  // public getEndpoints(configuredRoutePath: string | null): IEndpoint[] {
+  //   return this
+  //     .filter(instr => instr.endpoint.instance !== null && instr.endpoint.instance.path === configuredRoutePath)
+  //     .map(instr => instr.endpoint.instance)
+  //     .filter((value, index, arr) => arr.indexOf(value) === index) as IEndpoint[];
+  // }
 
   public remove(instruction: RoutingInstruction): void {
     arrayRemove(this, value => value === instruction);

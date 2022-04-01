@@ -592,7 +592,7 @@ describe('router hooks', function () {
 
       const A0 = [A01, A02, A03, A04];
 
-      @customElement({ name: 'root1', template: vp(1) })
+      @customElement({ name: 'root1', template: vp(1, 'root1') })
       class Root1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
       @customElement({ name: 'a11', template: vp(1, 'in-a11') })
       class A11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }

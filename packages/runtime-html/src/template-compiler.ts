@@ -22,7 +22,7 @@ import { IPlatform } from './platform.js';
 import { Bindable, BindableDefinition } from './bindable.js';
 import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
-import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
+import { CustomElement, CustomElementDefinition, LocalElement, isLocalElement } from './resources/custom-element.js';
 import { BindingCommand, CommandType } from './resources/binding-command.js';
 import { createLookup, isString } from './utilities.js';
 import { allResources } from './utilities-di.js';
@@ -41,6 +41,7 @@ import type { IProjections } from './resources/slot-injectables.js';
 import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command.js';
 import type { ICompliationInstruction, IInstruction, } from './renderer.js';
 
+/** @internal */
 declare module '@aurelia/kernel' {
   interface IContainer {
     parent: IContainer | null;
@@ -1506,7 +1507,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         content.removeChild(bindableEl);
       }
 
-      context._addDep(CustomElement.define({ name, template: localTemplate, isLocalElement: true }, LocalTemplateType));
+      context._addDep(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
+      LocalElement.define(LocalTemplateType);
 
       root.removeChild(localTemplate);
     }
@@ -1598,6 +1600,7 @@ class CompilationContext {
   public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
   public deps: unknown[] | undefined;
+  private readonly isLocalElement: boolean;
 
   /** @internal */
   private readonly c: IContainer;
@@ -1625,6 +1628,8 @@ class CompilationContext {
     this.p = hasParent ? parent.p : container.get(IPlatform);
     this.localEls = hasParent ? parent.localEls : new Set();
     this.rows = instructions ?? [];
+    const type = (this.def as CustomElementDefinition).Type;
+    this.isLocalElement = type != null ? isLocalElement(type) : false;
   }
 
   public _addDep(dep: unknown) {
@@ -1646,14 +1651,14 @@ class CompilationContext {
    * Find the custom element definition of a given name
    */
   public _findElement(name: string): CustomElementDefinition | null {
-    return this.c.find(CustomElement, name) ?? (this.def.isLocalElement === true ? this.c.parent?.find(CustomElement, name) ?? null : null);
+    return this.c.find(CustomElement, name) ?? (this.isLocalElement ? this.c.parent?.find(CustomElement, name) ?? null : null);
   }
 
   /**
    * Find the custom attribute definition of a given name
    */
   public _findAttr(name: string): CustomAttributeDefinition | null {
-    return this.c.find(CustomAttribute, name) ?? (this.def.isLocalElement === true ? this.c.parent?.find(CustomAttribute, name) ?? null : null);
+    return this.c.find(CustomAttribute, name) ?? (this.isLocalElement ? this.c.parent?.find(CustomAttribute, name) ?? null : null);
   }
 
   /**

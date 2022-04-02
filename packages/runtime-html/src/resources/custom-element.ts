@@ -14,7 +14,7 @@ import { getEffectiveParentNode, getRef } from '../dom.js';
 import { Children } from '../templating/children.js';
 import { Watch } from '../watch.js';
 import { DefinitionType } from './resources-shared.js';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
+import { appendAnnotationKey, appendResourceKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
 import { isFunction, isString } from '../utilities.js';
 
 import type {
@@ -61,7 +61,6 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly enhance?: boolean;
   readonly watches?: IWatchDefinition[];
   readonly processContent?: ProcessContentHook | null;
-  readonly isLocalElement?: boolean;
 }>;
 
 export type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
@@ -233,7 +232,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly enhance: boolean,
     public readonly watches: IWatchDefinition[],
     public readonly processContent: ProcessContentHook | null,
-    public readonly isLocalElement: boolean,
   ) {}
 
   public static create(
@@ -294,7 +292,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('enhance', def, returnFalse),
         fromDefinitionOrDefault('watches', def as CustomElementDefinition, returnEmptyArray),
         fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
-        fromAnnotationOrTypeOrDefault('isLocalElement', Type, returnFalse),
       );
     }
 
@@ -333,7 +330,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse),
         mergeArrays(Watch.getAnnotation(Type), Type.watches),
         fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
-        fromAnnotationOrTypeOrDefault('isLocalElement', Type, returnFalse),
       );
     }
 
@@ -376,7 +372,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse),
       mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches),
       fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull),
-      fromAnnotationOrDefinitionOrTypeOrDefault('isLocalElement', nameOrDef, Type, returnFalse),
     );
   }
 
@@ -635,4 +630,18 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
       throw new Error(`AUR0766:${typeof hook}`);
   }
   return hook;
+}
+
+const leBaseName = getAnnotationKeyFor('local-element');
+/** @internal */
+export const LocalElement = {
+  /** Merely marks the target as a local element */
+  define<TClass>(target: Constructable<TClass>): void {
+    appendAnnotationKey(target, leBaseName);
+  }
+};
+
+/** @internal */
+export function isLocalElement(value: Constructable) {
+  return getAllAnnotations(value).includes(leBaseName);
 }

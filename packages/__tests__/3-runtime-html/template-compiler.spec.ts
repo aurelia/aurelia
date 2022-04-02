@@ -728,7 +728,6 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         enhance: false,
         capture: false,
         processContent: null,
-        isLocalElement: false,
       },
       props: createTplCtrlAttributeInstruction(attr, value),
     };
@@ -744,7 +743,6 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       enhance: false,
       capture: false,
       processContent: null,
-      isLocalElement: false,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   } else {
@@ -770,7 +768,6 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         enhance: false,
         capture: false,
         processContent: null,
-        isLocalElement: false,
       },
       props: createTplCtrlAttributeInstruction(attr, value),
     };
@@ -787,7 +784,6 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       enhance: false,
       capture: false,
       processContent: null,
-      isLocalElement: false,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
@@ -861,7 +857,6 @@ function createCustomElement(
     watches: [],
     capture: false,
     processContent: null,
-    isLocalElement: false,
   };
   return [input, output];
 }
@@ -907,7 +902,6 @@ function createCustomAttribute(
     capture: false,
     watches: [],
     processContent: null,
-    isLocalElement: false,
   };
   return [input, output];
 }
@@ -1028,7 +1022,6 @@ describe(`TemplateCompiler - combinations`, function () {
             enhance: false,
             capture: false,
             processContent: null,
-            isLocalElement: false,
           };
 
           const { sut, container } = createFixture(ctx);
@@ -1055,7 +1048,6 @@ describe(`TemplateCompiler - combinations`, function () {
             enhance: false,
             capture: false,
             processContent: null,
-            isLocalElement: false,
           };
 
           const { sut, container } = createFixture(ctx);
@@ -1100,7 +1092,6 @@ describe(`TemplateCompiler - combinations`, function () {
           enhance: false,
           capture: false,
           processContent: null,
-          isLocalElement: false,
         };
 
         const { sut, container } = createFixture(ctx);
@@ -1181,7 +1172,6 @@ describe(`TemplateCompiler - combinations`, function () {
             capture: false,
             watches: [],
             processContent: null,
-            isLocalElement: false,
           };
 
           const { sut, container } = createFixture(ctx, $def);
@@ -1486,7 +1476,6 @@ describe(`TemplateCompiler - combinations`, function () {
           capture: false,
           watches: [],
           processContent: null,
-          isLocalElement: false,
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);

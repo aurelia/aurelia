@@ -1651,14 +1651,22 @@ class CompilationContext {
    * Find the custom element definition of a given name
    */
   public _findElement(name: string): CustomElementDefinition | null {
-    return this.c.find(CustomElement, name) ?? (this.isLocalElement ? this.c.parent?.find(CustomElement, name) ?? null : null);
+    let el: CustomElementDefinition | null | undefined = this.c.find(CustomElement, name);
+    if (el !== null) return el;
+    if (!this.isLocalElement) return null;
+    el = this.c.parent?.find(CustomElement, name);
+    return el != null ? el : null;
   }
 
   /**
    * Find the custom attribute definition of a given name
    */
   public _findAttr(name: string): CustomAttributeDefinition | null {
-    return this.c.find(CustomAttribute, name) ?? (this.isLocalElement ? this.c.parent?.find(CustomAttribute, name) ?? null : null);
+    let attr: CustomAttributeDefinition | null | undefined = this.c.find(CustomAttribute, name);
+    if (attr !== null) return attr;
+    if (!this.isLocalElement) return null;
+    attr = this.c.parent?.find(CustomAttribute, name);
+    return attr != null ? attr : null;
   }
 
   /**

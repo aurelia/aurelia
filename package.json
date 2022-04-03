@@ -26,7 +26,6 @@
     "packages-cjs/__tests__",
     "packages-cjs/aot",
     "packages-cjs/plugin-gulp",
-    "packages-cjs/plugin-parcel",
     "packages-cjs/plugin-conventions",
     "packages-cjs/webpack-loader",
     "packages-cjs/babel-jest",

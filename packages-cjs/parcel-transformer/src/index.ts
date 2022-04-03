@@ -1,6 +1,7 @@
 import { Transformer } from '@parcel/plugin';
 import SourceMap from '@parcel/source-map';
 import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
+// eslint-disable-next-line import/no-nodejs-modules
 import { relative } from 'path';
 
 export default new Transformer({
@@ -19,7 +20,7 @@ export default new Transformer({
     const source = await asset.getCode();
     const result = preprocess(
       {
-        path: relative(options.projectRoot, asset.filePath),
+        path: relative(options.projectRoot, asset.filePath.slice()),
         contents: source
       },
       config as IOptionalPreprocessOptions

@@ -24,7 +24,7 @@
     { "directory": "packages/platform-browser", "changeProcessCWD": true },
     { "directory": "packages/plugin-conventions", "changeProcessCWD": true },
     { "directory": "packages/plugin-gulp", "changeProcessCWD": true },
-    { "directory": "packages/plugin-parcel", "changeProcessCWD": true },
+    { "directory": "packages/parcel-transformer", "changeProcessCWD": true },
     { "directory": "packages/route-recognizer", "changeProcessCWD": true },
     { "directory": "packages/router", "changeProcessCWD": true },
     { "directory": "packages/runtime", "changeProcessCWD": true },

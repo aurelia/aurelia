@@ -8,6 +8,7 @@
     { "path": "plugin-parcel" },
     { "path": "webpack-loader" },
     { "path": "babel-jest" },
-    { "path": "ts-jest" }
+    { "path": "ts-jest" },
+    { "path": "parcel-transformer" }
   ]
 }

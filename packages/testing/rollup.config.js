@@ -13,7 +13,7 @@ const tsPluginConfig = typescript({
 });
 const replacePluginCfg = replace({
   values: {
-    __DEV__: String(false)
+    __DEV__: process.env.__DEV__
   },
   preventAssignment: true,
 });

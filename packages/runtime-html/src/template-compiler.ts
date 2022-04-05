@@ -1448,6 +1448,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         throw new Error('AUR0708');
     }
     const localTemplateNames: Set<string> = new Set();
+    const parentName = context.def.name;
 
     for (const localTemplate of localTemplates) {
       if (localTemplate.parentNode !== root) {
@@ -1460,6 +1461,12 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       const LocalTemplateType = class LocalTemplate { };
       const content = localTemplate.content;
+      if (content.querySelector(parentName) !== null) {
+        if (__DEV__)
+          throw new Error('Local templates cannot use the parent element');
+        else
+          throw new Error('AUR0717');
+      }
       const bindableEls = toArray(content.querySelectorAll('bindable'));
       const bindableInstructions = Bindable.for(LocalTemplateType);
       const properties = new Set<string>();

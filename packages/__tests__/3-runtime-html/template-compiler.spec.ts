@@ -2328,6 +2328,18 @@ describe('TemplateCompiler - local templates', function () {
       );
     }
   });
+
+  it('throws error if local template uses the parent', function () {
+    const template = `<template as-custom-element="foo-bar">
+      <lorem-ipsum></lorem-ipsum>
+    </template>
+    <div></div>`;
+    const { container, sut } = createFixture();
+    assert.throws(
+      () => sut.compile({ name: 'lorem-ipsum', template }, container, null),
+      'AUR0717'
+    );
+  });
 });
 
 describe('TemplateCompiler - au-slot', function () {

@@ -294,7 +294,7 @@ export class TaskQueue {
       const taskPool = this.taskPool;
       const index = this._taskPoolSize - 1;
       if (index >= 0) {
-        task = taskPool[index];
+        task = taskPool[index] as Task<T>;
         taskPool[index] = (void 0)!;
         this._taskPoolSize = index;
 
@@ -473,7 +473,7 @@ export class Task<T = any> implements ITask {
           return this._result = Promise.reject(new TaskAbortError(this));
       }
     }
-    return result!;
+    return result;
   }
 
   /** @internal */
@@ -553,7 +553,7 @@ export class Task<T = any> implements ITask {
             taskQueue['returnToPool'](this);
           }
         })
-        .catch(err => {
+        .catch((err: TaskAbortError<T>) => {
           if (!this.persistent) {
             this.dispose();
           }
@@ -600,7 +600,7 @@ export class Task<T = any> implements ITask {
       if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'run sync error'); }
 
       if (reject !== void 0) {
-        reject(err);
+        reject(err as TaskAbortError<T>);
       } else {
         throw err;
       }

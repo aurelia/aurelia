@@ -118,7 +118,6 @@ export class App {
 
 @valueConverter('formatDate')
 export class FormatDate {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   private static formatters: Record<string, Intl.DateTimeFormat> = Object.create(null);
 
   public toView(value: Date, locale: string = 'en'): string {

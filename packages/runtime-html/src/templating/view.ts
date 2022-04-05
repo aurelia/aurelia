@@ -1,4 +1,4 @@
-import { DI, Protocol } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element.js';
 import { Controller } from './controller.js';
@@ -65,7 +65,7 @@ export class ViewFactory implements IViewFactory {
     this.isCaching = this.cacheSize > 0;
   }
 
-  public canReturnToCache(controller: ISyntheticView): boolean {
+  public canReturnToCache(_controller: ISyntheticView): boolean {
     return this.cache != null && this.cache.length < this.cacheSize;
   }
 

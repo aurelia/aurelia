@@ -459,7 +459,7 @@ function decorate(
     if (typeof target !== 'function') {
       throw $typeError('Metadata.decorate', [decorators, target, propertyKey, attributes], 'target', target, 'Function');
     }
-    return DecorateConstructor(decorators as ClassDecorator[], target);
+    return DecorateConstructor(decorators as ClassDecorator[], target as Function);
   }
 }
 
@@ -488,7 +488,7 @@ function DecorateProperty(
 ): PropertyDescriptor | undefined {
   for (let i = decorators.length - 1; i >= 0; --i) {
     const decorator = decorators[i];
-    const decorated = decorator(target, propertyKey, descriptor!);
+    const decorated = decorator(target as object, propertyKey, descriptor!);
     if (!isNullOrUndefined(decorated)) {
       if (!isObject(decorated)) {
         throw $typeError('DecorateProperty', [decorators, target, propertyKey, descriptor], 'decorated', decorated, 'Object, Function, null, or undefined');

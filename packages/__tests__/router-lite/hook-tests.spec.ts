@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Constructable, DI, IContainer, ILogConfig, LogLevel, Registration, Writable } from '@aurelia/kernel';
 import {
   CustomElement,
@@ -551,9 +550,11 @@ function forEachRouterOptions(title: string, cb: (opts: Iopts) => void) {
   describe(title, $forEachRouterOptions(cb));
 }
 forEachRouterOptions.skip = function (title: string, cb: (opts: Iopts) => void) {
+  // eslint-disable-next-line mocha/no-skipped-tests
   describe.skip(title, $forEachRouterOptions(cb));
 };
 forEachRouterOptions.only = function (title: string, cb: (opts: Iopts) => void) {
+  // eslint-disable-next-line mocha/no-exclusive-tests
   describe.only(title, $forEachRouterOptions(cb));
 };
 
@@ -577,6 +578,7 @@ describe('router hooks', function () {
       const A0 = [A01, A02, A03, A04];
 
       @customElement({ name: 'root1', template: vp(1) })
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class Root1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
       @customElement({ name: 'a11', template: vp(1) })
       class A11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }

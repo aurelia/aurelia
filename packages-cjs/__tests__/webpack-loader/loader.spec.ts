@@ -139,7 +139,7 @@ describe('webpack-loader', function () {
 
   it('bypass other file', function (done) {
     const content = 'content';
-    const notExpected = 'processed src/foo-bar.css content';
+    // const notExpected = 'processed src/foo-bar.css content';
 
     const context = {
       async: () => function (err, code, map) {

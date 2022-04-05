@@ -964,7 +964,6 @@ describe('router (smoke tests)', function () {
     @customElement({ name: 'app-root', template: '<au-viewport></au-viewport>' })
     class AppRoot { }
 
-    // eslint-disable-next-line no-inner-declarations
     async function start(buildTitle: IRouterOptions['buildTitle'] | null = null) {
       const ctx = TestContext.create();
       const { container } = ctx;

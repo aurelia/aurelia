@@ -46,6 +46,8 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
     //
     // THOUGH, this may not be implemented, for the sake of consistency
     // with the way normal .get on interface
+    //
+    // eslint-disable-next-line mocha/no-skipped-tests
     it.skip('resolves dependency with: Interface + @newInstanceForScope + default resolver + no registration', async function () {
       // arrange
       let contextCallCount = 0;

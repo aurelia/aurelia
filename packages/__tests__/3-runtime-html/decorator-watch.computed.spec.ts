@@ -39,9 +39,9 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       @watch('some.expression')
       @watch(Symbol())
       @watch(5)
-      public someMethod(n: unknown, o: unknown, app: App) {/* empty */}
-      public [symbolMethod](n: unknown, o: unknown, app: App) {/* empty */}
-      public [5](n: unknown, o: unknown, app: App) {/* empty */}
+      public someMethod(_n: unknown, _o: unknown, _app: App) {/* empty */}
+      public [symbolMethod](_n: unknown, _o: unknown, _app: App) {/* empty */}
+      public 5(_n: unknown, _o: unknown, _app: App) {/* empty */}
     }
 
     const app = new App();
@@ -1166,7 +1166,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       });
 
       $it(`${title} on class`, async function () {
-        @watch(get, (v, o, a) => a.log())
+        @watch(get, (_v, _o, a) => a.log())
         class App implements IApp {
           public started: boolean = false;
           public decoratorCount: number = 1;
@@ -1188,7 +1188,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       });
 
       $it(`${title} on both class and method`, async function () {
-        @watch(get, (v, o, a) => a.log())
+        @watch(get, (_v, _o, a) => a.log())
         class App implements IApp {
           public started: boolean = false;
           public decoratorCount: number = 2;
@@ -1441,7 +1441,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       });
 
       $it(`${title} on class`, async function () {
-        @watch(get, (v, o, a) => a.log())
+        @watch(get, (_v, _o, a) => a.log())
         class App implements IApp {
           public started: boolean = false;
           public decoratorCount: number = 1;
@@ -1466,7 +1466,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       });
 
       $it(`${title} on both class and method`, async function () {
-        @watch(get, (v, o, a) => a.log())
+        @watch(get, (_v, _o, a) => a.log())
         class App implements IApp {
           public started: boolean = false;
           public decoratorCount: number = 2;

@@ -1,4 +1,4 @@
-import { Constructable, LogLevel, Registration, ILogConfig, DI, LoggerConfiguration, ConsoleSink } from '@aurelia/kernel';
+import { Constructable, LogLevel, Registration, ILogConfig, DI, LoggerConfiguration, ConsoleSink, IContainer, Resolved, IPlatform } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime-html';
 import { IRouterOptions, RouterConfiguration, IRouter } from '@aurelia/router-lite';
 import { TestContext } from '@aurelia/testing';
@@ -25,7 +25,20 @@ export async function createFixture<T extends Constructable>(
   createHIAConfig: () => IHIAConfig,
   createRouterOptions?: () => IRouterOptions,
   level: LogLevel = LogLevel.fatal,
-) {
+): Promise<{
+  ctx: TestContext;
+  container: IContainer;
+  au: Aurelia;
+  host: HTMLElement;
+  hia: IHookInvocationAggregator;
+  component: Resolved<T>;
+  platform: IPlatform;
+  router: IRouter;
+  activityTracker: IActivityTracker;
+  startTracing(): void;
+  stopTracing(): void;
+  tearDown(): Promise<void>;
+}> {
   const hiaConfig = createHIAConfig();
   const routerOptions = createRouterOptions?.();
   const ctx = TestContext.create();

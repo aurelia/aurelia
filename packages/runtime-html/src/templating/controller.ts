@@ -220,7 +220,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* host           */host,
     );
     // the hydration context this controller is provided with
-    const hydrationContext = ctn.get(optional(IHydrationContext));
+    const hydrationContext = ctn.get(optional(IHydrationContext)) as IHydrationContext;
 
     if (definition.dependencies.length > 0) {
       ctn.register(...definition.dependencies);
@@ -249,7 +249,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
    * @param ctn - own container associated with the custom attribute object
    * @param viewModel - the view model object
    * @param host - host element where this custom attribute is used
-   * @param flags
+   * @param flags - todo(comment)
    * @param definition - the definition of the custom attribute,
    * will be used to override the definition associated with the view model object contructor if given
    */
@@ -289,8 +289,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /**
    * Create a synthetic view (controller) for a given factory
    *
-   * @param viewFactory
-   * @param flags
+   * @param viewFactory - todo(comment)
+   * @param flags - todo(comment)
    * @param parentController - the parent controller to connect the created view with. Used in activation
    *
    * Semi private API
@@ -557,7 +557,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this._ensurePromise();
         ret.then(() => {
           this.bind();
-        }).catch(err => {
+        }).catch((err: Error) => {
           this._reject(err);
         });
         return this.$promise;
@@ -604,7 +604,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         ret.then(() => {
           this.isBound = true;
           this._attach();
-        }).catch(err => {
+        }).catch((err: Error) => {
           this._reject(err);
         });
         return;
@@ -677,7 +677,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this._enterActivating();
         ret.then(() => {
           this._leaveActivating();
-        }).catch(err => {
+        }).catch((err: Error) => {
           this._reject(err);
         });
       }
@@ -754,7 +754,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         (initiator as Controller)._enterDetaching();
         ret.then(() => {
           (initiator as Controller)._leaveDetaching();
-        }).catch(err => {
+        }).catch((err: Error) => {
           (initiator as Controller)._reject(err);
         });
       }
@@ -916,7 +916,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
             if (this.$initiator !== this) {
               (this.parent as Controller)._leaveActivating();
             }
-          }).catch(err => {
+          }).catch((err: Error) => {
             this._reject(err);
           });
           _retPromise = void 0;
@@ -966,7 +966,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
             this._enterUnbinding();
             _retPromise.then(() => {
               this._leaveUnbinding();
-            }).catch(err => {
+            }).catch((err: Error) => {
               this._reject(err);
             });
           }
@@ -1201,7 +1201,7 @@ function createChildrenObservers(
     for (; i < length; ++i) {
       name = childObserverNames[i];
 
-      if (observers[name] == void 0) {
+      if (observers[name] == null) {
         childrenDescription = childrenObservers[name];
         obs[obs.length] = observers[name] = new ChildrenObserver(
           controller as ICustomElementController,
@@ -1218,7 +1218,7 @@ function createChildrenObservers(
     return obs;
   }
 
-  return emptyArray;
+  return emptyArray as ChildrenObserver[];
 }
 
 const AccessScopeAstMap = new Map<PropertyKey, AccessScopeExpression>();
@@ -1383,6 +1383,7 @@ export type ControllerVisitor = (controller: IHydratedController) => void | true
  *
  * Every controller, regardless of their type and state, will have at least the properties/methods in this interface.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface IController<C extends IViewModel = IViewModel> extends IDisposable {
   /** @internal */readonly id: number;
   /**
@@ -1799,6 +1800,6 @@ function callDispose(disposable: IDisposable): void {
 }
 
 // some reuseable variables to avoid creating nested blocks inside hot paths of controllers
-let _resolve: undefined | (() => any);
-let _reject: undefined | ((err: unknown) => any);
+let _resolve: undefined | (() => unknown);
+let _reject: undefined | ((err: unknown) => unknown);
 let _retPromise: void | Promise<void>;

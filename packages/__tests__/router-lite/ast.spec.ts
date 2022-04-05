@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { assert } from '@aurelia/testing';
 import { RouteExpression, AST, NavigationOptions } from '@aurelia/router-lite';
 

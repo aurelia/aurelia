@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { customElement, ICustomElementController } from '@aurelia/runtime-html';
 import { IRouterOptions, ResolutionMode, route, Route } from '@aurelia/router-lite';
 import { assert } from '@aurelia/testing';
@@ -29,7 +28,7 @@ export function* prepend(
   prefix: string,
   component: string,
   ...calls: (HookName | '')[]
-) {
+): Generator<string, void> {
   for (const call of calls) {
     if (call === '') {
       yield '';
@@ -44,7 +43,7 @@ export function* prependDeferrable(
   component: string,
   resolution: ResolutionMode,
   ...calls: (HookName | '')[]
-) {
+): Generator<string, void> {
   if (resolution === 'dynamic') {
     yield `${prefix}.${component}.canLoad`;
     yield `${prefix}.${component}.load`;
@@ -61,7 +60,7 @@ export function* prependDeferrable(
 
 export function* interleave(
   ...generators: Generator<string, void>[]
-) {
+): Generator<string, void> {
   while (generators.length > 0) {
     for (let i = 0, ii = generators.length; i < ii; ++i) {
       const gen = generators[i];
@@ -107,6 +106,7 @@ export abstract class SimpleActivityTrackingVMBase {
 }
 
 describe('router config', function () {
+  // eslint-disable-next-line mocha/no-skipped-tests
   describe.skip('monomorphic timings', function () {
     const routerOptionsSpecs: IRouterOptionsSpec[] = ([
       'dynamic',
@@ -160,6 +160,7 @@ describe('router config', function () {
       const A0 = [A01, A02, A03, A04];
 
       @customElement({ name: 'root1', template: vp(1) })
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class Root1 extends TestRouteViewModelBase {
         public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
       }

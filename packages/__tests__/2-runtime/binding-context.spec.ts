@@ -2,7 +2,6 @@ import {
   BindingContext,
   LifecycleFlags as LF,
   Scope,
-  OverrideContext
 } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 

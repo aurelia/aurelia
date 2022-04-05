@@ -114,8 +114,8 @@ function isStackOverflowError(err: Error): boolean {
       function overflowStack(): void { overflowStack(); }
       overflowStack();
     } catch (err) {
-      maxStack_ErrorMessage = err.message;
-      maxStack_ErrorName = err.name;
+      maxStack_ErrorMessage = (err as Error).message;
+      maxStack_ErrorName = (err as Error).name;
     }
   }
 
@@ -1337,7 +1337,7 @@ export function formatProperty(
         }
         ctx.indentationLvl -= 2;
       } catch (err) {
-        const message = `<Inspection threw (${err.message})>`;
+        const message = `<Inspection threw (${(err as Error).message})>`;
         str = `${s(`[${label}:`, sp)} ${message}${s(']', sp)}`;
       }
     } else {
@@ -1624,7 +1624,7 @@ export function formatRaw(
       }
     }
   } catch (err) {
-    return handleMaxCallStackSize(ctx, err, constructor!, tag, indentationLvl);
+    return handleMaxCallStackSize(ctx, err as Error, constructor!, tag, indentationLvl);
   }
   ctx.seen.pop();
 

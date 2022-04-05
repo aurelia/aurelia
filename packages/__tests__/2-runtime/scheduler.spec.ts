@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { TestContext, assert } from '@aurelia/testing';
-import { TaskQueuePriority, QueueTaskOptions, ITask, TaskStatus, TaskQueue } from '@aurelia/runtime';
+import { QueueTaskOptions, ITask, TaskStatus, TaskQueue } from '@aurelia/runtime';
 
 function createExposedPromise() {
   let resolve: () => void;

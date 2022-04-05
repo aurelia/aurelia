@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { DI, IEventAggregator, IDisposable, ILogger } from '@aurelia/kernel';
 
 import { ManagedState } from './router.js';

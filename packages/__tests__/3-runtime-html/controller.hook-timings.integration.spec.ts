@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Registration, Writable, DI } from '@aurelia/kernel';
 import {
   Aurelia,
@@ -1674,12 +1673,6 @@ describe('controller.hook-timings.integration', function () {
     });
   });
 });
-
-async function waitTicks(n: number): Promise<void> {
-  for (let i = 0; i < n; ++i) {
-    await Promise.resolve();
-  }
-}
 
 const hookNames = ['binding', 'bound', 'attaching', 'attached', 'detaching', 'unbinding'] as const;
 type HookName = typeof hookNames[number] | 'dispose';

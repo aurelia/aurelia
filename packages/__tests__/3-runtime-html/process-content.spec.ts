@@ -1,4 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
 import { IContainer, noop, toArray } from '@aurelia/kernel';
 import { Aurelia, bindable, BindingMode, CustomElement, customElement, INode, IPlatform, LifecycleFlags, processContent } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
@@ -49,7 +48,6 @@ describe('processContent', function () {
         app = au.root.controller.viewModel;
       }
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       error = e;
     }
 
@@ -178,7 +176,6 @@ describe('processContent', function () {
       );
     }
     {
-      // eslint-disable-next-line no-inner-declarations
       function processContent1(this: typeof MyElement, _node: INode, _p: IPlatform) {
         this.hookInvoked = true;
       }

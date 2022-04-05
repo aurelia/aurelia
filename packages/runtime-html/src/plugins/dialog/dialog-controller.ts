@@ -128,7 +128,7 @@ export class DialogController implements IDialogController {
               this.getDefinition(cmp) ?? { name: CustomElement.generateName(), template }
             )
           ) as ICustomElementController;
-          return onResolve(ctrlr.activate(ctrlr, null!, LifecycleFlags.fromBind), () => {
+          return onResolve(ctrlr.activate(ctrlr, null, LifecycleFlags.fromBind), () => {
             dom.overlay.addEventListener(settings.mouseEvent ?? 'click', this);
             return DialogOpenResult.create(false, this);
           });
@@ -147,7 +147,7 @@ export class DialogController implements IDialogController {
 
     let deactivating = true;
     const { controller, dom, cmp, settings: { mouseEvent, rejectOnCancel }} = this;
-    const dialogResult = DialogCloseResult.create(status as T, value);
+    const dialogResult = DialogCloseResult.create(status, value);
 
     const promise: Promise<DialogCloseResult<T>> = new Promise<DialogCloseResult<T>>(r => {
       r(onResolve(
@@ -163,7 +163,7 @@ export class DialogController implements IDialogController {
             return DialogCloseResult.create(DialogDeactivationStatuses.Abort as T);
           }
           return onResolve(cmp.deactivate?.(dialogResult),
-            () => onResolve(controller.deactivate(controller, null!, LifecycleFlags.fromUnbind),
+            () => onResolve(controller.deactivate(controller, null, LifecycleFlags.fromUnbind),
               () => {
                 dom.dispose();
                 dom.overlay.removeEventListener(mouseEvent ?? 'click', this);
@@ -218,7 +218,7 @@ export class DialogController implements IDialogController {
     return new Promise(r => r(onResolve(
       this.cmp.deactivate?.(DialogCloseResult.create(DialogDeactivationStatuses.Error, closeError)),
       () => onResolve(
-        this.controller.deactivate(this.controller, null!, LifecycleFlags.fromUnbind),
+        this.controller.deactivate(this.controller, null, LifecycleFlags.fromUnbind),
         () => {
           this.dom.dispose();
           this._reject(closeError);
@@ -256,7 +256,7 @@ export class DialogController implements IDialogController {
       )
     );
 
-    return container.invoke(Component!);
+    return container.invoke(Component);
   }
 
   private getDefinition(component?: object | Constructable) {

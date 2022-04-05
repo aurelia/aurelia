@@ -28,6 +28,7 @@ class StubContext {
   }
 }
 
+// eslint-disable-next-line mocha/no-skipped-tests
 describe.skip(`ViewFactory`, function () {
   describe(`tryReturnToCache`, function () {
     const doNotOverrideVariations: [string, boolean][] = [

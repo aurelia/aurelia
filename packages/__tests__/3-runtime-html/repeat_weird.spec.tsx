@@ -68,14 +68,15 @@ describe('[repeat] -- funny cases', function () {
       customAssertion
     ] of testCases
   ) {
-    it.skip(`\n----\n${testTitle}`, async function() {
+    // eslint-disable-next-line mocha/no-skipped-tests
+    it.skip(`\n----\n${testTitle}`, async function () {
       const Foo = CustomElement.define(
         { name: 'foo', template: <template>{fooContentTemplate}</template> },
-        class Foo { items = fooItems }
+        class Foo { public items = fooItems; }
       );
       const App = CustomElement.define(
         { name: 'app', template: <template>{appContentTemplate}</template> },
-        class App { message = 'Aurelia' }
+        class App { public message = 'Aurelia'; }
       );
 
       const ctx = TestContext.create();
@@ -90,7 +91,7 @@ describe('[repeat] -- funny cases', function () {
 
       assert.strictEqual(host.textContent, expectedTextContent, `host.textContent`);
       if (customAssertion) {
-        await customAssertion(host, component, component.$controller.children[0] as any as IFoo);
+        customAssertion(host, component, component.$controller.children[0] as any as IFoo);
       }
       await tearDown(au);
     });
@@ -104,13 +105,13 @@ describe('[repeat] -- funny cases', function () {
   }
   type ICustomAssertion = (host: HTMLElement, app: IApp, foo: IFoo) => void;
 
-  function createExpectedReplacementText(count: number, itemBaseName: string = 'item') {
-    let text = '';
-    for (let i = 0; count > i; ++i) {
-      text += `replacement of ${i}-${itemBaseName}-${i}.`
-    }
-    return text;
-  }
+  // function createExpectedReplacementText(count: number, itemBaseName: string = 'item') {
+  //   let text = '';
+  //   for (let i = 0; count > i; ++i) {
+  //     text += `replacement of ${i}-${itemBaseName}-${i}.`
+  //   }
+  //   return text;
+  // }
 
   interface ITestItem {
     idx: number;
@@ -126,7 +127,7 @@ describe('[repeat] -- funny cases', function () {
 
   function createItems(count: number, baseName: string = 'item') {
     return Array.from({ length: count }, (_, idx) => {
-      return { idx, name: `${baseName}-${idx}` }
+      return { idx, name: `${baseName}-${idx}` };
     });
   }
 });

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IContainer, ResourceDefinition, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModule, onResolve, noop } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
 import { RouteRecognizer, RecognizedRoute } from '@aurelia/route-recognizer';
@@ -360,8 +359,8 @@ export class RouteContext {
     return new $RecognizedRoute(result, residue);
   }
 
-  public addRoute(routeable: Promise<IModule>): Promise<void>
-  public addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>
+  public addRoute(routeable: Promise<IModule>): Promise<void>;
+  public addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>;
   public addRoute(routeable: Routeable): void | Promise<void> {
     this.logger.trace(`addRoute(routeable:'${routeable}')`);
     return onResolve(RouteDefinition.resolve(routeable, this), routeDef => {

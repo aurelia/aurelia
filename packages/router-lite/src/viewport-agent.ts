@@ -1,6 +1,5 @@
 // No-fallthrough disabled due to large numbers of false positives
 /* eslint-disable no-fallthrough */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { ILogger, onResolve } from '@aurelia/kernel';
 import { IHydratedController, LifecycleFlags, ICustomElementController, Controller } from '@aurelia/runtime-html';
 

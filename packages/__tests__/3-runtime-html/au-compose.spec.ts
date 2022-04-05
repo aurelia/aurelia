@@ -602,7 +602,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('composes non-custom element mutiple times', async function () {
       const models: unknown[] = [];
-      const { appHost, ctx, component, startPromise, tearDown } = createFixture(
+      const { appHost, component, startPromise, tearDown } = createFixture(
         `<au-compose view-model.bind="{ activate }" view.bind="view" model.bind="{ index: 0 }" containerless>`,
         class App {
           public activate = (model: unknown) => {

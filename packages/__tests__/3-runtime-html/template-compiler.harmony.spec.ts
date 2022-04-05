@@ -305,7 +305,7 @@ describe('3-runtime-html/template-compiler.harmony.spec.ts \n\tharmoninous combi
     {
       title: 'props are always camelized',
       template: '<input type="number" value-as-number.to-view="1">',
-      assertFn: (ctx, host, comp: { count: number }) => {
+      assertFn: (ctx, host, _comp: { count: number }) => {
         const input = host.querySelector('input');
         assert.equal(input.valueAsNumber, 1);
       },

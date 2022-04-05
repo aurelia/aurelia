@@ -1,4 +1,4 @@
-import { Constructable, DI, IContainer, ILogConfig, LogLevel, Registration, Writable } from '@aurelia/kernel';
+import { Constructable, DI, ILogConfig, LogLevel, Registration, Writable } from '@aurelia/kernel';
 import {
   CustomElement,
   customElement,
@@ -9,6 +9,7 @@ import {
   IHydratedController as HC,
   IHydratedParentController as HPC,
   Aurelia,
+  CustomElementType,
 } from '@aurelia/runtime-html';
 import {
   IRouterOptions,
@@ -1200,16 +1201,20 @@ describe('router hooks', function () {
       }),
     ]) {
       it(`'a/b/c/d' -> 'a' (c.hookSpec:${hookSpec})`, async function () {
-        @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
-        @customElement({ name: 'a', template: '<au-viewport></au-viewport>' })
-        class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
-        @customElement({ name: 'b', template: '<au-viewport></au-viewport>' })
-        class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
-        @customElement({ name: 'c', template: '<au-viewport></au-viewport>' })
-        class C extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
         @customElement({ name: 'd', template: null })
         class D extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
+        @route({ routes: [{ path: 'd', component: D }] })
+        @customElement({ name: 'c', template: '<au-viewport></au-viewport>' })
+        class C extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        @route({ routes: [{ path: 'c', component: C }] })
+        @customElement({ name: 'b', template: '<au-viewport></au-viewport>' })
+        class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
+        @route({ routes: [{ path: 'b', component: B }] })
+        @customElement({ name: 'a', template: '<au-viewport></au-viewport>' })
+        class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
+        @route({ routes: [{ path: 'a', component: A }] })
+        @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
+        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
 
         const { router, mgr, tearDown } = await createFixture(Root, [A, B, C, D], opts);
 
@@ -1438,13 +1443,19 @@ describe('router hooks', function () {
       const title = Object.keys(spec).map(key => `${key}:${spec[key]}`).filter(x => x.length > 2).join(',');
       it(title, async function () {
         const { a, b } = spec;
-
-        @customElement({ name: 'root', template: '<au-viewport name="$0"></au-viewport><au-viewport name="$1"></au-viewport>' })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
         @customElement({ name: 'a', template: null })
         class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a); } }
         @customElement({ name: 'b', template: null })
         class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, b); } }
+
+        @route({
+          routes: [
+            { path: 'a', component: A },
+            { path: 'b', component: B },
+          ]
+        })
+        @customElement({ name: 'root', template: '<au-viewport name="$0"></au-viewport><au-viewport name="$1"></au-viewport>' })
+        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
 
         const { router, mgr, tearDown } = await createFixture(Root, [A, B], opts);
 
@@ -1521,19 +1532,20 @@ describe('router hooks', function () {
       it(title, async function () {
         const { a1, a2 } = spec;
 
-        @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
-        class Root extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); }
-        }
-        @customElement({ name: 'a1', template: '<au-viewport></au-viewport>' })
-        class A1 extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a1); }
-        }
         @customElement({ name: 'a2', template: null })
         class A2 extends TestVM {
           public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a2); }
         }
-
+        @route({ routes: [{ path: 'a2', component: A2 }] })
+        @customElement({ name: 'a1', template: '<au-viewport></au-viewport>' })
+        class A1 extends TestVM {
+          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a1); }
+        }
+        @route({ routes: [{ path: 'a1', component: A1 }] })
+        @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
+        class Root extends TestVM {
+          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); }
+        }
         const { router, mgr, tearDown } = await createFixture(Root, [A1, A2], opts);
 
         const phase1 = `('' -> 'a1/a2')`;
@@ -1728,26 +1740,33 @@ describe('router hooks', function () {
       const title = Object.keys(spec).map(key => `${key}:${spec[key]}`).filter(x => x.length > 2).join(',');
       it(title, async function () {
         const { a1, a2, b1, b2 } = spec;
-
-        @customElement({ name: 'root', template: '<au-viewport name="$0"></au-viewport><au-viewport name="$1"></au-viewport>' })
-        class Root extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); }
-        }
-        @customElement({ name: 'a1', template: '<au-viewport></au-viewport>' })
-        class A1 extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a1); }
-        }
         @customElement({ name: 'a2', template: null })
         class A2 extends TestVM {
           public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a2); }
         }
-        @customElement({ name: 'b1', template: '<au-viewport></au-viewport>' })
-        class B1 extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, b1); }
+        @route({ routes: [{ path: 'a2', component: A2 }] })
+        @customElement({ name: 'a1', template: '<au-viewport></au-viewport>' })
+        class A1 extends TestVM {
+          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a1); }
         }
         @customElement({ name: 'b2', template: null })
         class B2 extends TestVM {
           public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, b2); }
+        }
+        @route({ routes: [{ path: 'b2', component: B2 }] })
+        @customElement({ name: 'b1', template: '<au-viewport></au-viewport>' })
+        class B1 extends TestVM {
+          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, b1); }
+        }
+        @route({
+          routes: [
+            { path: 'a1', component: A1 },
+            { path: 'b1', component: B1 },
+          ]
+        })
+        @customElement({ name: 'root', template: '<au-viewport name="$0"></au-viewport><au-viewport name="$1"></au-viewport>' })
+        class Root extends TestVM {
+          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); }
         }
 
         const { router, mgr, tearDown } = await createFixture(Root, [A1, A2, B1, B2], opts);
@@ -1870,7 +1889,8 @@ describe('router hooks', function () {
   if (!isFirefox) {
     forEachRouterOptions('error handling', function (opts) {
       interface IErrorSpec {
-        action: (router: IRouter, container: IContainer) => Promise<void>;
+        createCes: () => CustomElementType[];
+        action: (router: IRouter) => Promise<void>;
         messageMatcher: RegExp;
         stackMatcher: RegExp;
         toString(): string;
@@ -1878,14 +1898,16 @@ describe('router hooks', function () {
 
       function runTest(spec: IErrorSpec) {
         it(`re-throws ${spec}`, async function () {
+          const components = spec.createCes();
+          @route({ routes: components.map(component => ({ path: CustomElement.getDefinition(component).name, component })) })
           @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
           class Root {}
 
-          const { router, container, tearDown } = await createFixture(Root, [], opts);
+          const { router, tearDown } = await createFixture(Root, components, opts);
 
           let err: Error | undefined = void 0;
           try {
-            await spec.action(router, container);
+            await spec.action(router);
           } catch ($err) {
             err = $err;
           }
@@ -1922,15 +1944,15 @@ describe('router hooks', function () {
         'load',
       ] as HookName[]) {
         runTest({
-          async action(router, container) {
-            const target = CustomElement.define({ name: 'a', template: null }, class Target {
+          createCes() {
+            return [CustomElement.define({ name: 'a', template: null }, class Target {
               public async [hookName]() {
                 throw new Error(`error in ${hookName}`);
               }
-            });
-
-            container.register(target);
-            await router.load(target);
+            })];
+          },
+          async action(router) {
+            await router.load('a');
           },
           messageMatcher: new RegExp(`error in ${hookName}`),
           stackMatcher: new RegExp(`Target.${hookName}`),
@@ -1949,14 +1971,14 @@ describe('router hooks', function () {
         const throwsInTarget1 = ['canUnload'].includes(hookName);
 
         runTest({
-          async action(router, container) {
+          createCes() {
             const target1 = CustomElement.define({ name: 'a', template: null }, class Target1 {
               public async [hookName]() {
                 throw new Error(`error in ${hookName}`);
               }
             });
 
-            const target2 = CustomElement.define({ name: 'a', template: null }, class Target2 {
+            const target2 = CustomElement.define({ name: 'b', template: null }, class Target2 {
               public async binding() { throw new Error(`error in binding`); }
               public async bound() { throw new Error(`error in bound`); }
               public async attaching() { throw new Error(`error in attaching`); }
@@ -1964,10 +1986,11 @@ describe('router hooks', function () {
               public async canLoad() { throw new Error(`error in canLoad`); }
               public async load() { throw new Error(`error in load`); }
             });
-
-            container.register(target1, target2);
-            await router.load(target1);
-            await router.load(target2);
+            return [target1, target2];
+          },
+          async action(router) {
+            await router.load('a');
+            await router.load('b');
           },
           messageMatcher: new RegExp(`error in ${throwsInTarget1 ? hookName : 'canLoad'}`),
           stackMatcher: new RegExp(`${throwsInTarget1 ? 'Target1' : 'Target2'}.${throwsInTarget1 ? hookName : 'canLoad'}`),
@@ -1986,14 +2009,14 @@ describe('router hooks', function () {
         const throwsInTarget1 = ['canUnload', 'unload'].includes(hookName);
 
         runTest({
-          async action(router, container) {
+          createCes() {
             const target1 = CustomElement.define({ name: 'a', template: null }, class Target1 {
               public async [hookName]() {
                 throw new Error(`error in ${hookName}`);
               }
             });
 
-            const target2 = CustomElement.define({ name: 'a', template: null }, class Target2 {
+            const target2 = CustomElement.define({ name: 'b', template: null }, class Target2 {
               public async binding() { throw new Error(`error in binding`); }
               public async bound() { throw new Error(`error in bound`); }
               public async attaching() { throw new Error(`error in attaching`); }
@@ -2001,9 +2024,11 @@ describe('router hooks', function () {
               public async load() { throw new Error(`error in load`); }
             });
 
-            container.register(target1, target2);
-            await router.load(target1);
-            await router.load(target2);
+            return [target1, target2];
+          },
+          async action(router) {
+            await router.load('a');
+            await router.load('b');
           },
           messageMatcher: new RegExp(`error in ${throwsInTarget1 ? hookName : 'load'}`),
           stackMatcher: new RegExp(`${throwsInTarget1 ? 'Target1' : 'Target2'}.${throwsInTarget1 ? hookName : 'load'}`),
@@ -2018,23 +2043,25 @@ describe('router hooks', function () {
         'unbinding',
       ] as HookName[]) {
         runTest({
-          async action(router, container) {
+          createCes() {
             const target1 = CustomElement.define({ name: 'a', template: null }, class Target1 {
               public async [hookName]() {
                 throw new Error(`error in ${hookName}`);
               }
             });
 
-            const target2 = CustomElement.define({ name: 'a', template: null }, class Target2 {
+            const target2 = CustomElement.define({ name: 'b', template: null }, class Target2 {
               public async binding() { throw new Error(`error in binding`); }
               public async bound() { throw new Error(`error in bound`); }
               public async attaching() { throw new Error(`error in attaching`); }
               public async attached() { throw new Error(`error in attached`); }
             });
 
-            container.register(target1, target2);
-            await router.load(target1);
-            await router.load(target2);
+            return [target1, target2];
+          },
+          async action(router) {
+            await router.load('a');
+            await router.load('b');
           },
           messageMatcher: new RegExp(`error in ${hookName}`),
           stackMatcher: new RegExp(`Target1.${hookName}`),

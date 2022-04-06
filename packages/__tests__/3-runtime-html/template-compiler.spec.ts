@@ -2122,6 +2122,175 @@ describe('TemplateCompiler - local templates', function () {
     au.dispose();
   });
 
+  it('works with non-global dependencies in owning template', async function () {
+    @customElement({ name: 'my-ce', template: 'my-ce-content' })
+    class MyCe { }
+
+    const template = `
+    <my-ce></my-ce>
+    <my-le></my-le>
+    <template as-custom-element="my-le">
+      my-le-content
+      <my-ce></my-ce>
+    </template>
+    `;
+    @customElement({ name: 'my-app', template, dependencies: [MyCe] })
+    class App { }
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    assert.html.textContent(host, 'my-ce-content my-le-content my-ce-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
+  it('works with non-global dependencies - template-controllers - if', async function () {
+    @customElement({ name: 'my-ce', template: 'my-ce-content' })
+    class MyCe { }
+
+    const template = `
+    <my-ce></my-ce>
+    <my-le if.bind="true"></my-le>
+    <template as-custom-element="my-le">
+      my-le-content
+      <my-ce></my-ce>
+    </template>
+    `;
+    @customElement({ name: 'my-app', template, dependencies: [MyCe] })
+    class App { }
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    assert.html.textContent(host, 'my-ce-content my-le-content my-ce-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
+  it('works with non-global dependencies - nested-template-controllers - [repeat.for]>[if]', async function () {
+    @customElement({ name: 'my-ce', template: 'my-ce-content' })
+    class MyCe { }
+
+    const template = `
+    <my-ce></my-ce>
+    <my-le repeat.for="prop of 5" if.bind="prop % 2 === 0" prop.bind></my-le>
+    <template as-custom-element="my-le">
+      <bindable property="prop"></bindable>
+      \${prop}
+      <my-ce></my-ce>
+    </template>
+    `;
+    @customElement({ name: 'my-app', template, dependencies: [MyCe] })
+    class App { }
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    assert.html.textContent(host, 'my-ce-content 0 my-ce-content 2 my-ce-content 4 my-ce-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
+  it('recognizes owning element', async function () {
+    const template = `
+      my-app-content
+      <my-le prop.bind></my-le>
+      <template as-custom-element="my-le">
+        <bindable property="prop"></bindable>
+        my-le-content
+        <my-app if.bind="prop"></my-app>
+      </template>`;
+    @customElement({ name: 'my-app', template })
+    class App {
+      public prop = false;
+    }
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    const vm = au.root.controller.viewModel as App;
+
+    assert.html.textContent(host, 'my-app-content my-le-content');
+
+    vm.prop = true;
+    ctx.platform.domWriteQueue.flush();
+
+    assert.html.textContent(host, 'my-app-content my-le-content my-app-content my-le-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
+  it('all local elements recognize each other', async function () {
+    const template = `
+      my-app-content
+      <my-le-1></my-le-1>
+      <my-le-2></my-le-2>
+
+      <template as-custom-element="my-le-1">
+        my-le-1-content
+        <my-le-2></my-le-2>
+      </template>
+
+      <template as-custom-element="my-le-2">
+        my-le-2-content
+        <my-le-3></my-le-3>
+      </template>
+
+      <template as-custom-element="my-le-3">
+        my-le-3-content
+      </template>`;
+
+    @customElement({ name: 'my-app', template })
+    class App {}
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    assert.html.textContent(
+      host,
+      'my-app-content ' +
+      'my-le-1-content my-le-2-content my-le-3-content ' +
+      'my-le-2-content my-le-3-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
   it('throws error if a root template is a local template', function () {
     const template = `<template as-custom-element="foo-bar">I have local root!</template>`;
     const { container, sut } = createFixture();
@@ -2237,7 +2406,6 @@ describe('TemplateCompiler - local templates', function () {
       );
     }
   });
-
 });
 
 describe('TemplateCompiler - au-slot', function () {

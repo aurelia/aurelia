@@ -631,17 +631,3 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
   }
   return hook;
 }
-
-const leBaseName = getAnnotationKeyFor('local-element');
-/** @internal */
-export const LocalElement = {
-  /** Merely marks the target as a local element */
-  define<TClass>(target: Constructable<TClass>): void {
-    appendAnnotationKey(target, leBaseName);
-  }
-};
-
-/** @internal */
-export function isLocalElement(value: Constructable) {
-  return getAllAnnotations(value).includes(leBaseName);
-}

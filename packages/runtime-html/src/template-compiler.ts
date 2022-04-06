@@ -1,4 +1,4 @@
-import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop } from '@aurelia/kernel';
+import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
 import { BindingMode, ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
@@ -22,7 +22,7 @@ import { IPlatform } from './platform.js';
 import { Bindable, BindableDefinition } from './bindable.js';
 import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
-import { CustomElement, CustomElementDefinition, LocalElement, isLocalElement } from './resources/custom-element.js';
+import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element.js';
 import { BindingCommand, CommandType } from './resources/binding-command.js';
 import { createLookup, isString } from './utilities.js';
 import { allResources } from './utilities-di.js';
@@ -1448,7 +1448,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         throw new Error('AUR0708');
     }
     const localTemplateNames: Set<string> = new Set();
-    const parentName = context.def.name;
+    const localElTypes: CustomElementType[] = [];
 
     for (const localTemplate of localTemplates) {
       if (localTemplate.parentNode !== root) {
@@ -1461,12 +1461,6 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       const LocalTemplateType = class LocalTemplate { };
       const content = localTemplate.content;
-      if (content.querySelector(parentName) !== null) {
-        if (__DEV__)
-          throw new Error('Local templates cannot use the parent element');
-        else
-          throw new Error('AUR0717');
-      }
       const bindableEls = toArray(content.querySelectorAll('bindable'));
       const bindableInstructions = Bindable.for(LocalTemplateType);
       const properties = new Set<string>();
@@ -1514,10 +1508,20 @@ export class TemplateCompiler implements ITemplateCompiler {
         content.removeChild(bindableEl);
       }
 
+      localElTypes.push(LocalTemplateType);
       context._addDep(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
-      LocalElement.define(LocalTemplateType);
+      // LocalElement.define(LocalTemplateType);
 
       root.removeChild(localTemplate);
+    }
+
+    let i = 0;
+    const ii = localElTypes.length;
+    for (; ii > i; ++i) {
+      (CustomElement.getDefinition(localElTypes[i]).dependencies as Key[]).push(
+        ...context.def.dependencies ?? emptyArray,
+        ...context.deps ?? emptyArray,
+      );
     }
   }
 
@@ -1607,7 +1611,6 @@ class CompilationContext {
   public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
   public deps: unknown[] | undefined;
-  private readonly isLocalElement: boolean;
 
   /** @internal */
   private readonly c: IContainer;
@@ -1635,8 +1638,6 @@ class CompilationContext {
     this.p = hasParent ? parent.p : container.get(IPlatform);
     this.localEls = hasParent ? parent.localEls : new Set();
     this.rows = instructions ?? [];
-    const type = (this.def as CustomElementDefinition).Type;
-    this.isLocalElement = type != null ? isLocalElement(type) : false;
   }
 
   public _addDep(dep: unknown) {
@@ -1658,22 +1659,14 @@ class CompilationContext {
    * Find the custom element definition of a given name
    */
   public _findElement(name: string): CustomElementDefinition | null {
-    let el: CustomElementDefinition | null | undefined = this.c.find(CustomElement, name);
-    if (el !== null) return el;
-    if (!this.isLocalElement) return null;
-    el = this.c.parent?.find(CustomElement, name);
-    return el != null ? el : null;
+    return this.c.find(CustomElement, name);
   }
 
   /**
    * Find the custom attribute definition of a given name
    */
   public _findAttr(name: string): CustomAttributeDefinition | null {
-    let attr: CustomAttributeDefinition | null | undefined = this.c.find(CustomAttribute, name);
-    if (attr !== null) return attr;
-    if (!this.isLocalElement) return null;
-    attr = this.c.parent?.find(CustomAttribute, name);
-    return attr != null ? attr : null;
+    return this.c.find(CustomAttribute, name);
   }
 
   /**

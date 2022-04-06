@@ -2122,7 +2122,7 @@ describe('TemplateCompiler - local templates', function () {
     au.dispose();
   });
 
-  it('works with non-global dependencies', async function () {
+  it('works with non-global dependencies in owning template', async function () {
     @customElement({ name: 'my-ce', template: 'my-ce-content' })
     class MyCe { }
 
@@ -2207,6 +2207,43 @@ describe('TemplateCompiler - local templates', function () {
     await au.start();
 
     assert.html.textContent(host, 'my-ce-content 0 my-ce-content 2 my-ce-content 4 my-ce-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
+  it('recognizes owning element', async function () {
+    const template = `
+    my-app-content
+    <my-le prop.bind></my-le>
+    <template as-custom-element="my-le">
+      <bindable property="prop"></bindable>
+      my-le-content
+      <my-app if.bind="prop"></my-app>
+    </template>
+    `.trim();
+    @customElement({ name: 'my-app', template })
+    class App {
+      public prop = false;
+    }
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    const vm = au.root.controller.viewModel as App;
+
+    assert.html.textContent(host, 'my-app-content my-le-content');
+
+    vm.prop = true;
+    ctx.platform.domWriteQueue.flush();
+
+    assert.html.textContent(host, 'my-app-content my-le-content my-app-content my-le-content');
 
     await au.stop();
     ctx.doc.body.removeChild(host);
@@ -2327,18 +2364,6 @@ describe('TemplateCompiler - local templates', function () {
         'The attribute(s) unknown-attr, who-cares will be ignored for <bindable property="prop" unknown-attr="" who-cares="no one"></bindable>. Only property, attribute, mode are processed.'
       );
     }
-  });
-
-  it('throws error if local template uses the parent', function () {
-    const template = `<template as-custom-element="foo-bar">
-      <lorem-ipsum></lorem-ipsum>
-    </template>
-    <div></div>`;
-    const { container, sut } = createFixture();
-    assert.throws(
-      () => sut.compile({ name: 'lorem-ipsum', template }, container, null),
-      'AUR0717'
-    );
   });
 });
 

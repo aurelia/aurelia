@@ -14,7 +14,7 @@ import { getEffectiveParentNode, getRef } from '../dom.js';
 import { Children } from '../templating/children.js';
 import { Watch } from '../watch.js';
 import { DefinitionType } from './resources-shared.js';
-import { appendAnnotationKey, appendResourceKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
 import { isFunction, isString } from '../utilities.js';
 
 import type {

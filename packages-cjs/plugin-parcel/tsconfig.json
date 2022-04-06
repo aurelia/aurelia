@@ -1,9 +1,0 @@
-{
-  "extends": "../tsconfig-build.json",
-  "compilerOptions": {
-    "rootDir": "src",
-    "declarationDir": "dist/types",
-    "outDir": "dist/cjs"
-  },
-  "include": ["src"]
-}

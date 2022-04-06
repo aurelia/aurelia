@@ -53,6 +53,7 @@
     "typescript": "^4.6.2"
   },
   "engines": {
-    "node": ">=14.17.0"
+    "node": ">=14.17.0",
+    "parcel": "2.x"
   }
 }

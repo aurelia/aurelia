@@ -2215,14 +2215,13 @@ describe('TemplateCompiler - local templates', function () {
 
   it('recognizes owning element', async function () {
     const template = `
-    my-app-content
-    <my-le prop.bind></my-le>
-    <template as-custom-element="my-le">
-      <bindable property="prop"></bindable>
-      my-le-content
-      <my-app if.bind="prop"></my-app>
-    </template>
-    `.trim();
+      my-app-content
+      <my-le prop.bind></my-le>
+      <template as-custom-element="my-le">
+        <bindable property="prop"></bindable>
+        my-le-content
+        <my-app if.bind="prop"></my-app>
+      </template>`;
     @customElement({ name: 'my-app', template })
     class App {
       public prop = false;
@@ -2244,6 +2243,48 @@ describe('TemplateCompiler - local templates', function () {
     ctx.platform.domWriteQueue.flush();
 
     assert.html.textContent(host, 'my-app-content my-le-content my-app-content my-le-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
+  it('all local elements recognize each other', async function () {
+    const template = `
+      my-app-content
+      <my-le-1></my-le-1>
+      <my-le-2></my-le-2>
+
+      <template as-custom-element="my-le-1">
+        my-le-1-content
+        <my-le-2></my-le-2>
+      </template>
+
+      <template as-custom-element="my-le-2">
+        my-le-2-content
+        <my-le-3></my-le-3>
+      </template>
+
+      <template as-custom-element="my-le-3">
+        my-le-3-content
+      </template>`;
+
+    @customElement({ name: 'my-app', template })
+    class App {}
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    assert.html.textContent(
+      host,
+      'my-app-content ' +
+      'my-le-1-content my-le-2-content my-le-3-content ' +
+      'my-le-2-content my-le-3-content');
 
     await au.stop();
     ctx.doc.body.removeChild(host);

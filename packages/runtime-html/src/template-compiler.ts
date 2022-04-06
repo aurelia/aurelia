@@ -41,12 +41,6 @@ import type { IProjections } from './resources/slot-injectables.js';
 import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command.js';
 import type { ICompliationInstruction, IInstruction, } from './renderer.js';
 
-/** @internal */
-declare module '@aurelia/kernel' {
-  interface IContainer {
-    parent: IContainer | null;
-  }
-}
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
     return Registration.singleton(ITemplateCompiler, this).register(container);
@@ -1510,10 +1504,20 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       localElTypes.push(LocalTemplateType);
       context._addDep(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
-      // LocalElement.define(LocalTemplateType);
 
       root.removeChild(localTemplate);
     }
+
+    // if we have a template like this
+    //
+    // my-app.html
+    // <template as-custom-element="le-1">
+    //  <le-2></le-2>
+    // </template>
+    // <template as-custom-element="le-2">...</template>
+    //
+    // eagerly registering depdendencies inside the loop above
+    // will make `<le-1/>` miss `<le-2/>` as its dependency
 
     let i = 0;
     const ii = localElTypes.length;

@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig-build.json",
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "rootDir": "src",
+    "lib": ["esnext", "dom"]
+  },
+  "include": [
+    "src",
+    "custom-type-definitions"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "name": "@__e2e__/__router-configured-basic__",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=14.15.0",
+    "npm": ">=6.14.8"
+  },
+  "version": "0.8.0",
+  "scripts": {
+    "dev": "npm run build -- -w",
+    "build": "webpack --config webpack.config.js",
+    "test:ci": "npm run build && npx playwright test",
+    "test": "npx playwright test",
+    "test:debugger": "npx playwright test --headed"
+  },
+  "dependencies": {
+    "@aurelia/kernel": "2.0.0-alpha.26",
+    "@aurelia/metadata": "2.0.0-alpha.26",
+    "@aurelia/platform": "2.0.0-alpha.26",
+    "@aurelia/platform-browser": "2.0.0-alpha.26",
+    "@aurelia/runtime": "2.0.0-alpha.26",
+    "@aurelia/runtime-html": "2.0.0-alpha.26",
+    "perf-monitor": "latest"
+  },
+  "devDependencies": {
+    "@aurelia/http-server": "2.0.0-alpha.26",
+    "@playwright/test": "^1.14.0",
+    "@types/express": "^4.17.13",
+    "@types/node": "^14.14.22",
+    "express": "^4.17.1",
+    "webpack": "^5.10.3",
+    "webpack-bundle-analyzer": "^4.4.2",
+    "webpack-cli": "^4.2.0"
+  }
+}

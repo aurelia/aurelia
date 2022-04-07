@@ -1,0 +1,132 @@
+export {
+  IPlatform,
+} from './platform.js';
+
+export {
+  Platform,
+  TaskQueue,
+  Task,
+  TaskAbortError,
+  TaskQueuePriority,
+  TaskStatus,
+  QueueTaskOptions,
+  ITask,
+} from '@aurelia/platform';
+
+export {
+  all,
+  factory,
+  IFactoryResolver,
+  IResolvedFactory,
+  DI,
+  IContainer,
+  IFactory,
+  inject,
+  IRegistration,
+  IRegistry,
+  IResolver,
+  IServiceLocator,
+  Key,
+  lazy,
+  ILazyResolver,
+  IResolvedLazy,
+  optional,
+  ignore,
+  RegisterSelf,
+  Registration,
+  ResolveCallback,
+  singleton,
+  transient,
+  Injectable,
+  InterfaceSymbol,
+  InstanceProvider,
+  Resolved,
+  Transformer,
+  newInstanceForScope,
+  newInstanceOf,
+  ContainerConfiguration,
+  DefaultResolver,
+  IContainerConfiguration,
+} from './di.js';
+
+export {
+  Class,
+  Constructable,
+  ConstructableClass,
+  IDisposable,
+  IIndexable,
+  Overwrite,
+  Primitive,
+  Writable,
+} from './interfaces.js';
+export {
+  metadata,
+  Metadata,
+  isNullOrUndefined,
+  isObject,
+  applyMetadataPolyfill,
+} from '@aurelia/metadata';
+export {
+  LogLevel,
+  IConsoleLike,
+  ColorOptions,
+  ILogConfig,
+  ILogEvent,
+  ILogEventFactory,
+  ISink,
+  ILogger,
+  LogConfig,
+  DefaultLogEvent,
+  DefaultLogEventFactory,
+  DefaultLogger,
+  ConsoleSink,
+  LoggerConfiguration,
+  format,
+  sink,
+} from './logger.js';
+export {
+  IModule,
+  IModuleLoader,
+  AnalyzedModule,
+  ModuleItem,
+} from './module-loader.js';
+export {
+  noop,
+  emptyArray,
+  emptyObject,
+} from './platform.js';
+export {
+  IResourceKind,
+  PartialResourceDefinition,
+  Protocol,
+  ResourceDefinition,
+  ResourceType,
+  fromAnnotationOrDefinitionOrTypeOrDefault,
+  fromAnnotationOrTypeOrDefault,
+  fromDefinitionOrDefault,
+} from './resource.js';
+export {
+  EventAggregator,
+  IEventAggregator,
+} from './eventaggregator.js';
+export {
+  isArrayIndex,
+  camelCase,
+  kebabCase,
+  pascalCase,
+  toArray,
+  nextId,
+  resetId,
+  compareNumber,
+  mergeDistinct,
+  isNumberOrBigInt,
+  isStringOrDate,
+  bound,
+  mergeArrays,
+  mergeObjects,
+  firstDefined,
+  getPrototypeChain,
+  isNativeFunction,
+  onResolve,
+  resolveAll,
+} from './functions.js';

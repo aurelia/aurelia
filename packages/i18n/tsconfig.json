@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig-build.json",
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declarationDir": "dist/types",
+    "outDir": "dist/esm",
+    "preserveConstEnums": true,
+    "rootDir": "src",
+    "lib": [
+      "dom",
+      "esnext"
+    ]
+  },
+  "include": [
+    "src",
+    "custom-type-definitions"
+  ]
+}

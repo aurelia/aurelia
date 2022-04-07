@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig-build.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "declarationDir": "dist/types",
+    "outDir": "dist/esm",
+    "lib": ["dom", "esnext"]
+  },
+  "include": [
+    "src"
+  ]
+}

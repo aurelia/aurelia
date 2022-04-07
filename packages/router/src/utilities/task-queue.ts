@@ -1,4 +1,3 @@
-/* eslint-disable compat/compat */
 /**
  *
  * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
@@ -6,7 +5,6 @@
  *
  */
 import { IPlatform, ITask } from '@aurelia/runtime-html';
-import { bound } from '@aurelia/kernel';
 
 /**
  * @internal - Shouldn't be used directly
@@ -94,17 +92,11 @@ export class TaskQueue<T> {
   }
 
   public start(options: ITaskQueueOptions): void {
-    // if (this.isActive) {
-    //   throw new Error('TaskQueue has already been started');
-    // }
     this.platform = options.platform;
     this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
     this.task = this.platform.domWriteQueue.queueTask(this.dequeue, { persistent: true });
   }
   public stop(): void {
-    // if (!this.isActive) {
-    //   throw new Error('TaskQueue has not been started');
-    // }
     this.task!.cancel();
     this.task = null;
     this.allowedExecutionCostWithinTick = null;
@@ -129,9 +121,6 @@ export class TaskQueue<T> {
         : this.createQueueTask(item, costs.shift())); // TODO: Get cancellable in as well
     }
     this.pending.push(...tasks);
-    // if (this.task === null) {
-    //   this.task = this.platform!.macroTaskQueue.queueTask(this.dequeue, { persistent: true });
-    // }
     this.dequeue();
     return list ? tasks : tasks[0];
   }
@@ -148,10 +137,6 @@ export class TaskQueue<T> {
       this.currentExecutionCostInCurrentTick = 0;
     }
     if (this.pending.length === 0) {
-      // if (this.task !== null) {
-      //   this.task.cancel();
-      //   this.task = null;
-      // }
       return;
     }
     if (this.allowedExecutionCostWithinTick !== null && delta === undefined && this.currentExecutionCostInCurrentTick + (this.pending[0].cost || 0) > this.allowedExecutionCostWithinTick) {
@@ -168,11 +153,6 @@ export class TaskQueue<T> {
         this.processing.execute().catch(error => { throw error; });
       }
     }
-    // if (this.pending.length > 0) {
-    //   this.task = this.platform!.macroTaskQueue.queueTask(this.dequeue);
-    // } else {
-    //   this.task = null;
-    // }
   };
 
   public clear(): void {

@@ -16,8 +16,6 @@ import {
   IController,
   IHydratedController,
   ISyntheticView,
-  isCustomElementController,
-  isCustomElementViewModel,
 } from '@aurelia/runtime-html';
 import { IContainer, Writable } from '@aurelia/kernel';
 import { IRouter } from '../index.js';
@@ -53,7 +51,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     @IController private readonly parentController: IHydratedController,
   ) { }
 
-  // Maybe this really should be here. Check with Fred
+  // Maybe this really should be here. Check with Binh.
   // public create(
   //   controller: IDryCustomElementController<this>,
   //   parentContainer: IContainer,
@@ -80,15 +78,10 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
   //   return CustomElementDefinition.getOrCreate({ ...part, containerless: true });
   // }
 
-  public hydrated(controller: ICompiledCustomElementController) {
+  public hydrated(controller: ICompiledCustomElementController): void {
     this.controller = controller as ICustomElementController;
-    // Don't update the container here (probably because it wants to be a part of the structure)
-    // this.container = controller.container
-
-    // console.log('ViewportScope creating', this.getAttribute('name', this.name), this.container, this.parent, controller, this);
-    // this.connect();
   }
-  public bound(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void {
+  public bound(_initiator: IHydratedController, _parent: ISyntheticView | ICustomElementController | null, _flags: LifecycleFlags): void {
     this.isBound = true;
 
     (this.$controller as Writable<ICustomElementController>).scope = this.parentController.scope!;
@@ -98,19 +91,11 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
       this.viewportScope.binding();
     }
   }
-  public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
+  public unbinding(_initiator: IHydratedController, _parent: ISyntheticView | ICustomElementController | null, _flags: LifecycleFlags): void | Promise<void> {
     if (this.viewportScope !== null) {
       this.viewportScope.unbinding();
     }
     return Promise.resolve();
-  }
-  public afterUnbind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
-    this.disconnect();
-    return Promise.resolve();
-  }
-
-  public afterUnbound(): void {
-    this.isBound = false;
   }
 
   public connect(): void {
@@ -131,19 +116,16 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     // TODO: Needs to be bound? How to solve?
     options.source = this.source || null;
 
-    // this.viewportScope = this.router.connectViewportScope(this.viewportScope, this, name, options);
     this.viewportScope = this.router.connectEndpoint(this.viewportScope, 'ViewportScope', this, name, options) as ViewportScope;
   }
   public disconnect(): void {
     if (this.viewportScope) {
-      // this.router.disconnectViewportScope(this.viewportScope, this);
       this.router.disconnectEndpoint(null, this.viewportScope, this);
     }
     this.viewportScope = null;
   }
 
   private getAttribute(key: string, value: string | boolean, checkExists: boolean = false): string | boolean | undefined {
-    const result: Record<string, string | boolean> = {};
     if (this.isBound) {
       return value;
     } else {
@@ -159,24 +141,5 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
       }
     }
     return void 0;
-  }
-
-  private isCustomElementController(value: unknown): boolean {
-    return isCustomElementController(value);
-  }
-  private isCustomElementViewModel(value: unknown): boolean {
-    return isCustomElementViewModel(value);
-  }
-
-  private getClosestCustomElement() {
-    let parent: any = this.controller.parent;
-    let customElement = null;
-    while (parent !== null && customElement === null) {
-      if (parent.viewModel instanceof ViewportCustomElement || parent.viewModel instanceof ViewportScopeCustomElement) {
-        customElement = parent.viewModel;
-      }
-      parent = parent.parent;
-    }
-    return customElement;
   }
 }

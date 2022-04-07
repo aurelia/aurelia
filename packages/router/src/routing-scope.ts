@@ -1,4 +1,4 @@
-/* eslint-disable max-lines-per-function */
+/* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { NavigationCoordinator } from './navigation-coordinator';
 import { IViewportScopeOptions, ViewportScope } from './endpoints/viewport-scope.js';
@@ -12,7 +12,7 @@ import { IConfigurableRoute, RouteRecognizer } from './route-recognizer.js';
 import { Runner, Step } from './utilities/runner.js';
 import { IRoute, Route } from './route.js';
 import { Endpoint, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint.js';
-import { EndpointMatcher, IMatchEndpointsResult } from './endpoint-matcher.js';
+import { EndpointMatcher } from './endpoint-matcher.js';
 import { EndpointContent, Navigation, Router, RoutingHook, ViewportCustomElement } from './index.js';
 import { IContainer } from '@aurelia/kernel';
 import { arrayRemove, arrayUnique } from './utilities/utils.js';
@@ -205,18 +205,6 @@ export class RoutingScope {
     return null;
   }
 
-  public getRoutingInstruction(index?: number): RoutingInstruction | null {
-    if (this.endpoint.isViewportScope) {
-      return (this.endpoint as ViewportScope).instruction;
-    }
-    if (this.isViewport) {
-      return index !== void 0
-        ? ((this.endpoint as Viewport).getTimeContent(index)?.instruction ?? null)
-        : (this.endpoint as Viewport).getContent().instruction;
-    }
-    return null;
-  }
-
   public getOwnedScopes(includeDisabled: boolean = false): RoutingScope[] {
     const scopes = this.allScopes(includeDisabled).filter(scope => scope.owningScope === this);
     // Hoist children to pass through scopes
@@ -260,9 +248,6 @@ export class RoutingScope {
         // navigation.path = (navigation.instruction as string).replace(/^\//, '');
         // ...store the matching route.
         configuredRoutePath = (configuredRoutePath ?? '') + foundRoute.matching;
-        // if (this === router.rootScope!.scope) {
-        //   router.rootScope!.path = configuredRoutePath;
-        // }
       }
     }
     // TODO: Used to have an early exit if no instructions. Restore it?
@@ -293,14 +278,6 @@ export class RoutingScope {
       addInstruction.endpoint.set(addInstruction.scope!.endpoint.name);
       addInstruction.scope = addInstruction.scope!.owningScope!;
     }
-
-    // Mark all as top instructions ("children"/next scope instructions are in a property on
-    // routing instruction) that will get assured parallel lifecycle swaps
-    // TODO(alpha): Look into refactoring so this isn't used
-    // TODO(return): Needs to be moved outside of scope!
-    // for (const instr of instructions) {
-    //   instr.topInstruction = true;
-    // }
 
     const allChangedEndpoints: IEndpoint[] = [];
     let earlierMatchedInstructions: RoutingInstruction[] = [];
@@ -334,7 +311,6 @@ export class RoutingScope {
         const skipped = RoutingInstruction.flat(matchedInstructions);
         remainingInstructions = remainingInstructions.filter(instr => !skipped.includes(instr));
         matchedInstructions = hooked;
-        // foundRoute.remaining = '';
       }
 
       for (const matchedInstruction of matchedInstructions) {
@@ -342,7 +318,6 @@ export class RoutingScope {
         if (endpoint !== null) {
           // Set endpoint path to the configured route path so that it knows it's part
           // of a configured route.
-          // endpoint.path = configuredRoutePath;
           // Inform endpoint of new content and retrieve the action it'll take
           const action = endpoint.setNextContent(matchedInstruction, navigation);
           if (action !== 'skip') {
@@ -404,9 +379,7 @@ export class RoutingScope {
         if (coordinator.hasAllEndpoints) {
           const guardedUnload = coordinator.waitForSyncState('guardedUnload');
           if (guardedUnload instanceof Promise) {
-            // console.log('>>> Waiting for guardedUnload', (coordinator as any).entities.map((ent: any) => ent.entity.toString()).join(','));
             await guardedUnload;
-            // console.log('<<< Waited for guardedUnload');
           }
         }
       }
@@ -428,7 +401,6 @@ export class RoutingScope {
       // Make sure these endpoints in these instructions stays unavailable
       earlierMatchedInstructions.push(...matchedInstructions.splice(0));
 
-      // TODO: Fix multi level recursiveness?
       // Endpoints have now (possibly) been added or removed, so try and match
       // any remaining instructions
       if (remainingInstructions.length > 0) {
@@ -442,38 +414,14 @@ export class RoutingScope {
       if (!router.isRestrictedNavigation &&
         (matchedInstructions.length > 0 || remainingInstructions.length > 0) &&
         coordinator.running) {
-        // const waitForSwapped = coordinator.waitForSyncState('bound');
-        // if (waitForSwapped instanceof Promise) {
-        // //   console.log('>>> AWAIT waitForBound');
-        //   await waitForSwapped;
-        // //   console.log('<<< AWAIT waitForBound');
-        // }
         const waitForSwapped = coordinator.waitForSyncState('swapped');
         if (waitForSwapped instanceof Promise) {
-          // console.log('>>> AWAIT waitForSwapped');
           await waitForSwapped;
-          // console.log('<<< AWAIT waitForSwapped');
         }
       }
 
       // Look for child routes (configured) and instructions (once we've loaded everything so far?)
       if (matchedInstructions.length === 0 && remainingInstructions.length === 0) {
-        // // If this isn't a restricted ("static") navigation everything will run as soon as possible
-        // // and then we need to wait for new viewports to be loaded before continuing here
-        // // TODO: Use a better solution here (by checking and waiting for relevant viewports)
-        // if (!this.isRestrictedNavigation) {
-        //   // const waitForSwapped = coordinator.waitForSyncState('bound');
-        //   // if (waitForSwapped instanceof Promise) {
-        //   //   console.log('AWAIT waitForBound');
-        //   //   await waitForSwapped;
-        //   // }
-        //   const waitForSwapped = coordinator.waitForSyncState('swapped');
-        //   if (waitForSwapped instanceof Promise) {
-        //     console.log('AWAIT waitForSwapped');
-        //     await waitForSwapped;
-        //   }
-        // }
-
         // Get child route (configured) and instructions (if any)
         const nextProcesses = [];
         for (const instruction of instructions) {
@@ -484,21 +432,6 @@ export class RoutingScope {
           nextProcesses.push(nextScope.processInstructions(instruction.nextScopeInstructions!, navigation, coordinator, configuredRoutePath));
         }
         allChangedEndpoints.push(...(await Promise.all(nextProcesses)).flat());
-
-        // const { foundChildRoute, configuredChildRoutePath } = this.findChildRoute(earlierMatchedInstructions, foundRoute, configuredRoutePath);
-
-        // // Proceed with found child route...
-        // if (foundChildRoute.foundInstructions) {
-        //   // ...by making it the current route...
-        //   foundRoute = foundChildRoute;
-        //   // ...and the current configured route path...
-        //   configuredRoutePath = configuredChildRoutePath;
-        //   // ...and add the instructions to processing...
-        //   router.appendInstructions(foundChildRoute.instructions);
-        // } else { // ...or deal with unknown route
-        //   // TODO: Add unknownRoute hook here and put possible result in instructions
-        //   this.unknownRoute(foundChildRoute.remaining);
-        // }
       }
 
       // Don't add defaults when it's a full state navigation (since it's complete state)
@@ -540,11 +473,6 @@ export class RoutingScope {
     return allChangedEndpoints;
   }
 
-
-
-
-
-
   /**
    * Deal with/throw an unknown route error.
    *
@@ -578,15 +506,6 @@ export class RoutingScope {
     }
     return instructions;
 
-    // if (instructions.length > 0) {
-    //   const instruction = instructions[0];
-    //   if (!instruction.isAddAll(this.router) && !instruction.isClearAll(this.router)) {
-    //     const clearAll = RoutingInstruction.create(RoutingInstruction.clear(this.router)) as RoutingInstruction;
-    //     clearAll.scope = instruction.scope;
-    //     return [clearAll, ...instructions];
-    //   }
-    // }
-    // return instructions;
   }
 
   /**
@@ -610,16 +529,6 @@ export class RoutingScope {
     }
     return { clearEndpoints, instructions };
   }
-
-
-
-
-
-
-
-
-
-
 
   public findInstructions(instructions: RoutingInstruction[], useDirectRouting: boolean, useConfiguredRoutes: boolean): FoundRoute {
     const router = this.router;
@@ -665,82 +574,6 @@ export class RoutingScope {
 
     return route;
   }
-
-
-
-
-
-  // public findInstructions(instruction: string | RoutingInstruction[], useDirectRouting: boolean, useConfiguredRoutes: boolean): FoundRoute {
-  //   let route = new FoundRoute();
-  //   if (typeof instruction === 'string') {
-  //     const instructions: RoutingInstruction[] = [];
-  //     const instrs = RoutingInstruction.parse(this.router, instruction);
-  //     // Make sure empty route is also processed
-  //     if (instruction === '' || instruction === '-') {
-  //       instrs.push(new RoutingInstruction(''));
-  //     }
-  //     if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(this.router, instrs)) {
-  //       for (const instr of instrs) {
-  //         if (instr.isClear(this.router) || instr.isClearAll(this.router)) {
-  //           instructions.push(instr);
-  //         } else {
-
-  //           const foundRoute = this.findMatchingRoute(RoutingInstruction.stringify(this.router, [instr]));
-  //           if (foundRoute?.foundConfiguration ?? false) {
-  //             route = foundRoute!;
-  //             instructions.push(...route.instructions);
-  //           } else {
-  //             if (useDirectRouting) {
-  //               // route.instructions = instructions;
-  //               instructions.push(instr);
-  //               // if (route.instructions.length > 0) {
-  //               const nextInstructions = instr.nextScopeInstructions ?? [];
-  //               route.remaining = RoutingInstruction.stringify(this.router, nextInstructions);
-  //               // TODO: Verify that it's okay to leave this in
-  //               instr.nextScopeInstructions = null;
-  //               // }
-  //             }
-  //           }
-  //         }
-  //       }
-
-  //     } else if (useDirectRouting) {
-  //       instructions.push(...instrs);
-  //     }
-  //     // Remove empty instructions so that default can be used
-  //     route.instructions = instructions.filter(instr => instr.component.name !== '');
-
-  //     // const instructions = RoutingInstruction.parse(this.router, instruction);
-  //     // if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(this.router, instructions)) {
-  //     //   const foundRoute = this.findMatchingRoute(instruction);
-  //     //   if (foundRoute?.foundConfiguration ?? false) {
-  //     //     route = foundRoute!;
-  //     //   } else {
-  //     //     if (useDirectRouting) {
-  //     //       route.instructions = instructions;
-  //     //       if (route.instructions.length > 0) {
-  //     //         const nextInstructions = route.instructions[0].nextScopeInstructions ?? [];
-  //     //         route.remaining = RoutingInstruction.stringify(this.router, nextInstructions);
-  //     //         // TODO: Verify that it's okay to leave this in
-  //     //         route.instructions[0].nextScopeInstructions = null;
-  //     //       }
-  //     //     }
-  //     //   }
-  //     // } else if (useDirectRouting) {
-  //     //   route.instructions = instructions;
-  //     // }
-  //   } else {
-  //     route.instructions = instruction;
-  //   }
-
-  //   for (const instr of route.instructions) {
-  //     if (instr.scope === null) {
-  //       instr.scope = this;
-  //     }
-  //   }
-
-  //   return route;
-  // }
 
   // Note: This can't change state other than the instructions!
   /**
@@ -878,14 +711,6 @@ export class RoutingScope {
       }
     }
     return instructions;
-  }
-
-  public getRoutingScopes(timestamp: number): RoutingScope[] | null {
-    const contents = this.ownedScopes
-      .map(scope => scope.endpoint.getTimeContent(timestamp))
-      .filter(content => content !== null) as EndpointContent[];
-    const scopes = contents.map(content => content.connectedScope);
-    return scopes;
   }
 
   public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {

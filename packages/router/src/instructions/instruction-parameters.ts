@@ -86,29 +86,6 @@ export class InstructionParameters {
     return keys.map(key => ({ key, value: parameters[key] }));
   }
 
-  public static parseQuery(query: string | null | undefined): Record<string, string | string[]> {
-    const parameters: Record<string, string | string[]> = {};
-    if (query == null || query.length === 0) {
-      return parameters;
-    }
-    // eslint-disable-next-line compat/compat
-    const searchParams = new URLSearchParams(query);
-    searchParams.forEach((key: string, value: string) => {
-      key = decodeURIComponent(key);
-      value = decodeURIComponent(value);
-
-      if (key in parameters) {
-        if (!Array.isArray(parameters[key])) {
-          parameters[key] = [parameters[key] as string];
-        }
-        (parameters[key] as string[]).push(value);
-      } else {
-        parameters[key] = value;
-      }
-    });
-    return parameters;
-  }
-
   public get typedParameters(): ComponentParameters | null {
     switch (this.parametersType) {
       case ParametersType.string:

@@ -1,5 +1,4 @@
 import { ConsideredActiveCustomAttribute } from './considered-active';
-/* eslint-disable compat/compat */
 import { IEventAggregator } from '@aurelia/kernel';
 import { IRouter, RouterStartEvent } from '../router.js';
 import { CustomAttribute, IHydratedController } from '@aurelia/runtime-html';
@@ -57,9 +56,6 @@ export function getConsideredActiveInstructions(router: IRouter, controller: IHy
   if (activeInstructions === void 0) {
     activeInstructions = value as LoadInstruction;
   }
-  // const activeInstructions = (element.hasAttribute('considered-active')
-  //   ? element.getAttribute('considered-active')
-  //   : value) as LoadInstruction;
 
   const created = router.applyLoadOptions(activeInstructions, { context: controller });
   const instructions = RoutingInstruction.from(router, created.instructions);

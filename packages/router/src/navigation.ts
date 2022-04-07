@@ -78,7 +78,6 @@ export class StoredNavigation {
     this.scope = entry.scope;
     this.index = entry.index;
     this.firstEntry = entry.firstEntry;
-    // this.route = entry.route;
     this.path = entry.path;
     this.title = entry.title;
     this.query = entry.query;
@@ -94,7 +93,6 @@ export class StoredNavigation {
       scope: this.scope,
       index: this.index,
       firstEntry: this.firstEntry,
-      // route: this.route,
       path: this.path,
       title: this.title,
       query: this.query,

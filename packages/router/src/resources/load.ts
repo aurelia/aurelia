@@ -1,4 +1,4 @@
-import { IDisposable, IEventAggregator, Key } from '@aurelia/kernel';
+import { IDisposable, IEventAggregator } from '@aurelia/kernel';
 import { customAttribute, INode, bindable, BindingMode, CustomAttribute, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { ILinkHandler } from './link-handler.js';
 import { IRouter, RouterNavigationEndEvent } from '../router.js';

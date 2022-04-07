@@ -175,9 +175,6 @@ export class NavigationCoordinator {
         if (!entity.running) {
           entity.running = true;
           entity.endpoint.transition(this);
-          // if (this.cancelled) {
-          //   break;
-          // }
         }
       }
     }
@@ -271,21 +268,6 @@ export class NavigationCoordinator {
     // Check if this was the last entity/endpoint needed to resolve the state
     this.checkSyncState(state);
   }
-
-  // /**
-  //  * Add a (reached) navigation state for an endpoint.
-  //  *
-  //  * @param endpoint - The endpoint that's reached a state
-  //  * @param state - The state that's been reached
-  //  */
-  // public clearEndpointStates(endpoint: IEndpoint): void {
-  //   // Find the entity for the endpoint...
-  //   const entity = this.entities.find(e => e.endpoint === endpoint);
-  //   if (entity !== void 0) {
-  //     // ...and clear its states.
-  //     entity.states.clear();
-  //   }
-  // }
 
   /**
    * Wait for a navigation state to be reached. If endpoint is specified, it
@@ -402,7 +384,6 @@ export class NavigationCoordinator {
     });
     // TODO: Review this since it probably should happen in turn
     this.router.navigator.cancel(this.navigation).then(() => {
-      // this.router.processingNavigation = null;
       this.navigation.process?.resolve(false);
     }).catch(error => { throw error; });
     this.completed = true;

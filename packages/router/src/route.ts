@@ -120,10 +120,6 @@ export class Route {
       config.title = Type.title;
     }
 
-    // if (Object.keys(config).length === 0) {
-    //   return {};
-    // }
-
     return config instanceof Route ? config : Route.create(config, Type);
   }
 

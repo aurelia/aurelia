@@ -1,0 +1,9 @@
+goto -> <gone>
+
+IRouteableComponent -> IRouteViewModel
+RouteableComponentType -> RouteViewModelType
+
+load -> loading
+unload -> unloading
+
+au-nav -> <moved>

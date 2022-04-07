@@ -222,9 +222,7 @@ export class InstructionComponent {
   }
 
   private getNewName(type: RouteableComponentType): string {
-    if (this.name === null
-      // || !type.aliases?.includes(this.name)
-    ) {
+    if (this.name === null) {
       return InstructionComponent.getName(type);
     }
     return this.name;

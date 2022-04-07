@@ -1,6 +1,5 @@
-import { EndpointType, EndpointTypeName } from './../endpoints/endpoint';
 import { IRouter } from '../router.js';
-import { Endpoint } from '../endpoints/endpoint.js';
+import { Endpoint, EndpointTypeName } from '../endpoints/endpoint.js';
 import { RoutingScope } from '../routing-scope.js';
 import { Viewport } from '../endpoints/viewport.js';
 import { ViewportScope } from '../endpoints/viewport-scope.js';

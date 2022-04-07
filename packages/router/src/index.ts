@@ -1,15 +1,9 @@
-import { ITitleOptions } from './router-options';
 /**
  *
  * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-
-export {
-  EventManager,
-  IEventManager,
-} from './event-manager.js';
 
 export {
   Endpoint,
@@ -49,20 +43,6 @@ export {
 } from './interfaces.js';
 
 export {
-  lifecycleLogger,
-  LifecycleClass,
-} from './utilities/lifecycle-logger.js';
-
-export {
-  INavRoute,
-  Nav,
-} from './nav.js';
-
-export {
-  NavRoute,
-} from './nav-route.js';
-
-export {
   Navigation,
   NavigationFlags,
 } from './navigation.js';
@@ -87,11 +67,11 @@ export {
   Step,
 } from './utilities/runner.js';
 
-export {
-  QueueItem,
-  IQueueOptions,
-  Queue,
-} from './utilities/queue.js';
+// export {
+//   QueueItem,
+//   IQueueOptions,
+//   Queue,
+// } from './utilities/queue.js';
 
 export {
   IRoute,
@@ -187,24 +167,14 @@ export {
   RouterRegistration,
   DefaultComponents,
   DefaultResources,
-  // ViewportCustomElement,
   ViewportCustomElementRegistration,
-  // ViewportScopeCustomElement,
   ViewportScopeCustomElementRegistration,
-  // NavCustomElement,
-  NavCustomElementRegistration,
-  // GotoCustomAttribute,
-  GotoCustomAttributeRegistration,
-  // LoadCustomAttribute,
   LoadCustomAttributeRegistration,
-  // HrefCustomAttribute,
   HrefCustomAttributeRegistration,
 } from './configuration.js';
 
-export { NavCustomElement } from './resources/nav.js';
 export { ViewportCustomElement } from './resources/viewport.js';
 export { ViewportScopeCustomElement } from './resources/viewport-scope.js';
-export { GotoCustomAttribute } from './resources/goto.js';
 export { LoadCustomAttribute } from './resources/load.js';
 export { HrefCustomAttribute } from './resources/href.js';
 export { ConsideredActiveCustomAttribute } from './resources/considered-active.js';

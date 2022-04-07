@@ -137,16 +137,7 @@ export class ViewportScope extends Endpoint {
       () => coordinator.addEndpointState(this, 'unloaded'),
       () => coordinator.addEndpointState(this, 'routed'),
       () => coordinator.addEndpointState(this, 'swapped'),
-      () => {
-        // // this.content = !this.remove ? this.nextContent! : new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope);
-        // if (this.remove) {
-        //   this.contents.push(new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope));
-        // }
-        // // this.nextContent = null;
-        // //Y: this.contents.shift();
-        // this.getNextContent()!.completed = true;
-        coordinator.addEndpointState(this, 'completed');
-      }
+      () => coordinator.addEndpointState(this, 'completed'),
     );
   }
 

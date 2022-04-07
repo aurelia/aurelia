@@ -226,7 +226,7 @@ export class ViewportContent extends EndpointContent {
     // Don't load cached content or instantiated history content
     if (!this.fromCache || !this.fromHistory) {
       const controller = this.contentController(connectedCE);
-      // TODO: Don't think I need to do this. Ask Fred.
+      // TODO: Don't think I need to do this. Ask Binh.
       (controller as Writable<typeof controller>).parent = connectedCE.controller; // CustomElement.for(connectedCE.element)!;
     }
   }
@@ -476,7 +476,7 @@ export class ViewportContent extends EndpointContent {
           initiator ?? contentController,
           parent,
           flags,
-          void 0 /*, boundCallback, this.instruction.topInstruction ? attachPromise : void 0 */) as Promise<void>;
+          void 0 /* , boundCallback, this.instruction.topInstruction ? attachPromise : void 0 */) as Promise<void>;
       },
       () => {
         this.contentStates.set('activated', void 0);
@@ -631,32 +631,4 @@ export class ViewportContent extends EndpointContent {
     const hooks = (instance.$controller!.lifecycleHooks[name as FuncPropNames<Constructable>] ?? []) as LifecycleHooksEntry[];
     return hooks.map(hook => hook.instance[name as FuncPropNames<Constructable>]);
   }
-
-  // /**
-  //  * Wait for the viewport's content to be activated. Should be removed once
-  //  * controller activation can be aborted.
-  //  *
-  //  * @param controller - The controller to the viewport's content
-  //  */
-  // private waitForActivated(controller: ICustomElementController, connectedCE: IConnectedCustomElement): void | Promise<void> {
-  //   if (!controller.isActivated) {
-  //     return new Promise((resolve) => {
-  //       this.activatedResolve = resolve;
-  //       this.checkActivated(controller, connectedCE);
-  //     });
-  //   }
-  // }
-  // private checkActivated(controller: ICustomElementController, connectedCE: IConnectedCustomElement): void {
-  //   setTimeout(() => {
-  //     const elements = Array.from(connectedCE.element.children);
-  //     for (const el of elements) {
-  //       (el as HTMLElement).style.display = 'none';
-  //     }
-  //     if (controller.isActivated) {
-  //       this.activatedResolve!();
-  //     } else {
-  //       this.checkActivated(controller, connectedCE);
-  //     }
-  //   }, 50);
-  // }
 }

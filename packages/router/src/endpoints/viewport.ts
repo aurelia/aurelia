@@ -236,19 +236,6 @@ export class Viewport extends Endpoint {
   }
 
   /**
-   * Apply configuration options to the viewport.
-   *
-   * @param options - The options to apply
-   */
-  public applyOptions(options: ViewportOptions | IViewportOptions): void {
-    if (options instanceof ViewportOptions) {
-      this.options = options;
-    } else {
-      this.options.apply(options);
-    }
-  }
-
-  /**
    * Set the next content for the viewport. Returns the action that the viewport
    * will take when the navigation coordinator starts the transition. Note that a
    * swap isn't guaranteed, current component configuration can result in a skipped
@@ -423,8 +410,6 @@ export class Viewport extends Endpoint {
    * @param coordinator - The coordinator of the navigation
    */
   public async transition(coordinator: NavigationCoordinator): Promise<void> {
-    // console.log('Viewport transition', this.toString());
-
     const navigatingPrefix = this.router.configuration.options.indicators.viewportNavigating;
 
     this.coordinators.push(coordinator);
@@ -787,8 +772,6 @@ export class Viewport extends Endpoint {
     // for (const previousContent of previousContents) {
     //   freeSteps.push(
     //     (innerStep: Step<void>) => {
-    //       console.log('Previous content', previousContent);
-    //       debugger;
     //       // return previousContent.freeContent(
     //       //   innerStep,
     //       //   this.connectedCE,
@@ -837,14 +820,9 @@ export class Viewport extends Endpoint {
    * @param step - The previous step in this transition Run
    */
   public cancelContentChange(coordinator: NavigationCoordinator, step: Step<void> | null): void | Step<void> {
-    // if (step == null) {
-    //   console.log('Step is null', this);
-    //   debugger;
-    // }
     const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
     const nextContent = this.contents[nextContentIndex];
     const previousContent = this.contents[nextContentIndex - 1];
-    // console.log('cancelContentChange', nextContent, previousContent, this);
 
     return Runner.run(step,
       (innerStep: Step<void>) => {
@@ -862,9 +840,7 @@ export class Viewport extends Endpoint {
           Object.assign(this, this.previousViewportState);
         }
         nextContent?.delete();
-        // this.nextContent = null;
         if (nextContent !== null) {
-          // this.contents.pop(); if (this.contents.length < 1) { throw new Error('no content!'); }
           this.contents.splice(this.contents.indexOf(nextContent), 1);
         }
         this.transitionAction = '';

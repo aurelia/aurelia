@@ -297,9 +297,6 @@ export class Navigator {
       // If it's a navigation from the browser (back, forward, url) we replace the state
       await this.saveState(navigation.index!, !(navigation.fromBrowser ?? false));
     }
-    // Resolve the navigation. Very important!
-    // Now done from the outside
-    // navigation.resolve?.(true);
   }
 
   /**
@@ -321,9 +318,6 @@ export class Navigator {
         await this.options.store.go(-navigation.historyMovement!, true);
       }
     }
-    // Resolve the navigation. Very important!
-    // Now done from the outside
-    // navigation.resolve?.(false);
   }
 
   /**

@@ -37,7 +37,7 @@ export class Title {
       let nextStringified: string = Title.stringifyTitles(nextInstructions, navigation, titleOptions);
       if (nextStringified.length > 0) {
         if (nextInstructions.length !== 1) { // TODO: This should really also check that the instructions have value
-          nextStringified = "[ " + nextStringified + " ]";
+          nextStringified = `[ ${nextStringified} ]`;
         }
         if (stringified.length > 0) {
           stringified = titleOptions.componentTitleOrder === 'top-down'
@@ -54,7 +54,7 @@ export class Title {
   private static resolveTitle(instruction: RoutingInstruction, navigation: Navigation, titleOptions: TitleOptions): string {
     let title = instruction.getTitle(navigation);
     if (titleOptions.transformTitle != null) {
-      title = titleOptions.transformTitle!(title, instruction, navigation);
+      title = titleOptions.transformTitle(title, instruction, navigation);
     }
     return title;
   }

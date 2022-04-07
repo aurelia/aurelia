@@ -84,7 +84,7 @@ export class RoutingInstruction {
 
   /**
    * Whether the routing instruction is the top instruction in its routing instruction
-   * hierarchy.
+   * hierarchy. Used when syncing swap of all (top) instructions.
    */
   public topInstruction: boolean = false;
 

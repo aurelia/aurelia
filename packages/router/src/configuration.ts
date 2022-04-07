@@ -1,28 +1,13 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
-import { NavCustomElement } from './resources/nav.js';
 import { ViewportCustomElement } from './resources/viewport.js';
 import { ViewportScopeCustomElement } from './resources/viewport-scope.js';
-import { GotoCustomAttribute } from './resources/goto.js';
 import { LoadCustomAttribute } from './resources/load.js';
 import { HrefCustomAttribute } from './resources/href.js';
 import { ConsideredActiveCustomAttribute } from './resources/considered-active.js';
 import { IRouter, Router } from './router.js';
 import { IRouterOptions, RouterOptions } from './router-options.js';
 import { BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction } from './routing-hook.js';
-
-// import {
-//   NavCustomElement,
-//   ViewportCustomElement,
-//   ViewportScopeCustomElement,
-//   GotoCustomAttribute,
-//   LoadCustomAttribute,
-//   HrefCustomAttribute,
-//   ConsideredActiveCustomAttribute,
-//   IRouter,
-//   IRouterOptions, RouterOptions,
-//   BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction
-// } from './index.js';
 
 export const IRouterConfiguration = DI.createInterface<IRouterConfiguration>('IRouterConfiguration', x => x.singleton(RouterConfiguration));
 export interface IRouterConfiguration extends RouterConfiguration { }
@@ -40,8 +25,6 @@ export const DefaultComponents = [
 export {
   ViewportCustomElement,
   ViewportScopeCustomElement,
-  NavCustomElement,
-  GotoCustomAttribute,
   LoadCustomAttribute,
   HrefCustomAttribute,
   ConsideredActiveCustomAttribute,
@@ -49,8 +32,6 @@ export {
 
 export const ViewportCustomElementRegistration = ViewportCustomElement as unknown as IRegistry;
 export const ViewportScopeCustomElementRegistration = ViewportScopeCustomElement as unknown as IRegistry;
-export const NavCustomElementRegistration = NavCustomElement as unknown as IRegistry;
-export const GotoCustomAttributeRegistration = GotoCustomAttribute as unknown as IRegistry;
 export const LoadCustomAttributeRegistration = LoadCustomAttribute as unknown as IRegistry;
 export const HrefCustomAttributeRegistration = HrefCustomAttribute as unknown as IRegistry;
 export const ConsideredActiveCustomAttributeRegistration = ConsideredActiveCustomAttribute as unknown as IRegistry;
@@ -63,8 +44,6 @@ export const ConsideredActiveCustomAttributeRegistration = ConsideredActiveCusto
 export const DefaultResources: IRegistry[] = [
   ViewportCustomElement as unknown as IRegistry,
   ViewportScopeCustomElement as unknown as IRegistry,
-  NavCustomElement as unknown as IRegistry,
-  GotoCustomAttribute as unknown as IRegistry,
   LoadCustomAttribute as unknown as IRegistry,
   HrefCustomAttribute as unknown as IRegistry,
   ConsideredActiveCustomAttribute as unknown as IRegistry,

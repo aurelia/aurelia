@@ -49,7 +49,6 @@ export class EndpointMatcher {
   // Note: This can't change state other than the instructions!
   public static matchEndpoints(routingScope: RoutingScope, instructions: RoutingInstruction[], alreadyMatched: RoutingInstruction[], disregardViewports: boolean = false): IMatchEndpointsResult {
     const matchedInstructions: RoutingInstruction[] = [];
-    let remainingInstructions: RoutingInstruction[] = [];
 
     // Get all the routing scopes owned by this scope
     // TODO: Investigate if Infinity needs to be a timestamp
@@ -67,7 +66,7 @@ export class EndpointMatcher {
 
     // First, match instructions with already known viewport scopes...
     // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-    // and remainingInstructions and sets viewport/viewport scope and scope in actual RoutingInstruction
+    // and sets viewport/viewport scope and scope in actual RoutingInstruction
     // Pass in `false` to `doesntNeedViewportDescribed` even though it doesn't really apply for ViewportScope
     EndpointMatcher.matchKnownEndpoints(
       routingScope.router,
@@ -75,14 +74,13 @@ export class EndpointMatcher {
       routingInstructions,
       availableEndpoints,
       matchedInstructions,
-      remainingInstructions,
       false,
     );
 
     // ...and instructions with already known viewports (unless we're disregarding already known viewports when matching).
     if (!disregardViewports) {
       // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-      // and remainingInstructions and sets viewport/viewport scope and scope in actual RoutingInstruction
+      // and sets viewport/viewport scope and scope in actual RoutingInstruction
       // Pass in `false` to `doesntNeedViewportDescribed` since we can't know for sure whether viewport is necessary or not
       EndpointMatcher.matchKnownEndpoints(
         routingScope.router,
@@ -90,21 +88,19 @@ export class EndpointMatcher {
         routingInstructions,
         availableEndpoints,
         matchedInstructions,
-        remainingInstructions,
         false,
       );
     }
 
     // Then match viewport scopes that accepts the component (name) as segment.
     // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-    // and remainingInstructions and sets viewport scope and scope in actual RoutingInstruction
+    // and sets viewport scope and scope in actual RoutingInstruction
     EndpointMatcher.matchViewportScopeSegment(
       routingScope.router,
       routingScope,
       routingInstructions,
       availableEndpoints,
       matchedInstructions,
-      remainingInstructions,
     );
 
     // All instructions not yet matched need viewport described in some way unless
@@ -115,56 +111,51 @@ export class EndpointMatcher {
 
     // Match viewports with configuration (for example `used-by` attribute) that matches instruction components.
     // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-    // and remainingInstructions and sets viewport scope and scope in actual RoutingInstruction
+    // and sets viewport scope and scope in actual RoutingInstruction
     EndpointMatcher.matchViewportConfiguration(
       routingInstructions,
       availableEndpoints,
       matchedInstructions,
-      remainingInstructions,
     );
 
     // Next in line is specified viewport (but not if we're disregarding viewports)
     if (!disregardViewports) {
       // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-      // and remainingInstructions and sets viewport scope and scope in actual RoutingInstruction.
+      // and sets viewport scope and scope in actual RoutingInstruction.
       // Pass in `false` to `doesntNeedViewportDescribed` since we can't know for sure whether viewport is necessary or not
       EndpointMatcher.matchSpecifiedViewport(
         routingInstructions,
         availableEndpoints,
         matchedInstructions,
-        remainingInstructions,
         false,
       );
     }
 
     // Finally, only one available and accepting viewport remaining?
     // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-    // and remainingInstructions and sets viewport scope and scope in actual RoutingInstruction
+    // and sets viewport scope and scope in actual RoutingInstruction
     EndpointMatcher.matchLastViewport(
       routingInstructions,
       availableEndpoints,
       matchedInstructions,
-      remainingInstructions,
     );
 
     // If we're ignoring viewports, we now match them anyway
     if (disregardViewports) {
       // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-      // and remainingInstructions and sets viewport scope and scope in actual RoutingInstruction.
+      // and sets viewport scope and scope in actual RoutingInstruction.
       // Pass in `false` to `doesntNeedViewportDescribed` since we do need the viewport if we got here
       EndpointMatcher.matchSpecifiedViewport(
         routingInstructions,
         availableEndpoints,
         matchedInstructions,
-        remainingInstructions,
         false,
       );
     }
 
-    remainingInstructions = [...routingInstructions, ...remainingInstructions];
     return {
       matchedInstructions,
-      remainingInstructions,
+      remainingInstructions: [...routingInstructions],
     };
   }
 
@@ -174,7 +165,6 @@ export class EndpointMatcher {
     routingInstructions: Collection<RoutingInstruction>,
     availableEndpoints: (Viewport | ViewportScope)[],
     matchedInstructions: RoutingInstruction[],
-    remainingInstructions: RoutingInstruction[],
     doesntNeedViewportDescribed: boolean = false,
   ): void {
     let instruction: RoutingInstruction | null;
@@ -185,14 +175,13 @@ export class EndpointMatcher {
         // ...(and of the type we're currently checking)...
         instruction.endpoint.endpointType === type
       ) {
-        // ...match the endpoint, updating the instruction!, and add the next
-        // scope instructions ("children") as remaining unmatched instructions...
-        remainingInstructions.push(...EndpointMatcher.matchEndpoint(
+        // ...match the endpoint, updating the instruction!, and set the scope
+        // for the next scope instructions ("children") to the endpoint's scope...
+        EndpointMatcher.matchEndpoint(
           instruction,
-          // (instruction.viewport.instance ?? instruction.viewportScope)!,
           instruction.endpoint.instance as Viewport | ViewportScope,
           doesntNeedViewportDescribed,
-        ));
+        );
         // ...add the matched instruction as a matched instruction...
         matchedInstructions.push(instruction);
         // ...remove the endpoint as available...
@@ -209,7 +198,6 @@ export class EndpointMatcher {
     routingInstructions: Collection<RoutingInstruction>,
     availableEndpoints: (Viewport | ViewportScope)[],
     matchedInstructions: RoutingInstruction[],
-    remainingInstructions: RoutingInstruction[],
   ): void {
     let instruction: RoutingInstruction | null;
 
@@ -239,7 +227,7 @@ export class EndpointMatcher {
           // to be processed in the call to `matchEndpoints` for the next scope.
           // Parameter `doesntNeedViewportDescribed` is set to false since described
           // viewports isn applicable on viewport scopes.
-          remainingInstructions.push(...EndpointMatcher.matchEndpoint(instruction, endpoint, false));
+          EndpointMatcher.matchEndpoint(instruction, endpoint, false);
           // Add the matched instruction to the result
           matchedInstructions.push(instruction);
           // Remove the endpoint from available endpoints
@@ -256,7 +244,6 @@ export class EndpointMatcher {
     routingInstructions: Collection<RoutingInstruction>,
     availableEndpoints: (Viewport | ViewportScope)[],
     matchedInstructions: RoutingInstruction[],
-    remainingInstructions: RoutingInstruction[],
   ): void {
     let instruction: RoutingInstruction | null;
     while ((instruction = routingInstructions.next()) !== null) {
@@ -270,7 +257,7 @@ export class EndpointMatcher {
           // to be processed in the call to `matchEndpoints` for the next scope.
           // Parameter `doesntNeedViewportDescribed` is set to true since it's the
           // configuration on the viewport that matches the instruction.
-          remainingInstructions.push(...EndpointMatcher.matchEndpoint(instruction, endpoint, true));
+          EndpointMatcher.matchEndpoint(instruction, endpoint, true);
           // Add the matched instruction to the result
           matchedInstructions.push(instruction);
           // Remove the endpoint from available endpoints
@@ -287,7 +274,6 @@ export class EndpointMatcher {
     routingInstructions: Collection<RoutingInstruction>,
     availableEndpoints: (Viewport | ViewportScope)[],
     matchedInstructions: RoutingInstruction[],
-    remainingInstructions: RoutingInstruction[],
     disregardViewports: boolean,
   ): void {
     let instruction: RoutingInstruction | null;
@@ -324,7 +310,7 @@ export class EndpointMatcher {
         // to be processed in the call to `matchEndpoints` for the next scope.
         // Parameter `doesntNeedViewportDescribed` is set to `disregardViewports` since the time of
         // invocation and whether viewport is part of that decides if it's needed.
-        remainingInstructions.push(...EndpointMatcher.matchEndpoint(instruction, viewport, disregardViewports));
+        EndpointMatcher.matchEndpoint(instruction, viewport, disregardViewports);
         // Add the matched instruction to the result
         matchedInstructions.push(instruction);
         // Remove the endpoint from available endpoints
@@ -339,7 +325,6 @@ export class EndpointMatcher {
     routingInstructions: Collection<RoutingInstruction>,
     availableEndpoints: (Viewport | ViewportScope)[],
     matchedInstructions: RoutingInstruction[],
-    remainingInstructions: RoutingInstruction[],
   ): void {
     let instruction: RoutingInstruction | null;
 
@@ -361,7 +346,7 @@ export class EndpointMatcher {
         // to be processed in the call to `matchEndpoints` for the next scope.
         // Parameter `doesntNeedViewportDescribed` is set to `true` since the viewport is the only
         // available option.
-        remainingInstructions.push(...EndpointMatcher.matchEndpoint(instruction, viewport, true));
+        EndpointMatcher.matchEndpoint(instruction, viewport, true);
         // Add the matched instruction to the result
         matchedInstructions.push(instruction);
         // Remove the endpoint from available endpoints
@@ -372,19 +357,19 @@ export class EndpointMatcher {
     }
   }
 
-  private static matchEndpoint(instruction: RoutingInstruction, endpoint: Viewport | ViewportScope, doesntNeedViewportDescribed: boolean): RoutingInstruction[] {
+  private static matchEndpoint(instruction: RoutingInstruction, endpoint: Viewport | ViewportScope, doesntNeedViewportDescribed: boolean): void {
     instruction.endpoint.set(endpoint);
     if (doesntNeedViewportDescribed) {
       instruction.needsEndpointDescribed = false;
     }
-    // Get all the next scope instructions, tag them as remaining...
-    const remaining = instruction.nextScopeInstructions?.slice() ?? [];
-    for (const rem of remaining) {
-      if (rem.scope === null) {
-        // ...and set the endpoint's routing scope as their scope
-        rem.scope = endpoint instanceof Viewport ? endpoint.scope : endpoint.scope.scope;
-      }
+    // Get all the next scope instructions...
+    if (instruction.hasNextScopeInstructions) {
+      instruction.nextScopeInstructions!.forEach(next => {
+        if (next.scope === null) {
+          // ...and set the endpoint's routing scope as their scope
+          next.scope = endpoint instanceof Viewport ? endpoint.scope : endpoint.scope.scope;
+        }
+      });
     }
-    return []; // remaining;
   }
 }

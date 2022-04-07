@@ -109,6 +109,11 @@ export function getRollupConfig(pkg, configure = identity, postBuildScript = ['p
   const cjsDevDist = 'dist/cjs/index.dev.js';
   const esmDist = 'dist/esm/index.js';
   const cjsDist = 'dist/cjs/index.js';
+  /** @type {import('rollup').WarningHandlerWithDefault} */
+  const onWarn = (warning, warn) => {
+    if (warning.code === 'CIRCULAR_DEPENDENCY') return;
+    warn(warning);
+  };
 
   const devConfig = configure({
     input: inputFile,
@@ -132,6 +137,7 @@ export function getRollupConfig(pkg, configure = identity, postBuildScript = ['p
       rollupTypeScript(),
       runPostbuildScript(...postBuildScript),
     ],
+    onwarn: onWarn
   });
 
   const prodConfig = configure({
@@ -161,6 +167,7 @@ export function getRollupConfig(pkg, configure = identity, postBuildScript = ['p
       rollupTypeScript(),
       runPostbuildScript(...postBuildScript),
     ],
+    onwarn: onWarn,
   });
   return [devConfig, prodConfig];
 }

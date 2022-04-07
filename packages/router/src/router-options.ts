@@ -25,6 +25,7 @@ export class TitleOptions {
      * between the component titles and the application name.
      * Default: '${componentTitles}\${appTitleSeparator}Aurelia'
      */
+    // eslint-disable-next-line no-useless-escape
     public appTitle: string = '${componentTitles}\${appTitleSeparator}Aurelia',
 
     /**

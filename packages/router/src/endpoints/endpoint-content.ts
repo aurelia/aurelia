@@ -51,7 +51,7 @@ export class EndpointContent {
     this.connectedScope = new RoutingScope(router, hasScope, owningScope, this);
     // Skip if no root scope (meaning we ARE the root scope!)
     if (this.router.rootScope !== null) {
-      (this.endpoint.connectedScope?.parent ?? this.router.rootScope?.scope).addChild(this.connectedScope);
+      (this.endpoint.connectedScope?.parent ?? this.router.rootScope.scope).addChild(this.connectedScope);
     }
   }
 

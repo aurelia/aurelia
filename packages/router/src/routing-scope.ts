@@ -165,14 +165,12 @@ export class RoutingScope {
   }
 
   public toString(recurse = false): string {
-    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${!this.enabled ? '(' : ''}${this.endpoint!.toString()}#${this.id}${!this.enabled ? ')' : ''}` +
-      // eslint-disable-next-line prefer-template
+    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${!this.enabled ? '(' : ''}${this.endpoint.toString()}#${this.id}${!this.enabled ? ')' : ''}` +
       `${recurse ? `\n` + this.children.map(child => child.toString(true)).join('') : ''}`;
   }
 
   public toStringOwning(recurse = false): string {
-    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${!this.enabled ? '(' : ''}${this.endpoint!.toString()}#${this.id}${!this.enabled ? ')' : ''}` +
-      // eslint-disable-next-line prefer-template
+    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${!this.enabled ? '(' : ''}${this.endpoint.toString()}#${this.id}${!this.enabled ? ')' : ''}` +
       `${recurse ? `\n` + this.ownedScopes.map(child => child.toStringOwning(true)).join('') : ''}`;
   }
 

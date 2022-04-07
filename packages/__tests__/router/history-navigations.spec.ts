@@ -69,7 +69,7 @@ describe('History navigations', function () {
   const Foo = CustomElement.define({ name: 'foo', template: `foo`, }, class {
     public static parameters: string[] = ['id'];
     public load(parameters) {
-      result.parameters = Object.assign({}, parameters);
+      result.parameters = { ...parameters };
     }
   });
 
@@ -82,7 +82,7 @@ describe('History navigations', function () {
     // });
     eventAggregator.subscribe(RouterNavigationEndEvent.eventName, (event: RouterNavigationEndEvent) => {
       result.url = event.navigation.path;
-      result.navigation = Object.assign({}, result.navigation, event.navigation.navigation);
+      result.navigation = { ...result.navigation, ...event.navigation.navigation };
     });
 
     for (const test of tests) {
@@ -91,6 +91,7 @@ describe('History navigations', function () {
         navigation: { first: false, new: false, refresh: false, back: false, forward: false, replace: false },
         parameters: {},
       });
+      // eslint-disable-next-line prefer-object-spread
       test.navigation = Object.assign({}, result.navigation, test.navigation);
 
       switch (test.load) {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { customElement, ICustomElementController } from '@aurelia/runtime-html';
 import { IRouterOptions, route, Routes, routes } from '@aurelia/router';
 import { assert } from '@aurelia/testing';

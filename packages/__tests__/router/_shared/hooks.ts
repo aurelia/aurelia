@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/no-duplicated-branches */
-/* eslint-disable sonarjs/no-all-duplicated-branches */
 import { assert } from '@aurelia/testing';
 import { HookName } from './hook-invocation-tracker.js';
 import { TransitionComponent } from './component.js';

@@ -1,4 +1,4 @@
-import { Constructable, LogLevel, Registration, ILogConfig, LoggerConfiguration, DI, IPlatform, ConsoleSink } from '@aurelia/kernel';
+import { Constructable, LogLevel, Registration, ILogConfig, LoggerConfiguration, DI, ConsoleSink } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime-html';
 import { RouterConfiguration, IRouter, IRouterOptions, NavigationState } from '@aurelia/router';
 import { TestContext } from '@aurelia/testing';
@@ -49,7 +49,6 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
     switch (routerOptionsSpec.deferUntil) {
       case 'load-hooks':
         syncStates.push('loaded', 'unloaded', 'routed');
-      // eslint-disable-next-line no-fallthrough
       case 'guard-hooks':
         syncStates.push('guardedLoad', 'guarded');
     }

@@ -63,7 +63,7 @@ describe('LinkHandler', function () {
       router.load = function (instructions, options?): Promise<boolean | void> {
         result = { instructions, origin: options.origin };
         return Promise.resolve();
-      }
+      };
 
       const anchor = doc.getElementsByTagName('A')[0];
 
@@ -98,7 +98,7 @@ describe('LinkHandler', function () {
       router.load = function (instructions, options?): Promise<boolean | void> {
         result = { instructions, origin: options.origin };
         return Promise.resolve();
-      }
+      };
 
       const anchor = doc.getElementsByTagName('A')[0];
 

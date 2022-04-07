@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Constructable, DI, IContainer, ILogConfig, LogLevel, Registration, Writable } from '@aurelia/kernel';
 import {
   CustomElement,
@@ -941,10 +940,10 @@ describe('router hooks', function () {
                       switch (opts.resolutionMode) {
                         case 'dynamic':
                           switch (opts.swapStrategy) {
-                            case 'parallel-remove-first':
+                            case 'parallel-remove-first': {
                               function* routingHooks(vp: 'vp0' | 'vp1', action: 'add' | 'remove' | 'blank') {
-                                let t1 = action === 'remove' ? $t1[vp] : ($t1[vp] ? '-' : '');
-                                let t2 = action === 'add' ? $t2[vp] : ($t2[vp] ? '-' : '');
+                                const t1 = action === 'remove' ? $t1[vp] : ($t1[vp] ? '-' : '');
+                                const t2 = action === 'add' ? $t2[vp] : ($t2[vp] ? '-' : '');
 
                                 if ($t1[vp] !== $t2[vp]) { yield* $(phase, t2, ticks, 'canLoad'); }
                                 if ($t1[vp] !== $t2[vp]) { yield* $(phase, t1, ticks, 'unload'); }
@@ -974,6 +973,7 @@ describe('router hooks', function () {
                                 })(),
                               );
                               break;
+                            }
                             case 'sequential-remove-first':
                               yield* interleave(
                                 (function* () {

@@ -20,7 +20,7 @@
       "mocha"
     ]
   },
-  "include": ["./*.ts", "./router/**/*.ts"],
+  "include": ["."],
   "exclude": [
     "router-lite/e2e",
     "dist"

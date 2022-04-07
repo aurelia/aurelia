@@ -20,18 +20,6 @@ const commonChromeFlags = [
 ];
 
 const testDirs = [
-<<<<<<< HEAD
-  // '1-kernel',
-  // '2-runtime',
-  // '3-runtime-html',
-  // 'fetch-client',
-  // 'i18n',
-  // 'integration',
-  'router',
-  // 'validation',
-  // 'validation-html',
-  // 'validation-i18n',
-=======
   '1-kernel',
   '2-runtime',
   '3-runtime-html',
@@ -43,17 +31,12 @@ const testDirs = [
   'validation',
   'validation-html',
   'validation-i18n',
->>>>>>> local-aurelia/jwx-router-return
 ];
 
 const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html --bail'.split(' ');
 const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
 
 const packageNames = [
-  'aurelia-direct-router',
-];
-
-const corePackageNames = [
   'fetch-client',
   'i18n',
   'kernel',
@@ -124,15 +107,6 @@ module.exports = function (config) {
       { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/${name}/**/!(*.$au)*.js` }, // 2.3
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
-<<<<<<< HEAD
-    { type: 'module', watched: true,  included: false, nocache: false, served: true, pattern: `packages/router/dist/esm/**/!(*.$au)*.js` }, // 3.1
-    { type: 'module', watched: false, included: false, nocache: true,  served: true, pattern: `packages/router/dist/esm/**/*.js.map` }, // 3.2
-    { type: 'module', watched: false, included: false, nocache: true,  served: true, pattern: `packages/router/src/**/*.ts` }, // 3.3
-    ...corePackageNames.flatMap(name => [
-      { type: 'module', watched: true,  included: false, nocache: false, served: true, pattern: `node_modules/@aurelia/${name}/dist/esm/index.js` }, // 3.1
-      { type: 'module', watched: true,  included: false, nocache: false, served: true, pattern: `node_modules/@aurelia/${name}/dist/esm/index.js.map` }, // 3.1
-    ])
-=======
     ...packageNames.flatMap(name => [
       { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/${name}/dist/esm/**/!(*.$au)*.js` }, // 3.1
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/${name}/dist/esm/**/*.js.map` }, // 3.2
@@ -145,7 +119,6 @@ module.exports = function (config) {
     { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/rxjs/_esm5/**/*.js.map` }, // 3.1
     { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/rxjs/_esm5/**/*.d.ts` }, // 3.1
     { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/tslib/tslib.es6.js` }, // 3.1
->>>>>>> local-aurelia/jwx-router-return
   ];
 
   const preprocessors = files.reduce((p, file) => {
@@ -199,7 +172,6 @@ module.exports = function (config) {
         timeout: 5000,
       }
     },
-    restartOnFileChange: true,
     logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
     // logLevel: config.LOG_DEBUG,
     plugins: [

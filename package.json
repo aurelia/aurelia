@@ -1,5 +1,5 @@
 {
-  "name": "aurelia-direct-router-monorepo",
+  "name": "@aurelia/monorepo",
   "private": true,
   "version": "2.0.0-alpha.26",
   "workspaces": [
@@ -40,10 +40,14 @@
     "examples/realworld-advanced",
     "examples/sierpinski-triangle",
     "test/karma-aurelia-preprocessor",
-    "examples/base-url",
-    "examples/lazy-loading-config",
-    "packages/__tests__",
-    "packages/__e2e__"
+    "test/i18n",
+    "test/benchmarking-apps/shared",
+    "test/benchmarking-apps/aurelia2",
+    "test/benchmarking-apps/runner",
+    "test/benchmarking-apps/storage",
+    "test/benchmarking-apps/test-result",
+    "test/benchmarking-apps/viewer/server",
+    "test/benchmarking-apps/viewer/client"
   ],
   "license": "MIT",
   "engines": {
@@ -92,7 +96,6 @@
     "test:debugger": "cd packages/__tests__ && npm run test-chrome:debugger"
   },
   "devDependencies": {
-    "@aurelia/testing": "latest",
     "@commitlint/cli": "^8.2.0",
     "@rollup/plugin-replace": "^2.4.2",
     "@rollup/plugin-typescript": "^8.2.5",

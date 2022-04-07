@@ -13,8 +13,9 @@ import { execSync } from 'child_process';
  */
 
 /**
- * @typedef StringifiedEnvVars
+ * @typedef NormalizedEnvVars
  * @property {string} [__DEV__] development build flag
+ * @property {string} [NO_MINIFIED] terser build flag
  */
 
 /** @type {EnvVars} */
@@ -22,7 +23,7 @@ const defaultEnvVars = {};
 
 /**
  * @param {EnvVars} [overrides] - overriding values for env variables
- * @returns {StringifiedEnvVars} final env variables
+ * @returns {NormalizedEnvVars} final env variables
  */
 export function getEnvVars(overrides) {
   return Object.fromEntries(
@@ -99,11 +100,26 @@ export function runPostbuildScript(...scripts) {
  */
 
 /**
+ * @callback ConfigCallback
+ * @param {import('rollup').RollupOptions} config
+ * @param {boolean} dev
+ * @param {NormalizedEnvVars} envVars
+ * @returns {import('rollup').RollupOptions}
+ */
+
+/**
  * @param {PackageJson} pkg
- * @param {(config: import('rollup').RollupOptions) => import("rollup").RollupOptions} [configure]
+ * @param {ConfigCallback} [configure]
+ * @param {(env: NormalizedEnvVars) => import('rollup-plugin-terser').Options} [configureTerser]
+ *  a callback that takes a record of env variables, and returns overrides for terser plugin config
  * @param {string[]} [postBuildScript]
  */
-export function getRollupConfig(pkg, configure = identity, postBuildScript = ['postrollup']) {
+export function getRollupConfig(pkg, configure = identity, configureTerser, postBuildScript = ['postrollup']) {
+  /** @type {NormalizedEnvVars} */
+  const envVars = {
+    __DEV__: process.env.__DEV__,
+    NO_MINIFIED: process.env.NO_MINIFIED
+  };
   const inputFile = 'src/index.ts';
   const esmDevDist = 'dist/esm/index.dev.js';
   const cjsDevDist = 'dist/cjs/index.dev.js';
@@ -133,12 +149,12 @@ export function getRollupConfig(pkg, configure = identity, postBuildScript = ['p
       },
     ],
     plugins: [
-      rollupReplace({ __DEV__: true }),
+      rollupReplace({ ...envVars, __DEV__: true }),
       rollupTypeScript(),
       runPostbuildScript(...postBuildScript),
     ],
     onwarn: onWarn
-  });
+  }, true, envVars);
 
   const prodConfig = configure({
     input: inputFile,
@@ -149,7 +165,7 @@ export function getRollupConfig(pkg, configure = identity, postBuildScript = ['p
         format: 'es',
         sourcemap: true,
         plugins: [
-          rollupTerser(),
+          rollupTerser(configureTerser?.(envVars)),
         ],
       },
       {
@@ -158,17 +174,18 @@ export function getRollupConfig(pkg, configure = identity, postBuildScript = ['p
         sourcemap: true,
         externalLiveBindings: false,
         plugins: [
-          rollupTerser(),
+          rollupTerser(configureTerser?.(envVars)),
         ],
       },
     ],
     plugins: [
-      rollupReplace({ __DEV__: false }),
+      rollupReplace({ ...envVars, __DEV__: false }),
       rollupTypeScript(),
       runPostbuildScript(...postBuildScript),
     ],
     onwarn: onWarn,
-  });
+  }, false, envVars);
+
   return [devConfig, prodConfig];
 }
 

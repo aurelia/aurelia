@@ -1,6 +1,14 @@
 /* eslint-disable */
+// convert all import paths into relative paths so it works natively in the browser
+// example:
+// import {} from '@aurelia/kernel'
+// ->
+// import {} from '../../kernel/dist/esm/index.js'
+// this works with CDN well, though it wouldn't have the proper sourcemap
+// todo: consider make this step part of the rollup build
+// ------------------------
 import * as ts from 'typescript';
-import { File, getFiles } from './files';
+import { getFiles } from './files';
 import { createLogger } from './logger';
 import project from './project';
 import * as path from 'path';
@@ -9,7 +17,12 @@ import * as fs from 'fs';
 const log = createLogger('generate-native-modules');
 
 (async function (): Promise<void> {
-  const packages = project.packages.filter(pkg => !pkg.name.kebab.includes('_') && pkg.folder.includes('packages') && !pkg.folder.includes('packages-cjs'));
+  const packages = project.packages.filter(pkg =>
+    !pkg.name.kebab.includes('_')
+    && pkg.folder.includes('packages')
+    && !pkg.folder.includes('__e2e__')
+    && !pkg.folder.includes('packages-cjs')
+  );
 
   for (const pkg of packages) {
     const distPath = path.join(pkg.path, 'dist');

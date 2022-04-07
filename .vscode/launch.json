@@ -238,6 +238,33 @@
       ],
       "cwd": "${workspaceRoot}/test/router-layouts/",
       "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch mocha runtime tests - new",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceRoot}/packages/__tests__/tsconfig.json"
+      },
+      "args": [
+       "--ui",
+       "bdd",
+       "--reporter",
+       "min",
+       "--colors",
+       "--recursive",
+       "--timeout",
+       "50000",
+       "--watch-extensions",
+       "js",
+       "--bail",
+       "${workspaceRoot}/packages/__tests__/dist/esm/__tests__/setup-node.js",
+       "${workspaceRoot}/packages/__tests__/dist/esm/__tests__/2-runtime/*.spec.js",
+       "${workspaceRoot}/packages/__tests__/dist/esm/__tests__/3-runtime-html/*.spec.js"
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
     }
   ]
 }

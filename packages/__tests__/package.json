@@ -11,27 +11,32 @@
     "lint": "eslint --cache --ext .js,.ts .",
     "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives .",
     "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js dist/esm/__tests__/setup-node.js",
-    "test-node": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --exit dist/esm/__tests__/setup-node.js dist/esm/__tests__/**/*.spec.js --exclude dist/esm/__tests__/integration/**/*.spec.js",
+    "test-node": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --exit dist/esm/__tests__/setup-node.js dist/esm/__tests__/**/*.spec.js --exclude dist/esm/__tests__/integration/**/*.spec.js --exclude dist/esm/__tests__/store-v1/**/*.spec.js",
     "test-node:kernel": "npm run ::mocha -- dist/esm/__tests__/1-kernel/**/*.spec.js",
     "test-node:runtime": "npm run ::mocha -- dist/esm/__tests__/2-runtime/*.spec.js",
     "test-node:runtime-html": "npm run ::mocha -- dist/esm/__tests__/3-runtime-html/**/*.spec.js",
-    "test-node:router": "npm run ::mocha -- dist/esm/__tests__/router/*.spec.js",
+    "test-node:router-lite": "npm run ::mocha -- dist/esm/__tests__/router-lite/*.spec.js",
     "test-node:i18n": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha --ui bdd --reporter spec --colors --recursive --timeout 5000 --watch-extensions js dist/esm/__tests__/setup-node.js dist/esm/__tests__/i18n/**/*.spec.js",
+    "test-node:store-v1": "npm run ::mocha --  dist/esm/__tests__/store-v1/*.spec.js",
     "test-node:validation": "npm run ::mocha -- dist/esm/__tests__/validation*/**/*.spec.js",
     "test-chrome": "karma start karma.conf.cjs --browsers=ChromeHeadlessOpt --single-run --coverage",
     "test-firefox": "karma start karma.conf.cjs --browsers=FirefoxHeadless --single-run --coverage",
     "test-firefox:verbose": "karma start karma.conf.cjs --browsers=FirefoxHeadless --single-run --coverage --reporter=mocha",
-    "test-node:verbose": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha ---ui bdd --reporter spec --colors --recursive --timeout 5000 --exit dist/esm/__tests__/setup-node.js dist/esm/__tests__/**/*.spec.js --exclude dist/esm/__tests__/integration/**/*.spec.js",
+    "test-node:verbose": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha ---ui bdd --reporter spec --colors --recursive --timeout 5000 --exit dist/esm/__tests__/setup-node.js dist/esm/__tests__/**/*.spec.js --exclude dist/esm/__tests__/integration/**/*.spec.js --exclude dist/esm/__tests__/store-v1/**/*.spec.js",
     "test-node:watch": "npm run test-node -- --watch --watch-extensions ts",
     "test-chrome:watch": "karma start karma.conf.cjs --browsers=ChromeHeadlessOpt --coverage --watch-extensions js,html",
     "test-chrome:watch:verbose": "karma start karma.conf.cjs --browsers=ChromeHeadlessOpt --coverage --watch-extensions js,html --reporter=mocha",
     "test-chrome:verbose": "karma start karma.conf.cjs --browsers=ChromeHeadlessOpt --single-run --coverage --reporter=mocha",
     "test-chrome:debugger": "karma start karma.conf.cjs --browsers=ChromeDebugging --watch-extensions js,html",
     "test-chrome:debugger:verbose": "karma start karma.conf.cjs --browsers=ChromeDebugging --watch-extensions js,html --reporter=mocha",
+    "test:debugger": "npm run test-chrome:debugger",
+    "test": "npm run test-chrome",
     "build": "tsc --build",
-    "dev": "tsc --build -w --preserveWatchOutput"
+    "dev": "tsc --build -w --preserveWatchOutput",
+    "rollup": "npm run build"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@aurelia/fetch-client": "latest",
     "@aurelia/i18n": "latest",
     "@aurelia/kernel": "latest",
@@ -48,27 +53,65 @@
     "i18next": "^17.0.0",
     "jsdom": "^15.2.1",
     "typescript": "^4.3.5"
+=======
+    "@aurelia/fetch-client": "2.0.0-alpha.26",
+    "@aurelia/i18n": "2.0.0-alpha.26",
+    "@aurelia/kernel": "2.0.0-alpha.26",
+    "@aurelia/metadata": "2.0.0-alpha.26",
+    "@aurelia/platform": "2.0.0-alpha.26",
+    "@aurelia/platform-browser": "2.0.0-alpha.26",
+    "@aurelia/route-recognizer": "2.0.0-alpha.26",
+    "@aurelia/router-lite": "2.0.0-alpha.26",
+    "@aurelia/runtime": "2.0.0-alpha.26",
+    "@aurelia/runtime-html": "2.0.0-alpha.26",
+    "@aurelia/store-v1": "2.0.0-alpha.26",
+    "@aurelia/testing": "2.0.0-alpha.26",
+    "@aurelia/validation": "2.0.0-alpha.26",
+    "@aurelia/validation-html": "2.0.0-alpha.26",
+    "@aurelia/validation-i18n": "2.0.0-alpha.26",
+    "i18next": "^17.0.0",
+    "jsdom": "^15.2.1",
+    "rxjs": "^6.6.7",
+    "typescript": "^4.6.2"
+>>>>>>> local-aurelia/jwx-router-return
   },
   "devDependencies": {
     "@types/jsdom": "^16.2.4",
     "@types/karma": "^5.0.0",
+<<<<<<< HEAD
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.17.14",
+=======
+    "@types/mocha": "^8.2.3",
+    "@types/node": "^14.11.5",
+>>>>>>> local-aurelia/jwx-router-return
     "cross-env": "^7.0.2",
-    "full-icu": "^1.3.0",
+    "full-icu": "^1.3.4",
     "istanbul": "^0.4.5",
+<<<<<<< HEAD
     "karma": "^5.2.3",
+=======
+    "karma": "^6.3.16",
+>>>>>>> local-aurelia/jwx-router-return
     "karma-chrome-launcher": "^3.1.0",
     "karma-coverage": "^2.0.3",
     "karma-coverage-istanbul-instrumenter": "^1.0.3",
     "karma-coverage-istanbul-reporter": "^3.0.3",
+<<<<<<< HEAD
     "karma-firefox-launcher": "^2.1.0",
+=======
+    "karma-firefox-launcher": "^2.1.1",
+>>>>>>> local-aurelia/jwx-router-return
     "karma-junit-reporter": "^2.0.1",
     "karma-min-reporter": "^0.1.0",
     "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "karma-sourcemap-loader": "^0.3.7",
+<<<<<<< HEAD
     "mocha": "^8.1.3",
+=======
+    "mocha": "^8.4.0",
+>>>>>>> local-aurelia/jwx-router-return
     "source-map": "^0.7.3",
     "source-map-support": "^0.5.19",
     "ts-node": "^9.0.0",

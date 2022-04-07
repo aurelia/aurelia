@@ -20,6 +20,7 @@ const commonChromeFlags = [
 ];
 
 const testDirs = [
+<<<<<<< HEAD
   // '1-kernel',
   // '2-runtime',
   // '3-runtime-html',
@@ -30,7 +31,23 @@ const testDirs = [
   // 'validation',
   // 'validation-html',
   // 'validation-i18n',
+=======
+  '1-kernel',
+  '2-runtime',
+  '3-runtime-html',
+  'fetch-client',
+  'i18n',
+  'integration',
+  'router-lite',
+  'store-v1',
+  'validation',
+  'validation-html',
+  'validation-i18n',
+>>>>>>> local-aurelia/jwx-router-return
 ];
+
+const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html --bail'.split(' ');
+const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
 
 const packageNames = [
   'aurelia-direct-router',
@@ -44,9 +61,10 @@ const corePackageNames = [
   'platform',
   'platform-browser',
   'route-recognizer',
-  'router',
+  'router-lite',
   'runtime',
   'runtime-html',
+  'store-v1',
   'testing',
   'validation',
   'validation-html',
@@ -62,6 +80,16 @@ module.exports = function (config) {
   } else {
     browsers = ['Chrome'];
   }
+  const baseUrl = 'packages/__tests__/dist/esm/__tests__';
+
+  const testFilePatterns = cliArgs.length > 0
+    ? cliArgs.flatMap(arg => [
+        `${baseUrl}/**/*${arg.replace(/(?:\.[tj]s)?$/, '*.js')}`,
+        `${baseUrl}/**/${arg}/**/*.spec.js`,
+    ])
+    : [`${baseUrl}/**/*.spec.js`];
+
+  console.log('test patterns:', testFilePatterns);
 
   // Karma config reference: https://karma-runner.github.io/5.2/config/files.html
   // --------------------------------------------------------------------------------
@@ -81,17 +109,22 @@ module.exports = function (config) {
   //   Because they're not watched, they're also not cached, so that the browser will always serve the latest version from disk.
   //
   const files = [
+    { type: 'script', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/importmap.js` },
     { type: 'script', watched: false, included: true,  nocache: false, pattern: path.join(smsPath, 'browser-source-map-support.js') },
-    { type: 'module', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/setup-browser.js` }, // 1.1
-    { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/setup-shared.js` }, // 1.2
-    { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/util.js` }, // 1.3
-    { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/Spy.js` }, // 1.4
+    { type: 'module', watched: true,  included: true,  nocache: false, pattern: `${baseUrl}/setup-browser.js` }, // 1.1
+    { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/setup-shared.js` }, // 1.2
+    { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/util.js` }, // 1.3
+    { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/Spy.js` }, // 1.4
+    ...testFilePatterns.map(pattern =>
+      ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: pattern }), // 2.1
+    ), // 2.1 (new)
     ...testDirs.flatMap(name => [
-      { type: 'module', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/*.spec.js` }, // 2.1
-      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/*.js.map` }, // 2.2
-      { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/!(*.$au)*.js` }, // 2.3
+      // { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1 (old)
+      { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.js.map` }, // 2.2
+      { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/${name}/**/!(*.$au)*.js` }, // 2.3
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
+<<<<<<< HEAD
     { type: 'module', watched: true,  included: false, nocache: false, served: true, pattern: `packages/router/dist/esm/**/!(*.$au)*.js` }, // 3.1
     { type: 'module', watched: false, included: false, nocache: true,  served: true, pattern: `packages/router/dist/esm/**/*.js.map` }, // 3.2
     { type: 'module', watched: false, included: false, nocache: true,  served: true, pattern: `packages/router/src/**/*.ts` }, // 3.3
@@ -99,13 +132,27 @@ module.exports = function (config) {
       { type: 'module', watched: true,  included: false, nocache: false, served: true, pattern: `node_modules/@aurelia/${name}/dist/esm/index.js` }, // 3.1
       { type: 'module', watched: true,  included: false, nocache: false, served: true, pattern: `node_modules/@aurelia/${name}/dist/esm/index.js.map` }, // 3.1
     ])
+=======
+    ...packageNames.flatMap(name => [
+      { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/${name}/dist/esm/**/!(*.$au)*.js` }, // 3.1
+      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/${name}/dist/esm/**/*.js.map` }, // 3.2
+      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/${name}/src/**/*.ts` }, // 3.3
+    ]),
+    // for i18n tests
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/i18next/dist/esm/i18next.js` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/@babel/runtime/helpers/**/*.js` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/rxjs/_esm5/**/*.js` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/rxjs/_esm5/**/*.js.map` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/rxjs/_esm5/**/*.d.ts` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/tslib/tslib.es6.js` }, // 3.1
+>>>>>>> local-aurelia/jwx-router-return
   ];
 
   const preprocessors = files.reduce((p, file) => {
     // Only process .js files (not .js.map or .ts files)
     if (/\.js$/.test(file.pattern)) {
       // Only instrument core framework files (not the specs themselves, nor any test utils (for now))
-      if (/__tests__|testing/.test(file.pattern) || !config.coverage) {
+      if (/__tests__|testing|node_modules/.test(file.pattern) || !config.coverage) {
         p[file.pattern] = ['aurelia'];
       } else {
         p[file.pattern] = ['aurelia', 'karma-coverage-istanbul-instrumenter'];
@@ -155,6 +202,15 @@ module.exports = function (config) {
     restartOnFileChange: true,
     logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
     // logLevel: config.LOG_DEBUG,
+    plugins: [
+      'karma-mocha',
+      'karma-aurelia-preprocessor',
+      'karma-coverage-istanbul-instrumenter',
+      'karma-coverage-istanbul-reporter',
+      'karma-min-reporter',
+      'karma-chrome-launcher',
+      'karma-firefox-launcher',
+    ]
   };
 
   if (config.coverage) {

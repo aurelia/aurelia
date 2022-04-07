@@ -9,7 +9,7 @@ export class SpecsViewer {
   @bindable public things: Thing[];
   private pairs: { vm: typeof ThingViewer; thing: Thing }[];
 
-  public binding() {
+  public binding(): void {
     const toVm = (thing: Thing) => {
       switch (true) {
         case thing instanceof Camera: return CameraSpecsViewer;

@@ -87,13 +87,13 @@ export class App {
   ];
   public selectedHero: Card = this.heroes[0];
 
-  public changeTexts() {
+  public changeTexts(): void {
     this.text1 = 'newText1';
     this.text2 = 'newText2';
     this.text3 = 'newText3';
   }
 
-  public doSomething() {
+  public doSomething(): void {
     this.somethingDone = true;
   }
 }

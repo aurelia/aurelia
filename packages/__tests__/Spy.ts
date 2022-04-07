@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { assert } from '@aurelia/testing';
 
 export class Spy {
   public callRecords = new Map<string, any[][]>();
 
-  public getMock<T extends object>(objectToMock: T) {
+  public getMock<T extends object>(objectToMock: T): T {
     const spy = this;
     return new Proxy<T>(objectToMock, {
       get(target: T, propertyKey: string, _receiver) {
@@ -18,7 +19,7 @@ export class Spy {
     });
   }
 
-  public setCallRecord(methodName: string, args: any[]) {
+  public setCallRecord(methodName: string, args: any[]): void {
     let record = this.callRecords.get(methodName);
     if (record) {
       record.push(args);
@@ -28,9 +29,9 @@ export class Spy {
     this.callRecords.set(methodName, record);
   }
 
-  public clearCallRecords() { this.callRecords.clear(); }
+  public clearCallRecords(): void { this.callRecords.clear(); }
 
-  public methodCalledTimes(methodName: string, times: number) {
+  public methodCalledTimes(methodName: string, times: number): void {
     const calls = this.callRecords.get(methodName);
     if (times !== 0) {
       assert.notEqual(calls, undefined);
@@ -40,12 +41,12 @@ export class Spy {
     }
   }
 
-  public methodCalledOnceWith(methodName: string, expectedArgs: any[]) {
+  public methodCalledOnceWith(methodName: string, expectedArgs: any[]): void {
     this.methodCalledTimes(methodName, 1);
     this.methodCalledNthTimeWith(methodName, 1, expectedArgs);
   }
 
-  public methodCalledNthTimeWith(methodName: string, n: number, expectedArgs: any[]) {
+  public methodCalledNthTimeWith(methodName: string, n: number, expectedArgs: any[]): void {
     const calls = this.callRecords.get(methodName);
     assert.deepEqual(calls[n - 1], expectedArgs);
   }

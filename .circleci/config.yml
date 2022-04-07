@@ -41,7 +41,7 @@ map-5: &filter_only_tag
     branches:
       ignore: /.*/
     tags:
-      only: /^v[0-9]+(\.[0-9]+)*$/
+      only: /^v[0-9]+(\.[0-9]+)*(-[\w]+\.[0-9]+)?$/
 
 map-6: &filter_only_topic
   filters:
@@ -96,9 +96,9 @@ commands:
       - common/configure_git
       - checkout_install
       - run: npm run build:release
-      - run: npm run change-tsconfigs:invert
-      - run: npm run build:release
-      - run: npm run change-tsconfigs:restore
+      # - run: npm run change-tsconfigs:invert
+      # - run: npm run build:release
+      # - run: npm run change-tsconfigs:restore
       - run: npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
@@ -168,12 +168,13 @@ jobs:
     executor: docker-circleci
     steps:
       - checkout_install
-      - run: npm run build
+      - run: npm run build:test
       - run:
           name: "Run unit tests"
           command: |
             cd packages/__tests__
             npm run << parameters.npm_command >>
+
       - when:
           condition: << parameters.coverage >>
           steps:
@@ -243,15 +244,18 @@ jobs:
       bump_version:
         type: boolean
         default: true
+      dist_file_name:
+        type: string
+        default: dist
     steps:
       - run: git config --global user.email "aurelia@bluespire.com"
       - run: git config --global user.name "AureliaEffect"
       - run: git config --global core.mergeoptions "--no-edit"
       - checkout_install
       - run: set -o pipefail && npm run build:release
-      - run: set -o pipefail && npm run change-tsconfigs:invert
-      - run: set -o pipefail && npm run build:release
-      - run: set -o pipefail && npm run change-tsconfigs:restore
+      # - run: set -o pipefail && npm run change-tsconfigs:invert
+      # - run: set -o pipefail && npm run build:release
+      # - run: set -o pipefail && npm run change-tsconfigs:restore
       - run: set -o pipefail && npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
@@ -263,6 +267,10 @@ jobs:
           condition: << parameters.push >>
           steps:
             - run: git push origin << parameters.to >>
+      - run: zip -r << parameters.dist_file_name >>.zip packages/*/dist packages/*/package.json
+      - store_artifacts:
+          path: << parameters.dist_file_name >>.zip
+          destination: << parameters.dist_file_name >>.zip
 
   publish_npm:
     executor: docker-circleci
@@ -281,7 +289,6 @@ jobs:
           steps:
             - run: git checkout << parameters.branch >>
             - run: git pull
-      - run: sudo npm i -g lage
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
@@ -362,7 +369,7 @@ jobs:
           command: |
             cd test/benchmarking-apps/runner
             echo "{\"cosmosEndpoint\": \"https://aurelia.documents.azure.com:443/\",\"cosmosKey\": \"$AZURE_COSMOS_DB_KEY\", \"endpoint\": \"https://aurelia.documents.azure.com:443/\",\"key\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
-            set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos
+            set -o pipefail && node dist/run-benchmarks --i 2 --storage json
       - run: cd ../../../
       - checkout_install
       - run: npm run build
@@ -370,31 +377,31 @@ jobs:
           name: "Run test for the current branch"
           command: |
             cd test/benchmarking-apps/runner
-            set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos
+            set -o pipefail && node dist/run-benchmarks --i 2 --storage json
       # source: https://support.circleci.com/hc/en-us/articles/360048170573-Auto-comment-on-GitHub-Pull-Requests
-      - run:
-          name: Post benchmarking comparison link to GitHub PR
-          command: |
-            sudo apt-get install jq
+      # - run:
+      #     name: Post benchmarking comparison link to GitHub PR
+      #     command: |
+      #       sudo apt-get install jq
 
-            pr_response=$(curl --location --request GET "https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls?head=$CIRCLE_PROJECT_USERNAME:$CIRCLE_BRANCH" -H "Authorization: token $GITHUB_TOKEN")
+      #       pr_response=$(curl --location --request GET "https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls?head=$CIRCLE_PROJECT_USERNAME:$CIRCLE_BRANCH" -H "Authorization: token $GITHUB_TOKEN")
 
-            if [ $(echo $pr_response | jq length) -eq 0 ]; then
-              echo "No PR found to update"
-            else
-              pr_comment_url=$(echo $pr_response | jq -r ".[]._links.comments.href")
+      #       if [ $(echo $pr_response | jq length) -eq 0 ]; then
+      #         echo "No PR found to update"
+      #       else
+      #         pr_comment_url=$(echo $pr_response | jq -r ".[]._links.comments.href")
 
-              git checkout master
-              master_commit=$(git rev-parse HEAD)
+      #         git checkout master
+      #         master_commit=$(git rev-parse HEAD)
 
-              comparison_url="https://au2-bench-viewer.azurewebsites.net/compare?branch=master&commit=$master_commit&branch=$CIRCLE_BRANCH&commit=$CIRCLE_SHA1"
-              curl --location --request POST "$pr_comment_url" \
-              -H 'Content-Type: application/json' \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              --data-raw "{
-              \"body\": \"The benchmarking comparison can be found here: $comparison_url\"
-              }"
-            fi
+      #         comparison_url="https://au2-bench-viewer.azurewebsites.net/compare?branch=master&commit=$master_commit&branch=$CIRCLE_BRANCH&commit=$CIRCLE_SHA1"
+      #         curl --location --request POST "$pr_comment_url" \
+      #         -H 'Content-Type: application/json' \
+      #         -H "Authorization: token $GITHUB_TOKEN" \
+      #         --data-raw "{
+      #         \"body\": \"The benchmarking comparison can be found here: $comparison_url\"
+      #         }"
+      #       fi
 
 # # # # # # # # # # # # # # # #
 # - Workflows -
@@ -474,6 +481,7 @@ workflows:
           from: master
           to: develop
           channel: dev
+          dist_file_name: merge_and_dist_topic
       - publish_npm:
           <<: *filter_only_master
           channel: dev
@@ -541,4 +549,3 @@ workflows:
           branch: release
           requires:
             - request_publish_latest
-

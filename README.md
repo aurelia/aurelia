@@ -7,6 +7,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://badge.fury.io/js/%40aurelia%2Fkernel.svg)](https://badge.fury.io/js/%40aurelia%2Fkernel)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
+[![Twitter](https://img.shields.io/twitter/follow/aureliaeffect.svg?style=social&label=Follow)](https://twitter.com/intent/follow?screen_name=aureliaeffect)
+[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/aurelia/aurelia)
 
 # Aurelia Direct Router
 
@@ -26,7 +28,13 @@ For our nightly builds:
 npm i aurelia-direct-router@dev
 ```
 
-## Using
+This example shows you some of the powerful features of the aurelia binding syntax. To learn further, please [see our documentation](https://docs.aurelia.io/).
+
+Feeling excited? Check out how to use `makes` to get started in the next section.
+
+Note: *Please keep in mind that Aurelia 2 is still in alpha.* A number of features and use cases around the public API are still untested and there will be a few more breaking changes.
+
+## Getting Started
 
 Once the Aurelia Direct Router is installed, simply `import` anything router related from `aurelia-direct-router` instead of from `aurelia` or `@aurelia/router`. So, for example, in your `main.js/ts` file
 

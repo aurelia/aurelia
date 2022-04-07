@@ -7,7 +7,7 @@ export function createTestFunction(
   testFunction: (ctx: TestExecutionContext) => Promise<void> | void,
   startupConfiguration?: StartupConfiguration,
 ) {
-  return async function () {
+  return async function (): Promise<void> {
     const ctx = await startup(startupConfiguration);
     try {
       await testFunction(ctx);
@@ -18,21 +18,23 @@ export function createTestFunction(
     }
   };
 }
-export function $it(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration) {
+export function $it(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration): void {
   it(title, createTestFunction(testFunction, startupConfiguration));
 }
 $it.skip = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration) {
+  // eslint-disable-next-line mocha/no-skipped-tests
   it.skip(title, createTestFunction(testFunction, startupConfiguration));
 };
 $it.only = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration) {
+  // eslint-disable-next-line mocha/no-exclusive-tests
   it.only(title, createTestFunction(testFunction, startupConfiguration));
 };
 
-export function getViewModel<T>(element: Element) {
+export function getViewModel<T>(element: Element): T {
   const { viewModel } = (CustomElement.for(element) as unknown) as { viewModel: T };
   return viewModel;
 }
-export function assertCalls(calls: Call[], fromIndex: number, instance: any, expectedCalls: string[], unexpectedCalls?: string[], message?: string) {
+export function assertCalls(calls: Call[], fromIndex: number, instance: any, expectedCalls: string[], unexpectedCalls?: string[], message?: string): void {
   const recentCalls = new Set(calls.slice(fromIndex).map(c => Object.is(ProxyObservable.unwrap(c.instance), instance) && c.method));
   for (const expectedCall of expectedCalls) {
     assert.equal(recentCalls.has(expectedCall), true, `${message || ''} expected ${expectedCall}`);

@@ -2,6 +2,22 @@
   "files": [],
   "references": [
     { "path": "__tests__" },
-    { "path": "router" }
+    { "path": "au" },
+    { "path": "aurelia" },
+    { "path": "fetch-client" },
+    { "path": "kernel" },
+    { "path": "metadata" },
+    { "path": "platform" },
+    { "path": "platform-browser" },
+    { "path": "router-lite" },
+    { "path": "route-recognizer" },
+    { "path": "runtime" },
+    { "path": "runtime-html" },
+    { "path": "store-v1" },
+    { "path": "testing" },
+    { "path": "validation" },
+    { "path": "validation-html" },
+    { "path": "validation-i18n" },
+    { "path": "http-server" }
   ]
 }

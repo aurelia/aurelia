@@ -2827,13 +2827,13 @@ describe(RouteRecognizer.name, function () {
   ]) {
     it(`throws on clashing patterns: [${route1},${route2}]`, function () {
       const sut = new RouteRecognizer();
-      let err: Error | null = null;
+      let _err: Error | null = null;
 
       sut.add({ path: route1, handler: null });
       try {
         sut.add({ path: route2, handler: null });
       } catch(e) {
-        err = e;
+        _err = e;
       }
 
       assert.throws(() => sut.add({ path: route2, handler: null }), `Cannot add ambiguous route. The pattern '${route2}' clashes with '${route1}'`);

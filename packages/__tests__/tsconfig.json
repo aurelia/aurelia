@@ -2,10 +2,11 @@
   "extends": "../tsconfig-build.json",
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
-    "declarationDir": "dist",
+    "declarationDir": "dist/types",
     "outDir": "dist/esm",
     "lib": ["esnext", "dom"],
     "resolveJsonModule": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": false,
     "emitDecoratorMetadata": true,
     "strict": false,
@@ -21,7 +22,7 @@
   },
   "include": ["./*.ts", "./router/**/*.ts"],
   "exclude": [
-    "router/e2e",
+    "router-lite/e2e",
     "dist"
   ]
 }

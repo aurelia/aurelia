@@ -1,6 +1,6 @@
 /* eslint-disable no-fallthrough */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Runner, Step } from 'aurelia-direct-router';
+import { Runner, Step } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
 const createTimedPromise = (value, time, previousValue?, reject = false): Promise<unknown> => {

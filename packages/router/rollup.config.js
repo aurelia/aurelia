@@ -5,6 +5,9 @@ import { terser } from 'rollup-plugin-terser';
 import pkg from './package.json';
 import { exec } from 'child_process';
 
+// todo: fix the issue with the tests getting affected by minification
+const noMinified = process.env.NO_MINIFIED === 'true';
+
 const tsPluginConfig = typescript({
   tsconfig: 'tsconfig.build.json',
   sourceMap: true,
@@ -20,8 +23,8 @@ const replacePluginCfg = replace({
 const terserPluginCfg = terser({
   compress: {
     defaults: false,
-    drop_debugger: false,
     drop_console: false,
+    drop_debugger: false
   },
   mangle: {
     properties: {
@@ -48,21 +51,19 @@ export default {
       file: `dist/esm/index.js`,
       format: 'es',
       sourcemap: true,
-      plugins: [terserPluginCfg],
+      plugins: noMinified ? [] : [terserPluginCfg]
     },
     {
       file: `dist/cjs/index.dev.js`,
       format: 'cjs',
       sourcemap: true,
       esModule: true,
-      externalLiveBindings: false,
     },
     {
       file: `dist/cjs/index.js`,
       format: 'cjs',
       sourcemap: true,
-      externalLiveBindings: false,
-      plugins: [terserPluginCfg]
+      plugins: noMinified ? [] : [terserPluginCfg]
     },
   ],
   plugins: [

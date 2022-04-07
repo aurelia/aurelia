@@ -1,4 +1,4 @@
-import { IRouter, RouterConfiguration } from 'aurelia-direct-router';
+import { IRouter, RouterConfiguration } from '@aurelia/router';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 

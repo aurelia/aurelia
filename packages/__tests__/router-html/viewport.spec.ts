@@ -1,4 +1,4 @@
-import { Viewport, RouterConfiguration, IRouter } from 'aurelia-direct-router';
+import { Viewport, RouterConfiguration, IRouter } from '@aurelia/router';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 

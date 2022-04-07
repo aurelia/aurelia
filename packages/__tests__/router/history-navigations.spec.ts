@@ -1,5 +1,5 @@
 import { IEventAggregator } from '@aurelia/kernel';
-import { RouterConfiguration, IRouter, IRouterOptions, NavigationFlags, RouterNavigationEndEvent } from 'aurelia-direct-router';
+import { RouterConfiguration, IRouter, IRouterOptions, NavigationFlags, RouterNavigationEndEvent } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 

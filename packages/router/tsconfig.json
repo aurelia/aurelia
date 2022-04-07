@@ -1,14 +1,12 @@
 {
   "extends": "../tsconfig-build.json",
   "compilerOptions": {
-    "composite": false,
-    "declaration": false,
-    "declarationMap": false,
-    "rootDir": "src",
+    "declarationDir": "dist/types",
+    "outDir": "dist/esm",
     "lib": ["esnext", "dom", "DOM.Iterable"],
+    "rootDir": "src",
+
     "strict": true
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

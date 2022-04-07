@@ -1,5 +1,5 @@
 import Aurelia from 'aurelia';
-import { RouterConfiguration } from 'aurelia-direct-router';
+import { RouterConfiguration } from '@aurelia/router';
 import { App } from './app';
 
 Aurelia

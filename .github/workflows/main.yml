@@ -28,6 +28,7 @@ jobs:
   #         "kernel",
   #         "runtime",
   #         "runtime-html",
+  #         "router",
   #         "router-lite",
   #         "i18n",
   #         "validation",

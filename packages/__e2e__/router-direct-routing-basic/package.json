@@ -1,5 +1,5 @@
 {
-  "name": "aurelia-direct-router-tests-e2e",
+  "name": "@aurelia/router-tests-e2e",
   "license": "MIT",
   "private": true,
   "engines": {
@@ -21,7 +21,7 @@
     "@aurelia/platform-browser": "latest",
     "@aurelia/runtime": "latest",
     "@aurelia/runtime-html": "latest",
-    "aurelia-direct-router": "2.0.0-alpha.21.0"
+    "@aurelia/router": "2.0.0-alpha.21.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.14.0",

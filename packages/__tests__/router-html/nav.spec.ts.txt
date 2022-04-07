@@ -1,4 +1,5 @@
-import { IRouter, Nav, RouterConfiguration, RoutingInstruction } from '@aurelia/router';
+import { IRouter, RouterConfiguration, RoutingInstruction } from '@aurelia/router';
+import { Nav } from '@aurelia/router-html';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -84,7 +85,7 @@ describe('Nav', function () {
   it('generates nav with child links', async function () {
     this.timeout(5000);
     const { host, router, tearDown, platform } = await createFixture('qux');
-    router.activeComponents =[RoutingInstruction.create('baz', 'main-viewport') as RoutingInstruction];
+    router.activeComponents = [RoutingInstruction.create('baz', 'main-viewport') as RoutingInstruction];
 
     await platform.domWriteQueue.yield();
 

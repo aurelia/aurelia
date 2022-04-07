@@ -1,4 +1,4 @@
-import { Queue, QueueItem } from 'aurelia-direct-router';
+import { Queue, QueueItem } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 
 class Animal {

@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "__tests__" },
+    { "path": "aot" },
+    { "path": "plugin-conventions" },
+    { "path": "plugin-gulp" },
+    { "path": "webpack-loader" },
+    { "path": "babel-jest" },
+    { "path": "ts-jest" },
+    { "path": "parcel-transformer" }
+  ]
+}

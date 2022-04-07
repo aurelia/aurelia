@@ -1,0 +1,30 @@
+{
+  "name": "@examples/1kcomponents",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=14.15.0",
+    "npm": ">=6.14.8"
+  },
+  "version": "0.8.0",
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "serve": "node ../../node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js"
+  },
+  "dependencies": {
+    "@aurelia/kernel": "2.0.0-alpha.26",
+    "@aurelia/metadata": "2.0.0-alpha.26",
+    "@aurelia/platform": "2.0.0-alpha.26",
+    "@aurelia/platform-browser": "2.0.0-alpha.26",
+    "@aurelia/runtime": "2.0.0-alpha.26",
+    "@aurelia/runtime-html": "2.0.0-alpha.26",
+    "d3-scale-chromatic": "^3.0.0",
+    "perf-monitor": "latest"
+  },
+  "devDependencies": {
+    "@aurelia/http-server": "2.0.0-alpha.26",
+    "webpack": "^5.10.3",
+    "webpack-bundle-analyzer": "^4.4.2",
+    "webpack-cli": "^4.2.0"
+  }
+}

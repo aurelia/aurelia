@@ -1,0 +1,58 @@
+{
+  "name": "@aurelia/plugin-gulp",
+  "version": "2.0.0-alpha.26",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "type": "commonjs",
+  "types": "dist/types/index.d.ts",
+  "typings": "dist/types/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://aurelia.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aurelia/aurelia"
+  },
+  "bugs": {
+    "url": "https://github.com/aurelia/aurelia/issues"
+  },
+  "keywords": [
+    "aurelia",
+    "plugin-gulp"
+  ],
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint": "eslint --cache --ext .js,.ts src/",
+    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "build": "tsc -b",
+    "dev": "tsc -b -w --preserveWatchOutput",
+    "publish:dev": "npm publish --tag dev",
+    "publish:latest": "npm publish --tag latest",
+    "rollup": "rollup -c",
+    "postrollup": "tsc --emitDeclarationOnly"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@aurelia/kernel": "2.0.0-alpha.26",
+    "@aurelia/metadata": "2.0.0-alpha.26",
+    "@aurelia/platform": "2.0.0-alpha.26",
+    "@aurelia/plugin-conventions": "2.0.0-alpha.26",
+    "@aurelia/runtime": "2.0.0-alpha.26",
+    "vinyl": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.11.5",
+    "@types/vinyl": "^2.0.5",
+    "typescript": "^4.6.2"
+  },
+  "engines": {
+    "node": ">=14.17.0"
+  }
+}

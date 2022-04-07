@@ -1,0 +1,37 @@
+{
+  "name": "@examples/jit-webpack-conventions-ts",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=14.15.0",
+    "npm": ">=6.14.8"
+  },
+  "version": "0.8.0",
+  "scripts": {
+    "watch": "webpack-dev-server",
+    "build": "rimraf dist && webpack",
+    "serve": "au-http-server au.conf.js"
+  },
+  "dependencies": {
+    "@aurelia/fetch-client": "dev",
+    "@aurelia/kernel": "dev",
+    "@aurelia/metadata": "dev",
+    "@aurelia/route-recognizer": "dev",
+    "@aurelia/router-lite": "dev",
+    "@aurelia/runtime-html": "dev",
+    "@aurelia/runtime": "dev",
+    "aurelia": "dev"
+  },
+  "devDependencies": {
+    "@aurelia/http-server": "dev",
+    "rimraf": "^3.0.0",
+    "webpack": "^5.10.3",
+    "webpack-cli": "^4.2.0",
+    "webpack-dev-server": "^4.0.0-beta.0",
+    "html-webpack-plugin": "^5.0.0-beta.1",
+    "@aurelia/webpack-loader": "dev",
+    "ts-loader": "^8.0.12",
+    "@types/node": "^14.11.5",
+    "typescript": "^4.0.3"
+  }
+}

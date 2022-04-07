@@ -1,0 +1,43 @@
+{
+  "name": "@benchmarking-apps/aurelia2",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aurelia2 app",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack-dev-server",
+    "build-app": "webpack",
+    "serve": "node ../../../node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aurelia/kernel": "2.0.0-alpha.26",
+    "@aurelia/metadata": "2.0.0-alpha.26",
+    "@aurelia/platform": "2.0.0-alpha.26",
+    "@aurelia/platform-browser": "2.0.0-alpha.26",
+    "@aurelia/runtime": "2.0.0-alpha.26",
+    "@aurelia/runtime-html": "2.0.0-alpha.26",
+    "@aurelia/webpack-loader": "2.0.0-alpha.26",
+    "@benchmarking-apps/shared": "1.0.0"
+  },
+  "devDependencies": {
+    "@aurelia/http-server": "2.0.0-alpha.26",
+    "css-loader": "^5.2.7",
+    "html-entities": "^1.3.1",
+    "html-loader": "^1.3.2",
+    "html-webpack-plugin": "^5.0.0-beta.1",
+    "loglevel": "^1.6.6",
+    "style-loader": "^2.0.0",
+    "ts-loader": "^8.0.12",
+    "typescript": "^4.6.2",
+    "webpack": "^5.10.3",
+    "webpack-cli": "^4.2.0",
+    "webpack-dev-server": "^4.0.0-rc.0"
+  },
+  "engines": {
+    "node": ">=14.15.0",
+    "npm": ">=6.14.8"
+  }
+}

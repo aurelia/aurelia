@@ -17,7 +17,10 @@ export default new Transformer({
     // parcel conventions puts app's index.html inside src/ folder.
     if (asset.filePath.endsWith('src/index.html')) return [asset];
 
-    const auOptions = preprocessOptions(config as IOptionalPreprocessOptions);
+    const auOptions = preprocessOptions({
+      ...config as IOptionalPreprocessOptions,
+      stringModuleWrap: (id: string) => `bundle-text:${id}`
+    });
     // after html template is compiled to js, parcel will apply full js transformers chain,
     // we need to skip them here, then parcel will apply the rest standard js chain.
     if (asset.type === 'js' && auOptions.templateExtensions.includes(extname(asset.filePath))) {

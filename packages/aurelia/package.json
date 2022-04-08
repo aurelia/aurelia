@@ -1,6 +1,6 @@
 {
   "name": "aurelia",
-  "version": "2.0.0-alpha.26",
+  "version": "2.0.0-alpha.27",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -40,15 +40,15 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/fetch-client": "2.0.0-alpha.26",
-    "@aurelia/kernel": "2.0.0-alpha.26",
-    "@aurelia/metadata": "2.0.0-alpha.26",
-    "@aurelia/platform": "2.0.0-alpha.26",
-    "@aurelia/platform-browser": "2.0.0-alpha.26",
-    "@aurelia/route-recognizer": "2.0.0-alpha.26",
-    "@aurelia/router-lite": "2.0.0-alpha.26",
-    "@aurelia/runtime": "2.0.0-alpha.26",
-    "@aurelia/runtime-html": "2.0.0-alpha.26"
+    "@aurelia/fetch-client": "2.0.0-alpha.27",
+    "@aurelia/kernel": "2.0.0-alpha.27",
+    "@aurelia/metadata": "2.0.0-alpha.27",
+    "@aurelia/platform": "2.0.0-alpha.27",
+    "@aurelia/platform-browser": "2.0.0-alpha.27",
+    "@aurelia/route-recognizer": "2.0.0-alpha.27",
+    "@aurelia/router-lite": "2.0.0-alpha.27",
+    "@aurelia/runtime": "2.0.0-alpha.27",
+    "@aurelia/runtime-html": "2.0.0-alpha.27"
   },
   "devDependencies": {
     "typescript": "^4.6.2"

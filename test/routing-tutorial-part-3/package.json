@@ -14,7 +14,7 @@
     "@aurelia/platform": "../../packages/platform",
     "@aurelia/platform-browser": "../../packages/platform-browser",
     "@aurelia/route-recognizer": "../../packages/route-recognizer",
-    "aurelia-direct-router": "../../packages/router",
+    "@aurelia/router": "../../packages/router",
     "@aurelia/runtime": "../../packages/runtime",
     "@aurelia/runtime-html": "../../packages/runtime-html",
     "promise-polyfill": "^8.1.3"

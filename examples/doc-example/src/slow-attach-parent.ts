@@ -1,7 +1,6 @@
 import { customElement, INode } from '@aurelia/runtime-html';
 import { slideIn, slideOut } from 'animations';
 
-
 @customElement({
   name: 'slow-attach-parent',
   template: `

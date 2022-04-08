@@ -1,5 +1,5 @@
 import { customElement } from '@aurelia/runtime-html';
-import { IEventManager, RouterStartEvent, RouterStopEvent, RouterNavigationStartEvent, RouterNavigationEndEvent, RouterNavigationCancelEvent, RouterNavigationCompleteEvent, RouterNavigationErrorEvent, RouterConfiguration, IRouter, } from 'aurelia-direct-router';
+import { IEventManager, RouterStartEvent, RouterStopEvent, RouterNavigationStartEvent, RouterNavigationEndEvent, RouterNavigationCancelEvent, RouterNavigationCompleteEvent, RouterNavigationErrorEvent, RouterConfiguration, IRouter, } from '@aurelia/router';
 import { IDisposable, IEventAggregator } from '@aurelia/kernel';
 
 import { Slow } from './slow';
@@ -163,7 +163,7 @@ export class MyApp {
 
   public root = Fast;
 
-  private subscriptions: IDisposable[] = [];
+  private readonly subscriptions: IDisposable[] = [];
 
   public constructor(@IEventManager private readonly em: IEventManager, @IRouter private readonly router: IRouter) {
     RouterConfiguration.addHook((...args) => {
@@ -185,7 +185,7 @@ export class MyApp {
       // this.subscriptions.push(this.em.subscribe(eventName, this.eventHandler));
       this.em.subscribe(this, eventName, this.eventHandler);
     }
-    this.em.subscribe(this, RouterNavigationStartEvent.eventName, (event: RouterNavigationStartEvent) => { console.log('event', event.eventName) });
+    this.em.subscribe(this, RouterNavigationStartEvent.eventName, (event: RouterNavigationStartEvent) => { console.log('event', event.eventName); });
   }
   public unbinding(): void {
     for (const subscription of this.subscriptions) {
@@ -211,24 +211,24 @@ export class MyApp {
 
   public fast() {
     // this.router.load("fast(abc)@left", { parameters: 'str=def&arr=ghi&arr=jkl' });
-    this.router.load("fast(def)@left", { parameters: { str: 'ghi', arr: ['jkl', 'åäö'] } });
+    void this.router.load("fast(def)@left", { parameters: { str: 'ghi', arr: ['jkl', 'åäö'] } });
   }
 
   public async sequence() {
-    this.router.load('double-slow@left');
+    void this.router.load('double-slow@left');
     await new Promise(res => setTimeout(res, 1000));
-    this.router.load('fast@right');
+    void this.router.load('fast@right');
     await new Promise(res => setTimeout(res, 1000));
-    this.router.load('fast-parent@right');
+    void this.router.load('fast-parent@right');
     await new Promise(res => setTimeout(res, 1000));
-    this.router.load('fast@right');
+    void this.router.load('fast@right');
   }
 
-  private eventHandler = (event: RouterNavigationStartEvent) => {
+  private readonly eventHandler = (event: RouterNavigationStartEvent) => {
     // console.log(event.eventName, event);
     if (event instanceof RouterNavigationEndEvent) {
       const navigation = event.navigation;
       this.url = `${navigation.path} (${Object.keys(navigation.navigation).filter(key => navigation.navigation[key]).join(',')})`;
     }
-  }
+  };
 }

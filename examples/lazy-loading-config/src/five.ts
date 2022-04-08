@@ -1,19 +1,19 @@
 export class Five {
-  canLoad(params, instruction, navigation) {
-    console.log('In Five canLoad hook', ...arguments);
+  canLoad(...args) {
+    console.log('In Five canLoad hook', ...args);
     return true;
   }
 
-  canUnload(params, instruction, navigation) {
-    console.log('In Five canUnload hook', ...arguments);
+  canUnload(...args) {
+    console.log('In Five canUnload hook', ...args);
     return true;
   }
 
-  load(params, instruction, navigation) {
-    console.log('In Five load hook', ...arguments);
+  load(...args) {
+    console.log('In Five load hook', ...args);
   }
 
-  unload(instruction, navigation) {
-    console.log('In Five unload hook', ...arguments);
+  unload(...args) {
+    console.log('In Five unload hook', ...args);
   }
 }

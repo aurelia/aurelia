@@ -1,6 +1,6 @@
 export class Four {
-  canLoad(params, next, current) {
-    console.log('In Four canLoad hook', ...arguments);
+  canLoad(...args) {
+    console.log('In Four canLoad hook', ...args);
     return true;
   }
 

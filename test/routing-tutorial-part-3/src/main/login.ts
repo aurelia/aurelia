@@ -1,5 +1,5 @@
 import { Auth } from "./auth";
-import { IRouter } from 'aurelia-direct-router';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime-html';
 import template from './login.html';
 

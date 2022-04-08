@@ -10,7 +10,7 @@
     "@aurelia/platform": "latest",
     "@aurelia/platform-browser": "latest",
     "@aurelia/route-recognizer": "latest",
-    "aurelia-direct-router": "../../packages/router",
+    "@aurelia/router": "../../packages/router",
     "@aurelia/runtime": "latest",
     "@aurelia/runtime-html": "latest",
     "promise-polyfill": "^8.1.3"

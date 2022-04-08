@@ -1,7 +1,7 @@
 import template from './profile.html';
 
 import { customElement } from 'aurelia';
-import { IRouteableComponent, Parameters } from 'aurelia-direct-router';
+import { IRouteableComponent, Parameters } from '@aurelia/router';
 import { IProfileState, IUserState } from '../state';
 import { Profile as CurrentProfile } from '../api';
 import { queue } from '../util';

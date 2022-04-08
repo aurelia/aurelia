@@ -1,4 +1,4 @@
-import { IRouter } from "aurelia-direct-router";
+import { IRouter } from "@aurelia/router";
 
 export class One {
     public constructor(@IRouter private router: IRouter) { }

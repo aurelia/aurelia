@@ -1,52 +1,52 @@
 import Aurelia, { lifecycleHooks } from 'aurelia';
-import { RouterConfiguration } from 'aurelia-direct-router';
+import { RouterConfiguration } from '@aurelia/router';
 import { MyApp } from './my-app';
 
 @lifecycleHooks()
 class NoopHandler {
-  canLoad(vm, params, instruction, navigation) {
-    console.log('In canLoad shared hook', ...arguments);
+  canLoad(...args) {
+    console.log('In canLoad shared hook', ...args);
     // if (instruction.component.name === 'four') {
     //   return false;
     // }
     return true;
   }
 
-  canUnload(vm, instruction, navigation) {
-    console.log('In canUnload shared hook', ...arguments);
+  canUnload(...args) {
+    console.log('In canUnload shared hook', ...args);
     if (instruction.component.name === 'four') {
       return false;
     }
     return true;
   }
 
-  load(vm, instruction, navigation) {
-    console.log('In load shared hook', ...arguments);
+  load(...args) {
+    console.log('In load shared hook', ...args);
   }
 
-  unload(vm, instruction, navigation) {
-    console.log('In unload shared hook', ...arguments);
+  unload(...args) {
+    console.log('In unload shared hook', ...args);
   }
 }
 
 @lifecycleHooks()
 class SecondHandler {
   canLoad(vm, params, instruction, navigation) {
-    console.log('In canLoad second handler', ...arguments);
+    console.log('In canLoad second handler', vm, params, instruction, navigation);
     return true;
   }
 
   canUnload(vm, instruction, navigation) {
-    console.log('In canUnload second handler', ...arguments);
+    console.log('In canUnload second handler', vm, instruction, navigation);
     return true;
   }
 
-  load(vm, instruction, navigation) {
-    console.log('In load second handler', ...arguments);
+  load(vm, params, instruction, navigation) {
+    console.log('In load second handler', vm, params, instruction, navigation);
   }
 
   unload(vm, instruction, navigation) {
-    console.log('In unload second handler', ...arguments);
+    console.log('In unload second handler', vm, instruction, navigation);
   }
 }
 

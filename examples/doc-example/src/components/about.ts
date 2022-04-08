@@ -1,5 +1,5 @@
 import { customElement } from '@aurelia/runtime-html';
-import { IRouter } from 'aurelia-direct-router';
+import { IRouter } from '@aurelia/router';
 import { State } from '../state';
 
 @customElement({

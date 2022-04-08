@@ -1,7 +1,6 @@
-import { IRouter } from 'aurelia-direct-router';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime-html';
 import { Slow } from './slow';
-import { Fast } from './fast';
 
 @customElement({
   name: 'lazy-parent',
@@ -22,14 +21,14 @@ LazyParent \${seconds}
 `})
 export class LazyParent {
   public static routes = [
-    { path: 'lazy-child', component: import('./lazy-child.ts'), },
+    { path: 'lazy-child', component: import('./lazy-child'), },
   ];
   public seconds = 0;
 
   public LazySibling = import('./lazy-sibling');
   public Slow = Slow;
 
-  public constructor(@IRouter private router: IRouter) { }
+  public constructor(@IRouter private readonly router: IRouter) { }
 
   public created(): void {
     const _this = this;
@@ -37,6 +36,6 @@ export class LazyParent {
   }
 
   public loadSibling() {
-    this.router.load(import('./lazy-sibling'), { context: this });
+    void this.router.load(import('./lazy-sibling'), { context: this });
   }
 }

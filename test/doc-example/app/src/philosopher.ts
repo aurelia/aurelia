@@ -26,9 +26,9 @@ export class Philosopher {
 
   public update(forks: boolean[]): void {
     if (this.eating > 0) {
-      console.log()
+      console.log();
       this.eating--;
-      return
+      return;
     }
     if (this.hasForks) {
       this.ate = 0;

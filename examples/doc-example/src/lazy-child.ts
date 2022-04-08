@@ -6,5 +6,3 @@ import { customElement } from '@aurelia/runtime-html';
 Lazy child
 `})
 export class LazyChild { }
-
-

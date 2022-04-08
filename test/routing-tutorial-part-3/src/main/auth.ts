@@ -1,4 +1,4 @@
-import { RoutingInstruction } from 'aurelia-direct-router';
+import { RoutingInstruction } from '@aurelia/router';
 
 export class Auth {
     public user: string;

@@ -1,4 +1,4 @@
-import { IRouter } from 'aurelia-direct-router';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime-html';
 import { AuthorsRepository } from '../../repositories/authors';
 import { State } from '../../state';

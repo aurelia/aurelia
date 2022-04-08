@@ -27,5 +27,5 @@ export class Dashboard {
   public bookmarks = [{
       url: "https://google.co.nz",
       alias: "Google"
-    }]
+    }];
 }

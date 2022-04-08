@@ -25,5 +25,5 @@ export class Philosophers {
       philosopher.update(this.forks);
     }
     setTimeout(this.update, 500);
-  }
+  };
 }

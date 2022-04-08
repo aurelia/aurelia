@@ -459,6 +459,7 @@ export class CommentCreateRequest {
 // #region Api service
 
 export const IJwtService = DI.createInterface<IJwtService>('IJwtService', x => x.singleton(JwtService));
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IJwtService extends JwtService {}
 export class JwtService {
   constructor(
@@ -494,6 +495,7 @@ export class JwtService {
 type CreateArg<T> = T extends { create(arg: infer A): any } ? A : never;
 
 export const IApiService = DI.createInterface<IApiService>('IApiService', x => x.singleton(ApiService));
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IApiService extends ApiService {}
 export class ApiService {
   constructor(

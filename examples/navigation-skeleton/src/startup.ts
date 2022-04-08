@@ -1,5 +1,5 @@
 import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
-import { RouterConfiguration } from 'aurelia-direct-router';
+import { RouterConfiguration } from '@aurelia/router';
 import { ChildRouter } from './child-router';
 
 import { App } from './app';

@@ -1,8 +1,8 @@
 import * as path from 'path';
-import { kebabCase } from '@aurelia/kernel';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IPreprocessOptions } from './options.js';
 import { stripMetaData } from './strip-meta-data.js';
+import { resourceName } from './resource-name.js';
 
 // stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
 // For webpack:
@@ -13,7 +13,7 @@ import { stripMetaData } from './strip-meta-data.js';
 //   import d0 from './foo.css';
 // because most bundler by default will inject that css into HTML head.
 export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
-  const name = kebabCase(path.basename(unit.path, path.extname(unit.path)));
+  const name = resourceName(unit.path);
   const stripped = stripMetaData(unit.contents);
   const { html, deps, containerless, hasSlot, bindables, aliases } = stripped;
   let { shadowMode } = stripped;
@@ -133,3 +133,4 @@ export function register(container) {
 function s(str: string) {
   return JSON.stringify(str);
 }
+

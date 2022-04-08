@@ -76,7 +76,8 @@ export class FooBar {}
       {
         path: path.join('bar', 'foo-bar.js'),
         contents: code,
-        filePair: 'foo-bar-view.html'
+        filePair: 'foo-bar-view.html',
+        isViewPair: true
       },
       preprocessOptions()
     );
@@ -94,7 +95,8 @@ export class UAFooBar {}
       {
         path: path.join('bar', 'ua-foo-bar.js'),
         contents: code,
-        filePair: 'ua-foo-bar-view.html'
+        filePair: 'ua-foo-bar-view.html',
+        isViewPair: true
       },
       preprocessOptions()
     );
@@ -130,7 +132,8 @@ export class FooBar {}
       {
         path: path.join('bar', 'FooBar.js'),
         contents: code,
-        filePair: 'FooBarView.html'
+        filePair: 'FooBarView.html',
+        isViewPair: true
       },
       preprocessOptions()
     );
@@ -258,7 +261,8 @@ function b() {}
       {
         path: path.join('bar', 'foo-bar.js'),
         contents: code,
-        filePair: 'foo-bar-view.html'
+        filePair: 'foo-bar-view.html',
+        isViewPair: true
       },
       preprocessOptions()
     );
@@ -858,6 +862,81 @@ export class FooBar {}
         path: path.join('bar', 'foo-bar.ts'),
         contents: code,
         filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects customElement decorator with index file', function () {
+    const code = `\nexport class FooBar {}\n`;
+    const expected = `import * as __au2ViewDef from './index.html';
+import { customElement } from '@aurelia/runtime-html';
+
+@customElement(__au2ViewDef)
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar', 'index.js'),
+        contents: code,
+        filePair: 'index.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects customElement decorator for loosely equal class name with index file', function () {
+    const code = `export class UAFooBarCustomElement {}\n`;
+    const expected = `import * as __au2ViewDef from './index.html';
+import { customElement } from '@aurelia/runtime-html';
+@customElement(__au2ViewDef)
+export class UAFooBarCustomElement {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'ua-foo-bar', 'index.js'),
+        contents: code,
+        filePair: 'index.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects view decorator with index file', function () {
+    const code = `export class FooBar {}\n`;
+    const expected = `import * as __au2ViewDef from './index-view.html';
+import { view } from '@aurelia/runtime-html';
+@view(__au2ViewDef)
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar', 'index.js'),
+        contents: code,
+        filePair: 'index-view.html',
+        isViewPair: true
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects view decorator for loosely equal class name with index file', function () {
+    const code = `export class UAFooBar {}\n`;
+    const expected = `import * as __au2ViewDef from './index-view.html';
+import { view } from '@aurelia/runtime-html';
+@view(__au2ViewDef)
+export class UAFooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'ua-foo-bar', 'index.js'),
+        contents: code,
+        filePair: 'index-view.html',
+        isViewPair: true
       },
       preprocessOptions()
     );

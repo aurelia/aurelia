@@ -639,7 +639,6 @@ export class ApiService {
         return;
       } else {
         this.logger.trace(`handle() - retrieving normal response body`, response);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const json = await response.json();
         this.logger.trace(`handle() - done`, json);
         return Type.create(json) as ReturnType<T['create']>;

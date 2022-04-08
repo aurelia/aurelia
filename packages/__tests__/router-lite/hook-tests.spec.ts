@@ -489,7 +489,7 @@ async function createFixture<T extends Constructable>(
   const cfg = new NotifierConfig([], 100);
   const { container, platform } = ctx;
 
-  container.register(TestRouterConfiguration.for(ctx, level));
+  container.register(TestRouterConfiguration.for(level));
   container.register(Registration.instance(INotifierConfig, cfg));
   container.register(RouterConfiguration.customize({ ...routerOptions }));
   container.register(...deps);

@@ -45,7 +45,7 @@ export async function createFixture<T extends Constructable>(
   const { container, platform } = ctx;
 
   container.register(Registration.instance(IHIAConfig, hiaConfig));
-  container.register(TestRouterConfiguration.for(ctx, level));
+  container.register(TestRouterConfiguration.for(level));
   container.register(RouterConfiguration.customize(routerOptions));
   container.register(LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.fatal }));
   container.register(...deps);

@@ -41,7 +41,7 @@ async function createFixture<T extends Constructable>(
   const ctx = TestContext.create();
   const { container, platform } = ctx;
 
-  container.register(TestRouterConfiguration.for(ctx, level));
+  container.register(TestRouterConfiguration.for(level));
   container.register(RouterConfiguration.customize({ resolutionMode: 'dynamic' }));
   container.register(...deps);
 
@@ -576,7 +576,7 @@ describe('router (smoke tests)', function () {
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(ctx));
+      container.register(TestRouterConfiguration.for());
       container.register(RouterConfiguration.customize({ resolutionMode: mode }));
 
       const component = container.get(Root);
@@ -624,7 +624,7 @@ describe('router (smoke tests)', function () {
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(ctx));
+      container.register(TestRouterConfiguration.for());
       container.register(RouterConfiguration.customize({ resolutionMode: mode }));
 
       const component = container.get(Root);
@@ -699,7 +699,7 @@ describe('router (smoke tests)', function () {
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(ctx, LogLevel.warn));
+      container.register(TestRouterConfiguration.for(LogLevel.warn));
       container.register(RouterConfiguration.customize({ resolutionMode: mode }));
 
       const component = container.get(Root);
@@ -761,7 +761,7 @@ describe('router (smoke tests)', function () {
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(ctx, LogLevel.debug));
+      container.register(TestRouterConfiguration.for(LogLevel.debug));
       container.register(RouterConfiguration.customize({ resolutionMode: mode }));
 
       const component = container.get(Root);
@@ -848,7 +848,7 @@ describe('router (smoke tests)', function () {
     const ctx = TestContext.create();
     const { container } = ctx;
 
-    container.register(TestRouterConfiguration.for(ctx, LogLevel.warn));
+    container.register(TestRouterConfiguration.for(LogLevel.warn));
     container.register(RouterConfiguration);
 
     const component = container.get(Root);
@@ -901,7 +901,7 @@ describe('router (smoke tests)', function () {
     const ctx = TestContext.create();
     const { container } = ctx;
 
-    container.register(TestRouterConfiguration.for(ctx, LogLevel.debug));
+    container.register(TestRouterConfiguration.for(LogLevel.debug));
     container.register(RouterConfiguration);
 
     const component = container.get(CustomElement.define(
@@ -969,7 +969,7 @@ describe('router (smoke tests)', function () {
       const { container } = ctx;
 
       container.register(
-        TestRouterConfiguration.for(ctx, LogLevel.warn),
+        TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration.customize({ buildTitle }),
       );
 

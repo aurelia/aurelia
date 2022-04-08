@@ -47,6 +47,7 @@ export function preprocess(
       );
       const viewPair = possibleViewPair.find(_fileExists);
       if (viewPair) {
+        unit.isViewPair = true;
         if (allOptions.useProcessedFilePairFilename) {
           unit.filePair = `${basename}-view.html`;
         } else {

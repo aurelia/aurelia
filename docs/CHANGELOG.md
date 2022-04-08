@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.27"></a>
+# 2.0.0-alpha.27 (2022-04-08)
+
+### Features:
+
+* **convention:** support foo-bar/index.js Nodejs convention (#1383) ([54a8a29](https://github.com/aurelia/aurelia/commit/54a8a29))
+* **tooling:** support parcel2 (#1376) ([ba95a5d](https://github.com/aurelia/aurelia/commit/ba95a5d))
+
+
+### Bug Fixes:
+
+* **build:** ensure correct __DEV__ build value replacement (#1377) ([40ce0e3](https://github.com/aurelia/aurelia/commit/40ce0e3))
+* **local-template:** local element see the dependencies of owning element (#1375) ([0d48dbf](https://github.com/aurelia/aurelia/commit/0d48dbf))
+* **switch+promise:** deferred view instantiation (#1372) ([63cf5d0](https://github.com/aurelia/aurelia/commit/63cf5d0))
+
+
+### Refactorings:
+
+* **all:** upgrade TS dev dependencies, removing unnecessary assertions & lintings (#1371) ([05cec15](https://github.com/aurelia/aurelia/commit/05cec15))
+
 <a name="2.0.0-alpha.26"></a>
 # 2.0.0-alpha.26 (2022-03-13)
 

@@ -732,4 +732,62 @@ export function register(container) {
     );
     assert.equal(result.code, expected);
   });
+
+  it('processes template with index file', function () {
+      const html = '<template></template>';
+      const expected = `import { CustomElement } from '@aurelia/runtime-html';
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [  ];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
+  }
+  container.register(_e);
+}
+`;
+      const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar', 'index.html'), contents: html }, preprocessOptions());
+      assert.equal(result.code, expected);
+    });
+
+    it('processes template with index file and file path not in kebab case', function () {
+      const html = '<template></template>';
+      const expected = `import { CustomElement } from '@aurelia/runtime-html';
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [  ];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
+  }
+  container.register(_e);
+}
+`;
+      const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar', 'index.html'), contents: html }, preprocessOptions());
+      assert.equal(result.code, expected);
+    });
+
+    it('processes template with css pair in index file', function () {
+      const html = '<template></template>';
+      const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import "./index.css";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [  ];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
+  }
+  container.register(_e);
+}
+`;
+      const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar', 'index.html'), contents: html, filePair: 'index.css' }, preprocessOptions());
+      assert.equal(result.code, expected);
+    });
 });

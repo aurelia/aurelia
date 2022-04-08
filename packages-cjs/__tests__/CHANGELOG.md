@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.27"></a>
+# 2.0.0-alpha.27 (2022-04-08)
+
+### Features:
+
+* **plugin-conventions:** support foo-bar/index.js Nodejs convention (#1383) ([54a8a29](https://github.com/aurelia/aurelia/commit/54a8a29))
+* ***:** parcel2 integration (#1376) ([ba95a5d](https://github.com/aurelia/aurelia/commit/ba95a5d))
+
 <a name="2.0.0-alpha.26"></a>
 # 2.0.0-alpha.26 (2022-03-13)
 

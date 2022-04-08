@@ -162,7 +162,6 @@ export class ArticleListResponse {
   ) {}
 
   static create(obj: OmitFuncProps<ArticleListResponse>): ArticleListResponse {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     return new ArticleListResponse(obj.articles.map(Article.create), obj.articlesCount);
   }
 }
@@ -207,7 +206,6 @@ export class CommentListResponse {
   ) {}
 
   static create(obj: OmitFuncProps<CommentListResponse>): CommentListResponse {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     return new CommentListResponse(obj.comments.map(Comment.create));
   }
 }

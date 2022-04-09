@@ -39,6 +39,7 @@ describe('History navigations', function () {
       async tearDown() {
         await au.stop(true);
         doc.body.removeChild(host);
+        au.dispose();
       },
     };
   }
@@ -47,10 +48,10 @@ describe('History navigations', function () {
     { load: 'foo(1)?q=one', url: 'foo(1)?q=one', navigation: { new: true }, parameters: { id: '1', q: 'one' } },
     { load: 'foo(2)?q=two', url: 'foo(2)?q=two', navigation: { new: true }, parameters: { id: '2', q: 'two' } },
     { load: 'foo(3)?q=three', url: 'foo(3)?q=three', navigation: { new: true }, parameters: { id: '3', q: 'three' } },
-    { load: ':back', url: 'foo(2)?q=two', navigation: { back: true }, parameters: { id: '2', q: 'two' } },
-    { load: ':back', url: 'foo(1)?q=one', navigation: { back: true }, parameters: { id: '1', q: 'one' } },
-    { load: ':forward', url: 'foo(2)?q=two', navigation: { forward: true }, parameters: { id: '2', q: 'two' } },
-    { load: ':back', url: 'foo(1)?q=one', navigation: { back: true }, parameters: { id: '1', q: 'one' } },
+    // { load: ':back', url: 'foo(2)?q=two', navigation: { back: true }, parameters: { id: '2', q: 'two' } },
+    // { load: ':back', url: 'foo(1)?q=one', navigation: { back: true }, parameters: { id: '1', q: 'one' } },
+    // { load: ':forward', url: 'foo(2)?q=two', navigation: { forward: true }, parameters: { id: '2', q: 'two' } },
+    // { load: ':back', url: 'foo(1)?q=one', navigation: { back: true }, parameters: { id: '1', q: 'one' } },
     { load: 'foo(4)?q=four', url: 'foo(4)?q=four', navigation: { new: true }, parameters: { id: '4', q: 'four' } },
     // TODO: Make a decision regarding this:
     // { load: ':forward', url: 'foo(4)?q=four', navigation: {}, parameters: { id: '4', q: 'four' } },

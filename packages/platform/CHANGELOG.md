@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.27"></a>
+# 2.0.0-alpha.27 (2022-04-08)
+
+### Bug Fixes:
+
+* **build:** ensure correct __DEV__ build value replacement (#1377) ([40ce0e3](https://github.com/aurelia/aurelia/commit/40ce0e3))
+
 <a name="2.0.0-alpha.26"></a>
 # 2.0.0-alpha.26 (2022-03-13)
 

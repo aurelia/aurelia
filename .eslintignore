@@ -4,3 +4,4 @@ node_modules
 scripts/*.js
 test/router-*
 test/routing-*
+packages/*.js

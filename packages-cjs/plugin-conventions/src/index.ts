@@ -1,4 +1,5 @@
 export { nameConvention } from './name-convention.js';
+export { resourceName } from './resource-name.js';
 export { preprocessResource } from './preprocess-resource.js';
 export { preprocessHtmlTemplate } from './preprocess-html-template.js';
 export { stripMetaData } from './strip-meta-data.js';

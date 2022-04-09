@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.27"></a>
+# 2.0.0-alpha.27 (2022-04-08)
+
+**Note:** Version bump only for package @aurelia/aot
+
 <a name="2.0.0-alpha.26"></a>
 # 2.0.0-alpha.26 (2022-03-13)
 

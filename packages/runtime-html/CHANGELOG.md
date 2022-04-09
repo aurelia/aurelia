@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.27"></a>
+# 2.0.0-alpha.27 (2022-04-08)
+
+### Bug Fixes:
+
+* **build:** ensure correct __DEV__ build value replacement (#1377) ([40ce0e3](https://github.com/aurelia/aurelia/commit/40ce0e3))
+* **runtime-html:** local dependencies for local element (#1375) ([0d48dbf](https://github.com/aurelia/aurelia/commit/0d48dbf))
+* **switch+promise:** test build issues ([63cf5d0](https://github.com/aurelia/aurelia/commit/63cf5d0))
+
+
+### Refactorings:
+
+* **local-template:** register dependency while building definition & add tests ([0d48dbf](https://github.com/aurelia/aurelia/commit/0d48dbf))
+* **switch+promise:** deferred view instantiation (#1372) ([63cf5d0](https://github.com/aurelia/aurelia/commit/63cf5d0))
+* **all:** removing unnecessary assertions & lintings (#1371) ([05cec15](https://github.com/aurelia/aurelia/commit/05cec15))
+
 <a name="2.0.0-alpha.26"></a>
 # 2.0.0-alpha.26 (2022-03-13)
 

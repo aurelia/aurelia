@@ -80,7 +80,7 @@ describe('History navigations', function () {
     //   result.url = event.navigation.path;
     //   result.navigation = Object.assign({}, result.navigation, event.navigation.navigation);
     // });
-    eventAggregator.subscribe(RouterNavigationEndEvent.eventName, (event: RouterNavigationEndEvent) => {
+    const subscription = eventAggregator.subscribe(RouterNavigationEndEvent.eventName, (event: RouterNavigationEndEvent) => {
       result.url = event.navigation.path;
       result.navigation = { ...result.navigation, ...event.navigation.navigation };
     });
@@ -111,8 +111,7 @@ describe('History navigations', function () {
       assert.deepEqual(result.parameters, test.parameters, `parameters: ${test.load}:${test.url}`);
     }
 
-    // TODO: EventAggregator needs an unsubscribe method
-    // eventAggregator.unsubscribe(this);
+    subscription.dispose();
 
     await tearDown();
   });

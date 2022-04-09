@@ -23,6 +23,7 @@
     "test-chrome": "karma start karma.conf.cjs --browsers=ChromeHeadlessOpt --single-run --coverage",
     "test-firefox": "karma start karma.conf.cjs --browsers=FirefoxHeadless --single-run --coverage",
     "test-firefox:verbose": "karma start karma.conf.cjs --browsers=FirefoxHeadless --single-run --coverage --reporter=mocha",
+    "test-firefox:debugger": "karma start karma.conf.cjs --browsers=Firefox --watch-extensions js,html",
     "test-node:verbose": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha ---ui bdd --reporter spec --colors --recursive --timeout 5000 --exit dist/esm/__tests__/setup-node.js dist/esm/__tests__/**/*.spec.js --exclude dist/esm/__tests__/integration/**/*.spec.js --exclude dist/esm/__tests__/store-v1/**/*.spec.js",
     "test-node:watch": "npm run test-node -- --watch --watch-extensions ts",
     "test-chrome:watch": "karma start karma.conf.cjs --browsers=ChromeHeadlessOpt --coverage --watch-extensions js,html",

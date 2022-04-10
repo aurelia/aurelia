@@ -63,7 +63,11 @@ executors:
       node:
         type: string
         default: "15.4.0"
+      resource_class:
+        type: string
+        default: "medium"
     working_directory: *working_dir
+    resource_class: << parameters.resource_class >>
     docker:
       - image: "circleci/node:<< parameters.node >>-buster-browsers"
 
@@ -228,6 +232,7 @@ jobs:
 
   merge_and_dist:
     executor: docker-circleci
+      resource_class: "large"
     parameters:
       from:
         type: string

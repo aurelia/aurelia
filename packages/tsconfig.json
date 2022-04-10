@@ -9,6 +9,7 @@
     { "path": "metadata" },
     { "path": "platform" },
     { "path": "platform-browser" },
+    { "path": "router" },
     { "path": "router-lite" },
     { "path": "route-recognizer" },
     { "path": "runtime" },

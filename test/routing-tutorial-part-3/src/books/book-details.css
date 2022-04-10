@@ -1,0 +1,30 @@
+.close {
+    float: right;
+    border: 1px solid black;
+    padding: 2px;
+    color: black;
+}
+
+.book-details {
+    padding: 10px;
+    padding-bottom: 30px;
+}
+nav.tab {
+    background-image: none;
+}
+
+nav.tab a {
+    background-color: lightgray;
+    border: 1px solid lightgray;
+    position: relative;
+    top: 1px;
+}
+
+nav.tab a.load-active {
+    background-color: white;
+    border-bottom: 1px solid transparent;
+}
+
+au-viewport.tab {
+    display: block;
+}

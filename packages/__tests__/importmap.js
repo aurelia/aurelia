@@ -12,6 +12,7 @@ document.write(`<script type="importmap">${JSON.stringify({
     'fetch-client',
     'store-v1',
     'i18n',
+    'router',
     'router-lite',
     'testing',
     'validation',

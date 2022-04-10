@@ -2,4 +2,6 @@ dist
 node_modules
 .eslintrc.cjs
 scripts/*.js
+test/router-*
+test/routing-*
 packages/*.js

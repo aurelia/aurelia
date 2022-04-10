@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "rootDir": "src",
+    "target": "ES2018",
+    "esModuleInterop": true
+  },
+  "include": [
+    "test",
+    "src"
+  ]
+}

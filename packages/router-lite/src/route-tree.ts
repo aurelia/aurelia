@@ -192,7 +192,6 @@ export class RouteNode implements IRouteNode {
     const titleParts = [
       ...this.children.map(x => x.getTitle(separator)),
       this.getTitlePart(),
-      this.context.definition.config.title,
     ].filter(x => x !== null);
     if (titleParts.length === 0) {
       return null;

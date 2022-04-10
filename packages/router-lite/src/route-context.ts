@@ -18,7 +18,7 @@ export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
 export const RESIDUE = 'au$residue' as const;
 
 /**
- * Holds the information of a component in the context of a specific container. May or may not have statically configured routes.
+ * Holds the information of a component in the context of a specific container.
  *
  * The `RouteContext` is cached using a 3-part composite key consisting of the CustomElementDefinition, the RouteDefinition and the RenderContext.
  *

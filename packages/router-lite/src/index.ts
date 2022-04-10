@@ -34,7 +34,6 @@ export {
   IRouteConfig,
   IChildRouteConfig,
   RouteConfig,
-  ChildRouteConfig,
   Route,
   RouteType,
   route,

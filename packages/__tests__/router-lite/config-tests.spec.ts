@@ -340,7 +340,7 @@ describe('router config', function () {
     });
   }
 
-  it(`can load a configured child route by name`, async function () { //  when routingMode is 'configured-only'
+  it(`can load a configured child route by name`, async function () {
     @customElement({ name: 'a01', template: null })
     class A01 extends SimpleActivityTrackingVMBase {}
 
@@ -348,7 +348,7 @@ describe('router config', function () {
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase {}
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig/* , () => ({ routingMode: 'configured-only' }) */);
+    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
     await router.load('a01');
 

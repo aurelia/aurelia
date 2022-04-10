@@ -5,6 +5,9 @@ import { IChildRouteConfig, IRedirectRouteConfig, Routeable } from './route.js';
 import { IViewportInstruction, RouteableComponent } from './instructions.js';
 import { tryStringify } from './util.js';
 
+/**
+ * @returns `true` if the given `value` is an non-null, non-undefined, and non-CustomElement object.
+ */
 export function isNotNullishOrTypeOrViewModel(value: RouteableComponent | IChildRouteConfig | null | undefined): value is PartialCustomElementDefinition | IChildRouteConfig {
   return (
     typeof value === 'object' &&

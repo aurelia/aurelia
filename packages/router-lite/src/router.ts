@@ -325,6 +325,7 @@ export class Router {
           instruction: null,
           component: ctx.definition.component!,
           append: false,
+          title: ctx.definition.config.title,
         }),
       );
     }

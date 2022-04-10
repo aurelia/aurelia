@@ -177,7 +177,7 @@ export class RouteContext {
             this.childRoutes.push(p);
             allPromises.push(p.then(noop));
           } else {
-            throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified. To use lazy loading without specifying the path (e.g. in direct routing), pass the import promise as a direct value to the routes array instead of providing it as the component property on an object literal.`);
+            throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified.`);
           }
         } else {
           for (const path of routeDef.path) {

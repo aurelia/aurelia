@@ -76,7 +76,7 @@ export class RouteNode implements IRouteNode {
     /** @internal */
     public id: number,
     /**
-     * The original configured path pattern that was matched, or the component name if it was resolved via direct routing.
+     * The original configured path pattern that was matched.
      */
     public path: string,
     /**

@@ -445,8 +445,6 @@ export class Router {
    * Examples:
    *
    * ```ts
-   * // Use direct routing syntax to load 'product-detail' with parameter id=37, as a child of the current component, in the next available sibling viewport.
-   * router.load('+product-detail(id=37)');
    * // Load the route 'product-detail', as a child of the current component, with child route '37'.
    * router.load('product-detail/37', { context: this });
    * ```
@@ -458,9 +456,7 @@ export class Router {
    * Examples:
    *
    * ```ts
-   * router.load(['book-detail(20)', 'author-detail(11)']);
-   * router.load(['category/50/product/20', 'widget/30'], { routingMode: 'configured-only' });
-   * router.load(['category/50/product/20', 'widget(id=30)]);
+   * router.load(['category/50/product/20', 'widget/30']);
    * ```
    */
   public load(paths: readonly string[], options?: INavigationOptions): Promise<boolean>;
@@ -473,6 +469,8 @@ export class Router {
    * router.load(ProductList);
    * router.load(CustomElement.define({ name: 'greeter', template: 'Hello!' }));
    * ```
+   *
+   * @internal TODO(sayan): enable these later
    */
   public load(componentType: RouteType, options?: INavigationOptions): Promise<boolean>;
   /**
@@ -483,6 +481,8 @@ export class Router {
    * ```ts
    * router.load([MemberList, OrganizationList]);
    * ```
+   *
+   * @internal TODO(sayan): enable these later
    */
   public load(componentTypes: readonly RouteType[], options?: INavigationOptions): Promise<boolean>;
   /**
@@ -493,6 +493,8 @@ export class Router {
    * ```ts
    * router.load({ name: 'greeter', template: 'Hello!' });
    * ```
+   *
+   * @internal TODO(sayan): enable these later
    */
   public load(componentDefinition: PartialCustomElementDefinition, options?: INavigationOptions): Promise<boolean>;
   /**
@@ -506,6 +508,8 @@ export class Router {
    * Controller.$el(container, greeter, host);
    * router.load(greeter);
    * ```
+   *
+   * @internal TODO(sayan): enable these later
    */
   public load(componentInstance: IRouteViewModel, options?: INavigationOptions): Promise<boolean>;
   /**
@@ -517,8 +521,8 @@ export class Router {
    * ```ts
    * router.load({ component: 'product-detail', parameters: { id: 37 } })
    * router.load({ component: ProductDetail, parameters: { id: 37 } })
-   * router.load({ component: 'category(id=50)', children: ['product(id=20)'] })
-   * router.load({ component: 'category(id=50)', children: [{ component: 'product', parameters: { id: 20 } }] })
+   * router.load({ component: 'category', children: ['product(id=20)'] })
+   * router.load({ component: 'category', children: [{ component: 'product', parameters: { id: 20 } }] })
    * router.load({
    *   component: CustomElement.define({
    *     name: 'greeter',
@@ -557,8 +561,6 @@ export class Router {
    * Retrieve the RouteContext, which contains statically configured routes combined with the customElement metadata associated with a type.
    *
    * The customElement metadata is lazily associated with a type via the RouteContext the first time `getOrCreate` is called.
-   *
-   * This API is also used for direct routing even when there is no configuration at all.
    *
    * @param viewportAgent - The ViewportAgent hosting the component associated with this RouteContext. If the RouteContext for the component+viewport combination already exists, the ViewportAgent will be updated in case it changed.
    * @param component - The custom element definition.

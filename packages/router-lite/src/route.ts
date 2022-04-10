@@ -28,7 +28,7 @@ export interface IRouteConfig {
     /**
      * The path to match against the url.
      *
-     * If left blank, the path will be derived from the component's static `path` property (if it exists), or otherwise the component name will be used (if direct routing is enabled).
+     * If left blank, the path will be derived from the component's static `path` property (if it exists).
      */
     readonly path?: string | string[] | null;
     /**

@@ -20,6 +20,16 @@ In the following example, we are passing a value called `isLoading` which is pop
 
 When `isLoading` is a truthy value, the element will be displayed and added to the DOM. When `isLoading` is falsy, the element will be removed from the DOM, disposing of any events or child components inside of it.
 
+By default, the `if.bind` feature will cache the view-model/view of the element you are using `if.bind` on. Not being aware of this default behavior can lead to confusing situations where the previous state is retained, especially on custom elements.
+
+You can opt out of caching if this becomes a problem by using verbose `if.bind` syntax.
+
+```html
+<some-element if="value.bind: showThis; cache: false"></some-element>
+```
+
+When using the verbose syntax, `value.bind` is the boolean condition that triggers your `if.bind` condition and `cache: false` is what disables the cache. Only disable the cache if it becomes a problem.
+
 {% hint style="warning" %}
 Be careful. Using if.bind takes your markup out of the flow of the page. There is causes both reflow and repaint events in the browser, which can be intensive for large applications with a lot of markup.
 {% endhint %}

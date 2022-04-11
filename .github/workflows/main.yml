@@ -1,5 +1,13 @@
 name: main
-on: [push]
+on:
+  push:
+    # check against refs/heads
+    branches-ignore:
+      - develop
+      - release
+    paths-ignore:
+      - 'docs/**'
+
 env:
   PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property
 
@@ -169,7 +177,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run:
-          name: "run test for the master branch"
+          name: "Run test for the master branch"
           # TODO(Sayan): remove the duplication of config, which was done for backward compatibility, and can be removed once PR #1094 is merged with master.
           command: |
             cd test/benchmarking-apps/runner

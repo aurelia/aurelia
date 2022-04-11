@@ -1,5 +1,13 @@
 name: main
-on: [push]
+on:
+  push:
+    # check against refs/heads
+    branches-ignore:
+      - develop
+      - release
+    paths-ignore:
+      - 'docs/**'
+
 env:
   PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property
 
@@ -154,3 +162,34 @@ jobs:
       - name: Sierpinski triangle build check
         run: npm run build
         working-directory: examples/sierpinski-triangle
+
+  # # benchmark using playwright setup
+
+  # benchmark-playwright:
+  #   timeout-minutes: 35
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: "circleci/node:15.4.0-buster-browsers"
+  #     options: --user 1001
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: install and build the current branch
+  #       run: |
+  #         npm ci
+  #         npm run build
+  #     - name: run test for the current branch
+  #       run: |
+  #         cd test/benchmarking-apps/runner
+  #         node dist/run-benchmarks --i 2 --storage json
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         ref: master
+  #     - name: install and build the master branch
+  #       run: |
+  #         npm ci
+  #         npm run build
+  #     - name: Run test for the master branch
+  #       # TODO(Sayan): remove the duplication of config, which was done for backward compatibility, and can be removed once PR #1094 is merged with master.
+  #       run: |
+  #         cd test/benchmarking-apps/runner
+  #         node dist/run-benchmarks --i 2 --storage json

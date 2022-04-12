@@ -215,35 +215,35 @@ describe('router (smoke tests)', function () {
     await tearDown();
   });
 
-  // it(`root1 can load a01 as a type and can determine if it's active`, async function () {
-  //   const { router, host, tearDown } = await createFixture(Root1, Z);
+  it(`root1 can load a01 as a type and can determine if it's active`, async function () {
+    const { router, host, tearDown } = await createFixture(Root1, Z);
 
-  //   await router.load(A01);
-  //   assertComponentsVisible(host, [Root1, A01]);
-  //   assertIsActive(router, A01, router.routeTree.root.context, true, 1);
+    await router.load(A01);
+    assertComponentsVisible(host, [Root1, A01]);
+    assertIsActive(router, A01, router.routeTree.root.context, true, 1);
 
-  //   await tearDown();
-  // });
+    await tearDown();
+  });
 
-  //   it(`root1 can load a01 as a ViewportInstruction and can determine if it's active`, async function () {
-  //     const { router, host, tearDown } = await createFixture(Root1, Z);
+  it(`root1 can load a01 as a ViewportInstruction and can determine if it's active`, async function () {
+    const { router, host, tearDown } = await createFixture(Root1, Z);
 
-  //     await router.load({ component: A01 });
-  //     assertComponentsVisible(host, [Root1, A01]);
-  //     assertIsActive(router, { component: A01 }, router.routeTree.root.context, true, 1);
+    await router.load({ component: A01 });
+    assertComponentsVisible(host, [Root1, A01]);
+    assertIsActive(router, { component: A01 }, router.routeTree.root.context, true, 1);
 
-  //     await tearDown();
-  //   });
+    await tearDown();
+  });
 
-  //   it(`root1 can load a01 as a CustomElementDefinition and can determine if it's active`, async function () {
-  //     const { router, host, tearDown } = await createFixture(Root1, Z);
+  it(`root1 can load a01 as a CustomElementDefinition and can determine if it's active`, async function () {
+    const { router, host, tearDown } = await createFixture(Root1, Z);
 
-  //     await router.load(CustomElement.getDefinition(A01));
-  //     assertComponentsVisible(host, [Root1, A01]);
-  //     assertIsActive(router, CustomElement.getDefinition(A01), router.routeTree.root.context, true, 1);
+    await router.load(CustomElement.getDefinition(A01));
+    assertComponentsVisible(host, [Root1, A01]);
+    assertIsActive(router, CustomElement.getDefinition(A01), router.routeTree.root.context, true, 1);
 
-  //     await tearDown();
-  //   });
+    await tearDown();
+  });
 
   it(`root1 can load a01,a02 in order and can determine if it's active`, async function () {
     const { router, host, tearDown } = await createFixture(Root1, Z);
@@ -259,83 +259,83 @@ describe('router (smoke tests)', function () {
     await tearDown();
   });
 
-  //   it(`root1 can load a11,a11/a02 in order with context and can determine if it's active`, async function () {
-  //     const { router, host, tearDown } = await createFixture(Root1, Z);
+  it(`root1 can load a11,a11/a02 in order with context and can determine if it's active`, async function () {
+    const { router, host, tearDown } = await createFixture(Root1, Z);
 
-  //     await router.load(A11);
-  //     assertComponentsVisible(host, [Root1, A11]);
-  //     assertIsActive(router, A11, router.routeTree.root.context, true, 1);
+    await router.load(A11);
+    assertComponentsVisible(host, [Root1, A11]);
+    assertIsActive(router, A11, router.routeTree.root.context, true, 1);
 
-  //     const context = router.routeTree.root.children[0].context;
+    const context = router.routeTree.root.children[0].context;
 
-  //     await router.load(A02, { context });
-  //     assertComponentsVisible(host, [Root1, A11, A02]);
-  //     assertIsActive(router, A02, context, true, 2);
-  //     assertIsActive(router, A02, router.routeTree.root.context, false, 3);
-  //     assertIsActive(router, A11, router.routeTree.root.context, true, 3);
+    await router.load(A02, { context });
+    assertComponentsVisible(host, [Root1, A11, A02]);
+    assertIsActive(router, A02, context, true, 2);
+    assertIsActive(router, A02, router.routeTree.root.context, false, 3);
+    assertIsActive(router, A11, router.routeTree.root.context, true, 3);
 
-  //     await tearDown();
-  //   });
+    await tearDown();
+  });
 
-  //   it(`root1 can load a11/a01,a11/a02 in order with context`, async function () {
-  //     const { router, host, tearDown } = await createFixture(Root1, Z);
+  it(`root1 can load a11/a01,a11/a02 in order with context`, async function () {
+    const { router, host, tearDown } = await createFixture(Root1, Z);
 
-  //     await router.load({ component: A11, children: [A01] });
-  //     assertComponentsVisible(host, [Root1, A11, A01]);
+    await router.load({ component: A11, children: [A01] });
+    assertComponentsVisible(host, [Root1, A11, A01]);
 
-  //     const context = router.routeTree.root.children[0].context;
+    const context = router.routeTree.root.children[0].context;
 
-  //     await router.load(A02, { context });
-  //     assertComponentsVisible(host, [Root1, A11, A02]);
+    await router.load(A02, { context });
+    assertComponentsVisible(host, [Root1, A11, A02]);
 
-  //     await tearDown();
-  //   });
+    await tearDown();
+  });
 
-  //   it(`root1 correctly handles canUnload with load b01,a01 in order`, async function () {
-  //     const { router, host, tearDown } = await createFixture(Root1, Z);
+  it(`root1 correctly handles canUnload with load b01,a01 in order`, async function () {
+    const { router, host, tearDown } = await createFixture(Root1, Z);
 
-  //     let result = await router.load(B01);
-  //     assertComponentsVisible(host, [Root1, B01]);
-  //     assert.strictEqual(result, true, '#1 result===true');
+    let result = await router.load(B01);
+    assertComponentsVisible(host, [Root1, B01]);
+    assert.strictEqual(result, true, '#1 result===true');
 
-  //     result = await router.load(A01);
-  //     assertComponentsVisible(host, [Root1, A01]);
-  //     assert.strictEqual(result, true, '#2 result===true');
+    result = await router.load(A01);
+    assertComponentsVisible(host, [Root1, A01]);
+    assert.strictEqual(result, true, '#2 result===true');
 
-  //     await tearDown();
-  //   });
+    await tearDown();
+  });
 
-  //   it(`root1 correctly handles canUnload with load b02,a01 in order`, async function () {
-  //     const { router, host, tearDown } = await createFixture(Root1, Z);
+  it(`root1 correctly handles canUnload with load b02,a01 in order`, async function () {
+    const { router, host, tearDown } = await createFixture(Root1, Z);
 
-  //     let result = await router.load(B02);
-  //     assertComponentsVisible(host, [Root1, B02]);
-  //     assert.strictEqual(result, true, '#1 result===true');
+    let result = await router.load(B02);
+    assertComponentsVisible(host, [Root1, B02]);
+    assert.strictEqual(result, true, '#1 result===true');
 
-  //     result = await router.load(A01);
-  //     assertComponentsVisible(host, [Root1, B02]);
-  //     assert.strictEqual(result, false, '#2 result===false');
+    result = await router.load(A01);
+    assertComponentsVisible(host, [Root1, B02]);
+    assert.strictEqual(result, false, '#2 result===false');
 
-  //     await tearDown();
-  //   });
+    await tearDown();
+  });
 
-  //   it(`root1 correctly handles canUnload with load b02,a01,a02 in order`, async function () {
-  //     const { router, host, tearDown } = await createFixture(Root1, Z);
+  it(`root1 correctly handles canUnload with load b02,a01,a02 in order`, async function () {
+    const { router, host, tearDown } = await createFixture(Root1, Z);
 
-  //     let result = await router.load(B02);
-  //     assertComponentsVisible(host, [Root1, B02], '#1');
-  //     assert.strictEqual(result, true, '#1 result===true');
+    let result = await router.load(B02);
+    assertComponentsVisible(host, [Root1, B02], '#1');
+    assert.strictEqual(result, true, '#1 result===true');
 
-  //     result = await router.load(A01);
-  //     assertComponentsVisible(host, [Root1, B02], '#2');
-  //     assert.strictEqual(result, false, '#2 result===false');
+    result = await router.load(A01);
+    assertComponentsVisible(host, [Root1, B02], '#2');
+    assert.strictEqual(result, false, '#2 result===false');
 
-  //     result = await router.load(A02);
-  //     assertComponentsVisible(host, [Root1, B02], '#3');
-  //     assert.strictEqual(result, false, '#3 result===false');
+    result = await router.load(A02);
+    assertComponentsVisible(host, [Root1, B02], '#3');
+    assert.strictEqual(result, false, '#3 result===false');
 
-  //     await tearDown();
-  //   });
+    await tearDown();
+  });
 
   it(`root1 correctly handles canUnload with load b11/b02,b11/a02 in order`, async function () {
     const { router, host, tearDown } = await createFixture(Root1, Z);
@@ -388,14 +388,14 @@ describe('router (smoke tests)', function () {
     await tearDown();
   });
 
-  //   it(`root1 can load a11/a01 as a ViewportInstruction`, async function () {
-  //     const { router, host, tearDown } = await createFixture(Root1, Z);
+  it(`root1 can load a11/a01 as a ViewportInstruction`, async function () {
+    const { router, host, tearDown } = await createFixture(Root1, Z);
 
-  //     await router.load({ component: A11, children: [A01] });
-  //     assertComponentsVisible(host, [Root1, A11, A01]);
+    await router.load({ component: A11, children: [A01] });
+    assertComponentsVisible(host, [Root1, A11, A01]);
 
-  //     await tearDown();
-  //   });
+    await tearDown();
+  });
 
   it(`root1 can load a11/a01,a11/a02 in order`, async function () {
     const { router, host, tearDown } = await createFixture(Root1, Z);
@@ -427,23 +427,23 @@ describe('router (smoke tests)', function () {
     await tearDown();
   });
 
-  //   it(`root2 can load a01+a02 as an array of types`, async function () {
-  //     const { router, host, tearDown } = await createFixture(Root2, Z);
+  it(`root2 can load a01+a02 as an array of types`, async function () {
+    const { router, host, tearDown } = await createFixture(Root2, Z);
 
-  //     await router.load([A01, A02]);
-  //     assertComponentsVisible(host, [Root2, A01, A02]);
+    await router.load([A01, A02]);
+    assertComponentsVisible(host, [Root2, A01, A02]);
 
-  //     await tearDown();
-  //   });
+    await tearDown();
+  });
 
-  //   it(`root2 can load a01+a02 as a mixed array type and string`, async function () {
-  //     const { router, host, tearDown } = await createFixture(Root2, Z);
+  it(`root2 can load a01+a02 as a mixed array type and string`, async function () {
+    const { router, host, tearDown } = await createFixture(Root2, Z);
 
-  //     await router.load([A01, 'a02']);
-  //     assertComponentsVisible(host, [Root2, A01, A02]);
+    await router.load([A01, 'a02']);
+    assertComponentsVisible(host, [Root2, A01, A02]);
 
-  //     await tearDown();
-  //   });
+    await tearDown();
+  });
 
   it(`root2 can load a01+a02,a02+a01 in order`, async function () {
     const { router, host, tearDown } = await createFixture(Root2, Z);
@@ -457,24 +457,24 @@ describe('router (smoke tests)', function () {
     await tearDown();
   });
 
-  //   it(`root2 can load a11/a12/a01+a12/a01,a11/a12/a01+a12/a11/a01,a11/a12/a02+a12/a11/a01 in order with context`, async function () {
-  //     const { router, host, tearDown } = await createFixture(Root2, Z);
+  it(`root2 can load a12/a11/a01+a12/a01,a11/a12/a01+a12/a11/a01,a11/a12/a02+a12/a11/a01 in order with context`, async function () {
+    const { router, host, tearDown } = await createFixture(Root2, Z);
 
-  //     await router.load(`a11/a12/a01+a12/a01`);
-  //     assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A01]]], '#1');
+    await router.load(`a12/a11/a01+a12/a01`);
+    assertComponentsVisible(host, [Root2, [A12, [A11, [A01]]], [A12, [A01]]], '#1');
 
-  //     let context = router.routeTree.root.children[1].context;
+    let context = router.routeTree.root.children[1].context;
 
-  //     await router.load(`a11/a01`, { context });
-  //     assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A11, [A01]]]], '#2');
+    await router.load(`a11/a01`, { context });
+    assertComponentsVisible(host, [Root2, [A12, [A11, [A01]]], [A12, [A11, [A01]]]], '#2');
 
-  //     context = router.routeTree.root.children[0].children[0].context;
+    context = router.routeTree.root.children[0].children[0].context;
 
-  //     await router.load(`a02`, { context });
-  //     assertComponentsVisible(host, [Root2, [A11, [A12, [A02]]], [A12, [A11, [A01]]]], '#3');
+    await router.load(`a02`, { context });
+    assertComponentsVisible(host, [Root2, [A12, [A11, [A02]]], [A12, [A11, [A01]]]], '#3');
 
-  //     await tearDown();
-  //   });
+    await tearDown();
+  });
 
   // Now generate stuff
   const $1vp: Record<string, CSpec> = {
@@ -1095,7 +1095,9 @@ describe('router (smoke tests)', function () {
 
       await au.stop();
     });
+
+    // TODO(sayan): add more tests for title involving children and sibling routes
   }
 
-  // TODO: add tests here for the location URL building in relation for sibling, parent/children relationship and viewport name
+  // TODO(sayan): add tests here for the location URL building in relation for sibling, parent/children relationship and viewport name
 });

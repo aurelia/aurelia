@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
+  emptyObject,
   ILogger,
   onResolve,
   resolveAll,
+  toArray,
   Writable,
 } from '@aurelia/kernel';
 import {
   ConfigurableRoute,
+  Endpoint,
+  RecognizedRoute,
 } from '@aurelia/route-recognizer';
 import {
   CustomElementDefinition,
@@ -474,26 +478,44 @@ export function createAndAppendNodes(
   vi: ViewportInstruction,
   append: boolean,
 ): void | Promise<void> {
-  if(vi.component.type !== NavigationInstructionType.string) return;
-
   log.trace(`createAndAppendNodes(node:%s,vi:%s,append:${append})`, node, vi);
 
-  switch (vi.component.value) {
-    case '..':
-      // Allow going "too far up" just like directory command `cd..`, simply clamp it to the root
-      node.clearChildren();
-      node = node.context.parent?.node ?? node;
-    // falls through
-    case '.':
-      return resolveAll(...vi.children.map(childVI => {
-        return createAndAppendNodes(log, node, childVI, childVI.append);
-      }));
-    default: {
-      log.trace(`createAndAppendNodes invoking createNode`);
-      const childNode = createNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>, append);
-      if (childNode === null) {
-        return;
+  switch (vi.component.type) {
+    case NavigationInstructionType.string:
+      switch (vi.component.value) {
+        case '..':
+          // Allow going "too far up" just like directory command `cd..`, simply clamp it to the root
+          node.clearChildren();
+          node = node.context.parent?.node ?? node;
+        // falls through
+        case '.':
+          return resolveAll(...vi.children.map(childVI => {
+            return createAndAppendNodes(log, node, childVI, childVI.append);
+          }));
+        default: {
+          log.trace(`createAndAppendNodes invoking createNode`);
+          const childNode = createNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>, append);
+          if (childNode === null) {
+            return;
+          }
+          return appendNode(log, node, childNode);
+        }
       }
+    case NavigationInstructionType.IRouteViewModel:
+    case NavigationInstructionType.CustomElementDefinition: {
+      const rd = RouteDefinition.resolve(vi.component.value);
+      const params = vi.params ?? emptyObject;
+      const rr = new $RecognizedRoute(
+        new RecognizedRoute(
+          new Endpoint(
+            // TODO(sayan): probably need to do parameter matching and select the "most-matched" path instead of picking the first
+            new ConfigurableRoute(rd.path[0], rd.caseSensitive, rd),
+            toArray(Object.values(params))
+          ),
+          params
+        ),
+        null);
+      const childNode = createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
       return appendNode(log, node, childNode);
     }
   }

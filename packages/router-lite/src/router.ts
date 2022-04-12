@@ -469,8 +469,6 @@ export class Router {
    * router.load(ProductList);
    * router.load(CustomElement.define({ name: 'greeter', template: 'Hello!' }));
    * ```
-   *
-   * @internal TODO(sayan): enable these later
    */
   public load(componentType: RouteType, options?: INavigationOptions): Promise<boolean>;
   /**
@@ -481,8 +479,6 @@ export class Router {
    * ```ts
    * router.load([MemberList, OrganizationList]);
    * ```
-   *
-   * @internal TODO(sayan): enable these later
    */
   public load(componentTypes: readonly RouteType[], options?: INavigationOptions): Promise<boolean>;
   /**
@@ -493,8 +489,6 @@ export class Router {
    * ```ts
    * router.load({ name: 'greeter', template: 'Hello!' });
    * ```
-   *
-   * @internal TODO(sayan): enable these later
    */
   public load(componentDefinition: PartialCustomElementDefinition, options?: INavigationOptions): Promise<boolean>;
   /**
@@ -508,8 +502,6 @@ export class Router {
    * Controller.$el(container, greeter, host);
    * router.load(greeter);
    * ```
-   *
-   * @internal TODO(sayan): enable these later
    */
   public load(componentInstance: IRouteViewModel, options?: INavigationOptions): Promise<boolean>;
   /**

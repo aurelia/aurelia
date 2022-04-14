@@ -787,8 +787,8 @@ describe('router (smoke tests)', function () {
       assert.areTaskQueuesEmpty();
     });
 
-    // TODO(sayan): change this test for redirect to missing-configuration route (404)
-    it.skip(`will load the fallback when navigating to a non-existing route with mode: ${mode}`, async function () {
+    // TODO(sayan): add more tests for missing route configuration redirect
+    it(`will load the fallback when navigating to a non-existing route with mode: ${mode}`, async function () {
       @customElement({ name: 'a', template: 'a' })
       class A { }
       @route({

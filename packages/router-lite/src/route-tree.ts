@@ -29,6 +29,7 @@ import {
   RESIDUE,
 } from './route-context.js';
 import {
+  defaultViewportName,
   RouteDefinition,
 } from './route-definition.js';
 import {
@@ -547,8 +548,23 @@ function createNode(
     if (name === '') {
       return null;
     }
-    // TODO(sayan): add redirect to missing-configuration route (404), when configured.
-    throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
+    let vp = vi.viewport;
+    if (vp === null || vp.length === 0) vp = defaultViewportName;
+    const vpa = ctx.getFallbackViewportAgent('dynamic', vp);
+    if (vpa === null)
+      throw new Error(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
+    const rd = RouteDefinition.resolve(vpa.viewport.fallback, ctx);
+    // For missing route we don't migrate the parameters
+    const rr = new $RecognizedRoute(
+      new RecognizedRoute(
+        new Endpoint(
+          new ConfigurableRoute(rd.path[0], rd.caseSensitive, rd),
+          []
+        ),
+        emptyObject
+      ),
+      null);
+    return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
   }
 
   // readjust the children wrt. the residue

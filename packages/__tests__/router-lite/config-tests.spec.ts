@@ -475,21 +475,15 @@ describe('router config', function () {
 
   describe(`throw error when`, function () {
     function getErrorMsg({
-      isRegistered,
       instruction,
       parent,
       parentPath,
     }: {
-      isRegistered: boolean;
       instruction: string;
       parent: string;
       parentPath: string;
     }) {
-      if (isRegistered) {
-        return `'${instruction}' did not match any configured route, but it does match a registered component name at '${parentPath}' - did you forget to add a @route({ path: '${instruction}' }) decorator to '${instruction}' or unintentionally set routingMode to 'configured-only'?`;
-      } else {
-        return `'${instruction}' did not match any configured route or registered component name at '${parentPath}' - did you forget to add '${instruction}' to the routes list of the route decorator of '${parent}'?`;
-      }
+      return `Neither the route '${instruction}' matched any configured route at '${parentPath}' nor a fallback is configured for the viewport 'default' - did you forget to add '${instruction}' to the routes list of the route decorator of '${parent}'?`;
     }
 
     it(`load a configured child route with indirect path by name`, async function () {
@@ -512,7 +506,6 @@ describe('router config', function () {
 
       assert.notStrictEqual(e, null);
       assert.strictEqual(e.message, getErrorMsg({
-        isRegistered: false,
         instruction: 'a01',
         parent: 'root',
         parentPath: 'root',

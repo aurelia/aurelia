@@ -1,4 +1,4 @@
-import { IRouter } from '@aurelia/router-lite';
+import { IRouter } from '@aurelia/router';
 import { customElement, INode } from '@aurelia/runtime-html';
 import { AuthorsRepository } from './repositories/authors';
 import { State } from './state';

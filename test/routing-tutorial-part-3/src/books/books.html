@@ -1,0 +1,11 @@
+<import from="./book-details"></import>
+
+<div class="book-list">
+    <div>
+        <a load="book-details(${book.id})" repeat.for="book of books">
+            <h5>${book.title} (${book.year})</h5>
+            <div>${book.authors.join(', ')}</div>
+        </a>
+    </div>
+    <au-viewport name="book-details" fallback="book-details"></au-viewport>
+</div>

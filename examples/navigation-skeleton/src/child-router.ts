@@ -1,4 +1,4 @@
-import { IRouter } from '@aurelia/router-lite';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime-html';
 
 import * as template from './child-router.html';

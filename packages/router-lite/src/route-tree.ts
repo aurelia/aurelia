@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   emptyObject,
   ILogger,
@@ -574,11 +573,11 @@ function createNode(
   (rr as Writable<$RecognizedRoute>).residue = null;
   (vi.component as Writable<ITypedNavigationInstruction_string>).value = noResidue
     ? path
-    : path.slice(0, -(residue!.length + 1));
+    : path.slice(0, -(residue.length + 1));
 
   for (let i = 0; i < collapse; ++i) {
     const child = vi.children[0];
-    if (residue?.startsWith(child.component.value as string)) break;
+    if (residue?.startsWith(child.component.value as string) ?? false) break;
     (vi as Writable<ViewportInstruction>).children = child.children;
   }
   log.trace('createNode after adjustment vi:%s', vi);
@@ -710,8 +709,8 @@ function createConfiguredNode(
       }
 
       if (redirSeg !== null) {
-        if (redirSeg.component.isDynamic && origSeg?.component.isDynamic) {
-          newSegs.push(rr.route.params[origSeg.component.name] as string);
+        if (redirSeg.component.isDynamic && (origSeg?.component.isDynamic ?? false)) {
+          newSegs.push(rr.route.params[origSeg!.component.name] as string);
         } else {
           newSegs.push(redirSeg.raw);
         }

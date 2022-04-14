@@ -76,7 +76,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
 
   public static create(instruction: NavigationInstruction, context?: RouteContextLike | null): ViewportInstruction {
     if (instruction instanceof ViewportInstruction) {
-      return instruction;
+      return instruction as ViewportInstruction; // eslint is being really weird here
     }
 
     if (isPartialViewportInstruction(instruction)) {

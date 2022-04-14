@@ -106,8 +106,7 @@ export abstract class SimpleActivityTrackingVMBase {
 }
 
 describe('router config', function () {
-  // eslint-disable-next-line mocha/no-skipped-tests
-  describe.skip('monomorphic timings', function () {
+  describe('monomorphic timings', function () {
     const routerOptionsSpecs: IRouterOptionsSpec[] = ([
       'dynamic',
       'static',
@@ -245,7 +244,7 @@ describe('router config', function () {
                     yield `start.root2.attaching`;
                     yield `start.root2.attached`;
 
-                    yield* prepend(phase1, t1, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                    yield* prepend(phase1, t1c, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
 
                     for (const [phase, { $t1c, $t2c }] of [
                       [phase2, { $t1c: t1c, $t2c: t2c }],
@@ -261,10 +260,12 @@ describe('router config', function () {
                       yield* prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached');
                     }
 
+                    yield `stop.${t4c}.detaching`;
                     yield `stop.root2.detaching`;
+                    yield `stop.${t4c}.unbinding`;
                     yield `stop.root2.unbinding`;
-
-                    yield* prepend('stop', t4, 'detaching', 'unbinding');
+                    yield `stop.root2.dispose`;
+                    yield `stop.${t4c}.dispose`;
                   })()];
                   verifyInvocationsEqual(hia.notifyHistory, expected);
 

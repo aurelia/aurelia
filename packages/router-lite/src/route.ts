@@ -21,8 +21,6 @@ export type Routeable = string | IChildRouteConfig | IRedirectRouteConfig | Rout
 export interface IRouteConfig {
     /**
      * The id for this route, which can be used in the view for generating hrefs.
-     *
-     * (TODO: decide on, and provide more details about, whether this can be specified without specifying path, and what happens in different combinations of situations)
      */
     readonly id?: string | null;
     /**
@@ -59,8 +57,6 @@ export interface IRouteConfig {
     readonly transitionPlan?: TransitionPlanOrFunc;
     /**
      * The name of the viewport this component should be loaded into.
-     *
-     * (TODO: decide on, and provide more details about, whether this can be specified without specifying path, and what happens in different combinations of situations)
      */
     readonly viewport?: string | null;
     /**
@@ -72,6 +68,11 @@ export interface IRouteConfig {
      */
     readonly routes?: readonly Routeable[];
 
+    /**
+     * When set, will be used to redirect unknown/unconfigured routes to this route.
+     * Can be a route-id, route-path (route), or a custom element name; this is also the resolution/fallback order.
+     */
+    readonly fallback?: string | null;
 }
 export interface IChildRouteConfig extends IRouteConfig {
   /**
@@ -103,6 +104,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     public readonly viewport: string | null,
     public readonly data: Params,
     public readonly routes: readonly Routeable[],
+    public readonly fallback: string | null,
     public readonly component: Routeable,
   ) { }
 
@@ -129,6 +131,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         viewport,
         data,
         children,
+        Type?.fallback ?? null,
         null!, // TODO(sayan): find a TS-wise clearer way to deal with this.
       );
     } else if (typeof configOrPath === 'object') {
@@ -160,6 +163,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         viewport,
         data,
         children,
+        config.fallback ?? Type?.fallback ?? null,
         (config as IChildRouteConfig).component ?? null,
       );
     } else {
@@ -187,6 +191,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       config.viewport ?? this.viewport,
       config.data ?? this.data,
       config.routes ?? this.routes,
+      config.fallback ?? this.fallback,
       config.component ?? this.component,
     );
   }

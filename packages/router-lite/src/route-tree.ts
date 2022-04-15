@@ -541,7 +541,7 @@ function createNode(
     }
   }
 
-  let rr = ctx.recognize(path);
+  const rr = ctx.recognize(path);
   if (rr === null) {
     const name = vi.component.value;
     if (name === '') {
@@ -550,11 +550,10 @@ function createNode(
     let vp = vi.viewport;
     if (vp === null || vp.length === 0) vp = defaultViewportName;
     const vpa = ctx.getFallbackViewportAgent('dynamic', vp);
-    if (vpa === null)
+    const fallback = vpa === null ? ctx.definition.fallback : vpa.viewport.fallback;
+    if(fallback === null)
       throw new Error(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
-    // TODO: global fallback configuration
 
-    const fallback = vpa.viewport.fallback;
     // fallback: id -> route -> CEDefn (Route definition)
     // look for a route first
     log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
@@ -562,14 +561,12 @@ function createNode(
     if(rd !== void 0) return createFallbackNode(log, rd, node, vi, append);
 
     log.trace(`No route definition for the fallback '${fallback}' is found; trying to recognize the route.`);
-    rr = ctx.recognize(fallback);
+    const rr = ctx.recognize(fallback);
     if(rr !== null) return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
 
     // fallback is not recognized as a configured route; treat as CE and look for a route definition.
     log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
     return createFallbackNode(log, RouteDefinition.resolve(fallback, ctx), node, vi, append);
-
-    // TODO: global fallback configuration
   }
 
   // readjust the children wrt. the residue

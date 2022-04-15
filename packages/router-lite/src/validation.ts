@@ -77,6 +77,7 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
       case 'id':
       case 'viewport':
       case 'redirectTo':
+      case 'fallback':
         if (typeof value !== 'string') {
           expectType('string', path, value);
         }

@@ -793,7 +793,7 @@ describe('router (smoke tests)', function () {
         class A { }
         @route({
           routes: [
-            { id:'r1', path: 'a', component: A },
+            { id: 'r1', path: 'a', component: A },
           ]
         })
         @customElement({
@@ -806,7 +806,7 @@ describe('router (smoke tests)', function () {
         const ctx = TestContext.create();
         const { container } = ctx;
 
-        container.register(TestRouterConfiguration.for(LogLevel.trace));
+        container.register(TestRouterConfiguration.for(LogLevel.warn));
         container.register(RouterConfiguration.customize({ resolutionMode: mode }));
 
         const component = container.get(Root);
@@ -828,7 +828,269 @@ describe('router (smoke tests)', function () {
         await au.stop(true);
         assert.areTaskQueuesEmpty();
       });
+
+      it(`will load the global-fallback when navigating to a non-existing route - with mode: ${mode}`, async function () {
+        @customElement({ name: 'ce-a', template: 'a' })
+        class A { }
+        @route({
+          routes: [
+            { id: 'r1', path: 'a', component: A },
+          ],
+          fallback,
+        })
+        @customElement({
+          name: 'root',
+          template: `root<au-viewport>`,
+          dependencies: [A],
+        })
+        class Root { }
+
+        const ctx = TestContext.create();
+        const { container } = ctx;
+
+        container.register(TestRouterConfiguration.for(LogLevel.warn));
+        container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+
+        const component = container.get(Root);
+        const router = container.get(IRouter);
+
+        const au = new Aurelia(container);
+        const host = ctx.createElement('div');
+
+        au.app({ component, host });
+
+        await au.start();
+
+        assertComponentsVisible(host, [Root]);
+
+        await router.load('b');
+
+        assertComponentsVisible(host, [Root, [A]]);
+
+        await au.stop(true);
+        assert.areTaskQueuesEmpty();
+      });
+
+      it(`will load the global-fallback when navigating to a non-existing route - sibling - with ${name} - with mode: ${mode}`, async function () {
+        @customElement({ name: 'ce-a', template: 'a' })
+        class A { }
+        @route({
+          routes: [
+            { id: 'r1', path: 'a', component: A },
+          ],
+          fallback,
+        })
+        @customElement({
+          name: 'root',
+          template: `root<au-viewport></au-viewport><au-viewport></au-viewport>`,
+          dependencies: [A],
+        })
+        class Root { }
+
+        const ctx = TestContext.create();
+        const { container } = ctx;
+
+        container.register(TestRouterConfiguration.for(LogLevel.warn));
+        container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+
+        const component = container.get(Root);
+        const router = container.get(IRouter);
+
+        const au = new Aurelia(container);
+        const host = ctx.createElement('div');
+
+        au.app({ component, host });
+
+        await au.start();
+
+        assertComponentsVisible(host, [Root]);
+
+        await router.load('b+c');
+
+        assertComponentsVisible(host, [Root, [A, A]]);
+
+        await au.stop(true);
+        assert.areTaskQueuesEmpty();
+      });
     }
+
+    it(`will load the global-fallback when navigating to a non-existing route - parent-child - with mode: ${mode}`, async function () {
+      @customElement({ name: 'ce-a01', template: 'ac01' })
+      class Ac01 { }
+      @customElement({ name: 'ce-a02', template: 'ac02' })
+      class Ac02 { }
+
+      @route({
+        routes: [
+          { id: 'rc1', path: 'ac01', component: Ac01 },
+          { id: 'rc2', path: 'ac02', component: Ac02 },
+        ],
+        fallback: 'rc1',
+      })
+      @customElement({ name: 'ce-a', template: 'a<au-viewport>', dependencies: [Ac01, Ac02] })
+      class A { }
+
+      @route({
+        routes: [
+          { id: 'r1', path: 'a', component: A },
+        ],
+        fallback: 'r1',
+      })
+      @customElement({
+        name: 'root',
+        template: `root<au-viewport>`,
+        dependencies: [A],
+      })
+      class Root { }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(TestRouterConfiguration.for(LogLevel.warn));
+      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+
+      const component = container.get(Root);
+      const router = container.get(IRouter);
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      au.app({ component, host });
+
+      await au.start();
+
+      assertComponentsVisible(host, [Root]);
+
+      await router.load('a/b');
+
+      assertComponentsVisible(host, [Root, [A, [Ac01]]]);
+
+      await au.stop(true);
+      assert.areTaskQueuesEmpty();
+    });
+
+    it(`will load the global-fallback when navigating to a non-existing route - sibling + parent-child - with mode: ${mode}`, async function () {
+      @customElement({ name: 'ce-a01', template: 'ac01' })
+      class Ac01 { }
+      @customElement({ name: 'ce-a02', template: 'ac02' })
+      class Ac02 { }
+
+      @route({
+        routes: [
+          { id: 'rc1', path: 'ac01', component: Ac01 },
+          { id: 'rc2', path: 'ac02', component: Ac02 },
+        ],
+        fallback: 'rc1',
+      })
+      @customElement({ name: 'ce-a', template: 'a<au-viewport>', dependencies: [Ac01, Ac02] })
+      class A { }
+      @customElement({ name: 'ce-b01', template: 'bc01' })
+      class Bc01 { }
+      @customElement({ name: 'ce-b02', template: 'bc02' })
+      class Bc02 { }
+
+      @route({
+        routes: [
+          { id: 'rc1', path: 'bc01', component: Bc01 },
+          { id: 'rc2', path: 'bc02', component: Bc02 },
+        ],
+        fallback: 'rc2',
+      })
+      @customElement({ name: 'ce-b', template: 'b<au-viewport>', dependencies: [Bc01, Bc02] })
+      class B { }
+
+      @route({
+        routes: [
+          { id: 'r1', path: 'a', component: A },
+          { id: 'r2', path: 'b', component: B },
+        ],
+        fallback: 'r1',
+      })
+      @customElement({
+        name: 'root',
+        template: `root<au-viewport></au-viewport><au-viewport></au-viewport>`,
+        dependencies: [A, B],
+      })
+      class Root { }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(TestRouterConfiguration.for(LogLevel.warn));
+      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+
+      const component = container.get(Root);
+      const router = container.get(IRouter);
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      au.app({ component, host });
+
+      await au.start();
+
+      assertComponentsVisible(host, [Root]);
+
+      await router.load('a/ac02+b/u');
+
+      assertComponentsVisible(host, [Root, [A, [Ac02]], [B, [Bc02]]]);
+
+      await router.load('a/u+b/bc01');
+
+      assertComponentsVisible(host, [Root, [A, [Ac01]], [B, [Bc01]]]);
+
+      await router.load('a/u+b/u');
+
+      assertComponentsVisible(host, [Root, [A, [Ac01]], [B, [Bc02]]]);
+
+      await au.stop(true);
+      assert.areTaskQueuesEmpty();
+    });
+
+    it(`au-viewport#fallback precedes global fallback - with mode: ${mode}`, async function () {
+      @customElement({ name: 'ce-a', template: 'a' })
+      class A { }
+      @customElement({ name: 'ce-b', template: 'b' })
+      class B { }
+      @route({
+        routes: [
+          { id: 'r1', path: 'a', component: A },
+          { id: 'r2', path: 'b', component: B },
+        ],
+        fallback: 'r1',
+      })
+      @customElement({
+        name: 'root',
+        template: `root<au-viewport name="1"></au-viewport><au-viewport name="2" fallback="r2"></au-viewport>`,
+        dependencies: [A, B],
+      })
+      class Root { }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(TestRouterConfiguration.for(LogLevel.warn));
+      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+
+      const component = container.get(Root);
+      const router = container.get(IRouter);
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      au.app({ component, host });
+
+      await au.start();
+
+      assertComponentsVisible(host, [Root]);
+
+      await router.load('u1@1+u2@2');
+
+      assertComponentsVisible(host, [Root, [A, B]]);
+
+      await au.stop(true);
+      assert.areTaskQueuesEmpty();
+    });
   }
 
   it(`correctly parses parameters`, async function () {

@@ -44,9 +44,10 @@ export class RouteDefinition {
   public readonly viewport: string;
   public readonly id: string;
   public readonly data: Params;
+  public readonly fallback: string | null;
 
   public constructor(
-    public readonly config: Omit<RouteConfig, 'saveTo'>,
+    public readonly config: RouteConfig,
     public readonly component: CustomElementDefinition | null,
   ) {
     this.hasExplicitPath = config.path !== null;
@@ -56,6 +57,7 @@ export class RouteDefinition {
     this.viewport = config.viewport ?? defaultViewportName;
     this.id = ensureString(config.id ?? this.path);
     this.data = config.data ?? {};
+    this.fallback = config.fallback ?? null;
   }
 
   public static resolve(routeable: Promise<IModule>, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;

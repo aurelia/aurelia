@@ -91,68 +91,22 @@ export function defaultReentryBehavior(current: RouteNode, next: RouteNode): Tra
   return 'none';
 }
 
+// Every kind of route configurations are normalized to this `RouteConfig` class.
 export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   protected constructor(
-    /**
-     * The id for this route, which can be used in the view for generating hrefs.
-     *
-     * (TODO: decide on, and provide more details about, whether this can be specified without specifying path, and what happens in different combinations of situations)
-     */
     public readonly id: string | null,
-    /**
-     * The path to match against the url.
-     *
-     * If left blank, the path will be derived from the component's static `path` property (if it exists), or otherwise the component name will be used (if direct routing is enabled).
-     */
     public readonly path: string | string[] | null,
-    /**
-     * The title to use for this route when matched.
-     *
-     * If left blank, this route will not contribute to the generated title.
-     */
     public readonly title: string | ((node: RouteNode) => string | null) | null,
-    /**
-     * The path to which to redirect when the url matches the path in this config.
-     *
-     * If the path begins with a slash (`/`), the redirect path is considered absolute, otherwise it is considered relative to the parent path.
-     */
     public readonly redirectTo: string | null,
-    /**
-     * Whether the `path` should be case sensitive.
-     */
     public readonly caseSensitive: boolean,
-    /**
-     * How to behave when this component scheduled to be loaded again in the same viewport:
-     *
-     * - `replace`: completely removes the current component and creates a new one, behaving as if the component changed.
-     * - `invoke-lifecycles`: calls `canUnload`, `canLoad`, `unload` and `load` (default if only the parameters have changed)
-     * - `none`: does nothing (default if nothing has changed for the viewport)
-     *
-     * By default, calls the router lifecycle hooks only if the parameters have changed, otherwise does nothing.
-     */
     public readonly transitionPlan: TransitionPlanOrFunc,
-    /**
-     * The name of the viewport this component should be loaded into.
-     *
-     * (TODO: decide on, and provide more details about, whether this can be specified without specifying path, and what happens in different combinations of situations)
-     */
     public readonly viewport: string | null,
-    /**
-     * Any custom data that should be accessible to matched components or hooks.
-     */
     public readonly data: Params,
-    /**
-     * The child routes that can be navigated to from this route. See `Routeable` for more information.
-     */
     public readonly routes: readonly Routeable[],
-
-    /**
-     * The component to load when this route is matched.
-     */
     public readonly component: Routeable,
   ) { }
 
-  public static create(configOrPath: IRouteConfig | IChildRouteConfig | string | string[], Type: RouteType | null/* , configType: RouteConfigType */): RouteConfig {
+  public static create(configOrPath: IRouteConfig | IChildRouteConfig | string | string[], Type: RouteType | null): RouteConfig {
     if (typeof configOrPath === 'string' || configOrPath instanceof Array) {
       const path = configOrPath;
 

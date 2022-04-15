@@ -40,6 +40,7 @@
     "examples/realworld",
     "examples/realworld-advanced",
     "examples/sierpinski-triangle",
+    ".ignored/router-bugs",
     "test/karma-aurelia-preprocessor",
     "test/i18n",
     "test/benchmarking-apps/shared",

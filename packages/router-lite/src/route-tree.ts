@@ -541,7 +541,7 @@ function createNode(
     }
   }
 
-  const rr = ctx.recognize(path);
+  let rr = ctx.recognize(path);
   if (rr === null) {
     const name = vi.component.value;
     if (name === '') {
@@ -552,18 +552,24 @@ function createNode(
     const vpa = ctx.getFallbackViewportAgent('dynamic', vp);
     if (vpa === null)
       throw new Error(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
-    const rd = RouteDefinition.resolve(vpa.viewport.fallback, ctx);
-    // For missing route we don't migrate the parameters
-    const rr = new $RecognizedRoute(
-      new RecognizedRoute(
-        new Endpoint(
-          new ConfigurableRoute(rd.path[0], rd.caseSensitive, rd),
-          []
-        ),
-        emptyObject
-      ),
-      null);
-    return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
+    // TODO: global fallback configuration
+
+    const fallback = vpa.viewport.fallback;
+    // fallback: id -> route -> CEDefn (Route definition)
+    // look for a route first
+    log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
+    const rd = (ctx.childRoutes as RouteDefinition[]).find(x => x.id === fallback);
+    if(rd !== void 0) return createFallbackNode(log, rd, node, vi, append);
+
+    log.trace(`No route definition for the fallback '${fallback}' is found; trying to recognize the route.`);
+    rr = ctx.recognize(fallback);
+    if(rr !== null) return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
+
+    // fallback is not recognized as a configured route; treat as CE and look for a route definition.
+    log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
+    return createFallbackNode(log, RouteDefinition.resolve(fallback, ctx), node, vi, append);
+
+    // TODO: global fallback configuration
   }
 
   // readjust the children wrt. the residue
@@ -736,4 +742,27 @@ function appendNode(
     node.appendChild($childNode);
     return $childNode.context.vpa.scheduleUpdate(node.tree.options, $childNode);
   });
+}
+
+/**
+ * Creates route node from the given RouteDefinition `rd` for a unknown path (non-configured route).
+ */
+function createFallbackNode(
+  log: ILogger,
+  rd: RouteDefinition,
+  node: RouteNode,
+  vi: ViewportInstruction<ITypedNavigationInstruction_string>,
+  append: boolean,
+): RouteNode | Promise<RouteNode> {
+  // we aren't migrating the parameters for missing route
+  const rr = new $RecognizedRoute(
+    new RecognizedRoute(
+      new Endpoint(
+        new ConfigurableRoute(rd.path[0], rd.caseSensitive, rd),
+        []
+      ),
+      emptyObject
+    ),
+    null);
+  return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
 }

@@ -787,47 +787,48 @@ describe('router (smoke tests)', function () {
       assert.areTaskQueuesEmpty();
     });
 
-    // TODO(sayan): add more tests for missing route configuration redirect
-    it(`will load the fallback when navigating to a non-existing route with mode: ${mode}`, async function () {
-      @customElement({ name: 'a', template: 'a' })
-      class A { }
-      @route({
-        routes: [
-          { path: 'a', component: A },
-        ]
-      })
-      @customElement({
-        name: 'root',
-        template: `root<au-viewport fallback="a">`,
-        dependencies: [A],
-      })
-      class Root { }
+    for (const [name, fallback] of [['ce name', 'ce-a'], ['route', 'a'], ['route-id', 'r1']]) {
+      it(`will load the fallback when navigating to a non-existing route - with ${name} - with mode: ${mode}`, async function () {
+        @customElement({ name: 'ce-a', template: 'a' })
+        class A { }
+        @route({
+          routes: [
+            { id:'r1', path: 'a', component: A },
+          ]
+        })
+        @customElement({
+          name: 'root',
+          template: `root<au-viewport fallback="${fallback}">`,
+          dependencies: [A],
+        })
+        class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
+        const ctx = TestContext.create();
+        const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(LogLevel.debug));
-      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+        container.register(TestRouterConfiguration.for(LogLevel.trace));
+        container.register(RouterConfiguration.customize({ resolutionMode: mode }));
 
-      const component = container.get(Root);
-      const router = container.get(IRouter);
+        const component = container.get(Root);
+        const router = container.get(IRouter);
 
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
+        const au = new Aurelia(container);
+        const host = ctx.createElement('div');
 
-      au.app({ component, host });
+        au.app({ component, host });
 
-      await au.start();
+        await au.start();
 
-      assertComponentsVisible(host, [Root]);
+        assertComponentsVisible(host, [Root]);
 
-      await router.load('b');
+        await router.load('b');
 
-      assertComponentsVisible(host, [Root, [A]]);
+        assertComponentsVisible(host, [Root, [A]]);
 
-      await au.stop(true);
-      assert.areTaskQueuesEmpty();
-    });
+        await au.stop(true);
+        assert.areTaskQueuesEmpty();
+      });
+    }
   }
 
   it(`correctly parses parameters`, async function () {

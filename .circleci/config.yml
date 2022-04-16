@@ -427,7 +427,8 @@ workflows:
   # Triggered by push to master or topic branches
   build_test:
     jobs:
-      - check_doc_abort
+      - check_doc_abort:
+          <<: *filter_ignore_develop_release
       - unit_test_esm:
           <<: *filter_ignore_develop_release
           name: unit_test_esm_chrome

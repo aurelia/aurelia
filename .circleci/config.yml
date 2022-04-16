@@ -460,26 +460,30 @@ workflows:
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
-      - lint_packages:
-          <<: *filter_ignore_develop_release
-          requires:
-            - check_doc_abort
-      - benchmark_playwright:
-          <<: *filter_ignore_develop_release
-          requires:
-            - check_doc_abort
+
+      # - lint_packages:
+      #     <<: *filter_ignore_develop_release
+      #     requires:
+      #       - check_doc_abort
+
+      # - benchmark_playwright:
+      #     <<: *filter_ignore_develop_release
+      #     requires:
+      #       - check_doc_abort
       - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: jit-webpack-conventions-ts
           path: "examples/jit-webpack-conventions-ts"
           requires:
-            - lint_packages # not a real requirement but forces long-running jobs to go first
+            - check_doc_abort
+            # - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: jit-webpack-vanilla-ts
           path: "examples/jit-webpack-vanilla-ts"
           requires:
-            - lint_packages # not a real requirement but forces long-running jobs to go first
+            - check_doc_abort
+            # - lint_packages # not a real requirement but forces long-running jobs to go first
       - merge_and_dist:
           <<: *filter_only_master
           name: merge_and_dist_master
@@ -489,7 +493,7 @@ workflows:
             - unit_test_esm_node
             - unit_test_cjs
             #- test_test262
-            - lint_packages
+            # - lint_packages
             - jit-webpack-conventions-ts
             - jit-webpack-vanilla-ts
           from: master
@@ -505,7 +509,7 @@ workflows:
             - unit_test_esm_firefox
             - unit_test_esm_node
             - unit_test_cjs
-            - lint_packages
+            # - lint_packages
             - jit-webpack-conventions-ts
             - jit-webpack-vanilla-ts
           from: master
@@ -547,8 +551,8 @@ workflows:
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
-      - lint_packages:
-          <<: *filter_only_tag
+      # - lint_packages:
+      #     <<: *filter_only_tag
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
@@ -557,7 +561,7 @@ workflows:
             - unit_test_esm_node
             - unit_test_cjs
             #- test_test262
-            - lint_packages
+            # - lint_packages
           from: $CIRCLE_TAG
           to: release
           channel: latest

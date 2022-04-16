@@ -1,0 +1,37 @@
+<div class="article-preview" if.bind="$articleList.items.length === 0">
+  No articles are here... yet.
+</div>
+
+<div repeat.for="article of $articleList.items" class="article-preview" data-e2e="article-${article.slug}">
+  <let author.bind="article.author"></let>
+  <div class="article-meta">
+    <a load="/profile(${author.username})"><img src.bind="author.image" /></a>
+    <div class="info">
+      <a load="/profile(${author.username})" class="author">${author.username}</a>
+      <span class="date">${article.createdAt | date}</span>
+    </div>
+    <button class="btn btn-sm pull-xs-right ${article.favorited ? 'btn-primary' : 'btn-outline-primary'}"
+      click.delegate="toggleFavorite(article.slug)" data-e2e="toggleFavoriteBtn">
+      <i class="ion-heart"></i>
+      ${article.favoritesCount}
+    </button>
+  </div>
+
+  <a load="/article(${article.slug})" class="preview-link">
+    <h1>${article.title}</h1>
+    <p>${article.description}</p>
+    <span>Read more...</span>
+    <ul class="tag-list">
+      <li repeat.for="tag of article.tagList" class="tag-default tag-pill tag-outline">${tag}</li>
+    </ul>
+  </a>
+</div>
+
+<nav if.bind="$articleList.pages.length > 1">
+  <ul class="pagination">
+    <li repeat.for="page of $articleList.pages" class="page-item" load-active data-e2e="page-${page}Link">
+      <a class="page-link" load="../${componentName}(${modeFilter}${tagFilter}page=${page})"
+        considered-active="../${componentName}(page=${page})">${page}</a>
+    </li>
+  </ul>
+</nav>

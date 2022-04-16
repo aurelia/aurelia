@@ -21,8 +21,9 @@ export class CSSModulesProcessorRegistry implements IRegistry {
     const ClassCustomAttribute = CustomAttribute.define({
       name: 'class',
       bindables: ['value'],
+      noMultiBindings: true,
     }, class CustomAttributeClass {
-      public static inject: any[] = [INode];
+      public static inject: unknown[] = [INode];
 
       public value!: string;
       public constructor(
@@ -76,7 +77,7 @@ export class ShadowDOMRegistry implements IRegistry {
 
 class AdoptedStyleSheetsStylesFactory {
   public static inject = [IPlatform];
-  private readonly cache = new Map();
+  private readonly cache = new Map<string, CSSStyleSheet>();
 
   public constructor(private readonly p: IPlatform) {}
 
@@ -124,6 +125,7 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
 
         if (sheet === void 0) {
           sheet = new p.CSSStyleSheet();
+          // eslint-disable-next-line
           (sheet as any).replaceSync(x);
           styleSheetCache.set(x, sheet);
         }

@@ -19,8 +19,8 @@ import type {
   IFlushable,
   FlushQueue,
 } from '@aurelia/runtime';
+import { hasOwnProperty } from '../utilities.js';
 
-const hasOwn = Object.prototype.hasOwnProperty;
 const childObserverOptions = {
   childList: true,
   subtree: true,
@@ -130,7 +130,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
 
     while (i-- > 0) {
       const option = options[i];
-      const optionValue = hasOwn.call(option, 'model') ? option.model : option.value;
+      const optionValue = hasOwnProperty.call(option, 'model') ? option.model : option.value;
       if (isArray) {
         option.selected = (value as unknown[]).findIndex(item => !!matcher(optionValue, item)) !== -1;
         continue;
@@ -170,13 +170,14 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
       // A.1.b
       // multi select
       let option: IOptionElement;
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       const matcher = obj.matcher || defaultMatcher;
       // A.1.b.i
       const values: unknown[] = [];
       while (i < len) {
         option = options[i];
         if (option.selected) {
-          values.push(hasOwn.call(option, 'model')
+          values.push(hasOwnProperty.call(option, 'model')
             ? option.model
             : option.value
           );
@@ -215,7 +216,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
     while (i < len) {
       option = options[i];
       if (option.selected) {
-        value = hasOwn.call(option, 'model')
+        value = hasOwnProperty.call(option, 'model')
           ? option.model
           : option.value;
         break;
@@ -273,7 +274,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   }
 
   /** @internal */
-  private _handleNodeChange(records: MutationRecord[]): void {
+  private _handleNodeChange(_records: MutationRecord[]): void {
     // syncing options first means forcing the UI to take the existing state from the model
     // example: if existing state has only 3 selected option
     //          and it's adding a 4th <option/> with selected state
@@ -324,7 +325,7 @@ function getSelectedOptions(options: ArrayLike<IOptionElement>): unknown[] {
   while (ii > i) {
     option = options[i];
     if (option.selected) {
-      selection[selection.length] = hasOwn.call(option, 'model') ? option.model : option.value;
+      selection[selection.length] = hasOwnProperty.call(option, 'model') ? option.model : option.value;
     }
     ++i;
   }

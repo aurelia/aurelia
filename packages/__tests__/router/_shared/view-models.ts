@@ -1,12 +1,13 @@
-import { Writable } from '@aurelia/kernel';
+import { onResolve, Writable } from '@aurelia/kernel';
 import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime-html';
-import { Params, RouteNode, NavigationInstruction, IRouteViewModel } from '@aurelia/router';
+import { Parameters, IRouteableComponent, LoadInstruction, Navigation, Viewport, RoutingInstruction } from '@aurelia/router';
 import { IHookInvocationAggregator } from './hook-invocation-tracker.js';
 import { IHookSpec, hookSpecsMap } from './hook-spec.js';
 
-export interface ITestRouteViewModel extends IRouteViewModel {
+export interface ITestRouteViewModel extends IRouteableComponent {
   readonly $controller: ICustomElementController<this>;
   readonly name: string;
+  viewport: Viewport;
 
   binding(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
   bound(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
@@ -16,10 +17,24 @@ export interface ITestRouteViewModel extends IRouteViewModel {
   detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
   unbinding(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
 
-  canLoad(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
-  load(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
-  canUnload(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;
-  unload(next: RouteNode | null, current: RouteNode): void | Promise<void>;
+  canLoad(
+    params: Parameters,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
+  ): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
+  load(
+    params: Parameters,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
+  ): void | Promise<void>;
+  canUnload(
+    instruction: RoutingInstruction,
+    navigation: Navigation,
+  ): boolean | Promise<boolean>;
+  unload(
+    instruction: RoutingInstruction,
+    navigation: Navigation,
+  ): void | Promise<void>;
 }
 
 export class HookSpecs {
@@ -42,7 +57,7 @@ export class HookSpecs {
     public readonly load: IHookSpec<'load'>,
     public readonly canUnload: IHookSpec<'canUnload'>,
     public readonly unload: IHookSpec<'unload'>,
-  ) {}
+  ) { }
 
   public static create(
     input: Partial<HookSpecs>,
@@ -114,6 +129,7 @@ const hookNames = [
 
 export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public readonly $controller!: ICustomElementController<this>;
+  public viewport: Viewport;
   public get name(): string {
     return this.$controller.definition.name;
   }
@@ -122,19 +138,22 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     public readonly hia: IHookInvocationAggregator,
 
     public readonly specs: HookSpecs = HookSpecs.DEFAULT,
-  ) {}
+  ) { }
 
   public binding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.binding.notify(`${this.viewport?.name}:${this.name}`);
+    // this.hia.binding.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.binding.invoke(
       this,
       () => {
-        this.hia.binding.notify(this.name);
+        // this.hia.binding.notify(`${this.viewport?.name}.${this.name}`);
         return this.$binding(initiator, parent, flags);
       },
+      this.hia.binding,
     );
   }
 
@@ -143,12 +162,14 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.bound.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.bound.invoke(
       this,
       () => {
-        this.hia.bound.notify(this.name);
+        // this.hia.bound.notify(`${this.viewport?.name}.${this.name}`);
         return this.$bound(initiator, parent, flags);
       },
+      this.hia.bound,
     );
   }
 
@@ -157,12 +178,15 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.attaching.notify(`${this.viewport?.name}:${this.name}`);
+    // this.hia.attaching.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.attaching.invoke(
       this,
       () => {
-        this.hia.attaching.notify(this.name);
+        // this.hia.attaching.notify(`${this.viewport?.name}.${this.name}`);
         return this.$attaching(initiator, parent, flags);
       },
+      this.hia.attaching,
     );
   }
 
@@ -170,12 +194,14 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     initiator: IHydratedController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.attached.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.attached.invoke(
       this,
       () => {
-        this.hia.attached.notify(this.name);
+        // this.hia.attached.notify(`${this.viewport?.name}.${this.name}`);
         return this.$attached(initiator, flags);
       },
+      this.hia.attached,
     );
   }
 
@@ -184,12 +210,14 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.detaching.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.detaching.invoke(
       this,
       () => {
-        this.hia.detaching.notify(this.name);
+        // this.hia.detaching.notify(`${this.viewport?.name}.${this.name}`);
         return this.$detaching(initiator, parent, flags);
       },
+      this.hia.detaching,
     );
   }
 
@@ -198,76 +226,112 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // console.log(`unbinding ${this.name} ${this.$controller.host.outerHTML}`);
+    // this.hia.unbinding.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.unbinding.invoke(
       this,
       () => {
-        this.hia.unbinding.notify(this.name);
+        // this.hia.unbinding.notify(`${this.viewport?.name}.${this.name}`);
         return this.$unbinding(initiator, parent, flags);
       },
+      this.hia.unbinding,
     );
   }
 
   public dispose(): void {
+    // this.hia.$$dispose.notify(`${this.viewport?.name}.${this.name}`);
     this.specs.$dispose.invoke(
       this,
       () => {
-        this.hia.$$dispose.notify(this.name);
+        // this.hia.$$dispose.notify(`${this.viewport?.name}.${this.name}`);
         this.$dispose();
       },
+      this.hia.$$dispose,
     );
   }
 
   public canLoad(
-    params: Params,
-    next: RouteNode,
-    current: RouteNode | null,
-  ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
+    params: Parameters,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
+  ): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
+    this.viewport = instruction.viewport.instance as Viewport;
+    // console.log('TestViewModel canLoad', this.name);
+    // this.hia.canLoad.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.canLoad.invoke(
       this,
       () => {
-        this.hia.canLoad.notify(this.name);
-        return this.$canLoad(params, next, current);
+        // this.hia.canLoad.notify(`${this.viewport?.name}.${this.name}`, 'enter');
+        // return onResolve(this.$canLoad(params, next, current), () => {
+        // this.hia.canLoad.notify(`${this.viewport?.name}.${this.name}`, 'leave');
+        // }) as any;
+        return this.$canLoad(params, instruction, navigation);
+        // this.hia.canLoad.notify(`${this.viewport?.name}.${this.name}`);
+        // const result = this.$canLoad(params, next, current);
+        // if (result instanceof Promise) {
+        //   return result.then(() => {
+        //     this.hia.canLoad.notify(`${this.viewport?.name}.${this.name}`, 'leave');
+        //   });
+        // }
+        // this.hia.canLoad.notify(`${this.viewport?.name}.${this.name}`, 'leave');
+        // return result;
       },
+      this.hia.canLoad,
     );
   }
 
   public load(
-    params: Params,
-    next: RouteNode,
-    current: RouteNode | null,
+    params: Parameters,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
   ): void | Promise<void> {
+    this.viewport = instruction.viewport.instance as Viewport;
+    // console.log('TestViewModel load', this.name);
+    // this.hia.load.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.load.invoke(
       this,
       () => {
-        this.hia.load.notify(this.name);
-        return this.$load(params, next, current);
+        // this.hia.load.notify(`${this.viewport?.name}.${this.name}`);
+        return this.$load(params, instruction, navigation);
       },
+      this.hia.load,
     );
   }
 
   public canUnload(
-    next: RouteNode | null,
-    current: RouteNode,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
   ): boolean | Promise<boolean> {
+    this.viewport = instruction.viewport.instance as Viewport;
+    // console.log('TestViewModel canUnload', this);
+    // this.hia.canUnload.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.canUnload.invoke(
       this,
       () => {
-        this.hia.canUnload.notify(this.name);
-        return this.$canUnload(next, current);
+        return this.$canUnload(instruction, navigation);
+        // this.hia.canUnload.notify(`${this.viewport?.name}.${this.name}`, 'enter');
+        // return onResolve(this.$canUnload(instruction, navigation), () => {
+        //   this.hia.canUnload.notify(`${this.viewport?.name}.${this.name}`, 'leave');
+        // }) as any;
       },
+      this.hia.canUnload,
     );
   }
 
   public unload(
-    next: RouteNode | null,
-    current: RouteNode,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
   ): void | Promise<void> {
+    this.viewport = instruction.viewport.instance as Viewport;
+    // console.log('TestViewModel unload', this.name);
+    // this.hia.unload.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.unload.invoke(
       this,
       () => {
-        this.hia.unload.notify(this.name);
-        return this.$unload(next, current);
+        // this.hia.unload.notify(`${this.viewport?.name}.${this.name}`);
+        return this.$unload(instruction, navigation);
       },
+      this.hia.unload,
     );
   }
 
@@ -319,31 +383,31 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   protected $canLoad(
-    _params: Params,
-    _next: RouteNode,
-    _current: RouteNode | null,
-  ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
+    _params: Parameters,
+    _instruction: RoutingInstruction,
+    _navigation: Navigation,
+  ): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
     return true;
   }
 
   protected $load(
-    _params: Params,
-    _next: RouteNode,
-    _current: RouteNode | null,
+    _params: Parameters,
+    _instruction: RoutingInstruction,
+    _navigation: Navigation,
   ): void | Promise<void> {
     // do nothing
   }
 
   protected $canUnload(
-    _next: RouteNode | null,
-    _current: RouteNode,
+    _instruction: RoutingInstruction,
+    _navigation: Navigation,
   ): boolean | Promise<boolean> {
     return true;
   }
 
   protected $unload(
-    _next: RouteNode | null,
-    _current: RouteNode,
+    _instruction: RoutingInstruction,
+    _navigation: Navigation,
   ): void | Promise<void> {
     // do nothing
   }

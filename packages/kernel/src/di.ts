@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 
 applyMetadataPolyfill(Reflect, false, false);
@@ -6,9 +11,7 @@ import { isArrayIndex, isNativeFunction } from './functions.js';
 import { Class, Constructable, IDisposable } from './interfaces.js';
 import { emptyArray } from './platform.js';
 import { appendAnnotation, getAnnotationKeyFor, IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource.js';
-import { defineMetadata, getOwnMetadata } from './shared.js';
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createObject, defineMetadata, getOwnMetadata, isFunction, isString } from './utilities.js';
 
 export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 
@@ -247,8 +250,8 @@ export const DI = {
    * - @param friendlyName used to improve error messaging
    */
   createInterface<K extends Key>(configureOrName?: string | ((builder: ResolverBuilder<K>) => IResolver<K>), configuror?: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
-    const configure = typeof configureOrName === 'function' ? configureOrName : configuror;
-    const friendlyName = typeof configureOrName === 'string' ? configureOrName : undefined;
+    const configure = isFunction(configureOrName) ? configureOrName : configuror;
+    const friendlyName = isString(configureOrName) ? configureOrName : undefined;
 
     const Interface = function (target: Injectable<K>, property: string, index: number): void {
       if (target == null || new.target !== undefined) {
@@ -391,7 +394,7 @@ function getDependencies(Type: Constructable | Injectable): Key[] {
           // Only go up the prototype if neither static inject nor any of the paramtypes is defined, as
           // there is no sound way to merge a type's deps with its prototype's deps
           const Proto = Object.getPrototypeOf(Type);
-          if (typeof Proto === 'function' && Proto !== Function.prototype) {
+          if (isFunction(Proto) && Proto !== Function.prototype) {
             dependencies = cloneArrayWithPossibleProps(getDependencies(Proto));
           } else {
             dependencies = [];
@@ -529,11 +532,11 @@ export function singleton<T extends Constructable>(options?: SingletonOptions): 
  */
 export function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 export function singleton<T extends Constructable>(targetOrOptions?: (T & Partial<RegisterSelf<T>>) | SingletonOptions): T & RegisterSelf<T> | typeof singletonDecorator {
-  if (typeof targetOrOptions === 'function') {
+  if (isFunction(targetOrOptions)) {
     return DI.singleton(targetOrOptions);
   }
   return function <T extends Constructable>($target: T) {
-    return DI.singleton($target, targetOrOptions as SingletonOptions | undefined);
+    return DI.singleton($target, targetOrOptions);
   };
 }
 
@@ -850,7 +853,7 @@ const containerResolver: IResolver = {
 };
 
 function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistry {
-  return typeof obj.register === 'function';
+  return isFunction(obj.register);
 }
 
 function isSelfRegistry<T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> {
@@ -866,7 +869,7 @@ function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {
 }
 
 function isResourceKey(key: Key): key is string {
-  return typeof key === 'string' && key.indexOf(':') > 0;
+  return isString(key) && key.indexOf(':') > 0;
 }
 
 const InstrinsicTypeNames = new Set<string>([
@@ -945,7 +948,7 @@ export class Container implements IContainer {
       this._resolvers = new Map();
       this._factories = new Map<Constructable, Factory>();
 
-      this.res = Object.create(null);
+      this.res = createObject();
     } else {
       this.root = parent.root;
 
@@ -954,12 +957,12 @@ export class Container implements IContainer {
 
       if (config.inheritParentResources) {
         this.res = Object.assign(
-          Object.create(null),
+          createObject(),
           parent.res,
           this.root.res,
         );
       } else {
-        this.res = Object.create(null);
+        this.res = createObject();
       }
     }
 
@@ -1124,6 +1127,7 @@ export class Container implements IContainer {
       return key as unknown as IResolver;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let current: Container = this;
     let resolver: IResolver | undefined;
 
@@ -1160,6 +1164,7 @@ export class Container implements IContainer {
       return (key as IResolver).resolve(this, this);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let current: Container = this;
     let resolver: IResolver | undefined;
 
@@ -1189,6 +1194,7 @@ export class Container implements IContainer {
   public getAll<K extends Key>(key: K, searchAncestors: boolean = false): readonly Resolved<K>[] {
     validateKey(key);
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const requestor = this;
     let current: Container | null = requestor;
     let resolver: IResolver | undefined;
@@ -1292,7 +1298,7 @@ export class Container implements IContainer {
       return null;
     }
 
-    if (typeof resolver.getFactory === 'function') {
+    if (isFunction(resolver.getFactory)) {
       const factory = resolver.getFactory(this);
       if (factory === null || factory === void 0) {
         return null;
@@ -1331,8 +1337,9 @@ export class Container implements IContainer {
     this._resolvers.clear();
   }
 
+  /** @internal */
   private _jitRegister(keyAsValue: any, handler: Container): IResolver {
-    if (typeof keyAsValue !== 'function') {
+    if (!isFunction(keyAsValue)) {
       if (__DEV__) {
         throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
       } else {
@@ -1351,7 +1358,7 @@ export class Container implements IContainer {
       const registrationResolver = keyAsValue.register(handler, keyAsValue);
       if (!(registrationResolver instanceof Object) || (registrationResolver as IResolver).resolve == null) {
         const newResolver = handler._resolvers.get(keyAsValue);
-        if (newResolver != void 0) {
+        if (newResolver != null) {
           return newResolver;
         }
         if (__DEV__) {
@@ -1373,7 +1380,7 @@ export class Container implements IContainer {
         }
       }
       const newResolver = handler._resolvers.get(keyAsValue);
-      if (newResolver != void 0) {
+      if (newResolver != null) {
         return newResolver;
       }
       if (__DEV__) {
@@ -1452,8 +1459,8 @@ export const Registration = {
    * Registration.instance(Foo, new Foo()));
    * ```
    *
-   * @param key
-   * @param value
+   * @param key - key to register the instance with
+   * @param value - the instance associated with the key
    */
   instance<T>(key: Key, value: T): IRegistration<T> {
     return new Resolver(key, ResolverStrategy.instance, value);
@@ -1465,8 +1472,8 @@ export const Registration = {
    * Registration.singleton(Foo, Foo);
    * ```
    *
-   * @param key
-   * @param value
+   * @param key - key to register the singleton class with
+   * @param value - the singleton class to instantiate when a container resolves the associated key
    */
   singleton<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
     return new Resolver(key, ResolverStrategy.singleton, value);
@@ -1478,8 +1485,8 @@ export const Registration = {
    * Registration.instance(Foo, Foo);
    * ```
    *
-   * @param key
-   * @param value
+   * @param key - key to register the transient class with
+   * @param value - the class to instantiate when a container resolves the associated key
    */
   transient<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
     return new Resolver(key, ResolverStrategy.transient, value);
@@ -1492,8 +1499,8 @@ export const Registration = {
    * Registration.callback(Bar, (c: IContainer) => new Bar(c.get(Foo)));
    * ```
    *
-   * @param key
-   * @param callback
+   * @param key - key to register the callback with
+   * @param callback - the callback to invoke when a container resolves the associated key
    */
   callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<Resolved<T>> {
     return new Resolver(key, ResolverStrategy.callback, callback);
@@ -1509,8 +1516,8 @@ export const Registration = {
    * Registration.cachedCallback(Bar, (c: IContainer) => new Bar(c.get(Foo)));
    * ```
    *
-   * @param key
-   * @param callback
+   * @param key - key to register the cached callback with
+   * @param callback - the cache callback to invoke when a container resolves the associated key
    */
   cachedCallback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<Resolved<T>> {
     return new Resolver(key, ResolverStrategy.callback, cacheCallbackResult(callback));
@@ -1525,16 +1532,16 @@ export const Registration = {
    * container.getAll(MyFoos) // contains an instance of Foo
    * ```
    *
-   * @param originalKey
-   * @param aliasKey
+   * @param originalKey - the real key to resolve the get call from a container
+   * @param aliasKey - the key that a container allows to resolve the real key associated
    */
   aliasTo<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>> {
     return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
   },
   /**
    * @internal
-   * @param key
-   * @param params
+   * @param key - the key to register a defer registration
+   * @param params - the parameters that should be passed to the resolution of the key
    */
   defer(key: Key, ...params: unknown[]): IRegistry {
     return new ParameterizedRegistry(key, params);

@@ -5,6 +5,7 @@ import { IPlatform } from '../../platform.js';
 import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
 import { bindable } from '../../bindable.js';
+import { isString } from '../../utilities.js';
 import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 
 export type PortalTarget<T extends Node & ParentNode = Node & ParentNode> = string | T | null | undefined;
@@ -45,21 +46,21 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
 
   public view: ISyntheticView;
 
-  private _currentTarget?: PortalTarget;
-  private readonly p: IPlatform;
+  /** @internal */ private _currentTarget?: PortalTarget;
+  /** @internal */ private readonly _platform: IPlatform;
 
   public constructor(
     factory: IViewFactory,
     originalLoc: IRenderLocation,
     p: IPlatform,
   ) {
-    this.p = p;
+    this._platform = p;
     // to make the shape of this object consistent.
     // todo: is this necessary
     this._currentTarget = p.document.createElement('div');
 
     this.view = factory.create();
-    setEffectiveParentNode(this.view.nodes!, originalLoc as unknown as Node);
+    setEffectiveParentNode(this.view.nodes, originalLoc as unknown as Node);
   }
 
   public attaching(
@@ -108,6 +109,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
   }
 
+  /** @internal */
   private _activating(
     initiator: IHydratedController | null,
     target: T,
@@ -125,6 +127,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     );
   }
 
+  /** @internal */
   private _activate(
     initiator: IHydratedController | null,
     target: T,
@@ -147,6 +150,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     return this._activated(target);
   }
 
+  /** @internal */
   private _activated(
     target: T,
   ): void | Promise<void> {
@@ -155,6 +159,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     return activated?.call(callbackContext, target, view);
   }
 
+  /** @internal */
   private _deactivating(
     initiator: IHydratedController | null,
     target: T,
@@ -170,6 +175,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     );
   }
 
+  /** @internal */
   private _deactivate(
     initiator: IHydratedController | null,
     target: T,
@@ -191,6 +197,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     return this._deactivated(target);
   }
 
+  /** @internal */
   private _deactivated(
     target: T,
   ): void | Promise<void> {
@@ -200,7 +207,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
   }
 
   private _resolveTarget(): T {
-    const p = this.p;
+    const p = this._platform;
     // with a $ in front to make it less confusing/error prone
     const $document = p.document;
     let target = this.target;
@@ -216,9 +223,9 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
       return $document.body as unknown as T;
     }
 
-    if (typeof target === 'string') {
+    if (isString(target)) {
       let queryContext: ParentNode = $document;
-      if (typeof context === 'string') {
+      if (isString(context)) {
         context = $document.querySelector(context) as ResolvedTarget;
       }
       if (context instanceof p.Node) {

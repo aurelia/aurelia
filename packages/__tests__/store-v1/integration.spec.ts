@@ -1,4 +1,4 @@
-import { Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
 import { Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 import { StoreConfiguration, Store, connectTo, StoreOptions, dispatchify } from "@aurelia/store-v1";
@@ -41,7 +41,9 @@ async function createFixture({ component, options, initialState }: {
   };
 }
 
-describe("when using the store in an aurelia app", function () {
+describe("store-v1/integration.spec.ts", function () {
+  this.timeout(100);
+
   it("should allow to use the store without any options by using defaults", async function () {
     @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>`, isStrictBinding: true })
     class App {
@@ -52,7 +54,7 @@ describe("when using the store in an aurelia app", function () {
         this.storeSubscription = this.store.state.subscribe((state) => this.state = state);
       }
 
-      private afterUnbind() {
+      private unbinding() {
         this.storeSubscription.unsubscribe();
       }
     }
@@ -60,7 +62,7 @@ describe("when using the store in an aurelia app", function () {
     const { store, tearDown, host } = await createFixture({ component: App });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
-    assert.equal((store as any)._state.getValue().foo, "bar");
+    assert.equal(store['_state'].getValue().foo, "bar");
 
     await tearDown();
   });
@@ -81,7 +83,7 @@ describe("when using the store in an aurelia app", function () {
     const { store, tearDown, host } = await createFixture({ component: App });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
-    assert.equal((store as any)._state.getValue().foo, "bar");
+    assert.equal(store['_state'].getValue().foo, "bar");
 
     await tearDown();
   });
@@ -97,7 +99,7 @@ describe("when using the store in an aurelia app", function () {
     });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
-    assert.deepEqual((store as any)._state.getValue(), {
+    assert.deepEqual(store['_state'].getValue(), {
       past: [], present: initialState, future: []
     });
 
@@ -123,7 +125,7 @@ describe("when using the store in an aurelia app", function () {
         await dispatchify(changeFoo)("foobar");
       }
 
-      private afterUnbind() {
+      private unbinding() {
         this.storeSubscription.unsubscribe();
       }
     }
@@ -131,7 +133,7 @@ describe("when using the store in an aurelia app", function () {
     const { host, store, ctx, tearDown } = await createFixture({ component: App });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
-    assert.equal((store as any)._state.getValue().foo, "bar");
+    assert.equal(store['_state'].getValue().foo, "bar");
 
     const sut = ctx.container.get(App);
     await sut.changeFoo();
@@ -139,7 +141,7 @@ describe("when using the store in an aurelia app", function () {
     ctx.platform.domWriteQueue.flush();
 
     assert.equal((host as Element).querySelector("#sut").textContent, "foobar");
-    assert.equal((store as any)._state.getValue().foo, "foobar");
+    assert.equal(store['_state'].getValue().foo, "foobar");
 
     await tearDown();
   });

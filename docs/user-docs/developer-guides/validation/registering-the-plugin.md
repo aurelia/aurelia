@@ -1,10 +1,12 @@
 ---
-description: How to register and use the Aurelia Validation plugin
+description: A closer look at registering the Aurelia Validation plugin
 ---
 
-# Registering the Plugin
+# Plugin configuration
 
-The plugin can be registered as follows. If you have not installed the Aurelia Validation plugin and any relevant adapters \(such as validation-html\), please go to the first step and do so before proceeding.
+Like all Aurelia plugins, you'll configure them inside of your `main.ts` file usually. Importing the configuration object from the validation package and passing it into the `register` method provided by Aurelia is all you need to do to register it.
+
+In the previous step [here](./), we already went over this. Make sure you have the plugin and relevant adapters installed before continuing.
 
 ```typescript
 import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
@@ -16,7 +18,7 @@ Aurelia
   .start();
 ```
 
-This sets up the plugin with the required dependency registrations. The registration can be customized as well as shown below.
+This sets up the plugin with the required dependency registrations. You can also customize the validation plugin via the `customize` method which provides an options object we can use to configure default settings.
 
 ```typescript
 import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
@@ -31,12 +33,12 @@ Aurelia
   .start();
 ```
 
-Following options are available for customizations.
+The following options are available for customization.
 
 * From `@aurelia/validation`
   * `ValidatorType`: Custom implementation of `IValidator`. Defaults to `StandardValidator`.
   * `MessageProviderType`: Custom implementation of `IValidationMessageProvider`. Defaults to `ValidationMessageProvider`.
-  * `ValidationControllerFactoryType`: Custom implementation of factory for `IValidationController`; Defaults to `ValidationControllerFactory`.
+  * `ValidationControllerFactoryType`: Custom implementation of the factory for `IValidationController`; Defaults to `ValidationControllerFactory`.
   * `CustomMessages`: Custom validation messages.
 * From `@aurelia/validation-html`
   * `HydratorType`: Custom implementation of `IValidationHydrator`. Defaults to `ModelValidationHydrator`.
@@ -44,7 +46,6 @@ Following options are available for customizations.
   * `UseSubscriberCustomAttribute`: Use the `validation-errors` custom attribute. Defaults to `true`.
   * `SubscriberCustomElementTemplate`: Custom template for `validation-container` custom element. Defaults to the default template of the custom element.
 
-These options are explained in details in the respective sections. Note that the categorization of the options are done with the intent of clarifying the origin package of each option. However, as the `@aurelia/validation-html` wraps `@aurelia/validation` all the customization options are available when the `@aurelia/validation-html` package is registered.
+These options are explained in details in their respective sections. Note that the categorization of the options are done with the intent of clarifying the origin package of each option. However, as the `@aurelia/validation-html` wraps `@aurelia/validation` all the customization options are available when the `@aurelia/validation-html` package is registered.
 
-The `@aurelia/validation-i18n` package is skipped intentionally for now, as it is discussed in details [later](i18n-internationalization.md).
-
+The `@aurelia/validation-i18n` package is skipped intentionally for now, as it is discussed in detail [later](i18n-internationalization.md).

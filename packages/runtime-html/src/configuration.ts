@@ -1,7 +1,8 @@
-import { DI, IContainer, IRegistry } from '@aurelia/kernel';
+import { IContainer, IRegistry, noop, Registration } from '@aurelia/kernel';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
+  SpreadAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern,
 } from './resources/attribute-pattern.js';
@@ -20,6 +21,7 @@ import {
   RefBindingCommand,
   StyleBindingCommand,
   TriggerBindingCommand,
+  SpreadBindingCommand,
 } from './resources/binding-command.js';
 import { TemplateCompiler } from './template-compiler.js';
 import {
@@ -40,6 +42,7 @@ import {
   TextBindingRenderer,
   SetClassAttributeRenderer,
   SetStyleAttributeRenderer,
+  SpreadRenderer,
 } from './renderer.js';
 import {
   FromViewBindingBehavior,
@@ -78,6 +81,7 @@ import { AuSlot } from './resources/custom-elements/au-slot.js';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize.js';
 import { ViewValueConverter } from './resources/value-converters/view.js';
 import { NodeObserverLocator } from './observation/observer-locator.js';
+import { ICoercionConfiguration } from '@aurelia/runtime';
 
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
@@ -107,6 +111,7 @@ export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAt
 export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;
 export const RefAttributePatternRegistration = RefAttributePattern as unknown as IRegistry;
 export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as unknown as IRegistry;
+export const SpreadAttributePatternRegistration = SpreadAttributePattern as unknown as IRegistry;
 
 /**
  * Default binding syntax for the following attribute name patterns:
@@ -115,7 +120,8 @@ export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePat
  */
 export const DefaultBindingSyntax = [
   RefAttributePatternRegistration,
-  DotSeparatedAttributePatternRegistration
+  DotSeparatedAttributePatternRegistration,
+  SpreadAttributePatternRegistration,
 ];
 
 /**
@@ -142,6 +148,7 @@ export const CaptureBindingCommandRegistration = CaptureBindingCommand as unknow
 export const AttrBindingCommandRegistration = AttrBindingCommand as unknown as IRegistry;
 export const ClassBindingCommandRegistration = ClassBindingCommand as unknown as IRegistry;
 export const StyleBindingCommandRegistration = StyleBindingCommand as unknown as IRegistry;
+export const SpreadBindingCommandRegistration = SpreadBindingCommand as unknown as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) binding commands:
@@ -165,6 +172,7 @@ export const DefaultBindingLanguage = [
   ClassBindingCommandRegistration,
   StyleBindingCommandRegistration,
   AttrBindingCommandRegistration,
+  SpreadBindingCommandRegistration,
 ];
 
 export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
@@ -258,6 +266,7 @@ export const SetClassAttributeRendererRegistration = SetClassAttributeRenderer a
 export const SetStyleAttributeRendererRegistration = SetStyleAttributeRenderer as unknown as IRegistry;
 export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer as unknown as IRegistry;
 export const TextBindingRendererRegistration = TextBindingRenderer as unknown as IRegistry;
+export const SpreadRendererRegistration = SpreadRenderer as unknown as IRegistry;
 
 /**
  * Default renderers for:
@@ -294,32 +303,50 @@ export const DefaultRenderers = [
   SetStyleAttributeRendererRegistration,
   StylePropertyBindingRendererRegistration,
   TextBindingRendererRegistration,
+  SpreadRendererRegistration,
 ];
 
-/**
- * A DI configuration object containing html-specific (but environment-agnostic) registrations:
- * - `RuntimeConfiguration` from `@aurelia/runtime`
- * - `DefaultComponents`
- * - `DefaultResources`
- * - `DefaultRenderers`
- */
-export const StandardConfiguration = {
-  /**
-   * Apply this configuration to the provided container.
-   */
-  register(container: IContainer): IContainer {
-    return container.register(
-      ...DefaultComponents,
-      ...DefaultResources,
-      ...DefaultBindingSyntax,
-      ...DefaultBindingLanguage,
-      ...DefaultRenderers,
-    );
-  },
-  /**
-   * Create a new container with this configuration applied to it.
-   */
-  createContainer(): IContainer {
-    return this.register(DI.createContainer());
-  }
-};
+export const StandardConfiguration = createConfiguration(noop);
+
+function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
+  return {
+    optionsProvider,
+    /**
+     * Apply this configuration to the provided container.
+     */
+    register(container: IContainer): IContainer {
+      const runtimeConfigurationOptions: IRuntimeHtmlConfigurationOptions = {
+        coercingOptions: {
+          enableCoercion: false,
+          coerceNullish: false
+        }
+      };
+
+      optionsProvider(runtimeConfigurationOptions);
+
+      /**
+       * Standard DI configuration containing html-specific (but environment-agnostic) registrations:
+       * - `RuntimeConfiguration` from `@aurelia/runtime`
+       * - `DefaultComponents`
+       * - `DefaultResources`
+       * - `DefaultRenderers`
+       */
+      return container.register(
+        Registration.instance(ICoercionConfiguration, runtimeConfigurationOptions.coercingOptions),
+        ...DefaultComponents,
+        ...DefaultResources,
+        ...DefaultBindingSyntax,
+        ...DefaultBindingLanguage,
+        ...DefaultRenderers,
+      );
+    },
+    customize(cb?: ConfigurationOptionsProvider) {
+      return createConfiguration(cb ?? optionsProvider);
+    },
+  };
+}
+
+export type ConfigurationOptionsProvider = (options: IRuntimeHtmlConfigurationOptions) => void;
+interface IRuntimeHtmlConfigurationOptions {
+  coercingOptions: ICoercionConfiguration;
+}

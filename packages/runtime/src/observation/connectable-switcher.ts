@@ -40,7 +40,7 @@ export function enterConnectable(connectable: IConnectable): void {
     else
       throw new Error('AUR0207');
   }
-  connectables.push(_connectable);
+  connectables.push(connectable);
   _connectable = connectable;
   connecting = true;
 }

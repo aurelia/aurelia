@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IServiceLocator, Writable, IIndexable } from '@aurelia/kernel';
 import {
   eachCartesianJoin,
@@ -28,13 +27,13 @@ import {
   ConditionalExpression,
   ExpressionKind,
   IConnectableBinding,
-  IsBinary,
+  // IsBinary,
   IsBindingBehavior,
   Scope,
   ISignaler,
   IsLeftHandSide,
-  IsPrimary,
-  IsUnary,
+  // IsPrimary,
+  // IsUnary,
   LifecycleFlags as LF,
   ObjectLiteralExpression,
   OverrideContext,
@@ -43,6 +42,9 @@ import {
   TemplateExpression,
   UnaryExpression,
   ValueConverterExpression,
+  DestructuringAssignmentSingleExpression,
+  DestructuringAssignmentRestExpression,
+  DestructuringAssignmentExpression,
 } from '@aurelia/runtime';
 import {
   PropertyBinding,
@@ -52,7 +54,7 @@ const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
 const $null = PrimitiveLiteralExpression.$null;
 const $undefined = PrimitiveLiteralExpression.$undefined;
-const $str = PrimitiveLiteralExpression.$empty;
+// const $str = PrimitiveLiteralExpression.$empty;
 const $arr = ArrayLiteralExpression.$empty;
 const $obj = ObjectLiteralExpression.$empty;
 const $tpl = TemplateExpression.$empty;
@@ -96,13 +98,13 @@ function throwsOn<
     err = e;
   }
   assert.notStrictEqual(err, null, 'err');
-  if (msg && msg.length) {
+  if (msg?.length) {
     assert.includes(err.message, msg, 'err.message.includes(msg)');
   }
 }
 
-const $num1 = new PrimitiveLiteralExpression(1);
-const $str1 = new PrimitiveLiteralExpression('1');
+// const $num1 = new PrimitiveLiteralExpression(1);
+// const $str1 = new PrimitiveLiteralExpression('1');
 
 describe('AST', function () {
 
@@ -133,11 +135,11 @@ describe('AST', function () {
     [`true`, $true],
     [`false`, $false]
   ];
-  const PrimitiveLiteralList: [string, PrimitiveLiteralExpression][] = [
-    ...StringLiteralList,
-    ...NumberLiteralList,
-    ...KeywordLiteralList
-  ];
+  // const PrimitiveLiteralList: [string, PrimitiveLiteralExpression][] = [
+  //   ...StringLiteralList,
+  //   ...NumberLiteralList,
+  //   ...KeywordLiteralList
+  // ];
 
   const ArrayLiteralList: [string, ArrayLiteralExpression][] = [
     [`[]`, $arr]
@@ -148,30 +150,30 @@ describe('AST', function () {
   const TemplateLiteralList: [string, TemplateExpression][] = [
     [`\`\``, $tpl]
   ];
-  const LiteralList: [string, IsPrimary][] = [
-    ...PrimitiveLiteralList,
-    ...TemplateLiteralList,
-    ...ArrayLiteralList,
-    ...ObjectLiteralList
-  ];
+  // const LiteralList: [string, IsPrimary][] = [
+  //   ...PrimitiveLiteralList,
+  //   ...TemplateLiteralList,
+  //   ...ArrayLiteralList,
+  //   ...ObjectLiteralList
+  // ];
   const TemplateInterpolationList: [string, TemplateExpression][] = [
     [`\`\${a}\``, new TemplateExpression(['', ''], [new AccessScopeExpression('a')])]
   ];
-  const PrimaryList: [string, IsPrimary][] = [
-    ...AccessThisList,
-    ...AccessScopeList,
-    ...LiteralList
-  ];
+  // const PrimaryList: [string, IsPrimary][] = [
+  //   ...AccessThisList,
+  //   ...AccessScopeList,
+  //   ...LiteralList
+  // ];
   // 2. parseMemberExpression.MemberExpression [ AssignmentExpression ]
-  const SimpleAccessKeyedList: [string, IsLeftHandSide][] = [
-    ...AccessScopeList
-      .map(([input, expr]) => [`${input}[b]`, new AccessKeyedExpression(expr, new AccessScopeExpression('b'))] as [string, any])
-  ];
+  // const SimpleAccessKeyedList: [string, IsLeftHandSide][] = [
+  //   ...AccessScopeList
+  //     .map(([input, expr]) => [`${input}[b]`, new AccessKeyedExpression(expr, new AccessScopeExpression('b'))] as [string, any])
+  // ];
   // 3. parseMemberExpression.MemberExpression . IdentifierName
-  const SimpleAccessMemberList: [string, IsLeftHandSide][] = [
-    ...AccessScopeList
-      .map(([input, expr]) => [`${input}.b`, new AccessMemberExpression(expr, 'b')] as [string, any])
-  ];
+  // const SimpleAccessMemberList: [string, IsLeftHandSide][] = [
+  //   ...AccessScopeList
+  //     .map(([input, expr]) => [`${input}.b`, new AccessMemberExpression(expr, 'b')] as [string, any])
+  // ];
   // 4. parseMemberExpression.MemberExpression TemplateLiteral
   const SimpleTaggedTemplateList: [string, IsLeftHandSide][] = [
     ...AccessScopeList
@@ -196,22 +198,22 @@ describe('AST', function () {
       .map(([input, expr]) => [`${input}.b()`, new CallMemberExpression(expr, 'b', [])] as [string, any])
   ];
   // concatenation of 1-3 of MemberExpression and 1-3 of CallExpression
-  const SimpleLeftHandSideList: [string, IsLeftHandSide][] = [
-    ...SimpleAccessKeyedList,
-    ...SimpleAccessMemberList,
-    ...SimpleTaggedTemplateList,
-    ...SimpleCallFunctionList,
-    ...SimpleCallScopeList,
-    ...SimpleCallMemberList
-  ];
+  // const SimpleLeftHandSideList: [string, IsLeftHandSide][] = [
+  //   ...SimpleAccessKeyedList,
+  //   ...SimpleAccessMemberList,
+  //   ...SimpleTaggedTemplateList,
+  //   ...SimpleCallFunctionList,
+  //   ...SimpleCallScopeList,
+  //   ...SimpleCallMemberList
+  // ];
 
   // concatenation of Primary and Member+CallExpression
   // This forms the group Precedence.LeftHandSide
   // used only for testing complex UnaryExpression expressions
-  const SimpleIsLeftHandSideList: [string, IsLeftHandSide][] = [
-    ...PrimaryList,
-    ...SimpleLeftHandSideList
-  ];
+  // const SimpleIsLeftHandSideList: [string, IsLeftHandSide][] = [
+  //   ...PrimaryList,
+  //   ...SimpleLeftHandSideList
+  // ];
 
   // parseUnaryExpression (this is actually at the top in the parser due to the order in which expressions must be parsed)
   const SimpleUnaryList: [string, UnaryExpression][] = [
@@ -223,10 +225,10 @@ describe('AST', function () {
   ];
   // concatenation of UnaryExpression + LeftHandSide
   // This forms the group Precedence.LeftHandSide and includes Precedence.UnaryExpression
-  const SimpleIsUnaryList: [string, IsUnary][] = [
-    ...SimpleIsLeftHandSideList,
-    ...SimpleUnaryList
-  ];
+  // const SimpleIsUnaryList: [string, IsUnary][] = [
+  //   ...SimpleIsLeftHandSideList,
+  //   ...SimpleUnaryList
+  // ];
 
   // This forms the group Precedence.Multiplicative
   const SimpleMultiplicativeList: [string, BinaryExpression][] = [
@@ -234,20 +236,20 @@ describe('AST', function () {
     [`$8%$9`, new BinaryExpression('%', new AccessScopeExpression('$8'), new AccessScopeExpression('$9'))],
     [`$10/$11`, new BinaryExpression('/', new AccessScopeExpression('$10'), new AccessScopeExpression('$11'))]
   ];
-  const SimpleIsMultiplicativeList: [string, IsBinary][] = [
-    ...SimpleIsUnaryList,
-    ...SimpleMultiplicativeList
-  ];
+  // const SimpleIsMultiplicativeList: [string, IsBinary][] = [
+  //   ...SimpleIsUnaryList,
+  //   ...SimpleMultiplicativeList
+  // ];
 
   // This forms the group Precedence.Additive
   const SimpleAdditiveList: [string, BinaryExpression][] = [
     [`$12+$13`, new BinaryExpression('+', new AccessScopeExpression('$12'), new AccessScopeExpression('$13'))],
     [`$14-$15`, new BinaryExpression('-', new AccessScopeExpression('$14'), new AccessScopeExpression('$15'))]
   ];
-  const SimpleIsAdditiveList: [string, IsBinary][] = [
-    ...SimpleIsMultiplicativeList,
-    ...SimpleAdditiveList
-  ];
+  // const SimpleIsAdditiveList: [string, IsBinary][] = [
+  //   ...SimpleIsMultiplicativeList,
+  //   ...SimpleAdditiveList
+  // ];
 
   // This forms the group Precedence.Relational
   const SimpleRelationalList: [string, BinaryExpression][] = [
@@ -258,10 +260,10 @@ describe('AST', function () {
     [`$24 in $25`, new BinaryExpression('in', new AccessScopeExpression('$24'), new AccessScopeExpression('$25'))],
     [`$26 instanceof $27`, new BinaryExpression('instanceof', new AccessScopeExpression('$26'), new AccessScopeExpression('$27'))]
   ];
-  const SimpleIsRelationalList: [string, IsBinary][] = [
-    ...SimpleIsAdditiveList,
-    ...SimpleRelationalList
-  ];
+  // const SimpleIsRelationalList: [string, IsBinary][] = [
+  //   ...SimpleIsAdditiveList,
+  //   ...SimpleRelationalList
+  // ];
 
   // This forms the group Precedence.Equality
   const SimpleEqualityList: [string, BinaryExpression][] = [
@@ -270,10 +272,10 @@ describe('AST', function () {
     [`$32===$33`, new BinaryExpression('===', new AccessScopeExpression('$32'), new AccessScopeExpression('$33'))],
     [`$34!==$35`, new BinaryExpression('!==', new AccessScopeExpression('$34'), new AccessScopeExpression('$35'))]
   ];
-  const SimpleIsEqualityList: [string, IsBinary][] = [
-    ...SimpleIsRelationalList,
-    ...SimpleEqualityList
-  ];
+  // const SimpleIsEqualityList: [string, IsBinary][] = [
+  //   ...SimpleIsRelationalList,
+  //   ...SimpleEqualityList
+  // ];
 
   // This forms the group Precedence.LogicalAND
   const SimpleLogicalANDList: [string, BinaryExpression][] = [
@@ -291,9 +293,9 @@ describe('AST', function () {
   ];
 
   // This forms the group Precedence.AssignExpression
-  const SimpleAssignList: [string, AssignExpression][] = [
-    [`a=b`, new AssignExpression(new AccessScopeExpression('a'), new AccessScopeExpression('b'))]
-  ];
+  // const SimpleAssignList: [string, AssignExpression][] = [
+  //   [`a=b`, new AssignExpression(new AccessScopeExpression('a'), new AccessScopeExpression('b'))]
+  // ];
 
   // This forms the group Precedence.Variadic
   const SimpleValueConverterList: [string, ValueConverterExpression][] = [
@@ -536,7 +538,7 @@ describe('AccessMemberExpression', function () {
   ];
 
   const props: ((input: [string, any, boolean, boolean]) => [string, any, any])[] = [
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = null as any;
       const value = {};
       if (canHaveProperty) {
@@ -544,7 +546,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`null={}     `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = undefined as any;
       const value = {};
       if (canHaveProperty) {
@@ -552,7 +554,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`undefined={}`, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = '' as any;
       const value = {};
       if (canHaveProperty) {
@@ -560,7 +562,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`''={}       `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = 'a' as any;
       const value = {};
       if (canHaveProperty) {
@@ -568,7 +570,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`'a'={}      `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = false as any;
       const value = {};
       if (canHaveProperty) {
@@ -576,7 +578,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`false={}    `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = 1 as any;
       const value = {};
       if (canHaveProperty) {
@@ -584,7 +586,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`1={}        `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = true as any;
       const value = {};
       if (canHaveProperty) {
@@ -592,7 +594,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`true={}     `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = Symbol() as any;
       const value = {};
       if (canHaveProperty) {
@@ -600,7 +602,7 @@ describe('AccessMemberExpression', function () {
       }
       return [`Symbol()={} `, prop, value];
     },
-    ([$11, obj, isFalsey, canHaveProperty]) => {
+    ([_$11, obj, _isFalsey, canHaveProperty]) => {
       const prop = {} as any;
       const value = {};
       if (canHaveProperty) {
@@ -613,7 +615,7 @@ describe('AccessMemberExpression', function () {
 
   const expression: AccessMemberExpression = new AccessMemberExpression(new AccessScopeExpression('foo', 0), 'bar');
 
-  eachCartesianJoinFactory.call(this, inputs, (([t1, obj, isFalsey, canHaveProperty], [t2, prop, value]) => {
+  eachCartesianJoinFactory.call(this, inputs, (([t1, obj, _isFalsey, canHaveProperty], [t2, prop, value]) => {
     it(`STRICT - ${t1}.${t2}.evaluate() -> connect -> assign`, function () {
       const scope = createScopeForTest({ foo: obj });
       const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
@@ -1167,7 +1169,7 @@ describe('BinaryExpression', function () {
   }
 
   describe('performs \'in\'', function () {
-    function *getTestData() {
+    function* getTestData() {
       yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('foo'), new ObjectLiteralExpression(['foo'], [$null])), true);
       yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('foo'), new ObjectLiteralExpression(['bar'], [$null])), false);
       yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression(1), new ObjectLiteralExpression(['1'], [$null])), true);
@@ -1196,7 +1198,7 @@ describe('BinaryExpression', function () {
   describe('performs \'instanceof\'', function () {
     class Foo { }
     class Bar extends Foo { }
-    function *getTestData() {
+    function* getTestData() {
       for (const scope of [
         createScopeForTest({ foo: new Foo(), bar: new Bar() }),
       ]) {
@@ -1467,7 +1469,7 @@ describe('LiteralTemplate', function () {
 
     public get scope() { return createScopeForTest(this.ctx); }
   }
-  function *getTestData() {
+  function* getTestData() {
     yield new TestData($tpl, '');
     yield new TestData(new TemplateExpression(['foo']), 'foo');
     yield new TestData(new TemplateExpression(['foo', 'baz'], [new PrimitiveLiteralExpression('bar')]), 'foobarbaz');
@@ -1704,7 +1706,7 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const bindVariations: (($1: $1, $2: $2, $3: $3) => /* bind */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([_t1, flags], [_t2, $kind], [_t3, scope, sut, mock, locator, binding, _value, argValues]) => () => {
       assert.strictEqual(binding['au:resource:binding-behavior:mock'], undefined, `binding['au:resource:binding-behavior:mock']`);
 
       // act
@@ -1749,7 +1751,7 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([_t1, flags], [_t2, $kind], [_t3, scope, sut, mock, _locator, binding, value, _argValues]) => () => {
       // act
       const actual = sut.evaluate(flags, scope, binding.locator, null);
 
@@ -1772,7 +1774,7 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const connectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([_t1, flags], [_t2, $kind], [_t3, scope, sut, mock, locator, binding, _value, _argValues]) => () => {
       assert.strictEqual(binding.obs.count, 0, `binding.obs.count`);
 
       // act
@@ -1797,7 +1799,7 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const assignVariations: (($1: $1, $2: $2, $3: $3) => /* assign */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([_t1, flags], [_t2, $kind], [_t3, scope, sut, mock, _locator, binding, _value, _argValues]) => () => {
       const newValue = {};
 
       // act
@@ -1823,7 +1825,7 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */(value: any) => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => (newValue) => {
+    ([_t1, flags], [_t2, $kind], [_t3, scope, sut, mock, _locator, binding, _value, _argValues]) => (newValue) => {
       // act
       const actual = sut.evaluate(flags, scope, binding.locator, null);
 
@@ -1846,7 +1848,7 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const unbindVariations: (($1: $1, $2: $2, $3: $3) => /* unbind */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([_t1, flags], [_t2, $kind], [_t3, scope, sut, mock, _locator, binding, _value, _argValues]) => () => {
       assert.strictEqual(binding['au:resource:binding-behavior:mock'], mock, `binding['au:resource:binding-behavior:mock']`);
 
       // act
@@ -2027,7 +2029,7 @@ describe('ValueConverterExpression', function () {
   ];
 
   const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */() => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
+    ([_t1, flags], [_t2, _signals, _signaler], [_t3, scope, sut, mock, _locator, binding, value, argValues, methods]) => () => {
       const $1stAssertStrictEqual = createPrefixedAssertEqual('1st eval');
 
       // act
@@ -2077,7 +2079,7 @@ describe('ValueConverterExpression', function () {
   ];
 
   const evaluateWithConnectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
+    ([_t1, flags], [_t2, signals, signaler], [_t3, scope, sut, mock, locator, binding, _value, argValues, methods]) => () => {
       assert.strictEqual(binding.obs.count, 0, `binding.obs.count`);
 
       // act
@@ -2127,7 +2129,7 @@ describe('ValueConverterExpression', function () {
   ];
 
   const assignVariations: (($1: $1, $2: $2, $3: $3) => /* assign */() => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
+    ([_t1, flags], [_t2, _signals, _signaler], [_t3, scope, sut, mock, _locator, binding, _value, argValues, methods]) => () => {
       const newValue = {};
 
       // act
@@ -2181,7 +2183,7 @@ describe('ValueConverterExpression', function () {
   ];
 
   const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */(value: any) => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => (newValue) => {
+    ([_t1, flags], [_t2, _signals, _signaler], [_t3, scope, sut, mock, _locator, binding, _value, argValues, methods]) => (newValue) => {
 
       const $2ndAssertStrictEqual = createPrefixedAssertEqual('2nd eval');
 
@@ -2231,7 +2233,7 @@ describe('ValueConverterExpression', function () {
   ];
 
   const unbindVariations: (($1: $1, $2: $2, $3: $3) => /* unbind */() => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
+    ([_t1, flags], [_t2, signals, signaler], [_t3, scope, sut, _mock, _locator, binding, _value, _argValues, _methods]) => () => {
       // act
       sut.unbind(flags, scope, binding);
 
@@ -2273,3 +2275,605 @@ describe('ValueConverterExpression', function () {
     return (actual: any, expected: any, message?: string) => assert.strictEqual(actual, expected, `[${prefix}]: ${message}`);
   }
 });
+
+describe('DestructuringAssignmentExpression', function () {
+
+  describe('DestructuringAssignmentSingleExpression', function () {
+
+    it('{a} = {a:42}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'a'),
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, { a: 42 });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{1:a} = {1:"42"}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, '1'),
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, { 1: '42' });
+      assert.strictEqual(bc.a, '42');
+    });
+
+    it('{x:a} = {x:"42"}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'x'),
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, { x: '42' });
+      assert.strictEqual(bc.a, '42');
+    });
+
+    it('{a=42} = {b:404}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'a'),
+        new PrimitiveLiteralExpression(42),
+      ).assign(LF.none, Scope.create(bc), null, { b: 404 });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{1:a=42} = {2:"404"}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, '1'),
+        new PrimitiveLiteralExpression(42),
+      ).assign(LF.none, Scope.create(bc), null, { 2: "404" });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{x:a=42} = {b:404}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'x'),
+        new PrimitiveLiteralExpression(42),
+      ).assign(LF.none, Scope.create(bc), null, { b: 404 });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{a=404} = {a:42}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'a'),
+        new PrimitiveLiteralExpression(404),
+      ).assign(LF.none, Scope.create(bc), null, { a: 42 });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{1:a=404} = {1:"42"}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, '1'),
+        new PrimitiveLiteralExpression(404),
+      ).assign(LF.none, Scope.create(bc), null, { 1: '42' });
+      assert.strictEqual(bc.a, '42');
+    });
+
+    it('{x:a=404} = {x:"42"}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'x'),
+        new PrimitiveLiteralExpression(404),
+      ).assign(LF.none, Scope.create(bc), null, { x: '42' });
+      assert.strictEqual(bc.a, '42');
+    });
+
+    it('[a] = [42]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, [42]);
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('[a=42] = []', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+        new PrimitiveLiteralExpression(42),
+      ).assign(LF.none, Scope.create(bc), null, []);
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('[,a=42] = [404]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+        new PrimitiveLiteralExpression(42),
+      ).assign(LF.none, Scope.create(bc), null, [404]);
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{a=vm_prop} = {x:404}', function () {
+      const ps = Scope.create({ prop: 42 });
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'a'),
+        new AccessScopeExpression('prop', 0),
+      ).assign(LF.none, Scope.fromParent(ps, bc), null, { x: 404 });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('[,a=vm_prop] = [404]', function () {
+      const ps = Scope.create({ prop: 42 });
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+        new AccessScopeExpression('prop', 0),
+      ).assign(LF.none, Scope.fromParent(ps, bc), null, [404]);
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('{a=$parent.vm_prop} = {x:404}', function () {
+      const ps = Scope.create({ prop: 42 });
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessMemberExpression($this, 'a'),
+        new AccessScopeExpression('prop', 2),
+      ).assign(LF.none, Scope.fromParent(Scope.fromParent(ps, Object.create(null)), bc), null, { x: 404 });
+      assert.strictEqual(bc.a, 42);
+    });
+
+    it('[,a=$parent.vm_prop] = [404]', function () {
+      const ps = Scope.create({ prop: 42 });
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentSingleExpression(
+        new AccessMemberExpression($this, 'a'),
+        new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+        new AccessScopeExpression('prop', 2),
+      ).assign(LF.none, Scope.fromParent(Scope.fromParent(ps, Object.create(null)), bc), null, [404]);
+      assert.strictEqual(bc.a, 42);
+    });
+  });
+
+  describe('DestructuringAssignmentRestExpression', function () {
+
+    it('{...rest} = {a:1, b:2}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        [],
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
+      assert.deepStrictEqual(bc, { rest: { a: 1, b: 2 } });
+    });
+
+    it('{a, ...rest} = {a:1, b:2}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        ['a'],
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
+      assert.deepStrictEqual(bc, { rest: { b: 2 } });
+    });
+
+    it('{a, b, ...rest} = {a:1, b:2, c:3}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        ['a', 'b'],
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2, c: 3 });
+      assert.deepStrictEqual(bc, { rest: { c: 3 } });
+    });
+
+    it('{a, b, ...rest} = {a:1, b:2}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        ['a', 'b'],
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
+      assert.deepStrictEqual(bc, { rest: {} });
+    });
+
+    it('[...rest] = [1, 2]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        0,
+      ).assign(LF.none, Scope.create(bc), null, [1, 2]);
+      assert.deepStrictEqual(bc, { rest: [1, 2] });
+    });
+
+    it('[,...rest] = [1, 2]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        1,
+      ).assign(LF.none, Scope.create(bc), null, [1, 2]);
+      assert.deepStrictEqual(bc, { rest: [2] });
+    });
+
+    it('[,,...rest] = [1, 2]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentRestExpression(
+        new AccessMemberExpression($this, 'rest'),
+        3,
+      ).assign(LF.none, Scope.create(bc), null, [1, 2]);
+      assert.deepStrictEqual(bc, { rest: [] });
+    });
+  });
+
+  describe('DestructuringAssignmentExpression', function () {
+
+    it('{a} = {a: 1, b:2}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuring,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'a'),
+            new AccessMemberExpression($this, 'a'),
+            void 0
+          )
+        ],
+        void 0,
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
+      assert.deepStrictEqual(bc, { a: 1 });
+    });
+
+    it('{a, b} = {a: 1, b:2}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuring,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'a'),
+            new AccessMemberExpression($this, 'a'),
+            void 0
+          ),
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'b'),
+            new AccessMemberExpression($this, 'b'),
+            void 0
+          ),
+        ],
+        void 0,
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
+      assert.deepStrictEqual(bc, { a: 1, b: 2 });
+    });
+
+    it('{...rest} = {a: 1, b:2}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuring,
+        [
+          new DestructuringAssignmentRestExpression(
+            new AccessMemberExpression($this, 'rest'),
+            []
+          ),
+        ],
+        void 0,
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, { a: 1, b: 2 });
+      assert.deepStrictEqual(bc.rest, { a: 1, b: 2 });
+    });
+
+    it('[a] = [1, 2]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuring,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'a'),
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+            void 0
+          ),
+        ],
+        void 0,
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, [1, 2]);
+      assert.deepStrictEqual(bc, { a: 1 });
+    });
+
+    it('[a, b] = [1, 2]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuring,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'a'),
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+            void 0
+          ),
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'b'),
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+            void 0
+          ),
+        ],
+        void 0,
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, [1, 2]);
+      assert.deepStrictEqual(bc, { a: 1, b: 2 });
+    });
+
+    it('[...rest] = [1, 2]', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuring,
+        [
+          new DestructuringAssignmentRestExpression(
+            new AccessMemberExpression($this, 'rest'),
+            0,
+          ),
+        ],
+        void 0,
+        void 0
+      ).assign(LF.none, Scope.create(bc), null, [1, 2]);
+      assert.deepStrictEqual(bc, { rest: [1, 2] });
+    });
+
+    it('{prop1, prop2:{prop21}} = {prop1: "foo", prop2: {prop21: 123}}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuring,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'prop1'),
+            new AccessMemberExpression($this, 'prop1'),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ObjectDestructuring,
+            [
+              new DestructuringAssignmentSingleExpression(
+                new AccessMemberExpression($this, 'prop21'),
+                new AccessMemberExpression($this, 'prop21'),
+                void 0
+              ),
+            ],
+            new AccessMemberExpression($this, 'prop2'),
+            void 0,
+          ),
+        ],
+        void 0,
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, { prop1: 'foo', prop2: { prop21: 123 } });
+      assert.deepStrictEqual(bc, { prop1: 'foo', prop21: 123 });
+    });
+
+    it('{prop1, prop2:{prop21:{prop212:newProp212}, prop22}} = {prop1: "foo", prop2: {prop21: {prop211: 123, prop212: 456}, prop22: "bar" }}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuring,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'prop1'),
+            new AccessMemberExpression($this, 'prop1'),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ObjectDestructuring,
+            [
+              new DestructuringAssignmentExpression(
+                ExpressionKind.ObjectDestructuring,
+                [
+                  new DestructuringAssignmentSingleExpression(
+                    new AccessMemberExpression($this, 'newProp212'),
+                    new AccessMemberExpression($this, 'prop212'),
+                    void 0
+                  ),
+                ],
+                new AccessMemberExpression($this, 'prop21'),
+                void 0,
+              ),
+              new DestructuringAssignmentSingleExpression(
+                new AccessMemberExpression($this, 'prop22'),
+                new AccessMemberExpression($this, 'prop22'),
+                void 0
+              ),
+            ],
+            new AccessMemberExpression($this, 'prop2'),
+            void 0,
+        ),
+        ],
+        void 0,
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, { prop1: 'foo', prop2: { prop21: { prop211: 123, prop212: 456 }, prop22: 'bar' } });
+      assert.deepStrictEqual(bc, { prop1: 'foo', newProp212: 456, prop22: 'bar' });
+    });
+
+    it('{prop1,coll:[,{p2:item2p2}]} = {prop1:"foo",coll:[{p1:1,p2:2},{p1:3,p2:4}]}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuring,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'prop1'),
+            new AccessMemberExpression($this, 'prop1'),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ArrayDestructuring,
+            [
+              new DestructuringAssignmentExpression(
+                ExpressionKind.ObjectDestructuring,
+                [
+                  new DestructuringAssignmentSingleExpression(
+                    new AccessMemberExpression($this, 'item2p2'),
+                    new AccessMemberExpression($this, 'p2'),
+                    void 0,
+                  )
+                ],
+                new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+                void 0,
+              )
+            ],
+            new AccessMemberExpression($this, 'coll'),
+        void 0,
+        ),
+        ],
+        void 0,
+        void 0,
+        ).assign(LF.none, Scope.create(bc), null, { prop1: 'foo', coll: [{ p1: 1, p2: 2 }, { p1: 3, p2: 4 }] });
+      assert.deepStrictEqual(bc, { prop1: 'foo', item2p2: 4 });
+    });
+
+    it('{prop1,coll:[,{p:[item21]}]} = {prop1:"foo",coll:[{p:[1,2]},{p:[3,4]}]}', function () {
+      const bc: Record<string, any> = {};
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuring,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'prop1'),
+            new AccessMemberExpression($this, 'prop1'),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ArrayDestructuring,
+            [
+              new DestructuringAssignmentExpression(
+                ExpressionKind.ObjectDestructuring,
+                [
+                  new DestructuringAssignmentExpression(
+                    ExpressionKind.ArrayDestructuring,
+                    [
+                      new DestructuringAssignmentSingleExpression(
+                        new AccessMemberExpression($this, 'item21'),
+                        new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+                        void 0
+                      ),
+                    ],
+                    new AccessMemberExpression($this,'p'),
+                    void 0,
+                  ),
+                ],
+                new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+                void 0,
+              )
+            ],
+            new AccessMemberExpression($this, 'coll'),
+            void 0,
+          ),
+        ],
+        void 0,
+        void 0,
+      ).assign(LF.none, Scope.create(bc), null, { prop1: "foo", coll: [{ p: [1, 2] }, { p: [3, 4] }] });
+      assert.deepStrictEqual(bc, { prop1: 'foo', item21: 3 });
+    });
+
+    it('[k, {prop1, prop2:{prop21}}] = ["key",{prop1: "foo", prop2: {prop21: 123}}]', function () {
+      const bc: Record<string, any> = {};
+
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ArrayDestructuring,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'k'),
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ObjectDestructuring,
+            [
+              new DestructuringAssignmentSingleExpression(
+                new AccessMemberExpression($this, 'prop1'),
+                new AccessMemberExpression($this, 'prop1'),
+                void 0
+              ),
+              new DestructuringAssignmentExpression(
+                ExpressionKind.ObjectDestructuring,
+                [
+                  new DestructuringAssignmentSingleExpression(
+                    new AccessMemberExpression($this, 'prop21'),
+                    new AccessMemberExpression($this, 'prop21'),
+                    void 0
+                  ),
+                ],
+                new AccessMemberExpression($this, 'prop2'),
+                void 0,
+              ),
+            ],
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+            void 0,
+          )
+        ],
+        void 0,
+        void 0,
+        ).assign(LF.none, Scope.create(bc), null, ['key', { prop1: 'foo', prop2: { prop21: 123 } }]);
+      assert.deepStrictEqual(bc, { k: 'key', prop1: 'foo', prop21: 123 });
+    });
+
+    it('[k, [,item2]] = ["key",[1,2]]', function () {
+      const bc: Record<string, any> = {};
+
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ArrayDestructuring,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'k'),
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ArrayDestructuring,
+            [
+              new DestructuringAssignmentSingleExpression(
+                new AccessMemberExpression($this, 'item2'),
+                new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+                void 0
+              )
+            ],
+            new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+            void 0,
+          )
+        ],
+        void 0,
+        void 0,
+        ).assign(LF.none, Scope.create(bc), null, ['key', [1,2]]);
+      assert.deepStrictEqual(bc, { k: 'key', item2: 2 });
+    });
+
+    it('{a,b:{c}={c:42}} = {a:42}', function () {
+      const bc: Record<string, any> = {};
+
+      new DestructuringAssignmentExpression(
+        ExpressionKind.ObjectDestructuring,
+        [
+          new DestructuringAssignmentSingleExpression(
+            new AccessMemberExpression($this, 'a'),
+            new AccessMemberExpression($this, 'a'),
+            void 0
+          ),
+          new DestructuringAssignmentExpression(
+            ExpressionKind.ObjectDestructuring,
+            [
+              new DestructuringAssignmentSingleExpression(
+                new AccessMemberExpression($this, 'c'),
+                new AccessMemberExpression($this, 'c'),
+                void 0
+                )
+            ],
+            new AccessMemberExpression($this, 'b'),
+            new ObjectLiteralExpression(['c'], [new PrimitiveLiteralExpression(42)]),
+          )
+        ],
+        void 0,
+        void 0,
+        ).assign(LF.none, Scope.create(bc), null, {a:42});
+      assert.deepStrictEqual(bc, { a:42, c:42});
+    });
+  });
+
+});
+/* eslint-enable @typescript-eslint/no-unsafe-assignment */

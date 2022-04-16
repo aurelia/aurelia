@@ -1,4 +1,4 @@
-import { route } from '@aurelia/router';
+import { route } from '@aurelia/router-lite';
 import { customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import template from './app-root.html';
 

@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { createLookup, isDataAttribute } from './utilities-html.js';
+import { createLookup, isDataAttribute } from './utilities.js';
 import { ISVGAnalyzer } from './observation/svg-analyzer.js';
 
 export interface IAttrMapper extends AttrMapper {}
@@ -9,14 +9,10 @@ export const IAttrMapper = DI
 type IsTwoWayPredicate = (element: Element, attribute: string) => boolean;
 
 export class AttrMapper {
-  /** @internal */
-  public static get inject(): unknown[] { return [ISVGAnalyzer]; }
-  /** @internal */
-  private readonly fns: IsTwoWayPredicate[] = [];
-  /** @internal */
-  private readonly _tagAttrMap: Record<string, Record<string, PropertyKey>> = createLookup();
-  /** @internal */
-  private readonly _globalAttrMap: Record<string, PropertyKey> = createLookup();
+  /** @internal */ public static get inject(): unknown[] { return [ISVGAnalyzer]; }
+  /** @internal */ private readonly fns: IsTwoWayPredicate[] = [];
+  /** @internal */ private readonly _tagAttrMap: Record<string, Record<string, PropertyKey>> = createLookup();
+  /** @internal */ private readonly _globalAttrMap: Record<string, PropertyKey> = createLookup();
 
   public constructor(
     private readonly svg: ISVGAnalyzer,

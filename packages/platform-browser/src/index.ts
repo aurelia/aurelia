@@ -57,7 +57,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
       });
 
     'fetch,requestAnimationFrame,cancelAnimationFrame'.split(',').forEach(prop => {
-      (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : (g as any)[prop].bind(g) ?? notImplemented(prop);
+      (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : ((g as any)[prop]?.bind(g) ?? notImplemented(prop));
     });
 
     this.flushDomRead = this.flushDomRead.bind(this);

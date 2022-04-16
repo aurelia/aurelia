@@ -1,6 +1,7 @@
 import { DI } from './di.js';
 import { emptyArray } from './platform.js';
 import { Protocol } from './resource.js';
+import { isFunction } from './utilities.js';
 
 import type { IRegistry } from './di.js';
 import type { Constructable, IDisposable, IIndexable } from './interfaces.js';
@@ -83,12 +84,12 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
           if (value === null) {
             continue;
           }
-          isRegistry = typeof (value as IIndexable).register === 'function';
+          isRegistry = isFunction((value as IIndexable).register);
           isConstructable = false;
           definitions = emptyArray;
           break;
         case 'function':
-          isRegistry = typeof (value as Constructable & IIndexable).register === 'function';
+          isRegistry = isFunction((value as Constructable & IIndexable).register);
           isConstructable = (value as Constructable).prototype !== void 0;
           definitions = Protocol.resource.getAll(value as Constructable);
           break;

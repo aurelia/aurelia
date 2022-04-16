@@ -5,6 +5,7 @@ import {
   BindingContext,
   Collection,
   CollectionObserver,
+  DestructuringAssignmentExpression,
   ExpressionKind,
   ForOfStatement,
   getCollectionObserver,
@@ -37,10 +38,9 @@ const wrappedExprs = [
 ];
 
 export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
-  public static inject = [IRenderLocation, IController, IViewFactory];
+  /** @internal */ protected static inject = [IRenderLocation, IController, IViewFactory];
   public readonly id: number = nextId('au$component');
 
-  private _observer?: CollectionObserver = void 0;
   public views: ISyntheticView[] = [];
   public key?: string = void 0;
 
@@ -50,18 +50,20 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable public items: Items<C>;
-  private _innerItems: Items<C> | null;
-  private _forOfBinding!: PropertyBinding;
-  private _observingInnerItems: boolean = false;
-  private _reevaluating: boolean = false;
-  private _innerItemsExpression: IsBindingBehavior | null = null;
 
-  private _normalizedItems?: unknown[] = void 0;
+  /** @internal */ private _observer?: CollectionObserver = void 0;
+  /** @internal */ private _innerItems: Items<C> | null;
+  /** @internal */ private _forOfBinding!: PropertyBinding;
+  /** @internal */ private _observingInnerItems: boolean = false;
+  /** @internal */ private _reevaluating: boolean = false;
+  /** @internal */ private _innerItemsExpression: IsBindingBehavior | null = null;
+  /** @internal */ private _normalizedItems?: unknown[] = void 0;
+  /** @internal */ private _hasDestructuredLocal: boolean = false;
 
   public constructor(
-    public location: IRenderLocation,
-    public parent: IHydratableController,
-    public factory: IViewFactory
+    /** @internal */ private readonly _location: IRenderLocation,
+    /** @internal */ private readonly _parent: IHydratableController,
+    /** @internal */ private readonly _factory: IViewFactory
   ) {}
 
   public binding(
@@ -69,7 +71,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     parent: IHydratedParentController,
     flags: LF,
   ): void | Promise<void> {
-    const bindings = this.parent.bindings as PropertyBinding[];
+    const bindings = this._parent.bindings as PropertyBinding[];
     const ii = bindings.length;
     let binding: PropertyBinding = (void 0)!;
     let forOf!: ForOfStatement;
@@ -92,7 +94,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     this._checkCollectionObserver(flags);
-    this.local = forOf.declaration.evaluate(flags, this.$controller.scope, binding.locator, null) as string;
+    const dec = forOf.declaration;
+    if(!(this._hasDestructuredLocal = dec.$kind === ExpressionKind.ArrayDestructuring || dec.$kind === ExpressionKind.ObjectDestructuring)) {
+      this.local = dec.evaluate(flags, this.$controller.scope, binding.locator, null) as string;
+    }
   }
 
   public attaching(
@@ -244,16 +249,20 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let view: ISyntheticView;
     let viewScope: Scope;
 
-    const { $controller, factory, local, location, items } = this;
+    const { $controller, _factory: factory, local, _location: location, items } = this;
     const parentScope = $controller.scope;
-    const newLen = this.forOf.count(flags, items);
+    const forOf = this.forOf;
+    const newLen = forOf.count(flags, items);
     const views = this.views = Array(newLen);
 
-    this.forOf.iterate(flags, items, (arr, i, item) => {
+    forOf.iterate(flags, items, (arr, i, item) => {
       view = views[i] = factory.create().setLocation(location);
-      view.nodes!.unlink();
-      viewScope = Scope.fromParent(parentScope, BindingContext.create(local, item));
-
+      view.nodes.unlink();
+      if(this._hasDestructuredLocal) {
+        (forOf.declaration as DestructuringAssignmentExpression)!.assign(flags, viewScope = Scope.fromParent(parentScope, BindingContext.create()), this._forOfBinding.locator, item);
+      } else {
+        viewScope = Scope.fromParent(parentScope, BindingContext.create(local, item));
+      }
       setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
 
       ret = view.activate(initiator ?? view, $controller, flags, viewScope);
@@ -347,7 +356,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let viewScope: Scope;
     let i = 0;
 
-    const { $controller, factory, local, _normalizedItems: normalizedItems, location, views } = this;
+    const { $controller, _factory: factory, local, _normalizedItems: normalizedItems, _location: location, views } = this;
     const mapLen = indexMap.length;
 
     for (; mapLen > i; ++i) {
@@ -380,10 +389,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view = views[i];
       next = views[i + 1];
 
-      view.nodes!.link(next?.nodes ?? location);
+      view.nodes.link(next?.nodes ?? location);
 
       if (indexMap[i] === -2) {
-        viewScope = Scope.fromParent(parentScope, BindingContext.create(local, normalizedItems![i]));
+        if(this._hasDestructuredLocal) {
+          (this.forOf.declaration as DestructuringAssignmentExpression)!.assign(flags, viewScope = Scope.fromParent(parentScope, BindingContext.create()), this._forOfBinding.locator, normalizedItems![i]);
+        } else {
+          viewScope = Scope.fromParent(parentScope, BindingContext.create(local, normalizedItems![i]));
+        }
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.setLocation(location);
 
@@ -392,11 +405,11 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           (promises ?? (promises = [])).push(ret);
         }
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
-        setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
+        setContextualProperties(view.scope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.nodes.insertBefore(view.location!);
       } else {
         if (oldLength !== newLen) {
-          setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
+          setContextualProperties(view.scope.overrideContext as IRepeatOverrideContext, i, newLen);
         }
         --j;
       }

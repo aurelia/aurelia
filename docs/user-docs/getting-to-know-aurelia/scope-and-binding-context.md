@@ -4,7 +4,7 @@ description: Understand the scope and binding context.
 
 # Scope and context
 
-You might have noticed these words "Scope", "binding context", and "override context" in other places in the documentation or while working with Aurelia in general. Although you can go a long way without even understanding what these are \(Aurelia is cool that way\), these are some \(of many\) powerful concepts those are essential when you need to deal with the lower level Aurelia2 API. This section explains what these terms mean.
+You might have noticed these words "Scope", "binding context", and "override context" in other places in the documentation or while working with Aurelia in general. Although you can go a long way without even understanding what these are (Aurelia is cool that way), these are some (of many) powerful concepts that are essential when you need to deal with the lower level Aurelia2 API. This section explains what these terms mean.
 
 {% hint style="success" %}
 **Here's what you'll learn...**
@@ -17,10 +17,10 @@ You might have noticed these words "Scope", "binding context", and "override con
 
 ## Background
 
-When we start an Aurelia app, the compilation pipeline JIT compiles the templates \(HTML/markup\) associated with custom elements. The compilation process in itself demands a documentation of its own, and certainly is out of the scope of this topic. Without going into much details about that, we can simply think of the compilation process in terms of the following steps:
+When we start an Aurelia app, the compilation pipeline JIT compiles the templates (HTML/markup) associated with custom elements. The compilation process in itself demands a documentation of its own, and certainly is out of the scope of this topic. Without going into much details about that, we can simply think of the compilation process in terms of the following steps:
 
 * parse the template text,
-* create instructions for custom elements, custom attributes, and template controllers \(`if`, `else`, `repeat.for` etc.\), and
+* create instructions for custom elements, custom attributes, and template controllers (`if`, `else`, `repeat.for` etc.), and
 * create a set of bindings for every instruction.
 
 Most of the bindings also contains expressions. Following are some examples.
@@ -33,17 +33,17 @@ ${firstName}
 <my-el prop.bind="address.pin"></my-el>
 ```
 
-In the example above, the interpolation binding has the expression `firsName`, and the property binding has the expression `address.pin` \(quite unsurprisingly the things are bit more involved in actuality, but this abstraction will do for now\). An expression in itself might not be that interesting, but when it is evaluated, it becomes of interest. Enter scope. To evaluate an expression we need scope.
+In the example above, the interpolation binding has the expression `firsName`, and the property binding has the expression `address.pin` (quite unsurprisingly the things are bit more involved in actuality, but this abstraction will do for now). An expression in itself might not be that interesting, but when it is evaluated, it becomes of interest. Enter scope. To evaluate an expression we need scope.
 
 ## Scope and binding context
 
-The expressions themselves do not hold any state or context. This means that the expression `firstName` only knows that given an object it needs to grab the `firstName` property of that object. However, the expression in itself, does not hold that object. Scope is the container that holds the object\(s\) which can be supplied to the expression when it is evaluated.
+The expressions themselves do not hold any state or context. This means that the expression `firstName` only knows that given an object it needs to grab the `firstName` property of that object. However, the expression in itself, does not hold that object. Scope is the container that holds the object(s) which can be supplied to the expression when it is evaluated.
 
-These objects are known as contexts. There are typically two types of contexts: binding context, and override context. An expression can be evaluated against any of these two kinds of contexts. Even though there are couple of subtle difference between these two kinds of contexts \(see [Override context](scope-and-binding-context.md#override-context)\), in terms of expression evaluation there exists no difference between these two.
+These objects are known as contexts. There are typically two types of contexts: binding context, and override context. An expression can be evaluated against any of these two kinds of contexts. Even though there are couple of subtle difference between these two kinds of contexts (see [Override context](scope-and-binding-context.md#override-context)), in terms of expression evaluation there exists no difference between these two.
 
 ### JavaScript analogy
 
-One way to think about expression and binding context is in terms of functions and binding those functions with a execution context \(Refer: [Function.bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind)\). Let us consider the following example.
+One way to think about expression and binding context is in terms of functions and binding those functions with a execution context (Refer: [Function.bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global\_objects/Function/bind)). Let us consider the following example.
 
 {% code title="foo.ts" %}
 ```typescript
@@ -97,11 +97,13 @@ export class App implements ICustomElementViewModel {
 ```
 {% endcode %}
 
-Note that we haven't assigned any value explicitly to the `$controller` property; and that is assigned by the Aurelia pipeline. We can use the `$controller.scope` to access the scope, and subsequently `$controller.scope.bindingContext` can be used to access the binding context. Note how the `bindingContext` in the above example points to `this`, that is the current instance of `App` \(with template controllers, this gets little bit more involved; but we will leave that one out for now\). However, in the context of evaluating expressions, we refer the source of data as a "context".
+Note that we haven't assigned any value explicitly to the `$controller` property; and that is assigned by the Aurelia pipeline. We can use the `$controller.scope` to access the scope, and subsequently `$controller.scope.bindingContext` can be used to access the binding context.&#x20;
+
+Note how the `bindingContext` in the above example points to `this`, that is the current instance of `App` (with template controllers, this gets little bit more involved; but we will leave that one out for now). However, in the context of evaluating expressions, we refer the source of data as a "context".
 
 The relations explored so far can be expressed as follows.
 
-```text
+```
 +-----------------------+
 |                       |
 |  Scope                |
@@ -145,11 +147,11 @@ export class App implements ICustomElementViewModel {
 ```
 {% endcode %}
 
-With the assignment to `overrideContext.message` the rendered output is now `<div>Hello Aurelia!</div>` instead of `<div>Hello World!</div>`. This is because of the existence of the property `message` in the override context. As the assignment is made pre-binding phase \(`created` hook in the example above\), context [selection process](scope-and-binding-context.md#context-selection) sees that the required property exists in the override context, and selects that with higher precedence even though a property with the same name exists in the binding context as well.
+With the assignment to `overrideContext.message` the rendered output is now `<div>Hello Aurelia!</div>` instead of `<div>Hello World!</div>`. This is because of the existence of the property `message` in the override context. As the assignment is made pre-binding phase (`created` hook in the example above), context [selection process](scope-and-binding-context.md#context-selection) sees that the required property exists in the override context, and selects that with higher precedence even though a property with the same name exists in the binding context as well.
 
-Now with this information we also have a new diagram.
+Now with this information, we also have a new diagram.
 
-```text
+```
 +-----------------------+
 |                       |
 |  Scope                |
@@ -172,9 +174,11 @@ Now with this information we also have a new diagram.
 
 ### Motivation
 
-Now let's address the question 'Why do we need override context at all?'. The reason it exists has to do with the template controllers \(mostly\). While writing template controllers, many times we want a context object that is not the underlying view-model instance. One such prominent example is the [`repeat.for`]() template controller. As you might know that `repeat.for` template controller provides contextual properties such as `$index`, `$first`, `$last` etc. These properties end up being in the override context.
+Now let's address the question 'Why do we need override context at all?'. The reason it exists has to do with the template controllers (mostly). While writing template controllers, many times we want a context object that is not the underlying view-model instance. One such prominent example is the [`repeat.for`](broken-reference) template controller. As you might know that `repeat.for` template controller provides contextual properties such as `$index`, `$first`, `$last` etc. These properties end up being in the override context.
 
-Now imagine if those properties actually end up being in the binding context, which is often the underlying view-model instance, it would have caused a lot of other issues. First of all, that would have restricted you having properties with the same name to avoid conflicts. Which in turn means that you need to know the template controllers you are using thoroughly, to know about such restrictions, which is not a sound idea in itself. And with that if you define a property with the same name, as used by the template controller, coupled with change observation etc., we could have found ourselves dealing with numerous bugs in the process. Override context helps us to get out of that horrific mess.
+Now imagine if those properties actually end up being in the binding context, which is often the underlying view-model instance, it would have caused a lot of other issues. First of all, that would have restricted you having properties with the same name to avoid conflicts.&#x20;
+
+This in turn means that you need to know the template controllers you are using thoroughly, to know about such restrictions, which is not a sound idea in itself. And with that if you define a property with the same name, as used by the template controller, coupled with change observation etc., we could have found ourselves dealing with numerous bugs in the process. Override context helps us to get out of that horrific mess.
 
 Another prominent use-case for override context is the `let` binding. When not specified otherwise, the properties bound via the `let` binding ends up in the override context. This can be seen in the example below.
 
@@ -210,7 +214,7 @@ Do you know that you can use `to-binding-context` attribute in `let`-binding to 
 
 ### Connection between binding context and override context
 
-Ideally, even with the presence of override context, we do want to use the properties \(not the same one of course\) defined in the binding context. For that reason, every instance of override context also has a property named `bindingContext` that points to the binding context. This is shown in the example below.
+Ideally, even with the presence of override context, we do want to use the properties (not the same one of course) defined in the binding context. For that reason, every instance of override context also has a property named `bindingContext` that points to the binding context. This is shown in the example below.
 
 {% code title="App.ts" %}
 ```typescript
@@ -238,7 +242,7 @@ export class App implements ICustomElementViewModel {
 
 This makes the binding context readily available, even when we are working with override context, without necessarily traversing via the scope. With this information, we can again change our diagram to the following one.
 
-```text
+```
 +---------------------------------+
 |                                 |
 |     Scope                       |
@@ -309,7 +313,7 @@ In the example above, `App` uses the `FooBar` custom element, and both have prop
 
 With this information, our diagram changes for one last time.
 
-```text
+```
     +--------------------------------+    +--------------------------------+
 +-->+                                |    |                                |
 |   |     Scope                      |    |     Scope                      |
@@ -349,7 +353,7 @@ Note that the `parentScope` for the scope of the root component is `null`.
 
 ## Host scope
 
-As we are talking about scope, it needs to be noted that the term 'host scope' is used in the context of `au-slot`. There is no difference between a "normal" scope and a host scope, just it acts as the special marker to instruct the scope selection process to use the scope of the host element, instead of scope of the parent element. Moreover, this is a special kind of scope that is valid only in the context of `au-slot`. This is already discussed in detail in the [`au-slot` documentation](../developer-guides/components-revisited.md#au-slot), and thus not repeated here.
+As we are talking about scope, it needs to be noted that the term 'host scope' is used in the context of `au-slot`. There is no difference between a "normal" scope and a host scope, just it acts as the special marker to instruct the scope selection process to use the scope of the host element, instead of scope of the parent element. Moreover, this is a special kind of scope that is valid only in the context of `au-slot`. This is already discussed in detail in the [`au-slot` documentation](broken-reference), and thus not repeated here.
 
 ## Context and change observation
 
@@ -452,9 +456,9 @@ export class App implements ICustomElementViewModel {
 ```
 {% endcode %}
 
-Although it has been said before that the property in override context takes precedence over binding context, the output from the example above is `Hello Binding Context! #i: 1`, `Hello Binding Context! #i: 2`, and so on. The reason for this behavior is because of the fact that the `scope.bindingContext.message` is in fact bound to the view instead of `scope.overrideContext.message`, as the later was non-existent during binding phase \(note that the values are being changed in `attached` lifecycle hook\). Therefore, the change observation is also applied for the `scope.bindingContext.message` as opposed to that of override context. This explains why updating the `scope.overrideContext.message` is rather 'futile' in the example above.
+Although it has been said before that the property in override context takes precedence over binding context, the output from the example above is `Hello Binding Context! #i: 1`, `Hello Binding Context! #i: 2`, and so on. The reason for this behavior is because of the fact that the `scope.bindingContext.message` is in fact bound to the view instead of `scope.overrideContext.message`, as the later was non-existent during binding phase (note that the values are being changed in `attached` lifecycle hook). Therefore, the change observation is also applied for the `scope.bindingContext.message` as opposed to that of override context. This explains why updating the `scope.overrideContext.message` is rather 'futile' in the example above.
 
-However, the result would have been quite different, if the `message` property is introduced to override context during the `binding` phase \(or before that for that matter\).
+However, the result would have been quite different, if the `message` property is introduced to override context during the `binding` phase (or before that for that matter).
 
 {% code title="App.ts" %}
 ```typescript
@@ -511,19 +515,19 @@ Note that the example above introduces the `message` property in the override co
 
 ## Context selection
 
-So far we have seen various aspect of scope, binding and override context. One thing we have not addressed so far is how the contexts are selected for expression evaluation or assignment. In this section we will look into that aspect.
+So far we have seen various aspects of scope, binding and override context. One thing we have not addressed so far is how the contexts are selected for expression evaluation or assignment. In this section, we will look into that aspect.
 
-The context selection process can be summed up \(simplified\) as follows.
+The context selection process can be summed up (simplified) as follows.
 
 1. IF `$parent` keyword is used once or more than once, THEN
-   1. traverse up the scope, the required number of parents \(that is for `$parent.$parent.foo`, we will go two steps/scopes up\)
+   1. traverse up the scope, the required number of parents (that is for `$parent.$parent.foo`, we will go two steps/scopes up)
    2. RETURN override context if the desired property is found there, ELSE RETURN binding context.
 2. ELSE
    1. LOOP till either the desired property is found in the context or the component boundary is hit. Then perform the following.
    2. IF the desired property is found in the override context return override context.
    3. ELSE RETURN binding context.
 
-The first rule involving `$parent` should be self explanatory. We will focus on the second part.
+The first rule involving `$parent` should be self-explanatory. We will focus on the second part.
 
 Let us first see an example to demonstrate the utility of the rule `#2.1.`.
 
@@ -559,7 +563,7 @@ export class App implements ICustomElementViewModel {
 
 As expected, the example produces the following output.
 
-```text
+```
 Hello Foo-Bar! 0 0
 Hello Foo-Bar! 0 1
 Hello Foo-Bar! 1 0
@@ -568,9 +572,9 @@ Hello Foo-Bar! 2 0
 Hello Foo-Bar! 2 1
 ```
 
-Note that both `App` and `FooBar` initializes their own `message` properties. According to our rule `#2.3.` binding context is selected, and the corresponding `message` property is bound to the view. However, it is important to note that if the `FooBar#message` stays uninitialized, that is the `message` property exists neither in binding context nor in override context \(of `FooBar`'s scope\), the output would have been as following.
+Note that both `App` and `FooBar` initializes their own `message` properties. According to our rule `#2.3.` binding context is selected, and the corresponding `message` property is bound to the view. However, it is important to note that if the `FooBar#message` stays uninitialized, that is the `message` property exists neither in binding context nor in override context (of `FooBar`'s scope), the output would have been as follows.
 
-```text
+```
 0 0
 0 1
 1 0
@@ -579,7 +583,9 @@ Note that both `App` and `FooBar` initializes their own `message` properties. Ac
 2 1
 ```
 
-Although it should be quite as per expectation, the point to be noted here is that the scope traversal never reaches to `App` in the process. This is because of the 'component boundary' clause in rule `#2.1.`. In case of this example the expression evaluation starts with the scope of the innermost `repeat.for`, and traversed upwards. When traversal hits the scope of `FooBar`, it recognize the scope as a component boundary, and stops traversing any further, irrespective of whether the property is found or not. Contextually note that if you want to cross the component boundary, you need to explicitly use `$parent` keyword.
+Although it should be quite as per expectation, the point to be noted here is that the scope traversal never reaches to `App` in the process. This is because of the 'component boundary' clause in rule `#2.1.`. In case of this example the expression evaluation starts with the scope of the innermost `repeat.for`, and traversed upwards.&#x20;
+
+When traversal hits the scope of `FooBar`, it recognize the scope as a component boundary, and stops traversing any further, irrespective of whether the property is found or not. Contextually note that if you want to cross the component boundary, you need to explicitly use `$parent` keyword.
 
 The rule `#2.2.` is also self explanatory, as we have seen plenty examples of override context precedence so far. Thus the last bit of this story boils down to the rule `#2.3.`. This rule facilitates using an uninitialized property in binding context by default or as fallback, as can be seen in the example below.
 
@@ -616,4 +622,3 @@ export class App implements ICustomElementViewModel {
 The example shown above produces `Hello World!` as output after 2 seconds of the invocation of the `attached` hook. This happens because of the fallback to binding context by the rule `#2.3.`.
 
 That's it! Congratulations! You have made it till the end. Go have that tea break now! Hope you have enjoyed this documentation as much as you will enjoy that tea. Have fun with Aurelia2!
-

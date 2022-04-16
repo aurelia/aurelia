@@ -27,10 +27,16 @@ const testDirs = [
   'i18n',
   'integration',
   'router',
+  'router-lite',
+  'store-v1',
   'validation',
   'validation-html',
   'validation-i18n',
 ];
+
+const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html --bail'.split(' ');
+const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
+const hasSingleRun = process.argv.slice(2).includes('--single-run');
 
 const packageNames = [
   'fetch-client',
@@ -41,15 +47,18 @@ const packageNames = [
   'platform-browser',
   'route-recognizer',
   'router',
+  'router-lite',
   'runtime',
   'runtime-html',
+  'store-v1',
   'testing',
   'validation',
   'validation-html',
   'validation-i18n',
 ];
 
-module.exports = function (config) {
+module.exports =
+/** @param {import('karma').Config} config */ function (config) {
   let browsers;
   if (process.env.BROWSERS) {
     browsers = [process.env.BROWSERS];
@@ -59,6 +68,15 @@ module.exports = function (config) {
     browsers = ['Chrome'];
   }
   const baseUrl = 'packages/__tests__/dist/esm/__tests__';
+
+  const testFilePatterns = cliArgs.length > 0
+    ? cliArgs.flatMap(arg => [
+        `${baseUrl}/**/*${arg.replace(/(?:\.[tj]s)?$/, '*.js')}`,
+        `${baseUrl}/**/${arg}/**/*.spec.js`,
+    ])
+    : [`${baseUrl}/**/*.spec.js`];
+
+  console.log('test patterns:', testFilePatterns);
 
   // Karma config reference: https://karma-runner.github.io/5.2/config/files.html
   // --------------------------------------------------------------------------------
@@ -84,8 +102,11 @@ module.exports = function (config) {
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/setup-shared.js` }, // 1.2
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/util.js` }, // 1.3
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/Spy.js` }, // 1.4
+    ...testFilePatterns.map(pattern =>
+      ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: pattern }), // 2.1
+    ), // 2.1 (new)
     ...testDirs.flatMap(name => [
-      { type: 'module', watched: true,  included: true,  nocache: false, pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1
+      // { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1 (old)
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.js.map` }, // 2.2
       { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/${name}/**/!(*.$au)*.js` }, // 2.3
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
@@ -98,13 +119,17 @@ module.exports = function (config) {
     // for i18n tests
     { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/i18next/dist/esm/i18next.js` }, // 3.1
     { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/@babel/runtime/helpers/**/*.js` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/rxjs/_esm5/**/*.js` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/rxjs/_esm5/**/*.js.map` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/rxjs/_esm5/**/*.d.ts` }, // 3.1
+    { type: 'module', watched: false,  included: false, nocache: false, pattern: `node_modules/tslib/tslib.es6.js` }, // 3.1
   ];
 
   const preprocessors = files.reduce((p, file) => {
     // Only process .js files (not .js.map or .ts files)
-    if (/\.js$/.test(file.pattern)) {
+    if (file.pattern.endsWith(".js")) {
       // Only instrument core framework files (not the specs themselves, nor any test utils (for now))
-      if (/__tests__|testing/.test(file.pattern) || !config.coverage) {
+      if (/__tests__|testing|node_modules/.test(file.pattern) || !config.coverage) {
         p[file.pattern] = ['aurelia'];
       } else {
         p[file.pattern] = ['aurelia', 'karma-coverage-istanbul-instrumenter'];
@@ -113,6 +138,7 @@ module.exports = function (config) {
     return p;
   }, {});
 
+  /** @type {import('karma').ConfigOptions} */
   const options = {
     basePath,
     browserDisconnectTimeout: 10000,
@@ -125,7 +151,10 @@ module.exports = function (config) {
     mime: {
       'text/x-typescript': ['ts']
     },
-    reporters: [config.reporter || (process.env.CI ? 'min' : 'progress')],
+    reporters: [
+      ...(hasSingleRun ? [] : ['clear-screen']),
+      config.reporter || (process.env.CI ? 'min' : 'progress'),
+    ],
     browsers: browsers,
     customLaunchers: {
       ChromeDebugging: {
@@ -151,9 +180,28 @@ module.exports = function (config) {
         timeout: 5000,
       }
     },
-    restartOnFileChange: true,
     logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
     // logLevel: config.LOG_DEBUG,
+    plugins: [
+      'karma-mocha',
+      'karma-aurelia-preprocessor',
+      'karma-coverage-istanbul-instrumenter',
+      'karma-coverage-istanbul-reporter',
+      'karma-min-reporter',
+      'karma-chrome-launcher',
+      'karma-firefox-launcher',
+      // a copy paste version of https://github.com/arthurc/karma-clear-screen-reporter
+      // for light-weight-ness
+      {
+        'reporter:clear-screen': ['type', function ClearScreenReporter() {
+          let runId = 0;
+          this.onRunStart = function () {
+            console.log("\u001b[2J\u001b[0;0H");
+            console.log(`Watch run: ${++runId}. ${new Date().toJSON()}`);
+          };
+        }]
+      }
+    ]
   };
 
   if (config.coverage) {

@@ -1,4 +1,4 @@
-import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop } from '@aurelia/kernel';
+import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
 import { BindingMode, ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
@@ -16,14 +16,15 @@ import {
   TextBindingInstruction,
   ITemplateCompiler,
   PropertyBindingInstruction,
+  SpreadElementPropBindingInstruction,
 } from './renderer.js';
 import { IPlatform } from './platform.js';
 import { Bindable, BindableDefinition } from './bindable.js';
 import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
-import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
+import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element.js';
 import { BindingCommand, CommandType } from './resources/binding-command.js';
-import { createLookup } from './utilities-html.js';
+import { createLookup, isString } from './utilities.js';
 import { allResources } from './utilities-di.js';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from './shared.js';
 
@@ -63,7 +64,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     compilationInstruction ??= emptyCompilationInstructions;
 
     const context = new CompilationContext(partialDefinition, container, compilationInstruction, null, null, void 0);
-    const template = typeof definition.template === 'string' || !partialDefinition.enhance
+    const template = isString(definition.template) || !partialDefinition.enhance
       ? context._templateFactory.createTemplate(definition.template)
       : definition.template as HTMLElement;
     const isTemplateElement = template.nodeName === 'TEMPLATE' && (template as HTMLTemplateElement).content != null;
@@ -99,6 +100,195 @@ export class TemplateCompiler implements ITemplateCompiler {
       hasSlots: context.hasSlot,
       needsCompile: false,
     });
+  }
+
+  public compileSpread(
+    definition: CustomElementDefinition,
+    attrSyntaxs: AttrSyntax[],
+    container: IContainer,
+    el: Element,
+  ): IInstruction[] {
+    const context = new CompilationContext(definition, container, emptyCompilationInstructions, null, null, void 0);
+    const instructions: IInstruction[] = [];
+    const elDef = context._findElement(el.nodeName.toLowerCase());
+    const exprParser = context._exprParser;
+    const ii = attrSyntaxs.length;
+    let i = 0;
+    let attrSyntax: AttrSyntax;
+    let attrDef: CustomAttributeDefinition | null = null;
+    let attrInstructions: (HydrateAttributeInstruction | HydrateTemplateController)[] | undefined;
+    let attrBindableInstructions: IInstruction[];
+    // eslint-disable-next-line
+    let bindablesInfo: BindablesInfo<0> | BindablesInfo<1>;
+    let bindable: BindableDefinition;
+    let primaryBindable: BindableDefinition;
+    let bindingCommand: BindingCommandInstance | null = null;
+    let expr: AnyBindingExpression;
+    let isMultiBindings: boolean;
+    let attrTarget: string;
+    let attrValue: string;
+
+    for (; ii > i; ++i) {
+      attrSyntax = attrSyntaxs[i];
+
+      attrTarget = attrSyntax.target;
+      attrValue = attrSyntax.rawValue;
+
+      bindingCommand = context._createCommand(attrSyntax);
+      if (bindingCommand !== null && (bindingCommand.type & CommandType.IgnoreAttr) > 0) {
+        // when the binding command overrides everything
+        // just pass the target as is to the binding command, and treat it as a normal attribute:
+        // active.class="..."
+        // background.style="..."
+        // my-attr.attr="..."
+
+        commandBuildInfo.node = el;
+        commandBuildInfo.attr = attrSyntax;
+        commandBuildInfo.bindable = null;
+        commandBuildInfo.def = null;
+        instructions.push(bindingCommand.build(commandBuildInfo));
+
+        // to next attribute
+        continue;
+      }
+
+      attrDef = context._findAttr(attrTarget);
+      if (attrDef !== null) {
+        if (attrDef.isTemplateController) {
+          if (__DEV__)
+            throw new Error(`Spreading template controller ${attrTarget} is not supported.`);
+          else
+            throw new Error(`AUR0703:${attrTarget}`);
+        }
+        bindablesInfo = BindablesInfo.from(attrDef, true);
+        // Custom attributes are always in multiple binding mode,
+        // except when they can't be
+        // When they cannot be:
+        //        * has explicit configuration noMultiBindings: false
+        //        * has binding command, ie: <div my-attr.bind="...">.
+        //          In this scenario, the value of the custom attributes is required to be a valid expression
+        //        * has no colon: ie: <div my-attr="abcd">
+        //          In this scenario, it's simply invalid syntax.
+        //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
+        isMultiBindings = attrDef.noMultiBindings === false
+          && bindingCommand === null
+          && hasInlineBindings(attrValue);
+        if (isMultiBindings) {
+          attrBindableInstructions = this._compileMultiBindings(el, attrValue, attrDef, context);
+        } else {
+          primaryBindable = bindablesInfo.primary;
+          // custom attribute + single value + WITHOUT binding command:
+          // my-attr=""
+          // my-attr="${}"
+          if (bindingCommand === null) {
+            expr = exprParser.parse(attrValue, ExpressionType.Interpolation);
+            attrBindableInstructions = [
+              expr === null
+                ? new SetPropertyInstruction(attrValue, primaryBindable.property)
+                : new InterpolationInstruction(expr, primaryBindable.property)
+            ];
+          } else {
+            // custom attribute with binding command:
+            // my-attr.bind="..."
+            // my-attr.two-way="..."
+
+            commandBuildInfo.node = el;
+            commandBuildInfo.attr = attrSyntax;
+            commandBuildInfo.bindable = primaryBindable;
+            commandBuildInfo.def = attrDef;
+            attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
+          }
+        }
+
+        (attrInstructions ??= []).push(new HydrateAttributeInstruction(
+          // todo: def/ def.Type or def.name should be configurable
+          //       example: AOT/runtime can use def.Type, but there are situation
+          //       where instructions need to be serialized, def.name should be used
+          this.resolveResources ? attrDef : attrDef.name,
+          attrDef.aliases != null && attrDef.aliases.includes(attrTarget) ? attrTarget : void 0,
+          attrBindableInstructions
+        ));
+        continue;
+      }
+
+      if (bindingCommand === null) {
+        expr = exprParser.parse(attrValue, ExpressionType.Interpolation);
+
+        // reaching here means:
+        // + maybe a bindable attribute with interpolation
+        // + maybe a plain attribute with interpolation
+        // + maybe a plain attribute
+        if (elDef !== null) {
+          bindablesInfo = BindablesInfo.from(elDef, false);
+          bindable = bindablesInfo.attrs[attrTarget];
+          if (bindable !== void 0) {
+            expr = exprParser.parse(attrValue, ExpressionType.Interpolation);
+            instructions.push(
+              new SpreadElementPropBindingInstruction(
+                expr == null
+                  ? new SetPropertyInstruction(attrValue, bindable.property)
+                  : new InterpolationInstruction(expr, bindable.property)
+              )
+            );
+
+            continue;
+          }
+        }
+
+        if (expr != null) {
+          instructions.push(new InterpolationInstruction(
+            expr,
+            // if not a bindable, then ensure plain attribute are mapped correctly:
+            // e.g: colspan -> colSpan
+            //      innerhtml -> innerHTML
+            //      minlength -> minLength etc...
+            context._attrMapper.map(el, attrTarget) ?? camelCase(attrTarget)
+          ));
+        } else {
+          switch (attrTarget) {
+            case 'class':
+              instructions.push(new SetClassAttributeInstruction(attrValue));
+              break;
+            case 'style':
+              instructions.push(new SetStyleAttributeInstruction(attrValue));
+              break;
+            default:
+              // if not a custom attribute + no binding command + not a bindable + not an interpolation
+              // then it's just a plain attribute
+              instructions.push(new SetAttributeInstruction(attrValue, attrTarget));
+          }
+        }
+      } else {
+        if (elDef !== null) {
+          // if the element is a custom element
+          // - prioritize bindables on a custom element before plain attributes
+          bindablesInfo = BindablesInfo.from(elDef, false);
+          bindable = bindablesInfo.attrs[attrTarget];
+          if (bindable !== void 0) {
+            commandBuildInfo.node = el;
+            commandBuildInfo.attr = attrSyntax;
+            commandBuildInfo.bindable = bindable;
+            commandBuildInfo.def = elDef;
+            instructions.push(new SpreadElementPropBindingInstruction(bindingCommand.build(commandBuildInfo)));
+            continue;
+          }
+        }
+
+        commandBuildInfo.node = el;
+        commandBuildInfo.attr = attrSyntax;
+        commandBuildInfo.bindable = null;
+        commandBuildInfo.def = null;
+        instructions.push(bindingCommand.build(commandBuildInfo));
+      }
+    }
+
+    resetCommandBuildInfo();
+
+    if (attrInstructions != null) {
+      return (attrInstructions as IInstruction[]).concat(instructions);
+    }
+
+    return instructions;
   }
 
   /** @internal */
@@ -433,6 +623,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = context._findElement(elName);
+    const shouldCapture = !!elDef?.capture;
+    const captures: AttrSyntax[] = shouldCapture ? [] : emptyArray;
     const exprParser = context._exprParser;
     const removeAttr = this.debug
       ? noop
@@ -511,9 +703,36 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
           continue;
       }
-      attrSyntax = context._attrParser.parse(attrName, attrValue);
 
+      attrSyntax = context._attrParser.parse(attrName, attrValue);
       bindingCommand = context._createCommand(attrSyntax);
+
+      realAttrTarget = attrSyntax.target;
+      realAttrValue = attrSyntax.rawValue;
+
+      if (shouldCapture) {
+        if (bindingCommand != null && bindingCommand.type & CommandType.IgnoreAttr) {
+          removeAttr();
+          captures.push(attrSyntax);
+          continue;
+        }
+
+        if (realAttrTarget !== 'au-slot') {
+          bindablesInfo = BindablesInfo.from(elDef, false);
+          // if capture is on, capture everything except:
+          // - as-element
+          // - containerless
+          // - bindable properties
+          // - template controller
+          // - custom attribute
+          if (bindablesInfo.attrs[realAttrTarget] == null && !context._findAttr(realAttrTarget)?.isTemplateController) {
+            removeAttr();
+            captures.push(attrSyntax);
+            continue;
+          }
+        }
+      }
+
       if (bindingCommand !== null && bindingCommand.type & CommandType.IgnoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
@@ -532,8 +751,6 @@ export class TemplateCompiler implements ITemplateCompiler {
         continue;
       }
 
-      realAttrTarget = attrSyntax.target;
-      realAttrValue = attrSyntax.rawValue;
       // if not a ignore attribute binding command
       // then process with the next possibilities
       attrDef = context._findAttr(realAttrTarget);
@@ -552,19 +769,19 @@ export class TemplateCompiler implements ITemplateCompiler {
         //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
         isMultiBindings = attrDef.noMultiBindings === false
           && bindingCommand === null
-          && hasInlineBindings(attrValue);
+          && hasInlineBindings(realAttrValue);
         if (isMultiBindings) {
-          attrBindableInstructions = this._compileMultiBindings(el, attrValue, attrDef, context);
+          attrBindableInstructions = this._compileMultiBindings(el, realAttrValue, attrDef, context);
         } else {
           primaryBindable = bindablesInfo.primary;
           // custom attribute + single value + WITHOUT binding command:
           // my-attr=""
           // my-attr="${}"
           if (bindingCommand === null) {
-            expr = exprParser.parse(attrValue, ExpressionType.Interpolation);
+            expr = exprParser.parse(realAttrValue, ExpressionType.Interpolation);
             attrBindableInstructions = [
               expr === null
-                ? new SetPropertyInstruction(attrValue, primaryBindable.property)
+                ? new SetPropertyInstruction(realAttrValue, primaryBindable.property)
                 : new InterpolationInstruction(expr, primaryBindable.property)
             ];
           } else {
@@ -697,6 +914,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         (elBindableInstructions ?? emptyArray) as IInstruction[],
         null,
         hasContainerless,
+        captures,
       );
 
       // 2.1 prepare fallback content for <au-slot/>
@@ -772,14 +990,6 @@ export class TemplateCompiler implements ITemplateCompiler {
       // 4.1.1.0. prepare child context for the inner template compilation
       const childContext = context._createChild(instructions == null ? [] : [instructions]);
 
-      shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
-      // todo: shouldn't have to eagerly replace with a marker like this
-      //       this should be the job of the renderer
-      if (elDef !== null && elDef.containerless) {
-        this._replaceByMarker(el, context);
-      }
-
-      let child: Node | null;
       let childEl: Element;
       let targetSlot: string | null;
       let projections: IProjections | undefined;
@@ -789,100 +999,111 @@ export class TemplateCompiler implements ITemplateCompiler {
       let marker: HTMLElement;
       let projectionCompilationContext: CompilationContext;
       let j = 0, jj = 0;
-      if (shouldCompileContent) {
-        // 4.1.1.1.
-        //  walks through the child nodes, and perform [au-slot] check
-        //  note: this is a bit different with the summary above, possibly wrong since it will not throw
-        //        on [au-slot] used on a non-custom-element + with a template controller on it
-        if (elDef !== null) {
-          // for each child element of a custom element
-          // scan for [au-slot], if there's one
-          // then extract the element into a projection definition
-          // this allows support for [au-slot] declared on the same element with anther template controller
-          // e.g:
-          //
-          // can do:
-          //  <my-el>
-          //    <div au-slot if.bind="..."></div>
-          //    <div if.bind="..." au-slot></div>
-          //  </my-el>
-          //
-          // instead of:
-          //  <my-el>
-          //    <template au-slot><div if.bind="..."></div>
-          //  </my-el>
-          child = el.firstChild;
-          while (child !== null) {
-            if (child.nodeType === 1) {
-              // if has [au-slot] then it's a projection
-              childEl = (child as Element);
-              child = child.nextSibling;
-              targetSlot = childEl.getAttribute('au-slot');
-              if (targetSlot !== null) {
-                if (targetSlot === '') {
-                  targetSlot = 'default';
-                }
-                childEl.removeAttribute('au-slot');
-                el.removeChild(childEl);
-                ((slotTemplateRecord ??= {})[targetSlot] ??= []).push(childEl);
+      // 4.1.1.1.
+      //  walks through the child nodes, and perform [au-slot] check
+      //  note: this is a bit different with the summary above, possibly wrong since it will not throw
+      //        on [au-slot] used on a non-custom-element + with a template controller on it
+      // for each child element of a custom element
+      // scan for [au-slot], if there's one
+      // then extract the element into a projection definition
+      // this allows support for [au-slot] declared on the same element with anther template controller
+      // e.g:
+      //
+      // can do:
+      //  <my-el>
+      //    <div au-slot if.bind="..."></div>
+      //    <div if.bind="..." au-slot></div>
+      //  </my-el>
+      //
+      // instead of:
+      //  <my-el>
+      //    <template au-slot><div if.bind="..."></div>
+      //  </my-el>
+      let child: Node | null = el.firstChild;
+      if (processContentResult !== false) {
+        while (child !== null) {
+          if (child.nodeType === 1) {
+            // if has [au-slot] then it's a projection
+            childEl = (child as Element);
+            child = child.nextSibling;
+            targetSlot = childEl.getAttribute('au-slot');
+            if (targetSlot !== null) {
+              if (elDef === null) {
+                if (__DEV__)
+                  throw new Error(`Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
+                else
+                  throw new Error(`AUR0706:${elName}[${targetSlot}]`);
               }
-              // if not a targeted slot then use the common node method
-              // todo: in the future, there maybe more special case for a content of a custom element
-              //       it can be all done here
-            } else {
-              child = child.nextSibling;
-            }
-          }
-
-          if (slotTemplateRecord != null) {
-            projections = {};
-            // aggregate all content targeting the same slot
-            // into a single template
-            // with some special rule around <template> element
-            for (targetSlot in slotTemplateRecord) {
-              template = context.h('template');
-              slotTemplates = slotTemplateRecord[targetSlot];
-              for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
-                slotTemplate = slotTemplates[j];
-                if (slotTemplate.nodeName === 'TEMPLATE') {
-                  // this means user has some thing more than [au-slot] on a template
-                  // consider this intentional, and use it as is
-                  // e.g:
-                  // <my-element>
-                  //   <template au-slot repeat.for="i of items">
-                  // ----vs----
-                  // <my-element>
-                  //   <template au-slot>this is just some static stuff <b>And a b</b></template>
-                  if ((slotTemplate as Element).attributes.length > 0) {
-                    template.content.appendChild(slotTemplate);
-                  } else {
-                    template.content.appendChild((slotTemplate as HTMLTemplateElement).content);
-                  }
-                } else {
-                  template.content.appendChild(slotTemplate);
-                }
+              if (targetSlot === '') {
+                targetSlot = 'default';
               }
-
-              // after aggregating all the [au-slot] templates into a single one
-              // compile it
-              // technically, the most inner template controller compilation context
-              // is the parent of this compilation context
-              // but for simplicity in compilation, maybe start with a flatter hierarchy
-              // also, it wouldn't have any real uses
-              projectionCompilationContext = context._createChild();
-              this._compileNode(template.content, projectionCompilationContext);
-              projections[targetSlot] = CustomElementDefinition.create({
-                name: _generateElementName(),
-                template,
-                instructions: projectionCompilationContext.rows,
-                needsCompile: false,
-                isStrictBinding: context.root.def.isStrictBinding,
-              });
+              childEl.removeAttribute('au-slot');
+              el.removeChild(childEl);
+              ((slotTemplateRecord ??= {})[targetSlot] ??= []).push(childEl);
             }
-            elementInstruction!.projections = projections;
+            // if not a targeted slot then use the common node method
+            // todo: in the future, there maybe more special case for a content of a custom element
+            //       it can be all done here
+          } else {
+            child = child.nextSibling;
           }
         }
+      }
 
+      if (slotTemplateRecord != null) {
+        projections = {};
+        // aggregate all content targeting the same slot
+        // into a single template
+        // with some special rule around <template> element
+        for (targetSlot in slotTemplateRecord) {
+          template = context.h('template');
+          slotTemplates = slotTemplateRecord[targetSlot];
+          for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
+            slotTemplate = slotTemplates[j];
+            if (slotTemplate.nodeName === 'TEMPLATE') {
+              // this means user has some thing more than [au-slot] on a template
+              // consider this intentional, and use it as is
+              // e.g:
+              // <my-element>
+              //   <template au-slot repeat.for="i of items">
+              // ----vs----
+              // <my-element>
+              //   <template au-slot>this is just some static stuff <b>And a b</b></template>
+              if ((slotTemplate as Element).attributes.length > 0) {
+                template.content.appendChild(slotTemplate);
+              } else {
+                template.content.appendChild((slotTemplate as HTMLTemplateElement).content);
+              }
+            } else {
+              template.content.appendChild(slotTemplate);
+            }
+          }
+
+          // after aggregating all the [au-slot] templates into a single one
+          // compile it
+          // technically, the most inner template controller compilation context
+          // is the parent of this compilation context
+          // but for simplicity in compilation, maybe start with a flatter hierarchy
+          // also, it wouldn't have any real uses
+          projectionCompilationContext = context._createChild();
+          this._compileNode(template.content, projectionCompilationContext);
+          projections[targetSlot] = CustomElementDefinition.create({
+            name: _generateElementName(),
+            template,
+            instructions: projectionCompilationContext.rows,
+            needsCompile: false,
+            isStrictBinding: context.root.def.isStrictBinding,
+          });
+        }
+        elementInstruction!.projections = projections;
+      }
+
+      if (elDef !== null && elDef.containerless) {
+        this._replaceByMarker(el, context);
+      }
+
+      shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
+      if (shouldCompileContent) {
         // 4.1.1.2:
         //  recursively compiles the child nodes into the inner context
         // important:
@@ -957,42 +1178,36 @@ export class TemplateCompiler implements ITemplateCompiler {
         context.rows.push(instructions);
       }
 
-      shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
-      // todo: shouldn't have to eagerly replace with a marker like this
-      //       this should be the job of the renderer
-      if (elDef !== null && elDef.containerless) {
-        this._replaceByMarker(el, context);
-      }
-      if (shouldCompileContent && el.childNodes.length > 0) {
-        let child = el.firstChild as Node | null;
-        let childEl: Element;
-        let targetSlot: string | null;
-        let projections: IProjections | null = null;
-        let slotTemplateRecord: Record<string, (Element | DocumentFragment)[]> | undefined;
-        let slotTemplates: (Element | DocumentFragment)[];
-        let slotTemplate: Element | DocumentFragment;
-        let template: HTMLTemplateElement;
-        let projectionCompilationContext: CompilationContext;
-        let j = 0, jj = 0;
-        // 4.2.1.
-        //    walks through the child nodes and perform [au-slot] check
-        // --------------------
-        // for each child element of a custom element
-        // scan for [au-slot], if there's one
-        // then extract the element into a projection definition
-        // this allows support for [au-slot] declared on the same element with anther template controller
-        // e.g:
-        //
-        // can do:
-        //  <my-el>
-        //    <div au-slot if.bind="..."></div>
-        //    <div if.bind="..." au-slot></div>
-        //  </my-el>
-        //
-        // instead of:
-        //  <my-el>
-        //    <template au-slot><div if.bind="..."></div>
-        //  </my-el>
+      let child = el.firstChild as Node | null;
+      let childEl: Element;
+      let targetSlot: string | null;
+      let projections: IProjections | null = null;
+      let slotTemplateRecord: Record<string, (Element | DocumentFragment)[]> | undefined;
+      let slotTemplates: (Element | DocumentFragment)[];
+      let slotTemplate: Element | DocumentFragment;
+      let template: HTMLTemplateElement;
+      let projectionCompilationContext: CompilationContext;
+      let j = 0, jj = 0;
+      // 4.2.1.
+      //    walks through the child nodes and perform [au-slot] check
+      // --------------------
+      // for each child element of a custom element
+      // scan for [au-slot], if there's one
+      // then extract the element into a projection definition
+      // this allows support for [au-slot] declared on the same element with anther template controller
+      // e.g:
+      //
+      // can do:
+      //  <my-el>
+      //    <div au-slot if.bind="..."></div>
+      //    <div if.bind="..." au-slot></div>
+      //  </my-el>
+      //
+      // instead of:
+      //  <my-el>
+      //    <template au-slot><div if.bind="..."></div>
+      //  </my-el>
+      if (processContentResult !== false) {
         while (child !== null) {
           if (child.nodeType === 1) {
             // if has [au-slot] then it's a projection
@@ -1020,51 +1235,60 @@ export class TemplateCompiler implements ITemplateCompiler {
             child = child.nextSibling;
           }
         }
+      }
 
-        if (slotTemplateRecord != null) {
-          projections = {};
-          // aggregate all content targeting the same slot
-          // into a single template
-          // with some special rule around <template> element
-          for (targetSlot in slotTemplateRecord) {
-            template = context.h('template');
-            slotTemplates = slotTemplateRecord[targetSlot];
-            for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
-              slotTemplate = slotTemplates[j];
-              if (slotTemplate.nodeName === 'TEMPLATE') {
-                // this means user has some thing more than [au-slot] on a template
-                // consider this intentional, and use it as is
-                // e.g:
-                // <my-element>
-                //   <template au-slot repeat.for="i of items">
-                // ----vs----
-                // <my-element>
-                //   <template au-slot>this is just some static stuff <b>And a b</b></template>
-                if ((slotTemplate as Element).attributes.length > 0) {
-                  template.content.appendChild(slotTemplate);
-                } else {
-                  template.content.appendChild((slotTemplate as HTMLTemplateElement).content);
-                }
-              } else {
+      if (slotTemplateRecord != null) {
+        projections = {};
+        // aggregate all content targeting the same slot
+        // into a single template
+        // with some special rule around <template> element
+        for (targetSlot in slotTemplateRecord) {
+          template = context.h('template');
+          slotTemplates = slotTemplateRecord[targetSlot];
+          for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
+            slotTemplate = slotTemplates[j];
+            if (slotTemplate.nodeName === 'TEMPLATE') {
+              // this means user has some thing more than [au-slot] on a template
+              // consider this intentional, and use it as is
+              // e.g:
+              // <my-element>
+              //   <template au-slot repeat.for="i of items">
+              // ----vs----
+              // <my-element>
+              //   <template au-slot>this is just some static stuff <b>And a b</b></template>
+              if ((slotTemplate as Element).attributes.length > 0) {
                 template.content.appendChild(slotTemplate);
+              } else {
+                template.content.appendChild((slotTemplate as HTMLTemplateElement).content);
               }
+            } else {
+              template.content.appendChild(slotTemplate);
             }
-
-            // after aggregating all the [au-slot] templates into a single one
-            // compile it
-            projectionCompilationContext = context._createChild();
-            this._compileNode(template.content, projectionCompilationContext);
-            projections[targetSlot] = CustomElementDefinition.create({
-              name: _generateElementName(),
-              template,
-              instructions: projectionCompilationContext.rows,
-              needsCompile: false,
-              isStrictBinding: context.root.def.isStrictBinding,
-            });
           }
-          elementInstruction!.projections = projections;
-        }
 
+          // after aggregating all the [au-slot] templates into a single one
+          // compile it
+          projectionCompilationContext = context._createChild();
+          this._compileNode(template.content, projectionCompilationContext);
+          projections[targetSlot] = CustomElementDefinition.create({
+            name: _generateElementName(),
+            template,
+            instructions: projectionCompilationContext.rows,
+            needsCompile: false,
+            isStrictBinding: context.root.def.isStrictBinding,
+          });
+        }
+        elementInstruction!.projections = projections;
+      }
+
+      // todo: shouldn't have to eagerly replace with a marker like this
+      //       this should be the job of the renderer
+      if (elDef !== null && elDef.containerless) {
+        this._replaceByMarker(el, context);
+      }
+
+      shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
+      if (shouldCompileContent && el.childNodes.length > 0) {
         // 4.2.2
         //    recursively compiles the child nodes into current context
         child = el.firstChild;
@@ -1208,7 +1432,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   /** @internal */
   private _compileLocalElement(template: Element | DocumentFragment, context: CompilationContext) {
     const root: Element | DocumentFragment = template;
-    const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) as HTMLTemplateElement[];
+    const localTemplates = toArray(root.querySelectorAll<HTMLTemplateElement>('template[as-custom-element]'));
     const numLocalTemplates = localTemplates.length;
     if (numLocalTemplates === 0) { return; }
     if (numLocalTemplates === root.childElementCount) {
@@ -1218,6 +1442,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         throw new Error('AUR0708');
     }
     const localTemplateNames: Set<string> = new Set();
+    const localElTypes: CustomElementType[] = [];
 
     for (const localTemplate of localTemplates) {
       if (localTemplate.parentNode !== root) {
@@ -1277,9 +1502,30 @@ export class TemplateCompiler implements ITemplateCompiler {
         content.removeChild(bindableEl);
       }
 
+      localElTypes.push(LocalTemplateType);
       context._addDep(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
 
       root.removeChild(localTemplate);
+    }
+
+    // if we have a template like this
+    //
+    // my-app.html
+    // <template as-custom-element="le-1">
+    //  <le-2></le-2>
+    // </template>
+    // <template as-custom-element="le-2">...</template>
+    //
+    // eagerly registering depdendencies inside the loop above
+    // will make `<le-1/>` miss `<le-2/>` as its dependency
+
+    let i = 0;
+    const ii = localElTypes.length;
+    for (; ii > i; ++i) {
+      (CustomElement.getDefinition(localElTypes[i]).dependencies as Key[]).push(
+        ...context.def.dependencies ?? emptyArray,
+        ...context.deps ?? emptyArray,
+      );
     }
   }
 
@@ -1387,14 +1633,14 @@ class CompilationContext {
     this.def = def;
     this.ci = compilationInstruction;
     this.parent = parent;
-    this._templateFactory = hasParent ? parent!._templateFactory : container.get(ITemplateElementFactory);
+    this._templateFactory = hasParent ? parent._templateFactory : container.get(ITemplateElementFactory);
     // todo: attr parser should be retrieved based in resource semantic (current leaf + root + ignore parent)
-    this._attrParser = hasParent ? parent!._attrParser : container.get(IAttributeParser);
-    this._exprParser = hasParent ? parent!._exprParser : container.get(IExpressionParser);
-    this._attrMapper = hasParent ? parent!._attrMapper : container.get(IAttrMapper);
-    this._logger = hasParent ? parent!._logger : container.get(ILogger);
-    this.p = hasParent ? parent!.p : container.get(IPlatform);
-    this.localEls = hasParent ? parent!.localEls : new Set();
+    this._attrParser = hasParent ? parent._attrParser : container.get(IAttributeParser);
+    this._exprParser = hasParent ? parent._exprParser : container.get(IExpressionParser);
+    this._attrMapper = hasParent ? parent._attrMapper : container.get(IAttrMapper);
+    this._logger = hasParent ? parent._logger : container.get(ILogger);
+    this.p = hasParent ? parent.p : container.get(IPlatform);
+    this.localEls = hasParent ? parent.localEls : new Set();
     this.rows = instructions ?? [];
   }
 
@@ -1404,7 +1650,7 @@ class CompilationContext {
   }
 
   public h<K extends keyof HTMLElementTagNameMap>(name: K): HTMLElementTagNameMap[K];
-  public h<K extends string>(name: string): HTMLElement;
+  public h(name: string): HTMLElement;
   public h(name: string): HTMLElement {
     const el = this.p.document.createElement(name);
     if (name === 'template') {
@@ -1557,11 +1803,11 @@ export class BindablesInfo<T extends 0 | 1 = 0> {
           primary = bindable;
         }
 
-        attrs[attr] = BindableDefinition.create(prop, bindable);
+        attrs[attr] = BindableDefinition.create(prop, def.Type, bindable);
       }
       if (bindable == null && isAttr) {
         // if no bindables are present, default to "value"
-        primary = attrs.value = BindableDefinition.create('value', { mode: defaultBindingMode });
+        primary = attrs.value = BindableDefinition.create('value', def.Type, { mode: defaultBindingMode });
       }
 
       bindableAttrsInfoCache.set(def, info = new BindablesInfo(attrs, bindables, primary));

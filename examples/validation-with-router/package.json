@@ -13,7 +13,7 @@
   "dependencies": {
     "@aurelia/kernel": "2.0.0-alpha.13",
     "@aurelia/runtime-html": "2.0.0-alpha.13",
-    "@aurelia/router": "2.0.0-alpha.13",
+    "@aurelia/router-lite": "2.0.0-alpha.13",
     "@aurelia/validation": "2.0.0-alpha.13",
     "@aurelia/validation-html": "2.0.0-alpha.13"
   },

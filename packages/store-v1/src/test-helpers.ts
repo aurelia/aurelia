@@ -1,8 +1,4 @@
-import { skip as _skip, take as _take, delay as _delay } from "rxjs/operators/index.js";
-import type { skip as $skip, take as $take, delay as $delay } from "rxjs/operators";
-const skip = _skip as typeof $skip;
-const take = _take as typeof $take;
-const delay = _delay as typeof $delay;
+import { skip, take, delay } from "rxjs/operators";
 
 import type { Store } from './store.js';
 

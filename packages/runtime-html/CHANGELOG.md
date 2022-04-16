@@ -3,6 +3,125 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.28"></a>
+# 2.0.0-alpha.28 (2022-04-16)
+
+### Bug Fixes:
+
+* **css-module:** allow colon in class names (#1388) ([47860ab](https://github.com/aurelia/aurelia/commit/47860ab))
+
+<a name="2.0.0-alpha.27"></a>
+# 2.0.0-alpha.27 (2022-04-08)
+
+### Bug Fixes:
+
+* **build:** ensure correct __DEV__ build value replacement (#1377) ([40ce0e3](https://github.com/aurelia/aurelia/commit/40ce0e3))
+* **runtime-html:** local dependencies for local element (#1375) ([0d48dbf](https://github.com/aurelia/aurelia/commit/0d48dbf))
+* **switch+promise:** test build issues ([63cf5d0](https://github.com/aurelia/aurelia/commit/63cf5d0))
+
+
+### Refactorings:
+
+* **local-template:** register dependency while building definition & add tests ([0d48dbf](https://github.com/aurelia/aurelia/commit/0d48dbf))
+* **switch+promise:** deferred view instantiation (#1372) ([63cf5d0](https://github.com/aurelia/aurelia/commit/63cf5d0))
+* **all:** removing unnecessary assertions & lintings (#1371) ([05cec15](https://github.com/aurelia/aurelia/commit/05cec15))
+
+<a name="2.0.0-alpha.26"></a>
+# 2.0.0-alpha.26 (2022-03-13)
+
+### Bug Fixes:
+
+* **compiler:** allowing value modification from attr pattern on some cases for custom attribute (#1366) ([6a190b8](https://github.com/aurelia/aurelia/commit/6a190b8))
+* **template-compiler:** custom attribute works with attr-pattern in all cases ([6a190b8](https://github.com/aurelia/aurelia/commit/6a190b8))
+
+<a name="2.0.0-alpha.25"></a>
+# 2.0.0-alpha.25 (2022-03-08)
+
+**Note:** Version bump only for package @aurelia/runtime-html
+
+<a name="2.0.0-alpha.24"></a>
+# 2.0.0-alpha.24 (2022-01-18)
+
+### Bug Fixes:
+
+* **promise:** suppressed TaskAbortError on cancellation ([b917470](https://github.com/aurelia/aurelia/commit/b917470))
+
+
+### Refactorings:
+
+* **promise:** pre-settled task result rejection ([0e5d75d](https://github.com/aurelia/aurelia/commit/0e5d75d))
+
+<a name="2.0.0-alpha.23"></a>
+# 2.0.0-alpha.23 (2021-11-22)
+
+### Refactorings:
+
+* ***:** disabling type-coercion by default ([e5028c1](https://github.com/aurelia/aurelia/commit/e5028c1))
+* ***:** injectable coercion configuration ([b901c4b](https://github.com/aurelia/aurelia/commit/b901c4b))
+* ***:** post-review changes 1 ([cc279d4](https://github.com/aurelia/aurelia/commit/cc279d4))
+* **runtime-html:** coercing configuration options ([cba53c7](https://github.com/aurelia/aurelia/commit/cba53c7))
+* **runtime-html:** nullable coercing ([11bd0dd](https://github.com/aurelia/aurelia/commit/11bd0dd))
+* **bindable:** auto discover coercer WIP ([d64d704](https://github.com/aurelia/aurelia/commit/d64d704))
+
+<a name="2.0.0-alpha.22"></a>
+# 2.0.0-alpha.22 (2021-10-24)
+
+### Bug Fixes:
+
+* ***:** build issues ([1a32a43](https://github.com/aurelia/aurelia/commit/1a32a43))
+
+
+### Refactorings:
+
+* **repeat:** destructuring support WIP ([a6257f0](https://github.com/aurelia/aurelia/commit/a6257f0))
+
+<a name="2.0.0-alpha.21"></a>
+# 2.0.0-alpha.21 (2021-09-12)
+
+### Refactorings:
+
+* **runtime:** use isType utilities for fn & string ([37a8fd9](https://github.com/aurelia/aurelia/commit/37a8fd9))
+* **runtime:** use isType utility for string ([64b41b5](https://github.com/aurelia/aurelia/commit/64b41b5))
+* **runtime:** use isType utility for function ([f621365](https://github.com/aurelia/aurelia/commit/f621365))
+
+<a name="2.0.0-alpha.20"></a>
+# 2.0.0-alpha.20 (2021-09-04)
+
+### Features:
+
+* **au-slot:** work with containerless ([9fa0a06](https://github.com/aurelia/aurelia/commit/9fa0a06))
+
+
+### Refactorings:
+
+* **au-compose:** move initiator out of change info, add tests for #1299 ([8f2bf0c](https://github.com/aurelia/aurelia/commit/8f2bf0c))
+
+<a name="2.0.0-alpha.19"></a>
+# 2.0.0-alpha.19 (2021-08-29)
+
+### Bug Fixes:
+
+* **template-compiler:** capture ignore attr command on bindable like props ([0a52fbf](https://github.com/aurelia/aurelia/commit/0a52fbf))
+* ***:** export ITemplateCompiler from aurelia package ([0a52fbf](https://github.com/aurelia/aurelia/commit/0a52fbf))
+
+
+### Refactorings:
+
+* **all:** remove more internal typings ([1ffc38b](https://github.com/aurelia/aurelia/commit/1ffc38b))
+
+<a name="2.0.0-alpha.18"></a>
+# 2.0.0-alpha.18 (2021-08-22)
+
+### Features:
+
+* **au-compose:** works with au-slot ([4bfcc00](https://github.com/aurelia/aurelia/commit/4bfcc00))
+* **attr-transfer:** implement attr capturing & spreading ([998b91c](https://github.com/aurelia/aurelia/commit/998b91c))
+
+
+### Bug Fixes:
+
+* **repeat:** ensure binding behavior works with .for binding ([30a27a0](https://github.com/aurelia/aurelia/commit/30a27a0))
+
 <a name="2.0.0-alpha.17"></a>
 # 2.0.0-alpha.17 (2021-08-16)
 

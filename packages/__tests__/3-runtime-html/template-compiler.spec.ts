@@ -13,6 +13,7 @@ import {
 import {
   ExpressionType,
   ForOfStatement,
+  Interpolation,
   parseExpression,
 } from '@aurelia/runtime';
 import {
@@ -46,6 +47,11 @@ import {
   ITemplateCompilerHooks,
   IAttributeParser,
   HydrateAttributeInstruction,
+  AttrSyntax,
+  If,
+  attributePattern,
+  PropertyBindingInstruction,
+  InterpolationInstruction,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -720,6 +726,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         instructions: [[childInstr]],
         needsCompile: false,
         enhance: false,
+        capture: false,
         processContent: null,
       },
       props: createTplCtrlAttributeInstruction(attr, value),
@@ -734,6 +741,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
+      capture: false,
       processContent: null,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
@@ -758,6 +766,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         instructions,
         needsCompile: false,
         enhance: false,
+        capture: false,
         processContent: null,
       },
       props: createTplCtrlAttributeInstruction(attr, value),
@@ -773,6 +782,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
+      capture: false,
       processContent: null,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
@@ -798,6 +808,7 @@ function createCustomElement(
     auSlot: null,
     containerless: false,
     projections: null,
+    captures: [],
   };
   const def = typeof tagNameOrDef === 'string'
     ? ctx.container.find(CustomElement, tagNameOrDef)
@@ -805,7 +816,7 @@ function createCustomElement(
   const exprParser = ctx.container.get(IExpressionParser);
   const attrParser = ctx.container.get(IAttributeParser);
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
-  const rawMarkup = `<${def.name} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${def.name}>`;
+  const rawMarkup = `<${def.name} ${attributeMarkup}>${(childInput?.template) || ''}</${def.name}>`;
   const input = {
     name: 'unnamed',
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
@@ -831,7 +842,9 @@ function createCustomElement(
       })
       .map(a => `${a[0]}="${a[1]}"`)
       .join(' ');
-  const outputMarkup = ctx.createElementFromMarkup(`<${def.name} ${outputAttributeMarkup}>${(childOutput && childOutput.template.outerHTML) || ''}</${def.name}>`);
+  const outputMarkup = ctx.createElementFromMarkup(
+    `<${def.name} ${outputAttributeMarkup}>${(childOutput?.template.outerHTML) || ''}</${def.name}>`
+  );
   outputMarkup.classList.add('au');
   const output = {
     ...defaultCustomElementDefinitionProperties,
@@ -842,6 +855,7 @@ function createCustomElement(
     needsCompile: false,
     enhance: false,
     watches: [],
+    capture: false,
     processContent: null,
   };
   return [input, output];
@@ -865,7 +879,7 @@ function createCustomAttribute(
     props: childInstructions as any[]
   };
   const attributeMarkup = attributes.map(a => `${a[0]}: ${a[1]};`).join('');
-  const rawMarkup = `<div ${resName}="${attributeMarkup}">${(childInput && childInput.template) || ''}</div>`;
+  const rawMarkup = `<div ${resName}="${attributeMarkup}">${(childInput?.template) || ''}</div>`;
   const input = {
     name: 'unnamed',
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
@@ -875,9 +889,9 @@ function createCustomAttribute(
   // const outputMarkup = ctx.createElementFromMarkup(`<div ${resName}="${attributeMarkup}">${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
 
   // new behavior: if it's custom attribute, remove
-  const outputMarkup = ctx.createElementFromMarkup(`<div>${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
+  const outputMarkup = ctx.createElementFromMarkup(`<div>${(childOutput?.template.outerHTML) || ''}</div>`);
   outputMarkup.classList.add('au');
-  const output = {
+  const output: PartialCustomElementDefinition & { key: string } = {
     ...defaultCustomElementDefinitionProperties,
     name: 'unnamed',
     key: 'au:resource:custom-element:unnamed',
@@ -885,6 +899,7 @@ function createCustomAttribute(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     enhance: false,
+    capture: false,
     watches: [],
     processContent: null,
   };
@@ -967,13 +982,13 @@ describe(`TemplateCompiler - combinations`, function () {
         TestContext.create
       ],
       [
-        (ctx) => ['div']
+        (_ctx) => ['div']
       ] as ((ctx: TestContext) => [string])[],
       [
-        (ctx) => ['foo', 'foo', 'bar'],
-        (ctx) => ['foo.bar', 'foo', 'bar'],
-        (ctx) => ['foo.bind', 'foo', 'bar'],
-        (ctx) => ['value', 'value', 'value']
+        (_ctx) => ['foo', 'foo', 'bar'],
+        (_ctx) => ['foo.bar', 'foo', 'bar'],
+        (_ctx) => ['foo.bind', 'foo', 'bar'],
+        (_ctx) => ['value', 'value', 'value']
       ] as ((ctx: TestContext, $1: [string]) => [string, string, string])[],
       [
         (ctx, $1, [, , value]) => [`ref`,                     value, { type: TT.refBinding,       from: new AccessScopeExpression(value), to: 'element' }],
@@ -998,13 +1013,14 @@ describe(`TemplateCompiler - combinations`, function () {
             instructions: [],
             surrogates: [],
           } as unknown as PartialCustomElementDefinition;
-          const expected = {
+          const expected: PartialCustomElementDefinition = {
             ...defaultCustomElementDefinitionProperties,
             template: ctx.createElementFromMarkup(`<template><${el} plain data-attr="value" class="abc au" ${debugMode ? `${n1}="${v1}" ` : ''}></${el}></template>`),
             instructions: [[i1]],
             surrogates: [],
             needsCompile: false,
             enhance: false,
+            capture: false,
             processContent: null,
           };
 
@@ -1023,13 +1039,14 @@ describe(`TemplateCompiler - combinations`, function () {
             instructions: [],
             surrogates: [],
           } as unknown as PartialCustomElementDefinition;
-          const expected = {
+          const expected: PartialCustomElementDefinition = {
             ...defaultCustomElementDefinitionProperties,
             template: ctx.createElementFromMarkup(`<template><${el} plain data-attr="value" ${debugMode ? `${n1}="${v1}" ` : ''}class="au"></${el}></template>`),
             instructions: [[i1]],
             surrogates: [],
             needsCompile: false,
             enhance: false,
+            capture: false,
             processContent: null,
           };
 
@@ -1073,6 +1090,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           enhance: false,
+          capture: false,
           processContent: null,
         };
 
@@ -1093,26 +1111,26 @@ describe(`TemplateCompiler - combinations`, function () {
       ],
       // PartialCustomAttributeDefinition.bindables
       [
-        (ctx) => [undefined, undefined, 'value'],
-        (ctx) => [{}, undefined,  'value'] as any,
-        (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.oneTime }), BindingMode.oneTime, 'bazBaz'],
-        (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.fromView }), BindingMode.fromView, 'bazBaz'],
-        (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay }), BindingMode.twoWay, 'bazBaz'],
-        (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default }), BindingMode.default, 'bazBaz']
+        (_ctx) => [undefined, undefined, 'value'],
+        (_ctx) => [{}, undefined,  'value'] as any,
+        (_ctx) => [BindableDefinition.create('asdf', class MyClass {}, { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.oneTime }), BindingMode.oneTime, 'bazBaz'],
+        (_ctx) => [BindableDefinition.create('asdf', class MyClass {}, { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.fromView }), BindingMode.fromView, 'bazBaz'],
+        (_ctx) => [BindableDefinition.create('asdf', class MyClass {}, { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay }), BindingMode.twoWay, 'bazBaz'],
+        (_ctx) => [BindableDefinition.create('asdf', class MyClass {}, { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default }), BindingMode.default, 'bazBaz']
       ] as ((ctx: TestContext) => [Record<string, BindableDefinition> | undefined, BindingMode | undefined, string])[],
       [
-        (ctx) => ['foo',     '', class Foo1 {}],
-        (ctx) => ['foo-foo', '', class FooFoo {}],
-        (ctx) => ['foo',     'bar', class Foo2 {}],
-        (ctx) => ['foo-foo', 'bar', class Foo3 {}]
+        (_ctx) => ['foo',     '', class Foo1 {}],
+        (_ctx) => ['foo-foo', '', class FooFoo {}],
+        (_ctx) => ['foo',     'bar', class Foo2 {}],
+        (_ctx) => ['foo-foo', 'bar', class Foo3 {}]
       ] as ((ctx: TestContext) => [string, string, Constructable])[],
       // PartialCustomAttributeDefinition.defaultBindingMode
       [
-        (ctx) => undefined,
-        (ctx) => BindingMode.oneTime,
-        (ctx) => BindingMode.toView,
-        (ctx) => BindingMode.fromView,
-        (ctx) => BindingMode.twoWay
+        (_ctx) => undefined,
+        (_ctx) => BindingMode.oneTime,
+        (_ctx) => BindingMode.toView,
+        (_ctx) => BindingMode.fromView,
+        (_ctx) => BindingMode.twoWay
       ] as ((ctx: TestContext) => BindingMode | undefined)[],
       [
         (ctx, [, , to], [attr, value]) => [`${attr}`,           { type: TT.setProperty, to, value }],
@@ -1151,6 +1169,7 @@ describe(`TemplateCompiler - combinations`, function () {
             surrogates: [],
             needsCompile: false,
             enhance: false,
+            capture: false,
             watches: [],
             processContent: null,
           };
@@ -1172,28 +1191,28 @@ describe(`TemplateCompiler - combinations`, function () {
         TestContext.create
       ],
       [
-        (ctx) => 'foo',
-        (ctx) => 'bar42'
+        (_ctx) => 'foo',
+        (_ctx) => 'bar42'
       ] as ((ctx: TestContext) => string)[],
       [
         (ctx, pdName) => pdName,
         (ctx, pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
       ] as ((ctx: TestContext, $1: string) => string)[],
       [
-        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.default  }) }),
-        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.oneTime  }) }),
-        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.toView   }) }),
-        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.fromView }) }),
-        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.twoWay   }) })
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass {}, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.default  }) }),
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass {}, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.oneTime  }) }),
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass {}, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.toView   }) }),
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass {}, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.fromView }) }),
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass {}, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.twoWay   }) })
       ] as ((ctx: TestContext, $1: string, $2: string) => Bindables)[],
       [
-        (ctx) => [``,           `''`],
-        (ctx) => [``,           `\${a}`],
-        (ctx) => [`.bind`,      `''`],
-        (ctx) => [`.one-time`,  `''`],
-        (ctx) => [`.to-view`,   `''`],
-        (ctx) => [`.from-view`, `''`],
-        (ctx) => [`.two-way`,   `''`]
+        (_ctx) => [``,           `''`],
+        (_ctx) => [``,           `\${a}`],
+        (_ctx) => [`.bind`,      `''`],
+        (_ctx) => [`.one-time`,  `''`],
+        (_ctx) => [`.to-view`,   `''`],
+        (_ctx) => [`.from-view`, `''`],
+        (_ctx) => [`.two-way`,   `''`]
       ] as ((ctx: TestContext) => [string, string])[],
       [
         (ctx, pdName, pdProp, bindables, [cmd]) => [bindables[pdName], `${pdProp}${cmd}`],
@@ -1410,7 +1429,7 @@ describe(`TemplateCompiler - combinations`, function () {
       ],
       [() => true, () => false],
       [
-        (ctx, resolveRes) => []
+        (_ctx, _resolveRes) => []
       ] as ((ctx: TestContext) => CTCResult[])[],
       [
         (ctx, resolveRes, results: CTCResult[]) => { results.push(createTemplateController(ctx, resolveRes, 'foo',        'foo',    '',              'div', false)); },
@@ -1448,12 +1467,13 @@ describe(`TemplateCompiler - combinations`, function () {
         );
         sut.resolveResources = resolveRes;
 
-        const output = {
+        const output: PartialCustomElementDefinition = {
           ...defaultCustomElementDefinitionProperties,
           template: ctx.createElementFromMarkup(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           needsCompile: false,
           enhance: false,
+          capture: false,
           watches: [],
           processContent: null,
         };
@@ -1479,8 +1499,8 @@ describe(`TemplateCompiler - combinations`, function () {
         TestContext.create
       ],
       [
-        (ctx) => 'foo',
-        (ctx) => 'bar42'
+        (_ctx) => 'foo',
+        (_ctx) => 'bar42'
       ] as ((ctx: TestContext) => string)[],
       [
         (ctx, pdName) => pdName,
@@ -1491,20 +1511,20 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName, pdProp) => `${kebabCase(pdProp)}-baz` // descriptor.attribute is different from kebab-cased descriptor.property
       ] as ((ctx: TestContext, $1: string, $2: string) => string)[],
       [
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.default  }) }),
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime  }) }),
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.toView   }) }),
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView }) }),
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   }) })
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass {}, { property: pdProp, attribute: pdAttr, mode: BindingMode.default  }) }),
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass {}, { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime  }) }),
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass {}, { property: pdProp, attribute: pdAttr, mode: BindingMode.toView   }) }),
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass {}, { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView }) }),
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass {}, { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   }) })
       ] as ((ctx: TestContext, $1: string, $2: string, $3: string) => Bindables)[],
       [
-        (ctx) => [``,           `''`],
-        (ctx) => [``,           `\${a}`],
-        (ctx) => [`.bind`,      `''`],
-        (ctx) => [`.one-time`,  `''`],
-        (ctx) => [`.to-view`,   `''`],
-        (ctx) => [`.from-view`, `''`],
-        (ctx) => [`.two-way`,   `''`],
+        (_ctx) => [``,           `''`],
+        (_ctx) => [``,           `\${a}`],
+        (_ctx) => [`.bind`,      `''`],
+        (_ctx) => [`.one-time`,  `''`],
+        (_ctx) => [`.to-view`,   `''`],
+        (_ctx) => [`.from-view`, `''`],
+        (_ctx) => [`.two-way`,   `''`],
       ] as ((ctx: TestContext) => [string, string])[],
       [
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}${cmd}`],
@@ -1512,7 +1532,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [null,              `${pdAttr}-qux${cmd}`]
       ] as ((ctx: TestContext, $1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [BindableDefinition, string])[],
       [
-        (ctx) => `''`
+        (_ctx) => `''`
       ] as ((ctx: TestContext) => string)[]
     ],
     (ctx, pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
@@ -1593,8 +1613,8 @@ describe(`TemplateCompiler - combinations`, function () {
         () => prepareElements(TestContext.create())
       ],
       [
-        (ctx) => true,
-        (ctx) => false,
+        (_ctx) => true,
+        (_ctx) => false,
       ],
       [
         (ctx, resolveResources) => createCustomElement(ctx, resolveResources ? FooDef : `foo`, true, [], [], [], []),
@@ -1632,6 +1652,213 @@ describe(`TemplateCompiler - combinations`, function () {
           throw err;
         }
       });
+    });
+  });
+
+  describe('captures & ...$attrs', function () {
+    const MyElement = CustomElement.define({
+      name: 'my-element',
+      capture: true,
+      bindables: ['prop1']
+    });
+    const MyAttr = CustomAttribute.define({
+      name: 'my-attr',
+      bindables: ['value']
+    }, class MyAttr {});
+
+    it('captures normal attributes', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element value.bind="value">',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        (definition.instructions[0][0] as any).captures,
+        [new AttrSyntax('value.bind', 'value', 'value', 'bind')]
+      );
+    });
+
+    it('does not capture bindable', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element prop1.bind="value">',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual((definition.instructions[0][0] as any).captures, []);
+    });
+
+    it('captures bindable-like on ignore-attr command', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element prop1.trigger="value()">',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        (definition.instructions[0][0] as any).captures,
+        [new AttrSyntax('prop1.trigger', 'value()', 'prop1', 'trigger')]
+      );
+    });
+
+    it('captures custom attribute', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement, MyAttr);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element my-attr.bind="myAttrValue">',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        (definition.instructions[0][0] as any).captures,
+        [new AttrSyntax('my-attr.bind', 'myAttrValue', 'my-attr', 'bind')]
+      );
+    });
+
+    it('captures ...$attrs command', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement, MyAttr);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element ...$attrs>',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        (definition.instructions[0][0] as any).captures,
+        [new AttrSyntax('...$attrs', '', '', '...$attrs')]
+      );
+    });
+
+    it('does not capture template controller', function () {
+      const { sut, container } = createFixture(TestContext.create(), MyElement, If);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<my-element if.bind>',
+      }, container, { projections: null });
+
+      assert.deepStrictEqual(
+        ((definition.instructions[0][0] as HydrateTemplateController).def.instructions[0][0] as any).captures,
+        []
+      );
+    });
+  });
+
+  describe('with attribute patterns', function () {
+    // all tests are using pattern that is `my-attr`
+    // and the template will have an element with an attribute `my-attr`
+    const createPattern = (createSyntax: (rawName: string, rawValue: string, parts: string[]) => AttrSyntax) => {
+      @attributePattern(
+        { pattern: 'my-attr', symbols: '' }
+      )
+      class MyAttrPattern {
+        public 'my-attr'(rawName: string, rawValue: string, parts: string[]) {
+          return createSyntax(rawName, rawValue, parts);
+        }
+      }
+      return MyAttrPattern;
+    };
+    const compileWithPattern = (Pattern: Constructable, extras: any[] = []) => {
+      const { sut, container } = createFixture(TestContext.create(), Pattern, ...extras);
+      const definition = sut.compile({
+        name: 'rando',
+        template: '<div my-attr>',
+      }, container, { projections: null });
+
+      return { sut, container, definition };
+    };
+
+    it('works with pattern returning command', function () {
+      const MyPattern = createPattern((name, val, _parts) => new AttrSyntax(name, val, 'id', 'bind'));
+      const { definition } = compileWithPattern(MyPattern);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        [new PropertyBindingInstruction(new PrimitiveLiteralExpression(''), 'id', BindingMode.toView)]
+      );
+    });
+
+    it('works when pattern returning interpolation', function () {
+      const MyPattern = createPattern((name, _val, _parts) => new AttrSyntax(name, `\${a}a`, 'id', null));
+      const { definition } = compileWithPattern(MyPattern);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        [new InterpolationInstruction(new Interpolation(['', 'a'], [new AccessScopeExpression('a')]), 'id')]
+      );
+    });
+
+    it('ignores when pattern DOES NOT return command or interpolation', function () {
+      const MyPattern = createPattern((name, val, _parts) => new AttrSyntax(name, val, 'id', null));
+      const { definition } = compileWithPattern(MyPattern);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        undefined
+      );
+      assert.deepStrictEqual(
+        (definition.template as HTMLTemplateElement).content.querySelector('div').className,
+        ''
+      );
+    });
+
+    it('lets pattern control the binding value', function () {
+      const MyPattern = createPattern((name, _val, _parts) => new AttrSyntax(name, 'bb', 'id', 'bind'));
+      const { definition } = compileWithPattern(MyPattern);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        // default value is '' attr pattern changed it to 'bb'
+        [new PropertyBindingInstruction(new AccessScopeExpression('bb'), 'id', BindingMode.toView)]
+      );
+    });
+
+    it('works with pattern returning custom attribute + command', function () {
+      @customAttribute({
+        name: 'my-attr'
+      })
+      class MyAttr {}
+      const MyPattern = createPattern((name, _val, _parts) => new AttrSyntax(name, 'bb', 'my-attr', 'bind'));
+      const { definition } = compileWithPattern(MyPattern, [MyAttr]);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
+          new PropertyBindingInstruction(new AccessScopeExpression('bb'), 'value', BindingMode.toView)
+        ])]
+      );
+    });
+
+    it('works with pattern returning custom attribute + multi bindings', function () {
+      @customAttribute({
+        name: 'my-attr'
+      })
+      class MyAttr {}
+      const MyPattern = createPattern((name, _val, _parts) => new AttrSyntax(name, 'value.bind: bb', 'my-attr', null));
+      const { definition } = compileWithPattern(MyPattern, [MyAttr]);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
+          new PropertyBindingInstruction(new AccessScopeExpression('bb'), 'value', BindingMode.toView)
+        ])]
+      );
+    });
+
+    it('works with pattern returning custom attribute + interpolation', function () {
+      @customAttribute({
+        name: 'my-attr'
+      })
+      class MyAttr {}
+      const MyPattern = createPattern((name, _val, _parts) =>
+        new AttrSyntax(name, `\${bb}`, 'my-attr', null)
+      );
+      const { definition } = compileWithPattern(MyPattern, [MyAttr]);
+
+      assert.deepStrictEqual(
+        definition.instructions[0],
+        [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
+          new InterpolationInstruction(new Interpolation(['', ''], [new AccessScopeExpression('bb')]), 'value')
+        ])]
+      );
     });
   });
 });
@@ -1895,6 +2122,175 @@ describe('TemplateCompiler - local templates', function () {
     au.dispose();
   });
 
+  it('works with non-global dependencies in owning template', async function () {
+    @customElement({ name: 'my-ce', template: 'my-ce-content' })
+    class MyCe { }
+
+    const template = `
+    <my-ce></my-ce>
+    <my-le></my-le>
+    <template as-custom-element="my-le">
+      my-le-content
+      <my-ce></my-ce>
+    </template>
+    `;
+    @customElement({ name: 'my-app', template, dependencies: [MyCe] })
+    class App { }
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    assert.html.textContent(host, 'my-ce-content my-le-content my-ce-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
+  it('works with non-global dependencies - template-controllers - if', async function () {
+    @customElement({ name: 'my-ce', template: 'my-ce-content' })
+    class MyCe { }
+
+    const template = `
+    <my-ce></my-ce>
+    <my-le if.bind="true"></my-le>
+    <template as-custom-element="my-le">
+      my-le-content
+      <my-ce></my-ce>
+    </template>
+    `;
+    @customElement({ name: 'my-app', template, dependencies: [MyCe] })
+    class App { }
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    assert.html.textContent(host, 'my-ce-content my-le-content my-ce-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
+  it('works with non-global dependencies - nested-template-controllers - [repeat.for]>[if]', async function () {
+    @customElement({ name: 'my-ce', template: 'my-ce-content' })
+    class MyCe { }
+
+    const template = `
+    <my-ce></my-ce>
+    <my-le repeat.for="prop of 5" if.bind="prop % 2 === 0" prop.bind></my-le>
+    <template as-custom-element="my-le">
+      <bindable property="prop"></bindable>
+      \${prop}
+      <my-ce></my-ce>
+    </template>
+    `;
+    @customElement({ name: 'my-app', template, dependencies: [MyCe] })
+    class App { }
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    assert.html.textContent(host, 'my-ce-content 0 my-ce-content 2 my-ce-content 4 my-ce-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
+  it('recognizes owning element', async function () {
+    const template = `
+      my-app-content
+      <my-le prop.bind></my-le>
+      <template as-custom-element="my-le">
+        <bindable property="prop"></bindable>
+        my-le-content
+        <my-app if.bind="prop"></my-app>
+      </template>`;
+    @customElement({ name: 'my-app', template })
+    class App {
+      public prop = false;
+    }
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    const vm = au.root.controller.viewModel as App;
+
+    assert.html.textContent(host, 'my-app-content my-le-content');
+
+    vm.prop = true;
+    ctx.platform.domWriteQueue.flush();
+
+    assert.html.textContent(host, 'my-app-content my-le-content my-app-content my-le-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
+  it('all local elements recognize each other', async function () {
+    const template = `
+      my-app-content
+      <my-le-1></my-le-1>
+      <my-le-2></my-le-2>
+
+      <template as-custom-element="my-le-1">
+        my-le-1-content
+        <my-le-2></my-le-2>
+      </template>
+
+      <template as-custom-element="my-le-2">
+        my-le-2-content
+        <my-le-3></my-le-3>
+      </template>
+
+      <template as-custom-element="my-le-3">
+        my-le-3-content
+      </template>`;
+
+    @customElement({ name: 'my-app', template })
+    class App {}
+
+    const { ctx, container } = createFixture();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
+      .app({ host, component: App });
+
+    await au.start();
+
+    assert.html.textContent(
+      host,
+      'my-app-content ' +
+      'my-le-1-content my-le-2-content my-le-3-content ' +
+      'my-le-2-content my-le-3-content');
+
+    await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
   it('throws error if a root template is a local template', function () {
     const template = `<template as-custom-element="foo-bar">I have local root!</template>`;
     const { container, sut } = createFixture();
@@ -2010,7 +2406,6 @@ describe('TemplateCompiler - local templates', function () {
       );
     }
   });
-
 });
 
 describe('TemplateCompiler - au-slot', function () {
@@ -2126,7 +2521,7 @@ describe('TemplateCompiler - au-slot', function () {
           && (i as HydrateElementInstruction).auSlot.name === expectedSlotInfo.slotName
         ) as HydrateElementInstruction;
         assert.notEqual(actualInstruction, void 0, 'instruction');
-        const actualSlotInfo = actualInstruction.auSlot!;
+        const actualSlotInfo = actualInstruction.auSlot;
         assert.deepStrictEqual((actualSlotInfo.fallback.template as HTMLElement).outerHTML, `<template>${expectedSlotInfo.content}</template>`, 'content');
         assert.deepStrictEqual(actualSlotInfo.fallback.needsCompile, false, 'needsCompile');
       }
@@ -2293,14 +2688,14 @@ class BindablesInfo<T extends 0 | 1 = 0> {
         primary = bindable;
       }
 
-      attrs[attr] = BindableDefinition.create(prop, bindable);
+      attrs[attr] = BindableDefinition.create(prop, def.Type, bindable);
     }
     if (bindable == null && isAttr) {
       // if no bindables are present, default to "value"
-      primary = attrs.value = BindableDefinition.create('value', { mode: defaultBindingMode });
+      primary = attrs.value = BindableDefinition.create('value', def.Type, { mode: defaultBindingMode });
     }
 
-    return new BindablesInfo(attrs, bindables, primary!);
+    return new BindablesInfo(attrs, bindables, primary);
   }
 
   protected constructor(

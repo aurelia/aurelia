@@ -2,6 +2,7 @@ import { firstDefined, getPrototypeChain, emptyArray } from '@aurelia/kernel';
 import { LifecycleFlags, subscriberCollection } from '@aurelia/runtime';
 import { CustomElement } from '../resources/custom-element.js';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../shared.js';
+import { isString } from '../utilities.js';
 
 import type { IIndexable, Constructable } from '@aurelia/kernel';
 import type { ISubscriberCollection, IAccessor, ISubscribable, IObserver } from '@aurelia/runtime';
@@ -14,7 +15,7 @@ export type PartialChildrenDefinition = {
   options?: MutationObserverInit;
   query?: (controller: ICustomElementController) => ArrayLike<Node>;
   filter?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => boolean;
-  map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => any;
+  map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => unknown;
 };
 
 /**
@@ -59,7 +60,7 @@ export function children(configOrTarget?: PartialChildrenDefinition | {}, prop?:
     config = {};
     decorator(configOrTarget!, prop!);
     return;
-  } else if (typeof configOrTarget === 'string') {
+  } else if (isString(configOrTarget)) {
     // ClassDecorator
     // - @children('bar')
     // Direct call:
@@ -140,7 +141,7 @@ export class ChildrenDefinition {
     public readonly options?: MutationObserverInit,
     public readonly query?: (controller: ICustomElementController) => ArrayLike<Node>,
     public readonly filter?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => boolean,
-    public readonly map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => any,
+    public readonly map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => unknown,
   ) {}
 
   public static create(prop: string, def: PartialChildrenDefinition = {}): ChildrenDefinition {
@@ -162,12 +163,12 @@ export interface ChildrenObserver extends
   IObserver { }
 
 /**
- * @internal
- *
  * A special observer for observing the children of a custom element. Unlike other observer that starts/stops
  * based on the changes in the subscriber addition/removal, this is a controlled observers.
  *
  * The controller of a custom element should totally control when this observer starts/stops.
+ *
+ * @internal
  */
 export class ChildrenObserver {
   public observing: boolean = false;
@@ -203,7 +204,7 @@ export class ChildrenObserver {
     return this.observing ? this.children : this.get();
   }
 
-  public setValue(value: unknown): void { /* do nothing */ }
+  public setValue(_value: unknown): void { /* do nothing */ }
 
   public start(): void {
     if (!this.observing) {
@@ -245,10 +246,12 @@ function defaultChildQuery(controller: ICustomElementController): ArrayLike<INod
   return controller.host.childNodes;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function defaultChildFilter(node: INode, controller?: ICustomElementController | null, viewModel?: any): boolean {
   return !!viewModel;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function defaultChildMap(node: INode, controller?: ICustomElementController | null, viewModel?: any): any {
   return viewModel;
 }
@@ -261,6 +264,7 @@ export function filterChildren(
   query: typeof defaultChildQuery,
   filter: typeof defaultChildFilter,
   map: typeof defaultChildMap
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any[] {
   const nodes = query(controller);
   const ii = nodes.length;

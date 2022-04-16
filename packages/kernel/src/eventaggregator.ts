@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { DI } from './di.js';
 import { Constructable, IDisposable } from './interfaces.js';
+import { isString } from './utilities.js';
 
 /**
  * Represents a handler for an EventAggregator event.
@@ -52,11 +52,12 @@ export class EventAggregator {
     channelOrInstance: T extends Constructable ? InstanceType<T> : T,
     message?: unknown,
   ): void {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!channelOrInstance) {
       throw new Error(`Invalid channel name or instance: ${channelOrInstance}.`);
     }
 
-    if (typeof channelOrInstance === 'string') {
+    if (isString(channelOrInstance)) {
       let subscribers = this.eventLookup[channelOrInstance];
       if (subscribers !== void 0) {
         subscribers = subscribers.slice();
@@ -100,6 +101,7 @@ export class EventAggregator {
     channelOrType: string | Constructable,
     callback: (...args: unknown[]) => void,
   ): IDisposable {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!channelOrType) {
       throw new Error(`Invalid channel name or type: ${channelOrType}.`);
     }
@@ -107,7 +109,7 @@ export class EventAggregator {
     let handler: unknown;
     let subscribers: unknown[];
 
-    if (typeof channelOrType === 'string') {
+    if (isString(channelOrType)) {
       if (this.eventLookup[channelOrType] === void 0) {
         this.eventLookup[channelOrType] = [];
       }

@@ -17,7 +17,7 @@
     "@aurelia/kernel": "dev",
     "@aurelia/metadata": "dev",
     "@aurelia/route-recognizer": "dev",
-    "@aurelia/router": "dev",
+    "@aurelia/router-lite": "dev",
     "@aurelia/runtime-html": "dev",
     "@aurelia/runtime": "dev",
     "aurelia": "dev"

@@ -92,6 +92,7 @@ describe('FragmentNodeSequence', function () {
     }
   });
 
+  // eslint-disable-next-line mocha/no-skipped-tests
   describe.skip('remove', function () {
     for (const width of widthArr) {
       for (const depth of depthArr.filter(d => d > 0)) {

@@ -27,7 +27,7 @@ export class Aurelia extends $Aurelia {
     return new Aurelia().app(config);
   }
 
-  public static enhance<T extends unknown>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController): ReturnType<$Aurelia['enhance']> {
+  public static enhance<T>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController): ReturnType<$Aurelia['enhance']> {
     return new Aurelia().enhance(config, parentController);
   }
 
@@ -213,7 +213,7 @@ export {
 
   RouterConfiguration,
   RouterRegistration,
-} from '@aurelia/router';
+} from '@aurelia/router-lite';
 
 export {
   // CallFunctionExpression,
@@ -462,6 +462,9 @@ export {
   PartialBindableDefinition,
   // BindableDefinition,
   Bindable,
+  coercer,
+
+  observable,
 
   // PartialChildrenDefinition,
   // ChildrenDefinition,
@@ -714,7 +717,7 @@ export {
   // IInstructionTypeClassifier,
   // IRenderingEngine,
   // ITemplate,
-  // ITemplateCompiler,
+  ITemplateCompiler,
   // ITemplateFactory,
   ITemplateCompilerHooks,
   TemplateCompilerHooks,

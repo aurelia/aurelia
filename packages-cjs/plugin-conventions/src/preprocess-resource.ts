@@ -1,9 +1,8 @@
-import * as path from 'path';
-import { kebabCase } from '@aurelia/kernel';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import * as ts from 'typescript';
 import { nameConvention } from './name-convention.js';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options.js';
+import { resourceName } from './resource-name.js';
 
 interface ICapturedImport {
   names: string[];
@@ -30,7 +29,6 @@ interface IFoundDecorator {
 }
 
 interface IModifyResourceOptions {
-  expectedResourceName: string;
   runtimeImport: ICapturedImport;
   implicitElement?: IPos;
   localDeps: string[];
@@ -39,8 +37,7 @@ interface IModifyResourceOptions {
 }
 
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
-  const basename = path.basename(unit.path, path.extname(unit.path));
-  const expectedResourceName = kebabCase(basename);
+  const expectedResourceName = resourceName(unit.path);
   const sf = ts.createSourceFile(unit.path, unit.contents, ts.ScriptTarget.Latest);
 
   let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
@@ -75,7 +72,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     // Note this convention simply doesn't work for
     //   class Foo {}
     //   export {Foo};
-    const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents);
+    const resource = findResource(s, expectedResourceName, unit.filePair, unit.isViewPair, unit.contents);
     if (!resource) return;
     const {
       localDep,
@@ -95,7 +92,6 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   });
 
   return modifyResource(unit, {
-    expectedResourceName,
     runtimeImport,
     implicitElement,
     localDeps,
@@ -106,7 +102,6 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
 
 function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
   const {
-    expectedResourceName,
     runtimeImport,
     implicitElement,
     localDeps,
@@ -118,7 +113,7 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
   if (implicitElement && unit.filePair) {
     // @view() for foo.js and foo-view.html
     // @customElement() for foo.js and foo.html
-    const dec = kebabCase(unit.filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement';
+    const dec = unit.isViewPair ? 'view' : 'customElement';
 
     const viewDef = '__au2ViewDef';
     m.prepend(`import * as ${viewDef} from './${unit.filePair}';\n`);
@@ -220,7 +215,7 @@ function isKindOfSame(name1: string, name2: string): boolean {
   return name1.replace(/-/g, '') === name2.replace(/-/g, '');
 }
 
-function findResource(node: ts.Node, expectedResourceName: string, filePair: string | undefined, code: string): IFoundResource | void {
+function findResource(node: ts.Node, expectedResourceName: string, filePair: string | undefined, isViewPair: boolean | undefined, code: string): IFoundResource | void {
   if (!ts.isClassDeclaration(node)) return;
   if (!node.name) return;
   if (!isExported(node)) return;
@@ -260,7 +255,7 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
       if (isImplicitResource && filePair) {
         return {
           implicitStatement: { pos: pos, end: node.end },
-          runtimeImportName: kebabCase(filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement'
+          runtimeImportName: isViewPair ? 'view' : 'customElement'
         };
       }
     } else {

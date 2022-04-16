@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { IContainer } from '@aurelia/kernel';
 import { Aurelia, AuSlotsInfo, bindable, BindingMode, customElement, CustomElement, IAuSlotsInfo, IPlatform } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
@@ -86,7 +84,7 @@ describe('au-slot', function () {
     ) { }
   }
   function *getTestData() {
-    const createMyElement = (template: string) => {
+    const createMyElement = (template: string, containerless = false) => {
       class MyElement {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
@@ -94,7 +92,7 @@ describe('au-slot', function () {
           assert.instanceOf(slots, AuSlotsInfo);
         }
       }
-      return CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, MyElement);
+      return CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, containerless }, MyElement);
     };
 
     // #region simple templating
@@ -362,6 +360,92 @@ describe('au-slot', function () {
         {'my-element': [`<ul><li>0</li><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])]},
       );
     }
+
+    // #region containerless
+    {
+      yield new TestData(
+        'works with [containerless] + child (normal element + [au-slot])',
+        `<my-element><div au-slot>Hello</div></my-element>`,
+        [createMyElement('<au-slot></au-slot>', /* containerless */true)],
+        { },
+        (ctx) => {
+          assert.html.innerEqual(ctx.host, '<div>Hello</div>');
+        },
+      );
+    }
+
+    {
+      yield new TestData(
+        'works with [containerless] + child (custom element + [au-slot])',
+        `<my-element><my-child au-slot></my-child></my-element>`,
+        [
+          createMyElement('<au-slot></au-slot>', /* containerless */true),
+          CustomElement.define({ name: 'my-child', template: 'hello' })
+        ],
+        { },
+        (ctx) => {
+          assert.html.innerEqual(ctx.host, '<my-child class="au">hello</my-child>');
+        },
+      );
+    }
+
+    {
+      yield new TestData(
+        'works with [containerless] + ([repeat] + normal element + [au-slot])',
+        `<my-element><template au-slot repeat.for="i of 3"><li>\${i}</li></template></my-element>`,
+        [createMyElement('<ul><au-slot></au-slot></ul>', /* containerless */true)],
+        { },
+        (ctx) => {
+          assert.html.innerEqual(ctx.host, '<ul><li>0</li><li>1</li><li>2</li></ul>');
+        },
+      );
+    }
+
+    {
+      yield new TestData(
+        'works with [containerless] + ([repeat] + custom element + [au-slot])',
+        `<my-element><my-child au-slot repeat.for="i of 3" value.bind="i"></my-child></my-element>`,
+        [
+          createMyElement('<au-slot></au-slot>', /* containerless */true),
+          CustomElement.define({ name: 'my-child', template: `\${value}`, bindables: ['value'] }),
+        ],
+        { },
+        (ctx) => {
+          assert.html.innerEqual(ctx.host, '<my-child class="au">0</my-child><my-child class="au">1</my-child><my-child class="au">2</my-child>');
+        },
+      );
+    }
+
+    {
+      yield new TestData(
+        'works with [if][containerless] + ([repeat] + custom element + [au-slot])',
+        `<my-element if.bind="true"><my-child au-slot repeat.for="i of 3" value.bind="i"></my-child></my-element>`,
+        [
+          createMyElement('<au-slot></au-slot>', /* containerless */true),
+          CustomElement.define({ name: 'my-child', template: `\${value}`, bindables: ['value'] })
+        ],
+        { },
+        async (ctx) => {
+          assert.html.innerEqual(ctx.host, '<my-child class="au">0</my-child><my-child class="au">1</my-child><my-child class="au">2</my-child>');
+        },
+      );
+    }
+
+    {
+      yield new TestData(
+        'works with [repeat][containerless] + ([repeat] + custom element + [au-slot])',
+        `<my-element repeat.for="i of 3"><my-child au-slot value.bind="i"></my-child></my-element>`,
+        [
+          createMyElement('<au-slot></au-slot>', /* containerless */true),
+          CustomElement.define({ name: 'my-child', template: `\${value}`, bindables: ['value'] })
+        ],
+        { },
+        async (ctx) => {
+          assert.html.innerEqual(ctx.host, '<my-child class="au">0</my-child><my-child class="au">1</my-child><my-child class="au">2</my-child>');
+        },
+      );
+    }
+    // #endregion
 
     // #region `repeat.for`
     {
@@ -1547,7 +1631,7 @@ describe('au-slot', function () {
         '<my-element-user></my-element-user>',
         [MyElementUser, createMyElement('<au-slot></au-slot>')],
         {},
-        async function ({ au, host, platform }) {
+        async function ({ host, platform }) {
           platform.domWriteQueue.flush();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');
@@ -1579,7 +1663,7 @@ describe('au-slot', function () {
         '<my-element-user></my-element-user>',
         [MyElementUser, MyElement],
         {},
-        async function ({ au, host, platform }) {
+        async function ({ host, platform }) {
           platform.domWriteQueue.flush();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');

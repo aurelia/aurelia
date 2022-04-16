@@ -17,16 +17,16 @@ import { SelectValueObserver } from './select-value-observer.js';
 import { StyleAttributeAccessor } from './style-attribute-accessor.js';
 import { ISVGAnalyzer } from './svg-analyzer.js';
 import { ValueAttributeObserver } from './value-attribute-observer.js';
-import { createLookup, isDataAttribute } from '../utilities-html.js';
+import { createLookup, isDataAttribute, isString } from '../utilities.js';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
 import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
 import type { INode } from '../dom.js';
 
 // https://infra.spec.whatwg.org/#namespaces
-const htmlNS = 'http://www.w3.org/1999/xhtml';
-const mathmlNS = 'http://www.w3.org/1998/Math/MathML';
-const svgNS = 'http://www.w3.org/2000/svg';
+// const htmlNS = 'http://www.w3.org/1999/xhtml';
+// const mathmlNS = 'http://www.w3.org/1998/Math/MathML';
+// const svgNS = 'http://www.w3.org/2000/svg';
 const xlinkNS = 'http://www.w3.org/1999/xlink';
 const xmlNS = 'http://www.w3.org/XML/1998/namespace';
 const xmlnsNS = 'http://www.w3.org/2000/xmlns/';
@@ -168,7 +168,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
   public useConfig(nodeNameOrConfig: string | Record<string, Record<string, INodeObserverConfig>>, key?: PropertyKey, eventsConfig?: INodeObserverConfig): void {
     const lookup = this._events;
     let existingMapping: Record<string, NodeObserverConfig>;
-    if (typeof nodeNameOrConfig === 'string') {
+    if (isString(nodeNameOrConfig)) {
       existingMapping = lookup[nodeNameOrConfig] ??= createLookup();
       if (existingMapping[key as string] == null) {
         existingMapping[key as string] = new NodeObserverConfig(eventsConfig!);
@@ -221,10 +221,8 @@ export class NodeObserverLocator implements INodeObserverLocator {
       //
       // TODO: there are (many) more situation where we want to default to DataAttributeAccessor,
       // but for now stick to what vCurrent does
-      case 'src':
-      case 'href':
-      // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-      case 'role':
+      case 'src': case 'href': case 'role':
+        // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
         return attrAccessor;
       default: {
         const nsProps = nsAttributes[key as string];
@@ -248,7 +246,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
   public overrideAccessor(tagName: string, key: PropertyKey): void;
   public overrideAccessor(tagNameOrOverrides: string | Record<string, string[]>, key?: PropertyKey): void {
     let existingTagOverride: Record<string, true> | undefined;
-    if (typeof tagNameOrOverrides === 'string') {
+    if (isString(tagNameOrOverrides)) {
       existingTagOverride = this._overrides[tagNameOrOverrides] ??= createLookup();
       existingTagOverride[key as string] = true;
     } else {

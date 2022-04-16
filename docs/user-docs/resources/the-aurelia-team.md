@@ -1,4 +1,0 @@
-# The Aurelia Team
-
-Placeholder
-

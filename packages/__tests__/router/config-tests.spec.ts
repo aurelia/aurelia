@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { customElement, ICustomElementController } from '@aurelia/runtime-html';
-import { IRouterOptions, ResolutionMode, SwapStrategy, route, Route } from '@aurelia/router';
+import { IRouterOptions, route, Routes, routes } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker.js';
 import { HookSpecs, TestRouteViewModelBase } from './_shared/view-models.js';
 import { hookSpecsMap, verifyInvocationsEqual } from './_shared/hook-spec.js';
-import { createFixture, IActivityTracker } from './_shared/create-fixture.js';
+import { createFixture, DeferralJuncture, IActivityTracker, SwapStrategy, translateOptions } from './_shared/create-fixture.js';
 
 function vp(count: number): string {
   if (count === 1) {
@@ -42,10 +41,10 @@ export function* prepend(
 export function* prependDeferrable(
   prefix: string,
   component: string,
-  resolution: ResolutionMode,
+  deferUntil: DeferralJuncture,
   ...calls: (HookName | '')[]
 ) {
-  if (resolution === 'dynamic') {
+  if (deferUntil === 'none') {
     yield `${prefix}.${component}.canLoad`;
     yield `${prefix}.${component}.load`;
   }
@@ -81,8 +80,9 @@ export function* interleave(
 }
 
 export interface IRouterOptionsSpec {
-  resolution: ResolutionMode;
+  deferUntil: DeferralJuncture;
   swapStrategy: SwapStrategy;
+  routingMode?: 'configured-first' | 'configured-only' | 'direct-only';
   toString(): string;
 }
 
@@ -96,7 +96,7 @@ export abstract class SimpleActivityTrackingVMBase {
 
   public constructor(
     @IActivityTracker public readonly tracker: IActivityTracker,
-  ) {}
+  ) { }
 
   public attached(): void {
     this.tracker.setActive(this.$controller.definition.name);
@@ -108,10 +108,10 @@ export abstract class SimpleActivityTrackingVMBase {
 }
 
 describe('router config', function () {
-  describe.skip('monomorphic timings', function () {
-    const deferUntils: ResolutionMode[] = [
-      'dynamic',
-      'static',
+  describe('monomorphic timings', function () {
+    const deferUntils: DeferralJuncture[] = [
+      'none',
+      'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [
       'parallel-remove-first',
@@ -119,13 +119,13 @@ describe('router config', function () {
       'sequential-remove-first',
     ];
     const routerOptionsSpecs: IRouterOptionsSpec[] = [];
-    for (const resolution of deferUntils) {
+    for (const deferUntil of deferUntils) {
       for (const swapStrategy of swapStrategies) {
         routerOptionsSpecs.push({
-          resolution,
+          deferUntil,
           swapStrategy,
           toString() {
-            return `resolution:'${resolution}',swapStrategy:'${swapStrategy}'`;
+            return `deferUntil:'${deferUntil}',swapStrategy:'${swapStrategy}'`;
           },
         });
       }
@@ -219,7 +219,7 @@ describe('router config', function () {
 
       describe(`componentSpec.kind:'${kind}'`, function () {
         for (const routerOptionsSpec of routerOptionsSpecs) {
-          const getRouterOptions = (): IRouterOptions => routerOptionsSpec;
+          const getRouterOptions = (): IRouterOptions => translateOptions(routerOptionsSpec);
 
           describe(`${routerOptionsSpec}`, function () {
             describe('single', function () {
@@ -235,7 +235,7 @@ describe('router config', function () {
                 const { t1: [t1, t1c], t2: [t2, t2c], t3: [t3, t3c], t4: [t4, t4c] } = spec;
                 spec.configure();
                 it(`'${t1}' -> '${t2}' -> '${t3}' -> '${t4}'`, async function () {
-                  const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig, getRouterOptions);
+                  const { router, hia, host, tearDown } = await createFixture(Root1, A, getDefaultHIAConfig, getRouterOptions);
 
                   const phase1 = `('' -> '${t1}')#1`;
                   const phase2 = `('${t1}' -> '${t2}')#2`;
@@ -257,12 +257,12 @@ describe('router config', function () {
                   await tearDown();
 
                   const expected = [...(function* () {
-                    yield `start.root2.binding`;
-                    yield `start.root2.bound`;
-                    yield `start.root2.attaching`;
-                    yield `start.root2.attached`;
+                    yield `start.root1.binding`;
+                    yield `start.root1.bound`;
+                    yield `start.root1.attaching`;
+                    yield `start.root1.attached`;
 
-                    yield* prepend(phase1, t1, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                    yield* prepend(phase1, t1c, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
 
                     for (const [phase, { $t1c, $t2c }] of [
                       [phase2, { $t1c: t1c, $t2c: t2c }],
@@ -283,7 +283,7 @@ describe('router config', function () {
                               break;
                             case 'all-async':
                               yield* interleave(
-                                prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose'),
+                                prepend(phase, $t1c, 'detaching', 'unbinding', '', 'dispose'),
                                 prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached'),
                               );
                               break;
@@ -300,10 +300,12 @@ describe('router config', function () {
                       }
                     }
 
-                    yield `stop.root2.detaching`;
-                    yield `stop.root2.unbinding`;
-
-                    yield* prepend('stop', t4, 'detaching', 'unbinding');
+                    yield* interleave(
+                      prepend('stop', t4c, 'detaching', 'unbinding'),
+                      prepend('stop', 'root1', 'detaching', 'unbinding'),
+                    );
+                    yield* prepend('stop', 'root1', 'dispose');
+                    yield* prepend('stop', t4c, 'dispose');
                   })()];
                   verifyInvocationsEqual(hia.notifyHistory, expected);
 
@@ -318,18 +320,16 @@ describe('router config', function () {
                   t3: ['1', 'a01'],
                   t4: ['2', 'a02'],
                   configure() {
-                    Route.configure({
-                      routes: [
-                        {
-                          path: '1',
-                          component: A01,
-                        },
-                        {
-                          path: '2',
-                          component: A02,
-                        },
-                      ],
-                    }, Root2);
+                    Routes.configure([
+                      {
+                        path: '1',
+                        component: A01,
+                      },
+                      {
+                        path: '2',
+                        component: A02,
+                      },
+                    ], Root1);
                   },
                 },
               ];
@@ -350,33 +350,37 @@ describe('router config', function () {
         describe(`routingMode: '${routingMode}'`, function () {
           it(`can load a configured child route with direct path and explicit component`, async function () {
             @customElement({ name: 'a01', template: null })
-            class A01 extends SimpleActivityTrackingVMBase {}
+            class A01 extends SimpleActivityTrackingVMBase { }
 
-            @route({ routes: [{ path: 'a', component: A01 }] })
+            @routes([{ path: 'a', component: A01 }])
             @customElement({ name: 'root', template: vp(1), dependencies: inDependencies ? [A01] : [] })
-            class Root extends SimpleActivityTrackingVMBase {}
+            class Root extends SimpleActivityTrackingVMBase { }
 
-            const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ routingMode }));
+            const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode }));
 
             await router.load('a');
 
             verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+            await tearDown();
           });
 
           it(`can load a configured child route with indirect path and explicit component`, async function () {
             @route({ path: 'a' })
             @customElement({ name: 'a01', template: null })
-            class A01 extends SimpleActivityTrackingVMBase {}
+            class A01 extends SimpleActivityTrackingVMBase { }
 
-            @route({ routes: [A01] })
+            @routes([A01])
             @customElement({ name: 'root', template: vp(1), dependencies: inDependencies ? [A01] : [] })
-            class Root extends SimpleActivityTrackingVMBase {}
+            class Root extends SimpleActivityTrackingVMBase { }
 
-            const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ routingMode }));
+            const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode }));
 
             await router.load('a');
 
             verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+            await tearDown();
           });
         });
       }
@@ -385,213 +389,231 @@ describe('router config', function () {
 
   it(`can load a direct route by name which is listed as a dependency when routingMode is 'configured-first'`, async function () {
     @customElement({ name: 'a01', template: null })
-    class A01 extends SimpleActivityTrackingVMBase {}
+    class A01 extends SimpleActivityTrackingVMBase { }
 
     @customElement({ name: 'root', template: vp(1), dependencies: [A01] })
-    class Root extends SimpleActivityTrackingVMBase {}
+    class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ routingMode: 'configured-first' }));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode: 'configured-first' }));
 
     await router.load('a01');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   it(`can load a configured child route by name when routingMode is 'configured-first'`, async function () {
     @customElement({ name: 'a01', template: null })
-    class A01 extends SimpleActivityTrackingVMBase {}
+    class A01 extends SimpleActivityTrackingVMBase { }
 
-    @route({ routes: [A01] })
+    @routes([A01])
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase {}
+    class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ routingMode: 'configured-first' }));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode: 'configured-first' }));
 
     await router.load('a01');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   it(`can load a configured child route by name when routingMode is 'configured-only'`, async function () {
     @customElement({ name: 'a01', template: null })
-    class A01 extends SimpleActivityTrackingVMBase {}
+    class A01 extends SimpleActivityTrackingVMBase { }
 
-    @route({ routes: [A01] })
+    @routes([A01])
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase {}
+    class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ routingMode: 'configured-only' }));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode: 'configured-only' }));
 
     await router.load('a01');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   it(`can navigate to deep dependencies as long as they are declared`, async function () {
     @customElement({ name: 'c01', template: null })
-    class C01 extends SimpleActivityTrackingVMBase {}
+    class C01 extends SimpleActivityTrackingVMBase { }
 
     @customElement({ name: 'b11', template: vp(1), dependencies: [C01] })
-    class B11 extends SimpleActivityTrackingVMBase {}
+    class B11 extends SimpleActivityTrackingVMBase { }
 
     @customElement({ name: 'a11', template: vp(1), dependencies: [B11] })
-    class A11 extends SimpleActivityTrackingVMBase {}
+    class A11 extends SimpleActivityTrackingVMBase { }
 
     @customElement({ name: 'root', template: vp(1), dependencies: [A11] })
-    class Root extends SimpleActivityTrackingVMBase {}
+    class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a11/b11/c01');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a11', 'b11', 'c01']);
+
+    await tearDown();
   });
 
   it(`works with single multi segment static path`, async function () {
     @customElement({ name: 'a01', template: null })
-    class A01 extends SimpleActivityTrackingVMBase {}
+    class A01 extends SimpleActivityTrackingVMBase { }
 
-    @route({ routes: [{ path: 'a/x', component: A01 }] })
+    @routes([{ path: 'a/x', component: A01 }])
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase {}
+    class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/x');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   it(`works with single multi segment dynamic path`, async function () {
     @customElement({ name: 'a01', template: null })
-    class A01 extends SimpleActivityTrackingVMBase {}
+    class A01 extends SimpleActivityTrackingVMBase { }
 
-    @route({ routes: [{ path: 'a/:x', component: A01 }] })
+    @routes([{ path: 'a/:x', component: A01 }])
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase {}
+    class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/1');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   it(`works with single multi segment static path with single child`, async function () {
     @customElement({ name: 'b01', template: null })
-    class B01 extends SimpleActivityTrackingVMBase {}
+    class B01 extends SimpleActivityTrackingVMBase { }
 
-    @route({ routes: [{ path: 'b', component: B01 }] })
+    @routes([{ path: 'b', component: B01 }])
     @customElement({ name: 'a11', template: vp(1) })
-    class A11 extends SimpleActivityTrackingVMBase {}
+    class A11 extends SimpleActivityTrackingVMBase { }
 
-    @route({ routes: [{ path: 'a/x', component: A11 }] })
+    @routes([{ path: 'a/x', component: A11 }])
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase {}
+    class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/x/b');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a11', 'b01']);
+
+    await tearDown();
   });
 
   it(`works with single multi segment static path with single multi segment static child`, async function () {
     @customElement({ name: 'b01', template: null })
-    class B01 extends SimpleActivityTrackingVMBase {}
+    class B01 extends SimpleActivityTrackingVMBase { }
 
-    @route({ routes: [{ path: 'b/x', component: B01 }] })
+    @routes([{ path: 'b/x', component: B01 }])
     @customElement({ name: 'a11', template: vp(1) })
-    class A11 extends SimpleActivityTrackingVMBase {}
+    class A11 extends SimpleActivityTrackingVMBase { }
 
-    @route({ routes: [{ path: 'a/x', component: A11 }] })
+    @routes([{ path: 'a/x', component: A11 }])
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase {}
+    class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/x/b/x');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a11', 'b01']);
+
+    await tearDown();
   });
 
   it(`works with single static path with single multi segment static child`, async function () {
     @customElement({ name: 'b01', template: null })
-    class B01 extends SimpleActivityTrackingVMBase {}
+    class B01 extends SimpleActivityTrackingVMBase { }
 
-    @route({ routes: [{ path: 'b/x', component: B01 }] })
+    @routes([{ path: 'b/x', component: B01 }])
     @customElement({ name: 'a11', template: vp(1) })
-    class A11 extends SimpleActivityTrackingVMBase {}
+    class A11 extends SimpleActivityTrackingVMBase { }
 
-    @route({ routes: [{ path: 'a', component: A11 }] })
+    @routes([{ path: 'a', component: A11 }])
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase {}
+    class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/b/x');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a11', 'b01']);
+
+    await tearDown();
   });
 
   it(`works with single empty static path redirect`, async function () {
     @customElement({ name: 'a01', template: null })
-    class A01 extends SimpleActivityTrackingVMBase {}
+    class A01 extends SimpleActivityTrackingVMBase { }
 
-    @route({ routes: [{ path: '', redirectTo: 'a' }, { path: 'a', component: A01 }] })
+    @routes([{ path: '', redirectTo: 'a' }, { path: 'a', component: A01 }])
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase {}
+    class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
-    await router.load('');
+    // '' is loaded automatically when starting router
+    // await router.load('');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   it(`works with single static path redirect`, async function () {
     @customElement({ name: 'a01', template: null })
-    class A01 extends SimpleActivityTrackingVMBase {}
+    class A01 extends SimpleActivityTrackingVMBase { }
 
-    @route({ routes: [{ path: 'x', redirectTo: 'a' }, { path: 'a', component: A01 }] })
+    @routes([{ path: 'x', redirectTo: 'a' }, { path: 'a', component: A01 }])
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase {}
+    class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('x');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
-  describe(`throw error when`, function () {
+  describe.skip(`throw error when`, function () {
     function getErrorMsg({
       routingMode,
       isRegistered,
-      fallback,
       instruction,
       parent,
       parentPath,
     }: {
       routingMode: 'configured-first' | 'configured-only';
       isRegistered: boolean;
-      fallback: string;
       instruction: string;
       parent: string;
       parentPath: string;
     }) {
       switch (routingMode) {
         case 'configured-first':
-          if (fallback.length > 0) {
-            return `the requested component '${instruction}' and the fallback '${fallback}' at viewport 'default' did not match any configured route or registered component name at '${parentPath}' - did you forget to add the component '${instruction}' to the dependencies of '${parent}' or to register it as a global dependency?`;
-          } else {
-            return `'${instruction}' did not match any configured route or registered component name at '${parentPath}' and no fallback was provided for viewport 'default' - did you forget to add the component '${instruction}' to the dependencies of '${parent}' or to register it as a global dependency?`;
-          }
+          return `'${instruction}' did not match any configured route or registered component name - did you forget to add the component '${instruction}' to the dependencies or to register it as a global dependency?`;
+        // return `'${instruction}' did not match any configured route or registered component name at '${parentPath}' - did you forget to add the component '${instruction}' to the dependencies of '${parent}' or to register it as a global dependency?`;
         case 'configured-only':
           if (isRegistered) {
             return `'${instruction}' did not match any configured route, but it does match a registered component name at '${parentPath}' - did you forget to add a @route({ path: '${instruction}' }) decorator to '${instruction}' or unintentionally set routingMode to 'configured-only'?`;
           } else {
-            return `'${instruction}' did not match any configured route or registered component name at '${parentPath}' - did you forget to add '${instruction}' to the routes list of the route decorator of '${parent}'?`;
+            return `'${instruction}' did not match any configured route or registered component name at '${parentPath}' - did you forget to add '${instruction}' to the children list of the route decorator of '${parent}'?`;
           }
       }
     }
@@ -600,19 +622,19 @@ describe('router config', function () {
       // In these cases, whatever fails in 'configured-first' should also fail in 'configured-only',
       // so we could run these with only 'configured-first', but just to make sure we just loop through both modes for all cases.
       describe(`routingMode is '${routingMode}'`, function () {
-        const routerOptions: IRouterOptions = { routingMode };
+        const routerOptions: IRouterOptions = translateOptions({ routingMode });
         const getRouterOptions = () => routerOptions;
 
         it(`load a configured child route with indirect path by name`, async function () {
           @route({ path: 'a' })
           @customElement({ name: 'a01', template: null })
-          class A01 extends SimpleActivityTrackingVMBase {}
+          class A01 extends SimpleActivityTrackingVMBase { }
 
-          @route({ routes: [A01] })
+          @routes([A01])
           @customElement({ name: 'root', template: vp(1) })
-          class Root extends SimpleActivityTrackingVMBase {}
+          class Root extends SimpleActivityTrackingVMBase { }
 
-          const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+          const { router, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
 
           let e: Error | null = null;
           try {
@@ -625,22 +647,23 @@ describe('router config', function () {
           assert.strictEqual(e.message, getErrorMsg({
             routingMode,
             isRegistered: false,
-            fallback: '',
             instruction: 'a01',
             parent: 'root',
             parentPath: 'root',
           }));
+
+          await tearDown();
         });
 
         it(`load a direct route by indirect path when listed only as a dependency`, async function () {
           @route({ path: 'a' })
           @customElement({ name: 'a01', template: null })
-          class A01 extends SimpleActivityTrackingVMBase {}
+          class A01 extends SimpleActivityTrackingVMBase { }
 
           @customElement({ name: 'root', template: vp(1), dependencies: [A01] })
-          class Root extends SimpleActivityTrackingVMBase {}
+          class Root extends SimpleActivityTrackingVMBase { }
 
-          const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+          const { router, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
 
           let e: Error | null = null;
           try {
@@ -653,30 +676,31 @@ describe('router config', function () {
           assert.strictEqual(e.message, getErrorMsg({
             routingMode,
             isRegistered: false,
-            fallback: '',
             instruction: 'a',
             parent: 'root',
             parentPath: 'root',
           }));
+
+          await tearDown();
         });
       });
     }
 
     describe(`routingMode is 'configured-first'`, function () {
-      const routerOptions: IRouterOptions = { routingMode: 'configured-first' };
+      const routerOptions: IRouterOptions = translateOptions({ routingMode: 'configured-first' });
       const getRouterOptions = () => routerOptions;
 
       it(`navigate to deep dependencies that are indirectly circular`, async function () {
         @customElement({ name: 'b11', template: vp(1) })
-        class B11 extends SimpleActivityTrackingVMBase {}
+        class B11 extends SimpleActivityTrackingVMBase { }
 
         @customElement({ name: 'a11', template: vp(1), dependencies: [B11] })
-        class A11 extends SimpleActivityTrackingVMBase {}
+        class A11 extends SimpleActivityTrackingVMBase { }
 
         @customElement({ name: 'root', template: vp(1), dependencies: [A11] })
-        class Root extends SimpleActivityTrackingVMBase {}
+        class Root extends SimpleActivityTrackingVMBase { }
 
-        const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+        const { router, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
 
         let e: Error | null = null;
         try {
@@ -689,53 +713,27 @@ describe('router config', function () {
         assert.strictEqual(e.message, getErrorMsg({
           routingMode: 'configured-first',
           isRegistered: false,
-          fallback: '',
           instruction: 'a11',
           parent: 'b11',
           parentPath: 'root/a11/b11',
         }));
+
+        await tearDown();
       });
     });
 
-    it(`navigate to non-existing dep with non-existing fallback`, async function () {
-      const routerOptions: IRouterOptions = { routingMode: 'configured-first' };
-      const getRouterOptions = () => routerOptions;
-
-      @customElement({ name: 'root', template: `<au-viewport fallback="a"></au-viewport>` })
-      class Root extends SimpleActivityTrackingVMBase {}
-
-      const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
-
-      let e: Error | null = null;
-      try {
-        await router.load('b');
-      } catch (err) {
-        e = err;
-      }
-
-      assert.notStrictEqual(e, null);
-      assert.strictEqual(e.message, getErrorMsg({
-        routingMode: 'configured-first',
-        isRegistered: false,
-        fallback: 'a',
-        instruction: 'b',
-        parent: 'root',
-        parentPath: 'root',
-      }));
-    });
-
     describe(`routingMode is 'configured-only'`, function () {
-      const routerOptions: IRouterOptions = { routingMode: 'configured-only' };
+      const routerOptions: IRouterOptions = translateOptions({ routingMode: 'configured-only' });
       const getRouterOptions = () => routerOptions;
 
       it(`load a direct route by name which is listed as a dependency`, async function () {
         @customElement({ name: 'a01', template: null })
-        class A01 extends SimpleActivityTrackingVMBase {}
+        class A01 extends SimpleActivityTrackingVMBase { }
 
         @customElement({ name: 'root', template: vp(1), dependencies: [A01] })
-        class Root extends SimpleActivityTrackingVMBase {}
+        class Root extends SimpleActivityTrackingVMBase { }
 
-        const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+        const { router, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
 
         let e: Error | null = null;
         try {
@@ -748,11 +746,12 @@ describe('router config', function () {
         assert.strictEqual(e.message, getErrorMsg({
           routingMode: 'configured-only',
           isRegistered: true,
-          fallback: '',
           instruction: 'a01',
           parent: 'root',
           parentPath: 'root',
         }));
+
+        await tearDown();
       });
     });
   });

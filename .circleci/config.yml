@@ -64,6 +64,7 @@ executors:
         type: string
         default: "15.4.0"
     working_directory: *working_dir
+    resource_class: large
     docker:
       - image: "circleci/node:<< parameters.node >>-buster-browsers"
 
@@ -402,6 +403,21 @@ jobs:
       #         \"body\": \"The benchmarking comparison can be found here: $comparison_url\"
       #         }"
       #       fi
+  check_doc_abort:
+    executor: docker-circleci
+    steps:
+      - checkout
+      - run: |
+          GIT_COMMIT_DESC=$(git log -1 HEAD --pretty=format:%s)
+          echo "$GIT_COMMIT_DESC"
+          if [[ $GIT_COMMIT_DESC == Gitbook:* ]];
+          then
+            echo "Cancelling workflow $CIRCLE_WORKFLOW_ID"
+            exit 1
+
+          else
+            echo "Running workflow $CIRCLE_WORKFLOW_ID"
+          fi
 
 # # # # # # # # # # # # # # # #
 # - Workflows -
@@ -411,45 +427,63 @@ workflows:
   # Triggered by push to master or topic branches
   build_test:
     jobs:
+      - check_doc_abort:
+          <<: *filter_ignore_develop_release
       - unit_test_esm:
           <<: *filter_ignore_develop_release
           name: unit_test_esm_chrome
           npm_command: "test-chrome"
+          requires:
+            - check_doc_abort
       - unit_test_esm:
-         <<: *filter_ignore_develop_release
-         name: unit_test_esm_firefox
-         npm_command: "test-firefox"
-         coverage: false
+          <<: *filter_ignore_develop_release
+          name: unit_test_esm_firefox
+          npm_command: "test-firefox"
+          coverage: false
+          requires:
+            - check_doc_abort
       - unit_test_esm:
-         <<: *filter_ignore_develop_release
-         name: unit_test_esm_node
-         npm_command: "test-node"
-         coverage: false
+          <<: *filter_ignore_develop_release
+          name: unit_test_esm_node
+          npm_command: "test-node"
+          coverage: false
+          requires:
+            - check_doc_abort
       - unit_test_cjs:
-         <<: *filter_ignore_develop_release
-         npm_command: "test-node"
+          <<: *filter_ignore_develop_release
+          npm_command: "test-node"
+          requires:
+            - check_doc_abort
       #- unit_test:
       #   <<: *filter_ignore_develop_release
       #   name: test_test262
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
-      - lint_packages:
-          <<: *filter_ignore_develop_release
-      - benchmark_playwright:
-          <<: *filter_ignore_develop_release
+
+      # - lint_packages:
+      #     <<: *filter_ignore_develop_release
+      #     requires:
+      #       - check_doc_abort
+
+      # - benchmark_playwright:
+      #     <<: *filter_ignore_develop_release
+      #     requires:
+      #       - check_doc_abort
       - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: jit-webpack-conventions-ts
           path: "examples/jit-webpack-conventions-ts"
           requires:
-            - lint_packages # not a real requirement but forces long-running jobs to go first
+            - check_doc_abort
+            # - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: jit-webpack-vanilla-ts
           path: "examples/jit-webpack-vanilla-ts"
           requires:
-            - lint_packages # not a real requirement but forces long-running jobs to go first
+            - check_doc_abort
+            # - lint_packages # not a real requirement but forces long-running jobs to go first
       - merge_and_dist:
           <<: *filter_only_master
           name: merge_and_dist_master
@@ -459,7 +493,7 @@ workflows:
             - unit_test_esm_node
             - unit_test_cjs
             #- test_test262
-            - lint_packages
+            # - lint_packages
             - jit-webpack-conventions-ts
             - jit-webpack-vanilla-ts
           from: master
@@ -475,7 +509,7 @@ workflows:
             - unit_test_esm_firefox
             - unit_test_esm_node
             - unit_test_cjs
-            - lint_packages
+            # - lint_packages
             - jit-webpack-conventions-ts
             - jit-webpack-vanilla-ts
           from: master
@@ -517,8 +551,8 @@ workflows:
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
-      - lint_packages:
-          <<: *filter_only_tag
+      # - lint_packages:
+      #     <<: *filter_only_tag
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
@@ -527,7 +561,7 @@ workflows:
             - unit_test_esm_node
             - unit_test_cjs
             #- test_test262
-            - lint_packages
+            # - lint_packages
           from: $CIRCLE_TAG
           to: release
           channel: latest

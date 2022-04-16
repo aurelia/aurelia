@@ -1,6 +1,7 @@
 import { LifecycleFlags as LF, ValueAttributeObserver } from '@aurelia/runtime-html';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
+// eslint-disable-next-line mocha/no-skipped-tests
 describe.skip('ValueAttributeObserver', function () {
   const eventDefaults = { bubbles: true };
 
@@ -35,7 +36,7 @@ describe.skip('ValueAttributeObserver', function () {
         return { ctx, container, observerLocator, el, sut, subscriber, platform };
       }
 
-      function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
+      function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
         ctx.doc.body.removeChild(el);
         assert.areTaskQueuesEmpty();
       }
@@ -114,7 +115,7 @@ describe.skip('ValueAttributeObserver', function () {
         return { ctx, container, observerLocator, el, sut, subscriber };
       }
 
-      function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
+      function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
         ctx.doc.body.removeChild(el);
       }
 

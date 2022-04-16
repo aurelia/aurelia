@@ -1,4 +1,4 @@
-# Markdown Integration
+# Markdown integration
 
 One of the interesting features of Aurelia 2 is the use of different file types such as Markdown as View along with HTML. To do this, follow the steps below:
 
@@ -41,11 +41,10 @@ declare module '*.md' {
 
 Now, you are able to define`Markdown`files for your views and use them beside HTML files.
 
-```text
+```
 my-app.css
 my-app.html or my-app.md
 my-app.ts
 ```
 
 ![](../../.gitbook/assets/markdown.png)
-

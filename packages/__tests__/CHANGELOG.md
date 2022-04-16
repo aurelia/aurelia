@@ -3,6 +3,166 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.28"></a>
+# 2.0.0-alpha.28 (2022-04-16)
+
+### Bug Fixes:
+
+* **css-module:** allow colon in class names (#1388) ([47860ab](https://github.com/aurelia/aurelia/commit/47860ab))
+* **router:** fix linting issues ([f0b84f7](https://github.com/aurelia/aurelia/commit/f0b84f7))
+* **router:** fix build PR losses 3 ([07ffe36](https://github.com/aurelia/aurelia/commit/07ffe36))
+
+
+### Refactorings:
+
+* **router:** restore aurelia packages ([3da4971](https://github.com/aurelia/aurelia/commit/3da4971))
+* **router:** restore aurelia packages ([334864d](https://github.com/aurelia/aurelia/commit/334864d))
+* **router:** clean up (incomplete) ([892d042](https://github.com/aurelia/aurelia/commit/892d042))
+* **router:** hierarchy match in routing scope (incomplete) ([58eda2e](https://github.com/aurelia/aurelia/commit/58eda2e))
+* **all:** adapt latest changes in core ([fcec2f8](https://github.com/aurelia/aurelia/commit/fcec2f8))
+* **build:** make tests work ([8323312](https://github.com/aurelia/aurelia/commit/8323312))
+* **all:** adapt latest changes in dev ([75d3bb1](https://github.com/aurelia/aurelia/commit/75d3bb1))
+* **router:** remove static RouterConfiguration ([4e14051](https://github.com/aurelia/aurelia/commit/4e14051))
+* **router:** replace RouterConfiguration ([6cd8b69](https://github.com/aurelia/aurelia/commit/6cd8b69))
+* **router:** replace RouterConfiguration ([02ab5cf](https://github.com/aurelia/aurelia/commit/02ab5cf))
+* **router:** turn router options into classes ([277615c](https://github.com/aurelia/aurelia/commit/277615c))
+* **router:** use handleEvent for popstate ([7f778b7](https://github.com/aurelia/aurelia/commit/7f778b7))
+* **router:** clean up ([4b4d8f8](https://github.com/aurelia/aurelia/commit/4b4d8f8))
+* **router:** add errors & tests for instruction parser ([b3b5e25](https://github.com/aurelia/aurelia/commit/b3b5e25))
+* **router:** fix rebase issues ([7e9d6c3](https://github.com/aurelia/aurelia/commit/7e9d6c3))
+* **router:** temp commit before rebase ([0750276](https://github.com/aurelia/aurelia/commit/0750276))
+* **router:** non-blocking unqueued navigations ([a4fb8a8](https://github.com/aurelia/aurelia/commit/a4fb8a8))
+* **router:** clean up ([7000e65](https://github.com/aurelia/aurelia/commit/7000e65))
+* **router:** update title ([d9ad930](https://github.com/aurelia/aurelia/commit/d9ad930))
+* **router:** split navigation to viewer+store & comment ([b480426](https://github.com/aurelia/aurelia/commit/b480426))
+* **router:** restructure events ([eb91b0d](https://github.com/aurelia/aurelia/commit/eb91b0d))
+* **router:** improve parameter handling ([2748479](https://github.com/aurelia/aurelia/commit/2748479))
+* **router:** rename reentry to reload ([5b026b5](https://github.com/aurelia/aurelia/commit/5b026b5))
+* **router:** replace SwapStrategy with SwapOrder ([eb7f31c](https://github.com/aurelia/aurelia/commit/eb7f31c))
+* **router:** make Runner reject when cancelled ([dcad056](https://github.com/aurelia/aurelia/commit/dcad056))
+* **router:** make hook invoke return outcome ([f00cf22](https://github.com/aurelia/aurelia/commit/f00cf22))
+* **router:** add hooks to router configuration ([f4f0195](https://github.com/aurelia/aurelia/commit/f4f0195))
+* **router:** remove IRouterStartOptions ([658311f](https://github.com/aurelia/aurelia/commit/658311f))
+* **router:** move router options into RouterConfiguration ([9ef3d54](https://github.com/aurelia/aurelia/commit/9ef3d54))
+* **router:** remove link handler from router ([5411883](https://github.com/aurelia/aurelia/commit/5411883))
+* **router:** update routing hook signatures ([5e84327](https://github.com/aurelia/aurelia/commit/5e84327))
+* **router:** rename Params to Parameters ([e2323c2](https://github.com/aurelia/aurelia/commit/e2323c2))
+* **router:** remove InstructionResolver ([645c0a5](https://github.com/aurelia/aurelia/commit/645c0a5))
+* **router:** implement RoutingHook ([9ba1bf6](https://github.com/aurelia/aurelia/commit/9ba1bf6))
+* **router:** implement RouterOptions ([78ac2c0](https://github.com/aurelia/aurelia/commit/78ac2c0))
+* **router:** replace ViewportInstruction with RoutingInstruction ([4e15dbc](https://github.com/aurelia/aurelia/commit/4e15dbc))
+* **router:** implement Runner changes (interim) ([e354513](https://github.com/aurelia/aurelia/commit/e354513))
+* **router:** fix rebase issues ([344a5e7](https://github.com/aurelia/aurelia/commit/344a5e7))
+
+<a name="2.0.0-alpha.27"></a>
+# 2.0.0-alpha.27 (2022-04-08)
+
+### Bug Fixes:
+
+* **runtime-html:** local dependencies for local element (#1375) ([0d48dbf](https://github.com/aurelia/aurelia/commit/0d48dbf))
+* **switch+promise:** test build issues ([63cf5d0](https://github.com/aurelia/aurelia/commit/63cf5d0))
+
+
+### Refactorings:
+
+* **local-template:** register dependency while building definition & add tests ([0d48dbf](https://github.com/aurelia/aurelia/commit/0d48dbf))
+* **switch+promise:** deferred view instantiation (#1372) ([63cf5d0](https://github.com/aurelia/aurelia/commit/63cf5d0))
+
+<a name="2.0.0-alpha.26"></a>
+# 2.0.0-alpha.26 (2022-03-13)
+
+### Bug Fixes:
+
+* **compiler:** allowing value modification from attr pattern on some cases for custom attribute (#1366) ([6a190b8](https://github.com/aurelia/aurelia/commit/6a190b8))
+* **template-compiler:** custom attribute works with attr-pattern in all cases ([6a190b8](https://github.com/aurelia/aurelia/commit/6a190b8))
+
+<a name="2.0.0-alpha.25"></a>
+# 2.0.0-alpha.25 (2022-03-08)
+
+**Note:** Version bump only for package @aurelia/__tests__
+
+<a name="2.0.0-alpha.24"></a>
+# 2.0.0-alpha.24 (2022-01-18)
+
+### Bug Fixes:
+
+* **computed-obs:** fix typo, ensure multiple layers of getter work ([09971a2](https://github.com/aurelia/aurelia/commit/09971a2))
+
+<a name="2.0.0-alpha.23"></a>
+# 2.0.0-alpha.23 (2021-11-22)
+
+### Refactorings:
+
+* ***:** disabling type-coercion by default ([e5028c1](https://github.com/aurelia/aurelia/commit/e5028c1))
+* ***:** injectable coercion configuration ([b901c4b](https://github.com/aurelia/aurelia/commit/b901c4b))
+* **runtime-html:** coercing configuration options ([cba53c7](https://github.com/aurelia/aurelia/commit/cba53c7))
+* **runtime-html:** nullable coercing ([11bd0dd](https://github.com/aurelia/aurelia/commit/11bd0dd))
+* **bindable:** auto discover coercer WIP ([d64d704](https://github.com/aurelia/aurelia/commit/d64d704))
+
+<a name="2.0.0-alpha.22"></a>
+# 2.0.0-alpha.22 (2021-10-24)
+
+### Features:
+
+* ***:** destructure map pair ([961f1a6](https://github.com/aurelia/aurelia/commit/961f1a6))
+* ***:** parse destructuring assignment ([c0555de](https://github.com/aurelia/aurelia/commit/c0555de))
+* ***:** destructuring assignment expr ([d06f7bd](https://github.com/aurelia/aurelia/commit/d06f7bd))
+* ***:** rest expr in destructuring assignment ([f4b1652](https://github.com/aurelia/aurelia/commit/f4b1652))
+* **runtime:** started destructuring AST ([0b4d579](https://github.com/aurelia/aurelia/commit/0b4d579))
+
+
+### Bug Fixes:
+
+* ***:** build issues ([1a32a43](https://github.com/aurelia/aurelia/commit/1a32a43))
+* ***:** deepscan issue ([582686b](https://github.com/aurelia/aurelia/commit/582686b))
+* ***:** linting error ([35e11c8](https://github.com/aurelia/aurelia/commit/35e11c8))
+
+<a name="2.0.0-alpha.21"></a>
+# 2.0.0-alpha.21 (2021-09-12)
+
+**Note:** Version bump only for package @aurelia/__tests__
+
+<a name="2.0.0-alpha.20"></a>
+# 2.0.0-alpha.20 (2021-09-04)
+
+### Features:
+
+* **au-slot:** work with containerless ([9fa0a06](https://github.com/aurelia/aurelia/commit/9fa0a06))
+
+
+### Refactorings:
+
+* **au-compose:** move initiator out of change info, add tests for #1299 ([8f2bf0c](https://github.com/aurelia/aurelia/commit/8f2bf0c))
+
+<a name="2.0.0-alpha.19"></a>
+# 2.0.0-alpha.19 (2021-08-29)
+
+### Bug Fixes:
+
+* **store-v1:** rename _state to $state, short timeout ([2177b79](https://github.com/aurelia/aurelia/commit/2177b79))
+* **store-v1:** adjust decorator tests ([b998863](https://github.com/aurelia/aurelia/commit/b998863))
+* **template-compiler:** capture ignore attr command on bindable like props ([0a52fbf](https://github.com/aurelia/aurelia/commit/0a52fbf))
+* ***:** export ITemplateCompiler from aurelia package ([0a52fbf](https://github.com/aurelia/aurelia/commit/0a52fbf))
+
+
+### Refactorings:
+
+* **all:** remove more internal typings ([1ffc38b](https://github.com/aurelia/aurelia/commit/1ffc38b))
+* **store-v1:** arrange sut ([d440a26](https://github.com/aurelia/aurelia/commit/d440a26))
+
+<a name="2.0.0-alpha.18"></a>
+# 2.0.0-alpha.18 (2021-08-22)
+
+### Features:
+
+* **au-compose:** works with au-slot ([4bfcc00](https://github.com/aurelia/aurelia/commit/4bfcc00))
+* **attr-transfer:** implement attr capturing & spreading ([998b91c](https://github.com/aurelia/aurelia/commit/998b91c))
+
+
+### Bug Fixes:
+
+* **repeat:** ensure binding behavior works with .for binding ([30a27a0](https://github.com/aurelia/aurelia/commit/30a27a0))
+
 <a name="2.0.0-alpha.17"></a>
 # 2.0.0-alpha.17 (2021-08-16)
 

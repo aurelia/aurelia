@@ -10,6 +10,7 @@ import { IPlatform } from './platform.js';
 import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element.js';
 import { IViewFactory } from './templating/view.js';
 import { IRendering } from './templating/rendering.js';
+import { isString } from './utilities.js';
 
 import type { ISyntheticView } from './templating/controller.js';
 
@@ -19,7 +20,7 @@ export function createElement<C extends Constructable = Constructable>(
   props?: Record<string, string | IInstruction>,
   children?: ArrayLike<unknown>
 ): RenderPlan {
-  if (typeof tagOrType === 'string') {
+  if (isString(tagOrType)) {
     return createElementForTag(p, tagOrType, props, children);
   }
   if (CustomElement.isType(tagOrType)) {
@@ -32,13 +33,14 @@ export function createElement<C extends Constructable = Constructable>(
  * RenderPlan. Todo: describe goal of this class
  */
 export class RenderPlan {
-  /** @internal */
-  private _lazyDef?: CustomElementDefinition = void 0;
+  /** @internal */ private _lazyDef?: CustomElementDefinition = void 0;
 
   public constructor(
-    private readonly node: Node,
-    private readonly instructions: IInstruction[][],
-    private readonly dependencies: Key[]
+    // 2 following props accessed in the test, can't mangle
+    // todo: refactor tests
+    /** @internal */ private readonly node: Node,
+    /** @internal */ private readonly instructions: IInstruction[][],
+    /** @internal */ private readonly _dependencies: Key[]
   ) {}
 
   public get definition(): CustomElementDefinition {
@@ -46,9 +48,9 @@ export class RenderPlan {
       this._lazyDef = CustomElementDefinition.create({
         name: CustomElement.generateName(),
         template: this.node,
-        needsCompile: typeof this.node === 'string',
+        needsCompile: isString(this.node),
         instructions: this.instructions,
-        dependencies: this.dependencies,
+        dependencies: this._dependencies,
       });
     }
     return this._lazyDef;
@@ -61,7 +63,7 @@ export class RenderPlan {
   public getViewFactory(parentContainer: IContainer): IViewFactory {
     return parentContainer.root.get(IRendering).getViewFactory(
       this.definition,
-      parentContainer.createChild().register(...this.dependencies)
+      parentContainer.createChild().register(...this._dependencies)
     );
   }
 
@@ -69,7 +71,7 @@ export class RenderPlan {
   public mergeInto(parent: Node & ParentNode, instructions: IInstruction[][], dependencies: Key[]): void {
     parent.appendChild(this.node);
     instructions.push(...this.instructions);
-    dependencies.push(...this.dependencies);
+    dependencies.push(...this._dependencies);
   }
 }
 
@@ -125,7 +127,7 @@ function createElementForType(
     dependencies.push(Type);
   }
 
-  instructions.push(new HydrateElementInstruction(definition, void 0, childInstructions, null, false));
+  instructions.push(new HydrateElementInstruction(definition, void 0, childInstructions, null, false, void 0));
 
   if (props) {
     Object.keys(props)

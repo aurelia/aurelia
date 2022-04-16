@@ -162,7 +162,7 @@ export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
 
   public setValue(value: unknown, flags: LifecycleFlags): void {
     if (this._hasSetter) {
-      value = this._setter!(value);
+      value = this._setter!(value, null);
     }
     if (!Object.is(value, this._value)) {
       this._oldValue = this._value;

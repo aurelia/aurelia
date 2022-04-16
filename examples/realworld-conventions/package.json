@@ -1,0 +1,40 @@
+{
+  "name": "realworld-conventions",
+  "description": "An Aurelia 2 client application.",
+  "version": "0.1.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "???"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "aurelia": "latest",
+    "@aurelia/router": "../../packages/router"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@aurelia/testing": "latest",
+    "@types/mocha": "^8.0.3",
+    "@types/node": "^14.11.5",
+    "css-loader": "^5.0.1",
+    "html-webpack-plugin": "^5.0.0-beta.1",
+    "mocha": "^8.1.3",
+    "playwright": "^1.6.1",
+    "rimraf": "^3.0.0",
+    "style-loader": "^2.0.0",
+    "ts-loader": "^8.0.12",
+    "typescript": "^4.0.3",
+    "webpack": "^5.10.3",
+    "webpack-cli": "^4.2.0",
+    "webpack-dev-server": "^4.0.0-beta.0"
+  },
+  "scripts": {
+    "lint:js": "eslint src test --ext .js,.ts",
+    "lint:html": "htmlhint -c .htmlhintrc src",
+    "lint": "npm run lint:js && npm run lint:html",
+    "start": "webpack serve",
+    "build": "rimraf dist && webpack --env production",
+    "analyze": "rimraf dist && webpack --env production --analyze"
+  }
+}

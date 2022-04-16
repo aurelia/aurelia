@@ -23,7 +23,7 @@ export const enum ComponentMode {
 }
 export type StartupConfiguration = Partial<MolecularConfiguration & { method: 'app' | 'enhance'; componentMode: ComponentMode }>;
 
-export async function startup(config: StartupConfiguration = {}) {
+export async function startup(config: StartupConfiguration = {}): Promise<TestExecutionContext> {
   const ctx = TestContext.create();
 
   const host = ctx.doc.createElement('div');

@@ -16,6 +16,7 @@ import {
   LifecycleFlags,
   IObserverLocator,
   IExpressionParser,
+  ICoercionConfiguration,
 } from '@aurelia/runtime';
 import { BindableObserver } from '../observation/bindable-observer.js';
 import { convertToRenderLocation, setRef } from '../dom.js';
@@ -27,6 +28,7 @@ import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
 import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
 import { LifecycleHooks } from './lifecycle-hooks.js';
 import { IRendering } from './rendering.js';
+import { isFunction, isString } from '../utilities.js';
 
 import type {
   IContainer,
@@ -41,6 +43,7 @@ import type {
   IObservable,
   IsBindingBehavior,
 } from '@aurelia/runtime';
+import type { AttrSyntax } from '../resources/attribute-pattern.js';
 import type { IProjections } from '../resources/slot-injectables.js';
 import type { BindableDefinition } from '../bindable.js';
 import type { LifecycleHooksLookup } from './lifecycle-hooks.js';
@@ -217,7 +220,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* host           */host,
     );
     // the hydration context this controller is provided with
-    const hydrationContext = ctn.get(optional(IHydrationContext));
+    const hydrationContext = ctn.get(optional(IHydrationContext)) as IHydrationContext;
 
     if (definition.dependencies.length > 0) {
       ctn.register(...definition.dependencies);
@@ -246,7 +249,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
    * @param ctn - own container associated with the custom attribute object
    * @param viewModel - the view model object
    * @param host - host element where this custom attribute is used
-   * @param flags
+   * @param flags - todo(comment)
    * @param definition - the definition of the custom attribute,
    * will be used to override the definition associated with the view model object contructor if given
    */
@@ -286,8 +289,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /**
    * Create a synthetic view (controller) for a given factory
    *
-   * @param viewFactory
-   * @param flags
+   * @param viewFactory - todo(comment)
+   * @param flags - todo(comment)
    * @param parentController - the parent controller to connect the created view with. Used in activation
    *
    * Semi private API
@@ -438,6 +441,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _hydrateCustomAttribute(): void {
     const definition = this.definition as CustomAttributeDefinition;
     const instance = this.viewModel!;
@@ -553,7 +557,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this._ensurePromise();
         ret.then(() => {
           this.bind();
-        }).catch(err => {
+        }).catch((err: Error) => {
           this._reject(err);
         });
         return this.$promise;
@@ -600,7 +604,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         ret.then(() => {
           this.isBound = true;
           this._attach();
-        }).catch(err => {
+        }).catch((err: Error) => {
           this._reject(err);
         });
         return;
@@ -611,6 +615,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._attach();
   }
 
+  /** @internal */
   private _append(...nodes: Node[]): void {
     switch (this.mountTarget) {
       case MountTarget.host:
@@ -629,6 +634,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _attach(): void {
     if (__DEV__ && this.debug) { this.logger!.trace(`attach()`); }
 
@@ -671,7 +677,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this._enterActivating();
         ret.then(() => {
           this._leaveActivating();
-        }).catch(err => {
+        }).catch((err: Error) => {
           this._reject(err);
         });
       }
@@ -748,7 +754,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         (initiator as Controller)._enterDetaching();
         ret.then(() => {
           (initiator as Controller)._leaveDetaching();
-        }).catch(err => {
+        }).catch((err: Error) => {
           (initiator as Controller)._reject(err);
         });
       }
@@ -849,6 +855,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private $reject: ((err: unknown) => void) | undefined = void 0;
   private $promise: Promise<void> | undefined = void 0;
 
+  /** @internal */
   private _ensurePromise(): void {
     if (this.$promise === void 0) {
       this.$promise = new Promise((resolve, reject) => {
@@ -861,6 +868,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _resolve(): void {
     if (this.$promise !== void 0) {
       _resolve = this.$resolve!;
@@ -870,6 +878,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _reject(err: Error): void {
     if (this.$promise !== void 0) {
       _reject = this.$reject!;
@@ -882,13 +891,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _activatingStack: number = 0;
+  /** @internal */
   private _enterActivating(): void {
     ++this._activatingStack;
     if (this.$initiator !== this) {
       (this.parent as Controller)._enterActivating();
     }
   }
+  /** @internal */
   private _leaveActivating(): void {
     if (--this._activatingStack === 0) {
       if (this.hooks.hasAttached) {
@@ -904,7 +916,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
             if (this.$initiator !== this) {
               (this.parent as Controller)._leaveActivating();
             }
-          }).catch(err => {
+          }).catch((err: Error) => {
             this._reject(err);
           });
           _retPromise = void 0;
@@ -922,10 +934,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _detachingStack: number = 0;
+  /** @internal */
   private _enterDetaching(): void {
     ++this._detachingStack;
   }
+  /** @internal */
   private _leaveDetaching(): void {
     if (--this._detachingStack === 0) {
       // Note: this controller is the initiator (detach is only ever called on the initiator)
@@ -951,7 +966,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
             this._enterUnbinding();
             _retPromise.then(() => {
               this._leaveUnbinding();
-            }).catch(err => {
+            }).catch((err: Error) => {
               this._reject(err);
             });
           }
@@ -965,10 +980,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /** @internal */
   private _unbindingStack: number = 0;
+  /** @internal */
   private _enterUnbinding(): void {
     ++this._unbindingStack;
   }
+  /** @internal */
   private _leaveUnbinding(): void {
     if (--this._unbindingStack === 0) {
       if (__DEV__ && this.debug) { this.logger!.trace(`unbind()`); }
@@ -1143,6 +1161,8 @@ function createObservers(
     let bindable: BindableDefinition;
     let i = 0;
     const observers = getLookup(instance as IIndexable);
+    const container = controller.container;
+    const coercionConfiguration = container.has(ICoercionConfiguration, true) ? container.get(ICoercionConfiguration) : null;
 
     for (; i < length; ++i) {
       name = observableNames[i];
@@ -1156,6 +1176,7 @@ function createObservers(
           bindable.callback,
           bindable.set,
           controller,
+          coercionConfiguration,
         );
       }
     }
@@ -1180,7 +1201,7 @@ function createChildrenObservers(
     for (; i < length; ++i) {
       name = childObserverNames[i];
 
-      if (observers[name] == void 0) {
+      if (observers[name] == null) {
         childrenDescription = childrenObservers[name];
         obs[obs.length] = observers[name] = new ChildrenObserver(
           controller as ICustomElementController,
@@ -1197,7 +1218,7 @@ function createChildrenObservers(
     return obs;
   }
 
-  return emptyArray;
+  return emptyArray as ChildrenObserver[];
 }
 
 const AccessScopeAstMap = new Map<PropertyKey, AccessScopeExpression>();
@@ -1231,16 +1252,16 @@ function createWatchers(
 
   for (; ii > i; ++i) {
     ({ expression, callback } = watches[i]);
-    callback = typeof callback === 'function'
+    callback = isFunction(callback)
       ? callback
       : Reflect.get(instance, callback) as IWatcherCallback<object>;
-    if (typeof callback !== 'function') {
+    if (!isFunction(callback)) {
       if (__DEV__)
         throw new Error(`Invalid callback for @watch decorator: ${String(callback)}`);
       else
         throw new Error(`AUR0506:${String(callback)}`);
     }
-    if (typeof expression === 'function') {
+    if (isFunction(expression)) {
       controller.addBinding(new ComputedWatcher(
         instance as IObservable,
         observerLocator,
@@ -1251,7 +1272,7 @@ function createWatchers(
         true,
       ));
     } else {
-      ast = typeof expression === 'string'
+      ast = isString(expression)
         ? expressionParser.parse(expression, ExpressionType.IsProperty)
         : getAccessScopeAst(expression);
 
@@ -1362,6 +1383,7 @@ export type ControllerVisitor = (controller: IHydratedController) => void | true
  *
  * Every controller, regardless of their type and state, will have at least the properties/methods in this interface.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface IController<C extends IViewModel = IViewModel> extends IDisposable {
   /** @internal */readonly id: number;
   /**
@@ -1767,6 +1789,10 @@ export interface IControllerElementHydrationInstruction {
    */
   readonly hydrate?: boolean;
   readonly projections: IProjections | null;
+  /**
+   * A list of captured attributes/binding in raw format
+   */
+  readonly captures?: AttrSyntax[];
 }
 
 function callDispose(disposable: IDisposable): void {
@@ -1774,6 +1800,6 @@ function callDispose(disposable: IDisposable): void {
 }
 
 // some reuseable variables to avoid creating nested blocks inside hot paths of controllers
-let _resolve: undefined | (() => any);
-let _reject: undefined | ((err: unknown) => any);
+let _resolve: undefined | (() => unknown);
+let _reject: undefined | ((err: unknown) => unknown);
 let _retPromise: void | Promise<void>;

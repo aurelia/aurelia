@@ -602,7 +602,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('composes non-custom element mutiple times', async function () {
       const models: unknown[] = [];
-      const { appHost, ctx, component, startPromise, tearDown } = createFixture(
+      const { appHost, component, startPromise, tearDown } = createFixture(
         `<au-compose view-model.bind="{ activate }" view.bind="view" model.bind="{ index: 0 }" containerless>`,
         class App {
           public activate = (model: unknown) => {
@@ -1018,4 +1018,92 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     await tearDown();
     assert.strictEqual(appHost.textContent, '');
   });
+
+  it('works with [au-slot] when composing custom element', async function () {
+    const El1 = CustomElement.define({
+      name: 'el1',
+      template: `<p><au-slot>`
+    }, class Element1 {});
+    const { appHost, startPromise, tearDown } = createFixture(
+      `<au-compose view-model.bind="vm"><input value.bind="message" au-slot>`,
+      class App {
+        public message = 'Aurelia';
+        public vm: any = El1;
+      }
+    );
+
+    await startPromise;
+
+    assert.strictEqual((appHost.querySelector('p input') as HTMLInputElement).value, 'Aurelia');
+
+    await tearDown();
+  });
+
+  it('works with [au-slot] + [repeat] when composing custom element', async function () {
+    const El1 = CustomElement.define({
+      name: 'el1',
+      template: `<p><au-slot>`
+    }, class Element1 {});
+    const { appHost, startPromise, tearDown } = createFixture(
+      `<au-compose repeat.for="i of 3" view-model.bind="vm"><input value.to-view="message + i" au-slot>`,
+      class App {
+        public message = 'Aurelia';
+        public vm: any = El1;
+      }
+    );
+
+    await startPromise;
+
+    assert.deepStrictEqual(
+      Array.from(appHost.querySelectorAll('p input')).map((i: HTMLInputElement) => i.value),
+      ['Aurelia0', 'Aurelia1', 'Aurelia2']
+    );
+    await tearDown();
+  });
+
+  if (typeof window !== 'undefined') {
+    it('works with promise in attach/detach', async function () {
+      const El1 = CustomElement.define({
+        name: 'el1',
+        template: `<template ref="host"><p>Heollo??`
+      }, class Element1 {
+        public host: HTMLElement;
+        public async attaching() {
+          return this.host.animate([{ color: 'red' }, { color: 'blue' }], 50).finished;
+        }
+        public async detaching() {
+          return this.host.animate([{ color: 'blue' }, { color: 'green' }], { duration: 50 }).finished;
+        }
+      });
+      const { component, startPromise, tearDown } = createFixture(
+        `<au-compose repeat.for="vm of components" view-model.bind="vm">`,
+        class App {
+          public message = 'Aurelia';
+          public components: any[] = [];
+          public vm = El1;
+
+          public render() {
+            this.components.push(El1);
+          }
+
+          public remove() {
+            this.components.pop();
+          }
+        }
+      );
+
+      await startPromise;
+
+      component.render();
+      await new Promise(r => setTimeout(r, 100));
+
+      component.render();
+      await new Promise(r => setTimeout(r, 100));
+
+      component.remove();
+      await new Promise(r => setTimeout(r, 150));
+
+      await tearDown();
+    });
+  }
 });

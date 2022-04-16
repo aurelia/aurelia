@@ -1,5 +1,6 @@
 import { emptyArray } from '@aurelia/kernel';
 import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
+import { hasOwnProperty, isString } from '../utilities.js';
 
 import type { IAccessor } from '@aurelia/runtime';
 
@@ -44,7 +45,7 @@ export class ClassAttributeAccessor implements IAccessor {
       this._hasChanges = false;
       const currentValue = this.value;
       const nameIndex = this._nameIndex;
-      const classesToAdd = getClassesToAdd(currentValue as any);
+      const classesToAdd = getClassesToAdd(currentValue as string | Record<string, unknown> | []);
       let version = this._version;
       this._oldValue = currentValue;
 
@@ -63,7 +64,7 @@ export class ClassAttributeAccessor implements IAccessor {
       // Remove classes from previous version.
       version -= 1;
       for (const name in nameIndex) {
-        if (!Object.prototype.hasOwnProperty.call(nameIndex, name) || nameIndex[name] !== version) {
+        if (!hasOwnProperty.call(nameIndex, name) || nameIndex[name] !== version) {
           continue;
         }
 
@@ -94,7 +95,7 @@ export class ClassAttributeAccessor implements IAccessor {
 }
 
 export function getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
-  if (typeof object === 'string') {
+  if (isString(object)) {
     return splitClassString(object);
   }
   if (typeof object !== 'object') {
@@ -119,6 +120,7 @@ export function getClassesToAdd(object: Record<string, unknown> | [] | string): 
   let property: string;
   for (property in object) {
     // Let non typical values also evaluate true so disable bool check
+    // eslint-disable-next-line no-extra-boolean-cast
     if (Boolean(object[property])) {
       // We must do this in case object property has a space in the name which results in two classes
       if (property.includes(' ')) {

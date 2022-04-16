@@ -7,7 +7,7 @@ import { bindable } from '../../bindable.js';
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
 
 export class With implements ICustomAttributeViewModel {
-  public static inject = [IViewFactory, IRenderLocation];
+  /** @internal */ protected static inject = [IViewFactory, IRenderLocation];
   public readonly id: number = nextId('au$component');
 
   public view: ISyntheticView;
@@ -17,18 +17,17 @@ export class With implements ICustomAttributeViewModel {
   @bindable public value?: object;
 
   public constructor(
-    private readonly factory: IViewFactory,
-    private readonly location: IRenderLocation
+    factory: IViewFactory,
+    location: IRenderLocation
   ) {
     this.id = nextId('au$component');
-
-    this.view = this.factory.create().setLocation(location);
+    this.view = factory.create().setLocation(location);
   }
 
   public valueChanged(
     newValue: unknown,
-    oldValue: unknown,
-    flags: LifecycleFlags,
+    _oldValue: unknown,
+    _flags: LifecycleFlags,
   ): void {
     const $controller = this.$controller;
     const bindings = this.view.bindings;

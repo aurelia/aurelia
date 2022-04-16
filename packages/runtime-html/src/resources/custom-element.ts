@@ -15,6 +15,7 @@ import { Children } from '../templating/children.js';
 import { Watch } from '../watch.js';
 import { DefinitionType } from './resources-shared.js';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
+import { isFunction, isString } from '../utilities.js';
 
 import type {
   Constructable,
@@ -44,6 +45,7 @@ declare module '@aurelia/kernel' {
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
+  readonly capture?: boolean;
   readonly template?: null | string | Node;
   readonly instructions?: readonly (readonly IInstruction[])[];
   readonly dependencies?: readonly Key[];
@@ -121,7 +123,7 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
   generateName(): string;
-  createInjectable<T extends Key = Key>(): InjectableToken;
+  createInjectable<T extends Key = Key>(): InjectableToken<T>;
   generateType<P extends {} = {}>(
     name: string,
     proto?: P,
@@ -159,7 +161,7 @@ export function useShadowDOM(targetOrOptions?: Constructable | ShadowOptions): v
     };
   }
 
-  if (typeof targetOrOptions !== 'function') {
+  if (!isFunction(targetOrOptions)) {
     return function ($target: Constructable) {
       annotateElementMetadata($target, 'shadowOptions', targetOrOptions);
     };
@@ -214,6 +216,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly aliases: string[],
     public readonly key: string,
     public readonly cache: '*' | number,
+    public readonly capture: boolean,
     public readonly template: null | string | Node,
     public readonly instructions: readonly (readonly IInstruction[])[],
     public readonly dependencies: readonly Key[],
@@ -231,25 +234,25 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly processContent: ProcessContentHook | null,
   ) {}
 
-  public static create<T extends Constructable = Constructable>(
+  public static create(
     def: PartialCustomElementDefinition,
     Type?: null,
   ): CustomElementDefinition;
-  public static create<T extends Constructable = Constructable>(
+  public static create(
     name: string,
     Type: CustomElementType,
   ): CustomElementDefinition;
   public static create<T extends Constructable = Constructable>(
     nameOrDef: string | PartialCustomElementDefinition,
-    Type?: CustomElementType | null,
-  ): CustomElementDefinition;
-  public static create<T extends Constructable = Constructable>(
+    Type?: CustomElementType<T> | null,
+  ): CustomElementDefinition<T>;
+  public static create(
     nameOrDef: string | PartialCustomElementDefinition,
     Type: CustomElementType | null = null,
   ): CustomElementDefinition {
     if (Type === null) {
       const def = nameOrDef;
-      if (typeof def === 'string') {
+      if (isString(def)) {
         if (__DEV__)
           throw new Error(`Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
         else
@@ -257,14 +260,14 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       }
 
       const name = fromDefinitionOrDefault('name', def, generateElementName);
-      if (typeof (def as CustomElementDefinition).Type === 'function') {
+      if (isFunction((def as CustomElementDefinition).Type)) {
         // This needs to be a clone (it will usually be the compiler calling this signature)
 
         // TODO: we need to make sure it's documented that passing in the type via the definition (while passing in null
         // as the "Type" parameter) effectively skips type analysis, so it should only be used this way for cloning purposes.
-        Type = (def as CustomElementDefinition).Type as CustomElementType;
+        Type = (def as CustomElementDefinition).Type;
       } else {
-        Type = CustomElement.generateType(pascalCase(name)) as CustomElementType;
+        Type = CustomElement.generateType(pascalCase(name));
       }
 
       return new CustomElementDefinition(
@@ -273,13 +276,14 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         mergeArrays(def.aliases),
         fromDefinitionOrDefault('key', def as CustomElementDefinition, () => CustomElement.keyFrom(name)),
         fromDefinitionOrDefault('cache', def, returnZero),
+        fromDefinitionOrDefault('capture', def, returnFalse),
         fromDefinitionOrDefault('template', def, returnNull),
         mergeArrays(def.instructions),
         mergeArrays(def.dependencies),
         fromDefinitionOrDefault('injectable', def, returnNull),
         fromDefinitionOrDefault('needsCompile', def, returnTrue),
         mergeArrays(def.surrogates),
-        Bindable.from(def.bindables),
+        Bindable.from(Type, def.bindables),
         Children.from(def.childrenObservers),
         fromDefinitionOrDefault('containerless', def, returnFalse),
         fromDefinitionOrDefault('isStrictBinding', def, returnFalse),
@@ -287,27 +291,29 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('hasSlots', def, returnFalse),
         fromDefinitionOrDefault('enhance', def, returnFalse),
         fromDefinitionOrDefault('watches', def as CustomElementDefinition, returnEmptyArray),
-        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
       );
     }
 
     // If a type is passed in, we ignore the Type property on the definition if it exists.
     // TODO: document this behavior
 
-    if (typeof nameOrDef === 'string') {
+    if (isString(nameOrDef)) {
       return new CustomElementDefinition(
         Type,
         nameOrDef,
         mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases),
         CustomElement.keyFrom(nameOrDef),
         fromAnnotationOrTypeOrDefault('cache', Type, returnZero),
-        fromAnnotationOrTypeOrDefault('template', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('capture', Type, returnFalse),
+        fromAnnotationOrTypeOrDefault('template', Type, returnNull as () => string | Node | null),
         mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions),
         mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies),
-        fromAnnotationOrTypeOrDefault('injectable', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('injectable', Type, returnNull as () => InjectableToken | null),
         fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue),
         mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates),
         Bindable.from(
+          Type,
           ...Bindable.getAll(Type),
           getElementAnnotation(Type, 'bindables'),
           Type.bindables,
@@ -319,11 +325,11 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         ),
         fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse),
-        fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull as () => { mode: 'open' | 'closed' } | null),
         fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse),
         mergeArrays(Watch.getAnnotation(Type), Type.watches),
-        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull),
+        fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
       );
     }
 
@@ -339,6 +345,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases),
       CustomElement.keyFrom(name),
       fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero),
+      fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull),
       mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions),
       mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies),
@@ -346,6 +353,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue),
       mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates),
       Bindable.from(
+        Type,
         ...Bindable.getAll(Type),
         getElementAnnotation(Type, 'bindables'),
         Type.bindables,
@@ -393,7 +401,9 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type InjectableToken<K = any> = (target: Injectable<K>, property: string, index: number) => void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InternalInjectableToken<K = any> = InjectableToken<K> & {
   register?(container: IContainer): IResolver<K>;
 };
@@ -409,7 +419,7 @@ const defaultForOpts: ForOpts = {
   optional: false,
 };
 const returnZero = () => 0;
-const returnNull = <T>(): T | null | any => null;
+const returnNull = <T>(): T | null => null;
 const returnFalse = () => false;
 const returnTrue = () => true;
 const returnEmptyArray = () => emptyArray;
@@ -433,7 +443,7 @@ export const CustomElement = Object.freeze<CustomElementKind>({
   name: ceBaseName,
   keyFrom: getElementKeyFrom,
   isType<C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never) {
-    return typeof value === 'function' && hasOwnMetadata(ceBaseName, value);
+    return isFunction(value) && hasOwnMetadata(ceBaseName, value);
   },
   for<C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: ForOpts = defaultForOpts): ICustomElementController<C> {
     if (opts.name === void 0 && opts.searchParents !== true) {
@@ -528,13 +538,14 @@ export const CustomElement = Object.freeze<CustomElementKind>({
   getAnnotation: getElementAnnotation,
   generateName: generateElementName,
   createInjectable<K extends Key = Key>(): InjectableToken<K> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const $injectable: InternalInjectableToken<K> = function (target, property, index): any {
       const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
       annotationParamtypes[index] = $injectable;
       return target;
     };
 
-    $injectable.register = function (container) {
+    $injectable.register = function (_container) {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return {
         resolve(container, requestor) {
@@ -607,17 +618,16 @@ export function processContent<TClass>(hook?: ProcessContentHook): CustomElement
 }
 
 function ensureHook<TClass>(target: Constructable<TClass>, hook: string | ProcessContentHook): ProcessContentHook {
-  if (typeof hook === 'string') {
+  if (isString(hook)) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
     hook = (target as any)[hook] as ProcessContentHook;
   }
 
-  const hookType = typeof hook;
-  if (hookType !== 'function') {
+  if (!isFunction(hook)) {
     if (__DEV__)
-      throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
+      throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${typeof hook}.`);
     else
-      throw new Error(`AUR0766:${hookType}`);
+      throw new Error(`AUR0766:${typeof hook}`);
   }
   return hook;
 }

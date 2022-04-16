@@ -41,6 +41,8 @@ import {
   IsValueConverter,
   UnaryOperator,
   ExpressionKind,
+  DestructuringAssignmentSingleExpression as DASE,
+  DestructuringAssignmentExpression as DAE,
 } from './ast.js';
 import { createLookup } from '../utilities-objects.js';
 
@@ -391,12 +393,13 @@ TPrec extends Precedence.Unary ? IsUnary :
                               never : never {
 
   if (expressionType === ExpressionType.IsCustom) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
     return new CustomExpression(state.ip) as any;
   }
 
   if (state.index === 0) {
     if (expressionType & ExpressionType.Interpolation) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
       return parseInterpolation(state) as any;
     }
     nextToken(state);
@@ -412,7 +415,9 @@ TPrec extends Precedence.Unary ? IsUnary :
   let result = void 0 as unknown as IsExpressionOrStatement;
 
   if (state._currentToken & Token.UnaryOp) {
-    /** parseUnaryExpression
+    /**
+     * parseUnaryExpression
+     *
      * https://tc39.github.io/ecma262/#sec-unary-operators
      *
      * UnaryExpression :
@@ -434,7 +439,9 @@ TPrec extends Precedence.Unary ? IsUnary :
     result = new UnaryExpression(op, parse(state, access, Precedence.LeftHandSide, expressionType));
     state._assignable = false;
   } else {
-    /** parsePrimaryExpression
+    /**
+     * parsePrimaryExpression
+     *
      * https://tc39.github.io/ecma262/#sec-primary-expression
      *
      * PrimaryExpression :
@@ -513,7 +520,7 @@ TPrec extends Precedence.Unary ? IsUnary :
         access = Access.Reset;
         break;
       case Token.OpenBracket:
-        result = parseArrayLiteralExpression(state, access, expressionType);
+        result = state.ip.search(/\s+of\s+/) > state.index ? parseArrayDestructuring(state) : parseArrayLiteralExpression(state, access, expressionType);
         access = Access.Reset;
         break;
       case Token.OpenBrace:
@@ -561,15 +568,17 @@ TPrec extends Precedence.Unary ? IsUnary :
     }
 
     if (expressionType & ExpressionType.IsIterator) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
       return parseForOfStatement(state, result as BindingIdentifierOrPattern) as any;
     }
     if (Precedence.LeftHandSide < minPrecedence) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
       return result as any;
     }
 
-    /** parseMemberExpression (Token.Dot, Token.OpenBracket, Token.TemplateContinuation)
+    /**
+     * parseMemberExpression (Token.Dot, Token.OpenBracket, Token.TemplateContinuation)
+     *
      * MemberExpression :
      * 1. PrimaryExpression
      * 2. MemberExpression [ AssignmentExpression ]
@@ -657,17 +666,18 @@ TPrec extends Precedence.Unary ? IsUnary :
           break;
         case Token.TemplateContinuation:
           result = parseTemplate(state, access, expressionType, result as IsLeftHandSide, true);
-        default:
       }
     }
   }
 
   if (Precedence.Binary < minPrecedence) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
     return result as any;
   }
 
-  /** parseBinaryExpression
+  /**
+   * parseBinaryExpression
+   *
    * https://tc39.github.io/ecma262/#sec-multiplicative-operators
    *
    * MultiplicativeExpression : (local precedence 6)
@@ -704,7 +714,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     state._assignable = false;
   }
   if (Precedence.Conditional < minPrecedence) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -727,11 +737,13 @@ TPrec extends Precedence.Unary ? IsUnary :
     state._assignable = false;
   }
   if (Precedence.Assign < minPrecedence) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
     return result as any;
   }
 
-  /** parseAssignmentExpression
+  /**
+   * parseAssignmentExpression
+   *
    * https://tc39.github.io/ecma262/#prod-AssignmentExpression
    * Note: AssignmentExpression here is equivalent to ES Expression because we don't parse the comma operator
    *
@@ -752,11 +764,12 @@ TPrec extends Precedence.Unary ? IsUnary :
     result = new AssignExpression(result as IsAssignable, parse(state, access, Precedence.Assign, expressionType));
   }
   if (Precedence.Variadic < minPrecedence) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
     return result as any;
   }
 
-  /** parseValueConverter
+  /**
+   * parseValueConverter
    */
   while (consumeOpt(state, Token.Bar)) {
     if (state._currentToken === Token.EOF) {
@@ -774,7 +787,8 @@ TPrec extends Precedence.Unary ? IsUnary :
     result = new ValueConverterExpression(result as IsValueConverter, name, args);
   }
 
-  /** parseBindingBehavior
+  /**
+   * parseBindingBehavior
    */
   while (consumeOpt(state, Token.Ampersand)) {
     if (state._currentToken === Token.EOF) {
@@ -793,7 +807,7 @@ TPrec extends Precedence.Unary ? IsUnary :
   }
   if (state._currentToken !== Token.EOF) {
     if (expressionType & ExpressionType.Interpolation) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
       return result as any;
     }
     if (state._tokenRaw === 'of') {
@@ -807,8 +821,54 @@ TPrec extends Precedence.Unary ? IsUnary :
     else
       throw new Error(`AUR0162:${state.ip}`);
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
   return result as any;
+}
+
+/**
+ * [key,]
+ * [key]
+ * [,value]
+ * [key,value]
+ */
+function parseArrayDestructuring(state: ParserState): DAE {
+  const items: DASE[] = [];
+  const dae = new DAE(ExpressionKind.ArrayDestructuring, items, void 0, void 0);
+  let target: string = '';
+  let $continue = true;
+  let index = 0;
+  while ($continue) {
+    nextToken(state);
+    switch (state._currentToken) {
+      case Token.CloseBracket:
+        $continue = false;
+        addItem();
+        break;
+      case Token.Comma:
+        addItem();
+        break;
+      case Token.Identifier:
+        target = state._tokenRaw;
+        break;
+      default:
+        if (__DEV__) {
+          throw new Error(`Unexpected '${state._tokenRaw}' at position ${state.index - 1} for destructuring assignment in ${state.ip}`);
+        } else {
+          throw new Error(`AUR0170:${state.ip}`);
+        }
+    }
+  }
+  consume(state, Token.CloseBracket);
+  return dae;
+
+  function addItem() {
+    if (target !== '') {
+      items.push(new DASE(new AccessMemberExpression($this, target), new AccessKeyedExpression($this, new PrimitiveLiteralExpression(index++)), void 0));
+      target = '';
+    } else {
+      index++;
+    }
+  }
 }
 
 /**

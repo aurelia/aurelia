@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { createLookup } from '../utilities-html.js';
+import { createLookup, isFunction } from '../utilities.js';
 import type { NodeObserverConfig } from './observer-locator.js';
 import type { IDisposable } from '@aurelia/kernel';
 
@@ -63,7 +63,7 @@ class ListenerTracker implements IDisposable {
       if (listener === void 0) {
         continue;
       }
-      if (typeof listener === 'function') {
+      if (isFunction(listener)) {
         listener(event);
       } else {
         listener.handleEvent(event);

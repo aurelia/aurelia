@@ -1,5 +1,5 @@
 import { AccessorType } from '@aurelia/runtime';
-import { createLookup } from '../utilities-html.js';
+import { createLookup } from '../utilities.js';
 
 import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
 
@@ -32,7 +32,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   }
 
   public setValue(newValue: string | null, f: LifecycleFlags, obj: HTMLElement, key: string): void {
-    if (newValue == void 0) {
+    if (newValue == null) {
       obj.removeAttributeNS(this.ns, key);
     } else {
       obj.setAttributeNS(this.ns, key, newValue);

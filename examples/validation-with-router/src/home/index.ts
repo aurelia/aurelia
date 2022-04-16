@@ -1,4 +1,4 @@
-import { IRouter, IRouteViewModel } from '@aurelia/router';
+import { IRouter, IRouteViewModel } from '@aurelia/router-lite';
 import { customElement, IPlatform } from '@aurelia/runtime-html';
 import { IAuthenticationService } from '../services/AuthenticationService';
 import template from './index.html';

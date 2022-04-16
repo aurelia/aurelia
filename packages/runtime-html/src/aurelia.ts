@@ -6,6 +6,7 @@ import { IEventTarget, INode } from './dom.js';
 import { IPlatform } from './platform.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller.js';
+import { isFunction } from './utilities.js';
 
 import type {
   Constructable,
@@ -66,7 +67,7 @@ export class Aurelia implements IDisposable {
     container.registerResolver(IAppRoot, this._rootProvider = new InstanceProvider('IAppRoot'));
   }
 
-  public register(...params: any[]): this {
+  public register(...params: unknown[]): this {
     this.container.register(...params);
     return this;
   }
@@ -79,13 +80,13 @@ export class Aurelia implements IDisposable {
   /**
    * @param parentController - The owning controller of the view created by this enhance call
    */
-  public enhance<T extends unknown, K = T extends Constructable<infer I> ? I : T>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController | null): ICustomElementController<K> | Promise<ICustomElementController<K>> {
+  public enhance<T, K = T extends Constructable<infer I> ? I : T>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController | null): ICustomElementController<K> | Promise<ICustomElementController<K>> {
     const ctn = config.container ?? this.container.createChild();
     const host = config.host as HTMLElement;
     const p = this._initPlatform(host);
-    const comp = config.component as K;
+    const comp = config.component as unknown as K;
     let bc: ICustomElementViewModel & K;
-    if (typeof comp === 'function') {
+    if (isFunction(comp)) {
       ctn.registerResolver(
         p.HTMLElement,
         ctn.registerResolver(

@@ -1,0 +1,44 @@
+<import from="./home/home"></import>
+<import from="./editor/editor"></import>
+<import from="./settings/settings"></import>
+<!-- <import from="./login/login"></import>
+<import from="./register/register"></import> -->
+<import from="./profile/profile"></import>
+
+<nav class="navbar navbar-light">
+  <div class="container">
+    <a class="navbar-brand" load="home">conduit</a>
+    <ul class="nav navbar-nav pull-xs-right">
+      <li class="nav-item">
+        <a class="nav-link" load="home">Home</a>
+      </li>
+      <li class="nav-item" show.bind="$user.isAuth">
+        <a class="nav-link" load="editor"><i class="ion-compose"></i>&nbsp;New Post</a>
+      </li>
+      <li class="nav-item" show.bind="$user.isAuth">
+        <a class="nav-link" load="settings"><i class="ion-gear-a"></i>&nbsp;Settings</a>
+      </li>
+      <li class="nav-item" show.bind="!$user.isAuth">
+        <a class="nav-link" load="login">Sign in</a>
+      </li>
+      <li class="nav-item" show.bind="!$user.isAuth">
+        <a class="nav-link" load="register">Sign up</a>
+      </li>
+      <li class="nav-item" show.bind="$user.isAuth">
+        <a class="nav-link" load="profile(${$user.current.username})">${$user.current.username}</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<au-viewport default="home"></au-viewport>
+
+<footer>
+  <div class="container">
+    <a load="/" class="logo-font">conduit</a>
+    <span class="attribution">
+      An interactive learning project from <a href="https://thinkster.io">Thinkster</a>. Code & design licensed under
+      MIT.
+    </span>
+  </div>
+</footer>

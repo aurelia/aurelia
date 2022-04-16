@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { join, resolve } from 'path';
 import * as Mocha from 'mocha';

@@ -20,7 +20,6 @@ export {
   ExpressionKind,
   CallFunctionExpression,
   CustomExpression,
-  IBindingBehaviorExpression,
   BindingBehaviorExpression,
   ValueConverterExpression,
   AssignExpression,
@@ -62,6 +61,9 @@ export {
   BindingIdentifierOrPattern,
   UnaryOperator,
   IExpressionHydrator,
+  DestructuringAssignmentExpression,
+  DestructuringAssignmentSingleExpression,
+  DestructuringAssignmentRestExpression,
 } from './binding/ast.js';
 export {
   IObserverLocatorBasedConnectable,
@@ -224,4 +226,5 @@ export {
   copyIndexMap,
   cloneIndexMap,
   createIndexMap,
+  ICoercionConfiguration,
 } from './observation.js';

@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-loss-of-precision */
 import {
   AccessKeyedExpression,
   AccessMemberExpression,
   AccessScopeExpression,
   AccessThisExpression,
-  ArrayBindingPattern,
   ArrayLiteralExpression,
   AssignExpression,
   BinaryExpression,
@@ -18,7 +18,6 @@ import {
   ExpressionKind,
   ForOfStatement,
   Interpolation,
-  ObjectBindingPattern,
   ObjectLiteralExpression,
   PrimitiveLiteralExpression,
   TaggedTemplateExpression,
@@ -32,8 +31,13 @@ import {
   parseExpression,
   parse,
   ParserState,
+  DestructuringAssignmentExpression,
+  DestructuringAssignmentSingleExpression,
+  IsBindingBehavior,
 } from '@aurelia/runtime';
-import { assert } from '@aurelia/testing';
+import {
+  assert,
+} from '@aurelia/testing';
 import {
   latin1IdentifierPartChars,
   latin1IdentifierStartChars,
@@ -1230,41 +1234,45 @@ describe('ExpressionParser', function () {
 
   // https://tc39.github.io/ecma262/#sec-runtime-semantics-iteratordestructuringassignmentevaluation
   describe('parse ForOfStatement', function () {
+    const DAE = DestructuringAssignmentExpression;
+    const DASE = DestructuringAssignmentSingleExpression;
+    const AME = AccessMemberExpression;
+    const PLE = PrimitiveLiteralExpression;
+    const AKE = AccessKeyedExpression;
+    const aknd = ExpressionKind.ArrayDestructuring;
+
     const SimpleForDeclarations: [string, any][] = [
       [`a`,           new BindingIdentifier('a')],
-      [`{}`,          new ObjectBindingPattern([], [])],
-      [`[]`,          new ArrayBindingPattern([])],
+      [`[]`,          new DAE(aknd, [], void 0, void 0)],
     ];
 
+    const ame = (name: string) => new AME($this, name);
+    const ake = (key: number) => new AKE($this, new PLE(key));
+    const dase = (s: string | number, t: string | null = null, init: IsBindingBehavior | undefined = void 0) => typeof s === 'number'
+      ? new DASE(ame(t), ake(s), init)
+      : new DASE(ame(t ?? s), ame(s), init);
     const ForDeclarations: [string, any][] = [
-      [`{a}`,         new ObjectBindingPattern(['a'], [$a])],
-      [`{a:a}`,       new ObjectBindingPattern(['a'], [$a])],
-      [`{a,b}`,       new ObjectBindingPattern(['a', 'b'], [$a, $b])],
-      [`{a:a,b}`,     new ObjectBindingPattern(['a', 'b'], [$a, $b])],
-      [`{a,b:b}`,     new ObjectBindingPattern(['a', 'b'], [$a, $b])],
-      [`{a:a,b,c}`,   new ObjectBindingPattern(['a', 'b', 'c'], [$a, $b, $c])],
-      [`{a,b:b,c}`,   new ObjectBindingPattern(['a', 'b', 'c'], [$a, $b, $c])],
-      [`{a,b,c:c}`,   new ObjectBindingPattern(['a', 'b', 'c'], [$a, $b, $c])],
-      [`{a:a,b:b,c}`, new ObjectBindingPattern(['a', 'b', 'c'], [$a, $b, $c])],
-      [`{a:a,b,c:c}`, new ObjectBindingPattern(['a', 'b', 'c'], [$a, $b, $c])],
-      [`{a,b:b,c:c}`, new ObjectBindingPattern(['a', 'b', 'c'], [$a, $b, $c])],
-      [`[,]`,         new ArrayBindingPattern([$undefined])],
-      [`[,,]`,        new ArrayBindingPattern([$undefined, $undefined])],
-      [`[,,,]`,       new ArrayBindingPattern([$undefined, $undefined, $undefined])],
-      [`[a,]`,        new ArrayBindingPattern([$a])],
-      [`[a,,]`,       new ArrayBindingPattern([$a, $undefined])],
-      [`[a,a,]`,      new ArrayBindingPattern([$a, $a])],
-      [`[a,,,]`,      new ArrayBindingPattern([$a, $undefined, $undefined])],
-      [`[a,a,,]`,     new ArrayBindingPattern([$a, $a, $undefined])],
-      [`[,a]`,        new ArrayBindingPattern([$undefined, $a])],
-      [`[,a,]`,       new ArrayBindingPattern([$undefined, $a])],
-      [`[,a,,]`,      new ArrayBindingPattern([$undefined, $a, $undefined])],
-      [`[,a,a,]`,     new ArrayBindingPattern([$undefined, $a, $a])],
-      [`[,,a]`,       new ArrayBindingPattern([$undefined, $undefined, $a])],
-      [`[,a,a]`,      new ArrayBindingPattern([$undefined, $a, $a])],
-      [`[,,a,]`,      new ArrayBindingPattern([$undefined, $undefined, $a])],
-      [`[,,,a]`,      new ArrayBindingPattern([$undefined, $undefined, $undefined, $a])],
-      [`[,,a,a]`,     new ArrayBindingPattern([$undefined, $undefined, $a, $a])]
+      [`[,]`,                            new DAE(aknd, [], void 0, void 0)],
+      [`[,,]`,                           new DAE(aknd, [], void 0, void 0)],
+      [`[,,,]`,                          new DAE(aknd, [], void 0, void 0)],
+      [`[a,]`,                           new DAE(aknd, [dase(0, 'a')], void 0, void 0)],
+      [`[a,,]`,                          new DAE(aknd, [dase(0, 'a')], void 0, void 0)],
+      [`[a,a,]`,                         new DAE(aknd, [dase(0, 'a'), dase(1, 'a')], void 0, void 0)],
+      [`[a,,]`,                          new DAE(aknd, [dase(0, 'a')], void 0, void 0)],
+      [`[a,,,]`,                         new DAE(aknd, [dase(0, 'a')], void 0, void 0)],
+      [`[a,a,,]`,                        new DAE(aknd, [dase(0, 'a'), dase(1, 'a')], void 0, void 0)],
+      [`[,a]`,                           new DAE(aknd, [dase(1, 'a')], void 0, void 0)],
+      [`[,a,]`,                          new DAE(aknd, [dase(1, 'a')], void 0, void 0)],
+      [`[,a,,]`,                         new DAE(aknd, [dase(1, 'a')], void 0, void 0)],
+      [`[,a,a,]`,                        new DAE(aknd, [dase(1, 'a'), dase(2, 'a')], void 0, void 0)],
+      [`[,,a]`,                          new DAE(aknd, [dase(2, 'a')], void 0, void 0)],
+      [`[,a,a]`,                         new DAE(aknd, [dase(1, 'a'), dase(2, 'a')], void 0, void 0)],
+      [`[,,a,]`,                         new DAE(aknd, [dase(2, 'a')], void 0, void 0)],
+      [`[,,,a]`,                         new DAE(aknd, [dase(3, 'a')], void 0, void 0)],
+      [`[,,a,a]`,                        new DAE(aknd, [dase(2, 'a'), dase(3, 'a')], void 0, void 0)],
+      [`[a,b]`,                          new DAE(aknd, [dase(0, 'a'), dase(1, 'b')], void 0, void 0)],
+      [`[key,value]`,                    new DAE(aknd, [dase(0, 'key'), dase(1, 'value')], void 0, void 0)],
+      [`[a,,b]`,                         new DAE(aknd, [dase(0, 'a'), dase(2, 'b')], void 0, void 0)],
     ];
 
     const ForOfStatements: [string, any][] = [

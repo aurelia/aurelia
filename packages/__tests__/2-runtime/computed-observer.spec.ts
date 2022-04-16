@@ -29,6 +29,7 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
     t: string;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ComputedSpec extends Spec {
     isVolatile: boolean;
     isStatic: boolean;
@@ -98,13 +99,11 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
       let evaluated1: unknown;
       let newValue1: unknown;
       let oldValue1: unknown;
-      let flags1: LF;
       const subscriber1 = {
-        handleChange($newValue: unknown, $oldValue: unknown, $flags: LF) {
+        handleChange($newValue: unknown, $oldValue: unknown, _flags: LF) {
           evaluated1 = instance.prop;
           newValue1 = $newValue;
           oldValue1 = $oldValue;
-          flags1 = $flags;
           ++callCount1;
         },
       };
@@ -112,13 +111,12 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
       let evaluated2: unknown;
       let newValue2: unknown;
       let oldValue2: unknown;
-      let flags2: LF;
+      let _flags2: LF;
       const subscriber2 = {
-        handleChange($newValue: unknown, $oldValue: unknown, $flags: LF) {
+        handleChange($newValue: unknown, $oldValue: unknown, _flags: LF) {
           evaluated2 = instance.prop;
           newValue2 = $newValue;
           oldValue2 = $oldValue;
-          flags2 = $flags;
           ++callCount2;
         },
       };
@@ -254,7 +252,7 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
         Array.from(map)
           .sort(this.sortFn)
           .slice()
-          .map(([k, v], i2) => ({ v: JSON.stringify(v), i2 }))
+          .map(([, v], i2) => ({ v: JSON.stringify(v), i2 }))
           .reduce(
             (acc, cur) => {
               acc[cur.i2] = cur.v;
@@ -283,7 +281,7 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
     let newValue1: unknown;
     let oldValue1: unknown;
     const subscriber1 = {
-      handleChange($newValue: unknown, $oldValue: unknown, $flags: LF) {
+      handleChange($newValue: unknown, $oldValue: unknown, _$flags: LF) {
         evaluated1 = parent['getter'];
         newValue1 = $newValue;
         oldValue1 = $oldValue;
@@ -367,10 +365,10 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
       locator,
       true,
     );
-    let handleChangeCallCount = 0;
+    let _handleChangeCallCount = 0;
     observer.subscribe({
       handleChange() {
-        handleChangeCallCount++;
+        _handleChangeCallCount++;
       }
     });
 

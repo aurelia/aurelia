@@ -4,23 +4,16 @@ Handling forms and user input is quite a common task in applications. Whether yo
 
 In Aurelia, the binding system uses `two-way` binding as a default for form elements. Text inputs, text areas and even `contenteditable` elements all use a `two-way` binding.
 
-## Prerequisites
-
-Before working with forms, this guide assumes the following that you should have an understanding of:
-
-* A basic understanding of [templating in Aurelia](../getting-to-know-aurelia/introduction/) and its syntax. Specifically, [property binding](../getting-to-know-aurelia/introduction/property-binding.md) as well as[ two-way binding](../getting-to-know-aurelia/introduction/two-way-binding.md) and [event binding](../getting-to-know-aurelia/introduction/event-binding.md).
-* An understanding of Aurelia fundamentals
-
 ## Data flow in forms
 
-In Aurelia, form elements are reactive and their changes are directly tied to the underlying view model. Updates flow from the view to the view model and updates from the view model flow to the view \(hence, two-way\).
+In Aurelia, form elements are reactive and their changes are directly tied to the underlying view model. Updates flow from the view to the view model and updates from the view model flow to the view (hence, two-way).
 
 To illustrate how `two-way` binding works in forms, let's break down the workflow:
 
 1. The user types a value into the input element, the element is for a first name so they enter _John_.
 2. The native form input events are fired and Aurelia also sees the value has changed.
 3. The binding system sees the new value and notifies the view model to update the value.
-4. Any reference to the bound value will be updated without the need for any callback functions or additional notification steps \(the value just changes\).
+4. Any reference to the bound value will be updated without the need for any callback functions or additional notification steps (the value just changes).
 
 ## Creating a basic form
 
@@ -97,7 +90,7 @@ You can even bind to other attributes on form elements such as the `placeholder`
 
 ### Textarea
 
-A textarea element is just like any other form element. It allows you to bind to its value and by default `value.bind` will be two-way binding \(meaning changes flow from out of the view into the view-model and changes in the view-model flow back to the view\).
+A textarea element is just like any other form element. It allows you to bind to its value and by default `value.bind` will be two-way binding (meaning changes flow from out of the view into the view-model and changes in the view-model flow back to the view).
 
 ```markup
 <form role="form">
@@ -136,7 +129,7 @@ export class App {
 </template>
 ```
 
-[Boolean Demo](https://codesandbox.io/embed/9zvm06x9pp?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Boolean Demo](https://codesandbox.io/embed/9zvm06x9pp?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Array of Numbers
 
@@ -170,7 +163,7 @@ export class App {
 </template>
 ```
 
-[Number Array Demo](https://codesandbox.io/embed/pm0lxx0q2m?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Number Array Demo](https://codesandbox.io/embed/pm0lxx0q2m?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Array of Objects
 
@@ -210,7 +203,7 @@ export class App {
 </template>
 ```
 
-[Object Array Demo](https://codesandbox.io/embed/1qr32k1po3?autoresize=1&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Object Array Demo](https://codesandbox.io/embed/1qr32k1po3?autoresize=1\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Array of Objects with Matcher
 
@@ -258,7 +251,7 @@ export class App {
 </template>
 ```
 
-[Object Array Matcher Demo](https://codesandbox.io/embed/14wj6p05j7?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Object Array Matcher Demo](https://codesandbox.io/embed/14wj6p05j7?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Array of Strings
 
@@ -324,7 +317,7 @@ export class App {
 </template>
 ```
 
-[Number Demo](https://codesandbox.io/embed/mzjz8pyryp?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Number Demo](https://codesandbox.io/embed/mzjz8pyryp?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Objects
 
@@ -357,7 +350,7 @@ export class App {
 </template>
 ```
 
-[Object Demo](https://codesandbox.io/embed/mqy966y08p?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Object Demo](https://codesandbox.io/embed/mqy966y08p?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Objects with Matcher
 
@@ -402,7 +395,7 @@ export class App {
 </template>
 ```
 
-[Object Matcher Demo](https://codesandbox.io/embed/1ok5l0z29j?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Object Matcher Demo](https://codesandbox.io/embed/1ok5l0z29j?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Booleans
 
@@ -439,7 +432,7 @@ export class App {
 </template>
 ```
 
-[Boolean Demo](https://codesandbox.io/embed/qzyly2kxy4?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Boolean Demo](https://codesandbox.io/embed/qzyly2kxy4?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Strings
 
@@ -467,7 +460,7 @@ export class App {
 </template>
 ```
 
-[String Demo](https://codesandbox.io/embed/52nwnv7vpp?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[String Demo](https://codesandbox.io/embed/52nwnv7vpp?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ## Binding with select elements
 
@@ -476,11 +469,11 @@ A `<select>` element can serve as a single-select or multiple-select "picker" de
 1. Add a `<select>` element to the template and decide whether the `multiple` attribute should be applied.
 2. Bind the select element's `value` attribute to a property. In "multiple" mode, the property should be an array. In singular mode it can be any type.
 3. Define the select element's `<option>` elements. You can use the `repeat` or add each option element manually.
-4. Specify each option's value via the `model` property:
+4.  Specify each option's value via the `model` property:
 
-   `<option model.bind="product.id">${product.name}</option>`
+    `<option model.bind="product.id">${product.name}</option>`
 
-   _You can use the standard `value` attribute instead of `model`, just remember- it will coerce anything it's assigned to a string._
+    _You can use the standard `value` attribute instead of `model`, just remember- it will coerce anything it's assigned to a string._
 
 ### Select Number
 
@@ -512,7 +505,7 @@ export class App {
 </template>
 ```
 
-[Select Number Demo](https://codesandbox.io/embed/5j0zxp7rk?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Select Number Demo](https://codesandbox.io/embed/5j0zxp7rk?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Select Object
 
@@ -545,7 +538,7 @@ export class App {
 </template>
 ```
 
-[Select Object Demo](https://codesandbox.io/embed/j20q48yp3?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Select Object Demo](https://codesandbox.io/embed/j20q48yp3?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Select Object with Matcher
 
@@ -582,7 +575,7 @@ export class App {
 </template>
 ```
 
-[Select Object Matcher Demo](https://codesandbox.io/embed/nk5m6216xl?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Select Object Matcher Demo](https://codesandbox.io/embed/nk5m6216xl?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Select Boolean
 
@@ -606,7 +599,7 @@ export class App {
 </template>
 ```
 
-[Select Boolean Demo](https://codesandbox.io/embed/zz2o6259wl?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Select Boolean Demo](https://codesandbox.io/embed/zz2o6259wl?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Select String
 
@@ -633,7 +626,7 @@ export class App {
 </template>
 ```
 
-[Select String Demo](https://codesandbox.io/embed/o8o7yozoz?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Select String Demo](https://codesandbox.io/embed/o8o7yozoz?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Multiple Select Numbers
 
@@ -664,7 +657,7 @@ export class App {
 </template>
 ```
 
-[Select Multiple Numbers Demo](https://codesandbox.io/embed/88xzwon19?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Select Multiple Numbers Demo](https://codesandbox.io/embed/88xzwon19?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Multiple Select Objects
 
@@ -699,7 +692,7 @@ export class App {
 </template>
 ```
 
-[Select Multiple Objects Demo](https://codesandbox.io/embed/o10mn3p0qq?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Select Multiple Objects Demo](https://codesandbox.io/embed/o10mn3p0qq?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ### Multiple Select Strings
 
@@ -725,7 +718,7 @@ export class App {
 </template>
 ```
 
-[Select Multiple Strings Demo](https://codesandbox.io/embed/yvr7p888q9?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+[Select Multiple Strings Demo](https://codesandbox.io/embed/yvr7p888q9?autoresize=1\&fontsize=18\&hidenavigation=1\&module=%2Fsrc%2Fapp.html\&view=preview)
 
 ## Form Submission
 
@@ -760,7 +753,7 @@ class MyApp {
 
 Validation is an important part of creating good forms. Aurelia provides a robust validation plugin that allows you to validate forms, create custom validation rules and configure every facet of validation in your Aurelia applications.
 
-{% page-ref page="validation/" %}
-
-
+{% content-ref url="validation/" %}
+[validation](validation/)
+{% endcontent-ref %}
 

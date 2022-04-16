@@ -1,4 +1,4 @@
-import { RouterConfiguration } from '@aurelia/router';
+import { RouterConfiguration } from '@aurelia/router-lite';
 import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
 import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
 import { AppRootCustomElement as component } from './app-root';

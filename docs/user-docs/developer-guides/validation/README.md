@@ -13,67 +13,76 @@ This guide explains how to validate the user input for your app using the valida
 
 > Note If you have already used the `aurelia-validation` plugin previously and are migrating your existing Aurelia app to Aurelia vNext then [jump straight to the migration guide](migration-guide.md).
 
-* Install the plugin using:
+### Install and register the plugin
 
-  ```bash
-  npm i @aurelia/validation @aurelia/validation-html
-  ```
+You just need to install two packages to use Aurelia validation. The core validation plugin `@aurelia/validation` and an adapter. Currently, there is only one adapter available `@aurelia/validation-html` which is for validating HTML-based applications.
 
-* Register the plugin in your app with:
+#### Installation
 
-  ```typescript
-  import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
-  import Aurelia from 'aurelia';
+```bash
+npm i @aurelia/validation @aurelia/validation-html
+```
 
-  Aurelia
-    .register(ValidationHtmlConfiguration)
-    .app(component)
-    .start();
-  ```
+#### Register
 
-* Inject the infra to your view-model and define rules, and use `validate` binding behavior in your markup.
+```typescript
+import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
+import Aurelia from 'aurelia';
 
-  ```typescript
-  import { newInstanceForScope } from '@aurelia/kernel';
-  import { IValidationRules } from '@aurelia/validation';
-  import { IValidationController } from '@aurelia/validation-html';
+Aurelia
+  .register(ValidationHtmlConfiguration)
+  .app(component)
+  .start();
+```
 
-  export class AwesomeComponent {
-    private person: Person; // Let us assume that we want to validate instance of Person class
-    public constructor(
-      @newInstanceForScope(IValidationController) private validationController: IValidationController,
-      @IValidationRules validationRules: IValidationRules
-    ) {
-      this.person = new Person();
+### Quick rundown
 
-      validationRules
-        .on(this.person)
-        .ensure('name')
-          .required()
-        .ensure('age')
-          .required()
-          .min(42);
-    }
+To use the validation plugin, all you have to do is inject the validation controller as well as the validation rules object to register validation rules.
 
-    public async submit() {
-      const result = await this.validationController.validate();
-      if(result.valid) {
-        // Yay!! make that fetch now
-      }
+```typescript
+import { newInstanceForScope } from '@aurelia/kernel';
+import { IValidationRules } from '@aurelia/validation';
+import { IValidationController } from '@aurelia/validation-html';
+
+export class AwesomeComponent {
+  private person: Person; // Let us assume that we want to validate instance of Person class
+  public constructor(
+    @newInstanceForScope(IValidationController) private validationController: IValidationController,
+    @IValidationRules validationRules: IValidationRules
+  ) {
+    this.person = new Person();
+
+    validationRules
+      .on(this.person)
+      .ensure('name')
+        .required()
+      .ensure('age')
+        .required()
+        .min(42);
+  }
+
+  public async submit() {
+    const result = await this.validationController.validate();
+    if(result.valid) {
+      // Yay!! make that fetch now
     }
   }
-  ```
+}
+```
 
-  ```markup
-  <form submit.delegate="submit()">
-    <input value.bind="person.name & validate">
-    <input value.bind="person.age & validate">
-  </form>
-  ```
+Inside of our HTML, we use the `validate` binding behavior to signal to Aurelia that we want to validate these bindings. You might notice that both `name` and `age` appear in our view-model above where we set some rules up.
 
-  > `@newInstanceForScope(IValidationController)` injects a new instance of validation controller which is made available to the children of `awesome-component`. More on validation controller [later](validation-controller.md).
+```markup
+<form submit.delegate="submit()">
+  <input value.bind="person.name & validate">
+  <input value.bind="person.age & validate">
+</form>
+```
 
-Here is one similar playable demo, if you want to explore on your own!
+> `@newInstanceForScope(IValidationController)` injects a new instance of validation controller which is made available to the children of `awesome-component`. More on validation controller [later](validation-controller.md).
 
-{% embed url="https://stackblitz.com/edit/au2-validation-required" caption="" %}
+### Demo
 
+If you want to see the validation plugin in action, a playable demo can be seen below. You can try adding in new properties and playing around with the code to learn how to use the validation plugin.
+
+{% embed url="https://stackblitz.com/edit/au2-validation-required" %}

@@ -1,6 +1,6 @@
 import { DI, Registration } from '@aurelia/kernel';
 import { IPlatform } from '../platform.js';
-import { createLookup } from '../utilities-html.js';
+import { createLookup } from '../utilities.js';
 
 import type { IContainer, IResolver } from '@aurelia/kernel';
 import type { INode } from '../dom.js';
@@ -9,7 +9,7 @@ export interface ISVGAnalyzer extends NoopSVGAnalyzer {}
 export const ISVGAnalyzer = DI.createInterface<ISVGAnalyzer>('ISVGAnalyzer', x => x.singleton(NoopSVGAnalyzer));
 
 export class NoopSVGAnalyzer {
-  public isStandardSvgAttribute(node: INode, attributeName: string): boolean {
+  public isStandardSvgAttribute(_node: INode, _attributeName: string): boolean {
     return false;
   }
 }

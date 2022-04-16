@@ -8,7 +8,7 @@ import {
 } from '@aurelia/kernel';
 import { Collection, IndexMap, LifecycleFlags } from './observation.js';
 import { registerAliases } from './alias.js';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from './utilities-objects.js';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata, isFunction, isString } from './utilities-objects.js';
 
 import type {
   Constructable,
@@ -20,7 +20,7 @@ import type {
   Key,
 } from '@aurelia/kernel';
 import type { BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
-import type { BindingBehaviorExpression, ForOfStatement, IBindingBehaviorExpression, IsBindingBehavior } from './binding/ast.js';
+import type { BindingBehaviorExpression, ForOfStatement, IsBindingBehavior } from './binding/ast.js';
 import type { IObserverLocator } from './observation/observer-locator.js';
 import type { IBinding } from './observation.js';
 import type { Scope } from './observation/binding-context.js';
@@ -77,7 +77,7 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
 
     let name: string;
     let def: PartialBindingBehaviorDefinition;
-    if (typeof nameOrDef === 'string') {
+    if (isString(nameOrDef)) {
       name = nameOrDef;
       def = { name };
     } else {
@@ -174,7 +174,7 @@ export class BindingInterceptor implements IInterceptableBinding {
 
   public constructor(
     public readonly binding: IInterceptableBinding,
-    public readonly expr: IBindingBehaviorExpression,
+    public readonly expr: BindingBehaviorExpression,
   ) {
     let interceptor: IBinding;
     while (binding.interceptor !== this) {
@@ -226,7 +226,7 @@ export const BindingBehavior = Object.freeze<BindingBehaviorKind>({
     return `${bbBaseName}:${name}`;
   },
   isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never) {
-    return typeof value === 'function' && hasOwnMetadata(bbBaseName, value);
+    return isFunction(value) && hasOwnMetadata(bbBaseName, value);
   },
   define<T extends Constructable<BindingBehaviorInstance>>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
     const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable<BindingBehaviorInstance>);

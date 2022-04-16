@@ -17,14 +17,14 @@ A simple dashboard application using dynamic composition to render a dynamic das
 The dashboard will be comprised of a handful of different widgets and by leveraging a configuration-based approach, you learn how you can use the `<au-compose>` element to achieve this.
 
 {% hint style="success" %}
-**Try before you buy?** See a working example of the app you will be building [here](https://jovial-ritchie-56d617.netlify.app/).
+**Try before you buy?** See a working example of the app you will be building [here](https://jovial-ritchie-56d617.netlify.app).
 {% endhint %}
 
 ## Prerequisites
 
 Before going any further, you should be familiar with some basic Aurelia concepts as well as some fundamental Javascript ones as well. While these are not hard prerequisites, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
-* You have familiarized yourself with the [Aurelia template syntax](../getting-to-know-aurelia/introduction/).
+* You have familiarized yourself with the [Aurelia template syntax](broken-reference).
 * You have familiarized yourself with [components in Aurelia](../getting-to-know-aurelia/components/).
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 
@@ -49,7 +49,7 @@ Like all good projects, they should be well-planned and thought out. Let's deter
 * Blocks do not share their state, they are responsible for themselves only
 * Blocks will be components rendered using the `<au-compose>` element
 * The blocks we want are; a date component, a notes component for taking notes, a dog widget for displaying a random dog image, a GeoIP component that displays your IP address and estimated region data, and finally a USD exchange rate component.
-* No CSS frameworks or external dependencies should be used \(just CSS\)
+* No CSS frameworks or external dependencies should be used (just CSS)
 
 ## Before we begin
 
@@ -58,9 +58,9 @@ We will be creating some folders inside of the generated `src` directory where o
 Create the following directories inside of the `src` directory.
 
 * `components` — this is where all of our dashboard components will reside.
-* `services` — this is where all of our service singletons will live \(logic for interacting with services\)
+* `services` — this is where all of our service singletons will live (logic for interacting with services)
 
-## Component \#1 - Date component
+## Component #1 - Date component
 
 The first component we will be creating for our dashboard is a date component. It does one thing, it displays the current date. This will be a nice gentle introduction to creating components.
 
@@ -76,7 +76,7 @@ export class DateComponent {
 
 Seriously, that's all this component is going to do. Now, we need a view for this. Unlike other components, we are not even going to create a separate view file. We can specify an inline template for our view.
 
-We will import the `customElement` decorator and then decorate our component class. We have to specify the name \(the HTML tag\) and the template takes a template string. Take note of the backslash `\` this is being used to escape our interpolation as we only want Aurelia interpreting this, not Javascript.
+We will import the `customElement` decorator and then decorate our component class. We have to specify the name (the HTML tag) and the template takes a template string. Take note of the backslash `\` this is being used to escape our interpolation as we only want Aurelia interpreting this, not Javascript.
 
 ```typescript
 import { customElement } from 'aurelia';
@@ -90,7 +90,7 @@ export class DateComponent {
 }
 ```
 
-## Component \#2 - Dog component
+## Component #2 - Dog component
 
 In this component, we will be interacting with the public random dogs API to get an image of a random dog and display it. We will be making a request using the Fetch Client as well as binding to the returned image.
 
@@ -115,7 +115,7 @@ export class DogComponent {
 
 Inside of the `fetchDog` method we are doing the following:
 
-* Making a request using the Aurelia Fetch Client \(which wraps native Fetch\) to the random dog API
+* Making a request using the Aurelia Fetch Client (which wraps native Fetch) to the random dog API
 * Because we are working with the promise controller, we handle returning the JSON on success or throwing an error if there was a failure
 * By adding return to the fetch call and subsequent resolution, we either return JSON or an error
 
@@ -256,7 +256,7 @@ export class MyApp {
 
 * We import the two components we have created so far
 * We create a new class property called `components` which is an array of our imported components
-* We use an array because it allows us to change the order of components being displayed as well as remove any we don't want to show \(it becomes modular\)
+* We use an array because it allows us to change the order of components being displayed as well as remove any we don't want to show (it becomes modular)
 
 The missing piece is now adding in the actual dynamic composition to our view. Open `my-app.html` and add in the following:
 
@@ -269,20 +269,20 @@ The missing piece is now adding in the actual dynamic composition to our view. O
 ```
 
 * We add in a div with a class of container which will hold our components
-* We loop over our components using `repeat.for` we do this on a `<template` element so we don't introduce any additional elements to the DOM \(template elements don't get shown in the browser\)
+* We loop over our components using `repeat.for` we do this on a `<template` element so we don't introduce any additional elements to the DOM (template elements don't get shown in the browser)
 * Our `repeat.for` is the equivalent of `for (let component of components)` in Javascript
 * We use the `<au-compose>` element and pass in the instance to `view-model` which will then render the component
 * On `<au-compose>` we also use the `containerless` attribute which will remove any `<au-compose>` element in the DOM and only leave us with the custom element itself
 
 If you were to run this app using `npm start` you would see something like this so far:
 
-![](../.gitbook/assets/image%20%282%29.png)
+![](<../.gitbook/assets/image (2) (1).png>)
 
-## Component \#3 - GeoIP component
+## Component #3 - GeoIP component
 
-For our third component, we are going to leverage the GeoIP API to create a component that displays information about the current user. Their IP address, approximate location and other details \(only you can see your own details\).
+For our third component, we are going to leverage the GeoIP API to create a component that displays information about the current user. Their IP address, approximate location and other details (only you can see your own details).
 
-Some of this code will look familiar to you, we worked with the Aurelia Fetch Client to build our dog component \(component \#2\), we'll be using the promise controller for this again as well because it makes working with promises in Aurelia cleaner.
+Some of this code will look familiar to you, we worked with the Aurelia Fetch Client to build our dog component (component #2), we'll be using the promise controller for this again as well because it makes working with promises in Aurelia cleaner.
 
 Create a new file called `geoip-component.ts` inside of the `src/components` directory in your application and populate it with the following:
 
@@ -333,7 +333,7 @@ geoip-component {
 }
 ```
 
-Now, import the geoip component inside of `my-app.ts` adding it to our array of components. Your file should look like this \(unless you switched up the order\).
+Now, import the geoip component inside of `my-app.ts` adding it to our array of components. Your file should look like this (unless you switched up the order).
 
 ```typescript
 import { GeoipComponent } from './components/geoip-component';
@@ -349,7 +349,7 @@ export class MyApp {
 }
 ```
 
-## Component \#4 - Notes component
+## Component #4 - Notes component
 
 Our fourth component will be a note-taking component. It will show a simple list of notes, allow us to delete them and most importantly: allow us to add new notes. This component will not require communicating with a third-party API.
 
@@ -376,9 +376,9 @@ export class NotesComponent {
 ```
 
 * First, we create a class property called `notes` which is an array of strings. These strings are our notes.
-* The class property called `note` is where our in progress notes are stored \(bound to a textarea\)
+* The class property called `note` is where our in progress notes are stored (bound to a textarea)
 * The `addNote` method puts the value of `note` bound to our textarea into our array, using `unshift` to push it to the beginning
-* We can then set the `note` value to be an empty string \(you will see the textarea empty\)
+* We can then set the `note` value to be an empty string (you will see the textarea empty)
 * The `remoteNote` method takes a numeric index of a note
 * Using `splice` on the notes array, we delete our not based on its index value
 
@@ -441,7 +441,7 @@ export class MyApp {
 }
 ```
 
-## Component \#5 - USD exchange rate component
+## Component #5 - USD exchange rate component
 
 The final component in our extravagant dashboard is an exchange rate component that displays what one US dollar will get you in other countries.
 
@@ -464,7 +464,7 @@ export class ExchangeComponent {
 }
 ```
 
-Like component 4 and component 2, the code is basically the same \(the method name is different and the endpoint is different, but that's it\).
+Like component 4 and component 2, the code is basically the same (the method name is different and the endpoint is different, but that's it).
 
 Now, we create the view for our component `exchange-component.html`
 
@@ -486,7 +486,7 @@ Now, we create the view for our component `exchange-component.html`
 </div>
 ```
 
-Like the other promise based examples before this one \(component 4 and component 2\) we use the promise controller syntax. Inside of `then.from-view` we assign the response to a variable called `data` and then we can access the properties. In our case, we are accessing exchange rates.
+Like the other promise based examples before this one (component 4 and component 2) we use the promise controller syntax. Inside of `then.from-view` we assign the response to a variable called `data` and then we can access the properties. In our case, we are accessing exchange rates.
 
 Now, let's create the accompanying CSS file for our component of the same name, `exchange-component.css`
 
@@ -518,13 +518,13 @@ export class MyApp {
 
 ## Running the app
 
-We now have a functional and styled dashboard. By running `npm start` in the application directory, you should see your application running. Here is what it should look like \(will differ depending on screen sizes\).
+We now have a functional and styled dashboard. By running `npm start` in the application directory, you should see your application running. Here is what it should look like (will differ depending on screen sizes).
 
-![](../.gitbook/assets/image%20%281%29.png)
+![](<../.gitbook/assets/image (1).png>)
 
 It's not the prettiest app in the world, but we have a functional application.
 
-## Refactoring \(optional\)
+## Refactoring (optional)
 
 We have a working app, we are both happy. But, we have a lot of duplication in our code, especially when it comes to making requests to APIs. Now, we are going to be tweaking our code to make it even smaller and more testable.
 
@@ -571,7 +571,7 @@ Inside of `dog-component.html` replace the existing `promise.bind` with this one
 promise.bind="api.fetchData('https://random.dog/woof.json', 'Unable to fetch doggo :(')"
 ```
 
-Because our API is injected into the view model, it becomes available to the view. We can directly call the new `fetchData` method with the URL and custom error message \(if we want to provide one\).
+Because our API is injected into the view model, it becomes available to the view. We can directly call the new `fetchData` method with the URL and custom error message (if we want to provide one).
 
 We do the same for `exchange-component.ts` refactoring to:
 
@@ -591,7 +591,7 @@ Once more, inside of `exchange-component.html` we replace the existing `promise.
 promise.bind="api.fetchData('https://api.exchangerate-api.com/v4/latest/USD')"
 ```
 
-Last, but not least, we need to refactor `geoip-component.ts` as well \(hey, you're really good at this\):
+Last, but not least, we need to refactor `geoip-component.ts` as well (hey, you're really good at this):
 
 ```typescript
 import { Api } from '../services/api';
@@ -605,9 +605,8 @@ export class GeoipComponent {
 
 Inside of `geoip-component.html` replace the existing `promise.bind` with this one:
 
-```text
+```
 promise.bind="api.fetchData('https://freegeoip.app/json/')"
 ```
 
 That's it. You've just built and lightly refactored an extensive Aurelia 2 application. Well done.
-

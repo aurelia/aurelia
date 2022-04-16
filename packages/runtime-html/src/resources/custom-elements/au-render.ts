@@ -8,6 +8,7 @@ import { CustomElement, customElement, CustomElementDefinition } from '../custom
 import { bindable } from '../../bindable.js';
 import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, IHydrationContext, ISyntheticView } from '../../templating/controller.js';
 import { IRendering } from '../../templating/rendering.js';
+import { isString } from '../../utilities.js';
 
 export type Subject = string | IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;
@@ -24,8 +25,8 @@ function toLookup(
   return acc;
 }
 
-@customElement({ name: 'au-render', template: null, containerless: true })
 export class AuRender implements ICustomElementViewModel {
+  /** @internal */ protected static inject = [IPlatform, IInstruction, IHydrationContext, IRendering];
   public readonly id: number = nextId('au$component');
 
   @bindable
@@ -36,21 +37,19 @@ export class AuRender implements ICustomElementViewModel {
 
   public view?: ISyntheticView = void 0;
 
-  private readonly _properties: Record<string, IInstruction>;
-  private readonly _hdrContext: IHydrationContext;
+  /** @internal */ private readonly _properties: Record<string, IInstruction>;
 
-  private lastSubject?: MaybeSubjectPromise = void 0;
+  /** @internal */ private _lastSubject?: MaybeSubjectPromise = void 0;
 
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
   public constructor(
-    @IPlatform private readonly p: IPlatform,
-    @IInstruction instruction: HydrateElementInstruction,
-    @IHydrationContext hdrContext: IHydrationContext,
-    @IRendering private readonly r: IRendering,
+    /** @internal */ private readonly _platform: IPlatform,
+    /** @internal */ private readonly _instruction: HydrateElementInstruction,
+    /** @internal */ private readonly _hdrContext: IHydrationContext,
+    /** @internal */ private readonly _rendering: IRendering,
   ) {
-    this._properties = instruction.props.reduce(toLookup, {});
-    this._hdrContext = hdrContext;
+    this._properties = _instruction.props.reduce(toLookup, {});
   }
 
   public attaching(
@@ -59,8 +58,8 @@ export class AuRender implements ICustomElementViewModel {
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { component, view } = this;
-    if (view === void 0 || this.lastSubject !== component) {
-      this.lastSubject = component;
+    if (view === void 0 || this._lastSubject !== component) {
+      this._lastSubject = component;
       this.composing = true;
 
       return this.compose(void 0, component, initiator, flags);
@@ -86,11 +85,11 @@ export class AuRender implements ICustomElementViewModel {
     if (!$controller.isActive) {
       return;
     }
-    if (this.lastSubject === newValue) {
+    if (this._lastSubject === newValue) {
       return;
     }
 
-    this.lastSubject = newValue;
+    this._lastSubject = newValue;
     this.composing = true;
 
     flags |= $controller.flags;
@@ -118,6 +117,7 @@ export class AuRender implements ICustomElementViewModel {
     );
   }
 
+  /** @internal */
   private _deactivate(
     view: ISyntheticView | undefined,
     initiator: IHydratedController | null,
@@ -126,6 +126,7 @@ export class AuRender implements ICustomElementViewModel {
     return view?.deactivate(initiator ?? view, this.$controller, flags);
   }
 
+  /** @internal */
   private _activate(
     view: ISyntheticView | undefined,
     initiator: IHydratedController | null,
@@ -140,6 +141,7 @@ export class AuRender implements ICustomElementViewModel {
     );
   }
 
+  /** @internal */
   private _resolveView(subject: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
     const view = this._provideViewFor(subject, flags);
 
@@ -152,7 +154,8 @@ export class AuRender implements ICustomElementViewModel {
     return void 0;
   }
 
-  private _provideViewFor(comp: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
+  /** @internal */
+  private _provideViewFor(comp: Subject | undefined, _flags: LifecycleFlags): ISyntheticView | undefined {
     if (!comp) {
       return void 0;
     }
@@ -172,11 +175,11 @@ export class AuRender implements ICustomElementViewModel {
       }
 
       if ('template' in comp) { // Raw Template Definition
-        return this.r.getViewFactory(CustomElementDefinition.getOrCreate(comp), ctxContainer).create();
+        return this._rendering.getViewFactory(CustomElementDefinition.getOrCreate(comp), ctxContainer).create();
       }
     }
 
-    if (typeof comp === 'string') {
+    if (isString(comp)) {
       const def = ctxContainer.find(CustomElement, comp);
       if (def == null) {
         if (__DEV__)
@@ -189,7 +192,7 @@ export class AuRender implements ICustomElementViewModel {
 
     // Constructable (Custom Element Constructor)
     return createElement(
-      this.p,
+      this._platform,
       comp,
       this._properties,
       this.$controller.host.childNodes,
@@ -207,6 +210,8 @@ export class AuRender implements ICustomElementViewModel {
     }
   }
 }
+
+customElement({ name: 'au-render', template: null, containerless: true, capture: true })(AuRender);
 
 function isController(subject: Exclude<Subject, string>): subject is ISyntheticView {
   return 'lockScope' in subject;

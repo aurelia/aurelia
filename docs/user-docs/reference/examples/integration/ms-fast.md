@@ -2,9 +2,13 @@
 
 If the example doesn't seem obvious, the following prerequisite reads are recommended:
 
-* [extending templating syntax](https://docs.aurelia.io/app-basics/extending-templating-syntax)
+{% content-ref url="../../../developer-guides/scenarios/extending-templating-syntax.md" %}
+[extending-templating-syntax.md](../../../developer-guides/scenarios/extending-templating-syntax.md)
+{% endcontent-ref %}
 
-The following is a code example of how to teach Aurelia to work seamlessly with [Microsoft FAST](https://www.fast.design/):
+* [extending templating syntax](../../../developer-guides/scenarios/extending-templating-syntax.md)
+
+The following is a code example of how to teach Aurelia to work seamlessly with [Microsoft FAST](https://www.fast.design):
 
 ```typescript
 import { AppTask, IContainer, IAttrMapper, NodeObserverLocator } from 'aurelia';
@@ -62,4 +66,3 @@ Aurelia.register(AppTask.beforeCreate(IContainer, container => {
   });
 }))
 ```
-

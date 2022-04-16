@@ -5,6 +5,7 @@ import { Watch } from '../watch.js';
 import { getRef } from '../dom.js';
 import { DefinitionType } from './resources-shared.js';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
+import { isFunction, isString } from '../utilities.js';
 
 import type {
   Constructable,
@@ -84,7 +85,7 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
 export function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
   return function (target) {
     return CustomAttribute.define(
-      typeof nameOrDef === 'string'
+      isString(nameOrDef)
         ? { isTemplateController: true, name: nameOrDef }
         : { isTemplateController: true, ...nameOrDef },
       target
@@ -114,7 +115,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
   ): CustomAttributeDefinition<T> {
     let name: string;
     let def: PartialCustomAttributeDefinition;
-    if (typeof nameOrDef === 'string') {
+    if (isString(nameOrDef)) {
       name = nameOrDef;
       def = { name };
     } else {
@@ -129,7 +130,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       CustomAttribute.keyFrom(name),
       firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView),
       firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
-      Bindable.from(...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
+      Bindable.from(Type, ...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
       mergeArrays(Watch.getAnnotation(Type), Type.watches),
     );
@@ -154,7 +155,7 @@ export const CustomAttribute = Object.freeze<CustomAttributeKind>({
   name: caBaseName,
   keyFrom: getAttributeKeyFrom,
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never) {
-    return typeof value === 'function' && hasOwnMetadata(caBaseName, value);
+    return isFunction(value) && hasOwnMetadata(caBaseName, value);
   },
   for<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(node: Node, name: string): ICustomAttributeController<C> | undefined {
     return (getRef(node, getAttributeKeyFrom(name)) ?? void 0) as ICustomAttributeController<C> | undefined;

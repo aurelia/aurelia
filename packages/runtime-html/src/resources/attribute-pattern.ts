@@ -66,7 +66,7 @@ export class CharSpec implements ICharSpec {
     return this.chars === char;
   }
 
-  private _hasOfNone(char: string): boolean {
+  private _hasOfNone(_char: string): boolean {
     return false;
   }
 
@@ -78,7 +78,7 @@ export class CharSpec implements ICharSpec {
     return this.chars !== char;
   }
 
-  private _hasOfNoneInverse(char: string): boolean {
+  private _hasOfNoneInverse(_char: string): boolean {
     return true;
   }
 }
@@ -442,8 +442,7 @@ export class AttributeParser {
   /** @internal */
   protected static inject = [ISyntaxInterpreter, all(IAttributePattern)];
 
-  /** @internal */
-  private readonly _cache: Record<string, Interpretation> = {};
+  /** @internal */ private readonly _cache: Record<string, Interpretation> = {};
   /**
    * A 2 level record with the same key on both levels.
    * Just a trick to maintain `this` + have simple lookup + support multi patterns per class definition
@@ -451,8 +450,7 @@ export class AttributeParser {
    * @internal
    */
   private readonly _patterns: Record<string, IAttributePattern>;
-  /** @internal */
-  private readonly _interpreter: ISyntaxInterpreter;
+  /** @internal */ private readonly _interpreter: ISyntaxInterpreter;
 
   public constructor(
     interpreter: ISyntaxInterpreter,
@@ -466,7 +464,7 @@ export class AttributeParser {
         patternDefs.forEach(def => patterns[def.pattern] = attrPattern);
         return allDefs.concat(patternDefs);
       },
-      emptyArray
+      emptyArray as AttributePatternDefinition[]
     );
     interpreter.add(allDefs);
   }
@@ -558,7 +556,7 @@ export class DotSeparatedAttributePattern {
   { pattern: 'PART.ref', symbols: '.' }
 )
 export class RefAttributePattern {
-  public 'ref'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public 'ref'(rawName: string, rawValue: string, _parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, 'element', 'ref');
   }
 
@@ -578,5 +576,12 @@ export class ColonPrefixedBindAttributePattern {
 export class AtPrefixedTriggerAttributePattern {
   public '@PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
+  }
+}
+
+@attributePattern({ pattern: '...$attrs', symbols: '' })
+export class SpreadAttributePattern {
+  public '...$attrs'(rawName: string, rawValue: string, _parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, '', '...$attrs');
   }
 }

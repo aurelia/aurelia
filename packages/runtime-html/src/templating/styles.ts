@@ -21,6 +21,7 @@ export class CSSModulesProcessorRegistry implements IRegistry {
     const ClassCustomAttribute = CustomAttribute.define({
       name: 'class',
       bindables: ['value'],
+      noMultiBindings: true,
     }, class CustomAttributeClass {
       public static inject: unknown[] = [INode];
 

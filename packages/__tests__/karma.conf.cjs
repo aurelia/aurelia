@@ -36,6 +36,7 @@ const testDirs = [
 
 const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html --bail --reporter=mocha'.split(' ');
 const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
+const hasSingleRun = process.argv.slice(2).includes('--single-run');
 
 const packageNames = [
   'fetch-client',
@@ -56,7 +57,8 @@ const packageNames = [
   'validation-i18n',
 ];
 
-module.exports = function (config) {
+module.exports =
+/** @param {import('karma').Config} config */ function (config) {
   let browsers;
   if (process.env.BROWSERS) {
     browsers = [process.env.BROWSERS];
@@ -125,7 +127,7 @@ module.exports = function (config) {
 
   const preprocessors = files.reduce((p, file) => {
     // Only process .js files (not .js.map or .ts files)
-    if (/\.js$/.test(file.pattern)) {
+    if (file.pattern.endsWith(".js")) {
       // Only instrument core framework files (not the specs themselves, nor any test utils (for now))
       if (/__tests__|testing|node_modules/.test(file.pattern) || !config.coverage) {
         p[file.pattern] = ['aurelia'];
@@ -136,6 +138,7 @@ module.exports = function (config) {
     return p;
   }, {});
 
+  /** @type {import('karma').ConfigOptions} */
   const options = {
     basePath,
     browserDisconnectTimeout: 10000,
@@ -148,7 +151,10 @@ module.exports = function (config) {
     mime: {
       'text/x-typescript': ['ts']
     },
-    reporters: [config.reporter || (process.env.CI ? 'min' : 'progress')],
+    reporters: [
+      ...(hasSingleRun ? [] : ['clear-screen']),
+      config.reporter || (process.env.CI ? 'min' : 'progress'),
+    ],
     browsers: browsers,
     customLaunchers: {
       ChromeDebugging: {
@@ -185,6 +191,17 @@ module.exports = function (config) {
       'karma-mocha-reporter',
       'karma-chrome-launcher',
       'karma-firefox-launcher',
+      // a copy paste version of https://github.com/arthurc/karma-clear-screen-reporter
+      // for light-weight-ness
+      {
+        'reporter:clear-screen': ['type', function ClearScreenReporter() {
+          let runId = 0;
+          this.onRunStart = function () {
+            console.log("\u001b[2J\u001b[0;0H");
+            console.log(`Watch run: ${++runId}. ${new Date().toJSON()}`);
+          };
+        }]
+      }
     ]
   };
 

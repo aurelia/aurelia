@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.28"></a>
+# 2.0.0-alpha.28 (2022-04-16)
+
+### Bug Fixes:
+
+* **css-module:** allow colon in class names (#1388) ([47860ab](https://github.com/aurelia/aurelia/commit/47860ab))
+
 <a name="2.0.0-alpha.27"></a>
 # 2.0.0-alpha.27 (2022-04-08)
 

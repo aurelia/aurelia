@@ -3,6 +3,57 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.28"></a>
+# 2.0.0-alpha.28 (2022-04-16)
+
+### Bug Fixes:
+
+* **css-module:** allow colon in class names (#1388) ([47860ab](https://github.com/aurelia/aurelia/commit/47860ab))
+* **router:** fix linting issues ([f0b84f7](https://github.com/aurelia/aurelia/commit/f0b84f7))
+* **router:** fix build PR losses 3 ([07ffe36](https://github.com/aurelia/aurelia/commit/07ffe36))
+
+
+### Refactorings:
+
+* **router:** restore aurelia packages ([3da4971](https://github.com/aurelia/aurelia/commit/3da4971))
+* **router:** restore aurelia packages ([334864d](https://github.com/aurelia/aurelia/commit/334864d))
+* **router:** clean up (incomplete) ([892d042](https://github.com/aurelia/aurelia/commit/892d042))
+* **router:** hierarchy match in routing scope (incomplete) ([58eda2e](https://github.com/aurelia/aurelia/commit/58eda2e))
+* **all:** adapt latest changes in core ([fcec2f8](https://github.com/aurelia/aurelia/commit/fcec2f8))
+* **build:** make tests work ([8323312](https://github.com/aurelia/aurelia/commit/8323312))
+* **all:** adapt latest changes in dev ([75d3bb1](https://github.com/aurelia/aurelia/commit/75d3bb1))
+* **router:** remove static RouterConfiguration ([4e14051](https://github.com/aurelia/aurelia/commit/4e14051))
+* **router:** replace RouterConfiguration ([6cd8b69](https://github.com/aurelia/aurelia/commit/6cd8b69))
+* **router:** replace RouterConfiguration ([02ab5cf](https://github.com/aurelia/aurelia/commit/02ab5cf))
+* **router:** turn router options into classes ([277615c](https://github.com/aurelia/aurelia/commit/277615c))
+* **router:** use handleEvent for popstate ([7f778b7](https://github.com/aurelia/aurelia/commit/7f778b7))
+* **router:** clean up ([4b4d8f8](https://github.com/aurelia/aurelia/commit/4b4d8f8))
+* **router:** add errors & tests for instruction parser ([b3b5e25](https://github.com/aurelia/aurelia/commit/b3b5e25))
+* **router:** fix rebase issues ([7e9d6c3](https://github.com/aurelia/aurelia/commit/7e9d6c3))
+* **router:** temp commit before rebase ([0750276](https://github.com/aurelia/aurelia/commit/0750276))
+* **router:** non-blocking unqueued navigations ([a4fb8a8](https://github.com/aurelia/aurelia/commit/a4fb8a8))
+* **router:** clean up ([7000e65](https://github.com/aurelia/aurelia/commit/7000e65))
+* **router:** update title ([d9ad930](https://github.com/aurelia/aurelia/commit/d9ad930))
+* **router:** split navigation to viewer+store & comment ([b480426](https://github.com/aurelia/aurelia/commit/b480426))
+* **router:** restructure events ([eb91b0d](https://github.com/aurelia/aurelia/commit/eb91b0d))
+* **router:** improve parameter handling ([2748479](https://github.com/aurelia/aurelia/commit/2748479))
+* **router:** rename reentry to reload ([5b026b5](https://github.com/aurelia/aurelia/commit/5b026b5))
+* **router:** replace SwapStrategy with SwapOrder ([eb7f31c](https://github.com/aurelia/aurelia/commit/eb7f31c))
+* **router:** make Runner reject when cancelled ([dcad056](https://github.com/aurelia/aurelia/commit/dcad056))
+* **router:** make hook invoke return outcome ([f00cf22](https://github.com/aurelia/aurelia/commit/f00cf22))
+* **router:** add hooks to router configuration ([f4f0195](https://github.com/aurelia/aurelia/commit/f4f0195))
+* **router:** remove IRouterStartOptions ([658311f](https://github.com/aurelia/aurelia/commit/658311f))
+* **router:** move router options into RouterConfiguration ([9ef3d54](https://github.com/aurelia/aurelia/commit/9ef3d54))
+* **router:** remove link handler from router ([5411883](https://github.com/aurelia/aurelia/commit/5411883))
+* **router:** update routing hook signatures ([5e84327](https://github.com/aurelia/aurelia/commit/5e84327))
+* **router:** rename Params to Parameters ([e2323c2](https://github.com/aurelia/aurelia/commit/e2323c2))
+* **router:** remove InstructionResolver ([645c0a5](https://github.com/aurelia/aurelia/commit/645c0a5))
+* **router:** implement RoutingHook ([9ba1bf6](https://github.com/aurelia/aurelia/commit/9ba1bf6))
+* **router:** implement RouterOptions ([78ac2c0](https://github.com/aurelia/aurelia/commit/78ac2c0))
+* **router:** replace ViewportInstruction with RoutingInstruction ([4e15dbc](https://github.com/aurelia/aurelia/commit/4e15dbc))
+* **router:** implement Runner changes (interim) ([e354513](https://github.com/aurelia/aurelia/commit/e354513))
+* **router:** fix rebase issues ([344a5e7](https://github.com/aurelia/aurelia/commit/344a5e7))
+
 <a name="2.0.0-alpha.27"></a>
 # 2.0.0-alpha.27 (2022-04-08)
 

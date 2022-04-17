@@ -1,4 +1,4 @@
-import { ITask, Platform, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
+import { Platform, TaskQueue } from '@aurelia/platform';
 
 const lookup = new Map<object, BrowserPlatform>();
 
@@ -37,14 +37,6 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public readonly setTimeout!: TGlobal['window']['setTimeout'];
   public readonly domWriteQueue: TaskQueue;
   public readonly domReadQueue: TaskQueue;
-  public readonly _domQueue: TaskQueue;
-
-  /** @internal */ private _domReadTasks: Array<IDomReadTask | ((time: number) => void)> = [];
-  /** @internal */ private _domWriteTasks: Array<IDomWriteTask | ((time: number) => void)> = [];
-  /** @internal */ private _domQueueHandle: number = -1;
-  /** @internal */ private _pendingReadTasks: any[] = [];
-  /** @internal */ private _pendingWriteTasks: any[] = [];
-  /** @internal */ private _flushingDomTasks = false;
 
   public constructor(g: TGlobal, overrides: Partial<Exclude<BrowserPlatform, 'globalThis'>> = {}) {
     super(g, overrides);
@@ -64,8 +56,6 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
     this.flushDomWrite = this.flushDomWrite.bind(this);
     this.domReadQueue = new TaskQueue(this, this.requestDomRead.bind(this), this.cancelDomRead.bind(this));
     this.domWriteQueue = new TaskQueue(this, this.requestDomWrite.bind(this), this.cancelDomWrite.bind(this));
-    this._domQueue = new TaskQueue(this, this._requestFlushDomQueue.bind(this), this._cancelRequestFlushDomQueue.bind(this));
-    this._flushDomQueue = this._flushDomQueue.bind(this);
     /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
   }
 
@@ -145,41 +135,3 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
     }
   }
 }
-
-export interface IDomReadTask {
-  /**
-   * @param time the timestamp indicating the point in time when the DOM read queue starts to execute callback functions
-   */
-  readDom(time: number): void;
-}
-
-export interface IDomWriteTask {
-  /**
-   * @param time the timestamp indicating the point in time when the DOM write queue starts to execute callback functions
-   */
-  writeDom(time: number): void;
-}
-
-function readDom(this: number, task: IDomReadTask | ((time: number) => void), _: any, set: Set<IDomReadTask | ((time: number) => void)>) {
-  if (typeof task === 'function') {
-    task(this);
-  } else {
-    task.readDom(this);
-  }
-}
-
-function writeDom(this: number, task: IDomWriteTask | ((time: number) => void), _: any, set: Set<IDomWriteTask | ((time: number) => void)>) {
-  if (typeof task === 'function') {
-    task(this);
-  } else {
-    task.writeDom(this);
-  }
-}
-
-const domQueueOptions: QueueTaskOptions = {
-  reusable: false,
-  preempt: false,
-};
-
-function noop(): void {}
-

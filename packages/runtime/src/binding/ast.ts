@@ -11,9 +11,9 @@ import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/k
 import type {
   Collection,
   IBindingContext,
-  IConnectable,
   IObservable,
   IOverrideContext,
+  IConnectable,
   ISubscriber,
 } from '../observation.js';
 

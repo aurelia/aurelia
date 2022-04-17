@@ -22,9 +22,12 @@ export interface IAppTask extends Pick<
 
 class $AppTask<K extends Key = Key> {
   public readonly slot: TaskSlot;
-  /** @internal */ private _container: IContainer = (void 0)!;
-  /** @internal */ private readonly _key: K | null;
-  /** @internal */ private readonly _callback: AppTaskCallback<K> | AppTaskCallbackNoArg;
+  /** @internal */
+  private c: IContainer = (void 0)!;
+  /** @internal */
+  private readonly k: K | null;
+  /** @internal */
+  private readonly cb: AppTaskCallback<K> | AppTaskCallbackNoArg;
 
   public constructor(
     slot: TaskSlot,
@@ -32,18 +35,20 @@ class $AppTask<K extends Key = Key> {
     cb: AppTaskCallback<K> | AppTaskCallbackNoArg,
   ) {
     this.slot = slot;
-    this._key = key;
-    this._callback = cb;
+    this.k = key;
+    this.cb = cb;
   }
 
   public register(container: IContainer): IContainer {
-    return this._container = container.register(Registration.instance(IAppTask, this));
+    return this.c = container.register(Registration.instance(IAppTask, this));
   }
 
   public run(): void | Promise<void> {
-    return this._key === null
-      ? (this._callback as AppTaskCallbackNoArg)()
-      : this._callback(this._container.get(this._key));
+    const key = this.k;
+    const cb = this.cb;
+    return key === null
+      ? (cb as AppTaskCallbackNoArg)()
+      : cb(this.c.get(key));
   }
 }
 

@@ -1,31 +1,9 @@
 const lookup = new Map<object, Platform>();
 
-type NavigatorScheduling = Navigator & {
-  scheduling: { isInputPending?: () => boolean };
-};
-
-
 function notImplemented(name: string): (...args: any[]) => any {
   return function notImplemented() {
     throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
   };
-}
-
-const scheduler = (navigator as NavigatorScheduling);
-
-let deadline = 0,
-  yieldInterval = 5,
-  maxDeadline = 300,
-  maxYieldInterval = 300;
-
-const shouldYield = scheduler.scheduling.isInputPending ? function () {
-  const currentTime = performance.now();
-  if (currentTime < deadline) return false;
-  if (scheduler.scheduling.isInputPending!()) return true;
-
-  return currentTime >= maxDeadline;
-} : function () {
-  return performance.now() >= deadline;
 }
 
 export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
@@ -200,13 +178,7 @@ export class TaskQueue {
       }
 
       let cur: Task;
-      deadline = time + yieldInterval;
-      // seems redundant idk yet
-      maxDeadline = time + maxYieldInterval;
       while (this.processing.length > 0) {
-        if (shouldYield()) {
-          this._requestFlush(); return;
-        }
         (cur = this.processing.shift()!).run();
         // If it's still running, it can only be an async task
         if (cur.status === TaskStatus.running) {
@@ -735,7 +707,7 @@ function taskStatus(status: TaskStatus): 'pending' | 'running' | 'canceled' | 'c
 class Tracer {
   public enabled: boolean = false;
   private depth: number = 0;
-  public constructor(private readonly console: Platform['console']) { }
+  public constructor(private readonly console: Platform['console']) {}
 
   public enter(obj: TaskQueue | Task, method: string): void {
     this.log(`${'  '.repeat(this.depth++)}> `, obj, method);
@@ -759,13 +731,13 @@ class Tracer {
       this.console.log(`${prefix}[Q.${method}] ${info}`);
     } else {
       const id = obj['id'];
-      const created = Math.round(obj.createdTime * 10) / 10;
-      const queue = Math.round(obj.queueTime * 10) / 10;
-      const preempt = obj.preempt;
-      const reusable = obj.reusable;
-      const persistent = obj.persistent;
-      const suspend = obj.suspend;
-      const status = taskStatus(obj.status);
+      const created = Math.round(obj['createdTime'] * 10) / 10;
+      const queue = Math.round(obj['queueTime'] * 10) / 10;
+      const preempt = obj['preempt'];
+      const reusable = obj['reusable'];
+      const persistent = obj['persistent'];
+      const suspend = obj['suspend'];
+      const status = taskStatus(obj['_status']);
 
       const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} persistent=${persistent} reusable=${reusable} status=${status} suspend=${suspend}`;
       this.console.log(`${prefix}[T.${method}] ${info}`);
@@ -773,8 +745,8 @@ class Tracer {
   }
 }
 export const enum TaskQueuePriority {
-  render = 0,
-  macroTask = 1,
+  render     = 0,
+  macroTask  = 1,
   postRender = 2,
 }
 

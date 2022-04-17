@@ -63,9 +63,6 @@ export class AttributeBinding implements IAstBasedBinding {
    */
   public oL: IObserverLocator;
 
-  private _queue = false;
-  private _flags: LifecycleFlags = LifecycleFlags.none;
-
   public constructor(
     public sourceExpression: IsBindingBehavior | ForOfStatement,
     target: INode,
@@ -93,11 +90,6 @@ export class AttributeBinding implements IAstBasedBinding {
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
     this.sourceExpression.assign(flags, this.$scope, this.locator, value);
-  }
-
-  public writeDom() {
-    this._queue = false;
-    this.interceptor.updateTarget(this.value, this._flags);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {

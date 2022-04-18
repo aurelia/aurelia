@@ -2074,60 +2074,64 @@ describe('router hooks', function () {
     });
   }
 
-  forEachRouterOptions.only('unconfigured route', function (opts) {
-
-    const ticks = 0;
-    const hookSpec = HookSpecs.create(ticks);
-    @customElement({ name: 'a', template: null })
-    class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-    @customElement({ name: 'b', template: null })
-    class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-
+  forEachRouterOptions('unconfigured route', function (opts) {
     for (const { name, routes, withInitialLoad } of [
       {
         name: 'without empty route',
-        routes: [
-          { path: 'a', component: A },
-          { path: 'b', component: B },
-        ],
+        routes(...[A, B]: Constructable[]) {
+          return [
+            { path: 'a', component: A },
+            { path: 'b', component: B },
+          ];
+        },
         withInitialLoad: false,
       },
       {
         name: 'with empty route',
-        routes: [
-          { path: ['', 'a'], component: A },
-          { path: 'b', component: B },
-        ],
-        withInitialLoad: false,
+        routes(...[A, B]: Constructable[]) {
+          return [
+            { path: ['', 'a'], component: A },
+            { path: 'b', component: B },
+          ];
+        },
+        withInitialLoad: true,
       },
       {
         name: 'with empty route - explicit redirect',
-        routes: [
-          { path: '', redirectTo: 'a' },
-          { path: 'a', component: A },
-          { path: 'b', component: B },
-        ],
+        routes(...[A, B]: Constructable[]) {
+          return [
+            { path: '', redirectTo: 'a' },
+            { path: 'a', component: A },
+            { path: 'b', component: B },
+          ];
+        },
         withInitialLoad: true,
       },
-    ] as { name: string; routes: Routeable[]; withInitialLoad: boolean }[]) {
+    ] as { name: string; routes: (...types: Constructable[]) => Routeable[]; withInitialLoad: boolean }[]) {
       it(name, async function () {
+        const ticks = 0;
+        const hookSpec = HookSpecs.create(ticks);
+        @customElement({ name: 'a', template: null })
+        class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        @customElement({ name: 'b', template: null })
+        class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-        @route({ routes })
+        @route({ routes: routes(A, B) })
         @customElement({ name: 'root', template: vp(1) })
         class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-        const { router, mgr, tearDown } = await createFixture(Root, [A, B], opts);
+        const { router, mgr, tearDown } = await createFixture(Root, [A, B], opts/* , LogLevel.trace */);
 
         let phase = 'start';
         verifyInvocationsEqual(
           mgr.fullNotifyHistory,
           [
             ...$(phase, 'root', ticks, 'binding', 'bound', 'attaching', 'attached'),
-            ...(withInitialLoad ? $(phase, 'a', ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'):[])
+            ...(withInitialLoad ? $(phase, 'a', ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached') : [])
           ]
         );
 
-        const unconfigured = 'unconfigured';
+        const unconfigured = 'unconfigured'; // TODO(sayan): multipart paths: unconfigured1/unconfigured2, unconfigured/configured etc.
 
         // phase 1: load unconfigured
         phase = 'phase1';
@@ -2143,16 +2147,16 @@ describe('router hooks', function () {
         await router.load('b');
         verifyInvocationsEqual(mgr.fullNotifyHistory,
           withInitialLoad
-          ?[
-            ...$(phase, 'a', ticks, 'canUnload'),
-            ...$(phase, 'b', ticks, 'canLoad'),
-            ...$(phase, 'a', ticks, 'unload'),
-            ...$(phase, 'b', ticks, 'load'),
-            ...$(phase, 'a', ticks, 'detaching', 'unbinding', 'dispose'),
-            ...$(phase, 'b', ticks, 'binding', 'bound', 'attaching', 'attached'),
-          ]
-          :[...$(phase, 'b', ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached')]
-          );
+            ? [
+              ...$(phase, 'a', ticks, 'canUnload'),
+              ...$(phase, 'b', ticks, 'canLoad'),
+              ...$(phase, 'a', ticks, 'unload'),
+              ...$(phase, 'b', ticks, 'load'),
+              ...$(phase, 'a', ticks, 'detaching', 'unbinding', 'dispose'),
+              ...$(phase, 'b', ticks, 'binding', 'bound', 'attaching', 'attached'),
+            ]
+            : [...$(phase, 'b', ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached')]
+        );
 
         // phase 3: load unconfigured
         phase = 'phase3';
@@ -2186,5 +2190,7 @@ describe('router hooks', function () {
         mgr.$dispose();
       });
     }
+
+    // TODO(sayan): test hooks with fallback.
   });
 });

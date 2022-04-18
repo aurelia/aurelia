@@ -536,6 +536,7 @@ function createNode(
   }
 
   const rr = ctx.recognize(path);
+  log.trace('createNode recognized route: %s', rr);
   const residue = rr?.residue ?? null;
   log.trace('createNode residue:', residue);
   const noResidue = residue === null;

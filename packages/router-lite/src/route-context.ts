@@ -445,4 +445,10 @@ export class $RecognizedRoute {
     public readonly route: RecognizedRoute<RouteDefinition | Promise<RouteDefinition>>,
     public readonly residue: string | null,
   ) {}
+
+  public toString(): string {
+    const route = this.route;
+    const cr = route.endpoint.route;
+    return `RR(route:(endpoint:(route:(path:${cr.path},handler:${cr.handler})),params:${JSON.stringify(route.params)}),residue:${this.residue})`;
+  }
 }

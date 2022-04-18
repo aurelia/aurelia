@@ -74,15 +74,15 @@ export class RouteDefinition {
     // If a type is re-configured via `Route.configure`, that effectively invalidates any existing `RouteDefinition` and we re-create and associate it.
     // Note: RouteConfig is associated with Type, but RouteDefinition is associated with CustomElementDefinition.
     return onResolve(this.resolveCustomElementDefinition(routeable, context), def => {
-      const type = def.Type;
-      const config = isPartialChildRouteConfig(routeable)
-        ? Route.isConfigured(type)
-          ? Route.getConfig(type).applyChildRouteConfig(routeable)
-          : RouteConfig.create(routeable, type)
-        : Route.getConfig(def.Type);
-
       let routeDefinition = $RouteDefinition.get(def);
       if (routeDefinition === null) {
+        const type = def.Type;
+        const config = isPartialChildRouteConfig(routeable)
+          ? Route.isConfigured(type)
+            ? Route.getConfig(type).applyChildRouteConfig(routeable)
+            : RouteConfig.create(routeable, type)
+          : Route.getConfig(def.Type);
+
         routeDefinition = new RouteDefinition(config, def);
         $RouteDefinition.define(routeDefinition, def);
       }

@@ -551,8 +551,11 @@ function createNode(
     if (vp === null || vp.length === 0) vp = defaultViewportName;
     const vpa = ctx.getFallbackViewportAgent('dynamic', vp);
     const fallback = vpa === null ? ctx.definition.fallback : vpa.viewport.fallback;
-    if(fallback === null)
+    if (fallback === null) {
+      // TODO(sayan): cancel update; vpa.cancelUpdate() should implement the 'undo' action first.
+      // ctx.vpa.cancelUpdate();
       throw new Error(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
+    }
 
     // fallback: id -> route -> CEDefn (Route definition)
     // look for a route first

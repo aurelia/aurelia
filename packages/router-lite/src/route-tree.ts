@@ -536,7 +536,12 @@ function createNode(
   }
 
   const rr = ctx.recognize(path);
-  if (rr === null) {
+  const residue = rr?.residue ?? null;
+  log.trace('createNode residue:', residue);
+  const noResidue = residue === null;
+  // If the residue matches the whole path it means that empty route is configured, but the path in itself is not configured.
+  // Therefore the path matches the configured empty route and puts the whole path into residue.
+  if (rr === null || residue === path) {
     const name = vi.component.value;
     if (name === '') {
       return null;
@@ -564,9 +569,6 @@ function createNode(
   }
 
   // readjust the children wrt. the residue
-  const residue = rr.residue;
-  log.trace('createNode residue:', rr.residue);
-  const noResidue = residue === null;
   (rr as Writable<$RecognizedRoute>).residue = null;
   (vi.component as Writable<ITypedNavigationInstruction_string>).value = noResidue
     ? path

@@ -20,6 +20,7 @@ import {
   NavigationInstruction as NI,
   RouterConfiguration,
   route,
+  Routeable,
 } from '@aurelia/router-lite';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -38,7 +39,7 @@ class DelayedInvokerFactory<T extends HookName> {
   public constructor(
     public readonly name: T,
     public readonly ticks: number,
-  ) {}
+  ) { }
 
   public create(mgr: INotifierManager, p: IPlatform): DelayedInvoker<T> {
     return new DelayedInvoker(mgr, p, this.name, this.ticks);
@@ -66,7 +67,7 @@ export class HookSpecs {
     public readonly unload: DelayedInvokerFactory<'unload'>,
 
     public readonly ticks: number,
-  ) {}
+  ) { }
 
   public static create(
     ticks: number,
@@ -219,16 +220,16 @@ class Notifier {
 }
 
 const INotifierConfig = DI.createInterface<INotifierConfig>('INotifierConfig');
-interface INotifierConfig extends NotifierConfig {}
+interface INotifierConfig extends NotifierConfig { }
 class NotifierConfig {
   public constructor(
     public readonly resolveLabels: string[],
     public readonly resolveTimeoutMs: number,
-  ) {}
+  ) { }
 }
 
 const INotifierManager = DI.createInterface<INotifierManager>('INotifierManager', x => x.singleton(NotifierManager));
-interface INotifierManager extends NotifierManager {}
+interface INotifierManager extends NotifierManager { }
 class NotifierManager {
   public readonly entryNotifyHistory: string[] = [];
   public readonly fullNotifyHistory: string[] = [];
@@ -236,7 +237,7 @@ class NotifierManager {
 
   public constructor(
     @IPlatform public readonly p: IPlatform,
-  ) {}
+  ) { }
 
   public readonly binding: Notifier = new Notifier(this, 'binding');
   public readonly bound: Notifier = new Notifier(this, 'bound');
@@ -304,7 +305,7 @@ class DelayedInvoker<T extends HookName> {
     public readonly p: IPlatform,
     public readonly name: T,
     public readonly ticks: number,
-  ) {}
+  ) { }
 
   public static binding(ticks: number = 0): DelayedInvokerFactory<'binding'> { return new DelayedInvokerFactory('binding', ticks); }
   public static bound(ticks: number = 0): DelayedInvokerFactory<'bound'> { return new DelayedInvokerFactory('bound', ticks); }
@@ -1901,7 +1902,7 @@ describe('router hooks', function () {
           const components = spec.createCes();
           @route({ routes: components.map(component => ({ path: CustomElement.getDefinition(component).name, component })) })
           @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
-          class Root {}
+          class Root { }
 
           const { router, tearDown } = await createFixture(Root, components, opts);
 
@@ -2072,4 +2073,118 @@ describe('router hooks', function () {
       }
     });
   }
+
+  forEachRouterOptions.only('unconfigured route', function (opts) {
+
+    const ticks = 0;
+    const hookSpec = HookSpecs.create(ticks);
+    @customElement({ name: 'a', template: null })
+    class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+    @customElement({ name: 'b', template: null })
+    class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+    for (const { name, routes, withInitialLoad } of [
+      {
+        name: 'without empty route',
+        routes: [
+          { path: 'a', component: A },
+          { path: 'b', component: B },
+        ],
+        withInitialLoad: false,
+      },
+      {
+        name: 'with empty route',
+        routes: [
+          { path: ['', 'a'], component: A },
+          { path: 'b', component: B },
+        ],
+        withInitialLoad: false,
+      },
+      {
+        name: 'with empty route - explicit redirect',
+        routes: [
+          { path: '', redirectTo: 'a' },
+          { path: 'a', component: A },
+          { path: 'b', component: B },
+        ],
+        withInitialLoad: true,
+      },
+    ] as { name: string; routes: Routeable[]; withInitialLoad: boolean }[]) {
+      it(name, async function () {
+
+        @route({ routes })
+        @customElement({ name: 'root', template: vp(1) })
+        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+        const { router, mgr, tearDown } = await createFixture(Root, [A, B], opts);
+
+        let phase = 'start';
+        verifyInvocationsEqual(
+          mgr.fullNotifyHistory,
+          [
+            ...$(phase, 'root', ticks, 'binding', 'bound', 'attaching', 'attached'),
+            ...(withInitialLoad ? $(phase, 'a', ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'):[])
+          ]
+        );
+
+        const unconfigured = 'unconfigured';
+
+        // phase 1: load unconfigured
+        phase = 'phase1';
+        mgr.fullNotifyHistory.length = 0;
+        mgr.setPrefix(phase);
+        await assert.rejects(() => router.load(unconfigured), /Neither the route 'unconfigured' matched any configured route/);
+        verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+
+        // phase 2: load configured
+        mgr.fullNotifyHistory.length = 0;
+        phase = 'phase2';
+        mgr.setPrefix(phase);
+        await router.load('b');
+        verifyInvocationsEqual(mgr.fullNotifyHistory,
+          withInitialLoad
+          ?[
+            ...$(phase, 'a', ticks, 'canUnload'),
+            ...$(phase, 'b', ticks, 'canLoad'),
+            ...$(phase, 'a', ticks, 'unload'),
+            ...$(phase, 'b', ticks, 'load'),
+            ...$(phase, 'a', ticks, 'detaching', 'unbinding', 'dispose'),
+            ...$(phase, 'b', ticks, 'binding', 'bound', 'attaching', 'attached'),
+          ]
+          :[...$(phase, 'b', ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached')]
+          );
+
+        // phase 3: load unconfigured
+        phase = 'phase3';
+        mgr.fullNotifyHistory.length = 0;
+        mgr.setPrefix(phase);
+        await assert.rejects(() => router.load(unconfigured), /Neither the route 'unconfigured' matched any configured route/);
+        verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+
+        // phase 4: load configured
+        phase = 'phase4';
+        mgr.fullNotifyHistory.length = 0;
+        mgr.setPrefix(phase);
+        await router.load('a');
+        verifyInvocationsEqual(mgr.fullNotifyHistory, [
+          ...$(phase, 'b', ticks, 'canUnload'),
+          ...$(phase, 'a', ticks, 'canLoad'),
+          ...$(phase, 'b', ticks, 'unload'),
+          ...$(phase, 'a', ticks, 'load'),
+          ...$(phase, 'b', ticks, 'detaching', 'unbinding', 'dispose'),
+          ...$(phase, 'a', ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ]);
+
+        mgr.fullNotifyHistory.length = 0;
+        phase = 'stop';
+        await tearDown();
+        verifyInvocationsEqual(mgr.fullNotifyHistory, [
+          ...$(phase, ['a', 'root'], ticks, 'detaching'),
+          ...$(phase, ['a', 'root'], ticks, 'unbinding'),
+          ...$(phase, ['root', 'a'], ticks, 'dispose'),
+        ]);
+        mgr.$dispose();
+      });
+    }
+  });
 });

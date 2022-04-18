@@ -178,12 +178,6 @@ export class RouteNode implements IRouteNode {
     child.setTree(this.tree);
   }
 
-  public appendChildren(...children: readonly RouteNode[]): void {
-    for (const child of children) {
-      this.appendChild(child);
-    }
-  }
-
   public clearChildren(): void {
     for (const c of this.children) {
       c.clearChildren();

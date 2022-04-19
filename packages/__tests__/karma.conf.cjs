@@ -34,7 +34,7 @@ const testDirs = [
   'validation-i18n',
 ];
 
-const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html --bail'.split(' ');
+const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html --bail --reporter=mocha'.split(' ');
 const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
 const hasSingleRun = process.argv.slice(2).includes('--single-run');
 
@@ -188,6 +188,7 @@ module.exports =
       'karma-coverage-istanbul-instrumenter',
       'karma-coverage-istanbul-reporter',
       'karma-min-reporter',
+      'karma-mocha-reporter',
       'karma-chrome-launcher',
       'karma-firefox-launcher',
       // a copy paste version of https://github.com/arthurc/karma-clear-screen-reporter

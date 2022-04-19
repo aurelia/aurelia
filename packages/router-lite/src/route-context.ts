@@ -15,10 +15,10 @@ import { ensureArrayOfStrings } from './util.js';
 export interface IRouteContext extends RouteContext {}
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
 
-const RESIDUE = 'au$residue' as const;
+export const RESIDUE = 'au$residue' as const;
 
 /**
- * Holds the information of a component in the context of a specific container. May or may not have statically configured routes.
+ * Holds the information of a component in the context of a specific container.
  *
  * The `RouteContext` is cached using a 3-part composite key consisting of the CustomElementDefinition, the RouteDefinition and the RenderContext.
  *
@@ -177,7 +177,7 @@ export class RouteContext {
             this.childRoutes.push(p);
             allPromises.push(p.then(noop));
           } else {
-            throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified. To use lazy loading without specifying the path (e.g. in direct routing), pass the import promise as a direct value to the routes array instead of providing it as the component property on an object literal.`);
+            throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified.`);
           }
         } else {
           for (const path of routeDef.path) {
@@ -350,7 +350,8 @@ export class RouteContext {
     let residue: string | null;
     if (Reflect.has(result.params, RESIDUE)) {
       residue = result.params[RESIDUE] ?? null;
-      Reflect.deleteProperty(result.params, RESIDUE);
+      // TODO(sayan): Fred did this to fix some issue in lazy-loading. Inspect if this is really needed.
+      // Reflect.deleteProperty(result.params, RESIDUE);
     } else {
       residue = null;
     }

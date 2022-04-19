@@ -1,3 +1,4 @@
+import { route } from '@aurelia/router-lite';
 import { customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { createFixture } from './_shared/create-fixture.js';
@@ -6,6 +7,22 @@ import { IHIAConfig } from './_shared/hook-invocation-tracker.js';
 describe('router/external.spec.ts', function () {
   for (const attr of ['external', 'data-external']) {
     it(`recognizes "${attr}" attribute`, async function () {
+      @customElement({ name: 'a11', template: `a11${vp(1)}` })
+      class A11 {}
+      @customElement({ name: 'a12', template: `a12${vp(1)}` })
+      class A12 {}
+      @route({
+        routes:[
+          {
+            path: 'a11',
+            component: A11,
+          },
+          {
+            path: 'a12',
+            component: A12,
+          },
+        ]
+      })
       @customElement({
         name: 'root1',
         template: `<a href.bind="compLink"></a><a href.bind="httpLink" external></a><span href="a12"></span>${vp(1)}`
@@ -14,10 +31,6 @@ describe('router/external.spec.ts', function () {
         public httpLink = 'https://google.com';
         public compLink = 'a11';
       }
-      @customElement({ name: 'a11', template: `a11${vp(1)}` })
-      class A11 {}
-      @customElement({ name: 'a12', template: `a12${vp(1)}` })
-      class A12 {}
 
       const { router, host, tearDown } = await createFixture(Root1, [A11, A12], getDefaultHIAConfig, () => ({}));
 

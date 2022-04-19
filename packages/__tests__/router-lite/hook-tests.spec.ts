@@ -1,4 +1,4 @@
-import { Constructable, DI, IContainer, ILogConfig, LogLevel, Registration, Writable } from '@aurelia/kernel';
+import { Constructable, DI, ILogConfig, LogLevel, Registration, Writable } from '@aurelia/kernel';
 import {
   CustomElement,
   customElement,
@@ -9,16 +9,17 @@ import {
   IHydratedController as HC,
   IHydratedParentController as HPC,
   Aurelia,
+  CustomElementType,
 } from '@aurelia/runtime-html';
 import {
   IRouterOptions,
   ResolutionMode,
-  SwapStrategy,
   IRouter,
   Params as P,
   RouteNode as RN,
   NavigationInstruction as NI,
   RouterConfiguration,
+  route,
 } from '@aurelia/router-lite';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -471,7 +472,6 @@ function* interleave(
 }
 export interface Iopts {
   resolutionMode: ResolutionMode;
-  swapStrategy: SwapStrategy;
 }
 
 export interface IComponentSpec {
@@ -489,7 +489,7 @@ async function createFixture<T extends Constructable>(
   const cfg = new NotifierConfig([], 100);
   const { container, platform } = ctx;
 
-  container.register(TestRouterConfiguration.for(ctx, level));
+  container.register(TestRouterConfiguration.for(level));
   container.register(Registration.instance(INotifierConfig, cfg));
   container.register(RouterConfiguration.customize({ ...routerOptions }));
   container.register(...deps);
@@ -538,18 +538,11 @@ function $forEachRouterOptions(cb: (opts: Iopts) => void) {
       'dynamic',
       'static',
     ] as ResolutionMode[]) {
-      for (const swapStrategy of [
-        'parallel-remove-first',
-        'sequential-add-first',
-        'sequential-remove-first',
-      ] as SwapStrategy[]) {
-        describe(`resolution:'${resolutionMode}', swap:'${swapStrategy}'`, function () {
-          cb({
-            resolutionMode,
-            swapStrategy,
-          });
+      describe(`resolution:'${resolutionMode}'`, function () {
+        cb({
+          resolutionMode,
         });
-      }
+      });
     }
   };
 }
@@ -599,6 +592,14 @@ describe('router hooks', function () {
 
       const A1 = [A11, A12, A13, A14];
 
+      @route({
+        routes: [
+          { path: 'a01', component: A01 },
+          { path: 'a02', component: A02 },
+          { path: 'a03', component: A03 },
+          { path: 'a04', component: A04 },
+        ]
+      })
       @customElement({ name: 'root2', template: vp(2) })
       class Root2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
       @customElement({ name: 'a21', template: vp(2) })
@@ -663,17 +664,8 @@ describe('router hooks', function () {
                       yield* $(phase, $t1, ticks, 'unload');
                       yield* $(phase, $t2, ticks, 'load');
 
-                      switch (opts.swapStrategy) {
-                        case 'parallel-remove-first':
-                        case 'sequential-remove-first':
-                          yield* $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose');
-                          yield* $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached');
-                          break;
-                        case 'sequential-add-first':
-                          yield* $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached');
-                          yield* $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose');
-                          break;
-                      }
+                      yield* $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose');
+                      yield* $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached');
                     }
 
                     yield* $('stop', [t4, 'root2'], ticks, 'detaching');
@@ -694,22 +686,8 @@ describe('router hooks', function () {
                       yield* $(phase, $t1, ticks, 'unload');
                       yield* $(phase, $t2, ticks, 'load');
 
-                      switch (opts.swapStrategy) {
-                        case 'parallel-remove-first':
-                          yield* interleave(
-                            $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose'),
-                            $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached'),
-                          );
-                          break;
-                        case 'sequential-remove-first':
-                          yield* $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose');
-                          yield* $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached');
-                          break;
-                        case 'sequential-add-first':
-                          yield* $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached');
-                          yield* $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose');
-                          break;
-                      }
+                      yield* $(phase, $t1, ticks, 'detaching', 'unbinding', 'dispose');
+                      yield* $(phase, $t2, ticks, 'binding', 'bound', 'attaching', 'attached');
                     }
 
                     yield* interleave(
@@ -834,21 +812,10 @@ describe('router hooks', function () {
                       if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'load'); }
                       if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'load'); }
 
-                      switch (opts.swapStrategy) {
-                        case 'parallel-remove-first':
-                        case 'sequential-remove-first':
-                          if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); }
-                          if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                          if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); }
-                          if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                          break;
-                        case 'sequential-add-first':
-                          if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                          if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); }
-                          if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                          if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); }
-                          break;
-                      }
+                      if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); }
+                      if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); }
+                      if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); }
+                      if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); }
                     }
 
                     yield* $('stop', [t2.vp0, t2.vp1, 'root2'], ticks, 'detaching');
@@ -885,40 +852,16 @@ describe('router hooks', function () {
                         (function* () { if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'load'); } })(),
                       );
 
-                      switch (opts.swapStrategy) {
-                        case 'parallel-remove-first':
-                          yield* interleave(
-                            (function* () { if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); } })(),
-                            (function* () { if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); } })(),
-                            (function* () { if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); } })(),
-                            (function* () { if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); } })(),
-                          );
-                          break;
-                        case 'sequential-remove-first':
-                          yield* interleave(
-                            (function* () {
-                              if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); }
-                              if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                            })(),
-                            (function* () {
-                              if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); }
-                              if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                            })(),
-                          );
-                          break;
-                        case 'sequential-add-first':
-                          yield* interleave(
-                            (function* () {
-                              if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                              if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); }
-                            })(),
-                            (function* () {
-                              if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); }
-                              if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); }
-                            })(),
-                          );
-                          break;
-                      }
+                      yield* interleave(
+                        (function* () {
+                          if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t1.vp0, ticks, 'detaching', 'unbinding', 'dispose'); }
+                          if ($t1.vp0 !== $t2.vp0) { yield* $(phase, $t2.vp0, ticks, 'binding', 'bound', 'attaching', 'attached'); }
+                        })(),
+                        (function* () {
+                          if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t1.vp1, ticks, 'detaching', 'unbinding', 'dispose'); }
+                          if ($t1.vp1 !== $t2.vp1) { yield* $(phase, $t2.vp1, ticks, 'binding', 'bound', 'attaching', 'attached'); }
+                        })(),
+                      );
                     }
 
                     yield* interleave(
@@ -938,6 +881,55 @@ describe('router hooks', function () {
         });
 
         describe('parent-child', function () {
+          @customElement({ name: 'a01', template: null })
+          class PcA01 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          @customElement({ name: 'a02', template: null })
+          class PcA02 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          @route({
+            routes: [
+              { path: 'a02', component: PcA02 },
+            ]
+          })
+
+          @customElement({ name: 'a12', template: vp(1) })
+          class PcA12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          @route({
+            routes: [
+              { path: 'a01', component: PcA01 },
+              { path: 'a02', component: PcA02 },
+              { path: 'a12', component: PcA12 },
+            ]
+          })
+          @customElement({ name: 'a11', template: vp(1) })
+          class PcA11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          @customElement({ name: 'a14', template: vp(1) })
+          class PcA14 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          @route({
+            routes: [
+              { path: 'a11', component: PcA11 },
+              { path: 'a12', component: PcA12 },
+              { path: 'a14', component: PcA14 },
+            ]
+          })
+          @customElement({ name: 'a13', template: vp(1) })
+          class PcA13 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          @route({
+            routes: [
+              { path: 'a11', component: PcA11 },
+              { path: 'a12', component: PcA12 },
+              { path: 'a13', component: PcA13 },
+            ]
+          })
+          @customElement({ name: 'root2', template: vp(2) })
+          class PcRoot extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          const deps = [PcA01, PcA02, PcA11, PcA12, PcA13, PcA14];
+
           interface ISpec {
             t1: {
               p: string;
@@ -952,32 +944,35 @@ describe('router hooks', function () {
           for (const { t1, t2 } of [
             // Only parent changes with every nav
             { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a13', c: 'a12' } },
-            { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a12', c: 'a12' } },
-            { t1: { p: 'a12', c: 'a12' }, t2: { p: 'a11', c: 'a12' } },
+            // the following routes self reference components as child. do we want to support this as configured route? TODO(sayan).
+            // { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a12', c: 'a12' } },
+            // { t1: { p: 'a12', c: 'a12' }, t2: { p: 'a11', c: 'a12' } },
 
             // Only child changes with every nav
             { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: 'a02' } },
             { t1: { p: 'a11', c: ''    }, t2: { p: 'a11', c: 'a02' } },
             { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: ''    } },
 
-            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: 'a02' } },
-            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: ''    } },
+            // the following routes self reference components as child. do we want to support this as configured route? TODO(sayan).
+            // { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: 'a02' } },
+            // { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: ''    } },
 
-            { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: 'a11' } },
-            { t1: { p: 'a11', c: ''    }, t2: { p: 'a11', c: 'a11' } },
+            // { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: 'a11' } },
+            // { t1: { p: 'a11', c: ''    }, t2: { p: 'a11', c: 'a11' } },
 
             // Both parent and child change with every nav
             { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a12', c: 'a02' } },
             { t1: { p: 'a11', c: ''    }, t2: { p: 'a12', c: 'a02' } },
             { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a12', c: ''    } },
 
-            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: 'a02' } },
-            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: 'a12' } },
-            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: ''    } },
+            // the following routes self reference components as child. do we want to support this as configured route? TODO(sayan).
+            // { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: 'a02' } },
+            // { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: 'a12' } },
+            // { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: ''    } },
 
-            { t1: { p: 'a12', c: 'a02' }, t2: { p: 'a11', c: 'a11' } },
-            { t1: { p: 'a12', c: 'a12' }, t2: { p: 'a11', c: 'a11' } },
-            { t1: { p: 'a12', c: ''    }, t2: { p: 'a11', c: 'a11' } },
+            // { t1: { p: 'a12', c: 'a02' }, t2: { p: 'a11', c: 'a11' } },
+            // { t1: { p: 'a12', c: 'a12' }, t2: { p: 'a11', c: 'a11' } },
+            // { t1: { p: 'a12', c: ''    }, t2: { p: 'a11', c: 'a11' } },
 
             { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a13', c: 'a14' } },
             { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a13', c: 'a11' } },
@@ -988,7 +983,7 @@ describe('router hooks', function () {
             const instr1 = join('/', t1.p, t1.c);
             const instr2 = join('/', t2.p, t2.c);
             it(`${instr1}' -> '${instr2}' -> '${instr1}' -> '${instr2}'`, async function () {
-              const { router, mgr, tearDown } = await createFixture(Root2, A, opts);
+              const { router, mgr, tearDown } = await createFixture(PcRoot, deps, opts);
 
               const phase1 = `('' -> '${instr1}')#1`;
               const phase2 = `('${instr1}' -> '${instr2}')#2`;
@@ -1039,17 +1034,8 @@ describe('router hooks', function () {
                         yield* $(phase, $t1.c, ticks, 'unload');
                         yield* $(phase, $t2.c, ticks, 'load');
 
-                        switch (opts.swapStrategy) {
-                          case 'parallel-remove-first':
-                          case 'sequential-remove-first':
-                            yield* $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose');
-                            yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
-                            break;
-                          case 'sequential-add-first':
-                            yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
-                            yield* $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose');
-                            break;
-                        }
+                        yield* $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose');
+                        yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
                       } else {
                         yield* $(phase, [$t1.c, $t1.p], ticks, 'canUnload');
                         yield* $(phase, $t2.p, ticks, 'canLoad');
@@ -1066,18 +1052,10 @@ describe('router hooks', function () {
                             break;
                         }
 
-                        switch (opts.swapStrategy) {
-                          case 'parallel-remove-first':
-                          case 'sequential-remove-first':
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'detaching');
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unbinding');
-                            yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
-                            yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching');
-                            break;
-                          case 'sequential-add-first':
-                            yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching');
-                            break;
-                        }
+                        yield* $(phase, [$t1.c, $t1.p], ticks, 'detaching');
+                        yield* $(phase, [$t1.c, $t1.p], ticks, 'unbinding');
+                        yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
+                        yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching');
 
                         switch (opts.resolutionMode) {
                           case 'dynamic':
@@ -1087,14 +1065,6 @@ describe('router hooks', function () {
                           case 'static':
                             yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
                             yield* $(phase, $t2.p, ticks, 'attached');
-                            break;
-                        }
-
-                        switch (opts.swapStrategy) {
-                          case 'sequential-add-first':
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'detaching');
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unbinding');
-                            yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
                             break;
                         }
                       }
@@ -1136,22 +1106,8 @@ describe('router hooks', function () {
                         yield* $(phase, $t1.c, ticks, 'unload');
                         yield* $(phase, $t2.c, ticks, 'load');
 
-                        switch (opts.swapStrategy) {
-                          case 'parallel-remove-first':
-                            yield* interleave(
-                              $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose'),
-                              $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached'),
-                            );
-                            break;
-                          case 'sequential-remove-first':
-                            yield* $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose');
-                            yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
-                            break;
-                          case 'sequential-add-first':
-                            yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
-                            yield* $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose');
-                            break;
-                        }
+                        yield* $(phase, $t1.c, ticks, 'detaching', 'unbinding', 'dispose');
+                        yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
                       } else {
                         yield* $(phase, [$t1.c, $t1.p], ticks, 'canUnload');
                         yield* $(phase, $t2.p, ticks, 'canLoad');
@@ -1167,108 +1123,24 @@ describe('router hooks', function () {
                             yield* $(phase, [$t2.p, $t2.c], ticks, 'load');
                             break;
                         }
+                        yield* interleave(
+                          $(phase, $t1.c, ticks, 'detaching', 'unbinding'),
+                          $(phase, $t1.p, ticks, 'detaching', 'unbinding'),
+                        );
+                        yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
 
-                        switch (opts.swapStrategy) {
-                          case 'parallel-remove-first':
-                            yield* interleave(
-                              $(phase, $t1.c, ticks, 'detaching'),
-                              $(phase, $t1.p, ticks, 'detaching'),
-                              $(phase, $t2.p, ticks, 'binding'),
-                            );
-                            // If there's a parent + child, then the Promise.all of the 'detaching' and 'unbinding' hooks
-                            // add one extra tick overhead putting the next phase one tick behind relatively.
-                            // The empty yields are to account for that, pushing those hooks one tick down.
-                            yield* interleave(
-                              (function* () {
-                                yield* $(phase, $t1.c, ticks, 'unbinding');
-                              })(),
-                              (function* () {
-                                yield* $(phase, $t1.p, ticks, 'unbinding');
-                              })(),
-                              (function* () {
-                                yield* $(phase, $t2.p, ticks, 'bound');
-                              })(),
-                            );
-
-                            switch (opts.resolutionMode) {
-                              case 'dynamic':
-                                yield* interleave(
-                                  (function* () {
-                                    yield* $(phase, $t1.p, ticks, 'dispose');
-                                  })(),
-                                  (function* () {
-                                    yield* $(phase, $t1.c, ticks, 'dispose');
-                                  })(),
-                                  (function* () {
-                                    yield* $(phase, $t2.p, ticks, 'attaching');
-                                  })(),
-                                );
-                                yield* $(phase, $t2.p, ticks, 'attached');
-                                yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
-                                break;
-                              case 'static':
-                                yield* interleave(
-                                  (function* () {
-                                    yield* $(phase, $t1.p, ticks, 'dispose');
-                                  })(),
-                                  (function* () {
-                                    yield* $(phase, $t1.c, ticks, 'dispose');
-                                  })(),
-                                  (function* () {
-                                    yield* $(phase, $t2.p, ticks, 'attaching');
-                                  })(),
-                                  (function* () {
-                                    yield* $(phase, $t2.c, ticks, 'binding');
-                                  })(),
-                                );
-                                yield* $(phase, $t2.c, ticks, 'bound', 'attaching', 'attached');
-                                yield* $(phase, $t2.p, ticks, 'attached');
-                                break;
-                            }
+                        switch (opts.resolutionMode) {
+                          case 'dynamic':
+                            yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
+                            yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                             break;
-                          case 'sequential-remove-first':
+                          case 'static':
+                            yield* $(phase, $t2.p, ticks, 'binding', 'bound');
                             yield* interleave(
-                              $(phase, $t1.c, ticks, 'detaching', 'unbinding'),
-                              $(phase, $t1.p, ticks, 'detaching', 'unbinding'),
+                              $(phase, $t2.p, ticks, 'attaching'),
+                              $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached'),
                             );
-                            yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
-
-                            switch (opts.resolutionMode) {
-                              case 'dynamic':
-                                yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
-                                yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
-                                break;
-                              case 'static':
-                                yield* $(phase, $t2.p, ticks, 'binding', 'bound');
-                                yield* interleave(
-                                  $(phase, $t2.p, ticks, 'attaching'),
-                                  $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached'),
-                                );
-                                yield* $(phase, $t2.p, ticks, 'attached');
-                                break;
-                            }
-                            break;
-                          case 'sequential-add-first':
-                            switch (opts.resolutionMode) {
-                              case 'dynamic':
-                                yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
-                                yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
-                                break;
-                              case 'static':
-                                yield* $(phase, $t2.p, ticks, 'binding', 'bound');
-                                yield* interleave(
-                                  $(phase, $t2.p, ticks, 'attaching'),
-                                  $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached'),
-                                );
-                                yield* $(phase, $t2.p, ticks, 'attached');
-                                break;
-                            }
-
-                            yield* interleave(
-                              $(phase, $t1.c, ticks, 'detaching', 'unbinding'),
-                              $(phase, $t1.p, ticks, 'detaching', 'unbinding'),
-                            );
-                            yield* $(phase, [$t1.p,  $t1.c], ticks, 'dispose');
+                            yield* $(phase, $t2.p, ticks, 'attached');
                             break;
                         }
                       }
@@ -1329,16 +1201,20 @@ describe('router hooks', function () {
       }),
     ]) {
       it(`'a/b/c/d' -> 'a' (c.hookSpec:${hookSpec})`, async function () {
-        @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
-        @customElement({ name: 'a', template: '<au-viewport></au-viewport>' })
-        class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
-        @customElement({ name: 'b', template: '<au-viewport></au-viewport>' })
-        class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
-        @customElement({ name: 'c', template: '<au-viewport></au-viewport>' })
-        class C extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
         @customElement({ name: 'd', template: null })
         class D extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
+        @route({ routes: [{ path: 'd', component: D }] })
+        @customElement({ name: 'c', template: '<au-viewport></au-viewport>' })
+        class C extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        @route({ routes: [{ path: 'c', component: C }] })
+        @customElement({ name: 'b', template: '<au-viewport></au-viewport>' })
+        class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
+        @route({ routes: [{ path: 'b', component: B }] })
+        @customElement({ name: 'a', template: '<au-viewport></au-viewport>' })
+        class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
+        @route({ routes: [{ path: 'a', component: A }] })
+        @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
+        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
 
         const { router, mgr, tearDown } = await createFixture(Root, [A, B, C, D], opts);
 
@@ -1567,13 +1443,19 @@ describe('router hooks', function () {
       const title = Object.keys(spec).map(key => `${key}:${spec[key]}`).filter(x => x.length > 2).join(',');
       it(title, async function () {
         const { a, b } = spec;
-
-        @customElement({ name: 'root', template: '<au-viewport name="$0"></au-viewport><au-viewport name="$1"></au-viewport>' })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
         @customElement({ name: 'a', template: null })
         class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a); } }
         @customElement({ name: 'b', template: null })
         class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, b); } }
+
+        @route({
+          routes: [
+            { path: 'a', component: A },
+            { path: 'b', component: B },
+          ]
+        })
+        @customElement({ name: 'root', template: '<au-viewport name="$0"></au-viewport><au-viewport name="$1"></au-viewport>' })
+        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
 
         const { router, mgr, tearDown } = await createFixture(Root, [A, B], opts);
 
@@ -1650,19 +1532,20 @@ describe('router hooks', function () {
       it(title, async function () {
         const { a1, a2 } = spec;
 
-        @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
-        class Root extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); }
-        }
-        @customElement({ name: 'a1', template: '<au-viewport></au-viewport>' })
-        class A1 extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a1); }
-        }
         @customElement({ name: 'a2', template: null })
         class A2 extends TestVM {
           public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a2); }
         }
-
+        @route({ routes: [{ path: 'a2', component: A2 }] })
+        @customElement({ name: 'a1', template: '<au-viewport></au-viewport>' })
+        class A1 extends TestVM {
+          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a1); }
+        }
+        @route({ routes: [{ path: 'a1', component: A1 }] })
+        @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
+        class Root extends TestVM {
+          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); }
+        }
         const { router, mgr, tearDown } = await createFixture(Root, [A1, A2], opts);
 
         const phase1 = `('' -> 'a1/a2')`;
@@ -1857,26 +1740,33 @@ describe('router hooks', function () {
       const title = Object.keys(spec).map(key => `${key}:${spec[key]}`).filter(x => x.length > 2).join(',');
       it(title, async function () {
         const { a1, a2, b1, b2 } = spec;
-
-        @customElement({ name: 'root', template: '<au-viewport name="$0"></au-viewport><au-viewport name="$1"></au-viewport>' })
-        class Root extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); }
-        }
-        @customElement({ name: 'a1', template: '<au-viewport></au-viewport>' })
-        class A1 extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a1); }
-        }
         @customElement({ name: 'a2', template: null })
         class A2 extends TestVM {
           public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a2); }
         }
-        @customElement({ name: 'b1', template: '<au-viewport></au-viewport>' })
-        class B1 extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, b1); }
+        @route({ routes: [{ path: 'a2', component: A2 }] })
+        @customElement({ name: 'a1', template: '<au-viewport></au-viewport>' })
+        class A1 extends TestVM {
+          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a1); }
         }
         @customElement({ name: 'b2', template: null })
         class B2 extends TestVM {
           public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, b2); }
+        }
+        @route({ routes: [{ path: 'b2', component: B2 }] })
+        @customElement({ name: 'b1', template: '<au-viewport></au-viewport>' })
+        class B1 extends TestVM {
+          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, b1); }
+        }
+        @route({
+          routes: [
+            { path: 'a1', component: A1 },
+            { path: 'b1', component: B1 },
+          ]
+        })
+        @customElement({ name: 'root', template: '<au-viewport name="$0"></au-viewport><au-viewport name="$1"></au-viewport>' })
+        class Root extends TestVM {
+          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); }
         }
 
         const { router, mgr, tearDown } = await createFixture(Root, [A1, A2, B1, B2], opts);
@@ -1999,7 +1889,8 @@ describe('router hooks', function () {
   if (!isFirefox) {
     forEachRouterOptions('error handling', function (opts) {
       interface IErrorSpec {
-        action: (router: IRouter, container: IContainer) => Promise<void>;
+        createCes: () => CustomElementType[];
+        action: (router: IRouter) => Promise<void>;
         messageMatcher: RegExp;
         stackMatcher: RegExp;
         toString(): string;
@@ -2007,14 +1898,16 @@ describe('router hooks', function () {
 
       function runTest(spec: IErrorSpec) {
         it(`re-throws ${spec}`, async function () {
+          const components = spec.createCes();
+          @route({ routes: components.map(component => ({ path: CustomElement.getDefinition(component).name, component })) })
           @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
           class Root {}
 
-          const { router, container, tearDown } = await createFixture(Root, [], opts);
+          const { router, tearDown } = await createFixture(Root, components, opts);
 
           let err: Error | undefined = void 0;
           try {
-            await spec.action(router, container);
+            await spec.action(router);
           } catch ($err) {
             err = $err;
           }
@@ -2051,15 +1944,15 @@ describe('router hooks', function () {
         'load',
       ] as HookName[]) {
         runTest({
-          async action(router, container) {
-            const target = CustomElement.define({ name: 'a', template: null }, class Target {
+          createCes() {
+            return [CustomElement.define({ name: 'a', template: null }, class Target {
               public async [hookName]() {
                 throw new Error(`error in ${hookName}`);
               }
-            });
-
-            container.register(target);
-            await router.load(target);
+            })];
+          },
+          async action(router) {
+            await router.load('a');
           },
           messageMatcher: new RegExp(`error in ${hookName}`),
           stackMatcher: new RegExp(`Target.${hookName}`),
@@ -2078,14 +1971,14 @@ describe('router hooks', function () {
         const throwsInTarget1 = ['canUnload'].includes(hookName);
 
         runTest({
-          async action(router, container) {
+          createCes() {
             const target1 = CustomElement.define({ name: 'a', template: null }, class Target1 {
               public async [hookName]() {
                 throw new Error(`error in ${hookName}`);
               }
             });
 
-            const target2 = CustomElement.define({ name: 'a', template: null }, class Target2 {
+            const target2 = CustomElement.define({ name: 'b', template: null }, class Target2 {
               public async binding() { throw new Error(`error in binding`); }
               public async bound() { throw new Error(`error in bound`); }
               public async attaching() { throw new Error(`error in attaching`); }
@@ -2093,10 +1986,11 @@ describe('router hooks', function () {
               public async canLoad() { throw new Error(`error in canLoad`); }
               public async load() { throw new Error(`error in load`); }
             });
-
-            container.register(target1, target2);
-            await router.load(target1);
-            await router.load(target2);
+            return [target1, target2];
+          },
+          async action(router) {
+            await router.load('a');
+            await router.load('b');
           },
           messageMatcher: new RegExp(`error in ${throwsInTarget1 ? hookName : 'canLoad'}`),
           stackMatcher: new RegExp(`${throwsInTarget1 ? 'Target1' : 'Target2'}.${throwsInTarget1 ? hookName : 'canLoad'}`),
@@ -2115,14 +2009,14 @@ describe('router hooks', function () {
         const throwsInTarget1 = ['canUnload', 'unload'].includes(hookName);
 
         runTest({
-          async action(router, container) {
+          createCes() {
             const target1 = CustomElement.define({ name: 'a', template: null }, class Target1 {
               public async [hookName]() {
                 throw new Error(`error in ${hookName}`);
               }
             });
 
-            const target2 = CustomElement.define({ name: 'a', template: null }, class Target2 {
+            const target2 = CustomElement.define({ name: 'b', template: null }, class Target2 {
               public async binding() { throw new Error(`error in binding`); }
               public async bound() { throw new Error(`error in bound`); }
               public async attaching() { throw new Error(`error in attaching`); }
@@ -2130,9 +2024,11 @@ describe('router hooks', function () {
               public async load() { throw new Error(`error in load`); }
             });
 
-            container.register(target1, target2);
-            await router.load(target1);
-            await router.load(target2);
+            return [target1, target2];
+          },
+          async action(router) {
+            await router.load('a');
+            await router.load('b');
           },
           messageMatcher: new RegExp(`error in ${throwsInTarget1 ? hookName : 'load'}`),
           stackMatcher: new RegExp(`${throwsInTarget1 ? 'Target1' : 'Target2'}.${throwsInTarget1 ? hookName : 'load'}`),
@@ -2146,41 +2042,29 @@ describe('router hooks', function () {
         'detaching',
         'unbinding',
       ] as HookName[]) {
-        let throwsInTarget1: boolean;
-        switch (opts.swapStrategy) {
-          case 'sequential-add-first':
-            throwsInTarget1 = false;
-            break;
-          case 'sequential-remove-first':
-            throwsInTarget1 = true;
-            break;
-          case 'parallel-remove-first':
-            // Would be hookName === 'detaching' if things were async
-            throwsInTarget1 = true;
-            break;
-        }
-
         runTest({
-          async action(router, container) {
+          createCes() {
             const target1 = CustomElement.define({ name: 'a', template: null }, class Target1 {
               public async [hookName]() {
                 throw new Error(`error in ${hookName}`);
               }
             });
 
-            const target2 = CustomElement.define({ name: 'a', template: null }, class Target2 {
+            const target2 = CustomElement.define({ name: 'b', template: null }, class Target2 {
               public async binding() { throw new Error(`error in binding`); }
               public async bound() { throw new Error(`error in bound`); }
               public async attaching() { throw new Error(`error in attaching`); }
               public async attached() { throw new Error(`error in attached`); }
             });
 
-            container.register(target1, target2);
-            await router.load(target1);
-            await router.load(target2);
+            return [target1, target2];
           },
-          messageMatcher: new RegExp(`error in ${throwsInTarget1 ? hookName : 'binding'}`),
-          stackMatcher: new RegExp(`${throwsInTarget1 ? 'Target1' : 'Target2'}.${throwsInTarget1 ? hookName : 'binding'}`),
+          async action(router) {
+            await router.load('a');
+            await router.load('b');
+          },
+          messageMatcher: new RegExp(`error in ${hookName}`),
+          stackMatcher: new RegExp(`Target1.${hookName}`),
           toString() {
             return `${String(this.messageMatcher)} with binding,bound,attaching`;
           },

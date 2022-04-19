@@ -1,10 +1,10 @@
 import { IContainer, Registration, IRegistry, LoggerConfiguration, LogLevel, ColorOptions, ConsoleSink } from '@aurelia/kernel';
-import { MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
+import { MockBrowserHistoryLocation } from '@aurelia/testing';
 import { IRouter } from '@aurelia/router-lite';
 import { AppTask, IHistory, ILocation } from '@aurelia/runtime-html';
 
 export const TestRouterConfiguration = {
-  for(ctx: TestContext, logLevel: LogLevel = LogLevel.debug): IRegistry {
+  for(logLevel: LogLevel = LogLevel.debug): IRegistry {
     return {
       register(container: IContainer): void {
         container.register(

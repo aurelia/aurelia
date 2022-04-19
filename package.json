@@ -48,7 +48,8 @@
     "test/benchmarking-apps/storage",
     "test/benchmarking-apps/test-result",
     "test/benchmarking-apps/viewer/server",
-    "test/benchmarking-apps/viewer/client"
+    "test/benchmarking-apps/viewer/client",
+    "test/js-framework-benchmark/frameworks/keyed/aurelia2-local"
   ],
   "license": "MIT",
   "engines": {
@@ -67,7 +68,7 @@
     "build:release-script": "tsc --project scripts/tsconfig.release-script.json",
     "change-package-refs:dev": "ts-node -P tsconfig.json scripts/change-package-refs.ts dev",
     "change-package-refs:release": "ts-node -P tsconfig.json scripts/change-package-refs.ts release",
-    "clean": "rimraf dist packages/*/dist packages-cjs/*/dist test/*/dist test/benchmarking-apps/*/dist examples/*/dist",
+    "clean": "rimraf dist packages/*/dist packages-cjs/*/dist test/*/dist test/benchmarking-apps/*/dist examples/*/dist test/js-framework-benchmark/*/dist",
     "clean:tsconfig-build-cache": "rimraf packages/*/dist/tsconfig.tsbuildinfo packages-cjs/*/dist/tsconfig.tsbuildinfo",
     "clean:lint": "rimraf .eslintcache packages/*/.eslintcache packages-cjs/*/.eslintcache",
     "lint": "npm run lint:packages && npm run lint:other",

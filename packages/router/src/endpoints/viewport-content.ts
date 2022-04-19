@@ -628,6 +628,6 @@ export class ViewportContent extends EndpointContent {
   // TODO: Move this elsewhere and fix the typings
   private getLifecycleHooks(instance: IRouteableComponent, name: string): any[] {
     const hooks = (instance.$controller!.lifecycleHooks[name as FuncPropNames<Constructable>] ?? []) as LifecycleHooksEntry[];
-    return hooks.map(hook => hook.instance[name as FuncPropNames<Constructable>]);
+    return hooks.map(hook => (hook.instance[name as FuncPropNames<Constructable>] as VoidFunction).bind(hook.instance));
   }
 }

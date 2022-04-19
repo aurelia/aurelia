@@ -1,5 +1,5 @@
 import { IRouter, RouterConfiguration, IRoute, ITitleOptions, RoutingInstruction, routes, Viewport, InstructionParameters } from '@aurelia/router';
-import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, customElement, IPlatform, Aurelia, lifecycleHooks } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Router', function () {
@@ -1800,6 +1800,88 @@ describe('Router', function () {
         });
       }
     }
+  });
+
+  describe('can use lifecycleHooks', function () {
+    this.timeout(30000);
+
+    async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
+      const ctx = TestContext.create();
+
+      const { container, platform } = ctx;
+
+      const App = CustomElement.define({
+        name: 'app',
+        template: '<au-viewport name="app"></au-viewport>',
+        dependencies
+      }, class {
+        public static routes: IRoute[] = routes;
+      });
+
+      const host = ctx.doc.createElement('div');
+      ctx.doc.body.appendChild(host as any);
+
+      const au = new Aurelia(container)
+        .register(
+          RouterConfiguration.customize(config ?? {}),
+          App)
+        .app({ host: host, component: App });
+
+      const router = getModifiedRouter(container);
+      const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
+
+      await au.start();
+
+      async function $teardown() {
+        unspyNavigationStates(router, _pushState, _replaceState);
+        await au.stop(true);
+        ctx.doc.body.removeChild(host);
+
+        au.dispose();
+      }
+
+      return { ctx, container, platform, host, au, router, $teardown, App };
+    }
+
+    const calledHooks = [];
+    @lifecycleHooks()
+    class Hooks {
+      public name = 'Hooks';
+      public canLoad(vm) { calledHooks.push(`${this.name}:${vm.name}:canLoad`); return true; }
+      public load(vm) { calledHooks.push(`${this.name}:${vm.name}:load`); }
+      public canUnload(vm) { calledHooks.push(`${this.name}:${vm.name}:canUnload`); return true; }
+      public unload(vm) { calledHooks.push(`${this.name}:${vm.name}:unload`); }
+
+      // TODO: Put these in once core supports them
+      // public binding(vm) { calledHooks.push(`${this.name}:${vm.name}:binding`); }
+      // public bound(vm) { calledHooks.push(`${this.name}:${vm.name}:bound`); }
+      // public attaching(vm) { calledHooks.push(`${this.name}:${vm.name}:attaching`); }
+      // public attached(vm) { calledHooks.push(`${this.name}:${vm.name}:attached`); }
+    }
+
+    const One = CustomElement.define({ name: 'my-one', template: '!my-one!', dependencies: [Hooks] }, class { public name = 'my-one'; });
+    const Two = CustomElement.define({ name: 'my-two', template: '!my-two!', dependencies: [Hooks] }, class { public name = 'my-two'; });
+
+    it(`with hook and vm`, async function () {
+      const { platform, host, router, $teardown } = await $setup({}, [Hooks, One, Two]);
+
+      const expected = [];
+      await $load('/my-one', router, platform);
+      await platform.domWriteQueue.yield();
+      expected.push('Hooks:my-one:canLoad', 'Hooks:my-one:load');
+
+      await $load('/my-two', router, platform);
+      await platform.domWriteQueue.yield();
+      expected.push('Hooks:my-one:canUnload', 'Hooks:my-two:canLoad', 'Hooks:my-one:unload', 'Hooks:my-two:load');
+
+      await $load('-', router, platform);
+      await platform.domWriteQueue.yield();
+      expected.push('Hooks:my-two:canUnload', 'Hooks:my-two:unload');
+
+      assert.strictEqual(calledHooks.join('|'), expected.join('|'), `calledHooks`);
+
+      await $teardown();
+    });
   });
 
   describe('can use viewport scope', function () {

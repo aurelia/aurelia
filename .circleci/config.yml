@@ -482,6 +482,10 @@ workflows:
           <<: *filter_ignore_develop_release
           requires:
             - check_doc_abort
+      - js_framework_benchmark:
+          <<: *filter_ignore_develop_release
+          requires:
+            - check_doc_abort
 
       # - benchmark_playwright:
       #     <<: *filter_ignore_develop_release

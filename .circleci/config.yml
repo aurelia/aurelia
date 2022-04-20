@@ -363,6 +363,7 @@ jobs:
       - run:
           name: "Benchmark all"
           command: |
+            npm run init
             cd test/js-framework-benchmark
             npm run ci
       # - store_test_results:

@@ -461,10 +461,10 @@ workflows:
       #   coverage: false
       #   submodules: true
 
-      # - lint_packages:
-      #     <<: *filter_ignore_develop_release
-      #     requires:
-      #       - check_doc_abort
+      - lint_packages:
+          <<: *filter_ignore_develop_release
+          requires:
+            - check_doc_abort
 
       # - benchmark_playwright:
       #     <<: *filter_ignore_develop_release
@@ -551,8 +551,8 @@ workflows:
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
-      # - lint_packages:
-      #     <<: *filter_only_tag
+      - lint_packages:
+          <<: *filter_only_tag
       - merge_and_dist:
           <<: *filter_only_tag
           requires:

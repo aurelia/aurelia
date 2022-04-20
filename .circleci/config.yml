@@ -356,7 +356,8 @@ jobs:
             npm run e2e:<< parameters.suite >>
 
   js_framework_benchmark:
-    executor: docker-circleci
+    docker:
+      - image: cimg/node:17.9.0-browsers
     steps:
       - checkout
       - run:

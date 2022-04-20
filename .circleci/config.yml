@@ -357,7 +357,7 @@ jobs:
 
   js_framework_benchmark:
     docker:
-      - image: cimg/node:17.9.0-browsers
+      - image: cimg/node:16.14.2-browsers
     steps:
       - checkout
       - run:

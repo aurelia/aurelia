@@ -3,27 +3,22 @@ import { bindable, customElement, ICustomElementViewModel, IHydratedController, 
 
 import { ViewportAgent } from '../viewport-agent.js';
 import { IRouteContext } from '../route-context.js';
+import { defaultViewportName } from '../route-definition.js';
 
 export interface IViewport {
   readonly name: string;
   readonly usedBy: string;
   readonly default: string;
   readonly fallback: string;
-  readonly noScope: boolean;
-  readonly noLink: boolean;
-  readonly noHistory: boolean;
   readonly stateful: boolean;
 }
 
 @customElement({ name: 'au-viewport' })
 export class ViewportCustomElement implements ICustomElementViewModel, IViewport {
-  @bindable public name: string = 'default';
+  @bindable public name: string = defaultViewportName;
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
   @bindable public fallback: string = '';
-  @bindable public noScope: boolean = false;
-  @bindable public noLink: boolean = false;
-  @bindable public noHistory: boolean = false;
   @bindable public stateful: boolean = false;
 
   private agent: ViewportAgent = (void 0)!;
@@ -96,8 +91,5 @@ const props = [
   'usedBy',
   'default',
   'fallback',
-  'noScope',
-  'noLink',
-  'noHistory',
   'stateful',
 ] as const;

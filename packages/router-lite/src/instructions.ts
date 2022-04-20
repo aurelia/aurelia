@@ -76,7 +76,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
 
   public static create(instruction: NavigationInstruction, context?: RouteContextLike | null): ViewportInstruction {
     if (instruction instanceof ViewportInstruction) {
-      return instruction;
+      return instruction as ViewportInstruction; // eslint is being really weird here
     }
 
     if (isPartialViewportInstruction(instruction)) {
@@ -408,12 +408,10 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
       return instruction;
     }
 
-    if (typeof instruction === 'string') {
-      return new TypedNavigationInstruction(NavigationInstructionType.string, instruction);
-    } else if (!isObject(instruction)) {
-      // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
-      expectType('function/class or object', '', instruction);
-    } else if (typeof instruction === 'function') {
+    if (typeof instruction === 'string') return new TypedNavigationInstruction(NavigationInstructionType.string, instruction);
+    // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
+    if (!isObject(instruction)) expectType('function/class or object', '', instruction);
+    if (typeof instruction === 'function') {
       if (CustomElement.isType(instruction as Constructable)) {
         // This is the class itself
         // CustomElement.getDefinition will throw if the type is not a custom element
@@ -422,24 +420,23 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
       } else {
         return TypedNavigationInstruction.create((instruction as () => NavigationInstruction)());
       }
-    } else if (instruction instanceof Promise) {
-      return new TypedNavigationInstruction(NavigationInstructionType.Promise, instruction);
-    } else if (isPartialViewportInstruction(instruction)) {
+    }
+    if (instruction instanceof Promise) return new TypedNavigationInstruction(NavigationInstructionType.Promise, instruction);
+    if (isPartialViewportInstruction(instruction)) {
       const viewportInstruction = ViewportInstruction.create(instruction);
       return new TypedNavigationInstruction(NavigationInstructionType.ViewportInstruction, viewportInstruction);
-    } else if (isCustomElementViewModel(instruction)) {
-      return new TypedNavigationInstruction(NavigationInstructionType.IRouteViewModel, instruction);
-    } else if (instruction instanceof CustomElementDefinition) {
-      // We might have gotten a complete definition. In that case use it as-is.
-      return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, instruction);
-    } else if (isPartialCustomElementDefinition(instruction)) {
+    }
+    if (isCustomElementViewModel(instruction)) return new TypedNavigationInstruction(NavigationInstructionType.IRouteViewModel, instruction);
+    // We might have gotten a complete definition. In that case use it as-is.
+    if (instruction instanceof CustomElementDefinition) return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, instruction);
+    if (isPartialCustomElementDefinition(instruction)) {
+      // TODO(sayan): create the instruction by looking up the route configuration/definition from the given type in the partial element definition
       // If we just got a partial definition, define a new anonymous class
       const Type = CustomElement.define(instruction);
       const definition = CustomElement.getDefinition(Type);
       return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, definition);
-    } else {
-      throw new Error(`Invalid component ${tryStringify(instruction)}: must be either a class, a custom element ViewModel, or a (partial) custom element definition`);
     }
+    throw new Error(`Invalid component ${tryStringify(instruction)}: must be either a class, a custom element ViewModel, or a (partial) custom element definition`);
   }
 
   public equals(this: ITypedNavigationInstruction_T, other: ITypedNavigationInstruction_T): boolean {

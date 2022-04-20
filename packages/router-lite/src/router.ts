@@ -29,11 +29,7 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
   return { ...state, [AuNavId]: navId };
 }
 
-export type RoutingMode = 'configured-only' | 'configured-first';
-export type SwapStrategy = 'sequential-add-first' | 'sequential-remove-first' | 'parallel-remove-first';
 export type ResolutionMode = 'static' | 'dynamic';
-export type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
-export type FragmentStrategy = 'overwrite' | 'preserve';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
 export type SameUrlStrategy = 'ignore' | 'reload';
 export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
@@ -51,39 +47,7 @@ export class RouterOptions {
   protected constructor(
     public readonly useUrlFragmentHash: boolean,
     public readonly useHref: boolean,
-    public readonly statefulHistoryLength: number,
-    /**
-     * The operating mode of the router that determines how components are resolved based on a url.
-     *
-     * - `configured-only`: only match the url against configured routes.
-     * - `configured-first`: first tries to resolve by configured routes, then by component name from available dependencies. (default)
-     *
-     * Default: `configured-first`
-     */
-    public readonly routingMode: RoutingMode,
-    public readonly swapStrategy: SwapStrategy,
     public readonly resolutionMode: ResolutionMode,
-    /**
-     * The strategy to use for determining the query parameters when both the previous and the new url has a query string.
-     *
-     * - `overwrite`: uses the query params of the new url. (default)
-     * - `preserve`: uses the query params of the previous url.
-     * - `merge`: uses the query params of both the previous and the new url. When a param name exists in both, the value from the new url is used.
-     * - A function that returns one of the 3 above values based on the navigation.
-     *
-     * Default: `overwrite`
-     */
-    public readonly queryParamsStrategy: ValueOrFunc<QueryParamsStrategy>,
-    /**
-     * The strategy to use for determining the fragment (value that comes after `#`) when both the previous and the new url have one.
-     *
-     * - `overwrite`: uses the fragment of the new url. (default)
-     * - `preserve`: uses the fragment of the previous url.
-     * - A function that returns one of the 2 above values based on the navigation.
-     *
-     * Default: `overwrite`
-     */
-    public readonly fragmentStrategy: ValueOrFunc<FragmentStrategy>,
     /**
      * The strategy to use for interacting with the browser's `history` object (if applicable).
      *
@@ -118,24 +82,11 @@ export class RouterOptions {
     return new RouterOptions(
       input.useUrlFragmentHash ?? false,
       input.useHref ?? true,
-      input.statefulHistoryLength ?? 0,
-      input.routingMode ?? 'configured-first',
-      input.swapStrategy ?? 'sequential-remove-first',
       input.resolutionMode ?? 'dynamic',
-      input.queryParamsStrategy ?? 'overwrite',
-      input.fragmentStrategy ?? 'overwrite',
       input.historyStrategy ?? 'push',
       input.sameUrlStrategy ?? 'ignore',
       input.buildTitle ?? null,
     );
-  }
-  /** @internal */
-  public getQueryParamsStrategy(instructions: ViewportInstructionTree): QueryParamsStrategy {
-    return valueOrFuncToValue(instructions, this.queryParamsStrategy);
-  }
-  /** @internal */
-  public getFragmentStrategy(instructions: ViewportInstructionTree): FragmentStrategy {
-    return valueOrFuncToValue(instructions, this.fragmentStrategy);
   }
   /** @internal */
   public getHistoryStrategy(instructions: ViewportInstructionTree): HistoryStrategy {
@@ -148,11 +99,7 @@ export class RouterOptions {
 
   protected stringifyProperties(): string {
     return ([
-      ['routingMode', 'mode'],
-      ['swapStrategy', 'swap'],
       ['resolutionMode', 'resolution'],
-      ['queryParamsStrategy', 'queryParams'],
-      ['fragmentStrategy', 'fragment'],
       ['historyStrategy', 'history'],
       ['sameUrlStrategy', 'sameUrl'],
     ] as const).map(([key, name]) => {
@@ -165,12 +112,7 @@ export class RouterOptions {
     return new RouterOptions(
       this.useUrlFragmentHash,
       this.useHref,
-      this.statefulHistoryLength,
-      this.routingMode,
-      this.swapStrategy,
       this.resolutionMode,
-      this.queryParamsStrategy,
-      this.fragmentStrategy,
       this.historyStrategy,
       this.sameUrlStrategy,
       this.buildTitle,
@@ -217,12 +159,7 @@ export class NavigationOptions extends RouterOptions {
     super(
       routerOptions.useUrlFragmentHash,
       routerOptions.useHref,
-      routerOptions.statefulHistoryLength,
-      routerOptions.routingMode,
-      routerOptions.swapStrategy,
       routerOptions.resolutionMode,
-      routerOptions.queryParamsStrategy,
-      routerOptions.fragmentStrategy,
       routerOptions.historyStrategy,
       routerOptions.sameUrlStrategy,
       routerOptions.buildTitle,
@@ -388,6 +325,7 @@ export class Router {
           instruction: null,
           component: ctx.definition.component!,
           append: false,
+          title: ctx.definition.config.title,
         }),
       );
     }
@@ -507,8 +445,6 @@ export class Router {
    * Examples:
    *
    * ```ts
-   * // Use direct routing syntax to load 'product-detail' with parameter id=37, as a child of the current component, in the next available sibling viewport.
-   * router.load('+product-detail(id=37)');
    * // Load the route 'product-detail', as a child of the current component, with child route '37'.
    * router.load('product-detail/37', { context: this });
    * ```
@@ -520,9 +456,7 @@ export class Router {
    * Examples:
    *
    * ```ts
-   * router.load(['book-detail(20)', 'author-detail(11)']);
-   * router.load(['category/50/product/20', 'widget/30'], { routingMode: 'configured-only' });
-   * router.load(['category/50/product/20', 'widget(id=30)]);
+   * router.load(['category/50/product/20', 'widget/30']);
    * ```
    */
   public load(paths: readonly string[], options?: INavigationOptions): Promise<boolean>;
@@ -579,8 +513,8 @@ export class Router {
    * ```ts
    * router.load({ component: 'product-detail', parameters: { id: 37 } })
    * router.load({ component: ProductDetail, parameters: { id: 37 } })
-   * router.load({ component: 'category(id=50)', children: ['product(id=20)'] })
-   * router.load({ component: 'category(id=50)', children: [{ component: 'product', parameters: { id: 20 } }] })
+   * router.load({ component: 'category', children: ['product(id=20)'] })
+   * router.load({ component: 'category', children: [{ component: 'product', parameters: { id: 20 } }] })
    * router.load({
    *   component: CustomElement.define({
    *     name: 'greeter',
@@ -619,8 +553,6 @@ export class Router {
    * Retrieve the RouteContext, which contains statically configured routes combined with the customElement metadata associated with a type.
    *
    * The customElement metadata is lazily associated with a type via the RouteContext the first time `getOrCreate` is called.
-   *
-   * This API is also used for direct routing even when there is no configuration at all.
    *
    * @param viewportAgent - The ViewportAgent hosting the component associated with this RouteContext. If the RouteContext for the component+viewport combination already exists, the ViewportAgent will be updated in case it changed.
    * @param component - The custom element definition.

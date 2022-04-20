@@ -10,6 +10,7 @@ import { IRouteContext } from './route-context.js';
 import { Transition, ResolutionMode, NavigationOptions } from './router.js';
 import { TransitionPlan } from './route.js';
 import { Batch, mergeDistinct } from './util.js';
+import { defaultViewportName } from './route-definition.js';
 
 export class ViewportRequest {
   public constructor(
@@ -18,15 +19,6 @@ export class ViewportRequest {
     public readonly resolution: ResolutionMode,
     public readonly append: boolean,
   ) { }
-
-  public static create(input: ViewportRequest): ViewportRequest {
-    return new ViewportRequest(
-      input.viewportName,
-      input.componentName,
-      input.resolution,
-      input.append,
-    );
-  }
 
   public toString(): string {
     return `VR(viewport:'${this.viewportName}',component:'${this.componentName}',resolution:'${this.resolution}',append:${this.append})`;
@@ -155,8 +147,10 @@ export class ViewportAgent {
       return false;
     }
 
-    if (req.viewportName.length > 0 && this.viewport.name !== req.viewportName) {
-      this.logger.trace(`handles(req:%s) -> false (names don't match)`, req);
+    const reqVp = req.viewportName;
+    const vp = this.viewport.name;
+    if (reqVp !== defaultViewportName && vp !== defaultViewportName && vp !== reqVp) {
+      this.logger.trace(`handles(req:%s) -> false (viewport names don't match '%s')`, req, vp);
       return false;
     }
 
@@ -165,7 +159,7 @@ export class ViewportAgent {
       return false;
     }
 
-    this.logger.trace(`handles(req:%s) -> true`, req);
+    this.logger.trace(`viewport '%s' handles(req:%s) -> true`, vp, req);
     return true;
   }
 
@@ -549,67 +543,26 @@ export class ViewportAgent {
         const deactivateFlags = this.viewport.stateful ? LifecycleFlags.none : LifecycleFlags.dispose;
         const activateFlags = LifecycleFlags.none;
         b.push();
-        switch (tr.options.swapStrategy) {
-          case 'sequential-add-first':
-            Batch.start(b1 => {
-              tr.run(() => {
-                b1.push();
-                return nextCA.activate(null, controller, activateFlags);
-              }, () => {
-                b1.pop();
-              });
-            }).continueWith(b1 => {
-              this.processDynamicChildren(tr, b1);
-            }).continueWith(() => {
-              tr.run(() => {
-                return curCA.deactivate(null, controller, deactivateFlags);
-              }, () => {
-                b.pop();
-              });
-            }).start();
-            return;
-          case 'sequential-remove-first':
-            Batch.start(b1 => {
-              tr.run(() => {
-                b1.push();
-                return curCA.deactivate(null, controller, deactivateFlags);
-              }, () => {
-                b1.pop();
-              });
-            }).continueWith(b1 => {
-              tr.run(() => {
-                b1.push();
-                return nextCA.activate(null, controller, activateFlags);
-              }, () => {
-                b1.pop();
-              });
-            }).continueWith(b1 => {
-              this.processDynamicChildren(tr, b1);
-            }).continueWith(() => {
-              b.pop();
-            }).start();
-            return;
-          case 'parallel-remove-first':
-            tr.run(() => {
-              b.push();
-              return curCA.deactivate(null, controller, deactivateFlags);
-            }, () => {
-              b.pop();
-            });
-            Batch.start(b1 => {
-              tr.run(() => {
-                b1.push();
-                return nextCA.activate(null, controller, activateFlags);
-              }, () => {
-                b1.pop();
-              });
-            }).continueWith(b1 => {
-              this.processDynamicChildren(tr, b1);
-            }).continueWith(() => {
-              b.pop();
-            }).start();
-            return;
-        }
+        Batch.start(b1 => {
+          tr.run(() => {
+            b1.push();
+            return curCA.deactivate(null, controller, deactivateFlags);
+          }, () => {
+            b1.pop();
+          });
+        }).continueWith(b1 => {
+          tr.run(() => {
+            b1.push();
+            return nextCA.activate(null, controller, activateFlags);
+          }, () => {
+            b1.pop();
+          });
+        }).continueWith(b1 => {
+          this.processDynamicChildren(tr, b1);
+        }).continueWith(() => {
+          b.pop();
+        }).start();
+        return;
       }
     }
   }

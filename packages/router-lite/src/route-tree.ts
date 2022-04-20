@@ -1,13 +1,50 @@
-import { ILogger, resolveAll, onResolve, Writable } from '@aurelia/kernel';
-import { CustomElementDefinition, CustomElement } from '@aurelia/runtime-html';
-
-import { IRouteContext, $RecognizedRoute } from './route-context.js';
-import { emptyQuery, IRouter, NavigationOptions } from './router.js';
-import { ViewportInstructionTree, ViewportInstruction, NavigationInstructionType, Params, ITypedNavigationInstruction_ResolvedComponent, ITypedNavigationInstruction_string } from './instructions.js';
-import { RouteDefinition } from './route-definition.js';
-import { ViewportRequest } from './viewport-agent.js';
-import { ExpressionKind, RouteExpression, ScopedSegmentExpression, SegmentExpression } from './route-expression.js';
-import { ConfigurableRoute } from '@aurelia/route-recognizer';
+import {
+  emptyObject,
+  ILogger,
+  onResolve,
+  resolveAll,
+  toArray,
+  Writable,
+} from '@aurelia/kernel';
+import {
+  ConfigurableRoute,
+  Endpoint,
+  RecognizedRoute,
+} from '@aurelia/route-recognizer';
+import {
+  CustomElementDefinition,
+} from '@aurelia/runtime-html';
+import {
+  ITypedNavigationInstruction_ResolvedComponent,
+  ITypedNavigationInstruction_string,
+  NavigationInstructionType,
+  Params,
+  ViewportInstruction,
+  ViewportInstructionTree,
+} from './instructions.js';
+import {
+  $RecognizedRoute,
+  IRouteContext,
+  RESIDUE,
+} from './route-context.js';
+import {
+  defaultViewportName,
+  RouteDefinition,
+} from './route-definition.js';
+import {
+  ExpressionKind,
+  RouteExpression,
+  ScopedSegmentExpression,
+  SegmentExpression,
+} from './route-expression.js';
+import {
+  emptyQuery,
+  IRouter,
+  NavigationOptions,
+} from './router.js';
+import {
+  ViewportRequest,
+} from './viewport-agent.js';
 
 export interface IRouteNode {
   path: string;
@@ -43,7 +80,7 @@ export class RouteNode implements IRouteNode {
     /** @internal */
     public id: number,
     /**
-     * The original configured path pattern that was matched, or the component name if it was resolved via direct routing.
+     * The original configured path pattern that was matched.
      */
     public path: string,
     /**
@@ -92,6 +129,8 @@ export class RouteNode implements IRouteNode {
   }
 
   public static create(input: IRouteNode): RouteNode {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [RESIDUE]: _, ...params } = input.params ?? {};
     return new RouteNode(
       /*          id */++nodeId,
       /*        path */input.path,
@@ -99,7 +138,7 @@ export class RouteNode implements IRouteNode {
       /*     context */input.context,
       /* originalIns */input.instruction,
       /* instruction */input.instruction,
-      /*      params */input.params ?? {},
+      /*      params */params,
       /* queryParams */input.queryParams ?? emptyQuery,
       /*    fragment */input.fragment ?? null,
       /*        data */input.data ?? {},
@@ -157,7 +196,6 @@ export class RouteNode implements IRouteNode {
     const titleParts = [
       ...this.children.map(x => x.getTitle(separator)),
       this.getTitlePart(),
-      this.context.definition.config.title,
     ].filter(x => x !== null);
     if (titleParts.length === 0) {
       return null;
@@ -443,18 +481,19 @@ export function createAndAppendNodes(
   log.trace(`createAndAppendNodes(node:%s,vi:%s,append:${append})`, node, vi);
 
   switch (vi.component.type) {
-    case NavigationInstructionType.string: {
+    case NavigationInstructionType.string:
       switch (vi.component.value) {
         case '..':
           // Allow going "too far up" just like directory command `cd..`, simply clamp it to the root
           node.clearChildren();
           node = node.context.parent?.node ?? node;
-          // falls through
+        // falls through
         case '.':
           return resolveAll(...vi.children.map(childVI => {
             return createAndAppendNodes(log, node, childVI, childVI.append);
           }));
         default: {
+          log.trace(`createAndAppendNodes invoking createNode`);
           const childNode = createNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>, append);
           if (childNode === null) {
             return;
@@ -462,11 +501,21 @@ export function createAndAppendNodes(
           return appendNode(log, node, childNode);
         }
       }
-    }
     case NavigationInstructionType.IRouteViewModel:
     case NavigationInstructionType.CustomElementDefinition: {
-      const routeDef = RouteDefinition.resolve(vi.component.value);
-      const childNode = createDirectNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, routeDef.component!);
+      const rd = RouteDefinition.resolve(vi.component.value);
+      const params = vi.params ?? emptyObject;
+      const rr = new $RecognizedRoute(
+        new RecognizedRoute(
+          new Endpoint(
+            // TODO(sayan): probably need to do parameter matching and select the "most-matched" path instead of picking the first
+            new ConfigurableRoute(rd.path[0], rd.caseSensitive, rd),
+            toArray(Object.values(params))
+          ),
+          params
+        ),
+        null);
+      const childNode = createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
       return appendNode(log, node, childNode);
     }
   }
@@ -495,43 +544,46 @@ function createNode(
   const rr = ctx.recognize(path);
   if (rr === null) {
     const name = vi.component.value;
-    let ced: CustomElementDefinition | null = ctx.container.find(CustomElement, name);
-    switch (node.tree.options.routingMode) {
-      case 'configured-only':
-        if (ced === null) {
-          if (name === '') {
-            // TODO: maybe throw here instead? Do we want to force the empty route to always be configured?
-            return null;
-          }
-          throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
-        }
-        throw new Error(`'${name}' did not match any configured route, but it does match a registered component name at '${ctx.friendlyPath}' - did you forget to add a @route({ path: '${name}' }) decorator to '${name}' or unintentionally set routingMode to 'configured-only'?`);
-      case 'configured-first':
-        if (ced === null) {
-          if (name === '') {
-            return null;
-          }
-          const vpName = vi.viewport === null || vi.viewport.length === 0 ? 'default' : vi.viewport;
-          const fallbackVPA = ctx.getFallbackViewportAgent('dynamic', vpName);
-          if (fallbackVPA === null) {
-            throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' and no fallback was provided for viewport '${vpName}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
-          }
-          const fallback = fallbackVPA.viewport.fallback;
-          ced = ctx.container.find(CustomElement, fallback);
-          if (ced === null) {
-            throw new Error(`the requested component '${name}' and the fallback '${fallback}' at viewport '${vpName}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
-          }
-        }
-        return createDirectNode(log, node, vi, append, ced);
+    if (name === '') {
+      return null;
     }
+    let vp = vi.viewport;
+    if (vp === null || vp.length === 0) vp = defaultViewportName;
+    const vpa = ctx.getFallbackViewportAgent('dynamic', vp);
+    const fallback = vpa === null ? ctx.definition.fallback : vpa.viewport.fallback;
+    if(fallback === null)
+      throw new Error(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
+
+    // fallback: id -> route -> CEDefn (Route definition)
+    // look for a route first
+    log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
+    const rd = (ctx.childRoutes as RouteDefinition[]).find(x => x.id === fallback);
+    if(rd !== void 0) return createFallbackNode(log, rd, node, vi, append);
+
+    log.trace(`No route definition for the fallback '${fallback}' is found; trying to recognize the route.`);
+    const rr = ctx.recognize(fallback);
+    if(rr !== null) return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
+
+    // fallback is not recognized as a configured route; treat as CE and look for a route definition.
+    log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
+    return createFallbackNode(log, RouteDefinition.resolve(fallback, ctx), node, vi, append);
   }
 
-  // If it's a multi-segment match, collapse the viewport instructions to correct the tree structure.
-  const finalPath = rr.residue === null ? path : path.slice(0, -(rr.residue.length + 1));
-  (vi.component as Writable<ITypedNavigationInstruction_string>).value = finalPath;
+  // readjust the children wrt. the residue
+  const residue = rr.residue;
+  log.trace('createNode residue:', rr.residue);
+  const noResidue = residue === null;
+  (rr as Writable<$RecognizedRoute>).residue = null;
+  (vi.component as Writable<ITypedNavigationInstruction_string>).value = noResidue
+    ? path
+    : path.slice(0, -(residue.length + 1));
+
   for (let i = 0; i < collapse; ++i) {
-    (vi as Writable<ViewportInstruction>).children = vi.children[0].children;
+    const child = vi.children[0];
+    if (residue?.startsWith(child.component.value as string) ?? false) break;
+    (vi as Writable<ViewportInstruction>).children = child.children;
   }
+  log.trace('createNode after adjustment vi:%s', vi);
   return createConfiguredNode(log, node, vi, append, rr);
 }
 
@@ -548,20 +600,23 @@ function createConfiguredNode(
   return onResolve(route.handler, $handler => {
     route.handler = $handler;
 
+    log.trace(`creatingConfiguredNode(rd:%s, vi:%s)`, $handler, vi);
+
     if ($handler.redirectTo === null) {
-      const vpName = $handler.viewport;
+      const vpName: string = ((vi.viewport?.length ?? 0) > 0 ? vi.viewport : $handler.viewport)!;
       const ced = $handler.component!;
 
-      const vpa = ctx.resolveViewportAgent(ViewportRequest.create({
-        viewportName: vpName,
-        componentName: ced.name,
+      const vpa = ctx.resolveViewportAgent(new ViewportRequest(
+        vpName,
+        ced.name,
+        rt.options.resolutionMode,
         append,
-        resolution: rt.options.resolutionMode,
-      }));
+      ));
 
       const router = ctx.container.get(IRouter);
       const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.container);
 
+      log.trace('createConfiguredNode setting the context node');
       childCtx.node = RouteNode.create({
         path: rr.route.endpoint.route.path,
         finalPath: route.path,
@@ -571,14 +626,18 @@ function createConfiguredNode(
           ...node.params,
           ...rr.route.params
         },
-        queryParams: rt.queryParams, // TODO: queryParamsStrategy
-        fragment: rt.fragment, // TODO: fragmentStrategy
+        queryParams: rt.queryParams,
+        fragment: rt.fragment,
         data: $handler.data,
         viewport: vpName,
         component: ced,
         append,
         title: $handler.config.title,
-        residue: rr.residue === null ? [] : [ViewportInstruction.create(rr.residue)],
+        residue: [
+          // TODO(sayan): this can be removed; need to inspect more.
+          ...(rr.residue === null ? [] : [ViewportInstruction.create(rr.residue)]),
+          ...vi.children,
+        ],
       });
       childCtx.node.setTree(node.tree);
 
@@ -653,8 +712,8 @@ function createConfiguredNode(
       }
 
       if (redirSeg !== null) {
-        if (redirSeg.component.isDynamic && origSeg?.component.isDynamic) {
-          newSegs.push(rr.route.params[origSeg.component.name] as string);
+        if (redirSeg.component.isDynamic && (origSeg?.component.isDynamic ?? false)) {
+          newSegs.push(rr.route.params[origSeg!.component.name] as string);
         } else {
           newSegs.push(redirSeg.raw);
         }
@@ -664,75 +723,10 @@ function createConfiguredNode(
     const newPath = newSegs.filter(Boolean).join('/');
 
     const redirRR = ctx.recognize(newPath);
-    if (redirRR === null) {
-      const name = newPath;
-      const ced: CustomElementDefinition | null = ctx.container.find(CustomElement, newPath);
-      switch (rt.options.routingMode) {
-        case 'configured-only':
-          if (ced === null) {
-            throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
-          }
-          throw new Error(`'${name}' did not match any configured route, but it does match a registered component name at '${ctx.friendlyPath}' - did you forget to add a @route({ path: '${name}' }) decorator to '${name}' or unintentionally set routingMode to 'configured-only'?`);
-        case 'configured-first':
-          if (ced === null) {
-            throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
-          }
-          return createDirectNode(log, node, vi, append, ced);
-      }
-    }
+    if (redirRR === null) throw new Error(`'${newPath}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add '${newPath}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
     return createConfiguredNode(log, node, vi, append, rr, redirRR.route.endpoint.route);
   });
-}
-
-function createDirectNode(
-  log: ILogger,
-  node: RouteNode,
-  vi: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
-  append: boolean,
-  ced: CustomElementDefinition,
-): RouteNode {
-  const ctx = node.context;
-  const rt = node.tree;
-  const vpName = vi.viewport ?? 'default';
-
-  const vpa = ctx.resolveViewportAgent(ViewportRequest.create({
-    viewportName: vpName,
-    componentName: ced.name,
-    append,
-    resolution: rt.options.resolutionMode,
-  }));
-
-  const router = ctx.container.get(IRouter);
-  const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.container);
-
-  // TODO(fkleuver): process redirects in direct routing (?)
-  const rd = RouteDefinition.resolve(ced);
-
-  // TODO: add ActionExpression state representation to RouteNode
-  childCtx.node = RouteNode.create({
-    path: ced.name,
-    finalPath: ced.name,
-    context: childCtx,
-    instruction: vi,
-    params: {
-      ...ctx.node.params,
-      ...vi.params,
-    },
-    queryParams: rt.queryParams, // TODO: queryParamsStrategy
-    fragment: rt.fragment, // TODO: fragmentStrategy
-    data: rd.data,
-    viewport: vpName,
-    component: ced,
-    append,
-    title: rd.config.title,
-    residue: [...vi.children], // Children must be cloned, because residue will be mutated by the compiler
-  });
-  childCtx.node.setTree(ctx.node.tree);
-
-  log.trace(`createDirectNode(vi:%s) -> %s`, vi, childCtx.node);
-
-  return childCtx.node;
 }
 
 function appendNode(
@@ -745,4 +739,27 @@ function appendNode(
     node.appendChild($childNode);
     return $childNode.context.vpa.scheduleUpdate(node.tree.options, $childNode);
   });
+}
+
+/**
+ * Creates route node from the given RouteDefinition `rd` for a unknown path (non-configured route).
+ */
+function createFallbackNode(
+  log: ILogger,
+  rd: RouteDefinition,
+  node: RouteNode,
+  vi: ViewportInstruction<ITypedNavigationInstruction_string>,
+  append: boolean,
+): RouteNode | Promise<RouteNode> {
+  // we aren't migrating the parameters for missing route
+  const rr = new $RecognizedRoute(
+    new RecognizedRoute(
+      new Endpoint(
+        new ConfigurableRoute(rd.path[0], rd.caseSensitive, rd),
+        []
+      ),
+      emptyObject
+    ),
+    null);
+  return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
 }

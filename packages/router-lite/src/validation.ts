@@ -5,6 +5,9 @@ import { IChildRouteConfig, IRedirectRouteConfig, Routeable } from './route.js';
 import { IViewportInstruction, RouteableComponent } from './instructions.js';
 import { tryStringify } from './util.js';
 
+/**
+ * @returns `true` if the given `value` is an non-null, non-undefined, and non-CustomElement object.
+ */
 export function isNotNullishOrTypeOrViewModel(value: RouteableComponent | IChildRouteConfig | null | undefined): value is PartialCustomElementDefinition | IChildRouteConfig {
   return (
     typeof value === 'object' &&
@@ -74,6 +77,7 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
       case 'id':
       case 'viewport':
       case 'redirectTo':
+      case 'fallback':
         if (typeof value !== 'string') {
           expectType('string', path, value);
         }
@@ -116,7 +120,7 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
           expectType('Array', path, value);
         }
         for (const route of value) {
-          const childPath = `${path}[${value.indexOf(route as any)}]`; // TODO(fkleuver): remove 'any' (this type got very messy for some reason)
+          const childPath = `${path}[${value.indexOf(route)}]`;
           validateComponent(route, childPath);
         }
         break;

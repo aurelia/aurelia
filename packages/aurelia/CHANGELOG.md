@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.28"></a>
+# 2.0.0-alpha.28 (2022-04-16)
+
+### Refactorings:
+
+* **router:** restore aurelia packages ([334864d](https://github.com/aurelia/aurelia/commit/334864d))
+* **router:** fix rebase issues ([7e9d6c3](https://github.com/aurelia/aurelia/commit/7e9d6c3))
+* **router:** implement RouterOptions ([78ac2c0](https://github.com/aurelia/aurelia/commit/78ac2c0))
+* **router:** replace ViewportInstruction with RoutingInstruction ([4e15dbc](https://github.com/aurelia/aurelia/commit/4e15dbc))
+
 <a name="2.0.0-alpha.27"></a>
 # 2.0.0-alpha.27 (2022-04-08)
 

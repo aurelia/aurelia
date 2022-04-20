@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.28"></a>
+# 2.0.0-alpha.28 (2022-04-16)
+
+### Refactorings:
+
+* **router:** restore aurelia packages ([334864d](https://github.com/aurelia/aurelia/commit/334864d))
+
 <a name="2.0.0-alpha.27"></a>
 # 2.0.0-alpha.27 (2022-04-08)
 

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/router-lite",
-  "version": "2.0.0-alpha.27",
+  "version": "2.0.0-alpha.28",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -41,13 +41,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.27",
-    "@aurelia/metadata": "2.0.0-alpha.27",
-    "@aurelia/platform": "2.0.0-alpha.27",
-    "@aurelia/platform-browser": "2.0.0-alpha.27",
-    "@aurelia/route-recognizer": "2.0.0-alpha.27",
-    "@aurelia/runtime": "2.0.0-alpha.27",
-    "@aurelia/runtime-html": "2.0.0-alpha.27"
+    "@aurelia/kernel": "2.0.0-alpha.28",
+    "@aurelia/metadata": "2.0.0-alpha.28",
+    "@aurelia/platform": "2.0.0-alpha.28",
+    "@aurelia/platform-browser": "2.0.0-alpha.28",
+    "@aurelia/route-recognizer": "2.0.0-alpha.28",
+    "@aurelia/runtime": "2.0.0-alpha.28",
+    "@aurelia/runtime-html": "2.0.0-alpha.28"
   },
   "devDependencies": {
     "typescript": "^4.6.2"

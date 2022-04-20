@@ -1,5 +1,5 @@
 {
-  "name": "@benchmarking-apps/aurelia2-local",
+  "name": "@benchmarking-apps/krauset-aurelia2-local",
   "description": "Benchmark for aurelia 2 framework",
   "private": true,
   "js-framework-benchmark": {

@@ -355,6 +355,23 @@ jobs:
             npm run build
             npm run e2e:<< parameters.suite >>
 
+  js_framework_benchmark:
+    executor: docker-circleci
+    steps:
+      - checkout
+      - run:
+          name: "Benchmark all"
+          command: |
+            cd test/js-framework-benchmark
+            npm run ci
+      # - store_test_results:
+      #     path: test/js-framework-benchmark/webdriver-ts-results/table.html
+      - store_artifacts:
+          path: test/js-framework-benchmark/webdriver-ts-results/table.html
+      - run:
+          name: "Post benchmark result to comment"
+          command: npx ts-node scripts/post-benchmark-result.ts
+
   # benchmark using playwright setup
   benchmark_playwright:
     executor: docker-circleci

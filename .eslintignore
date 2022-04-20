@@ -6,3 +6,5 @@ test/router-*
 test/routing-*
 packages/*.js
 test/js-framework-benchmark
+examples
+docs

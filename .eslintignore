@@ -5,3 +5,4 @@ scripts/*.js
 test/router-*
 test/routing-*
 packages/*.js
+test/js-framework-benchmark

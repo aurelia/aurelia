@@ -4,7 +4,7 @@ node_modules
 scripts/*.js
 packages/*.js
 examples
-test
+test/js-framework-benchmark
 docs
 rollup.config.js
 karma.conf.cjs

@@ -63,11 +63,11 @@ executors:
     parameters:
       node:
         type: string
-        default: "15.4.0"
+        default: "16.14.2"
     working_directory: *working_dir
     resource_class: large
     docker:
-      - image: "circleci/node:<< parameters.node >>-buster-browsers"
+      - image: "cimg/node:<< parameters.node >>-browsers"
 
   docker-circleci-bench:
     working_directory: *working_dir

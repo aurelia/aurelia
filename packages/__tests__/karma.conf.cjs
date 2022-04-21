@@ -82,7 +82,7 @@ module.exports =
     return fs.existsSync('./blob.txt')
       ? fs.readFileSync('./blob.txt', { encoding: 'utf-8' })
       : null;
-  });
+  })();
 
   console.log('parallelism blob:', circleCiParallelismGlob);
   console.log('test patterns:', testFilePatterns);
@@ -113,7 +113,7 @@ module.exports =
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/Spy.js` }, // 1.4
     ...(
       circleCiParallelismGlob
-        ? { type: 'module', watched: true,  included: true,  nocache: false, pattern: circleCiParallelismGlob } // 2.1
+        ? [{ type: 'module', watched: true,  included: true,  nocache: false, pattern: circleCiParallelismGlob }] // 2.1
         : testFilePatterns.map(pattern =>
             ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: pattern }), // 2.1
           )

@@ -106,7 +106,7 @@
     "chalk": "^4.1.2",
     "codecov": "^3.8.3",
     "cross-env": "^7.0.2",
-    "eslint": "^8.11.0",
+    "eslint": "^8.13.0",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-jsdoc": "^38.0.4",
     "eslint-plugin-mocha": "^10.0.3",

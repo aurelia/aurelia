@@ -3,7 +3,7 @@ node_modules
 .eslintrc.cjs
 scripts/*.js
 packages/*.js
-examples
+examples/*
 test/js-framework-benchmark
 docs
 rollup.config.js

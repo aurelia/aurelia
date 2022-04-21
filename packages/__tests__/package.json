@@ -9,7 +9,7 @@
   },
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts .",
-    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives .",
+    "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives .",
     "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js dist/esm/__tests__/setup-node.js",
     "test-node": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --exit dist/esm/__tests__/setup-node.js dist/esm/__tests__/**/*.spec.js --exclude dist/esm/__tests__/integration/**/*.spec.js --exclude dist/esm/__tests__/store-v1/**/*.spec.js",
     "test-node:kernel": "npm run ::mocha -- dist/esm/__tests__/1-kernel/**/*.spec.js",

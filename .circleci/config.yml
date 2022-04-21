@@ -68,6 +68,12 @@ executors:
     docker:
       - image: "circleci/node:<< parameters.node >>-buster-browsers"
 
+  docker-circleci-bench:
+    working_directory: *working_dir
+    resource_class: large
+    docker:
+      - image: "circleci/node:16.14.2-browsers"
+
 # # # # # # # # # # # # # # # #
 # - Commands -
 # # # # # # # # # # # # # # # #
@@ -356,8 +362,7 @@ jobs:
             npm run e2e:<< parameters.suite >>
 
   js_framework_benchmark:
-    docker:
-      - image: cimg/node:16.14.2-browsers
+    executor: docker-circleci-bench
     steps:
       - checkout
       - run:

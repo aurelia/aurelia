@@ -77,6 +77,7 @@ module.exports =
     : [`${baseUrl}/**/*.spec.js`];
   const circleCiParallelismGlob = process.env.CIRCLECI_GLOB;
 
+  console.log('parallelism blob:', circleCiParallelismGlob);
   console.log('test patterns:', testFilePatterns);
 
   // Karma config reference: https://karma-runner.github.io/5.2/config/files.html

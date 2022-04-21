@@ -33,7 +33,9 @@
     "test-chrome:debugger:verbose": "karma start karma.conf.cjs --browsers=ChromeDebugging --watch-extensions js,html --reporter=mocha",
     "test:debugger": "npm run test-chrome:debugger",
     "test": "npm run test-chrome",
-    "test:ci": "cross-env CIRCLECI_GLOB=$(circleci tests glob \"__tests__/**/*.spec.js\") npm run test-chrome",
+    "test:ci": "npm run test:ci:chrome && npm run test:ci:firefox",
+    "test-chrome:ci": "cross-env CIRCLECI_GLOB=$(circleci tests glob \"__tests__/**/*.spec.js\") npm run test-chrome",
+    "test-firefox:ci": "cross-env CIRCLECI_GLOB=$(circleci tests glob \"__tests__/**/*.spec.js\") npm run test-firefox",
     "build": "tsc --build",
     "dev": "tsc --build -w --preserveWatchOutput",
     "rollup": "npm run build"

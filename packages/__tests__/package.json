@@ -20,7 +20,7 @@
     "test-node:i18n": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha --ui bdd --reporter spec --colors --recursive --timeout 5000 --watch-extensions js dist/esm/__tests__/setup-node.js dist/esm/__tests__/i18n/**/*.spec.js",
     "test-node:store-v1": "npm run ::mocha --  dist/esm/__tests__/store-v1/*.spec.js",
     "test-node:validation": "npm run ::mocha -- dist/esm/__tests__/validation*/**/*.spec.js",
-    "test-chrome": "karma start karma.conf.cjs --browsers=ChromeHeadlessOpt --single-run --coverage",
+    "test-chrome": "karma start karma.conf.cjs --browsers=ChromeHeadlessOpt --single-run --coverage --no-auto-watch",
     "test-firefox": "karma start karma.conf.cjs --browsers=FirefoxHeadless --single-run --coverage",
     "test-firefox:verbose": "karma start karma.conf.cjs --browsers=FirefoxHeadless --single-run --coverage --reporter=mocha",
     "test-firefox:debugger": "karma start karma.conf.cjs --browsers=Firefox --watch-extensions js,html",
@@ -33,6 +33,7 @@
     "test-chrome:debugger:verbose": "karma start karma.conf.cjs --browsers=ChromeDebugging --watch-extensions js,html --reporter=mocha",
     "test:debugger": "npm run test-chrome:debugger",
     "test": "npm run test-chrome",
+    "test:ci": "cross-env CIRCLECI_GLOB=$(circleci tests glob \"__tests__/**/*.spec.js\") npm run test-chrome",
     "build": "tsc --build",
     "dev": "tsc --build -w --preserveWatchOutput",
     "rollup": "npm run build"

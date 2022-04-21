@@ -75,6 +75,7 @@ module.exports =
         `${baseUrl}/**/${arg}/**/*.spec.js`,
     ])
     : [`${baseUrl}/**/*.spec.js`];
+  const circleCiParallelismGlob = process.env.CIRCLECI_GLOB;
 
   console.log('test patterns:', testFilePatterns);
 
@@ -102,8 +103,12 @@ module.exports =
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/setup-shared.js` }, // 1.2
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/util.js` }, // 1.3
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/Spy.js` }, // 1.4
-    ...testFilePatterns.map(pattern =>
-      ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: pattern }), // 2.1
+    ...(
+      circleCiParallelismGlob
+        ? { type: 'module', watched: true,  included: true,  nocache: false, pattern: circleCiParallelismGlob } // 2.1
+        : testFilePatterns.map(pattern =>
+            ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: pattern }), // 2.1
+          )
     ), // 2.1 (new)
     ...testDirs.flatMap(name => [
       // { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1 (old)

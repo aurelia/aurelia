@@ -77,7 +77,6 @@ module.exports =
         `${baseUrl}/**/${arg}/**/*.spec.js`,
     ])
     : [`${baseUrl}/**/*.spec.js`];
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   const circleCiParallelismGlob = process.env.CIRCLECI_GLOB || (() => {
     return fs.existsSync('./blob.txt')
       ? fs.readFileSync('./blob.txt', { encoding: 'utf-8' })
@@ -113,7 +112,9 @@ module.exports =
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/Spy.js` }, // 1.4
     ...(
       circleCiParallelismGlob
-        ? [{ type: 'module', watched: true,  included: true,  nocache: false, pattern: circleCiParallelismGlob }] // 2.1
+        ? circleCiParallelismGlob
+          .split(' ')
+          .map(file => ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: file })) // 2.1
         : testFilePatterns.map(pattern =>
             ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: pattern }), // 2.1
           )

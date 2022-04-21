@@ -6,3 +6,5 @@ packages/*.js
 examples
 test
 docs
+rollup.config.js
+karma.conf.cjs

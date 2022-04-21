@@ -82,6 +82,7 @@ commands:
 
   checkout_install:
     steps:
+      - browser-tools/install-browser-tools
       - checkout
       - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
       - run: npm ci

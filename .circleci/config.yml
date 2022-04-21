@@ -73,7 +73,7 @@ executors:
     working_directory: *working_dir
     resource_class: large
     docker:
-      - image: "cimg/node:16.14.2-browsers"
+      - image: "cimg/node:14.19.1-browsers"
 
 # # # # # # # # # # # # # # # #
 # - Commands -
@@ -367,10 +367,12 @@ jobs:
     steps:
       - browser-tools/install-browser-tools
       - checkout
-      - run: |
-          node --version
-          java --version
-          google-chrome --version
+      - run:
+          name: "Print browser tools version"
+          command: |
+            node --version
+            java --version
+            google-chrome --version
       - run:
           name: "Benchmark all"
           command: |

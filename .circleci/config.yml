@@ -181,11 +181,9 @@ jobs:
       - run:
           name: "Split test glob"
           command: |
-            echo $(circleci tests glob "packages/__tests__/**/*.spec.js")
-            echo $(circleci tests glob "packages/__tests__/**/*.spec.js") > packages/__tests__/blob.txt
-            echo $(circleci tests split --total=4 packages/__tests__/blob.txt)
-            echo $(circleci tests split --total=4 packages/__tests__/blob.txt) > packages/__tests__/blob.txt
-            export CIRCLECI_GLOB=$(circleci tests split --total=4 packages/__tests__/blob.txt)
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split)
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split) > packages/__tests__/blob.txt
+            export CIRCLECI_GLOB=$(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split)
       - run:
           name: "Run unit tests"
           command: |

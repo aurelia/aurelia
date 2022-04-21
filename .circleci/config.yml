@@ -72,7 +72,7 @@ executors:
     working_directory: *working_dir
     resource_class: large
     docker:
-      - image: "circleci/node:16.14.2-browsers"
+      - image: "cimg/node:16.14.2-browsers"
 
 # # # # # # # # # # # # # # # #
 # - Commands -

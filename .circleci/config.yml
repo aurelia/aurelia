@@ -179,6 +179,12 @@ jobs:
       - checkout_install
       - run: npm run build:test
       - run:
+          name: "Split test glob"
+          command: |
+            echo $(circleci tests glob "packages/__tests__/**/*.spec.js")
+            echo $(circleci tests glob "packages/__tests__/**/*.spec.js") > packages/__tests__/blob.txt
+            export CIRCLECI_GLOB=$(circleci tests glob "packages/__tests__/**/*.spec.js")
+      - run:
           name: "Run unit tests"
           command: |
             cd packages/__tests__

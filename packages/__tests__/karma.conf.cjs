@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 const path = require('path');
+const fs = require('fs');
 
 const basePath = path.resolve(__dirname, '..', '..');
 const smsPath = path.dirname(require.resolve('source-map-support'));
@@ -75,7 +77,12 @@ module.exports =
         `${baseUrl}/**/${arg}/**/*.spec.js`,
     ])
     : [`${baseUrl}/**/*.spec.js`];
-  const circleCiParallelismGlob = process.env.CIRCLECI_GLOB;
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+  const circleCiParallelismGlob = process.env.CIRCLECI_GLOB || (() => {
+    return fs.existsSync('./blob.txt')
+      ? fs.readFileSync('./blob.txt', { encoding: 'utf-8' })
+      : null;
+  });
 
   console.log('parallelism blob:', circleCiParallelismGlob);
   console.log('test patterns:', testFilePatterns);

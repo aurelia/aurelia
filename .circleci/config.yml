@@ -174,9 +174,15 @@ jobs:
         type: string
         default: "test"
     executor: docker-circleci
+    parallelism: 4
     steps:
       - checkout_install
       - run: npm run build:test
+      - run:
+          name: "Split test glob"
+          command: |
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split)
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split) > packages/__tests__/tests.txt
       - run:
           name: "Run unit tests"
           command: |
@@ -195,6 +201,17 @@ jobs:
                 path: packages/__tests__/coverage
             - store_artifacts:
                 path: packages/__tests__/coverage
+
+  unit_test_esm_node:
+    executor: docker-circleci
+    steps:
+      - checkout_install
+      - run: npm run build:test
+      - run:
+          name: "Run unit tests"
+          command: |
+            cd packages/__tests__
+            npm run test-node
 
   unit_test_cjs:
     parameters:
@@ -474,11 +491,8 @@ workflows:
           coverage: false
           requires:
             - check_doc_abort
-      - unit_test_esm:
+      - unit_test_esm_node:
           <<: *filter_ignore_develop_release
-          name: unit_test_esm_node
-          npm_command: "test-node"
-          coverage: false
           requires:
             - check_doc_abort
       - unit_test_cjs:
@@ -569,15 +583,13 @@ workflows:
           name: unit_test_esm_chrome
           npm_command: "test-chrome"
       - unit_test_esm:
-         <<: *filter_only_tag
-         name: unit_test_esm_firefox
-         npm_command: "test-firefox"
-         coverage: false
-      - unit_test_esm:
-         <<: *filter_only_tag
-         name: unit_test_esm_node
-         npm_command: "test-node"
-         coverage: false
+          <<: *filter_only_tag
+          name: unit_test_esm_firefox
+          npm_command: "test-firefox"
+          coverage: false
+      - unit_test_esm_node:
+          <<: *filter_only_tag
+          name: unit_test_esm_node
       - unit_test_cjs:
          <<: *filter_only_tag
          npm_command: "test-node"

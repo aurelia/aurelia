@@ -5,6 +5,7 @@
 .eslintcache
 TESTS-*.xml
 
+packages/**/*.txt
 **/node_modules
 **/coverage
 **/dist

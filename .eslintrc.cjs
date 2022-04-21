@@ -21,6 +21,10 @@ module.exports = {
   env: {
     es6: true
   },
+  ignorePatterns: [
+    'rollup.config.js',
+    'karma.conf.cjs'
+  ],
   globals: {
     MutationObserver: 'readonly',
     SharedArrayBuffer: 'readonly',

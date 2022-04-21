@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   common: aurelia/common@volatile
+  browser-tools: circleci/browser-tools@1.1.0
 
 # # # # # # # # # # # # # # # #
 # - Scalar variables -
@@ -364,7 +365,12 @@ jobs:
   js_framework_benchmark:
     executor: docker-circleci-bench
     steps:
+      - browser-tools/install-browser-tools
       - checkout
+      - run: |
+          node --version
+          java --version
+          google-chrome --version
       - run:
           name: "Benchmark all"
           command: |

@@ -305,7 +305,7 @@ export class ValidationController implements IValidationController {
    * @private
    * @type {Map<ValidationResult, Element[]>}
    */
-  private readonly elements: WeakMap<ValidationResult, Element[]> = new WeakMap<ValidationResult, Element[]>();
+  private readonly elements: WeakMap<ValidationResult, Element[]> = new WeakMap();
   public readonly objects: Map<IValidateable, PropertyRule[] | undefined> = new Map<IValidateable, PropertyRule[] | undefined>();
 
   public constructor(

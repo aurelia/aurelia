@@ -61,7 +61,7 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
     ea.subscribe(
       Signals.I18N_EA_CHANNEL,
       () => {
-        this.registeredMessages = new WeakMap<IValidationRule, Interpolation | PrimitiveLiteralExpression>();
+        this.registeredMessages = new WeakMap();
         ea.publish(I18N_VALIDATION_EA_CHANNEL);
       });
   }

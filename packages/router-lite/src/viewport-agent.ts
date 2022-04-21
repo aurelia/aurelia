@@ -669,7 +669,7 @@ export class ViewportAgent {
         break;
       case State.currUnload:
       case State.currDeactivate:
-        // TODO(sayan): should schedule an 'undo' action
+        // TODO: should schedule an 'undo' action
         break;
     }
 
@@ -683,7 +683,7 @@ export class ViewportAgent {
         break;
       case State.nextLoad:
       case State.nextActivate:
-        // TODO(sayan): should schedule an 'undo' action
+        // TODO: should schedule an 'undo' action
         break;
     }
   }

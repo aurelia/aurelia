@@ -2268,55 +2268,61 @@ describe('router hooks', function () {
             ...$(phase, 'b', ticks, 'binding', 'bound', 'attaching', 'attached'),
           ]);
 
-        // TODO(sayan): when the vpa.cancelUpdate implements the 'undo' action
-        // // phase 3: load unconfigured1/unconfigured2
-        // phase = 'phase3';
-        // mgr.fullNotifyHistory.length = 0;
-        // mgr.setPrefix(phase);
-        // await assert.rejects(() => router.load('unconfigured1/unconfigured2'), /Neither the route 'unconfigured2' matched any configured route/);
-        // verifyInvocationsEqual(mgr.fullNotifyHistory, [
-        //   ...$(phase, 'b', ticks, 'canUnload'),
-        //   ...$(phase, 'c', ticks, 'canLoad'),
-        //   ...$(phase, 'b', ticks, 'unload'),
-        //   ...$(phase, 'c', ticks, 'load'),
-        //   ...$(phase, 'b', ticks, 'detaching', 'unbinding', 'dispose'),
-        //   ...$(phase, 'c', ticks, 'binding', 'bound', 'attaching', 'attached'),
-        // ]);
+        // phase 3: load unconfigured1/unconfigured2
+        phase = 'phase3';
+        mgr.fullNotifyHistory.length = 0;
+        mgr.setPrefix(phase);
+        await router.load('unconfigured1/unconfigured2'); // unconfigured2 will be discarded.
+        verifyInvocationsEqual(mgr.fullNotifyHistory, [
+          ...$(phase, 'b', ticks, 'canUnload'),
+          ...$(phase, 'c', ticks, 'canLoad'),
+          ...$(phase, 'b', ticks, 'unload'),
+          ...$(phase, 'c', ticks, 'load'),
+          ...$(phase, 'b', ticks, 'detaching', 'unbinding', 'dispose'),
+          ...$(phase, 'c', ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ]);
 
-        // // phase 4: load configured
-        // phase = 'phase4';
-        // mgr.fullNotifyHistory.length = 0;
-        // mgr.setPrefix(phase);
-        // await router.load('a');
-        // verifyInvocationsEqual(mgr.fullNotifyHistory, [
-        //   ...$(phase, 'c', ticks, 'canUnload'),
-        //   ...$(phase, 'a', ticks, 'canLoad'),
-        //   ...$(phase, 'c', ticks, 'unload'),
-        //   ...$(phase, 'a', ticks, 'load'),
-        //   ...$(phase, 'c', ticks, 'detaching', 'unbinding', 'dispose'),
-        //   ...$(phase, 'a', ticks, 'binding', 'bound', 'attaching', 'attached'),
-        // ]);
+        // phase 4: load configured
+        phase = 'phase4';
+        mgr.fullNotifyHistory.length = 0;
+        mgr.setPrefix(phase);
+        await router.load('a');
+        verifyInvocationsEqual(mgr.fullNotifyHistory, [
+          ...$(phase, 'c', ticks, 'canUnload'),
+          ...$(phase, 'a', ticks, 'canLoad'),
+          ...$(phase, 'c', ticks, 'unload'),
+          ...$(phase, 'a', ticks, 'load'),
+          ...$(phase, 'c', ticks, 'detaching', 'unbinding', 'dispose'),
+          ...$(phase, 'a', ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ]);
 
-        // // phase 5: load unconfigured/configured
-        // phase = 'phase5';
-        // mgr.fullNotifyHistory.length = 0;
-        // mgr.setPrefix(phase);
-        // await assert.rejects(() => router.load('unconfigured/b'), /Neither the route 'unconfigured' matched any configured route/);
-        // verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+        // phase 5: load unconfigured/configured
+        phase = 'phase5';
+        mgr.fullNotifyHistory.length = 0;
+        mgr.setPrefix(phase);
+        await router.load('unconfigured/b'); // the configured 'b' doesn't matter due to fail-fast strategy
+        verifyInvocationsEqual(mgr.fullNotifyHistory, [
+          ...$(phase, 'a', ticks, 'canUnload'),
+          ...$(phase, 'c', ticks, 'canLoad'),
+          ...$(phase, 'a', ticks, 'unload'),
+          ...$(phase, 'c', ticks, 'load'),
+          ...$(phase, 'a', ticks, 'detaching', 'unbinding', 'dispose'),
+          ...$(phase, 'c', ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ]);
 
-        // // phase 6: load configured
-        // phase = 'phase6';
-        // mgr.fullNotifyHistory.length = 0;
-        // mgr.setPrefix(phase);
-        // await router.load('b');
-        // verifyInvocationsEqual(mgr.fullNotifyHistory, [
-        //   ...$(phase, 'a', ticks, 'canUnload'),
-        //   ...$(phase, 'b', ticks, 'canLoad'),
-        //   ...$(phase, 'a', ticks, 'unload'),
-        //   ...$(phase, 'b', ticks, 'load'),
-        //   ...$(phase, 'a', ticks, 'detaching', 'unbinding', 'dispose'),
-        //   ...$(phase, 'b', ticks, 'binding', 'bound', 'attaching', 'attached'),
-        // ]);
+        // phase 6: load configured
+        phase = 'phase6';
+        mgr.fullNotifyHistory.length = 0;
+        mgr.setPrefix(phase);
+        await router.load('b');
+        verifyInvocationsEqual(mgr.fullNotifyHistory, [
+          ...$(phase, 'c', ticks, 'canUnload'),
+          ...$(phase, 'b', ticks, 'canLoad'),
+          ...$(phase, 'c', ticks, 'unload'),
+          ...$(phase, 'b', ticks, 'load'),
+          ...$(phase, 'c', ticks, 'detaching', 'unbinding', 'dispose'),
+          ...$(phase, 'b', ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ]);
 
         // stop
         mgr.fullNotifyHistory.length = 0;

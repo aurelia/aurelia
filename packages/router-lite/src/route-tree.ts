@@ -551,11 +551,7 @@ function createNode(
     if (vp === null || vp.length === 0) vp = defaultViewportName;
     const vpa = ctx.getFallbackViewportAgent('dynamic', vp);
     const fallback = vpa === null ? ctx.definition.fallback : vpa.viewport.fallback;
-    if (fallback === null) {
-      // TODO(sayan): cancel update; vpa.cancelUpdate() should implement the 'undo' action first.
-      // ctx.vpa.cancelUpdate();
-      throw new Error(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
-    }
+    if (fallback === null) throw new Error(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
     // fallback: id -> route -> CEDefn (Route definition)
     // look for a route first
@@ -761,5 +757,8 @@ function createFallbackNode(
       emptyObject
     ),
     null);
+  // Do not pass on any residue. That is if the current path is unconfigured/what/ever ignore the rest after we hit an unconfigured route.
+  // If need be later a special parameter can be created for this.
+  vi.children.length = 0;
   return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
 }

@@ -471,13 +471,13 @@ workflows:
       - unit_test_esm:
           <<: *filter_ignore_develop_release
           name: unit_test_esm_chrome
-          npm_command: "test-chrome:ci"
+          npm_command: "test-chrome"
           requires:
             - check_doc_abort
       - unit_test_esm:
           <<: *filter_ignore_develop_release
           name: unit_test_esm_firefox
-          npm_command: "test-firefox:ci"
+          npm_command: "test-firefox"
           coverage: false
           requires:
             - check_doc_abort

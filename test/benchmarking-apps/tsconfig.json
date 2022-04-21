@@ -14,6 +14,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "preserveConstEnums": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "lib": ["es5", "dom"],
+
   }
 }

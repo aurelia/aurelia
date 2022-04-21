@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   common: aurelia/common@volatile
+  browser-tools: circleci/browser-tools@1.1.0
 
 # # # # # # # # # # # # # # # #
 # - Scalar variables -
@@ -67,6 +68,12 @@ executors:
     resource_class: large
     docker:
       - image: "circleci/node:<< parameters.node >>-buster-browsers"
+
+  docker-circleci-bench:
+    working_directory: *working_dir
+    resource_class: large
+    docker:
+      - image: "cimg/node:16.14.2-browsers"
 
 # # # # # # # # # # # # # # # #
 # - Commands -
@@ -355,6 +362,31 @@ jobs:
             npm run build
             npm run e2e:<< parameters.suite >>
 
+  js_framework_benchmark:
+    executor: docker-circleci-bench
+    steps:
+      - browser-tools/install-browser-tools
+      - checkout
+      - run:
+          name: "Print browser tools version"
+          command: |
+            node --version
+            java --version
+            google-chrome --version
+      - run:
+          name: "Benchmark all"
+          command: |
+            npm run init
+            cd test/js-framework-benchmark
+            npm run ci
+      # - store_test_results:
+      #     path: test/js-framework-benchmark/webdriver-ts-results/table.html
+      - store_artifacts:
+          path: test/js-framework-benchmark/webdriver-ts-results/table.html
+      - run:
+          name: "Post benchmark result to comment"
+          command: npx ts-node scripts/post-benchmark-result.ts
+
   # benchmark using playwright setup
   benchmark_playwright:
     executor: docker-circleci
@@ -465,6 +497,10 @@ workflows:
           <<: *filter_ignore_develop_release
           requires:
             - check_doc_abort
+      # - js_framework_benchmark:
+      #     <<: *filter_ignore_develop_release
+      #     requires:
+      #       - check_doc_abort
 
       # - benchmark_playwright:
       #     <<: *filter_ignore_develop_release

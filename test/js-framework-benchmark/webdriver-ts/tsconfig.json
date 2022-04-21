@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist/",
+        "sourceMap": true,
+        "noImplicitAny": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es2017",
+        "noLib": false,
+        "allowJs": false,
+        "typeRoots": ["node_modules/@types"]
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}

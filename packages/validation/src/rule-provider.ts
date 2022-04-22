@@ -597,7 +597,7 @@ const contextualProperties: Readonly<Set<string>> = new Set([
 export class ValidationMessageProvider implements IValidationMessageProvider {
 
   private readonly logger: ILogger;
-  protected registeredMessages: WeakMap<IValidationRule, Interpolation | PrimitiveLiteralExpression> = new WeakMap<IValidationRule, Interpolation | PrimitiveLiteralExpression>();
+  protected registeredMessages: WeakMap<IValidationRule, Interpolation | PrimitiveLiteralExpression> = new WeakMap();
 
   public constructor(
     @IExpressionParser public parser: IExpressionParser,

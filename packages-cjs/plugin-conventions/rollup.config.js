@@ -24,5 +24,9 @@ export default {
       tsconfig: 'tsconfig.build.json',
       inlineSources: true,
     })
-  ]
+  ],
+  onwarn: (warning, warn) => {
+    if (warning.code === 'CIRCULAR_DEPENDENCY') return;
+    warn(warning)
+  }
 };

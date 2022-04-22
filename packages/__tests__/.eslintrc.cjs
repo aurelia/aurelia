@@ -51,6 +51,7 @@ module.exports = {
     '@typescript-eslint/no-unsafe-return': 'off',
     '@typescript-eslint/restrict-template-expressions': 'off',
     '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+    '@typescript-eslint/no-floating-promises': 'error',
   },
   overrides: [{ // Specific overrides for JS files as some TS rules don't make sense there.
     files: ['3-runtime-html/generated/**'],

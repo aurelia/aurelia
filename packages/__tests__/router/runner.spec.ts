@@ -436,7 +436,7 @@ class Invocation {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getExpected(components: number, connected = true, defaults = [1, 1], timings: { [key: string]: number[] } = {}) {
-  let invocations = allInvocations(connected)
+  let invocations = allInvocations(/* connected */)
     .map(inv => new Invocation(inv));
 
   switch (components) {

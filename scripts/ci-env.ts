@@ -233,6 +233,10 @@ export class CIEnv {
   public static get CIRCLE_TOKEN(): string {
     return logSecretVariable(toString(process.env.CIRCLE_TOKEN), 'CIRCLE_TOKEN');
   }
+  // for v2 api
+  public static get CIRCLE_API_TOKEN(): string {
+    return logSecretVariable(toString(process.env.CIRCLE_API_TOKEN), 'CIRCLE_TOKEN');
+  }
   public static get GITHUB_TOKEN(): string {
     return logSecretVariable(toString(process.env.GITHUB_TOKEN), 'GITHUB_TOKEN');
   }

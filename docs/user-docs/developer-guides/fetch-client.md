@@ -76,7 +76,7 @@ import { ICustomElementViewModel } from 'aurelia';
 
 export class MyComponent implements ICustomElementViewModel {    
     constructor(@newInstanceOf(IHttpClient) readonly http: IHttpClient) {
-      http.configure(config => {
+      http.configure(config =>
         config
         .withBaseUrl('api/')
         .withDefaults({
@@ -95,8 +95,8 @@ export class MyComponent implements ICustomElementViewModel {
             console.log(`Received ${response.status} ${response.url}`);
             return response;
           }
-        });
-      });
+        })
+      );
     }
  }   
 ```
@@ -159,15 +159,15 @@ import { ICustomElementViewModel } from 'aurelia';
 
 export class MyComponent implements ICustomElementViewModel {    
     constructor(@newInstanceOf(IHttpClient) readonly http: IHttpClient) {
-      http.configure(config => {
+      http.configure(config =>
         config
           .withInterceptor({
             request(request) {
               request.headers.append('Authorization', 'Bearer ' + YOUR_BEARER_TOKEN);
               return request;
             }
-          });
-      });
+          })
+      );
     }
  }   
 ```

@@ -91,7 +91,7 @@ describe('Runner', function () {
 
       await stepsPromise.then(result => {
         assert.strictEqual(result, test.result, `#${i}`);
-      }).catch(err => { throw err; });
+      });
     });
   }
 
@@ -150,7 +150,7 @@ describe('Runner', function () {
 
       await stepsPromise.then((results: unknown[]) => {
         assert.strictEqual(results.join(','), test.results.join(','), `#${i}`);
-      }).catch(err => { throw err; });
+      });
     });
   }
 
@@ -162,7 +162,7 @@ describe('Runner', function () {
 
       await stepsPromise.then((results: unknown[]) => {
         assert.strictEqual(results.join(','), test.results.slice(single, single + 1).join(','), `#${i}`);
-      }).catch(err => { throw err; });
+      });
     });
   }
 
@@ -179,7 +179,7 @@ describe('Runner', function () {
         await stepsPromise.then((result: unknown) => {
           const expected = test.results.map(r => connected ? r.replace('(', '(before: ') : r).join(',');
           assert.strictEqual(result, `after: ${expected}`, `#${i}`);
-        }).catch(err => { throw err; });
+        });
       });
     }
   }

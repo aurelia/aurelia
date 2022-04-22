@@ -61,5 +61,10 @@ module.exports = {
       '@typescript-eslint/indent': 'off',
       'no-template-curly-in-string': 'off'
     }
+  }, {
+    files: ['router/**'],
+    rules: {
+      'no-await-in-loop': 'off',
+    }
   }]
 };

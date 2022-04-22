@@ -349,7 +349,7 @@ describe('Runner', function () {
     // console.log(InvocationNode.invocations(2, true, [3, 3], { 'child-1.1': [1, 1] }));
 
     // TODO: Enabled tests for disconnected mode. The Runner is working, the tests aren't!
-    for await (const connected of [true]) { // true, false
+    for (const connected of [true]) { // true, false
       // await testIt(1, connected);
       await testIt(2, connected, [0, 0], { 'child-1.1': [0, 0] });
       await testIt(2, connected, [1, 1], { 'child-1.1': [1, 1] });

@@ -1,7 +1,7 @@
 import { Runner, Step } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
-const createTimedPromise = (value, time, previousValue?, reject = false): Promise<unknown> => {
+const createTimedPromise = (value, time: number, previousValue?, reject = false): Promise<unknown> => {
   return new Promise((res, rej) => {
     // console.log(`(promise ${value})`);
     setTimeout(() => {
@@ -86,9 +86,10 @@ describe('Runner', function () {
   ];
   for (let i = 0; i < tests.length; i++) {
     const test = tests[i];
-    it(`runs sequence ${test.steps} => ${test.result}`, function () {
+    it(`runs sequence ${test.steps} => ${test.result}`, async function () {
       const stepsPromise = Runner.run(null, ...test.steps) as Promise<unknown>;
-      stepsPromise.then(result => {
+
+      await stepsPromise.then(result => {
         assert.strictEqual(result, test.result, `#${i}`);
       }).catch(err => { throw err; });
     });
@@ -96,12 +97,13 @@ describe('Runner', function () {
 
   for (let i = 0; i < tests.length; i++) {
     const test = tests[i];
-    it(`cancels sequence ${test.steps} => ${test.cancelled}`, function () {
+    it(`cancels sequence ${test.steps} => ${test.cancelled}`, async function () {
       const stepsPromise = Runner.run(null, ...test.steps) as Promise<unknown>;
       setTimeout(() => {
         Runner.cancel(stepsPromise);
       }, 1500);
-      stepsPromise.then(_result => {
+
+      await stepsPromise.then(_result => {
         // assert.strictEqual(result, test.cancelled, `#${i}`);
         assert.strictEqual('fulfilled', 'cancelled', `#${i}`);
       }).catch(err => {
@@ -143,9 +145,10 @@ describe('Runner', function () {
 
   for (let i = 0; i < tests.length; i++) {
     const test = tests[i];
-    it(`runs all ${test.steps} => ${test.results}`, function () {
+    it(`runs all ${test.steps} => ${test.results}`, async function () {
       const stepsPromise = Runner.runParallel(null, ...test.steps) as Promise<unknown>;
-      stepsPromise.then((results: unknown[]) => {
+
+      await stepsPromise.then((results: unknown[]) => {
         assert.strictEqual(results.join(','), test.results.join(','), `#${i}`);
       }).catch(err => { throw err; });
     });
@@ -154,9 +157,10 @@ describe('Runner', function () {
   for (let i = 0; i < tests.length; i++) {
     const test = tests[i];
     const single = i < 1 ? 2 : 1;
-    it(`runs all on single ${test.steps[single]} => ${test.results[single]}`, function () {
+    it(`runs all on single ${test.steps[single]} => ${test.results[single]}`, async function () {
       const stepsPromise = Runner.runParallel(null, test.steps[single]) as Promise<unknown>;
-      stepsPromise.then((results: unknown[]) => {
+
+      await stepsPromise.then((results: unknown[]) => {
         assert.strictEqual(results.join(','), test.results.slice(single, single + 1).join(','), `#${i}`);
       }).catch(err => { throw err; });
     });
@@ -165,13 +169,14 @@ describe('Runner', function () {
   for (const connected of [false, true]) {
     for (let i = 0; i < tests.length; i++) {
       const test = tests[i];
-      it(`runs all one step down${connected ? ' connected' : ''} ${test.steps} => ${test.results}`, function () {
+      it(`runs all one step down${connected ? ' connected' : ''} ${test.steps} => ${test.results}`, async function () {
         const stepsPromise = Runner.run(null,
           (step) => `before: ${step.previousValue}`,
           (step) => Runner.runParallel(connected ? step : null, ...test.steps),
           (step) => `after: ${step.previousValue.join(',')}`,
         ) as Promise<unknown>;
-        stepsPromise.then((result: unknown) => {
+
+        await stepsPromise.then((result: unknown) => {
           const expected = test.results.map(r => connected ? r.replace('(', '(before: ') : r).join(',');
           assert.strictEqual(result, `after: ${expected}`, `#${i}`);
         }).catch(err => { throw err; });
@@ -236,6 +241,7 @@ describe('Runner', function () {
         if (this.name.startsWith('parent')) {
           indent += '    ';
         } else if (this.name.startsWith('child')) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           indent += '        ';
         }
         invocations.push(`${this.name}.${msg}`);
@@ -299,7 +305,7 @@ describe('Runner', function () {
       const activate = root1.activate(null, 'start');
       const title = `ticks: #TICKS#; components: ${components}; ${connected ? 'connected' : 'not connected'}; defaults: [${defaults.join(',')}]; ` +
         `timings: ${Object.keys(timings).map(key => `${key}: [${timings[key].join(',')}]; `)}`;
-      const done = `>>> DONE. ${title}`;
+      // const done = `>>> DONE. ${title}`;
       // const done = `${`>>> DONE. ticks: #TICKS#; components: ${components}; ${connected ? 'connected' : 'not connected'}; defaults: [${defaults.join(',')}]; ` +
       //   `timings: `}${Object.keys(timings).map(key => `${key}: [${timings[key].join(',')}]; `)}`;
 
@@ -329,6 +335,7 @@ describe('Runner', function () {
       (async function () {
         // let i = 0;
         while (logTicks) {
+          // eslint-disable-next-line no-await-in-loop
           await Promise.resolve();
           ++ticks;
           // console.log(`>> tick(${ticks})`);
@@ -342,7 +349,7 @@ describe('Runner', function () {
     // console.log(InvocationNode.invocations(2, true, [3, 3], { 'child-1.1': [1, 1] }));
 
     // TODO: Enabled tests for disconnected mode. The Runner is working, the tests aren't!
-    for (const connected of [true]) { // true, false
+    for await (const connected of [true]) { // true, false
       // await testIt(1, connected);
       await testIt(2, connected, [0, 0], { 'child-1.1': [0, 0] });
       await testIt(2, connected, [1, 1], { 'child-1.1': [1, 1] });
@@ -427,6 +434,7 @@ class Invocation {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getExpected(components: number, connected = true, defaults = [1, 1], timings: { [key: string]: number[] } = {}) {
   let invocations = allInvocations(connected)
     .map(inv => new Invocation(inv));
@@ -434,10 +442,13 @@ function getExpected(components: number, connected = true, defaults = [1, 1], ti
   switch (components) {
     case 1:
       invocations = invocations.filter(inv => !inv.name.includes('2'));
+      break;
     case 2:
       invocations = invocations.filter(inv => !inv.name.includes('3'));
+      break;
     case 3:
       invocations = invocations.filter(inv => !inv.name.includes('4'));
+      break;
     case 4:
       break;
   }
@@ -730,7 +741,7 @@ class InvocationNode {
   }
 }
 
-function allInvocations(connected: boolean): string[] {
+function allInvocations(_connected: boolean): string[] {
   // switch (connected) {
   //   case true:
   return Object.assign([], [

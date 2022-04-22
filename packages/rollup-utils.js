@@ -128,6 +128,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
   /** @type {import('rollup').WarningHandlerWithDefault} */
   const onWarn = (warning, warn) => {
     if (warning.code === 'CIRCULAR_DEPENDENCY') return;
+    if (warning.message.includes('Mixing named and default exports')) return;
     warn(warning);
   };
 

@@ -3,8 +3,9 @@ on:
   push:
     # check against refs/heads
     branches-ignore:
-      - develop
-      - release
+      - *
+      # - develop
+      # - release
     paths-ignore:
       - 'docs/**'
 

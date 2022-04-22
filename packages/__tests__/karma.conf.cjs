@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 const path = require('path');
+const fs = require('fs');
 
 const basePath = path.resolve(__dirname, '..', '..');
 const smsPath = path.dirname(require.resolve('source-map-support'));
@@ -34,7 +36,7 @@ const testDirs = [
   'validation-i18n',
 ];
 
-const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html --bail --reporter=mocha'.split(' ');
+const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --single-run --coverage --watch-extensions js,html --bail --reporter=mocha --no-auto-watch'.split(' ');
 const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
 const hasSingleRun = process.argv.slice(2).includes('--single-run');
 
@@ -75,7 +77,11 @@ module.exports =
         `${baseUrl}/**/${arg}/**/*.spec.js`,
     ])
     : [`${baseUrl}/**/*.spec.js`];
+  const circleCiParallelismGlob = fs.existsSync('./tests.txt')
+    ? fs.readFileSync('./tests.txt', { encoding: 'utf-8' })
+    : null;
 
+  console.log('parallelism blob:', circleCiParallelismGlob);
   console.log('test patterns:', testFilePatterns);
 
   // Karma config reference: https://karma-runner.github.io/5.2/config/files.html
@@ -102,8 +108,14 @@ module.exports =
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/setup-shared.js` }, // 1.2
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/util.js` }, // 1.3
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `${baseUrl}/Spy.js` }, // 1.4
-    ...testFilePatterns.map(pattern =>
-      ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: pattern }), // 2.1
+    ...(
+      circleCiParallelismGlob
+        ? circleCiParallelismGlob
+          .split(' ')
+          .map(file => ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: file })) // 2.1
+        : testFilePatterns.map(pattern =>
+            ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: pattern }), // 2.1
+          )
     ), // 2.1 (new)
     ...testDirs.flatMap(name => [
       // { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1 (old)

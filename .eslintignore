@@ -1,8 +1,8 @@
-dist
-node_modules
-.eslintrc.cjs
-scripts/*.js
-packages/*.js
-examples
-test
+**/dist
+**/node_modules
+**/*.js
+**/*.cjs
+
+examples/*
+test/js-framework-benchmark
 docs

@@ -5,6 +5,7 @@
 .eslintcache
 TESTS-*.xml
 
+packages/**/*.txt
 **/node_modules
 **/coverage
 **/dist
@@ -14,6 +15,12 @@ TESTS-*.xml
 
 **/debug.log
 **/npm-debug.log
+# npm <= 8.4.0 works with .npmrc in individual package
+# so we used to have .npmrc with package-lock=false there
+# npm >= 8.5.0 is deprecating this behavior, so we remove it
+# to make it easy for application, probably add this
+# so in the future, when we move to a higher level of npm, it won't break
+package-lock.json
 
 screenshots
 

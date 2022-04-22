@@ -741,7 +741,7 @@ class InvocationNode {
   }
 }
 
-function allInvocations(_connected: boolean): string[] {
+function allInvocations(/* connected: boolean */): string[] {
   // switch (connected) {
   //   case true:
   return Object.assign([], [

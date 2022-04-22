@@ -335,7 +335,6 @@ describe('Runner', function () {
       (async function () {
         // let i = 0;
         while (logTicks) {
-          // eslint-disable-next-line no-await-in-loop
           await Promise.resolve();
           ++ticks;
           // console.log(`>> tick(${ticks})`);

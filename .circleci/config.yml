@@ -455,35 +455,23 @@ jobs:
 
   # on branches that only touches doc
   # there's no need to run the workflow
-  check_doc_abort:
+  check_cancellation:
     executor: docker-circleci
+    environment:
+      COMMIT_RANGE: <<pipeline.git.base_revision>>..<<pipeline.git.revision>>
     steps:
       - checkout
       - run: |
-          if [[ $(git diff --name-only HEAD master | grep -v '^doc' -c) -eq 0 ]]; then
-            echo "Branch is only doc work"
+          # Extract commit range (or single commit)
+          echo "commit range from CircleCI: ${COMMIT_RANGE}"
+
+          if [[ $(git diff --name-only $COMMIT_RANGE | grep -v '*' -c) -gt 0 ]] && [[ $(git diff --name-only $COMMIT_RANGE | grep -v '^doc' -c) -eq 0 ]]; then
+            echo "Changes contain only doc work, cancelling..."
             curl --request POST \
-              --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN \
-
+              --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN
           else
-            echo "Running workflow $CIRCLE_WORKFLOW_ID"
+            echo "Changes contain more than doc, running workflow $CIRCLE_WORKFLOW_ID..."
           fi
-      # - run: |
-      #     GIT_COMMIT_DESC=$(git log -1 HEAD --pretty=format:%s)
-      #     echo "Commit message: '$GIT_COMMIT_DESC'"
-      #     if [[ $GIT_COMMIT_DESC == Gitbook:* ]]; then
-      #       echo "Cancelling workflow $CIRCLE_WORKFLOW_ID"
-      #       curl --request POST \
-      #         --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN \
-
-      #     elif [[ $(git diff --name-only HEAD master | grep -v '^doc' -c) -eq 0 ]]; then
-      #       echo "Branch is only doc work"
-      #       curl --request POST \
-      #         --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN \
-
-      #     else
-      #       echo "Running workflow $CIRCLE_WORKFLOW_ID"
-      #     fi
 
 # # # # # # # # # # # # # # # #
 # - Workflows -
@@ -493,30 +481,30 @@ workflows:
   # Triggered by push to master or topic branches
   build_test:
     jobs:
-      - check_doc_abort:
+      - check_cancellation:
           <<: *filter_ignore_develop_release
       - unit_test_esm:
           <<: *filter_ignore_develop_release
           name: unit_test_esm_chrome
           npm_command: "test-chrome"
           requires:
-            - check_doc_abort
+            - check_cancellation
       - unit_test_esm:
           <<: *filter_ignore_develop_release
           name: unit_test_esm_firefox
           npm_command: "test-firefox"
           coverage: false
           requires:
-            - check_doc_abort
+            - check_cancellation
       - unit_test_esm_node:
           <<: *filter_ignore_develop_release
           requires:
-            - check_doc_abort
+            - check_cancellation
       - unit_test_cjs:
           <<: *filter_ignore_develop_release
           npm_command: "test-node"
           requires:
-            - check_doc_abort
+            - check_cancellation
       #- unit_test:
       #   <<: *filter_ignore_develop_release
       #   name: test_test262
@@ -527,29 +515,29 @@ workflows:
       - lint_packages:
           <<: *filter_ignore_develop_release
           requires:
-            - check_doc_abort
+            - check_cancellation
       # - js_framework_benchmark:
       #     <<: *filter_ignore_develop_release
       #     requires:
-      #       - check_doc_abort
+      #       - check_cancellation
 
       # - benchmark_playwright:
       #     <<: *filter_ignore_develop_release
       #     requires:
-      #       - check_doc_abort
+      #       - check_cancellation
       - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: jit-webpack-conventions-ts
           path: "examples/jit-webpack-conventions-ts"
           requires:
-            - check_doc_abort
+            - check_cancellation
             # - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: jit-webpack-vanilla-ts
           path: "examples/jit-webpack-vanilla-ts"
           requires:
-            - check_doc_abort
+            - check_cancellation
             # - lint_packages # not a real requirement but forces long-running jobs to go first
       - merge_and_dist:
           <<: *filter_only_master

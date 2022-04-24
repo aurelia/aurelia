@@ -191,7 +191,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "git reset -- yarn.lock",
+      "pre-commit": "git reset -- yarn.lock && git checkout -- yarn.lock",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   }

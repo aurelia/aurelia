@@ -81,7 +81,7 @@
     "mocha": "^8.4.0",
     "source-map": "^0.7.3",
     "source-map-support": "^0.5.19",
-    "ts-node": "^9.0.0",
+    "ts-node": "^10.7.0",
     "tsconfig-paths": "^3.9.0"
   },
   "version": "0.8.0"

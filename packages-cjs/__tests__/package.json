@@ -54,7 +54,7 @@
     "@types/vinyl": "^2.0.5",
     "mocha": "^8.4.0",
     "source-map": "^0.7.3",
-    "ts-node": "^9.0.0",
+    "ts-node": "^10.7.0",
     "tsconfig-paths": "^3.9.0",
     "vinyl": "^2.2.0"
   },

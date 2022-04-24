@@ -24,6 +24,6 @@
     "@aurelia/http-server": "2.0.0-alpha.28",
     "webpack-cli": "^4.2.0",
     "webpack": "^5.10.3",
-    "webpack-bundle-analyzer": "^4.4.2"
+    "webpack-bundle-analyzer": "^4.5.0"
   }
 }

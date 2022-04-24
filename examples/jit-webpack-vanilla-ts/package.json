@@ -8,7 +8,7 @@
   },
   "version": "0.8.0",
   "scripts": {
-    "watch": "webpack-dev-server",
+    "watch": "webpack serve",
     "build": "rimraf dist && webpack",
     "serve": "au-http-server au.conf.js"
   },
@@ -31,7 +31,6 @@
     "ts-loader": "^8.0.12",
     "typescript": "^4.6.3",
     "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.8.1",
     "webpack": "^5.72.0"
   }
 }

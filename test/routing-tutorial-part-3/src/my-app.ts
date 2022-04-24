@@ -13,6 +13,7 @@ export class MyApp {
   }
 
   public bound() {
+    // @ts-ignore should be fixed once the routers are swapped
     RouterConfiguration.addHook(async (instructions: RoutingInstruction[]) => {
       if (this.auth.checkAccess() || instructions.length === 0) {
         return true;

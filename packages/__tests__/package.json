@@ -57,7 +57,7 @@
     "i18next": "^17.0.0",
     "jsdom": "^15.2.1",
     "rxjs": "^6.6.7",
-    "typescript": "^4.6.2"
+    "typescript": "^4.6.3"
   },
   "devDependencies": {
     "@types/jsdom": "^16.2.4",

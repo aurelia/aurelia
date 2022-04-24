@@ -6,7 +6,7 @@
     "@aurelia/http-server": "2.0.0-alpha.28",
     "@benchmarking-apps/storage": "1.0.0",
     "@types/mocha": "^9.1.1",
-    "@types/node": "^14.11.5",
+    "@types/node": "^14.18.14",
     "@types/uuid": "^8.3.1",
     "mocha": "^9.2.2",
     "playwright": "^1.21.1",

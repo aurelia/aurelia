@@ -50,7 +50,7 @@
     "@types/jsdom": "^16.2.4",
     "@types/karma": "^5.0.0",
     "@types/mocha": "^9.1.1",
-    "@types/node": "^14.11.5",
+    "@types/node": "^14.18.14",
     "@types/vinyl": "^2.0.5",
     "mocha": "^9.2.2",
     "source-map": "^0.7.3",

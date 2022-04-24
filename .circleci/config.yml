@@ -578,13 +578,7 @@ workflows:
           <<: *filter_only_topic
           name: merge_and_dist_topic
           requires:
-            - unit_test_esm_chrome
-            - unit_test_esm_firefox
-            - unit_test_esm_node
-            - unit_test_cjs
-            # - lint_packages
-            - jit-webpack-conventions-ts
-            - jit-webpack-vanilla-ts
+            - check_doc_abort
           from: master
           to: develop
           channel: dev

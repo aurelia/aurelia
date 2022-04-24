@@ -29,8 +29,8 @@
     "@types/node": "^14.17.14",
     "express": "^4.17.1",
     "html-loader": "^2.1.2",
-    "webpack": "^5.10.3",
+    "webpack": "^5.72.0",
     "webpack-bundle-analyzer": "^4.5.0",
-    "webpack-cli": "^4.2.0"
+    "webpack-cli": "^4.9.2"
   }
 }

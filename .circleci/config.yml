@@ -317,7 +317,9 @@ jobs:
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-      - run: npm run publish:<< parameters.channel >>
+      - run: |
+          npm ci
+          npm run publish:<< parameters.channel >>
 
   # Standalone playwright test jobs
   e2e_playwright:

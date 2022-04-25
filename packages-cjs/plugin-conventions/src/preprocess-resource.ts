@@ -1,6 +1,7 @@
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import { stringify } from 'querystring';
 import * as ts from 'typescript';
+import { getHmrCode } from './hmr.js';
 import { nameConvention } from './name-convention.js';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options.js';
 import { resourceName } from './resource-name.js';
@@ -105,17 +106,19 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
       ensureTypeIsExported(runtimeImport.names, runtimeImportName);
     }
-    if (className) exportedClassName = className;
-    hmrRuntimeModules.forEach(m => {
-      if (!auImport.names.includes(m)) {
-        ensureTypeIsExported(runtimeImport.names, m);
-      }
-    });
-    hmrMetadataModules.forEach(m => {
-      if (!auImport.names.includes(m)) {
-        ensureTypeIsExported(metadataImport.names, m);
-      }
-    });
+    if (className && process.env.NODE_ENV !== 'production') {
+      exportedClassName = className;
+      hmrRuntimeModules.forEach(m => {
+        if (!auImport.names.includes(m)) {
+          ensureTypeIsExported(runtimeImport.names, m);
+        }
+      });
+      hmrMetadataModules.forEach(m => {
+        if (!auImport.names.includes(m)) {
+          ensureTypeIsExported(metadataImport.names, m);
+        }
+      });
+    }
     if (customName) customElementName = customName;
   });
 
@@ -175,75 +178,25 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
   }
 
   if (metadataImport.names.length) {
-    let metadataImportStatement = `import { Metadata } from '@aurelia/metadata';`;
+    let metadataImportStatement = `import { ${metadataImport.names.join(', ')} } from '@aurelia/metadata';`;
     if (metadataImport.end === metadataImport.start)
       metadataImportStatement += '\n';
     console.log(metadataImportStatement);
     m.replace(metadataImport.start, metadataImport.end, metadataImportStatement);
   }
 
-  if (conventionalDecorators.length) {
-    if (runtimeImport.names.length) {
-      let runtimeImportStatement = `import { ${runtimeImport.names.join(', ')} } from '@aurelia/runtime-html';`;
-      if (runtimeImport.end === runtimeImport.start) runtimeImportStatement += '\n';
-      m.replace(runtimeImport.start, runtimeImport.end, runtimeImportStatement);
-    }
+  if (runtimeImport.names.length) {
+    let runtimeImportStatement = `import { ${runtimeImport.names.join(', ')} } from '@aurelia/runtime-html';`;
+    if (runtimeImport.end === runtimeImport.start) runtimeImportStatement += '\n';
+    m.replace(runtimeImport.start, runtimeImport.end, runtimeImportStatement);
+  }
 
+  if (conventionalDecorators.length) {
     conventionalDecorators.forEach(([pos, str]) => m.insert(pos, str));
   }
 
   if (exportedClassName && process.env.NODE_ENV !== 'production') {
-    const hmr = `
-      if ((module as any).hot) {
-          let aurelia = (module as any).hot.data?.aurelia;
-          document.addEventListener('au-started', (event) => {aurelia= (event as any).detail; });
-          const hot = (module as any).hot;
-          const controllers: Controller<ICustomElementViewModel>[] = [];
-          const ogCreated = (${exportedClassName}.prototype as any).created;
-
-          (${exportedClassName}.prototype as any).created = (controller) => {
-            ogCreated && ogCreated(controller);
-            controllers.push(controller as Controller<ICustomElementViewModel>);
-          }
-
-          hot.accept();
-          hot.dispose(function (data) {
-            data.controllers = controllers;
-            data.aurelia = aurelia;
-          });
-
-          if (hot.data?.aurelia) {
-
-            const newDefinition = CustomElement.getDefinition(${exportedClassName});
-            Metadata.define(newDefinition.name, newDefinition, ${exportedClassName});
-            Metadata.define(newDefinition.name, newDefinition, newDefinition);
-            (hot.data.aurelia.container as any).res[CustomElement.keyFrom(newDefinition.name)] = newDefinition;
-
-
-            (hot.data.controllers as typeof controllers).forEach(controller => {
-              const values = { ...controller.viewModel };
-              const hydrationContext = controller.container.get(IHydrationContext)
-              const hydrationInst = hydrationContext.instruction;
-
-              Object.keys(values).forEach(key => {
-                if (!controller.bindings?.some(y => (y as any).sourceExpression?.name === key && (y as any).targetProperty)) {
-                  delete values[key];
-                }
-              });
-              const h = (controller as any).host;
-              delete (controller as any)._compiledDef;
-              (controller.viewModel as any) = new ${exportedClassName}();
-              (controller.definition as any) = newDefinition;
-              Object.assign(controller.viewModel, values);
-              (controller.hooks as any) = new (controller.hooks as any).constructor(controller.viewModel);
-              (controller as any)._hydrateCustomElement(hydrationInst, hydrationContext);
-              h.parentNode.replaceChild((controller as any).host, h);
-              (controller as any).hostController = null;
-              (controller as any).deactivate(controller, controller.parent ?? null, LifecycleFlags.none);
-              (controller as any).activate(controller, controller.parent ?? null, LifecycleFlags.none);
-            });
-          }
-        }`;
+    const hmr = getHmrCode(exportedClassName)
     m.append(hmr);
   }
 
@@ -328,7 +281,10 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
       foundType.type !== 'customElement' &&
       foundType.type !== 'view'
     ) {
-      return { localDep: className };
+      return {
+        className,
+        localDep: className
+      };
     }
 
     if (
@@ -345,6 +301,11 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
         customName: { pos: ensureTokenStart(customName.pos, code), end: customName.end }
       };
     }
+
+    return {
+      className,
+    };
+
   } else {
     if (type === 'customElement') {
       // Custom element can only be implicit resource

@@ -205,14 +205,23 @@ jobs:
 
   unit_test_esm_node:
     executor: docker-circleci
+    parallelism: 4
     steps:
-      - checkout_install
+      - checkout
+      - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
+      - run: npm ci
       - run: npm run build:test
+      - run:
+          name: "Split test glob"
+          command: |
+            cd packages/__tests__
+            echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split)
+            echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split) > tests.txt
       - run:
           name: "Run unit tests"
           command: |
             cd packages/__tests__
-            npm run test-node
+            npm run ::mocha -- $(cat tests.txt)
 
   unit_test_cjs:
     parameters:
@@ -317,7 +326,9 @@ jobs:
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-      - run: npm run publish:<< parameters.channel >>
+      - run: |
+          npm ci
+          npm run publish:<< parameters.channel >>
 
   # Standalone playwright test jobs
   e2e_playwright:
@@ -481,12 +492,12 @@ jobs:
           echo "Non doc file changes: $(git diff --name-only $COMMIT_RANGE | grep -v '^doc' -c)"
 
           if [[ $(git diff --name-only $COMMIT_RANGE | grep -v '*' -c) -gt 0 ]] && [[ $(git diff --name-only $COMMIT_RANGE | grep -v '^doc' -c) -eq 0 ]]; then
-            echo "Branch is only doc work, cancelling..."
+            echo "There is only doc work, cancelling workflow..."
             curl --request POST \
               --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN
 
           else
-            echo "Branch contains more than doc, running workflow $CIRCLE_WORKFLOW_ID..."
+            echo "There are more than doc changes, running workflow $CIRCLE_WORKFLOW_ID..."
           fi
 
 # # # # # # # # # # # # # # # #
@@ -576,13 +587,7 @@ workflows:
           <<: *filter_only_topic
           name: merge_and_dist_topic
           requires:
-            - unit_test_esm_chrome
-            - unit_test_esm_firefox
-            - unit_test_esm_node
-            - unit_test_cjs
-            # - lint_packages
-            - jit-webpack-conventions-ts
-            - jit-webpack-vanilla-ts
+            - check_doc_abort
           from: master
           to: develop
           channel: dev

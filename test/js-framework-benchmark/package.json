@@ -47,6 +47,7 @@
     "yargs": "^15.3.1"
   },
   "devDependencies": {
+    "@types/node": "^14.18.14",
     "lerna": "^3.22.1"
   }
 }

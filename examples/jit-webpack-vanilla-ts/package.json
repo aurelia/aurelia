@@ -8,7 +8,7 @@
   },
   "version": "0.8.0",
   "scripts": {
-    "watch": "webpack-dev-server",
+    "watch": "webpack serve",
     "build": "rimraf dist && webpack",
     "serve": "au-http-server au.conf.js"
   },
@@ -24,14 +24,13 @@
   },
   "devDependencies": {
     "@aurelia/http-server": "dev",
-    "@types/node": "^14.11.5",
+    "@types/node": "^14.18.14",
     "html-loader": "^1.3.2",
-    "html-webpack-plugin": "^5.0.0-beta.1",
+    "html-webpack-plugin": "^5.5.0",
     "rimraf": "^3.0.0",
-    "ts-loader": "^8.0.12",
-    "typescript": "^4.0.3",
-    "webpack-cli": "^4.2.0",
-    "webpack-dev-server": "^4.0.0-beta.0",
-    "webpack": "^5.10.3"
+    "ts-loader": "^9.2.8",
+    "typescript": "^4.6.3",
+    "webpack-cli": "^4.9.2",
+    "webpack": "^5.72.0"
   }
 }

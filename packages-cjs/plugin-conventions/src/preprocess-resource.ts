@@ -1,4 +1,4 @@
-import modifyCode, { ModifyCode, ModifyCodeResult } from 'modify-code';
+import modifyCode, { IModifyCode, ModifyCodeResult } from 'modify-code';
 import { stringify } from 'querystring';
 import * as ts from 'typescript';
 import { getHmrCode, hmrMetadataModules, hmrRuntimeModules } from './hmr.js';
@@ -125,7 +125,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   const hmrEnabled = options.hmr && exportedClassName && process.env.NODE_ENV !== 'production';
 
   if (options.enableConventions || hmrEnabled) {
-    if (metadataImport.names.length) {
+    if (hmrEnabled && metadataImport.names.length) {
       let metadataImportStatement = `import { ${metadataImport.names.join(', ')} } from '@aurelia/metadata';`;
       if (metadataImport.end === metadataImport.start)
         metadataImportStatement += '\n';
@@ -160,7 +160,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   return m.transform();
 }
 
-function modifyResource(unit: IFileUnit, m: ModifyCode, options: IModifyResourceOptions) {
+function modifyResource(unit: IFileUnit, m: IModifyCode, options: IModifyResourceOptions) {
   const {
     implicitElement,
     localDeps,

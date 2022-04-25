@@ -6,6 +6,8 @@ import { join } from 'path';
 (async function (): Promise<void> {
   const [, , channel/* dev or latest */] = process.argv;
 
+  console.log(`Publishing for channel: ${channel}`);
+
   for (const { name, folder }
     of project.packages
       .filter(

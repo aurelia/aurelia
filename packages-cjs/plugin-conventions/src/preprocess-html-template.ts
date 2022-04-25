@@ -13,7 +13,7 @@ import { resourceName } from './resource-name.js';
 // We cannot use
 //   import d0 from './foo.css';
 // because most bundler by default will inject that css into HTML head.
-export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOptions, hasViewModel: boolean): ModifyCodeResult {
+export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOptions, hasViewModel?: boolean): ModifyCodeResult {
   const name = resourceName(unit.path);
   const stripped = stripMetaData(unit.contents);
   const { html, deps, containerless, hasSlot, bindables, aliases } = stripped;

@@ -41,8 +41,6 @@ interface IModifyResourceOptions {
   customElementName?: IPos;
 }
 
-
-
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
   const expectedResourceName = resourceName(unit.path);
   const sf = ts.createSourceFile(unit.path, unit.contents, ts.ScriptTarget.Latest);
@@ -139,7 +137,6 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     }
   }
 
-
   if (options.enableConventions) {
     m = modifyResource(unit, m, {
       runtimeImport,
@@ -153,7 +150,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   }
 
   if (options.hmr && exportedClassName && process.env.NODE_ENV !== 'production') {
-    const hmr = getHmrCode(exportedClassName)
+    const hmr = getHmrCode(exportedClassName);
     m.append(hmr);
   }
 

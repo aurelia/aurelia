@@ -1,3 +1,4 @@
+import { getHmrCode, hmrMetadataModules, hmrRuntimeModules } from './hmr';
 import * as path from 'path';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IPreprocessOptions } from './options.js';
@@ -12,7 +13,7 @@ import { resourceName } from './resource-name.js';
 // We cannot use
 //   import d0 from './foo.css';
 // because most bundler by default will inject that css into HTML head.
-export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
+export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOptions, hasViewModel: boolean): ModifyCodeResult {
   const name = resourceName(unit.path);
   const stripped = stripMetaData(unit.contents);
   const { html, deps, containerless, hasSlot, bindables, aliases } = stripped;
@@ -84,7 +85,12 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
   });
 
   const m = modifyCode('', unit.path);
-  m.append(`import { CustomElement } from '@aurelia/runtime-html';\n`);
+  if (!hasViewModel && process.env.NODE_ENV !== 'production') {
+    m.append(`import { ${hmrRuntimeModules.join(', ')} } from '@aurelia/runtime-html';\n`);
+    m.append(`import { ${hmrMetadataModules.join(', ')} } from '@aurelia/metadata';\n`);
+  } else {
+    m.append(`import { CustomElement } from '@aurelia/runtime-html';\n`);
+  }
   if (cssDeps.length > 0) {
     if (shadowMode !== null) {
       m.append(`import { shadowCSS } from '@aurelia/runtime-html';\n`);
@@ -121,10 +127,19 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
 export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies${shadowMode !== null ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length > 0 ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
+    ${!hasViewModel && options.hmr && process.env.NODE_ENV !== 'production' ?
+      `_e.prototype.created = (controller) => {
+      controllers.push(controller)
+    }` : ''}
   }
   container.register(_e);
 }
 `);
+
+  if (!hasViewModel && options.hmr && process.env.NODE_ENV !== 'production') {
+    m.append(getHmrCode('_e', 'module', 'CustomElementHtml'));
+  }
+
   const { code, map } = m.transform();
   map.sourcesContent = [unit.contents];
   return { code, map };

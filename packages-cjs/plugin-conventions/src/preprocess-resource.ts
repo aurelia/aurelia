@@ -1,4 +1,4 @@
-import modifyCode, { ModifyCodeResult } from 'modify-code';
+import modifyCode, { ModifyCode, ModifyCodeResult } from 'modify-code';
 import { stringify } from 'querystring';
 import * as ts from 'typescript';
 import { getHmrCode, hmrMetadataModules, hmrRuntimeModules } from './hmr.js';
@@ -105,7 +105,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
       ensureTypeIsExported(runtimeImport.names, runtimeImportName);
     }
-    if (className && process.env.NODE_ENV !== 'production') {
+    if (className && options.hmr && process.env.NODE_ENV !== 'production') {
       exportedClassName = className;
       hmrRuntimeModules.forEach(m => {
         if (!auImport.names.includes(m)) {
@@ -121,29 +121,53 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (customName) customElementName = customName;
   });
 
-  return modifyResource(unit, {
-    runtimeImport,
-    metadataImport,
-    exportedClassName,
-    implicitElement,
-    localDeps,
-    conventionalDecorators,
-    customElementName
-  });
+  let m = modifyCode(unit.contents, unit.path);
+  const hmrEnabled = options.hmr && exportedClassName && process.env.NODE_ENV !== 'production';
+
+  if (options.enableConventions || hmrEnabled) {
+    if (metadataImport.names.length) {
+      let metadataImportStatement = `import { ${metadataImport.names.join(', ')} } from '@aurelia/metadata';`;
+      if (metadataImport.end === metadataImport.start)
+        metadataImportStatement += '\n';
+      m.replace(metadataImport.start, metadataImport.end, metadataImportStatement);
+    }
+
+    if (runtimeImport.names.length) {
+      let runtimeImportStatement = `import { ${runtimeImport.names.join(', ')} } from '@aurelia/runtime-html';`;
+      if (runtimeImport.end === runtimeImport.start) runtimeImportStatement += '\n';
+      m.replace(runtimeImport.start, runtimeImport.end, runtimeImportStatement);
+    }
+  }
+
+
+  if (options.enableConventions) {
+    m = modifyResource(unit, m, {
+      runtimeImport,
+      metadataImport,
+      exportedClassName,
+      implicitElement,
+      localDeps,
+      conventionalDecorators,
+      customElementName
+    });
+  }
+
+  if (options.hmr && exportedClassName && process.env.NODE_ENV !== 'production') {
+    const hmr = getHmrCode(exportedClassName)
+    m.append(hmr);
+  }
+
+  return m.transform();
 }
 
-function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
+function modifyResource(unit: IFileUnit, m: ModifyCode, options: IModifyResourceOptions) {
   const {
-    metadataImport,
-    exportedClassName,
-    runtimeImport,
     implicitElement,
     localDeps,
     conventionalDecorators,
     customElementName
   } = options;
 
-  const m = modifyCode(unit.contents, unit.path);
   if (implicitElement && unit.filePair) {
     // @view() for foo.js and foo-view.html
     // @customElement() for foo.js and foo.html
@@ -176,29 +200,11 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
     }
   }
 
-  if (metadataImport.names.length) {
-    let metadataImportStatement = `import { ${metadataImport.names.join(', ')} } from '@aurelia/metadata';`;
-    if (metadataImport.end === metadataImport.start)
-      metadataImportStatement += '\n';
-    m.replace(metadataImport.start, metadataImport.end, metadataImportStatement);
-  }
-
-  if (runtimeImport.names.length) {
-    let runtimeImportStatement = `import { ${runtimeImport.names.join(', ')} } from '@aurelia/runtime-html';`;
-    if (runtimeImport.end === runtimeImport.start) runtimeImportStatement += '\n';
-    m.replace(runtimeImport.start, runtimeImport.end, runtimeImportStatement);
-  }
-
   if (conventionalDecorators.length) {
     conventionalDecorators.forEach(([pos, str]) => m.insert(pos, str));
   }
 
-  if (exportedClassName && process.env.NODE_ENV !== 'production') {
-    const hmr = getHmrCode(exportedClassName)
-    m.append(hmr);
-  }
-
-  return m.transform();
+  return m;
 }
 
 function captureImport(s: ts.Statement, lib: string, code: string): ICapturedImport | void {

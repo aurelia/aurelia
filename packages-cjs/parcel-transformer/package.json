@@ -45,7 +45,7 @@
     "@aurelia/platform": "2.0.0-alpha.28",
     "@aurelia/plugin-conventions": "2.0.0-alpha.28",
     "@aurelia/runtime": "2.0.0-alpha.28",
-    "@parcel/plugin": "^2.4.1",
+    "@parcel/plugin": "^2.5.0",
     "@parcel/source-map": "^2.0.2"
   },
   "devDependencies": {

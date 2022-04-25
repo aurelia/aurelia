@@ -1,3 +1,15 @@
+
+
+/**
+ * This is the minimum required runtime modules for HMR
+ */
+export const hmrRuntimeModules = ['ICustomElementViewModel', 'CustomElement', 'LifecycleFlags', 'IHydrationContext', 'Controller'];
+
+/**
+ * This is the minimum required metadata modules for HMR
+ */
+export const hmrMetadataModules = ['Metadata'];
+
 /**
  * This gets the generated HMR code for the specified class
  * @param className The name of the class to generate HMR code for

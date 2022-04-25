@@ -1,7 +1,7 @@
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import { stringify } from 'querystring';
 import * as ts from 'typescript';
-import { getHmrCode } from './hmr.js';
+import { getHmrCode, hmrMetadataModules, hmrRuntimeModules } from './hmr.js';
 import { nameConvention } from './name-convention.js';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options.js';
 import { resourceName } from './resource-name.js';
@@ -41,8 +41,7 @@ interface IModifyResourceOptions {
   customElementName?: IPos;
 }
 
-const hmrRuntimeModules = ['ICustomElementViewModel', 'CustomElement', 'LifecycleFlags', 'IHydrationContext', 'Controller'];
-const hmrMetadataModules = ['Metadata'];
+
 
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
   const expectedResourceName = resourceName(unit.path);

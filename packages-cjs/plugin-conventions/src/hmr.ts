@@ -10,9 +10,10 @@ export const hmrMetadataModules = ['Metadata'];
 
 /**
  * This gets the generated HMR code for the specified class
- * - @param className The name of the class to generate HMR code for
- * - @param moduleText  Usually module but Vite uses import instead
- * - @param type CustomElement | CustomAttribute
+ *
+ * @param className - The name of the class to generate HMR code for
+ * @param moduleText -  Usually module but Vite uses import instead
+ * @param type - CustomElement | CustomAttribute
  * @returns Generated HMR code
  */
 export const getHmrCode = (className: string, moduleText: 'module' | 'import' = 'module', type: 'CustomElementHtml' | 'CustomElement' | 'CustomAttribute' = 'CustomElement'): string => {
@@ -76,4 +77,4 @@ export const getHmrCode = (className: string, moduleText: 'module' | 'import' = 
   }`;
 
   return type === 'CustomElementHtml' ? code.replace(/ as any/g, '') : code;
-}
+};

@@ -69,6 +69,12 @@ executors:
     docker:
       - image: "cimg/node:<< parameters.node >>-browsers"
 
+  docker-release:
+    working_directory: *working_dir
+    resource_class: large
+    docker:
+      - image: "cimg/node:16.14.2"
+
   docker-circleci-bench:
     working_directory: *working_dir
     resource_class: large
@@ -81,8 +87,15 @@ executors:
 commands:
 
   checkout_install:
+    parameters:
+      install_drivers:
+        type: boolean
+        default: true
     steps:
-      - browser-tools/install-browser-tools
+      - when:
+          condition: <<parameters.install_drivers>>
+          steps:
+            - browser-tools/install-browser-tools
       - checkout
       - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
       - run: npm ci
@@ -261,7 +274,7 @@ jobs:
       - run: npm run lint:other:ci
 
   merge_and_dist:
-    executor: docker-circleci
+    executor: docker-release
     parameters:
       from:
         type: string
@@ -285,7 +298,8 @@ jobs:
       - run: git config --global user.email "aurelia@bluespire.com"
       - run: git config --global user.name "AureliaEffect"
       - run: git config --global core.mergeoptions "--no-edit"
-      - checkout_install
+      - checkout_install:
+          install_drivers: false
       - run: set -o pipefail && npm run build:release
       # - run: set -o pipefail && npm run change-tsconfigs:invert
       # - run: set -o pipefail && npm run build:release
@@ -307,7 +321,7 @@ jobs:
           destination: << parameters.dist_file_name >>.zip
 
   publish_npm:
-    executor: docker-circleci
+    executor: docker-release
     parameters:
       channel:
         type: string
@@ -317,18 +331,22 @@ jobs:
         type: boolean
         default: false
     steps:
-      - checkout
+      - checkout_install:
+          install_drivers: false
+      - run: git checkout -- .
       - when:
           condition: << parameters.swap >>
           steps:
             - run: git checkout << parameters.branch >>
             - run: git pull
+      - run: zip -r publish_npm_<< parameters.channel>>.zip packages/*/dist packages/*/package.json
+      - store_artifacts:
+          path: publish_npm_<< parameters.channel>>.zip
+          destination: publish_npm_<< parameters.channel>>.zip
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-      - run: |
-          npm ci
-          npm run publish:<< parameters.channel >>
+      - run: npm run publish:<< parameters.channel >>
 
   # Standalone playwright test jobs
   e2e_playwright:
@@ -510,74 +528,73 @@ workflows:
     jobs:
       - check_doc_abort:
           <<: *filter_ignore_develop_release
-      - unit_test_esm:
-          <<: *filter_ignore_develop_release
-          name: unit_test_esm_chrome
-          npm_command: "test-chrome"
-          requires:
-            - check_doc_abort
-      - unit_test_esm:
-          <<: *filter_ignore_develop_release
-          name: unit_test_esm_firefox
-          npm_command: "test-firefox"
-          coverage: false
-          requires:
-            - check_doc_abort
-      - unit_test_esm_node:
-          <<: *filter_ignore_develop_release
-          requires:
-            - check_doc_abort
-      - unit_test_cjs:
-          <<: *filter_ignore_develop_release
-          npm_command: "test-node"
-          requires:
-            - check_doc_abort
-      #- unit_test:
-      #   <<: *filter_ignore_develop_release
-      #   name: test_test262
-      #   npm_command: "test-262"
-      #   coverage: false
-      #   submodules: true
-
-      - lint_packages:
-          <<: *filter_ignore_develop_release
-          requires:
-            - check_doc_abort
-      # - js_framework_benchmark:
+      # - unit_test_esm:
+      #     <<: *filter_ignore_develop_release
+      #     name: unit_test_esm_chrome
+      #     npm_command: "test-chrome"
+      #     requires:
+      #       - check_doc_abort
+      # - unit_test_esm:
+      #     <<: *filter_ignore_develop_release
+      #     name: unit_test_esm_firefox
+      #     npm_command: "test-firefox"
+      #     coverage: false
+      #     requires:
+      #       - check_doc_abort
+      # - unit_test_esm_node:
       #     <<: *filter_ignore_develop_release
       #     requires:
       #       - check_doc_abort
+      # - unit_test_cjs:
+      #     <<: *filter_ignore_develop_release
+      #     npm_command: "test-node"
+      #     requires:
+      #       - check_doc_abort
+      # #- unit_test_aot:
+      # #   <<: *filter_ignore_develop_release
+      # #   name: test_test262
+      # #   npm_command: "test-262"
+      # #   coverage: false
+      # #   submodules: true
 
-      # - benchmark_playwright:
+      # - lint_packages:
       #     <<: *filter_ignore_develop_release
       #     requires:
       #       - check_doc_abort
-      - e2e_playwright:
-          <<: *filter_ignore_develop_release
-          name: jit-webpack-conventions-ts
-          path: "examples/jit-webpack-conventions-ts"
-          requires:
-            - check_doc_abort
-            # - lint_packages # not a real requirement but forces long-running jobs to go first
-      - e2e_playwright:
-          <<: *filter_ignore_develop_release
-          name: jit-webpack-vanilla-ts
-          path: "examples/jit-webpack-vanilla-ts"
-          requires:
-            - check_doc_abort
-            # - lint_packages # not a real requirement but forces long-running jobs to go first
+      # # - js_framework_benchmark:
+      # #     <<: *filter_ignore_develop_release
+      # #     requires:
+      # #       - check_doc_abort
+
+      # # - benchmark_playwright:
+      # #     <<: *filter_ignore_develop_release
+      # #     requires:
+      # #       - check_doc_abort
+      # - e2e_playwright:
+      #     <<: *filter_ignore_develop_release
+      #     name: jit-webpack-conventions-ts
+      #     path: "examples/jit-webpack-conventions-ts"
+      #     requires:
+      #       - check_doc_abort
+      # - e2e_playwright:
+      #     <<: *filter_ignore_develop_release
+      #     name: jit-webpack-vanilla-ts
+      #     path: "examples/jit-webpack-vanilla-ts"
+      #     requires:
+      #       - check_doc_abort
       - merge_and_dist:
           <<: *filter_only_master
           name: merge_and_dist_master
           requires:
-            - unit_test_esm_chrome
-            - unit_test_esm_firefox
-            - unit_test_esm_node
-            - unit_test_cjs
-            #- test_test262
-            # - lint_packages
-            - jit-webpack-conventions-ts
-            - jit-webpack-vanilla-ts
+            - check_doc_abort
+            # - unit_test_esm_chrome
+            # - unit_test_esm_firefox
+            # - unit_test_esm_node
+            # - unit_test_cjs
+            # #- test_test262
+            # # - lint_packages
+            # - jit-webpack-conventions-ts
+            # - jit-webpack-vanilla-ts
           from: master
           to: develop
           channel: dev
@@ -594,6 +611,7 @@ workflows:
           dist_file_name: merge_and_dist_topic
       - publish_npm:
           <<: *filter_only_master
+          name: "publish_npm_dev"
           channel: dev
           branch: develop
           swap: true
@@ -619,7 +637,7 @@ workflows:
       - unit_test_cjs:
          <<: *filter_only_tag
          npm_command: "test-node"
-      #- unit_test:
+      #- unit_test_aot:
       #   <<: *filter_only_tag
       #   name: test_test262
       #   npm_command: "test-262"
@@ -653,6 +671,7 @@ workflows:
           type: approval
       - publish_npm:
           <<: *filter_only_release
+          name: "publish_npm_latest"
           channel: latest
           branch: release
           requires:

@@ -181,7 +181,6 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
     let metadataImportStatement = `import { ${metadataImport.names.join(', ')} } from '@aurelia/metadata';`;
     if (metadataImport.end === metadataImport.start)
       metadataImportStatement += '\n';
-    console.log(metadataImportStatement);
     m.replace(metadataImport.start, metadataImport.end, metadataImportStatement);
   }
 

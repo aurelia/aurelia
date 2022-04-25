@@ -1,6 +1,6 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import { getOptions } from 'loader-utils';
-import type * as webpack from 'webpack';
+import type webpack from 'webpack';
 
 export default function (
   // @ts-ignore TODO: fix types

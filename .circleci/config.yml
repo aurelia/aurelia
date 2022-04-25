@@ -205,14 +205,23 @@ jobs:
 
   unit_test_esm_node:
     executor: docker-circleci
+    parallelism: 4
     steps:
-      - checkout_install
+      - checkout
+      - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
+      - run: npm ci
       - run: npm run build:test
+      - run:
+          name: "Split test glob"
+          command: |
+            cd packages/__tests__
+            echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split)
+            echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split) > tests.txt
       - run:
           name: "Run unit tests"
           command: |
             cd packages/__tests__
-            npm run test-node
+            npm run ::mocha -- $(cat tests.txt)
 
   unit_test_cjs:
     parameters:

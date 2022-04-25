@@ -1,4 +1,4 @@
-import modifyCode, { IModifyCode, ModifyCodeResult } from 'modify-code';
+import modifyCode, { ModifyCodeResult } from 'modify-code';
 import { stringify } from 'querystring';
 import * as ts from 'typescript';
 import { getHmrCode, hmrMetadataModules, hmrRuntimeModules } from './hmr.js';
@@ -160,7 +160,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   return m.transform();
 }
 
-function modifyResource(unit: IFileUnit, m: IModifyCode, options: IModifyResourceOptions) {
+function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, options: IModifyResourceOptions) {
   const {
     implicitElement,
     localDeps,

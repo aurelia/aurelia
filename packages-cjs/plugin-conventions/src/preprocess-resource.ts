@@ -1,5 +1,4 @@
 import modifyCode, { ModifyCodeResult } from 'modify-code';
-import { stringify } from 'querystring';
 import * as ts from 'typescript';
 import { getHmrCode, hmrMetadataModules, hmrRuntimeModules } from './hmr.js';
 import { nameConvention } from './name-convention.js';

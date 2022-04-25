@@ -46,7 +46,7 @@
     "@aurelia/plugin-conventions": "2.0.0-alpha.28",
     "@aurelia/runtime": "2.0.0-alpha.28",
     "@babel/core": "^7.17.9",
-    "babel-jest": "^27.0.2"
+    "babel-jest": "^27.5.1"
   },
   "devDependencies": {
     "@jest/transform": "^27.5.1",

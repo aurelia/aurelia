@@ -175,7 +175,7 @@ describe("store-v1/redux-devtools.spec.ts", function () {
     };
 
     store.registerAction("FakeAction", fakeAction);
-    store.dispatch(fakeAction, "bert").catch(() => { /**/ });
+    store.dispatch(fakeAction, "bert").catch((ex) => { console.log(ex); });
 
     store.state.pipe(
       skip(1),
@@ -202,7 +202,7 @@ describe("store-v1/redux-devtools.spec.ts", function () {
     };
 
     store.registerAction("FakeAction", fakeAction);
-    store.dispatch(fakeAction).catch(() => { /**/ });
+    store.dispatch(fakeAction).catch((ex) => { console.log(ex); });
 
     store.state.pipe(
       skip(1),

@@ -58,6 +58,7 @@ export function createDI(mockWindow?: object) {
 export function createTestStore() {
   const initialState = { foo: "bar" };
   const { container, logger, storeWindow } = createDI();
+  STORE.container = container;
   const store: Store<testState> = new Store(initialState, logger, storeWindow);
 
   return { container, initialState, store };

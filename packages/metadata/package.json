@@ -35,7 +35,7 @@
     "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c",
     "postrollup": "tsc --emitDeclarationOnly",
-    "build:packages": "rollup -c"
+    "build:packages": "npm run rollup"
   },
   "publishConfig": {
     "access": "public"

@@ -191,7 +191,7 @@ jobs:
     parallelism: 4
     steps:
       - checkout_install
-      - run: npm run build:test
+      - run: npm run build:packages
       - run:
           name: "Split test glob"
           command: |
@@ -223,7 +223,7 @@ jobs:
       - checkout
       - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
       - run: npm ci
-      - run: npm run build:test
+      - run: npm run build:packages
       - run:
           name: "Split test glob"
           command: |
@@ -247,11 +247,11 @@ jobs:
     executor: docker-circleci
     steps:
       - checkout_install
-      - run: npm run build
-      - run: npm run change-tsconfigs:invert
-      - run: npm run build
-      - run: npm run change-tsconfigs:restore
-      - run: npm run change-package-refs:release -- none
+      - run: npm run build:packages-cjs
+      # - run: npm run change-tsconfigs:invert
+      # - run: npm run build
+      # - run: npm run change-tsconfigs:restore
+      # - run: npm run change-package-refs:release -- none
       - when:
           condition: << parameters.submodules >>
           steps:

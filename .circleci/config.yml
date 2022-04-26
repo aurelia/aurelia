@@ -247,7 +247,7 @@ jobs:
     executor: docker-circleci
     steps:
       - checkout_install
-      - run: npm run build:packages-cjs
+      - run: npm run build
       # - run: npm run change-tsconfigs:invert
       # - run: npm run build
       # - run: npm run change-tsconfigs:restore

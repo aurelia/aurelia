@@ -188,7 +188,7 @@ jobs:
         type: string
         default: "test"
     executor: docker-circleci
-    parallelism: 4
+    parallelism: 5
     steps:
       - checkout_install
       - run: npm run build:packages
@@ -251,7 +251,7 @@ jobs:
       # - run: npm run change-tsconfigs:invert
       # - run: npm run build
       # - run: npm run change-tsconfigs:restore
-      # - run: npm run change-package-refs:release -- none
+      - run: npm run change-package-refs:release -- none
       - when:
           condition: << parameters.submodules >>
           steps:

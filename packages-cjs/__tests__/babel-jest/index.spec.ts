@@ -1,5 +1,5 @@
 import { IFileUnit, IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
-import babelJest  from '@aurelia/babel-jest';
+import babelJest from '@aurelia/babel-jest';
 const { _createTransformer } = babelJest;
 import { TransformOptions } from '@babel/core';
 import { assert } from '@aurelia/testing';
@@ -50,7 +50,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const t = _createTransformer({}, makePreprocess(() => false), babelProcess);
+    const t = _createTransformer({ hmr: false }, makePreprocess(() => false), babelProcess);
     const result = t.process(html, 'src/foo-bar.html', options);
     assert.equal(result, expected);
   });
@@ -74,7 +74,7 @@ export function register(container) {
 }
 `;
     const t = _createTransformer(
-      {defaultShadowOptions: { mode: 'open' }},
+      { defaultShadowOptions: { mode: 'open' }, hmr: false },
       makePreprocess(p => p === path.join('src', 'foo-bar.less')),
       babelProcess
     );
@@ -100,7 +100,7 @@ export function register(container) {
 }
 `;
     const t = _createTransformer(
-      {useCSSModule: true},
+      { useCSSModule: true, hmr: false },
       makePreprocess(p => p === path.join('src', 'foo-bar.scss')),
       babelProcess
     );
@@ -116,7 +116,7 @@ import { customElement } from '@aurelia/runtime-html';
 export class FooBar {}
 `;
     const t = _createTransformer(
-      {},
+      { hmr: false },
       makePreprocess(p => p === path.join('src', 'foo-bar.html')),
       babelProcess
     );

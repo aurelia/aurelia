@@ -39,13 +39,11 @@ export const getHmrCode = (className: string, moduleText: 'module' | 'import' = 
     hot.dispose(function (data) {
       data.controllers = controllers;
       data.aurelia = aurelia;
-      ${type === 'CustomElementHtml' ? `data.customElement = ${className} ?? currentClassType` : ''}
+      ${type === 'CustomElementHtml' ? `data.customElement = CustomElement.define({...(${className} ?? currentClassType), template})` : ''}
     });
 
     if (hot.data?.aurelia) {
-
       const newDefinition = CustomElement.getDefinition(currentClassType);
-      ${type === 'CustomElementHtml' ? `newDefinition.template = template;` : ''}
       Metadata.define(newDefinition.name, newDefinition, currentClassType);
       Metadata.define(newDefinition.name, newDefinition, newDefinition);
       (hot.data.aurelia.container as any).res[CustomElement.keyFrom(newDefinition.name)] = newDefinition;

@@ -18,7 +18,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html }, preprocessOptions());
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html }, { ..., hmr: false });
     assert.equal(result.code, expected);
   });
 
@@ -37,7 +37,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, preprocessOptions());
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, , { ..., hmr: false });
     assert.equal(result.code, expected);
   });
 
@@ -57,7 +57,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' }, preprocessOptions());
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' },);
     assert.equal(result.code, expected);
   });
 
@@ -78,7 +78,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' }, preprocessOptions());
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' },);
     assert.equal(result.code, expected);
   });
 
@@ -98,7 +98,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' }, preprocessOptions());
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' },);
     assert.equal(result.code, expected);
   });
 
@@ -120,7 +120,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, preprocessOptions());
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html },);
     assert.equal(result.code, expected);
   });
 
@@ -142,7 +142,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, preprocessOptions());
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html },);
     assert.equal(result.code, expected);
   });
 
@@ -195,6 +195,7 @@ export function register(container) {
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
         defaultShadowOptions: { mode: 'open' },
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -225,6 +226,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         defaultShadowOptions: { mode: 'open' }
       })
     );
@@ -254,6 +256,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         defaultShadowOptions: { mode: 'closed' },
         stringModuleWrap: (id: string) => `text!${id}`
       })
@@ -284,6 +287,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         defaultShadowOptions: { mode: 'closed' },
         stringModuleWrap: (id: string) => `text!${id}`
       })
@@ -314,6 +318,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -342,6 +347,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         defaultShadowOptions: { mode: 'closed' },
         stringModuleWrap: (id: string) => `text!${id}`
       })
@@ -369,6 +375,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -395,6 +402,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -422,6 +430,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -449,6 +458,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -476,6 +486,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -503,6 +514,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -530,6 +542,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -556,6 +569,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -583,6 +597,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -610,6 +625,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -639,6 +655,7 @@ export function register(container) {
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
         useCSSModule: true,
+        hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       })
     );
@@ -679,8 +696,9 @@ export function register(container) {
 
     assert.throws(() => {
       preprocessHtmlTemplate(
+        hmr: false,
         { path: path.join('lo', 'FooBar.html'), contents: html },
-        preprocessOptions()
+
       );
     });
   });
@@ -704,6 +722,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         defaultShadowOptions: { mode: 'open' }
       })
     );
@@ -728,14 +747,16 @@ export function register(container) {
 `;
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
-      preprocessOptions()
+      {
+        hmr: false,
+      }
     );
     assert.equal(result.code, expected);
   });
 
   it('processes template with index file', function () {
-      const html = '<template></template>';
-      const expected = `import { CustomElement } from '@aurelia/runtime-html';
+    const html = '<template></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
@@ -748,13 +769,15 @@ export function register(container) {
   container.register(_e);
 }
 `;
-      const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar', 'index.html'), contents: html }, preprocessOptions());
-      assert.equal(result.code, expected);
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar', 'index.html'), contents: html }, {
+      hmr: false,
     });
+    assert.equal(result.code, expected);
+  });
 
-    it('processes template with index file and file path not in kebab case', function () {
-      const html = '<template></template>';
-      const expected = `import { CustomElement } from '@aurelia/runtime-html';
+  it('processes template with index file and file path not in kebab case', function () {
+    const html = '<template></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
@@ -767,13 +790,15 @@ export function register(container) {
   container.register(_e);
 }
 `;
-      const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar', 'index.html'), contents: html }, preprocessOptions());
-      assert.equal(result.code, expected);
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar', 'index.html'), contents: html },{
+      hmr: false,
     });
+    assert.equal(result.code, expected);
+  });
 
-    it('processes template with css pair in index file', function () {
-      const html = '<template></template>';
-      const expected = `import { CustomElement } from '@aurelia/runtime-html';
+  it('processes template with css pair in index file', function () {
+    const html = '<template></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import "./index.css";
 export const name = "foo-bar";
 export const template = "<template></template>";
@@ -787,7 +812,9 @@ export function register(container) {
   container.register(_e);
 }
 `;
-      const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar', 'index.html'), contents: html, filePair: 'index.css' }, preprocessOptions());
-      assert.equal(result.code, expected);
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar', 'index.html'), contents: html, filePair: 'index.css' },{
+      hmr: false,
     });
+    assert.equal(result.code, expected);
+  });
 });

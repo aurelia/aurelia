@@ -188,10 +188,10 @@ jobs:
         type: string
         default: "test"
     executor: docker-circleci
-    parallelism: 4
+    parallelism: 5
     steps:
       - checkout_install
-      - run: npm run build:test
+      - run: npm run build:packages
       - run:
           name: "Split test glob"
           command: |
@@ -223,7 +223,7 @@ jobs:
       - checkout
       - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
       - run: npm ci
-      - run: npm run build:test
+      - run: npm run build:packages
       - run:
           name: "Split test glob"
           command: |
@@ -248,9 +248,9 @@ jobs:
     steps:
       - checkout_install
       - run: npm run build
-      - run: npm run change-tsconfigs:invert
-      - run: npm run build
-      - run: npm run change-tsconfigs:restore
+      # - run: npm run change-tsconfigs:invert
+      # - run: npm run build
+      # - run: npm run change-tsconfigs:restore
       - run: npm run change-package-refs:release -- none
       - when:
           condition: << parameters.submodules >>
@@ -315,10 +315,6 @@ jobs:
           condition: << parameters.push >>
           steps:
             - run: git push origin << parameters.to >>
-      - run: zip -r << parameters.dist_file_name >>.zip packages/*/dist packages/*/package.json
-      - store_artifacts:
-          path: << parameters.dist_file_name >>.zip
-          destination: << parameters.dist_file_name >>.zip
 
   publish_npm:
     executor: docker-release
@@ -339,10 +335,6 @@ jobs:
           steps:
             - run: git checkout << parameters.branch >>
             - run: git pull
-      - run: zip -r publish_npm_<< parameters.channel>>.zip packages/*/dist packages/*/package.json
-      - store_artifacts:
-          path: publish_npm_<< parameters.channel>>.zip
-          destination: publish_npm_<< parameters.channel>>.zip
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc

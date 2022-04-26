@@ -21,7 +21,8 @@
     "test-node:parcel-transformer": "npm run ::mocha -- dist/cjs/__tests__/parcel-transformer/**/*.spec.js",
     "build": "tsc --build",
     "dev": "tsc --build -w --preserveWatchOutput",
-    "rollup": "npm run build"
+    "rollup": "npm run build",
+    "build:packages-cjs": "npm run build"
   },
   "dependencies": {
     "@aurelia/aot": "2.0.0-alpha.28",

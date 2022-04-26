@@ -45,10 +45,10 @@ describe("store-v1/undo.spec.ts", function () {
       store,
       false,
       async () => store.dispatch(actionA),
-      (res) => { assert.equal(res.present.foo, "A"); store.dispatch(actionB).catch(() => { /**/ }); },
-      (res) => { assert.equal(res.present.foo, "B"); store.dispatch(actionC).catch(() => { /**/ }); },
-      (res) => { assert.equal(res.present.foo, "C"); store.dispatch(jump, -1).catch(() => { /**/ }); },
-      (res) => { assert.equal(res.present.foo, "B"); store.dispatch(jump, 1).catch(() => { /**/ }); },
+      (res) => { assert.equal(res.present.foo, "A"); store.dispatch(actionB).catch((ex) => { console.log(ex); }); },
+      (res) => { assert.equal(res.present.foo, "B"); store.dispatch(actionC).catch((ex) => { console.log(ex); }); },
+      (res) => { assert.equal(res.present.foo, "C"); store.dispatch(jump, -1).catch((ex) => { console.log(ex); }); },
+      (res) => { assert.equal(res.present.foo, "B"); store.dispatch(jump, 1).catch((ex) => { console.log(ex); }); },
       (res) => assert.equal(res.present.foo, "C")
     );
   });
@@ -65,8 +65,8 @@ describe("store-v1/undo.spec.ts", function () {
       store,
       false,
       async () => store.dispatch(actionA),
-      (res) => { assert.equal(res.present.foo, "A"); store.dispatch(actionB).catch(() => { /**/ }); },
-      (res) => { assert.equal(res.present.foo, "B"); store.dispatch(jump, 0).catch(() => { /**/ }); },
+      (res) => { assert.equal(res.present.foo, "A"); store.dispatch(actionB).catch((ex) => { console.log(ex); }); },
+      (res) => { assert.equal(res.present.foo, "B"); store.dispatch(jump, 0).catch((ex) => { console.log(ex); }); },
       (res) => assert.equal(res.present.foo, "B")
     );
   });
@@ -83,8 +83,8 @@ describe("store-v1/undo.spec.ts", function () {
       store,
       false,
       async () => store.dispatch(actionA),
-      (res) => { assert.equal(res.present.foo, "A"); store.dispatch(actionB).catch(() => { /**/ }); },
-      (res) => { assert.equal(res.present.foo, "B"); store.dispatch(jump, 3).catch(() => { /**/ }); },
+      (res) => { assert.equal(res.present.foo, "A"); store.dispatch(actionB).catch((ex) => { console.log(ex); }); },
+      (res) => { assert.equal(res.present.foo, "B"); store.dispatch(jump, 3).catch((ex) => { console.log(ex); }); },
       (res) => assert.equal(res.present.foo, "B")
     );
   });
@@ -101,8 +101,8 @@ describe("store-v1/undo.spec.ts", function () {
       store,
       false,
       async () => store.dispatch(actionA),
-      (res) => { assert.equal(res.present.foo, "A"); store.dispatch(actionB).catch(() => { /**/ }); },
-      (res) => { assert.equal(res.present.foo, "B"); store.dispatch(jump, -3).catch(() => { /**/ }); },
+      (res) => { assert.equal(res.present.foo, "A"); store.dispatch(actionB).catch((ex) => { console.log(ex); }); },
+      (res) => { assert.equal(res.present.foo, "B"); store.dispatch(jump, -3).catch((ex) => { console.log(ex); }); },
       (res) => assert.equal(res.present.foo, "B")
     );
   });
@@ -124,7 +124,7 @@ describe("store-v1/undo.spec.ts", function () {
       false,
       ...Array.from(new Array(limit + limit)).map((_, idx) => {
         return (res: StateHistory<testState>) => {
-          store.dispatch(fakeAction, idx + 1).catch(() => { /**/ });
+          store.dispatch(fakeAction, idx + 1).catch((ex) => { console.log(ex); });
 
           assert.equal(res.past.length, idx >= limit ? limit : idx);
         };
@@ -160,7 +160,7 @@ describe("store-v1/undo.spec.ts", function () {
       store,
       false,
       async () => store.dispatch(fakeAction),
-      (res) => { assert.equal(res, stateAfterInitial); store.dispatch(jump, - limit).catch(() => { /**/ }); },
+      (res) => { assert.equal(res, stateAfterInitial); store.dispatch(jump, - limit).catch((ex) => { console.log(ex); }); },
       (res) => {
         assert.equal(res.future.length, limit);
         assert.equal(res.present, stateAfterInitial.past[0]);

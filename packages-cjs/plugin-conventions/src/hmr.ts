@@ -25,8 +25,8 @@ export const getHmrCode = (className: string, moduleText: 'module' | 'import' = 
     hot.accept();
     let aurelia = hot.data?.aurelia;
     document.addEventListener('au-started', (event) => {aurelia= (event as any).detail; });
-    const currentClassType = ${type === 'CustomElementHtml' ? 'hot.data && hot.data.customElement' : className};
-    const proto = ${type === 'CustomElementHtml' ? 'hot.data && hot.data.customElement && hot.data.customElement.prototype' : `(${className} as any).prototype`}
+    const currentClassType = ${className};
+    const proto = (${className} as any).prototype
     const ogCreated = proto ? proto.created : undefined;
 
     if(proto){
@@ -39,7 +39,6 @@ export const getHmrCode = (className: string, moduleText: 'module' | 'import' = 
     hot.dispose(function (data) {
       data.controllers = controllers;
       data.aurelia = aurelia;
-      ${type === 'CustomElementHtml' ? `data.customElement = CustomElement.define({...(${className} ?? currentClassType), template})` : ''}
     });
 
     if (hot.data?.aurelia) {

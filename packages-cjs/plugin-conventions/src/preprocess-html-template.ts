@@ -123,18 +123,23 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
     m.append(`export const aliases = ${JSON.stringify(aliases)};\n`);
   }
 
-  m.append(`let _e;
-export function register(container) {
-  if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies${shadowMode !== null ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length > 0 ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
-    ${!hasViewModel && options.hmr && process.env.NODE_ENV !== 'production' ?
-      `_e.prototype.created = (controller) => {
-      controllers.push(controller)
-    }` : ''}
+  if (!hasViewModel && options.hmr && process.env.NODE_ENV !== 'production') {
+    m.append(`const _e = CustomElement.define({ name, template, dependencies${shadowMode !== null ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length > 0 ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
+    export function register(container) {
+      container.register(_e);
+    }`);
   }
-  container.register(_e);
-}
-`);
+  else {
+    m.append(`let _e;
+  export function register(container) {
+    if (!_e) {
+      _e = CustomElement.define({ name, template, dependencies${shadowMode !== null ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length > 0 ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
+    }
+    container.register(_e);
+  }  `);
+  }
+
+
 
   if (!hasViewModel && options.hmr && process.env.NODE_ENV !== 'production') {
     m.append(getHmrCode('_e', 'module', 'CustomElementHtml'));

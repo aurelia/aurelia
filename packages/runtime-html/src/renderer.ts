@@ -481,14 +481,6 @@ export class CustomElementRenderer implements IRenderer {
     const res = instruction.res;
     const projections = instruction.projections;
     const ctxContainer = renderingCtrl.container;
-    const container = createElementContainer(
-      /* platform         */this._platform,
-      /* parentController */renderingCtrl,
-      /* host             */target,
-      /* instruction      */instruction,
-      /* location         */target,
-      /* auSlotsInfo      */projections == null ? void 0 : new AuSlotsInfo(Object.keys(projections)),
-    );
     switch (typeof res) {
       case 'string':
         def = ctxContainer.find(CustomElement, res);
@@ -509,6 +501,16 @@ export class CustomElementRenderer implements IRenderer {
       default:
         def = res;
     }
+    const containerless = instruction.containerless || def.containerless;
+    const location = containerless ? convertToRenderLocation(target) : null;
+    const container = createElementContainer(
+      /* platform         */this._platform,
+      /* parentController */renderingCtrl,
+      /* host             */target,
+      /* instruction      */instruction,
+      /* location         */location,
+      /* auSlotsInfo      */projections == null ? void 0 : new AuSlotsInfo(Object.keys(projections)),
+    );
     Ctor = def.Type;
     component = container.invoke(Ctor);
     container.registerResolver(Ctor, new InstanceProvider<typeof Ctor>(def.key, component));
@@ -518,6 +520,7 @@ export class CustomElementRenderer implements IRenderer {
       /* host                */target,
       /* instruction         */instruction,
       /* definition          */def,
+      /* location            */location
     );
 
     setRef(target, def.key, childCtrl);
@@ -1309,7 +1312,7 @@ function createElementContainer(
   renderingCtrl: IController,
   host: HTMLElement,
   instruction: HydrateElementInstruction,
-  location?: IRenderLocation,
+  location: IRenderLocation | null,
   auSlotsInfo?: IAuSlotsInfo,
 ): IContainer {
   const ctn = renderingCtrl.container.createChild();
@@ -1330,7 +1333,7 @@ function createElementContainer(
   ctn.registerResolver(IInstruction, new InstanceProvider(instructionProviderName, instruction));
   ctn.registerResolver(IRenderLocation, location == null
     ? noLocationProvider
-    : new InstanceProvider(locationProviderName, location));
+    : new RenderLocationProvider(location));
   ctn.registerResolver(IViewFactory, noViewFactoryProvider);
   ctn.registerResolver(IAuSlotsInfo, auSlotsInfo == null
     ? noAuSlotProvider
@@ -1408,6 +1411,19 @@ function invokeAttribute(
   return ctn.invoke(definition.Type);
 }
 
-const noLocationProvider = new InstanceProvider<IRenderLocation>(locationProviderName);
+class RenderLocationProvider implements IResolver {
+  public get name() { return 'IRenderLocation'; }
+  public get $isResolver(): true { return true; }
+
+  public constructor(
+    private readonly _location: IRenderLocation | null
+  ) {}
+
+  public resolve(): IRenderLocation | null {
+    return this._location;
+  }
+}
+
+const noLocationProvider = new RenderLocationProvider(null);
 const noViewFactoryProvider = new ViewFactoryProvider(null);
 const noAuSlotProvider = new InstanceProvider<IAuSlotsInfo>(slotInfoProviderName, new AuSlotsInfo(emptyArray));

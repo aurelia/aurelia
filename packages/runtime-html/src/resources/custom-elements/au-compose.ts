@@ -1,7 +1,7 @@
 import { Constructable, IContainer, InstanceProvider, onResolve, transient } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
-import { convertToRenderLocation, INode, IRenderLocation, isRenderLocation } from '../../dom';
+import { INode, IRenderLocation, isRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction } from '../../renderer';
 import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
@@ -31,7 +31,7 @@ export class AuCompose {
 
   /** @internal */
   protected static get inject() {
-    return [IContainer, IController, INode, IPlatform, IInstruction, transient(CompositionContextFactory)];
+    return [IContainer, IController, INode, IRenderLocation, IPlatform, IInstruction, transient(CompositionContextFactory)];
   }
 
   /* determine what template used to compose the component */
@@ -75,7 +75,6 @@ export class AuCompose {
   }
 
   /** @internal */ private readonly _rendering: IRendering;
-  /** @internal */ private readonly _location: IRenderLocation | undefined;
   /** @internal */ private readonly _instruction: HydrateElementInstruction;
   /** @internal */ private readonly _contextFactory: CompositionContextFactory;
 
@@ -83,13 +82,13 @@ export class AuCompose {
     /** @internal */ private readonly _container: IContainer,
     /** @internal */ private readonly parent: ISyntheticView | ICustomElementController,
     /** @internal */ private readonly host: HTMLElement,
+    /** @internal */ private readonly _location: IRenderLocation,
     /** @internal */ private readonly _platform: IPlatform,
     // todo: use this to retrieve au-slot instruction
     //        for later enhancement related to <au-slot/> + compose
     instruction: HydrateElementInstruction,
     contextFactory: CompositionContextFactory,
   ) {
-    this._location = instruction.containerless ? convertToRenderLocation(this.host) : void 0;
     this._rendering = _container.get(IRendering);
     this._instruction = instruction;
     this._contextFactory = contextFactory;

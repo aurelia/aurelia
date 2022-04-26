@@ -315,10 +315,6 @@ jobs:
           condition: << parameters.push >>
           steps:
             - run: git push origin << parameters.to >>
-      - run: zip -r << parameters.dist_file_name >>.zip packages/*/dist packages/*/package.json
-      - store_artifacts:
-          path: << parameters.dist_file_name >>.zip
-          destination: << parameters.dist_file_name >>.zip
 
   publish_npm:
     executor: docker-release
@@ -339,10 +335,6 @@ jobs:
           steps:
             - run: git checkout << parameters.branch >>
             - run: git pull
-      - run: zip -r publish_npm_<< parameters.channel>>.zip packages/*/dist packages/*/package.json
-      - store_artifacts:
-          path: publish_npm_<< parameters.channel>>.zip
-          destination: publish_npm_<< parameters.channel>>.zip
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc

@@ -651,14 +651,14 @@ workflows:
               - checkout_install_cache
       - unit_test_esm:
           <<: *filter_ignore_develop_release
-          name: unit_test_esm_chrome
+          name: test_chrome
           npm_command: "test-chrome"
           install_chrome: true
           requires:
             - build_dev
       - unit_test_esm:
           <<: *filter_ignore_develop_release
-          name: unit_test_esm_firefox
+          name: test_firefox
           npm_command: "test-firefox"
           install_firefox: true
           coverage: false
@@ -666,6 +666,7 @@ workflows:
             - build_dev
       - unit_test_esm_node:
           <<: *filter_ignore_develop_release
+          name: test_node
           requires:
             - build_dev
       - unit_test_cjs:
@@ -695,13 +696,13 @@ workflows:
       #       - check_doc_abort
       - e2e_playwright:
           <<: *filter_ignore_develop_release
-          name: jit-webpack-conventions-ts
+          name: webpack_conventions_ts
           path: "examples/jit-webpack-conventions-ts"
           requires:
             - checkout_install_cache
       - e2e_playwright:
           <<: *filter_ignore_develop_release
-          name: jit-webpack-vanilla-ts
+          name: webpack_vanilla_ts
           path: "examples/jit-webpack-vanilla-ts"
           requires:
             - checkout_install_cache
@@ -709,14 +710,14 @@ workflows:
           <<: *filter_only_master
           name: merge_and_dist_master
           requires:
-            - unit_test_esm_chrome
-            - unit_test_esm_firefox
-            - unit_test_esm_node
+            - test_chrome
+            - test_firefox
+            - test_node
             - unit_test_cjs
             #- test_test262
             # - lint_packages
-            - jit-webpack-conventions-ts
-            - jit-webpack-vanilla-ts
+            - webpack_conventions_ts
+            - webpack_vanilla_ts
           from: master
           to: develop
           channel: dev
@@ -733,7 +734,7 @@ workflows:
             - checkout_install_cache
       - publish_npm:
           <<: *filter_only_master
-          name: "publish_npm_dev"
+          name: publish_npm_dev
           channel: dev
           branch: develop
           swap: true
@@ -749,17 +750,17 @@ workflows:
       - build_dev:
           <<: *filter_only_tag
           requires:
-              - checkout_install_cache
+            - checkout_install_cache
       - unit_test_esm:
           <<: *filter_only_tag
-          name: unit_test_esm_chrome
+          name: test_chrome
           npm_command: "test-chrome"
           install_chrome: true
           requires:
             - build_dev
       - unit_test_esm:
           <<: *filter_only_tag
-          name: unit_test_esm_firefox
+          name: test_firefox
           npm_command: "test-firefox"
           install_firefox: true
           coverage: false
@@ -767,7 +768,7 @@ workflows:
             - build_dev
       - unit_test_esm_node:
           <<: *filter_only_tag
-          name: unit_test_esm_node
+          name: test_node
           requires:
             - build_dev
       - unit_test_cjs:
@@ -788,9 +789,9 @@ workflows:
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
-            - unit_test_esm_chrome
-            - unit_test_esm_firefox
-            - unit_test_esm_node
+            - test_chrome
+            - test_firefox
+            - test_node
             - unit_test_cjs
             #- test_test262
             # - lint_packages
@@ -811,7 +812,7 @@ workflows:
           type: approval
       - publish_npm:
           <<: *filter_only_release
-          name: "publish_npm_latest"
+          name: publish_npm_latest
           channel: latest
           branch: release
           requires:

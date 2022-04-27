@@ -129,9 +129,8 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
       export function register(container) {
         container.register(_e);
       }`);
-  }
-  else {
-  m.append(`let _e;
+  } else {
+    m.append(`let _e;
 export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies${shadowMode !== null ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length > 0 ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });

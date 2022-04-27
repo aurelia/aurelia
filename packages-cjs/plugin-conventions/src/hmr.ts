@@ -1,7 +1,7 @@
 /**
  * This is the minimum required runtime modules for HMR
  */
-export const hmrRuntimeModules = ['ICustomElementViewModel', 'CustomElement', 'LifecycleFlags', 'IHydrationContext', 'Controller'];
+export const hmrRuntimeModules = ['CustomElement', 'LifecycleFlags', 'Controller'];
 
 /**
  * This is the minimum required metadata modules for HMR

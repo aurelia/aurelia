@@ -59,7 +59,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     let componentAgent = componentAgentLookup.get(componentInstance);
     if (componentAgent === void 0) {
       const container = ctx.container;
-      const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable);
+      const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable, ctx.definition);
       const controller = Controller.$el(container, componentInstance, hostController.host, null);
 
       componentAgentLookup.set(

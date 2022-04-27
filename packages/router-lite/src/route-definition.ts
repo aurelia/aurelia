@@ -49,6 +49,7 @@ export class RouteDefinition {
   public constructor(
     public readonly config: RouteConfig,
     public readonly component: CustomElementDefinition | null,
+    parentDefinition: RouteDefinition | null,
   ) {
     this.hasExplicitPath = config.path !== null;
     this.caseSensitive = config.caseSensitive;
@@ -57,17 +58,17 @@ export class RouteDefinition {
     this.viewport = config.viewport ?? defaultViewportName;
     this.id = ensureString(config.id ?? this.path);
     this.data = config.data ?? {};
-    this.fallback = config.fallback ?? null;
+    this.fallback = config.fallback ?? parentDefinition?.fallback ?? null;
   }
 
-  public static resolve(routeable: Promise<IModule>, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
-  public static resolve(routeable: string | IChildRouteConfig, context: IRouteContext): RouteDefinition;
-  public static resolve(routeable: string | IChildRouteConfig | Promise<IModule>): never;
-  public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>): RouteDefinition;
-  public static resolve(routeable: Routeable, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
-  public static resolve(routeable: Routeable, context?: IRouteContext): RouteDefinition | Promise<RouteDefinition> {
+  public static resolve(routeable: Promise<IModule>, parentDefinition: RouteDefinition | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
+  public static resolve(routeable: string | IChildRouteConfig, parentDefinition: RouteDefinition | null, context: IRouteContext): RouteDefinition;
+  public static resolve(routeable: string | IChildRouteConfig | Promise<IModule>, parentDefinition: RouteDefinition | null): never;
+  public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>,  parentDefinition: RouteDefinition | null): RouteDefinition;
+  public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
+  public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, context?: IRouteContext): RouteDefinition | Promise<RouteDefinition> {
     if (isPartialRedirectRouteConfig(routeable)) {
-      return new RouteDefinition(RouteConfig.create(routeable, null), null);
+      return new RouteDefinition(RouteConfig.create(routeable, null), null, parentDefinition);
     }
 
     // Check if this component already has a `RouteDefinition` associated with it, where the `config` matches the `RouteConfig` that is currently associated with the type.
@@ -83,7 +84,7 @@ export class RouteDefinition {
             : RouteConfig.create(routeable, type)
           : Route.getConfig(def.Type);
 
-        routeDefinition = new RouteDefinition(config, def);
+        routeDefinition = new RouteDefinition(config, def, parentDefinition);
         $RouteDefinition.define(routeDefinition, def);
       }
       return routeDefinition;

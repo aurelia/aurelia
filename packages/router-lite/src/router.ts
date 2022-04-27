@@ -563,10 +563,11 @@ export class Router {
     viewportAgent: ViewportAgent | null,
     component: CustomElementDefinition,
     container: IContainer,
+    parentDefinition: RouteDefinition | null,
   ): IRouteContext {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
-    const routeDefinition = RouteDefinition.resolve(component.Type);
+    const routeDefinition = RouteDefinition.resolve(component.Type, parentDefinition);
     let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
     if (routeDefinitionLookup === void 0) {
       this.vpaLookup.set(viewportAgent, routeDefinitionLookup = new WeakMap());

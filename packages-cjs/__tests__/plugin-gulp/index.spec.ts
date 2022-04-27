@@ -6,7 +6,6 @@ import * as v from 'vinyl';
 
 const slash = process.platform === 'win32' ? '\\' : '/';
 
-
 const Vinyl = ((v as any).default || v) as typeof import('vinyl');
 type Vinyl = typeof Vinyl.prototype;
 

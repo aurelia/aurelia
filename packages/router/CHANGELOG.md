@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.29"></a>
+# 2.0.0-alpha.29 (2022-04-27)
+
+### Features:
+
+* **router:** support this/instance in @lifecycleHooks (#1390) ([5f5df47](https://github.com/aurelia/aurelia/commit/5f5df47))
+
 <a name="2.0.0-alpha.28"></a>
 # 2.0.0-alpha.28 (2022-04-16)
 

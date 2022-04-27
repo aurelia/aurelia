@@ -1,12 +1,14 @@
 {
   "name": "aurelia",
   "version": "2.0.0-alpha.29",
-  "main": "dist/esm/index.js",
+  "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
+  "exports": {
+    "require": "./dist/cjs/index.js",
+    "import": "./dist/esm/index.js"
+  },
   "typings": "dist/types/index.d.ts",
   "license": "MIT",
-  "type": "module",
   "homepage": "https://aurelia.io",
   "repository": {
     "type": "git",

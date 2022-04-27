@@ -18,7 +18,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocess({ path: path.join('src', 'foo-bar.html'), contents: html }, { hmr: true }, () => false);
+    const result = preprocess({ path: path.join('src', 'foo-bar.html'), contents: html }, { hmr: false, enableConventions: true }, () => false);
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -46,7 +46,8 @@ export function register(container) {
       },
       {
         useProcessedFilePairFilename: true,
-        hmr: false
+        hmr: false,
+        enableConventions: true
       },
       (filePath: string) => filePath === path.join('src', 'foo-bar.less')
     );
@@ -80,6 +81,7 @@ export function register(container) {
         defaultShadowOptions: { mode: 'open' },
         stringModuleWrap: (id: string) => `!!raw-loader!${id}`,
         hmr: false,
+        enableConventions: true
       },
       () => false
     );

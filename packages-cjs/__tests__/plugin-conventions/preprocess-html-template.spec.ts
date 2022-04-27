@@ -328,7 +328,7 @@ export function register(container) {
   it('turn off shadowDOM mode for one word element', function () {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
-console.warn("WARN: ShadowDOM is disabled for ${path.join('lo', 'foo.html')}. ShadowDOM requires element name to contain at least one dash (-), you have to refactor <foo> to something like <lorem-foo>.");
+console.warn("WARN: ShadowDOM is disabled for ${path.join('lo', 'foo.html').replace('\\', process.platform === 'win32' ? '\\\\' : '\\')}. ShadowDOM requires element name to contain at least one dash (-), you have to refactor <foo> to something like <lorem-foo>.");
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
 import "./foo-bar.scss";

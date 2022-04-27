@@ -2109,7 +2109,7 @@ describe('router hooks', function () {
         withInitialLoad: true,
       },
     ] as { name: string; routes: (...types: Constructable[]) => Routeable[]; withInitialLoad: boolean }[]) {
-      it(`without fallback - ${name}`, async function () {
+      it(`without fallback - single viewport - ${name}`, async function () {
         const ticks = 0;
         const hookSpec = HookSpecs.create(ticks);
         @customElement({ name: 'a', template: null })
@@ -2211,7 +2211,7 @@ describe('router hooks', function () {
         mgr.$dispose();
       });
 
-      it(`with fallback - ${name}`, async function () {
+      it(`with fallback - single viewport - ${name}`, async function () {
         const ticks = 0;
         const hookSpec = HookSpecs.create(ticks);
         @customElement({ name: 'a', template: null })
@@ -2329,7 +2329,7 @@ describe('router hooks', function () {
         phase = 'stop';
         try {
           await tearDown();
-        } catch(e) {
+        } catch (e) {
           console.log('caught post stop', e);
         }
         verifyInvocationsEqual(mgr.fullNotifyHistory, [
@@ -2340,5 +2340,581 @@ describe('router hooks', function () {
         mgr.$dispose();
       });
     }
+
+    // this test sort of asserts the current "incorrect" behavior, until the "undo" (refer ViewportAgent#cancelUpdate) is implemented. TODO(sayan): implement "undo" later and refactor this test.
+    it(`without fallback - parent/child viewport`, async function () {
+      const ticks = 0;
+      const hookSpec = HookSpecs.create(ticks);
+      @customElement({ name: 'c1', template: null })
+      class C1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 'c2', template: null })
+      class C2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 'c1', component: C1 },
+          { path: 'c2', component: C2 },
+        ],
+      })
+      @customElement({ name: 'p', template: vp(1) })
+      class P extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          {
+            path: 'p',
+            component: P
+          }
+        ]
+      })
+      @customElement({ name: 'root', template: vp(1) })
+      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, P], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+
+      let phase = 'start';
+      verifyInvocationsEqual(
+        mgr.fullNotifyHistory,
+        [...$(phase, 'root', ticks, 'binding', 'bound', 'attaching', 'attached')],
+      );
+
+      // phase 1: load unconfigured
+      phase = 'phase1';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await assert.rejects(() => router.load('p/unconfigured'), /Neither the route 'unconfigured' matched any configured route/);
+      verifyInvocationsEqual(
+        mgr.fullNotifyHistory,
+        [...$(phase, 'p', ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached')]
+      );
+
+      // phase 2: load configured
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'phase2';
+      mgr.setPrefix(phase);
+      await assert.rejects(() => router.load('p/c1'), /Failed to resolve VR/);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+      // stop
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'stop';
+      try {
+        await tearDown();
+      } catch (e) {
+        console.error(e);
+      }
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        // ...$(phase, ['root'], ticks, 'detaching'),
+        // ...$(phase, ['root'], ticks, 'unbinding'),
+        // ...$(phase, ['root'], ticks, 'dispose'),
+      ]);
+      mgr.$dispose();
+    });
+
+    // this test sort of asserts the current "incorrect" behavior, until the "undo" (refer ViewportAgent#cancelUpdate) is implemented. TODO(sayan): implement "undo" later and refactor this test.
+    it(`without fallback - sibling viewport`, async function () {
+      const ticks = 0;
+      const hookSpec = HookSpecs.create(ticks);
+      @customElement({ name: 's1', template: null })
+      class S1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 's2', template: null })
+      class S2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 's1', component: S1 },
+          { path: 's2', component: S2 },
+        ]
+      })
+      @customElement({ name: 'root', template: vp(2) })
+      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      const { router, mgr, tearDown } = await createFixture(Root, [S1, S2], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+
+      let phase = 'start';
+      verifyInvocationsEqual(
+        mgr.fullNotifyHistory,
+        [...$(phase, 'root', ticks, 'binding', 'bound', 'attaching', 'attached')],
+      );
+
+      // phase 1: load unconfigured
+      phase = 'phase1';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await assert.rejects(() => router.load('s1@$1+unconfigured@$2'), /Neither the route 'unconfigured' matched any configured route/);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+
+      // phase 2: load configured
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'phase2';
+      mgr.setPrefix(phase);
+      await assert.rejects(() => router.load('s1@$1+s2@$2'), /Failed to resolve VR/);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+
+      // stop
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'stop';
+      try {
+        await tearDown();
+      } catch (e) {
+        console.error(e);
+      }
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['root'], ticks, 'detaching'),
+        ...$(phase, ['root'], ticks, 'unbinding'),
+        ...$(phase, ['root'], ticks, 'dispose'),
+      ]);
+      mgr.$dispose();
+    });
+
+    it(`with fallback - single-level parent/child viewport`, async function () {
+      const ticks = 0;
+      const hookSpec = HookSpecs.create(ticks);
+      @customElement({ name: 'c1', template: null })
+      class C1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 'c2', template: null })
+      class C2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 'c1', component: C1 },
+          { path: 'c2', component: C2 },
+        ],
+        fallback: 'c2'
+      })
+      @customElement({ name: 'p', template: vp(1) })
+      class P extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          {
+            path: 'p',
+            component: P
+          }
+        ]
+      })
+      @customElement({ name: 'root', template: vp(1) })
+      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, P], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+
+      let phase = 'start';
+      verifyInvocationsEqual(
+        mgr.fullNotifyHistory,
+        [...$(phase, 'root', ticks, 'binding', 'bound', 'attaching', 'attached')],
+      );
+
+      // phase 1: load unconfigured
+      phase = 'phase1';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('p/unconfigured');
+      verifyInvocationsEqual(
+        mgr.fullNotifyHistory,
+        [...$(phase, ['p', 'c2'], ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached')]
+      );
+
+      // phase 2: load configured
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'phase2';
+      mgr.setPrefix(phase);
+      await router.load('p/c1');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 'c2', ticks, 'canUnload'),
+        ...$(phase, 'c1', ticks, 'canLoad'),
+        ...$(phase, 'c2', ticks, 'unload'),
+        ...$(phase, 'c1', ticks, 'load'),
+        ...$(phase, 'c2', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 'c1', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // phase 3: load unconfigured1/unconfigured2
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'phase3';
+      mgr.setPrefix(phase);
+      await router.load('p/unconfigured1/unconfigured2');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 'c1', ticks, 'canUnload'),
+        ...$(phase, 'c2', ticks, 'canLoad'),
+        ...$(phase, 'c1', ticks, 'unload'),
+        ...$(phase, 'c2', ticks, 'load'),
+        ...$(phase, 'c1', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 'c2', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // phase 3: load configured
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'phase2';
+      mgr.setPrefix(phase);
+      await router.load('p/c1');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 'c2', ticks, 'canUnload'),
+        ...$(phase, 'c1', ticks, 'canLoad'),
+        ...$(phase, 'c2', ticks, 'unload'),
+        ...$(phase, 'c1', ticks, 'load'),
+        ...$(phase, 'c2', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 'c1', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // stop
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'stop';
+      await tearDown();
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['c1', 'p', 'root'], ticks, 'detaching'),
+        ...$(phase, ['c1', 'p', 'root'], ticks, 'unbinding'),
+        ...$(phase, ['root', 'p', 'c1'], ticks, 'dispose'),
+      ]);
+      mgr.$dispose();
+    });
+
+    it(`with fallback - multi-level parent/child viewport`, async function () {
+      const ticks = 0;
+      const hookSpec = HookSpecs.create(ticks);
+      @customElement({ name: 'gc11', template: null })
+      class GC11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 'gc12', template: null })
+      class GC12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 'gc21', template: null })
+      class GC21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 'gc22', template: null })
+      class GC22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 'gc11', component: GC11 },
+          { path: 'gc12', component: GC12 },
+        ],
+        fallback: 'gc11'
+      })
+      @customElement({ name: 'c1', template: vp(1) })
+      class C1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 'gc21', component: GC21 },
+          { path: 'gc22', component: GC22 },
+        ],
+        fallback: 'gc22'
+      })
+      @customElement({ name: 'c2', template: vp(1) })
+      class C2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 'c1', component: C1 },
+          { path: 'c2', component: C2 },
+        ],
+        fallback: 'c2'
+      })
+      @customElement({ name: 'p', template: vp(1) })
+      class P extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          {
+            path: 'p',
+            component: P
+          }
+        ]
+      })
+      @customElement({ name: 'root', template: vp(1) })
+      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      const { router, mgr, tearDown } = await createFixture(Root, [GC11, GC12, GC21, GC22, C1, C2, P], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+
+      let phase = 'start';
+      verifyInvocationsEqual(
+        mgr.fullNotifyHistory,
+        [...$(phase, 'root', ticks, 'binding', 'bound', 'attaching', 'attached')],
+      );
+
+      // phase 1: load unconfigured
+      phase = 'phase1';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('p/unconfigured');
+      verifyInvocationsEqual(
+        mgr.fullNotifyHistory,
+        [...$(phase, ['p', 'c2'], ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached')]
+      );
+
+      // phase 2: load configured1/unconfigured
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'phase2';
+      mgr.setPrefix(phase);
+      await router.load('p/c1/unconfigured');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 'c2',   ticks, 'canUnload'),
+        ...$(phase, 'c1',   ticks, 'canLoad'),
+        ...$(phase, 'c2',   ticks, 'unload'),
+        ...$(phase, 'c1',   ticks, 'load'),
+        ...$(phase, 'c2',   ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 'c1',   ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'gc11', ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // phase 3: load configured1/configured
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'phase3';
+      mgr.setPrefix(phase);
+      await router.load('p/c1/gc12');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['gc11', 'c1'],   ticks, 'canUnload'), // it is strange here that c1.unload is being called. TODO(sayan): fix
+        ...$(phase, 'gc12',   ticks, 'canLoad'),
+        ...$(phase, 'gc11',   ticks, 'unload'),
+        ...$(phase, 'gc12',   ticks, 'load'),
+        ...$(phase, 'gc11',   ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 'gc12',   ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // phase 4: load configured2/unconfigured
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'phase4';
+      mgr.setPrefix(phase);
+      await router.load('p/c2/unconfigured');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['gc12', 'c1'], ticks, 'canUnload'),
+        ...$(phase, 'c2',           ticks, 'canLoad'),
+        ...$(phase, ['gc12', 'c1'], ticks, 'unload'),
+        ...$(phase, 'c2',           ticks, 'load'),
+        ...$(phase, ['gc12', 'c1'], ticks, 'detaching'),
+        ...$(phase, ['gc12', 'c1'], ticks, 'unbinding'),
+        ...$(phase, ['c1', 'gc12'], ticks, 'dispose'),
+        ...$(phase, 'c2',           ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'gc22',         ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // phase 5: load configured2/configured
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'phase5';
+      mgr.setPrefix(phase);
+      await router.load('p/c2/gc21');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['gc22', 'c2'],   ticks, 'canUnload'),
+        ...$(phase, 'gc21',   ticks, 'canLoad'),
+        ...$(phase, 'gc22',   ticks, 'unload'),
+        ...$(phase, 'gc21',   ticks, 'load'),
+        ...$(phase, 'gc22',   ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 'gc21',   ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // stop
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'stop';
+      await tearDown();
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['gc21', 'c2', 'p', 'root'], ticks, 'detaching'),
+        ...$(phase, ['gc21', 'c2', 'p', 'root'], ticks, 'unbinding'),
+        ...$(phase, ['root', 'p', 'c2', 'gc21'], ticks, 'dispose'),
+      ]);
+      mgr.$dispose();
+    });
+
+    it(`with fallback - sibling viewport`, async function () {
+      const ticks = 0;
+      const hookSpec = HookSpecs.create(ticks);
+      @customElement({ name: 's1', template: null })
+      class S1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 's2', template: null })
+      class S2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 's3', template: null })
+      class S3 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 's1', component: S1 },
+          { path: 's2', component: S2 },
+          { path: 's3', component: S3 },
+        ],
+        fallback: 's2',
+      })
+      @customElement({ name: 'root', template: vp(2) })
+      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      const { router, mgr, tearDown } = await createFixture(Root, [S1, S2, S3], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+
+      let phase = 'start';
+      verifyInvocationsEqual(
+        mgr.fullNotifyHistory,
+        [...$(phase, 'root', ticks, 'binding', 'bound', 'attaching', 'attached')],
+      );
+
+      // phase 1: load configured+unconfigured
+      phase = 'phase1';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('s1@$0+unconfigured@$1');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['s1', 's2'], ticks, 'canLoad'),
+        ...$(phase, ['s1', 's2'], ticks, 'load'),
+        ...$(phase, ['s1', 's2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // phase 2: load unconfigured+configured
+      phase = 'phase2';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('unconfigured@$0+s1@$1');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['s1', 's2'], ticks, 'canUnload'),
+        ...$(phase, ['s2', 's1'], ticks, 'canLoad'),
+        ...$(phase, ['s1', 's2'], ticks, 'unload'),
+        ...$(phase, ['s2', 's1'], ticks, 'load'),
+        ...$(phase, 's1', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 's2', ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 's2', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 's1', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // phase 3: load configured+configured
+      phase = 'phase3';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('s3@$0+s2@$1');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['s2', 's1'], ticks, 'canUnload'),
+        ...$(phase, ['s3', 's2'], ticks, 'canLoad'),
+        ...$(phase, ['s2', 's1'], ticks, 'unload'),
+        ...$(phase, ['s3', 's2'], ticks, 'load'),
+        ...$(phase, 's2', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 's3', ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 's1', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 's2', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // stop
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'stop';
+      await tearDown();
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['s3', 's2', 'root'], ticks, 'detaching'),
+        ...$(phase, ['s3', 's2', 'root'], ticks, 'unbinding'),
+        ...$(phase, ['root', 's3', 's2'], ticks, 'dispose'),
+      ]);
+      mgr.$dispose();
+    });
+
+    it(`with fallback - sibling + parent/child viewport`, async function () {
+      const ticks = 0;
+      const hookSpec = HookSpecs.create(ticks);
+      @customElement({ name: 'gc11', template: null })
+      class GC11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 'gc12', template: null })
+      class GC12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 'gc21', template: null })
+      class GC21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 'gc22', template: null })
+      class GC22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 'gc11', component: GC11 },
+          { path: 'gc12', component: GC12 },
+        ],
+        fallback: 'gc11'
+      })
+      @customElement({ name: 'c1', template: vp(1) })
+      class C1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 'gc21', component: GC21 },
+          { path: 'gc22', component: GC22 },
+        ],
+        fallback: 'gc22'
+      })
+      @customElement({ name: 'c2', template: vp(1) })
+      class C2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 'c1', component: C1 },
+          { path: 'c2', component: C2 },
+        ],
+      })
+      @customElement({ name: 'root', template: vp(2) })
+      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, GC11, GC12, GC21, GC22], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+
+      let phase = 'start';
+      verifyInvocationsEqual(
+        mgr.fullNotifyHistory,
+        [...$(phase, 'root', ticks, 'binding', 'bound', 'attaching', 'attached')],
+      );
+
+      // phase 1
+      phase = 'phase1';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('c1/gc12+c2/unconfigured');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['c1', 'c2'], ticks, 'canLoad'),
+        ...$(phase, ['c1', 'c2'], ticks, 'load'),
+        ...$(phase, 'c1',         ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'gc12',       ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'c2',         ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'gc22',       ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // phase 2
+      phase = 'phase2';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('c2/gc21+c1/unconfigured');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['gc12', 'c1'], ticks, 'canUnload'),
+        ...$(phase, ['gc22', 'c2'], ticks, 'canUnload'),
+        ...$(phase, ['c2', 'c1'],   ticks, 'canLoad'),
+        ...$(phase, ['gc12', 'c1'], ticks, 'unload'),
+        ...$(phase, ['gc22', 'c2'], ticks, 'unload'),
+        ...$(phase, ['c2', 'c1'],   ticks, 'load'),
+        ...$(phase, ['gc12', 'c1'], ticks, 'detaching'),
+        ...$(phase, ['gc12', 'c1'], ticks, 'unbinding'),
+        ...$(phase, ['c1', 'gc12'], ticks, 'dispose'),
+        ...$(phase, 'c2',           ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'gc21',         ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, ['gc22', 'c2'], ticks, 'detaching'),
+        ...$(phase, ['gc22', 'c2'], ticks, 'unbinding'),
+        ...$(phase, ['c2', 'gc22'], ticks, 'dispose'),
+        ...$(phase, 'c1',           ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'gc11',         ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // phase 3
+      phase = 'phase3';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('c1/gc12+c2/gc21');
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['gc21', 'c2'], ticks, 'canUnload'),
+        ...$(phase, ['gc11', 'c1'], ticks, 'canUnload'),
+        ...$(phase, ['c1', 'c2'],   ticks, 'canLoad'),
+        ...$(phase, ['gc21', 'c2'], ticks, 'unload'),
+        ...$(phase, ['gc11', 'c1'], ticks, 'unload'),
+        ...$(phase, ['c1', 'c2'],   ticks, 'load'),
+        ...$(phase, ['gc21', 'c2'], ticks, 'detaching'),
+        ...$(phase, ['gc21', 'c2'], ticks, 'unbinding'),
+        ...$(phase, ['c2', 'gc21'], ticks, 'dispose'),
+        ...$(phase, 'c1',           ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'gc12',         ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, ['gc11', 'c1'], ticks, 'detaching'),
+        ...$(phase, ['gc11', 'c1'], ticks, 'unbinding'),
+        ...$(phase, ['c1', 'gc11'], ticks, 'dispose'),
+        ...$(phase, 'c2',           ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'gc21',         ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // stop
+      mgr.fullNotifyHistory.length = 0;
+      phase = 'stop';
+      await tearDown();
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['gc12', 'c1', 'gc21', 'c2', 'root'], ticks, 'detaching'),
+        ...$(phase, ['gc12', 'c1', 'gc21', 'c2', 'root'], ticks, 'unbinding'),
+        ...$(phase, ['root', 'c1', 'gc12', 'c2', 'gc21'], ticks, 'dispose'),
+      ]);
+      mgr.$dispose();
+    });
   });
 });

@@ -141,8 +141,6 @@ export function register(container) {
 `);
   }
 
-
-
   if (hmrEnabled) {
     m.append(getHmrCode('_e', 'module', 'CustomElementHtml'));
   }

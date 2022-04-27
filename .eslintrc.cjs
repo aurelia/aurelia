@@ -216,7 +216,7 @@ module.exports = {
     '@typescript-eslint/require-array-sort-compare': 'warn',
     '@typescript-eslint/restrict-plus-operands': ['warn', { 'checkCompoundAssignments': true }],
     '@typescript-eslint/restrict-template-expressions': ['off', { 'allowNumber': true, 'allowBoolean': true, 'allowNullish': true, 'allowAny': true }],
-    '@typescript-eslint/strict-boolean-expressions': ['warn', { allowNullableBoolean: true }],
+    '@typescript-eslint/strict-boolean-expressions': ['warn', { 'allowNullableBoolean': true }],
     '@typescript-eslint/typedef': ['warn', { arrowParameter: false, parameter: false, variableDeclaration: false }],
     '@typescript-eslint/unbound-method': 'off', // Only false positives seen so far
     'jsdoc/check-examples': 'off',

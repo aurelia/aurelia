@@ -1,6 +1,7 @@
+import { IDisposable } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { ConnectableSwitcher, FlushQueue } from '@aurelia/runtime';
-import { setPlatform, assert, ensureTaskQueuesEmpty } from '@aurelia/testing';
+import { setPlatform, assert, ensureTaskQueuesEmpty, onFixtureCreated, IFixture } from '@aurelia/testing';
 
 interface ExtendedSuite extends Mocha.Suite {
   $duration?: number;
@@ -23,6 +24,8 @@ export function $setup(platform: BrowserPlatform): void {
   let currentRootSuite: ExtendedSuite = (void 0)!;
   let currentSuite: ExtendedSuite = (void 0)!;
   let start: number;
+  let fixtures: IFixture<unknown>[] = [];
+  let fixtureHookHandler: IDisposable | undefined = void 0;
 
   // eslint-disable-next-line
   beforeEach(function() {
@@ -56,10 +59,24 @@ export function $setup(platform: BrowserPlatform): void {
       console.log(`[${ts}] > ${String(nextRootSuite.total()).padStart(5, ' ')} tests in "${nextRootSuite.fullTitle()}"`);
       currentRootSuite = nextRootSuite;
     }
+
+    fixtureHookHandler = onFixtureCreated(fixture => {
+      fixtures.push(fixture);
+    });
   });
 
   // eslint-disable-next-line
   afterEach(function() {
+    fixtureHookHandler?.dispose();
+    fixtureHookHandler = void 0;
+
+    fixtures.forEach(fixture => {
+      if (!fixture.torn) {
+        fixture.tearDown();
+      }
+    });
+    fixtures = [];
+
     const elapsed = platform.performanceNow() - start;
     let suite = currentSuite;
     do {

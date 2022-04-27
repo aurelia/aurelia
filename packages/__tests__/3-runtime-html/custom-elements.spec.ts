@@ -4,7 +4,7 @@ import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/custom-elements.spec.ts', function () {
   it('works with multiple layers of change propagation & <input/>', async function () {
-    const { ctx, appHost, tearDown, startPromise } = createFixture(
+    const { ctx, appHost } = await createFixture(
       `<input value.bind="first_name | properCase">
       <form-input value.two-way="first_name | properCase"></form-input>`,
       class App {
@@ -31,9 +31,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
           }
         }),
       ],
-    );
-
-    await startPromise;
+    ).promise;
 
     const [, nestedInputEl] = Array.from(appHost.querySelectorAll('input'));
     nestedInputEl.value = 'aa bb';
@@ -41,8 +39,38 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
     ctx.platform.domWriteQueue.flush();
     assert.strictEqual(nestedInputEl.value, 'Aa Bb');
+  });
 
-    await tearDown();
+  it('renders containerless per element via "containerless" attribute', async function () {
+    const { appHost } = await createFixture(`<my-el containerless message="hello world">`, class App {}, [CustomElement.define({
+      name: 'my-el',
+      template: '${message}',
+      bindables: ['message']
+    })]).promise;
+
+    assert.visibleTextEqual(appHost, 'hello world');
+  });
+
+  it('renders element with @customElement({ containerness: true })', async function () {
+    const { appHost } = await createFixture(`<my-el message="hello world">`, class App {}, [CustomElement.define({
+      name: 'my-el',
+      template: '${message}',
+      bindables: ['message'],
+      containerless: true
+    })]).promise;
+
+    assert.visibleTextEqual(appHost, 'hello world');
+  });
+
+  it('renders elements with both "containerless" attribute and @customElement({ containerless: true })', async function () {
+    const { appHost } = await createFixture(`<my-el containerless message="hello world">`, class App {}, [CustomElement.define({
+      name: 'my-el',
+      template: '${message}',
+      bindables: ['message'],
+      containerless: true,
+    })]).promise;
+
+    assert.visibleTextEqual(appHost, 'hello world');
   });
 });
 // import {

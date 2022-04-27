@@ -10,7 +10,7 @@ describe('preprocessResource', function () {
         path: path.join('bar', 'foo.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, code);
   });
@@ -23,7 +23,7 @@ describe('preprocessResource', function () {
         contents: code,
         filePair: 'foo.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, code);
   });
@@ -42,7 +42,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -60,7 +60,7 @@ export class UAFooBarCustomElement {}
         contents: code,
         filePair: 'ua-foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -79,7 +79,7 @@ export class FooBar {}
         filePair: 'foo-bar-view.html',
         isViewPair: true
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -98,7 +98,7 @@ export class UAFooBar {}
         filePair: 'ua-foo-bar-view.html',
         isViewPair: true
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -116,7 +116,7 @@ export class FooBar {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -135,7 +135,7 @@ export class FooBar {}
         filePair: 'FooBarView.html',
         isViewPair: true
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -165,7 +165,7 @@ function b() {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -189,7 +189,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -212,7 +212,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -233,7 +233,7 @@ export class FooBar {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -264,7 +264,7 @@ function b() {}
         filePair: 'foo-bar-view.html',
         isViewPair: true
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -288,7 +288,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar-view.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -304,7 +304,7 @@ export class FooBarCustomAttribute {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -321,7 +321,7 @@ export class FooBarCustomAttribute {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -341,7 +341,7 @@ export class FooBar {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -357,7 +357,7 @@ export class FooBarTemplateController {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -374,7 +374,7 @@ export class FooBarTemplateController {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -394,7 +394,7 @@ export class FooBarCustomAttribute {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -410,7 +410,7 @@ export class FooBarValueConverter {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -427,7 +427,7 @@ export class FooBarValueConverter {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -447,7 +447,7 @@ export class FooBar {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -463,7 +463,7 @@ export class FooBarBindingBehavior {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -480,7 +480,7 @@ export class FooBarBindingBehavior {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -500,7 +500,7 @@ export class FooBar {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -516,7 +516,7 @@ export class FooBarBindingCommand {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -533,7 +533,7 @@ export class FooBarBindingCommand {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -553,7 +553,7 @@ export class FooBarBindingCommand {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -633,7 +633,7 @@ export class AbcBindingCommand {
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -711,7 +711,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -790,7 +790,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -824,7 +824,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -863,7 +863,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -882,7 +882,7 @@ export class FooBar {}
         contents: code,
         filePair: 'index.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -900,7 +900,7 @@ export class UAFooBarCustomElement {}
         contents: code,
         filePair: 'index.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -919,7 +919,7 @@ export class FooBar {}
         filePair: 'index-view.html',
         isViewPair: true
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -938,7 +938,7 @@ export class UAFooBar {}
         filePair: 'index-view.html',
         isViewPair: true
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });

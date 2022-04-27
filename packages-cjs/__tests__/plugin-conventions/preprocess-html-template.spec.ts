@@ -18,7 +18,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html }, { ..., hmr: false });
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html }, preprocessOptions({ hmr: false }));
     assert.equal(result.code, expected);
   });
 
@@ -37,7 +37,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, , { ..., hmr: false });
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, preprocessOptions({ hmr: false }));
     assert.equal(result.code, expected);
   });
 
@@ -57,7 +57,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' },);
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' }, preprocessOptions({ hmr: false }));
     assert.equal(result.code, expected);
   });
 
@@ -78,7 +78,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' },);
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' }, preprocessOptions({ hmr: false }));
     assert.equal(result.code, expected);
   });
 
@@ -98,7 +98,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' },);
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' }, preprocessOptions({ hmr: false }));
     assert.equal(result.code, expected);
   });
 
@@ -120,7 +120,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html },);
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, preprocessOptions({ hmr: false }));
     assert.equal(result.code, expected);
   });
 
@@ -142,7 +142,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html },);
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, preprocessOptions({ hmr: false }));
     assert.equal(result.code, expected);
   });
 
@@ -166,7 +166,7 @@ export function register(container) {
 `;
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
-      preprocessOptions({ stringModuleWrap: (id: string) => `text!${id}` })
+      preprocessOptions({ stringModuleWrap: (id: string) => `text!${id}`, hmr: false, })
     );
     assert.equal(result.code, expected);
   });
@@ -685,6 +685,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
+        hmr: false,
         useCSSModule: true
       })
     );
@@ -696,9 +697,10 @@ export function register(container) {
 
     assert.throws(() => {
       preprocessHtmlTemplate(
-        hmr: false,
         { path: path.join('lo', 'FooBar.html'), contents: html },
-
+        preprocessOptions({
+          hmr: false,
+        })
       );
     });
   });
@@ -747,9 +749,9 @@ export function register(container) {
 `;
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
-      {
+      preprocessOptions({
         hmr: false,
-      }
+      })
     );
     assert.equal(result.code, expected);
   });
@@ -769,9 +771,9 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar', 'index.html'), contents: html }, {
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar', 'index.html'), contents: html }, preprocessOptions({
       hmr: false,
-    });
+    }));
     assert.equal(result.code, expected);
   });
 
@@ -790,9 +792,9 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar', 'index.html'), contents: html },{
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar', 'index.html'), contents: html }, preprocessOptions({
       hmr: false,
-    });
+    }));
     assert.equal(result.code, expected);
   });
 
@@ -812,9 +814,9 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar', 'index.html'), contents: html, filePair: 'index.css' },{
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar', 'index.html'), contents: html, filePair: 'index.css' }, preprocessOptions({
       hmr: false,
-    });
+    }));
     assert.equal(result.code, expected);
   });
 });

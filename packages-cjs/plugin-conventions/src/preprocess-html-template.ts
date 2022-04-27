@@ -85,7 +85,8 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
   });
 
   const m = modifyCode('', unit.path);
-  if (!hasViewModel && process.env.NODE_ENV !== 'production') {
+  const hmrEnabled = !hasViewModel && options.hmr && process.env.NODE_ENV !== 'production';
+  if (hmrEnabled) {
     m.append(`import { ${hmrRuntimeModules.join(', ')} } from '@aurelia/runtime-html';\n`);
     m.append(`import { ${hmrMetadataModules.join(', ')} } from '@aurelia/metadata';\n`);
   } else {
@@ -123,25 +124,26 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
     m.append(`export const aliases = ${JSON.stringify(aliases)};\n`);
   }
 
-  if (!hasViewModel && options.hmr && process.env.NODE_ENV !== 'production') {
+  if (hmrEnabled) {
     m.append(`const _e = CustomElement.define({ name, template, dependencies${shadowMode !== null ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length > 0 ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
-    export function register(container) {
-      container.register(_e);
-    }`);
+      export function register(container) {
+        container.register(_e);
+      }`);
   }
   else {
-    m.append(`let _e;
-  export function register(container) {
-    if (!_e) {
-      _e = CustomElement.define({ name, template, dependencies${shadowMode !== null ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length > 0 ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
-    }
-    container.register(_e);
-  }  `);
+  m.append(`let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies${shadowMode !== null ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length > 0 ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
+  }
+  container.register(_e);
+}
+`);
   }
 
 
 
-  if (!hasViewModel && options.hmr && process.env.NODE_ENV !== 'production') {
+  if (hmrEnabled) {
     m.append(getHmrCode('_e', 'module', 'CustomElementHtml'));
   }
 

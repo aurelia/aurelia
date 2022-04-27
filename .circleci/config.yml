@@ -643,12 +643,13 @@ workflows:
           <<: *filter_ignore_develop_release
       - checkout_install_cache:
           <<: *filter_ignore_develop_release
+          name: checkout_install
           requires:
               - check_doc_abort
       - build_dev:
           <<: *filter_ignore_develop_release
           requires:
-              - checkout_install_cache
+              - checkout_install
       - unit_test_esm:
           <<: *filter_ignore_develop_release
           name: test_chrome
@@ -684,7 +685,7 @@ workflows:
       - lint_packages:
           <<: *filter_ignore_develop_release
           requires:
-            - checkout_install_cache
+            - checkout_install
       # - js_framework_benchmark:
       #     <<: *filter_ignore_develop_release
       #     requires:
@@ -699,13 +700,13 @@ workflows:
           name: webpack_conventions_ts
           path: "examples/jit-webpack-conventions-ts"
           requires:
-            - checkout_install_cache
+            - checkout_install
       - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: webpack_vanilla_ts
           path: "examples/jit-webpack-vanilla-ts"
           requires:
-            - checkout_install_cache
+            - checkout_install
       - merge_and_dist:
           <<: *filter_only_master
           name: merge_and_dist_master
@@ -731,7 +732,7 @@ workflows:
           channel: dev
           dist_file_name: merge_and_dist_topic
           requires:
-            - checkout_install_cache
+            - checkout_install
       - publish_npm:
           <<: *filter_only_master
           name: publish_npm_dev
@@ -747,10 +748,11 @@ workflows:
     jobs:
       - checkout_install_cache:
           <<: *filter_only_tag
+          name: checkout_install
       - build_dev:
           <<: *filter_only_tag
           requires:
-            - checkout_install_cache
+            - checkout_install
       - unit_test_esm:
           <<: *filter_only_tag
           name: test_chrome
@@ -785,7 +787,7 @@ workflows:
       - lint_packages:
           <<: *filter_only_tag
           requires:
-            - checkout_install_cache
+            - checkout_install
       - merge_and_dist:
           <<: *filter_only_tag
           requires:

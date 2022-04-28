@@ -21,8 +21,8 @@ export const getHmrCode = (className: string, moduleText: string = 'module', typ
   const code = `
     const controllers = [];
     if ((${moduleText} as any).hot) {
+    (${moduleText} as any).hot.accept();
     const hot = (${moduleText} as any).hot;
-    hot.accept();
     let aurelia = hot.data?.aurelia;
     document.addEventListener('au-started', (event) => {aurelia= (event as any).detail; });
     const currentClassType = ${className};

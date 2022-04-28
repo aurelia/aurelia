@@ -88,17 +88,41 @@ commands:
 
   checkout_install:
     parameters:
+      install:
+        type: boolean
+        default: true
       install_drivers:
+        type: boolean
+        default: true
+      install_chrome:
+        type: boolean
+        default: true
+      install_firefox:
         type: boolean
         default: true
     steps:
       - when:
-          condition: <<parameters.install_drivers>>
+          condition:
+            and:
+              - <<parameters.install_drivers>>
+              - <<parameters.install_chrome>>
           steps:
-            - browser-tools/install-browser-tools
+          - browser-tools/install-chrome
+          - browser-tools/install-chromedriver
+      - when:
+          condition:
+            and:
+              - <<parameters.install_drivers>>
+              - <<parameters.install_firefox>>
+          steps:
+            - browser-tools/install-firefox
+            - browser-tools/install-geckodriver
       - checkout
       - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
-      - run: npm ci
+      - when:
+          condition: <<parameters.install>>
+          steps:
+            - run: npm ci
 
   checkout_install_build_bundle_publish_verdaccio:
     parameters:
@@ -116,12 +140,19 @@ commands:
         default: "http://localhost:4873"
     steps:
       - common/configure_git
-      - checkout_install
-      - run: npm run build:release
+      # - checkout_install:
+      #     install_drivers: false
+      - checkout
+      - restore_cache:
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          key: cache-{{ .Revision }}-build-true
+      # - run: npm run build:release
       # - run: npm run change-tsconfigs:invert
       # - run: npm run build:release
       # - run: npm run change-tsconfigs:restore
-      - run: npm run generate-native-modules
+      # - run: npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>
@@ -166,7 +197,7 @@ commands:
       - run: set -o pipefail && git add . && git status
       - run: set -o pipefail && git checkout stash -- . && git status
       - run: set -o pipefail && git add packages/*/dist packages-cjs/*/dist --force && git status
-      - run: set -o pipefail && npm run change-package-refs:release -- none
+      # - run: set -o pipefail && npm run change-package-refs:release -- none
       - when:
           condition: << parameters.bump_version >>
           steps:
@@ -178,6 +209,86 @@ commands:
 # - Jobs -
 # # # # # # # # # # # # # # # #
 jobs:
+  checkout_install_cache:
+    executor: docker-circleci
+    steps:
+      - checkout
+      - restore_cache:
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - run: |
+          # cache restored
+          if [[ $(ls -l node_modules | grep -c ^d) -gt 10 ]]; then
+            exit 0
+          else
+            npm ci
+          fi
+      - save_cache:
+          key: cache-{{ checksum "package-lock.json" }}-install
+          paths:
+            - node_modules
+            - packages/__tests__/node_modules
+            - packages/http-server/node_modules
+            - packages/au/node_modules
+
+            - packages-cjs/__tests__/node_modules
+            - packages-cjs/aot/node_modules
+            - packages-cjs/babel-jest/node_modules
+            - packages-cjs/parcel-transformer/node_modules
+            - packages-cjs/plugin-conventions/node_modules
+            - packages-cjs/plugin-gulp/node_modules
+            - packages-cjs/ts-jest/node_modules
+            - packages-cjs/webpack-loader/node_modules
+
+  build_and_cache:
+    executor: docker-circleci
+    parameters:
+      command:
+        type: string
+        default: npm run build
+      generate_native_modules:
+        type: boolean
+        default: false
+    steps:
+      - checkout
+      - restore_cache:
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - run: << parameters.command >>
+      - when:
+          condition: << parameters.generate_native_modules >>
+          steps:
+            - run: npm run generate-native-modules
+      - save_cache:
+          key: cache-{{ .Revision }}-build-<< parameters.generate_native_modules >>
+          paths:
+            - packages/__tests__/dist
+            - packages/au/dist
+            - packages/aurelia/dist
+            - packages/fetch-client/dist
+            - packages/http-server/dist
+            - packages/i18n/dist
+            - packages/kernel/dist
+            - packages/metadata/dist
+            - packages/platform/dist
+            - packages/platform-browser/dist
+            - packages/route-recognizer/dist
+            - packages/router/dist
+            - packages/router-lite/dist
+            - packages/runtime/dist
+            - packages/runtime-html/dist
+            - packages/store-v1/dist
+            - packages/testing/dist
+            - packages/validation/dist
+            - packages/validation-html/dist
+            - packages/validation-i18n/dist
+
+            - packages-cjs/__tests__/dist
+            - packages-cjs/aot/dist
+            - packages-cjs/babel-jest/dist
+            - packages-cjs/parcel-transformer/dist
+            - packages-cjs/plugin-conventions/dist
+            - packages-cjs/plugin-gulp/dist
+            - packages-cjs/ts-jest/dist
+            - packages-cjs/webpack-loader/dist
 
   unit_test_esm:
     parameters:
@@ -187,16 +298,32 @@ jobs:
       npm_command:
         type: string
         default: "test"
+      install_chrome:
+        type: boolean
+        default: false
+      install_firefox:
+        type: boolean
+        default: false
     executor: docker-circleci
-    parallelism: 5
+    parallelism: 4
     steps:
-      - checkout_install
-      - run: npm run build:packages
+      - checkout_install:
+          install_chrome: <<parameters.install_chrome>>
+          install_firefox: <<parameters.install_firefox>>
+          install: false
+      # instead of doing the following 2 commands
+      # # - checkout_install
+      # # - run: npm run build
+      # just restore some cache from previous steps
+      - restore_cache:
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          key: cache-{{ .Revision }}-build-false
       - run:
           name: "Split test glob"
           command: |
-            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split)
-            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split) > packages/__tests__/tests.txt
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings)
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings) > packages/__tests__/tests.txt
       - run:
           name: "Run unit tests"
           command: |
@@ -213,23 +340,27 @@ jobs:
                 when: always
             - store_test_results:
                 path: packages/__tests__/coverage
-            - store_artifacts:
-                path: packages/__tests__/coverage
 
   unit_test_esm_node:
     executor: docker-circleci
     parallelism: 4
     steps:
-      - checkout
-      - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
-      - run: npm ci
-      - run: npm run build:packages
+      - checkout_install:
+          install_chrome: false
+          install_firefox: false
+          install: false
+      - restore_cache:
+          name: "Restore dependencies"
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          key: cache-{{ .Revision }}-build-false
       - run:
           name: "Split test glob"
           command: |
             cd packages/__tests__
-            echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split)
-            echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split) > tests.txt
+            echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split --split-by=timings)
+            echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split --split-by=timings) > tests.txt
       - run:
           name: "Run unit tests"
           command: |
@@ -247,11 +378,17 @@ jobs:
     executor: docker-circleci
     steps:
       - checkout_install
-      - run: npm run build
+      - restore_cache:
+          name: "Restore dependencies"
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          key: cache-{{ .Revision }}-build-false
+      # - run: npm run build
       # - run: npm run change-tsconfigs:invert
       # - run: npm run build
       # - run: npm run change-tsconfigs:restore
-      - run: npm run change-package-refs:release -- none
+      # - run: npm run change-package-refs:release -- none
       - when:
           condition: << parameters.submodules >>
           steps:
@@ -269,7 +406,12 @@ jobs:
   lint_packages:
     executor: docker-circleci
     steps:
-      - checkout_install
+      - checkout_install:
+          install_drivers: false
+          install: false
+      - restore_cache:
+          name: "Restore dependencies"
+          key: cache-{{ checksum "package-lock.json" }}-install
       - run: npm run lint:packages:ci
       - run: npm run lint:other:ci
 
@@ -298,13 +440,18 @@ jobs:
       - run: git config --global user.email "aurelia@bluespire.com"
       - run: git config --global user.name "AureliaEffect"
       - run: git config --global core.mergeoptions "--no-edit"
-      - checkout_install:
-          install_drivers: false
-      - run: set -o pipefail && npm run build:release
+      - checkout
+      - restore_cache:
+          name: "Restore dependencies"
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          key: cache-{{ .Revision }}-build-true
+      # - run: set -o pipefail && npm run build:release
       # - run: set -o pipefail && npm run change-tsconfigs:invert
       # - run: set -o pipefail && npm run build:release
       # - run: set -o pipefail && npm run change-tsconfigs:restore
-      - run: set -o pipefail && npm run generate-native-modules
+      # - run: set -o pipefail && npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>
@@ -417,8 +564,8 @@ jobs:
             npm run init
             cd test/js-framework-benchmark
             npm run ci
-      # - store_test_results:
-      #     path: test/js-framework-benchmark/webdriver-ts-results/table.html
+      - store_test_results:
+          path: test/js-framework-benchmark/webdriver-ts-results/table.html
       - store_artifacts:
           path: test/js-framework-benchmark/webdriver-ts-results/table.html
       - run:
@@ -431,7 +578,6 @@ jobs:
     steps:
       - checkout
       - run: git checkout master
-      - run: CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
       - run: npm ci
       - run: npm run build
       - run:
@@ -520,28 +666,48 @@ workflows:
     jobs:
       - check_doc_abort:
           <<: *filter_ignore_develop_release
-      - unit_test_esm:
+      - checkout_install_cache:
           <<: *filter_ignore_develop_release
-          name: unit_test_esm_chrome
-          npm_command: "test-chrome"
+          name: checkout_install
           requires:
-            - check_doc_abort
+              - check_doc_abort
+      - build_and_cache:
+          <<: *filter_ignore_develop_release
+          name: build_dev
+          requires:
+              - checkout_install
+      - build_and_cache:
+          <<: *filter_ignore_develop_release
+          name: build_release
+          generate_native_modules: true
+          requires:
+              - checkout_install
       - unit_test_esm:
           <<: *filter_ignore_develop_release
-          name: unit_test_esm_firefox
+          name: test_chrome
+          npm_command: "test-chrome"
+          install_chrome: true
+          requires:
+            - build_dev
+      - unit_test_esm:
+          <<: *filter_ignore_develop_release
+          name: test_firefox
           npm_command: "test-firefox"
+          install_firefox: true
           coverage: false
           requires:
-            - check_doc_abort
+            - build_dev
       - unit_test_esm_node:
           <<: *filter_ignore_develop_release
+          name: test_node
           requires:
-            - check_doc_abort
+            - build_dev
       - unit_test_cjs:
           <<: *filter_ignore_develop_release
+          name: test_toolings
           npm_command: "test-node"
           requires:
-            - check_doc_abort
+            - build_dev
       #- unit_test_aot:
       #   <<: *filter_ignore_develop_release
       #   name: test_test262
@@ -552,7 +718,7 @@ workflows:
       - lint_packages:
           <<: *filter_ignore_develop_release
           requires:
-            - check_doc_abort
+            - checkout_install
       # - js_framework_benchmark:
       #     <<: *filter_ignore_develop_release
       #     requires:
@@ -564,29 +730,29 @@ workflows:
       #       - check_doc_abort
       - e2e_playwright:
           <<: *filter_ignore_develop_release
-          name: jit-webpack-conventions-ts
+          name: webpack_conventions_ts
           path: "examples/jit-webpack-conventions-ts"
           requires:
-            - check_doc_abort
+            - build_release
       - e2e_playwright:
           <<: *filter_ignore_develop_release
-          name: jit-webpack-vanilla-ts
+          name: webpack_vanilla_ts
           path: "examples/jit-webpack-vanilla-ts"
           requires:
-            - check_doc_abort
+            - build_release
       - merge_and_dist:
           <<: *filter_only_master
           name: merge_and_dist_master
           requires:
-            - check_doc_abort
-            - unit_test_esm_chrome
-            - unit_test_esm_firefox
-            - unit_test_esm_node
-            - unit_test_cjs
+            - build_release
+            - test_chrome
+            - test_firefox
+            - test_node
+            - test_toolings
             #- test_test262
             # - lint_packages
-            - jit-webpack-conventions-ts
-            - jit-webpack-vanilla-ts
+            - webpack_conventions_ts
+            - webpack_vanilla_ts
           from: master
           to: develop
           channel: dev
@@ -595,15 +761,15 @@ workflows:
       - merge_and_dist:
           <<: *filter_only_topic
           name: merge_and_dist_topic
-          requires:
-            - check_doc_abort
           from: master
           to: develop
           channel: dev
           dist_file_name: merge_and_dist_topic
+          requires:
+            - build_release
       - publish_npm:
           <<: *filter_only_master
-          name: "publish_npm_dev"
+          name: publish_npm_dev
           channel: dev
           branch: develop
           swap: true
@@ -614,36 +780,68 @@ workflows:
   # Triggered by push to tag
   build_test_push_release:
     jobs:
+      - checkout_install_cache:
+          <<: *filter_only_tag
+          name: checkout_install
+      - build_and_cache:
+          <<: *filter_only_tag
+          name: build_dev
+          requires:
+            - checkout_install
+      - build_and_cache:
+          <<: *filter_only_tag
+          name: build_release
+          generate_native_modules: true
+          requires:
+            - checkout_install
       - unit_test_esm:
           <<: *filter_only_tag
-          name: unit_test_esm_chrome
+          name: test_chrome
           npm_command: "test-chrome"
+          install_chrome: true
+          requires:
+            - build_dev
       - unit_test_esm:
           <<: *filter_only_tag
-          name: unit_test_esm_firefox
+          name: test_firefox
           npm_command: "test-firefox"
+          install_firefox: true
           coverage: false
+          requires:
+            - build_dev
       - unit_test_esm_node:
           <<: *filter_only_tag
-          name: unit_test_esm_node
+          name: test_node
+          requires:
+            - build_dev
       - unit_test_cjs:
-         <<: *filter_only_tag
-         npm_command: "test-node"
+          <<: *filter_only_tag
+          name: test_toolings
+          npm_command: "test-node"
+          requires:
+            - build_dev
       #- unit_test_aot:
       #   <<: *filter_only_tag
       #   name: test_test262
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
-      - lint_packages:
-          <<: *filter_only_tag
+
+      # - lint_packages:
+      #     <<: *filter_only_tag
+      #     requires:
+      #       - checkout_install
+
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
-            - unit_test_esm_chrome
-            - unit_test_esm_firefox
-            - unit_test_esm_node
-            - unit_test_cjs
+            # build release to get the build artifacts
+            - build_release
+            # and the rest for testings
+            - test_chrome
+            - test_firefox
+            - test_node
+            - test_toolings
             #- test_test262
             # - lint_packages
           from: $CIRCLE_TAG
@@ -663,7 +861,7 @@ workflows:
           type: approval
       - publish_npm:
           <<: *filter_only_release
-          name: "publish_npm_latest"
+          name: publish_npm_latest
           channel: latest
           branch: release
           requires:

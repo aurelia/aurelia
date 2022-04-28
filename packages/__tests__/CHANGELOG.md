@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.29"></a>
+# 2.0.0-alpha.29 (2022-04-27)
+
+### Features:
+
+* **router:** support this/instance in @lifecycleHooks (#1390) ([5f5df47](https://github.com/aurelia/aurelia/commit/5f5df47))
+* **router-lite:** global fallback support ([ac9dd1d](https://github.com/aurelia/aurelia/commit/ac9dd1d))
+
+
+### Bug Fixes:
+
+* **router-lite:** hook tests ([73aa3cf](https://github.com/aurelia/aurelia/commit/73aa3cf))
+* **router-lite:** parent-child hooks tests ([2cfb8f4](https://github.com/aurelia/aurelia/commit/2cfb8f4))
+* **router-lite:** smoke tests ([8e30e43](https://github.com/aurelia/aurelia/commit/8e30e43))
+* **router:** sibling-viewport resolution ([6ed9996](https://github.com/aurelia/aurelia/commit/6ed9996))
+
+
+### Refactorings:
+
+* **router-lite:** removal of direct routing wip ([80de920](https://github.com/aurelia/aurelia/commit/80de920))
+
 <a name="2.0.0-alpha.28"></a>
 # 2.0.0-alpha.28 (2022-04-16)
 

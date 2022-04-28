@@ -1,12 +1,14 @@
 {
   "name": "@aurelia/route-recognizer",
-  "version": "2.0.0-alpha.28",
-  "main": "dist/esm/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
+  "version": "2.0.0-alpha.29",
+  "main": "dist/cjs/index.cjs",
+  "module": "dist/esm/index.mjs",
+  "exports": {
+    "require": "./dist/cjs/index.cjs",
+    "import": "./dist/esm/index.mjs"
+  },
   "typings": "dist/types/index.d.ts",
   "license": "MIT",
-  "type": "module",
   "homepage": "https://aurelia.io",
   "repository": {
     "type": "git",

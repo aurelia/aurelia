@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-alpha.28",
+  "version": "2.0.0-alpha.29",
   "workspaces": [
     "packages/__tests__",
     "packages/__e2e__/router-configured-basic",
@@ -60,7 +60,7 @@
     "commit": "git-cz",
     "init": "npm ci && npm run build",
     "rebuild": "npm run clean && npm run build",
-    "build": "lage build --scope @aurelia/* --scope aurelia --scope au --scope @benchmarking-apps/krauset-aurelia2-local --no-cache --verbose --no-deps",
+    "build": "lage build --scope @aurelia/* --scope aurelia --scope au --no-cache --verbose --no-deps",
     "build:test": "cross-env NO_MINIFIED=true __DEV__=true lage run rollup --scope @aurelia/* --scope aurelia --scope au --no-cache --verbose --no-deps",
     "build:packages": "cross-env NO_MINIFIED=true __DEV__=true lage run build:packages --no-cache --verbose --no-deps",
     "build:packages-cjs": "cross-env NO_MINIFIED=true __DEV__=true lage run build:packages-cjs --no-cache --verbose --no-deps",

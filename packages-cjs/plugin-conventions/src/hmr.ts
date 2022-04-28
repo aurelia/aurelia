@@ -1,7 +1,7 @@
 /**
  * This is the minimum required runtime modules for HMR
  */
-export const hmrRuntimeModules = ['CustomElement', 'LifecycleFlags', 'Controller'];
+export const hmrRuntimeModules = ['CustomElement', 'LifecycleFlags', 'IHydrationContext', 'Controller'];
 
 /**
  * This is the minimum required metadata modules for HMR
@@ -16,7 +16,7 @@ export const hmrMetadataModules = ['Metadata'];
  * @param type - CustomElement | CustomAttribute
  * @returns Generated HMR code
  */
-export const getHmrCode = (className: string, moduleText: 'module' | 'import' = 'module', type: 'CustomElementHtml' | 'CustomElement' | 'CustomAttribute' = 'CustomElement'): string => {
+export const getHmrCode = (className: string, moduleText: string = 'module', type: 'CustomElementHtml' | 'CustomElement' | 'CustomAttribute' = 'CustomElement'): string => {
 
   const code = `
     const controllers = [];

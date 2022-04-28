@@ -38,6 +38,7 @@ export interface IOptionalPreprocessOptions {
   useCSSModule?: boolean;
   hmr?: boolean;
   enableConventions?: boolean;
+  hmrModule?: string;
 }
 
 export interface IPreprocessOptions {
@@ -51,6 +52,7 @@ export interface IPreprocessOptions {
   useCSSModule: boolean;
   hmr?: boolean;
   enableConventions?: boolean;
+  hmrModule?: string;
 }
 
 export const defaultCssExtensions = ['.css', '.scss', '.sass', '.less', '.styl'];
@@ -65,6 +67,7 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     useCSSModule = false,
     hmr = true,
     enableConventions = true,
+    hmrModule = 'module',
     ...others
   } = options;
 
@@ -74,6 +77,7 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     templateExtensions: Array.from(new Set([...defaultTemplateExtensions, ...templateExtensions])).sort(),
     useCSSModule,
     hmr,
+    hmrModule,
     enableConventions,
     ...others
   };

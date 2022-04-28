@@ -141,7 +141,7 @@ export function register(container) {
   }
 
   if (hmrEnabled) {
-    m.append(getHmrCode('_e', 'module', 'CustomElementHtml'));
+    m.append(getHmrCode('_e', options.hmrModule, 'CustomElementHtml'));
   }
 
   const { code, map } = m.transform();

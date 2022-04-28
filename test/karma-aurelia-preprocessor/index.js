@@ -74,8 +74,7 @@ function createAureliaPreprocessor(karmaConfig, logger) {
                   process.exit(1);
                 }
               }
-              case '.js':
-                break;
+              case '.js': case '.mjs': break;
               default: {
                 const start = statement.moduleSpecifier.getStart(sourceFile);
                 const end = statement.moduleSpecifier.getEnd(sourceFile);
@@ -83,16 +82,16 @@ function createAureliaPreprocessor(karmaConfig, logger) {
                 let newSpecifier = specifier;
                 if (specifier.startsWith('@aurelia/')) {
                   const packageName = specifier.slice(9 /* '@aurelia/'.length */);
-                  const packageEntryFilePath = path.join(basePath, `base/packages/${packageName}/dist/esm/index.js`);
+                  const packageEntryFilePath = path.join(basePath, `/base/packages/${packageName}/dist/esm/index.mjs`);
                   newSpecifier = path.relative(file.path, packageEntryFilePath).replace(/\\/g, '/');
                 } else if (specifier.startsWith('@babel/')) {
                   const babelModulePath = specifier.slice(7 /* '@babel/runtime/'.length */);
-                  const packageEntryFilePath = path.join(basePath, `base/node_modules/@babel/${babelModulePath}.js`,);
+                  const packageEntryFilePath = path.join(basePath, `/base/node_modules/@babel/${babelModulePath}.js`,);
                   newSpecifier = path.relative(file.path, packageEntryFilePath).replace(/\\/g, '/');
                 } else {
                   switch (specifier) {
                     case 'i18next': {
-                      const i18nextPath = path.join(basePath, 'base/node_modules/i18next/dist/esm/i18next.js');
+                      const i18nextPath = path.join(basePath, '/base/node_modules/i18next/dist/esm/i18next.js');
                       // newSpecifier = path.join(basePath, 'node_modules/i18next/dist/esm/index.js').replace(/\\/g, '/');
                       newSpecifier = path.relative(file.path, i18nextPath).replace(/\\/g, '/');
                       break;
@@ -125,14 +124,15 @@ function createAureliaPreprocessor(karmaConfig, logger) {
                         newSpecifier = specifier.replace(/(?:\.js)?$/, '.js');
                         break;
                       }
-                      log.error(`ERROR: unrecognized specifier '${specifier}' in file '${file.path}'. Make sure to include the .js extension in imports/exports, and add external dependencies to karma-aurelia-preprocessor`);
-                      process.exit(1);
+                      if (!specifier.startsWith('./') && !specifier.startsWith('..') && !specifier.startsWith('/base')) {
+                        log.error(`ERROR: unrecognized specifier '${specifier}' in file '${file.path}'. Make sure to include the .js extension in imports/exports, and add external dependencies to karma-aurelia-preprocessor`);
+                        process.exit(1);
+                      }
                     }
                   }
                 }
 
                 log.debug(`- Replacing ${ts.SyntaxKind[statement.kind]} '${specifier}' with '${newSpecifier}'`);
-
                 content = `${content.slice(0, start + 1)}${newSpecifier}${content.slice(end - 1)}`;
               }
             }
@@ -143,8 +143,12 @@ function createAureliaPreprocessor(karmaConfig, logger) {
     }
 
     if (karmaConfig.logLevel === karmaConfig.LOG_DEBUG) {
-      // Write out the transformed content for easy local fs inspection
-      fs.writeFileSync(`${file.path.replace(/\.js$/, '.$au.js')}`, content);
+      if (file.path.endsWith('.$au.js') || file.path.endsWith('.$au.mjs')) {
+        fs.writeFileSync(file.path, content);
+      } else {
+        // Write out the transformed content for easy local fs inspection
+        fs.writeFileSync(`${file.path.replace(/\.m?js$/, '.$au.js')}`, content);
+      }
     }
     next(content);
   };

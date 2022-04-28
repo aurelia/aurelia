@@ -144,12 +144,15 @@ commands:
       #     install_drivers: false
       - checkout
       - restore_cache:
-          key: cache-{{ .Revision }}-install
-      - run: npm run build:release
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          key: cache-{{ .Revision }}-build-true
+      # - run: npm run build:release
       # - run: npm run change-tsconfigs:invert
       # - run: npm run build:release
       # - run: npm run change-tsconfigs:restore
-      - run: npm run generate-native-modules
+      # - run: npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>
@@ -194,7 +197,7 @@ commands:
       - run: set -o pipefail && git add . && git status
       - run: set -o pipefail && git checkout stash -- . && git status
       - run: set -o pipefail && git add packages/*/dist packages-cjs/*/dist --force && git status
-      - run: set -o pipefail && npm run change-package-refs:release -- none
+      # - run: set -o pipefail && npm run change-package-refs:release -- none
       - when:
           condition: << parameters.bump_version >>
           steps:
@@ -209,10 +212,18 @@ jobs:
   checkout_install_cache:
     executor: docker-circleci
     steps:
-      - checkout_install:
-          install_drivers: false
+      - checkout
+      - restore_cache:
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - run: |
+          # cache restored
+          if [[ $(ls -l node_modules | grep -c ^d) -gt 10 ]]; then
+            exit 0
+          else
+            npm ci
+          fi
       - save_cache:
-          key: cache-{{ .Revision }}-install
+          key: cache-{{ checksum "package-lock.json" }}-install
           paths:
             - node_modules
             - packages/__tests__/node_modules
@@ -228,15 +239,26 @@ jobs:
             - packages-cjs/ts-jest/node_modules
             - packages-cjs/webpack-loader/node_modules
 
-  build_dev:
+  build_and_cache:
     executor: docker-circleci
+    parameters:
+      command:
+        type: string
+        default: npm run build
+      generate_native_modules:
+        type: boolean
+        default: false
     steps:
       - checkout
       - restore_cache:
-          key: cache-{{ .Revision }}-install
-      - run: npm run build
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - run: << parameters.command >>
+      - when:
+          condition: << parameters.generate_native_modules >>
+          steps:
+            - run: npm run generate-native-modules
       - save_cache:
-          key: cache-{{ .Revision }}-build
+          key: cache-{{ .Revision }}-build-<< parameters.generate_native_modules >>
           paths:
             - packages/__tests__/dist
             - packages/au/dist
@@ -294,9 +316,9 @@ jobs:
       # # - run: npm run build
       # just restore some cache from previous steps
       - restore_cache:
-          key: cache-{{ .Revision }}-install
+          key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
-          key: cache-{{ .Revision }}-build
+          key: cache-{{ .Revision }}-build-false
       - run:
           name: "Split test glob"
           command: |
@@ -317,7 +339,7 @@ jobs:
                   node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
                 when: always
             - store_test_results:
-                path: packages/__tests__/coverage/coverage-final.json
+                path: packages/__tests__/coverage
 
   unit_test_esm_node:
     executor: docker-circleci
@@ -329,10 +351,10 @@ jobs:
           install: false
       - restore_cache:
           name: "Restore dependencies"
-          key: cache-{{ .Revision }}-install
+          key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           name: "Restore build artifacts"
-          key: cache-{{ .Revision }}-build
+          key: cache-{{ .Revision }}-build-false
       - run:
           name: "Split test glob"
           command: |
@@ -358,15 +380,15 @@ jobs:
       - checkout_install
       - restore_cache:
           name: "Restore dependencies"
-          key: cache-{{ .Revision }}-install
+          key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           name: "Restore build artifacts"
-          key: cache-{{ .Revision }}-build
+          key: cache-{{ .Revision }}-build-false
       # - run: npm run build
       # - run: npm run change-tsconfigs:invert
       # - run: npm run build
       # - run: npm run change-tsconfigs:restore
-      - run: npm run change-package-refs:release -- none
+      # - run: npm run change-package-refs:release -- none
       - when:
           condition: << parameters.submodules >>
           steps:
@@ -389,7 +411,7 @@ jobs:
           install: false
       - restore_cache:
           name: "Restore dependencies"
-          key: cache-{{ .Revision }}-install
+          key: cache-{{ checksum "package-lock.json" }}-install
       - run: npm run lint:packages:ci
       - run: npm run lint:other:ci
 
@@ -421,12 +443,15 @@ jobs:
       - checkout
       - restore_cache:
           name: "Restore dependencies"
-          key: cache-{{ .Revision }}-install
-      - run: set -o pipefail && npm run build:release
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          key: cache-{{ .Revision }}-build-true
+      # - run: set -o pipefail && npm run build:release
       # - run: set -o pipefail && npm run change-tsconfigs:invert
       # - run: set -o pipefail && npm run build:release
       # - run: set -o pipefail && npm run change-tsconfigs:restore
-      - run: set -o pipefail && npm run generate-native-modules
+      # - run: set -o pipefail && npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>
@@ -643,12 +668,20 @@ workflows:
           <<: *filter_ignore_develop_release
       - checkout_install_cache:
           <<: *filter_ignore_develop_release
+          name: checkout_install
           requires:
               - check_doc_abort
-      - build_dev:
+      - build_and_cache:
           <<: *filter_ignore_develop_release
+          name: build_dev
           requires:
-              - checkout_install_cache
+              - checkout_install
+      - build_and_cache:
+          <<: *filter_ignore_develop_release
+          name: build_release
+          generate_native_modules: true
+          requires:
+              - checkout_install
       - unit_test_esm:
           <<: *filter_ignore_develop_release
           name: test_chrome
@@ -671,6 +704,7 @@ workflows:
             - build_dev
       - unit_test_cjs:
           <<: *filter_ignore_develop_release
+          name: test_toolings
           npm_command: "test-node"
           requires:
             - build_dev
@@ -684,7 +718,7 @@ workflows:
       - lint_packages:
           <<: *filter_ignore_develop_release
           requires:
-            - checkout_install_cache
+            - checkout_install
       # - js_framework_benchmark:
       #     <<: *filter_ignore_develop_release
       #     requires:
@@ -699,21 +733,22 @@ workflows:
           name: webpack_conventions_ts
           path: "examples/jit-webpack-conventions-ts"
           requires:
-            - checkout_install_cache
+            - build_release
       - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: webpack_vanilla_ts
           path: "examples/jit-webpack-vanilla-ts"
           requires:
-            - checkout_install_cache
+            - build_release
       - merge_and_dist:
           <<: *filter_only_master
           name: merge_and_dist_master
           requires:
+            - build_release
             - test_chrome
             - test_firefox
             - test_node
-            - unit_test_cjs
+            - test_toolings
             #- test_test262
             # - lint_packages
             - webpack_conventions_ts
@@ -731,7 +766,7 @@ workflows:
           channel: dev
           dist_file_name: merge_and_dist_topic
           requires:
-            - checkout_install_cache
+            - build_release
       - publish_npm:
           <<: *filter_only_master
           name: publish_npm_dev
@@ -747,10 +782,18 @@ workflows:
     jobs:
       - checkout_install_cache:
           <<: *filter_only_tag
-      - build_dev:
+          name: checkout_install
+      - build_and_cache:
           <<: *filter_only_tag
+          name: build_dev
           requires:
-            - checkout_install_cache
+            - checkout_install
+      - build_and_cache:
+          <<: *filter_only_tag
+          name: build_release
+          generate_native_modules: true
+          requires:
+            - checkout_install
       - unit_test_esm:
           <<: *filter_only_tag
           name: test_chrome
@@ -773,6 +816,7 @@ workflows:
             - build_dev
       - unit_test_cjs:
           <<: *filter_only_tag
+          name: test_toolings
           npm_command: "test-node"
           requires:
             - build_dev
@@ -782,17 +826,22 @@ workflows:
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
-      - lint_packages:
-          <<: *filter_only_tag
-          requires:
-            - checkout_install_cache
+
+      # - lint_packages:
+      #     <<: *filter_only_tag
+      #     requires:
+      #       - checkout_install
+
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
+            # build release to get the build artifacts
+            - build_release
+            # and the rest for testings
             - test_chrome
             - test_firefox
             - test_node
-            - unit_test_cjs
+            - test_toolings
             #- test_test262
             # - lint_packages
           from: $CIRCLE_TAG

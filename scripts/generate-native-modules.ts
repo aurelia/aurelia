@@ -50,7 +50,7 @@ const log = createLogger('generate-native-modules');
                 const end = statement.moduleSpecifier.getEnd(sourceFile);
 
                 const packageName = specifier.slice(9 /* '@aurelia/'.length */);
-                const packageEntryFilePath = path.join(project.path, `node_modules/@aurelia/${packageName}/dist/native-modules/index.js`);
+                const packageEntryFilePath = path.join(project.path, `node_modules/@aurelia/${packageName}/dist/native-modules/index.mjs`);
                 const normPath = file.path.replace(/\\/g, '/');
                 const origin = pkg.name.npm.includes('@aurelia')
                   ? normPath.replace(/packages[\\\/]([\w-]+)/, 'node_modules/@aurelia/$1')

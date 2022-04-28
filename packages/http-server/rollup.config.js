@@ -8,12 +8,12 @@ export default [
     external: Object.keys(pkg.dependencies).concat('os', 'path', 'fs', 'http', 'https', 'http2', 'url', 'stream'),
     output: [
       {
-        file: 'dist/esm/index.js',
+        file: 'dist/esm/index.mjs',
         format: 'es',
         sourcemap: true
       },
       {
-        file: 'dist/cjs/index.js',
+        file: 'dist/cjs/index.cjs',
         format: 'cjs',
         sourcemap: true
       },
@@ -35,12 +35,12 @@ export default [
     external: Object.keys(pkg.dependencies).concat('os', 'path', 'fs', 'http', 'https', 'http2', 'url', 'stream'),
     output: [
       {
-        file: 'dist/esm/cli.js',
+        file: 'dist/esm/cli.mjs',
         format: 'es',
         sourcemap: true
       },
       {
-        file: 'dist/cjs/cli.js',
+        file: 'dist/cjs/cli.cjs',
         format: 'cjs',
         sourcemap: true
       },
@@ -49,12 +49,7 @@ export default [
       typescript({
         tsconfig: 'tsconfig.build.json',
         inlineSources: true,
-      }),
-      {
-        closeBundle() {
-          exec('npm run postrollup')
-        }
-      }
+      })
     ]
   }
 ];

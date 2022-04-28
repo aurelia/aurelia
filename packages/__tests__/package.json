@@ -6,6 +6,7 @@
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
+  "type": "module",
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts .",
     "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives .",
@@ -20,7 +21,7 @@
     "test-node:store-v1": "npm run ::mocha --  dist/esm/__tests__/store-v1/*.spec.js",
     "test-node:validation": "npm run ::mocha -- dist/esm/__tests__/validation*/**/*.spec.js",
     "test-chrome": "karma start karma.conf.cjs --browsers=ChromeHeadlessOpt --single-run --coverage --no-auto-watch",
-    "test-firefox": "karma start karma.conf.cjs --browsers=FirefoxHeadless --single-run --coverage",
+    "test-firefox": "karma start karma.conf.cjs --browsers=FirefoxHeadless --single-run --coverage --no-auto-watch",
     "test-firefox:verbose": "karma start karma.conf.cjs --browsers=FirefoxHeadless --single-run --coverage --reporter=mocha",
     "test-firefox:debugger": "karma start karma.conf.cjs --browsers=Firefox --watch-extensions js,html",
     "test-node:verbose": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha ---ui bdd --reporter spec --colors --recursive --timeout 5000 --exit dist/esm/__tests__/setup-node.js dist/esm/__tests__/**/*.spec.js --exclude dist/esm/__tests__/integration/**/*.spec.js --exclude dist/esm/__tests__/store-v1/**/*.spec.js",

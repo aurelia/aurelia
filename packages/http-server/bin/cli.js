@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S node --input-type=module
 /* eslint-disable import/extensions */
 
-import '../dist/esm/cli.js';
+require('../dist/cjs/cli.cjs');

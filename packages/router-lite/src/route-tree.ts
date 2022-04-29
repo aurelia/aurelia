@@ -178,12 +178,6 @@ export class RouteNode implements IRouteNode {
     child.setTree(this.tree);
   }
 
-  public appendChildren(...children: readonly RouteNode[]): void {
-    for (const child of children) {
-      this.appendChild(child);
-    }
-  }
-
   public clearChildren(): void {
     for (const c of this.children) {
       c.clearChildren();
@@ -503,7 +497,7 @@ export function createAndAppendNodes(
       }
     case NavigationInstructionType.IRouteViewModel:
     case NavigationInstructionType.CustomElementDefinition: {
-      const rd = RouteDefinition.resolve(vi.component.value);
+      const rd = RouteDefinition.resolve(vi.component.value, node.context.definition);
       const params = vi.params ?? emptyObject;
       const rr = new $RecognizedRoute(
         new RecognizedRoute(
@@ -542,7 +536,13 @@ function createNode(
   }
 
   const rr = ctx.recognize(path);
-  if (rr === null) {
+  log.trace('createNode recognized route: %s', rr);
+  const residue = rr?.residue ?? null;
+  log.trace('createNode residue:', residue);
+  const noResidue = residue === null;
+  // If the residue matches the whole path it means that empty route is configured, but the path in itself is not configured.
+  // Therefore the path matches the configured empty route and puts the whole path into residue.
+  if (rr === null || residue === path) {
     const name = vi.component.value;
     if (name === '') {
       return null;
@@ -550,9 +550,8 @@ function createNode(
     let vp = vi.viewport;
     if (vp === null || vp.length === 0) vp = defaultViewportName;
     const vpa = ctx.getFallbackViewportAgent('dynamic', vp);
-    const fallback = vpa === null ? ctx.definition.fallback : vpa.viewport.fallback;
-    if(fallback === null)
-      throw new Error(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
+    const fallback = vpa !== null ? vpa.viewport.fallback : ctx.definition.fallback;
+    if (fallback === null) throw new Error(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
     // fallback: id -> route -> CEDefn (Route definition)
     // look for a route first
@@ -561,18 +560,15 @@ function createNode(
     if(rd !== void 0) return createFallbackNode(log, rd, node, vi, append);
 
     log.trace(`No route definition for the fallback '${fallback}' is found; trying to recognize the route.`);
-    const rr = ctx.recognize(fallback);
+    const rr = ctx.recognize(fallback, true);
     if(rr !== null) return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
 
     // fallback is not recognized as a configured route; treat as CE and look for a route definition.
     log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
-    return createFallbackNode(log, RouteDefinition.resolve(fallback, ctx), node, vi, append);
+    return createFallbackNode(log, RouteDefinition.resolve(fallback, ctx.definition, ctx), node, vi, append);
   }
 
   // readjust the children wrt. the residue
-  const residue = rr.residue;
-  log.trace('createNode residue:', rr.residue);
-  const noResidue = residue === null;
   (rr as Writable<$RecognizedRoute>).residue = null;
   (vi.component as Writable<ITypedNavigationInstruction_string>).value = noResidue
     ? path
@@ -614,7 +610,7 @@ function createConfiguredNode(
       ));
 
       const router = ctx.container.get(IRouter);
-      const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.container);
+      const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.container, ctx.definition);
 
       log.trace('createConfiguredNode setting the context node');
       childCtx.node = RouteNode.create({
@@ -761,5 +757,8 @@ function createFallbackNode(
       emptyObject
     ),
     null);
+  // Do not pass on any residue. That is if the current path is unconfigured/what/ever ignore the rest after we hit an unconfigured route.
+  // If need be later a special parameter can be created for this.
+  vi.children.length = 0;
   return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
 }

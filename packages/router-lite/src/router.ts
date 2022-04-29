@@ -563,10 +563,11 @@ export class Router {
     viewportAgent: ViewportAgent | null,
     component: CustomElementDefinition,
     container: IContainer,
+    parentDefinition: RouteDefinition | null,
   ): IRouteContext {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
-    const routeDefinition = RouteDefinition.resolve(component.Type);
+    const routeDefinition = RouteDefinition.resolve(component.Type, parentDefinition);
     let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
     if (routeDefinitionLookup === void 0) {
       this.vpaLookup.set(viewportAgent, routeDefinitionLookup = new WeakMap());
@@ -623,10 +624,11 @@ export class Router {
     failedTr: Transition | null,
   ): boolean | Promise<boolean> {
     const lastTr = this.currentTr;
+    const logger = this.logger;
 
     if (trigger !== 'api' && lastTr.trigger === 'api' && lastTr.instructions.equals(instructions)) {
       // User-triggered navigation that results in `replaceState` with the same URL. The API call already triggered the navigation; event is ignored.
-      this.logger.debug(`Ignoring navigation triggered by '%s' because it is the same URL as the previous navigation which was triggered by 'api'.`, trigger);
+      logger.debug(`Ignoring navigation triggered by '%s' because it is the same URL as the previous navigation which was triggered by 'api'.`, trigger);
       return true;
     }
 
@@ -639,7 +641,7 @@ export class Router {
     } else {
       // Ensure that `await router.load` only resolves when the transition truly finished, so chain forward on top of
       // any previously failed transition that caused a recovering backwards navigation.
-      this.logger.debug(`Reusing promise/resolve/reject from the previously failed transition %s`, failedTr);
+      logger.debug(`Reusing promise/resolve/reject from the previously failed transition %s`, failedTr);
       promise = failedTr.promise!;
       resolve = failedTr.resolve!;
       reject = failedTr.reject!;
@@ -666,7 +668,7 @@ export class Router {
       error: void 0,
     });
 
-    this.logger.debug(`Scheduling transition: %s`, nextTr);
+    logger.debug(`Scheduling transition: %s`, nextTr);
 
     if (this.activeNavigation === null) {
       // Catch any errors that might be thrown by `run` and reject the original promise which is awaited down below
@@ -678,10 +680,18 @@ export class Router {
     }
 
     return nextTr.promise!.then(ret => {
-      this.logger.debug(`Transition succeeded: %s`, nextTr);
+      logger.debug(`Transition succeeded: %s`, nextTr);
       return ret;
     }).catch(err => {
-      this.logger.error(`Navigation failed: %s`, nextTr, err);
+      logger.error(`Navigation failed: %s`, nextTr, err);
+      this.activeNavigation = null;
+      const $nextTr = this.nextTr;
+      // because the navigation failed it makes sense to restore the previous route-tree so that with next navigation, lifecycle hooks are correctly invoked.
+      if($nextTr !== null) {
+        ($nextTr as Writable<Transition>).previousRouteTree = nextTr.previousRouteTree;
+      } else {
+        this._routeTree = nextTr.previousRouteTree;
+      }
       throw err;
     });
   }

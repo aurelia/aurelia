@@ -12,7 +12,7 @@ import {
   ICustomElementViewModel,
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
-import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller.js';
+import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
 
 import type { Scope } from '@aurelia/runtime';
 

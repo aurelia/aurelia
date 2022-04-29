@@ -1,6 +1,6 @@
 import { emptyArray } from '@aurelia/kernel';
 import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
-import { hasOwnProperty, isString } from '../utilities.js';
+import { hasOwnProperty, isString } from '../utilities';
 
 import type { IAccessor } from '@aurelia/runtime';
 

@@ -1,5 +1,5 @@
 import { DI, Registration } from '@aurelia/kernel';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../shared.js';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../shared';
 import type { Constructable, IContainer } from '@aurelia/kernel';
 
 type FuncPropNames<T> = {

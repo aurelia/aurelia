@@ -1,14 +1,14 @@
 import { DI, InstanceProvider, onResolve, resolveAll, ILogger } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
-import { INode } from './dom.js';
-import { IAppTask } from './app-task.js';
-import { CustomElement } from './resources/custom-element.js';
-import { Controller, IControllerElementHydrationInstruction } from './templating/controller.js';
+import { INode } from './dom';
+import { IAppTask } from './app-task';
+import { CustomElement } from './resources/custom-element';
+import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
-import type { TaskSlot } from './app-task.js';
-import type { ICustomElementViewModel, ICustomElementController } from './templating/controller.js';
-import type { IPlatform } from './platform.js';
+import type { TaskSlot } from './app-task';
+import type { ICustomElementViewModel, ICustomElementController } from './templating/controller';
+import type { IPlatform } from './platform';
 
 export interface ISinglePageApp {
   host: HTMLElement;

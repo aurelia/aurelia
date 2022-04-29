@@ -1,5 +1,5 @@
 import { DI, emptyArray, Protocol, Registration, all } from '@aurelia/kernel';
-import { appendAnnotationKey, appendResourceKey, defineMetadata, getResourceKeyFor } from '../shared.js';
+import { appendAnnotationKey, appendResourceKey, defineMetadata, getResourceKeyFor } from '../shared';
 import type { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
 
 export interface AttributePatternDefinition {

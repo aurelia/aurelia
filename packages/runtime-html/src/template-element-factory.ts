@@ -1,6 +1,6 @@
 import { DI } from '@aurelia/kernel';
-import { IPlatform } from './platform.js';
-import { isString } from './utilities.js';
+import { IPlatform } from './platform';
+import { isString } from './utilities';
 
 /**
  * Utility that creates a `HTMLTemplateElement` out of string markup or an existing DOM node.

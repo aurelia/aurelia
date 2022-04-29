@@ -16,7 +16,7 @@ import type {
   ISubscriber,
   Scope,
 } from '@aurelia/runtime';
-import type { IWatcherCallback } from '../watch.js';
+import type { IWatcherCallback } from '../watch';
 
 const { enter, exit } = ConnectableSwitcher;
 const { wrap, unwrap } = ProxyObservable;

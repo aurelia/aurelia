@@ -1,9 +1,9 @@
 import { ILogger, nextId, onResolve, resolveAll, Task, TaskAbortError, TaskStatus } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, Scope } from '@aurelia/runtime';
-import { bindable } from '../../bindable.js';
-import { INode, IRenderLocation } from '../../dom.js';
-import { IPlatform } from '../../platform.js';
-import { IInstruction } from '../../renderer.js';
+import { bindable } from '../../bindable';
+import { INode, IRenderLocation } from '../../dom';
+import { IPlatform } from '../../platform';
+import { IInstruction } from '../../renderer';
 import {
   Controller,
   ICustomAttributeController,
@@ -12,10 +12,10 @@ import {
   IHydratedController,
   IHydratedParentController,
   ISyntheticView
-} from '../../templating/controller.js';
-import { IViewFactory } from '../../templating/view.js';
-import { attributePattern, AttrSyntax } from '../attribute-pattern.js';
-import { templateController } from '../custom-attribute.js';
+} from '../../templating/controller';
+import { IViewFactory } from '../../templating/view';
+import { attributePattern, AttrSyntax } from '../attribute-pattern';
+import { templateController } from '../custom-attribute';
 
 @templateController('promise')
 export class PromiseTemplateController implements ICustomAttributeViewModel {

@@ -1,6 +1,6 @@
 // A specific file for primitive of au slot to avoid circular dependencies
 import { DI } from '@aurelia/kernel';
-import { CustomElementDefinition } from './custom-element.js';
+import { CustomElementDefinition } from './custom-element';
 
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections");

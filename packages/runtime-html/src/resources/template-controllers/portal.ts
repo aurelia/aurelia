@@ -1,12 +1,12 @@
 import { nextId, onResolve } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
-import { IRenderLocation, setEffectiveParentNode } from '../../dom.js';
-import { IPlatform } from '../../platform.js';
-import { IViewFactory } from '../../templating/view.js';
-import { templateController } from '../custom-attribute.js';
-import { bindable } from '../../bindable.js';
-import { isString } from '../../utilities.js';
-import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
+import { IRenderLocation, setEffectiveParentNode } from '../../dom';
+import { IPlatform } from '../../platform';
+import { IViewFactory } from '../../templating/view';
+import { templateController } from '../custom-attribute';
+import { bindable } from '../../bindable';
+import { isString } from '../../utilities';
+import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 
 export type PortalTarget<T extends Node & ParentNode = Node & ParentNode> = string | T | null | undefined;
 type ResolvedTarget<T extends Node & ParentNode = Node & ParentNode> = T | null;

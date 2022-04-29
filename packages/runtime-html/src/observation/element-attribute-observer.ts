@@ -1,5 +1,5 @@
 import { LifecycleFlags, subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
-import { isString } from '../utilities.js';
+import { isString } from '../utilities';
 
 import type {
   IObserver,

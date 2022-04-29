@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Config} from '@jest/types';
+import {Config} from '@jest/types';
 
 const DEFAULT_GLOBAL_CONFIG: Config.GlobalConfig = {
   bail: 0,
@@ -47,6 +47,7 @@ const DEFAULT_GLOBAL_CONFIG: Config.GlobalConfig = {
   reporters: [],
   rootDir: '/test_root_dir/',
   runTestsByPath: false,
+  snapshotFormat: {},
   silent: false,
   skipFilter: false,
   testFailureExitCode: 1,
@@ -104,6 +105,7 @@ const DEFAULT_PROJECT_CONFIG: Config.ProjectConfig = {
   skipFilter: false,
   skipNodeResolution: false,
   slowTestThreshold: 5,
+  snapshotFormat: {},
   snapshotResolver: undefined,
   snapshotSerializers: [],
   testEnvironment: 'node',

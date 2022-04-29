@@ -33,15 +33,13 @@ describe("store-v1/store.spec.ts", function () {
       return { ...currentState, foo: param1 + param2 };
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    assert.rejects(() => (store.dispatch as any)(unregisteredAction), UnregisteredActionError);
+    return assert.rejects(() => (store.dispatch as any)(unregisteredAction), UnregisteredActionError);
   });
 
   it("should fail when dispatching non actions", function () {
     const { store } = createTestStore();
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    assert.rejects(async () => store.dispatch(undefined as any), UnregisteredActionError);
+    return assert.rejects(async () => store.dispatch(undefined as any), UnregisteredActionError);
   });
 
   it("should only accept reducers taking at least one parameter", function () {
@@ -58,8 +56,7 @@ describe("store-v1/store.spec.ts", function () {
     const fakeAction = (_: testState) => { /**/ };
 
     store.registerAction("FakeAction", fakeAction as any);
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    assert.rejects(async () => store.dispatch(fakeAction as any), ReducerNoStateError);
+    return assert.rejects(async () => store.dispatch(fakeAction as any), ReducerNoStateError);
   });
 
   it("should also accept false and stop queue", async function () {
@@ -92,8 +89,7 @@ describe("store-v1/store.spec.ts", function () {
     await store.dispatch(fakeAction);
 
     store.unregisterAction(fakeAction);
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    assert.rejects(async () => store.dispatch(fakeAction), UnregisteredActionError);
+    await assert.rejects(async () => store.dispatch(fakeAction), UnregisteredActionError);
   });
 
   it("should not try to unregister previously unregistered actions", function () {
@@ -397,8 +393,8 @@ describe("store-v1/store.spec.ts", function () {
       const fakeAction = (_: testState) => { /**/ };
 
       store.registerAction("FakeAction", fakeAction as any);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      assert.rejects(async () => store.pipe(fakeAction as any).dispatch(), ReducerNoStateError);
+
+      return assert.rejects(async () => store.pipe(fakeAction as any).dispatch(), ReducerNoStateError);
     });
 
     it("should force all reducers to return a new state", function () {
@@ -408,8 +404,10 @@ describe("store-v1/store.spec.ts", function () {
       store.registerAction("FakeActionOk", fakeActionOk);
       store.registerAction("FakeActionNok", fakeActionNok as any);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      assert.rejects(async () => store.pipe(fakeActionNok as any).pipe(fakeActionOk).dispatch(), ReducerNoStateError);
+      return assert.rejects(
+        async () => store.pipe(fakeActionNok as any).pipe(fakeActionOk).dispatch(),
+        ReducerNoStateError
+      );
     });
 
     it("should also accept false and stop queue", function () {
@@ -654,8 +652,7 @@ describe("store-v1/store.spec.ts", function () {
         return { ...currentState, foo: param1 };
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      assert.rejects(() => (store as any).internalDispatch([{ reducer: unregisteredAction, params: ["foo"] }]), UnregisteredActionError);
+      return assert.rejects(() => (store as any).internalDispatch([{ reducer: unregisteredAction, params: ["foo"] }]), UnregisteredActionError);
     });
 
     it("should throw an error when one action of multiple actions is unregistered", function () {
@@ -664,8 +661,7 @@ describe("store-v1/store.spec.ts", function () {
       const unregisteredAction = (currentState: testState) => currentState;
       store.registerAction("RegisteredAction", registeredAction);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      assert.rejects(() => (store as any).internalDispatch([
+      return assert.rejects(() => (store as any).internalDispatch([
         { reducer: registeredAction, params: [] },
         { reducer: unregisteredAction, params: [] }
       ]), UnregisteredActionError);
@@ -678,8 +674,7 @@ describe("store-v1/store.spec.ts", function () {
       const secondUnregisteredAction = (currentState: testState) => currentState;
       store.registerAction("RegisteredAction", registeredAction);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      assert.rejects((store as any).internalDispatch([
+      return assert.rejects((store as any).internalDispatch([
         { reducer: registeredAction, params: [] },
         { reducer: firstUnregisteredAction, params: [] },
         { reducer: secondUnregisteredAction, params: [] }

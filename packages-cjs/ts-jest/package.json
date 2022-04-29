@@ -1,10 +1,12 @@
 {
   "name": "@aurelia/ts-jest",
-  "version": "2.0.0-alpha.28",
+  "version": "2.0.0-alpha.29",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "type": "commonjs",
-  "types": "dist/types/index.d.ts",
+  "exports": {
+    "require": "./dist/cjs/index.js",
+    "import": "./dist/esm/index.js"
+  },
   "typings": "dist/types/index.d.ts",
   "license": "MIT",
   "homepage": "https://aurelia.io",
@@ -34,24 +36,25 @@
     "publish:dev": "npm publish --tag dev",
     "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c",
-    "postrollup": "tsc --emitDeclarationOnly"
+    "postrollup": "tsc --emitDeclarationOnly",
+    "build:packages-cjs": "npm run rollup"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.28",
-    "@aurelia/metadata": "2.0.0-alpha.28",
-    "@aurelia/platform": "2.0.0-alpha.28",
-    "@aurelia/plugin-conventions": "2.0.0-alpha.28",
-    "@aurelia/runtime": "2.0.0-alpha.28",
-    "ts-jest": "^27.0.4"
+    "@aurelia/kernel": "2.0.0-alpha.29",
+    "@aurelia/metadata": "2.0.0-alpha.29",
+    "@aurelia/platform": "2.0.0-alpha.29",
+    "@aurelia/plugin-conventions": "2.0.0-alpha.29",
+    "@aurelia/runtime": "2.0.0-alpha.29",
+    "ts-jest": "^27.1.4"
   },
   "devDependencies": {
-    "@jest/transform": "^27.0.2",
-    "@jest/types": "^27.0.6",
-    "@types/node": "^14.11.5",
-    "typescript": "^4.6.2"
+    "@jest/transform": "^27.5.1",
+    "@jest/types": "^27.5.1",
+    "@types/node": "^14.18.14",
+    "typescript": "^4.6.3"
   },
   "engines": {
     "node": ">=14.17.0"

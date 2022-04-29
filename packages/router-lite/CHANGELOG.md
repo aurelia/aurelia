@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.29"></a>
+# 2.0.0-alpha.29 (2022-04-27)
+
+### Features:
+
+* **router-lite:** global fallback support ([ac9dd1d](https://github.com/aurelia/aurelia/commit/ac9dd1d))
+
+
+### Bug Fixes:
+
+* **router-lite:** eslint issues ([77c4191](https://github.com/aurelia/aurelia/commit/77c4191))
+* **router-lite:** smoke tests ([8e30e43](https://github.com/aurelia/aurelia/commit/8e30e43))
+* **router:** sibling-viewport resolution ([6ed9996](https://github.com/aurelia/aurelia/commit/6ed9996))
+
+
+### Refactorings:
+
+* **router-lite:** removal of direct routing wip ([80de920](https://github.com/aurelia/aurelia/commit/80de920))
+
 <a name="2.0.0-alpha.28"></a>
 # 2.0.0-alpha.28 (2022-04-16)
 

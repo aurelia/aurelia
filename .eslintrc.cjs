@@ -21,6 +21,10 @@ module.exports = {
   env: {
     es6: true
   },
+  ignorePatterns: [
+    'rollup.config.js',
+    'karma.conf.cjs'
+  ],
   globals: {
     MutationObserver: 'readonly',
     SharedArrayBuffer: 'readonly',
@@ -260,6 +264,11 @@ module.exports = {
       '@typescript-eslint/no-var-requires': 'off',
       'import/no-nodejs-modules': 'off',
       'import/no-extraneous-dependencies': 'off',
+      // scripts probably don't need the following either
+      '@typescript-eslint/strict-boolean-expressions': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
     }
   }],
 };

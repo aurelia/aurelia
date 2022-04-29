@@ -14,7 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@azure/cosmos": "^3.9.3",
+    "@azure/cosmos": "^3.15.1",
     "@benchmarking-apps/test-result": "1.0.0"
   },
   "engines": {

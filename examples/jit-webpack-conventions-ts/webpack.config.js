@@ -13,9 +13,9 @@ module.exports = function (env, { mode }) {
       mainFields: ['module', 'main'],
       // sadly these fallbacks are required to run the app via webpack-dev-server
       fallback: {
-        'html-entities': require.resolve('html-entities/'),
-        'url': require.resolve('url/'),
-        'events': require.resolve('events/'),
+        'html-entities': require.resolve('html-entities'),
+        'url': require.resolve('url'),
+        'events': require.resolve('events'),
       },
     },
     devServer: {

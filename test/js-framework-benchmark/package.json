@@ -1,0 +1,53 @@
+{
+  "name": "js-framework-benchmark",
+  "version": "1.0.0",
+  "description": "Simple Benchmark for Javascript client side rendering",
+  "scripts": {
+    "clean": "node cleanup.js",
+    "build": "node rebuild-all.js",
+    "build-prod": "node rebuild-all.js",
+    "compile": "node rebuild-all.js",
+    "start": "ws -c lws.config.js --static.maxage 1 -d . --spa index.html",
+    "ci": "npm ci && npm run install-local && npm run build-prod && npm-run-all -p start bench-all",
+    "bench": "cd webdriver-ts && cross-env LANG=\"en_US.UTF-8\" node dist/benchmarkRunner.js",
+    "results": "cd webdriver-ts && npm run results",
+    "bench-all": "cd webdriver-ts && npm run bench && npm run results",
+    "bench-local": "cd webdriver-ts && npm run bench -- --framework aurelia2-local && npm run results",
+    "selenium": "cd webdriver-ts && npm run bench && npm run results",
+    "compile-webdriver-ts": "cd webdriver-ts && npm run compile",
+    "install-webdriver-ts": "cd webdriver-ts && npm install && npm run compile",
+    "install-webdriver-ts-results": "cd webdriver-ts-results && npm install --force",
+    "install-local": "npm run install-webdriver-ts && npm run install-webdriver-ts-results"
+  },
+  "keywords": [
+    "benchmark",
+    "javascript",
+    "frontend",
+    "client",
+    "react",
+    "angular",
+    "mithril"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krausest/js-framework-benchmark.git"
+  },
+  "author": "Stefan Krause",
+  "license": "ISC",
+  "homepage": "https://github.com/krausest/js-framework-benchmark",
+  "dependencies": {
+    "command-exists": "^1.2.9",
+    "cross-env": "^7.0.2",
+    "fs-extra": "9.0.0",
+    "json5": "^2.2.0",
+    "local-web-server": "4.1.0",
+    "lodash": "^4.17.15",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.2",
+    "yargs": "^15.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^14.18.14",
+    "lerna": "^3.22.1"
+  }
+}

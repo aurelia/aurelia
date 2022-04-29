@@ -1,0 +1,50 @@
+{
+  "name": "@benchmarking-apps/krauset-aurelia2-local",
+  "description": "Benchmark for aurelia 2 framework",
+  "private": true,
+  "js-framework-benchmark": {
+    "frameworkVersionFromPackage": "@aurelia/kernel",
+    "customURL": "/dist"
+  },
+  "version": "1.0.0",
+  "dependencies": {
+    "@aurelia/kernel": "2.0.0-alpha.29",
+    "@aurelia/metadata": "2.0.0-alpha.29",
+    "@aurelia/platform": "2.0.0-alpha.29",
+    "@aurelia/platform-browser": "2.0.0-alpha.29",
+    "@aurelia/runtime-html": "2.0.0-alpha.29",
+    "@aurelia/runtime": "2.0.0-alpha.29"
+  },
+  "devDependencies": {
+    "@types/node": "^14.18.14",
+    "@typescript-eslint/eslint-plugin": "^5.20.0",
+    "@typescript-eslint/parser": "^5.20.0",
+    "autoprefixer": "^10.4.5",
+    "css-loader": "^6.7.1",
+    "eslint": "^8.14.0",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.5.0",
+    "htmlhint": "^0.15.1",
+    "postcss": "^8.3.5",
+    "postcss-loader": "^6.2.1",
+    "rimraf": "^3.0.2",
+    "style-loader": "^3.3.1",
+    "ts-loader": "^9.2.8",
+    "typescript": "^4.3.4",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.72.0",
+    "webpack-bundle-analyzer": "^4.5.0",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.8.1"
+  },
+  "scripts": {
+    "lint:js": "eslint src test --ext .js,.ts",
+    "lint:html": "htmlhint -c .htmlhintrc src",
+    "_lint": "npm run lint:js && npm run lint:html",
+    "start": "webpack serve",
+    "build-dev": "rimraf dist && webpack --env development",
+    "build-prod": "rimraf dist && webpack --env production",
+    "build": "rimraf dist && webpack --env production",
+    "analyze": "rimraf dist && webpack --env production --analyze"
+  }
+}

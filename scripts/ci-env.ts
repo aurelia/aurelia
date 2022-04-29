@@ -4,7 +4,7 @@ import { c, createLogger } from './logger';
 
 const log = createLogger('ci-env');
 
-function toBoolean(value: any): boolean {
+function toBoolean(value: unknown): boolean {
   if (value === true || value === 'true' || value === 1) {
     return true;
   }
@@ -14,7 +14,7 @@ function toBoolean(value: any): boolean {
   return false;
 }
 
-function toNumber(value: any): number {
+function toNumber(value: unknown): number {
   if (typeof value === 'number') {
     return isNaN(value) ? 0 : value;
   }
@@ -24,19 +24,20 @@ function toNumber(value: any): number {
   return 0;
 }
 
-function toString(value: any): string {
+function toString(value: unknown): string {
   if (typeof value === 'string') {
     return value;
   }
   if (value === null || value === undefined) {
     return '';
   }
+  // eslint-disable-next-line
   return value.toString();
 }
 
 const seenVariables = {};
 
-function logVariable(value: any, name: string): any {
+function logVariable<T>(value: T, name: string): T {
   if (seenVariables[name] !== value) {
     seenVariables[name] = value;
     log(`${c.grey('process.env.')}${c.white(name)}${c.grey(':')} ${c.yellowBright(value)} (${c.grey(typeof value)})`);
@@ -44,7 +45,7 @@ function logVariable(value: any, name: string): any {
   return value;
 }
 
-function logSecretVariable(value: any, name: string): any {
+function logSecretVariable<T extends string>(value: T, name: string): T {
   logVariable(`<secret, len=${value.length}>`, name);
   return value;
 }
@@ -232,6 +233,10 @@ export class CIEnv {
   public static get CIRCLE_TOKEN(): string {
     return logSecretVariable(toString(process.env.CIRCLE_TOKEN), 'CIRCLE_TOKEN');
   }
+  // for v2 api
+  public static get CIRCLE_API_TOKEN(): string {
+    return logSecretVariable(toString(process.env.CIRCLE_API_TOKEN), 'CIRCLE_TOKEN');
+  }
   public static get GITHUB_TOKEN(): string {
     return logSecretVariable(toString(process.env.GITHUB_TOKEN), 'GITHUB_TOKEN');
   }
@@ -255,7 +260,8 @@ export class CIEnv {
     return logVariable(val || 'localhost', 'APP_HOST');
   }
 
-  public static async circleGet(path: string): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public static async circleGet(_path: string): Promise<any> {
     return new Promise((resolve, reject) => {
       https.get({
         headers: {
@@ -269,6 +275,7 @@ export class CIEnv {
         let data = '';
 
         res.on('data', chunk => {
+          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
           data += chunk;
         });
 
@@ -281,7 +288,7 @@ export class CIEnv {
     });
   }
 
-  public static async githubPost(path: string, body: any): Promise<any> {
+  public static async githubPost(path: string, _body: unknown): Promise<unknown> {
     return new Promise((resolve, reject) => {
       https.get({
         headers: {
@@ -296,6 +303,7 @@ export class CIEnv {
         let data = '';
 
         res.on('data', chunk => {
+          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
           data += chunk;
         });
 

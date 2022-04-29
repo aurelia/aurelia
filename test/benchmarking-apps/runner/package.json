@@ -3,15 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "devDependencies": {
-    "@aurelia/http-server": "2.0.0-alpha.28",
+    "@aurelia/http-server": "2.0.0-alpha.29",
     "@benchmarking-apps/storage": "1.0.0",
-    "@types/mocha": "^8.0.3",
-    "@types/node": "^14.11.5",
-    "@types/uuid": "^8.3.1",
-    "mocha": "^8.4.0",
-    "playwright": "^1.14.0",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^14.18.14",
+    "@types/uuid": "^8.3.4",
+    "mocha": "^9.2.2",
+    "playwright": "^1.21.1",
     "tree-kill": "^1.2.2",
-    "typescript": "^4.6.2",
+    "typescript": "^4.6.3",
     "uuid": "^8.3.1"
   },
   "scripts": {

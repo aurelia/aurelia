@@ -1,7 +1,8 @@
-dist
-node_modules
-.eslintrc.cjs
-scripts/*.js
-test/router-*
-test/routing-*
-packages/*.js
+**/dist
+**/node_modules
+**/*.js
+**/*.cjs
+
+examples/*
+test/js-framework-benchmark
+docs

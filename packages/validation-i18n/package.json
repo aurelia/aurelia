@@ -1,12 +1,14 @@
 {
   "name": "@aurelia/validation-i18n",
-  "version": "2.0.0-alpha.28",
-  "main": "dist/esm/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
+  "version": "2.0.0-alpha.29",
+  "main": "dist/cjs/index.cjs",
+  "module": "dist/esm/index.mjs",
+  "exports": {
+    "require": "./dist/cjs/index.cjs",
+    "import": "./dist/esm/index.mjs"
+  },
   "typings": "dist/types/index.d.ts",
   "license": "MIT",
-  "type": "module",
   "homepage": "https://aurelia.io",
   "repository": {
     "type": "git",
@@ -30,31 +32,32 @@
   "sideEffects": false,
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
-    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "publish:dev": "npm publish --tag dev",
     "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c",
-    "postrollup": "tsc --emitDeclarationOnly"
+    "postrollup": "tsc --emitDeclarationOnly",
+    "build:packages": "npm run rollup"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/i18n": "2.0.0-alpha.28",
-    "@aurelia/kernel": "2.0.0-alpha.28",
-    "@aurelia/metadata": "2.0.0-alpha.28",
-    "@aurelia/platform": "2.0.0-alpha.28",
-    "@aurelia/platform-browser": "2.0.0-alpha.28",
-    "@aurelia/runtime": "2.0.0-alpha.28",
-    "@aurelia/runtime-html": "2.0.0-alpha.28",
-    "@aurelia/validation": "2.0.0-alpha.28",
-    "@aurelia/validation-html": "2.0.0-alpha.28",
+    "@aurelia/i18n": "2.0.0-alpha.29",
+    "@aurelia/kernel": "2.0.0-alpha.29",
+    "@aurelia/metadata": "2.0.0-alpha.29",
+    "@aurelia/platform": "2.0.0-alpha.29",
+    "@aurelia/platform-browser": "2.0.0-alpha.29",
+    "@aurelia/runtime": "2.0.0-alpha.29",
+    "@aurelia/runtime-html": "2.0.0-alpha.29",
+    "@aurelia/validation": "2.0.0-alpha.29",
+    "@aurelia/validation-html": "2.0.0-alpha.29",
     "i18next": "^17.0.0"
   },
   "devDependencies": {
-    "typescript": "^4.6.2"
+    "typescript": "^4.6.3"
   },
   "engines": {
     "node": ">=14.17.0"

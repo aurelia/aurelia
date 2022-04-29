@@ -52,6 +52,7 @@ export function rollupTypeScript(overrides) {
     sourceMap: true,
     include: ['../global.d.ts', 'src/**/*.ts'],
     noEmitOnError: false,
+    removeComments: true,
     ...overrides,
   });
 }
@@ -121,13 +122,14 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
     NO_MINIFIED: process.env.NO_MINIFIED
   };
   const inputFile = 'src/index.ts';
-  const esmDevDist = 'dist/esm/index.dev.js';
-  const cjsDevDist = 'dist/cjs/index.dev.js';
-  const esmDist = 'dist/esm/index.js';
-  const cjsDist = 'dist/cjs/index.js';
+  const esmDevDist = 'dist/esm/index.dev.mjs';
+  const cjsDevDist = 'dist/cjs/index.dev.cjs';
+  const esmDist = 'dist/esm/index.mjs';
+  const cjsDist = 'dist/cjs/index.cjs';
   /** @type {import('rollup').WarningHandlerWithDefault} */
   const onWarn = (warning, warn) => {
     if (warning.code === 'CIRCULAR_DEPENDENCY') return;
+    if (warning.message.includes('Mixing named and default exports')) return;
     warn(warning);
   };
 

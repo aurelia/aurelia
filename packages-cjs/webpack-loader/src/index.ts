@@ -1,6 +1,8 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import { getOptions } from 'loader-utils';
-import type * as webpack from 'webpack';
+// @ts-ignore
+import webpack from 'webpack';
 
 export default function (
   // @ts-ignore TODO: fix types

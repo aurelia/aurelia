@@ -7,7 +7,6 @@ export interface AttributePatternDefinition {
   symbols: string;
 }
 
-/** @internal */
 export interface ICharSpec {
   chars: string;
   repeat: boolean;
@@ -134,7 +133,6 @@ export class Interpretation {
   }
 }
 
-/** @internal */
 export class State {
   public nextStates: State[] = [];
   public types: SegmentTypes | null = null;

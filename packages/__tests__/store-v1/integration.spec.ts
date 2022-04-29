@@ -71,8 +71,7 @@ describe("store-v1/integration.spec.ts", function () {
     @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>`, isStrictBinding: true })
     class App { }
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    assert.rejects(async () => createFixture({ component: App, initialState: null }));
+    return assert.rejects(() => createFixture({ component: App, initialState: null }));
   });
 
   it("should inject the proper store for connectTo", async function () {

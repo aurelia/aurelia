@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/require-array-sort-compare */
-/* eslint-disable @typescript-eslint/explicit-member-accessibility */
+/* eslint-disable */
 import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from "@aurelia/testing";
 

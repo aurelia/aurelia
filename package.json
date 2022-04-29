@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-alpha.28",
+  "version": "2.0.0-alpha.29",
   "workspaces": [
     "packages/__tests__",
     "packages/__e2e__/router-configured-basic",
@@ -48,7 +48,8 @@
     "test/benchmarking-apps/storage",
     "test/benchmarking-apps/test-result",
     "test/benchmarking-apps/viewer/server",
-    "test/benchmarking-apps/viewer/client"
+    "test/benchmarking-apps/viewer/client",
+    "test/js-framework-benchmark/frameworks/keyed/aurelia2-local"
   ],
   "license": "MIT",
   "engines": {
@@ -59,20 +60,22 @@
     "commit": "git-cz",
     "init": "npm ci && npm run build",
     "rebuild": "npm run clean && npm run build",
-    "build": "lage build --scope @aurelia/* --scope aurelia --scope au --scope @benchmarking-apps/* --no-cache --verbose --no-deps",
-    "build:test": "cross-env NO_MINIFIED=true __DEV__=true lage run rollup --scope @aurelia/* --scope aurelia --scope au --scope @benchmarking-apps/* --no-cache --verbose --no-deps",
+    "build": "lage build --scope @aurelia/* --scope aurelia --scope au --no-cache --verbose --no-deps",
+    "build:test": "cross-env NO_MINIFIED=true __DEV__=true lage run rollup --scope @aurelia/* --scope aurelia --scope au --no-cache --verbose --no-deps",
+    "build:packages": "cross-env NO_MINIFIED=true __DEV__=true lage run build:packages --no-cache --verbose --no-deps",
+    "build:packages-cjs": "cross-env NO_MINIFIED=true __DEV__=true lage run build:packages-cjs --no-cache --verbose --no-deps",
     "build:release": "lage run rollup --scope aurelia --scope au --scope @aurelia/a* --scope @aurelia/b* --scope @aurelia/f* --scope @aurelia/h* --scope @aurelia/i* --scope @aurelia/k* --scope @aurelia/m* --scope @aurelia/p* --scope @aurelia/r* --scope @aurelia/s* --scope @aurelia/t* --scope @aurelia/v* --scope @aurelia/w* --no-cache --verbose --no-deps",
     "postbuild:release": "npm run clean:tsconfig-build-cache",
     "build:release:full": "npm run build:release && npm run change-tsconfigs:invert && npm run build:release && npm run change-tsconfigs:restore",
     "build:release-script": "tsc --project scripts/tsconfig.release-script.json",
     "change-package-refs:dev": "ts-node -P tsconfig.json scripts/change-package-refs.ts dev",
     "change-package-refs:release": "ts-node -P tsconfig.json scripts/change-package-refs.ts release",
-    "clean": "rimraf dist packages/*/dist packages-cjs/*/dist test/*/dist test/benchmarking-apps/*/dist examples/*/dist",
+    "clean": "rimraf dist packages/*/dist packages-cjs/*/dist test/*/dist test/benchmarking-apps/*/dist examples/*/dist test/js-framework-benchmark/*/dist",
     "clean:tsconfig-build-cache": "rimraf packages/*/dist/tsconfig.tsbuildinfo packages-cjs/*/dist/tsconfig.tsbuildinfo",
     "clean:lint": "rimraf .eslintcache packages/*/.eslintcache packages-cjs/*/.eslintcache",
     "lint": "npm run lint:packages && npm run lint:other",
-    "lint:other": "eslint --cache --ext .js,.ts examples scripts test",
-    "lint:other:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives examples scripts test",
+    "lint:other": "eslint --cache --ext .js,.ts scripts",
+    "lint:other:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives scripts",
     "lint:packages": "lage run lint",
     "lint:packages:ci": "lage run lint:ci",
     "change-tsconfigs:esm": "ts-node -P tsconfig.json scripts/change-tsconfigs.ts esm",
@@ -81,9 +84,9 @@
     "change-tsconfigs:restore": "ts-node -P tsconfig.json scripts/change-tsconfigs.ts restore",
     "prepare-release": "ts-node -P tsconfig.json scripts/prepare-release.ts",
     "generate-native-modules": "ts-node -P tsconfig.json scripts/generate-native-modules.ts",
-    "publish:dev": "node scripts/publish.js dev",
-    "publish:latest": "node scripts/publish.js latest",
-    "bump-version:dev": "ts-node -P tsconfig.json scripts/bump-version.ts dev",
+    "publish:dev": "ts-node scripts/publish.ts dev --esm",
+    "publish:latest": "npx ts-node scripts/publish.ts latest --esm",
+    "bump-version:dev": "npx ts-node -P tsconfig.json scripts/bump-version.ts dev",
     "bump-version:latest": "ts-node -P tsconfig.json scripts/bump-version.ts latest",
     "check-dependencies": "ts-node -P tsconfig.json scripts/check-dependencies.ts",
     "pregenerate-tests:template-compiler.static": "tsc --resolveJsonModule --module commonjs --moduleResolution node --outDir scripts/dist scripts/generate-tests/template-compiler.static.ts",
@@ -97,27 +100,28 @@
     "test:debugger": "cd packages/__tests__ && npm run test-chrome:debugger"
   },
   "devDependencies": {
-    "@commitlint/cli": "^8.2.0",
-    "@rollup/plugin-replace": "^2.4.2",
-    "@rollup/plugin-typescript": "^8.2.5",
-    "@typescript-eslint/eslint-plugin": "^5.15.0",
-    "@typescript-eslint/parser": "^5.15.0",
+    "@commitlint/cli": "^16.2.3",
+    "@rollup/plugin-replace": "^4.0.0",
+    "@rollup/plugin-typescript": "8.2.5",
+    "@types/fancy-log": "^1.3.1",
+    "@typescript-eslint/eslint-plugin": "^5.20.0",
+    "@typescript-eslint/parser": "^5.20.0",
     "chalk": "^4.1.2",
     "codecov": "^3.8.3",
-    "cross-env": "^7.0.2",
-    "eslint": "^8.11.0",
-    "eslint-plugin-import": "^2.25.4",
-    "eslint-plugin-jsdoc": "^38.0.4",
-    "eslint-plugin-mocha": "^10.0.3",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.14.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsdoc": "^39.2.8",
+    "eslint-plugin-mocha": "^10.0.4",
     "fancy-log": "^1.3.3",
-    "husky": "^4.3.0",
+    "husky": "^4.3.8",
     "lage": "^0.31.2",
     "rimraf": "^3.0.0",
-    "rollup": "^2.56.2",
+    "rollup": "^2.70.2",
     "rollup-plugin-terser": "^7.0.2",
-    "ts-node": "^9.0.0",
-    "tsconfig-paths": "^3.9.0",
-    "typescript": "^4.0.3"
+    "ts-node": "^10.7.0",
+    "tsconfig-paths": "^3.14.1",
+    "typescript": "^4.6.3"
   },
   "commitlint": {
     "rules": {
@@ -188,6 +192,7 @@
   },
   "husky": {
     "hooks": {
+      "pre-commit": "git reset --quiet -- yarn.lock && git checkout --quiet -- yarn.lock",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   }

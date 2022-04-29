@@ -11,7 +11,8 @@ describe('preprocessOptions', function () {
         templateExtensions: ['.haml', '.html', '.jade', '.md', '.pug', '.slim', '.slm'],
         useCSSModule: false,
         hmr: true,
-        enableConventions: true
+        enableConventions: true,
+        hmrModule: 'module'
       }
     );
   });
@@ -29,7 +30,8 @@ describe('preprocessOptions', function () {
         templateExtensions: ['.haml', '.html', '.jade', '.markdown', '.md', '.pug', '.slim', '.slm'],
         useCSSModule: false,
         hmr: true,
-        enableConventions: true
+        enableConventions: true,
+        hmrModule: 'module'
       }
     );
   });
@@ -54,7 +56,8 @@ describe('preprocessOptions', function () {
         useProcessedFilePairFilename: true,
         useCSSModule: false,
         hmr: true,
-        enableConventions: true
+        enableConventions: true,
+        hmrModule: 'module'
       }
     );
   });
@@ -79,7 +82,8 @@ describe('preprocessOptions', function () {
         useCSSModule: true,
         useProcessedFilePairFilename: true,
         hmr: true,
-        enableConventions: true
+        enableConventions: true,
+        hmrModule: 'module'
       }
     );
   });

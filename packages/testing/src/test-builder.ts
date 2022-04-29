@@ -9,7 +9,7 @@ import {
   OverrideContext,
   INodeObserverLocator,
 } from '@aurelia/runtime-html';
-import { createContainer } from './test-context.js';
+import { createContainer } from './test-context';
 // import {
 //   IInstruction,
 //   NodeSequenceFactory,
@@ -18,12 +18,12 @@ import { createContainer } from './test-context.js';
 // import {
 //   FakeView,
 //   FakeViewFactory,
-// } from './fakes.js';
-// import { TestContext } from './html-test-context.js';
+// } from './fakes';
+// import { TestContext } from './html-test-context';
 // import {
 //   defineComponentLifecycleMock,
 //   IComponentLifecycleMock,
-// } from './mocks.js';
+// } from './mocks';
 
 // export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;
 // export type InstructionCb = (builder: InstructionBuilder) => InstructionBuilder;

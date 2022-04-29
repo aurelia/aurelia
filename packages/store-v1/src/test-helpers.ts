@@ -1,6 +1,6 @@
 import { skip, take, delay } from "rxjs/operators";
 
-import type { Store } from './store.js';
+import type { Store } from './store';
 
 export type StepFn<T> = (res: T) => void;
 

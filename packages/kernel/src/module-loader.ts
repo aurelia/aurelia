@@ -1,11 +1,11 @@
-import { DI } from './di.js';
-import { emptyArray } from './platform.js';
-import { Protocol } from './resource.js';
-import { isFunction } from './utilities.js';
+import { DI } from './di';
+import { emptyArray } from './platform';
+import { Protocol } from './resource';
+import { isFunction } from './utilities';
 
-import type { IRegistry } from './di.js';
-import type { Constructable, IDisposable, IIndexable } from './interfaces.js';
-import type { ResourceDefinition } from './resource.js';
+import type { IRegistry } from './di';
+import type { Constructable, IDisposable, IIndexable } from './interfaces';
+import type { ResourceDefinition } from './resource';
 
 export interface IModule {
   [key: string]: unknown;

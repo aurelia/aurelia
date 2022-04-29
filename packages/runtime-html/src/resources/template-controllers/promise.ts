@@ -1,4 +1,5 @@
-import { ILogger, nextId, onResolve, resolveAll, Task, TaskAbortError, TaskStatus } from '@aurelia/kernel';
+import { Task, TaskAbortError, TaskStatus } from '@aurelia/platform';
+import { ILogger, nextId, onResolve, resolveAll } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation } from '../../dom';

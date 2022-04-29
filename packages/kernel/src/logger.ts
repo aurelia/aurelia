@@ -1,10 +1,10 @@
-import { all, DI, IContainer, ignore, IRegistry, optional, Registration } from './di.js';
-import { bound, toLookup } from './functions.js';
-import { Class, Constructable } from './interfaces.js';
-import { getAnnotationKeyFor } from './resource.js';
+import { all, DI, IContainer, ignore, IRegistry, optional, Registration } from './di';
+import { bound, toLookup } from './functions';
+import { Class, Constructable } from './interfaces';
+import { getAnnotationKeyFor } from './resource';
 import { Metadata } from '@aurelia/metadata';
-import { IPlatform } from './platform.js';
-import { createObject, defineMetadata, isFunction } from './utilities.js';
+import { IPlatform } from './platform';
+import { createObject, defineMetadata, isFunction } from './utilities';
 
 export const enum LogLevel {
   /**

@@ -7,11 +7,11 @@ import { isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 
 applyMetadataPolyfill(Reflect, false, false);
 
-import { isArrayIndex, isNativeFunction } from './functions.js';
-import { Class, Constructable, IDisposable } from './interfaces.js';
-import { emptyArray } from './platform.js';
-import { appendAnnotation, getAnnotationKeyFor, IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource.js';
-import { createObject, defineMetadata, getOwnMetadata, isFunction, isString } from './utilities.js';
+import { isArrayIndex, isNativeFunction } from './functions';
+import { Class, Constructable, IDisposable } from './interfaces';
+import { emptyArray } from './platform';
+import { appendAnnotation, getAnnotationKeyFor, IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource';
+import { createObject, defineMetadata, getOwnMetadata, isFunction, isString } from './utilities';
 
 export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 

@@ -1,12 +1,12 @@
 import { IContainer, IRegistry, isObject } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
 
-import { RouteContext } from './route-context.js';
-import { IRouterOptions, IRouter } from './router.js';
+import { RouteContext } from './route-context';
+import { IRouterOptions, IRouter } from './router';
 
-import { ViewportCustomElement } from './resources/viewport.js';
-import { LoadCustomAttribute } from './resources/load.js';
-import { HrefCustomAttribute } from './resources/href.js';
+import { ViewportCustomElement } from './resources/viewport';
+import { LoadCustomAttribute } from './resources/load';
+import { HrefCustomAttribute } from './resources/href';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 

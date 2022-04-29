@@ -1,6 +1,6 @@
 export {
-  IViewport,
-} from './resources/viewport.js';
+  type IViewport,
+} from './resources/viewport';
 
 export {
   RouterConfiguration,
@@ -13,38 +13,44 @@ export {
   LoadCustomAttributeRegistration,
   HrefCustomAttribute,
   HrefCustomAttributeRegistration,
-} from './configuration.js';
+} from './configuration';
 
 export {
-  IRouteViewModel,
+  type IRouteViewModel,
   ComponentAgent,
-} from './component-agent.js';
+} from './component-agent';
+
 export {
-  RouteableComponent,
-  NavigationInstruction,
+  type RouteableComponent,
+  type NavigationInstruction,
   IViewportInstruction,
-  Params,
-} from './instructions.js';
+  type Params,
+} from './instructions';
+
 export {
   ILocationManager,
   IBaseHrefProvider,
-} from './location-manager.js';
+} from './location-manager';
+
 export {
-  Routeable,
-  IRouteConfig,
-  IChildRouteConfig,
-  RouteConfig,
+  type Routeable,
+  type IRouteConfig,
+  type IChildRouteConfig,
+  type RouteConfig,
   Route,
-  RouteType,
+  type RouteType,
   route,
-} from './route.js';
+} from './route';
+
 export {
   IRouteContext,
   RouteContext,
-} from './route-context.js';
+} from './route-context';
+
 export {
   RouteDefinition,
-} from './route-definition.js';
+} from './route-definition';
+
 export {
   AST,
   RouteExpression,
@@ -58,40 +64,45 @@ export {
   ParameterListExpression,
   ParameterExpression,
   ExpressionKind,
-} from './route-expression.js';
+} from './route-expression';
+
 export {
   RouteNode,
   RouteTree,
-} from './route-tree.js';
+} from './route-tree';
+
 export {
   AuNavId,
-  ManagedState,
+  type ManagedState,
   isManagedState,
   toManagedState,
   IRouter,
   Router,
-  IRouterOptions,
-  INavigationOptions,
+  type IRouterOptions,
+  type INavigationOptions,
   RouterOptions,
   NavigationOptions,
   Transition,
   Navigation,
-  ResolutionMode,
-  HistoryStrategy,
-  SameUrlStrategy,
-} from './router.js';
+  type ResolutionMode,
+  type HistoryStrategy,
+  type SameUrlStrategy,
+} from './router';
+
 export {
   IRouterEvents,
-  RouterEvent,
+  type RouterEvent,
   LocationChangeEvent,
   NavigationStartEvent,
   NavigationEndEvent,
   NavigationCancelEvent,
   NavigationErrorEvent,
-} from './router-events.js';
+} from './router-events';
+
 export {
   IStateManager,
-} from './state-manager.js';
+} from './state-manager';
+
 export {
   ViewportAgent,
-} from './viewport-agent.js';
+} from './viewport-agent';

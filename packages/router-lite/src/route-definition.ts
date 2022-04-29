@@ -14,7 +14,7 @@ import {
   TypedNavigationInstruction,
   NavigationInstructionType,
   Params,
-} from './instructions.js';
+} from './instructions';
 import {
   RouteConfig,
   IChildRouteConfig,
@@ -22,18 +22,18 @@ import {
   RouteType,
   Route,
   IRedirectRouteConfig,
-} from './route.js';
+} from './route';
 import {
   IRouteContext,
-} from './route-context.js';
+} from './route-context';
 import {
   isPartialChildRouteConfig,
   isPartialRedirectRouteConfig,
-} from './validation.js';
+} from './validation';
 import {
   ensureArrayOfStrings,
   ensureString,
-} from './util.js';
+} from './util';
 
 export const defaultViewportName = 'default';
 export class RouteDefinition {

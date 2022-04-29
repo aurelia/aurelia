@@ -2,15 +2,15 @@ import { IContainer, ResourceDefinition, DI, InstanceProvider, Registration, ILo
 import { CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
 import { RouteRecognizer, RecognizedRoute } from '@aurelia/route-recognizer';
 
-import { RouteDefinition } from './route-definition.js';
-import { ViewportAgent, ViewportRequest } from './viewport-agent.js';
-import { ComponentAgent, IRouteViewModel } from './component-agent.js';
-import { RouteNode } from './route-tree.js';
-import { IRouter, ResolutionMode } from './router.js';
-import { IViewport } from './resources/viewport.js';
-import { Routeable } from './route.js';
-import { isPartialChildRouteConfig } from './validation.js';
-import { ensureArrayOfStrings } from './util.js';
+import { RouteDefinition } from './route-definition';
+import { ViewportAgent, ViewportRequest } from './viewport-agent';
+import { ComponentAgent, IRouteViewModel } from './component-agent';
+import { RouteNode } from './route-tree';
+import { IRouter, ResolutionMode } from './router';
+import { IViewport } from './resources/viewport';
+import { Routeable } from './route';
+import { isPartialChildRouteConfig } from './validation';
+import { ensureArrayOfStrings } from './util';
 
 export interface IRouteContext extends RouteContext {}
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');

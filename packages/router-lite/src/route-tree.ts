@@ -21,30 +21,30 @@ import {
   Params,
   ViewportInstruction,
   ViewportInstructionTree,
-} from './instructions.js';
+} from './instructions';
 import {
   $RecognizedRoute,
   IRouteContext,
   RESIDUE,
-} from './route-context.js';
+} from './route-context';
 import {
   defaultViewportName,
   RouteDefinition,
-} from './route-definition.js';
+} from './route-definition';
 import {
   ExpressionKind,
   RouteExpression,
   ScopedSegmentExpression,
   SegmentExpression,
-} from './route-expression.js';
+} from './route-expression';
 import {
   emptyQuery,
   IRouter,
   NavigationOptions,
-} from './router.js';
+} from './router';
 import {
   ViewportRequest,
-} from './viewport-agent.js';
+} from './viewport-agent';
 
 export interface IRouteNode {
   path: string;

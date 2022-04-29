@@ -1,16 +1,16 @@
 import { IContainer, ILogger, isObject, DI, IDisposable, onResolve, Writable } from '@aurelia/kernel';
 import { CustomElementDefinition, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
-import { IRouteContext, RouteContext } from './route-context.js';
-import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent } from './router-events.js';
-import { ILocationManager } from './location-manager.js';
-import { RouteType } from './route.js';
-import { IRouteViewModel } from './component-agent.js';
-import { RouteTree, RouteNode, updateRouteTree } from './route-tree.js';
-import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, Params } from './instructions.js';
-import { Batch, mergeDistinct, UnwrapPromise } from './util.js';
-import { RouteDefinition } from './route-definition.js';
-import { ViewportAgent } from './viewport-agent.js';
+import { IRouteContext, RouteContext } from './route-context';
+import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent } from './router-events';
+import { ILocationManager } from './location-manager';
+import { RouteType } from './route';
+import { IRouteViewModel } from './component-agent';
+import { RouteTree, RouteNode, updateRouteTree } from './route-tree';
+import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, Params } from './instructions';
+import { Batch, mergeDistinct, UnwrapPromise } from './util';
+import { RouteDefinition } from './route-definition';
+import { ViewportAgent } from './viewport-agent';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());

@@ -21,7 +21,7 @@ import {
   IValidationMessageProvider,
   ValidationRuleAliasMessage,
   BaseValidationRule,
-} from './rules.js';
+} from './rules';
 import {
   IValidateable,
   ValidationRuleExecutionPredicate,
@@ -31,7 +31,7 @@ import {
   IPropertyRule,
   IValidationExpressionHydrator,
   IValidationRule,
-} from './rule-interfaces.js';
+} from './rule-interfaces';
 
 /**
  * Contract to register the custom messages for rules, during plugin registration.

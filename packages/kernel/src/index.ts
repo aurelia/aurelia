@@ -14,7 +14,7 @@ export {
   type IRegistration,
   type IRegistry,
   type IResolver,
-  type IServiceLocator,
+  IServiceLocator,
   type Key,
   lazy,
   type ILazyResolver,

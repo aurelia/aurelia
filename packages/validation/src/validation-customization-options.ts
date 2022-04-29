@@ -1,8 +1,8 @@
 import { Class } from '@aurelia/kernel';
-import { IValidationExpressionHydrator } from './rule-interfaces.js';
-import { ICustomMessage } from './rule-provider.js';
-import { IValidationMessageProvider } from './rules.js';
-import { IValidator } from './validator.js';
+import { IValidationExpressionHydrator } from './rule-interfaces';
+import { ICustomMessage } from './rule-provider';
+import { IValidationMessageProvider } from './rules';
+import { IValidator } from './validator';
 
 /**
  * Customization options for the plugin.

@@ -59,7 +59,7 @@ map-6: &filter_only_topic
 # # # # # # # # # # # # # # # #
 executors:
 
-  docker-circleci:
+  docker_circleci:
     parameters:
       node:
         type: string
@@ -69,13 +69,13 @@ executors:
     docker:
       - image: "cimg/node:<< parameters.node >>-browsers"
 
-  docker-release:
+  docker_release:
     working_directory: *working_dir
     resource_class: large
     docker:
       - image: "cimg/node:16.14.2"
 
-  docker-circleci-bench:
+  docker_circleci_bench:
     working_directory: *working_dir
     resource_class: large
     docker:
@@ -210,7 +210,7 @@ commands:
 # # # # # # # # # # # # # # # #
 jobs:
   checkout_install_cache:
-    executor: docker-circleci
+    executor: docker_circleci
     steps:
       - checkout
       - restore_cache:
@@ -240,7 +240,7 @@ jobs:
             - packages-cjs/webpack-loader/node_modules
 
   build_and_cache:
-    executor: docker-circleci
+    executor: docker_circleci
     parameters:
       command:
         type: string
@@ -304,7 +304,7 @@ jobs:
       install_firefox:
         type: boolean
         default: false
-    executor: docker-circleci
+    executor: docker_circleci
     parallelism: 4
     steps:
       - checkout_install:
@@ -342,7 +342,7 @@ jobs:
                 path: packages/__tests__/coverage
 
   unit_test_esm_node:
-    executor: docker-circleci
+    executor: docker_circleci
     parallelism: 4
     steps:
       - checkout_install:
@@ -375,7 +375,7 @@ jobs:
       submodules:
         type: boolean
         default: false
-    executor: docker-circleci
+    executor: docker_circleci
     steps:
       - checkout_install
       - restore_cache:
@@ -404,7 +404,7 @@ jobs:
             npm run << parameters.npm_command >>
 
   lint_packages:
-    executor: docker-circleci
+    executor: docker_circleci
     steps:
       - checkout_install:
           install_drivers: false
@@ -416,7 +416,7 @@ jobs:
       - run: npm run lint:other:ci
 
   merge_and_dist:
-    executor: docker-release
+    executor: docker_release
     parameters:
       from:
         type: string
@@ -464,7 +464,7 @@ jobs:
             - run: git push origin << parameters.to >>
 
   publish_npm:
-    executor: docker-release
+    executor: docker_release
     parameters:
       channel:
         type: string
@@ -489,7 +489,7 @@ jobs:
 
   # Standalone playwright test jobs
   e2e_playwright:
-    executor: docker-circleci
+    executor: docker_circleci
     parameters:
       path:
         type: string
@@ -548,7 +548,7 @@ jobs:
             npm run e2e:<< parameters.suite >>
 
   js_framework_benchmark:
-    executor: docker-circleci-bench
+    executor: docker_circleci_bench
     steps:
       - browser-tools/install-browser-tools
       - checkout
@@ -574,7 +574,7 @@ jobs:
 
   # benchmark using playwright setup
   benchmark_playwright:
-    executor: docker-circleci
+    executor: docker_circleci
     steps:
       - checkout
       - run: git checkout master
@@ -623,7 +623,7 @@ jobs:
   # on branches that only touches doc
   # there's no need to run the workflow
   check_doc_abort:
-    executor: docker-circleci
+    executor: docker_circleci
     environment:
       COMMIT_RANGE: << pipeline.git.base_revision >>..<<pipeline.git.revision>>
     steps:

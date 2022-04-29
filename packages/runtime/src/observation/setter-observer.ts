@@ -1,6 +1,6 @@
-import { AccessorType, LifecycleFlags } from '../observation.js';
-import { subscriberCollection } from './subscriber-collection.js';
-import { def, isFunction } from '../utilities-objects.js';
+import { AccessorType, LifecycleFlags } from '../observation';
+import { subscriberCollection } from './subscriber-collection';
+import { def, isFunction } from '../utilities-objects';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type {
@@ -8,8 +8,8 @@ import type {
   InterceptorFunc,
   ISubscriber,
   ISubscriberCollection,
-} from '../observation.js';
-import { FlushQueue, IFlushable, IWithFlushQueue, withFlushQueue } from './flush-queue.js';
+} from '../observation';
+import { FlushQueue, IFlushable, IWithFlushQueue, withFlushQueue } from './flush-queue';
 
 // a reusable variable for `.flush()` methods of observers
 // so that there doesn't need to create an env record for every call

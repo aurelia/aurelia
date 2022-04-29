@@ -1,5 +1,5 @@
 import { Registration } from '@aurelia/kernel';
-import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-objects.js';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-objects';
 import type { Constructable, IResourceKind, ResourceDefinition, IContainer } from '@aurelia/kernel';
 
 export function alias(...aliases: readonly string[]) {

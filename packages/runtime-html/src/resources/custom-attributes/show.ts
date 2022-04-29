@@ -6,7 +6,7 @@ import { customAttribute } from '../custom-attribute';
 import { bindable } from '../../bindable';
 import { IInstruction } from '../../renderer';
 
-import type { ITask } from '@aurelia/runtime';
+import type { ITask } from '@aurelia/platform';
 
 import type { ICustomAttributeViewModel } from '../../templating/controller';
 import type { HydrateAttributeInstruction } from '../../renderer';

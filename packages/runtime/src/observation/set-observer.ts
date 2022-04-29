@@ -1,12 +1,12 @@
-import { createIndexMap, AccessorType, LifecycleFlags, ICollectionSubscriberCollection } from '../observation.js';
-import { CollectionSizeObserver } from './collection-length-observer.js';
-import { subscriberCollection } from './subscriber-collection.js';
-import { def } from '../utilities-objects.js';
+import { createIndexMap, AccessorType, LifecycleFlags, ICollectionSubscriberCollection } from '../observation';
+import { CollectionSizeObserver } from './collection-length-observer';
+import { subscriberCollection } from './subscriber-collection';
+import { def } from '../utilities-objects';
 
 import type {
   ICollectionObserver,
   CollectionKind,
-} from '../observation.js';
+} from '../observation';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();
 

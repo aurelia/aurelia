@@ -3,8 +3,8 @@ import {
   mergeArrays,
   firstDefined,
 } from '@aurelia/kernel';
-import { registerAliases } from './alias.js';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata, isFunction, isString } from './utilities-objects.js';
+import { registerAliases } from './alias';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata, isFunction, isString } from './utilities-objects';
 
 import type {
   Constructable,

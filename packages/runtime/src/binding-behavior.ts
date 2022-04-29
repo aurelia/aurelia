@@ -6,9 +6,9 @@ import {
   DI,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { Collection, IndexMap, LifecycleFlags } from './observation.js';
-import { registerAliases } from './alias.js';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata, isFunction, isString } from './utilities-objects.js';
+import { Collection, IndexMap, LifecycleFlags } from './observation';
+import { registerAliases } from './alias';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata, isFunction, isString } from './utilities-objects';
 
 import type {
   Constructable,
@@ -19,11 +19,11 @@ import type {
   IServiceLocator,
   Key,
 } from '@aurelia/kernel';
-import type { BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
-import type { BindingBehaviorExpression, ForOfStatement, IsBindingBehavior } from './binding/ast.js';
-import type { IObserverLocator } from './observation/observer-locator.js';
-import type { IBinding } from './observation.js';
-import type { Scope } from './observation/binding-context.js';
+import type { BindingObserverRecord, IConnectableBinding } from './binding/connectable';
+import type { BindingBehaviorExpression, ForOfStatement, IsBindingBehavior } from './binding/ast';
+import type { IObserverLocator } from './observation/observer-locator';
+import type { IBinding } from './observation';
+import type { Scope } from './observation/binding-context';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
   strategy?: BindingBehaviorStrategy;

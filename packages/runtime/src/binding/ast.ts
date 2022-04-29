@@ -1,11 +1,11 @@
 import { emptyArray, isArrayIndex, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
-import { LifecycleFlags as LF } from '../observation.js';
-import { BindingContext, Scope } from '../observation/binding-context.js';
-import { ISignaler } from '../observation/signaler.js';
-import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior.js';
-import { ValueConverter, ValueConverterInstance } from '../value-converter.js';
-import { IConnectableBinding } from './connectable.js';
-import { isFunction, isString } from '../utilities-objects.js';
+import { LifecycleFlags as LF } from '../observation';
+import { BindingContext, Scope } from '../observation/binding-context';
+import { ISignaler } from '../observation/signaler';
+import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior';
+import { ValueConverter, ValueConverterInstance } from '../value-converter';
+import { IConnectableBinding } from './connectable';
+import { isFunction, isString } from '../utilities-objects';
 
 import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
 import type {
@@ -15,7 +15,7 @@ import type {
   IOverrideContext,
   IConnectable,
   ISubscriber,
-} from '../observation.js';
+} from '../observation';
 
 export const enum ExpressionKind {
   CallsFunction                 = 0b0000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()

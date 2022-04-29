@@ -4,13 +4,13 @@ import {
   AccessorType,
   ISubscriberCollection,
   ICollectionSubscriberCollection,
-} from '../observation.js';
+} from '../observation';
 import {
   CollectionLengthObserver,
-} from './collection-length-observer.js';
+} from './collection-length-observer';
 import {
   subscriberCollection,
-} from './subscriber-collection.js';
+} from './subscriber-collection';
 
 import type {
   CollectionKind,
@@ -18,8 +18,8 @@ import type {
   IArrayIndexObserver,
   IndexMap,
   ISubscriber,
-} from '../observation.js';
-import { def, defineHiddenProp, isFunction } from '../utilities-objects.js';
+} from '../observation';
+import { def, defineHiddenProp, isFunction } from '../utilities-objects';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 
@@ -154,6 +154,7 @@ function quickSort(arr: unknown[], indexMap: IndexMap, from: number, to: number,
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const proto = Array.prototype as { [K in keyof any[]]: any[][K] & { observing?: boolean } };
 
 const $push = proto.push;
@@ -411,7 +412,7 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
     return this.owner.collection[this.index];
   }
 
-  public setValue(newValue: unknown, flags: LifecycleFlags): void {
+  public setValue(newValue: unknown): void {
     if (newValue === this.getValue()) {
       return;
     }

@@ -43,8 +43,8 @@ import {
   ExpressionKind,
   DestructuringAssignmentSingleExpression as DASE,
   DestructuringAssignmentExpression as DAE,
-} from './ast.js';
-import { createLookup } from '../utilities-objects.js';
+} from './ast';
+import { createLookup } from '../utilities-objects';
 
 export interface IExpressionParser extends ExpressionParser {}
 export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));

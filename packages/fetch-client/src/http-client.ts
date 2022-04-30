@@ -1,7 +1,7 @@
 import { DI, IIndexable } from '@aurelia/kernel';
-import { HttpClientConfiguration } from './http-client-configuration.js';
-import { Interceptor, ValidInterceptorMethodName } from './interfaces.js';
-import { RetryInterceptor } from './retry-interceptor.js';
+import { HttpClientConfiguration } from './http-client-configuration';
+import { Interceptor, ValidInterceptorMethodName } from './interfaces';
+import { RetryInterceptor } from './retry-interceptor';
 
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
 

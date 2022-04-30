@@ -18,9 +18,9 @@ import {
   ISyntheticView,
 } from '@aurelia/runtime-html';
 import { IContainer, Writable } from '@aurelia/kernel';
-import { IRouter } from '../index.js';
-import { ViewportScope, IViewportScopeOptions } from '../endpoints/viewport-scope.js';
-import { ViewportCustomElement } from './viewport.js';
+import { IRouter } from '../index';
+import { ViewportScope, IViewportScopeOptions } from '../endpoints/viewport-scope';
+import { ViewportCustomElement } from './viewport';
 
 export const ParentViewportScope = CustomElement.createInjectable();
 

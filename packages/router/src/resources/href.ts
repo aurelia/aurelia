@@ -1,9 +1,9 @@
 import { IDisposable, IEventAggregator } from '@aurelia/kernel';
 import { customAttribute, INode, bindable, BindingMode, ViewModelKind, ICustomAttributeViewModel, ICustomAttributeController, CustomAttribute } from '@aurelia/runtime-html';
-import { IRouter, RouterNavigationEndEvent } from '../router.js';
-import { LoadCustomAttribute } from '../index.js';
-import { ILinkHandler } from './link-handler.js';
-import { getConsideredActiveInstructions, getLoadIndicator } from './utils.js';
+import { IRouter, RouterNavigationEndEvent } from '../router';
+import { LoadCustomAttribute } from '../index';
+import { ILinkHandler } from './link-handler';
+import { getConsideredActiveInstructions, getLoadIndicator } from './utils';
 
 @customAttribute({
   name: 'href',

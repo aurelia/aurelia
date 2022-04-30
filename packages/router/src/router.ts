@@ -7,22 +7,22 @@
  */
 import { DI, IContainer, Registration, Key, EventAggregator, IEventAggregator, IDisposable, Protocol } from '@aurelia/kernel';
 import { CustomElementType, ICustomElementViewModel, IAppRoot, ICustomElementController } from '@aurelia/runtime-html';
-import { LoadInstruction } from './interfaces.js';
-import { Navigator, NavigatorNavigateEvent } from './navigator.js';
-import { arrayUnique } from './utilities/utils.js';
-import { Viewport } from './endpoints/viewport.js';
-import { IViewportOptions } from './endpoints/viewport-options.js';
-import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { RoutingScope } from './routing-scope.js';
-import { ViewportScope } from './endpoints/viewport-scope.js';
-import { BrowserViewerStore, NavigatorStateChangeEvent } from './browser-viewer-store.js';
-import { Navigation } from './navigation.js';
-import { Endpoint, EndpointTypeName, IConnectedCustomElement } from './endpoints/endpoint.js';
-import { NavigationCoordinator } from './navigation-coordinator.js';
-import { Runner, Step } from './utilities/runner.js';
-import { Title } from './title.js';
-import { RoutingHook } from './routing-hook.js';
-import { IRouterConfiguration } from './index.js';
+import { LoadInstruction } from './interfaces';
+import { Navigator, NavigatorNavigateEvent } from './navigator';
+import { arrayUnique } from './utilities/utils';
+import { Viewport } from './endpoints/viewport';
+import { IViewportOptions } from './endpoints/viewport-options';
+import { RoutingInstruction } from './instructions/routing-instruction';
+import { RoutingScope } from './routing-scope';
+import { ViewportScope } from './endpoints/viewport-scope';
+import { BrowserViewerStore, NavigatorStateChangeEvent } from './browser-viewer-store';
+import { Navigation } from './navigation';
+import { Endpoint, EndpointTypeName, IConnectedCustomElement } from './endpoints/endpoint';
+import { NavigationCoordinator } from './navigation-coordinator';
+import { Runner, Step } from './utilities/runner';
+import { Title } from './title';
+import { RoutingHook } from './routing-hook';
+import { IRouterConfiguration } from './index';
 
 /**
  * The router is the "main entry point" into routing. Its primary responsibilities are

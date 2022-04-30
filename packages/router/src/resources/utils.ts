@@ -1,9 +1,9 @@
 import { ConsideredActiveCustomAttribute } from './considered-active';
 import { IEventAggregator } from '@aurelia/kernel';
-import { IRouter, RouterStartEvent } from '../router.js';
+import { IRouter, RouterStartEvent } from '../router';
 import { CustomAttribute, IHydratedController } from '@aurelia/runtime-html';
-import { LoadInstruction } from '../interfaces.js';
-import { RoutingInstruction } from '../instructions/routing-instruction.js';
+import { LoadInstruction } from '../interfaces';
+import { RoutingInstruction } from '../instructions/routing-instruction';
 
 /**
  * Get either a provided value or the value of an html attribute,

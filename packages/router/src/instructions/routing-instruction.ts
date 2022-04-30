@@ -1,16 +1,16 @@
-import { InstructionParser } from './instruction-parser.js';
-import { InstructionParameters, Parameters } from './instruction-parameters.js';
-import { InstructionComponent } from './instruction-component.js';
-import { ComponentAppellation, ComponentParameters, LoadInstruction } from '../interfaces.js';
-import { RoutingScope } from '../routing-scope.js';
-import { ViewportScope } from '../endpoints/viewport-scope.js';
-import { FoundRoute } from '../found-route.js';
+import { InstructionParser } from './instruction-parser';
+import { InstructionParameters, Parameters } from './instruction-parameters';
+import { InstructionComponent } from './instruction-component';
+import { ComponentAppellation, ComponentParameters, LoadInstruction } from '../interfaces';
+import { RoutingScope } from '../routing-scope';
+import { ViewportScope } from '../endpoints/viewport-scope';
+import { FoundRoute } from '../found-route';
 import { Endpoint, EndpointType } from '../endpoints/endpoint';
-import { Viewport } from '../endpoints/viewport.js';
+import { Viewport } from '../endpoints/viewport';
 import { CustomElement } from '@aurelia/runtime-html';
-import { IRouter, IRouterConfiguration, Navigation } from '../index.js';
-import { EndpointHandle, InstructionEndpoint } from './instruction-endpoint.js';
-import { Separators } from '../router-options.js';
+import { IRouter, IRouterConfiguration, Navigation } from '../index';
+import { EndpointHandle, InstructionEndpoint } from './instruction-endpoint';
+import { Separators } from '../router-options';
 import { IContainer } from '@aurelia/kernel';
 
 /**

@@ -1,7 +1,7 @@
 import { CustomElementType } from '@aurelia/runtime-html';
 import { Constructable, Metadata, Protocol } from '@aurelia/kernel';
-import { IRoute, Route } from '../route.js';
-import { RouteableComponentType } from '../interfaces.js';
+import { IRoute, Route } from '../route';
+import { RouteableComponentType } from '../interfaces';
 
 export const Routes: {
   name: string;

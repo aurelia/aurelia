@@ -6,7 +6,7 @@ import {
   Endpoint as $Endpoint,
 } from '@aurelia/route-recognizer';
 
-import { Route } from './route.js';
+import { Route } from './route';
 
 declare class $$RouteRecognizer extends $RouteRecognizer<Route> {}
 declare class $$ConfigurableRoute extends $ConfigurableRoute<Route> {}

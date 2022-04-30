@@ -1,8 +1,8 @@
 import { IDisposable, IEventAggregator } from '@aurelia/kernel';
 import { customAttribute, INode, bindable, BindingMode, CustomAttribute, ICustomAttributeViewModel } from '@aurelia/runtime-html';
-import { ILinkHandler } from './link-handler.js';
-import { IRouter, RouterNavigationEndEvent } from '../router.js';
-import { getConsideredActiveInstructions, getLoadIndicator } from './utils.js';
+import { ILinkHandler } from './link-handler';
+import { IRouter, RouterNavigationEndEvent } from '../router';
+import { getConsideredActiveInstructions, getLoadIndicator } from './utils';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {

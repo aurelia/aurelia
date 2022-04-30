@@ -7,17 +7,17 @@
 
 export {
   Endpoint,
-  IConnectedCustomElement,
-  IEndpointOptions,
-} from './endpoints/endpoint.js';
+  type IConnectedCustomElement,
+  type IEndpointOptions,
+} from './endpoints/endpoint';
 
 export {
   EndpointContent,
-} from './endpoints/endpoint-content.js';
+} from './endpoints/endpoint-content';
 
 export {
   FoundRoute,
-} from './found-route.js';
+} from './found-route';
 
 export {
   // ILinkHandlerOptions,
@@ -25,70 +25,70 @@ export {
 
   ILinkHandler,
   LinkHandler,
-} from './resources/link-handler.js';
+} from './resources/link-handler';
 
 export {
   InstructionParameters,
-  Parameters,
-} from './instructions/instruction-parameters.js';
+  type Parameters,
+} from './instructions/instruction-parameters';
 
 export {
   // Navigation,
-  ComponentAppellation,
-  IRouteableComponent,
-  RouteableComponentType,
-  IRoutingInstruction,
-  LoadInstruction,
+  type ComponentAppellation,
+  type IRouteableComponent,
+  type RouteableComponentType,
+  type IRoutingInstruction,
+  type LoadInstruction,
   ReloadBehavior,
-} from './interfaces.js';
+} from './interfaces';
 
 export {
   Navigation,
   NavigationFlags,
-} from './navigation.js';
+} from './navigation';
 
 export {
   NavigationCoordinator,
-  NavigationState,
-} from './navigation-coordinator.js';
+  type NavigationState,
+} from './navigation-coordinator';
 
 export {
   // IStoredNavigatorEntry,
   // INavigatorEntry,
-  INavigatorOptions,
-  INavigatorState,
-  INavigatorStore,
-  INavigatorViewer,
+  type INavigatorOptions,
+  type INavigatorState,
+  type INavigatorStore,
+  type INavigatorViewer,
   Navigator,
-} from './navigator.js';
+} from './navigator';
 
 export {
   Runner,
   Step,
-} from './utilities/runner.js';
+} from './utilities/runner';
 
 // export {
 //   QueueItem,
 //   IQueueOptions,
 //   Queue,
-// } from './utilities/queue.js';
+// } from './utilities/queue';
 
 export {
-  IRoute,
+  type IRoute,
   Route,
-} from './route.js';
+} from './route';
 
 export {
   route,
-} from './decorators/route.js';
+} from './decorators/route';
 
 export {
   RouteRecognizer,
-  IConfigurableRoute,
+  type IConfigurableRoute,
   ConfigurableRoute,
   RecognizedRoute,
   Endpoint as RecognizerEndpoint,
-} from './route-recognizer.js';
+} from './route-recognizer';
 
 export {
   IRouter,
@@ -101,65 +101,65 @@ export {
   RouterNavigationCancelEvent,
   RouterNavigationCompleteEvent,
   RouterNavigationErrorEvent,
-} from './router.js';
+} from './router';
 
 export {
-  IRouterOptions,
-  ITitleOptions,
+  type IRouterOptions,
+  type ITitleOptions,
   RouterOptions,
-} from './router-options.js';
+} from './router-options';
 
 export {
   Routes,
   routes,
-} from './decorators/routes.js';
+} from './decorators/routes';
 
 export {
   RoutingHook,
-  RoutingHookType,
-  IRoutingHookDefinition,
-  RoutingHookFunction,
-  RoutingHookIdentity,
-  RoutingHookParameter,
-  RoutingHookResult,
-  IRoutingHookOptions,
-  RoutingHookTarget,
-  BeforeNavigationHookFunction,
-  TransformFromUrlHookFunction,
-  TransformToUrlHookFunction,
-  TransformTitleHookFunction,
-} from './routing-hook.js';
+  type RoutingHookType,
+  type IRoutingHookDefinition,
+  type RoutingHookFunction,
+  type RoutingHookIdentity,
+  type RoutingHookParameter,
+  type RoutingHookResult,
+  type IRoutingHookOptions,
+  type RoutingHookTarget,
+  type BeforeNavigationHookFunction,
+  type TransformFromUrlHookFunction,
+  type TransformToUrlHookFunction,
+  type TransformTitleHookFunction,
+} from './routing-hook';
 
 export {
   RoutingInstruction,
-} from './instructions/routing-instruction.js';
+} from './instructions/routing-instruction';
 
 export {
-  TransitionAction,
+  type TransitionAction,
   RoutingScope,
-} from './routing-scope.js';
+} from './routing-scope';
 
 export {
   Viewport,
-} from './endpoints/viewport.js';
+} from './endpoints/viewport';
 
 export {
-  IViewportOptions,
+  type IViewportOptions,
   ViewportOptions,
-} from './endpoints/viewport-options.js';
+} from './endpoints/viewport-options';
 
 export {
-  IViewportScopeOptions,
+  type IViewportScopeOptions,
   ViewportScope,
-} from './endpoints/viewport-scope.js';
+} from './endpoints/viewport-scope';
 
 export {
   ViewportContent,
-} from './endpoints/viewport-content.js';
+} from './endpoints/viewport-content';
 
 export {
   ViewportScopeContent,
-} from './endpoints/viewport-scope-content.js';
+} from './endpoints/viewport-scope-content';
 
 export {
   RouterConfiguration,
@@ -171,11 +171,11 @@ export {
   ViewportScopeCustomElementRegistration,
   LoadCustomAttributeRegistration,
   HrefCustomAttributeRegistration,
-} from './configuration.js';
+} from './configuration';
 
-export { ViewportCustomElement } from './resources/viewport.js';
-export { ViewportScopeCustomElement } from './resources/viewport-scope.js';
-export { LoadCustomAttribute } from './resources/load.js';
-export { HrefCustomAttribute } from './resources/href.js';
-export { ConsideredActiveCustomAttribute } from './resources/considered-active.js';
+export { ViewportCustomElement } from './resources/viewport';
+export { ViewportScopeCustomElement } from './resources/viewport-scope';
+export { LoadCustomAttribute } from './resources/load';
+export { HrefCustomAttribute } from './resources/href';
+export { ConsideredActiveCustomAttribute } from './resources/considered-active';
 

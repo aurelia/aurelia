@@ -1,13 +1,13 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
-import { ViewportCustomElement } from './resources/viewport.js';
-import { ViewportScopeCustomElement } from './resources/viewport-scope.js';
-import { LoadCustomAttribute } from './resources/load.js';
-import { HrefCustomAttribute } from './resources/href.js';
-import { ConsideredActiveCustomAttribute } from './resources/considered-active.js';
-import { IRouter, Router } from './router.js';
-import { IRouterOptions, RouterOptions } from './router-options.js';
-import { BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction } from './routing-hook.js';
+import { ViewportCustomElement } from './resources/viewport';
+import { ViewportScopeCustomElement } from './resources/viewport-scope';
+import { LoadCustomAttribute } from './resources/load';
+import { HrefCustomAttribute } from './resources/href';
+import { ConsideredActiveCustomAttribute } from './resources/considered-active';
+import { IRouter, Router } from './router';
+import { IRouterOptions, RouterOptions } from './router-options';
+import { BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction } from './routing-hook';
 
 export const IRouterConfiguration = DI.createInterface<IRouterConfiguration>('IRouterConfiguration', x => x.singleton(RouterConfiguration));
 export interface IRouterConfiguration extends RouterConfiguration { }

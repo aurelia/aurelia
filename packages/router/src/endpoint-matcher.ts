@@ -1,10 +1,10 @@
-import { ViewportScope } from './endpoints/viewport-scope.js';
-import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { Viewport } from './endpoints/viewport.js';
-import { arrayRemove } from './utilities/utils.js';
-import { Collection } from './utilities/collection.js';
-import { RoutingScope } from './routing-scope.js';
-import { IRouter } from './index.js';
+import { ViewportScope } from './endpoints/viewport-scope';
+import { RoutingInstruction } from './instructions/routing-instruction';
+import { Viewport } from './endpoints/viewport';
+import { arrayRemove } from './utilities/utils';
+import { Collection } from './utilities/collection';
+import { RoutingScope } from './routing-scope';
+import { IRouter } from './index';
 
 /**
  * The EndpointMatcher finds endpoints, viewports and viewport scopes, that matches routing instructions' criteria.

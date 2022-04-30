@@ -4,7 +4,7 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { OpenPromise } from './open-promise.js';
+import { OpenPromise } from './open-promise';
 
 export class AwaitableMap<K, V> {
   public map: Map<K, V | OpenPromise<V>> = new Map();

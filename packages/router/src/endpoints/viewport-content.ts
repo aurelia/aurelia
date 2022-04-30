@@ -1,15 +1,15 @@
 import { Constructable, IContainer, Writable } from '@aurelia/kernel';
 import { Controller, LifecycleFlags, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHooksEntry } from '@aurelia/runtime-html';
-import { IRouteableComponent, RouteableComponentType, ReloadBehavior, LoadInstruction } from '../interfaces.js';
-import { Viewport } from './viewport.js';
-import { RoutingInstruction } from '../instructions/routing-instruction.js';
-import { Navigation } from '../navigation.js';
-import { IConnectedCustomElement } from './endpoint.js';
-import { Runner, Step } from '../utilities/runner.js';
-import { AwaitableMap } from '../utilities/awaitable-map.js';
-import { EndpointContent, RoutingScope } from '../index.js';
-import { IRouter } from '../router.js';
-import { FoundRoute } from '../found-route.js';
+import { IRouteableComponent, RouteableComponentType, ReloadBehavior, LoadInstruction } from '../interfaces';
+import { Viewport } from './viewport';
+import { RoutingInstruction } from '../instructions/routing-instruction';
+import { Navigation } from '../navigation';
+import { IConnectedCustomElement } from './endpoint';
+import { Runner, Step } from '../utilities/runner';
+import { AwaitableMap } from '../utilities/awaitable-map';
+import { EndpointContent, RoutingScope } from '../index';
+import { IRouter } from '../router';
+import { FoundRoute } from '../found-route';
 
 /**
  * The viewport content encapsulates the component loaded into a viewport

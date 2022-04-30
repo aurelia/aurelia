@@ -1,6 +1,6 @@
 import { Constructable, Metadata, Protocol, ResourceType, Writable } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime-html';
-import { LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters, RouteableComponentType, ReloadBehavior } from './interfaces.js';
+import { LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters, RouteableComponentType, ReloadBehavior } from './interfaces';
 
 export interface IRoute extends Writable<Partial<Route>> {
   /**

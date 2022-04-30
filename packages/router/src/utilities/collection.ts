@@ -4,7 +4,7 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { arrayRemove } from './utils.js';
+import { arrayRemove } from './utils';
 
 /**
  * @internal - Helper class

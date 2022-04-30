@@ -1,5 +1,5 @@
 import { camelCase } from '@aurelia/kernel';
-import { TranslationBinding } from './translation-binding.js';
+import { TranslationBinding } from './translation-binding';
 import {
   ExpressionType,
   IExpressionParser,

@@ -1,6 +1,6 @@
 import { valueConverter } from '@aurelia/runtime';
-import { I18N } from '../i18n.js';
-import { Signals, ValueConverters } from '../utils.js';
+import { I18N } from '../i18n';
+import { Signals, ValueConverters } from '../utils';
 
 @valueConverter(ValueConverters.relativeTimeValueConverterName)
 export class RelativeTimeValueConverter {

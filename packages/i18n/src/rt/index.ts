@@ -1,2 +1,2 @@
-export * from './relative-time-binding-behavior.js';
-export * from './relative-time-value-converter.js';
+export * from './relative-time-binding-behavior';
+export * from './relative-time-value-converter';

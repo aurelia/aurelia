@@ -12,9 +12,10 @@ import {
   IPlatform,
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';
-import { I18N } from '../i18n.js';
+import { I18N } from '../i18n';
 
-import type { ITask, QueueTaskOptions, IContainer, IServiceLocator } from '@aurelia/kernel';
+import type { ITask, QueueTaskOptions } from '@aurelia/platform';
+import type { IContainer, IServiceLocator } from '@aurelia/kernel';
 import type {
   Scope,
   IsBindingBehavior,

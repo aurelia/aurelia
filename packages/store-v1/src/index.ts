@@ -90,7 +90,7 @@ export {
   type CallingAction,
   DEFAULT_LOCAL_STORAGE_KEY,
   type Middleware,
-  type MiddlewarePlacement,
+  MiddlewarePlacement,
   localStorageMiddleware,
   logMiddleware,
   rehydrateFromLocalStorage,

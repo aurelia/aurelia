@@ -1,5 +1,7 @@
 import {
   LifecycleFlags,
+} from '@aurelia/runtime';
+import {
   AttributeNSAccessor,
   ClassAttributeAccessor,
   DataAttributeAccessor,

@@ -13,11 +13,13 @@ import { IPlatform } from '../platform';
 import { BindingTargetSubscriber } from './binding-utils';
 
 import type {
+  ITask,
+  QueueTaskOptions,
+} from '@aurelia/platform';
+import type {
   ForOfStatement,
   IObserverLocator,
   IsBindingBehavior,
-  ITask,
-  QueueTaskOptions,
   Scope,
 } from '@aurelia/runtime';
 import type { INode } from '../dom';

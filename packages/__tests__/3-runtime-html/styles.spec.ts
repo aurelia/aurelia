@@ -1,4 +1,5 @@
 import { DI, Registration } from '@aurelia/kernel';
+import { LifecycleFlags } from '@aurelia/runtime';
 import {
   CustomAttribute,
   CustomElement,
@@ -13,7 +14,6 @@ import {
   cssModules,
   IShadowDOMGlobalStyles,
   IShadowDOMStyles,
-  LifecycleFlags,
 } from '@aurelia/runtime-html';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 

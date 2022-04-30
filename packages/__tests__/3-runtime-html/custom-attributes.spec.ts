@@ -1,6 +1,6 @@
+import { alias } from '@aurelia/runtime';
 import {
   bindable,
-  alias,
   customAttribute,
   INode,
   CustomAttribute

@@ -1,5 +1,6 @@
 import { TestContext, assert, createFixture } from '@aurelia/testing';
-import { customElement, bindable, BindingMode, Aurelia } from '@aurelia/runtime-html';
+import { customElement, bindable, Aurelia } from '@aurelia/runtime-html';
+import { BindingMode } from '@aurelia/runtime';
 
 async function wait(ms: number): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, ms));

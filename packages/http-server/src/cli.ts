@@ -29,6 +29,9 @@ async function parseArgs(args: string[]): Promise<null | HttpServerOptions> {
           } catch {/*  */}
         }
       }
+      if (config === void 0) {
+        throw new Error('Unable to load configuration');
+      }
       configuration.applyConfig(config);
       args = args.slice(1);
     }

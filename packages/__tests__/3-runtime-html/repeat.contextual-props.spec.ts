@@ -1,9 +1,9 @@
 import {
   noop
 } from '@aurelia/kernel';
+import { ValueConverter } from '@aurelia/runtime';
 import {
   CustomElement,
-  ValueConverter,
   Aurelia,
 } from '@aurelia/runtime-html';
 import {

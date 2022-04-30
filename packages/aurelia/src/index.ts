@@ -75,6 +75,25 @@ export {
 } from '@aurelia/fetch-client';
 
 export {
+  Metadata,
+  // isNullOrUndefined,
+  // isObject,
+  // metadata,
+  // applyMetadataPolyfill,
+} from '@aurelia/metadata';
+
+export {
+  type ITask,
+  Platform,
+  type QueueTaskOptions,
+  Task,
+  TaskAbortError,
+  TaskQueue,
+  TaskQueuePriority,
+  TaskStatus
+} from '@aurelia/platform';
+
+export {
   all,
   DI,
   IContainer,
@@ -133,9 +152,6 @@ export {
   // IfEquals,
   // ReadonlyKeys,
   // WritableKeys,
-
-  // metadata,
-  Metadata,
 
   // IConsoleLike,
   ColorOptions,
@@ -216,6 +232,7 @@ export {
 } from '@aurelia/router-lite';
 
 export {
+  CollectionKind,
   // CallFunctionExpression,
   // connects,
   // observes,
@@ -305,23 +322,12 @@ export {
   // BindingIdentifierOrPattern,
   // UnaryOperator,
 
-  // PropertyBinding,
-
-  // CallBinding,
-
   // IObserverLocatorBasedConnectable,
   // IConnectableBinding,
   // connectable,
 
   // IExpressionParser,
   // ExpressionType,
-
-  // MultiInterpolationBinding,
-  // InterpolationBinding,
-
-  // LetBinding,
-
-  // RefBinding,
 
   // ArrayObserver,
   // enableArrayObservation,
@@ -349,10 +355,6 @@ export {
   // DirtyCheckSettings,
 
   ComputedObserver,
-  ComputedWatcher,
-  ExpressionWatcher,
-  Watch,
-  watch,
 
   // IObjectObservationAdapter,
   IObserverLocator,
@@ -376,6 +378,87 @@ export {
   bindingBehavior,
   BindingBehavior,
   BindingBehaviorInstance,
+  // PartialBindingBehaviorDefinition,
+  // BindingBehaviorKind,
+  // BindingBehaviorDecorator,
+  // BindingBehaviorInstance,
+  // BindingBehaviorType,
+
+  // BindingModeBehavior,
+  // OneTimeBindingBehavior,
+  // ToViewBindingBehavior,
+  // FromViewBindingBehavior,
+  // TwoWayBindingBehavior,
+
+  // DebounceBindingBehavior,
+
+  // SignalableBinding,
+  // SignalBindingBehavior,
+
+  // FrequentMutations,
+  // InfrequentMutations,
+  // ObserveShallow,
+  // ISanitizer,
+  // SanitizeValueConverter,
+
+  // ViewValueConverter,
+
+  observable,
+
+  // IfRegistration,
+  // ElseRegistration,
+  // RepeatRegistration,
+  // ReplaceableRegistration,
+  // WithRegistration,
+
+  // DefaultResources as RuntimeDefaultResources,
+  // IObserverLocatorRegistration,
+  // IRendererRegistration,
+  // RuntimeConfiguration,
+
+  alias,
+  registerAliases,
+
+  BindingMode,
+  // ExpressionKind,
+  // Hooks,
+  LifecycleFlags,
+  // State,
+
+  // CallBindingInstruction,
+  // HydrateAttributeInstruction,
+  // HydrateElementInstruction,
+  // HydrateTemplateController,
+  // InterpolationInstruction,
+  // IteratorBindingInstruction,
+  // LetBindingInstruction,
+  // HydrateLetElementInstruction,
+  // RefBindingInstruction,
+  // SetPropertyInstruction,
+
+  // ViewModelKind,
+  // IBinding,
+  // IViewModel,
+  // IController,
+  // IContainer,
+  // IViewCache,
+  // IViewFactory,
+  // MountStrategy,
+
+  // AccessorOrObserver,
+  // Collection,
+  // CollectionKind,
+  // DelegationStrategy,
+  // IAccessor,
+  // IBindingContext,
+  // ICollectionChangeTracker,
+  // ICollectionObserver,
+  // ICollectionSubscriber,
+  IndexMap,
+
+} from '@aurelia/runtime';
+
+export {
   // PartialBindingBehaviorDefinition,
   // BindingBehaviorKind,
   // BindingBehaviorDecorator,
@@ -443,18 +526,7 @@ export {
 
   // ViewValueConverter,
 
-  // Clock,
-  // IClock,
-  // IClockSettings,
-  // ITask,
-  // TaskQueue,
-  // QueueTaskOptions,
-  // Task,
-  // TaskAbortError,
-  // TaskCallback,
-  // TaskQueue,
   AppTask,
-  TaskQueuePriority,
   // TaskStatus,
   // QueueTaskTargetOptions,
 
@@ -463,8 +535,6 @@ export {
   // BindableDefinition,
   Bindable,
   coercer,
-
-  observable,
 
   // PartialChildrenDefinition,
   // ChildrenDefinition,
@@ -538,33 +608,11 @@ export {
   // IInstruction,
   // InstructionType,
   // PartialCustomElementDefinitionParts,
-  alias,
-  registerAliases,
 
   // DOM, should expose the one exported in runtime-html
   INode,
   IEventTarget,
   IRenderLocation,
-  // NodeSequence,
-  // INodeSequence,
-  // INodeSequenceFactory,
-
-  BindingMode,
-  // ExpressionKind,
-  // Hooks,
-  LifecycleFlags,
-  // State,
-
-  // CallBindingInstruction,
-  // HydrateAttributeInstruction,
-  // HydrateElementInstruction,
-  // HydrateTemplateController,
-  // InterpolationInstruction,
-  // IteratorBindingInstruction,
-  // LetBindingInstruction,
-  // HydrateLetElementInstruction,
-  // RefBindingInstruction,
-  // SetPropertyInstruction,
 
   // ViewModelKind,
   // IBinding,
@@ -586,24 +634,6 @@ export {
   // ICollectionChangeTracker,
   // ICollectionObserver,
   // ICollectionSubscriber,
-  IndexMap,
-  // IObservable,
-  // IObservedArray,
-  // IObservedMap,
-  // IObservedSet,
-  // IOverrideContext,
-  // Scope,
-  // ISubscribable,
-  // ISubscriberCollection,
-  // ObservedCollection,
-  // CollectionObserver,
-  // ICollectionSubscriberCollection,
-  // ICollectionSubscribable,
-  // ISubscriber,
-  // isIndexMap,
-  // copyIndexMap,
-  // cloneIndexMap,
-  // createIndexMap,
 
   renderer,
 

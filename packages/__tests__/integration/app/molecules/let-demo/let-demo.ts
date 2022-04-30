@@ -1,4 +1,5 @@
-import { customElement, valueConverter } from '@aurelia/runtime-html';
+import { valueConverter } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 import template from './let-demo.html';
 
 /**

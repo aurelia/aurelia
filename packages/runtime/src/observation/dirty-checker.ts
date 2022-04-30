@@ -2,7 +2,8 @@ import { DI, IPlatform } from '@aurelia/kernel';
 import { AccessorType, IObserver, ISubscriberCollection, LifecycleFlags } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 
-import type { IIndexable, ITask, QueueTaskOptions } from '@aurelia/kernel';
+import type { ITask, QueueTaskOptions } from '@aurelia/platform';
+import type { IIndexable } from '@aurelia/kernel';
 import type { IObservable, ISubscriber } from '../observation';
 import { FlushQueue, IFlushable, IWithFlushQueue, withFlushQueue } from './flush-queue';
 

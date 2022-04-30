@@ -498,7 +498,7 @@ export {
 
 export {
   // configurations
-  type DialogConfiguration,
+  DialogConfiguration,
   type DialogConfigurationProvider,
   DialogDefaultConfiguration,
 

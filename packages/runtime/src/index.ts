@@ -1,8 +1,4 @@
 export {
-  IPlatform,
-} from '@aurelia/kernel';
-
-export {
   alias,
   registerAliases,
 } from './alias';
@@ -219,5 +215,5 @@ export {
   copyIndexMap,
   cloneIndexMap,
   createIndexMap,
-  type ICoercionConfiguration,
+  ICoercionConfiguration,
 } from './observation';

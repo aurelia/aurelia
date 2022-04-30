@@ -1,5 +1,5 @@
 import { TestContext, assert } from '@aurelia/testing';
-import { QueueTaskOptions, ITask, TaskStatus, TaskQueue } from '@aurelia/runtime';
+import { QueueTaskOptions, ITask, TaskStatus, TaskQueue } from '@aurelia/platform';
 
 function createExposedPromise() {
   let resolve: () => void;

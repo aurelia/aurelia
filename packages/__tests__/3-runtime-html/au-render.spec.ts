@@ -1,7 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
+import { IObserverLocator } from '@aurelia/runtime';
 import {
   CustomElement,
-  IObserverLocator,
   view,
   customElement,
   Aurelia,

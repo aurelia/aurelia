@@ -412,7 +412,8 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
     return this.owner.collection[this.index];
   }
 
-  public setValue(newValue: unknown): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public setValue(newValue: unknown, flag: LifecycleFlags): void {
     if (newValue === this.getValue()) {
       return;
     }

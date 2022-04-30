@@ -1,4 +1,8 @@
 import {
+  Task,
+  TaskStatus,
+} from '@aurelia/platform';
+import {
   DefaultLogEvent,
   DI,
   IContainer,
@@ -10,26 +14,18 @@ import {
   Registration,
   sink,
   optional,
-  Task,
-  TaskStatus,
   Class,
 } from '@aurelia/kernel';
+import { valueConverter, bindingBehavior, BindingBehaviorInstance, LifecycleFlags, Scope, IBinding, ValueConverter } from '@aurelia/runtime';
 import {
-  bindingBehavior,
-  BindingBehaviorInstance,
   Controller,
   customElement,
   CustomElement,
-  IBinding,
-  Scope,
-  LifecycleFlags,
   Switch,
   Aurelia,
   IPlatform,
   ICustomElementViewModel,
   PromiseTemplateController,
-  valueConverter,
-  ValueConverter,
   If,
   ISyntheticView,
   ICustomElementController,

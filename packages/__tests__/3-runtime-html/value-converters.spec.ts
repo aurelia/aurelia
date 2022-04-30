@@ -1,9 +1,11 @@
 import {
-  bindable,
   alias,
+  valueConverter
+} from '@aurelia/runtime';
+import {
+  bindable,
   customAttribute,
   INode,
-  valueConverter
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 

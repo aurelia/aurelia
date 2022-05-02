@@ -69,7 +69,7 @@ export function rollupTerser(overrides) {
     mangle: {
       properties: {
         regex: /^_/,
-        reserved: ['__esModule', '_stateSubscriptions', '_state', '__REDUX_DEVTOOLS_EXTENSION__/']
+        reserved: ['__esModule', '_stateSubscriptions', '_state', '__REDUX_DEVTOOLS_EXTENSION__']
       }
     },
     nameCache: terserNameCache,

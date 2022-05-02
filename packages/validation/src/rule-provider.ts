@@ -1,4 +1,5 @@
-import { Class, DI, Protocol, Metadata, ILogger, IServiceLocator } from '@aurelia/kernel';
+import { Metadata } from '@aurelia/metadata';
+import { Class, DI, Protocol, ILogger, IServiceLocator } from '@aurelia/kernel';
 import {
   ExpressionType,
   IExpressionParser,

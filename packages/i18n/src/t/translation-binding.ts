@@ -5,10 +5,10 @@ import {
   CustomExpression,
   ExpressionType,
   LifecycleFlags,
+  Interpolation,
 } from '@aurelia/runtime';
 import {
   CustomElement,
-  Interpolation,
   IPlatform,
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';

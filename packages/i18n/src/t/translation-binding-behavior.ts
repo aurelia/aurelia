@@ -1,4 +1,4 @@
-import { bindingBehavior, IsValueConverter, LifecycleFlags, ValueConverterExpression, BindingBehaviorExpression } from '@aurelia/runtime-html';
+import { bindingBehavior, IsValueConverter, LifecycleFlags, ValueConverterExpression, BindingBehaviorExpression } from '@aurelia/runtime';
 import { BindingWithBehavior, ValueConverters } from '../utils';
 import { Writable } from '@aurelia/kernel';
 

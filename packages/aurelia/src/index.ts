@@ -454,6 +454,15 @@ export {
   // ICollectionChangeTracker,
   // ICollectionObserver,
   // ICollectionSubscriber,
+
+  ValueConverter,
+  // ValueConverterDefinition,
+  // PartialValueConverterDefinition,
+  // ValueConverterKind,
+  // ValueConverterDecorator,
+  ValueConverterInstance,
+  // ValueConverterType,
+  valueConverter,
   IndexMap,
 
 } from '@aurelia/runtime';
@@ -511,15 +520,6 @@ export {
   // IElementProjector,
   // IProjectorLocator,
   useShadowDOM,
-
-  ValueConverter,
-  // ValueConverterDefinition,
-  // PartialValueConverterDefinition,
-  // ValueConverterKind,
-  // ValueConverterDecorator,
-  ValueConverterInstance,
-  // ValueConverterType,
-  valueConverter,
 
   // ISanitizer,
   // SanitizeValueConverter,

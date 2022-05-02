@@ -1,4 +1,6 @@
-import { IPlatform, BrowserPlatform, ITask } from '@aurelia/runtime-html';
+import { ITask } from '@aurelia/platform';
+import { BrowserPlatform } from '@aurelia/platform-browser';
+import { IPlatform } from '@aurelia/runtime-html';
 
 export function ensureTaskQueuesEmpty(platform?: IPlatform): void {
   if (!platform) {

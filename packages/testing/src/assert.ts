@@ -23,7 +23,7 @@
  * IN THE SOFTWARE.
  */
 
-import { Task, TaskQueue } from '@aurelia/platform';
+import { Task, TaskQueue, TaskQueuePriority } from '@aurelia/platform';
 import { IIndexable } from '@aurelia/kernel';
 import {
   isDeepEqual,
@@ -48,12 +48,10 @@ import {
   Object_is,
   Object_keys,
 } from './util';
+import { BrowserPlatform } from '@aurelia/platform-browser';
 import {
-  IAppRoot,
   CustomElement,
   CustomAttribute,
-  TaskQueuePriority,
-  BrowserPlatform,
 } from '@aurelia/runtime-html';
 import { ensureTaskQueuesEmpty } from './scheduler';
 import { PLATFORM } from './test-context';

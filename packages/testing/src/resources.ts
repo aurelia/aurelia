@@ -1,8 +1,8 @@
 import { IContainer } from '@aurelia/kernel';
+import { valueConverter } from '@aurelia/runtime';
 import {
   bindable,
   customElement,
-  valueConverter
 } from '@aurelia/runtime-html';
 
 @valueConverter('sort')

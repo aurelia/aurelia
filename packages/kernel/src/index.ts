@@ -126,3 +126,8 @@ export {
   onResolve,
   resolveAll,
 } from './functions';
+
+export {
+  AnyFunction,
+  FunctionPropNames,
+} from './utilities';

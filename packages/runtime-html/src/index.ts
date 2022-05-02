@@ -1,18 +1,4 @@
 export {
-  Platform,
-  TaskQueue,
-  Task,
-  TaskAbortError,
-  TaskQueuePriority,
-  TaskStatus,
-  QueueTaskOptions,
-  ITask,
-} from '@aurelia/platform';
-export {
-  BrowserPlatform,
-} from '@aurelia/platform-browser';
-
-export {
   bindable,
   Bindable,
   BindableDefinition,

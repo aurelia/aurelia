@@ -1,5 +1,6 @@
 import { ILogger } from '@aurelia/kernel';
-import { bindable, customElement, ICustomElementViewModel, IHydratedController, LifecycleFlags, ICustomElementController, ICompiledCustomElementController } from '@aurelia/runtime-html';
+import { LifecycleFlags } from '@aurelia/runtime';
+import { bindable, customElement, ICustomElementViewModel, IHydratedController, ICustomElementController, ICompiledCustomElementController } from '@aurelia/runtime-html';
 
 import { ViewportAgent } from '../viewport-agent';
 import { IRouteContext } from '../route-context';

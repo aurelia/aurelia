@@ -11,3 +11,9 @@ import { Metadata } from '@aurelia/metadata';
 
 /** @internal */ export const isString = (v: unknown): v is string => typeof v === 'string';
 /** @internal */ export const createObject = <T extends object>() => Object.create(null) as T;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyFunction = (...args: any) => any;
+export type FunctionPropNames<T> = {
+[K in keyof T]: K extends 'constructor' ? never : NonNullable<T[K]> extends AnyFunction ? K : never;
+}[keyof T];

@@ -170,6 +170,7 @@ export class ObserverLocator {
     return new SetterObserver(obj, key);
   }
 
+  /** @internal */
   private _getAdapterObserver(obj: IObservable, propertyName: string, pd: PropertyDescriptor): AccessorOrObserver | null {
     if (this._adapters.length > 0) {
       for (const adapter of this._adapters) {

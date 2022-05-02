@@ -2,8 +2,9 @@
 import replace from "@rollup/plugin-replace";
 import typescript from '@rollup/plugin-typescript';
 import { terser }  from 'rollup-plugin-terser';
-import { terserNameCache } from "./terser-namecache.js";
+import { /* esbuildNameCache,  */terserNameCache } from "./mangle-namecache";
 import { execSync } from 'child_process';
+// import esbuild from 'rollup-plugin-esbuild';
 
 // most important function is getRollupConfig at the bottom of this file
 
@@ -68,7 +69,7 @@ export function rollupTerser(overrides) {
     mangle: {
       properties: {
         regex: /^_/,
-        reserved: ['__esModule']
+        reserved: ['__esModule', '_stateSubscriptions', '_state', '__REDUX_DEVTOOLS_EXTENSION__/']
       }
     },
     nameCache: terserNameCache,
@@ -126,6 +127,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
   const cjsDevDist = 'dist/cjs/index.dev.cjs';
   const esmDist = 'dist/esm/index.mjs';
   const cjsDist = 'dist/cjs/index.cjs';
+  const typingsDist = 'dist/types/index.d.ts';
   /** @type {import('rollup').WarningHandlerWithDefault} */
   const onWarn = (warning, warn) => {
     if (warning.code === 'CIRCULAR_DEPENDENCY') return;
@@ -151,9 +153,14 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       },
     ],
     plugins: [
+      // esbuild({
+      //   minify: false,
+      //   target: 'es2018',
+      //   define: { ...envVars, __DEV__: 'true' },
+      // }),
       rollupReplace({ ...envVars, __DEV__: true }),
       rollupTypeScript(),
-      runPostbuildScript(...postBuildScript),
+      // runPostbuildScript(...postBuildScript),
     ],
     onwarn: onWarn
   }, true, envVars);
@@ -183,6 +190,14 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
     plugins: [
       rollupReplace({ ...envVars, __DEV__: false }),
       rollupTypeScript(),
+      // esbuild({
+      //   minify: false,
+      //   target: 'es2018',
+      //   define: { ...envVars, __DEV__: 'true' },
+      //   mangleProps: /^_/,
+      //   reserveProps: /^__.*__$|__esModule|_stateSubscriptions|_state|__REDUX_DEVTOOLS_EXTENSION__/,
+      //   mangleCache: esbuildNameCache
+      // }),
       runPostbuildScript(...postBuildScript),
     ],
     onwarn: onWarn,

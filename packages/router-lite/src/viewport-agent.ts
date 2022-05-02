@@ -1,7 +1,8 @@
 // No-fallthrough disabled due to large numbers of false positives
 /* eslint-disable no-fallthrough */
 import { ILogger, onResolve } from '@aurelia/kernel';
-import { IHydratedController, LifecycleFlags, ICustomElementController, Controller } from '@aurelia/runtime-html';
+import { LifecycleFlags } from '@aurelia/runtime';
+import { IHydratedController, ICustomElementController, Controller } from '@aurelia/runtime-html';
 
 import { IViewport } from './resources/viewport';
 import { ComponentAgent } from './component-agent';

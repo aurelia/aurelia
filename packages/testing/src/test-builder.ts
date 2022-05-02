@@ -8,7 +8,7 @@ import {
   Scope,
   OverrideContext,
   INodeObserverLocator,
-} from '@aurelia/runtime-html';
+} from '@aurelia/runtime';
 import { createContainer } from './test-context';
 // import {
 //   IInstruction,

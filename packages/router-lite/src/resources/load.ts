@@ -1,5 +1,6 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
-import { customAttribute, bindable, BindingMode, ICustomAttributeViewModel, IEventDelegator, IEventTarget, INode, CustomElement } from '@aurelia/runtime-html';
+import { BindingMode } from '@aurelia/runtime';
+import { customAttribute, bindable, ICustomAttributeViewModel, IEventDelegator, IEventTarget, INode, CustomElement } from '@aurelia/runtime-html';
 
 import { IRouter } from '../router';
 import { IRouteContext } from '../route-context';

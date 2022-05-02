@@ -1,7 +1,7 @@
 /* eslint-disable import/no-mutable-exports */
 import { DI, IContainer, IRegistration, IRegistry, Registration } from '@aurelia/kernel';
+import { IObserverLocator } from '@aurelia/runtime';
 import {
-  IObserverLocator,
   ITemplateCompiler,
   IPlatform,
   StandardConfiguration,

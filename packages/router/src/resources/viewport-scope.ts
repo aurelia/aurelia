@@ -4,10 +4,10 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
+import { LifecycleFlags } from '@aurelia/runtime';
 import {
   bindable,
   INode,
-  LifecycleFlags,
   customElement,
   CustomElement,
   ICompiledCustomElementController,
@@ -20,7 +20,6 @@ import {
 import { IContainer, Writable } from '@aurelia/kernel';
 import { IRouter } from '../index';
 import { ViewportScope, IViewportScopeOptions } from '../endpoints/viewport-scope';
-import { ViewportCustomElement } from './viewport';
 
 export const ParentViewportScope = CustomElement.createInjectable();
 

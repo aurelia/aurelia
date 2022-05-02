@@ -1,4 +1,5 @@
-import { IContainer, IRegistry, isObject } from '@aurelia/kernel';
+import { isObject } from '@aurelia/metadata';
+import { IContainer, IRegistry } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
 
 import { RouteContext } from './route-context';

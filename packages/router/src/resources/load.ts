@@ -1,5 +1,6 @@
 import { IDisposable, IEventAggregator } from '@aurelia/kernel';
-import { customAttribute, INode, bindable, BindingMode, CustomAttribute, ICustomAttributeViewModel } from '@aurelia/runtime-html';
+import { BindingMode } from '@aurelia/runtime';
+import { customAttribute, INode, bindable, CustomAttribute, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { ILinkHandler } from './link-handler';
 import { IRouter, RouterNavigationEndEvent } from '../router';
 import { getConsideredActiveInstructions, getLoadIndicator } from './utils';

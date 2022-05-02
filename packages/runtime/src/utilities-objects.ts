@@ -1,4 +1,5 @@
-import { Metadata, Protocol } from '@aurelia/kernel';
+import { Metadata } from '@aurelia/metadata';
+import { Protocol } from '@aurelia/kernel';
 
 /**
  * A shortcut to Object.prototype.hasOwnProperty

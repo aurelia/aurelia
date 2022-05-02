@@ -50,14 +50,6 @@ export {
 } from './interfaces';
 
 export {
-  metadata,
-  Metadata,
-  isNullOrUndefined,
-  isObject,
-  applyMetadataPolyfill,
-} from '@aurelia/metadata';
-
-export {
   LogLevel,
   type IConsoleLike,
   ColorOptions,

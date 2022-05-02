@@ -1,4 +1,5 @@
-import { DI, isObject, Constructable, IModule, isArrayIndex } from '@aurelia/kernel';
+import { isObject } from '@aurelia/metadata';
+import { DI, Constructable, IModule, isArrayIndex } from '@aurelia/kernel';
 import { ICustomElementViewModel, ICustomElementController, PartialCustomElementDefinition, isCustomElementViewModel, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteViewModel } from './component-agent';

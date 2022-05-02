@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
   nextId,
-  isObject,
   ILogger,
   LogLevel,
   DI,
@@ -52,6 +51,7 @@ import type { IViewFactory } from './view';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition, IWatcherCallback } from '../watch';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
+import { isObject } from '@aurelia/metadata';
 
 type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 

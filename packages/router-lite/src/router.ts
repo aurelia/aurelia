@@ -1,4 +1,5 @@
-import { IContainer, ILogger, isObject, DI, IDisposable, onResolve, Writable } from '@aurelia/kernel';
+import { isObject } from '@aurelia/metadata';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable } from '@aurelia/kernel';
 import { CustomElementDefinition, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';

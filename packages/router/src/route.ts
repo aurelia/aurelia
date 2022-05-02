@@ -1,4 +1,5 @@
-import { Constructable, Metadata, Protocol, ResourceType, Writable } from '@aurelia/kernel';
+import { Metadata } from '@aurelia/metadata';
+import { Constructable, Protocol, ResourceType, Writable } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime-html';
 import { LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters, RouteableComponentType, ReloadBehavior } from './interfaces';
 

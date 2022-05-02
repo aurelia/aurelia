@@ -1,4 +1,5 @@
-import { Metadata, Registration, DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
+import { Metadata } from '@aurelia/metadata';
+import { Registration, DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
 import {
   BindingMode,
   ExpressionType,

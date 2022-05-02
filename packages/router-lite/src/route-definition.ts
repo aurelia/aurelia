@@ -1,7 +1,7 @@
+import { Metadata } from '@aurelia/metadata';
 import {
   IContainer,
   IModule,
-  Metadata,
   onResolve,
   Protocol,
 } from '@aurelia/kernel';

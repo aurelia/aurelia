@@ -1,5 +1,6 @@
+import { Metadata } from '@aurelia/metadata';
+import { Constructable, Protocol } from '@aurelia/kernel';
 import { CustomElementType } from '@aurelia/runtime-html';
-import { Constructable, Metadata, Protocol } from '@aurelia/kernel';
 import { IRoute, Route } from '../route';
 import { RouteableComponentType } from '../interfaces';
 

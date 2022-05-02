@@ -143,7 +143,7 @@ export {
   TextBindingInstruction,
   isInstruction,
   type InstructionTypeName,
-  type IInstruction,
+  IInstruction,
   InstructionType,
 } from './renderer';
 

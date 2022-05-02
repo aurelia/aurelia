@@ -30,7 +30,14 @@ describe('Exception', function () {
       ) {}
     }
 
-    assert.throws(() => container.get(IFoo), /AUR0003:Foo/, 'test');
+    let ex;
+    try {
+      container.get(IFoo);
+    } catch (e) {
+      ex = e;
+    }
+
+    assert.match(ex?.message, /AUR0003:Foo/, 'container.get(IFoo) - cyclic dep');
     // assert.throws(() => container.get(IFoo), /.*Cycl*/, 'test');
   });
 });

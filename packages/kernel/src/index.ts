@@ -122,6 +122,6 @@ export {
 } from './functions';
 
 export {
-  AnyFunction,
-  FunctionPropNames,
+  type AnyFunction,
+  type FunctionPropNames,
 } from './utilities';

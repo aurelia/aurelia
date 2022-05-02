@@ -36,7 +36,7 @@ export {
   type Routeable,
   type IRouteConfig,
   type IChildRouteConfig,
-  type RouteConfig,
+  RouteConfig,
   Route,
   type RouteType,
   route,

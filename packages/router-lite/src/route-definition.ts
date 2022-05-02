@@ -18,7 +18,7 @@ import {
 import {
   RouteConfig,
   IChildRouteConfig,
-  Routeable,
+  type Routeable,
   RouteType,
   Route,
   IRedirectRouteConfig,

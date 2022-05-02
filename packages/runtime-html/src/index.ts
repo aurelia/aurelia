@@ -510,10 +510,10 @@ export {
   // dialog results
   type DialogError,
   type DialogOpenPromise,
-  type DialogOpenResult,
+  DialogOpenResult,
   type DialogCancelError,
   type DialogCloseError,
-  type DialogCloseResult,
+  DialogCloseResult,
 
   // default impls
   DialogService,

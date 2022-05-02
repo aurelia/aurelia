@@ -2,9 +2,9 @@
 import replace from "@rollup/plugin-replace";
 import typescript from '@rollup/plugin-typescript';
 import { terser }  from 'rollup-plugin-terser';
-import { /* esbuildNameCache,  */terserNameCache } from "./mangle-namecache";
+import { esbuildNameCache, terserNameCache } from "./mangle-namecache";
 import { execSync } from 'child_process';
-// import esbuild from 'rollup-plugin-esbuild';
+import esbuild from 'rollup-plugin-esbuild';
 
 // most important function is getRollupConfig at the bottom of this file
 
@@ -153,13 +153,13 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       },
     ],
     plugins: [
-      // esbuild({
-      //   minify: false,
-      //   target: 'es2018',
-      //   define: { ...envVars, __DEV__: 'true' },
-      // }),
-      rollupReplace({ ...envVars, __DEV__: true }),
-      rollupTypeScript(),
+      esbuild({
+        minify: false,
+        target: 'es2018',
+        define: { ...envVars, __DEV__: 'true' },
+      }),
+      // rollupReplace({ ...envVars, __DEV__: true }),
+      // rollupTypeScript(),
       // runPostbuildScript(...postBuildScript),
     ],
     onwarn: onWarn
@@ -174,7 +174,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
         format: 'es',
         sourcemap: true,
         plugins: [
-          rollupTerser(configureTerser?.(envVars)),
+          // rollupTerser(configureTerser?.(envVars)),
         ],
       },
       {
@@ -183,21 +183,21 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
         sourcemap: true,
         externalLiveBindings: false,
         plugins: [
-          rollupTerser(configureTerser?.(envVars)),
+          // rollupTerser(configureTerser?.(envVars)),
         ],
       },
     ],
     plugins: [
-      rollupReplace({ ...envVars, __DEV__: false }),
-      rollupTypeScript(),
-      // esbuild({
-      //   minify: false,
-      //   target: 'es2018',
-      //   define: { ...envVars, __DEV__: 'true' },
-      //   mangleProps: /^_/,
-      //   reserveProps: /^__.*__$|__esModule|_stateSubscriptions|_state|__REDUX_DEVTOOLS_EXTENSION__/,
-      //   mangleCache: esbuildNameCache
-      // }),
+      // rollupReplace({ ...envVars, __DEV__: false }),
+      // rollupTypeScript(),
+      esbuild({
+        minify: false,
+        target: 'es2018',
+        define: { ...envVars, __DEV__: 'false' },
+        mangleProps: /^_/,
+        reserveProps: /^__.*__$|__esModule|_stateSubscriptions|_state|__REDUX_DEVTOOLS_EXTENSION__/,
+        mangleCache: esbuildNameCache
+      }),
       runPostbuildScript(...postBuildScript),
     ],
     onwarn: onWarn,

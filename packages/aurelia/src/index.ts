@@ -58,7 +58,7 @@ export class Aurelia extends $Aurelia {
 export default Aurelia;
 
 export {
-  Interceptor,
+  type Interceptor,
   // RetryConfiguration,
   // RetryableRequest,
   // ValidInterceptorMethodName,
@@ -100,11 +100,11 @@ export {
   // IDefaultableInterfaceSymbol,
   // IFactory,
   inject,
-  IRegistration,
-  IRegistry,
-  IResolver,
+  type IRegistration,
+  type IRegistry,
+  type IResolver,
   IServiceLocator,
-  Key,
+  type Key,
   lazy,
   optional,
   // RegisterSelf,
@@ -115,16 +115,16 @@ export {
   // Injectable,
   // InterfaceSymbol,
   InstanceProvider,
-  Resolved,
+  type Resolved,
   // Transformer,
 
-  Class,
-  Constructable,
-  ConstructableClass,
+  type Class,
+  type Constructable,
+  type ConstructableClass,
   // Diff,
-  IDisposable,
+  type IDisposable,
   // IFrameRequestCallback,
-  IIndexable,
+  type IIndexable,
   // IPerformance,
   // ITimerHandler,
   // IWindowOrWorkerGlobalScope,
@@ -222,10 +222,10 @@ export {
   Route,
   RouteConfig,
   IRouteContext,
-  IRouteViewModel,
-  NavigationInstruction,
-  Routeable,
-  Params,
+  type IRouteViewModel,
+  type NavigationInstruction,
+  type Routeable,
+  type Params,
 
   RouterConfiguration,
   RouterRegistration,
@@ -377,7 +377,7 @@ export {
 
   bindingBehavior,
   BindingBehavior,
-  BindingBehaviorInstance,
+  type BindingBehaviorInstance,
   // PartialBindingBehaviorDefinition,
   // BindingBehaviorKind,
   // BindingBehaviorDecorator,
@@ -460,10 +460,10 @@ export {
   // PartialValueConverterDefinition,
   // ValueConverterKind,
   // ValueConverterDecorator,
-  ValueConverterInstance,
+  type ValueConverterInstance,
   // ValueConverterType,
   valueConverter,
-  IndexMap,
+  type IndexMap,
 
 } from '@aurelia/runtime';
 
@@ -531,7 +531,7 @@ export {
   // QueueTaskTargetOptions,
 
   bindable,
-  PartialBindableDefinition,
+  type PartialBindableDefinition,
   // BindableDefinition,
   Bindable,
   coercer,
@@ -617,8 +617,8 @@ export {
   // ViewModelKind,
   // IBinding,
   // IViewModel,
-  ICustomAttributeViewModel,
-  ICustomElementViewModel,
+  type ICustomAttributeViewModel,
+  type ICustomElementViewModel,
   // IController,
   // IContainer,
   // IViewCache,
@@ -774,7 +774,7 @@ export {
 
   bindingCommand,
   // BindingCommand,
-  BindingCommandInstance,
+  type BindingCommandInstance,
   // BindingCommandDefinition,
   // BindingCommandKind,
   // BindingCommandType,
@@ -787,8 +787,8 @@ export {
   // ToViewBindingCommand,
   // TwoWayBindingCommand,
 
-  IEnhancementConfig,
-  IHydratedParentController,
+  type IEnhancementConfig,
+  type IHydratedParentController,
 
   // IExpressionParserRegistration,
 
@@ -863,7 +863,7 @@ export {
 
   StyleConfiguration,
   // styles,
-  IShadowDOMConfiguration,
+  type IShadowDOMConfiguration,
 
   // CSSModulesProcessorRegistry,
   cssModules,
@@ -911,25 +911,25 @@ export {
 
   // ITemplateElementFactory,
   ILifecycleHooks,
-  LifecycleHook,
+  type LifecycleHook,
   LifecycleHooks,
   lifecycleHooks,
 
   // -------- dialog plugin -------------
   // configurations
   DialogConfiguration,
-  DialogConfigurationProvider,
+  type DialogConfigurationProvider,
   DialogDefaultConfiguration,
 
   // enums
-  DialogActionKey,
-  DialogMouseEventType,
+  type DialogActionKey,
+  type DialogMouseEventType,
   DialogDeactivationStatuses,
 
   // settings
-  IDialogSettings,
+  type IDialogSettings,
   IDialogGlobalSettings,
-  IDialogLoadedSettings,
+  type IDialogLoadedSettings,
 
   // main interfaces
   IDialogService,
@@ -938,11 +938,11 @@ export {
   IDialogDom,
 
   // dialog results
-  DialogError,
-  DialogOpenPromise,
+  type DialogError,
+  type DialogOpenPromise,
   DialogOpenResult,
-  DialogCancelError,
-  DialogCloseError,
+  type DialogCancelError,
+  type DialogCloseError,
   DialogCloseResult,
 
   // default impls
@@ -953,17 +953,17 @@ export {
   DefaultDialogGlobalSettings,
 
   // implementable for applications
-  IDialogCustomElementViewModel,
-  IDialogComponent,
-  IDialogComponentActivate,
-  IDialogComponentCanActivate,
-  IDialogComponentDeactivate,
-  IDialogComponentCanDeactivate,
+  type IDialogCustomElementViewModel,
+  type IDialogComponent,
+  type IDialogComponentActivate,
+  type IDialogComponentCanActivate,
+  type IDialogComponentDeactivate,
+  type IDialogComponentCanDeactivate,
   // -------- dialog plugin end -------------
 
   // -------- wc plugin -------------
   IWcElementRegistry,
-  WebComponentViewModelClass,
+  type WebComponentViewModelClass,
   WcCustomElementRegistry,
   // -------- wc plugin end -------------
 } from '@aurelia/runtime-html';

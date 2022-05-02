@@ -57,26 +57,32 @@ export class CharSpec implements ICharSpec {
       && this.isInverted === other.isInverted;
   }
 
+  /** @internal */
   private _hasOfMultiple(char: string): boolean {
     return this.chars.includes(char);
   }
 
+  /** @internal */
   private _hasOfSingle(char: string): boolean {
     return this.chars === char;
   }
 
+  /** @internal */
   private _hasOfNone(_char: string): boolean {
     return false;
   }
 
+  /** @internal */
   private _hasOfMultipleInverse(char: string): boolean {
     return !this.chars.includes(char);
   }
 
+  /** @internal */
   private _hasOfSingleInverse(char: string): boolean {
     return this.chars !== char;
   }
 
+  /** @internal */
   private _hasOfNoneInverse(_char: string): boolean {
     return true;
   }
@@ -133,8 +139,8 @@ export class Interpretation {
   }
 }
 
-export class State {
-  public nextStates: State[] = [];
+export class AttrParsingState {
+  public nextStates: AttrParsingState[] = [];
   public types: SegmentTypes | null = null;
   public patterns: string[];
   public isEndpoint: boolean = false;
@@ -149,10 +155,10 @@ export class State {
     this.patterns = patterns;
   }
 
-  public findChild(charSpec: ICharSpec): State {
+  public findChild(charSpec: ICharSpec): AttrParsingState {
     const nextStates = this.nextStates;
     const len = nextStates.length;
-    let child: State = null!;
+    let child: AttrParsingState = null!;
     let i = 0;
     for (; i < len; ++i) {
       child = nextStates[i];
@@ -163,14 +169,14 @@ export class State {
     return null!;
   }
 
-  public append(charSpec: ICharSpec, pattern: string): State {
+  public append(charSpec: ICharSpec, pattern: string): AttrParsingState {
     const patterns = this.patterns;
     if (!patterns.includes(pattern)) {
       patterns.push(pattern);
     }
     let state = this.findChild(charSpec);
     if (state == null) {
-      state = new State(charSpec, pattern);
+      state = new AttrParsingState(charSpec, pattern);
       this.nextStates.push(state);
       if (charSpec.repeat) {
         state.nextStates.push(state);
@@ -179,13 +185,13 @@ export class State {
     return state;
   }
 
-  public findMatches(ch: string, interpretation: Interpretation): State[] {
+  public findMatches(ch: string, interpretation: Interpretation): AttrParsingState[] {
     // TODO: reuse preallocated arrays
     const results = [];
     const nextStates = this.nextStates;
     const len = nextStates.length;
     let childLen = 0;
-    let child: State = null!;
+    let child: AttrParsingState = null!;
     let i = 0;
     let j = 0;
     for (; i < len; ++i) {
@@ -280,14 +286,14 @@ export interface ISyntaxInterpreter extends SyntaxInterpreter {}
 export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
 
 export class SyntaxInterpreter {
-  public rootState: State = new State(null!);
-  private readonly initialStates: State[] = [this.rootState];
+  public rootState: AttrParsingState = new AttrParsingState(null!);
+  private readonly initialStates: AttrParsingState[] = [this.rootState];
 
   // todo: this only works if this method is ever called only once
   public add(defs: AttributePatternDefinition[]): void {
     defs = defs.slice(0).sort((d1, d2) => d1.pattern > d2.pattern ? 1 : -1);
     const ii = defs.length;
-    let currentState: State;
+    let currentState: AttrParsingState;
     let def: AttributePatternDefinition;
     let pattern: string;
     let types: SegmentTypes;
@@ -320,7 +326,7 @@ export class SyntaxInterpreter {
     const len = name.length;
     let states = this.initialStates;
     let i = 0;
-    let state: State;
+    let state: AttrParsingState;
     for (; i < len; ++i) {
       states = this.getNextStates(states, name.charAt(i), interpretation);
       if (states.length === 0) {
@@ -341,10 +347,10 @@ export class SyntaxInterpreter {
     return interpretation;
   }
 
-  public getNextStates(states: State[], ch: string, interpretation: Interpretation): State[] {
+  public getNextStates(states: AttrParsingState[], ch: string, interpretation: Interpretation): AttrParsingState[] {
     // TODO: reuse preallocated arrays
-    const nextStates: State[] = [];
-    let state: State = null!;
+    const nextStates: AttrParsingState[] = [];
+    let state: AttrParsingState = null!;
     const len = states.length;
     let i = 0;
     for (; i < len; ++i) {
@@ -397,11 +403,11 @@ export class SyntaxInterpreter {
   }
 }
 
-function isEndpoint(a: State) {
+function isEndpoint(a: AttrParsingState) {
   return a.isEndpoint;
 }
 
-function sortEndpoint(a: State, b: State) {
+function sortEndpoint(a: AttrParsingState, b: AttrParsingState) {
   // both a and b are endpoints
   // compare them based on the number of static, then dynamic & symbol fragments
   const aTypes = a.types!;

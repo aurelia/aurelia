@@ -1,3 +1,4 @@
+import { LifecycleFlags } from '@aurelia/runtime';
 import {
   Aurelia,
   customElement,
@@ -7,7 +8,6 @@ import {
   ICustomElementViewModel,
   Controller,
   CustomElement,
-  LifecycleFlags,
   IHydratedController,
 } from '@aurelia/runtime-html';
 

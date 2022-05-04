@@ -16,7 +16,7 @@ import {
   Viewport,
   ViewportScope,
   NavigationFlags,
-} from '../index.js';
+} from '../index';
 
 /**
  * An endpoint is anything that can receive and process a routing instruction.

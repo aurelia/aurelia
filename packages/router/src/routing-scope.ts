@@ -1,21 +1,21 @@
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { NavigationCoordinator } from './navigation-coordinator';
-import { IViewportScopeOptions, ViewportScope } from './endpoints/viewport-scope.js';
+import { IViewportScopeOptions, ViewportScope } from './endpoints/viewport-scope';
 import { CustomElement, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
-import { FoundRoute } from './found-route.js';
-import { IRouter } from './router.js';
-import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { Viewport } from './endpoints/viewport.js';
-import { IViewportOptions } from './endpoints/viewport-options.js';
-import { IConfigurableRoute, RouteRecognizer } from './route-recognizer.js';
-import { Runner, Step } from './utilities/runner.js';
-import { IRoute, Route } from './route.js';
-import { Endpoint, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint.js';
-import { EndpointMatcher } from './endpoint-matcher.js';
-import { EndpointContent, Navigation, Router, RoutingHook, ViewportCustomElement } from './index.js';
+import { FoundRoute } from './found-route';
+import { IRouter } from './router';
+import { RoutingInstruction } from './instructions/routing-instruction';
+import { Viewport } from './endpoints/viewport';
+import { IViewportOptions } from './endpoints/viewport-options';
+import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
+import { Runner, Step } from './utilities/runner';
+import { IRoute, Route } from './route';
+import { Endpoint, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint';
+import { EndpointMatcher } from './endpoint-matcher';
+import { EndpointContent, Navigation, Router, RoutingHook, ViewportCustomElement } from './index';
 import { IContainer } from '@aurelia/kernel';
-import { arrayRemove, arrayUnique } from './utilities/utils.js';
+import { arrayRemove, arrayUnique } from './utilities/utils';
 
 export type TransitionAction = 'skip' | 'reload' | 'swap' | '';
 

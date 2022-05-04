@@ -1,5 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia, AuSlotsInfo, bindable, BindingMode, customElement, CustomElement, IAuSlotsInfo, IPlatform } from '@aurelia/runtime-html';
+import { BindingMode } from '@aurelia/runtime';
+import { Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 

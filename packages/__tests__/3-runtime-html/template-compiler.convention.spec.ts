@@ -1,5 +1,7 @@
 import {
   BindingMode,
+} from '@aurelia/runtime';
+import {
   ITemplateCompiler,
   IInstruction,
   InstructionType as TT,

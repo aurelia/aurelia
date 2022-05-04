@@ -2,7 +2,7 @@
 import { Controller } from "@aurelia/runtime-html";
 import { Observable, Subscription } from 'rxjs';
 
-import { Store, STORE } from './store.js';
+import { Store, STORE } from './store';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface ConnectToSettings<T, R = T | any> {

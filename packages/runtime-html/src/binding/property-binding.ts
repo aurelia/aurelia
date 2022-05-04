@@ -1,7 +1,8 @@
 import { AccessorType, BindingMode, connectable, ExpressionKind, LifecycleFlags } from '@aurelia/runtime';
-import { BindingTargetSubscriber } from './binding-utils.js';
+import { BindingTargetSubscriber } from './binding-utils';
 
-import type { IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
+import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
+import type { IServiceLocator } from '@aurelia/kernel';
 import type {
   AccessorOrObserver,
   ForOfStatement,
@@ -10,7 +11,7 @@ import type {
   IsBindingBehavior,
   Scope,
 } from '@aurelia/runtime';
-import type { IAstBasedBinding } from './interfaces-bindings.js';
+import type { IAstBasedBinding } from './interfaces-bindings';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;

@@ -1,13 +1,14 @@
-import { DI, isObject, Constructable, IModule, isArrayIndex } from '@aurelia/kernel';
+import { isObject } from '@aurelia/metadata';
+import { DI, Constructable, IModule, isArrayIndex } from '@aurelia/kernel';
 import { ICustomElementViewModel, ICustomElementController, PartialCustomElementDefinition, isCustomElementViewModel, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 
-import { IRouteViewModel } from './component-agent.js';
-import { RouteType } from './route.js';
-import { IRouteContext } from './route-context.js';
-import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation.js';
-import { emptyQuery, INavigationOptions, NavigationOptions } from './router.js';
-import { RouteExpression } from './route-expression.js';
-import { tryStringify } from './util.js';
+import { IRouteViewModel } from './component-agent';
+import { RouteType } from './route';
+import { IRouteContext } from './route-context';
+import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation';
+import { emptyQuery, INavigationOptions, NavigationOptions } from './router';
+import { RouteExpression } from './route-expression';
+import { tryStringify } from './util';
 
 export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustomElementController | HTMLElement;
 

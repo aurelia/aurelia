@@ -1,77 +1,62 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../../global.d.ts" />
 export {
   IPlatform,
-} from './platform.js';
-
-export {
-  Platform,
-  TaskQueue,
-  Task,
-  TaskAbortError,
-  TaskQueuePriority,
-  TaskStatus,
-  QueueTaskOptions,
-  ITask,
-} from '@aurelia/platform';
+} from './platform';
 
 export {
   all,
   factory,
-  IFactoryResolver,
-  IResolvedFactory,
+  type IFactoryResolver,
+  type IResolvedFactory,
   DI,
   IContainer,
-  IFactory,
+  type IFactory,
   inject,
-  IRegistration,
-  IRegistry,
-  IResolver,
+  type IRegistration,
+  type IRegistry,
+  type IResolver,
   IServiceLocator,
-  Key,
+  type Key,
   lazy,
-  ILazyResolver,
-  IResolvedLazy,
+  type ILazyResolver,
+  type IResolvedLazy,
   optional,
   ignore,
-  RegisterSelf,
+  type RegisterSelf,
   Registration,
-  ResolveCallback,
+  type ResolveCallback,
   singleton,
   transient,
-  Injectable,
-  InterfaceSymbol,
+  type Injectable,
+  type InterfaceSymbol,
   InstanceProvider,
-  Resolved,
-  Transformer,
+  type Resolved,
+  type Transformer,
   newInstanceForScope,
   newInstanceOf,
   ContainerConfiguration,
   DefaultResolver,
-  IContainerConfiguration,
-} from './di.js';
+  type IContainerConfiguration,
+} from './di';
 
 export {
-  Class,
-  Constructable,
-  ConstructableClass,
-  IDisposable,
-  IIndexable,
-  Overwrite,
-  Primitive,
-  Writable,
-} from './interfaces.js';
-export {
-  metadata,
-  Metadata,
-  isNullOrUndefined,
-  isObject,
-  applyMetadataPolyfill,
-} from '@aurelia/metadata';
+  type Class,
+  type Constructable,
+  type ConstructableClass,
+  type IDisposable,
+  type IIndexable,
+  type Overwrite,
+  type Primitive,
+  type Writable,
+} from './interfaces';
+
 export {
   LogLevel,
-  IConsoleLike,
+  type IConsoleLike,
   ColorOptions,
   ILogConfig,
-  ILogEvent,
+  type ILogEvent,
   ILogEventFactory,
   ISink,
   ILogger,
@@ -83,32 +68,37 @@ export {
   LoggerConfiguration,
   format,
   sink,
-} from './logger.js';
+} from './logger';
+
 export {
-  IModule,
+  type IModule,
   IModuleLoader,
   AnalyzedModule,
   ModuleItem,
-} from './module-loader.js';
+} from './module-loader';
+
 export {
   noop,
   emptyArray,
   emptyObject,
-} from './platform.js';
+} from './platform';
+
 export {
-  IResourceKind,
-  PartialResourceDefinition,
+  type IResourceKind,
+  type PartialResourceDefinition,
   Protocol,
-  ResourceDefinition,
-  ResourceType,
+  type ResourceDefinition,
+  type ResourceType,
   fromAnnotationOrDefinitionOrTypeOrDefault,
   fromAnnotationOrTypeOrDefault,
   fromDefinitionOrDefault,
-} from './resource.js';
+} from './resource';
+
 export {
   EventAggregator,
   IEventAggregator,
-} from './eventaggregator.js';
+} from './eventaggregator';
+
 export {
   isArrayIndex,
   camelCase,
@@ -129,4 +119,9 @@ export {
   isNativeFunction,
   onResolve,
   resolveAll,
-} from './functions.js';
+} from './functions';
+
+export {
+  type AnyFunction,
+  type FunctionPropNames,
+} from './utilities';

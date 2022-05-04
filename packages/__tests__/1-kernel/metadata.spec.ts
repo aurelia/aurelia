@@ -1,4 +1,5 @@
-import { Metadata, metadata, singleton } from '@aurelia/kernel';
+import { Metadata, metadata } from '@aurelia/metadata';
+import { singleton } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('Metadata', function () {

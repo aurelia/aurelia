@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../../global.d.ts" />
 const lookup = new Map<object, Platform>();
 
 function notImplemented(name: string): (...args: any[]) => any {

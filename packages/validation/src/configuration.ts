@@ -1,10 +1,10 @@
 import { IContainer, noop, Registration } from '@aurelia/kernel';
-import { IValidationExpressionHydrator } from './rule-interfaces.js';
-import { ICustomMessages, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule-provider.js';
-import { IValidationMessageProvider } from './rules.js';
-import { ModelValidationExpressionHydrator, ValidationDeserializer } from './serialization.js';
-import { ValidationCustomizationOptions } from './validation-customization-options.js';
-import { IValidator, StandardValidator } from './validator.js';
+import { IValidationExpressionHydrator } from './rule-interfaces';
+import { ICustomMessages, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule-provider';
+import { IValidationMessageProvider } from './rules';
+import { ModelValidationExpressionHydrator, ValidationDeserializer } from './serialization';
+import { ValidationCustomizationOptions } from './validation-customization-options';
+import { IValidator, StandardValidator } from './validator';
 
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOptions) => void;
 

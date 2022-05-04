@@ -6,12 +6,12 @@ import {
   AccessorType,
   withFlushQueue,
 } from '@aurelia/runtime';
-import { getCollectionObserver } from './observer-locator.js';
-import { hasOwnProperty } from '../utilities.js';
+import { getCollectionObserver } from './observer-locator';
+import { hasOwnProperty } from '../utilities';
 
-import type { INode } from '../dom.js';
-import type { EventSubscriber } from './event-delegator.js';
-import type { ValueAttributeObserver } from './value-attribute-observer.js';
+import type { INode } from '../dom';
+import type { EventSubscriber } from './event-delegator';
+import type { ValueAttributeObserver } from './value-attribute-observer';
 import type {
   ICollectionObserver,
   IndexMap,

@@ -3,7 +3,7 @@ import {
   emptyArray,
   Writable,
 } from '@aurelia/kernel';
-import { PLATFORM } from './test-context.js';
+import { PLATFORM } from './test-context';
 
 export type H = string | number | boolean | null | undefined | Node;
 

@@ -1,4 +1,5 @@
-import { LifecycleFlags as LF, LifecycleFlags, SelectValueObserver } from '@aurelia/runtime-html';
+import { LifecycleFlags as LF, LifecycleFlags } from '@aurelia/runtime';
+import { SelectValueObserver } from '@aurelia/runtime-html';
 import { h, TestContext, verifyEqual, assert, createFixture } from '@aurelia/testing';
 
 type Anything = any;

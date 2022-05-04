@@ -5,14 +5,14 @@ import {
   SetAttributeInstruction,
   IInstruction,
   SetPropertyInstruction,
-} from './renderer.js';
-import { IPlatform } from './platform.js';
-import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element.js';
-import { IViewFactory } from './templating/view.js';
-import { IRendering } from './templating/rendering.js';
-import { isString } from './utilities.js';
+} from './renderer';
+import { IPlatform } from './platform';
+import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element';
+import { IViewFactory } from './templating/view';
+import { IRendering } from './templating/rendering';
+import { isString } from './utilities';
 
-import type { ISyntheticView } from './templating/controller.js';
+import type { ISyntheticView } from './templating/controller';
 
 export function createElement<C extends Constructable = Constructable>(
   p: IPlatform,

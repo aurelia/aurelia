@@ -1,10 +1,7 @@
+import { LifecycleFlags, Scope, Interpolation, AccessScopeExpression, BindingContext } from '@aurelia/runtime';
 import {
-  AccessScopeExpression,
-  BindingContext,
   Else,
   If,
-  Scope,
-  LifecycleFlags,
   Controller,
   CustomElementDefinition,
   IHydratableController,
@@ -12,7 +9,6 @@ import {
   PropertyBindingRendererRegistration,
   TextBindingRendererRegistration,
   TextBindingInstruction,
-  Interpolation,
   IWorkTracker,
   INodeObserverLocatorRegistration,
   CustomAttribute,

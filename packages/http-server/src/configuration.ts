@@ -1,4 +1,5 @@
-import { ColorOptions, ConsoleSink, IContainer, IPlatform, LoggerConfiguration, Platform, Registration } from '@aurelia/kernel';
+import { Platform } from '@aurelia/platform';
+import { ColorOptions, ConsoleSink, IContainer, IPlatform, LoggerConfiguration, Registration } from '@aurelia/kernel';
 import { Http2Server, HttpServer } from './http-server.js';
 import { IHttp2FileServer, IHttpServer, IHttpServerOptions, IRequestHandler } from './interfaces.js';
 import { FileServer, Http2FileServer } from './request-handlers/file-server.js';

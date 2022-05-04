@@ -1,5 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
-import { BindingMode, CustomAttribute, CustomElement, ICustomElementViewModel, INode } from '@aurelia/runtime-html';
+import { BindingMode } from '@aurelia/runtime';
+import { CustomAttribute, CustomElement, ICustomElementViewModel, INode } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 // all the tests are using a common <my-input/> with a spreat on its internal <input/>

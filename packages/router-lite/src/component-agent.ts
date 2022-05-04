@@ -1,12 +1,13 @@
-import { ICustomElementController, Controller, IHydratedController, LifecycleFlags, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 import { Constructable, ILogger } from '@aurelia/kernel';
+import { LifecycleFlags } from '@aurelia/runtime';
+import { ICustomElementController, Controller, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
-import { RouteDefinition } from './route-definition.js';
-import { RouteNode } from './route-tree.js';
-import { IRouteContext } from './route-context.js';
-import { Params, NavigationInstruction, ViewportInstructionTree } from './instructions.js';
-import { Transition } from './router.js';
-import { Batch } from './util.js';
+import { RouteDefinition } from './route-definition';
+import { RouteNode } from './route-tree';
+import { IRouteContext } from './route-context';
+import { Params, NavigationInstruction, ViewportInstructionTree } from './instructions';
+import { Transition } from './router';
+import { Batch } from './util';
 
 export interface IRouteViewModel extends ICustomElementViewModel {
   canLoad?(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
@@ -14,6 +15,8 @@ export interface IRouteViewModel extends ICustomElementViewModel {
   canUnload?(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;
   unload?(next: RouteNode | null, current: RouteNode): void | Promise<void>;
 }
+
+// type IHooksFn<T, Fn extends (...args: any[]) => unknown> = (vm: T, ...args: Parameters<Fn>) => ReturnType<Fn>;
 
 const componentAgentLookup: WeakMap<object, ComponentAgent> = new WeakMap();
 
@@ -23,6 +26,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */ private readonly _hasLoad: boolean;
   /** @internal */ private readonly _hasCanUnload: boolean;
   /** @internal */ private readonly _hasUnload: boolean;
+
   public readonly canLoadHooks: readonly ILifecycleHooks<IRouteViewModel, 'canLoad'>[];
   public readonly loadHooks: readonly ILifecycleHooks<IRouteViewModel, 'load'>[];
   public readonly canUnloadHooks: readonly ILifecycleHooks<IRouteViewModel, 'canUnload'>[];

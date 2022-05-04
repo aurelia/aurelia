@@ -1,4 +1,5 @@
-import { bindable, customElement, valueConverter } from '@aurelia/runtime-html';
+import { valueConverter } from '@aurelia/runtime';
+import { bindable, customElement } from '@aurelia/runtime-html';
 import { Thing, ThingViewer } from './thing-viewer.js';
 import { Camera, CameraSpecsViewer } from './camera-specs-viewer.js';
 import { Laptop, LaptopSpecsViewer } from './laptop-specs-viewer.js';

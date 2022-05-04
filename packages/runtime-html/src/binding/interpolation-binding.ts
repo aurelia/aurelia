@@ -7,7 +7,8 @@ import {
   connectable,
 } from '@aurelia/runtime';
 
-import type { IIndexable, IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
+import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
+import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type {
   ICollectionSubscriber,
   IndexMap,

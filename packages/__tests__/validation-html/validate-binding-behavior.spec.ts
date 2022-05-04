@@ -1,21 +1,23 @@
 import { DI, IServiceLocator, newInstanceForScope, newInstanceOf, Registration } from '@aurelia/kernel';
 import {
   ArrayObserver,
-  bindable,
   bindingBehavior,
   BindingBehaviorInstance,
   BindingInterceptor,
   BindingMediator,
-  customAttribute,
-  CustomElement,
-  customElement,
   IBinding,
-  INode,
   IObserverLocator,
-  IPlatform,
   Scope,
   LifecycleFlags,
   valueConverter,
+} from '@aurelia/runtime';
+import {
+  bindable,
+  customAttribute,
+  CustomElement,
+  customElement,
+  IPlatform,
+  INode,
   Aurelia,
 } from '@aurelia/runtime-html';
 import { assert, createSpy, ISpy, TestContext } from '@aurelia/testing';

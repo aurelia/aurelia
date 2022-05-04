@@ -1,6 +1,6 @@
 import { Endpoint } from './endpoint';
 import { IRouter } from '../router';
-import { Navigation, RoutingInstruction, RoutingScope } from '../index.js';
+import { Navigation, RoutingInstruction, RoutingScope } from '../index';
 
 /**
  * The endpoint content encapsulates the content of an endpoint.

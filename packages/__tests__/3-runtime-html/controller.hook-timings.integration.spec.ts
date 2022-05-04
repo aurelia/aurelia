@@ -1,11 +1,11 @@
 import { Registration, Writable, DI } from '@aurelia/kernel';
+import { LifecycleFlags as LF } from '@aurelia/runtime';
 import {
   Aurelia,
   customElement,
   ICustomElementController,
   IPlatform,
   IViewModel,
-  LifecycleFlags as LF,
   IHydratedController as HC,
   IHydratedParentController as HPC,
 } from '@aurelia/runtime-html';

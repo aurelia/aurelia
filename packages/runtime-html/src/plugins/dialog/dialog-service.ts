@@ -9,16 +9,16 @@ import {
   IDialogController,
   IDialogGlobalSettings,
   IDialogLoadedSettings,
-} from './dialog-interfaces.js';
-import { DialogController } from './dialog-controller.js';
-import { AppTask } from '../../app-task.js';
-import { IPlatform } from '../../platform.js';
-import { isFunction } from '../../utilities.js';
+} from './dialog-interfaces';
+import { DialogController } from './dialog-controller';
+import { AppTask } from '../../app-task';
+import { IPlatform } from '../../platform';
+import { isFunction } from '../../utilities';
 
 import type {
   DialogOpenPromise,
   IDialogSettings,
-} from './dialog-interfaces.js';
+} from './dialog-interfaces';
 
 /**
  * A default implementation for the dialog service allowing for the creation of dialogs.

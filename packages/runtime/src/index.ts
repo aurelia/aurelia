@@ -1,23 +1,12 @@
-export {
-  IPlatform,
-} from '@aurelia/kernel';
-export {
-  Platform,
-  TaskQueue,
-  Task,
-  TaskAbortError,
-  TaskQueuePriority,
-  TaskStatus,
-  QueueTaskOptions,
-  ITask,
-} from '@aurelia/platform';
-
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../../global.d.ts" />
 export {
   alias,
   registerAliases,
-} from './alias.js';
+} from './alias';
 export {
   ExpressionKind,
+  // Ast nodes
   CallFunctionExpression,
   CustomExpression,
   BindingBehaviorExpression,
@@ -43,36 +32,38 @@ export {
   BindingIdentifier,
   ForOfStatement,
   Interpolation,
-  AnyBindingExpression,
-  IsPrimary,
-  IsLiteral,
-  IsLeftHandSide,
-  IsUnary,
-  IsBinary,
-  IsConditional,
-  IsAssign,
-  IsValueConverter,
-  IsBindingBehavior,
-  IsAssignable,
-  IsExpression,
-  IsExpressionOrStatement,
-  IVisitor,
-  BinaryOperator,
-  BindingIdentifierOrPattern,
-  UnaryOperator,
-  IExpressionHydrator,
   DestructuringAssignmentExpression,
   DestructuringAssignmentSingleExpression,
   DestructuringAssignmentRestExpression,
-} from './binding/ast.js';
+
+  // ast typing helpers
+  type AnyBindingExpression,
+  type IsPrimary,
+  type IsLiteral,
+  type IsLeftHandSide,
+  type IsUnary,
+  type IsBinary,
+  type IsConditional,
+  type IsAssign,
+  type IsValueConverter,
+  type IsBindingBehavior,
+  type IsAssignable,
+  type IsExpression,
+  type IsExpressionOrStatement,
+  type IVisitor,
+  type BinaryOperator,
+  type BindingIdentifierOrPattern,
+  type UnaryOperator,
+  type IExpressionHydrator,
+} from './binding/ast';
 export {
-  IObserverLocatorBasedConnectable,
-  IConnectableBinding,
+  type IObserverLocatorBasedConnectable,
+  type IConnectableBinding,
   connectable,
   BindingMediator,
-  MediatedBinding,
+  type MediatedBinding,
   BindingObserverRecord,
-} from './binding/connectable.js';
+} from './binding/connectable';
 export {
   IExpressionParser,
   ExpressionType,
@@ -82,7 +73,7 @@ export {
   Precedence,
   parse,
   ParserState,
-} from './binding/expression-parser.js';
+} from './binding/expression-parser';
 
 export {
   ArrayObserver,
@@ -91,140 +82,140 @@ export {
   disableArrayObservation,
   applyMutationsToIndices,
   synchronizeIndices,
-} from './observation/array-observer.js';
+} from './observation/array-observer';
 export {
   MapObserver,
   enableMapObservation,
   disableMapObservation,
-} from './observation/map-observer.js';
+} from './observation/map-observer';
 export {
   SetObserver,
   enableSetObservation,
   disableSetObservation
-} from './observation/set-observer.js';
+} from './observation/set-observer';
 export {
   BindingContext,
   Scope,
   OverrideContext,
-} from './observation/binding-context.js';
+} from './observation/binding-context';
 export {
   CollectionLengthObserver,
   CollectionSizeObserver,
-} from './observation/collection-length-observer.js';
+} from './observation/collection-length-observer';
 export {
   ComputedObserver,
-} from './observation/computed-observer.js';
+} from './observation/computed-observer';
 export {
   IDirtyChecker,
   DirtyCheckProperty,
   DirtyCheckSettings,
-} from './observation/dirty-checker.js';
+} from './observation/dirty-checker';
 export {
-  IFlushable,
-  IWithFlushQueue,
+  type IFlushable,
+  type IWithFlushQueue,
   FlushQueue,
   withFlushQueue,
-} from './observation/flush-queue.js';
+} from './observation/flush-queue';
 export {
-  IEffect,
+  type IEffect,
   IObservation,
   Observation,
-  EffectFunc,
-} from './observation/observation.js';
+  type EffectFunc,
+} from './observation/observation';
 export {
-  IObservableDefinition,
+  type IObservableDefinition,
   observable,
-} from './observation/observable.js';
+} from './observation/observable';
 export {
-  IObjectObservationAdapter,
+  type IObjectObservationAdapter,
   IObserverLocator,
   INodeObserverLocator,
   getCollectionObserver,
   ObserverLocator,
-  ObservableGetter,
-  ObservableSetter,
-} from './observation/observer-locator.js';
+  type ObservableGetter,
+  type ObservableSetter,
+} from './observation/observer-locator';
 export {
   PrimitiveObserver,
-} from './observation/primitive-observer.js';
+} from './observation/primitive-observer';
 export {
   PropertyAccessor,
-} from './observation/property-accessor.js';
+} from './observation/property-accessor';
 export {
   ProxyObservable,
-} from './observation/proxy-observation.js';
+} from './observation/proxy-observation';
 export {
   SetterObserver,
-} from './observation/setter-observer.js';
+} from './observation/setter-observer';
 export {
   ISignaler,
-} from './observation/signaler.js';
+} from './observation/signaler';
 export {
   SubscriberRecord,
   subscriberCollection,
-} from './observation/subscriber-collection.js';
+} from './observation/subscriber-collection';
 export {
   ConnectableSwitcher,
-} from './observation/connectable-switcher.js';
+} from './observation/connectable-switcher';
 
 export {
   bindingBehavior,
   BindingBehavior,
   BindingBehaviorDefinition,
-  PartialBindingBehaviorDefinition,
-  BindingBehaviorKind,
-  BindingBehaviorDecorator,
-  BindingBehaviorInstance,
-  BindingBehaviorType,
+  type PartialBindingBehaviorDefinition,
+  type BindingBehaviorKind,
+  type BindingBehaviorDecorator,
+  type BindingBehaviorInstance,
+  type BindingBehaviorType,
   BindingInterceptor,
   BindingBehaviorFactory,
   BindingBehaviorStrategy,
-  IInterceptableBinding,
-} from './binding-behavior.js';
+  type IInterceptableBinding,
+} from './binding-behavior';
 
 export {
   ValueConverter,
   ValueConverterDefinition,
-  PartialValueConverterDefinition,
-  ValueConverterKind,
-  ValueConverterDecorator,
-  ValueConverterInstance,
-  ValueConverterType,
+  type PartialValueConverterDefinition,
+  type ValueConverterKind,
+  type ValueConverterDecorator,
+  type ValueConverterInstance,
+  type ValueConverterType,
   valueConverter,
-} from './value-converter.js';
+} from './value-converter';
 
 export {
   BindingMode,
   LifecycleFlags,
-  AccessorOrObserver,
-  IBinding,
+  type AccessorOrObserver,
+  type IBinding,
   AccessorType,
-  Collection,
+  type Collection,
   CollectionKind,
   DelegationStrategy,
-  IAccessor,
-  IBindingContext,
-  ICollectionChangeTracker,
-  ICollectionObserver,
-  IConnectable,
-  IArrayIndexObserver,
-  ICollectionSubscriber,
-  IndexMap,
-  IBatchable,
-  IObserver,
-  IObservable,
-  IOverrideContext,
-  InterceptorFunc,
-  ISubscribable,
-  ISubscriberCollection,
-  CollectionObserver,
-  ICollectionSubscriberCollection,
-  ICollectionSubscribable,
-  ISubscriber,
-  ISubscriberRecord,
+  type IAccessor,
+  type IBindingContext,
+  type ICollectionChangeTracker,
+  type ICollectionObserver,
+  type IConnectable,
+  type IArrayIndexObserver,
+  type ICollectionSubscriber,
+  type IndexMap,
+  type IBatchable,
+  type IObserver,
+  type IObservable,
+  type IOverrideContext,
+  type InterceptorFunc,
+  type ISubscribable,
+  type ISubscriberCollection,
+  type CollectionObserver,
+  type ICollectionSubscriberCollection,
+  type ICollectionSubscribable,
+  type ISubscriber,
+  type ISubscriberRecord,
   isIndexMap,
   copyIndexMap,
   cloneIndexMap,
   createIndexMap,
   ICoercionConfiguration,
-} from './observation.js';
+} from './observation';

@@ -1,8 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { valueConverter } from '@aurelia/runtime';
 
-const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-
 export interface ISanitizer {
   /**
    * Sanitizes the provided input.
@@ -13,8 +11,8 @@ export interface ISanitizer {
 }
 
 export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer', x => x.singleton(class {
-  public sanitize(input: string): string {
-    return input.replace(SCRIPT_REGEX, '');
+  public sanitize(): string {
+    throw new Error('"sanitize" method not implemented');
   }
 }));
 

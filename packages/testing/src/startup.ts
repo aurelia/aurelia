@@ -1,6 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
-import { TestContext } from './test-context.js';
+import { TestContext } from './test-context';
 
 export function createFixture<T>(template: string | Node,
   $class?: Constructable<T>,

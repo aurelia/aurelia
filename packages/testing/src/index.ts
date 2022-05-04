@@ -1,36 +1,36 @@
 export {
   assert,
   fail
-} from './assert.js';
+} from './assert';
 
 export {
   globalAttributeNames,
   CSS_PROPERTIES,
   PSEUDO_ELEMENTS,
-} from './data.js';
+} from './data';
 export {
   eachCartesianJoinFactory,
   eachCartesianJoin,
   eachCartesianJoinAsync,
   generateCartesianProduct,
-} from './each-cartesian-join.js';
+} from './each-cartesian-join';
 export {
   h,
   hJsx,
-} from './h.js';
+} from './h';
 export {
   createFixture
-} from './startup.js';
+} from './startup';
 export {
   TestContext,
   PLATFORM,
   PLATFORMRegistration,
   setPlatform,
   createContainer,
-} from './test-context.js';
+} from './test-context';
 export {
   inspect,
-} from './inspect.js';
+} from './inspect';
 export {
   MockBinding,
   MockBindingBehavior,
@@ -41,26 +41,26 @@ export {
   MockSignaler,
   MockTracingExpression,
   MockValueConverter,
-  ChangeSet,
   CollectionChangeSet,
+  ChangeSet,
   ProxyChangeSet,
   SpySubscriber,
-} from './mocks.js';
+} from './mocks';
 export {
   SortValueConverter,
   JsonValueConverter,
   TestConfiguration,
-} from './resources.js';
+} from './resources';
 export {
   ensureTaskQueuesEmpty,
-} from './scheduler.js';
+} from './scheduler';
 export {
   // verifyASTEqual,
   verifyBindingInstructionsEqual,
   verifyEqual,
   getVisibleText,
   instructionTypeName,
-} from './specialized-assertions.js';
+} from './specialized-assertions';
 export {
   _,
   stringify,
@@ -68,7 +68,7 @@ export {
   jsonStringify,
   padLeft,
   padRight,
-} from './string-manipulation.js';
+} from './string-manipulation';
 export {
   // DefinitionBuilder,
   // InstructionBuilder,
@@ -82,16 +82,16 @@ export {
   // CustomAttribute,
   // CustomElement,
   // hydrateCustomElement,
-} from './test-builder.js';
+} from './test-builder';
 export {
   Call,
   CallCollection,
   recordCalls,
   stopRecordingCalls,
   trace
-} from './tracing.js';
+} from './tracing';
 export {
   trimFull,
   createSpy,
-  ISpy,
-} from './util.js';
+  type ISpy,
+} from './util';

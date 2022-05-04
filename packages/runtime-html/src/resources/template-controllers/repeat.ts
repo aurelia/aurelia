@@ -17,14 +17,14 @@ import {
   synchronizeIndices,
   ValueConverterExpression,
 } from '@aurelia/runtime';
-import { IRenderLocation } from '../../dom.js';
-import { IViewFactory } from '../../templating/view.js';
-import { templateController } from '../custom-attribute.js';
-import { IController } from '../../templating/controller.js';
-import { bindable } from '../../bindable.js';
+import { IRenderLocation } from '../../dom';
+import { IViewFactory } from '../../templating/view';
+import { templateController } from '../custom-attribute';
+import { IController } from '../../templating/controller';
+import { bindable } from '../../bindable';
 
-import type { PropertyBinding } from '../../binding/property-binding.js';
-import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
+import type { PropertyBinding } from '../../binding/property-binding';
+import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
 

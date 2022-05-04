@@ -1,11 +1,5 @@
-import { ComputedObserver } from '@aurelia/runtime';
+import { CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, DirtyCheckProperty, PrimitiveObserver, PropertyAccessor, SetterObserver } from '@aurelia/runtime';
 import {
-  CollectionLengthObserver,
-  DirtyCheckProperty,
-  PrimitiveObserver,
-  PropertyAccessor,
-  SetterObserver,
-  CollectionSizeObserver,
   AttributeNSAccessor,
   CheckedObserver,
   ClassAttributeAccessor,

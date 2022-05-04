@@ -61,9 +61,7 @@
     "init": "npm ci && npm run build",
     "rebuild": "npm run clean && npm run build",
     "build": "lage build --scope @aurelia/* --scope aurelia --scope au --no-cache --verbose --no-deps",
-    "build:test": "cross-env NO_MINIFIED=true __DEV__=true lage run rollup --scope @aurelia/* --scope aurelia --scope au --no-cache --verbose --no-deps",
-    "build:packages": "cross-env NO_MINIFIED=true __DEV__=true lage run build:packages --no-cache --verbose --no-deps",
-    "build:packages-cjs": "cross-env NO_MINIFIED=true __DEV__=true lage run build:packages-cjs --no-cache --verbose --no-deps",
+    "build:test": "lage run rollup --scope @aurelia/* --scope aurelia --scope au --no-cache --verbose --no-deps",
     "build:release": "lage run rollup --scope aurelia --scope au --scope @aurelia/a* --scope @aurelia/b* --scope @aurelia/f* --scope @aurelia/h* --scope @aurelia/i* --scope @aurelia/k* --scope @aurelia/m* --scope @aurelia/p* --scope @aurelia/r* --scope @aurelia/s* --scope @aurelia/t* --scope @aurelia/v* --scope @aurelia/w* --no-cache --verbose --no-deps",
     "postbuild:release": "npm run clean:tsconfig-build-cache",
     "build:release:full": "npm run build:release && npm run change-tsconfigs:invert && npm run build:release && npm run change-tsconfigs:restore",
@@ -93,11 +91,11 @@
     "generate-tests:template-compiler.static": "node scripts/dist/scripts/generate-tests/template-compiler.static.js",
     "generate-tests:template-compiler.mutations": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.mutations.ts",
     "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts",
-    "rollup": "lage rollup",
     "test": "cd packages/__tests__ && npm run test",
     "test:ci": "npm ci && npm run test",
     "test:watch": "cd packages/__tests__ && npm run test-chrome:watch",
-    "test:debugger": "cd packages/__tests__ && npm run test-chrome:debugger"
+    "test:debugger": "cd packages/__tests__ && npm run test-chrome:debugger",
+    "dev": "ts-node scripts/dev.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.2.3",
@@ -108,7 +106,9 @@
     "@typescript-eslint/parser": "^5.20.0",
     "chalk": "^4.1.2",
     "codecov": "^3.8.3",
+    "concurrently": "^7.1.0",
     "cross-env": "^7.0.3",
+    "esbuild": "^0.14.38",
     "eslint": "^8.14.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jsdoc": "^39.2.8",
@@ -118,6 +118,7 @@
     "lage": "^0.31.2",
     "rimraf": "^3.0.0",
     "rollup": "^2.70.2",
+    "rollup-plugin-esbuild": "^4.9.1",
     "rollup-plugin-terser": "^7.0.2",
     "ts-node": "^10.7.0",
     "tsconfig-paths": "^3.14.1",
@@ -195,5 +196,9 @@
       "pre-commit": "git reset --quiet -- yarn.lock && git checkout --quiet -- yarn.lock",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
+  },
+  "volta": {
+    "node": "16.14.2",
+    "npm": "8.1.2"
   }
 }

@@ -1,22 +1,19 @@
 import { DI, Registration } from '@aurelia/kernel';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../shared.js';
-import type { Constructable, IContainer } from '@aurelia/kernel';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../shared';
+import type { Constructable, IContainer, AnyFunction, FunctionPropNames } from '@aurelia/kernel';
 
-type FuncPropNames<T> = {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  [K in keyof T]: K extends 'constructor' ? never : Required<T>[K] extends Function ? K : never;
-}[keyof T];
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-export type LifecycleHook<TViewModel, TKey extends FuncPropNames<TViewModel>> = (vm: TViewModel, ...args: Parameters<Required<TViewModel>[TKey]>) => ReturnType<Required<TViewModel>[TKey]>;
+export type LifecycleHook<TViewModel, TKey extends keyof TViewModel, P extends TViewModel[TKey] = TViewModel[TKey]> =
+  P extends AnyFunction
+    ? (vm: TViewModel, ...args: Parameters<NonNullable<P>>) => ReturnType<NonNullable<P>>
+    : never;
 
-export type ILifecycleHooks<TViewModel = {}, TKey extends FuncPropNames<TViewModel> = FuncPropNames<TViewModel>> = { [K in TKey]: LifecycleHook<TViewModel, K>; };
+export type ILifecycleHooks<TViewModel = {}, TKey extends keyof TViewModel = keyof TViewModel> = { [K in TKey]-?: LifecycleHook<TViewModel, K>; };
 export const ILifecycleHooks = DI.createInterface<ILifecycleHooks>('ILifecycleHooks');
 
 export type LifecycleHooksLookup<TViewModel = {}> = {
-  [K in FuncPropNames<TViewModel>]?: readonly LifecycleHooksEntry<TViewModel, K>[];
+  [K in FunctionPropNames<TViewModel>]?: readonly LifecycleHooksEntry<TViewModel, K>[];
 };
-export class LifecycleHooksEntry<TViewModel = {}, TKey extends FuncPropNames<TViewModel> = FuncPropNames<TViewModel>, THooks extends Constructable = Constructable> {
+export class LifecycleHooksEntry<TViewModel = {}, TKey extends keyof TViewModel = keyof TViewModel, THooks extends Constructable = Constructable> {
   public constructor(
     public readonly definition: LifecycleHooksDefinition<THooks>,
     public readonly instance: ILifecycleHooks<TViewModel, TKey>,

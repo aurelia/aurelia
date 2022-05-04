@@ -1,8 +1,8 @@
 import { Class, DI } from '@aurelia/kernel';
 import { IsBindingBehavior, IExpressionParser } from '@aurelia/runtime';
-import { Deserializer } from './ast-serialization.js';
-import { IValidationRules } from './rule-provider.js';
-import { IValidationMessageProvider } from './rules.js';
+import { Deserializer } from './ast-serialization';
+import { IValidationRules } from './rule-provider';
+import { IValidationMessageProvider } from './rules';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationRuleExecutionPredicate<TObject extends IValidateable = IValidateable> = (object?: TObject) => boolean;

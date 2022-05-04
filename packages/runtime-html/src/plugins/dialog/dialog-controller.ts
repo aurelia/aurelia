@@ -1,6 +1,6 @@
 import { Constructable, IContainer, InstanceProvider, onResolve, Registration } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
-import { Controller, ICustomElementController } from '../../templating/controller.js';
+import { Controller, ICustomElementController } from '../../templating/controller';
 import {
   DialogDeactivationStatuses,
   IDialogController,
@@ -10,16 +10,16 @@ import {
   DialogCloseResult,
   DialogCancelError,
   DialogCloseError,
-} from './dialog-interfaces.js';
-import { IEventTarget, INode } from '../../dom.js';
-import { IPlatform } from '../../platform.js';
-import { CustomElement, CustomElementDefinition } from '../../resources/custom-element.js';
-import { isFunction } from '../../utilities.js';
+} from './dialog-interfaces';
+import { IEventTarget, INode } from '../../dom';
+import { IPlatform } from '../../platform';
+import { CustomElement, CustomElementDefinition } from '../../resources/custom-element';
+import { isFunction } from '../../utilities';
 
 import type {
   IDialogComponent,
   IDialogLoadedSettings,
-} from './dialog-interfaces.js';
+} from './dialog-interfaces';
 
 /**
  * A controller object for a Dialog instance.

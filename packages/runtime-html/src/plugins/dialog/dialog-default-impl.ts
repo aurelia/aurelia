@@ -1,9 +1,9 @@
-import { IPlatform } from '../../platform.js';
+import { IPlatform } from '../../platform';
 import {
   IDialogDomRenderer,
   IDialogDom,
   IDialogGlobalSettings,
-} from './dialog-interfaces.js';
+} from './dialog-interfaces';
 
 import { IContainer, Registration } from '@aurelia/kernel';
 

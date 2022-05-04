@@ -1,8 +1,8 @@
 import { IContainer, IEventAggregator } from '@aurelia/kernel';
+import { LifecycleFlags } from '@aurelia/runtime';
 import {
   bindable,
   INode,
-  LifecycleFlags,
   customElement,
   CustomElement,
   HydrateElementInstruction,
@@ -14,13 +14,13 @@ import {
   ISyntheticView,
   IInstruction,
 } from '@aurelia/runtime-html';
-import { IRouter, NavigationFlags } from '../index.js';
-import { Viewport } from '../endpoints/viewport.js';
-import { IViewportOptions } from '../endpoints/viewport-options.js';
-import { Runner, Step } from '../utilities/runner.js';
-import { waitForRouterStart, getValueOrAttribute } from './utils.js';
-import { arrayRemove } from '../utilities/utils.js';
-import { OpenPromise } from '../utilities/open-promise.js';
+import { IRouter, NavigationFlags } from '../index';
+import { Viewport } from '../endpoints/viewport';
+import { IViewportOptions } from '../endpoints/viewport-options';
+import { Runner, Step } from '../utilities/runner';
+import { waitForRouterStart, getValueOrAttribute } from './utils';
+import { arrayRemove } from '../utilities/utils';
+import { OpenPromise } from '../utilities/open-promise';
 
 export const ParentViewport = CustomElement.createInjectable();
 

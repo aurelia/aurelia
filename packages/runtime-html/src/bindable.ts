@@ -1,7 +1,7 @@
 import { kebabCase, firstDefined, getPrototypeChain, noop, Class } from '@aurelia/kernel';
 import { BindingMode, ICoercionConfiguration } from '@aurelia/runtime';
-import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './shared.js';
-import { isString } from './utilities.js';
+import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './shared';
+import { isString } from './utilities';
 
 import type { Constructable, Writable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
@@ -331,6 +331,7 @@ function apiTypeCheck() {
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace Reflect {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getMetadata(metadataKey: any, target: any, propertyKey?: string | symbol): any;
 }
 

@@ -1,5 +1,5 @@
 import { InstructionType, NodeType, CustomElement } from '@aurelia/runtime-html';
-import { assert } from './assert.js';
+import { assert } from './assert';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
 

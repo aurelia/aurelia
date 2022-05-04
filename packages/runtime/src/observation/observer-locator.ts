@@ -1,13 +1,13 @@
 import { DI, Primitive, isArrayIndex, ILogger } from '@aurelia/kernel';
-import { getArrayObserver } from './array-observer.js';
-import { ComputedObserver } from './computed-observer.js';
-import { IDirtyChecker } from './dirty-checker.js';
-import { getMapObserver } from './map-observer.js';
-import { PrimitiveObserver } from './primitive-observer.js';
-import { PropertyAccessor } from './property-accessor.js';
-import { getSetObserver } from './set-observer.js';
-import { SetterObserver } from './setter-observer.js';
-import { def, hasOwnProp } from '../utilities-objects.js';
+import { getArrayObserver } from './array-observer';
+import { ComputedObserver } from './computed-observer';
+import { IDirtyChecker } from './dirty-checker';
+import { getMapObserver } from './map-observer';
+import { PrimitiveObserver } from './primitive-observer';
+import { PropertyAccessor } from './property-accessor';
+import { getSetObserver } from './set-observer';
+import { SetterObserver } from './setter-observer';
+import { def, hasOwnProp } from '../utilities-objects';
 
 import type {
   Collection,
@@ -18,7 +18,7 @@ import type {
   AccessorOrObserver,
   CollectionKind,
   CollectionObserver,
-} from '../observation.js';
+} from '../observation';
 
 export const propertyAccessor = new PropertyAccessor();
 
@@ -170,6 +170,7 @@ export class ObserverLocator {
     return new SetterObserver(obj, key);
   }
 
+  /** @internal */
   private _getAdapterObserver(obj: IObservable, propertyName: string, pd: PropertyDescriptor): AccessorOrObserver | null {
     if (this._adapters.length > 0) {
       for (const adapter of this._adapters) {

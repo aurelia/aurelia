@@ -1,5 +1,5 @@
+import { alias } from '@aurelia/runtime';
 import {
-  alias,
   CommandType,
   BindingCommandInstance,
   bindingCommand,

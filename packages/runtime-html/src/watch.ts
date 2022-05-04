@@ -1,8 +1,8 @@
 import { emptyArray } from '@aurelia/kernel';
-import { CustomAttribute } from './resources/custom-attribute.js';
-import { CustomElement } from './resources/custom-element.js';
-import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './shared.js';
-import { isFunction } from './utilities.js';
+import { CustomAttribute } from './resources/custom-attribute';
+import { CustomElement } from './resources/custom-element';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './shared';
+import { isFunction } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type { IConnectable } from '@aurelia/runtime';

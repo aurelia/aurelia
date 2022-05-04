@@ -1,8 +1,8 @@
 import { IContainer, Registration, ILogger } from '@aurelia/kernel';
 import { IWindow } from '@aurelia/runtime-html';
 
-import { isStateHistory, StateHistory } from './history.js';
-import { Store, STORE, StoreOptions } from './store.js';
+import { isStateHistory, StateHistory } from './history';
+import { Store, STORE, StoreOptions } from './store';
 
 export interface StorePluginOptions<T> extends StoreOptions {
   initialState: T;
@@ -40,7 +40,6 @@ export const StoreConfiguration: IConfigure = {
 
     let initState: unknown = state;
 
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (options?.history?.undoable && !isStateHistory(state)) {
       initState = { past: [], present: state, future: [] };
     }
@@ -54,54 +53,60 @@ export const StoreConfiguration: IConfigure = {
 export {
   ActionRegistrationError,
   DevToolsRemoteDispatchError,
-  IStoreWindow,
-  MiddlewareSettings,
+  type IStoreWindow,
+  type MiddlewareSettings,
   PerformanceMeasurement,
-  PipedDispatch,
-  Reducer,
+  type PipedDispatch,
+  type Reducer,
   ReducerNoStateError,
   STORE,
   Store,
-  StoreOptions,
+  type StoreOptions,
   UnregisteredActionError,
   dispatchify,
-} from './store.js';
+} from './store';
+
 export {
-  StepFn,
+  type StepFn,
   executeSteps
-} from './test-helpers.js';
+} from './test-helpers';
+
 export {
-  HistoryOptions,
-  StateHistory,
+  type HistoryOptions,
+  type StateHistory,
   applyLimits,
   isStateHistory,
   jump,
   nextStateHistory,
-} from './history.js';
+} from './history';
+
 export {
-  LogDefinitions,
+  type LogDefinitions,
   LogLevel,
   getLogType,
-} from './logging.js';
+} from './logging';
+
 export {
-  CallingAction,
+  type CallingAction,
   DEFAULT_LOCAL_STORAGE_KEY,
-  Middleware,
+  type Middleware,
   MiddlewarePlacement,
   localStorageMiddleware,
   logMiddleware,
   rehydrateFromLocalStorage,
-} from './middleware.js';
+} from './middleware';
+
 export {
-  ConnectToSettings,
-  MultipleSelector,
+  type ConnectToSettings,
+  type MultipleSelector,
   connectTo,
-} from './decorator.js';
+} from './decorator';
+
 export {
-  Action,
-  ActionCreator,
-  DevTools,
-  DevToolsExtension,
-  DevToolsMessage,
-  DevToolsOptions,
-} from './devtools.js';
+  type Action,
+  type ActionCreator,
+  type DevTools,
+  type DevToolsExtension,
+  type DevToolsMessage,
+  type DevToolsOptions,
+} from './devtools';

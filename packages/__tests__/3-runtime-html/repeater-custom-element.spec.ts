@@ -1,4 +1,5 @@
 import { Class } from '@aurelia/kernel';
+import { BindingBehavior } from '@aurelia/runtime';
 import {
   customElement,
   bindable,
@@ -7,7 +8,6 @@ import {
   IPlatform,
   ICustomElementViewModel,
   ICustomElementController,
-  BindingBehavior,
 } from '@aurelia/runtime-html';
 import {
   assert,

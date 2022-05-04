@@ -1,6 +1,6 @@
 import { IPlatform } from '@aurelia/kernel';
 import { IWindow } from '@aurelia/runtime-html';
-import { STORE } from './store.js';
+import { STORE } from './store';
 
 export const DEFAULT_LOCAL_STORAGE_KEY = "aurelia-store-state";
 

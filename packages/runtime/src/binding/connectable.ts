@@ -1,7 +1,7 @@
-import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
-import { getArrayObserver } from '../observation/array-observer.js';
-import { getSetObserver } from '../observation/set-observer.js';
-import { getMapObserver } from '../observation/map-observer.js';
+import { def, defineHiddenProp, ensureProto } from '../utilities-objects';
+import { getArrayObserver } from '../observation/array-observer';
+import { getSetObserver } from '../observation/set-observer';
+import { getMapObserver } from '../observation/map-observer';
 
 import type { Class, IServiceLocator } from '@aurelia/kernel';
 import type {
@@ -15,8 +15,8 @@ import type {
   IndexMap,
   ICollectionSubscribable,
   LifecycleFlags,
-} from '../observation.js';
-import type { IObserverLocator } from '../observation/observer-locator.js';
+} from '../observation';
+import type { IObserverLocator } from '../observation/observer-locator';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 

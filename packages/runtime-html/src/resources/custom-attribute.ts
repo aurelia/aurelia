@@ -1,11 +1,11 @@
 import { Registration, mergeArrays, firstDefined } from '@aurelia/kernel';
 import { BindingMode, registerAliases } from '@aurelia/runtime';
-import { Bindable } from '../bindable.js';
-import { Watch } from '../watch.js';
-import { getRef } from '../dom.js';
-import { DefinitionType } from './resources-shared.js';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared.js';
-import { isFunction, isString } from '../utilities.js';
+import { Bindable } from '../bindable';
+import { Watch } from '../watch';
+import { getRef } from '../dom';
+import { DefinitionType } from './resources-shared';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared';
+import { isFunction, isString } from '../utilities';
 
 import type {
   Constructable,
@@ -15,9 +15,9 @@ import type {
   PartialResourceDefinition,
   ResourceType,
 } from '@aurelia/kernel';
-import type { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
-import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller.js';
-import type { IWatchDefinition } from '../watch.js';
+import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
+import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
+import type { IWatchDefinition } from '../watch';
 
 declare module '@aurelia/kernel' {
   interface IContainer {

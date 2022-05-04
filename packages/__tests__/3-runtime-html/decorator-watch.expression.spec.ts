@@ -1,4 +1,5 @@
-import { bindable, BindingMode, customAttribute, customElement, watch } from '@aurelia/runtime-html';
+import { BindingMode } from '@aurelia/runtime';
+import { bindable, customAttribute, customElement, watch } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {

@@ -1,6 +1,6 @@
-import { emptyArray } from './platform.js';
-import { Constructable, Overwrite } from './interfaces.js';
-import { createObject } from './utilities.js';
+import { emptyArray } from './platform';
+import { Constructable, Overwrite } from './interfaces';
+import { createObject } from './utilities';
 
 const isNumericLookup: Record<string, boolean> = {};
 

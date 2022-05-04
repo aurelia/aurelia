@@ -11,20 +11,22 @@ import {
   sink,
 } from '@aurelia/kernel';
 import {
-  AuSlot,
   bindingBehavior,
   BindingBehaviorInstance,
-  Case,
-  Controller,
-  customElement,
-  CustomElement,
   IBinding,
   IObserverLocator,
   Scope,
   LifecycleFlags,
+  valueConverter,
+} from '@aurelia/runtime';
+import {
+  AuSlot,
+  Case,
+  Controller,
+  customElement,
+  CustomElement,
   Repeat,
   Switch,
-  valueConverter,
   Aurelia,
   IPlatform,
   ICustomElementViewModel,

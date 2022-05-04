@@ -1,4 +1,4 @@
-import { IEndpointOptions } from './endpoint.js';
+import { IEndpointOptions } from './endpoint';
 
 export interface IViewportOptions extends Omit<Partial<ViewportOptions>, 'usedBy'> {
   usedBy?: string | string[];

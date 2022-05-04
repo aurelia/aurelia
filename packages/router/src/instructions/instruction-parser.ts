@@ -1,5 +1,5 @@
-import { RoutingInstruction } from './routing-instruction.js';
-import { Separators } from '../router-options.js';
+import { RoutingInstruction } from './routing-instruction';
+import { Separators } from '../router-options';
 
 export class InstructionParser {
   public static parse(seps: Separators, instructions: string, grouped: boolean, topScope: boolean): { instructions: RoutingInstruction[]; remaining: string } {

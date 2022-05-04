@@ -1,20 +1,13 @@
+import { ITask } from '@aurelia/platform';
 import { DI } from '@aurelia/kernel';
+import { bindingBehavior, BindingBehaviorExpression, BindingInterceptor, BindingMediator, IBinding, LifecycleFlags, Scope } from '@aurelia/runtime';
 import {
-  bindingBehavior,
-  BindingInterceptor,
-  BindingMediator,
-  LifecycleFlags,
   PropertyBinding,
-  IBinding,
-  BindingBehaviorExpression,
-  ITask,
   IPlatform,
   ICustomElementViewModel,
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
-import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller.js';
-
-import type { Scope } from '@aurelia/runtime';
+import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
 
 /**
  * Validation triggers.

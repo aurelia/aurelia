@@ -2,23 +2,23 @@ import {
   LifecycleFlags,
   AccessorType,
   IObserver,
-} from '../observation.js';
-import { subscriberCollection } from './subscriber-collection.js';
-import { enterConnectable, exitConnectable } from './connectable-switcher.js';
-import { connectable } from '../binding/connectable.js';
-import { wrap, unwrap } from './proxy-observation.js';
-import { def, isFunction } from '../utilities-objects.js';
-import { withFlushQueue } from './flush-queue.js';
+} from '../observation';
+import { subscriberCollection } from './subscriber-collection';
+import { enterConnectable, exitConnectable } from './connectable-switcher';
+import { connectable } from '../binding/connectable';
+import { wrap, unwrap } from './proxy-observation';
+import { def, isFunction } from '../utilities-objects';
+import { withFlushQueue } from './flush-queue';
 
 import type {
   ISubscriber,
   ICollectionSubscriber,
   ISubscriberCollection,
   IConnectable,
-} from '../observation.js';
-import type { IConnectableBinding } from '../binding/connectable.js';
-import type { IObserverLocator, ObservableGetter } from './observer-locator.js';
-import type { FlushQueue, IFlushable, IWithFlushQueue } from './flush-queue.js';
+} from '../observation';
+import type { IConnectableBinding } from '../binding/connectable';
+import type { IObserverLocator, ObservableGetter } from './observer-locator';
+import type { FlushQueue, IFlushable, IWithFlushQueue } from './flush-queue';
 
 export interface ComputedObserver extends IConnectableBinding, ISubscriberCollection { }
 

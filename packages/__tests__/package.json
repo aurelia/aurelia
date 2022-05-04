@@ -34,9 +34,10 @@
     "test:debugger": "npm run test-chrome:debugger",
     "test": "npm run test-chrome",
     "build": "tsc --build",
-    "dev": "cross-env __DEV__=true node esbuild.dev.cjs",
+    "dev": "cross-env DEV_MODE=true node esbuild.dev.cjs",
     "rollup": "npm run build",
-    "build:packages": "node esbuild.dev.cjs"
+    "build:packages": "node esbuild.dev.cjs",
+    "verify": "tsc --noEmit"
   },
   "dependencies": {
     "@aurelia/fetch-client": "2.0.0-alpha.29",

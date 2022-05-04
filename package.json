@@ -97,7 +97,8 @@
     "test": "cd packages/__tests__ && npm run test",
     "test:ci": "npm ci && npm run test",
     "test:watch": "cd packages/__tests__ && npm run test-chrome:watch",
-    "test:debugger": "cd packages/__tests__ && npm run test-chrome:debugger"
+    "test:debugger": "cd packages/__tests__ && npm run test-chrome:debugger",
+    "dev": "ts-node scripts/dev.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.2.3",
@@ -108,6 +109,7 @@
     "@typescript-eslint/parser": "^5.20.0",
     "chalk": "^4.1.2",
     "codecov": "^3.8.3",
+    "concurrently": "^7.1.0",
     "cross-env": "^7.0.3",
     "esbuild": "^0.14.38",
     "eslint": "^8.14.0",
@@ -197,5 +199,9 @@
       "pre-commit": "git reset --quiet -- yarn.lock && git checkout --quiet -- yarn.lock",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
+  },
+  "volta": {
+    "node": "16.14.2",
+    "npm": "8.1.2"
   }
 }

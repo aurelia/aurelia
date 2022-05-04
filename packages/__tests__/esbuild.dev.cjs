@@ -2,6 +2,7 @@
 const fs = require('fs');
 const { resolve, join } = require('path');
 const { build } = require('esbuild');
+const { exec, execSync } = require('child_process');
 
 /**
  * @param {string} startPath
@@ -34,7 +35,7 @@ build({
   entryPoints: findByExt('./', '.ts'),
   outdir: resolve(__dirname, 'dist/esm/__tests__'),
   sourcemap: true,
-  watch: /true/.test(process.env.__DEV__),
+  watch: /^true$/.test(process.env.DEV_MODE),
   plugins: [
     {
       name: 'example',
@@ -44,7 +45,15 @@ build({
           now = Date.now();
         });
         build.onEnd(result => {
-          console.log(`Build done in ${((Date.now() - now) / 1000).toFixed(2)}s, with ${result.errors.length} errors.`);
+          console.log(`Build done in ${getElapsed(Date.now(), now)}s, with ${result.errors.length} errors.`);
+          now = Date.now();
+          console.log('verifying typings');
+          try {
+            execSync('npm run verify');
+            console.log(`verified typings done in ${getElapsed(Date.now(), now)}.`);
+          } catch (ex) {
+            process.stdout.write(ex.stdout);
+          }
         });
       }
     }
@@ -53,3 +62,11 @@ build({
   process.stderr.write(err.stderr);
   process.exit(1);
 });
+
+/**
+ * @param {number} now
+ * @param {number} then
+ */
+const getElapsed = (now, then) => {
+  return ((now - then) / 1000).toFixed(2);
+}

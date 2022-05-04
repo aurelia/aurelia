@@ -36,6 +36,7 @@ build({
   outdir: resolve(__dirname, 'dist/esm/__tests__'),
   sourcemap: true,
   watch: /^true$/.test(process.env.DEV_MODE),
+  keepNames: true,
   plugins: [
     {
       name: 'example',

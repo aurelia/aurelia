@@ -446,6 +446,7 @@ jobs:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           name: "Restore build artifacts"
+          # build-true = build + generate native modules
           key: cache-{{ .Revision }}-build-true
       # - run: set -o pipefail && npm run build:release
       # - run: set -o pipefail && npm run change-tsconfigs:invert
@@ -679,6 +680,7 @@ workflows:
       - build_and_cache:
           <<: *filter_ignore_develop_release
           name: build_release
+          command: npm run build:release
           generate_native_modules: true
           requires:
               - checkout_install
@@ -791,6 +793,7 @@ workflows:
       - build_and_cache:
           <<: *filter_only_tag
           name: build_release
+          command: npm run build:release
           generate_native_modules: true
           requires:
             - checkout_install

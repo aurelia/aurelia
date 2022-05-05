@@ -13,6 +13,7 @@ module.exports = {
     node: true,
   },
   rules: {
-    'import/no-nodejs-modules': 'off'
+    'import/no-nodejs-modules': 'off',
+    '@typescriot-eslint/strict-boolean-expression': 'off'
   }
 };

@@ -36,6 +36,9 @@ export interface IOptionalPreprocessOptions {
   useProcessedFilePairFilename?: boolean;
   // Whenn CSSModule is in use, stringModuleWrap is ignored.
   useCSSModule?: boolean;
+  hmr?: boolean;
+  enableConventions?: boolean;
+  hmrModule?: string;
 }
 
 export interface IPreprocessOptions {
@@ -47,6 +50,9 @@ export interface IPreprocessOptions {
   templateExtensions: string[]; // .html, .md, .pug, .haml, .jade, .slim, .slm
   useProcessedFilePairFilename?: boolean;
   useCSSModule: boolean;
+  hmr?: boolean;
+  enableConventions?: boolean;
+  hmrModule?: string;
 }
 
 export const defaultCssExtensions = ['.css', '.scss', '.sass', '.less', '.styl'];
@@ -59,6 +65,9 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     jsExtensions = [],
     templateExtensions = [],
     useCSSModule = false,
+    hmr = true,
+    enableConventions = true,
+    hmrModule = 'module',
     ...others
   } = options;
 
@@ -67,6 +76,9 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     jsExtensions: Array.from(new Set([...defaultJsExtensions, ...jsExtensions])).sort(),
     templateExtensions: Array.from(new Set([...defaultTemplateExtensions, ...templateExtensions])).sort(),
     useCSSModule,
+    hmr,
+    hmrModule,
+    enableConventions,
     ...others
   };
 }

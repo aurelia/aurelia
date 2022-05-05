@@ -18,7 +18,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocess({ path: path.join('src', 'foo-bar.html'), contents: html }, {}, () => false);
+    const result = preprocess({ path: path.join('src', 'foo-bar.html'), contents: html }, { hmr: false, enableConventions: true }, () => false);
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -45,7 +45,9 @@ export function register(container) {
         contents: html
       },
       {
-        useProcessedFilePairFilename: true
+        useProcessedFilePairFilename: true,
+        hmr: false,
+        enableConventions: true
       },
       (filePath: string) => filePath === path.join('src', 'foo-bar.less')
     );
@@ -77,7 +79,9 @@ export function register(container) {
       { path: path.join('src', 'foo-bar.html'), contents: html },
       {
         defaultShadowOptions: { mode: 'open' },
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`,
+        hmr: false,
+        enableConventions: true
       },
       () => false
     );
@@ -89,7 +93,7 @@ export function register(container) {
     const js = `export class Foo {}\n`;
     const result = preprocess(
       { path: path.join('src', 'foo.js'), contents: js },
-      {},
+      { hmr: false },
       () => false
     );
     assert.equal(result.code, js);
@@ -100,7 +104,7 @@ export function register(container) {
     const js = `export class Foo {}\n`;
     const result = preprocess(
       { path: path.join('src', 'bar.js'), contents: js },
-      {},
+      { hmr: false },
       (filePath: string) => filePath === path.join('src', 'bar.html')
     );
     assert.equal(result.code, js);
@@ -109,8 +113,8 @@ export function register(container) {
 
   it('injects customElement decorator', function () {
     const js = `export class FooBar {}\n`;
-    const expected = `import * as __au2ViewDef from './foo-bar.html';
-import { customElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './foo-bar.html';
 @customElement(__au2ViewDef)
 export class FooBar {}
 `;
@@ -120,7 +124,7 @@ export class FooBar {}
         contents: js,
         base: 'base'
       },
-      {},
+      { hmr: false },
       (filePath: string) => filePath === path.join('base', 'src', 'foo-bar.html')
     );
     assert.equal(result.code, expected);
@@ -129,8 +133,8 @@ export class FooBar {}
 
   it('injects customElement decorator with index file', function () {
     const js = `export class FooBar {}\n`;
-    const expected = `import * as __au2ViewDef from './index.html';
-import { customElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './index.html';
 @customElement(__au2ViewDef)
 export class FooBar {}
 `;
@@ -140,7 +144,7 @@ export class FooBar {}
         contents: js,
         base: 'base'
       },
-      {},
+      { hmr: false },
       (filePath: string) => filePath === path.join('base', 'src', 'foo-bar', 'index.html')
     );
     assert.equal(result.code, expected);
@@ -149,8 +153,8 @@ export class FooBar {}
 
   it('injects view decorator', function () {
     const js = `export class FooBar {}\n`;
-    const expected = `import * as __au2ViewDef from './foo-bar-view.html';
-import { view } from '@aurelia/runtime-html';
+    const expected = `import { view } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './foo-bar-view.html';
 @view(__au2ViewDef)
 export class FooBar {}
 `;
@@ -160,7 +164,7 @@ export class FooBar {}
         contents: js,
         base: 'base'
       },
-      {},
+      { hmr: false },
       (filePath: string) => filePath === path.join('base', 'src', 'foo-bar-view.html')
     );
     assert.equal(result.code, expected);
@@ -169,8 +173,8 @@ export class FooBar {}
 
   it('injects view decorator with index file', function () {
     const js = `export class FooBar {}\n`;
-    const expected = `import * as __au2ViewDef from './index-view.html';
-import { view } from '@aurelia/runtime-html';
+    const expected = `import { view } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './index-view.html';
 @view(__au2ViewDef)
 export class FooBar {}
 `;
@@ -180,7 +184,7 @@ export class FooBar {}
         contents: js,
         base: 'base'
       },
-      {},
+      { hmr: false },
       (filePath: string) => filePath === path.join('base', 'src', 'foo-bar', 'index-view.html')
     );
     assert.equal(result.code, expected);
@@ -265,7 +269,7 @@ export class FooBar {}
         path: path.join('src', 'foo-bar.js'),
         contents: js
       },
-      {},
+      { hmr: false },
       (filePath: string) => filePath === path.join('src', 'foo-bar.html')
     );
     assert.equal(result.code, expected);
@@ -350,7 +354,7 @@ export class FooBar {}
         path: path.join('src', 'foo-bar.js'),
         contents: js
       },
-      {},
+      { hmr: false },
       (filePath: string) => filePath === path.join('src', 'foo-bar.haml')
     );
     assert.equal(result.code, expected);

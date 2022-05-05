@@ -1,5 +1,6 @@
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import * as ts from 'typescript';
+import { getHmrCode, hmrMetadataModules, hmrRuntimeModules } from './hmr.js';
 import { nameConvention } from './name-convention.js';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options.js';
 import { resourceName } from './resource-name.js';
@@ -16,6 +17,7 @@ interface IPos {
 }
 
 interface IFoundResource {
+  className?: string;
   localDep?: string;
   needDecorator?: [number, string];
   implicitStatement?: IPos;
@@ -29,6 +31,8 @@ interface IFoundDecorator {
 }
 
 interface IModifyResourceOptions {
+  exportedClassName?: string;
+  metadataImport: ICapturedImport;
   runtimeImport: ICapturedImport;
   implicitElement?: IPos;
   localDeps: string[];
@@ -39,9 +43,10 @@ interface IModifyResourceOptions {
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
   const expectedResourceName = resourceName(unit.path);
   const sf = ts.createSourceFile(unit.path, unit.contents, ts.ScriptTarget.Latest);
-
+  let exportedClassName: string | undefined;
   let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let runtimeImport: ICapturedImport = { names: [], start: 0, end: 0 };
+  let metadataImport: ICapturedImport = { names: [], start: 0, end: 0 };
 
   let implicitElement: IPos | undefined;
   let customElementName: IPos | undefined; // for @customName('custom-name')
@@ -60,6 +65,14 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       return;
     }
 
+    // Find existing import {Metadata} from '@aurelia/metadata';
+    const metadata = captureImport(s, '@aurelia/metadata', unit.contents);
+    if (metadata) {
+      // Assumes only one import statement for @aurelia/runtime-html
+      metadataImport = metadata;
+      return;
+    }
+
     // Find existing import {customElement} from '@aurelia/runtime-html';
     const runtime = captureImport(s, '@aurelia/runtime-html', unit.contents);
     if (runtime) {
@@ -75,6 +88,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     const resource = findResource(s, expectedResourceName, unit.filePair, unit.isViewPair, unit.contents);
     if (!resource) return;
     const {
+      className,
       localDep,
       needDecorator,
       implicitStatement,
@@ -88,28 +102,68 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
       ensureTypeIsExported(runtimeImport.names, runtimeImportName);
     }
+    if (className && options.hmr && process.env.NODE_ENV !== 'production') {
+      exportedClassName = className;
+      hmrRuntimeModules.forEach(m => {
+        if (!auImport.names.includes(m)) {
+          ensureTypeIsExported(runtimeImport.names, m);
+        }
+      });
+      hmrMetadataModules.forEach(m => {
+        if (!auImport.names.includes(m)) {
+          ensureTypeIsExported(metadataImport.names, m);
+        }
+      });
+    }
     if (customName) customElementName = customName;
   });
 
-  return modifyResource(unit, {
-    runtimeImport,
-    implicitElement,
-    localDeps,
-    conventionalDecorators,
-    customElementName
-  });
+  let m = modifyCode(unit.contents, unit.path);
+  const hmrEnabled = options.hmr && exportedClassName && process.env.NODE_ENV !== 'production';
+
+  if (options.enableConventions || hmrEnabled) {
+    if (hmrEnabled && metadataImport.names.length) {
+      let metadataImportStatement = `import { ${metadataImport.names.join(', ')} } from '@aurelia/metadata';`;
+      if (metadataImport.end === metadataImport.start)
+        metadataImportStatement += '\n';
+      m.replace(metadataImport.start, metadataImport.end, metadataImportStatement);
+    }
+
+    if (runtimeImport.names.length) {
+      let runtimeImportStatement = `import { ${runtimeImport.names.join(', ')} } from '@aurelia/runtime-html';`;
+      if (runtimeImport.end === runtimeImport.start) runtimeImportStatement += '\n';
+      m.replace(runtimeImport.start, runtimeImport.end, runtimeImportStatement);
+    }
+  }
+
+  if (options.enableConventions) {
+    m = modifyResource(unit, m, {
+      runtimeImport,
+      metadataImport,
+      exportedClassName,
+      implicitElement,
+      localDeps,
+      conventionalDecorators,
+      customElementName
+    });
+  }
+
+  if (options.hmr && exportedClassName && process.env.NODE_ENV !== 'production') {
+    const hmr = getHmrCode(exportedClassName, options.hmrModule);
+    m.append(hmr);
+  }
+
+  return m.transform();
 }
 
-function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
+function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, options: IModifyResourceOptions) {
   const {
-    runtimeImport,
     implicitElement,
     localDeps,
     conventionalDecorators,
     customElementName
   } = options;
 
-  const m = modifyCode(unit.contents, unit.path);
   if (implicitElement && unit.filePair) {
     // @view() for foo.js and foo-view.html
     // @customElement() for foo.js and foo.html
@@ -135,7 +189,7 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
       if (customElementName) {
         // Overwrite element name
         const name = unit.contents.slice(customElementName.pos, customElementName.end);
-        m.replace(customElementName.pos, customElementName.end,`{ ...${viewDef}, name: ${name} }`);
+        m.replace(customElementName.pos, customElementName.end, `{ ...${viewDef}, name: ${name} }`);
       } else {
         conventionalDecorators.push([implicitElement.pos, `@${dec}(${viewDef})\n`]);
       }
@@ -143,25 +197,19 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
   }
 
   if (conventionalDecorators.length) {
-    if (runtimeImport.names.length) {
-      let runtimeImportStatement = `import { ${runtimeImport.names.join(', ')} } from '@aurelia/runtime-html';`;
-      if (runtimeImport.end === runtimeImport.start) runtimeImportStatement += '\n';
-      m.replace(runtimeImport.start, runtimeImport.end, runtimeImportStatement);
-    }
-
     conventionalDecorators.forEach(([pos, str]) => m.insert(pos, str));
   }
 
-  return m.transform();
+  return m;
 }
 
 function captureImport(s: ts.Statement, lib: string, code: string): ICapturedImport | void {
   if (ts.isImportDeclaration(s) &&
-      ts.isStringLiteral(s.moduleSpecifier) &&
-      s.moduleSpecifier.text === lib &&
-      s.importClause &&
-      s.importClause.namedBindings &&
-      ts.isNamedImports(s.importClause.namedBindings)) {
+    ts.isStringLiteral(s.moduleSpecifier) &&
+    s.moduleSpecifier.text === lib &&
+    s.importClause &&
+    s.importClause.namedBindings &&
+    ts.isNamedImports(s.importClause.namedBindings)) {
     return {
       names: s.importClause.namedBindings.elements.map(e => e.name.text),
       start: ensureTokenStart(s.pos, code),
@@ -222,7 +270,7 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
   const pos = ensureTokenStart(node.pos, code);
 
   const className = node.name.text;
-  const {name, type} = nameConvention(className);
+  const { name, type } = nameConvention(className);
   const isImplicitResource = isKindOfSame(name, expectedResourceName);
   const foundType = findDecoratedResourceType(node);
 
@@ -233,7 +281,10 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
       foundType.type !== 'customElement' &&
       foundType.type !== 'view'
     ) {
-      return { localDep: className };
+      return {
+        className,
+        localDep: className
+      };
     }
 
     if (
@@ -245,21 +296,29 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
       // @customElement('custom-name')
       const customName = foundType.expression.arguments[0] as ts.StringLiteral;
       return {
+        className,
         implicitStatement: { pos: pos, end: node.end },
         customName: { pos: ensureTokenStart(customName.pos, code), end: customName.end }
       };
     }
+
+    return {
+      className,
+    };
+
   } else {
     if (type === 'customElement') {
       // Custom element can only be implicit resource
       if (isImplicitResource && filePair) {
         return {
+          className,
           implicitStatement: { pos: pos, end: node.end },
           runtimeImportName: isViewPair ? 'view' : 'customElement'
         };
       }
     } else {
       const result: IFoundResource = {
+        className,
         needDecorator: [pos, `@${type}('${name}')\n`],
         localDep: className,
       };

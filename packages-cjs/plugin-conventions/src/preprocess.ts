@@ -15,7 +15,7 @@ export function preprocess(
   const allOptions = preprocessOptions(options);
   const base = unit.base || '';
 
-  if (allOptions.templateExtensions.includes(ext)) {
+  if (options.enableConventions && allOptions.templateExtensions.includes(ext)) {
     const possibleFilePair = allOptions.cssExtensions.map(e =>
       path.join(base, unit.path.slice(0, - ext.length) + e)
     );
@@ -27,7 +27,12 @@ export function preprocess(
         unit.filePair = path.basename(filePair);
       }
     }
-    return preprocessHtmlTemplate(unit, allOptions);
+
+    const hasViewModel = Boolean(allOptions.jsExtensions.map(e =>
+      path.join(base, unit.path.slice(0, - ext.length) + e)
+    ).find(_fileExists));
+
+    return preprocessHtmlTemplate(unit, allOptions, hasViewModel);
   } else if (allOptions.jsExtensions.includes(ext)) {
     const possibleFilePair = allOptions.templateExtensions.map(e =>
       path.join(base, unit.path.slice(0, - ext.length) + e)
@@ -43,7 +48,7 @@ export function preprocess(
       // Try foo.js and foo-view.html convention.
       // This convention is handled by @view(), not @customElement().
       const possibleViewPair = allOptions.templateExtensions.map(e =>
-        path.join(base, `${unit.path.slice(0, - ext.length)  }-view${e}`)
+        path.join(base, `${unit.path.slice(0, - ext.length)}-view${e}`)
       );
       const viewPair = possibleViewPair.find(_fileExists);
       if (viewPair) {

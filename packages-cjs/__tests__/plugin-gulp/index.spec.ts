@@ -4,6 +4,8 @@ import { plugin } from '@aurelia/plugin-gulp';
 import { assert } from '@aurelia/testing';
 import * as v from 'vinyl';
 
+const slash = process.platform === 'win32' ? '\\' : '/';
+
 const Vinyl = ((v as any).default || v) as typeof import('vinyl');
 type Vinyl = typeof Vinyl.prototype;
 
@@ -55,7 +57,7 @@ describe('plugin-gulp', function () {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'test/foo.css');
+      assert.equal(files[0].relative, 'test/foo.css'.replace('/', slash));
       assert.equal(files[0].contents.toString(), css);
       assert.equal(files[0].sourceMap, undefined);
       done();
@@ -69,7 +71,7 @@ describe('plugin-gulp', function () {
 
   it('transforms html file', function (done) {
     const content = 'content';
-    const expected = 'processed src/foo-bar.html content';
+    const expected = 'processed src/foo-bar.html content'.replace('/', slash);
 
     const files: Vinyl[] = [];
     const t = plugin.call(undefined, {}, preprocess);
@@ -83,7 +85,7 @@ describe('plugin-gulp', function () {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'src/foo-bar.html.js');
+      assert.equal(files[0].relative, 'src/foo-bar.html.js'.replace('/', slash));
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap, undefined);
       done();
@@ -97,7 +99,7 @@ describe('plugin-gulp', function () {
 
   it('transforms html file in shadowDOM mode', function (done) {
     const content = 'content';
-    const expected = 'processed {"mode":"open"} text!src/foo-bar.html content';
+    const expected = 'processed {"mode":"open"} text!src/foo-bar.html content'.replace('/', slash);
 
     const files: Vinyl[] = [];
     const t = plugin.call(undefined,
@@ -117,7 +119,7 @@ describe('plugin-gulp', function () {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'src/foo-bar.html.js');
+      assert.equal(files[0].relative, 'src/foo-bar.html.js'.replace('/', slash));
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap.version, 3);
       done();
@@ -132,7 +134,7 @@ describe('plugin-gulp', function () {
 
   it('transforms html file in CSSModule mode', function (done) {
     const content = 'content';
-    const expected = 'processed src/foo-bar.html content';
+    const expected = 'processed src/foo-bar.html content'.replace('/', slash);
 
     const files: Vinyl[] = [];
     const t = plugin.call(undefined, { useCSSModule: true }, preprocess);
@@ -146,7 +148,7 @@ describe('plugin-gulp', function () {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'src/foo-bar.html.js');
+      assert.equal(files[0].relative, 'src/foo-bar.html.js'.replace('/', slash));
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap.version, 3);
       done();
@@ -161,7 +163,7 @@ describe('plugin-gulp', function () {
 
   it('transforms html file in shadowDOM mode ignoring CSSModule mode', function (done) {
     const content = 'content';
-    const expected = 'processed {"mode":"open"} text!src/foo-bar.html content';
+    const expected = 'processed {"mode":"open"} text!src/foo-bar.html content'.replace('/', slash);
 
     const files: Vinyl[] = [];
     const t = plugin.call(undefined,
@@ -182,7 +184,7 @@ describe('plugin-gulp', function () {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'src/foo-bar.html.js');
+      assert.equal(files[0].relative, 'src/foo-bar.html.js'.replace('/', slash));
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap.version, 3);
       done();
@@ -197,7 +199,7 @@ describe('plugin-gulp', function () {
 
   it('transforms js file', function (done) {
     const content = 'content';
-    const expected = 'processed src/foo-bar.js content';
+    const expected = 'processed src/foo-bar.js content'.replace('/', slash);
 
     const files: Vinyl[] = [];
     const t = plugin.call(undefined, {}, preprocess);
@@ -211,7 +213,7 @@ describe('plugin-gulp', function () {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'src/foo-bar.js');
+      assert.equal(files[0].relative, 'src/foo-bar.js'.replace('/', slash));
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap, undefined);
       done();
@@ -225,7 +227,7 @@ describe('plugin-gulp', function () {
 
   it('transforms ts file', function (done) {
     const content = 'content';
-    const expected = 'processed src/foo-bar.ts content';
+    const expected = 'processed src/foo-bar.ts content'.replace('/', slash);
 
     const files: Vinyl[] = [];
     const t = plugin.call(undefined, {}, preprocess);
@@ -239,7 +241,7 @@ describe('plugin-gulp', function () {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'src/foo-bar.ts');
+      assert.equal(files[0].relative, 'src/foo-bar.ts'.replace('/', slash));
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap, undefined);
       done();

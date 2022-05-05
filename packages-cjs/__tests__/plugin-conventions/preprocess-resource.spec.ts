@@ -10,7 +10,7 @@ describe('preprocessResource', function () {
         path: path.join('bar', 'foo.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, code);
   });
@@ -23,15 +23,15 @@ describe('preprocessResource', function () {
         contents: code,
         filePair: 'foo.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, code);
   });
 
   it('injects customElement decorator', function () {
     const code = `\nexport class FooBar {}\n`;
-    const expected = `import * as __au2ViewDef from './foo-bar.html';
-import { customElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './foo-bar.html';
 
 @customElement(__au2ViewDef)
 export class FooBar {}
@@ -42,15 +42,15 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
 
   it('injects customElement decorator for loosely equal class name', function () {
     const code = `export class UAFooBarCustomElement {}\n`;
-    const expected = `import * as __au2ViewDef from './ua-foo-bar.html';
-import { customElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './ua-foo-bar.html';
 @customElement(__au2ViewDef)
 export class UAFooBarCustomElement {}
 `;
@@ -60,15 +60,15 @@ export class UAFooBarCustomElement {}
         contents: code,
         filePair: 'ua-foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
 
   it('injects view decorator', function () {
     const code = `export class FooBar {}\n`;
-    const expected = `import * as __au2ViewDef from './foo-bar-view.html';
-import { view } from '@aurelia/runtime-html';
+    const expected = `import { view } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './foo-bar-view.html';
 @view(__au2ViewDef)
 export class FooBar {}
 `;
@@ -79,15 +79,15 @@ export class FooBar {}
         filePair: 'foo-bar-view.html',
         isViewPair: true
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
 
   it('injects view decorator for loosely equal class name', function () {
     const code = `export class UAFooBar {}\n`;
-    const expected = `import * as __au2ViewDef from './ua-foo-bar-view.html';
-import { view } from '@aurelia/runtime-html';
+    const expected = `import { view } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './ua-foo-bar-view.html';
 @view(__au2ViewDef)
 export class UAFooBar {}
 `;
@@ -98,15 +98,15 @@ export class UAFooBar {}
         filePair: 'ua-foo-bar-view.html',
         isViewPair: true
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
 
   it('injects customElement decorator for non-kebab case file name', function () {
     const code = `export class FooBar {}\n`;
-    const expected = `import * as __au2ViewDef from './FooBar.html';
-import { customElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './FooBar.html';
 @customElement(__au2ViewDef)
 export class FooBar {}
 `;
@@ -116,15 +116,15 @@ export class FooBar {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
 
   it('injects view decorator for non-kebab case file name', function () {
     const code = `export class FooBar {}\n`;
-    const expected = `import * as __au2ViewDef from './FooBarView.html';
-import { view } from '@aurelia/runtime-html';
+    const expected = `import { view } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './FooBarView.html';
 @view(__au2ViewDef)
 export class FooBar {}
 `;
@@ -135,7 +135,7 @@ export class FooBar {}
         filePair: 'FooBarView.html',
         isViewPair: true
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -165,7 +165,7 @@ function b() {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -189,7 +189,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -212,7 +212,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -233,7 +233,7 @@ export class FooBar {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -264,7 +264,7 @@ function b() {}
         filePair: 'foo-bar-view.html',
         isViewPair: true
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -288,7 +288,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar-view.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -304,7 +304,7 @@ export class FooBarCustomAttribute {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -321,7 +321,7 @@ export class FooBarCustomAttribute {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -341,7 +341,7 @@ export class FooBar {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -357,7 +357,7 @@ export class FooBarTemplateController {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -374,7 +374,7 @@ export class FooBarTemplateController {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -394,7 +394,7 @@ export class FooBarCustomAttribute {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -410,7 +410,7 @@ export class FooBarValueConverter {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -427,7 +427,7 @@ export class FooBarValueConverter {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -447,7 +447,7 @@ export class FooBar {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -463,7 +463,7 @@ export class FooBarBindingBehavior {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -480,7 +480,7 @@ export class FooBarBindingBehavior {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -500,7 +500,7 @@ export class FooBar {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -516,7 +516,7 @@ export class FooBarBindingCommand {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -533,7 +533,7 @@ export class FooBarBindingCommand {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -553,7 +553,7 @@ export class FooBarBindingCommand {}
         contents: code,
         filePair: 'FooBar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -633,7 +633,7 @@ export class AbcBindingCommand {
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -711,7 +711,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -790,7 +790,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -804,8 +804,8 @@ export class SomeValueConverter {
   }
 }
 `;
-    const expected = `import * as __au2ViewDef from './foo-bar.html';
-import { customElement, valueConverter } from '@aurelia/runtime-html';
+    const expected = `import { customElement, valueConverter } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './foo-bar.html';
 
 
 @valueConverter('some')
@@ -824,7 +824,7 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
@@ -863,15 +863,15 @@ export class FooBar {}
         contents: code,
         filePair: 'foo-bar.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
 
   it('injects customElement decorator with index file', function () {
     const code = `\nexport class FooBar {}\n`;
-    const expected = `import * as __au2ViewDef from './index.html';
-import { customElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './index.html';
 
 @customElement(__au2ViewDef)
 export class FooBar {}
@@ -882,15 +882,15 @@ export class FooBar {}
         contents: code,
         filePair: 'index.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
 
   it('injects customElement decorator for loosely equal class name with index file', function () {
     const code = `export class UAFooBarCustomElement {}\n`;
-    const expected = `import * as __au2ViewDef from './index.html';
-import { customElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './index.html';
 @customElement(__au2ViewDef)
 export class UAFooBarCustomElement {}
 `;
@@ -900,15 +900,15 @@ export class UAFooBarCustomElement {}
         contents: code,
         filePair: 'index.html'
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
 
   it('injects view decorator with index file', function () {
     const code = `export class FooBar {}\n`;
-    const expected = `import * as __au2ViewDef from './index-view.html';
-import { view } from '@aurelia/runtime-html';
+    const expected = `import { view } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './index-view.html';
 @view(__au2ViewDef)
 export class FooBar {}
 `;
@@ -919,15 +919,15 @@ export class FooBar {}
         filePair: 'index-view.html',
         isViewPair: true
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });
 
   it('injects view decorator for loosely equal class name with index file', function () {
     const code = `export class UAFooBar {}\n`;
-    const expected = `import * as __au2ViewDef from './index-view.html';
-import { view } from '@aurelia/runtime-html';
+    const expected = `import { view } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './index-view.html';
 @view(__au2ViewDef)
 export class UAFooBar {}
 `;
@@ -938,7 +938,7 @@ export class UAFooBar {}
         filePair: 'index-view.html',
         isViewPair: true
       },
-      preprocessOptions()
+      preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
   });

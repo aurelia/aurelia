@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
   nextId,
-  isObject,
   ILogger,
   LogLevel,
   DI,
@@ -18,17 +17,17 @@ import {
   IExpressionParser,
   ICoercionConfiguration,
 } from '@aurelia/runtime';
-import { BindableObserver } from '../observation/bindable-observer.js';
-import { convertToRenderLocation, setRef } from '../dom.js';
-import { CustomElementDefinition, CustomElement } from '../resources/custom-element.js';
-import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute.js';
-import { ChildrenDefinition, ChildrenObserver } from './children.js';
-import { IPlatform } from '../platform.js';
-import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
-import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
-import { LifecycleHooks } from './lifecycle-hooks.js';
-import { IRendering } from './rendering.js';
-import { isFunction, isString } from '../utilities.js';
+import { BindableObserver } from '../observation/bindable-observer';
+import { convertToRenderLocation, setRef } from '../dom';
+import { CustomElementDefinition, CustomElement } from '../resources/custom-element';
+import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
+import { ChildrenDefinition, ChildrenObserver } from './children';
+import { IPlatform } from '../platform';
+import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
+import { ComputedWatcher, ExpressionWatcher } from './watchers';
+import { LifecycleHooks } from './lifecycle-hooks';
+import { IRendering } from './rendering';
+import { isFunction, isString } from '../utilities';
 
 import type {
   IContainer,
@@ -43,15 +42,16 @@ import type {
   IObservable,
   IsBindingBehavior,
 } from '@aurelia/runtime';
-import type { AttrSyntax } from '../resources/attribute-pattern.js';
-import type { IProjections } from '../resources/slot-injectables.js';
-import type { BindableDefinition } from '../bindable.js';
-import type { LifecycleHooksLookup } from './lifecycle-hooks.js';
-import type { INode, INodeSequence, IRenderLocation } from '../dom.js';
-import type { IViewFactory } from './view.js';
-import type { IInstruction } from '../renderer.js';
-import type { IWatchDefinition, IWatcherCallback } from '../watch.js';
-import type { PartialCustomElementDefinition } from '../resources/custom-element.js';
+import type { AttrSyntax } from '../resources/attribute-pattern';
+import type { IProjections } from '../resources/slot-injectables';
+import type { BindableDefinition } from '../bindable';
+import type { LifecycleHooksLookup } from './lifecycle-hooks';
+import type { INode, INodeSequence, IRenderLocation } from '../dom';
+import type { IViewFactory } from './view';
+import type { IInstruction } from '../renderer';
+import type { IWatchDefinition, IWatcherCallback } from '../watch';
+import type { PartialCustomElementDefinition } from '../resources/custom-element';
+import { isObject } from '@aurelia/metadata';
 
 type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 

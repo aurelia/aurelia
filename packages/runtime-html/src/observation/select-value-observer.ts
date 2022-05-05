@@ -19,7 +19,7 @@ import type {
   IFlushable,
   FlushQueue,
 } from '@aurelia/runtime';
-import { hasOwnProperty } from '../utilities.js';
+import { hasOwnProperty } from '../utilities';
 
 const childObserverOptions = {
   childList: true,

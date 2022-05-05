@@ -1,4 +1,5 @@
-import { Metadata, Registration, DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
+import { Metadata } from '@aurelia/metadata';
+import { Registration, DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
 import {
   BindingMode,
   ExpressionType,
@@ -11,25 +12,25 @@ import {
   IBinding,
   Scope,
 } from '@aurelia/runtime';
-import { CallBinding } from './binding/call-binding.js';
-import { AttributeBinding } from './binding/attribute.js';
-import { InterpolationBinding, InterpolationPartBinding, ContentBinding } from './binding/interpolation-binding.js';
-import { LetBinding } from './binding/let-binding.js';
-import { PropertyBinding } from './binding/property-binding.js';
-import { RefBinding } from './binding/ref-binding.js';
-import { Listener } from './binding/listener.js';
-import { IEventDelegator } from './observation/event-delegator.js';
-import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
-import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables.js';
-import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute.js';
-import { convertToRenderLocation, IRenderLocation, INode, setRef } from './dom.js';
-import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext, ViewModelKind } from './templating/controller.js';
-import { IPlatform } from './platform.js';
-import { IViewFactory } from './templating/view.js';
-import { IRendering } from './templating/rendering.js';
-import { defineMetadata, getOwnMetadata } from './shared.js';
-import { AttrSyntax } from './resources/attribute-pattern.js';
-import { isString } from './utilities.js';
+import { CallBinding } from './binding/call-binding';
+import { AttributeBinding } from './binding/attribute';
+import { InterpolationBinding, InterpolationPartBinding, ContentBinding } from './binding/interpolation-binding';
+import { LetBinding } from './binding/let-binding';
+import { PropertyBinding } from './binding/property-binding';
+import { RefBinding } from './binding/ref-binding';
+import { Listener } from './binding/listener';
+import { IEventDelegator } from './observation/event-delegator';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element';
+import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables';
+import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute';
+import { convertToRenderLocation, IRenderLocation, INode, setRef } from './dom';
+import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext, ViewModelKind } from './templating/controller';
+import { IPlatform } from './platform';
+import { IViewFactory } from './templating/view';
+import { IRendering } from './templating/rendering';
+import { defineMetadata, getOwnMetadata } from './shared';
+import { AttrSyntax } from './resources/attribute-pattern';
+import { isString } from './utilities';
 
 import type { IServiceLocator, IContainer, Class, IRegistry, Constructable, IResolver } from '@aurelia/kernel';
 import type {
@@ -42,8 +43,8 @@ import type {
   ForOfStatement,
   DelegationStrategy,
 } from '@aurelia/runtime';
-import type { IHydratableController } from './templating/controller.js';
-import type { PartialCustomElementDefinition } from './resources/custom-element.js';
+import type { IHydratableController } from './templating/controller';
+import type { PartialCustomElementDefinition } from './resources/custom-element';
 
 export const enum InstructionType {
   hydrateElement = 'ra',

@@ -1,4 +1,5 @@
-import { Metadata, Protocol } from '@aurelia/kernel';
+import { Metadata } from '@aurelia/metadata';
+import { Protocol } from '@aurelia/kernel';
 
 /** @internal */ export const getOwnMetadata = Metadata.getOwn;
 /** @internal */ export const hasOwnMetadata = Metadata.hasOwn;

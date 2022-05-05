@@ -1,10 +1,10 @@
-import { IRouter } from './router.js';
-import { Navigation } from './navigation.js';
-import { IEndpoint } from './endpoints/endpoint.js';
-import { OpenPromise } from './utilities/open-promise.js';
-import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { arrayRemove } from './utilities/utils.js';
-import { Step } from './index.js';
+import { IRouter } from './router';
+import { Navigation } from './navigation';
+import { IEndpoint } from './endpoints/endpoint';
+import { OpenPromise } from './utilities/open-promise';
+import { RoutingInstruction } from './instructions/routing-instruction';
+import { arrayRemove } from './utilities/utils';
+import { Step } from './index';
 
 /**
  * The navigation coordinator coordinates navigation between endpoints/entities

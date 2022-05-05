@@ -3,9 +3,9 @@ import {
   IContainer,
   Registration,
 } from '@aurelia/kernel';
+import { BindingMode } from '@aurelia/runtime';
 import {
   PropertyBinding,
-  BindingMode,
   FromViewBindingBehavior,
   OneTimeBindingBehavior,
   ToViewBindingBehavior,

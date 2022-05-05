@@ -1,13 +1,8 @@
+import { bindingBehavior, alias, BindingBehaviorInstance, LifecycleFlags, Scope, IBinding } from '@aurelia/runtime';
 import {
   bindable,
-  alias,
   customAttribute,
   INode,
-  bindingBehavior,
-  BindingBehaviorInstance,
-  LifecycleFlags,
-  Scope,
-  IBinding,
   PropertyBinding
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';

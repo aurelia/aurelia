@@ -4,7 +4,8 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { IPlatform, ITask } from '@aurelia/runtime-html';
+import { ITask } from '@aurelia/platform';
+import { IPlatform } from '@aurelia/runtime-html';
 
 /**
  * @internal - Shouldn't be used directly

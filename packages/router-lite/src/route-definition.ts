@@ -1,7 +1,7 @@
+import { Metadata } from '@aurelia/metadata';
 import {
   IContainer,
   IModule,
-  Metadata,
   onResolve,
   Protocol,
 } from '@aurelia/kernel';
@@ -14,26 +14,26 @@ import {
   TypedNavigationInstruction,
   NavigationInstructionType,
   Params,
-} from './instructions.js';
+} from './instructions';
 import {
   RouteConfig,
   IChildRouteConfig,
-  Routeable,
+  type Routeable,
   RouteType,
   Route,
   IRedirectRouteConfig,
-} from './route.js';
+} from './route';
 import {
   IRouteContext,
-} from './route-context.js';
+} from './route-context';
 import {
   isPartialChildRouteConfig,
   isPartialRedirectRouteConfig,
-} from './validation.js';
+} from './validation';
 import {
   ensureArrayOfStrings,
   ensureString,
-} from './util.js';
+} from './util';
 
 export const defaultViewportName = 'default';
 export class RouteDefinition {
@@ -49,6 +49,7 @@ export class RouteDefinition {
   public constructor(
     public readonly config: RouteConfig,
     public readonly component: CustomElementDefinition | null,
+    parentDefinition: RouteDefinition | null,
   ) {
     this.hasExplicitPath = config.path !== null;
     this.caseSensitive = config.caseSensitive;
@@ -57,33 +58,33 @@ export class RouteDefinition {
     this.viewport = config.viewport ?? defaultViewportName;
     this.id = ensureString(config.id ?? this.path);
     this.data = config.data ?? {};
-    this.fallback = config.fallback ?? null;
+    this.fallback = config.fallback ?? parentDefinition?.fallback ?? null;
   }
 
-  public static resolve(routeable: Promise<IModule>, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
-  public static resolve(routeable: string | IChildRouteConfig, context: IRouteContext): RouteDefinition;
-  public static resolve(routeable: string | IChildRouteConfig | Promise<IModule>): never;
-  public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>): RouteDefinition;
-  public static resolve(routeable: Routeable, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
-  public static resolve(routeable: Routeable, context?: IRouteContext): RouteDefinition | Promise<RouteDefinition> {
+  public static resolve(routeable: Promise<IModule>, parentDefinition: RouteDefinition | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
+  public static resolve(routeable: string | IChildRouteConfig, parentDefinition: RouteDefinition | null, context: IRouteContext): RouteDefinition;
+  public static resolve(routeable: string | IChildRouteConfig | Promise<IModule>, parentDefinition: RouteDefinition | null): never;
+  public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>,  parentDefinition: RouteDefinition | null): RouteDefinition;
+  public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
+  public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, context?: IRouteContext): RouteDefinition | Promise<RouteDefinition> {
     if (isPartialRedirectRouteConfig(routeable)) {
-      return new RouteDefinition(RouteConfig.create(routeable, null), null);
+      return new RouteDefinition(RouteConfig.create(routeable, null), null, parentDefinition);
     }
 
     // Check if this component already has a `RouteDefinition` associated with it, where the `config` matches the `RouteConfig` that is currently associated with the type.
     // If a type is re-configured via `Route.configure`, that effectively invalidates any existing `RouteDefinition` and we re-create and associate it.
     // Note: RouteConfig is associated with Type, but RouteDefinition is associated with CustomElementDefinition.
     return onResolve(this.resolveCustomElementDefinition(routeable, context), def => {
-      const type = def.Type;
-      const config = isPartialChildRouteConfig(routeable)
-        ? Route.isConfigured(type)
-          ? Route.getConfig(type).applyChildRouteConfig(routeable)
-          : RouteConfig.create(routeable, type)
-        : Route.getConfig(def.Type);
-
       let routeDefinition = $RouteDefinition.get(def);
       if (routeDefinition === null) {
-        routeDefinition = new RouteDefinition(config, def);
+        const type = def.Type;
+        const config = isPartialChildRouteConfig(routeable)
+          ? Route.isConfigured(type)
+            ? Route.getConfig(type).applyChildRouteConfig(routeable)
+            : RouteConfig.create(routeable, type)
+          : Route.getConfig(def.Type);
+
+        routeDefinition = new RouteDefinition(config, def, parentDefinition);
         $RouteDefinition.define(routeDefinition, def);
       }
       return routeDefinition;

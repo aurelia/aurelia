@@ -1,7 +1,7 @@
 import { DI, IEventAggregator, IDisposable, ILogger } from '@aurelia/kernel';
 
-import { ManagedState } from './router.js';
-import { ViewportInstructionTree } from './instructions.js';
+import { ManagedState } from './router';
+import { ViewportInstructionTree } from './instructions';
 
 class Subscription implements IDisposable {
   private disposed: boolean = false;

@@ -1,6 +1,6 @@
 import { DI } from '@aurelia/kernel';
-import { createLookup, isFunction } from '../utilities.js';
-import type { NodeObserverConfig } from './observer-locator.js';
+import { createLookup, isFunction } from '../utilities';
+import type { NodeObserverConfig } from './observer-locator';
 import type { IDisposable } from '@aurelia/kernel';
 
 const defaultOptions: AddEventListenerOptions = {

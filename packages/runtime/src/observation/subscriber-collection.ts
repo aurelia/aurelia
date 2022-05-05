@@ -1,7 +1,7 @@
 import {
   SubscriberFlags as SF,
-} from '../observation.js';
-import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
+} from '../observation';
+import { def, defineHiddenProp, ensureProto } from '../utilities-objects';
 
 import type {
   ICollectionSubscriber,
@@ -10,7 +10,7 @@ import type {
   ISubscriberCollection,
   ISubscriberRecord,
   LifecycleFlags as LF,
-} from '../observation.js';
+} from '../observation';
 
 export type IAnySubscriber = ISubscriber | ICollectionSubscriber;
 

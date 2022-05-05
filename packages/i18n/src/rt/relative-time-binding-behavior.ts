@@ -1,5 +1,5 @@
 import { bindingBehavior, LifecycleFlags } from '@aurelia/runtime';
-import { BindingWithBehavior, createIntlFormatValueConverterExpression, ValueConverters } from '../utils.js';
+import { BindingWithBehavior, createIntlFormatValueConverterExpression, ValueConverters } from '../utils';
 
 import type { Scope } from '@aurelia/runtime';
 

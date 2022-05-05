@@ -1,6 +1,6 @@
 import { INode, bindable, PartialCustomElementDefinition } from '@aurelia/runtime-html';
-import { ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget, IValidationController } from '../validation-controller.js';
-import { compareDocumentPositionFlat } from './common.js';
+import { ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget, IValidationController } from '../validation-controller';
+import { compareDocumentPositionFlat } from './common';
 import { optional } from '@aurelia/kernel';
 
 export const defaultContainerTemplate = `

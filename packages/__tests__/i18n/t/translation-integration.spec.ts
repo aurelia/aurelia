@@ -1,6 +1,7 @@
 import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
 import { Class, IContainer } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, INode, IPlatform, ISignaler } from '@aurelia/runtime-html';
+import { ISignaler } from '@aurelia/runtime';
+import { Aurelia, bindable, customElement, INode, IPlatform } from '@aurelia/runtime-html';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../../util.js';
 

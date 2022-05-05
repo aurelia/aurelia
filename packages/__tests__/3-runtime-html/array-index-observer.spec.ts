@@ -10,12 +10,9 @@ import {
   IInputElement,
   ValueAttributeObserver,
   Aurelia,
-  LifecycleFlags,
-  ArrayIndexObserver,
-  ISubscriber,
   CustomElement,
-  IDirtyChecker,
 } from '@aurelia/runtime-html';
+import { IDirtyChecker, ArrayIndexObserver, ISubscriber, LifecycleFlags } from '@aurelia/runtime';
 
 describe('simple Computed Observer test case', function () {
 

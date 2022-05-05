@@ -1,6 +1,6 @@
 import { IPlatform } from '@aurelia/runtime-html';
 import { ValidationResult } from '@aurelia/validation';
-import { ValidationEvent, ValidationResultsSubscriber, ValidationResultTarget } from '../validation-controller.js';
+import { ValidationEvent, ValidationResultsSubscriber, ValidationResultTarget } from '../validation-controller';
 
 const resultIdAttribute = 'validation-result-id';
 const resultContainerAttribute = 'validation-result-container';

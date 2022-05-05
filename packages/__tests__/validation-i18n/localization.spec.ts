@@ -8,7 +8,8 @@ import {
   StandardValidator,
   ValidationMessageProvider,
 } from '@aurelia/validation';
-import { CustomElement, IBinding, INode, Aurelia, IPlatform } from '@aurelia/runtime-html';
+import { IBinding } from '@aurelia/runtime';
+import { CustomElement, INode, Aurelia, IPlatform } from '@aurelia/runtime-html';
 import {
   BindingWithBehavior,
   IValidationController,

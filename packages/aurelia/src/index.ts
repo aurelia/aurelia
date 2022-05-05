@@ -58,7 +58,7 @@ export class Aurelia extends $Aurelia {
 export default Aurelia;
 
 export {
-  Interceptor,
+  type Interceptor,
   // RetryConfiguration,
   // RetryableRequest,
   // ValidInterceptorMethodName,
@@ -75,17 +75,36 @@ export {
 } from '@aurelia/fetch-client';
 
 export {
+  Metadata,
+  // isNullOrUndefined,
+  // isObject,
+  // metadata,
+  // applyMetadataPolyfill,
+} from '@aurelia/metadata';
+
+export {
+  type ITask,
+  Platform,
+  type QueueTaskOptions,
+  Task,
+  TaskAbortError,
+  TaskQueue,
+  TaskQueuePriority,
+  TaskStatus
+} from '@aurelia/platform';
+
+export {
   all,
   DI,
   IContainer,
   // IDefaultableInterfaceSymbol,
   // IFactory,
   inject,
-  IRegistration,
-  IRegistry,
-  IResolver,
+  type IRegistration,
+  type IRegistry,
+  type IResolver,
   IServiceLocator,
-  Key,
+  type Key,
   lazy,
   optional,
   // RegisterSelf,
@@ -96,16 +115,16 @@ export {
   // Injectable,
   // InterfaceSymbol,
   InstanceProvider,
-  Resolved,
+  type Resolved,
   // Transformer,
 
-  Class,
-  Constructable,
-  ConstructableClass,
+  type Class,
+  type Constructable,
+  type ConstructableClass,
   // Diff,
-  IDisposable,
+  type IDisposable,
   // IFrameRequestCallback,
-  IIndexable,
+  type IIndexable,
   // IPerformance,
   // ITimerHandler,
   // IWindowOrWorkerGlobalScope,
@@ -133,9 +152,6 @@ export {
   // IfEquals,
   // ReadonlyKeys,
   // WritableKeys,
-
-  // metadata,
-  Metadata,
 
   // IConsoleLike,
   ColorOptions,
@@ -206,16 +222,17 @@ export {
   Route,
   RouteConfig,
   IRouteContext,
-  IRouteViewModel,
-  NavigationInstruction,
-  Routeable,
-  Params,
+  type IRouteViewModel,
+  type NavigationInstruction,
+  type Routeable,
+  type Params,
 
   RouterConfiguration,
   RouterRegistration,
 } from '@aurelia/router-lite';
 
 export {
+  CollectionKind,
   // CallFunctionExpression,
   // connects,
   // observes,
@@ -305,23 +322,12 @@ export {
   // BindingIdentifierOrPattern,
   // UnaryOperator,
 
-  // PropertyBinding,
-
-  // CallBinding,
-
   // IObserverLocatorBasedConnectable,
   // IConnectableBinding,
   // connectable,
 
   // IExpressionParser,
   // ExpressionType,
-
-  // MultiInterpolationBinding,
-  // InterpolationBinding,
-
-  // LetBinding,
-
-  // RefBinding,
 
   // ArrayObserver,
   // enableArrayObservation,
@@ -349,10 +355,6 @@ export {
   // DirtyCheckSettings,
 
   ComputedObserver,
-  ComputedWatcher,
-  ExpressionWatcher,
-  Watch,
-  watch,
 
   // IObjectObservationAdapter,
   IObserverLocator,
@@ -375,7 +377,97 @@ export {
 
   bindingBehavior,
   BindingBehavior,
-  BindingBehaviorInstance,
+  type BindingBehaviorInstance,
+  // PartialBindingBehaviorDefinition,
+  // BindingBehaviorKind,
+  // BindingBehaviorDecorator,
+  // BindingBehaviorInstance,
+  // BindingBehaviorType,
+
+  // BindingModeBehavior,
+  // OneTimeBindingBehavior,
+  // ToViewBindingBehavior,
+  // FromViewBindingBehavior,
+  // TwoWayBindingBehavior,
+
+  // DebounceBindingBehavior,
+
+  // SignalableBinding,
+  // SignalBindingBehavior,
+
+  // FrequentMutations,
+  // InfrequentMutations,
+  // ObserveShallow,
+  // ISanitizer,
+  // SanitizeValueConverter,
+
+  // ViewValueConverter,
+
+  observable,
+
+  // IfRegistration,
+  // ElseRegistration,
+  // RepeatRegistration,
+  // ReplaceableRegistration,
+  // WithRegistration,
+
+  // DefaultResources as RuntimeDefaultResources,
+  // IObserverLocatorRegistration,
+  // IRendererRegistration,
+  // RuntimeConfiguration,
+
+  alias,
+  registerAliases,
+
+  BindingMode,
+  // ExpressionKind,
+  // Hooks,
+  LifecycleFlags,
+  // State,
+
+  // CallBindingInstruction,
+  // HydrateAttributeInstruction,
+  // HydrateElementInstruction,
+  // HydrateTemplateController,
+  // InterpolationInstruction,
+  // IteratorBindingInstruction,
+  // LetBindingInstruction,
+  // HydrateLetElementInstruction,
+  // RefBindingInstruction,
+  // SetPropertyInstruction,
+
+  // ViewModelKind,
+  // IBinding,
+  // IViewModel,
+  // IController,
+  // IContainer,
+  // IViewCache,
+  // IViewFactory,
+  // MountStrategy,
+
+  // AccessorOrObserver,
+  // Collection,
+  // CollectionKind,
+  // DelegationStrategy,
+  // IAccessor,
+  // IBindingContext,
+  // ICollectionChangeTracker,
+  // ICollectionObserver,
+  // ICollectionSubscriber,
+
+  ValueConverter,
+  // ValueConverterDefinition,
+  // PartialValueConverterDefinition,
+  // ValueConverterKind,
+  // ValueConverterDecorator,
+  type ValueConverterInstance,
+  // ValueConverterType,
+  valueConverter,
+  type IndexMap,
+
+} from '@aurelia/runtime';
+
+export {
   // PartialBindingBehaviorDefinition,
   // BindingBehaviorKind,
   // BindingBehaviorDecorator,
@@ -429,42 +521,20 @@ export {
   // IProjectorLocator,
   useShadowDOM,
 
-  ValueConverter,
-  // ValueConverterDefinition,
-  // PartialValueConverterDefinition,
-  // ValueConverterKind,
-  // ValueConverterDecorator,
-  ValueConverterInstance,
-  // ValueConverterType,
-  valueConverter,
-
   // ISanitizer,
   // SanitizeValueConverter,
 
   // ViewValueConverter,
 
-  // Clock,
-  // IClock,
-  // IClockSettings,
-  // ITask,
-  // TaskQueue,
-  // QueueTaskOptions,
-  // Task,
-  // TaskAbortError,
-  // TaskCallback,
-  // TaskQueue,
   AppTask,
-  TaskQueuePriority,
   // TaskStatus,
   // QueueTaskTargetOptions,
 
   bindable,
-  PartialBindableDefinition,
+  type PartialBindableDefinition,
   // BindableDefinition,
   Bindable,
   coercer,
-
-  observable,
 
   // PartialChildrenDefinition,
   // ChildrenDefinition,
@@ -538,39 +608,17 @@ export {
   // IInstruction,
   // InstructionType,
   // PartialCustomElementDefinitionParts,
-  alias,
-  registerAliases,
 
   // DOM, should expose the one exported in runtime-html
   INode,
   IEventTarget,
   IRenderLocation,
-  // NodeSequence,
-  // INodeSequence,
-  // INodeSequenceFactory,
-
-  BindingMode,
-  // ExpressionKind,
-  // Hooks,
-  LifecycleFlags,
-  // State,
-
-  // CallBindingInstruction,
-  // HydrateAttributeInstruction,
-  // HydrateElementInstruction,
-  // HydrateTemplateController,
-  // InterpolationInstruction,
-  // IteratorBindingInstruction,
-  // LetBindingInstruction,
-  // HydrateLetElementInstruction,
-  // RefBindingInstruction,
-  // SetPropertyInstruction,
 
   // ViewModelKind,
   // IBinding,
   // IViewModel,
-  ICustomAttributeViewModel,
-  ICustomElementViewModel,
+  type ICustomAttributeViewModel,
+  type ICustomElementViewModel,
   // IController,
   // IContainer,
   // IViewCache,
@@ -586,24 +634,6 @@ export {
   // ICollectionChangeTracker,
   // ICollectionObserver,
   // ICollectionSubscriber,
-  IndexMap,
-  // IObservable,
-  // IObservedArray,
-  // IObservedMap,
-  // IObservedSet,
-  // IOverrideContext,
-  // Scope,
-  // ISubscribable,
-  // ISubscriberCollection,
-  // ObservedCollection,
-  // CollectionObserver,
-  // ICollectionSubscriberCollection,
-  // ICollectionSubscribable,
-  // ISubscriber,
-  // isIndexMap,
-  // copyIndexMap,
-  // cloneIndexMap,
-  // createIndexMap,
 
   renderer,
 
@@ -744,7 +774,7 @@ export {
 
   bindingCommand,
   // BindingCommand,
-  BindingCommandInstance,
+  type BindingCommandInstance,
   // BindingCommandDefinition,
   // BindingCommandKind,
   // BindingCommandType,
@@ -757,8 +787,8 @@ export {
   // ToViewBindingCommand,
   // TwoWayBindingCommand,
 
-  IEnhancementConfig,
-  IHydratedParentController,
+  type IEnhancementConfig,
+  type IHydratedParentController,
 
   // IExpressionParserRegistration,
 
@@ -833,7 +863,7 @@ export {
 
   StyleConfiguration,
   // styles,
-  IShadowDOMConfiguration,
+  type IShadowDOMConfiguration,
 
   // CSSModulesProcessorRegistry,
   cssModules,
@@ -881,25 +911,25 @@ export {
 
   // ITemplateElementFactory,
   ILifecycleHooks,
-  LifecycleHook,
+  type LifecycleHook,
   LifecycleHooks,
   lifecycleHooks,
 
   // -------- dialog plugin -------------
   // configurations
   DialogConfiguration,
-  DialogConfigurationProvider,
+  type DialogConfigurationProvider,
   DialogDefaultConfiguration,
 
   // enums
-  DialogActionKey,
-  DialogMouseEventType,
+  type DialogActionKey,
+  type DialogMouseEventType,
   DialogDeactivationStatuses,
 
   // settings
-  IDialogSettings,
+  type IDialogSettings,
   IDialogGlobalSettings,
-  IDialogLoadedSettings,
+  type IDialogLoadedSettings,
 
   // main interfaces
   IDialogService,
@@ -908,11 +938,11 @@ export {
   IDialogDom,
 
   // dialog results
-  DialogError,
-  DialogOpenPromise,
+  type DialogError,
+  type DialogOpenPromise,
   DialogOpenResult,
-  DialogCancelError,
-  DialogCloseError,
+  type DialogCancelError,
+  type DialogCloseError,
   DialogCloseResult,
 
   // default impls
@@ -923,17 +953,17 @@ export {
   DefaultDialogGlobalSettings,
 
   // implementable for applications
-  IDialogCustomElementViewModel,
-  IDialogComponent,
-  IDialogComponentActivate,
-  IDialogComponentCanActivate,
-  IDialogComponentDeactivate,
-  IDialogComponentCanDeactivate,
+  type IDialogCustomElementViewModel,
+  type IDialogComponent,
+  type IDialogComponentActivate,
+  type IDialogComponentCanActivate,
+  type IDialogComponentDeactivate,
+  type IDialogComponentCanDeactivate,
   // -------- dialog plugin end -------------
 
   // -------- wc plugin -------------
   IWcElementRegistry,
-  WebComponentViewModelClass,
+  type WebComponentViewModelClass,
   WcCustomElementRegistry,
   // -------- wc plugin end -------------
 } from '@aurelia/runtime-html';

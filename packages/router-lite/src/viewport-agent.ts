@@ -1,16 +1,17 @@
 // No-fallthrough disabled due to large numbers of false positives
 /* eslint-disable no-fallthrough */
 import { ILogger, onResolve } from '@aurelia/kernel';
-import { IHydratedController, LifecycleFlags, ICustomElementController, Controller } from '@aurelia/runtime-html';
+import { LifecycleFlags } from '@aurelia/runtime';
+import { IHydratedController, ICustomElementController, Controller } from '@aurelia/runtime-html';
 
-import { IViewport } from './resources/viewport.js';
-import { ComponentAgent } from './component-agent.js';
-import { processResidue, getDynamicChildren, RouteNode } from './route-tree.js';
-import { IRouteContext } from './route-context.js';
-import { Transition, ResolutionMode, NavigationOptions } from './router.js';
-import { TransitionPlan } from './route.js';
-import { Batch, mergeDistinct } from './util.js';
-import { defaultViewportName } from './route-definition.js';
+import { IViewport } from './resources/viewport';
+import { ComponentAgent } from './component-agent';
+import { processResidue, getDynamicChildren, RouteNode } from './route-tree';
+import { IRouteContext } from './route-context';
+import { Transition, ResolutionMode, NavigationOptions } from './router';
+import { TransitionPlan } from './route';
+import { Batch, mergeDistinct } from './util';
+import { defaultViewportName } from './route-definition';
 
 export class ViewportRequest {
   public constructor(

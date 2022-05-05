@@ -1,8 +1,8 @@
 import { isArrayIndex } from '@aurelia/kernel';
-import { AccessorType, CollectionKind, LifecycleFlags } from '../observation.js';
-import { subscriberCollection } from './subscriber-collection.js';
-import { ensureProto } from '../utilities-objects.js';
-import { withFlushQueue } from './flush-queue.js';
+import { AccessorType, CollectionKind, LifecycleFlags } from '../observation';
+import { subscriberCollection } from './subscriber-collection';
+import { ensureProto } from '../utilities-objects';
+import { withFlushQueue } from './flush-queue';
 
 import type { Constructable } from '@aurelia/kernel';
 import type {
@@ -11,8 +11,8 @@ import type {
   ISubscriber,
   ISubscriberCollection,
   ICollectionSubscriber,
-} from '../observation.js';
-import type { FlushQueue, IFlushable, IWithFlushQueue } from './flush-queue.js';
+} from '../observation';
+import type { FlushQueue, IFlushable, IWithFlushQueue } from './flush-queue';
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 

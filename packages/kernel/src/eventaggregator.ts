@@ -1,6 +1,6 @@
-import { DI } from './di.js';
-import { Constructable, IDisposable } from './interfaces.js';
-import { isString } from './utilities.js';
+import { DI } from './di';
+import { Constructable, IDisposable } from './interfaces';
+import { isString } from './utilities';
 
 /**
  * Represents a handler for an EventAggregator event.

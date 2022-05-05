@@ -1,9 +1,9 @@
 import { IContainer, Registration, DI, noop } from '@aurelia/kernel';
-import { AppTask } from '../app-task.js';
-import { INode } from '../dom.js';
-import { getClassesToAdd } from '../observation/class-attribute-accessor.js';
-import { IPlatform } from '../platform.js';
-import { CustomAttribute } from '../resources/custom-attribute.js';
+import { AppTask } from '../app-task';
+import { INode } from '../dom';
+import { getClassesToAdd } from '../observation/class-attribute-accessor';
+import { IPlatform } from '../platform';
+import { CustomAttribute } from '../resources/custom-attribute';
 
 import type { IRegistry } from '@aurelia/kernel';
 

@@ -1,7 +1,7 @@
 import { ICustomElementViewModel } from '@aurelia/runtime-html';
-import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { RoutingScope } from './routing-scope.js';
-import { OpenPromise } from './utilities/open-promise.js';
+import { RoutingInstruction } from './instructions/routing-instruction';
+import { RoutingScope } from './routing-scope';
+import { OpenPromise } from './utilities/open-promise';
 
 export interface IStoredNavigation extends Omit<StoredNavigation, 'toStoredNavigation'> { }
 

@@ -2,8 +2,9 @@
 import replace from "@rollup/plugin-replace";
 import typescript from '@rollup/plugin-typescript';
 import { terser }  from 'rollup-plugin-terser';
-import { terserNameCache } from "./terser-namecache.js";
+import { esbuildNameCache, terserNameCache } from "./mangle-namecache";
 import { execSync } from 'child_process';
+import esbuild from 'rollup-plugin-esbuild';
 
 // most important function is getRollupConfig at the bottom of this file
 
@@ -52,6 +53,7 @@ export function rollupTypeScript(overrides) {
     sourceMap: true,
     include: ['../global.d.ts', 'src/**/*.ts'],
     noEmitOnError: false,
+    removeComments: true,
     ...overrides,
   });
 }
@@ -67,7 +69,7 @@ export function rollupTerser(overrides) {
     mangle: {
       properties: {
         regex: /^_/,
-        reserved: ['__esModule']
+        reserved: ['__esModule', '_stateSubscriptions', '_state', '__REDUX_DEVTOOLS_EXTENSION__']
       }
     },
     nameCache: terserNameCache,
@@ -80,14 +82,22 @@ export function rollupTerser(overrides) {
 }
 
 /**
- * @param {string[]} scripts
+ * @param {{ name: string; script: string }[]} scripts
  * @return {import('rollup').Plugin}
  */
 export function runPostbuildScript(...scripts) {
   return {
     name: 'aurelia-packages-post-build',
     closeBundle() {
-      scripts.forEach(s => execSync(s.replace(/^(?:npm run\s*)?/, 'npm run ')));
+      const now = Date.now();
+      scripts.forEach(s => {
+        try {
+          execSync(s.script.replace(/^(?:npm run\s*)?/, 'npm run '))
+        } catch (ex) {
+          process.stdout.write(ex.stdout);
+        }
+      });
+      console.log(`run: ${scripts.map(s => `"${s.name}"`).join('\, ')} in ${((Date.now() - now) / 1000).toFixed(2)}s`);
     }
   };
 }
@@ -112,19 +122,21 @@ export function runPostbuildScript(...scripts) {
  * @param {ConfigCallback} [configure]
  * @param {(env: NormalizedEnvVars) => import('rollup-plugin-terser').Options} [configureTerser]
  *  a callback that takes a record of env variables, and returns overrides for terser plugin config
- * @param {string[]} [postBuildScript]
+ * @param {{ name: string; script: string }[]} [postBuildScript]
  */
-export function getRollupConfig(pkg, configure = identity, configureTerser, postBuildScript = ['postrollup']) {
+export function getRollupConfig(pkg, configure = identity, configureTerser, postBuildScript = [{ name: 'build dts', script: 'postrollup'}]) {
   /** @type {NormalizedEnvVars} */
   const envVars = {
     __DEV__: process.env.__DEV__,
     NO_MINIFIED: process.env.NO_MINIFIED
   };
+  const isDevMode = /^true$/.test(process.env.DEV_MODE);
   const inputFile = 'src/index.ts';
   const esmDevDist = 'dist/esm/index.dev.mjs';
   const cjsDevDist = 'dist/cjs/index.dev.cjs';
   const esmDist = 'dist/esm/index.mjs';
   const cjsDist = 'dist/cjs/index.cjs';
+  const typingsDist = 'dist/types/index.d.ts';
   /** @type {import('rollup').WarningHandlerWithDefault} */
   const onWarn = (warning, warn) => {
     if (warning.code === 'CIRCULAR_DEPENDENCY') return;
@@ -150,9 +162,19 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       },
     ],
     plugins: [
-      rollupReplace({ ...envVars, __DEV__: true }),
-      rollupTypeScript(),
-      runPostbuildScript(...postBuildScript),
+      ...(isDevMode
+        ? [
+          esbuild({
+            minify: false,
+            target: 'es2018',
+            define: { ...envVars, __DEV__: 'true' },
+          }),
+        ]
+        : [
+          rollupReplace({ ...envVars, __DEV__: true }),
+          rollupTypeScript(),
+        ]
+      ),
     ],
     onwarn: onWarn
   }, true, envVars);
@@ -165,23 +187,41 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
         file: esmDist,
         format: 'es',
         sourcemap: true,
-        plugins: [
-          rollupTerser(configureTerser?.(envVars)),
-        ],
+        plugins: isDevMode
+          ? []
+          : [
+            rollupTerser(),
+          ],
       },
       {
         file: cjsDist,
         format: 'cjs',
         sourcemap: true,
         externalLiveBindings: false,
-        plugins: [
-          rollupTerser(configureTerser?.(envVars)),
-        ],
+        plugins: isDevMode
+          ? []
+          : [
+            rollupTerser(),
+          ],
       },
     ],
     plugins: [
-      rollupReplace({ ...envVars, __DEV__: false }),
-      rollupTypeScript(),
+      ...(isDevMode
+        ? [
+          esbuild({
+            minify: false,
+            target: 'es2018',
+            define: { ...envVars, __DEV__: 'false' },
+            mangleProps: /^_/,
+            reserveProps: /^__.*__$|__esModule|_stateSubscriptions|_state|__REDUX_DEVTOOLS_EXTENSION__/,
+            mangleCache: esbuildNameCache,
+          })
+        ]
+        : [
+          rollupReplace({ ...envVars, __DEV__: false }),
+          rollupTypeScript(),
+        ]
+      ),
       runPostbuildScript(...postBuildScript),
     ],
     onwarn: onWarn,

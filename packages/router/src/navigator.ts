@@ -1,11 +1,11 @@
 import { EventAggregator, IContainer, IEventAggregator } from '@aurelia/kernel';
-import { IRouteableComponent } from './interfaces.js';
-import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { Navigation, IStoredNavigation, INavigation, NavigationFlags } from './navigation.js';
-import { Runner, Step } from './utilities/runner.js';
-import { arrayUnique } from './utilities/utils.js';
-import { Viewport } from './endpoints/viewport.js';
-import { OpenPromise } from './utilities/open-promise.js';
+import { IRouteableComponent } from './interfaces';
+import { RoutingInstruction } from './instructions/routing-instruction';
+import { Navigation, IStoredNavigation, INavigation, NavigationFlags } from './navigation';
+import { Runner, Step } from './utilities/runner';
+import { arrayUnique } from './utilities/utils';
+import { Viewport } from './endpoints/viewport';
+import { OpenPromise } from './utilities/open-promise';
 
 /**
  * The navigator is responsible for managing (queueing) navigations and

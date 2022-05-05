@@ -8,20 +8,22 @@ import {
   IObserver,
 } from '@aurelia/runtime';
 
-import { AttributeObserver } from '../observation/element-attribute-observer.js';
-import { IPlatform } from '../platform.js';
-import { BindingTargetSubscriber } from './binding-utils.js';
+import { AttributeObserver } from '../observation/element-attribute-observer';
+import { IPlatform } from '../platform';
+import { BindingTargetSubscriber } from './binding-utils';
 
+import type {
+  ITask,
+  QueueTaskOptions,
+} from '@aurelia/platform';
 import type {
   ForOfStatement,
   IObserverLocator,
   IsBindingBehavior,
-  ITask,
-  QueueTaskOptions,
   Scope,
 } from '@aurelia/runtime';
-import type { INode } from '../dom.js';
-import type { IAstBasedBinding } from './interfaces-bindings.js';
+import type { INode } from '../dom';
+import type { IAstBasedBinding } from './interfaces-bindings';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;

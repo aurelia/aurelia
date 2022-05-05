@@ -2,15 +2,15 @@ import { IContainer, ResourceDefinition, DI, InstanceProvider, Registration, ILo
 import { CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
 import { RouteRecognizer, RecognizedRoute } from '@aurelia/route-recognizer';
 
-import { RouteDefinition } from './route-definition.js';
-import { ViewportAgent, ViewportRequest } from './viewport-agent.js';
-import { ComponentAgent, IRouteViewModel } from './component-agent.js';
-import { RouteNode } from './route-tree.js';
-import { IRouter, ResolutionMode } from './router.js';
-import { IViewport } from './resources/viewport.js';
-import { Routeable } from './route.js';
-import { isPartialChildRouteConfig } from './validation.js';
-import { ensureArrayOfStrings } from './util.js';
+import { RouteDefinition } from './route-definition';
+import { ViewportAgent, ViewportRequest } from './viewport-agent';
+import { ComponentAgent, IRouteViewModel } from './component-agent';
+import { RouteNode } from './route-tree';
+import { IRouter, ResolutionMode } from './router';
+import { IViewport } from './resources/viewport';
+import { Routeable } from './route';
+import { isPartialChildRouteConfig } from './validation';
+import { ensureArrayOfStrings } from './util';
 
 export interface IRouteContext extends RouteContext {}
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
@@ -164,7 +164,7 @@ export class RouteContext {
         promises.push(p);
         allPromises.push(p);
       } else {
-        const routeDef = RouteDefinition.resolve(child, this);
+        const routeDef = RouteDefinition.resolve(child, definition, this);
         if (routeDef instanceof Promise) {
           if (isPartialChildRouteConfig(child) && child.path != null) {
             for (const path of ensureArrayOfStrings(child.path)) {
@@ -224,7 +224,7 @@ export class RouteContext {
     }
 
     const router = container.get(IRouter);
-    const routeContext = router.getRouteContext(null, controller.definition, controller.container);
+    const routeContext = router.getRouteContext(null, controller.definition, controller.container, null);
     container.register(Registration.instance(IRouteContext, routeContext));
     routeContext.node = router.routeTree.root;
   }
@@ -309,7 +309,7 @@ export class RouteContext {
     this.logger.trace(`createComponentAgent(routeNode:%s)`, routeNode);
 
     this.hostControllerProvider.prepare(hostController);
-    const routeDefinition = RouteDefinition.resolve(routeNode.component);
+    const routeDefinition = RouteDefinition.resolve(routeNode.component, this.definition);
     const componentInstance = this.container.get<IRouteViewModel>(routeDefinition.component!.key);
     const componentAgent = ComponentAgent.for(componentInstance, hostController, routeNode, this);
 
@@ -340,30 +340,39 @@ export class RouteContext {
     }
   }
 
-  public recognize(path: string): $RecognizedRoute | null {
+  public recognize(path: string, searchAncestor: boolean = false): $RecognizedRoute | null {
     this.logger.trace(`recognize(path:'${path}')`);
-    const result = this.recognizer.recognize(path);
-    if (result === null) {
-      return null;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let _current: IRouteContext = this;
+    let _continue = true;
+    let result: RecognizedRoute<RouteDefinition | Promise<RouteDefinition>> | null = null;
+    while(_continue){
+      result = _current.recognizer.recognize(path);
+      if (result === null) {
+        if(!searchAncestor || _current.isRoot) return null;
+        _current = _current.parent!;
+      } else {
+        _continue = false;
+      }
     }
 
     let residue: string | null;
-    if (Reflect.has(result.params, RESIDUE)) {
-      residue = result.params[RESIDUE] ?? null;
+    if (Reflect.has(result!.params, RESIDUE)) {
+      residue = result!.params[RESIDUE] ?? null;
       // TODO(sayan): Fred did this to fix some issue in lazy-loading. Inspect if this is really needed.
       // Reflect.deleteProperty(result.params, RESIDUE);
     } else {
       residue = null;
     }
 
-    return new $RecognizedRoute(result, residue);
+    return new $RecognizedRoute(result!, residue);
   }
 
   public addRoute(routeable: Promise<IModule>): Promise<void>;
   public addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>;
   public addRoute(routeable: Routeable): void | Promise<void> {
     this.logger.trace(`addRoute(routeable:'${routeable}')`);
-    return onResolve(RouteDefinition.resolve(routeable, this), routeDef => {
+    return onResolve(RouteDefinition.resolve(routeable, this.definition, this), routeDef => {
       for (const path of routeDef.path) {
         this.$addRoute(path, routeDef.caseSensitive, routeDef);
       }
@@ -445,4 +454,10 @@ export class $RecognizedRoute {
     public readonly route: RecognizedRoute<RouteDefinition | Promise<RouteDefinition>>,
     public readonly residue: string | null,
   ) {}
+
+  public toString(): string {
+    const route = this.route;
+    const cr = route.endpoint.route;
+    return `RR(route:(endpoint:(route:(path:${cr.path},handler:${cr.handler})),params:${JSON.stringify(route.params)}),residue:${this.residue})`;
+  }
 }

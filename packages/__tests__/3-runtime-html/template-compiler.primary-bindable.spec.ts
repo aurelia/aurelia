@@ -7,14 +7,16 @@ import {
   PLATFORM,
 } from '@aurelia/testing';
 import {
-  bindable,
   bindingBehavior,
+  valueConverter,
+  ValueConverter,
+} from '@aurelia/runtime';
+import {
+  bindable,
   customAttribute,
   CustomElement,
   INode,
-  valueConverter,
   CustomAttribute,
-  ValueConverter,
   Aurelia,
 } from '@aurelia/runtime-html';
 

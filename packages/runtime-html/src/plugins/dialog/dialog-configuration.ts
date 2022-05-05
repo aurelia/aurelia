@@ -1,9 +1,9 @@
 import { IContainer, IRegistry, noop, Registration } from '@aurelia/kernel';
 
-import { IDialogGlobalSettings } from './dialog-interfaces.js';
-import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-default-impl.js';
-import { AppTask } from '../../app-task.js';
-import { DialogService } from './dialog-service.js';
+import { IDialogGlobalSettings } from './dialog-interfaces';
+import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-default-impl';
+import { AppTask } from '../../app-task';
+import { DialogService } from './dialog-service';
 
 export type DialogConfigurationProvider = (settings: IDialogGlobalSettings) => void | Promise<unknown>;
 

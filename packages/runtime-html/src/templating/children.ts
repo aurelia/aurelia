@@ -1,13 +1,13 @@
 import { firstDefined, getPrototypeChain, emptyArray } from '@aurelia/kernel';
 import { LifecycleFlags, subscriberCollection } from '@aurelia/runtime';
-import { CustomElement } from '../resources/custom-element.js';
-import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../shared.js';
-import { isString } from '../utilities.js';
+import { CustomElement } from '../resources/custom-element';
+import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../shared';
+import { isString } from '../utilities';
 
 import type { IIndexable, Constructable } from '@aurelia/kernel';
 import type { ISubscriberCollection, IAccessor, ISubscribable, IObserver } from '@aurelia/runtime';
-import type { INode } from '../dom.js';
-import type { ICustomElementViewModel, ICustomElementController } from './controller.js';
+import type { INode } from '../dom';
+import type { ICustomElementViewModel, ICustomElementController } from './controller';
 
 export type PartialChildrenDefinition = {
   callback?: string;

@@ -1,10 +1,10 @@
 /* eslint-disable no-constant-condition, mocha/no-hooks, mocha/no-sibling-hooks */
+import { Metadata } from '@aurelia/metadata';
 import {
   DI,
   ILogEvent,
   ISink,
   LogLevel,
-  Metadata,
   Protocol,
   Registration
 } from '@aurelia/kernel';

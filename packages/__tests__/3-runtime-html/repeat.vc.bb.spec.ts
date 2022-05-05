@@ -1,6 +1,7 @@
 /* eslint-disable no-await-in-loop */
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia, bindingBehavior, CustomElement, ICustomElementController, IPlatform, valueConverter } from '@aurelia/runtime-html';
+import { valueConverter, bindingBehavior } from '@aurelia/runtime';
+import { Aurelia, CustomElement, ICustomElementController, IPlatform } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 

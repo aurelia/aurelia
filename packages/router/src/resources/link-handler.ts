@@ -1,7 +1,7 @@
 import { DI } from '@aurelia/kernel';
 import { IWindow, CustomAttribute } from '@aurelia/runtime-html';
-import { LoadCustomAttribute } from './load.js';
-import { IRouter } from '../router.js';
+import { LoadCustomAttribute } from './load';
+import { IRouter } from '../router';
 
 export const ILinkHandler = DI.createInterface<ILinkHandler>('ILinkHandler', x => x.singleton(LinkHandler));
 

@@ -1,17 +1,17 @@
 import { camelCase } from '@aurelia/kernel';
-import { TranslationBinding } from './translation-binding.js';
+import { TranslationBinding } from './translation-binding';
 import {
   ExpressionType,
   IExpressionParser,
   IObserverLocator,
+  BindingMode,
+  type IsBindingBehavior,
 } from '@aurelia/runtime';
 import {
-  BindingMode,
   CommandType,
   IHydratableController,
   IRenderer,
   renderer,
-  IsBindingBehavior,
   attributePattern,
   AttrSyntax,
   bindingCommand,

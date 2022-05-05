@@ -1,5 +1,7 @@
 // This is to test for some intrinsic properties of enhance which is otherwise difficult to test in Data-driven tests parallel to `.app`
+import { BrowserPlatform } from '@aurelia/platform-browser';
 import { Constructable, DI, IContainer, Registration } from '@aurelia/kernel';
+import { LifecycleFlags, ValueConverter } from '@aurelia/runtime';
 import {
   CustomElement,
   ICustomElementViewModel,
@@ -7,13 +9,10 @@ import {
   Aurelia,
   customElement,
   bindable,
-  BrowserPlatform,
   StandardConfiguration,
   IController,
   ICustomElementController,
   IAurelia,
-  ValueConverter,
-  LifecycleFlags,
 } from '@aurelia/runtime-html';
 import { assert, TestContext, createFixture } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';

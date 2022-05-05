@@ -3,13 +3,13 @@ import {
   LifecycleFlags,
 } from '@aurelia/runtime';
 
-import { IEventTarget } from '../dom.js';
+import { IEventTarget } from '../dom';
 
 import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { IsBindingBehavior, Scope } from '@aurelia/runtime';
-import type { IEventDelegator } from '../observation/event-delegator.js';
-import type { IPlatform } from '../platform.js';
-import { IAstBasedBinding } from './interfaces-bindings.js';
+import type { IEventDelegator } from '../observation/event-delegator';
+import type { IPlatform } from '../platform';
+import { IAstBasedBinding } from './interfaces-bindings';
 
 const options = {
   [DelegationStrategy.capturing]: { capture: true } as const,

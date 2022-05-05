@@ -4,7 +4,7 @@ import {
 import {
   ExpressionKind,
   LifecycleFlags,
-} from '@aurelia/runtime-html';
+} from '@aurelia/runtime';
 
 import type {
   IContainer,
@@ -12,8 +12,8 @@ import type {
   IIndexable,
   IServiceLocator,
 } from '@aurelia/kernel';
-import type { Scope } from '@aurelia/runtime-html';
 import type {
+  Scope,
   IBinding,
   IConnectableBinding,
   IndexMap,

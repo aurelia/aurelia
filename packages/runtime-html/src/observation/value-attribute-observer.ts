@@ -1,7 +1,7 @@
 import { LifecycleFlags, subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
 
-import type { EventSubscriber } from './event-delegator.js';
-import type { INode } from '../dom.js';
+import type { EventSubscriber } from './event-delegator';
+import type { INode } from '../dom';
 import type { IIndexable } from '@aurelia/kernel';
 import type {
   ISubscriberCollection,

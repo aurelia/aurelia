@@ -1,9 +1,10 @@
 import { IDisposable } from '@aurelia/kernel';
-import { customAttribute, bindable, BindingMode, ICustomAttributeViewModel, ICustomAttributeController, IEventDelegator, IEventTarget, INode, IWindow, getRef, CustomAttribute } from '@aurelia/runtime-html';
+import { BindingMode } from '@aurelia/runtime';
+import { customAttribute, bindable, ICustomAttributeViewModel, ICustomAttributeController, IEventDelegator, IEventTarget, INode, IWindow, getRef, CustomAttribute } from '@aurelia/runtime-html';
 
-import { IRouter } from '../router.js';
-import { LoadCustomAttribute } from '../configuration.js';
-import { IRouteContext } from '../route-context.js';
+import { IRouter } from '../router';
+import { LoadCustomAttribute } from '../configuration';
+import { IRouteContext } from '../route-context';
 
 @customAttribute({ name: 'href', noMultiBindings: true })
 export class HrefCustomAttribute implements ICustomAttributeViewModel {

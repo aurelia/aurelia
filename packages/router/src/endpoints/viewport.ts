@@ -1,18 +1,19 @@
 import { IContainer } from '@aurelia/kernel';
-import { LifecycleFlags, CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
-import { ComponentAppellation, IRouteableComponent, ReloadBehavior, RouteableComponentType, LoadInstruction } from '../interfaces.js';
-import { IRouter } from '../router.js';
-import { arrayRemove } from '../utilities/utils.js';
-import { ViewportContent } from './viewport-content.js';
-import { RoutingInstruction } from '../instructions/routing-instruction.js';
-import { TransitionAction, RoutingScope } from '../routing-scope.js';
-import { Navigation } from '../navigation.js';
-import { NavigationCoordinator } from '../navigation-coordinator.js';
-import { Runner, Step } from '../utilities/runner.js';
-import { Routes } from '../decorators/routes.js';
-import { Route } from '../route.js';
-import { Endpoint, IConnectedCustomElement } from './endpoint.js';
-import { IViewportOptions, ViewportOptions } from './viewport-options.js';
+import { CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
+import { ComponentAppellation, IRouteableComponent, ReloadBehavior, RouteableComponentType, LoadInstruction } from '../interfaces';
+import { IRouter } from '../router';
+import { arrayRemove } from '../utilities/utils';
+import { ViewportContent } from './viewport-content';
+import { RoutingInstruction } from '../instructions/routing-instruction';
+import { TransitionAction, RoutingScope } from '../routing-scope';
+import { Navigation } from '../navigation';
+import { NavigationCoordinator } from '../navigation-coordinator';
+import { Runner, Step } from '../utilities/runner';
+import { Routes } from '../decorators/routes';
+import { Route } from '../route';
+import { Endpoint, IConnectedCustomElement } from './endpoint';
+import { IViewportOptions, ViewportOptions } from './viewport-options';
+import { LifecycleFlags } from '@aurelia/runtime';
 
 /**
  * The viewport is an endpoint that encapsulates an au-viewport custom element

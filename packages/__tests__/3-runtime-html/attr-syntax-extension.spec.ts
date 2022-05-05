@@ -1,5 +1,6 @@
+import { BrowserPlatform } from '@aurelia/platform-browser';
 import { IContainer, IPlatform } from '@aurelia/kernel';
-import { AppTask, BrowserPlatform, CustomElement, IAttrMapper, NodeObserverLocator } from '@aurelia/runtime-html';
+import { AppTask, CustomElement, IAttrMapper, NodeObserverLocator } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {

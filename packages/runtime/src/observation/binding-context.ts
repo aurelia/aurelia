@@ -1,8 +1,8 @@
-import { LifecycleFlags } from '../observation.js';
+import { LifecycleFlags } from '../observation';
 
 import type { IIndexable } from '@aurelia/kernel';
-import type { IBinding, IBindingContext, IOverrideContext } from '../observation.js';
-import { hasOwnProp } from '../utilities-objects.js';
+import type { IBinding, IBindingContext, IOverrideContext } from '../observation';
+import { hasOwnProp } from '../utilities-objects';
 
 const marker = Object.freeze({});
 

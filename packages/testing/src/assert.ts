@@ -23,17 +23,18 @@
  * IN THE SOFTWARE.
  */
 
-import { IIndexable, Task, TaskQueue } from '@aurelia/kernel';
+import { Task, TaskQueue, TaskQueuePriority } from '@aurelia/platform';
+import { IIndexable } from '@aurelia/kernel';
 import {
   isDeepEqual,
   isDeepStrictEqual,
-} from './comparison.js';
+} from './comparison';
 import {
   AssertionError,
   IAssertionErrorOpts,
   inspect,
-} from './inspect.js';
-import { getVisibleText } from './specialized-assertions.js';
+} from './inspect';
+import { getVisibleText } from './specialized-assertions';
 import {
   isError,
   isFunction,
@@ -46,16 +47,14 @@ import {
   Object_freeze,
   Object_is,
   Object_keys,
-} from './util.js';
+} from './util';
+import { BrowserPlatform } from '@aurelia/platform-browser';
 import {
-  IAppRoot,
   CustomElement,
   CustomAttribute,
-  TaskQueuePriority,
-  BrowserPlatform,
 } from '@aurelia/runtime-html';
-import { ensureTaskQueuesEmpty } from './scheduler.js';
-import { PLATFORM } from './test-context.js';
+import { ensureTaskQueuesEmpty } from './scheduler';
+import { PLATFORM } from './test-context';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any */
 

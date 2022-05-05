@@ -67,7 +67,7 @@ export function isNullOrUndefined(value: unknown): value is null | undefined {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 
-const metadataInternalSlot = new WeakMap<any, Map<string | symbol | undefined, Map<any, any>>>();
+let metadataInternalSlot = new WeakMap<any, Map<string | symbol | undefined, Map<any, any>>>();
 
 function $typeError(operation: string, args: unknown[], paramName: string, actualValue: unknown, expectedType: string): TypeError {
   return new TypeError(`${operation}(${args.map(String).join(',')}) - Expected '${paramName}' to be of type ${expectedType}, but got: ${Object.prototype.toString.call(actualValue)} (${String(actualValue)})`);
@@ -1045,6 +1045,12 @@ export function applyMetadataPolyfill(
 ): void {
   if (hasInternalSlot(reflect)) {
     if (reflect[internalSlotName] === metadataInternalSlot) {
+      return;
+    }
+    // last effort
+    if (reflect[internalSlotName] instanceof WeakMap) {
+      metadataInternalSlot = reflect[internalSlotName];
+      // todo: log something
       return;
     }
     throw new Error(`Conflicting @aurelia/metadata module import detected. Please make sure you have the same version of all Aurelia packages in your dependency tree.`);

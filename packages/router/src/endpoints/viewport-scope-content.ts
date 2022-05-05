@@ -1,4 +1,4 @@
-import { EndpointContent } from '../index.js';
+import { EndpointContent } from '../index';
 
 /**
  * The viewport scope content represents the content of a viewport scope

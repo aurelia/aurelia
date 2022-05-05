@@ -1,9 +1,9 @@
 import { DI, IEventAggregator } from '@aurelia/kernel';
 import { ISignaler } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
-import { I18nInitOptions } from './i18n-configuration-options.js';
-import { I18nextWrapper, I18nWrapper } from './i18next-wrapper.js';
-import { Signals } from './utils.js';
+import { I18nInitOptions } from './i18n-configuration-options';
+import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
+import { Signals } from './utils';
 
 const enum TimeSpan {
   Second = 1000,

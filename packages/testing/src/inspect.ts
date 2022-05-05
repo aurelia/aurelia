@@ -100,8 +100,8 @@ import {
   truncate,
   TypedArray,
   TypedArrayConstructor,
-} from './util.js';
-import { PLATFORM } from './test-context.js';
+} from './util';
+import { PLATFORM } from './test-context';
 
 /* eslint-disable max-lines-per-function, @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types */
 

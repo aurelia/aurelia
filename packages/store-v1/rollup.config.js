@@ -7,12 +7,12 @@ export default getRollupConfig(pkg,
     config.external = Object.keys(pkg.dependencies).concat('rxjs/operators');
     return config;
   },
-  () => ({
-    mangle: {
-      properties: {
-        regex: /^_/,
-        reserved: ['__esModule', '_stateSubscriptions', '_state', '__REDUX_DEVTOOLS_EXTENSION__']
-      }
-    }
-  })
+  // () => ({
+  //   mangle: {
+  //     properties: {
+  //       regex: /^_/,
+  //       reserved: ['__esModule', '_stateSubscriptions', '_state', '__REDUX_DEVTOOLS_EXTENSION__']
+  //     }
+  //   }
+  // })
 );

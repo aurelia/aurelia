@@ -1,16 +1,16 @@
 import { Scope } from '@aurelia/runtime';
-import { IRenderLocation } from '../../dom.js';
-import { bindable } from '../../bindable.js';
-import { customElement } from '../custom-element.js';
-import { IInstruction } from '../../renderer.js';
-import { IHydrationContext } from '../../templating/controller.js';
-import { IRendering } from '../../templating/rendering.js';
+import { IRenderLocation } from '../../dom';
+import { bindable } from '../../bindable';
+import { customElement } from '../custom-element';
+import { IInstruction } from '../../renderer';
+import { IHydrationContext } from '../../templating/controller';
+import { IRendering } from '../../templating/rendering';
 
 import type { Writable } from '@aurelia/kernel';
 import type { LifecycleFlags } from '@aurelia/runtime';
-import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
-import type { IViewFactory } from '../../templating/view.js';
-import type { HydrateElementInstruction } from '../../renderer.js';
+import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
+import type { IViewFactory } from '../../templating/view';
+import type { HydrateElementInstruction } from '../../renderer';
 
 export class AuSlot implements ICustomElementViewModel {
   /** @internal */ public static get inject() { return [IRenderLocation, IInstruction, IHydrationContext, IRendering]; }

@@ -1,6 +1,7 @@
-import { bindable, BindingMode, customAttribute, INode } from '@aurelia/runtime-html';
-import { IValidationController, ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller.js';
-import { compareDocumentPositionFlat } from './common.js';
+import { BindingMode } from '@aurelia/runtime';
+import { bindable, customAttribute, INode } from '@aurelia/runtime-html';
+import { IValidationController, ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller';
+import { compareDocumentPositionFlat } from './common';
 import { optional } from '@aurelia/kernel';
 
 /**

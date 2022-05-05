@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { resolve } from 'path';
-import { AuConfigurationOptions } from './au-configuration-options.js';
-import { DevServer } from "./dev-server.js";
+import { AuConfigurationOptions } from './au-configuration-options';
+import { DevServer } from "./dev-server";
 export { AuConfigurationOptions };
 
 type AuCommands = 'help' | 'dev';
@@ -27,7 +27,18 @@ async function parseArgs(args: string[]): Promise<ParsedArgs> {
     if (!existsSync(configurationFile)) {
       throw new Error(`Configuration file is missing or uneven amount of args: ${args}. Args must come in pairs of --key value`);
     } else {
-      const config = (await import(`file://${configurationFile}`)).default;
+      let config;
+      try {
+        config = (await import(`${configurationFile}`)).default;
+      } catch {
+        try {
+          config = (await import(`file://${configurationFile}`)).default;
+        } catch {
+          try {
+            config = (await import(`file:///${configurationFile}`)).default;
+          } catch {/*  */}
+        }
+      }
       configuration.applyConfig(config);
       args = args.slice(1);
     }

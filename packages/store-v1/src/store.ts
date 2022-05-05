@@ -3,10 +3,10 @@ import { IContainer, ILogger } from '@aurelia/kernel';
 import { IWindow } from "@aurelia/runtime-html";
 import { BehaviorSubject, Observable } from 'rxjs';
 
-import { jump, applyLimits, HistoryOptions, isStateHistory } from './history.js';
-import { Middleware, MiddlewarePlacement, CallingAction } from './middleware.js';
-import { LogDefinitions, LogLevel, getLogType } from './logging.js';
-import { DevToolsOptions, Action, DevToolsExtension, DevTools } from './devtools.js';
+import { jump, applyLimits, HistoryOptions, isStateHistory } from './history';
+import { Middleware, MiddlewarePlacement, CallingAction } from './middleware';
+import { LogDefinitions, LogLevel, getLogType } from './logging';
+import { DevToolsOptions, Action, DevToolsExtension, DevTools } from './devtools';
 
 export type Reducer<T, P extends unknown[] = unknown[]> = (state: T, ...params: P) => T | false | Promise<T | false>;
 

@@ -1,11 +1,5 @@
+import { LifecycleFlags, Scope, Interpolation, AccessScopeExpression, ForOfStatement, BindingIdentifier, BindingContext } from '@aurelia/runtime';
 import {
-  AccessScopeExpression,
-  PropertyBinding,
-  BindingContext,
-  BindingIdentifier,
-  ForOfStatement,
-  Scope,
-  LifecycleFlags,
   Repeat,
   Controller,
   CustomElementDefinition,
@@ -14,9 +8,9 @@ import {
   PropertyBindingRendererRegistration,
   TextBindingRendererRegistration,
   TextBindingInstruction,
-  Interpolation,
   INodeObserverLocatorRegistration,
   IRendering,
+  PropertyBinding,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,

@@ -2,6 +2,7 @@ import { Platform, TaskQueue } from '@aurelia/platform';
 
 const lookup = new Map<object, BrowserPlatform>();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function notImplemented(name: string): (...args: any[]) => any {
   return function notImplemented() {
     throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue

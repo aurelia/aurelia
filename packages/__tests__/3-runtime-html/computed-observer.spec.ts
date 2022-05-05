@@ -1,8 +1,6 @@
-import { ComputedObserver } from '@aurelia/runtime';
+import { ComputedObserver, IDirtyChecker, IObserverLocator } from '@aurelia/runtime';
 import {
-  IObserverLocator,
   CustomElement,
-  IDirtyChecker,
   Aurelia,
 } from '@aurelia/runtime-html';
 import {

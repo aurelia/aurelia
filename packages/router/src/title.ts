@@ -1,7 +1,7 @@
 import { TitleOptions } from './router-options';
 import { RoutingInstruction } from './instructions/routing-instruction';
 import { Navigation } from './navigation';
-import { RoutingHook } from './routing-hook.js';
+import { RoutingHook } from './routing-hook';
 
 export class Title {
   public static async getTitle(instructions: RoutingInstruction[], navigation: Navigation, titleOptions: TitleOptions): Promise<string | null> {

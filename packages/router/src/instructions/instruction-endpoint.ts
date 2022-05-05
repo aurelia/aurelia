@@ -1,8 +1,8 @@
-import { IRouter } from '../router.js';
-import { Endpoint, EndpointTypeName } from '../endpoints/endpoint.js';
-import { RoutingScope } from '../routing-scope.js';
-import { Viewport } from '../endpoints/viewport.js';
-import { ViewportScope } from '../endpoints/viewport-scope.js';
+import { IRouter } from '../router';
+import { Endpoint, EndpointTypeName } from '../endpoints/endpoint';
+import { RoutingScope } from '../routing-scope';
+import { Viewport } from '../endpoints/viewport';
+import { ViewportScope } from '../endpoints/viewport-scope';
 
 /**
  * Public API - The routing instructions are the core of the router's navigations

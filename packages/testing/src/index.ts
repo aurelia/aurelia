@@ -19,7 +19,9 @@ export {
   hJsx,
 } from './h';
 export {
-  createFixture
+  createFixture,
+  type IFixture,
+  onFixtureCreated,
 } from './startup';
 export {
   TestContext,

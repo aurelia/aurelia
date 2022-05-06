@@ -4,17 +4,27 @@ import {
 } from '@aurelia/runtime';
 
 import { IEventTarget } from '../dom';
+import { isFunction } from '../utilities';
 
 import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { IsBindingBehavior, Scope } from '@aurelia/runtime';
 import type { IEventDelegator } from '../observation/event-delegator';
 import type { IPlatform } from '../platform';
-import { IAstBasedBinding } from './interfaces-bindings';
+import type { IAstBasedBinding } from './interfaces-bindings';
 
-const options = {
-  [DelegationStrategy.capturing]: { capture: true } as const,
-  [DelegationStrategy.bubbling]: { capture: false } as const,
+const addListenerOptions = {
+  [DelegationStrategy.capturing]: { capture: true },
+  [DelegationStrategy.bubbling]: { capture: false },
 } as const;
+
+/** @internal */
+export class ListenerOptions {
+  public constructor(
+    public readonly prevent: boolean,
+    public readonly strategy: DelegationStrategy,
+    public readonly expAsHandler: boolean,
+  ) {}
+}
 
 export interface Listener extends IAstBasedBinding {}
 /**
@@ -31,23 +41,29 @@ export class Listener implements IAstBasedBinding {
   public constructor(
     public platform: IPlatform,
     public targetEvent: string,
-    public delegationStrategy: DelegationStrategy,
     public sourceExpression: IsBindingBehavior,
     public target: Node,
-    public preventDefault: boolean,
     public eventDelegator: IEventDelegator,
     public locator: IServiceLocator,
+    private readonly _options: ListenerOptions,
   ) {}
 
   public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator, null);
+    let result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator, null);
 
-    Reflect.deleteProperty(overrideContext, '$event');
+    delete overrideContext.$event;
 
-    if (result !== true && this.preventDefault) {
+    if (this._options.expAsHandler) {
+      if (!isFunction(result)) {
+        throw new Error(`Handler of "${this.targetEvent}" event is not a function.`);
+      }
+      result = result(event);
+    }
+
+    if (result !== true && this._options.prevent) {
       event.preventDefault();
     }
 
@@ -74,7 +90,7 @@ export class Listener implements IAstBasedBinding {
       sourceExpression.bind(flags, scope, this.interceptor);
     }
 
-    if (this.delegationStrategy === DelegationStrategy.none) {
+    if (this._options.strategy === DelegationStrategy.none) {
       this.target.addEventListener(this.targetEvent, this);
     } else {
       this.handler = this.eventDelegator.addEventListener(
@@ -82,7 +98,7 @@ export class Listener implements IAstBasedBinding {
         this.target,
         this.targetEvent,
         this,
-        options[this.delegationStrategy],
+        addListenerOptions[this._options.strategy],
       );
     }
 
@@ -101,7 +117,7 @@ export class Listener implements IAstBasedBinding {
     }
 
     this.$scope = null!;
-    if (this.delegationStrategy === DelegationStrategy.none) {
+    if (this._options.strategy === DelegationStrategy.none) {
       this.target.removeEventListener(this.targetEvent, this);
     } else {
       this.handler.dispose();
@@ -112,10 +128,12 @@ export class Listener implements IAstBasedBinding {
     this.isBound = false;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public observe(obj: IIndexable, propertyName: string): void {
     return;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     return;
   }

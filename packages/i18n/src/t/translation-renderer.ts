@@ -30,6 +30,7 @@ export class TranslationAttributePattern {
   [key: string]: ((rawName: string, rawValue: string, parts: string[]) => AttrSyntax);
 
   public static registerAlias(alias: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.prototype[alias] = function (rawName: string, rawValue: string, parts: string[]): AttrSyntax {
       return new AttrSyntax(rawName, rawValue, '', alias);
     };
@@ -78,6 +79,7 @@ export class TranslationBindingRenderer implements IRenderer {
   /** @internal */ private readonly _observerLocator: IObserverLocator;
   /** @internal */ private readonly _platform: IPlatform;
 
+  public target!: typeof TranslationInstructionType;
   public constructor(
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
@@ -157,6 +159,7 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
 
 @renderer(TranslationBindInstructionType)
 export class TranslationBindBindingRenderer implements IRenderer {
+  public target!: typeof TranslationBindInstructionType;
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly oL: IObserverLocator,

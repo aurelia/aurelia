@@ -28,3 +28,4 @@ const IsDataAttribute: Record<string, boolean> = createLookup();
 /** @internal */ export const isFunction = <T, K extends Function>(v: unknown): v is K => typeof v === 'function';
 
 /** @internal */ export const isString = (v: unknown): v is string => typeof v === 'string';
+/** @internal */ export const defineProp = Object.defineProperty;

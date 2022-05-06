@@ -124,7 +124,7 @@ describe('TranslationBindingRenderer', function () {
   it('instantiated with instruction type', function () {
     const container = createFixture();
     const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
-    assert.equal(sut.instructionType, TranslationInstructionType);
+    assert.equal(sut.target, TranslationInstructionType);
   });
 
   it('#render instantiates TranslationBinding - simple string literal', function () {
@@ -264,7 +264,7 @@ describe('TranslationBindBindingRenderer', function () {
   it('instantiated with instruction type', function () {
     const container = createFixture();
     const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
-    assert.equal(sut.instructionType, TranslationBindInstructionType);
+    assert.equal(sut.target, TranslationBindInstructionType);
   });
 
   it('#render instantiates TranslationBinding - simple string literal', function () {

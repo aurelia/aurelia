@@ -82,6 +82,7 @@ export class TranslationParametersBindingRenderer implements IRenderer {
   /** @internal */ private readonly _observerLocator: IObserverLocator;
   /** @internal */ private readonly _platform: IPlatform;
 
+  public target!: typeof TranslationParametersInstructionType;
   public constructor(
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,

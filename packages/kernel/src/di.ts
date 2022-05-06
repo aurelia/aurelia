@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 
 applyMetadataPolyfill(Reflect, false, false);
@@ -269,7 +269,7 @@ export const DI = {
 
     if (configure != null) {
       Interface.register = function (container: IContainer, key?: Key): IResolver<K> {
-          return configure(new ResolverBuilder(container, key ?? Interface));
+        return configure(new ResolverBuilder(container, key ?? Interface));
       };
     }
 

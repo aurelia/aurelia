@@ -29,7 +29,7 @@ export class Rendering {
   public get renderers(): Record<string, IRenderer> {
     return this.rs == null
       ? (this.rs = this._ctn.getAll(IRenderer, false).reduce((all, r) => {
-          all[r.instructionType!] = r;
+          all[r.target] = r;
           return all;
         }, createLookup<IRenderer>()))
       : this.rs;

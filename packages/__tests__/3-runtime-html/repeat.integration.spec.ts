@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from "@aurelia/testing";
 

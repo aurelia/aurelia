@@ -318,7 +318,6 @@ export class Store<T> {
   }
 
   private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T | false {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return Array.from(this.middlewares)
       .filter((middleware) => middleware[1].placement === placement)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

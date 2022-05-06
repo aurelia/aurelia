@@ -482,7 +482,6 @@ export function toLookup<
   obj5: T5,
 ): Readonly<T1 & T2 & T3 & T4 & T5>;
 export function toLookup(...objs: {}[]): Readonly<{}> {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return Object.assign(createObject(), ...objs);
 }
 
